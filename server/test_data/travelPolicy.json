@@ -1,0 +1,69 @@
+{
+    "group1": {
+      "international": {
+        "airfareClasses": {
+          "choice": ["economy", "business", "private"],
+          "violationMessage": "This choice is not allowed as per your company policies"
+        },
+        "hotels": {
+          "choice": ["3 star", "4 star", "5 star"],
+          "violationMessage": "This choice is not allowed as per your company policies"
+        }
+      },
+      "domestic": {
+        "airfareClasses": {
+          "choice": ["economy", "business", "private"],
+          "violationMessage": "This choice is not allowed as per your company policies"
+        },
+        "hotels": {
+          "choice": ["3 star", "4 star", "5 star"],
+          "violationMessage": "This choice is not allowed as per your company policies"
+        }
+      }
+    },
+    "group2": {
+      "international": {
+        "airfareClasses": {
+          "choice": ["economy"],
+          "violationMessage": "This choice is not allowed as per your company policies"
+        },
+        "hotels": {
+          "choice": ["3 star"],
+          "violationMessage": "This choice is not allowed as per your company policies"
+        }
+      },
+      "domestic": {
+        "airfareClasses": {
+          "choice": ["economy", "business"],
+          "violationMessage": "This choice is not allowed as per your company policies"
+        },
+        "hotels": {
+          "choice": ["3 star", "4 star", "5 star"],
+          "violationMessage": "This choice is not allowed as per your company policies"
+        }
+      }
+    },
+    "group3": {
+      "international": {
+        "airfareClasses": {
+          "choice": ["economy", "business", "private"],
+          "violationMessage": "This choice is not allowed as per your company policies"
+        },
+        "hotels": {
+          "choice": ["3 star", "4 star", "5 star"],
+          "violationMessage": "This choice is not allowed as per your company policies"
+        }
+      },
+      "domestic": {
+        "airfareClasses": {
+          "choice": ["economy", "business", "private"],
+          "violationMessage": "This choice is not allowed as per your company policies"
+        },
+        "hotels": {
+          "choice": ["3 star", "4 star", "5 star"],
+          "violationMessage": "This choice is not allowed as per your company policies"
+        }
+      }
+    }
+  }
+  

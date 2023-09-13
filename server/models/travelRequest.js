@@ -40,7 +40,6 @@ const itinerarySchema = ({
     flights: [String],      
 })
 
-
 const travelRequestSchema = new mongoose.Schema({
     tenantId: {
     type: String,
@@ -49,6 +48,7 @@ const travelRequestSchema = new mongoose.Schema({
   travelRequestId: {
     type: String, // tenantId_createdBy_tr_#(tr number) | tentative | not fixed
     required: true,
+    unique: true,
   },
   travelRequestStatus: { //initialize with status as 'draft'
     type: String,
@@ -105,7 +105,7 @@ const travelRequestSchema = new mongoose.Schema({
   travelCompletionDate: String,
   travelRequestRejectionReason: String,
   travelAndNonTravelPolicies: travelAndNonTravelPoliciesSchema,
-});
+})
 
 
 const TravelRequest = mongoose.model('travel_request_container', travelRequestSchema)

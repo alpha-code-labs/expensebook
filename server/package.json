@@ -6,7 +6,8 @@
   "main": "index.js",
   "scripts": {
     "start": "nodemon start index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "format": "prettier --loglevel warn --write \"{server/controllers}/**/*.{jsx,js}\""
   },
   "repository": {
     "type": "git",
