@@ -13,7 +13,7 @@ const getOnboardingAndProfileData = async (req, res) => {
     const onboardingData = await fetchOnboardingData(tenantId, employeeId);
     const profileData = await fetchProfileData(tenantId, employeeId);
 
-    res.status(200).json({ onboardingData });
+    res.status(200).json({ data: { onboardingData, profileData } });
   } catch (e) {}
 };
 
@@ -200,4 +200,14 @@ const updateTravelRequest = async (req, res) => {
     console.error(e);
     return res.status(500).json({ message: "Internal server error" });
   }
+};
+
+export {
+  getOnboardingAndProfileData,
+  createTravelRequest,
+  getTravelRequest,
+  validateTravelPolicy,
+  getTravelRequestStatus,
+  updateTravelRequest,
+  updateTravelRequestStatus,
 };

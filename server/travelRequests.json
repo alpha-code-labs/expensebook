@@ -1,0 +1,591 @@
+[
+    {
+    "tenantId": "tenant123",
+    "travelRequestId": "tenant123_emp000121_tr_001",
+    "createdBy": "emp000121",
+    "createdFor": ["emp000129", "emp000188"],
+    "travelRequestStatus": "booked",
+    "travelRequestState": "section 0",
+    "travelRequestDate": "2023-09-14",
+    "travelBookingDate": "2023-09-15",
+    "travelCompletionDate": "2023-09-20",
+    "travelAndNonTravelPolicies": {
+      "travelPolicy": {
+        "InternationalPolicy": {
+        },
+        "domesticPolicy": {
+        },
+        "localPolicy": {
+        }
+      },
+      "nonTravelPolicy": {
+      }
+    },
+    "itinerary": {
+      "departureCity": "New York",
+      "arrivalCity": "Los Angeles",
+      "departureDate": "2023-09-25",
+      "returnDate": "2023-09-30",
+      "hotels": ["Hotel A", "Hotel B"],
+      "cabs": ["Cab X", "Cab Y"],
+      "flights": ["Flight 123", "Flight 456"]
+    },
+    "travelDocuments": ["Document 1.pdf", "Document 2.pdf"],
+    "bookings": [
+      {
+        "vendorName": "Hotel A",
+        "billNumber": "12345",
+        "billDescription": "Hotel stay for 5 nights",
+        "grossAmount": 500.0,
+        "taxes": 50.0,
+        "date": "2023-09-16",
+        "imageUrl": "https://example.com/hotel_receipt.jpg"
+      },
+      {
+        "vendorName": "Flight 123",
+        "billNumber": "67890",
+        "billDescription": "Round-trip flight ticket",
+        "grossAmount": 300.0,
+        "taxes": 30.0,
+        "date": "2023-09-17",
+        "imageUrl": "https://example.com/flight_receipt.jpg"
+      }
+    ],
+    "approvers": ["approver1", "approver2"],
+    "preferences": ["preference1", "preference2"],
+    "travelViolations": ["violation1", "violation2"],
+    "travelRequestRejectionReason": "Not approved due to budget constraints"
+  }, 
+
+
+  {
+    "tenantId": "tenant123",
+    "travelRequestId": "tenant123_emp000127_tr_001",
+    "createdBy": "emp000127",
+    "createdFor": ["emp001129"],
+    "travelRequestStatus": "booked",
+    "travelRequestState": "section 0",
+    "travelRequestDate": "2023-09-14",
+    "travelBookingDate": "2023-09-15",
+    "travelCompletionDate": "2023-09-20",
+    "travelAndNonTravelPolicies": {
+      "travelPolicy": {
+        "InternationalPolicy": {
+        },
+        "domesticPolicy": {
+        },
+        "localPolicy": {
+        }
+      },
+      "nonTravelPolicy": {
+      }
+    },
+    "itinerary": {
+      "departureCity": "New York",
+      "arrivalCity": "Los Angeles",
+      "departureDate": "2023-09-25",
+      "returnDate": "2023-09-30",
+      "hotels": ["Hotel A", "Hotel B"],
+      "cabs": ["Cab X", "Cab Y"],
+      "flights": ["Flight 123", "Flight 456"]
+    },
+    "travelDocuments": ["Document 1.pdf", "Document 2.pdf"],
+    "bookings": [
+      {
+        "vendorName": "Hotel A",
+        "billNumber": "12345",
+        "billDescription": "Hotel stay for 5 nights",
+        "grossAmount": 500.0,
+        "taxes": 50.0,
+        "date": "2023-09-16",
+        "imageUrl": "https://example.com/hotel_receipt.jpg"
+      },
+      {
+        "vendorName": "Flight 123",
+        "billNumber": "67890",
+        "billDescription": "Round-trip flight ticket",
+        "grossAmount": 300.0,
+        "taxes": 30.0,
+        "date": "2023-09-17",
+        "imageUrl": "https://example.com/flight_receipt.jpg"
+      }
+    ],
+    "approvers": ["approver1", "approver2"],
+    "preferences": ["preference1", "preference2"],
+    "travelViolations": ["violation1", "violation2"],
+    "travelRequestRejectionReason": "Not approved due to budget constraints"
+  },
+  
+
+  {
+    "tenantId": "tenant123",
+    "travelRequestId": "tenant123_emp000221_tr_001",
+    "createdBy": "emp000221",
+    "createdFor": ["emp01029"],
+    "travelRequestStatus": "booked",
+    "travelRequestState": "section 0",
+    "travelRequestDate": "2023-09-14",
+    "travelBookingDate": "2023-09-15",
+    "travelCompletionDate": "2023-09-20",
+    "travelAndNonTravelPolicies": {
+      "travelPolicy": {
+        "InternationalPolicy": {
+        },
+        "domesticPolicy": {
+        },
+        "localPolicy": {
+        }
+      },
+      "nonTravelPolicy": {
+      }
+    },
+    "itinerary": {
+      "departureCity": "New York",
+      "arrivalCity": "Los Angeles",
+      "departureDate": "2023-09-25",
+      "returnDate": "2023-09-30",
+      "hotels": ["Hotel A", "Hotel B"],
+      "cabs": ["Cab X", "Cab Y"],
+      "flights": ["Flight 123", "Flight 456"]
+    },
+    "travelDocuments": ["Document 1.pdf", "Document 2.pdf"],
+    "bookings": [
+      {
+        "vendorName": "Hotel A",
+        "billNumber": "12345",
+        "billDescription": "Hotel stay for 5 nights",
+        "grossAmount": 500.0,
+        "taxes": 50.0,
+        "date": "2023-09-16",
+        "imageUrl": "https://example.com/hotel_receipt.jpg"
+      },
+      {
+        "vendorName": "Flight 123",
+        "billNumber": "67890",
+        "billDescription": "Round-trip flight ticket",
+        "grossAmount": 300.0,
+        "taxes": 30.0,
+        "date": "2023-09-17",
+        "imageUrl": "https://example.com/flight_receipt.jpg"
+      }
+    ],
+    "approvers": ["approver1", "approver2"],
+    "preferences": ["preference1", "preference2"],
+    "travelViolations": ["violation1", "violation2"],
+    "travelRequestRejectionReason": "Not approved due to budget constraints"
+  },
+  
+
+  {
+    "tenantId": "tenant123",
+    "travelRequestId": "tenant123_emp000121_tr_001",
+    "createdBy": "emp000121",
+    "createdFor": ["emp000129", "emp000188"],
+    "travelRequestStatus": "booked",
+    "travelRequestState": "section 0",
+    "travelRequestDate": "2023-09-14",
+    "travelBookingDate": "2023-09-15",
+    "travelCompletionDate": "2023-09-20",
+    "travelAndNonTravelPolicies": {
+      "travelPolicy": {
+        "InternationalPolicy": {
+        },
+        "domesticPolicy": {
+        },
+        "localPolicy": {
+        }
+      },
+      "nonTravelPolicy": {
+      }
+    },
+    "itinerary": {
+      "departureCity": "New York",
+      "arrivalCity": "Los Angeles",
+      "departureDate": "2023-09-25",
+      "returnDate": "2023-09-30",
+      "hotels": ["Hotel A", "Hotel B"],
+      "cabs": ["Cab X", "Cab Y"],
+      "flights": ["Flight 123", "Flight 456"]
+    },
+    "travelDocuments": ["Document 1.pdf", "Document 2.pdf"],
+    "bookings": [
+      {
+        "vendorName": "Hotel A",
+        "billNumber": "12345",
+        "billDescription": "Hotel stay for 5 nights",
+        "grossAmount": 500.0,
+        "taxes": 50.0,
+        "date": "2023-09-16",
+        "imageUrl": "https://example.com/hotel_receipt.jpg"
+      },
+      {
+        "vendorName": "Flight 123",
+        "billNumber": "67890",
+        "billDescription": "Round-trip flight ticket",
+        "grossAmount": 300.0,
+        "taxes": 30.0,
+        "date": "2023-09-17",
+        "imageUrl": "https://example.com/flight_receipt.jpg"
+      }
+    ],
+    "approvers": ["approver1", "approver2"],
+    "preferences": ["preference1", "preference2"],
+    "travelViolations": ["violation1", "violation2"],
+    "travelRequestRejectionReason": "Not approved due to budget constraints"
+  },
+  
+
+  {
+    "tenantId": "tenant123",
+    "travelRequestId": "tenant123_emp000121_tr_001",
+    "createdBy": "emp000121",
+    "createdFor": ["emp000139"],
+    "travelRequestStatus": "booked",
+    "travelRequestState": "section 0",
+    "travelRequestDate": "2023-09-14",
+    "travelBookingDate": "2023-09-15",
+    "travelCompletionDate": "2023-09-20",
+    "travelAndNonTravelPolicies": {
+      "travelPolicy": {
+        "InternationalPolicy": {
+        },
+        "domesticPolicy": {
+        },
+        "localPolicy": {
+        }
+      },
+      "nonTravelPolicy": {
+      }
+    },
+    "itinerary": {
+      "departureCity": "New York",
+      "arrivalCity": "Los Angeles",
+      "departureDate": "2023-09-25",
+      "returnDate": "2023-09-30",
+      "hotels": ["Hotel A", "Hotel B"],
+      "cabs": ["Cab X", "Cab Y"],
+      "flights": ["Flight 123", "Flight 456"]
+    },
+    "travelDocuments": ["Document 1.pdf", "Document 2.pdf"],
+    "bookings": [
+      {
+        "vendorName": "Hotel A",
+        "billNumber": "12345",
+        "billDescription": "Hotel stay for 5 nights",
+        "grossAmount": 500.0,
+        "taxes": 50.0,
+        "date": "2023-09-16",
+        "imageUrl": "https://example.com/hotel_receipt.jpg"
+      },
+      {
+        "vendorName": "Flight 123",
+        "billNumber": "67890",
+        "billDescription": "Round-trip flight ticket",
+        "grossAmount": 300.0,
+        "taxes": 30.0,
+        "date": "2023-09-17",
+        "imageUrl": "https://example.com/flight_receipt.jpg"
+      }
+    ],
+    "approvers": ["approver1", "approver2"],
+    "preferences": ["preference1", "preference2"],
+    "travelViolations": ["violation1", "violation2"],
+    "travelRequestRejectionReason": "Not approved due to budget constraints"
+  },
+  
+
+  {
+    "tenantId": "tenant123",
+    "travelRequestId": "tenant123_emp000121_tr_001",
+    "createdBy": "emp000121",
+    "createdFor": ["emp000129", "emp000188"],
+    "travelRequestStatus": "booked",
+    "travelRequestState": "section 0",
+    "travelRequestDate": "2023-09-14",
+    "travelBookingDate": "2023-09-15",
+    "travelCompletionDate": "2023-09-20",
+    "travelAndNonTravelPolicies": {
+      "travelPolicy": {
+        "InternationalPolicy": {
+        },
+        "domesticPolicy": {
+        },
+        "localPolicy": {
+        }
+      },
+      "nonTravelPolicy": {
+      }
+    },
+    "itinerary": {
+      "departureCity": "New York",
+      "arrivalCity": "Los Angeles",
+      "departureDate": "2023-09-25",
+      "returnDate": "2023-09-30",
+      "hotels": ["Hotel A", "Hotel B"],
+      "cabs": ["Cab X", "Cab Y"],
+      "flights": ["Flight 123", "Flight 456"]
+    },
+    "travelDocuments": ["Document 1.pdf", "Document 2.pdf"],
+    "bookings": [
+      {
+        "vendorName": "Hotel A",
+        "billNumber": "12345",
+        "billDescription": "Hotel stay for 5 nights",
+        "grossAmount": 500.0,
+        "taxes": 50.0,
+        "date": "2023-09-16",
+        "imageUrl": "https://example.com/hotel_receipt.jpg"
+      },
+      {
+        "vendorName": "Flight 123",
+        "billNumber": "67890",
+        "billDescription": "Round-trip flight ticket",
+        "grossAmount": 300.0,
+        "taxes": 30.0,
+        "date": "2023-09-17",
+        "imageUrl": "https://example.com/flight_receipt.jpg"
+      }
+    ],
+    "approvers": ["approver1", "approver2"],
+    "preferences": ["preference1", "preference2"],
+    "travelViolations": ["violation1", "violation2"],
+    "travelRequestRejectionReason": "Not approved due to budget constraints"
+  },
+  
+
+  {
+    "tenantId": "tenant123",
+    "travelRequestId": "tenant123_emp000129_tr_001",
+    "createdBy": "emp000129",
+    "createdFor": ["emp000129", "emp000188"],
+    "travelRequestStatus": "booked",
+    "travelRequestState": "section 0",
+    "travelRequestDate": "2023-09-14",
+    "travelBookingDate": "2023-09-15",
+    "travelCompletionDate": "2023-09-20",
+    "travelAndNonTravelPolicies": {
+      "travelPolicy": {
+        "InternationalPolicy": {
+        },
+        "domesticPolicy": {
+        },
+        "localPolicy": {
+        }
+      },
+      "nonTravelPolicy": {
+      }
+    },
+    "itinerary": {
+      "departureCity": "New York",
+      "arrivalCity": "Los Angeles",
+      "departureDate": "2023-09-25",
+      "returnDate": "2023-09-30",
+      "hotels": ["Hotel A", "Hotel B"],
+      "cabs": ["Cab X", "Cab Y"],
+      "flights": ["Flight 123", "Flight 456"]
+    },
+    "travelDocuments": ["Document 1.pdf", "Document 2.pdf"],
+    "bookings": [
+      {
+        "vendorName": "Hotel A",
+        "billNumber": "12345",
+        "billDescription": "Hotel stay for 5 nights",
+        "grossAmount": 500.0,
+        "taxes": 50.0,
+        "date": "2023-09-16",
+        "imageUrl": "https://example.com/hotel_receipt.jpg"
+      },
+      {
+        "vendorName": "Flight 123",
+        "billNumber": "67890",
+        "billDescription": "Round-trip flight ticket",
+        "grossAmount": 300.0,
+        "taxes": 30.0,
+        "date": "2023-09-17",
+        "imageUrl": "https://example.com/flight_receipt.jpg"
+      }
+    ],
+    "approvers": ["approver1", "approver2"],
+    "preferences": ["preference1", "preference2"],
+    "travelViolations": ["violation1", "violation2"],
+    "travelRequestRejectionReason": "Not approved due to budget constraints"
+  },
+  
+
+  {
+    "tenantId": "tenant123",
+    "travelRequestId": "tenant123_emp000121_tr_002",
+    "createdBy": "emp000121",
+    "createdFor": ["emp000129", "emp000188"],
+    "travelRequestStatus": "draft",
+    "travelRequestState": "section 0",
+    "travelRequestDate": "2023-09-14",
+    "travelBookingDate": "2023-09-15",
+    "travelCompletionDate": "2023-09-20",
+    "travelAndNonTravelPolicies": {
+      "travelPolicy": {
+        "InternationalPolicy": {
+        },
+        "domesticPolicy": {
+        },
+        "localPolicy": {
+        }
+      },
+      "nonTravelPolicy": {
+      }
+    },
+    "itinerary": {
+      "departureCity": "New York",
+      "arrivalCity": "Los Angeles",
+      "departureDate": "2023-09-25",
+      "returnDate": "2023-09-30",
+      "hotels": ["Hotel A", "Hotel B"],
+      "cabs": ["Cab X", "Cab Y"],
+      "flights": ["Flight 123", "Flight 456"]
+    },
+    "travelDocuments": ["Document 1.pdf", "Document 2.pdf"],
+    "bookings": [
+      {
+        "vendorName": "Hotel A",
+        "billNumber": "12345",
+        "billDescription": "Hotel stay for 5 nights",
+        "grossAmount": 500.0,
+        "taxes": 50.0,
+        "date": "2023-09-16",
+        "imageUrl": "https://example.com/hotel_receipt.jpg"
+      },
+      {
+        "vendorName": "Flight 123",
+        "billNumber": "67890",
+        "billDescription": "Round-trip flight ticket",
+        "grossAmount": 300.0,
+        "taxes": 30.0,
+        "date": "2023-09-17",
+        "imageUrl": "https://example.com/flight_receipt.jpg"
+      }
+    ],
+    "approvers": ["approver1", "approver2"],
+    "preferences": ["preference1", "preference2"],
+    "travelViolations": ["violation1", "violation2"],
+    "travelRequestRejectionReason": "Not approved due to budget constraints"
+  },
+  
+
+  {
+    "tenantId": "tenant123",
+    "travelRequestId": "tenant123_emp000122_tr_001",
+    "createdBy": "emp000122",
+    "createdFor": ["emp000129", "emp000188"],
+    "travelRequestStatus": "booked",
+    "travelRequestState": "section 0",
+    "travelRequestDate": "2023-09-14",
+    "travelBookingDate": "2023-09-15",
+    "travelCompletionDate": "2023-09-20",
+    "travelAndNonTravelPolicies": {
+      "travelPolicy": {
+        "InternationalPolicy": {
+        },
+        "domesticPolicy": {
+        },
+        "localPolicy": {
+        }
+      },
+      "nonTravelPolicy": {
+      }
+    },
+    "itinerary": {
+      "departureCity": "New York",
+      "arrivalCity": "Los Angeles",
+      "departureDate": "2023-09-25",
+      "returnDate": "2023-09-30",
+      "hotels": ["Hotel A", "Hotel B"],
+      "cabs": ["Cab X", "Cab Y"],
+      "flights": ["Flight 123", "Flight 456"]
+    },
+    "travelDocuments": ["Document 1.pdf", "Document 2.pdf"],
+    "bookings": [
+      {
+        "vendorName": "Hotel A",
+        "billNumber": "12345",
+        "billDescription": "Hotel stay for 5 nights",
+        "grossAmount": 500.0,
+        "taxes": 50.0,
+        "date": "2023-09-16",
+        "imageUrl": "https://example.com/hotel_receipt.jpg"
+      },
+      {
+        "vendorName": "Flight 123",
+        "billNumber": "67890",
+        "billDescription": "Round-trip flight ticket",
+        "grossAmount": 300.0,
+        "taxes": 30.0,
+        "date": "2023-09-17",
+        "imageUrl": "https://example.com/flight_receipt.jpg"
+      }
+    ],
+    "approvers": ["approver1", "approver2"],
+    "preferences": ["preference1", "preference2"],
+    "travelViolations": ["violation1", "violation2"],
+    "travelRequestRejectionReason": "Not approved due to budget constraints"
+  },
+  
+
+  {
+    "tenantId": "tenant123",
+    "travelRequestId": "tenant123_emp000121_tr_001",
+    "createdBy": "emp000121",
+    "createdFor": ["emp000129", "emp000188"],
+    "travelRequestStatus": "booked",
+    "travelRequestState": "section 0",
+    "travelRequestDate": "2023-09-14",
+    "travelBookingDate": "2023-09-15",
+    "travelCompletionDate": "2023-09-20",
+    "travelAndNonTravelPolicies": {
+      "travelPolicy": {
+        "InternationalPolicy": {
+        },
+        "domesticPolicy": {
+        },
+        "localPolicy": {
+        }
+      },
+      "nonTravelPolicy": {
+      }
+    },
+    "itinerary": {
+      "departureCity": "New York",
+      "arrivalCity": "Los Angeles",
+      "departureDate": "2023-09-25",
+      "returnDate": "2023-09-30",
+      "hotels": ["Hotel A", "Hotel B"],
+      "cabs": ["Cab X", "Cab Y"],
+      "flights": ["Flight 123", "Flight 456"]
+    },
+    "travelDocuments": ["Document 1.pdf", "Document 2.pdf"],
+    "bookings": [
+      {
+        "vendorName": "Hotel A",
+        "billNumber": "12345",
+        "billDescription": "Hotel stay for 5 nights",
+        "grossAmount": 500.0,
+        "taxes": 50.0,
+        "date": "2023-09-16",
+        "imageUrl": "https://example.com/hotel_receipt.jpg"
+      },
+      {
+        "vendorName": "Flight 123",
+        "billNumber": "67890",
+        "billDescription": "Round-trip flight ticket",
+        "grossAmount": 300.0,
+        "taxes": 30.0,
+        "date": "2023-09-17",
+        "imageUrl": "https://example.com/flight_receipt.jpg"
+      }
+    ],
+    "approvers": ["approver1", "approver2"],
+    "preferences": ["preference1", "preference2"],
+    "travelViolations": ["violation1", "violation2"],
+    "travelRequestRejectionReason": "Not approved due to budget constraints"
+  }
+]
+  

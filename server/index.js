@@ -1,6 +1,8 @@
 import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
+import internalRoutes from './routes/internalRoutes.js'
+import frontendRouts from './routes/frontendRoutes.js'
 
 dotenv.config();
 const app = express();
@@ -8,7 +10,9 @@ const app = express();
 const MONGO_URI = process.env.MONGO_URI;
 const PORT = process.env.PORT;
 
-app.use("/api/notify", notificationRoutes);
+app.use("travel/internal/api/", internalRoutes);
+app.use("travel/api/", frontendRouts);
+
 
 async function connectToMongoDB() {
   try {
