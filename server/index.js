@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 import internalRoutes from './routes/internalRoutes.js'
 import frontendRouts from './routes/frontendRoutes.js'
+import { fetchGroupAndPoliciesData } from "./services/onboardingService.js";
 
 dotenv.config();
 const app = express();
@@ -10,8 +11,10 @@ const app = express();
 const MONGO_URI = process.env.MONGO_URI;
 const PORT = process.env.PORT;
 
-app.use("travel/internal/api/", internalRoutes);
-app.use("travel/api/", frontendRouts);
+app.use(express.json())
+app.use("/travel/internal/api", internalRoutes);
+app.use("/travel/api", frontendRouts);
+
 
 
 async function connectToMongoDB() {

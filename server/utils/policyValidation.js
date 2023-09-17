@@ -1,5 +1,4 @@
-import travelPolicy from '../test_data/travelPolicy.json'
-
+import travelPolicy from '../test_data/travelPolicy.json' assert { type: "json" }
 export default function policyValidation(group, policy, value){
     const allowed = travelPolicy.policy.find(value)
     const status = allowed ? 'allowed' : 'not allowed'

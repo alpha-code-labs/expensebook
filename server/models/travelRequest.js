@@ -109,4 +109,4 @@ const travelRequestSchema = new mongoose.Schema({
 
 
 const TravelRequest = mongoose.model('travel_request_container', travelRequestSchema)
-module.exports = TravelRequest
+export default TravelRequest

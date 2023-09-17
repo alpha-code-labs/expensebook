@@ -9,10 +9,10 @@ import {
 
 const router = express.Router();
 
-router.get("/travelRequests/", getTravelRequests);
-router.put("/travelRequests/:travelRequestId", updateTravelRequest);
-router.get("/travelRequests/:travelRequestId", getTravelRequest);
-router.get("/travelRequests/status/:travelRequestId", getTravelRequestStatus);
-router.put("/travelRequests/status/:travelRequestId", updateTravelRequestStatus);
+router.get("/travel-requests/", getTravelRequests);
+router.get("/travel-requests/:travelRequestId", getTravelRequest);
+router.get("/travel-requests/:travelRequestId/status", getTravelRequestStatus);
+router.put("/travel-requests/:travelRequestId", updateTravelRequest);
+router.put("/travel-requests/:travelRequestId/status", updateTravelRequestStatus);
 
 export default router;
