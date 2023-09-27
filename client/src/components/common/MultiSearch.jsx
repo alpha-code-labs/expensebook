@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { titleCase } from "../../utils/handyFunctions";
 
-export default function Search(props){
+export default function MultiSearch(props){
     const placeholder = props.placeholder || "Placeholder Text";
     const title = props.title || "Title";
     const [showDropdown, setShowDropdown] = useState(false);
@@ -87,7 +87,7 @@ export default function Search(props){
                 setKeyboardFocusIndex(0)
             }
             else{
-                setKeyboardFocusIndex(pre=> (pre+1 < optionsList.length)? pre+1 : 0)
+                setKeyboardFocusIndex(pre=> (pre+1 < filteredOptionsList.length)? pre+1 : 0)
             }
           
         }

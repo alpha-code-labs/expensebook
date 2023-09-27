@@ -8,18 +8,90 @@ export default function Select(props) {
   const [hidePlaceholder, setHidePlaceholder] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef(null);
+  const selectDivRef = useRef(null)
   const optionsList = props.options;
   const onSelect = props.onSelect || null
   const currentOption = props.currentOption || null
-  const [selectedOption, setSelectedOption] = useState(currentOption) 
+  const [selectedOption, setSelectedOption] = useState(currentOption)
+  const [keyboardFocusIndex, setKeyboardFocusIndex] = useState(-1)
+
+    //refs for filtered options
+    const dropdownOptionsRef = useRef([]);
+
+    useEffect(()=>{
+        setKeyboardFocusIndex(-1)
+    },[optionsList])
+ 
 
   const handleSelectClick = () => {
+    selectDivRef.current.focus()
     setShowDropdown((prev) => (prev ? false : true));
   };
 
+  //changes focused element on arrow key down/up press
+  useEffect(()=>{
+    console.log('this got called..', keyboardFocusIndex, dropdownOptionsRef.current[keyboardFocusIndex])
+    if( keyboardFocusIndex!=-1 && dropdownOptionsRef.current[keyboardFocusIndex]){
+        dropdownOptionsRef.current[keyboardFocusIndex].focus()
+    }
+},[keyboardFocusIndex])
+
+//iterating through options using keyboard
+const handleDropdownKeyDown = (e)=>{
+    if(e.keyCode == 40 || e.keyCode == 38){
+        e.preventDefault()
+    }
+            
+    if(e.keyCode == 38){
+        if(keyboardFocusIndex==-1){
+            setKeyboardFocusIndex(0)
+        }
+        else{
+            setKeyboardFocusIndex(pre=> (pre-1 > -1)? pre-1 : optionsList.length-1)
+        }
+    }
+
+    if(e.keyCode == 40 ){
+        if(keyboardFocusIndex==-1){
+            setKeyboardFocusIndex(0)
+        }
+        else{
+            setKeyboardFocusIndex(pre=> (pre+1 < optionsList.length)? pre+1 : 0)
+        }
+      
+    }
+
+    if(e.keyCode == 13){
+        console.log(keyboardFocusIndex)
+        console.log(dropdownOptionsRef.current[keyboardFocusIndex])
+       handleOptionSelect(dropdownOptionsRef.current[keyboardFocusIndex].innerHTML)
+    }
+    
+
+    //tab or escape pressed.. close dropdown
+    if(e.keyCode == 9 || e.keyCode == 27) {
+          setShowDropdown(false)
+    }
+}
+
+const selectKeyDown = (e)=>{
+
+    if(e.keyCode == 40 || e.keyCode == 38){
+        e.preventDefault()
+    }
+
+    if(e.keyCode == 40){
+     if(dropdownOptionsRef.current[0]){
+       // dropdownOptionsRef.current[0].focus()
+        setKeyboardFocusIndex(0)
+     }
+    }
+
+}
+
 
   //handles selection of option
-  const handleOptionSelect = (option, index)=>{
+  const handleOptionSelect = (option, index=0)=>{
     setSelectedOption(option)
     if(option != placeholder){
         setHidePlaceholder(true)
@@ -60,7 +132,10 @@ export default function Select(props) {
         <div className="self-stretch h-12 justify-start items-start gap-4 inline-flex">
           <div className={`grow relative shrink basis-0 self-stretch px-6 py-2 bg-white rounded-md border border-neutral-300 justify-between items-center flex`} >
             <div
-              className="grow shrink basis-0 h-6 justify-between items-center flex cursor-pointer"
+              tabIndex={0}
+              onKeyDown={selectKeyDown}
+              ref={selectDivRef}
+              className="grow shrink basis-0 h-6 justify-between items-center flex cursor-pointer focus-visible:outline-0"
               onClick={handleSelectClick}
             >
               {!hidePlaceholder && (
@@ -79,15 +154,18 @@ export default function Select(props) {
               <div
                 key='dropdown'
                 ref={dropdownRef}
-                className="absolute z-10 w-full h-fit max-h-[230px] overflow-y-scroll scroll rounded-b left-0 top-11 bg-white transition-all border border-neutral-300 shadow-sm"
+                className="absolute z-10 w-[calc(100%-10px)] h-fit max-h-[230px] overflow-y-scroll scroll rounded-b left-[5px] top-11 bg-white transition-all border-b  border-l border-r border-neutral-300 shadow-sm"
               >
                 {optionsList &&
                   optionsList.map((option, index) => (
                     <>
                       <p
                         key={index}
+                        tabIndex={index+1}
+                        onKeyDown={handleDropdownKeyDown}
+                        ref={el => dropdownOptionsRef.current[index] = el} 
                         onClick={()=>{ handleOptionSelect(option, index) }}
-                        className="text-xs font-medium font-cabin text-neutral-700 px-4 py-3 cursor-pointer"
+                        className="text-xs focus-visible:outline-0 focus-visible:bg-gray-100 font-medium font-cabin text-neutral-700 px-4 py-3 cursor-pointer transition-color hover:bg-gray-100"
                       >
                         {titleCase(option)}
                       </p>
