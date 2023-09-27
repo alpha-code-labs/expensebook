@@ -11,8 +11,16 @@ const companyInfo = () => {
 
   const handleFileChange = (event) => {
     const file = event.target.files[0];
-    setSelectedFile(file);
-    setFileSelected(true);
+    
+    // Check if the selected file is an Excel file (xlsx format)
+    if (file && file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') {
+      setSelectedFile(file);
+      setFileSelected(true);
+    } else {
+      setSelectedFile(null);
+      setFileSelected(false);
+      console.error('Please select a valid Excel file (.xlsx).');
+    }
   };
 
   const handleUpload = () => {
@@ -42,16 +50,25 @@ const companyInfo = () => {
     }
   };
 
-  const handleDrop = (event) => {
+   const handleDrop = (event) => {
     event.preventDefault();
     const droppedFile = event.dataTransfer.files[0];
-    setSelectedFile(droppedFile);
-    setFileSelected(true);
+    
+    // Check if the dropped file is an Excel file (xlsx format)
+    if (droppedFile && droppedFile.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') {
+      setSelectedFile(droppedFile);
+      setFileSelected(true);
+    } else {
+      setSelectedFile(null);
+      setFileSelected(false);
+      console.error('Please drop a valid Excel file (.xlsx).');
+    }
   };
 
   const handleDragOver = (event) => {
     event.preventDefault();
   };
+
 
   return (
     <div className="relative bg-white w-full h-[932px] overflow-hidden text-left text-[24px] text-ebgrey-500 font-cabin">
@@ -161,6 +178,7 @@ const companyInfo = () => {
               ref={fileInputRef}
               style={{ display: 'none' }}
               onChange={handleFileChange}
+              accept=".xlsx" // Specify the accepted file type (Excel files)
             />
           </div>
           {fileSelected ? (
