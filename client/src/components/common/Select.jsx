@@ -20,7 +20,7 @@ export default function Select(props) {
 
     useEffect(()=>{
         setKeyboardFocusIndex(-1)
-    },[optionsList])
+    },[optionsList, showDropdown])
  
 
   const handleSelectClick = () => {
@@ -30,7 +30,6 @@ export default function Select(props) {
 
   //changes focused element on arrow key down/up press
   useEffect(()=>{
-    console.log('this got called..', keyboardFocusIndex, dropdownOptionsRef.current[keyboardFocusIndex])
     if( keyboardFocusIndex!=-1 && dropdownOptionsRef.current[keyboardFocusIndex]){
         dropdownOptionsRef.current[keyboardFocusIndex].focus()
     }
@@ -89,6 +88,9 @@ const selectKeyDown = (e)=>{
 
 }
 
+const selectDivFocus = (e)=>{
+  console.log('select div focused')
+}
 
   //handles selection of option
   const handleOptionSelect = (option, index=0)=>{
@@ -134,6 +136,7 @@ const selectKeyDown = (e)=>{
             <div
               tabIndex={0}
               onKeyDown={selectKeyDown}
+              onFocus={selectDivFocus}
               ref={selectDivRef}
               className="grow shrink basis-0 h-6 justify-between items-center flex cursor-pointer focus-visible:outline-0"
               onClick={handleSelectClick}
