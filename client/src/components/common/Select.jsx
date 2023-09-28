@@ -86,6 +86,11 @@ const selectKeyDown = (e)=>{
      }
     }
 
+    //tab or escape pressed.. close dropdown
+    if(e.keyCode == 9 || e.keyCode == 27) {
+      setShowDropdown(false)
+    }
+
 }
 
 const selectDivFocus = (e)=>{

@@ -117,6 +117,11 @@ export default function MultiSearch(props){
          }
         }
 
+        //tab or escape pressed.. close dropdown
+        if(e.keyCode == 9 || e.keyCode == 27) {
+            setShowDropdown(false)
+        }
+
     }
     
     //handles selection of options
