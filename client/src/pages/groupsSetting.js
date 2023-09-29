@@ -1,9 +1,18 @@
+import React, { useState } from 'react';
+
+
+
+
 const Group = () => {
+
+
   return (
     <div className="relative bg-white w-full h-[1068px] overflow-hidden text-left text-base text-white font-cabin">
       <div className="absolute top-[160px] left-[104px] rounded-xl bg-white w-[1072px] h-[897px] overflow-hidden">
         <div className="absolute top-[825px] left-[24px] rounded-13xl bg-eb-primary-blue-500 w-[342px] h-12 flex flex-row items-center justify-center p-4 box-border">
-          <div className="relative font-medium">Create Group</div>
+          <div className="relative font-medium">
+            
+            Create Group</div>
         </div>
         <div className="absolute top-[40px] left-[24px] flex flex-col items-start justify-start gap-[40px] text-[18px] text-ebgrey-500">
           <div className="flex flex-col items-start justify-start gap-[24px]">

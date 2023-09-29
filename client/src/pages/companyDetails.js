@@ -1,21 +1,61 @@
 import React, { useState,useRef } from 'react';
 import axios from 'axios';
 import DownloadTemplate from '../components/downloadExcelTemplate';
-
+import * as XLSX from 'xlsx'; 
 
 
 const companyInfo = () => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [fileSelected, setFileSelected] = useState(false);
+  const [diyFlag, setDiyFlag] = useState('Y'); // You can initialize this with the actual value
   const fileInputRef = useRef(null);
+
+
+  
+
+  // Function to handle the logic and display the message
+  const renderMessage = () => {
+    if (diyFlag === 'Y') {
+      return (
+        console.log("Please upload your company HR data. Download the attached file and upload")
+        // <div>
+        //   <p>Please upload your company HR data.</p>
+        //   <p>Download the attached file and upload.</p>
+        // </div>
+      );
+    } else {
+      return (
+        console.log("We detect that your HR data is already integrated.")
+        // <p>We detect that your HR data is already integrated.</p>;
+      )
+    }
+  };
 
   const handleFileChange = (event) => {
     const file = event.target.files[0];
     
     // Check if the selected file is an Excel file (xlsx format)
     if (file && file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') {
-      setSelectedFile(file);
-      setFileSelected(true);
+       
+      // Check if the uploaded Excel file contains data 
+       const reader = new FileReader();
+       reader.onload = (e) => {
+         const data = new Uint8Array(e.target.result);
+         const workbook = XLSX.read(data, { type: 'array' });
+         const sheetName = workbook.SheetNames[0];
+         const sheet = workbook.Sheets[sheetName];
+ 
+         if (sheet && sheet['A1'] && sheet['A1'].v) {
+           // Sheet has values, you can proceed with processing
+           setSelectedFile(file);
+           setFileSelected(true);
+         } else {
+           // Sheet is empty or not valid
+           setSelectedFile(null);
+           console.error('Uploaded Excel sheet is empty or not valid.');
+         }
+       };
+       reader.readAsArrayBuffer(file);
     } else {
       setSelectedFile(null);
       setFileSelected(false);
@@ -53,11 +93,28 @@ const companyInfo = () => {
    const handleDrop = (event) => {
     event.preventDefault();
     const droppedFile = event.dataTransfer.files[0];
-    
     // Check if the dropped file is an Excel file (xlsx format)
     if (droppedFile && droppedFile.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') {
-      setSelectedFile(droppedFile);
-      setFileSelected(true);
+
+    // Check if the uploaded Excel file contains data 
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const sheetName = workbook.SheetNames[0];
+        const sheet = workbook.Sheets[sheetName];
+
+        if (sheet && sheet['A1'] && sheet['A1'].v) {
+        // Sheet has values, you can proceed with processing
+          setSelectedFile(droppedFile);
+          setFileSelected(true);
+        } else {
+          // Sheet is empty or not valid
+          setSelectedFile(null);
+          console.error('Uploaded Excel sheet is empty or not valid.');
+        }
+      };
+      reader.readAsArrayBuffer(droppedFile);
     } else {
       setSelectedFile(null);
       setFileSelected(false);
@@ -193,18 +250,17 @@ const companyInfo = () => {
               </div>
             </div>
           ) : (
-            <p>File not uploaded</p>
+            null
           )}
         </div>
         <button className="cursor-pointer [border:none] p-4 bg-eb-primary-blue-500 self-stretch rounded-[32px] h-12 flex flex-row items-center justify-center box-border">
           <div 
             className="relative text-[16px] font-medium font-cabin text-white text-left"
-            onClick= {handleFileUpload}
-            // {() => {
-            //   handleFileUpload();
-            //   // handleSearchSubmit();
-            // }}
-            >
+            onClick={()=>{
+              handleFileUpload()
+              renderMessage()
+            }}
+          >
             Continue
           </div>
         </button>

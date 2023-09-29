@@ -10,6 +10,7 @@ import CompanyDetails from "./pages/companyDetails.js";
 import Multicurrency from "./pages/multicurrency.js";
 import Group from "./pages/groupsSetting.js";
 import YourGroups from "./components/YourGroups.js";
+import GroupCheck from "./components/groupSetting/groupCheck.js";
 
 
 function App() {
@@ -55,6 +56,7 @@ function App() {
       <Route path="/multicurrency" element={<Multicurrency/>} />
       <Route path="/groups" element={<Group/>} />
       <Route path="/yourgroups" element={<YourGroups/>} />
+      <Route path="/groupcheck" element={<GroupCheck/>} />
     </Routes>
   )
 }
