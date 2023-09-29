@@ -29,7 +29,6 @@ const policySchema = new mongoose.Schema({
   nonTravelPolicy: {},
 });
 
-
 const itinerarySchema = new mongoose.Schema({
   departureCity: String,
   arrivalCity: String,
@@ -50,6 +49,14 @@ const cashAdvanceStatusEnum = [
   'paid',
 ];
 
+const tripStatusEnum = [
+  'upcoming',
+  'modification',
+  'transit',
+  'completed',
+  'cancelled',
+];
+
 const travelRequestSchema = new mongoose.Schema({
   tenantId: {
     type: String,
@@ -60,27 +67,30 @@ const travelRequestSchema = new mongoose.Schema({
     required: true,
   },
   travelRequestId: {
-    type: String, // tenantId_createdBy_tr_#(tr number) | tentative | not fixed
+    type: process.env.NODE_ENV === 'production' ? mongoose.Schema.Types.ObjectId : String,
     required: true,
   },
   travelRequestStatus: {
     type: String,
     enum: travelRequestStatusEnums,
-    default: 'draft', // Initialize with status as 'draft'
+    default: 'draft',
     required: true,
   },
   travelRequestState: {
     type: String,
     enum: travelRequestStateEnums,
-    default: 'section 0', // Initialize with state as 'section 0'
+    default: 'section 0',
     required: true,
   },
   createdBy: {
-    type: String, // Employee Id by whom TR is raised
+    type: String,
     required: true,
   },
+  travelName:{
+    type: String,
+  },
   createdFor: {
-    type: [String], // Employee Id's for whom TR is raised
+    type: [String],
     required: true,
   },
   travelAllocationHeaders: [
@@ -94,7 +104,7 @@ const travelRequestSchema = new mongoose.Schema({
       ],
     },
   ],
-  itinerary: itinerarySchema, // Use the itinerarySchema as a sub-schema
+  itinerary: itinerarySchema,
   travelDocuments: [String],
   bookings: [
     {
@@ -103,7 +113,7 @@ const travelRequestSchema = new mongoose.Schema({
       billDescription: String,
       grossAmount: Number,
       taxes: Number,
-      date: Date, // Use Date data type for dates
+      date: Date,
       imageUrl: String,
     },
   ],
@@ -111,13 +121,13 @@ const travelRequestSchema = new mongoose.Schema({
   preferences: [String],
   travelViolations: [String],
   travelRequestDate: {
-    type: Date, // Use Date data type for dates
+    type: Date,
     required: true,
   },
-  travelBookingDate: Date, // Use Date data type for dates
-  travelCompletionDate: Date, // Use Date data type for dates
+  travelBookingDate: Date,
+  travelCompletionDate: Date,
   travelRequestRejectionReason: String,
-  travelAndNonTravelPolicies: policySchema, // Use the policySchema as a sub-schema
+  travelAndNonTravelPolicies: policySchema,
 });
 
 // Create the Travel Request model
@@ -130,14 +140,14 @@ const cashAdvanceSchema = new mongoose.Schema({
     required: true,
   },
   travelRequestId: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: process.env.NODE_ENV === 'production' ? mongoose.Schema.Types.ObjectId : String,
     ref: 'TravelRequest',
   },
   cashAdvanceId: String,
   cashAdvanceStatus: {
     type: String,
-    enum: cashAdvanceStatusEnum, // Use the constant for enum values
-    required: true, // Add validation for required field
+    enum: cashAdvanceStatusEnum,
+    required: true,
   },
   amountDetails: [
     {
@@ -147,9 +157,9 @@ const cashAdvanceSchema = new mongoose.Schema({
     },
   ],
   approvers: [String],
-  cashAdvanceRequestDate: Date, // Use the Date data type for dates
-  cashAdvanceApprovalDate: Date, // Use the Date data type for dates
-  cashAdvanceSettlementDate: Date, // Use the Date data type for dates
+  cashAdvanceRequestDate: Date,
+  cashAdvanceApprovalDate: Date,
+  cashAdvanceSettlementDate: Date,
   cashAdvanceViolations: [String],
   cashAdvanceRejectionReason: String,
   additionalCashAdvanceField: String,
@@ -158,20 +168,44 @@ const cashAdvanceSchema = new mongoose.Schema({
 // Create the Cash Advance model
 const CashAdvance = mongoose.model('CashAdvance', cashAdvanceSchema);
 
-// Define the Trip schema with references to Travel Request and Cash Advance
 const tripSchema = new mongoose.Schema({
-  travelRequest: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'TravelRequest',
+  tenantId: {
+    type: String,
+    required: true,
   },
-  cashAdvance: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'CashAdvance',
+  userId: {
+    type: String,
   },
-  additionalTripField: String,
+  tripName:{
+    type: String,
+  },
+  tripStatus: {
+    type: String,
+    enum: tripStatusEnum,
+    default: 'upcoming',
+    required: true,
+  },
+  tripStartDate: {
+    type: Date,
+    required: true,
+  },
+  tripCompletionDate: {
+    type: Date,
+    required: true,
+  },
+  notificationSentToDashboardFlag: Boolean,
+
+  // Embedded documents for quick access
+  embeddedTravelRequest: {
+    type: Object, // Use Object type for embedding entire document
+  },
+  embeddedCashAdvance: {
+    type: Object, // Use Object type for embedding entire document
+  },
 });
 
 // Create the Trip model
 const Trip = mongoose.model('Trip', tripSchema);
 
 export { TravelRequest, CashAdvance, Trip };
+ 

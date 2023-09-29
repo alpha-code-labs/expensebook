@@ -1,0 +1,10 @@
+/* styles/PopupMessage.module.css */
+.Frame364 {
+    width: 24rem; /* Equivalent to w-96 in Tailwind */
+    height: 14rem; /* Equivalent to h-56 in Tailwind */
+    position: relative;
+    background-color: white;
+    border-radius: 1.5rem; /* Equivalent to rounded-3xl in Tailwind */
+  }
+  
+  
