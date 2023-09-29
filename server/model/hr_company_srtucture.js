@@ -71,6 +71,14 @@ const delegatedSchema = new mongoose.Schema({
   endDate: Date,
 })
 
+//reporting schema 
+const reportingSchema = new mongoose.Schema({
+  level: String,
+  managerName: String,
+  managerEmpId: String,
+});
+
+
 // employee schema
 const employeeSchema = new mongoose.Schema({
   employeeDetails: employeeDetailsSchema,
@@ -83,6 +91,8 @@ const employeeSchema = new mongoose.Schema({
   },
   temporaryAssignedManager: temporaryAssignedManagerSchema,
   delegated: delegatedSchema,
+  reportingto: [reportingSchema], 
+
 })
 
 // company details schema
