@@ -15,6 +15,15 @@ export default function Select(props) {
   const [selectedOption, setSelectedOption] = useState(currentOption)
   const [keyboardFocusIndex, setKeyboardFocusIndex] = useState(-1)
 
+
+    useEffect(()=>{
+      if(currentOption != null && currentOption != undefined && currentOption != '' ){
+        setHidePlaceholder(true)
+      }
+      else{setHidePlaceholder(false)}
+      setSelectedOption(currentOption)
+    },[currentOption])
+
     //refs for filtered options
     const dropdownOptionsRef = useRef([]);
 
@@ -127,8 +136,6 @@ const selectDivFocus = (e)=>{
       document.removeEventListener("click", handleClick);
     };
   }, [showDropdown]);
-
-
 
 
   return (
