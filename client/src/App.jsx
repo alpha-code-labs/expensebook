@@ -1,6 +1,6 @@
 import { useState, useEffect, createContext } from "react";
 import {BrowserRouter as Router, Routes, Route} from 'react-router-dom'
-import axios from 'axios'
+//import axios from 'axios'
 
 import "./App.css";
 import Page_1 from './pages/Page_1'
