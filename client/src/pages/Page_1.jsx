@@ -230,7 +230,7 @@ export default function Page_1(props){
 
                 <div className='mt-8 flex gap-8 flex-wrap'>
                     {/* Booking for.. will be displayed if employee is delegated  */}
-                    {DELEGATED_FLAG && <ObjectSelect
+                    {DELEGATED_FLAG  && !bookingForTeam && <ObjectSelect
                         options={delegatedFor}
                         placeholder='Name of the travelling employeee' 
                         onSelect={(option)=>setTravelRequestCreatedFor([option.empId])}
@@ -268,7 +268,7 @@ export default function Page_1(props){
                     {selectedTravelAllocationHeaders && selectedTravelAllocationHeaders.length>0 &&
                         <div className='mt-8'>
                         <p className='text-base font-medium text-neutral-700 font-cabin'>Allocate percentage for selected department</p>
-                        <div className='flex justify-between gap-1 items-center flex-wrap'>
+                        <div className='flex gap-4 items-center flex-wrap'>
                             {selectedTravelAllocationHeaders && selectedTravelAllocationHeaders.map((item,index)=> 
                                 <div className='mt-4 border border-white hover:border-gray-100'>
                                     <InputPercentage 
