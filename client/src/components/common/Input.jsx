@@ -8,11 +8,17 @@ export default function Input(props){
     const inputRef = useRef(null)
     const [textInput, setTextInput] = useState('')
     
-    const inputChange = (e)=>{
+    const handleChange = (e)=>{
         e.preventDefault()
-        setTextInput(titleCase(e.target.value))
+        setTextInput(e.target.value)
         onChange(e)
     }
+
+    const handleBlur= ()=>{
+        setTextInput(pre=>titleCase(pre))
+    }
+
+
 
     
     return(<>
@@ -25,7 +31,8 @@ export default function Input(props){
                 <div className="text-neutral-700 w-full  h-full text-sm font-normal font-cabin">
                     <input
                         ref={inputRef}
-                        onChange={inputChange} 
+                        onChange={handleChange} 
+                        onBlur={handleBlur}
                         className=" w-full h-full decoration:none px-6 py-2 border rounded-md border border-neutral-300 focus-visible:outline-0 focus-visible:border-indigo-600 " 
                         value={textInput} 
                         placeholder={placeholder}></input>
