@@ -1,0 +1,39 @@
+@import url("https://fonts.googleapis.com/css2?family=Cabin:wght@400;500;600&display=swap");
+@import url('https://fonts.googleapis.com/css2?family=Inter&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+body {
+  @apply leading-[normal] m-0;
+}
+*,
+::before,
+::after {
+  border-width: 0;
+}
+
+/* width and height */
+::-webkit-scrollbar {
+  width: 6px;
+  /* height: 300px; Adjust the height as needed */
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 5px;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: #EAE7FD;
+  border-radius: 5px;
+  height: 5px;
+ 
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #4C36F1;
+}
+

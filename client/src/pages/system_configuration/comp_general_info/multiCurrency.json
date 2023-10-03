@@ -1,0 +1,25 @@
+{
+    "tenantId": "603f3b07965db634c8769a081",
+    "currencyTable": [
+      {
+        "currencyName": "INR",
+        "exchangeValue": [
+          {
+            "currencyName": "USD",
+            "value": 73.50
+          },
+          {
+            "currencyName": "EURO",
+            "value": 80
+          },
+          {
+            "currencyName": "DNR",
+            "value": 40
+          },
+          {
+            "currencyName": "AUD",
+            "value": 400
+          }
+          
+        ]
+      }]}
