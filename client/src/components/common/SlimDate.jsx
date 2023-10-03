@@ -1,48 +1,41 @@
 import { useState, useRef, useEffect } from "react";
 import { titleCase, formatDate } from "../../utils/handyFunctions";
 import chevron_down from "../../assets/chevron-down.svg";
+import { formatDate2 } from "../../utils/handyFunctions";
+
 
 
 export default function SlimDate(props){
     const title = props.title || "Title";
-    const inputDate = props.date || Date.now()
-    const inputRef = useRef(null)
-    const [textInput, setTextInput] = useState('')
-    
+    const inputDate = props.date || new Date()
+    const [value, setValue] = useState(inputDate);
 
-    const handleClick= ()=>{
-        
+    const handleChange= (e)=>{
+       setValue(e.target.value)
+       console.log(e.target.value)
     }
 
 
-
-    
     return(<>
         <div className="min-w-[200px] w-full md:w-fit max-w-[403px] h-[73px] flex-col justify-start items-start gap-2 inline-flex">
             {/* title */}
             <div className="text-zinc-600 text-sm font-cabin">{title}</div>
 
             {/* input */}
-            <div className="relative w-full h-full bg-white items-center flex">
+            <div className="w-full h-full bg-white items-center flex">
                 <div className="text-neutral-700 w-full  h-full text-sm font-normal font-cabin">
-                    <div
-                        ref={inputRef} 
-                        onClick={handleClick}
-                        className=" w-full h-full decoration:none px-6 py-2 border rounded-md border border-neutral-300 inline-flex justify-center items-center cursor-pointer" 
-                        >
-                            <div className="flex gap-2 justify-between items-center">
-                                <div className="text-gray-600 text-base font-medium font-cabin">{formatDate(inputDate)}</div>
-                                <div className="w-6 h-6 relative " >
-                                    <img src={chevron_down} />
-                                </div>
+                    <div className=" w-full z-100 relative h-full decoration:none px-6 py-2 border rounded-md border border-neutral-300 inline-flex justify-center items-center cursor-pointer">
+                        <div className="flex relative w-full gap-4 justify-center items-center" >
+                            <input className='slim absolute w-full h-full opacity-0 focus-visible:outline-0 cursor-hover' onChange={handleChange} type='date'/>
+                            <div className="text-gray-600 bg-white whitespace-nowrap text-base font-medium font-cabin">{formatDate(value)}</div>
+                            <div className="h-6 w-6">
+                                <img src={chevron_down} alt="open" />
                             </div>
-                        </div>
+                        </div>        
+                    </div>
                 </div>
             </div>
-
       </div>
 
     </>)
-
-
 }
