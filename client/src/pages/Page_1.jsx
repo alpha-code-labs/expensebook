@@ -43,7 +43,7 @@ export default function Page_1(props){
     //details of current employee
     
     const EMPLOYEE_ID  = '123'
-    const MANAGER_FLAG =  false
+    const MANAGER_FLAG =  true
     const teamMembers = [{name: 'Aman Bhagel', empId: '204', designation: 'Sales Executive'}, {name: 'Vikas Rajput', empId: '245', designation:'System Engineer II'}, {name: 'Rahul Suyush Singh', empId: '318', designation:'Sr. Software Engineer'}, {name: 'Vilakshan Vibhut Giri Babaji Maharaj', empId: '158', designation:'Sr. Sales Executive'}]
     
 
