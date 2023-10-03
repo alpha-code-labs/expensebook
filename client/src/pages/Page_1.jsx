@@ -29,7 +29,9 @@ const dummyDelegatedFor = [
     const listOfAllManagers = [
         {name: 'Preeti Arora', empId: '005'},
         {name: 'Abhas Kamboj', empId: '045'},
-        {name: 'Sandeep Nair', empId: '061'}
+        {name: 'Sandeep Nair', empId: '061'},
+        {name: 'Sumesh', empId: '114'},
+        {name: 'Prabhat', empId: '181'},
     ]
 
     //allocation header 
