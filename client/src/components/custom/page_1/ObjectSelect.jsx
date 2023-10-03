@@ -61,9 +61,8 @@ const handleDropdownKeyDown = (e)=>{
     }
 
     if(e.keyCode == 13){
-        console.log(keyboardFocusIndex)
-        console.log(dropdownOptionsRef.current[keyboardFocusIndex])
-       handleOptionSelect(dropdownOptionsRef.current[keyboardFocusIndex].innerHTML)
+      const option = JSON.parse(dropdownOptionsRef.current[keyboardFocusIndex].getAttribute('data'))
+       handleOptionSelect(option)
     }
     
 
@@ -171,6 +170,7 @@ const selectDivFocus = (e)=>{
                         key={index}
                         tabIndex={index+1}
                         onKeyDown={handleDropdownKeyDown}
+                        data={JSON.stringify(option)}
                         ref={el => dropdownOptionsRef.current[index] = el} 
                         onClick={()=>{ handleOptionSelect(option, index) }}
                         className="text-xs focus-visible:outline-0 focus-visible:bg-gray-100 font-medium font-cabin text-neutral-700 px-4 py-3 cursor-pointer transition-color hover:bg-gray-100"
