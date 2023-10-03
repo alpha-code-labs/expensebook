@@ -4,9 +4,13 @@ import upload_icon from '../assets/upload.svg'
 import { useEffect, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import Input from "../components/common/Input"
+import DateTime from "../components/common/DateTime"
 import Date from "../components/common/Date"
 import Select from "../components/common/Select"
 import Checkbox from "../components/common/Checkbox"
+import SlimDate from "../components/common/SlimDate"
+import AddMore from "../components/common/AddMore"
+import Button from "../components/common/Button"
 
 
 //onboarding data
@@ -16,6 +20,9 @@ const travelClassOptions = {'flight':['Business', 'Economy', 'Premium Economy', 
                       'bus': ['Sleeper', 'Semi-Sleeper', 'Regular'],
                       'cab': ['Sedan', 'Mini']
                      }
+const allowedHotelClass = ['4 Star',  '3 Start', '2 Star']
+const allowedCabClass = ['Sedan', 'Mini']
+
 
 
 
@@ -26,11 +33,19 @@ export default function (){
     const [multiCityTrip, setMultiCityTrip] = useState(false)
     const [needsVisa, setNeedsVisa] = useState(false)
     const [needsAirportTransfer, setNeedsAirportTransfer] = useState(false)
+    const [needsHotel, setNeedsHotel] = useState(true)
+    const [needsFullDayCab, setNeedsFullDayCab] = useState(true)
+    const [hotelClass, setHotelClass] = useState(null)
+    const [cabClass, setCabClass] = useState(null)
 
     const navigate = useNavigate()
 
     const handleBackButton = ()=>{
         navigate('/section0')    
+    }
+
+    const handleContinueButton = ()=>{
+        navigate('/section2')
     }
 
     function selectTripType(type){
@@ -71,13 +86,19 @@ export default function (){
     const [cities, setCities] = useState([])
     const [modeOfTransit, setModeOfTransit] = useState('Flight')
     const [travelClass, setTravelClass] = useState('Business')
+    const [hotels, setHotels] = useState([{}])
+
+    const addHotel = ()=>{
+        const hotels_copy = JSON.parse(JSON.stringify(hotels))
+        hotels_copy.push({})
+        setHotels(hotels_copy)
+    }
 
     useEffect(()=>{
         if(modeOfTransit && !travelClassOptions[modeOfTransit.toLowerCase()].includes(travelClass)){
             setTravelClass(null)
         }
     },[modeOfTransit])
-
 
     return(<>
         <div className="w-full h-full relative bg-white md:px-24 md:mx-0 sm:px-0 sm:mx-auto py-12 select-none">
@@ -107,11 +128,11 @@ export default function (){
                 <div className="mt-8 flex gap-8 items-center flex-wrap">
                     <Input title='From'  placeholder='City'/>
                     <Input title='To' placeholder='City' />
-                    <Date/>
+                    <DateTime/>
                 </div>
                 <hr className='mt-4' />
 
-                <div className="py-8">
+                <div className="pt-8">
                     <div className="flex gap-8 flex-wrap">
                         <Select 
                             options={modeOfTransitList}
@@ -126,10 +147,11 @@ export default function (){
                             title='Select travel Class' 
                             placeholder='Select travel class' />
                     </div>
-                    <hr className='mt-8' />
                 </div>
 
-               { modeOfTransit=='Flight' && <div className=" flex gap-8">
+               { modeOfTransit=='Flight' &&  <>
+                    <hr className='my-8' />
+                    <div className=" flex gap-8">
                     <div className="flex gap-2 items-center">
                         <p className="text-neutral-700 w-full h-full text-sm font-normal font-cabin">
                             Will you need a visa?
@@ -144,7 +166,7 @@ export default function (){
                         <Checkbox checked={needsAirportTransfer} onClick={(e)=>{setNeedsAirportTransfer(e.target.checked)}} />
                     </div>
 
-                </div> }
+                </div> </>}
 
                 <hr className='mt-8' />
 
@@ -169,6 +191,66 @@ export default function (){
                     </div>
                     <hr className='mt-8' />
                 </div>
+
+
+                {/* hotel */}
+                    
+                    <div className="flex gap-2 items-center">
+                        <p className="text-neutral-700 text-sm font-normal font-cabin">
+                            Will you need a hotel?
+                        </p>
+                        <Checkbox checked={needsHotel} onClick={(e)=>{setNeedsHotel(e.target.checked)}} />
+                    </div>
+
+                    {needsHotel && <> 
+                        {hotels && hotels.map((hotel,index)=><div key={index} className="flex flex-wrap gap-8 mt-8">
+                            {allowedHotelClass && allowedHotelClass.length>0 && 
+                            <Select options={allowedHotelClass}
+                                    title='Hotel Class'
+                                    placeholder='Select hotel class'
+                                    currentOption={hotelClass} 
+                                    onSelect={(option)=>hotels[index].class = option} />}
+                            <SlimDate title='Check In'/>
+                            <SlimDate title='Check Out'/>
+                        </div>)}
+                        
+                        <div className="mt-8">
+                           <AddMore onClick={addHotel} /> 
+                        </div>
+                            
+                        </> 
+                        }
+                
+                {/* cab */}
+                <hr className='mt-8 mb-8' />
+                <div className="flex gap-2 items-center">
+                        <p className="text-neutral-700 text-sm font-normal font-cabin">
+                            Will you need a full day cab?
+                        </p>
+                        <Checkbox checked={needsFullDayCab} onClick={(e)=>{setNeedsFullDayCab(e.target.checked)}} />
+                </div>
+
+                {needsFullDayCab && 
+                <>
+                    <div  className="flex flex-wrap gap-8 mt-8 items-center">
+                        <Date />
+                            {allowedCabClass && allowedCabClass.length>0 && 
+                            <Select options={allowedCabClass}
+                                    title='Cab Class'
+                                    placeholder='Select cab class'
+                                    currentOption={cabClass} 
+                                    onSelect={(option)=>setCabClass(option)} />}
+                        </div>    
+                </>
+                }
+
+
+                <div className='my-8 w-[134px] float-bottom float-right'>
+                    <Button 
+                        text='Continue' 
+                        onClick={handleContinueButton} />
+                </div> 
+
             </div>
         </div>
     </>)
