@@ -17,7 +17,7 @@ export default function Page_1(props){
     //onboarding data...
     const onBoardingData = props.onBoardingData
 
-    const APPROVAL_FLAG = onBoardingData.APPROVAL_FLAG
+    const APPROVAL_FLAG = true
     const MANAGER_FLAG =  onBoardingData.MANAGER_FLAG
     const DELEGATED_FLAG = onBoardingData.DELEGATED_FLAG
     const listOfAllManagers = onBoardingData.managersList
@@ -58,10 +58,6 @@ export default function Page_1(props){
     const [delegatorsTeamMembers, setDelegatorsTeamMembers] = useState([])
     const [selectDelegatorTeamMembers, setSelectDelegatorTeamMembers] = useState(false)
     
-    
-
-
-
     useEffect(()=>{
         if(DELEGATED_FLAG && travelRequestCreatedFor.length>0 && EMPLOYEE_ID != travelRequestCreatedFor[0]){
             setRaisingForDelegator(true)
