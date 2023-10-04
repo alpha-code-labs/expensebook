@@ -246,8 +246,8 @@ export default function (props){
                 {/* from, to , date */}
                 {cities.map((city,index)=>
                 <div key={index} className="mt-8 flex gap-8 items-center flex-wrap">
-                    <Input title='From'  placeholder='City' value={titleCase(cities[index].from)} onBlur={(e)=>updateCity(e, index, 'from')} />
-                    <Input title='To' placeholder='City' value={titleCase(cities[index].to)} onBlur={(e)=>updateCity(e, index, 'to')} />
+                    <Input title='From'  placeholder='City' value={cities[index].from} onBlur={(e)=>updateCity(e, index, 'from')} />
+                    <Input title='To' placeholder='City' value={cities[index].to} onBlur={(e)=>updateCity(e, index, 'to')} />
                     <DateTime 
                         title='Departure Date'
                         time = {(cities && cities['departure']!=undefined && cities['departure']['time']!=undefined)? cities['departure'].time : '11:00' }
