@@ -7,7 +7,7 @@ export default function Input(props){
     const title = props.title || "Title";
     const onBlur = props.onBlur
     const inputRef = useRef(null)
-    const [textInput, setTextInput] = useState(titleCase(value))
+    const [textInput, setTextInput] = useState(value? titleCase(value) : '')
     
     const handleChange = (e)=>{
         e.preventDefault()
