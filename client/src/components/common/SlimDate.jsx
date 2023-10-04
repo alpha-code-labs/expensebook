@@ -7,12 +7,14 @@ import { formatDate2 } from "../../utils/handyFunctions";
 
 export default function SlimDate(props){
     const title = props.title || "Title";
-    const inputDate = props.date || new Date()
-    const [value, setValue] = useState(inputDate);
+    const date = props.date 
+    const onChange = props.onChange
+    const [value, setValue] = useState(date || Date.now());
 
     const handleChange= (e)=>{
        setValue(e.target.value)
        console.log(e.target.value)
+       onChange(e)
     }
 
 
