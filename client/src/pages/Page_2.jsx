@@ -24,10 +24,8 @@ const allowedHotelClass = ['4 Star',  '3 Start', '2 Star']
 const allowedCabClass = ['Sedan', 'Mini']
 
 
-
-
-export default function (){
-
+export default function (props){
+    
     const [oneWayTrip, setOneWayTrip] = useState(true)
     const [roundTrip, setRoundTrip] = useState(false)
     const [multiCityTrip, setMultiCityTrip] = useState(false)
@@ -45,6 +43,7 @@ export default function (){
     }
 
     const handleContinueButton = ()=>{
+        console.log(sectionForm)
         navigate('/section2')
     }
 
@@ -83,10 +82,11 @@ export default function (){
     }
 
     //format: from, to , departureDate, returnDate
-    const [cities, setCities] = useState([])
+    const [cities, setCities] = useState([{from:null, to:null, departure: {date:null, time:null}, return: {date:null, time:null}}])
     const [modeOfTransit, setModeOfTransit] = useState('Flight')
     const [travelClass, setTravelClass] = useState('Business')
-    const [hotels, setHotels] = useState([{}])
+    const [hotels, setHotels] = useState([{class:null, checkIn:null, checkOut:null}])
+    const [cabs, setCabs] = useState({})
 
     const addHotel = ()=>{
         const hotels_copy = JSON.parse(JSON.stringify(hotels))
@@ -94,11 +94,71 @@ export default function (){
         setHotels(hotels_copy)
     }
 
+    const addCities = ()=>{
+        const cities_copy = JSON.parse(JSON.stringify(cities))
+        cities_copy.push({from:null, to:null, departure: {date:null, time:null}, return: {date:null, time:null}})
+        setCities(cities_copy)
+    }
+
     useEffect(()=>{
         if(modeOfTransit && !travelClassOptions[modeOfTransit.toLowerCase()].includes(travelClass)){
             setTravelClass(null)
         }
     },[modeOfTransit])
+
+    useEffect(()=>{
+        if(!multiCityTrip){
+            const cities_copy = JSON.parse(JSON.stringify(cities))
+            cities_copy.splice(1, cities_copy.length-1)
+            console.log(cities_copy)
+            setCities(cities_copy)
+        }
+    },[multiCityTrip])
+
+    const updateCity = (e, index, field)=>{
+        const cities_copy = JSON.parse(JSON.stringify(cities))
+        cities_copy[index][field] = e.target.value
+        setCities(cities_copy)
+    }
+
+    const handleTimeChange = (e, index, field)=>{
+      //  console.log(e.target.value, index, field)
+        const cities_copy = JSON.parse(JSON.stringify(cities))
+        cities_copy[index][field].time = e.target.value
+        setCities(cities_copy)
+    }
+
+    const handleDateChange = (e, index, field)=>{
+      //  console.log(e.target.value, index, field)
+        const cities_copy = JSON.parse(JSON.stringify(cities))
+        cities_copy[index][field].date = e.target.value
+        setCities(cities_copy)
+    }
+
+    const handleHotelDateChange = (e, index, field)=>{
+        const hotels_copy = JSON.parse(JSON.stringify(hotels))
+        hotels_copy[index][field] = e.target.value
+        setHotels(hotels_copy)
+    }
+
+    const handleHotelClassChange = (option, index)=>{
+        const hotels_copy = JSON.parse(JSON.stringify(hotels))
+        hotels_copy[index].class = option
+        setHotels(hotels_copy)
+    }
+    
+    useEffect(()=>{
+        console.log(hotels)
+    },[hotels])
+
+
+    const sectionForm = {
+        cities: cities,
+        modeOfTransit: modeOfTransit,
+        tripType: {oneWayTrip, roundTrip, multiCityTrip},
+        hotels: hotels,
+        cabs: cabs,
+    }
 
     return(<>
         <div className="w-full h-full relative bg-white md:px-24 md:mx-0 sm:px-0 sm:mx-auto py-12 select-none">
@@ -125,11 +185,31 @@ export default function (){
                 <hr className='mt-2 -mb-4' />
 
                 {/* from, to , date */}
-                <div className="mt-8 flex gap-8 items-center flex-wrap">
-                    <Input title='From'  placeholder='City'/>
-                    <Input title='To' placeholder='City' />
-                    <DateTime/>
-                </div>
+                {cities.map((city,index)=>
+                <div key={index} className="mt-8 flex gap-8 items-center flex-wrap">
+                    <Input title='From'  placeholder='City' onBlur={(e)=>updateCity(e, index, 'from')} />
+                    <Input title='To' placeholder='City' onBlur={(e)=>updateCity(e, index, 'to')} />
+                    <DateTime 
+                        title='Departure Date'
+                        time = {(cities && cities['departure']!=undefined && cities['departure']['time']!=undefined)? cities['departure'].time : '11:00' }
+                        date={(cities && cities['departure']!=undefined && cities['departure']['time']!=undefined)? cities['departure'].time : null }
+                        onTimeChange={(e)=>handleTimeChange(e, index, 'departure')}
+                        onDateChange={(e)=>handleDateChange(e, index, 'departure')} />
+                    {!oneWayTrip && 
+                    <DateTime
+                        title='Return Date'
+                        time = {(cities && cities['return']!=undefined && cities['return']['time']!=undefined)? cities['return'].time : '11:00' }
+                        date={(cities && cities['return']!=undefined && cities['return']['time']!=undefined)? cities['return'].time : null }
+                        onTimeChange={(e)=>handleTimeChange(e, index, 'return')}
+                        onDateChange={(e)=>handleDateChange(e, index, 'return')} 
+                        />}
+
+                </div>)}
+
+                {multiCityTrip && <div className="mt-8">
+                    <AddMore onClick={addCities} /> 
+                </div>}
+
                 <hr className='mt-4' />
 
                 <div className="pt-8">
@@ -170,6 +250,7 @@ export default function (){
 
                 <hr className='mt-8' />
 
+                {/* upload document */}
                 <div className="py-8">
                     <div className="flex gap-2">
                         <p className='text-base font-medium text-neutral-700 font-cabin'>Upload trip related documents</p>
@@ -177,7 +258,7 @@ export default function (){
                     </div>
 
                     <div className="flex mt-4 flex-wrap">
-                       <div className="flex max-w-[583px] h-[153px] w-fit md:w-full bg-stone-100 rounded-md border-neutral-400 justify-center items-center px-6 py-2">
+                       <div className="flex max-w-[583px] h-[153px] w-full bg-stone-100 rounded-md border-neutral-400 justify-center items-center px-6 py-2">
                             <div className="flex flex-col justify-center items-center gap-4">
                                 <div className="w-6 h-6 relative">
                                     <img src={upload_icon}/>
@@ -187,6 +268,10 @@ export default function (){
                                     <span className="text-indigo-600 text-sm font-normal font-cabin underline cursor-pointer">Browse</span>
                                 </div>
                             </div>
+                       </div>
+                       {/* uploaded documents*/}
+                       <div>
+
                        </div>
                     </div>
                     <hr className='mt-8' />
@@ -208,10 +293,10 @@ export default function (){
                             <Select options={allowedHotelClass}
                                     title='Hotel Class'
                                     placeholder='Select hotel class'
-                                    currentOption={hotelClass} 
-                                    onSelect={(option)=>hotels[index].class = option} />}
-                            <SlimDate title='Check In'/>
-                            <SlimDate title='Check Out'/>
+                                    currentOption={hotels[index].class} 
+                                    onSelect={(option)=>handleHotelClassChange(option, index)} />}
+                            <SlimDate title='Check In' date={hotels[index].checkIn} onChange={(e)=>{handleHotelDateChange(e, index, 'checkIn')}} />
+                            <SlimDate title='Check Out' date={hotels[index].checkOut} onChange={(e)=>{handleHotelDateChange(e, index, 'checkOut')}}/>
                         </div>)}
                         
                         <div className="mt-8">
@@ -252,6 +337,9 @@ export default function (){
                 </div> 
 
             </div>
+
         </div>
     </>)
 }
+
+
