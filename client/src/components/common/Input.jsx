@@ -4,18 +4,18 @@ import { titleCase } from "../../utils/handyFunctions";
 export default function Input(props){
     const placeholder = props.placeholder || "Placeholder Text";
     const title = props.title || "Title";
-    const onChange = props.onChange
+    const onBlur = props.onBlur
     const inputRef = useRef(null)
     const [textInput, setTextInput] = useState('')
     
     const handleChange = (e)=>{
         e.preventDefault()
         setTextInput(e.target.value)
-        onChange(e)
     }
 
-    const handleBlur= ()=>{
+    const handleBlur= (e)=>{
         setTextInput(pre=>titleCase(pre))
+        onBlur(e)
     }
 
 
