@@ -108,7 +108,7 @@ function App() {
   return <>
     <Router>
       <Routes>
-        <Route path='/' element={<Page_1 />} />
+        <Route path='/' element={<Page_1 formData={formData} setFormData={setFormData} onBoardingData={onBoardingData} />} />
         <Route path='/section0' element={<Page_1 formData={formData} setFormData={setFormData} onBoardingData={onBoardingData} />} />
         <Route path='/section1' element={<Page_2 formData={formData} setFormData={setFormData} onBoardingData={onBoardingData} />} />
         <Route path='/section2' element={<Page_3 formData={formData} setFormData={setFormData} onBoardingData={onBoardingData} />} />
