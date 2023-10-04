@@ -11,30 +11,95 @@ import Checkbox from "../components/common/Checkbox"
 import SlimDate from "../components/common/SlimDate"
 import AddMore from "../components/common/AddMore"
 import Button from "../components/common/Button"
-
-
-//onboarding data
-const modeOfTransitList = ['Flight', 'Train', 'Bus', 'Cab']
-const travelClassOptions = {'flight':['Business', 'Economy', 'Premium Economy', 'Private'],
-                      'train': ['Sleeper', 'Chair Car', 'First AC', 'Second AC', 'Third AC'],
-                      'bus': ['Sleeper', 'Semi-Sleeper', 'Regular'],
-                      'cab': ['Sedan', 'Mini']
-                     }
-const allowedHotelClass = ['4 Star',  '3 Start', '2 Star']
-const allowedCabClass = ['Sedan', 'Mini']
+import { titleCase } from "../utils/handyFunctions"
 
 
 export default function (props){
+
+    //onboarding data
+    const onBoardingData = props.onBoardingData
+
+    const modeOfTransitList = onBoardingData.modeOfTransitOptions
+    const travelClassOptions = onBoardingData.travelClassOptions
+    const allowedCabClass = onBoardingData.cabClassOptions 
+    const allowedHotelClass = onBoardingData.hotelClassOptions
+
     
-    const [oneWayTrip, setOneWayTrip] = useState(true)
-    const [roundTrip, setRoundTrip] = useState(false)
-    const [multiCityTrip, setMultiCityTrip] = useState(false)
-    const [needsVisa, setNeedsVisa] = useState(false)
-    const [needsAirportTransfer, setNeedsAirportTransfer] = useState(false)
-    const [needsHotel, setNeedsHotel] = useState(true)
-    const [needsFullDayCab, setNeedsFullDayCab] = useState(true)
-    const [hotelClass, setHotelClass] = useState(null)
+    //formdata
+    const [formData, setFormData] = [props.formData, props.setFormData]
+
+    const [oneWayTrip, setOneWayTrip] = useState(formData.itinerary.tripType.oneWayTrip)
+    const [roundTrip, setRoundTrip] = useState(formData.itinerary.tripType.roundTrip)
+    const [multiCityTrip, setMultiCityTrip] = useState(formData.itinerary.multiCityTrip)
+    const [needsVisa, setNeedsVisa] = useState(formData.itinerary.needsVisa)
+    const [needsAirportTransfer, setNeedsAirportTransfer] = useState(formData.itinerary.needsAirportTransfer)
+    const [needsHotel, setNeedsHotel] = useState(formData.itinerary.needsHotel)
+    const [needsFullDayCab, setNeedsFullDayCab] = useState(formData.itinerary.needsFullDayCabs)
     const [cabClass, setCabClass] = useState(null)
+
+    //format: from, to , departureDate, returnDate
+    const [cities, setCities] = useState(formData.itinerary.cities)
+    const [modeOfTransit, setModeOfTransit] = useState(formData.itinerary.modeOfTransit)
+    const [travelClass, setTravelClass] = useState(formData.itinerary.travelClass)
+    const [hotels, setHotels] = useState(formData.itinerary.hotels)
+    const [cabs, setCabs] = useState({})
+
+
+    //update form
+    useEffect(()=>{
+        const formData_copy = JSON.parse(JSON.stringify(formData))
+        formData_copy.itinerary.tripType = {oneWayTrip, roundTrip, multiCityTrip}
+        setFormData(formData_copy)
+    }, [oneWayTrip, roundTrip, multiCityTrip])
+
+    useEffect(()=>{
+        const formData_copy = JSON.parse(JSON.stringify(formData))
+        formData_copy.itinerary.needsVisa = needsVisa
+        setFormData(formData_copy)
+    },[needsVisa])
+
+    useEffect(()=>{
+        const formData_copy = JSON.parse(JSON.stringify(formData))
+        formData_copy.itinerary.needsAirportTransfer = needsAirportTransfer
+        setFormData(formData_copy)
+    },[needsAirportTransfer])
+
+    useEffect(()=>{
+        const formData_copy = JSON.parse(JSON.stringify(formData))
+        formData_copy.itinerary.needsHotel = needsHotel
+        setFormData(formData_copy)
+    },[needsHotel])
+
+    useEffect(()=>{
+        const formData_copy = JSON.parse(JSON.stringify(formData))
+        formData_copy.itinerary.needsFullDayCabs = needsFullDayCab
+        setFormData(formData_copy)
+    },[needsFullDayCab])
+
+    useEffect(()=>{
+        const formData_copy = JSON.parse(JSON.stringify(formData))
+        formData_copy.itinerary.cities = cities
+        setFormData(formData_copy)
+    },[cities])
+
+    useEffect(()=>{
+        const formData_copy = JSON.parse(JSON.stringify(formData))
+        formData_copy.itinerary.hotels = hotels
+        setFormData(formData_copy)
+    },[hotels])
+
+    useEffect(()=>{
+        const formData_copy = JSON.parse(JSON.stringify(formData))
+        formData_copy.itinerary.modeOfTransit = modeOfTransit
+        setFormData(formData_copy)
+    },[modeOfTransit])
+
+    useEffect(()=>{
+        const formData_copy = JSON.parse(JSON.stringify(formData))
+        formData_copy.itinerary.travelClass = travelClass
+        setFormData(formData_copy)
+    },[travelClass])
+
 
     const navigate = useNavigate()
 
@@ -44,6 +109,7 @@ export default function (props){
 
     const handleContinueButton = ()=>{
         console.log(sectionForm)
+        console.log(formData)
         navigate('/section2')
     }
 
@@ -81,12 +147,6 @@ export default function (props){
         }
     }
 
-    //format: from, to , departureDate, returnDate
-    const [cities, setCities] = useState([{from:null, to:null, departure: {date:null, time:null}, return: {date:null, time:null}}])
-    const [modeOfTransit, setModeOfTransit] = useState('Flight')
-    const [travelClass, setTravelClass] = useState('Business')
-    const [hotels, setHotels] = useState([{class:null, checkIn:null, checkOut:null}])
-    const [cabs, setCabs] = useState({})
 
     const addHotel = ()=>{
         const hotels_copy = JSON.parse(JSON.stringify(hotels))
@@ -151,7 +211,6 @@ export default function (props){
         console.log(hotels)
     },[hotels])
 
-
     const sectionForm = {
         cities: cities,
         modeOfTransit: modeOfTransit,
@@ -187,8 +246,8 @@ export default function (props){
                 {/* from, to , date */}
                 {cities.map((city,index)=>
                 <div key={index} className="mt-8 flex gap-8 items-center flex-wrap">
-                    <Input title='From'  placeholder='City' onBlur={(e)=>updateCity(e, index, 'from')} />
-                    <Input title='To' placeholder='City' onBlur={(e)=>updateCity(e, index, 'to')} />
+                    <Input title='From'  placeholder='City' value={titleCase(cities[index].from)} onBlur={(e)=>updateCity(e, index, 'from')} />
+                    <Input title='To' placeholder='City' value={titleCase(cities[index].to)} onBlur={(e)=>updateCity(e, index, 'to')} />
                     <DateTime 
                         title='Departure Date'
                         time = {(cities && cities['departure']!=undefined && cities['departure']['time']!=undefined)? cities['departure'].time : '11:00' }
