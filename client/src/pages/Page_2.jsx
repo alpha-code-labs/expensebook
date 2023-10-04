@@ -19,10 +19,10 @@ export default function (props){
     //onboarding data
     const onBoardingData = props.onBoardingData
 
-    const modeOfTransitList = onBoardingData.modeOfTransitOptions
-    const travelClassOptions = onBoardingData.travelClassOptions
-    const allowedCabClass = onBoardingData.cabClassOptions 
-    const allowedHotelClass = onBoardingData.hotelClassOptions
+    const modeOfTransitList = onBoardingData?.modeOfTransitOptions
+    const travelClassOptions = onBoardingData?.travelClassOptions
+    const allowedCabClass = onBoardingData?.cabClassOptions 
+    const allowedHotelClass = onBoardingData?.hotelClassOptions
 
     
     //formdata
