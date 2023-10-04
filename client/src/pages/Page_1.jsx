@@ -17,14 +17,14 @@ export default function Page_1(props){
     //onboarding data...
     const onBoardingData = props.onBoardingData
 
-    const APPROVAL_FLAG = true
-    const MANAGER_FLAG =  onBoardingData.MANAGER_FLAG
-    const DELEGATED_FLAG = onBoardingData.DELEGATED_FLAG
-    const listOfAllManagers = onBoardingData.managersList
-    const ALLOCATION_HEADER = onBoardingData.ALLOCATION_HEADER
-    const travelAllocationHeaders = onBoardingData.travelAllocationHeaderOptions 
-    const tripPurposeOptions = onBoardingData.tripPurposeOptions
-    const delegatedFor = onBoardingData.delegatedFor
+    const APPROVAL_FLAG = props.onBoardingData.APPROVAL_FLAG
+    const MANAGER_FLAG =  props.onBoardingData.MANAGER_FLAG
+    const DELEGATED_FLAG = props.onBoardingData.DELEGATED_FLAG
+    const listOfAllManagers = props.onBoardingData.managersList
+    const ALLOCATION_HEADER = props.onBoardingData.ALLOCATION_HEADER
+    const travelAllocationHeaders = props.onBoardingData.travelAllocationHeaderOptions 
+    const tripPurposeOptions = props.onBoardingData.tripPurposeOptions
+    const delegatedFor = props.onBoardingData.delegatedFor
 
     //form data
     const formData = props.formData
