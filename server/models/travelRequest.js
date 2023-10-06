@@ -3,9 +3,11 @@ import mongoose from 'mongoose'
 const travelRequestStatusEnums = [
     'draft', 
     'pending approval', 
-    'approved', 'rejected', 
+    'approved', 
+    'rejected', 
     'pending booking', 
-    'booked', 
+    'booked',
+    'transit', 
     'canceled',  
 ] 
 
@@ -31,13 +33,16 @@ const travelAndNonTravelPoliciesSchema = new mongoose.Schema({
 
 //not yet fixed
 const itinerarySchema = ({
-    departureCity: String,
-    arrivalCity: String,
-    departureDate: String,
-    returnDate: String,
-    hotels: [String],
-    cabs: [String],
-    flights: [String],      
+    cities: [{from:String, to:String, departure: {date:String, time:String}, return: {date:String, time:String}}],
+    hotels: [{class:String, checkIn:String, checkOut:String}],
+    cabs: [],
+    modeOfTransit:String,
+    travelClass: String,
+    needsVisa:Boolean,
+    needsAirportTransfer:Boolean,
+    needsHotel:Boolean,
+    needsFullDayCabs:Boolean,
+    tripType:{oneWayTrip:Boolean, roundTrip:Boolean, multiCityTrip:Boolean}
 })
 
 const travelRequestSchema = new mongoose.Schema({
@@ -63,22 +68,17 @@ const travelRequestSchema = new mongoose.Schema({
     required: true,
   },
   createdBy:{
-    type: String,  //employee Id by whom TR is raised 
+    type: {empId: String, name: String},  //employee Id by whom TR is raised 
     required: true
   },
   createdFor: {
-    type: [String], //employee Id's for whom TR is raised
+    type: [{empId: String, name: String}], //employee Id's for whom TR is raised
     required: true
   },
   travelAllocationHeaders: [
     {
-      headerName: String,
-      values: [
-        {
-          valueName: String,
-          percentage: Number,
-        },
-      ],
+      department: String,
+      percentage: Number,
     },
   ],
   itinerary: itinerarySchema,
@@ -94,7 +94,7 @@ const travelRequestSchema = new mongoose.Schema({
       imageUrl: String,
     },
   ],
-  approvers: [String],
+  approvers: [{empId: String, name: String},],
   preferences: [String],
   travelViolations: [String],
   travelRequestDate: {
