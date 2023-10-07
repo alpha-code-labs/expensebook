@@ -10,13 +10,13 @@ import Icon from '../components/common/Icon'
 import InputPercentage from '../components/common/InputPercentage'
 import Checkbox from '../components/common/Checkbox'
 import TableItem from '../components/table/TableItem'
+import { postTravelRequestData, updateTravelRequestData } from '../utils/postTravelRequestData'
 
 
 export default function Page_1(props){
     
     //onboarding data...
     const onBoardingData = props.onBoardingData
-
     const APPROVAL_FLAG = onBoardingData?.APPROVAL_FLAG
     const MANAGER_FLAG =  onBoardingData?.MANAGER_FLAG
     const DELEGATED_FLAG = onBoardingData?.DELEGATED_FLAG
@@ -44,11 +44,18 @@ export default function Page_1(props){
 
     const updateApprovers = (option)=>{
         const formData_copy = JSON.parse(JSON.stringify(formData))
-        formData_copy.approvers = [option]
+        formData_copy.approvers = option
         setFormData(formData_copy)
     }
 
-    const [travelRequestCreatedFor, setTravelRequestCreatedFor] = useState([])
+
+    const [travelRequestCreatedFor, setTravelRequestCreatedFor] = useState(formData.createdFor)
+    const updateTravelRequestCreatedFor = (option)=>{
+            //update form data
+            const formData_copy = JSON.parse(JSON.stringify(formData))
+            formData_copy.createdFor = [{name:option.name, empId:option.empId}]
+            setFormData(formData_copy)
+    }
 
     //delegator states
    
@@ -56,16 +63,19 @@ export default function Page_1(props){
     const [nameOfDelegator, setNameOfDelegator] = useState('') 
     const [isDelegatorManager, setIsDelegatorManager] = useState(false)
     const [delegatorsTeamMembers, setDelegatorsTeamMembers] = useState([])
-    const [selectDelegatorTeamMembers, setSelectDelegatorTeamMembers] = useState(false)
-    
-    
-
-
+    const [selectDelegatorTeamMembers, setSelectDelegatorTeamMembers] = useState(formData?.selectDelegatorTeamMembers)
 
     useEffect(()=>{
-        if(DELEGATED_FLAG && travelRequestCreatedFor.length>0 && EMPLOYEE_ID != travelRequestCreatedFor[0]){
+        const formData_copy = JSON.parse(JSON.stringify(formData))
+        formData_copy.selectDelegatorTeamMembers = selectDelegatorTeamMembers
+        setFormData(formData_copy)
+    },[selectDelegatorTeamMembers])
+    
+    
+    useEffect(()=>{
+        if(DELEGATED_FLAG && travelRequestCreatedFor.length>0 && EMPLOYEE_ID != travelRequestCreatedFor[0].empId){
             setRaisingForDelegator(true)
-            const delegator = delegatedFor.filter(employee=>employee.empId == travelRequestCreatedFor[0])
+            const delegator = delegatedFor.filter(employee=>employee.empId == travelRequestCreatedFor[0].empId)
             const nameOfDelegator = delegator[0].name
             setNameOfDelegator(nameOfDelegator)
             const teamMembers = delegator[0].teamMembers
@@ -76,46 +86,95 @@ export default function Page_1(props){
             setIsDelegatorManager(teamMembers && teamMembers.length>0)
 
             console.log(travelRequestCreatedFor[0])
-            console.log(delegatedFor.filter(employee=>employee.empId == travelRequestCreatedFor[0]))
+            console.log(delegatedFor.filter(employee=>employee.empId == travelRequestCreatedFor[0].empId))
             console.log( {nameOfDelegator, teamMembers, isDelegatorManager} )
         }
-
-        //update form data
-        const formData_copy = JSON.parse(JSON.stringify(formData))
-        formData_copy.createdFor = travelRequestCreatedFor
-        setFormData(formData_copy)
-
     },[travelRequestCreatedFor])
 
     useEffect(()=>{
         setSelectedTeamMembers([])
+        console.log('this ran')
 
     },[selectDelegatorTeamMembers])
     
-
+    
     const [selectedTravelAllocationHeaders, setSelectedTravelAllocationHeaders] = useState(formData.travelAllocationHeaders)
 
+
     //if employee is a manager
-    const [bookingForSelf, setBookingForSelf] = useState(true)
-    const [bookingForTeam, setBookingForTeam] = useState(false)
+    const [bookingForSelf, setBookingForSelf] = useState(formData.bookingForSelf)
+    const [bookingForTeam, setBookingForTeam] = useState(formData.bookingForTeam)
 
     useEffect(()=>{
         //reset everything 
-        setTravelRequestCreatedFor([])
-        setSelectedTravelAllocationHeaders([])
-
+        //setTravelRequestCreatedFor([])
+        //setSelectedTravelAllocationHeaders([])
+        //setSelectDelegatorTeamMembers(false)
+        //setSelectedTeamMembers([])
+        //setTravelRequestCreatedFor([])
     },[bookingForTeam])
+
+    const handleBookingForSelf = ()=>{
+
+        if(!bookingForSelf){
+            const formData_copy = JSON.parse(JSON.stringify(formData))
+            formData_copy.createdFor = []
+            formData_copy.bookingForSelf = true
+            formData_copy.bookingForTeam=false
+            setFormData(formData_copy)
+        }
+
+        setBookingForSelf(pre=>!pre) 
+        setBookingForTeam(pre=>!pre)
+
+    }
+
+    const handleBookingForTeam = ()=>{
+        
+        if(!bookingForTeam){
+            setTravelRequestCreatedFor([])
+            setSelectedTravelAllocationHeaders([])
+            setSelectDelegatorTeamMembers(false)
+            setSelectedTeamMembers([])
+
+
+            const formData_copy = JSON.parse(JSON.stringify(formData))
+            formData_copy.createdFor = [{empId:EMPLOYEE_ID, name:'Aman'}]
+            formData_copy.selectDelegatorTeamMembers = false
+            formData_copy.selectedTeamMembers = []
+            formData_copy.travelAllocationHeaders = []
+            formData_copy.bookingForSelf = false
+            formData_copy.bookingForTeam=true
+            setFormData(formData_copy)
+        }
+
+        setBookingForSelf(pre=>!pre) 
+        setBookingForTeam(pre=>!pre)
+    }
 
 
     //team member state and selection method
-    const [selectedTeamMembers, setSelectedTeamMembers] = useState([])
+    console.log(formData.teamMembers, formData.selectDelegatorTeamMembers, 'team members')
+    const [selectedTeamMembers, setSelectedTeamMembers] = useState(formData?.teamMembers?.map(item=>item.empId))
 
     useEffect(()=>{
-        console.log(selectedTeamMembers)
+    //    console.log(selectedTeamMembers)
+    },[selectedTeamMembers])
+    
+
+    useEffect(()=>{
         
+        let teamMembers = []
+        if(selectDelegatorTeamMembers){
+            delegatorsTeamMembers.forEach(item=>{
+                if(selectedTeamMembers.includes(item.empId)){
+                    teamMembers.push(item)
+                }
+            })
+        }
         //update form data
         const formData_copy = JSON.parse(JSON.stringify(formData))
-        formData_copy.teamMembers = selectedTeamMembers
+        formData_copy.teamMembers = teamMembers
         setFormData(formData_copy)
 
     },[selectedTeamMembers])
@@ -146,10 +205,29 @@ export default function Page_1(props){
 
     const navigate = useNavigate()
 
-    const handleContinueButton = ()=>{
+    const handleContinueButton = async ()=>{
         console.log(sectionForm)
         console.log(formData)
-        navigate('/section1')    
+
+        if(!formData.travelRequestId){
+            const travelRequestId = await postTravelRequestData({...formData, travelRequestState:'section 0', travelRequestStatus:'draft', tenantId:144,  })
+            
+            console.log(travelRequestId, 'travel request id')
+            const formData_copy = JSON.parse(JSON.stringify(formData))
+            formData_copy.travelRequestId = travelRequestId
+            setFormData(formData_copy)
+            if(travelRequestId){
+                navigate('/section1')
+            }
+        }
+        else{
+            const res = await updateTravelRequestData({...formData, travelRequestState:'section 0', travelRequestStatus:'draft', tenantId:144,  })
+            console.log(res, 'res')
+            navigate('/section1')
+        }
+
+
+                
     }
 
     const handleAllocationPercentageChange = (percentage, item)=>{
@@ -223,8 +301,8 @@ export default function Page_1(props){
                 {/* only for manager */}
                { MANAGER_FLAG && <>
                <div className="w-fit h-6 justify-start items-center gap-4 inline-flex mt-5">
-                    <div onClick={()=>{setBookingForSelf(pre=>!pre); setBookingForTeam(pre=>!pre)}} className={`${ bookingForSelf? 'text-zinc-100 bg-indigo-600 px-2 py-1 rounded-xl' : 'text-zinc-500' } text-xs font-medium font-cabin cursor-pointer transition`}>For You </div>
-                    <div onClick={()=>{setBookingForSelf(pre=>!pre); setBookingForTeam(pre=>!pre)}} className={`${ bookingForTeam? 'text-zinc-100 bg-indigo-600 px-2 py-1 rounded-xl' : 'text-zinc-500' } text-xs font-medium font-cabin cursor-pointer transition`}>For Team</div>
+                    <div onClick={handleBookingForSelf} className={`${ bookingForSelf? 'text-zinc-100 bg-indigo-600 px-2 py-1 rounded-xl' : 'text-zinc-500' } text-xs font-medium font-cabin cursor-pointer transition`}>For You </div>
+                    <div onClick={handleBookingForTeam} className={`${ bookingForTeam? 'text-zinc-100 bg-indigo-600 px-2 py-1 rounded-xl' : 'text-zinc-500' } text-xs font-medium font-cabin cursor-pointer transition`}>For Team</div>
                 </div>
 
                 <hr className='mt-2 -mb-4' /> </> }
@@ -247,17 +325,20 @@ export default function Page_1(props){
                     {/* Booking for.. will be displayed if employee is delegated  */}
                     {DELEGATED_FLAG  && !bookingForTeam && <ObjectSelect
                         options={delegatedFor}
+                        currentOption={formData?.createdFor[0]}
                         placeholder='Name of the travelling employeee' 
-                        onSelect={(option)=>setTravelRequestCreatedFor([option.empId])}
+                        onSelect={(option)=>{setTravelRequestCreatedFor([option]); updateTravelRequestCreatedFor(option)}}
                         title='Assign request for' />}
 
                     {/* Select approvers */}
-                    {APPROVAL_FLAG && 
-                    <Search
-                        options={listOfAllManagers}
+
+                    {APPROVAL_FLAG &&
+                    <MultiSearch 
+                        title='Who will Approve this?'
+                        placeholder="Name's of managers approving this"
                         onSelect = {(option)=>{updateApprovers(option)}}
-                        placeholder='Name of manager approving this' 
-                        title='Who will Approve this?' />}
+                        currentOption={formData.approvers && formData.approvers.length>0? formData.approvers : []}
+                        options={listOfAllManagers}/>}
                 </div>
                 <hr className='my-8' />
                 
@@ -278,7 +359,6 @@ export default function Page_1(props){
                         <input type='radio' />
                         <p className='text-zinc-800 text-sm font-medium font-cabin'>Not Sure</p>
                     </div>}
-                    
                     
                     {selectedTravelAllocationHeaders && selectedTravelAllocationHeaders.length>0 &&
                         <div className='mt-8'>
@@ -301,8 +381,8 @@ export default function Page_1(props){
                 {/* slect team members */}
                 {((MANAGER_FLAG && bookingForTeam) || isDelegatorManager) && <div className='mt-8'>
                     <div className='flex gap-4 items-center'>
-                        {isDelegatorManager && <Checkbox checked={selectDelegatorTeamMembers} onClick={(e)=>{setSelectDelegatorTeamMembers(e.target.checked)}} />} 
-                        <p className='text-base font-medium text-neutral-700 font-cabin'>{`${isDelegatorManager? `Select ${nameOfDelegator.split(' ')[0]}'s team members for this trip` : 'Select team members for this trip'}`}</p>
+                        {isDelegatorManager && !bookingForTeam && <Checkbox checked={selectDelegatorTeamMembers} onClick={(e)=>{setSelectDelegatorTeamMembers(e.target.checked)}} />} 
+                        <p className='text-base font-medium text-neutral-700 font-cabin'>{`${isDelegatorManager && !bookingForTeam? `Select ${nameOfDelegator.split(' ')[0]}'s team members for this trip` : 'Select team members for this trip'}`}</p>
                     </div>
 
                     {/* table */}
@@ -320,7 +400,7 @@ export default function Page_1(props){
                                 </>
                             }
 
-                            {isDelegatorManager && delegatorsTeamMembers && selectDelegatorTeamMembers &&
+                            {isDelegatorManager && delegatorsTeamMembers && selectDelegatorTeamMembers && !bookingForTeam &&
                             <>
                                 <CheckboxCol checked={selectedTeamMembers} onClick={(e, id)=>handleTeamMemberSelect(e, id)} employees={delegatorsTeamMembers}/>
                                 <EmpIdCol employees={delegatorsTeamMembers} />
@@ -343,8 +423,6 @@ export default function Page_1(props){
         </div>
     </>)
 }
-
-
 
 function CheckboxCol(props){
     const employees = props.employees
@@ -393,7 +471,6 @@ function EmpIdCol(props){
 
 function DesignationCol(props){
     const employees = props.employees
-    console.log('this ran', employees.length)
     return(
         <div className='flex-col sr-only md:not-sr-only justify-start items-start gap-6 inline-flex'>
             <div className="flex-col justify-start items-center gap-2 flex">
@@ -403,3 +480,5 @@ function DesignationCol(props){
         </div>
     )
 }
+
+
