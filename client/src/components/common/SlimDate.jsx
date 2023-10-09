@@ -28,7 +28,7 @@ export default function SlimDate(props){
                 <div className="text-neutral-700 w-full  h-full text-sm font-normal font-cabin">
                     <div className=" w-full z-100 relative h-full decoration:none px-6 py-2 border rounded-md border border-neutral-300 inline-flex justify-center items-center cursor-pointer">
                         <div className="flex relative w-full gap-4 justify-center items-center" >
-                            <input className='slim absolute w-full h-full opacity-0 focus-visible:outline-0 cursor-hover' onChange={handleChange} type='date'/>
+                            <input className='slim absolute w-full h-full opacity-0 focus-visible:outline-0 cursor-hover' onChange={handleChange} value={value} type='date'/>
                             <div className="text-gray-600 bg-white whitespace-nowrap text-base font-medium font-cabin">{formatDate(value)}</div>
                             <div className="h-6 w-6">
                                 <img src={chevron_down} alt="open" />
