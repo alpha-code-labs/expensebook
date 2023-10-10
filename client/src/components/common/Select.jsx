@@ -14,6 +14,8 @@ export default function Select(props) {
   const currentOption = props.currentOption || null
   const [selectedOption, setSelectedOption] = useState(currentOption)
   const [keyboardFocusIndex, setKeyboardFocusIndex] = useState(-1)
+  const error = props.error || null
+  const required = props.required || false
 
 
     useEffect(()=>{
@@ -150,7 +152,7 @@ const selectDivFocus = (e)=>{
               onKeyDown={selectKeyDown}
               onFocus={selectDivFocus}
               ref={selectDivRef}
-              className="grow shrink basis-0 h-6 justify-between items-center flex cursor-pointer focus-visible:outline-0"
+              className="grow shrink basis-0 h-6 relative justify-between items-center flex cursor-pointer focus-visible:outline-0"
               onClick={handleSelectClick}
             >
               {!hidePlaceholder && (
@@ -162,6 +164,11 @@ const selectDivFocus = (e)=>{
               <div className={`w-6 h-6 relative transition ${showDropdown && 'rotate-180'}`}>
                 <img src={chevron_down} />
               </div>
+
+              
+            {!showDropdown && hidePlaceholder && error && <div className="absolute top-[35px] w-full text-xs text-yellow-600 font-cabin">
+              {error}
+            </div>}
             </div>
 
             {/* options */}
@@ -189,7 +196,9 @@ const selectDivFocus = (e)=>{
                   ))}
               </div>
             )}
+
           </div>
+
         </div>
       </div>
     </>
