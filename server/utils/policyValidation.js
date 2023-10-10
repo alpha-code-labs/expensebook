@@ -1,8 +1,21 @@
-import travelPolicy from '../test_data/travelPolicy.json' assert { type: "json" }
-export default function policyValidation(group, policy, value){
-    const allowed = travelPolicy.policy.find(value)
-    const status = allowed ? 'allowed' : 'not allowed'
-    const message = allowed ? '' : travelPolicy.policy.violationMessage
+import policies from '../test_data/travelPolicy.json' assert { type: "json" }
 
-    return {status, message}
+
+export default async function policyValidation(type, group, policy, value){
+    //  console.log(policies)
+
+    console.log(type, group, policy, value)
+
+    if(policies['policies'][type][group][policy][value] != undefined){
+        if(policies['policies'][type][group][policy][value].allowed == true){
+            return {allowed: true, violationMessage:null}
+        }
+        else{
+            return {allowed: false, violationMessage: policies['policies'][type][group][policy][value].violationMessage}
+        }
+    }
+
+    else{
+        return {allowed: null, violationMessage: null}
+    }
 }
