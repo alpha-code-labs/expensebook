@@ -65,10 +65,12 @@ function formatDate(date=Date.now()) {
     return customFormatPattern.test(dateString);
   }
   
-
-
-
   function formatDate2(inputDate) {
+
+    if(isDateInFormat(inputDate)){
+      return inputDate
+    }
+
     const date = new Date(inputDate);
     const options = { year: 'numeric', month: 'long', day: 'numeric' };
     const formattedDate = date.toLocaleDateString('en-US', options);
@@ -103,7 +105,10 @@ function formatDate(date=Date.now()) {
     return finalFormattedDate;
   }
   
-  // Example usage
+
+  function formatDate3(inputDate){
+
+  }
   
   
 
