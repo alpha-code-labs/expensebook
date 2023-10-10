@@ -10,7 +10,7 @@ import Icon from '../components/common/Icon'
 import InputPercentage from '../components/common/InputPercentage'
 import Checkbox from '../components/common/Checkbox'
 import TableItem from '../components/table/TableItem'
-import { postTravelRequest_API, updateTravelRequest_API } from '../utils/api'
+import { postTravelRequest_API, updateTravelRequest_API, policyValidation_API } from '../utils/api'
 
 
 export default function Page_1(props){
@@ -33,12 +33,27 @@ export default function Page_1(props){
     //details of current employee
     
     const EMPLOYEE_ID  = '123'
+    const group = 'group 1'
     const teamMembers = [{name: 'Aman Bhagel', empId: '204', designation: 'Sales Executive'}, {name: 'Vikas Rajput', empId: '245', designation:'System Engineer II'}, {name: 'Rahul Suyush Singh', empId: '318', designation:'Sr. Software Engineer'}, {name: 'Vilakshan Vibhut Giri Babaji Maharaj', empId: '158', designation:'Sr. Sales Executive'}]
     
+    const [tripPurposeViolationMessage, setTripPurposeViiolationMessage] = useState(formData.travelViolations.tripPurposeViolationMessage)
+
+
+    const navigate = useNavigate()
+
     //update form data
-    const updateTripPurpose = (option)=>{
+    const updateTripPurpose = async (option)=>{
+
+        let tripPurposeViolationMessage_ = null
+        await policyValidation_API({type:'international', policy:'trip purpose', value:option, group:group})
+        .then(res=>{tripPurposeViolationMessage_ = res.violationMessage})
+        .catch(err=>console.error('error in policy validation ', err))
+
+        setTripPurposeViiolationMessage(tripPurposeViolationMessage_)
+
         const formData_copy = JSON.parse(JSON.stringify(formData))
         formData_copy.tripPurpose = option
+        formData_copy.travelViolations.tripPurposeViolationMesssage = tripPurposeViolationMessage_
         setFormData(formData_copy)
     }
 
@@ -195,10 +210,6 @@ export default function Page_1(props){
         setFormData(formData_copy)
     }
 
-
-    
-    const navigate = useNavigate()
-
     const handleContinueButton = async ()=>{
         console.log(sectionForm)
         console.log(formData)
@@ -310,6 +321,7 @@ export default function Page_1(props){
                         title='Select trip purpose'
                         placeholder='Select puropse of trip'
                         options={tripPurposeOptions}
+                        error={tripPurposeViolationMessage}
                         currentOption={formData.tripPurpose}
                         onSelect = {(option)=> {updateTripPurpose(option)}} />
                 </div>
