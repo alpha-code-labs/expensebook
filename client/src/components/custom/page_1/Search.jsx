@@ -11,7 +11,7 @@ export default function Search(props){
     const optionsList = props.options || []
     const currentOption = props.currentOption || null
     const [selectedOption, setSelectedOption] = useState(currentOption) 
-    const [textInput, setTextInput] = useState('')
+    const [textInput, setTextInput] = useState(currentOption? currentOption.name : '')
     const [filteredOptionsList, setFilteredOptionsList] = useState(null)
     const [keyboardFocusIndex, setKeyboardFocusIndex] = useState(-1)
 
