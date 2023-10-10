@@ -5,14 +5,14 @@ import {titleCase} from '../../../utils/handyFunctions'
 export default function ObjectSelect(props) {
   const placeholder = props.placeholder || "Placeholder Text";
   const title = props.title || "Title";
-  const [hidePlaceholder, setHidePlaceholder] = useState(false);
+  const currentOption = props.currentOption || null
+  const [hidePlaceholder, setHidePlaceholder] = useState(currentOption?.name ? true : false);
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef(null);
   const selectDivRef = useRef(null)
   const optionsList = props.options;
   const onSelect = props.onSelect || null
-  const currentOption = props.currentOption || null
-  const [selectedOption, setSelectedOption] = useState(currentOption)
+  const [selectedOption, setSelectedOption] = useState(currentOption?.name)
   const [keyboardFocusIndex, setKeyboardFocusIndex] = useState(-1)
 
     //refs for filtered options
