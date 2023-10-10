@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { titleCase } from "../../utils/handyFunctions";
 
-export default function MultiSearch(props){
+export default function Search(props){
     const placeholder = props.placeholder || "Placeholder Text";
     const title = props.title || "Title";
     const [showDropdown, setShowDropdown] = useState(false);
@@ -9,8 +9,8 @@ export default function MultiSearch(props){
     const inputRef = useRef(null)
     const optionsList = props.options || []
     const currentOption = props.currentOption || null
-    const [selectedOption, setSelectedOption] = useState(currentOption) 
-    const [textInput, setTextInput] = useState('')
+    const [selectedOption, setSelectedOption] = useState(currentOption? currentOption : []) 
+    const [textInput, setTextInput] = useState(currentOption? currentOption.map(o=>o.name).join(', ') : '')
     const [filteredOptionsList, setFilteredOptionsList] = useState(null)
     const [keyboardFocusIndex, setKeyboardFocusIndex] = useState(-1)
 
@@ -25,18 +25,28 @@ export default function MultiSearch(props){
     const onSelect = props.onSelect || null
     
     //length of input text above which dropdown appears
-    const startShowingOptions = optionsList.length < 200 ? 0 : 0
+    const startShowingOptions = optionsList.length < 200 ? -1 : 0
 
     const inputChange = (e)=>{
         e.preventDefault()
-        setTextInput(e.target.value)
 
-        if(e.target.value.length == 0){
+        const inputValue = e.target.value 
+        const keywords = inputValue.split(',').map((keyword) => keyword.trim());
+        setTextInput(inputValue)
+
+        if(keywords[keywords.length-1].length == 0){
             setShowDropdown(false)
         }
 
-        if(e.target.value.length > startShowingOptions && optionsList.length>0){
-            const filteredOptions = optionsList.filter(option=> option.toLowerCase().startsWith(e.target.value.toLowerCase()) )
+        if(keywords.length == selectedOption.length && selectedOption[selectedOption.length-1].name !== keywords[keywords.length-1]){
+            removeOption(selectedOption[selectedOption.length-1])
+        }
+
+        console.log(selectedOption, 'selectedOption')
+
+        if (keywords.length > 0 && keywords[keywords.length - 1].length > startShowingOptions) {
+            //console.log(optionsList, 'optionsList') 
+            const filteredOptions = optionsList.filter(option=> option.name.toLowerCase().startsWith(keywords[keywords.length - 1].toLowerCase()) )
             setFilteredOptionsList(filteredOptions)
             if(filteredOptions.length > 0){
                 setShowDropdown(true)
@@ -44,19 +54,32 @@ export default function MultiSearch(props){
         }
     }
 
-    const inputFocus = ()=>{
-        if(textInput.length > startShowingOptions && optionsList.length>0){
-            const filteredOptions = optionsList.filter(option=> option.toLowerCase().startsWith(textInput.toLowerCase()) )
-            setFilteredOptionsList(filteredOptions)
-            if(filteredOptions.length > 0){
-                setShowDropdown(true)
-            }
+    const inputFocus = () => {
+        const keywords = textInput.split(',').map((keyword) => keyword.trim());
+      
+        if (keywords.length > 0 && keywords[keywords.length - 1].length > startShowingOptions) {
+          const filteredOptions = optionsList.filter((option) =>
+            option.name.toLowerCase().startsWith(keywords[keywords.length - 1].toLowerCase())
+          );
+          setFilteredOptionsList(filteredOptions);
+      
+          if (filteredOptions.length > 0) {
+            setShowDropdown(true);
+          }
         }
     }
 
     const inputBlur = (e)=>{
         //bad idea...
         //setShowDropdown(false)
+        if(textInput.length>0 && textInput[textInput.length-1] != ','){
+            const keywords = selectedOption.map(o=>o.name)  
+            setTextInput(keywords.join(', ')+', ')
+            //setTextInput(textInput+', ')
+        }
+        if(selectedOption.length==0){
+            setTextInput('')
+        }
     }
 
 
@@ -87,15 +110,15 @@ export default function MultiSearch(props){
                 setKeyboardFocusIndex(0)
             }
             else{
-                setKeyboardFocusIndex(pre=> (pre+1 < filteredOptionsList.length)? pre+1 : 0)
+                setKeyboardFocusIndex(pre=> (pre+1 < optionsList.length)? pre+1 : 0)
             }
           
         }
 
         if(e.keyCode == 13){
-            console.log(keyboardFocusIndex)
-            console.log(dropdownOptionsRef.current[keyboardFocusIndex])
-           handleOptionSelect(dropdownOptionsRef.current[keyboardFocusIndex].innerHTML)
+            console.log(dropdownOptionsRef.current[keyboardFocusIndex].getAttribute('data'))
+            const option = JSON.parse(dropdownOptionsRef.current[keyboardFocusIndex].getAttribute('data'))
+           handleOptionSelect(option)
         }
         
 
@@ -126,14 +149,33 @@ export default function MultiSearch(props){
     
     //handles selection of options
     const handleOptionSelect = (option, index=0)=>{
-      setSelectedOption(option)
-      setTextInput(option)
-  
-      if(onSelect != null){
-          onSelect(option)
-      }
+        if(!selectedOption.some(o=> o.empId == option.empId)){
+            const updatedSlectedOption = [...selectedOption, option]
+            setSelectedOption(updatedSlectedOption)
+            
+            setTextInput(updatedSlectedOption.map(o=>o.name).join(', ')+', ')
+        
+            if(onSelect != null){
+                onSelect(updatedSlectedOption)
+            }
 
-      setShowDropdown(false)
+            setShowDropdown(false)
+        }
+        else{
+            setTextInput(selectedOption.map(o=>o.name).join(', ')+', ')
+            setShowDropdown(false)   
+        }
+    }
+
+    const removeOption = (option)=>{
+        const updatedSelectedOption = selectedOption.filter(o=> o.empId!=option.empId)
+        setSelectedOption(updatedSelectedOption)
+
+        updatedSelectedOption.length>0? setTextInput(updatedSelectedOption.map(o=>o.name).join(', ') + ', ') : setTextInput('')
+
+        if(onSelect != null){
+            onSelect(updatedSelectedOption)
+        }
     }
 
     //for closing the dropdown on outside click
@@ -191,11 +233,12 @@ export default function MultiSearch(props){
                             tabIndex={index+1}
                             onKeyDown={handleDropdownKeyDown}
                             //ref={firstDropDownOptionsRef}
+                            data={JSON.stringify(option)}
                             ref={el => dropdownOptionsRef.current[index] = el} 
                             onClick={(e)=>{ handleOptionSelect(option, index) }}
                             className="text-xs font-medium font-cabin text-neutral-700 px-4 py-3 cursor-pointer transition-color hover:bg-gray-200 focus-visible:outline-0 focus-visible:bg-gray-100"
                         >
-                            {titleCase(option)}
+                            {titleCase(option.name)}
                         </p>
                         {index != optionsList.length - 1 && <hr key={option} />}
                         </>
@@ -203,8 +246,6 @@ export default function MultiSearch(props){
                 </div>
                 }
             </div>
-
       </div>
-
     </>)
 }
