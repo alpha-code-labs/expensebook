@@ -11,7 +11,8 @@ import Checkbox from "../components/common/Checkbox"
 import SlimDate from "../components/common/SlimDate"
 import AddMore from "../components/common/AddMore"
 import Button from "../components/common/Button"
-import { titleCase } from "../utils/handyFunctions"
+import { updateTravelRequest_API, policyValidation_API } from "../utils/api"
+import ShowCabDates from "../components/common/showCabDates"
 
 
 export default function (props){
@@ -23,7 +24,6 @@ export default function (props){
     const travelClassOptions = onBoardingData?.travelClassOptions
     const allowedCabClass = onBoardingData?.cabClassOptions 
     const allowedHotelClass = onBoardingData?.hotelClassOptions
-
     
     //formdata
     const [formData, setFormData] = [props.formData, props.setFormData]
@@ -36,7 +36,7 @@ export default function (props){
     const [needsHotel, setNeedsHotel] = useState(formData.itinerary.needsHotel)
     const [needsFullDayCab, setNeedsFullDayCab] = useState(formData.itinerary.needsFullDayCabs)
     const [cabClass, setCabClass] = useState(null)
-
+    const [cabDates, setCabDates] = useState(['12th Oct', '15th Dec', '17th Jan'])
     //format: from, to , departureDate, returnDate
     const [cities, setCities] = useState(formData.itinerary.cities)
     const [modeOfTransit, setModeOfTransit] = useState(formData.itinerary.modeOfTransit)
@@ -45,25 +45,47 @@ export default function (props){
     const [cabs, setCabs] = useState({})
 
 
+    const [travelClassViolationMessage, setTravelClassViolationMessage] = useState(formData.travelViolations.travelClassViolationMessage)
+    const [hotelClassViolationMessage, setHotelClassViolationMessage] = useState(formData.travelViolations.hotelClassViolationMessage)
+    const [cabClassViolationMessage, setCabClassViolationMessage] = useState(formData.travelViolations.cabClassViolationMessage)
+    const group = 'group 1'
+    const type = 'international'
+
     //update form
+    {
+
+    //update violations messages
+    useEffect(()=>{
+        const formData_copy = JSON.parse(JSON.stringify(formData))
+        formData_copy.travelViolations.travelClassViolationMessage = travelClassViolationMessage,
+        formData_copy.hotelClassViolationMessage = hotelClassViolationMessage,
+        formData_copy.cabClassViolationMessage = cabClassViolationMessage
+        setFormData(formData_copy)
+
+    },[travelClassViolationMessage, hotelClassViolationMessage, cabClassViolationMessage])
+
+    //update type of trip
     useEffect(()=>{
         const formData_copy = JSON.parse(JSON.stringify(formData))
         formData_copy.itinerary.tripType = {oneWayTrip, roundTrip, multiCityTrip}
         setFormData(formData_copy)
     }, [oneWayTrip, roundTrip, multiCityTrip])
 
+    //update visa needed
     useEffect(()=>{
         const formData_copy = JSON.parse(JSON.stringify(formData))
         formData_copy.itinerary.needsVisa = needsVisa
         setFormData(formData_copy)
     },[needsVisa])
 
+    //update airport transfer needed
     useEffect(()=>{
         const formData_copy = JSON.parse(JSON.stringify(formData))
         formData_copy.itinerary.needsAirportTransfer = needsAirportTransfer
         setFormData(formData_copy)
     },[needsAirportTransfer])
 
+    //update hotel needed
     useEffect(()=>{
         const formData_copy = JSON.parse(JSON.stringify(formData))
         formData_copy.itinerary.needsHotel = needsHotel
@@ -91,6 +113,8 @@ export default function (props){
     useEffect(()=>{
         const formData_copy = JSON.parse(JSON.stringify(formData))
         formData_copy.itinerary.modeOfTransit = modeOfTransit
+        formData_copy.itinerary.needsAirportTransfer = false
+        formData_copy.itinerary.needsVisa = false
         setFormData(formData_copy)
     },[modeOfTransit])
 
@@ -99,17 +123,23 @@ export default function (props){
         formData_copy.itinerary.travelClass = travelClass
         setFormData(formData_copy)
     },[travelClass])
-
-
+    }
+    
     const navigate = useNavigate()
 
     const handleBackButton = ()=>{
         navigate('/section0')    
     }
 
-    const handleContinueButton = ()=>{
+    const handleContinueButton = async ()=>{
         console.log(sectionForm)
         console.log(formData)
+
+        if(formData.travelRequestId){
+            const response = await updateTravelRequest_API({...formData, travelRequestState:'section 1', travelRequestStatus:'draft'})
+            console.log(response)   
+        }
+
         navigate('/section2')
     }
 
@@ -147,7 +177,6 @@ export default function (props){
         }
     }
 
-
     const addHotel = ()=>{
         const hotels_copy = JSON.parse(JSON.stringify(hotels))
         hotels_copy.push({})
@@ -164,6 +193,8 @@ export default function (props){
         if(modeOfTransit && !travelClassOptions[modeOfTransit.toLowerCase()].includes(travelClass)){
             setTravelClass(null)
         }
+        setNeedsAirportTransfer(false)
+        setNeedsVisa(false)
     },[modeOfTransit])
 
     useEffect(()=>{
@@ -195,21 +226,75 @@ export default function (props){
         setCities(cities_copy)
     }
 
+    const handleTravelClassChange = async (option)=>{
+        //policy validation
+        switch(modeOfTransit){
+            case 'Flight':{
+                policyValidation_API({type:type, policy:'airfare class', value:option, group:group})
+                .then(res=>{ console.log(res); setTravelClassViolationMessage(res.violationMessage)})
+                .catch(err=>console.error('error in policy validation ', err))
+
+                return
+            }
+            case 'Train':{
+                policyValidation_API({type:type, policy:'railway class', value:option, group:group})
+                .then(res=>{setTravelClassViolationMessage(res.violationMessage)})
+                .catch(err=>console.error('error in policy validation ', err))
+
+                return
+            }
+            case 'Cab':{
+                policyValidation_API({type:type, policy:'cab class', value:option, group:group})
+                .then(res=>{setTravelClassViolationMessage(res.violationMessage)})
+                .catch(err=>console.error('error in policy validation ', err))
+
+                return
+            }
+        }
+        
+        //set form data
+        setTravelClass(option)
+    }
+
     const handleHotelDateChange = (e, index, field)=>{
         const hotels_copy = JSON.parse(JSON.stringify(hotels))
         hotels_copy[index][field] = e.target.value
         setHotels(hotels_copy)
     }
 
-    const handleHotelClassChange = (option, index)=>{
+    const handleHotelClassChange = async (option, index)=>{
+        //policy validation
+        await policyValidation_API({type:'international', policy:'hotel class', value:option, group:group}).then(res=>{
+            setHotelClassViolationMessage(res.violationMessage)
+            console.log(res.violationMessage)
+        })
+        .catch(err=>console.log('error in policy validation'))
+       
+        //update form states
         const hotels_copy = JSON.parse(JSON.stringify(hotels))
         hotels_copy[index].class = option
         setHotels(hotels_copy)
     }
+
+    const handleCabClassChange =  (option, index=0)=>{
+
+        policyValidation_API({type:type, policy:'cab class', value:option, group:group}).then(res=>{
+            setCabClassViolationMessage(res.violationMessage)
+            console.log(res.violationMessage)
+        })
+        .catch(err=>console.err('error in policy validation', err))
+       
+        //update form states
+        setCabClass(option)
+    }
+
+    useEffect(()=>{
+        console.log('hotel class violation message', hotelClassViolationMessage)
+    },[hotelClassViolationMessage])
     
     useEffect(()=>{
-        console.log(hotels)
-    },[hotels])
+        console.log('travel class violation message', travelClassViolationMessage)
+    },travelClassViolationMessage)
 
     const sectionForm = {
         cities: cities,
@@ -246,19 +331,21 @@ export default function (props){
                 {/* from, to , date */}
                 {cities.map((city,index)=>
                 <div key={index} className="mt-8 flex gap-8 items-center flex-wrap">
-                    <Input title='From'  placeholder='City' value={cities[index].from} onBlur={(e)=>updateCity(e, index, 'from')} />
-                    <Input title='To' placeholder='City' value={cities[index].to} onBlur={(e)=>updateCity(e, index, 'to')} />
+                    <Input title='From'  placeholder='City' value={city.from} onBlur={(e)=>updateCity(e, index, 'from')} />
+                    <Input title='To' placeholder='City' value={city.to} onBlur={(e)=>updateCity(e, index, 'to')} />
                     <DateTime 
                         title='Departure Date'
-                        time = {(cities && cities['departure']!=undefined && cities['departure']['time']!=undefined)? cities['departure'].time : '11:00' }
-                        date={(cities && cities['departure']!=undefined && cities['departure']['time']!=undefined)? cities['departure'].time : null }
+                        validRange={{min:null, max:null}}
+                        time = {(cities && city['departure']!=undefined && city['departure']['time']!=undefined)? city['departure'].time : '11:00' }
+                        date={(city && city['departure']!=undefined && city['departure']['time']!=undefined)? city['departure'].date : null }
                         onTimeChange={(e)=>handleTimeChange(e, index, 'departure')}
                         onDateChange={(e)=>handleDateChange(e, index, 'departure')} />
                     {!oneWayTrip && 
                     <DateTime
                         title='Return Date'
-                        time = {(cities && cities['return']!=undefined && cities['return']['time']!=undefined)? cities['return'].time : '11:00' }
-                        date={(cities && cities['return']!=undefined && cities['return']['time']!=undefined)? cities['return'].time : null }
+                        validRange={{min:null, max:null}}
+                        time = {(city && city['return']!=undefined && city['return']['time']!=undefined)? city['return'].time : '11:00' }
+                        date={(city && city['return']!=undefined && city['return']['time']!=undefined)? city['return'].date : null }
                         onTimeChange={(e)=>handleTimeChange(e, index, 'return')}
                         onDateChange={(e)=>handleDateChange(e, index, 'return')} 
                         />}
@@ -281,8 +368,9 @@ export default function (props){
                             placeholder='Select travel mode' />
                         <Select 
                             options={modeOfTransit? travelClassOptions[modeOfTransit.toLowerCase()] : []}
-                            onSelect={(option)=>{setTravelClass(option)}}
+                            onSelect={(option)=>{handleTravelClassChange(option)}}
                             currentOption={travelClass}
+                            error={travelClassViolationMessage}
                             title='Select travel Class' 
                             placeholder='Select travel class' />
                     </div>
@@ -352,7 +440,8 @@ export default function (props){
                             <Select options={allowedHotelClass}
                                     title='Hotel Class'
                                     placeholder='Select hotel class'
-                                    currentOption={hotels[index].class} 
+                                    currentOption={hotels[index].class}
+                                    error={hotelClassViolationMessage}
                                     onSelect={(option)=>handleHotelClassChange(option, index)} />}
                             <SlimDate title='Check In' date={hotels[index].checkIn} onChange={(e)=>{handleHotelDateChange(e, index, 'checkIn')}} />
                             <SlimDate title='Check Out' date={hotels[index].checkOut} onChange={(e)=>{handleHotelDateChange(e, index, 'checkOut')}}/>
@@ -377,13 +466,16 @@ export default function (props){
                 {needsFullDayCab && 
                 <>
                     <div  className="flex flex-wrap gap-8 mt-8 items-center">
-                        <Date />
+                            <Date onSelect={(date)=>{setCabDates(pre=>[...pre, date])} } />
                             {allowedCabClass && allowedCabClass.length>0 && 
                             <Select options={allowedCabClass}
                                     title='Cab Class'
+                                    validRange={{min:null, max:null}}
                                     placeholder='Select cab class'
                                     currentOption={cabClass} 
-                                    onSelect={(option)=>setCabClass(option)} />}
+                                    error={cabClassViolationMessage}
+                                    onSelect={(option)=>handleCabClassChange(option)} />}
+                            <ShowCabDates dates={cabDates} setDates={setCabDates} />
                         </div>    
                 </>
                 }
