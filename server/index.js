@@ -2,7 +2,8 @@ import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import internalRoutes from './routes/internalRoutes.js'
-import frontendRouts from './routes/frontendRoutes.js'
+import frontendRoutes from './routes/frontendRoutes.js'
+import cors from "cors"
 import { fetchGroupAndPoliciesData } from "./services/onboardingService.js";
 
 dotenv.config();
@@ -12,8 +13,9 @@ const MONGO_URI = process.env.MONGO_URI;
 const PORT = process.env.PORT;
 
 app.use(express.json())
+app.use(cors())
 app.use("/travel/internal/api", internalRoutes);
-app.use("/travel/api", frontendRouts);
+app.use("/travel/api", frontendRoutes);
 
 
 
