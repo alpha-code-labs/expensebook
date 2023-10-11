@@ -5,10 +5,15 @@ import { useState } from 'react';
 export default function Date(props){
 
     const [value, setValue] = useState();
+    const onSelect = props.onSelect || null
+
+    if(!onSelect) return
 
     const handleChange= (e)=>{
        setValue(e.target.value)
        console.log(e.target.value)
+
+       onSelect(e.target.value)
     }
 
     return (<div className="w-[270px] h-[84px] pl-[55.50px] pr-[54.50px] pt-4 pb-[21px] bg-white rounded-xl border border-neutral-200 justify-center items-center inline-flex">
