@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { formatDate3 } from "../../utils/handyFunctions";
 import { titleCase } from "../../utils/handyFunctions";
 
 export default function ShowCabDates(props){
@@ -8,12 +9,12 @@ export default function ShowCabDates(props){
     const dates = props.dates || null
     console.log(dates, 'dates')
     const setDates = props.setDates || null
-    const [textInput, setTextInput] = useState(dates? dates.join(', ') : '')
+    const [textInput, setTextInput] = useState(dates? dates.map(d=>formatDate3(d)).join(', ') : '')
 
 
     useEffect(()=>{
-        setTextInput(dates.length>0? dates.join(', ') : '')
-        console.log('dates changed')
+        setTextInput(dates.length>0? dates.map(d=>formatDate3(d)).join(', ') : '')
+        console.log(dates, 'dates changed')
     },[dates])
 
     
@@ -25,11 +26,11 @@ export default function ShowCabDates(props){
         setTextInput(inputValue)
 
 
-        if(keywords.length == dates.length && dates[dates.length-1] !== keywords[keywords.length-1]){
+        if(keywords.length == dates.length && formatDate3(dates[dates.length-1]) !== keywords[keywords.length-1]){
             const newDates = [...dates]
             newDates.pop()  
             setDates(newDates)
-            setTextInput(dates.join(', '))
+            setTextInput(dates.map(d=>formatDate3(d)).join(', '))
         }
 
     }
