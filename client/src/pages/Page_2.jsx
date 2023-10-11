@@ -13,6 +13,7 @@ import AddMore from "../components/common/AddMore"
 import Button from "../components/common/Button"
 import { updateTravelRequest_API, policyValidation_API } from "../utils/api"
 import ShowCabDates from "../components/common/showCabDates"
+import { formatDate3 } from "../utils/handyFunctions"
 
 
 export default function (props){
@@ -35,8 +36,8 @@ export default function (props){
     const [needsAirportTransfer, setNeedsAirportTransfer] = useState(formData.itinerary.needsAirportTransfer)
     const [needsHotel, setNeedsHotel] = useState(formData.itinerary.needsHotel)
     const [needsFullDayCab, setNeedsFullDayCab] = useState(formData.itinerary.needsFullDayCabs)
-    const [cabClass, setCabClass] = useState(null)
-    const [cabDates, setCabDates] = useState(['12th Oct', '15th Dec', '17th Jan'])
+    const [cabClass, setCabClass] = useState(formData.itinerary.cabs.class)
+    const [cabDates, setCabDates] = useState(formData.itinerary.cabs.dates)
     //format: from, to , departureDate, returnDate
     const [cities, setCities] = useState(formData.itinerary.cities)
     const [modeOfTransit, setModeOfTransit] = useState(formData.itinerary.modeOfTransit)
@@ -50,6 +51,11 @@ export default function (props){
     const [cabClassViolationMessage, setCabClassViolationMessage] = useState(formData.travelViolations.cabClassViolationMessage)
     const group = 'group 1'
     const type = 'international'
+
+    useEffect(()=>{
+        console.log(cabDates)
+    },[cabDates])
+
 
     //update form
     {
@@ -96,7 +102,28 @@ export default function (props){
         const formData_copy = JSON.parse(JSON.stringify(formData))
         formData_copy.itinerary.needsFullDayCabs = needsFullDayCab
         setFormData(formData_copy)
+
+        if(!needsFullDayCab){
+            setCabDates([])
+            setCabClass(null)
+        }
+
     },[needsFullDayCab])
+
+    useEffect(()=>{
+        const formData_copy = JSON.parse(JSON.stringify(formData))
+        formData_copy.itinerary.cabs = {class:cabClass, dates:cabDates}
+        setFormData(formData_copy)
+    },[cabClass])
+
+    useEffect(()=>{
+        try{
+            const formData_copy = JSON.parse(JSON.stringify(formData))
+            formData_copy.itinerary.cabs = {class:cabClass, dates:cabDates}
+            setFormData(formData_copy)
+        }catch(e){console.log(e)}
+
+    },[cabDates])
 
     useEffect(()=>{
         const formData_copy = JSON.parse(JSON.stringify(formData))
