@@ -165,20 +165,24 @@ const selectDivFocus = (e)=>{
               >
                 {optionsList &&
                   optionsList.map((option, index) => (
-                    <>
-                      <p
-                        key={index}
+                    <div
+                        className="cursor-pointer transition-color hover:bg-gray-200 focus-visible:outline-0 focus-visible:bg-gray-100"
                         tabIndex={index+1}
                         onKeyDown={handleDropdownKeyDown}
+                        //ref={firstDropDownOptionsRef}
+                        onClick={(e)=>{ handleOptionSelect(option, index) }}
                         data={JSON.stringify(option)}
-                        ref={el => dropdownOptionsRef.current[index] = el} 
-                        onClick={()=>{ handleOptionSelect(option, index) }}
-                        className="text-xs focus-visible:outline-0 focus-visible:bg-gray-100 font-medium font-cabin text-neutral-700 px-4 py-3 cursor-pointer transition-color hover:bg-gray-100"
-                      >
-                        {titleCase(option.name)}
-                      </p>
-                      {index != optionsList.length - 1 && <hr key={`${option}-${index}`} />}
-                    </>
+                        ref={el => dropdownOptionsRef.current[index] = el}
+                        key={index}>
+                        <p className="text-xs font-medium font-cabin text-neutral-700 px-4 pt-3">
+                            {titleCase(option.name)}
+                        </p>
+                        <div className='flex px-4 pb-3 pt-.5 gap-1'>
+                            <p className="text-xs font-medium font-cabin text-neutral-400">{`${option.designation? titleCase(option?.designation) : ''}`} </p>
+                            <p className="text-xs font-medium font-cabin text-neutral-400">{`${option.department? titleCase(option?.department) : ''}`} </p>
+                        </div>
+                        {index != optionsList.length - 1 && <hr key={option} />}
+                    </div>
                   ))}
               </div>
             )}
