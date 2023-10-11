@@ -180,9 +180,8 @@ const selectDivFocus = (e)=>{
               >
                 {optionsList &&
                   optionsList.map((option, index) => (
-                    <>
+                    <div key={index}>
                       <p
-                        key={index}
                         tabIndex={index+1}
                         onKeyDown={handleDropdownKeyDown}
                         ref={el => dropdownOptionsRef.current[index] = el} 
@@ -192,7 +191,7 @@ const selectDivFocus = (e)=>{
                         {titleCase(option)}
                       </p>
                       {index != optionsList.length - 1 && <hr key={`${option}-${index}`} />}
-                    </>
+                    </div>
                   ))}
               </div>
             )}
