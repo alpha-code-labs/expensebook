@@ -34,12 +34,26 @@ export default function Search(props){
         const keywords = inputValue.split(',').map((keyword) => keyword.trim());
         setTextInput(inputValue)
 
+        const caretIndex = inputRef.current.selectionStart
+        console.log(caretIndex, 'caretIndex')
+
         if(keywords[keywords.length-1].length == 0){
             setShowDropdown(false)
         }
 
-        if(keywords.length == selectedOption.length && selectedOption[selectedOption.length-1].name !== keywords[keywords.length-1]){
-            removeOption(selectedOption[selectedOption.length-1])
+        if(keywords.length == selectedOption.length ){
+
+            
+            selectedOption.forEach((option, index)=>{
+                
+                //not sure if we should keep this
+                if(selectedOption.slice(0, index+1).map(o=>o.name).join(', ').length == caretIndex){
+                    removeOption(option)
+                }    
+            })
+
+            //&& selectedOption[selectedOption.length-1].name !== keywords[keywords.length-1]            
+           // removeOption(selectedOption[selectedOption.length-1])
         }
 
         console.log(selectedOption, 'selectedOption')
@@ -55,6 +69,7 @@ export default function Search(props){
     }
 
     const inputFocus = () => {
+        inputRef.current.setSelectionRange(textInput.length, textInput.length)
         const keywords = textInput.split(',').map((keyword) => keyword.trim());
       
         if (keywords.length > 0 && keywords[keywords.length - 1].length > startShowingOptions) {
@@ -227,21 +242,24 @@ export default function Search(props){
                 >
                     {filteredOptionsList &&
                     filteredOptionsList.map((option, index) => (
-                        <>
-                        <p
-                            key={index}
+                        <div
+                            className="cursor-pointer transition-color hover:bg-gray-200 focus-visible:outline-0 focus-visible:bg-gray-100"
                             tabIndex={index+1}
                             onKeyDown={handleDropdownKeyDown}
                             //ref={firstDropDownOptionsRef}
-                            data={JSON.stringify(option)}
-                            ref={el => dropdownOptionsRef.current[index] = el} 
                             onClick={(e)=>{ handleOptionSelect(option, index) }}
-                            className="text-xs font-medium font-cabin text-neutral-700 px-4 py-3 cursor-pointer transition-color hover:bg-gray-200 focus-visible:outline-0 focus-visible:bg-gray-100"
-                        >
-                            {titleCase(option.name)}
-                        </p>
+                            data={JSON.stringify(option)}
+                            ref={el => dropdownOptionsRef.current[index] = el}
+                            key={index}>
+                            <p className="text-xs font-medium font-cabin text-neutral-700 px-4 pt-3">
+                                {`${titleCase(option.name)}-${option.empId}`}
+                            </p>
+                            <div className='flex px-4 pb-3 pt-.5 gap-1'>
+                                <p className="text-xs font-medium font-cabin text-neutral-400">{`${option.designation? titleCase(option?.designation) : ''}`} </p>
+                                <p className="text-xs font-medium font-cabin text-neutral-400">{`${option.department? titleCase(option?.department) : ''}`} </p>
+                            </div>
                         {index != optionsList.length - 1 && <hr key={option} />}
-                        </>
+                        </div>
                     ))}
                 </div>
                 }
