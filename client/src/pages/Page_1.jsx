@@ -440,8 +440,8 @@ function CheckboxCol(props){
             <div className="flex-col justify-start items-center gap-2 flex">
                 <div className="max-w-[134px] py-2 h-10 justify-start items-center inline-flex">
                 </div>
-                {employees && employees.map(employee=>
-                    <div className="max-w-[134px] shrink py-2 h-10 justify-start items-center inline-flex">
+                {employees && employees.map((employee, index)=>
+                    <div key={index} className="max-w-[134px] shrink py-2 h-10 justify-start items-center inline-flex">
                         <Checkbox onClick={(e,id)=>onClick(e, id)} checked={checked.includes(employee.empId)} id={employee.empId} />
                     </div>)}
             </div>
@@ -456,7 +456,7 @@ function NameCol(props){
         <div className='flex-col justify-start items-start gap-6 inline-flex'>
             <div className="flex-col justify-start items-center gap-2 flex">
                 <TableItem text='Name' header='true' />
-                {employees && employees.map(employee=><TableItem text={employee.name} />)}
+                {employees && employees.map((employee, index)=><TableItem key={index} text={employee.name} />)}
             </div>
         </div>
     )
@@ -469,7 +469,7 @@ function EmpIdCol(props){
         <div className='flex-col sr-only md:sr-only lg:not-sr-only justify-start items-start gap-6 inline-flex'>
             <div className="flex-col justify-start items-center gap-2 flex">
                 <TableItem text='Employee Id' header='true' />
-                {employees && employees.map(employee=><TableItem text={employee.empId} />)}
+                {employees && employees.map((employee, index)=><TableItem key={index} text={employee.empId} />)}
             </div>
         </div>
     )
@@ -481,7 +481,7 @@ function DesignationCol(props){
         <div className='flex-col sr-only md:not-sr-only justify-start items-start gap-6 inline-flex'>
             <div className="flex-col justify-start items-center gap-2 flex">
                 <TableItem text='Designation' header='true' />
-                {employees && employees.map(employee=><TableItem text={employee.designation} />)}
+                {employees && employees.map((employee, index)=><TableItem key={index} text={employee.designation} />)}
             </div>
         </div>
     )
