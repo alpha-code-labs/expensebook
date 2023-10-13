@@ -55,6 +55,10 @@ const travelRequestSchema = new mongoose.Schema({
     required: true,
     unique: true,
   },
+  tripPurpose: {
+    type: String,
+    required: true,
+  },
   travelRequestStatus: { //initialize with status as 'draft'
     type: String,
     enum: travelRequestStatusEnums,
@@ -72,9 +76,10 @@ const travelRequestSchema = new mongoose.Schema({
     required: true
   },
   createdFor: {
-    type: [{empId: String, name: String}], //employee Id's for whom TR is raised
-    required: true
+    type: {empId: String, name: String}, //employee Id's for whom TR is raised
+    required: false
   },
+  teamMembers: [],
   travelAllocationHeaders: [
     {
       department: String,
@@ -96,7 +101,7 @@ const travelRequestSchema = new mongoose.Schema({
   ],
   approvers: [{empId: String, name: String},],
   preferences: [String],
-  travelViolations: [String],
+  travelViolations: {},
   travelRequestDate: {
     type: String,
     required:true
