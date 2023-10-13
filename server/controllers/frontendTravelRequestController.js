@@ -36,6 +36,7 @@ const createTravelRequest = async (req, res) => {
       "travelRequestState",
       "createdBy",
       "createdFor",
+      "teamMembers",
       "travelAllocationHeaders",
       "itinerary",
       "travelDocuments",
@@ -55,8 +56,10 @@ const createTravelRequest = async (req, res) => {
 
     const {
       tenantId,
+      tripPurpose,
       createdBy,
       createdFor,
+      teamMembers,
       travelRequestStatus,
       travelRequestState,
       travelAllocationHeaders,
@@ -70,6 +73,7 @@ const createTravelRequest = async (req, res) => {
     if (
       tenantId == "" ||
       createdBy == "" ||
+      tripPurpose == "" ||
       travelRequestStatus == "" ||
       travelRequestState == ""
     ) {
@@ -120,8 +124,10 @@ const createTravelRequest = async (req, res) => {
       travelRequestId,
       travelRequestStatus,
       travelRequestState,
+      tripPurpose,
       createdBy,
       createdFor,
+      teamMembers,
       travelAllocationHeaders,
       itinerary,
       travelDocuments,
@@ -247,11 +253,13 @@ const updateTravelRequest = async (req, res) => {
       "travelRequestStatus",
       "travelRequestState",
       "createdFor",
+      "tripPurpose",
       "travelAllocationHeaders",
       "itinerary",
       "travelDocuments",
       "approvers",
       "preferences",
+      "teamMembers",
       "travelViolations",
     ];
 
@@ -266,7 +274,9 @@ const updateTravelRequest = async (req, res) => {
       tenantId,
       createdBy,
       createdFor,
+      tripPurpose,
       travelRequestStatus,
+      teamMembers,
       travelRequestState,
       travelAllocationHeaders,
       itinerary,
@@ -285,12 +295,14 @@ const updateTravelRequest = async (req, res) => {
 
     //validate status
     const status = [
-      "draft",
-      "approved",
-      "rejected",
-      "booked",
-      "canceled",
-      "completed",
+      'draft', 
+    'pending approval', 
+    'approved', 
+    'rejected', 
+    'pending booking', 
+    'booked',
+    'transit', 
+    'canceled',  
     ];
 
     if (travelRequestStatus && travelRequestStatus !="" && !status.includes(travelRequestStatus)) {
@@ -308,6 +320,8 @@ const updateTravelRequest = async (req, res) => {
 
     const expectedFields = [
       "createdFor",
+      "teamMembers",
+      "tripPurpose",
       "travelRequestStatus",
       "travelRequestState",
       "travelAllocationHeaders",
@@ -361,10 +375,27 @@ const handoverToCash = async (req, res) => {
   }
 };
 
+const getTravelRequests = async (req, res) => {
+  const {employeeId} = req.params;
+
+  if(!employeeId) {
+    return res.status(400).json({message: "Bad request"});
+  }
+
+  try {
+    const travelRequests = await TravelRequest.find({"createdBy.empId": employeeId}, {travelRequestId: 1, travelRequestStatus: 1, travelRequestState: 1, travelRequestDate: 1, travelRequestRejectionReason: 1, travelBookingDate: 1, travelCompletionDate: 1, _id: 0});
+    return res.status(200).json({travelRequests});
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({message: "Internal server error"});
+  }
+}
+
 export {
   getOnboardingAndProfileData,
   createTravelRequest,
   getTravelRequest,
+  getTravelRequests,
   validateTravelPolicy,
   getTravelRequestStatus,
   updateTravelRequest,
