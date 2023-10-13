@@ -13,6 +13,7 @@ export default function Search(props){
     const [textInput, setTextInput] = useState(currentOption? currentOption.map(o=>o.name).join(', ') : '')
     const [filteredOptionsList, setFilteredOptionsList] = useState(null)
     const [keyboardFocusIndex, setKeyboardFocusIndex] = useState(-1)
+    const error = props.error || null
 
     //refs for filtered options
     const dropdownOptionsRef = useRef([]);
@@ -232,6 +233,10 @@ export default function Search(props){
                         className=" w-full h-full decoration:none px-6 py-2 border rounded-md border border-neutral-300 focus-visible:outline-0 focus-visible:border-indigo-600 " 
                         value={textInput} 
                         placeholder={placeholder}></input>
+
+                        {!showDropdown && textInput.length<1 && error?.set && <div className="absolute px-6 top-[45px] w-full text-xs text-red-600 font-cabin">
+                            {error?.message}
+                        </div>}
                 </div>
                 
                 {/* options */}
