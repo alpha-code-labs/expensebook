@@ -38,7 +38,7 @@ const getTravelRequest = async (req, res) => {
 //get all travel requests having a particular status
 const getTravelRequests = async (req, res) => {
   try {
-    const  travelRequestStatus  = req.query.status.toLowerCase();
+    const  travelRequestStatus  = req?.query?.status.toLowerCase();
     console.log(req.query, 'query')
     console.log(travelRequestStatus, 'status')
 
