@@ -7,11 +7,17 @@ import star_icon from '../assets/ic_baseline-star.svg'
 import vegetarian_icon from '../assets/mdi_lacto-vegetarian.svg'
 import seat_icon from '../assets/seat.svg'
 import { formatDate2 } from "../utils/handyFunctions"
+import Button from '../components/common/Button'
+import { updateTravelRequest_API } from '../utils/api'
+import { useEffect, useState } from 'react'
+import Modal from '../components/common/Modal'
 
 export default function (props){
 
+    const onBoardingData = props.onBoardingData
     const formData = props.formData
     const setFormData = props.setFormData  
+    const [showPopup, setShowPopup] = useState(false)
     
     const sampleTravelRequest = {
         tenantId: "yourTenantId",
@@ -88,6 +94,16 @@ export default function (props){
           nonTravelPolicies: ["Policy A", "Policy B"],
         },
       };
+
+    const handleSubmit = () => {
+        //send data to backend
+        updateTravelRequest_API({...formData, travelRequestStatus: formData.approvers?.length>0? 'pending approval' : 'pending booking'})
+        .then(setShowPopup(true))
+    }
+
+    useEffect(()=>{
+        console.log(showPopup, 'showPopup')
+    }, [showPopup])
       
       
     const navigate = useNavigate()
@@ -96,8 +112,8 @@ export default function (props){
         navigate('/section1')
     }
 
-    return(<>
-        <div className="w-full h-full relative bg-white md:px-24 md:mx-0 sm:px-0 sm:mx-auto py-12 select-none">
+    return(
+        <div className={`${showPopup && 'overflow-hidden'} w-full h-full relative bg-white md:px-24 md:mx-0 sm:px-0 sm:mx-auto py-12 select-none`}>
             {/* app icon */}
             <div className='w-full flex justify-center  md:justify-start lg:justify-start'>
                 <Icon/>
@@ -111,7 +127,7 @@ export default function (props){
                 </div>
                 
                 {formData.itinerary.cities.map((item, index)=>
-                    <div className="mt-4 flex items-center gap-4 flex-wrap">
+                    <div key={index} className="mt-4 flex items-center gap-4 flex-wrap">
                     <div className="flex items-center">
                         <p className='text-neutral-800 text-sm font-cabin'>{item.from}</p>
                         <img src={arrows_icon} className='w-5 mx-1' />
@@ -127,7 +143,7 @@ export default function (props){
                 </div>
                 )}
 
-               {formData.createdFor.length>0 && formData.createdFor[0]!=formData.createdBy && <div className="mt-10">
+               {formData?.createdFor?.length>0 && formData.createdFor[0]!=formData.createdBy && <div className="mt-10">
                     <p className='text-neutral-400 text-sm font-cabin'>Booked for</p>
                     <p className='text-neutral-700 text-sm font-cabin'>{formData.createdFor[0].name}</p>
                 </div>}
@@ -177,69 +193,83 @@ export default function (props){
                 </div>
 
 
-<div className="w-[312px] h-[110px] flex-col justify-start items-start gap-4 inline-flex">
-    <div className="text-zinc-800 text-base font-medium font-cabin">Your preferences </div>
-    <div className="justify-start items-start gap-20 inline-flex">
-        <div className="flex-col justify-start items-start gap-4 inline-flex">
-            <div className="text-zinc-800 text-base font-normal font-cabin">Hotel</div>
-            <div className="justify-start items-start gap-6 inline-flex">
-                <div className="flex-col justify-center items-center gap-2 inline-flex">
-                    <div className="flex-col justify-start items-center gap-2 flex">
-                        <div className="justify-center items-center gap-2 inline-flex">
-                        <div className="w-4 h-4 relative" >
-                                <img src={vegetarian_icon} />
+                <div className="w-[312px] h-[110px] flex-col justify-start items-start gap-4 inline-flex">
+                    <div className="text-zinc-800 text-base font-medium font-cabin">Your preferences </div>
+                    <div className="justify-start items-start gap-20 inline-flex">
+                        <div className="flex-col justify-start items-start gap-4 inline-flex">
+                            <div className="text-zinc-800 text-base font-normal font-cabin">Hotel</div>
+                            <div className="justify-start items-start gap-6 inline-flex">
+                                <div className="flex-col justify-center items-center gap-2 inline-flex">
+                                    <div className="flex-col justify-start items-center gap-2 flex">
+                                        <div className="justify-center items-center gap-2 inline-flex">
+                                        <div className="w-4 h-4 relative" >
+                                                <img src={vegetarian_icon} />
+                                            </div>
+                                            <div className="text-center text-neutral-500 text-sm font-normal font-cabin">Veg</div>
+                                        </div>
+                                    </div>
+                                    <div className="text-center text-zinc-800 text-xs font-normal font-cabin">Food </div>
+                                </div>
+                                <div className="flex-col justify-center items-start gap-2 inline-flex">
+                                    <div className="justify-center items-center gap-1 inline-flex">
+                                        <div className="w-4 h-4 relative" >
+                                            <img src={star_icon} />
+                                        </div>
+                                        <div className="text-center text-neutral-500 text-sm font-normal font-cabin">5</div>
+                                    </div>
+                                    <div className="text-center text-zinc-800 text-xs font-normal font-cabin">Rating</div>
+                                </div>
                             </div>
-                            <div className="text-center text-neutral-500 text-sm font-normal font-cabin">Veg</div>
+                        </div>
+                        <div className="flex-col justify-start items-start gap-4 inline-flex">
+                            <div className="text-zinc-800 text-base font-normal font-cabin">Flight</div>
+                            <div className="justify-start items-start gap-6 inline-flex">
+                                <div className="flex-col justify-center items-center gap-2 inline-flex">
+                                    <div className="flex-col justify-start items-center gap-2 flex">
+                                        <div className="justify-center items-center gap-2 inline-flex">
+                                            <div className="w-4 h-4 relative" >
+                                                <img src={vegetarian_icon} />
+                                            </div>
+                                            <div className="text-center text-neutral-500 text-sm font-normal font-cabin">Veg</div>
+                                        </div>
+                                    </div>
+                                    <div className="text-center text-zinc-800 text-xs font-normal font-cabin">Food </div>
+                                </div>
+                                <div className="flex-col justify-start items-center gap-2 inline-flex">
+                                    <div className="justify-start items-center inline-flex">
+                                        <div className="w-4 h-4 relative">
+                                            <div className="w-2.5 h-[13.50px] left-[3px] top-[1.50px] absolute">
+                                                <img src={seat_icon} />
+                                            </div>
+                                        </div>
+                                        <div className="text-center text-neutral-500 text-xs font-normal font-cabin">Window</div>
+                                    </div>
+                                    <div className="text-center text-zinc-800 text-xs font-normal font-cabin">Seat</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div className="text-center text-zinc-800 text-xs font-normal font-cabin">Food </div>
                 </div>
-                <div className="flex-col justify-center items-start gap-2 inline-flex">
-                    <div className="justify-center items-center gap-1 inline-flex">
-                        <div className="w-4 h-4 relative" >
-                            <img src={star_icon} />
-                        </div>
-                        <div className="text-center text-neutral-500 text-sm font-normal font-cabin">5</div>
-                    </div>
-                    <div className="text-center text-zinc-800 text-xs font-normal font-cabin">Rating</div>
-                </div>
+
+
+            <div className='my-8 w-[134px] float-bottom float-right'>
+                <Button 
+                    text='Submit' 
+                    onClick={handleSubmit} />
             </div>
-        </div>
-        <div className="flex-col justify-start items-start gap-4 inline-flex">
-            <div className="text-zinc-800 text-base font-normal font-cabin">Flight</div>
-            <div className="justify-start items-start gap-6 inline-flex">
-                <div className="flex-col justify-center items-center gap-2 inline-flex">
-                    <div className="flex-col justify-start items-center gap-2 flex">
-                        <div className="justify-center items-center gap-2 inline-flex">
-                            <div className="w-4 h-4 relative" >
-                                <img src={vegetarian_icon} />
-                            </div>
-                            <div className="text-center text-neutral-500 text-sm font-normal font-cabin">Veg</div>
+
+                <Modal showModal={showPopup} setShowModal={setShowPopup} skipable={true}>
+                    <div className='p-10'>
+                        <p className='text-2xl text-neutral-700 font-semibold font-cabin'>Travel Request Submitted !</p>
+                        <p className='text-zinc-800 text-base font-medium font-cabin mt-4'>Would you like to raise a cash advance request for tis trip?</p>
+                        <div className='flex gap-10 justify-between mt-10'>
+                            <Button text='Yes' />
+                            <Button text='No'  />
                         </div>
                     </div>
-                    <div className="text-center text-zinc-800 text-xs font-normal font-cabin">Food </div>
-                </div>
-                <div className="flex-col justify-start items-center gap-2 inline-flex">
-                    <div className="justify-start items-center inline-flex">
-                        <div className="w-4 h-4 relative">
-                            <div className="w-2.5 h-[13.50px] left-[3px] top-[1.50px] absolute">
-                                <img src={seat_icon} />
-                            </div>
-                        </div>
-                        <div className="text-center text-neutral-500 text-xs font-normal font-cabin">Window</div>
-                    </div>
-                    <div className="text-center text-zinc-800 text-xs font-normal font-cabin">Seat</div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-
-
-
+                </Modal>
 
             </div>           
         </div>
-    </>)
+    )
 }

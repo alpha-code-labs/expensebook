@@ -1,19 +1,18 @@
 import { useState, useEffect } from 'react'
-import leftArrow_icon from '../assets/arrow-left.svg'
-import Select from '../components/common/Select'
-import ObjectSelect from '../components/custom/page_1/ObjectSelect'
-import MultiSearch from '../components/common/MultiSearch'
-import Search from '../components/custom/page_1/Search'
-import Button from '../components/common/Button'
+import leftArrow_icon from '../../assets/arrow-left.svg'
+import Select from '../../components/common/Select'
+import ObjectSelect from '../../components/custom/page_1/ObjectSelect'
+import MultiSearch from '../../components/common/MultiSearch'
+import Button from '../../components/common/Button'
 import { useNavigate } from 'react-router-dom'
-import Icon from '../components/common/Icon'
-import InputPercentage from '../components/common/InputPercentage'
-import Checkbox from '../components/common/Checkbox'
-import TableItem from '../components/table/TableItem'
-import { postTravelRequest_API, updateTravelRequest_API, policyValidation_API } from '../utils/api'
+import Icon from '../../components/common/Icon'
+import InputPercentage from '../../components/common/InputPercentage'
+import Checkbox from '../../components/common/Checkbox'
+import TableItem from '../../components/table/TableItem'
+import { postTravelRequest_API, updateTravelRequest_API, policyValidation_API } from '../../utils/api'
 
 
-export default function Page_1(props){
+export default function BasicDetails(props){
     
     //onboarding data...
     const onBoardingData = props.onBoardingData
@@ -36,10 +35,83 @@ export default function Page_1(props){
     const group = 'group 1'
     const teamMembers = [{name: 'Aman Bhagel', empId: '204', designation: 'Sales Executive'}, {name: 'Vikas Rajput', empId: '245', designation:'System Engineer II'}, {name: 'Rahul Suyush Singh', empId: '318', designation:'Sr. Software Engineer'}, {name: 'Vilakshan Vibhut Giri Babaji Maharaj', empId: '158', designation:'Sr. Sales Executive'}]
     
+    //local states
     const [tripPurposeViolationMessage, setTripPurposeViiolationMessage] = useState(formData.travelViolations.tripPurposeViolationMessage)
-
-
+    const [errors, setErrors] = useState({tripPurposeError:{set:false, message:'Trip Purpose is required'}, approversError:{set:false, message:'Please select approvers'}})
+    
     const navigate = useNavigate()
+
+    const handleContinueButton = async ()=>{
+        console.log(sectionForm)
+        console.log(formData)
+        let allowSubmit = false
+        //check required fields
+        async function checkRequiredFields(){
+            return new Promise((resolve, reject)=>{
+                
+                if(formData.tripPurpose==null){
+                    setErrors(pre=>{
+                        return {...pre, tripPurposeError:{...pre.tripPurposeError, set:true}}
+                    })
+                }
+                else{
+                    setErrors(pre=>{
+                        return {...pre, tripPurposeError:{...pre.tripPurposeError, set:false}}
+                    })
+                }
+        
+                if(!formData?.approvers?.length>0){
+                    setErrors(pre=>{
+                        return {...pre, approversError:{...pre.approversError, set:true}}
+                    })
+                } 
+                else{
+                    setErrors(pre=>{
+                        return {...pre, approversError:{...pre.approversError, set:false}}
+                    })
+                }    
+
+                if(formData.tripPurpose==null || (APPROVAL_FLAG && formData?.approvers?.length==0)){
+                    allowSubmit = false
+                }
+                else allowSubmit = true
+
+                resolve()
+            })
+        }
+        
+        await checkRequiredFields()
+
+        if(allowSubmit){
+            if(!formData.travelRequestId){
+                const travelRequestId = await postTravelRequest_API({...formData, travelRequestState:'section 0', travelRequestStatus:'draft', tenantId:144,  })
+                
+                console.log(travelRequestId, 'travel request id')
+                const formData_copy = JSON.parse(JSON.stringify(formData))
+                formData_copy.travelRequestId = travelRequestId
+                setFormData(formData_copy)
+
+                if(travelRequestId){
+                    navigate('/section1')
+                }
+                else{
+                    //show server error
+                    console.log('server error')
+                }
+            }
+            else{
+                const res = await updateTravelRequest_API({...formData, travelRequestState:'section 0', travelRequestStatus:'draft', tenantId:144,  })
+                console.log(res, 'res')
+                //do some error handling if updation fails
+                navigate('/section1')
+            }
+        }
+
+    }
+
+    useEffect(()=>{
+        console.log(errors, 'errors')
+    },[errors])
 
     //update form data
     const updateTripPurpose = async (option)=>{
@@ -159,7 +231,6 @@ export default function Page_1(props){
         console.log(formData.teamMembers)
     },[selectedTeamMembers])
     
-
     const handleTeamMemberSelect = (e, id)=>{
 
         console.log(id)
@@ -208,31 +279,6 @@ export default function Page_1(props){
 
         formData_copy.teamMembers = teamMembers_
         setFormData(formData_copy)
-    }
-
-    const handleContinueButton = async ()=>{
-        console.log(sectionForm)
-        console.log(formData)
-
-        if(!formData.travelRequestId){
-            const travelRequestId = await postTravelRequest_API({...formData, travelRequestState:'section 0', travelRequestStatus:'draft', tenantId:144,  })
-            
-            console.log(travelRequestId, 'travel request id')
-            const formData_copy = JSON.parse(JSON.stringify(formData))
-            formData_copy.travelRequestId = travelRequestId
-            setFormData(formData_copy)
-            if(travelRequestId){
-                navigate('/section1')
-            }
-        }
-        else{
-            const res = await updateTravelRequest_API({...formData, travelRequestState:'section 0', travelRequestStatus:'draft', tenantId:144,  })
-            console.log(res, 'res')
-            navigate('/section1')
-        }
-
-
-                
     }
 
     const handleAllocationPercentageChange = (percentage, item)=>{
@@ -321,7 +367,8 @@ export default function Page_1(props){
                         title='Select trip purpose'
                         placeholder='Select puropse of trip'
                         options={tripPurposeOptions}
-                        error={tripPurposeViolationMessage}
+                        violationMessage={tripPurposeViolationMessage}
+                        error={errors.tripPurposeError}
                         currentOption={formData.tripPurpose}
                         onSelect = {(option)=> {updateTripPurpose(option)}} />
                 </div>
@@ -343,6 +390,7 @@ export default function Page_1(props){
                         title='Who will Approve this?'
                         placeholder="Name's of managers approving this"
                         onSelect = {(option)=>{updateApprovers(option)}}
+                        error={errors.approversError}
                         currentOption={formData.approvers && formData.approvers.length>0? formData.approvers : []}
                         options={listOfAllManagers}/>}
                 </div>
