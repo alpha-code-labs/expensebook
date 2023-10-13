@@ -106,10 +106,27 @@ function formatDate(date=Date.now()) {
   }
   
 
-  function formatDate3(inputDate){
+ 
+  function formatDate3(inputDate) {
+    
+    const datePattern = /^\d{4}-\d{2}-\d{2}$/;
+    if(!datePattern.test(inputDate)){
+      return
+    }
 
+    const monthNames = [
+      "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+    ];
+  
+    let [year, month, day] = inputDate.split('-')
+    if(day<10) day=day%10
+    const dayWithSuffix = addOrdinalIndicator(day);
+    month = monthNames[month-1]
+
+    return dayWithSuffix + ' ' + month;
   }
-  
+    
   
 
-export {titleCase, formatDate, formatDate2}
+export {titleCase, formatDate, formatDate2, formatDate3}
