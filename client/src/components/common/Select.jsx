@@ -14,8 +14,10 @@ export default function Select(props) {
   const currentOption = props.currentOption || null
   const [selectedOption, setSelectedOption] = useState(currentOption)
   const [keyboardFocusIndex, setKeyboardFocusIndex] = useState(-1)
+  const violationMessage = props.violationMessage || null
   const error = props.error || null
   const required = props.required || false
+  const submitAttempted = props.submitAttempted || false
 
 
     useEffect(()=>{
@@ -166,9 +168,15 @@ const selectDivFocus = (e)=>{
               </div>
 
               
-            {!showDropdown && hidePlaceholder && error && <div className="absolute top-[35px] w-full text-xs text-yellow-600 font-cabin">
-              {error}
+            {!showDropdown && hidePlaceholder && violationMessage && <div className="absolute top-[35px] w-full text-xs text-yellow-600 font-cabin">
+              {violationMessage}
             </div>}
+            
+            {!showDropdown && !hidePlaceholder && error?.set && <div className="absolute top-[35px] w-full text-xs text-red-600 font-cabin">
+              {error?.message}
+            </div>}
+
+
             </div>
 
             {/* options */}
