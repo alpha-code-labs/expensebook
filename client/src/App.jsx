@@ -1,9 +1,7 @@
 import { useState, useEffect, createContext } from "react";
 import {BrowserRouter as Router, Routes, Route} from 'react-router-dom'
 import axios from 'axios'
-
 import "./App.css";
-import Page_1 from './pages/legacy/Page_1'
 import BasicDetails from "./pages/basicDetails/basicDetails";
 import Itinerary from "./pages/itinerary/Itinerary"
 import Review from "./pages/review/Review"
@@ -81,7 +79,7 @@ useEffect(() => {
   return <>
     <Router>
       <Routes>
-        <Route path='/' element={<Page_1 formData={formData} setFormData={setFormData} onBoardingData={onBoardingData} />} />
+        <Route path='/' element={<BasicDetails formData={formData} setFormData={setFormData} onBoardingData={onBoardingData} />} />
         <Route path='/section0' element={<BasicDetails formData={formData} setFormData={setFormData} onBoardingData={onBoardingData} />} />
         <Route path='/section1' element={<Itinerary formData={formData} setFormData={setFormData} onBoardingData={onBoardingData} />} />
         <Route path='/section2' element={<Review formData={formData} setFormData={setFormData} onBoardingData={onBoardingData} />} />
