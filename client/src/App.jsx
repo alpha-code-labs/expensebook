@@ -3,10 +3,10 @@ import {BrowserRouter as Router, Routes, Route} from 'react-router-dom'
 import axios from 'axios'
 
 import "./App.css";
-import Page_1 from './pages/Page_1'
-import Page_2 from './pages/Page_2'
-import Page_3 from './pages/Page_3'
-import Page_4 from './pages/Page_4'
+import Page_1 from './pages/legacy/Page_1'
+import BasicDetails from "./pages/basicDetails/basicDetails";
+import Itinerary from "./pages/itinerary/Itinerary"
+import Review from "./pages/review/Review"
 
 
 function App() {
@@ -82,10 +82,9 @@ useEffect(() => {
     <Router>
       <Routes>
         <Route path='/' element={<Page_1 formData={formData} setFormData={setFormData} onBoardingData={onBoardingData} />} />
-        <Route path='/section0' element={<Page_1 formData={formData} setFormData={setFormData} onBoardingData={onBoardingData} />} />
-        <Route path='/section1' element={<Page_2 formData={formData} setFormData={setFormData} onBoardingData={onBoardingData} />} />
-        <Route path='/section2' element={<Page_3 formData={formData} setFormData={setFormData} onBoardingData={onBoardingData} />} />
-        <Route path='/section3' element={<Page_4 formData={formData} setFormData={setFormData} onBoardingData={onBoardingData} />} />
+        <Route path='/section0' element={<BasicDetails formData={formData} setFormData={setFormData} onBoardingData={onBoardingData} />} />
+        <Route path='/section1' element={<Itinerary formData={formData} setFormData={setFormData} onBoardingData={onBoardingData} />} />
+        <Route path='/section2' element={<Review formData={formData} setFormData={setFormData} onBoardingData={onBoardingData} />} />
       </Routes>
     </Router>
   </>;
