@@ -7,7 +7,8 @@ import {
   getTravelRequest,
   getTravelRequestStatus,
   handoverToCash,
-  validateTravelPolicy
+  validateTravelPolicy,
+  getTravelRequests
 } from "../controllers/frontendTravelRequestController.js";
 
 const router = express.Router();
@@ -21,5 +22,6 @@ router.patch("/travel-requests/:travelRequestId/status", updateTravelRequestStat
 router.get("/travel-requests/:travelRequestId/handover", handoverToCash );
 router.post("/travel-request", createTravelRequest);
 router.get("/validate-policy/:type/:group/:policy/:value", validateTravelPolicy);
+router.get("/user-travel-requests/:employeeId", getTravelRequests);
 
 export default router;
