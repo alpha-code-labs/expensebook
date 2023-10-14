@@ -39,21 +39,143 @@ export default function (props){
     const [hotels, setHotels] = useState(formData.itinerary.hotels)
     const [cabs, setCabs] = useState({})
 
-
     const [travelClassViolationMessage, setTravelClassViolationMessage] = useState(formData.travelViolations.travelClassViolationMessage)
     const [hotelClassViolationMessage, setHotelClassViolationMessage] = useState(formData.travelViolations.hotelClassViolationMessage)
     const [cabClassViolationMessage, setCabClassViolationMessage] = useState(formData.travelViolations.cabClassViolationMessage)
     const group = 'group 1'
     const type = 'international'
 
-    useEffect(()=>{
-        console.log(cabDates)
-    },[cabDates])
+    const [modeOfTransitError, setModeOfTransitError] = useState({set:false, message:'Select mode of transit'})
+    const [travelClassError, setTravelClassError] = useState({set:false, message: 'Select travel Class'})
+    const [hotelsError, setHotelsError] = useState([])
+    const [citiesError, setCitiesError] = useState([])
+    
+    const handleContinueButton = async ()=>{
+        console.log(sectionForm)
+        console.log(formData)
+
+        let allowSubmit = false
+        //check required fields
+        async function checkRequiredFields(){
+            return new Promise((resolve, reject)=>{
+                
+                allowSubmit = true
+
+                if(needsHotel){
+                    let hotelsError_ = []
+                    hotels?.forEach(hotel=>{
+                        let checkInDateError = {set:false, message:'Enter Check-in date'}
+                        let checkOutDateError = {set:false, message:'Enter Check-out date'}
+                        let classError = {set:false, message:'Select hotel class'}
+
+                        if(hotel.checkIn == null) {
+                            checkInDateError.set = true
+                            allowSubmit = false
+                        }
+
+                        if(hotel.checkOut == null) {
+                            checkInDateError.set = true
+                            allowSubmit = false
+                        }
+
+                        else if(hotel.checkOut < hotel.checkIn){
+                            checkOutDateError.set = true
+                            checkOutDateError.message = 'Check-out date cannot be before check-in date'
+                            allowSubmit = false
+                        }
+
+                        if(hotel.class == null){
+                            classError.set = true
+                            allowSubmit = false
+                        }
+                        
+                        console.log({checkInDateError, checkOutDateError, classError})
+                        hotelsError_.push({checkInDateError, checkOutDateError, classError})
+                    })
+
+                    setHotelsError(hotelsError_)
+                }
+
+                let citiesError_ = []
+                cities.forEach(city=>{
+
+                    let fromError = {set:false, message:'Enter departure city'}
+                    let toError = {set:false, message:'Enter destination city'}
+                    let departureDateError = {set:false, message:'Enter departure date'}
+                    let returnDateError = {set:false, message:'Enter return date'}
+
+                    if(city.from == null || city.from == ''){
+                        fromError.set = true
+                        allowSubmit = false
+                    }
+
+                    if(city.to == null || city.to == ''){
+                        toError.set = true
+                        allowSubmit = false
+                    }
+
+                    if(city.departure.date == null){
+                        departureDateError.set = true
+                        allowSubmit = false
+                    }
+
+                    if(!formData.itinerary.tripType.oneWayTrip){
+                        if(city.return.date == null){
+                            returnDateError.set = true
+                            allowSubmit = false
+                        }
+    
+                        else if(city.return.date < city.departure.date){
+                            returnDateError.set = true
+                            returnDateError.message = 'Return date cannot be before departure date'
+                            allowSubmit = false
+                        }
+                    }
+                    
+                    citiesError_.push({fromError, toError, departureDateError, returnDateError})
+                })
+
+                if(modeOfTransit == null){
+                    setModeOfTransitError({set:true, message:'Select mode of transit'})
+                    allowSubmit = false
+                }
+                else{
+                    setModeOfTransitError({set:false, message:'Select mode of transit'})
+                }
+
+                if(travelClass == null){
+                    setTravelClassError({set:true, message:'Select travel class'})
+                    allowSubmit = false
+                }
+                else{
+                    setModeOfTransitError({set:false, message:'Select travel class'})
+                }
+
+                console.log(citiesError_, 'cities Error_')
+                setCitiesError(citiesError_)
+                
+                resolve()
+            })
+        }
+
+        await checkRequiredFields()
+        console.log(allowSubmit, 'allowSubmit...')
+
+
+        if(allowSubmit){
+            if(formData.travelRequestId){
+                const response = await updateTravelRequest_API({...formData, travelRequestState:'section 1', travelRequestStatus:'draft'})
+                console.log(response)   
+            }
+
+            navigate('/section2')
+        }   
+    }
+
 
 
     //update form
     {
-
     //update violations messages
     useEffect(()=>{
         const formData_copy = JSON.parse(JSON.stringify(formData))
@@ -153,18 +275,6 @@ export default function (props){
         navigate('/section0')    
     }
 
-    const handleContinueButton = async ()=>{
-        console.log(sectionForm)
-        console.log(formData)
-
-        if(formData.travelRequestId){
-            const response = await updateTravelRequest_API({...formData, travelRequestState:'section 1', travelRequestStatus:'draft'})
-            console.log(response)   
-        }
-
-        navigate('/section2')
-    }
-
     function selectTripType(type){
 
         switch(type){
@@ -249,6 +359,9 @@ export default function (props){
     }
 
     const handleTravelClassChange = async (option)=>{
+        
+        setTravelClass(option)
+
         //policy validation
         switch(modeOfTransit){
             case 'Flight':{
@@ -274,8 +387,6 @@ export default function (props){
             }
         }
         
-        //set form data
-        setTravelClass(option)
     }
 
     const handleHotelDateChange = (e, index, field)=>{
@@ -290,7 +401,7 @@ export default function (props){
             setHotelClassViolationMessage(res.violationMessage)
             console.log(res.violationMessage)
         })
-        .catch(err=>console.log('error in policy validation'))
+        .catch(err=>console.error('error in policy validation'))
        
         //update form states
         const hotels_copy = JSON.parse(JSON.stringify(hotels))
@@ -304,7 +415,7 @@ export default function (props){
             setCabClassViolationMessage(res.violationMessage)
             console.log(res.violationMessage)
         })
-        .catch(err=>console.err('error in policy validation', err))
+        .catch(err=>console.error('error in policy validation', err))
        
         //update form states
         setCabClass(option)
@@ -352,6 +463,7 @@ export default function (props){
 
                 {/* from, to , date */}
                 <Cities cities={cities} 
+                        citiesError={citiesError}
                         oneWayTrip={oneWayTrip}
                         roundTrip={roundTrip}
                         multiCityTrip={multiCityTrip}
@@ -371,6 +483,8 @@ export default function (props){
                             handleTravelClassChange={handleTravelClassChange}
                             travelClassOptions={travelClassOptions}
                             travelClassViolationMessage={travelClassViolationMessage}
+                            modeOfTransitError={modeOfTransitError}
+                            travelClassError={travelClassError}
                             needsVisa={needsVisa}
                             needsAirportTransfer={needsAirportTransfer}
                             setNeedsVisa={setNeedsVisa}
@@ -386,6 +500,7 @@ export default function (props){
 
                 {/* hotel */}
                 <Hotels
+                    hotelsError = {hotelsError}
                     needsHotel={needsHotel}
                     setNeedsHotel={setNeedsHotel}
                     addHotel={addHotel}

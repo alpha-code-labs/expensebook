@@ -14,18 +14,22 @@ export default function ModeOfTransit(props){
     const needsAirportTransfer = props.needsAirportTransfer
     const setNeedsVisa = props.setNeedsVisa
     const setNeedsAirportTransfer = props.setNeedsAirportTransfer
+    const modeOfTransitError = props.modeOfTransitError
+    const travelClassError = props.travelClassError
 
 
     return(<>
         <div className="flex gap-8 flex-wrap">
             <Select 
                 options={modeOfTransitList}
+                error={modeOfTransitError}
                 onSelect={(option)=>{setModeOfTransit(option)}}
                 currentOption={modeOfTransit}
                 title='Select mode of transit' 
                 placeholder='Select travel mode' />
             <Select 
                 options={modeOfTransit? travelClassOptions[modeOfTransit.toLowerCase()] : []}
+                error={travelClassError}
                 onSelect={(option)=>{handleTravelClassChange(option)}}
                 currentOption={travelClass}
                 violationMessage={travelClassViolationMessage}

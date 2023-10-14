@@ -9,6 +9,7 @@ export default function Hotels(props){
     const hotels = props.hotels
     const allowedHotelClass = props.allowedHotelClass
     const hotelClassViolationMessage = props.hotelClassViolationMessage
+    const hotelsError = props?.hotelsError || []
     const needsHotel = props.needsHotel
     const setNeedsHotel = props.setNeedsHotel
     const handleHotelClassChange = props.handleHotelClassChange
@@ -33,9 +34,18 @@ export default function Hotels(props){
                         placeholder='Select hotel class'
                         currentOption={hotels[index].class}
                         violationMessage={hotelClassViolationMessage}
+                        error={hotelsError!=[]? hotelsError[index]?.classError : {}}
                         onSelect={(option)=>handleHotelClassChange(option, index)} />}
-                <SlimDate title='Check In' date={hotels[index].checkIn} onChange={(e)=>{handleHotelDateChange(e, index, 'checkIn')}} />
-                <SlimDate title='Check Out' date={hotels[index].checkOut} onChange={(e)=>{handleHotelDateChange(e, index, 'checkOut')}}/>
+                <SlimDate 
+                        title='Check In' 
+                        date={hotels[index].checkIn}
+                        error={hotelsError[index]?.checkInDateError} 
+                        onChange={(e)=>{handleHotelDateChange(e, index, 'checkIn')}} />
+                <SlimDate 
+                        title='Check Out' 
+                        date={hotels[index].checkOut} 
+                        error={hotelsError[index]?.checkOutDateError}
+                        onChange={(e)=>{handleHotelDateChange(e, index, 'checkOut')}}/>
             </div>)}
             
             <div className="mt-8">

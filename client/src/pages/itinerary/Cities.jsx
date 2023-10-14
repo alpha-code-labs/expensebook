@@ -13,25 +13,44 @@ export default function Cities(props){
     const roundTrip = props.roundTrip
     const multiCityTrip = props.multiCityTrip
     const addCities = props.addCities
+    const citiesError = props.citiesError || []
+
+    console.log(citiesError[0]?.fromError, 'citiesError')
+
 
     return(<>
            {cities.map((city,index)=>
                 <div key={index} className="mt-8 flex gap-8 items-center flex-wrap">
-                    <Input title='From'  placeholder='City' value={city.from} onBlur={(e)=>updateCity(e, index, 'from')} />
-                    <Input title='To' placeholder='City' value={city.to} onBlur={(e)=>updateCity(e, index, 'to')} />
+                    <Input 
+                        title='From'  
+                        placeholder='City' 
+                        value={city.from}
+                        error={citiesError[index]?.fromError} 
+                        onBlur={(e)=>updateCity(e, index, 'from')} />
+
+                    <Input 
+                        title='To' 
+                        placeholder='City' 
+                        value={city.to} 
+                        error={citiesError[index]?.toError}
+                        onBlur={(e)=>updateCity(e, index, 'to')} />
+
                     <DateTime 
+                        error={citiesError[index]?.departureDateError}
                         title='Departure Date'
                         validRange={{min:null, max:null}}
-                        time = {(cities && city['departure']!=undefined && city['departure']['time']!=undefined)? city['departure'].time : '11:00' }
-                        date={(city && city['departure']!=undefined && city['departure']['time']!=undefined)? city['departure'].date : null }
+                        time = {city?.departure?.time? city?.departure?.time : '11:00' }
+                        date={city?.departure?.date}
                         onTimeChange={(e)=>handleTimeChange(e, index, 'departure')}
                         onDateChange={(e)=>handleDateChange(e, index, 'departure')} />
+
                     {!oneWayTrip && 
                     <DateTime
+                        error={citiesError[index]?.returnDateError}
                         title='Return Date'
                         validRange={{min:null, max:null}}
-                        time = {(city && city['return']!=undefined && city['return']['time']!=undefined)? city['return'].time : '11:00' }
-                        date={(city && city['return']!=undefined && city['return']['time']!=undefined)? city['return'].date : null }
+                        time = {city?.return?.time? city?.departure?.time : '11:00' }
+                        date={city?.return?.date}
                         onTimeChange={(e)=>handleTimeChange(e, index, 'return')}
                         onDateChange={(e)=>handleDateChange(e, index, 'return')} 
                         />}
