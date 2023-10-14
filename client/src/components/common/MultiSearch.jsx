@@ -10,7 +10,7 @@ export default function Search(props){
     const optionsList = props.options || []
     const currentOption = props.currentOption || null
     const [selectedOption, setSelectedOption] = useState(currentOption? currentOption : []) 
-    const [textInput, setTextInput] = useState(currentOption? currentOption.map(o=>o.name).join(', ') + ', ' : '')
+    const [textInput, setTextInput] = useState(currentOption? `${currentOption.map(o=>o.name).join(', ')}${currentOption.length>0? ', ': ''}` : '')
     const [filteredOptionsList, setFilteredOptionsList] = useState(null)
     const [keyboardFocusIndex, setKeyboardFocusIndex] = useState(-1)
     const error = props.error || null
