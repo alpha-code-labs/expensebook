@@ -8,6 +8,7 @@ export default function Input(props){
     const onBlur = props.onBlur
     const inputRef = useRef(null)
     const [textInput, setTextInput] = useState(value? titleCase(value) : '')
+    const error = props.error || {set:false, message:''}
     
     const handleChange = (e)=>{
         e.preventDefault()
@@ -37,6 +38,10 @@ export default function Input(props){
                         className=" w-full h-full decoration:none px-6 py-2 border rounded-md border border-neutral-300 focus-visible:outline-0 focus-visible:border-indigo-600 " 
                         value={textInput} 
                         placeholder={placeholder}></input>
+                </div>
+
+                <div className="absolute text-xs text-red-600 left-0 px-6 top-[44px]">
+                    {error.set && error.message}
                 </div>
             </div>
 

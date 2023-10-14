@@ -4,12 +4,20 @@ import chevron_down from "../../assets/chevron-down.svg";
 import { formatDate2 } from "../../utils/handyFunctions";
 
 
+function getCurrentDate(){
+    const date = new Date();
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
 
 export default function SlimDate(props){
     const title = props.title || "Title";
     const date = props.date 
     const onChange = props.onChange
-    const [value, setValue] = useState(date || Date.now());
+    const [value, setValue] = useState(date || getCurrentDate());
+    const error = props.error || {set:false, message:''}
 
     const handleChange= (e)=>{
        setValue(e.target.value)
@@ -33,6 +41,9 @@ export default function SlimDate(props){
                             <div className="h-6 w-6">
                                 <img src={chevron_down} alt="open" />
                             </div>
+                            {error.set && <div className="absolute left-0 top-[33px] w-full text-xs text-red-600 font-cabin">
+                                {error.message}
+                            </div>}
                         </div>        
                     </div>
                 </div>
