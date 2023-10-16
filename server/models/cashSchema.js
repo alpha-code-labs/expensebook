@@ -58,7 +58,7 @@ const cashAdvanceSchema = new mongoose.Schema({
       mode: String,
     },
   ],
-  approvers: [String],
+  approvers: [{type:Object}], ///mention like {empId:string , name: string}
   cashAdvanceRequestDate: Date,
   cashAdvanceApprovalDate: Date,
   cashAdvanceSettlementDate: Date,

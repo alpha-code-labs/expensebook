@@ -75,6 +75,8 @@ const travelRequestsJsonData = [
             "violation1",
             "violation2"
         ],
+        "cashAdvance": { "amount": 20000, "violationMessage": `Maximum allowed cash advance limit exceeded` },
+        "cashAdvanceFlag":true,
         "travelRequestRejectionReason": "Not approved due to budget constraints"
     },
     {

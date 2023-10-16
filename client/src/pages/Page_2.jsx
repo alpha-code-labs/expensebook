@@ -1,28 +1,21 @@
-import React, { useState } from 'react';
-import { logo_with_text, arrow_left, chevron_down, cancel_round, cancel } from '../assets/icon';
+import { useEffect, useState } from 'react';
+import { logo_with_text, arrow_left, chevron_down, cancel } from '../assets/icon';
 import Dropdown from '../component/common/Dropdown';
 import Button from '../component/common/Button';
 import Input from '../component/common/Input';
 import MultiSearch from '../component/common/MultiSearch';
 import Modal from '../component/common/Modal';
-import { currencyTable } from '../../currencyTable';
+import { currencyTable } from '../../currencyTable'; //currency table fron onboarding
+import { createCashAdvanceAPI ,getTravelRequestDetails } from '../utils/api';
+
 
 const Page2 = () => {
   const exchangeValues=currencyTable.currencyTable[0].exchangeValue
-
-  
-
   const [openModal, setOpenModal] = useState(false);
-  const [formDataForModal, setFormDataForModal] = useState(null);
-  // const [approverFLAG, setApproverFlag] = useState(true);
-  const approverFLAG= false
-
+  const [cashAdvanceDataForModal, setCashAdvanceDataForModal] = useState(null);
+  const [travelRequestDetails ,setTravelRequestDetails] = useState(null);
   const [approvers, setApprovers] = useState([]);
-  const handleSelectedApprovers = (selected) => {
-    setApprovers(selected);
-  };
-
-  const [formData, setFormData] = useState([
+  const [cashAdvanceData, setCashAdvanceData] = useState([
     {
       currency: '',
       amount: '',
@@ -30,102 +23,147 @@ const Page2 = () => {
     },
   ]);
 
+  if(travelRequestDetails){
+    var approverFLAG= travelRequestDetails.cashAdvanceFlag
+  }
+
+ 
+  const handleSelectedApprovers = (selected) => {
+    setApprovers(selected);
+  };
+
+
+
   const handleAddMore = () => {
-    setFormData([...formData, { currency: '', amount: '', mode: '' }]);
+    setCashAdvanceData([...cashAdvanceData, { currency: '', amount: '', mode: '' }]);
   };
 
   const handleInputChange = (index, event) => {
     const { name, value } = event.target;
-    const updatedFormData = [...formData];
+    const updatedFormData = [...cashAdvanceData];
     updatedFormData[index][name] = value;
-    setFormData(updatedFormData);
+    setCashAdvanceData(updatedFormData);
   };
-
-  // const handleDropdownChange = (index, name, selectedValue) => {
-  //   const updatedFormData = [...formData];
-  //   updatedFormData[index][name] = selectedValue;
-  //   setFormData(updatedFormData);
-  // };
-
 
   const handleDropdownChange = (index, name, selectedValue) => {
-    let currencyCode = selectedValue;
+    const updatedFormData = [...cashAdvanceData];
     
-    // Check if the selectedValue contains a currency symbol (e.g., "INR ₹")
-    if (selectedValue.includes(' ')) {
-      currencyCode = selectedValue.split(' ')[0]; // Extract the first part (the currency code)
+    if (name === 'currency' && selectedValue.includes(' ')) {
+      // For currency options, split the value
+      updatedFormData[index][name] = selectedValue.split(' ')[0]; // Extract the currency code
+    } else {
+      // For other options (e.g., payment options), set the value as is
+      updatedFormData[index][name] = selectedValue;
     }
   
-    const updatedFormData = [...formData];
-    updatedFormData[index][name] = currencyCode;
-    setFormData(updatedFormData);
+    setCashAdvanceData(updatedFormData);
   };
   
 
-  // const handleSubmit = () => {
-  //   // Create the data object to send to the backend
-  //   const requestData = {
-  //     amountDetails: formData,
-  //   };
 
-  //   if (approverFLAG) {
-  //     requestData.approvers = approvers;
-  //   }
+//---------currency conversion----------------------------
 
-  //   // Now, you can send this requestData to the backend
-  //   // You need to implement your API request here (e.g., using fetch or axios).
-  //   // Ensure that you send this data to your server endpoint.
+let totalAmount = 0;
 
-  //   console.log(requestData);
+cashAdvanceData.forEach((item) => {
+  const { currency, amount } = item;
 
-  //   // After submitting, you can open the modal
-  //   handleModalClick();
-  // };
+  // Find the exchange rate for the currency
+  const currencyData = exchangeValues.find((data) => data.currencyName.toUpperCase() === currency.toUpperCase());
 
-  const handleSubmit = () => {
-    // Calculate the total amount
-    let totalAmount = 0;
+  if (currencyData) {
+    const exchangeRate = currencyData.value;
+    const numericAmount = parseFloat(amount);
+    totalAmount += numericAmount * exchangeRate;
+  } else {
+    // If currencyData is not found, assume the currency is already in the desired currency
+    totalAmount += parseFloat(amount);
+  }
+});
+
+// Log the total amount
+console.log('Total Amount:', totalAmount);
+ //------------------------------------------  
+ 
+ const [showViolationMessage, setShowViolationMessage] = useState(false);
+
+ useEffect(() => {
+   if (travelRequestDetails && travelRequestDetails.cashAdvance) {
+     const cashAdvance = travelRequestDetails.cashAdvance;
+     const cashAdvanceAmount = cashAdvance.amount;
+     
+     
+     if (totalAmount > cashAdvanceAmount) {
+       setShowViolationMessage(true);
+     } else {
+       setShowViolationMessage(false);
+     }
+   }
+ }, [travelRequestDetails, totalAmount]);
   
-    formData.forEach((item) => {
-      const { currency, amount } = item;
-  
-      // Find the exchange rate for the currency
-      const currencyData = exchangeValues.find((data) => data.currencyName.toUpperCase() === currency.toUpperCase());
-  
-      if (currencyData) {
-        const exchangeRate = currencyData.value;
-        const numericAmount = parseFloat(amount);
-        totalAmount += numericAmount * exchangeRate;
-      }
-    });
-  
-    // Log the total amount
-    console.log('Total Amount:', totalAmount);
-  
+
+
+  const handleSubmit = () => {  
     // Create the data object to send to the backend
+    const cashAdvanceViolationsMessage = travelRequestDetails.cashAdvance.violationMessage
     const requestData = {
-      amountDetails: formData,
+      amountDetails: cashAdvanceData,
     };
   
     if (approverFLAG) {
       requestData.approvers = approvers;
+    }else{
+      requestData.approvers=[]
     }
-  
-    // Now, you can send this requestData to the backend
-    // You need to implement your API request here (e.g., using fetch or axios).
-    // Ensure that you send this data to your server endpoint.
+    if(showViolationMessage===true){
+      requestData.cashAdvanceViolations=[cashAdvanceViolationsMessage]|| ["string message limit message"]
+    }else{
+      requestData.cashAdvanceViolations=[];
+    }
+    
+    
+    
+
+    const postCashAdvance = async()=>{
+      try{
+        const response = await createCashAdvanceAPI(requestData);
+        console.log({'Respose Data':response.data })
+    
+    
+      }catch(error){
+        console.error({'Error':error})
+    
+      }
+     }
   
     console.log(requestData);
+    postCashAdvance()
+
   
     // After submitting, you can open the modal
     handleModalClick();
   };
+
+  ///handle remove 
+
+
+  
+
   
 
   const handleModalClick = () => {
     setOpenModal(true);
-    setFormDataForModal(formData);
+    setCashAdvanceDataForModal(cashAdvanceData);
   };
+
+  const handleCashAdvanceLineRemove =(index)=>{
+    const updatedFormData= [...cashAdvanceData]
+    updatedFormData.splice(index,1)
+    setCashAdvanceData(updatedFormData)
+   }
+
+
+  
  
   const paymentOptions = ['Petty Cash', 'Neft', 'Cheque', 'Prepaid Cards'];
   const currencyOptions = [
@@ -150,7 +188,31 @@ const Page2 = () => {
     { name: 'Namita Thapper', empId: '67hgfhg' },
     { name: 'Piyush Banshal', empId: '788hhjh' },
   ];
+
+useEffect(() => {
+  async function fetchData() {
+    try {
+      const data = await getTravelRequestDetails();
+      setTravelRequestDetails(data);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  fetchData();
   
+}, []
+);
+console.log(travelRequestDetails);
+
+
+  
+
+  
+
+
+
+    
   return (
     <>
     <div className="flex w-full overflow-hidden  h-[939px] px-104 py-43 flex-col items-start gap-41">
@@ -162,6 +224,8 @@ const Page2 = () => {
           <img src={arrow_left} alt="Arrow Left" />
           <h1 className="text-[18px] tracking-[-0.04em] not-italic font-semibold">Create Cash Advance</h1>
         </div>
+      
+
        
           <div>
             <div className="flex h-auto flex-col items-start gap-[16px] mt-[41px]">
@@ -171,10 +235,11 @@ const Page2 = () => {
               
             </div>
             <div className='h-[265px] overflow-auto'>
+           
               
-              {formData.map((data, index) => (
+              {cashAdvanceData.map((data, index) => (
                 <div key={index} className="flex flex-col gap-6 sm:flex-row text-base mb-4">
-                  <div className="w-[175px] h-[48px] sm:w-[133px] ">
+                  <div className="w-[175px] h-[48px] sm:w-[133px]">
                     <Dropdown
                       name="currency"
                       id={`currency-${index}`}
@@ -208,23 +273,25 @@ const Page2 = () => {
                      
                     />
                   </div>
+                  
                  
-                  <div className="flex items-center justify-center text-center mt-7 ">
-                    <img src={cancel} alt="Cancel" height={50} />
+                  <div className="flex  items-center font-cabin shadow-orange-100 text-red-600 justify-center text-center mt-7 " onClick={handleCashAdvanceLineRemove}>
+                    <img src={cancel} alt="Cancel" height={50} />  
                   </div>
                 </div>
               ))}
             </div>
           </div>
-          {approverFLAG === true ? (<div className='mt-7'>
+          {approverFLAG && (<div className='mt-7'>
             
             <MultiSearch
               title='Who will Approve this?'
               placeholder="Name's of managers approving this"
               onSelect = {handleSelectedApprovers} // option will be object : {name:'', empId:''}
               currentOption={approvers} // list of currently selected managers
-              options={listOfAllManagers}/>
-              </div>):""}
+              options={listOfAllManagers}
+              />
+              </div>)}
           
 
 
@@ -243,15 +310,13 @@ const Page2 = () => {
     </div>
         <Modal 
         isOpen={openModal} onClose={() => setOpenModal(false)} 
-        formData={formDataForModal} 
+        cashAdvanceData={cashAdvanceDataForModal} 
         approvers={approvers} 
-        handleSubmit={handleSubmit}/>
-
-
-       
-     
-    
-    </>
+        handleSubmit={handleSubmit}
+        violationMessage={showViolationMessage}
+        approverFLAG={approverFLAG}
+        />
+         </>
   );
 };
 

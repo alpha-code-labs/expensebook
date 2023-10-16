@@ -45,10 +45,11 @@ const Dropdown = (props) => {
           <img src={icon} className="ml-2" alt="Dropdown Icon" />
         </button>
       </div>
+
       {isOpen && (
-        <div className="w-full rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
+        <div className="relative z-50 w-full rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5">
           <div
-            className="py-1 h-36 overflow-auto"
+            className="py-1 h-36 overflow-auto "
             role="menu"
             aria-orientation="vertical"
             aria-labelledby="options-menu"
@@ -59,25 +60,16 @@ const Dropdown = (props) => {
               <div
                 key={index}
                 onClick={() => selectOption(value)}
-                className="px-4 py-2  text-sm text-gray-700 hover:bg-indigo-500 hover:text-white cursor-pointer z-10 "
+                className="px-4 py-2  text-sm text-gray-700 hover:bg-indigo-500 hover:text-white cursor-pointer bg-white-100"
                 role="menuitem"
               >
                 {value}
               </div>
             ))}
-            {/* {options.map((value, index) => (
-              <div
-                key={index}
-                onClick={() => selectOption(value)}
-                className="px-4 py-2  text-sm text-gray-700 hover:bg-indigo-500 hover:text-white cursor-pointer z-10 "
-                role="menuitem"
-              >
-                {value}
-              </div>
-            ))} */}
           </div>
         </div>
       )}
+      
     </>
   );
 };

@@ -1,8 +1,27 @@
 import travelRequestsJsonData from "../dummyData/dummyData.js";
 import { policiesData } from '../dummyData/cashAdvancePolicy.js';
 import  createCashAdvanceId  from "../utils/createCashAdvanceId.js";
-import CashAdvance from '../models/cashSchema.js';
 
+import CashAdvance from '../models/cashSchema.js';
+const getTravelRequest= async(req,res)=>{
+  try{
+    const {travelRequestId}=req.params
+    const travelRequestData = travelRequestsJsonData.find(
+      (data)=>data.travelRequestId === travelRequestId
+      
+    )
+    if (!travelRequestData) {
+      return res.status(404).json({ error: 'Travel request not found' });
+    }
+    return res.status(200).json(travelRequestData)
+
+  }catch(error){
+    return res.status(500).json({message:"Internal Server Error"})
+
+
+  }
+  
+}
 
 const createCashAdvance = async (req, res) => {
   try {
@@ -29,7 +48,7 @@ const createCashAdvance = async (req, res) => {
       return res.status(400).json({ message: "Required headers are not present" });
     }
 
-    // Policy validation
+    //Policy validation
     const amountDetails = req.body.amountDetails;
     if (Array.isArray(amountDetails) && amountDetails.length > 0) {
       const { amount } = amountDetails[0];
@@ -84,6 +103,7 @@ const createCashAdvance = async (req, res) => {
         break;
     }
 
+
     const cashAdvanceData = {
       ...req.body,
       tenantId: tenantId,
@@ -94,7 +114,7 @@ const createCashAdvance = async (req, res) => {
       cashAdvanceState: cashAdvanceState,
       cashAdvanceId: cashAdvanceId,
       createdBy: cashAdvanceCreatedBy,
-      cashAdvanceViolations: cashAdvanceViolations,
+      // cashAdvanceViolations: cashAdvanceViolations,
       cashAdvanceApprovalDate:null,
       cashAdvanceSettlementDate:null,
       cashAdvanceRejectionReason:null,
@@ -144,4 +164,5 @@ const getCashAdvances= async (req, res) => {
   }
 }
 
-export { createCashAdvance ,getCashAdvances };
+
+export { createCashAdvance ,getCashAdvances,getTravelRequest };

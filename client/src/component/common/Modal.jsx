@@ -6,9 +6,13 @@ const Modal = (props) => {
 
   const isOpen = props.isOpen;
   const onClose = props.onClose;
-  const formData = props.formData;
+  const cashAdvanceData = props.cashAdvanceData;
   const approvers = props.approvers;
   const handleSubmit = props.handleSubmit;
+  const violationMessage=props.violationMessage;
+  const approverFLAG = props.approverFLAG;
+
+  
 
   if (!isOpen) return null;
 
@@ -27,7 +31,7 @@ const Modal = (props) => {
               <div className='text-[#333] font-cabin leading-normal text-[16px] font-medium'>
                 Request For Cash Advance
               </div>
-              {/* {formData.map((data, index) => (
+              {/* {cashAdvanceData.map((data, index) => (
                  <>
                  
                
@@ -76,7 +80,7 @@ const Modal = (props) => {
                 </div>
               </div> */}
               <div className='h-[84px] overflow-auto'>
-                {formData.map((amountDetails,index)=>(
+                {cashAdvanceData.map((amountDetails,index)=>(
                   <>
                   <div key={index} className='flex flex-start gap-6 mb-2 flex-col sm:flex-row'>
 
@@ -122,54 +126,20 @@ const Modal = (props) => {
                   </>
                 ))}
               
-              {/* <div className='flex flex-start gap-6 mb-2'>
-
-                <div className='flex flex-col flex-start gap-2'>
-                  <div className='font-cabin text-[14px] font-medium text-[#333]'>
-                    Currency
-                  </div>
-                  <div className='w-[133px] h-[48px] border rounded-[6px] py-3 px-4'>
-                    <div className='text-[#000] font-normal leading-normal'>
-                      USD $
-                    </div>
-                  </div>
-
-                </div>
-                <div className='flex flex-col flex-start gap-2'>
-                  <div className='font-cabin text-[14px] font-medium text-[#333]'>
-                    Amount
-                  </div>
-                  <div className='w-[175px] h-[48px] border rounded-[6px] py-3 px-4'>
-                    <div className='text-[#000] font-normal leading-normal'>
-                      5000
-                    </div>
-                  </div>
-
-                </div>
-                <div className='flex flex-col flex-start gap-2'>
-                  <div className='font-cabin text-[14px] font-medium text-[#333]'>
-                    Mode
-                  </div>
-                  <div className='w-[133px] h-[48px] border rounded-[6px] py-3 px-4'>
-                    <div className='text-[#000] font-normal leading-normal'>
-                      USD $
-                    </div>
-                  </div>
-
-                </div>
-                <div>
-                </div>
-                <div>
-                </div>
-
-              </div> */}
+            
               </div>
+              {violationMessage && ( <div className='text-purple-500 font-inter text-xs leading-normal mt-0'>
+               <span className='font-semibold'>Note:</span> The amount you are requesting is above your group limit
+              </div>)}
+             
 
               <div className='flex '>
-                <div className='w-[133px] h-[19px]'>
+                {approverFLAG && (<div className='w-[133px] h-[19px]'>
                   <div>Approvers</div>
                   <div className=" h-[48px] w-[200px] mt-2 flex flex-row items-center justify-start border border-gray-600 rounded-md hover:border-purple-500 focus:border-purple-500">
                     <div className="flex  flex-row  px-3 py-2 truncate border-none outline-none placeholder:text-gray-200 placeholder:text-[14px] placeholder:font-normal">
+                     
+
                       {approvers.map((approver ,index)=>(
                         <h3 key={index}>{approver.name},&nbsp;</h3>
 
@@ -178,7 +148,11 @@ const Modal = (props) => {
                      
                     </div>
                   </div>
-                </div>
+                </div>)}
+               
+                
+            
+               
               </div>
             </div>
           </div>

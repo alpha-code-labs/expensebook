@@ -1,0 +1,961 @@
+{    "hrAndCompany":[
+        {
+            "id":1,
+            "tenantId": "603f3b07965db634c8769a08",
+            "DIY_FLAG": true,
+            "GROUPING_FLAG": false,
+            "ORG_HEADERS_FLAG": true,
+            "companyDetails": {
+              "companyName": "Acme Inc",
+              "companyLogo": "https://example.com/logo.png",
+              "companyEmail": "info@acme.com",
+              "companyHeadquarters": {
+                "country": "United States",
+                "state": "California",
+                "city": "San Francisco"
+              },
+              "companySize": "Large",
+              "defaultCurrency": "USD",
+              "industry": "Technology"
+            },
+            "employees": [
+              {
+                "employeeDetails": {
+                  "employeeId": "emp123",
+                  "basicDetails": {
+                    "band": "Manager",
+                    "citizenship": "US",
+                    "costCenterSourceCode": "CC123",
+                    "designationName": "Software Engineer",
+                    "designationSourceCode": "DS123",
+                    "employeeCategory": "Full-Time",
+                    "employeeCategorySourceCode": "EC123",
+                    "grade": "A",
+                    "legalEntity": "Acme Inc",
+                    "costCenter": "California Office",
+                    "profitCenter": "Tech Division",
+                    "department": "Engineering",
+                    "businessUnit": "Product Development",
+                    "geographicalLocation": "San Francisco",
+                    "division": "Tech Division",
+                    "project": "Project X",
+                    "responsibilityCenter": "Engineering"
+                  },
+                  "contactDetails": {
+                    "phoneNumber": "123-456-7890",
+                    "mobileNumber": {
+                      "primary": "987-654-3210",
+                      "secondary": ""
+                    },
+                    "emailId": "john.doe@acme.com"
+                  },
+                  "emergencyContactDetails": {
+                    "mobileNumber": {
+                      "primary": "555-555-5555"
+                    }
+                  },
+                  "employmentDetails": {
+                    "companyName": "Acme Inc",
+                    "employeeCode": "EMP123"
+                  }
+                },
+                "employeeRoles": {
+                  "employee": true,
+                  "employeeManager": false,
+                  "finance": false,
+                  "businessAdmin": false,
+                  "superAdmin": false
+                },
+                "temporaryAssignedManager": {
+                  "assignedFor": "Vacation",
+                  "approvals": {
+                    "travelRequest": true,
+                    "cashAdvance": false,
+                    "expenseApproval": true
+                  }
+                },
+                "delegated": {
+                  "delegatedFor": "Project Y",
+                  "endDate": "2023-12-31"
+                }
+              }
+            ],
+            "groups": {
+              "groupHeaders": ["Tech", "HR"],
+              "groupName": ["Tech Team", "HR Team"]
+            },
+            "departments": ["Engineering", "HR", "Finance"],
+            "legalEntities": ["Acme Inc", "Acme Europe"],
+            "costCenters": ["CC123", "CC456"],
+            "profitCenters": ["Tech Division", "Finance Division"],
+            "geographicalLocations": ["San Francisco", "New York"],
+            "responsibilityCenters": ["Engineering", "Finance"],
+            "divisions": ["Tech Division", "Finance Division"],
+            "projects": ["Project X", "Project Y"],
+            "cashAdvanceOptions": ["Option1", "Option2"],
+            "cashExpenseOptions": ["OptionA", "OptionB"]
+          },
+          {
+            "id":2,
+            "tenantId": "603f3b07965db634c8769a08",
+            "DIY_FLAG": true,
+            "GROUPING_FLAG": false,
+            "ORG_HEADERS_FLAG": true,
+            "companyDetails": {
+              "companyName": "Acme Inc",
+              "companyLogo": "https://example.com/logo.png",
+              "companyEmail": "info@acme.com",
+              "companyHeadquarters": {
+                "country": "United States",
+                "state": "California",
+                "city": "San Francisco"
+              },
+              "companySize": "Large",
+              "defaultCurrency": "USD",
+              "industry": "Technology"
+            },
+            "employees": [
+              {
+                "employeeDetails": {
+                  "employeeId": "emp124",
+                  "basicDetails": {
+                    "band": "Manager",
+                    "citizenship": "US",
+                    "costCenterSourceCode": "CC124",
+                    "designationName": "Data Scientist",
+                    "designationSourceCode": "DS124",
+                    "employeeCategory": "Full-Time",
+                    "employeeCategorySourceCode": "EC124",
+                    "grade": "B",
+                    "legalEntity": "Acme Inc",
+                    "costCenter": "California Office",
+                    "profitCenter": "Tech Division",
+                    "department": "Data Science",
+                    "businessUnit": "Analytics",
+                    "geographicalLocation": "San Francisco",
+                    "division": "Tech Division",
+                    "project": "Project Z",
+                    "responsibilityCenter": "Data Science"
+                  },
+                  "contactDetails": {
+                    "phoneNumber": "555-555-5555",
+                    "mobileNumber": {
+                      "primary": "888-888-8888",
+                      "secondary": ""
+                    },
+                    "emailId": "jane.smith@acme.com"
+                  },
+                  "emergencyContactDetails": {
+                    "mobileNumber": {
+                      "primary": "999-999-9999"
+                    }
+                  },
+                  "employmentDetails": {
+                    "companyName": "Acme Inc",
+                    "employeeCode": "EMP124"
+                  }
+                },
+                "employeeRoles": {
+                  "employee": true,
+                  "employeeManager": false,
+                  "finance": false,
+                  "businessAdmin": false,
+                  "superAdmin": false
+                },
+                "temporaryAssignedManager": {
+                  "assignedFor": "Sick Leave",
+                  "approvals": {
+                    "travelRequest": true,
+                    "cashAdvance": true,
+                    "expenseApproval": true
+                  }
+                },
+                "delegated": {
+                  "delegatedFor": "Project X",
+                  "endDate": "2023-11-30"
+                }
+              }
+            ],
+            "groups": {
+              "groupHeaders": ["Tech", "HR"],
+              "groupName": ["Tech Team", "HR Team"]
+            },
+            "departments": ["Engineering", "HR", "Finance"],
+            "legalEntities": ["Acme Inc", "Acme Europe"],
+            "costCenters": ["CC123", "CC456"],
+            "profitCenters": ["Tech Division", "Finance Division"],
+            "geographicalLocations": ["San Francisco", "New York"],
+            "responsibilityCenters": ["Engineering", "Finance"],
+            "divisions": ["Tech Division", "Finance Division"],
+            "projects": ["Project X", "Project Y"],
+            "cashAdvanceOptions": ["Option1", "Option2"],
+            "cashExpenseOptions": ["OptionA", "OptionB"]
+          },
+          {
+            "id":3,
+            "tenantId": "603f3b07965db634c8769a08",
+            "DIY_FLAG": true,
+            "GROUPING_FLAG": false,
+            "ORG_HEADERS_FLAG": true,
+            "companyDetails": {
+              "companyName": "Acme Inc",
+              "companyLogo": "https://example.com/logo.png",
+              "companyEmail": "info@acme.com",
+              "companyHeadquarters": {
+                "country": "United States",
+                "state": "California",
+                "city": "San Francisco"
+              },
+              "companySize": "Large",
+              "defaultCurrency": "USD",
+              "industry": "Technology"
+            },
+            "employees": [
+              {
+                "employeeDetails": {
+                  "employeeId": "emp125",
+                  "basicDetails": {
+                    "band": "Manager",
+                    "citizenship": "US",
+                    "costCenterSourceCode": "CC125",
+                    "designationName": "Product Manager",
+                    "designationSourceCode": "DS125",
+                    "employeeCategory": "Full-Time",
+                    "employeeCategorySourceCode": "EC125",
+                    "grade": "A",
+                    "legalEntity": "Acme Inc",
+                    "costCenter": "California Office",
+                    "profitCenter": "Tech Division",
+                    "department": "Product Management",
+                    "businessUnit": "Product Development",
+                    "geographicalLocation": "San Francisco",
+                    "division": "Tech Division",
+                    "project": "Project A",
+                    "responsibilityCenter": "Product Management"
+                  },
+                  "contactDetails": {
+                    "phoneNumber": "777-777-7777",
+                    "mobileNumber": {
+                      "primary": "666-666-6666",
+                      "secondary": ""
+                    },
+                    "emailId": "mark.johnson@acme.com"
+                  },
+                  "emergencyContactDetails": {
+                    "mobileNumber": {
+                      "primary": "333-333-3333"
+                    }
+                  },
+                  "employmentDetails": {
+                    "companyName": "Acme Inc",
+                    "employeeCode": "EMP125"
+                  }
+                },
+                "employeeRoles": {
+                  "employee": true,
+                  "employeeManager": false,
+                  "finance": false,
+                  "businessAdmin": false,
+                  "superAdmin": false
+                },
+                "temporaryAssignedManager": {
+                  "assignedFor": "Training",
+                  "approvals": {
+                    "travelRequest": true,
+                    "cashAdvance": false,
+                    "expenseApproval": true
+                  }
+                },
+                "delegated": {
+                  "delegatedFor": "Project B",
+                  "endDate": "2023-10-15"
+                }
+              }
+            ],
+            "groups": {
+              "groupHeaders": ["Tech", "HR"],
+              "groupName": ["Tech Team", "HR Team"]
+            },
+            "departments": ["Engineering", "HR", "Finance"],
+            "legalEntities": ["Acme Inc", "Acme Europe"],
+            "costCenters": ["CC123", "CC456"],
+            "profitCenters": ["Tech Division", "Finance Division"],
+            "geographicalLocations": ["San Francisco", "New York"],
+            "responsibilityCenters": ["Engineering", "Finance"],
+            "divisions": ["Tech Division", "Finance Division"],
+            "projects": ["Project X", "Project Y"],
+            "cashAdvanceOptions": ["Option1", "Option2"],
+            "cashExpenseOptions": ["OptionA", "OptionB"]
+          },
+          {
+            "id":4,
+            "tenantId": "603f3b07965db634c8769a08",
+            "DIY_FLAG": true,
+            "GROUPING_FLAG": false,
+            "ORG_HEADERS_FLAG": true,
+            "companyDetails": {
+              "companyName": "Acme Inc",
+              "companyLogo": "https://example.com/logo.png",
+              "companyEmail": "info@acme.com",
+              "companyHeadquarters": {
+                "country": "United States",
+                "state": "California",
+                "city": "San Francisco"
+              },
+              "companySize": "Large",
+              "defaultCurrency": "USD",
+              "industry": "Technology"
+            },
+            "employees": [
+              {
+                "employeeDetails": {
+                  "employeeId": "emp126",
+                  "basicDetails": {
+                    "band": "Manager",
+                    "citizenship": "US",
+                    "costCenterSourceCode": "CC126",
+                    "designationName": "UX Designer",
+                    "designationSourceCode": "DS126",
+                    "employeeCategory": "Full-Time",
+                    "employeeCategorySourceCode": "EC126",
+                    "grade": "B",
+                    "legalEntity": "Acme Inc",
+                    "costCenter": "California Office",
+                    "profitCenter": "Tech Division",
+                    "department": "Design",
+                    "businessUnit": "Product Development",
+                    "geographicalLocation": "San Francisco",
+                    "division": "Tech Division",
+                    "project": "Project C",
+                    "responsibilityCenter": "Design"
+                  },
+                  "contactDetails": {
+                    "phoneNumber": "999-999-9999",
+                    "mobileNumber": {
+                      "primary": "888-888-8888",
+                      "secondary": ""
+                    },
+                    "emailId": "emily.davis@acme.com"
+                  },
+                  "emergencyContactDetails": {
+                    "mobileNumber": {
+                      "primary": "777-777-7777"
+                    }
+                  },
+                  "employmentDetails": {
+                    "companyName": "Acme Inc",
+                    "employeeCode": "EMP126"
+                  }
+                },
+                "employeeRoles": {
+                  "employee": true,
+                  "employeeManager": false,
+                  "finance": false,
+                  "businessAdmin": false,
+                  "superAdmin": false
+                },
+                "temporaryAssignedManager": {
+                  "assignedFor": "Conference",
+                  "approvals": {
+                    "travelRequest": true,
+                    "cashAdvance": true,
+                    "expenseApproval": true
+                  }
+                },
+                "delegated": {
+                  "delegatedFor": "Project D",
+                  "endDate": "2023-09-30"
+                }
+              }
+            ],
+            "groups": {
+              "groupHeaders": ["Tech", "HR"],
+              "groupName": ["Tech Team", "HR Team"]
+            },
+            "departments": ["Engineering", "HR", "Finance"],
+            "legalEntities": ["Acme Inc", "Acme Europe"],
+            "costCenters": ["CC123", "CC456"],
+            "profitCenters": ["Tech Division", "Finance Division"],
+            "geographicalLocations": ["San Francisco", "New York"],
+            "responsibilityCenters": ["Engineering", "Finance"],
+            "divisions": ["Tech Division", "Finance Division"],
+            "projects": ["Project X", "Project Y"],
+            "cashAdvanceOptions": ["Option1", "Option2"],
+            "cashExpenseOptions": ["OptionA", "OptionB"]
+          },
+          {
+            "id":5,
+            "tenantId": "603f3b07965db634c8769a08",
+            "DIY_FLAG": true,
+            "GROUPING_FLAG": false,
+            "ORG_HEADERS_FLAG": true,
+            "companyDetails": {
+              "companyName": "Acme Inc",
+              "companyLogo": "https://example.com/logo.png",
+              "companyEmail": "info@acme.com",
+              "companyHeadquarters": {
+                "country": "United States",
+                "state": "California",
+                "city": "San Francisco"
+              },
+              "companySize": "Large",
+              "defaultCurrency": "USD",
+              "industry": "Technology"
+            },
+            "employees": [
+              {
+                "employeeDetails": {
+                  "employeeId": "emp127",
+                  "basicDetails": {
+                    "band": "Manager",
+                    "citizenship": "US",
+                    "costCenterSourceCode": "CC127",
+                    "designationName": "Data Analyst",
+                    "designationSourceCode": "DS127",
+                    "employeeCategory": "Full-Time",
+                    "employeeCategorySourceCode": "EC127",
+                    "grade": "A",
+                    "legalEntity": "Acme Inc",
+                    "costCenter": "California Office",
+                    "profitCenter": "Tech Division",
+                    "department": "Data Analytics",
+                    "businessUnit": "Analytics",
+                    "geographicalLocation": "San Francisco",
+                    "division": "Tech Division",
+                    "project": "Project E",
+                    "responsibilityCenter": "Data Analytics"
+                  },
+                  "contactDetails": {
+                    "phoneNumber": "444-444-4444",
+                    "mobileNumber": {
+                      "primary": "333-333-3333",
+                      "secondary": ""
+                    },
+                    "emailId": "michael.wilson@acme.com"
+                  },
+                  "emergencyContactDetails": {
+                    "mobileNumber": {
+                      "primary": "222-222-2222"
+                    }
+                  },
+                  "employmentDetails": {
+                    "companyName": "Acme Inc",
+                    "employeeCode": "EMP127"
+                  }
+                },
+                "employeeRoles": {
+                  "employee": true,
+                  "employeeManager": false,
+                  "finance": false,
+                  "businessAdmin": false,
+                  "superAdmin": false
+                },
+                "temporaryAssignedManager": {
+                  "assignedFor": "Training",
+                  "approvals": {
+                    "travelRequest": true,
+                    "cashAdvance": true,
+                    "expenseApproval": true
+                  }
+                },
+                "delegated": {
+                  "delegatedFor": "Project F",
+                  "endDate": "2023-11-15"
+                }
+              }
+            ],
+            "groups": {
+              "groupHeaders": ["Tech", "HR"],
+              "groupName": ["Tech Team", "HR Team"]
+            },
+            "departments": ["Engineering", "HR", "Finance"],
+            "legalEntities": ["Acme Inc", "Acme Europe"],
+            "costCenters": ["CC123", "CC456"],
+            "profitCenters": ["Tech Division", "Finance Division"],
+            "geographicalLocations": ["San Francisco", "New York"],
+            "responsibilityCenters": ["Engineering", "Finance"],
+            "divisions": ["Tech Division", "Finance Division"],
+            "projects": ["Project X", "Project Y"],
+            "cashAdvanceOptions": ["Option1", "Option2"],
+            "cashExpenseOptions": ["OptionA", "OptionB"]
+          },
+          {
+            "id":6,
+            "tenantId": "603f3b07965db634c8769a08",
+            "DIY_FLAG": true,
+            "GROUPING_FLAG": false,
+            "ORG_HEADERS_FLAG": true,
+            "companyDetails": {
+              "companyName": "Acme Inc",
+              "companyLogo": "https://example.com/logo.png",
+              "companyEmail": "info@acme.com",
+              "companyHeadquarters": {
+                "country": "United States",
+                "state": "California",
+                "city": "San Francisco"
+              },
+              "companySize": "Large",
+              "defaultCurrency": "USD",
+              "industry": "Technology"
+            },
+            "employees": [
+              {
+                "employeeDetails": {
+                  "employeeId": "emp128",
+                  "basicDetails": {
+                    "band": "Manager",
+                    "citizenship": "US",
+                    "costCenterSourceCode": "CC128",
+                    "designationName": "HR Manager",
+                    "designationSourceCode": "DS128",
+                    "employeeCategory": "Full-Time",
+                    "employeeCategorySourceCode": "EC128",
+                    "grade": "A",
+                    "legalEntity": "Acme Inc",
+                    "costCenter": "California Office",
+                    "profitCenter": "HR Division",
+                    "department": "Human Resources",
+                    "businessUnit": "HR",
+                    "geographicalLocation": "San Francisco",
+                    "division": "HR Division",
+                    "project": "N/A",
+                    "responsibilityCenter": "Human Resources"
+                  },
+                  "contactDetails": {
+                    "phoneNumber": "333-333-3333",
+                    "mobileNumber": {
+                      "primary": "444-444-4444",
+                      "secondary": ""
+                    },
+                    "emailId": "sarah.brown@acme.com"
+                  },
+                  "emergencyContactDetails": {
+                    "mobileNumber": {
+                      "primary": "555-555-5555"
+                    }
+                  },
+                  "employmentDetails": {
+                    "companyName": "Acme Inc",
+                    "employeeCode": "EMP128"
+                  }
+                },
+                "employeeRoles": {
+                  "employee": true,
+                  "employeeManager": false,
+                  "finance": false,
+                  "businessAdmin": false,
+                  "superAdmin": false
+                },
+                "temporaryAssignedManager": {
+                  "assignedFor": "Maternity Leave",
+                  "approvals": {
+                    "travelRequest": true,
+                    "cashAdvance": false,
+                    "expenseApproval": true
+                  }
+                },
+                "delegated": {
+                  "delegatedFor": "N/A",
+                  "endDate": "N/A"
+                }
+              }
+            ],
+            "groups": {
+              "groupHeaders": ["Tech", "HR"],
+              "groupName": ["Tech Team", "HR Team"]
+            },
+            "departments": ["Engineering", "HR", "Finance"],
+            "legalEntities": ["Acme Inc", "Acme Europe"],
+            "costCenters": ["CC123", "CC456"],
+            "profitCenters": ["Tech Division", "Finance Division"],
+            "geographicalLocations": ["San Francisco", "New York"],
+            "responsibilityCenters": ["Engineering", "Finance"],
+            "divisions": ["Tech Division", "Finance Division"],
+            "projects": ["Project X", "Project Y"],
+            "cashAdvanceOptions": ["Option1", "Option2"],
+            "cashExpenseOptions": ["OptionA", "OptionB"]
+          },
+          {
+            "id":7,
+            "tenantId": "603f3b07965db634c8769a08",
+            "DIY_FLAG": true,
+            "GROUPING_FLAG": false,
+            "ORG_HEADERS_FLAG": true,
+            "companyDetails": {
+              "companyName": "Acme Inc",
+              "companyLogo": "https://example.com/logo.png",
+              "companyEmail": "info@acme.com",
+              "companyHeadquarters": {
+                "country": "United States",
+                "state": "California",
+                "city": "San Francisco"
+              },
+              "companySize": "Large",
+              "defaultCurrency": "USD",
+              "industry": "Technology"
+            },
+            "employees": [
+              {
+                "employeeDetails": {
+                  "employeeId": "emp129",
+                  "basicDetails": {
+                    "band": "Manager",
+                    "citizenship": "US",
+                    "costCenterSourceCode": "CC129",
+                    "designationName": "Financial Analyst",
+                    "designationSourceCode": "DS129",
+                    "employeeCategory": "Full-Time",
+                    "employeeCategorySourceCode": "EC129",
+                    "grade": "B",
+                    "legalEntity": "Acme Inc",
+                    "costCenter": "California Office",
+                    "profitCenter": "Finance Division",
+                    "department": "Finance",
+                    "businessUnit": "Finance",
+                    "geographicalLocation": "San Francisco",
+                    "division": "Finance Division",
+                    "project": "N/A",
+                    "responsibilityCenter": "Finance"
+                  },
+                  "contactDetails": {
+                    "phoneNumber": "555-555-5555",
+                    "mobileNumber": {
+                      "primary": "666-666-6666",
+                      "secondary": ""
+                    },
+                    "emailId": "robert.clark@acme.com"
+                  },
+                  "emergencyContactDetails": {
+                    "mobileNumber": {
+                      "primary": "777-777-7777"
+                    }
+                  },
+                  "employmentDetails": {
+                    "companyName": "Acme Inc",
+                    "employeeCode": "EMP129"
+                  }
+                },
+                "employeeRoles": {
+                  "employee": true,
+                  "employeeManager": false,
+                  "finance": false,
+                  "businessAdmin": false,
+                  "superAdmin": false
+                },
+                "temporaryAssignedManager": {
+                  "assignedFor": "Conference",
+                  "approvals": {
+                    "travelRequest": true,
+                    "cashAdvance": true,
+                    "expenseApproval": true
+                  }
+                },
+                "delegated": {
+                  "delegatedFor": "N/A",
+                  "endDate": "N/A"
+                }
+              }
+            ],
+            "groups": {
+              "groupHeaders": ["Tech", "HR"],
+              "groupName": ["Tech Team", "HR Team"]
+            },
+            "departments": ["Engineering", "HR", "Finance"],
+            "legalEntities": ["Acme Inc", "Acme Europe"],
+            "costCenters": ["CC123", "CC456"],
+            "profitCenters": ["Tech Division", "Finance Division"],
+            "geographicalLocations": ["San Francisco", "New York"],
+            "responsibilityCenters": ["Engineering", "Finance"],
+            "divisions": ["Tech Division", "Finance Division"],
+            "projects": ["Project X", "Project Y"],
+            "cashAdvanceOptions": ["Option1", "Option2"],
+            "cashExpenseOptions": ["OptionA", "OptionB"]
+          },
+          {
+            "id":8,
+            "tenantId": "603f3b07965db634c8769a08",
+            "DIY_FLAG": true,
+            "GROUPING_FLAG": false,
+            "ORG_HEADERS_FLAG": true,
+            "companyDetails": {
+              "companyName": "Acme Inc",
+              "companyLogo": "https://example.com/logo.png",
+              "companyEmail": "info@acme.com",
+              "companyHeadquarters": {
+                "country": "United States",
+                "state": "California",
+                "city": "San Francisco"
+              },
+              "companySize": "Large",
+              "defaultCurrency": "USD",
+              "industry": "Technology"
+            },
+            "employees": [
+              {
+                "employeeDetails": {
+                  "employeeId": "emp130",
+                  "basicDetails": {
+                    "band": "Manager",
+                    "citizenship": "US",
+                    "costCenterSourceCode": "CC130",
+                    "designationName": "Marketing Manager",
+                    "designationSourceCode": "DS130",
+                    "employeeCategory": "Full-Time",
+                    "employeeCategorySourceCode": "EC130",
+                    "grade": "A",
+                    "legalEntity": "Acme Inc",
+                    "costCenter": "California Office",
+                    "profitCenter": "Marketing Division",
+                    "department": "Marketing",
+                    "businessUnit": "Marketing",
+                    "geographicalLocation": "San Francisco",
+                    "division": "Marketing Division",
+                    "project": "N/A",
+                    "responsibilityCenter": "Marketing"
+                  },
+                  "contactDetails": {
+                    "phoneNumber": "666-666-6666",
+                    "mobileNumber": {
+                      "primary": "777-777-7777",
+                      "secondary": ""
+                    },
+                    "emailId": "lisa.anderson@acme.com"
+                  },
+                  "emergencyContactDetails": {
+                    "mobileNumber": {
+                      "primary": "888-888-8888"
+                    }
+                  },
+                  "employmentDetails": {
+                    "companyName": "Acme Inc",
+                    "employeeCode": "EMP130"
+                  }
+                },
+                "employeeRoles": {
+                  "employee": true,
+                  "employeeManager": false,
+                  "finance": false,
+                  "businessAdmin": false,
+                  "superAdmin": false
+                },
+                "temporaryAssignedManager": {
+                  "assignedFor": "Conference",
+                  "approvals": {
+                    "travelRequest": true,
+                    "cashAdvance": true,
+                    "expenseApproval": true
+                  }
+                },
+                "delegated": {
+                  "delegatedFor": "N/A",
+                  "endDate": "N/A"
+                }
+              }
+            ],
+            "groups": {
+              "groupHeaders": ["Tech", "HR"],
+              "groupName": ["Tech Team", "HR Team"]
+            },
+            "departments": ["Engineering", "HR", "Finance"],
+            "legalEntities": ["Acme Inc", "Acme Europe"],
+            "costCenters": ["CC123", "CC456"],
+            "profitCenters": ["Tech Division", "Finance Division"],
+            "geographicalLocations": ["San Francisco", "New York"],
+            "responsibilityCenters": ["Engineering", "Finance"],
+            "divisions": ["Tech Division", "Finance Division"],
+            "projects": ["Project X", "Project Y"],
+            "cashAdvanceOptions": ["Option1", "Option2"],
+            "cashExpenseOptions": ["OptionA", "OptionB"]
+          },
+          {
+            "id":9,
+            "tenantId": "603f3b07965db634c8769a08",
+            "DIY_FLAG": true,
+            "GROUPING_FLAG": false,
+            "ORG_HEADERS_FLAG": true,
+            "companyDetails": {
+              "companyName": "Acme Inc",
+              "companyLogo": "https://example.com/logo.png",
+              "companyEmail": "info@acme.com",
+              "companyHeadquarters": {
+                "country": "United States",
+                "state": "California",
+                "city": "San Francisco"
+              },
+              "companySize": "Large",
+              "defaultCurrency": "USD",
+              "industry": "Technology"
+            },
+            "employees": [
+              {
+                "employeeDetails": {
+                  "employeeId": "emp131",
+                  "basicDetails": {
+                    "band": "Manager",
+                    "citizenship": "US",
+                    "costCenterSourceCode": "CC131",
+                    "designationName": "Sales Manager",
+                    "designationSourceCode": "DS131",
+                    "employeeCategory": "Full-Time",
+                    "employeeCategorySourceCode": "EC131",
+                    "grade": "B",
+                    "legalEntity": "Acme Inc",
+                    "costCenter": "California Office",
+                    "profitCenter": "Sales Division",
+                    "department": "Sales",
+                    "businessUnit": "Sales",
+                    "geographicalLocation": "San Francisco",
+                    "division": "Sales Division",
+                    "project": "N/A",
+                    "responsibilityCenter": "Sales"
+                  },
+                  "contactDetails": {
+                    "phoneNumber": "888-888-8888",
+                    "mobileNumber": {
+                      "primary": "999-999-9999",
+                      "secondary": ""
+                    },
+                    "emailId": "david.lee@acme.com"
+                  },
+                  "emergencyContactDetails": {
+                    "mobileNumber": {
+                      "primary": "111-111-1111"
+                    }
+                  },
+                  "employmentDetails": {
+                    "companyName": "Acme Inc",
+                    "employeeCode": "EMP131"
+                  }
+                },
+                "employeeRoles": {
+                  "employee": true,
+                  "employeeManager": false,
+                  "finance": false,
+                  "businessAdmin": false,
+                  "superAdmin": false
+                },
+                "temporaryAssignedManager": {
+                  "assignedFor": "Conference",
+                  "approvals": {
+                    "travelRequest": true,
+                    "cashAdvance": true,
+                    "expenseApproval": true
+                  }
+                },
+                "delegated": {
+                  "delegatedFor": "N/A",
+                  "endDate": "N/A"
+                }
+              }
+            ],
+            "groups": {
+              "groupHeaders": ["Tech", "HR"],
+              "groupName": ["Tech Team", "HR Team"]
+            },
+            "departments": ["Engineering", "HR", "Finance"],
+            "legalEntities": ["Acme Inc", "Acme Europe"],
+            "costCenters": ["CC123", "CC456"],
+            "profitCenters": ["Tech Division", "Finance Division"],
+            "geographicalLocations": ["San Francisco", "New York"],
+            "responsibilityCenters": ["Engineering", "Finance"],
+            "divisions": ["Tech Division", "Finance Division"],
+            "projects": ["Project X", "Project Y"],
+            "cashAdvanceOptions": ["Option1", "Option2"],
+            "cashExpenseOptions": ["OptionA", "OptionB"]
+          },
+          {
+            "id":10,
+            "tenantId": "603f3b07965db634c8769a08",
+            "DIY_FLAG": true,
+            "GROUPING_FLAG": false,
+            "ORG_HEADERS_FLAG": true,
+            "companyDetails": {
+              "companyName": "Acme Inc",
+              "companyLogo": "https://example.com/logo.png",
+              "companyEmail": "info@acme.com",
+              "companyHeadquarters": {
+                "country": "United States",
+                "state": "California",
+                "city": "San Francisco"
+              },
+              "companySize": "Large",
+              "defaultCurrency": "USD",
+              "industry": "Technology"
+            },
+            "employees": [
+              {
+                "employeeDetails": {
+                  "employeeId": "emp132",
+                  "basicDetails": {
+                    "band": "Manager",
+                    "citizenship": "US",
+                    "costCenterSourceCode": "CC132",
+                    "designationName": "Legal Counsel",
+                    "designationSourceCode": "DS132",
+                    "employeeCategory": "Full-Time",
+                    "employeeCategorySourceCode": "EC132",
+                    "grade": "A",
+                    "legalEntity": "Acme Inc",
+                    "costCenter": "California Office",
+                    "profitCenter": "Legal Division",
+                    "department": "Legal",
+                    "businessUnit": "Legal",
+                    "geographicalLocation": "San Francisco",
+                    "division": "Legal Division",
+                    "project": "N/A",
+                    "responsibilityCenter": "Legal"
+                  },
+                  "contactDetails": {
+                    "phoneNumber": "222-222-2222",
+                    "mobileNumber": {
+                      "primary": "111-111-1111",
+                      "secondary": ""
+                    },
+                    "emailId": "olivia.wilson@acme.com"
+                  },
+                  "emergencyContactDetails": {
+                    "mobileNumber": {
+                      "primary": "333-333-3333"
+                    }
+                  },
+                  "employmentDetails": {
+                    "companyName": "Acme Inc",
+                    "employeeCode": "EMP132"
+                  }
+                },
+                "employeeRoles": {
+                  "employee": true,
+                  "employeeManager": false,
+                  "finance": false,
+                  "businessAdmin": false,
+                  "superAdmin": false
+                },
+                "temporaryAssignedManager": {
+                  "assignedFor": "N/A",
+                  "approvals": {
+                    "travelRequest": false,
+                    "cashAdvance": false,
+                    "expenseApproval": false
+                  }
+                },
+                "delegated": {
+                  "delegatedFor": "N/A",
+                  "endDate": "N/A"
+                }
+              }
+            ],
+            "groups": {
+              "groupHeaders": ["Tech", "HR"],
+              "groupName": ["Tech Team", "HR Team"]
+            },
+            "departments": ["Engineering", "HR", "Finance"],
+            "legalEntities": ["Acme Inc", "Acme Europe"],
+            "costCenters": ["CC123", "CC456"],
+            "profitCenters": ["Tech Division", "Finance Division"],
+            "geographicalLocations": ["San Francisco", "New York"],
+            "responsibilityCenters": ["Engineering", "Finance"],
+            "divisions": ["Tech Division", "Finance Division"],
+            "projects": ["Project X", "Project Y"],
+            "cashAdvanceOptions": ["Option1", "Option2"],
+            "cashExpenseOptions": ["OptionA", "OptionB"]
+          }]}

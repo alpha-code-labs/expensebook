@@ -1,5 +1,4 @@
 import React from 'react'
-
 const Input = (props) => {
 
     const onChange = props.onChange
@@ -12,7 +11,7 @@ const Input = (props) => {
 
   return (
    <>
-        {/* <label htmlFor={htmlFor} className="text-[#333] font-cabin font-semibold leading-normal text-[14px]  tracking-tight">{label}</label> */}
+       
         <label  htmlFor={htmlFor} className="font-medium  text-gray-400 font-cabin  leading-normal text-[14px]">
         {label}
       </label>

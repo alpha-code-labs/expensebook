@@ -1,14 +1,15 @@
 import express from 'express';
 import CashAdvance from '../models/cashSchema.js';
-import {createCashAdvance, getCashAdvances} from '../controllers/cashAdvanceController.js';
+import {createCashAdvance, getCashAdvances, getTravelRequest} from '../controllers/cashAdvanceController.js';
 import travelRequestsJsonData from '../dummyData/dummyData.js'; // Import your dummy data
 import createCashAdvanceId from '../utils/createCashAdvanceId.js';
 
 const router = express.Router();
 
-//post cash advance along with corresponding travel request  route
+//post cash advance along with corresponding travel request route
 
 router.post('/create-cash-advance/:travelRequestId',createCashAdvance);
+router.get('/get-travel-request/:travelRequestId',getTravelRequest);
 
 // Get cash advance along with embedded travel request details
 router.get('/get-cash-advance', getCashAdvances);
@@ -119,5 +120,8 @@ router.patch('/cash-requests/:cashAdvanceId/status', async (req, res) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 });
+
+
+
 
 export default router;

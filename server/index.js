@@ -23,7 +23,7 @@ const app =express()
 app.use(bodyParser.json())
 app.use(cors())
 
-app.use('/api',frontendRoutes) //cashAdvanceRoutes
+app.use('/cash-advance/api',frontendRoutes) //cashAdvanceRoutes
 
 const mongodb = async ()=>{
     try{
