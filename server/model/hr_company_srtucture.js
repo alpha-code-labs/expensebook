@@ -36,7 +36,6 @@ const basicDetailsSchema = new mongoose.Schema({
   project: String,
   responsibilityCenter: String,
   joiningDate: Date,
-  group: String,
 })
 
 //employee details schema
@@ -53,6 +52,7 @@ const employeeDetailsSchema = new mongoose.Schema({
     companyName: String,
     employeeCode: String,
   },
+  group: String, // employee group name (specific to our system) ? can employee have more than one group
 })
 
 // assigned manager schema
@@ -92,7 +92,6 @@ const employeeSchema = new mongoose.Schema({
   temporaryAssignedManager: temporaryAssignedManagerSchema,
   delegated: delegatedSchema,
   reportingto: [reportingSchema], 
-
 })
 
 // company details schema
@@ -124,6 +123,7 @@ const hrCompanySchema = new mongoose.Schema({
   profitCenters: [String],
   geographicalLocations: [String],
   responsibilityCenters: [String],
+  businessUnits: [String],
   divisions: [String],
   projects: [String],
   cashAdvanceOptions: [String], // add options here if its fixed values 
