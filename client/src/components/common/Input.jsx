@@ -5,7 +5,12 @@ export default function Input(props){
     const placeholder = props.placeholder || "Placeholder Text";
     const value = props.value
     const title = props.title || "Title";
+    let showTitle = props.showTitle
+    if(showTitle === undefined || showTitle == null){
+        showTitle = true
+    }
     const onBlur = props.onBlur
+    const onChange = props.onChange || null
     const inputRef = useRef(null)
     const [textInput, setTextInput] = useState(value? titleCase(value) : '')
     const error = props.error || {set:false, message:''}
@@ -13,20 +18,24 @@ export default function Input(props){
     const handleChange = (e)=>{
         e.preventDefault()
         setTextInput(e.target.value)
+        if(onChange){
+            onChange(e)
+        }
     }
 
     const handleBlur= (e)=>{
         setTextInput(pre=>titleCase(pre))
-        onBlur(e)
+        if(onBlur){
+            onBlur(e)
+        }
     }
-
 
 
     
     return(<>
-        <div className="min-w-[200px] w-full md:w-fit max-w-[403px] h-[73px] flex-col justify-start items-start gap-2 inline-flex">
+        <div className={`min-w-[200px] w-full md:w-fit max-w-[403px] ${showTitle? 'h-[73px]' : 'h-[45px]' } flex-col justify-start items-start gap-2 inline-flex`}>
             {/* title */}
-            <div className="text-zinc-600 text-sm font-cabin">{title}</div>
+            {showTitle && <div className="text-zinc-600 text-sm font-cabin">{title}</div>}
 
             {/* input */}
             <div className="relative w-full h-full bg-white items-center flex">
