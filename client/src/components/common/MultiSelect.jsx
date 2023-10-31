@@ -5,7 +5,7 @@ import close_icon from '../../assets/close_FILL0_wght200_GRAD0_opsz48.svg'
 
 export default function MultiSelect(props) {
   const placeholder = props.placeholder || "Placeholder Text";
-  const title = props.title || "Title";
+  const title = titleCase(props.title) || "Title";
   const [hidePlaceholder, setHidePlaceholder] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef(null);
