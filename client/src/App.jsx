@@ -6,6 +6,9 @@ import Groups from "./pages/Gropus";
 import CreatedGroups from "./pages/CreatedGroups";
 import employeeData from './data/Employee_Data.json'
 import CompanyPolicies from "./pages/CompanyPolicies";
+import CompanyAndHRInformation from "./pages/CompanyAndHRInformation";
+import AllocateExpenses from "./pages/AllocateExpenses";
+import UploadFile from "./components/common/UploadFile";
 
 function App() {
   //flags
@@ -18,6 +21,9 @@ function App() {
   return <>
     <Router>
       <Routes>
+        <Route path='/company-info'
+            element={<CompanyAndHRInformation/>} />
+        <Route path='/expense-allocations/*' element={<AllocateExpenses />}/>
         <Route path='/setup-group' 
             element={<Groups 
                 flags={flags} 
@@ -34,6 +40,8 @@ function App() {
             element={<CompanyPolicies
                 flags={flags}
                 />} />
+        <Route path='/playground' element={<UploadFile/>} />
+        
       </Routes>
     </Router>
   </>;
