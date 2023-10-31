@@ -13,6 +13,8 @@ export default function Search(props){
     const [textInput, setTextInput] = useState('')
     const [filteredOptionsList, setFilteredOptionsList] = useState(null)
     const [keyboardFocusIndex, setKeyboardFocusIndex] = useState(-1)
+    const allowCustomInput = props.allowCustomInput || false
+    const error = props.error || {set:false, message:''}
 
     //refs for filtered options
     const dropdownOptionsRef = useRef([]);
@@ -57,6 +59,11 @@ export default function Search(props){
     const inputBlur = (e)=>{
         //bad idea...
         //setShowDropdown(false)
+
+        if(allowCustomInput && ((filteredOptionsList && filteredOptionsList.length<1) || textInput=='')){
+            console.log('called ....')
+            handleOptionSelect(textInput)
+        }
     }
 
 
@@ -93,8 +100,6 @@ export default function Search(props){
         }
 
         if(e.keyCode == 13){
-            console.log(keyboardFocusIndex)
-            console.log(dropdownOptionsRef.current[keyboardFocusIndex])
            handleOptionSelect(dropdownOptionsRef.current[keyboardFocusIndex].innerHTML)
         }
         
@@ -174,7 +179,11 @@ export default function Search(props){
                         onClick={(e)=>{e.stopPropagation()}}
                         className=" w-full h-full decoration:none px-6 py-2 border rounded-md border border-neutral-300 focus-visible:outline-0 focus-visible:border-indigo-600 " 
                         value={textInput} 
-                        placeholder={placeholder}></input>
+                        placeholder={placeholder} />
+                        
+                        {!showDropdown && textInput.length<1 && error?.set && <div className="absolute px-6 top-[45px] w-full text-xs text-red-600 font-cabin">
+                            {error?.message}
+                        </div>}
                 </div>
                 
                 {/* options */}
