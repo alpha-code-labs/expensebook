@@ -59,10 +59,9 @@ export default function CreatedGroups(props){
                         
                         <div className='w-fit'>
                         <Button
-                            onClick={() => navigate('/setup-company-policies')} 
+                            onClick={() => navigate('/setup-company-policies', {state:{groups:groupData.map(group=>group.name)}})} 
                             text='Continue' />
                         </div>
-
                     </div>
                 </div>
             </div>
