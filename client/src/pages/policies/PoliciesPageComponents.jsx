@@ -299,7 +299,7 @@ function Policy(props){
     let values = []
 
     if(types.includes('class')){
-        values = Object.keys(ruleEngineState[0][Object.keys(ruleEngineState[0])]['international'][title]['class'])
+        values = Object.keys(ruleEngineState[0][Object.keys(ruleEngineState[0])][tripType][title]['class'])
     }
 
     return (
