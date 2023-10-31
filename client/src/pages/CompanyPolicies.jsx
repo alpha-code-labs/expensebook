@@ -7,13 +7,14 @@ import DomesticPolicies from "./policies/DomesticPolicies";
 import { rule } from "postcss";
 import LocalPolicies from "./policies/LocalPolicies";
 import NonTravelPolicies from "./policies/NonTravelPolicies";
+import { useLocation } from "react-router-dom";
 
 export default function (props){
+  
+  const {state} = useLocation();
+  console.log(state, '...state')
   //flags
-  const [flags, setFlags] = useState({})  
-  const [groupData, setGroupData] = useState([])
-  const [groupHeaders, setGroupHeaders] = useState(['department', 'designation', 'grade', 'years'])
-
+  const [flags, setFlags] = useState({})   
 
   const ruleEngineData = {
       international:{
@@ -235,9 +236,15 @@ export default function (props){
       }
   }
 
-  const groups = ['Executives', 'Managers', 'Employees', 'Interns']
+  const [groups, setGroups] = useState(null)
   const [internationalRules, setInternationalRules] = useState()
-  const [ruleEngineState, setRuleEngineState] = useState(groups.map(group=>({[group]:convertToObject(ruleEngineData)})))
+  const [ruleEngineState, setRuleEngineState] = useState()
+
+  useEffect(()=>{
+    setGroups(state.groups)
+    setRuleEngineState(state.groups.map(group=>({[group]:convertToObject(ruleEngineData)})))
+  },[])
+
 
   function convertToObject(ruleEngineData){
     let obj = {}
@@ -279,6 +286,10 @@ export default function (props){
 
 
   return <>
+
+      {!groups && <div className="bg-slate-50 px-[104px] py-20">
+        no groups are found to setup policy</div>}
+
       <Routes>
         <Route path='/' 
               element={<Home 
