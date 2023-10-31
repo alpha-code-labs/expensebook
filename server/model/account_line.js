@@ -1,7 +1,7 @@
 import mongoose from "mongoose"
 
 // Import the HRCompany model
-import HRCompany from "./hr_company_srtucture.js"
+import HRCompany from "./hr_company_structure.js"
 
 //  accountline schema
 const accountlineSchema = new mongoose.Schema({
@@ -46,6 +46,5 @@ async function createAccountlineWithTenantId(tenantId, accountLineData) {
     }
   }
   
-
 // Export the Accountline model and the createAccountlineWithTenantId function
 export { Accountline, createAccountlineWithTenantId }

@@ -1,33 +1,33 @@
-import express from 'express'
-import bodyParser from 'body-parser'
-import mongoose from 'mongoose'
-import cors from 'cors'
-import * as dotenv from 'dotenv'
+import express from "express";
+import mongoose from "mongoose";
+import dotenv from "dotenv";
+import frontendRoutes from './routes/frontendRoutes.js'
+import cors from "cors"
 
-import hrCompanyRoutes from './routes/hrCompanyRoutes.js'
-import accountlineRoute from './routes/accountLineRoute.js'
 
-const app = express()
-dotenv.config()
+dotenv.config();
+const app = express();
 
-app.use(bodyParser.json({limit:"30mb", extended: true}))
-app.use(bodyParser.urlencoded({limit:"30mb", extended: true}))
+const MONGO_URI = process.env.MONGO_URI;
+const PORT = process.env.PORT;
+
+app.use(express.json())
 app.use(cors())
-
-// Routes
-app.use('/api', hrCompanyRoutes) //  HRCompany route
-app.use('/api', accountlineRoute) //accountLIneRoute
-
-
-const CONNECTION_URL = process.env.CONNECTION_URL
-const PORT =process.env.PORT || 5000
-
-mongoose.connect(CONNECTION_URL,{useNewUrlParser: true, useUnifiedTopology:true})
-.then(()=> app.listen(PORT,()=> console.log(`Server running on port:${PORT} `)))
-.catch((error) =>console.log(error.message))
+app.use("/api", frontendRoutes);
 
 
 
+async function connectToMongoDB() {
+  try {
+    await mongoose.connect(MONGO_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
+    console.log("Connected to MongoDB");
+    app.listen(PORT, () => console.log(`Server Port: ${PORT}`));
+  } catch (error) {
+    console.error(`${error} did not connect`);
+  }
+}
 
-
-
+connectToMongoDB();
