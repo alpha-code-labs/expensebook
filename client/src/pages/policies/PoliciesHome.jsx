@@ -15,9 +15,10 @@ export default function (props){
     const navigate = useNavigate()
 
     return(<>
-        <div className="bg-slate-50 px-[104px] py-20">
-            <Icon/>
-            <div className='px-6 py-10 bg-white mt-6 rounded shadow'>
+        
+        <Icon/>
+        <div className="bg-slate-50 min-h-[calc(100vh-107px)] px-[20px] md:px-[50px] lg:px-[104px] pb-10 w-full tracking-tight">
+            <div className='px-6 py-10 bg-white rounded shadow'>
                 <div className="flex justify-between">
                     <div className="gap-2">
                         <p className="text-neutral-700 text-xl font-semibold tracking-tight">
@@ -53,8 +54,6 @@ export default function (props){
                         onClick={() => navigate('non-travel')}
                         text='Non Travel Expenses'
                         icon={non_travel_icon}/>
-
-
                 </div>
 
             </div>

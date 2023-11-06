@@ -55,17 +55,17 @@ export default function (props) {
 
     useEffect(()=>{
         const policies = []
-        if(ruleEngineState.length>0){
+        if(ruleEngineState?.length>0){
             Object.keys(ruleEngineState[0][Object.keys(ruleEngineState[0])[0]][travelType]).map(item=>policies.push(item))
         }
         setPolicies(policies)
     },[] )
 
     return(<>
-        { <div className="bg-slate-50 px-[104px] py-20">
-            <Icon/>
-            <div className='px-6 py-10 bg-white mt-6 rounded shadow'>
-               
+        <Icon />
+        {
+        <div className="bg-slate-50 min-h-[calc(100vh-107px)] px-[20px] md:px-[50px] lg:px-[104px] pb-10 w-full tracking-tight">
+            <div className='px-6 py-10 bg-white rounded shadow'>               
                {/* back button and title */}
                 <div className='flex gap-4'>
                     <div className='w-6 h-6 cursor-pointer' onClick={()=>navigate(-1)}>
