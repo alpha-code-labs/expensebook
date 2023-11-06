@@ -4,20 +4,22 @@ import HollowButton from '../../components/common/HollowButton';
 import Button from '../../components/common/Button';
 import Modal from '../../components/common/Modal';
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 export default function (props) {
     const [showSkipModal, setShowSkipModal] = useState(false);
     const navigate = useNavigate();
-    const tenantId = props.tenantId || 'wtobcwyjw';
+    const {tenantId} = useParams()
 
     return(<>
-        { <div className="bg-slate-50 min-h-[100vh] px-[104px] py-20 w-full">
-            <Icon/>
-            <div className='px-6 py-10 bg-white mt-6 rounded shadow w-full'>
+
+        <Icon/>
+        { <div className="bg-slate-50 min-h-calc(100vh-107px)] px-[20px] md:px-[50px] lg:px-[104px] pb-10 w-full">
+            
+            <div className='px-6 py-10 bg-white rounded shadow w-full'>
                
                 {/* rest of the section */}
-                <div className='mt-10 w-full flex flex-col gap-4 text text-2xl font-cabin text-neutral-700 '>  
+                <div className='mt-10 w-full flex flex-col gap-4 text text-xl font-cabin text-neutral-700 '>  
                     
 
                     In this section we will configure how your company allocates travel, 
@@ -41,7 +43,7 @@ export default function (props) {
                     Your system will be setup without a way to allocate expenses. You can always configure this section later.
 
                     <div className='w-[200px] mt-10'>
-                        <Button text='Sure' />
+                        <Button text='Sure' onClick={()=>navigate('/groups')} />
                     </div>
                 </div>
                 

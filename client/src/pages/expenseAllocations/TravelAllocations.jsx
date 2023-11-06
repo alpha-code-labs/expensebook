@@ -4,7 +4,7 @@ import HollowButton from '../../components/common/HollowButton';
 import Button from '../../components/common/Button';
 import Modal from '../../components/common/Modal';
 import { useState, useEffect, useRef } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import Checkbox from '../../components/common/Checkbox';
 import Input from '../../components/common/Input';
@@ -13,30 +13,32 @@ import UploadFile from '../../components/common/UploadFile';
 import DownloadTemplate from '../../components/DownloadExcelTemplate';
 import file_icon from '../../assets/teenyicons_csv-solid.svg'
 import { titleCase } from '../../utils/handyFunctions';
+import { set } from 'mongoose';
 
 export default function (props) {
   
-    const [showSkipModal, setShowSkipModal] = useState(false);
-    const [showAddHeaderModal, setShowAddHeaderModal] = useState(false)
-  
-    const {state} = useLocation()
-    const navigate = useNavigate();
-    const [flags, setFlags] = useState({ORG_HEADERS_FLAG:true})
-    const [orgHeaders, setOrgHeaders] = useState([])
-    const [readyToSelect, setReadyToSelect] = useState(false)
-    const tenantId = state?.tenantId || 'wtobcwyjw'
-    const [selectedOrgHeaders, setSelectedOrgHeaders] = useState([])
-    const [addedHeaders, setAddedHeaders] = useState([''])
-    const [readyToUpload, setReadyToUpload] = useState(false)
-    const [selectedFile, setSelectedFile] = useState(null);
-    const [fileSelected, setFileSelected] = useState(false);
-    const [excelData, setExcelData] = useState(null)
-    const [employeeData, setEmployeeData] = useState([])
-    const [templateColumns, setTemplateColumns] = useState([])
-    const [templateData, setTemplateData] = useState([])
-    const modalRef = useRef(null);
-    const [excelDataError, setExcelDataError] = useState(null)
-    const [headersUpdated, setHeadersUpdated] = useState(null)
+const [showSkipModal, setShowSkipModal] = useState(false);
+const [showAddHeaderModal, setShowAddHeaderModal] = useState(false)
+
+const {state} = useLocation()
+const navigate = useNavigate();
+const [flags, setFlags] = useState({ORG_HEADERS_FLAG:true})
+const [orgHeaders, setOrgHeaders] = useState([])
+const [readyToSelect, setReadyToSelect] = useState(false)
+const {tenantId} = useParams()
+console.log(tenantId, '...tenantId')
+const [selectedOrgHeaders, setSelectedOrgHeaders] = useState([])
+const [addedHeaders, setAddedHeaders] = useState([''])
+const [readyToUpload, setReadyToUpload] = useState(false)
+const [selectedFile, setSelectedFile] = useState(null);
+const [fileSelected, setFileSelected] = useState(false);
+const [excelData, setExcelData] = useState(null)
+const [employeeData, setEmployeeData] = useState([])
+const [templateColumns, setTemplateColumns] = useState([])
+const [templateData, setTemplateData] = useState([])
+const modalRef = useRef(null);
+const [excelDataError, setExcelDataError] = useState(null)
+const [headersUpdated, setHeadersUpdated] = useState(null)
 
 
 
@@ -156,9 +158,9 @@ export default function (props) {
         //get org headers
         const orgHeadersData = await axios.get(`http://localhost:8001/api/tenant/${tenantId}/org-headers`)
         console.log(orgHeadersData, '...orgHeadersData')
-        let travelAllocationHeaders = selectedOrgHeaders.map(orgHeader => ({headerName:orgHeader, headerValues:orgHeadersData.data.orgHeaders[orgHeader]}))
+        let allocationHeaders = selectedOrgHeaders.map(orgHeader => ({headerName:orgHeader, headerValues:orgHeadersData.data.orgHeaders[orgHeader]}))
         axios
-        .post(`http://localhost:8001/api/tenant/${tenantId}/create-travel-allocation`, {travelAllocationHeaders})
+        .post(`http://localhost:8001/api/tenant/${tenantId}/travel-allocation`, {allocationHeaders})
         .then(res => {
             console.log(res.data, '...res.data')
             navigate('/expense-allocations/travel-related', {state:{tenantId}})
@@ -187,6 +189,7 @@ export default function (props) {
         e.stopPropagation()
         setShowAddHeaderModal(false)
         setReadyToUpload(false)
+        setAddedHeaders([''])
     }
 
     useEffect(()=>{
@@ -226,37 +229,46 @@ export default function (props) {
     },[selectedOrgHeaders])
 
     return(<>
-        { <div className="bg-slate-50 min-h-[100vh] px-[104px] py-20 w-full tracking-tight">
-            <Icon/>
-            <div className='px-6 py-10 bg-white mt-6 rounded shadow w-full'>
+
+        <Icon/>
+        
+        { <div className="bg-slate-50 min-h-[calc(100vh-107px)] px-[20px] md:px-[50px] lg:px-[104px] pb-10 w-full tracking-tight">
+            
+            <div className='px-6 py-10 bg-white rounded shadow w-full'>
                
                 {/* rest of the section */}
-                <div className='mt-10 w-full flex flex-col gap-4'>  
+                <div className='w-full flex flex-col gap-4'>  
                     
                     <div className='flex justify-between items-center'>
-                        <p className='text text-2xl font-cabin text-neutral-700'>
-                            Let's setup how you allocate travel request first
-                        </p>
+                        <div className='flex gap-4 items-center'>
+                           {readyToSelect && <div className='cursor-pointer'>
+                                <img src={back_icon} onClick={()=>{setReadyToSelect(false)}} />
+                            </div>}
+                            <p className='text text-xl font-cabin text-neutral-700'>
+                                {!readyToSelect ? `Let's setup how you allocate travel request first` : `setup travel allocations`}
+                            </p>
+                        </div>
                         <div>
                             <HollowButton title='Skip' onClick={()=>navigate('/expense-allocations/travel-related', {state:{tenantId}})} />
                         </div>
                     </div>
+
                     <hr/>
                   { !readyToSelect && <>
-                        <p className='text text-lg font-cabin text-neutral-700'>
-                        From the data you have provided, here is a list of entities you can allocate travel expenses to
+                        <p className='text text-base font-cabin text-neutral-700'>
+                        From the data you have provided, here is a list of entities to which you can allocate travel  
                     </p>
 
                     <div className='text text-sm font-cabin'>
                         {orgHeaders.map(orgHeader => {
                             return <div className='flex px-6'>
-                                <div className='text-base text-neutral-500'>{camelCaseToTitleCase(orgHeader)}</div>
+                                <div className='text-md text-neutral-600'>{camelCaseToTitleCase(orgHeader)}</div>
                             </div>
                         })}
                     </div>
 
                     <div>
-                    <p className='text text-lg font-cabin text-neutral-700'>
+                    <p className='text text-base font-cabin text-neutral-700'>
                             Are all the values you want present in above list? 
                         </p>
                         <div className='flex gap-10 mt-4'>
@@ -273,14 +285,14 @@ export default function (props) {
 
                     {readyToSelect &&                     
                         <>
-                        <p className='text text-lg font-cabin text-neutral-700'>
+                        <p className='text text-base font-cabin text-neutral-700'>
                             Select the entities you want to allocate travel expenses to
                         </p>
 
                          <div classsName='shadow bg-white border border-grey-200'>
                             {orgHeaders.map((orgHeader,index) => {
                                 return <div className='flex justify-between items-center px-6 py-4 border-b border-grey-200'>
-                                    <div className='text text-base font-cabin text-neutral-700'>{camelCaseToTitleCase(orgHeader)}</div>
+                                    <div className='text text-md font-cabin text-neutral-700'>{camelCaseToTitleCase(orgHeader)}</div>
                                     <div className='text text-base font-cabin text-neutral-700'>
                                         <Checkbox id={index} onClick={(e, id)=>handleOrgHeaderSelection(e,id)} />
                                     </div>
@@ -293,9 +305,7 @@ export default function (props) {
                         </div>
                         </>
                     }
-                    
                 </div>
-
             </div>
 
             
@@ -333,10 +343,8 @@ export default function (props) {
                 </div>
             </Modal>
 
-
-            
-            {showAddHeaderModal && <div onClick={handleOutsideClick} className="fixed overflow-hidden flex justify-center items-center inset-0 backdrop-blur-sm w-full h-full left-0 top-0 bg-gray-800/60 scroll-none">
-                <div ref={modalRef} onClick={(e)=>e.stopPropagation()} className='z-10 max-w-[600px] w-[60%] min-h-[200px] scroll-none bg-white rounded-lg shadow-md'>
+            {showAddHeaderModal && <div onClick={handleOutsideClick} className="fixed z-[1000] overflow-hidden flex justify-center items-center inset-0 backdrop-blur-sm w-full h-full left-0 top-0 bg-gray-800/60 scroll-none">
+                <div ref={modalRef} onClick={(e)=>e.stopPropagation()} className='z-[1001] max-w-[600px] w-[90%] md:w-[75%] lg:w-[60%] min-h-[200px] scroll-none bg-white rounded-lg shadow-md'>
                 <div className='p-10'>
                     {/* allow user to add headers*/}
                     {!readyToUpload && <>
@@ -359,7 +367,24 @@ export default function (props) {
                             </div>
 
                             <div className=''>
-                                <Button text='Done' onClick={()=>{setReadyToUpload(true)}} />
+                                <Button text='Done' onClick={()=>{
+                                    let ignore = true
+                                    if(addedHeaders.length>0){
+                                        console.log(addedHeaders, '...addedHeaders')
+                                        addedHeaders.forEach(header => {
+                                            if(header!=='' && header!='null' && header!=undefined){
+                                                setReadyToUpload(true)
+                                                console.log(header, '...addedHeaders')
+                                                ignore=false
+                                                return
+                                            }
+                                        })
+                                    }
+                                    if(ignore){
+                                        setReadyToUpload(false)
+                                      //  setShowAddHeaderModal(false)
+                                    }
+                                }} />
                             </div>
                         </div>
 
@@ -367,15 +392,18 @@ export default function (props) {
 
                     {/* allow user to upload file*/}
                     {readyToUpload && <>
-                        <p className='text-neutral-700 text-base font-cabin '>First Download the template excel file, after adding values for the headers you just added upload it here</p>
+                        <p className='text-neutral-700 text-base font-cabin '>First Download the template excel file, then upload it after filling in the values for the headers you have added</p>
                         <div className="flex flex-col items-start justify-start gap-[16px] text-sm">
-                        <div className="flex flex-col items-start justify-start gap-[8px]">
-                        <div className="flex flex-row items-start justify-start gap-[16px] text-dimgray">
-                            <div className="tracking-tight text-zinc-400 font-cabin">
-                            Upload your company HR details in CSV format
+                        
+                        <div className="flex flex-col items-start justify-start gap-[8px] w-full">
+                            <div className="mt-6 w-full flex flex-wrap gap-8 text-dimgray">
+                                <div className="tracking-tight text-zinc-400 font-cabin">
+                                    Upload the excel file
+                                </div>
+                                <div>
+                                    {<DownloadTemplate linkText='Download HR template' columns={templateColumns} data={templateData} />}
+                                </div>
                             </div>
-                            {<DownloadTemplate columns={templateColumns} data={templateData} />}
-                        </div>
                         </div>
 
                         <UploadFile 
