@@ -7,16 +7,23 @@ import DomesticPolicies from "./policies/DomesticPolicies";
 import { rule } from "postcss";
 import LocalPolicies from "./policies/LocalPolicies";
 import NonTravelPolicies from "./policies/NonTravelPolicies";
-import { useLocation } from "react-router-dom";
+import Icon from "../components/common/Icon";
+import { useLocation, useParams } from "react-router-dom";
 
 export default function (props){
   
   const {state} = useLocation();
-  console.log(state, '...state')
+  const {tenantId} = useParams()
+  console.log(tenantId)
+
   //flags
   const [flags, setFlags] = useState({})   
+  const [groups, setGroups] = useState(null)
+  const [ruleEngineState, setRuleEngineState] = useState()
+  const [groupsNotFound, setGroupsNotFound] = useState(false)
 
-  const ruleEngineData = {
+
+  const [ruleEngineData, setRuleEngineData] = useState({
       international:{
         ['Allowed Trip Purpose']: {
           class: ['Business', 'Personal', 'Training', 'Events', 'Others'],
@@ -234,15 +241,40 @@ export default function (props){
         },
 
       }
-  }
+  })
 
-  const [groups, setGroups] = useState(null)
-  const [internationalRules, setInternationalRules] = useState()
-  const [ruleEngineState, setRuleEngineState] = useState()
 
   useEffect(()=>{
-    setGroups(state.groups)
-    setRuleEngineState(state.groups.map(group=>({[group]:convertToObject(ruleEngineData)})))
+    if(!groups){
+      console.log('this ran..')
+      if(state != null && state.groups!=null && state.groups!=[]){
+      setGroups(state.groups)
+      setRuleEngineState(state.groups.map(group=>({[group]:convertToObject(ruleEngineData)})))
+      setGroupsNotFound(false)
+    }
+    else{
+      console.log('this ran..')
+      axios.get(`http://localhost:8001/api/tenant/${tenantId}/groups`)
+      .then(res=>{
+
+        const groups = res.data.groups
+        console.log('resolved.. ', groups.length, console.log(res.status))
+        if(groups.length>0){
+          setGroups(groups.map(group=>group.groupName))
+          setRuleEngineState(groups.map(group=>({[group.groupName]:convertToObject(ruleEngineData)})))
+          setGroupsNotFound(false)
+        }
+        else{
+          setGroupsNotFound(true)
+        }
+        
+      })
+      .catch(e=>{
+        setGroupsNotFound(true)
+      })
+    }
+    }
+    
   },[])
 
 
@@ -284,38 +316,51 @@ export default function (props){
   },[ruleEngineState])
 
 
-
   return <>
 
-      {!groups && <div className="bg-slate-50 px-[104px] py-20">
-        no groups are found to setup policy</div>}
+      {groupsNotFound && <> 
+      <Icon/>
+        <div className="bg-slate-50 min-h-[calc(100vh-107px)] px-[20px] md:px-[50px] lg:px-[104px] pb-10 w-full tracking-tight">
+            <div className='px-6 py-10 bg-white rounded shadow'>
+              <div className="text text-xl font-cabin">No groups are found to setup company policies. Click <a className="underline text-indigo-600" href={`/${tenantId}/groups`}>here</a> to setup groups</div>
+            </div>
+        </div>
+        </>
+      }
 
+      {!groupsNotFound &&
       <Routes>
         <Route path='/' 
               element={<Home 
+                ruleEngineData={ruleEngineData}
                 ruleEngineState={ruleEngineState} 
                 setRuleEngineState={setRuleEngineState} />} />
 
         <Route path='/international'  
                 element={<InternationalPolicies 
+                  ruleEngineData={ruleEngineData}
                   ruleEngineState={ruleEngineState} 
                   setRuleEngineState={setRuleEngineState}/>} />
 
         <Route path='/domestic' 
                 element={<DomesticPolicies 
+                  ruleEngineData={ruleEngineData}
                   ruleEngineState={ruleEngineState} 
                   setRuleEngineState={setRuleEngineState} />} />
         
         <Route path='/local' 
                 element={<LocalPolicies 
+                  ruleEngineData={ruleEngineData}
                   ruleEngineState={ruleEngineState} 
                   setRuleEngineState={setRuleEngineState} />} />
         
         <Route path='/non-travel' 
                 element={<NonTravelPolicies
+                  ruleEngineData={ruleEngineData}
+                  setRuleEngineData={setRuleEngineData}
                   ruleEngineState={ruleEngineState} 
                   setRuleEngineState={setRuleEngineState} />} />
 
-      </Routes>
+      </Routes>}
   </>;
 }

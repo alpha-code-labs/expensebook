@@ -1,15 +1,9 @@
 import { useState, useEffect, createContext } from "react";
-import {BrowserRouter as Router, Routes, Route} from 'react-router-dom'
+import {BrowserRouter as Router, Routes, Route, useParams} from 'react-router-dom'
 import axios from 'axios'
-import Home from "./policies/PoliciesHome";
-import InternationalPolicies from "./policies/InternationalPolicies";
-import DomesticPolicies from "./policies/DomesticPolicies";
-import { rule } from "postcss";
-import LocalPolicies from "./policies/LocalPolicies";
-import NonTravelPolicies from "./policies/NonTravelPolicies";
-import { useLocation } from "react-router-dom";
+import { useLocation} from "react-router-dom";
 import ExpenseAllocations from "./expenseAllocations/expenseAllocations";
-import TravelExpenses from "./expenseAllocations/travelExpenses";
+import TravelAllocations from "./expenseAllocations/TravelAllocations";
 import TravelRelatedExpenses from "./expenseAllocations/travelRelatedExpenses";
 import NonTravelExpenses from "./expenseAllocations/nonTravelExpenses";
 
@@ -21,7 +15,8 @@ export default function (props){
   //flags
   const [flags, setFlags] = useState({ORG_HEADERS_FLAG:true})
   const [orgHeaders, setOrgHeaders] = useState([])
-  const tenantId = state?.tenantId || 'wtobcwyjw' 
+  const {tenantId} = useParams()
+  console.log(tenantId)
 
   useEffect(() => {
     axios.get(`http://localhost:8001/api/tenant/${tenantId}/org-headers`)
@@ -48,8 +43,6 @@ export default function (props){
     .catch(err => console.log(err))
   },[])
 
-
-
   return <>
 
       {!flags.ORG_HEADERS_FLAG && <div className="bg-slate-50 px-[104px] py-20">
@@ -58,7 +51,7 @@ export default function (props){
      {tenantId &&
       <Routes>
         <Route path={`/`} element={<ExpenseAllocations tenantId={tenantId} />} />
-        <Route path="/travel" element={<TravelExpenses />} />
+        <Route path="/travel" element={<TravelAllocations />} />
         <Route path="/travel-related" element={<TravelRelatedExpenses />} />
         <Route path="/non-travel" element={<NonTravelExpenses />} />
       </Routes>}
