@@ -1,19 +1,29 @@
 import { useState } from "react"
 export default function Checkbox(props){
     
-    const onClick = props.onClick
+    const onClick = props.onClick || null
     const checked = props.checked
     const onChange = props.onChange || null
     const id = props.id
     const [isChecked, setIsChecked] = useState(false)
+
     const handleOnChange = (e) => {
         setIsChecked(e.target.checked)
+        if(onChange){
+            onChange(e)
+        }
+    }
+
+    const handleClick = (e, id)=>{
+        if(onClick){
+            onClick(e, id)
+        }
     }
 
     return(<>
         <input 
             type='checkbox'
-            onClick={(e)=>onClick(e, id)} 
+            onClick={(e)=>handleClick(e, id)} 
             onChange={handleOnChange}
             checked={checked}
             id={id}
