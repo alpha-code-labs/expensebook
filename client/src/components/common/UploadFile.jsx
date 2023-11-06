@@ -105,12 +105,12 @@ export default function (props){
 
     return(<>
         <div 
-              className="rounded-md bg-whitesmoke box-border h-[153px] flex flex-row items-center justify-start py-2 px-6 text-center text-dimgray border-[1px] border-dashed border-darkgray"
+              className="rounded-md bg-whitesmoke box-border max-w-[355px] w-full h-[153px] flex flex-row items-center justify-start py-2 px-6 text-center text-dimgray border-[1px] border-dashed border-darkgray"
               onDrop={handleDrop}
               onDragOver={handleDragOver}
             >
               <div 
-                  className="w-[355px] flex flex-col items-center justify-center gap-[16px]"
+                  className="max-w-[355px] w-full shrink flex flex-col items-center justify-center gap-[16px]"
                   onClick={handleUpload}
               >
                 <img
