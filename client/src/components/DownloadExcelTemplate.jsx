@@ -22,6 +22,7 @@ function generateExcelTemplate(columns, data) {
 export default function DownloadTemplate(props) {
   const columns = props.columns
   const data = props.data
+  const linkText = props.linkText || 'Download HR template'
 
   console.log(columns, data, '...columns.....')
 
@@ -40,7 +41,7 @@ export default function DownloadTemplate(props) {
       className="curosr-pointer text-indigo-600 text-sm font-normal font-cabin underline"
       onClick={handleDownload}
     >
-      Download HR template
+      {linkText}
     </a>
   );
 }
