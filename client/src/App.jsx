@@ -2,9 +2,7 @@ import { useState, useEffect, createContext } from "react";
 import {BrowserRouter as Router, Routes, Route} from 'react-router-dom'
 import axios from 'axios'
 import "./App.css";
-import Groups from "./pages/Gropus";
-import CreatedGroups from "./pages/CreatedGroups";
-import employeeData from './data/Employee_Data.json'
+import Groups from "./pages/Groups";
 import CompanyPolicies from "./pages/CompanyPolicies";
 import CompanyAndHRInformation from "./pages/CompanyAndHRInformation";
 import AllocateExpenses from "./pages/AllocateExpenses";
@@ -13,30 +11,16 @@ import UploadFile from "./components/common/UploadFile";
 function App() {
   //flags
   const [flags, setFlags] = useState({})  
-  const [groupData, setGroupData] = useState([])
-  const [groupHeaders, setGroupHeaders] = useState(['department', 'designation', 'grade', 'years'])
-
-
 
   return <>
     <Router>
       <Routes>
         <Route path='/company-info'
             element={<CompanyAndHRInformation/>} />
-        <Route path='/expense-allocations/*' element={<AllocateExpenses />}/>
-        <Route path='/setup-group' 
-            element={<Groups 
-                flags={flags} 
-                groupData={groupData} 
-                groupHeaders={groupHeaders}
-                employeeData={employeeData}
-                setGroupData={setGroupData} />} />
-        <Route path="/created-groups" 
-            element={<CreatedGroups 
-                groupData={groupData}
-                groupHeaders={groupHeaders} 
-                setGroupData={setGroupData} />} />
-        <Route path="/setup-company-policies/*" 
+        <Route path='/:tenantId/expense-allocations/*' element={<AllocateExpenses />}/>
+        <Route path={`/:tenantId/groups/*`} 
+            element={<Groups/>} />
+        <Route path="/:tenantId/setup-company-policies/*" 
             element={<CompanyPolicies
                 flags={flags}
                 />} />
