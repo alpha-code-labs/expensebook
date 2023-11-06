@@ -12,6 +12,7 @@ import Button from '../components/common/Button';
 import Modal from '../components/common/Modal';
 import { set } from 'mongoose';
 import UploadFile from '../components/common/UploadFile';
+import { useNavigate } from 'react-router-dom';
 
 
 export default function CompanyAndHRInformation(){
@@ -26,12 +27,35 @@ export default function CompanyAndHRInformation(){
   const [diyFlag, setDiyFlag] = useState(true); //initialize this with the actual value
   const [prompt, setPrompt] = useState(null);
   const [showPrompt, setShowPrompt] = useState(false)
+  const templateColumns = [
+    {header: 'Employee Name', key: 'employeeName', width: 20},
+    {header: 'Employee Id', key: 'employeeId', width: 20},
+    {header: 'Designation', key: 'designation', width: 20},
+    {header: 'Grade', key: 'grade', width: 20},
+    {header: 'Department', key: 'department', width: 20},
+    {header: 'Business Unit', key: 'businessUnit', width: 20},
+    {header: 'Legal Entity', key: 'legalEntity', width: 20},
+    {header: 'Cost Center', key: 'costCenter', width: 20},
+    {header: 'Profit Center', key: 'profitCenter', width: 20},
+    {header: 'Responsibility Center', key: 'responsibilityCenter', width: 20},
+    {header: 'Division', key: 'division', width: 20},
+    {header: 'Project', key: 'project', width: 20},
+    {header: 'Geographical Location', key: 'geographicalLocation', width: 20},
+    {header: 'L1 Manager', key: 'l1Manager', width: 20},
+    {header: 'L2 Manager', key: 'l2Manager', width: 20},
+    {header: 'L3 Manager', key: 'l3Manager', width: 20},
+    {header: 'Joining Date', key: 'joiningDate', width: 20},
+    {header: 'Mobile Number', key: 'mobileNumber', width: 20},
+    {header: 'Phone Number', key: 'phoneNumber', width: 20},
+    {header: 'Email Id', key: 'emailId', width: 20}
+  ]
+  const templateData = []
 
+  const navigate = useNavigate()
 
   useEffect(()=>{
     //make axios call to get the list of companies
     //for now
-
     setCompanyList(['BMS', 'Google', 'Amazon', 'Microsoft', 'Apple', 'Facebook'])
     setBusinessCategoriesList(['IT', 'Finance', 'Manufacturing', 'Retail', 'Others'])
 
@@ -119,6 +143,8 @@ export default function CompanyAndHRInformation(){
             .post('http://localhost:8001/api/hrCompanyInfo/new', {...formData, filename:response.data.fileName})
             .then((response) => {
               console.log('HR master created:', response.data);
+              //move to the next section
+              navigate('/expense-allocations', {state:{tenantId:response.data.tenantId}})
             })
             .catch((error) => {
               console.error('Error in uploading information:', error);
@@ -218,7 +244,7 @@ export default function CompanyAndHRInformation(){
                 <div className="tracking-tight text-zinc-400 font-cabin">
                   Upload your company HR details in CSV format
                 </div>
-                {DownloadTemplate()}
+                {<DownloadTemplate columns = {templateColumns} data = {templateData} />}
               </div>
             </div>
 
