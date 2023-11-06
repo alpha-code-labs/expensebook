@@ -1,6 +1,9 @@
 import express from 'express'
 import HRCompany from '../model/hr_company_structure.js'
 import TravelAllocation from '../model/travel_allocation.js'
+import TravelExpenseAllocation from '../model/travelExpense_allocation.js'
+import NonTravelExpenseAllocation from '../model/nonTravelExpense_allocation.js'
+
 import {upload} from '../middlewares/upload.js'
 import readXlsxFile from "read-excel-file/node"
 
@@ -12,20 +15,33 @@ const handleUpload = async (req, res) => {
 
 const createNewHrCompanyInfo = async (req, res) => {
 
+  console.log(req.body, 'req.body')
+  try {
     //do validations here...
     let tenantId = ''  
     const DIY_FLAG = true
     let GROUPING_FLAG = false
     let ORG_HEADERS_FLAG = false
+    //const {filename, companyName, companyHQ, teamSize} = req.body
+    //console.log(companyName, companyHQ, teamSize, businessCategory, filename, 'req.body')
+
+     if(req.body?.companyName === '' || req.body?.companyHQ === '' || req.body?.teamSize === '' || req.body?.businessCategory === '' || req.body?.filename === ''){
+      //bad request
+      res.status(400).json({ error: 'Bad Request: required fileds are missing' })
+      return
+    }
+
     let companyDetails = {
-      companyName:req.companyName,
+      companyName: req.body.companyName,
       companyLogo: '',
       companyEmail: '',
-      companyHeadquarters: req.companyHQ,
-      companySize: req.teamSize,
+      companyHeadquarters:req.body.companyHQ,
+      companySize: req.body.teamSize,
       defaultCurrency: '', 
-      industry: req.businessCategory,
+      industry: req.body.businessCategory,
     }
+
+    console.log(companyDetails, 'companyDetails' )
 
     const employees = []
     const data=[]
@@ -44,12 +60,7 @@ const createNewHrCompanyInfo = async (req, res) => {
     const geographicalLocations = new Set()
     const responsibilityCenters = new Set()
 
-
-
-  try {
-    // get filename from req.body
-    const { filename } = req.body;
-    const excelFilePath = `uploads/${filename}`
+    const excelFilePath = `uploads/${req.body?.filename}`
 
     //read this excel file using xlsx which is in upload folders
     readXlsxFile(excelFilePath).then((rows) => {
@@ -81,7 +92,7 @@ const createNewHrCompanyInfo = async (req, res) => {
               
               const employee = {
                 employeeDetails:{employeeName,employeeId,designation,grade,department,businessUnit,legalEntity,costCenter,profitCenter,responsibilityCenter,division,project,geographicalLocation,l1Manager,l2Manager,l3Manager,joiningDate,mobileNumber,phoneNumber,emailId},
-                group:'',
+                group:[],
                 employeeRoles:{
                   employee: true,
                   employeeManager: (designation!= null && designation.toLowerCase() === 'manager') ? true : false,
@@ -141,20 +152,33 @@ const createNewHrCompanyInfo = async (req, res) => {
             companyDetails: companyDetails,
             employees: [...employees],
             groupHeaders: {
-              bands: [...bands],
-              grades: [...grades],
-              designations: [...designations],
+              band: [...bands],
+              grade: [...grades],
+              designation: [...designations],
             },
             orgHeaders: {
-              departments: [...departments],
-              legalEntities: [...legalEntities],
-              costCenters: [...costCenters],
-              profitCenters: [...profitCenters],
-              businessUnits: [...businessUnits],
-              divisions: [...divisions],
-              projects: [...projects],
-              geographicalLocations: [...geographicalLocations],
-              responsibilityCenters: [...responsibilityCenters],
+              department: [...departments],
+              legalEntity: [...legalEntities],
+              costCenter: [...costCenters],
+              profitCenter: [...profitCenters],
+              businessUnit: [...businessUnits],
+              division: [...divisions],
+              project: [...projects],
+              geographicalLocation: [...geographicalLocations],
+              responsibilityCenter: [...responsibilityCenters],
+            },
+
+            //other fields that will be set later - multicurrency, expenseCategories, travelAllocation, travelExpenseAllocation, nonTravelExpenseAllocation
+            multiCurrency: [],
+            expenseCategories: [],
+            travelAllocation: [],
+            travelExpenseAllocation: [],
+            nonTravelExpenseAllocation: [],
+            groupingLabels:[],
+            groups:[],
+            policies:{
+              policyStructure:{},  //possibly we need to set it with the ruleEngineExcel file
+              ruleEngine:{}
             }
           });
     
@@ -171,7 +195,8 @@ const createNewHrCompanyInfo = async (req, res) => {
     })
 
   } catch (error) {
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: 'Internal Server Error. ERROR: ', error });
+    console.log(error, 'error')
   }
 }
 
@@ -315,25 +340,283 @@ const updateTenantOrgHeaders = async (req, res) => {
     }
 }
 
-const createTravelAllocation = async (req, res) => {
+const updateTravelAllocation = async (req, res) => {
     try {
         // Get the tenantId from params
         const { tenantId } = req.params;
 
-        const { travelAllocationHeaders } = req.body;
-        console.log(travelAllocationHeaders, 'travelAllocationHeaders')
+        const { allocationHeaders } = req.body;
+        console.log(allocationHeaders, 'allocationHeaders')
 
-        // Create a new TravelAllocation document with data from the request body
-        const newTravelAllocation = new TravelAllocation({tenantId: tenantId, travelAllocationHeaders: travelAllocationHeaders});
-    
-        // Save the new TravelAllocation document to the database
-        const savedTravelAllocation = await newTravelAllocation.save();
-    
-        res.status(201).json(savedTravelAllocation); // Respond with the saved TravelAllocation data
+        //get HRCompany document by its tenantId
+        const hrCompany = await HRCompany.findOne({ tenantId: tenantId }, {tenantId:1});
+        console.log(hrCompany)
+
+        if(!hrCompany){
+          //tenant record not found
+          res.status(404).json({ error: 'Tenant record not found' })
+        }
+
+        //update the travelAllocationHeaders
+        const updatedHRCompany = await HRCompany.findOneAndUpdate({ tenantId: tenantId }, {$set: {travelAllocation: allocationHeaders}}, { new: true });
+        res.status(200).json(updatedHRCompany); // Respond with the updated HRCompany data
+
     } catch (error) {
         console.log(error)
         res.status(500).json({ error: 'Internal Server Error' });
     }
+}
+
+const updateTravelExpenseAllocation = async (req, res) => {
+  try {
+    // Get the tenantId from params
+    const { tenantId } = req.params;
+
+    const { allocationHeaders } = req.body;
+    console.log(allocationHeaders, 'allocationHeaders')
+
+    //get HRCompany document by its tenantId
+    const hrCompany = await HRCompany.findOne({ tenantId: tenantId }, {tenantId:1});
+    console.log(hrCompany)
+
+    if(!hrCompany){
+      //tenant record not found
+      res.status(404).json({ error: 'Tenant record not found' })
+    }
+
+    //update the travelAllocationHeaders
+    const updatedHRCompany = await HRCompany.findOneAndUpdate({ tenantId: tenantId }, {$set: {travelExpenseAllocation: allocationHeaders}}, { new: true });
+    res.status(200).json(updatedHRCompany); // Respond with the updated HRCompany data
+
+} catch (error) {
+    console.log(error)
+    res.status(500).json({ error: 'Internal Server Error' });
+}
+}
+
+const updateNonTravelExpenseAllocation = async (req, res) => {
+  try {
+    // Get the tenantId from params
+    const { tenantId } = req.params;
+
+    const { allocationHeaders } = req.body;
+    console.log(allocationHeaders, 'allocationHeaders')
+
+    //get HRCompany document by its tenantId
+    const hrCompany = await HRCompany.findOne({ tenantId: tenantId }, {tenantId:1});
+    console.log(hrCompany)
+
+    if(!hrCompany){
+      //tenant record not found
+      res.status(404).json({ error: 'Tenant record not found' })
+    }
+
+    //update the travelAllocationHeaders
+    const updatedHRCompany = await HRCompany.findOneAndUpdate({ tenantId: tenantId }, {$set: {nonTravelExpenseAllocation: allocationHeaders}}, { new: true });
+    res.status(200).json(updatedHRCompany); // Respond with the updated HRCompany data
+
+} catch (error) {
+    console.log(error)
+    res.status(500).json({ error: 'Internal Server Error' });
+}
+}
+
+const getTenantTravelAllocation = async (req, res)=>{
+  try{
+    const {tenantId} = req.params
+
+    if(!tenantId){
+      //bad request
+      res.status(400).json({error:'Bad request'})
+      return
+    }
+
+    //check if tenant exist
+    const hrCompany = await HRCompany.findOne({tenantId}, {tenantId:1, travelAllocation:1})
+
+    if(!hrCompany){
+      res.status(404).json({error:'tenant not found'})
+      return
+    }
+
+    console.log(hrCompany, 'hrCompany...') 
+
+    //proceed with the request
+    res.status(200).json({travelAllocation: hrCompany.travelAllocation})
+  }
+  catch(e){
+    console.log(e)
+    res.status(500).json({error:'Internal server error'})
+  }
+}
+
+const getTenantTravelExpenseAllocation = async (req, res)=>{
+  try{
+    const {tenantId} = req.params
+
+    if(!tenantId){
+      //bad request
+      res.status(400).json({error:'Bad request'})
+      return
+    }
+
+    //check if tenant exist
+    const hrCompany = await HRCompany.findOne({tenantId}, {tenantId:1, travelAllocation:1})
+
+    if(!hrCompany){
+      res.status(404).json({error:'tenant not found'})
+      return
+    }
+
+    console.log(hrCompany, 'hrCompany...') 
+
+    //proceed with the request
+    res.status(200).json({travelExpenseAllocation: hrCompany.travelExpenseAllocation})
+  }
+  catch(e){
+    console.log(e)
+    res.status(500).json({error:'Internal server error'})
+  }
+}
+
+const getTenantNonTravelExpenseAllocation = async (req, res)=>{
+  try{
+    const {tenantId} = req.params
+
+    if(!tenantId){
+      //bad request
+      res.status(400).json({error:'Bad request'})
+      return
+    }
+
+    //check if tenant exist
+    const hrCompany = await HRCompany.findOne({tenantId}, {tenantId:1, travelAllocation:1})
+
+    if(!hrCompany){
+      res.status(404).json({error:'tenant not found'})
+      return
+    }
+
+    console.log(hrCompany, 'hrCompany...') 
+
+    //proceed with the request
+    res.status(200).json({nonTravelExpenseAllocation: hrCompany.nonTravelExpenseAllocation})
+  }
+  catch(e){
+    console.log(e)
+    res.status(500).json({error:'Internal server error'})
+  }
+}
+
+const updateTenantGroupingLabels = async (req, res) => {
+  try {
+    // Get the tenantId from params
+    const { tenantId } = req.params;
+
+    const { groupingLabels } = req.body;
+    console.log(groupingLabels, 'grouping labels')
+
+    //get HRCompany document by its tenantId
+    const hrCompany = await HRCompany.findOne({ tenantId: tenantId }, {tenantId:1});
+    console.log(hrCompany)
+
+    if(!hrCompany){
+      //tenant record not found
+      res.status(404).json({ error: 'Tenant record not found' })
+    }
+
+    //update the travelAllocationHeaders
+    const updatedHRCompany = await HRCompany.findOneAndUpdate({ tenantId: tenantId }, {$set: {groupingLabels}}, { new: true });
+    res.status(200).json(updatedHRCompany.groupingLabels); // Respond with the updated HRCompany data
+
+  } catch (error) {
+      console.log(error)
+      res.status(500).json({ error: 'Internal Server Error' });
+  }
+}
+
+const getTenantGroupingLabels = async (req, res) => {
+  try{
+    const {tenantId} = req.params
+
+    if(!tenantId){
+      //bad request
+      res.status(400).json({error:'Bad request'})
+      return
+    }
+
+    //check if tenant exist
+    const hrCompany = await HRCompany.findOne({tenantId}, {tenantId:1, groupingLabels:1})
+
+    if(!hrCompany){
+      res.status(404).json({error:'tenant not found'})
+      return
+    }
+
+    console.log(hrCompany, 'hrCompany...') 
+
+    //proceed with the request
+    res.status(200).json({groupingLabels: hrCompany.groupingLabels})
+  }
+  catch(e){
+    console.log(e)
+    res.status(500).json({error:'Internal server error'})
+  }
+}
+
+const updateTenantGroups = async (req, res) => {
+  try {
+    // Get the tenantId from params
+    const { tenantId } = req.params;
+
+    //get HRCompany document by its tenantId
+    const hrCompany = await HRCompany.findOne({ tenantId: tenantId }, {tenantId:1});
+    console.log(hrCompany)
+
+    if(!hrCompany){
+      //tenant record not found
+      res.status(404).json({ error: 'Tenant record not found' })
+    }
+
+    const { groups } = req.body;
+    
+    //validate groups data for each group... 
+
+    //update groups information in HR master
+    const updatedHRCompany = await HRCompany.findOneAndUpdate({ tenantId: tenantId }, {$set: {groups}}, { new: true });
+    res.status(200).json({message:'Groups updated!'}); // Respond with success message
+
+  } catch (error) {
+      console.log(error)
+      res.status(500).json({ error: 'Internal Server Error' });
+  }
+}
+
+const getTenantGroups = async (req, res) => {
+  try{
+    const {tenantId} = req.params
+
+    if(!tenantId){
+      //bad request
+      res.status(400).json({error:'Bad request'})
+      return
+    }
+
+    //check if tenant exist
+    const hrCompany = await HRCompany.findOne({tenantId}, {tenantId:1, groups:1})
+
+    if(!hrCompany){
+      res.status(404).json({error:'tenant not found'})
+      return
+    }
+
+    //proceed with the request
+    res.status(200).json({groups: hrCompany.groups})
+  }
+  catch(e){
+    console.log(e)
+    res.status(500).json({error:'Internal server error'})
+  }
 }
 
 export {  createNewHrCompanyInfo, 
@@ -346,5 +629,14 @@ export {  createNewHrCompanyInfo,
           getTenantFlags,
           getTenantGroupHeaders,
           updateTenantOrgHeaders,
-          createTravelAllocation,
+          updateTravelAllocation,
+          updateTravelExpenseAllocation,
+          updateNonTravelExpenseAllocation,
+          updateTenantGroupingLabels,
+          getTenantTravelAllocation,
+          getTenantTravelExpenseAllocation,
+          getTenantNonTravelExpenseAllocation,
+          getTenantGroupingLabels,
+          getTenantGroups,
+          updateTenantGroups,
           getTenantOrgHeaders, }
