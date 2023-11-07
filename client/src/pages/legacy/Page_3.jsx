@@ -1,16 +1,16 @@
 import close_icon from '../assets/close.svg' 
-import Icon from '../components/common/Icon'
+import Icon from '../../components/common/Icon'
 import { useNavigate } from 'react-router-dom'
 import arrows_icon from '../assets/clarity_two-way-arrows-line.svg'
 import calendar_icon from '../assets/calendar.svg'
 import star_icon from '../assets/ic_baseline-star.svg'
 import vegetarian_icon from '../assets/mdi_lacto-vegetarian.svg'
 import seat_icon from '../assets/seat.svg'
-import { formatDate2 } from "../utils/handyFunctions"
-import Button from '../components/common/Button'
-import { updateTravelRequest_API } from '../utils/api'
+import { formatDate2 } from "../../utils/handyFunctions"
+import Button from '../../components/common/Button'
+import { updateTravelRequest_API } from '../../utils/api'
 import { useEffect, useState } from 'react'
-import Modal from '../components/common/Modal'
+import Modal from '../../components/common/Modal'
 
 export default function (props){
 

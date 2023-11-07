@@ -1,19 +1,19 @@
-import Icon from "../components/common/Icon"
+import Icon from "../../components/common/Icon"
 import leftArrow_icon from '../assets/arrow-left.svg'
 import upload_icon from '../assets/upload.svg'
 import { useEffect, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import Input from "../components/common/Input"
-import DateTime from "../components/common/DateTime"
-import Date from "../components/common/Date"
-import Select from "../components/common/Select"
-import Checkbox from "../components/common/Checkbox"
-import SlimDate from "../components/common/SlimDate"
-import AddMore from "../components/common/AddMore"
-import Button from "../components/common/Button"
-import { updateTravelRequest_API, policyValidation_API } from "../utils/api"
-import ShowCabDates from "../components/common/showCabDates"
-import { formatDate3 } from "../utils/handyFunctions"
+import Input from "../../components/common/Input"
+import DateTime from "../../components/common/DateTime"
+import Date from "../../components/common/Date"
+import Select from "../../components/common/Select"
+import Checkbox from "../../components/common/Checkbox"
+import SlimDate from "../../components/common/SlimDate"
+import AddMore from "../../components/common/AddMore"
+import Button from "../../components/common/Button"
+import { updateTravelRequest_API, policyValidation_API } from "../../utils/api"
+import ShowCabDates from "../../components/common/showCabDates"
+import { formatDate3 } from "../../utils/handyFunctions"
 
 
 export default function (props){
