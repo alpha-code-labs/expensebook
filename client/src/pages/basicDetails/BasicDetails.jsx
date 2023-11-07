@@ -29,11 +29,18 @@ export default function BasicDetails(props){
     const formData = props.formData
     const setFormData = props.setFormData
 
+    console.log(formData, 'form data')
+
+    //next page
+    const nextPage = props.nextPage
+
     //details of current employee
     
-    const EMPLOYEE_ID  = '123'
-    const group = 'group 1'
-    const teamMembers = [{name: 'Aman Bhagel', empId: '204', designation: 'Sales Executive'}, {name: 'Vikas Rajput', empId: '245', designation:'System Engineer II'}, {name: 'Rahul Suyush Singh', empId: '318', designation:'Sr. Software Engineer'}, {name: 'Vilakshan Vibhut Giri Babaji Maharaj', empId: '158', designation:'Sr. Sales Executive'}]
+    //get this as props
+    const EMPLOYEE_ID  = props.EMPLOYEE_ID || '123'
+    const group = props.group || 'group 1'
+    //get this from onboarding....
+    const teamMembers = props.teamMembers || [{name: 'Aman Bhagel', empId: '204', designation: 'Sales Executive'}, {name: 'Vikas Rajput', empId: '245', designation:'System Engineer II'}, {name: 'Rahul Suyush Singh', empId: '318', designation:'Sr. Software Engineer'}, {name: 'Vilakshan Vibhut Giri Babaji Maharaj', empId: '158', designation:'Sr. Sales Executive'}]
     
     //local states
     const [tripPurposeViolationMessage, setTripPurposeViiolationMessage] = useState(formData.travelViolations.tripPurposeViolationMessage)
@@ -92,7 +99,7 @@ export default function BasicDetails(props){
                 setFormData(formData_copy)
 
                 if(travelRequestId){
-                    navigate('/section1')
+                    navigate(nextPage)
                 }
                 else{
                     //show server error
@@ -103,7 +110,7 @@ export default function BasicDetails(props){
                 const res = await updateTravelRequest_API({...formData, travelRequestState:'section 0', travelRequestStatus:'draft', tenantId:144,  })
                 console.log(res, 'res')
                 //do some error handling if updation fails
-                navigate('/section1')
+                navigate(nextPage)
             }
         }
 
@@ -181,7 +188,7 @@ export default function BasicDetails(props){
             formData_copy.bookingForTeam=false
         }
 
-        formData_copy.createdFor = ''
+        formData_copy.createdFor = {name:null, empId:null}
         formData_copy.selectedTravelAllocationHeaders=[]
         formData_copy.selectDelegatorTeamMembers=false
         formData_copy.isDelegatorManager=false
@@ -204,12 +211,13 @@ export default function BasicDetails(props){
             formData_copy.bookingForTeam=true
         }
 
-        formData_copy.createdFor = ''
+        formData_copy.createdFor = {name:null, empId:null}
         formData_copy.selectedTravelAllocationHeaders=[]
         formData_copy.isDelegatorManager=false
         formData_copy.delegatorsTeamMembers=[]
         formData_copy.raisingForDelegator=false
         formData_copy.nameOfDelegator=null
+        formData_copy.selectDelegatorTeamMembers=false
         formData_copy.teamMembers=[]
         setFormData(formData_copy)
     }
