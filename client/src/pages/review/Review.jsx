@@ -10,7 +10,10 @@ import Cities from './Cities'
 import Preferences from './Preferences'
 
 export default function (props){
-
+    //next and last pages
+    const nextPage = props.nextPage
+    const lastPage = props.lastPage
+    
     const onBoardingData = props.onBoardingData
     const formData = props.formData
     const setFormData = props.setFormData  
@@ -29,7 +32,7 @@ export default function (props){
       
     const handleClose = () => {
         //navigate to section1
-        navigate('/section1')
+        navigate(lastPage)
     }
 
     return(
@@ -95,7 +98,7 @@ export default function (props){
 
                 <div className="mt-4">
                     <p className='text-neutral-500 text-sm font-cabin'>Cabs</p>
-                    <p className='text-neutral-700 text-sm font-cabin'>{formData?.itinerary?.cabs?.dates.map(d=>formatDate3(d)).join(', ')}</p>
+                    <p className='text-neutral-700 text-sm font-cabin'>{formData?.itinerary?.cabs?.dates?.map(d=>formatDate3(d)).join(', ')}</p>
                 </div>
 
                 <div className='mt-4'>
