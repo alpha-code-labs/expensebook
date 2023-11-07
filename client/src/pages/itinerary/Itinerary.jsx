@@ -13,6 +13,10 @@ import UploadDocuments from "./UploadDocuments"
 
 export default function (props){
 
+    //next and last pages
+    const nextPage = props.nextPage
+    const lastPage = props.lastPage
+
     //onboarding data
     const onBoardingData = props.onBoardingData
     const modeOfTransitList = onBoardingData?.modeOfTransitOptions
@@ -74,7 +78,7 @@ export default function (props){
                         }
 
                         if(hotel.checkOut == null) {
-                            checkInDateError.set = true
+                            checkOutDateError.set = true
                             allowSubmit = false
                         }
 
@@ -168,7 +172,7 @@ export default function (props){
                 console.log(response)   
             }
 
-            navigate('/section2')
+            navigate(nextPage)
         }   
     }
 
@@ -272,7 +276,7 @@ export default function (props){
     const navigate = useNavigate()
 
     const handleBackButton = ()=>{
-        navigate('/section0')    
+        navigate(lastPage)    
     }
 
     function selectTripType(type){
