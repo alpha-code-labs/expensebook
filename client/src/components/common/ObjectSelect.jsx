@@ -1,36 +1,19 @@
 import { useState, useRef, useEffect } from "react";
-import chevron_down from "../../assets/chevron-down.svg";
-import {titleCase} from '../../utils/handyFunctions'
+import chevron_down from "../../../assets/chevron-down.svg";
+import {titleCase} from '../../../utils/handyFunctions'
 
-export default function Select(props) {
+export default function ObjectSelect(props) {
   const placeholder = props.placeholder || "Placeholder Text";
   const title = props.title || "Title";
-  const [hidePlaceholder, setHidePlaceholder] = useState(false);
+  const currentOption = props.currentOption || null
+  const [hidePlaceholder, setHidePlaceholder] = useState(currentOption?.name ? true : false);
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef(null);
   const selectDivRef = useRef(null)
   const optionsList = props.options;
   const onSelect = props.onSelect || null
-  const currentOption = props.currentOption || null
-  const [selectedOption, setSelectedOption] = useState(currentOption)
+  const [selectedOption, setSelectedOption] = useState(currentOption?.name)
   const [keyboardFocusIndex, setKeyboardFocusIndex] = useState(-1)
-  const violationMessage = props.violationMessage || null
-  const error = props.error || null
-  const required = props.required || false
-  const submitAttempted = props.submitAttempted || false
-  let convertToTitleCase = props.titleCase
-
-  if(props.titleCase == undefined || props.titleCase == null){
-    convertToTitleCase=true
-  }
-
-    useEffect(()=>{
-      if(currentOption != null && currentOption != undefined && currentOption != '' ){
-        setHidePlaceholder(true)
-      }
-      else{setHidePlaceholder(false)}
-      setSelectedOption(currentOption)
-    },[currentOption])
 
     //refs for filtered options
     const dropdownOptionsRef = useRef([]);
@@ -78,9 +61,8 @@ const handleDropdownKeyDown = (e)=>{
     }
 
     if(e.keyCode == 13){
-        console.log(keyboardFocusIndex)
-        console.log(dropdownOptionsRef.current[keyboardFocusIndex])
-       handleOptionSelect(dropdownOptionsRef.current[keyboardFocusIndex].innerHTML)
+      const option = JSON.parse(dropdownOptionsRef.current[keyboardFocusIndex].getAttribute('data'))
+       handleOptionSelect(option)
     }
     
 
@@ -116,8 +98,8 @@ const selectDivFocus = (e)=>{
 
   //handles selection of option
   const handleOptionSelect = (option, index=0)=>{
-    setSelectedOption(option)
-    if(option != placeholder){
+    setSelectedOption(option.name)
+    if(option.name != placeholder){
         setHidePlaceholder(true)
     }
 
@@ -146,9 +128,11 @@ const selectDivFocus = (e)=>{
   }, [showDropdown]);
 
 
+
+
   return (
     <>
-      <div className="min-w-[214px] w-full max-w-[403px] h-[73px] flex-col justify-start items-start gap-2 inline-flex">
+      <div className="min-w-[300px] w-full max-w-[403px] h-[73px] flex-col justify-start items-start gap-2 inline-flex">
         {/* title*/}
         <div className="text-zinc-600 text-sm font-cabin">{title}</div>
         <div className="self-stretch h-12 justify-start items-start gap-4 inline-flex">
@@ -158,7 +142,7 @@ const selectDivFocus = (e)=>{
               onKeyDown={selectKeyDown}
               onFocus={selectDivFocus}
               ref={selectDivRef}
-              className="grow shrink basis-0 h-6 relative justify-between items-center flex cursor-pointer focus-visible:outline-0"
+              className="grow shrink basis-0 h-6 justify-between items-center flex cursor-pointer focus-visible:outline-0"
               onClick={handleSelectClick}
             >
               {!hidePlaceholder && (
@@ -170,17 +154,6 @@ const selectDivFocus = (e)=>{
               <div className={`w-6 h-6 relative transition ${showDropdown && 'rotate-180'}`}>
                 <img src={chevron_down} />
               </div>
-
-              
-            {!showDropdown && hidePlaceholder && violationMessage && <div className="absolute top-[35px] w-full text-xs text-yellow-600 font-cabin">
-              {violationMessage}
-            </div>}
-            
-            {!showDropdown && !hidePlaceholder && error?.set && <div className="absolute top-[35px] w-full text-xs text-red-600 font-cabin">
-              {error?.message}
-            </div>}
-
-
             </div>
 
             {/* options */}
@@ -192,24 +165,28 @@ const selectDivFocus = (e)=>{
               >
                 {optionsList &&
                   optionsList.map((option, index) => (
-                    <div key={index}>
-                      <p
+                    <div
+                        className="cursor-pointer transition-color hover:bg-gray-200 focus-visible:outline-0 focus-visible:bg-gray-100"
                         tabIndex={index+1}
                         onKeyDown={handleDropdownKeyDown}
-                        ref={el => dropdownOptionsRef.current[index] = el} 
-                        onClick={()=>{ handleOptionSelect(option, index) }}
-                        className="text-xs focus-visible:outline-0 focus-visible:bg-gray-100 font-medium font-cabin text-neutral-700 px-4 py-3 cursor-pointer transition-color hover:bg-gray-100"
-                      >
-                        {convertToTitleCase? titleCase(option) : option}
-                      </p>
-                      {index != optionsList.length - 1 && <hr key={`${option}-${index}`} />}
+                        //ref={firstDropDownOptionsRef}
+                        onClick={(e)=>{ handleOptionSelect(option, index) }}
+                        data={JSON.stringify(option)}
+                        ref={el => dropdownOptionsRef.current[index] = el}
+                        key={index}>
+                        <p className="text-xs font-medium font-cabin text-neutral-700 px-4 pt-3">
+                            {titleCase(option.name)}
+                        </p>
+                        <div className='flex px-4 pb-3 pt-.5 gap-1'>
+                            <p className="text-xs font-medium font-cabin text-neutral-400">{`${option.designation? titleCase(option?.designation) : ''}`} </p>
+                            <p className="text-xs font-medium font-cabin text-neutral-400">{`${option.department? titleCase(option?.department) : ''}`} </p>
+                        </div>
+                        {index != optionsList.length - 1 && <hr key={option} />}
                     </div>
                   ))}
               </div>
             )}
-
           </div>
-
         </div>
       </div>
     </>

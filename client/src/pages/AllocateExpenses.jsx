@@ -19,28 +19,35 @@ export default function (props){
   console.log(tenantId)
 
   useEffect(() => {
-    axios.get(`http://localhost:8001/api/tenant/${tenantId}/org-headers`)
-    .then(res => {
-      console.log(res.data, '...res.data')
-      let orgHeadersData = res.data.orgHeaders
-      let tmpOrgHeaders = []
-      Object.keys(orgHeadersData).forEach(key => {
-        if(orgHeadersData[key].length !== 0){
-          tmpOrgHeaders.push(key)
+    (async function(){
+      try{
+        const res = await axios.get(`http://localhost:8001/api/tenant/${tenantId}/org-headers`)
+        const flags_res = await axios.get(`http://localhost:8001/api/tenant/${tenantId}/flags`)
+
+        if(res.status === 200){
+
+          console.log(res.data, '...res.data')
+          let orgHeadersData = res.data.orgHeaders
+          let tmpOrgHeaders = []
+          Object.keys(orgHeadersData).forEach(key => {
+            if(orgHeadersData[key].length !== 0){
+              tmpOrgHeaders.push(key)
+            }
+          })
+    
+          console.log(tmpOrgHeaders, '...tmpOrgHeaders')
+    
+          if(tmpOrgHeaders.length === 0){
+            setFlags({ORG_HEADERS_FLAG:false})
+          }
+          else{
+            setOrgHeaders(tmpOrgHeaders)
+          }
         }
-      })
-
-      console.log(tmpOrgHeaders, '...tmpOrgHeaders')
-
-      if(tmpOrgHeaders.length === 0){
-        setFlags({ORG_HEADERS_FLAG:false})
+      }catch(e){
+        console.log(e)
       }
-      else{
-        setOrgHeaders(tmpOrgHeaders)
-      }
-      
-    })
-    .catch(err => console.log(err))
+    })()
   },[])
 
   return <>

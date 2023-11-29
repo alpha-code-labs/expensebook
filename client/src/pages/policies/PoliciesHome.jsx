@@ -1,6 +1,6 @@
 import Button from "../../components/common/Button"
 import Icon from "../../components/common/Icon"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, useParams } from "react-router-dom"
 import HollowButton from "../../components/common/HollowButton"
 import internatinal_travel_icon from '../../assets/in-flight.svg'
 import domestic_travel_icon from '../../assets/briefcase.svg'
@@ -8,11 +8,23 @@ import local_travel_icon from '../../assets/map-pin.svg'
 import non_travel_icon from '../../assets/paper-money-two.svg'
 import arrow_down from "../../assets/chevron-down.svg";
 import Checkbox from "../../components/common/Checkbox"
-
+import Modal from "../../components/common/Modal"
+import { useState, useEffect } from "react"
 
 
 export default function (props){
     const navigate = useNavigate()
+    const {tenantId} = useParams()
+    const [showSkipModal, setShowSkipModal] = useState(false)
+
+    useEffect(()=>{
+        if(showSkipModal){
+            document.body.style.overflow = 'hidden'
+        }
+        else{
+            document.body.style.overflow = 'visible'
+        }
+    },[showSkipModal])
 
     return(<>
         
@@ -29,7 +41,7 @@ export default function (props){
                         </p>
                     </div>
                     <div className="">
-                        <HollowButton title='Skip' showIcon={false} />
+                        <HollowButton title='Skip' showIcon={false} onClick={()=>setShowSkipModal(true)} />
                     </div>
                 </div>
 
@@ -58,6 +70,22 @@ export default function (props){
 
             </div>
         </div>
+
+        <Modal skippable={false} showModal={showSkipModal} setShowModa={setShowSkipModal}>
+            <div className="p-10">
+                <p className="text-neutral-700 text">
+                    We recommend you go through company policy and expense categories setup, with plicy setup you can track limit violations and with expense categories setup employees will be able to raise non-travel expenses. 
+                </p>
+                <div className=' mt-10 flex flex-wrap justify-between'>
+                    <div className='w-fit'>
+                        <Button text='Ok' onClick={()=>setShowSkipModal(false)} />
+                    </div>
+                    <div className='w-fit'>
+                        <HollowButton title='Skip For Now' showIcon={false} onClick={()=>navigate(`/${tenantId}/others`)} />
+                    </div>
+                </div>
+            </div>
+        </Modal>
     </>)
 }
 

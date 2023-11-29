@@ -307,14 +307,14 @@ const [loading, setLoading] = useState(true)
                             </p>
                         </div>
                         <div>
-                            <HollowButton title='Skip' onClick={()=>navigate(`/${tenantId}/setup-policy`, {state:{tenantId}})} />
+                            <HollowButton title='Skip' onClick={()=>navigate(`/${tenantId}/setup-company-policies`, {state:{tenantId}})} />
                         </div>
                     </div>
 
                     <hr/>
                   { !readyToSelect && <>
                         <p className='text text-base font-cabin text-neutral-700'>
-                        From the data you have provided, here is a list of entities which can be used to form groups  
+                        We have identified the following elements from your HR data, that we think can be used to form groups. 
                     </p>
 
                     <div className='text text-sm font-cabin'>
@@ -349,7 +349,7 @@ const [loading, setLoading] = useState(true)
                     {readyToSelect &&                     
                         <>
                         <p className='text text-base font-cabin text-neutral-700'>
-                            Select the entities you want to allocate travel expenses to
+                            Please select the relevant elements to form groups
                         </p>
 
                          <div classsName='shadow bg-white border border-grey-200'>
@@ -371,8 +371,12 @@ const [loading, setLoading] = useState(true)
                             })}    
                         </div>
 
-                        <div>
-                            <Button text='Continue' onClick={()=>setShowSkipModal(true)} />
+                        <div className='flex flex-row-reverse'>
+                            <div className='fit'>
+                                <div>
+                                    <Button text='Continue' onClick={()=>setShowSkipModal(true)} />
+                                </div>
+                            </div>
                         </div>
                         </>
                     }

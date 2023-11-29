@@ -128,7 +128,7 @@ export default function (props){
                     setGroupEmployeeList(employeeData)
         
                     const groupData_copy = JSON.parse(JSON.stringify(groupData))
-                    groupData_copy.push({groupName:'All', employees:employeeData, canDelegate})
+                    groupData_copy.push({groupName:'All', employees:employeeData, canDelegate, filters:selectedFilters})
                     setGroupData(groupData_copy)
                 }
                 else{
@@ -146,7 +146,7 @@ export default function (props){
             })
         })()
 
-        navigate(`/${tenantId}/groups/created-groups`)
+        navigate(`/${tenantId}/groups/created-groups`, {state:{groupData}})
     }
 
     const handleCanSelectChange = (e, index)=>{
@@ -234,13 +234,13 @@ export default function (props){
                                 <>
                                     <div className='sticky top-0 pt-2 bg-white border-b z-[100]'>
                                         <div className='bg-white w-full flex flex-row justify-between'>
-                                            {['canDelegate', 'employeeName', ...groupHeaders].map((header,index)=>
+                                            {['employeeName', ...groupHeaders].map((header,index)=>
                                                 <TableItem key={index} text={camelCaseToTitleCase(header)} header='true' canDelegateForAll={canDelegateForAll} setCanDelegateForAll={setCanDelegateForAll} />
                                             )}    
                                         </div>
                                     </div>
 
-                                    <Table employees={filteredEmployeeList} headers={['canDelegate', 'employeeName', ...groupHeaders]} handleCanSelectChange={handleCanSelectChange} checked={canDelegate} />
+                                    <Table employees={filteredEmployeeList} headers={['employeeName', ...groupHeaders]} handleCanSelectChange={handleCanSelectChange} checked={canDelegate} />
                                 </>
                             </div>
                     </div>
@@ -277,7 +277,8 @@ function TableItem(props){
     return(
             <div className="w-[134px] shrink whitespace-nowrap text-ellipsis overflow-hidden  py-2 h-8 justify-start items-center inline-flex">
                 <div className='flex items-center gap-2'>
-                    {header && text=='Can Delegate' && <Checkbox checked={canDelegateForAll} onChange={(e)=>setCanDelegateForAll(e.target.checked)} />}
+                    {// header && text=='Can Delegate' && <Checkbox checked={canDelegateForAll} onChange={(e)=>setCanDelegateForAll(e.target.checked)} />
+                    }
                     <div className={`${header? 'text-neutral-500' : 'text-neutral-700'} text-sm tracking-tight font-normal font-cabin`}>{text}</div>
                 </div>
             </div>
@@ -301,11 +302,11 @@ function Table(props){
                 <div key={index} className='w-full flex flex-row justify-between'>
                    {headers.map((header,ind)=>{
 
-                    if(header === 'canDelegate')
-                        return(<div className="w-[134px] shrink whitespace-nowrap text-ellipsis overflow-hidden  py-2 h-8 justify-start items-center inline-flex " >
-                            <Checkbox checked={checked[index]} onChange={(e)=>{handleCanSelectChange(e,index)}} />
-                        </div>)
-                    else
+                    // if(header === 'canDelegate')
+                    //     return(<div className="w-[134px] shrink whitespace-nowrap text-ellipsis overflow-hidden  py-2 h-8 justify-start items-center inline-flex " >
+                    //         <Checkbox checked={checked[index]} onChange={(e)=>{handleCanSelectChange(e,index)}} />
+                    //     </div>)
+                    // else
                         return(<TableItem key={ind} text={employee[header]}/>)
 
                    }

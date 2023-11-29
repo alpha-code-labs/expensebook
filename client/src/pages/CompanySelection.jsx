@@ -176,9 +176,11 @@ export default function CompanyAndHRInformation(){
         console.error('Error in uploading file:', error);
       });
     }
+
    }
 
   })
+
   };
 
 

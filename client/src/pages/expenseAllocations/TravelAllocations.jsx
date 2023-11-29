@@ -42,6 +42,16 @@ const [headersUpdated, setHeadersUpdated] = useState(null)
 
 
 
+    useEffect(()=>{
+        if(showSkipModal || showAddHeaderModal){
+            document.body.style.overflow = 'hidden'
+        }
+        else{
+            document.body.style.overflow = 'visible'
+        }
+
+    },[showSkipModal, showAddHeaderModal])
+
     useEffect(() => {
         setExcelDataError(null)
         let errorSet = false
@@ -114,27 +124,40 @@ const [headersUpdated, setHeadersUpdated] = useState(null)
     }, [excelData])
 
     useEffect(() => {
-      axios.get(`http://localhost:8001/api/tenant/${tenantId}/org-headers`)
-      .then(res => {
-        console.log(res.data, '...res.data')
-        let orgHeadersData = res.data.orgHeaders
-        let tmpOrgHeaders = []
-        Object.keys(orgHeadersData).forEach(key => {
-          if(orgHeadersData[key].length !== 0){
-            tmpOrgHeaders.push(key)
-          }
-        })
-  
-        if(tmpOrgHeaders.length === 0){
-          setFlags({ORG_HEADERS_FLAG:false})
-        }
-        else{
-          setOrgHeaders(tmpOrgHeaders)
-        }
+        (async function(){
+            try{
+            const res = await axios.get(`http://localhost:8001/api/tenant/${tenantId}/org-headers`)
+            const flags_res = await axios.get(`http://localhost:8001/api/tenant/${tenantId}/flags`)
+            const flags = flags_res.data.flags
+                
+            if(res.status === 200 && flags_res.status === 200){
+    
+                console.log(res.data, '...res.data')
+                let orgHeadersData = res.data.orgHeaders
+                let tmpOrgHeaders = []
+                Object.keys(orgHeadersData).forEach(key => {
+                if(orgHeadersData[key].length !== 0){
+                    tmpOrgHeaders.push(key)
+                }
+                })
         
-      })
-      .catch(err => console.log(err))
+                console.log(tmpOrgHeaders, '...tmpOrgHeaders')
+        
+                if(tmpOrgHeaders.length === 0){
+                    setFlags({...flags, ORG_HEADERS_FLAG:false})
+                }
+                else{
+                setOrgHeaders(tmpOrgHeaders)
+                setFlags({...flags, ORG_HEADERS_FLAG:true})
+                console.log()
+                }
+            }
+            }catch(e){
+            console.log(e)
+            }
+        })()
     },[headersUpdated])
+
 
     useEffect(() => {
         setShowAddHeaderModal(false)
@@ -163,7 +186,7 @@ const [headersUpdated, setHeadersUpdated] = useState(null)
         .post(`http://localhost:8001/api/tenant/${tenantId}/travel-allocation`, {allocationHeaders})
         .then(res => {
             console.log(res.data, '...res.data')
-            navigate('/expense-allocations/travel-related', {state:{tenantId}})
+            navigate(`/${tenantId}/expense-allocations/travel-related`, {state:{tenantId}})
         })
         //navigate to next page
      
@@ -245,43 +268,44 @@ const [headersUpdated, setHeadersUpdated] = useState(null)
                                 <img src={back_icon} onClick={()=>{setReadyToSelect(false)}} />
                             </div>}
                             <p className='text text-xl font-cabin text-neutral-700'>
-                                {!readyToSelect ? `Let's setup how you allocate travel request first` : `setup travel allocations`}
+                                {!readyToSelect ? `Let's setup how you allocate Travel` : `setup travel allocations`}
                             </p>
                         </div>
                         <div>
-                            <HollowButton title='Skip' onClick={()=>navigate('/expense-allocations/travel-related', {state:{tenantId}})} />
+                            <HollowButton title='Skip' onClick={()=>navigate(`/${tenantId}/expense-allocations/travel-related`, {state:{tenantId}})} />
                         </div>
                     </div>
 
                     <hr/>
-                  { !readyToSelect && <>
-                        <p className='text text-base font-cabin text-neutral-700'>
-                        From the data you have provided, here is a list of entities to which you can allocate travel  
-                    </p>
+                    { !readyToSelect && <>
+                     
 
-                    <div className='text text-sm font-cabin'>
-                        {orgHeaders.map(orgHeader => {
-                            return <div className='flex px-6'>
-                                <div className='text-md text-neutral-600'>{camelCaseToTitleCase(orgHeader)}</div>
-                            </div>
-                        })}
-                    </div>
-
-                    <div>
-                    <p className='text text-base font-cabin text-neutral-700'>
-                            Are all the values you want present in above list? 
-                        </p>
-                        <div className='flex gap-10 mt-4'>
-                            <div>
-                                <Button text='Yes' onClick={()=>setReadyToSelect(true)} />
-                            </div>
-                            <div>
-                                <Button text='No' onClick={()=>setShowAddHeaderModal(true)} />
-                            </div>
-                        </div>
-                    </div>
-                    </>
-                  }
+                     <div className='p-4 border border-gray-200 rounded-xl w-fit'>
+                         <div className='text text-sm font-cabin'>
+                             {orgHeaders.map(orgHeader => {
+                                 return <div className='flex px-6'>
+                                     <div className='text-md text-neutral-600'>{camelCaseToTitleCase(orgHeader)}</div>
+                                 </div>
+                         })}
+                     </div>
+ 
+                     </div>
+                     
+                     <div>
+                     <p className='text text-base font-cabin text-neutral-700'>
+                     We have gathered the above headers from your HR data. <br/> Do you have all you need or are they headers missing 
+                         </p>
+                         <div className='flex gap-10 mt-4'>
+                             <div>
+                                 <Button text='I have all I need' onClick={()=>setReadyToSelect(true)} />
+                             </div>
+                             <div>
+                                 <Button text='I have some other headers' onClick={()=>setShowAddHeaderModal(true)} />
+                             </div>
+                         </div>
+                     </div>
+                     </>
+                   }
 
                     {readyToSelect &&                     
                         <>
@@ -300,8 +324,10 @@ const [headersUpdated, setHeadersUpdated] = useState(null)
                             })}    
                         </div>
 
-                        <div>
-                            <Button text='Continue' onClick={()=>setShowSkipModal(true)} />
+                        <div className='flex flex-row-reverse'>
+                            <div className='fit'>
+                                <Button text='Continue' onClick={()=>setShowSkipModal(true)} />
+                            </div>
                         </div>
                         </>
                     }
@@ -331,7 +357,7 @@ const [headersUpdated, setHeadersUpdated] = useState(null)
                         <p className='text-neutral-700 text-base font-cabin '>You have not selected any options, do you want to skip this step? </p>
                         <div className='flex justify-between items-center mt-6  '> 
                             <div className=''>
-                                <Button text='Yes' onClick={()=>{navigate('/expense-allocations/travel-related', {state:{tenantId}})}} />
+                                <Button text='Yes' onClick={()=>{navigate(`/${tenantId}/expense-allocations/travel-related`, {state:{tenantId}})}} />
                             </div>
                             <div>
                                 <Button text='No' onClick={()=>{setShowSkipModal(false)}} />
@@ -343,7 +369,7 @@ const [headersUpdated, setHeadersUpdated] = useState(null)
                 </div>
             </Modal>
 
-            {showAddHeaderModal && <div onClick={handleOutsideClick} className="fixed z-[1000] overflow-hidden flex justify-center items-center inset-0 backdrop-blur-sm w-full h-full left-0 top-0 bg-gray-800/60 scroll-none">
+            {showAddHeaderModal && flags.DIY_FLAG && <div onClick={handleOutsideClick} className="fixed z-[1000] overflow-hidden flex justify-center items-center inset-0 backdrop-blur-sm w-full h-full left-0 top-0 bg-gray-800/60 scroll-none">
                 <div ref={modalRef} onClick={(e)=>e.stopPropagation()} className='z-[1001] max-w-[600px] w-[90%] md:w-[75%] lg:w-[60%] min-h-[200px] scroll-none bg-white rounded-lg shadow-md'>
                 <div className='p-10'>
                     {/* allow user to add headers*/}
@@ -435,6 +461,18 @@ const [headersUpdated, setHeadersUpdated] = useState(null)
                 </div>
                 </div>
             </div>}
+
+            {showAddHeaderModal && !flags.DIY_FLAG && <div onClick={handleOutsideClick} className="fixed z-[1000] overflow-hidden flex justify-center items-center inset-0 backdrop-blur-sm w-full h-full left-0 top-0 bg-gray-800/60 scroll-none">
+                <div ref={modalRef} onClick={(e)=>e.stopPropagation()} className='z-[1001] max-w-[600px] w-[90%] md:w-[75%] lg:w-[60%] min-h-[200px] scroll-none bg-white rounded-lg shadow-md'>
+                <div className='p-10'>
+                                        
+                    <p className='text-neutral-800 font-cabin text-lg'>
+                        We detect that you are onboarded through People Strong, If you want to add extra headers for allocating travel Related expenses please contact your company
+                    </p>
+                    
+                </div>
+                </div>
+            </div> }
             
 
         </div>}

@@ -49,7 +49,8 @@ export default function CreatedGroups(props){
             })
         }
         else{
-            setError('No groups formed yet')
+            setError(null)
+            setLoading(false)
         }
     },[])
 
@@ -93,7 +94,7 @@ export default function CreatedGroups(props){
                             return(<>
                                     <div className="flex gap-20">
                                         <p className='text-sm flex-1 font-cabin text-neutral-700 tracking-tight'>{group.groupName}</p>
-                                        <p className='text-sm flex-1 font-cabin text-neutral-700 tracking-tight'>{group.employees.length}</p>
+                                        <p className='text-sm flex-1 font-cabin text-neutral-700 tracking-tight'>{}</p>
                                         <div className="flex-1 flex gap-6">
                                             <p 
                                                 onClick={()=>handleEdit(index)}

@@ -7,6 +7,8 @@ import CompanyPolicies from "./pages/CompanyPolicies";
 import CompanyAndHRInformation from "./pages/CompanyAndHRInformation";
 import AllocateExpenses from "./pages/AllocateExpenses";
 import UploadFile from "./components/common/UploadFile";
+import OtherData from "./pages/OtherData";
+import OnboardingHome from "./pages/OnboardingHome"
 
 function App() {
   //flags
@@ -15,6 +17,8 @@ function App() {
   return <>
     <Router>
       <Routes>
+      <Route path='/'
+            element={<OnboardingHome/>} />
         <Route path='/company-info'
             element={<CompanyAndHRInformation/>} />
         <Route path='/:tenantId/expense-allocations/*' element={<AllocateExpenses />}/>
@@ -24,6 +28,7 @@ function App() {
             element={<CompanyPolicies
                 flags={flags}
                 />} />
+        <Route path='/:tenantId/others/*' element={<OtherData/>}/>
         <Route path='/playground' element={<UploadFile/>} />
         
       </Routes>

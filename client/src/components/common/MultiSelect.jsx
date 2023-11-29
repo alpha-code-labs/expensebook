@@ -22,7 +22,7 @@ export default function MultiSelect(props) {
 
 
     useEffect(()=>{
-      if(currentOption != null && currentOption != undefined && currentOption.length==0 ){
+      if(currentOption != null && currentOption != undefined && currentOption.length!==0 ){
         setHidePlaceholder(true)
       }
       else{setHidePlaceholder(false)}
@@ -237,7 +237,7 @@ const selectDivFocus = (e)=>{
                         onClick={()=>{ handleOptionSelect(option, index) }}
                         className="text-xs focus-visible:outline-0 focus-visible:bg-gray-100 font-medium font-cabin tracking-tight text-neutral-700 px-4 py-3 cursor-pointer transition-color hover:bg-gray-100"
                       >
-                        {isNaN(option)? titleCase(option): option}
+                        {isNaN(option) && option? titleCase(option): option}
                       </p>
                       {index != optionsList.length - 1 && <hr key={`${option}-${index}`} />}
                     </div>

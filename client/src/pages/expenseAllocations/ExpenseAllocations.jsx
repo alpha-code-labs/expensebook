@@ -19,12 +19,13 @@ export default function (props) {
             <div className='px-6 py-10 bg-white rounded shadow w-full'>
                
                 {/* rest of the section */}
-                <div className='mt-10 w-full flex flex-col gap-4 text text-xl font-cabin text-neutral-700 '>  
+                <div className='mt-10 w-full flex flex-col gap-4 text text-lg font-cabin text-neutral-800 '>  
                     
 
-                    In this section we will configure how your company allocates travel, 
-                    its related expenses and non travel expenses 
-
+                Now we will configure the way your company allocates travel, travel expenses and non travel expenses.
+                This will help you track your expenses as per the standards in your organisation.
+                <br/><br/>
+                Please select continue to proceed for setup | Select Skip to move to the next section
                     
                     <div className='inline-flex w-full justify-between mt-10'>
                         <div className='w-[250px]'>
@@ -43,7 +44,7 @@ export default function (props) {
                     Your system will be setup without a way to allocate expenses. You can always configure this section later.
 
                     <div className='w-[200px] mt-10'>
-                        <Button text='Sure' onClick={()=>navigate('/groups')} />
+                        <Button text='Sure' onClick={()=>navigate(`/${tenantId}/groups`)} />
                     </div>
                 </div>
                 
