@@ -19,6 +19,4 @@ router.post('/create_accountline', async (req, res) => {
   }
 })
 
-
-
 export default router;

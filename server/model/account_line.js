@@ -18,33 +18,4 @@ const accountlineSchema = new mongoose.Schema({
   }],
 })
 
-const Accountline = mongoose.model('Accountline', accountlineSchema);
-
-// Function to create an accountline document with the tenantId
-async function createAccountlineWithTenantId(tenantId, accountLineData) {
-    try {
-      // Find the HRCompany document by its tenantId
-      const hrCollection = await HRCompany.findOne({ tenantId: tenantId });
-  
-      if (!hrCollection) {
-        throw new Error('HRCompany document not found');
-      }
-  
-      // Create a new accountline document with the obtained tenantId
-      const accountline = new Accountline({
-        tenantId: hrCollection.tenantId, // 
-        accountLines: [accountLineData],
-      });
-  
-      // Save the newly created accountline document
-      const savedAccountline = await accountline.save();
-  
-      return savedAccountline;
-    } catch (error) {
-      console.error('Error creating accountline:', error);
-      throw error;
-    }
-  }
-  
-// Export the Accountline model and the createAccountlineWithTenantId function
-export { Accountline, createAccountlineWithTenantId }
+export { accountlineSchema as Accountline }

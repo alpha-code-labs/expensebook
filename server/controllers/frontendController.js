@@ -1,11 +1,20 @@
-import express from 'express'
 import HRCompany from '../model/hr_company_structure.js'
-import TravelAllocation from '../model/travel_allocation.js'
-import TravelExpenseAllocation from '../model/travelExpense_allocation.js'
-import NonTravelExpenseAllocation from '../model/nonTravelExpense_allocation.js'
-
 import {upload} from '../middlewares/upload.js'
 import readXlsxFile from "read-excel-file/node"
+import { updateAccountLinesAndExpenseCategories } from '../routines/updateAccountLInesAndExenseCategories.js'
+import replicateHrStructure from '../services/replicateHRStructure.js'
+
+
+const base_URL = {
+  TRAVEL_MS : 'http://8001/localhost/',
+  CASH_MS : 'http://8001/localhost/' ,
+  TRIP_MS: 'http://8001/localhost/' ,
+  EXPENSE_MS: 'http://8001/localhost/',
+  APPROVAL_MS: 'http://8001/localhost/',
+  DASHBOARD_MS: 'http://8001/localhost/',
+  LOGIN_MS: 'http://8001/localhost/',
+}
+
 
 const handleUpload = async (req, res) => {
   // Handle the uploaded file
@@ -137,6 +146,14 @@ const createNewHrCompanyInfo = async (req, res) => {
     )
     .then(async () => {
           try{
+
+            if(departments.length>0 || legalEntities.length>0 || costCenters.length>0 || profitCenters.length>0 || businessUnits.length>0 || divisions.length>0 || projects.length>0 || geographicalLocations.length>0 || responsibilityCenters.length>0 ){
+              ORG_HEADERS_FLAG = true
+            }
+
+            if(bands.length>0 || grades.length>0 || designations>0 ){
+              GROUPING_FLAG = true
+            }
 
           //generate unique tenantId
           tenantId = Math.random().toString(36).substr(2, 9);
@@ -302,7 +319,13 @@ const getTenantFlags = async (req, res) => {
     
         // Find the HRCompany document by its tenantId
         const hrCompany = await HRCompany.findOne({ tenantId: tenantId }, {flags:1});
-        res.status(200).json(hrCompany); // Respond with the HRCompany data after removing the employees array
+        
+        if(!hrCompany){
+          res.status(404).json('tenant not found')
+          return
+        }
+
+        res.status(200).json({flags:hrCompany.flags}); 
     } catch (error) {
         res.status(500).json({ error: 'Internal Server Error' });
     }
@@ -570,7 +593,7 @@ const updateTenantGroups = async (req, res) => {
     const { tenantId } = req.params;
 
     //get HRCompany document by its tenantId
-    const hrCompany = await HRCompany.findOne({ tenantId: tenantId }, {tenantId:1});
+    let hrCompany = await HRCompany.findOne({ tenantId: tenantId }, {tenantId:1, groupingLabels:1, employees:1});
     console.log(hrCompany)
 
     if(!hrCompany){
@@ -582,8 +605,37 @@ const updateTenantGroups = async (req, res) => {
     
     //validate groups data for each group... 
 
-    //update groups information in HR master
+    //update groups and blanket information in HR master
     const updatedHRCompany = await HRCompany.findOneAndUpdate({ tenantId: tenantId }, {$set: {groups}}, { new: true });
+
+    //tag employees with groups
+    async function tagEmployees(){
+      groups.forEach((group,ind)=>{
+        const employees = hrCompany.employees
+        const groupingLabels = hrCompany.groupingLabels 
+
+        employees.forEach(employee=>{
+          let taggable = true
+          group.filters.forEach((filter, index)=>{
+            if(!filter.length == 0 && !filter.includes(employee.employeeDetails[groupingLabels[index].headerName])){
+                taggable = false
+                console.log('this ran', employee.employeeDetails[groupingLabels[index].headerName], filter, group.groupName)
+            }           
+          })
+  
+          if(taggable){
+            employee.group.push(group.groupName)
+          }
+  
+        })
+  
+      })  
+    }
+    
+    await tagEmployees()
+    //update employees
+    await HRCompany.findOneAndUpdate({ tenantId: tenantId }, {$set: {employees:hrCompany.employees}}, { new: true });
+
     res.status(200).json({message:'Groups updated!'}); // Respond with success message
 
   } catch (error) {
@@ -619,6 +671,611 @@ const getTenantGroups = async (req, res) => {
   }
 }
 
+const updateTenantPolicies = async (req, res) => {
+  try {
+    // Get the tenantId from params
+    const { tenantId } = req.params;
+
+    //get HRCompany document by its tenantId
+    const hrCompany = await HRCompany.findOne({ tenantId: tenantId }, {tenantId:1});
+    console.log(hrCompany)
+
+    if(!hrCompany){
+      //tenant record not found
+      res.status(404).json({ error: 'Tenant record not found' })
+    }
+
+    const { policies } = req.body;
+    
+    //validate policies data for each group... 
+
+    //update policies information in HR master
+    const updatedHRCompany = await HRCompany.findOneAndUpdate({ tenantId: tenantId }, {$set: {policies}}, { new: true });
+    res.status(200).json({message:'Policies update'}); // Respond with success message
+
+    //update account lines and expense categories
+    updateAccountLinesAndExpenseCategories(tenantId)
+
+
+  } catch (error) {
+      console.log(error)
+      res.status(500).json({ error: 'Internal Server Error' });
+  }
+}
+
+const getTenantPolicies = async (req, res)=>{
+  try{
+    const {tenantId} = req.params
+
+    if(!tenantId){
+      //bad request
+      res.status(400).json({error:'Bad request'})
+      return
+    }
+
+    //check if tenant exist
+    const hrCompany = await HRCompany.findOne({tenantId}, {tenantId:1, policies:1})
+
+    if(!hrCompany){
+      res.status(404).json({error:'tenant not found'})
+      return
+    }
+
+    //proceed with the request
+    res.status(200).json({policies: hrCompany.policies})
+  }
+  catch(e){
+    console.log(e)
+    res.status(500).json({error:'Internal server error'})
+  }
+}
+
+const getTenantExpenseCategories = async (req, res)=>{
+  try{
+    const {tenantId} = req.params
+
+    if(!tenantId){
+      //bad request
+      res.status(400).json({error:'Bad request'})
+      return
+    }
+
+    //check if tenant exist
+    const hrCompany = await HRCompany.findOne({tenantId}, {tenantId:1, expenseCategories:1})
+
+    if(!hrCompany){
+      res.status(404).json({error:'tenant not found'})
+      return
+    }
+
+    //proceed with the request
+    res.status(200).json({expenseCategories: hrCompany.expenseCategories})
+  }
+  catch(e){
+    console.log(e)
+    res.status(500).json({error:'Internal server error'})
+  }
+}
+
+const getTenantAccountLines = async (req, res)=>{
+  try{
+    const {tenantId} = req.params
+
+    if(!tenantId){
+      //bad request
+      res.status(400).json({error:'Bad request'})
+      return
+    }
+
+    //check if tenant exist
+    const hrCompany = await HRCompany.findOne({tenantId}, {tenantId:1, accountLines:1})
+
+    if(!hrCompany){
+      res.status(404).json({error:'tenant not found'})
+      return
+    }
+
+    //proceed with the request
+    res.status(200).json({accountLines: hrCompany.accountLines})
+  }
+  catch(e){
+    console.log(e)
+    res.status(500).json({error:'Internal server error'})
+  }
+}
+
+const updateTenantAccountLines = async (req, res)=>{
+  try {
+    // Get the tenantId from params
+    const { tenantId } = req.params;
+
+    const { accountLines } = req.body;
+    console.log(accountLines, 'account lines')
+
+    //get HRCompany document by its tenantId
+    const hrCompany = await HRCompany.findOne({ tenantId: tenantId }, {tenantId:1});
+    console.log(hrCompany)
+
+    if(!hrCompany){
+      //tenant record not found
+      res.status(404).json({ error: 'Tenant record not found' })
+    }
+
+    //update account lines
+    await HRCompany.findOneAndUpdate({ tenantId: tenantId }, {$set: {accountLines: accountLines}});
+    res.status(200).json({message:'Account Lines Updated!'}); // Respond with the updated HRCompany data
+
+  } catch (error) {
+      console.log(error)
+      res.status(500).json({ error: 'Internal Server Error' });
+  }
+}
+
+const updateTenantMulticurrencyTable = async (req, res)=>{
+  try {
+    // Get the tenantId from params
+    const { tenantId } = req.params;
+
+    const { multiCurrencyTable } = req.body;
+    console.log(multiCurrencyTable)
+
+    //get HRCompany document by its tenantId
+    const hrCompany = await HRCompany.findOne({ tenantId: tenantId }, {tenantId:1});
+    console.log(hrCompany)
+
+    if(!hrCompany){
+      //tenant record not found
+      res.status(404).json({ error: 'Tenant record not found' })
+    }
+
+    //update account lines
+    await HRCompany.findOneAndUpdate({ tenantId: tenantId }, {$set: {multiCurrencyTable}});
+    res.status(200).json({message:'Multicurrency Table updated!'}); // Respond with the updated HRCompany data
+
+  } catch (error) {
+      console.log(error)
+      res.status(500).json({ error: 'Internal Server Error' });
+  }
+
+}
+
+const getTenantMultiCurrencyTable = async (req, res)=>{
+  try{
+    const {tenantId} = req.params
+
+    if(!tenantId){
+      //bad request
+      res.status(400).json({error:'Bad request'})
+      return
+    }
+
+    //check if tenant exist
+    const hrCompany = await HRCompany.findOne({tenantId}, {tenantId:1, multiCurrencyTable:1})
+
+    if(!hrCompany){
+      res.status(404).json({error:'tenant not found'})
+      return
+    }
+
+    //proceed with the request
+    res.status(200).json({multiCurrencyTable: hrCompany.multiCurrencyTable})
+  }
+  catch(e){
+    console.log(e)
+    res.status(500).json({error:'Internal server error'})
+  }
+}
+
+const getTenantCashExpenseOptions = async (req, res) => {
+  try{
+    const {tenantId} = req.params
+
+    if(!tenantId){
+      //bad request
+      res.status(400).json({error:'Bad request'})
+      return
+    }
+
+    //check if tenant exist
+    const hrCompany = await HRCompany.findOne({tenantId}, {tenantId:1, expenseSettlementOptions:1})
+
+    if(!hrCompany){
+      res.status(404).json({error:'tenant not found'})
+      return
+    }
+
+    //proceed with the request
+    res.status(200).json({expenseSettlementOptions: hrCompany.expenseSettlementOptions})
+  }
+  catch(e){
+    console.log(e)
+    res.status(500).json({error:'Internal server error'})
+  }
+}
+
+const updateTenantCashExpenseOptions = async (req, res)=>{
+  try {
+    // Get the tenantId from params
+    const { tenantId } = req.params;
+
+    const { expenseSettlementOptions } = req.body;
+    console.log(expenseSettlementOptions)
+
+    //get HRCompany document by its tenantId
+    const hrCompany = await HRCompany.findOne({ tenantId: tenantId }, {tenantId:1});
+    console.log(hrCompany)
+
+    if(!hrCompany){
+      //tenant record not found
+      res.status(404).json({ error: 'Tenant record not found' })
+    }
+
+    //update expense options
+    await HRCompany.findOneAndUpdate({ tenantId: tenantId }, {$set: {expenseSettlementOptions}});
+    res.status(200).json({message:'Cash Expense Options updated!'}); 
+
+  } catch (error) {
+      console.log(error)
+      res.status(500).json({ error: 'Internal Server Error' });
+  }
+
+}
+
+const getTenantCashAdvanceOptions = async (req, res) => {
+  try{
+    const {tenantId} = req.params
+
+    if(!tenantId){
+      //bad request
+      res.status(400).json({error:'Bad request'})
+      return
+    }
+
+    //check if tenant exist
+    const hrCompany = await HRCompany.findOne({tenantId}, {tenantId:1, advanceSettlementOptions:1})
+
+    if(!hrCompany){
+      res.status(404).json({error:'tenant not found'})
+      return
+    }
+
+    //proceed with the request
+    res.status(200).json({advanceSettlementOptions: hrCompany.advanceSettlementOptions})
+  }
+  catch(e){
+    console.log(e)
+    res.status(500).json({error:'Internal server error'})
+  }
+}
+
+const updateTenantCashAdvanceOptions = async (req, res)=>{
+  try {
+    // Get the tenantId from params
+    const { tenantId } = req.params;
+
+    const { advanceSettlementOptions } = req.body;
+    console.log(advanceSettlementOptions)
+
+    //get HRCompany document by its tenantId
+    const hrCompany = await HRCompany.findOne({ tenantId: tenantId }, {tenantId:1});
+    console.log(hrCompany)
+
+    if(!hrCompany){
+      //tenant record not found
+      res.status(404).json({ error: 'Tenant record not found' })
+    }
+
+    //update expense options
+    await HRCompany.findOneAndUpdate({ tenantId: tenantId }, {$set: {advanceSettlementOptions}});
+    res.status(200).json({message:'Cash Expense Options updated!'}); 
+
+  } catch (error) {
+      console.log(error)
+      res.status(500).json({ error: 'Internal Server Error' });
+  }
+
+}
+
+const updateTenantSystemRelatedRoles = async (req, res) => {
+  try {
+    // Get the tenantId from params
+    const { tenantId } = req.params;
+
+    const { systemRelatedRoles } = req.body;
+    console.log(systemRelatedRoles);
+
+    // Get HRCompany document by its tenantId
+    let hrCompany = await HRCompany.findOne({ tenantId: tenantId }, {employees:1});
+    console.log(hrCompany);
+
+    if (!hrCompany) {
+      // Tenant record not found
+      res.status(404).json({ error: 'Tenant record not found' });
+      return; // Add a return statement to exit the function in case of an error
+    }
+
+    // Update systemRelatedRoles
+    await HRCompany.findOneAndUpdate({ tenantId: tenantId }, { $set: { systemRelatedRoles } });
+
+
+    // Tag employees
+    let employeesList = hrCompany.employees;
+
+    async function tagRoles(){
+      return new Promise((resolve)=>{
+              // Tag finance employees
+        if (systemRelatedRoles.finance.length > 0) {
+          const financeEmployeeIds = systemRelatedRoles.finance.map((emp) => emp.employeeId);
+    
+          employeesList.forEach((employee) => {
+            if (financeEmployeeIds.includes(employee.employeeDetails.employeeId)) {
+              employee.employeeRoles.finance = true;
+            } else {
+              employee.employeeRoles.finance = false;
+            }
+          });
+        }
+    
+        // Tag businessAdmin employees
+        if (systemRelatedRoles.businessAdmin.length > 0) {
+          const businessAdminEmployeeIds = systemRelatedRoles.businessAdmin.map((emp) => emp.employeeId);
+    
+          employeesList.forEach((employee) => {
+            if (businessAdminEmployeeIds.includes(employee.employeeDetails.employeeId)) {
+              employee.employeeRoles.businessAdmin = true;
+            } else {
+              employee.employeeRoles.businessAdmin = false;
+            }
+          });
+        }
+    
+        // Tag superAdmin employees
+        if (systemRelatedRoles.superAdmin.length > 0) {
+          const superAdminEmployeeIds = systemRelatedRoles.superAdmin.map((emp) => emp.employeeId);
+    
+          employeesList.forEach((employee) => {
+            if (superAdminEmployeeIds.includes(employee.employeeDetails.employeeId)) {
+              employee.employeeRoles.superAdmin = true;
+            } else {
+              employee.employeeRoles.superAdmin = false;
+            }
+          });
+        }
+
+        resolve()
+      })
+    }
+
+    await tagRoles()
+    // Save the updated document
+    await HRCompany.findOneAndUpdate({ tenantId: tenantId }, { $set: { employees:employeesList } });
+
+    res.status(200).json({ message: 'System roles updated!' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+  
+const getTenantSystemRelatedRoles = async (req, res) => {
+  try{
+    const {tenantId} = req.params
+
+    if(!tenantId){
+      //bad request
+      res.status(400).json({error:'Bad request'})
+      return
+    }
+
+    //check if tenant exist
+    const hrCompany = await HRCompany.findOne({tenantId}, {tenantId:1, systemRelatedRoles:1})
+
+    if(!hrCompany){
+      res.status(404).json({error:'tenant not found'})
+      return
+    }
+
+    //proceed with the request
+    res.status(200).json({systemRelatedRoles: hrCompany.systemRelatedRoles})
+  }
+  catch(e){
+    console.log(e)
+    res.status(500).json({error:'Internal server error'})
+  }
+}
+
+const updateBlanketDelegations = async (req, res) => {
+  try {
+    // Get the tenantId from params
+    const { tenantId } = req.params;
+
+    const { blanketDelegations } = req.body;
+    console.log(blanketDelegations);
+
+    // Get HRCompany document by its tenantId
+    let hrCompany = await HRCompany.findOne({ tenantId: tenantId }, {tenantId:1, groupingLabels:1, employees:1});
+    console.log(hrCompany);
+
+    if (!hrCompany) {
+      // Tenant record not found
+      res.status(404).json({ error: 'Tenant record not found' });
+      return; // Add a return statement to exit the function in case of an error
+    }
+
+
+      const groups = blanketDelegations.groups.filter(groups=> groups.canDelegate)
+      const employeesIds = blanketDelegations.employees.map(emp=>emp.employeeId)
+
+      console.log(groups)
+        //tag employees with can delegate tag
+        async function tagEmployees(){
+          groups.forEach((group,ind)=>{
+            const employees = hrCompany.employees
+            const groupingLabels = hrCompany.groupingLabels 
+
+    
+            employees.forEach(employee=>{
+              let taggable = true
+              group.filters.forEach((filter, index)=>{
+                if(!filter.length == 0 && !filter.includes(employee.employeeDetails[groupingLabels[index].headerName])){
+                    taggable = false
+                    console.log('this ran', employee.employeeDetails[groupingLabels[index].headerName], filter, group.groupName)
+                }           
+              })
+      
+              if(taggable || employeesIds.includes(employee.employeeDetails.employeeId) ){
+                employee.canDelegate = true
+              }
+              else{
+                employee.canDelegate = false
+              }
+      
+            })
+      
+          })  
+        }
+        
+        await tagEmployees()
+        //update employees
+        await HRCompany.findOneAndUpdate({ tenantId: tenantId }, {$set: {employees:hrCompany.employees}}, { new: true });
+        
+            // Update systemRelatedRoles
+        await HRCompany.findOneAndUpdate({ tenantId: tenantId }, { $set: { blanketDelegations } });
+
+
+    // async function tagRoles(){
+    //   return new Promise((resolve)=>{
+    //           // Tag finance employees
+    //     if (systemRelatedRoles.finance.length > 0) {
+    //       const financeEmployeeIds = systemRelatedRoles.finance.map((emp) => emp.employeeId);
+    
+    //       employeesList.forEach((employee) => {
+    //         if (financeEmployeeIds.includes(employee.employeeDetails.employeeId)) {
+    //           employee.employeeRoles.finance = true;
+    //         } else {
+    //           employee.employeeRoles.finance = false;
+    //         }
+    //       });
+    //     }
+    
+    //     // Tag businessAdmin employees
+    //     if (systemRelatedRoles.businessAdmin.length > 0) {
+    //       const businessAdminEmployeeIds = systemRelatedRoles.businessAdmin.map((emp) => emp.employeeId);
+    
+    //       employeesList.forEach((employee) => {
+    //         if (businessAdminEmployeeIds.includes(employee.employeeDetails.employeeId)) {
+    //           employee.employeeRoles.businessAdmin = true;
+    //         } else {
+    //           employee.employeeRoles.businessAdmin = false;
+    //         }
+    //       });
+    //     }
+    
+    //     // Tag superAdmin employees
+    //     if (systemRelatedRoles.superAdmin.length > 0) {
+    //       const superAdminEmployeeIds = systemRelatedRoles.superAdmin.map((emp) => emp.employeeId);
+    
+    //       employeesList.forEach((employee) => {
+    //         if (superAdminEmployeeIds.includes(employee.employeeDetails.employeeId)) {
+    //           employee.employeeRoles.superAdmin = true;
+    //         } else {
+    //           employee.employeeRoles.superAdmin = false;
+    //         }
+    //       });
+    //     }
+
+    //     resolve()
+    //   })
+    // }
+
+   // await tagRoles()
+    // Save the updated document
+   // await HRCompany.findOneAndUpdate({ tenantId: tenantId }, { $set: { employees:employeesList } });
+
+    res.status(200).json({ message: 'Blanket Delegations updated!' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+}
+
+const getBlanketDelegations = async (req, res) => {
+  try{
+    const {tenantId} = req.params
+
+    if(!tenantId){
+      //bad request
+      res.status(400).json({error:'Bad request'})
+      return
+    }
+
+    //check if tenant exist
+    const hrCompany = await HRCompany.findOne({tenantId}, {tenantId:1, blanketDelegations:1})
+
+    if(!hrCompany){
+      res.status(404).json({error:'tenant not found'})
+      return
+    }
+
+    //proceed with the request
+    res.status(200).json({blanketDelegations: hrCompany.blanketDelegations})
+  }
+  catch(e){
+    console.log(e)
+    res.status(500).json({error:'Internal server error'})
+  }
+}
+
+const replicateHRStructure = async (req, res) =>{
+  try{
+    const {tenantId} = req.params
+
+    if(!tenantId){
+      //bad request
+      res.status(400).json({error:'Bad request'})
+      return
+    }
+
+    const hrCompany = HRCompany.findOne({tenantId})
+
+    if(!hrCompany){
+      res.status(404).json({error:'can not find tenant'})
+    }
+
+    //send hrCompany replica to all microservices
+
+    //Travel Microservice
+    const travel_endpoint = base_URL.TRAVEL_MS + 'api/create-hrCompany'
+    const travel_res = await replicateHrStructure(hrCompany, travel_endpoint)
+
+    //Cash Microservice
+    const cash_endpoint = base_URL.CASH_MS + 'api/create-hrCompany'
+    const cash_res = await replicateHrStructure(hrCompany, cash_endpoint)
+
+    //Trip Microservice
+    const trip_endpoint = base_URL.TRIP_MS + 'api/create-hrCompany'
+    const trip_res = await replicateHrStructure(hrCompany, trip_endpoint)
+
+    //Expense Microservice
+    const expense_endpoint = base_URL.EXPENSE_MS + 'api/create-hrCompany'
+    const expense_res = await replicateHrStructure(hrCompany, expense_endpoint)
+
+
+    //have to do same 
+
+// Finance Backend
+// Approval Backend
+// Dashboard and Profile Backend
+// System Confirguration Backend
+// Login Logout Backend
+
+
+
+  }catch(e){
+    console.log(e)
+  }
+}
+
 export {  createNewHrCompanyInfo, 
           updateExistingHrCompanyInfo, 
           handleUpload,
@@ -639,4 +1296,20 @@ export {  createNewHrCompanyInfo,
           getTenantGroupingLabels,
           getTenantGroups,
           updateTenantGroups,
+          getTenantPolicies,
+          updateTenantPolicies,
+          getTenantExpenseCategories,
+          getTenantAccountLines,
+          updateTenantAccountLines,
+          updateTenantMulticurrencyTable,
+          getTenantMultiCurrencyTable,
+          getTenantCashAdvanceOptions,
+          getTenantCashExpenseOptions,
+          updateTenantCashAdvanceOptions,
+          updateTenantCashExpenseOptions,
+          getTenantSystemRelatedRoles,
+          updateTenantSystemRelatedRoles,
+          updateBlanketDelegations,
+          getBlanketDelegations,
+          replicateHRStructure,
           getTenantOrgHeaders, }

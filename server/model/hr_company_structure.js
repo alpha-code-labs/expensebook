@@ -11,6 +11,7 @@ const employeeSchema = new mongoose.Schema({
     businessAdmin: Boolean,  //change it to travel admin
     superAdmin: Boolean,
   },
+  canDelegate: Boolean,
 })
 
 // company details schema
@@ -25,7 +26,7 @@ const companyDetailsSchema = new mongoose.Schema({
 })
 
 const ExchangeValueSchema = new mongoose.Schema({
-  currencyName: String,
+  currency: {},
   value: Number, // Represents the exchange rate for the entered currency
 });
 
@@ -41,12 +42,9 @@ const hrCompanySchema = new mongoose.Schema({
   employees: [employeeSchema],
   groups:[{
     groupName: String,
-    employees: [],
-    canDelegate:[],
+    filters: [],
   }],
   policies:{
-    policyStructure:{},
-    ruleEngine:{}
   },
   groupHeaders:{
   },
@@ -84,22 +82,32 @@ const hrCompanySchema = new mongoose.Schema({
       type: String,
     }],
   }],
-  expenseCategories: [{
-    categoryName: String,
-    categoryValues: [String],
-  }],
   accountLines: [{
     categoryName: String,
     accountLine: String,
   }],
-  multiCurrencyTable: [
+  multiCurrencyTable: 
     {
-      currencyName: String,
+      defaultCurrency: {},
       exchangeValue: [ExchangeValueSchema], // Store the exchange rate for each currency
     },
+  expenseCategories: [
+    // {
+    //   categoryName: String,
+    //   fields: [{name:String, type:String}],
+    // },
   ],
-  cashAdvanceOptions: [String], // add options here if its fixed values 
-  cashExpenseOptions: [String],// add options here if its fixed values 
+  systemRelatedRoles:{
+    finance:[],
+    businessAdmin:[],
+    superAdmin:[],
+  },
+  blanketDelegations:{
+    groups:[{groupName:String, filters:[], canDelegate:Boolean}],
+    employees:[],
+  },
+  advanceSettlementOptions: {Cash:Boolean, Cheque:Boolean, ['Salary Account']:Boolean, ['Prepaid Card']:Boolean, ['NEFT Bank Transfer']:Boolean}, // add options here if its fixed values 
+  expenseSettlementOptions: {Cash:Boolean, Cheque:Boolean, ['Salary Account']:Boolean, ['Prepaid Card']:Boolean, ['NEFT Bank Transfer']:Boolean},// add options here if its fixed values 
 })
 
 // model from the schema
