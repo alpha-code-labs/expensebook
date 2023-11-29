@@ -16,34 +16,44 @@ const travelRequestStateEnums = [
     'section 1', 
     'section 2', 
     'section 3', 
-    'section 4', 
-    'section 5'
 ]
 
-//not yet fixed
-const travelAndNonTravelPoliciesSchema = new mongoose.Schema({
-    travelPolicy: {
-        InternationalPolicy: {},
-        domesticPolicy: {},
-        localPolicy: {}
-    },
-    nonTravelPolicy: {}
-})
+const approverStatusEnums = [
+  'pending approval',
+  'approved',
+  'rejected',
+];
 
-
-//not yet fixed
-const itinerarySchema = ({
-    cities: [{from:String, to:String, departure: {date:String, time:String}, return: {date:String, time:String}}],
-    hotels: [{class:String, checkIn:String, checkOut:String}],
-    cabs: [],
-    modeOfTransit:String,
-    travelClass: String,
-    needsVisa:Boolean,
-    needsAirportTransfer:Boolean,
-    needsHotel:Boolean,
-    needsFullDayCabs:Boolean,
-    tripType:{oneWayTrip:Boolean, roundTrip:Boolean, multiCityTrip:Boolean}
-})
+const itinerarySchema = ([{
+  journey:{from:String, to:String, departure:{date:String, time:String, isModified:Boolean, isCancelled:Boolean, cancellationDate:String, cancellationReason:String}, return:{date:String, time:String, isModified:Boolean, isCancelled:Boolean, cancellationDate:String, cancellationReason:String}},
+  hotels:[{class:String, checkIn:String, checkOut:String, hotelClassViolationMessage:String, isCancelled:Boolean, cancellationDate:String}],
+  cabs:[{date:String, class:String, prefferedTime:String, pickupAddress:String, dropAddress:String, cabClassVioilationMessage:String, isModified:Boolean, isCancelled:Boolean, cancellationDate:String, cancellationReason:String}],
+  modeOfTransit:String,
+  travelClass:String,
+  needsVisa:Boolean,
+  needsBoardingTransfer:Boolean,
+  needsHotelTransfer:Boolean,
+  boardingTransfer:{
+    prefferedTime:String,
+    pickupAddress:String,
+    dropAddress:String,
+    isModified:Boolean,
+    isCancelled:Boolean, 
+    cancellationDate:String, 
+    cancellationReason:String 
+  },
+  hotelTransfer:{
+    prefferedTime:String,
+    pickupAddress:String,
+    dropAddress:String, 
+    isModified:Boolean,
+    isCancelled:Boolean, 
+    cancellationDate:String, 
+    cancellationReason:String
+  },
+  needsHotel:Boolean,
+  needsCab:Boolean,
+}])
 
 const travelRequestSchema = new mongoose.Schema({
     tenantId: {
@@ -76,30 +86,30 @@ const travelRequestSchema = new mongoose.Schema({
     required: true
   },
   createdFor: {
-    type: {empId: String, name: String}, //employee Id's for whom TR is raised
+    type: {empId: String, name: String}, //employee Id for whom TR is raised
     required: false
   },
   teamMembers: [],
-  travelAllocationHeaders: [
-    {
-      department: String,
-      percentage: Number,
-    },
-  ],
+  travelAllocationHeaders: [],
   itinerary: itinerarySchema,
+  tripType:{oneWayTrip:Boolean, roundTrip:Boolean, multiCityTrip:Boolean},
   travelDocuments: [String],
   bookings: [
     {
-      vendorName: String,
-      billNumber: String,
-      billDescription: String,
-      grossAmount: Number,
-      taxes: Number,
-      date: String,
-      imageUrl: String,
+      itineraryReference:{},
+      docURL:String,
+      details:{},
     },
   ],
-  approvers: [{empId: String, name: String},],
+  approvers: [{
+    empId: String, 
+    name: String,  
+    status: {
+    type: String,
+    enum: approverStatusEnums,
+  },
+  },],
+ 
   preferences: [String],
   travelViolations: {},
   travelRequestDate: {
@@ -109,9 +119,12 @@ const travelRequestSchema = new mongoose.Schema({
   travelBookingDate: String,
   travelCompletionDate: String,
   travelRequestRejectionReason: String,
-  travelAndNonTravelPolicies: travelAndNonTravelPoliciesSchema,
+  isCancelled:Boolean,
+  cancellationDate:String,
+  cancellationReason:String,
+  isCashAdvanceTaken: String,
+  sentToTrip:Boolean,
 })
-
 
 const TravelRequest = mongoose.model('travel_request_container', travelRequestSchema)
 export default TravelRequest

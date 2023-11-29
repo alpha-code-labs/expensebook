@@ -2,7 +2,7 @@ import axios from "axios";
 
 const CASH_MICROSERVICE_URL = "";
 
-export async function createCashAdvance(travelRequest) {
+async function createCashAdvance(travelRequest) {
   try {
     axios
       .post(`${CASH_MICROSERVICE_URL}/create-cash-advance`, travelRequest)

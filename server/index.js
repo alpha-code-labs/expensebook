@@ -4,7 +4,11 @@ import dotenv from "dotenv";
 import internalRoutes from './routes/internalRoutes.js'
 import frontendRoutes from './routes/frontendRoutes.js'
 import cors from "cors"
-import { fetchGroupAndPoliciesData } from "./services/onboardingService.js";
+import { statusUpdateBatchJob } from "./scheduler/updateStatus.js";
+import cron from 'node-cron'
+
+
+statusUpdateBatchJob();
 
 dotenv.config();
 const app = express();

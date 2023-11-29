@@ -18,7 +18,7 @@ const getOnboardingAndProfileData = async (req, res) => {
     const onboardingData = await fetchOnboardingData(tenantId, employeeId);
     //const profileData = await fetchProfileData(tenantId, employeeId);
 
-    res.status(200).json({ data: { onboardingData /** , profileData */ } });
+    res.status(200).json(onboardingData /** , profileData */);
   } catch (e) {
     console.error(e);
     res.status(500).json({ message: "Internal server error" });
@@ -51,7 +51,7 @@ const createTravelRequest = async (req, res) => {
     if (!fieldsPresent) {
       return res
         .status(400)
-        .json({ message: "Required headers are not present" });
+        .json({ message: "Bad request. Missing required fields" });
     }
 
     const {
@@ -64,10 +64,16 @@ const createTravelRequest = async (req, res) => {
       travelRequestState,
       travelAllocationHeaders,
       itinerary,
+      tripType,
       travelDocuments,
       approvers,
       preferences,
       travelViolations,
+      isCancelled,
+      cancellationDate,
+      cancellationReason,
+      sentToTrip,
+      isCashAdvanceTaken,
     } = req.body;
 
     if (
@@ -110,15 +116,6 @@ const createTravelRequest = async (req, res) => {
     const travelBookingDate = null;
     const travelCompletionDate = null;
     const travelRequestRejectionReason = null;
-    const travelAndNonTravelPolicies = await fetchGroupAndPoliciesData(
-      tenantId,
-      createdBy.empId
-    );
-    console.log(
-      `tr-Id ${travelRequestId}`,
-      `tr-policies: ${travelAndNonTravelPolicies}`
-    );
-
     const newTravelRequest = new TravelRequest({
       tenantId,
       travelRequestId,
@@ -130,6 +127,7 @@ const createTravelRequest = async (req, res) => {
       teamMembers,
       travelAllocationHeaders,
       itinerary,
+      tripType,
       travelDocuments,
       approvers,
       preferences,
@@ -138,7 +136,11 @@ const createTravelRequest = async (req, res) => {
       travelBookingDate,
       travelCompletionDate,
       travelRequestRejectionReason,
-      travelAndNonTravelPolicies,
+      isCancelled,
+      cancellationDate,
+      cancellationReason,
+      sentToTrip,
+      isCashAdvanceTaken,
     });
 
     //update Travel Request container with newly created travel request
@@ -176,11 +178,11 @@ const getTravelRequest = async (req, res) => {
 
 const validateTravelPolicy = async (req, res) => {
   try {
-    const { type, group, policy, value } = req.params;
+    const { type, groups, policy, value } = req.params;
     //input validation needed
-    console.log(type, group, policy, value)
+    console.log(type, groups, policy, value)
 
-    const validation = await policyValidation(type.toLowerCase(), group.toLowerCase(), policy.toLowerCase(), value.toLowerCase());
+    const validation = await policyValidation(type.toLowerCase(), groups.map(group=>group.toLowerCase()), policy.toLowerCase(), value.toLowerCase());
     console.log(validation)
     return res.status(200).json(validation);
   } catch (e) {
@@ -272,18 +274,8 @@ const updateTravelRequest = async (req, res) => {
 
     const {
       tenantId,
-      createdBy,
-      createdFor,
-      tripPurpose,
       travelRequestStatus,
-      teamMembers,
       travelRequestState,
-      travelAllocationHeaders,
-      itinerary,
-      travelDocuments,
-      approvers,
-      preferences,
-      travelViolations,
     } = req.body;
 
     if(!tenantId || tenantId==null || tenantId == "") {
@@ -330,6 +322,12 @@ const updateTravelRequest = async (req, res) => {
       "approvers",
       "preferences",
       "travelViolations",
+      "isModified",
+      "isCancelled",
+      "cancellationDate",
+      "cancellationReason",
+      "sentToTrip",
+      "isCashAdvanceTaken"
     ];
     
     // Initialize an array to store the updated fields that are present in the request
@@ -348,14 +346,47 @@ const updateTravelRequest = async (req, res) => {
 
     const { travelRequestId } = req.params;
     //validate travelRequestId
+    const travelRequestExists = await TravelRequest.findOne({travelRequestId}, {travelRequestId})
+    if(!travelRequestExists || travelRequestExists.length==0){
+      return res.status(404).json({message: 'Travel Request not found'})
+    }
 
+    //check if cash advance is taken
+    if(req.body.hasOwnProperty('isCashAdvanceTaken')){
+      if(req.body.isCashAdvanceTaken){
+        //send data to cash microservice
+
+      }
+    }
+    
     await TravelRequest.findOneAndUpdate({travelRequestId}, {$set: updatedFields});
+
+    //check for approvers
+    if(travelRequestStatus==='pending approval'){
+      if(req.body.hasOwnProperty(approvers)){
+        if(req.body.approvers.length>0 && r){
+          // might need to 
+          //check with t&e how many approvers should be there
+          //and wether he is selecting correct approvers
+  
+          // send data to approval microservice
+
+          return res.status(200).json({message: 'Travel Request submitted for approval'})
+        }
+      }
+    }
+
+    if(travelRequestStatus==='pending booking'){
+      return res.status(200).json({message: 'Travel Request submitted for booking'})
+    }
+
     return res.status(200).json({ message: "Travel Request updated" });
   } catch (e) {
     console.error(e);
     return res.status(500).json({ message: "Internal server error" });
   }
 };
+
 
 const handoverToCash = async (req, res) => {
   try {

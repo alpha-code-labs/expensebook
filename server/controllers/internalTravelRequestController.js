@@ -1,4 +1,5 @@
 import TravelRequest from "../models/travelRequest.js";
+import HRMaster from "../models/hrMaster.js";
 
 const getTravelRequestStatus = async (req, res) => {
   try {
@@ -142,10 +143,54 @@ const updateTravelRequest = async (req, res) => {
   }
 };
 
+const updateOnboardingContainer = async (req, res) => {
+  //this is an internal request to update/create HRMaster. so trusting it fully and proceeding without validations
+  try{
+    const {hrMasterData} = req.body
+    if(hrMasterData==undefined || hrMasterData==null){
+      res.status(400).json({message:'Bad Request, missing hr data in request body'})
+      return
+    }
+
+    const tenantId = hrMasterData?.tenantId
+
+    if(!tenantId){
+      res.status(400).json({message:'Bad Request, data missing tenantId'})
+      return
+    }
+    //check if tenant already exists
+    console.log('finding tenant')
+    const tenant = await HRMaster.find({tenantId}, {tenantId:1})
+
+    //sanitize data
+    delete hrMasterData._id
+    delete hrMasterData._v
+
+    if(!tenant || tenant.length===0){
+      console.log('tenant doe not exists')
+      //create new tenant entry
+      const newHRMaster = new HRMaster({...hrMasterData})
+      await newHRMaster.save()
+      res.status(201).json({message:'tenant Hr Data added to database'})
+    }
+    else{
+      console.log('tenant exists', tenant)
+      //update tenant
+      const updatedTenant = await HRMaster.findOneAndUpdate({tenantId}, {...hrMasterData}, {new:true})
+      console.log(updatedTenant)
+      res.status(200).json({message:'tenant Hr Data updated'})
+    }
+
+  }catch(e){
+    console.log(e)
+  }
+}
+
 export {
   getTravelRequest,
   updateTravelRequest,
   getTravelRequestStatus,
   updateTravelRequestStatus,
   getTravelRequests,
+  updateOnboardingContainer,
 };
