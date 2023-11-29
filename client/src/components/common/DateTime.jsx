@@ -24,10 +24,12 @@ export default function DateTime(props){
     const [minutes, setMinutes] = useState(time.split(':')[1])
     const [suffix, setSuffix] = useState(time.split(':')[0]>=12? 'PM' : 'AM')
     const error = props.error || {set:false, message:''}
+    const [dateSelected, setDateSelected] = useState(false)
 
     const handleDateChange= (e)=>{
        setDateValue(e.target.value)
        console.log(e.target.value)
+       setDateSelected(true)
        onDateChange(e)
     }
 
@@ -76,7 +78,7 @@ return(<>
     </div>
 
     <div className="absolute text-xs left-0 px-6 w-full top-[137px] text-red-600">
-        {error.set && error.message}
+        {error.set && !dateSelected && error.message}
     </div>
 </div>
     </>)

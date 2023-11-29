@@ -10,9 +10,32 @@ import InputPercentage from '../../components/common/InputPercentage'
 import Checkbox from '../../components/common/Checkbox'
 import TableItem from '../../components/table/TableItem'
 import { postTravelRequest_API, updateTravelRequest_API, policyValidation_API } from '../../utils/api'
+import CloseButton from '../../components/common/closeButton'
+import PopupMessage from '../../components/common/PopupMessage'
 
+const travelAllocation = [
+    {
+      headerName: "circles",
+      headerValues: [
+        "North India",
+        "South India",
+        "Central India"
+      ],
+    },
+    {
+      headerName: "department",
+      headerValues: [
+        "HR",
+        "Finance",
+        "Engineering",
+        "Marketing"
+      ],
+    }
+  ]
 
 export default function BasicDetails(props){
+
+    const DASHBOARD_URL = import.meta.env.VITE_DASHBOARD_URL
     
     //onboarding data...
     const onBoardingData = props.onBoardingData
@@ -25,6 +48,10 @@ export default function BasicDetails(props){
     const tripPurposeOptions = onBoardingData?.tripPurposeOptions
     const delegatedFor = onBoardingData?.delegatedFor
 
+    //popup message
+    const [showPopup, setshowPopup] = useState(false)
+    const [popupMessage, setPopupMessage] = useState(null)
+    
     //form data
     const formData = props.formData
     const setFormData = props.setFormData
@@ -39,6 +66,7 @@ export default function BasicDetails(props){
     //get this as props
     const EMPLOYEE_ID  = props.EMPLOYEE_ID || '123'
     const group = props.group || 'group 1'
+
     //get this from onboarding....
     const teamMembers = props.teamMembers || [{name: 'Aman Bhagel', empId: '204', designation: 'Sales Executive'}, {name: 'Vikas Rajput', empId: '245', designation:'System Engineer II'}, {name: 'Rahul Suyush Singh', empId: '318', designation:'Sr. Software Engineer'}, {name: 'Vilakshan Vibhut Giri Babaji Maharaj', empId: '158', designation:'Sr. Sales Executive'}]
     
@@ -47,6 +75,7 @@ export default function BasicDetails(props){
     const [errors, setErrors] = useState({tripPurposeError:{set:false, message:'Trip Purpose is required'}, approversError:{set:false, message:'Please select approvers'}})
     
     const navigate = useNavigate()
+
 
     const handleContinueButton = async ()=>{
         console.log(sectionForm)
@@ -113,7 +142,92 @@ export default function BasicDetails(props){
                 navigate(nextPage)
             }
         }
+    }
 
+    const handleSaveAsDraft = async ()=>{
+        console.log(sectionForm)
+        console.log(formData)
+        let allowSubmit = false
+        //check required fields
+        async function checkRequiredFields(){
+            return new Promise((resolve, reject)=>{
+                
+                if(formData.tripPurpose==null){
+                    setErrors(pre=>{
+                        return {...pre, tripPurposeError:{...pre.tripPurposeError, set:true}}
+                    })
+                }
+                else{
+                    setErrors(pre=>{
+                        return {...pre, tripPurposeError:{...pre.tripPurposeError, set:false}}
+                    })
+                }
+        
+                if(!formData?.approvers?.length>0){
+                    setErrors(pre=>{
+                        return {...pre, approversError:{...pre.approversError, set:true}}
+                    })
+                } 
+                else{
+                    setErrors(pre=>{
+                        return {...pre, approversError:{...pre.approversError, set:false}}
+                    })
+                }    
+
+                if(formData.tripPurpose==null || (APPROVAL_FLAG && formData?.approvers?.length==0)){
+                    allowSubmit = false
+                }
+                else allowSubmit = true
+
+                resolve()
+            })
+            }
+            
+            await checkRequiredFields()
+    
+            if(allowSubmit){
+                if(!formData.travelRequestId){
+                    const travelRequestId = await postTravelRequest_API({...formData, travelRequestState:'section 0', travelRequestStatus:'draft', tenantId:144,  })
+                    
+                    console.log(travelRequestId, 'travel request id')
+                    const formData_copy = JSON.parse(JSON.stringify(formData))
+                    formData_copy.travelRequestId = travelRequestId
+                    setFormData(formData_copy)
+    
+                    if(travelRequestId){
+                        //show popup
+                        
+                        setPopupMessage(`Your travel request with ID ${travelRequestId} has been submitted successfull`)
+                        setshowPopup(true)
+
+                        setTimeout(()=>{
+                            setshowPopup(false)
+                            setPopupMessage(null)
+                            // navigate to dashboard after 5 seconds
+                            //navigate(DASHBOARD_URL)
+                        },5000)
+                    }
+                    else{
+                        //show server error
+                        console.log('server error')
+                    }
+                }
+                else{
+                    const res = await updateTravelRequest_API({...formData, travelRequestState:'section 0', travelRequestStatus:'draft', tenantId:formData.tenantId,  })
+                    console.log(res, 'res')
+                    //do some error handling if updation fails
+                    setPopupMessage(`Your travel request with ID ${formData.travelRequestId} has been submitted successfull`)
+                    setshowPopup(true)
+
+                    setTimeout(()=>{
+                        setshowPopup(false)
+                        setPopupMessage(null)
+                        // navigate to dashboard after 5 seconds
+                        //navigate(DASHBOARD_URL)
+                    },5000)
+                }
+            }
+        
     }
 
     useEffect(()=>{
@@ -233,7 +347,6 @@ export default function BasicDetails(props){
     const [selectedTravelAllocationHeaders, setSelectedTravelAllocationHeaders] = useState(formData.travelAllocationHeaders)
     //team member state 
     const [selectedTeamMembers, setSelectedTeamMembers] = useState(formData?.teamMembers?.map(item=>item.empId))
-        
     
     useEffect(()=>{
         console.log(formData.teamMembers)
@@ -307,12 +420,12 @@ export default function BasicDetails(props){
     
     }
 
-    const handleAllocationHeaderSelect = (option)=>{
+    const handleAllocationHeaderSelect = (headerName, option)=>{
         let optionPresent = false
         
         if(selectedTravelAllocationHeaders && selectedTravelAllocationHeaders.length>0){
             selectedTravelAllocationHeaders.forEach(item=>{
-                if(item.department.toLowerCase() == option.toLowerCase() ){
+                if(item.headerName.toLowerCase() === headerName.toLowerCase() && item.headerValue.toLowerCase() == option.toLowerCase() ){
                     optionPresent=true
                     return
                 }
@@ -320,11 +433,14 @@ export default function BasicDetails(props){
         }
         
         if(!optionPresent){
-            setSelectedTravelAllocationHeaders((pre)=>[...pre, {department:option, percentage:''}])
+            setSelectedTravelAllocationHeaders((pre)=>[...pre, {headerName, headerValue:option, percentage:''}])
         }
         
     }
 
+    const removeAllocationItem = (item)=>{
+        setSelectedTravelAllocationHeaders((pre)=>pre.filter(presentItem=>JSON.stringify(presentItem)!=JSON.stringify(item)))
+    }
 
     useEffect(()=>{
         //update form data
@@ -340,7 +456,6 @@ export default function BasicDetails(props){
         travelAllocationHeaders: selectedTravelAllocationHeaders,
         approvers: formData.approvers
     }
-
 
     return(<>
         <div className="w-full h-full relative bg-white md:px-24 md:mx-0 sm:px-0 sm:mx-auto py-12 select-none">
@@ -407,15 +522,22 @@ export default function BasicDetails(props){
 
                 {/* allocating travel budget... will be displayed if travel allocation headers are present */}
                 { ALLOCATION_HEADER && <div>
-                    <p className='text-base font-medium text-neutral-700 font-cabin'>Select responsible departments for this journey.</p>
-                    <div className='mt-8'>
-                        <Select
-                            options={travelAllocationHeaders}
-                            onSelect = {(option)=>{handleAllocationHeaderSelect(option)}}
-                            placeholder='Select department' 
-                            title='Select department' />
-                    </div>
+                    <p className='text-base font-medium text-neutral-700 font-cabin'>Allocate travel.</p>
                     
+                    <div className='mt-8 flex flex-wrap gap-4'>
+                        {travelAllocation.map((header, index)=>{
+                            return(
+                                <>
+                                <Select
+                                    options={travelAllocation[index].headerValues}
+                                    onSelect = {(option)=>{handleAllocationHeaderSelect(travelAllocation[index].headerName, option)}}
+                                    placeholder={`Select ${travelAllocation[index].headerName}`} 
+                                    title={travelAllocation[index].headerName} />
+                                </>
+                            )
+                        })}
+                    </div>      
+                                  
                     { selectedTravelAllocationHeaders && selectedTravelAllocationHeaders.length == 0 && 
                     <div className='mt-6 flex gap-4'>
                         <input type='radio' />
@@ -424,16 +546,17 @@ export default function BasicDetails(props){
                     
                     {selectedTravelAllocationHeaders && selectedTravelAllocationHeaders.length>0 &&
                         <div className='mt-8'>
-                        <p className='text-base font-medium text-neutral-700 font-cabin'>Allocate percentage for selected department</p>
+                        <p className='text-base font-medium text-neutral-700 font-cabin'>Allocate percentage</p>
                         <div className='flex gap-4 items-center flex-wrap'>
                             {selectedTravelAllocationHeaders && selectedTravelAllocationHeaders.map((item,index)=> 
-                                <div className='mt-4 border border-white hover:border-gray-100'>
+                                <div className='mt-4 flex  gap-2'>
                                     <InputPercentage 
                                     key={index}
-                                    title={item.department} 
+                                    title={`${item.headerName} > ${item.headerValue}`} 
                                     textInput={item.percentage}
                                     onBlur={(percentage)=>handleAllocationPercentageChange(percentage, item)}
                                     />
+                                    <CloseButton onClick={()=>removeAllocationItem(item)} />
                                 </div> )}
                         </div>
                     </div>}
@@ -475,14 +598,19 @@ export default function BasicDetails(props){
                     </div>}
 
                 </div>}
-                        
-                <div className='my-8 w-[134px] float-bottom float-right'>
+             
+                <div className='my-8 w-full flex justify-between items-center'>
+                    <Button variant='fit' text='Save as Draft' onClick={handleSaveAsDraft}/>
+                
                     <Button 
+                        variant='fit'
                         text='Continue' 
                         onClick={handleContinueButton} />
+                </div>
+                    
                 </div> 
             </div>
-        </div>
+        <PopupMessage message={popupMessage} showPopup={showPopup} setshowPopup={setshowPopup} />
     </>)
 }
 

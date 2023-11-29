@@ -2,42 +2,136 @@ import Select from "../../components/common/Select"
 import Date from "../../components/common/Date"
 import ShowCabDates from "../../components/common/showCabDates"
 import Checkbox from "../../components/common/Checkbox"
+import Transfers from "./Transfers"
+import AddMore from "../../components/common/AddMore"
+import { policyValidation_API } from "../../utils/api"
+import { useState, useEffect } from "react"
+import CloseButton from "../../components/common/closeButton"
 
 
-export default function Cabs(props){
+export default function Cabs({
+    itemIndex,
+    formData,
+    setFormData,
+    allowedCabClass,
+    groups,
+    type,
+    cabsError,
+}){
 
-    const allowedCabClass = props.allowedCabClass
-    const cabClass = props.cabClass
-    const handleCabClassChange = props.handleCabClassChange
-    const cabClassViolationMessage = props.cabClassViolationMessage
-    const needsFullDayCab = props.needsFullDayCab
-    const setNeedsFullDayCab = props.setNeedsFullDayCab
-    const cabDates = props.cabDates
-    const setCabDates = props.setCabDates
+    const handleCabClassChange = (option, index) => {
+        
+        const formData_copy = JSON.parse(JSON.stringify(formData))
+        formData_copy.itinerary[itemIndex].cabs[index].class = option
+        setFormData(formData_copy)
+
+        policyValidation_API({type, policy:'cab class', value:option, groups:groups})
+        .then(res=>{
+            const formData_copy = JSON.parse(JSON.stringify(formData))
+            formData_copy.itinerary[itemIndex].cabs[index].cabClassViolationMessage = res.violationMessage
+            setFormData(formData_copy)
+            console.log(res.violationMessage)
+        })
+        .catch(err=>console.error('error in policy validation', err))
+           
+    }
+
+    const handleCabDateChange = (date, index) => {
+        const formData_copy = JSON.parse(JSON.stringify(formData))
+        formData_copy.itinerary[itemIndex].cabs[index].date = date
+        setFormData(formData_copy)
+    }
+
+    const handleTimeChange = (e, index) => {
+        const formData_copy = JSON.parse(JSON.stringify(formData))
+        formData_copy.itinerary[itemIndex].cabs[index].prefferedTime = e.target.value
+        setFormData(formData_copy)
+    }
+
+    const handlePickupAddressChange = (e, index) => {
+        const formData_copy = JSON.parse(JSON.stringify(formData))
+        formData_copy.itinerary[itemIndex].cabs[index].pickupAddress = e.target.value
+        setFormData(formData_copy)
+    }
+
+    const handleDropAddressChange = (e, index) => {
+        const formData_copy = JSON.parse(JSON.stringify(formData))
+        formData_copy.itinerary[itemIndex].cabs[index].dropAddress = e.target.value
+        setFormData(formData_copy)
+    }
+
+    const handleNeedsCabChange = (e) => {
+        const formData_copy = JSON.parse(JSON.stringify(formData))
+        formData_copy.itinerary[itemIndex].needsCab = e.target.checked
+        console.log(formData_copy)
+        setFormData(formData_copy)
+    }
+
+    const addCabs = () => {
+        const formData_copy = JSON.parse(JSON.stringify(formData))
+        formData_copy.itinerary[itemIndex].cabs.push({data:null, class:null, pickupAddress:null, dropAddress:null, prefferedTime:null, cabClassViolationMessage:null, isModified:false, isCanceled:false, cancellationDate:null, cancellationReason:null})
+        setFormData(formData_copy)
+    }
+
+    const deleteCab = (e, index) => {
+        console.log(index)
+        const formData_copy = JSON.parse(JSON.stringify(formData))
+        formData_copy.itinerary[itemIndex].cabs = formData_copy.itinerary[itemIndex].cabs.filter((_, i) => i !== index);
+        setFormData(formData_copy)
+    }
 
 
     return(<>
     <div className="flex gap-2 items-center">
                     <p className="text-neutral-700 text-sm font-normal font-cabin">
-                        Will you need a full day cab?
+                        Will you be needing cabs?
                     </p>
-                    <Checkbox checked={needsFullDayCab} onClick={(e)=>{setNeedsFullDayCab(e.target.checked)}} />
+                    <Checkbox checked={formData.itinerary[itemIndex].needsCab} onClick={(e)=>handleNeedsCabChange(e)} />
             </div>
 
-            {needsFullDayCab && 
-            <>
-                <div  className="flex flex-wrap gap-8 mt-8 items-center">
-                        <Date onSelect={(date)=>{setCabDates(pre=>[...pre, date])} } />
-                        {allowedCabClass && allowedCabClass.length>0 && 
-                        <Select options={allowedCabClass}
-                                title='Cab Class'
-                                validRange={{min:null, max:null}}
-                                placeholder='Select cab class'
-                                currentOption={cabClass} 
-                                violationMessage={cabClassViolationMessage}
-                                onSelect={(option)=>handleCabClassChange(option)} />}
-                        <ShowCabDates dates={cabDates} setDates={setCabDates} />
-                    </div>    
+            {formData.itinerary[itemIndex].needsCab && <>
+
+                <div className=''>
+                    {formData.itinerary[itemIndex].cabs.length>0 && formData.itinerary[itemIndex].cabs.map((cab,index)=>{
+                        
+                        console.log(index, cab, 'index cab')
+
+                        return( <div key={index} className="relative mt-4 bt-4 py-4 px-6 border border-gray-200 rounded-xl">
+                            <div  className="flex flex-wrap gap-8 items-center">
+                                <Date value={cab.date} onSelect={(date)=>{handleCabDateChange(date, index)}} error={cabsError[index]?.dateError} />
+                                {allowedCabClass && allowedCabClass.length>0 && 
+                                <Select options={allowedCabClass}
+                                        title='Cab Class'
+                                        validRange={{min:null, max:null}}
+                                        placeholder='Select cab class'
+                                        currentOption={cab.class} 
+                                        violationMessage={cab.cabClassViolationMessage}
+                                        onSelect={(option)=>handleCabClassChange(option, index)} />}
+                                
+                            </div>
+
+                            <div className='mt-8'>
+                            <Transfers
+                                pickupAddress={cab.pickupAddress} 
+                                dropAddress={cab.dropAddress}
+                                transferTime={cab.prefferedTime} 
+                                onTimeChange={(e)=>handleTimeChange(e,index)} 
+                                onPickupAddressChange={(e)=>handlePickupAddressChange(e,index)} 
+                                onDropAddressChange={(e)=>handleDropAddressChange(e,index)} />
+                            </div>
+
+                            <div className='absolute right-2 top-2 md:right-4 md:top-4 '>
+                                <CloseButton onClick={(e)=>deleteCab(e, index)} />
+                            </div>
+                        </div>)
+                    })
+                    }
+                </div>
+
+                <div className="mt-8">
+                    <AddMore text='Add Cab' onClick={addCabs} /> 
+                </div>
+
             </>
             }
     </>)

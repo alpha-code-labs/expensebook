@@ -17,36 +17,37 @@ export default function () {
     //fetch travel request data from backend
     useEffect(()=>{
         axios
-        .get(`${TRAVEL_MICROSERVICE_SERVER_URL}/travel-requests/${travelRequestId}`)
+        .get(`${TRAVEL_API}/travel-requests/${travelRequestId}`)
         .then((response) => {
             console.log(response.data)
             const travelRequestDetails = response.data
            //set form data...
 
            const currentFomData = {
-                travelRequestId: travelRequestDetails.travelRequestId,
-                approvers: travelRequestDetails.approvers,
-                tenantId: travelRequestDetails.tenantId,
-                status: travelRequestDetails.status,
-                state: travelRequestDetails.state,
-                createdBy: travelRequestDetails.createdBy,
-                createdFor: travelRequestDetails.createdFor,
-                travelAllocationHeaders:travelRequestDetails.travelAllocationHeaders,
-                tripPurpose:travelRequestDetails.tripPurpose,
+              travelRequestId: travelRequestDetails.travelRequestId,
+              approvers: travelRequestDetails.approvers,
+              tenantId: travelRequestDetails.tenantId,
+              status: travelRequestDetails.status,
+              state: travelRequestDetails.state,
+              createdBy: travelRequestDetails.createdBy,
+              createdFor: travelRequestDetails.createdFor,
+              travelAllocationHeaders:travelRequestDetails.travelAllocationHeaders,
+              tripPurpose:travelRequestDetails.tripPurpose,
 
-                raisingForDelegator: travelRequestDetails.createdFor === null ? false : true,
-                nameOfDelegator: travelRequestDetails?.createdFor?.name || null,
-                isDelegatorManager: false,
-                selectDelegatorTeamMembers:false,
-                delegatorsTeamMembers:[],
+              raisingForDelegator: travelRequestDetails.createdFor === null ? false : true,
+              nameOfDelegator: travelRequestDetails?.createdFor?.name || null,
+              isDelegatorManager: false,
+              selectDelegatorTeamMembers:false,
+              delegatorsTeamMembers:[],
 
-                bookingForSelf:true,
-                bookiingForTeam:false,
-                teamMembers : travelRequestDetails.teamMembers,
-                travelDocuments: travelRequestDetails.travelDocuments,
-                itinerary: travelRequestDetails.itinerary,
-                preferences:travelRequestDetails.preferences,
-                travelViolations:travelRequestDetails.travelViolations,
+              bookingForSelf:true,
+              bookiingForTeam:false,
+              teamMembers : travelRequestDetails.teamMembers,
+              travelDocuments: travelRequestDetails.travelDocuments,
+              itinerary: travelRequestDetails.itinerary,
+              tripType: travelRequestDetails.tripType,
+              preferences:travelRequestDetails.preferences,
+              travelViolations:travelRequestDetails.travelViolations,
            }
 
            setFormData(currentFomData)
@@ -59,15 +60,18 @@ export default function () {
     },[])
 
 
-  const TRAVEL_MICROSERVICE_SERVER_URL = 'http://localhost:8001/travel/api' 
-  const EMPLOYEE_ID  = '123'
+  const TRAVEL_API = import.meta.env.VITE_TRAVEL_API_URL 
+
+  //hardcoded for now we will get it from dashboard/token
+  const tenantId = 'tynod76eu' 
+  const EMPLOYEE_ID  = '1001' 
   const EMPLOYEE_NAME = 'Abhishek Kumar'
 
 
   const [formData, setFormData] = useState({
     travelRequestId: null,
     approvers: [],
-    tenantId: 144,
+    tenantId:tenantId,
     status: 'draft',
     state: 'section0',
     createdBy: {name: EMPLOYEE_NAME, empId: EMPLOYEE_ID},
@@ -84,19 +88,50 @@ export default function () {
     bookingForSelf:true,
     bookiingForTeam:false,
     teamMembers : [],
-    travelDocuments:[],
-    itinerary: {
-      cities:[{from:null, to:null, departure: {date:null, time:null}, return: {date:null, time:null}}],
-      hotels:[{class:null, checkIn:null, checkOut:null}],
-      cabs:{class:null, dates:[]},
+
+
+    itinerary: [{
+      journey:{
+        from:null, 
+        to:null, 
+        departure:{date:null, time:null, isModified:false, isCanceled:false, cancellationDate:null, cancellationReason:null} , 
+        return:{date:null, time:null, isModified:false, isCanceled:false, cancellationDate:null, cancellationReason:null}
+      },
+      hotels:[{class:null, checkIn:null, checkOut:null, hotelClassViolationMessage:null, isModified:false, isCanceled:false, cancellationDate:null, cancellationReason:null}],
+      cabs:[{date:null, class:null, prefferedTime:null, pickupAddress:null, dropAddress:null, cabClassVioilationMessage:null, isModified:false, isCanceled:false, cancellationDate:null, cancellationReason:null}],
       modeOfTransit:null,
       travelClass:null,
       needsVisa:false,
-      needsAirportTransfer:false,
+      needsBoardingTransfer:false,
+      needsHotelTransfer:false,
+      boardingTransfer:{
+        prefferedTime:null,
+        pickupAddress:null,
+        dropAddress:null, 
+        isModified:false, 
+        isCanceled:false, 
+        cancellationDate:null, 
+        cancellationReason:null
+      },
+      hotelTransfer:{
+        prefferedTime:null,
+        pickupAddress:null,
+        dropAddress:null, 
+        isModified:false, 
+        isCanceled:false, 
+        cancellationDate:null, 
+        cancellationReason:null
+      },
       needsHotel:false,
-      needsFullDayCabs:false,
-      tripType:{oneWayTrip:true, roundTrip:false, multiCityTrip:false}
-    },
+      needsCab:false,
+      isModified:false, 
+      isCanceled:false, 
+      cancellationDate:null, 
+      cancellationReason:null
+    }],
+
+    travelDocuments:[],
+    tripType:{oneWayTrip:true, roundTrip:false, multiCityTrip:false},
     preferences:[],
     travelViolations:{
       tripPurposeViolationMessage:null,
@@ -106,6 +141,8 @@ export default function () {
     },
   })
 
+
+
   const [onBoardingData, setOnBoardingData] = useState()
 
   //flags
@@ -113,10 +150,10 @@ export default function () {
 useEffect(() => {
   
   axios
-    .get(`${TRAVEL_MICROSERVICE_SERVER_URL}/initial-data/144/${EMPLOYEE_ID}`)
+    .get(`${TRAVEL_API}/initial-data/${tenantId}/${EMPLOYEE_ID}`)
     .then((response) => {
-      console.log(response.data.data.onboardingData.onboardingData)
-      setOnBoardingData(response.data.data.onboardingData.onboardingData)
+      console.log(response.data)
+      setOnBoardingData(response.data)
       setLoadingOnboardingData(false)
     })
     .catch(err=>{ 

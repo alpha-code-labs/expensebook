@@ -3,7 +3,7 @@ import Icon from '../../components/common/Icon'
 import { useNavigate } from 'react-router-dom'
 import { formatDate2, formatDate3,  } from "../../utils/handyFunctions"
 import Button from '../../components/common/Button'
-import { updateTravelRequest_API } from '../../utils/api'
+import { updateTravelRequest_API} from '../../utils/api'
 import { useEffect, useState } from 'react'
 import Modal from '../../components/common/Modal'
 import Cities from './Cities'
@@ -20,12 +20,6 @@ export default function (props){
     const [showPopup, setShowPopup] = useState(false)
     const navigate = useNavigate()
     
-    const handleSubmit = () => {
-        //send data to backend
-        updateTravelRequest_API({...formData, travelRequestStatus: formData.approvers?.length>0? 'pending approval' : 'pending booking'})
-        .then(setShowPopup(true))
-    }
-
     useEffect(()=>{
         console.log(showPopup, 'showPopup')
     }, [showPopup])
@@ -33,6 +27,25 @@ export default function (props){
     const handleClose = () => {
         //navigate to section1
         navigate(lastPage)
+    }
+
+    const handleCashAdvance = async (needed)=>{
+        //send data to backend
+        const res = await updateTravelRequest_API({...formData, isCashAdvanceTaken:needed, travelRequestStatus: formData.approvers?.length>0? 'pending approval' : 'pending booking'})
+    
+        if(res.status === 200){
+            if(needed){
+                //redirect to cash microservice
+            }
+            else{
+                //redirect to dashboard
+            }
+        }
+    }
+
+    const handleSaveAsDraft = async ()=>{
+        //send data to backend
+        const res = await updateTravelRequest_API({...formData, travelRequestState:'Section 3', travelRequestStatus: 'draft'})   
     }
 
     return(
@@ -105,10 +118,16 @@ export default function (props){
                     <Preferences preferences={formData.preferences} />
                 </div>
 
-            <div className='my-8 w-[134px] float-bottom float-right'>
+            <div className='my-8 w-full flex justify-between'>
                 <Button 
+                    variant='fit'
+                    text='Save As Draft' 
+                    onClick={handleSaveAsDraft} />
+
+                <Button 
+                    variant='fit'
                     text='Submit' 
-                    onClick={handleSubmit} />
+                    onClick={()=>setShowPopup(true)} />
             </div>
 
                 <Modal showModal={showPopup} setShowModal={setShowPopup} skipable={true}>
@@ -116,8 +135,8 @@ export default function (props){
                         <p className='text-2xl text-neutral-700 font-semibold font-cabin'>Travel Request Submitted !</p>
                         <p className='text-zinc-800 text-base font-medium font-cabin mt-4'>Would you like to raise a cash advance request for this trip?</p>
                         <div className='flex gap-10 justify-between mt-10'>
-                            <Button text='Yes' />
-                            <Button text='No'  />
+                            <Button text='Yes' onClick={()=>handleCashAdvance(true)} />
+                            <Button text='No' onClick={()=>CashAdvance(false)} />
                         </div>
                     </div>
                 </Modal>
@@ -126,3 +145,5 @@ export default function (props){
         </div>
     )
 }
+
+

@@ -8,15 +8,16 @@ import Review from "./review/Review"
 
 export default function () {
   
-  const TRAVEL_MICROSERVICE_SERVER_URL = 'http://localhost:8001/travel/api' 
-  const EMPLOYEE_ID  = '123'
+  const TRAVEL_API = import.meta.env.VITE_TRAVEL_API_URL 
+  const EMPLOYEE_ID  = '1001'
+  const tenantId = 'tynod76eu'
   const EMPLOYEE_NAME = 'Abhishek Kumar'
 
 
   const [formData, setFormData] = useState({
     travelRequestId: null,
     approvers: [],
-    tenantId: 144,
+    tenantId:tenantId,
     status: 'draft',
     state: 'section0',
     createdBy: {name: EMPLOYEE_NAME, empId: EMPLOYEE_ID},
@@ -33,19 +34,50 @@ export default function () {
     bookingForSelf:true,
     bookiingForTeam:false,
     teamMembers : [],
-    travelDocuments:[],
-    itinerary: {
-      cities:[{from:null, to:null, departure: {date:null, time:null}, return: {date:null, time:null}}],
-      hotels:[{class:null, checkIn:null, checkOut:null}],
-      cabs:{class:null, dates:[]},
+
+
+    itinerary: [{
+      journey:{
+        from:null, 
+        to:null, 
+        departure:{date:null, time:null, isModified:false, isCanceled:false, cancellationDate:null, cancellationReason:null} , 
+        return:{date:null, time:null, isModified:false, isCanceled:false, cancellationDate:null, cancellationReason:null}
+      },
+      hotels:[{class:null, checkIn:null, checkOut:null, hotelClassViolationMessage:null, isModified:false, isCanceled:false, cancellationDate:null, cancellationReason:null}],
+      cabs:[{date:null, class:null, prefferedTime:null, pickupAddress:null, dropAddress:null, cabClassVioilationMessage:null, isModified:false, isCanceled:false, cancellationDate:null, cancellationReason:null}],
       modeOfTransit:null,
       travelClass:null,
       needsVisa:false,
-      needsAirportTransfer:false,
+      needsBoardingTransfer:false,
+      needsHotelTransfer:false,
+      boardingTransfer:{
+        prefferedTime:null,
+        pickupAddress:null,
+        dropAddress:null, 
+        isModified:false, 
+        isCanceled:false, 
+        cancellationDate:null, 
+        cancellationReason:null
+      },
+      hotelTransfer:{
+        prefferedTime:null,
+        pickupAddress:null,
+        dropAddress:null, 
+        isModified:false, 
+        isCanceled:false, 
+        cancellationDate:null, 
+        cancellationReason:null
+      },
       needsHotel:false,
-      needsFullDayCabs:false,
-      tripType:{oneWayTrip:true, roundTrip:false, multiCityTrip:false}
-    },
+      needsCab:false,
+      isModified:false, 
+      isCanceled:false, 
+      cancellationDate:null, 
+      cancellationReason:null
+    }],
+
+    travelDocuments:[],
+    tripType:{oneWayTrip:true, roundTrip:false, multiCityTrip:false},
     preferences:[],
     travelViolations:{
       tripPurposeViolationMessage:null,
@@ -61,10 +93,10 @@ export default function () {
   
 useEffect(() => {
   axios
-    .get(`${TRAVEL_MICROSERVICE_SERVER_URL}/initial-data/144/${EMPLOYEE_ID}`)
+    .get(`${TRAVEL_API}/initial-data/${tenantId}/${EMPLOYEE_ID}`)
     .then((response) => {
-      console.log(response.data.data.onboardingData.onboardingData)
-      setOnBoardingData(response.data.data.onboardingData.onboardingData)
+      console.log(response.data)
+      setOnBoardingData(response.data)
     })
     .catch(err=>{ 
       console.error(err)

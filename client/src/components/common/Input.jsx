@@ -9,10 +9,14 @@ export default function Input(props){
     const inputRef = useRef(null)
     const [textInput, setTextInput] = useState(value? titleCase(value) : '')
     const error = props.error || {set:false, message:''}
+    const [inputEntered, setInputEntered] = useState(false)
     
     const handleChange = (e)=>{
         e.preventDefault()
         setTextInput(e.target.value)
+        if(e.target.value == '')
+            setInputEntered(false)
+        else setInputEntered(true)
     }
 
     const handleBlur= (e)=>{
@@ -41,7 +45,7 @@ export default function Input(props){
                 </div>
 
                 <div className="absolute text-xs text-red-600 left-0 px-6 top-[44px]">
-                    {error.set && error.message}
+                    {error.set && !inputEntered && error.message}
                 </div>
             </div>
 

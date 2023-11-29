@@ -3,62 +3,82 @@ import DateTime from "../../components/common/DateTime"
 import AddMore from "../../components/common/AddMore"
 
 
-export default function Cities(props){
+export default function Cities({
+    itemIndex,
+    formData,
+    setFormData,
+    citiesError,
+}){
 
-    const cities = props.cities || []
-    const handleTimeChange = props.handleTimeChange
-    const handleDateChange = props.handleDateChange
-    const updateCity = props.updateCity
-    const oneWayTrip = props.oneWayTrip
-    const roundTrip = props.roundTrip
-    const multiCityTrip = props.multiCityTrip
-    const addCities = props.addCities
-    const citiesError = props.citiesError || []
+    console.log(formData)
 
-    console.log(citiesError[0]?.fromError, 'citiesError')
+    const from = formData.itinerary[itemIndex].journey.from
+    const to = formData.itinerary[itemIndex].journey.to
+    const departureDate = formData.itinerary[itemIndex].journey.departure.date
+    const departureTime = formData.itinerary[itemIndex].journey.departure.time
+    const returnDate = formData.itinerary[itemIndex].journey.return.date
+    const returnTime = formData.itinerary[itemIndex].journey.return.time
+
+    const roundTrip = formData.tripType.roundTrip
+   
+
+    const updateCity = (e, field)=>{
+        const formData_copy = JSON.parse(JSON.stringify(formData))
+        formData_copy.itinerary[itemIndex].journey[field] = e.target.value
+        setFormData(formData_copy)
+    }
+
+    const handleTimeChange = (e, field)=>{
+        const formData_copy = JSON.parse(JSON.stringify(formData))
+        formData_copy.itinerary[itemIndex].journey[field].time = e.target.value
+        setFormData(formData_copy)
+      }
+    
+    const handleDateChange = (e, field)=>{
+        const formData_copy = JSON.parse(JSON.stringify(formData))
+        formData_copy.itinerary[itemIndex].journey[field].date = e.target.value
+        setFormData(formData_copy)
+    }
 
 
     return(<>
-           {cities.map((city,index)=>
-                <div key={index} className="mt-8 flex gap-8 items-center flex-wrap">
+           
+                <div className="mt-8 flex gap-8 items-center flex-wrap">
                     <Input 
                         title='From'  
                         placeholder='City' 
-                        value={city.from}
-                        error={citiesError[index]?.fromError} 
-                        onBlur={(e)=>updateCity(e, index, 'from')} />
+                        value={from}
+                        error={citiesError?.fromError} 
+                        onBlur={(e)=>updateCity(e, 'from')} />
 
                     <Input 
                         title='To' 
                         placeholder='City' 
-                        value={city.to} 
-                        error={citiesError[index]?.toError}
-                        onBlur={(e)=>updateCity(e, index, 'to')} />
+                        value={to} 
+                        error={citiesError?.toError}
+                        onBlur={(e)=>updateCity(e, 'to')} />
 
                     <DateTime 
-                        error={citiesError[index]?.departureDateError}
+                        error={citiesError?.departureDateError}
                         title='Departure Date'
                         validRange={{min:null, max:null}}
-                        time = {city?.departure?.time? city?.departure?.time : '11:00' }
-                        date={city?.departure?.date}
-                        onTimeChange={(e)=>handleTimeChange(e, index, 'departure')}
-                        onDateChange={(e)=>handleDateChange(e, index, 'departure')} />
+                        time = {departureTime}
+                        date={departureDate}
+                        onTimeChange={(e)=>handleTimeChange(e, 'departure')}
+                        onDateChange={(e)=>handleDateChange(e, 'departure')} />
 
-                    {!oneWayTrip && 
+                    {roundTrip &&  
                     <DateTime
-                        error={citiesError[index]?.returnDateError}
+                        error={citiesError?.returnDateError}
                         title='Return Date'
                         validRange={{min:null, max:null}}
-                        time = {city?.return?.time? city?.departure?.time : '11:00' }
-                        date={city?.return?.date}
-                        onTimeChange={(e)=>handleTimeChange(e, index, 'return')}
-                        onDateChange={(e)=>handleDateChange(e, index, 'return')} 
+                        time = {returnTime}
+                        date={returnDate}
+                        onTimeChange={(e)=>handleTimeChange(e, 'return')}
+                        onDateChange={(e)=>handleDateChange(e, 'return')} 
                         />}
 
-                </div>)}
+                </div>
 
-                {multiCityTrip && <div className="mt-8">
-                    <AddMore onClick={addCities} /> 
-                </div>}
     </>)
 }
