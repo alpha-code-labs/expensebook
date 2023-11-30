@@ -1,21 +1,42 @@
-import axios from 'axios';
-const CASH_ADVANCE_SERVER_URL ='http://localhost:8080/cash-advance/api'
-const travelRequestId = 'tenant123_emp000079_tr_001'
+import axios from "axios";
+import policies from '../../src/assets/policies.json'
 
 
-async function createCashAdvanceAPI(data) {
-  await axios.post(`${CASH_ADVANCE_SERVER_URL}/create-cash-advance/${travelRequestId}`, data);
+const TRAVEL_API_URL = import.meta.env.VITE_TRAVEL_API_URL
+
+
+async function postTravelRequest_API(data){
+    let travelRequestId = null
+
+    await axios.post(`${TRAVEL_API_URL}/travel-request`, data).
+    then((res) => { console.log(res); travelRequestId = res.data.travelRequestId }).
+    catch((err) => { console.log(err) });
+
+    return travelRequestId;
 }
 
-async function getTravelRequestDetails(data){
-  
+async function updateTravelRequest_API(data){
+    let response = null
+
+    await axios.patch(`${TRAVEL_API_URL}/travel-requests/${data.travelRequestId}`, data).
+    then((res) => { console.log(res); response = res.data }).
+    catch((err) => { console.log(err) });
+
+    return response;
+}
+
+
+async function policyValidation_API(data){
+  const {type, group, policy, value} = data;
   let response = null
-  await axios.get(`${CASH_ADVANCE_SERVER_URL}/get-travel-request/${travelRequestId}`).
+
+  await axios.get(`${TRAVEL_API_URL}/validate-policy/${type}/${group}/${policy}/${value}`).
   then((res) => { console.log(res); response = res.data }).
-  catch((error) => { console.log(error) });
+  catch((err) => { console.log(err) });
 
   return response;
 }
 
-export {getTravelRequestDetails , createCashAdvanceAPI}
+export { postTravelRequest_API, updateTravelRequest_API, policyValidation_API};
+
 

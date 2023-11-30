@@ -1,8 +1,10 @@
 import travelRequestsJsonData from "../dummyData/dummyData.js";
 import { policiesData } from '../dummyData/cashAdvancePolicy.js';
 import  createCashAdvanceId  from "../utils/createCashAdvanceId.js";
+import axios from 'axios'
 
 import CashAdvance from '../models/cashSchema.js';
+
 const getTravelRequest= async(req,res)=>{
   try{
     const {travelRequestId}=req.params
@@ -156,7 +158,6 @@ const getCashAdvances= async (req, res) => {
       return res.status(201).json({ message: "Cash Advance is not in Inbox" });
     }
     
-
     return res.status(200).json({ cashAdvanceRequests });
   } catch (error) {
     console.error(error);
@@ -165,4 +166,6 @@ const getCashAdvances= async (req, res) => {
 }
 
 
-export { createCashAdvance ,getCashAdvances,getTravelRequest };
+
+
+export { createCashAdvance ,getCashAdvances, getTravelRequest };
