@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import travelRequestSchema from './travelRequest.js';
 
 const cashAdvanceStatusEnum = [
   'draft',
@@ -8,6 +9,8 @@ const cashAdvanceStatusEnum = [
   'awaiting pending settlement',
   'pending settlement',
   'paid',
+  'cancelled',
+  'paid and cancelled'
 ];
 
 const cashAdvanceStateEnums = [
@@ -17,59 +20,88 @@ const cashAdvanceStateEnums = [
   'section 3',
 ];
 
+const approverStatusEnums = [
+  'pending approval',
+  'approved',
+  'rejected',
+];
 
 
-// Define the Cash Advance schema with a reference to Travel Request
+
 const cashAdvanceSchema = new mongoose.Schema({
   tenantId: {
     type: String,
     required: true,
   },
+  tenantName: {
+    type: String,
+  },
+  companyName: {
+    type: String,
+  },
   travelRequestId: {
-    type: process.env.NODE_ENV === 'production' ? mongoose.Schema.Types.ObjectId : String,
-    ref: 'TravelRequest',
-  },
-  cashAdvanceId: {
-    type : String,
-    unique:true,
-    required:true
-  },
-  createdBy:{
-    type: String,  //employee Id by whom CA is raised 
-    required: true
-  },
-  cashAdvanceStatus: {
-    type: String,
-    enum: cashAdvanceStatusEnum,
-    required: true,
-    default: 'draft'
-    
-  },
-  cashAdvanceState: {
-    type: String,
-    enum: cashAdvanceStateEnums,
-    default: 'section 0',
-    required: true,
-  },
-  amountDetails: [
+      type: String,
+    },
+  embeddedTravelRequest:  {
+      type: travelRequestSchema, 
+      required: true,
+    },
+  cashAdvances: [
     {
-      amount: Number,
-      currency: String,
-      mode: String,
+      tenantId: {
+        type: String,
+        required: true,
+      },
+      travelRequestId: {
+        type: String,
+        required: true,
+      },
+      cashAdvanceId: {
+        type: String,
+        unique: true,
+        required: true,
+      },
+      createdBy: {
+          empId: String,
+          name: String,
+      },
+      cashAdvanceStatus: {
+        type: String,
+        enum: cashAdvanceStatusEnum,
+        required: true,
+        default: 'draft',
+      },
+      cashAdvanceState: {
+        type: String,
+        enum: cashAdvanceStateEnums,
+        default: 'section 0',
+        required: true,
+      },
+      amountDetails: [
+        {
+          amount: Number,
+          currency: String,
+          mode: String,
+        },
+      ],
+      approvers: [
+        {
+          empId: String,
+          name: String,
+          status: {
+            type: String,
+            enum: approverStatusEnums,
+          },
+        },
+      ],
+      cashAdvanceRequestDate: Date,
+      cashAdvanceApprovalDate: Date,
+      cashAdvanceSettlementDate: Date,
+      cashAdvanceViolations: [String],
+      cashAdvanceRejectionReason: String,
     },
   ],
-  approvers: [{type:Object}], ///mention like {empId:string , name: string}
-  cashAdvanceRequestDate: Date,
-  cashAdvanceApprovalDate: Date,
-  cashAdvanceSettlementDate: Date,
-  cashAdvanceViolations: [String],
-  cashAdvanceRejectionReason: String,
-  additionalCashAdvanceField: String,
-   embeddedTravelRequest: {
-    type: Object
-  },
 });
-
 
 const CashAdvance = mongoose.model('CashAdvance', cashAdvanceSchema);
 
