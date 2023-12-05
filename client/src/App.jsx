@@ -1,28 +1,21 @@
-import { useState } from 'react'
+import {BrowserRouter as Router, Routes, Route} from 'react-router-dom'
 import './App.css'
-import { BrowserRouter,Route,Routes } from 'react-router-dom'
-import ViewTrip from './components/ViewTrip';
-import EditCash from './pages/EditCash';
-import EditTravelRequest from './pages/EditTravelRequest';
-import UpcomingTrips from './pages/UpcomingTrips';
-import ModifyTripSubmitted  from './components/ModifyTripSubmitted';
+import CancelTrip from './pages/CancelTrip'
+import TripRecovery from './pages/TravelRecovery'
 
 
 function App() {
-  const [count, setCount] = useState(0)
 
   return (
-    <div>
-    <BrowserRouter>
+    <>
+    <Router>
       <Routes>
-        <Route path='/' element={<ViewTrip />}/>
-        <Route path='/modifyTripSubmitted' element={<ModifyTripSubmitted />}/>
-        <Route path='/upcomingTrips' element={<UpcomingTrips />}/>
-        <Route path='/editCash' element={<EditCash />}/>
-        <Route path='/editTravelRequest' element={<EditTravelRequest />}/>
+        {/* direct pass the URl */}
+        <Route path='/api/:tenandId/:empId/trips/:tripId' element={<CancelTrip />} />
+        <Route path='/api/:tenandId/:travelAdmin/trips/cancel/:tripId' element={<TripRecovery/>} />
       </Routes>
-    </BrowserRouter>
-    </div>
+    </Router>
+    </>
   )
 }
 
