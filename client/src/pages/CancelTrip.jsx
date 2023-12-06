@@ -8,9 +8,15 @@ import CabDetails from '../itinerary/CabDetails';
 import HotelDetails from '../itinerary/HotelDetails';
 
 
-
-
 const CancelTrip = () => {
+
+  const routeData={
+    tenantId: TravelRequestData.tenantId,
+    tripId: TravelRequestData.travelRequestId,
+    empId: TravelRequestData.createdFor.empId
+   }
+
+   console.log(routeData)
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   // Open modal
@@ -24,11 +30,6 @@ const CancelTrip = () => {
     setIsModalOpen(false);
   };
 
-  // // Confirm action
-  // const handleConfirm = () => {
-  //   // Handle the confirmation logic
-  //   console.log('Confirmed');  
-  // };
 
   // Cancel action
   const handleCancel = () => {
@@ -97,8 +98,8 @@ const CancelTrip = () => {
   const extractCabs = (journey) => journey.cabs || [];
 
   // Create arrays for hotels and cabs by mapping over the itinerary
-  const allHotels = TravelRequestData.itinerary.flatMap(extractHotels);
-  const allCabs = TravelRequestData.itinerary.flatMap(extractCabs);
+  // const allHotels = TravelRequestData.itinerary.flatMap(extractHotels);
+  // const allCabs = TravelRequestData.itinerary.flatMap(extractCabs);
 
   // Itinerary tabs
   const itinerary = ['flight', 'hotel', 'cab Rental', 'bus', 'train'];
@@ -110,14 +111,14 @@ const CancelTrip = () => {
     setActiveTab(tab.toLowerCase());
   };
 
-  const cancelHandler = (itinerary) => {
-    const { itineraryId, status } = itinerary.departure;
+  // const cancelHandler = (itinerary) => {
+  //   const { itineraryId, status } = itinerary.departure;
 
-    // Log itineraryId and status
-    console.log('Cancelled Itinerary ID:', itineraryId);
-    console.log('Cancelled Status:', status);
+  //   // Log itineraryId and status
+  //   console.log('Cancelled Itinerary ID:', itineraryId);
+  //   console.log('Cancelled Status:', status);
 
-  };
+  // };
 
   // Action button text
   const actionBtnText = 'Cancel';
@@ -126,15 +127,15 @@ const CancelTrip = () => {
   const renderScreen = () => {
     switch (activeTab) {
       case 'flight':
-        return <ItineneryDetails airplane={extractedFlightItinerary} icon={airplane_1} preferences={preferences} cancelHandler={cancelHandler} actionBtnText={actionBtnText}/>;
+        return <ItineneryDetails airplane={extractedFlightItinerary} icon={airplane_1} preferences={preferences}  actionBtnText={actionBtnText} routeData={routeData}/>;
       case 'hotel':
-        return <HotelDetails allHotel={extractHotels} travelRequest={TravelRequestData} actionBtnText={actionBtnText} />;
+        return <HotelDetails allHotel={extractHotels} travelRequest={TravelRequestData} actionBtnText={actionBtnText} routeData={routeData}/>;
       case 'cab rental':
-        return <CabDetails allCabs={extractCabs} travelRequest={TravelRequestData} actionBtnText={actionBtnText} />;
+        return <CabDetails allCabs={extractCabs} travelRequest={TravelRequestData} actionBtnText={actionBtnText} routeData={routeData}/>;
       case 'bus':
-        return <ItineneryDetails airplane={extractedBusItinerary} icon={bus} preferences={preferences} cancelHandler={cancelHandler} actionBtnText={actionBtnText} />;
+        return <ItineneryDetails airplane={extractedBusItinerary} icon={bus} preferences={preferences}  actionBtnText={actionBtnText} routeData={routeData}/>;
       case 'train':
-        return <ItineneryDetails airplane={extractedTrainItinerary} icon={train} preferences={preferences} cancelHandler={cancelHandler} actionBtnText={actionBtnText} />;
+        return <ItineneryDetails airplane={extractedTrainItinerary} icon={train} preferences={preferences}  actionBtnText={actionBtnText} routeData={routeData}/>;
       default:
         return <ItineneryDetails />;
     }
@@ -170,8 +171,9 @@ const CancelTrip = () => {
             <Modal 
             isOpen={isModalOpen} 
             onClose={handleCloseModal} 
-            itineraryId={TravelRequestData.travelRequestId}
+            // itineraryId={TravelRequestData.travelRequestId}
             content="Are you sure! you want to cancel the Trip?" 
+            routeData={routeData}
             
             // onConfirm={handleConfirm} 
             onCancel={handleCancel} />

@@ -4,7 +4,7 @@ import Modal from "../components/Modal";
 
 
 
-const CabDetails = ({ allCabs , travelRequest , actionBtnText})=>{
+const CabDetails = ({ allCabs , travelRequest , actionBtnText , routeData})=>{
   
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedItineraryId,setSelectedItineraryId]= useState(null)
@@ -18,10 +18,7 @@ const CabDetails = ({ allCabs , travelRequest , actionBtnText})=>{
       setIsModalOpen(false);
     };
 
-  // const handleConfirm = () => {
-  //     // Handle the confirmation logic
-  //     console.log('Confirmed');
-  //   };
+
   
     const handleCancel = () => {
       // Handle the cancellation logic
@@ -118,9 +115,8 @@ const CabDetails = ({ allCabs , travelRequest , actionBtnText})=>{
           isOpen={isModalOpen}
           onClose={handleCloseModal}
           itineraryId={selectedItineraryId}
-          
+          routeData={routeData}
           content="Are you sure ! you want to cancel the cab cancel ?"
-          // onConfirm={handleConfirm}
           onCancel={handleCancel}
         />
     </div>

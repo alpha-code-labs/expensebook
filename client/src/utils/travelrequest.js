@@ -1,8 +1,8 @@
   const TravelRequestData = {
-    tenantId: 'exampleTenantId',
+    tenantId: 'tenantId_87867',
     tenantName: 'Example Tenant',
     companyName: 'Example Company',
-    travelRequestId: 'exampleTenantId_createdBy_tr_#123',
+    travelRequestId: 'TRID_5654XYTRR',
     tripPurpose: 'Business Meeting',
     travelRequestStatus: 'draft',
     tripStatus: 'upcoming',
@@ -12,7 +12,7 @@
       name: 'John Doe',
     },
     createdFor: {
-      empId: 'exampleEmployeeId',
+      empId: 'EMPID_DR565',
       name: 'Jane Doe',
     },
     teamMembers: ['Team Member 1', 'Team Member 2'],

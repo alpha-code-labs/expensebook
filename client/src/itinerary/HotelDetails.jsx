@@ -1,7 +1,7 @@
 import React,{ useState } from "react";
 import { double_arrow ,location } from '../assets/icon'
 import Modal from "../components/Modal";
-const HotelDetails = ({ allHotel , travelRequest ,actionBtnText})=>{
+const HotelDetails = ({ allHotel , travelRequest ,actionBtnText , routeData})=>{
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedItineraryId , setSelectedItineraryId]=useState(null)
@@ -115,7 +115,7 @@ const HotelDetails = ({ allHotel , travelRequest ,actionBtnText})=>{
           onClose={handleCloseModal}
           itineraryId={selectedItineraryId}  
           content="Are you sure ! you want to cancel the hotel Itinerary ?"
-          // onConfirm={handleConfirm}
+          routeData={routeData}
           onCancel={handleCancel}
         />
     </div>

@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
+import { cancelTrip } from '../utils/tripApi';
 
-const Modal = ({ isOpen, onClose, content,  onCancel ,itineraryId }) => {
+const Modal = ({ isOpen, onClose, content,  onCancel ,itineraryId , routeData}) => {
   
   const modalRef = useRef();
   const handleClickOutside = (event) => {
@@ -9,23 +10,59 @@ const Modal = ({ isOpen, onClose, content,  onCancel ,itineraryId }) => {
     }
   };
 
-  const handleConfirm = () => {
-    console.log('Confirmed - ItineraryId:', itineraryId);
+// ...
 
-    // Perform API call or other backend operations with itineraryId
-    // ...
+const handleConfirm = async () => {
+  try {
+    // Assuming you have the correct values for tenantId, empId, and itineraryId
+    const { tenantId, empId, tripId } = routeData;
 
+    if (itineraryId) {
+      // If itineraryId is present, it means cancellation is initiated from the itinerary
+      // You need to obtain the correct tripId from your data
+      await cancelTrip(tenantId, empId, tripId, itineraryId);
+    } else {
+      // If itineraryId is not present, it means cancellation is initiated from the header
+      // You need to obtain the correct tripId from your data
+      await cancelTrip(tenantId, empId, tripId);
+    }
+
+    // If the API call is successful, close the modal
     onClose();
-  };
-  // const handleConfirm = () => {
-  //   onConfirm();
-  
-  //   // Automatically hide the "Request Sent" message after 5 seconds
-    
-  //     onClose();
-  // };
+  } catch (error) {
+    console.error('Error confirming trip:', error.message);
+    // Handle error or show a notification to the user
+  }
+};
 
-  // Close the modal and clear the "Request Sent" message when isOpen changes
+// const handleConfirm = async () => {
+//   try {
+//     // Assuming you have the correct values for tenantId, empId, and itineraryId
+//     const tenantId = routeData.tenantId
+//     const empId = routeData.empId;
+//     const tripId = routeData.tripId
+    
+
+//     if (itineraryId) {
+//       // If itineraryId is present, it means cancellation is initiated from the itinerary
+//        // You need to obtain the correct tripId from your data
+//       await cancelTrip(tenantId, empId, tripId, itineraryId, 'itinerary');
+//     } else {
+//       // If itineraryId is not present, it means cancellation is initiated from the header
+//       // You need to obtain the correct tripId from your data
+//       await cancelTrip(tenantId, empId, tripId, null, 'header');
+//     }
+
+//     // If the API call is successful, close the modal
+//     onClose();
+//   } catch (error) {
+//     console.error('Error confirming trip:', error.message);
+//     // Handle error or show a notification to the user
+//   }
+// };
+
+
+ 
 
 
   return (
@@ -35,11 +72,9 @@ const Modal = ({ isOpen, onClose, content,  onCancel ,itineraryId }) => {
         ref={modalRef}
         className={`relative bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all w-full max-w-md z-20`}
       >
-        <div className="bg-white-100 px-4 pt-5 pb-4 sm:p-6 sm:pb-4 ">
+        <div className="bg-white-100 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
           <div className="flex justify-center items-center text-center font-inter">
-           
-            {  content}
-           
+            {content}
           </div>
         </div>
        
