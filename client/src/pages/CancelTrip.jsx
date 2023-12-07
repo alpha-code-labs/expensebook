@@ -1,14 +1,22 @@
 import React, { useState, useEffect } from 'react';
+import { tripCancellationApi } from '../utils/tripApi';
 import { airplane_1, calender, train, bus, arrow_left } from '../assets/icon';
 import { titleCase, getStatusClass } from '../utils/handyFunctions';
 import TravelRequestData from '../utils/travelrequest';
 import Modal from '../components/Modal';
+import NotifyModal from '../components/NotifyModal';
 import ItineneryDetails from '../itinerary/ItineraryDetails';
 import CabDetails from '../itinerary/CabDetails';
 import HotelDetails from '../itinerary/HotelDetails';
 
 
+
+
+
 const CancelTrip = () => {
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  
 
   const routeData={
     tenantId: TravelRequestData.tenantId,
@@ -18,7 +26,20 @@ const CancelTrip = () => {
 
    console.log(routeData)
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
+ ///for handle confirmation message
+ const [showConfirmationOverlay, setShowConfirmationOverlay] = useState(false);
+  const handleOpenOverlay = () => {
+    setShowConfirmationOverlay(true);
+
+
+    setTimeout(()=>{
+      setShowConfirmationOverlay(false);
+    },5000);
+  };
+
+ 
+
+
   // Open modal
   const handleOpenModal = (travelRequestId) => {
     travelRequestId
@@ -127,15 +148,15 @@ const CancelTrip = () => {
   const renderScreen = () => {
     switch (activeTab) {
       case 'flight':
-        return <ItineneryDetails airplane={extractedFlightItinerary} icon={airplane_1} preferences={preferences}  actionBtnText={actionBtnText} routeData={routeData}/>;
+        return <ItineneryDetails airplane={extractedFlightItinerary} icon={airplane_1} preferences={preferences}  actionBtnText={actionBtnText} routeData={routeData} handleOpenOverlay={handleOpenOverlay}/>;
       case 'hotel':
-        return <HotelDetails allHotel={extractHotels} travelRequest={TravelRequestData} actionBtnText={actionBtnText} routeData={routeData}/>;
+        return <HotelDetails allHotel={extractHotels} travelRequest={TravelRequestData} actionBtnText={actionBtnText} routeData={routeData} handleOpenOverlay={handleOpenOverlay}/>;
       case 'cab rental':
-        return <CabDetails allCabs={extractCabs} travelRequest={TravelRequestData} actionBtnText={actionBtnText} routeData={routeData}/>;
+        return <CabDetails allCabs={extractCabs} travelRequest={TravelRequestData} actionBtnText={actionBtnText} routeData={routeData} handleOpenOverlay={handleOpenOverlay}/>;
       case 'bus':
-        return <ItineneryDetails airplane={extractedBusItinerary} icon={bus} preferences={preferences}  actionBtnText={actionBtnText} routeData={routeData}/>;
+        return <ItineneryDetails airplane={extractedBusItinerary} icon={bus} preferences={preferences}  actionBtnText={actionBtnText} routeData={routeData} handleOpenOverlay={handleOpenOverlay}/>;
       case 'train':
-        return <ItineneryDetails airplane={extractedTrainItinerary} icon={train} preferences={preferences}  actionBtnText={actionBtnText} routeData={routeData}/>;
+        return <ItineneryDetails airplane={extractedTrainItinerary} icon={train} preferences={preferences}  actionBtnText={actionBtnText} routeData={routeData} handleOpenOverlay={handleOpenOverlay}/>;
       default:
         return <ItineneryDetails />;
     }
@@ -171,12 +192,12 @@ const CancelTrip = () => {
             <Modal 
             isOpen={isModalOpen} 
             onClose={handleCloseModal} 
+          handleOperation={tripCancellationApi()}
             // itineraryId={TravelRequestData.travelRequestId}
             content="Are you sure! you want to cancel the Trip?" 
             routeData={routeData}
-            
-            // onConfirm={handleConfirm} 
-            onCancel={handleCancel} />
+            onCancel={handleCancel} 
+            handleOpenOverlay={handleOpenOverlay}/>
           </div>
         )}
       </div>
@@ -229,6 +250,9 @@ const CancelTrip = () => {
           </div>
         </div>
       </div>
+      {showConfirmationOverlay && (
+        <NotifyModal/>
+      )}
     </>
   );
 };

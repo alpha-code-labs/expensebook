@@ -1,17 +1,76 @@
 import React, { useState, useEffect } from 'react';
+import { tripRecovery } from '../utils/tripApi';
 import { airplane_1, calender, train, bus, arrow_left } from '../assets/icon';
 import { titleCase, getStatusClass } from '../utils/handyFunctions';
 import TravelRequestData from '../utils/travelrequest';
 import Modal from '../components/Modal';
-import ItineneryDetails from '../itinerary/ItineraryDetails';
-import CabDetails from '../itinerary/CabDetails';
-import HotelDetails from '../itinerary/HotelDetails';
+import NotifyModal from '../components/NotifyModal';
+import ItineneryDetails from '../recoveryItinerary/ItineraryDetails';
+import CabDetails from '../recoveryItinerary/CabDetails';
+import HotelDetails from '../recoveryItinerary/HotelDetails';
+import {tripFetchApi} from '../utils/tripApi';
 
-const TripRecovery = () => {
+
+
+const TravelRecovery = () => {
+
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showConfirmationOverlay, setShowConfirmationOverlay] = useState(false);
+  const [tripData, setTripData] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+
+  const routeData={
+    tenantId: TravelRequestData.tenantId,
+    tripId: TravelRequestData.travelRequestId,
+    empId: TravelRequestData.createdFor.empId
+   }
+
+   console.log(routeData)
+
+
+  //fetching data from apis 
+  
+  
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const data = await tripFetchApi(routeData.tripId, routeData.tenantId, routeData.empId);
+      setTripData(data);
+    } catch (error) {
+      console.error('Error fetching trip data:', error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+  
+  useEffect(() => {
+    fetchData();
+  }, []); 
+
+  //-----------------------------
+
+
+
+ ///for handle confirmation message
+
+  const handleOpenOverlay = () => {
+    setShowConfirmationOverlay(true);
+
+
+    setTimeout(()=>{
+      setShowConfirmationOverlay(false);
+    },5000);
+  };
+
+ 
+
 
   // Open modal
-  const handleOpenModal = () => {
+  const handleOpenModal = (travelRequestId) => {
+    travelRequestId
     setIsModalOpen(true);
   };
 
@@ -20,19 +79,12 @@ const TripRecovery = () => {
     setIsModalOpen(false);
   };
 
-  // Confirm action
-  const handleConfirm = () => {
-    // Handle the confirmation logic
-    console.log('Confirmed');
-  };
 
   // Cancel action
   const handleCancel = () => {
     // Handle the cancellation logic
     console.log('Cancelled');
   };
-
-  const isUpcomingOrInTransit = ['upcoming', 'inTransit'].includes(TravelRequestData.tripStatus);
 
   const preferences = TravelRequestData.preferences || [];
   const extractItineraryData = (itinerary) => {
@@ -93,8 +145,8 @@ const TripRecovery = () => {
   const extractCabs = (journey) => journey.cabs || [];
 
   // Create arrays for hotels and cabs by mapping over the itinerary
-  const allHotels = TravelRequestData.itinerary.flatMap(extractHotels);
-  const allCabs = TravelRequestData.itinerary.flatMap(extractCabs);
+  // const allHotels = TravelRequestData.itinerary.flatMap(extractHotels);
+  // const allCabs = TravelRequestData.itinerary.flatMap(extractCabs);
 
   // Itinerary tabs
   const itinerary = ['flight', 'hotel', 'cab Rental', 'bus', 'train'];
@@ -106,16 +158,6 @@ const TripRecovery = () => {
     setActiveTab(tab.toLowerCase());
   };
 
-  const cancelHandler = (itinerary) => {
-    const { itineraryId, status } = itinerary.departure;
-
-    // Log itineraryId and status
-    console.log('Cancelled Itinerary ID:', itineraryId);
-    console.log('Cancelled Status:', status);
-
-    // Add your cancellation logic here, such as updating the state or making an API call
-    // ...
-  };
 
   // Action button text
   const actionBtnText = 'Recover';
@@ -124,23 +166,27 @@ const TripRecovery = () => {
   const renderScreen = () => {
     switch (activeTab) {
       case 'flight':
-        return <ItineneryDetails airplane={extractedFlightItinerary} icon={airplane_1} preferences={preferences} cancelHandler={cancelHandler} actionBtnText={actionBtnText} />;
+        return <ItineneryDetails airplane={extractedFlightItinerary} icon={airplane_1} preferences={preferences}  actionBtnText={actionBtnText} routeData={routeData} handleOpenOverlay={handleOpenOverlay}/>;
       case 'hotel':
-        return <HotelDetails allHotel={extractHotels} travelRequest={TravelRequestData} actionBtnText={actionBtnText} />;
+        return <HotelDetails allHotel={extractHotels} travelRequest={TravelRequestData} actionBtnText={actionBtnText} routeData={routeData} handleOpenOverlay={handleOpenOverlay}/>;
       case 'cab rental':
-        return <CabDetails allCabs={extractCabs} travelRequest={TravelRequestData} actionBtnText={actionBtnText} />;
+        return <CabDetails allCabs={extractCabs} travelRequest={TravelRequestData} actionBtnText={actionBtnText} routeData={routeData} handleOpenOverlay={handleOpenOverlay}/>;
       case 'bus':
-        return <ItineneryDetails airplane={extractedBusItinerary} icon={bus} preferences={preferences} cancelHandler={cancelHandler} actionBtnText={actionBtnText} />;
+        return <ItineneryDetails airplane={extractedBusItinerary} icon={bus} preferences={preferences}  actionBtnText={actionBtnText} routeData={routeData} handleOpenOverlay={handleOpenOverlay}/>;
       case 'train':
-        return <ItineneryDetails airplane={extractedTrainItinerary} icon={train} preferences={preferences} cancelHandler={cancelHandler} actionBtnText={actionBtnText} />;
+        return <ItineneryDetails airplane={extractedTrainItinerary} icon={train} preferences={preferences}  actionBtnText={actionBtnText} routeData={routeData} handleOpenOverlay={handleOpenOverlay}/>;
       default:
         return <ItineneryDetails />;
     }
   };
 
+
+
+
   return (
     <>
       {/* Header */}
+      {loading ? fetchData : "Loading....."}
       <div className='justify-between w-full h-[65px] border-b-[1px] border-gray-100 flex flex-row gap-2 fixed bg-cover bg-white-100 px-8 shadow-lg'>
         {/* Back Button */}
         <div className='flex flex-row items-center'>
@@ -151,18 +197,26 @@ const TripRecovery = () => {
           </div>
           {/* Trip ID */}
           <div className='trip-id text-gray-800 font-cabin text-[20px] font-semibold py-3 px-2 items-center justify-center'>
-            <div className='flex justify-center items-center'>#TR00001</div>
+            <div className='flex justify-center items-center'>{TravelRequestData.travelRequestId}</div>
           </div>
         </div>
 
         {/* Cancel Trip Button */}
-        {isUpcomingOrInTransit && (
+        {TravelRequestData.tripStatus==='paid and cancelled' && (
           <div className="flex h-[65px] px-2 py-3 items-center justify-center w-auto">
-            <div onClick={handleOpenModal} className='flex items-center px-3 pt-[6px] pb-2 py-3 rounded-[12px] cursor-pointer hover:text-red-800 text-medium bg-slate-100 font-medium tracking-[0.03em] text-gray-800'>
-              {titleCase('cancel trip')}
+            <div onClick={(handleOpenModal)} className='flex items-center px-3 pt-[6px] pb-2 py-3 rounded-[12px] cursor-pointer hover:text-red-800 text-medium bg-slate-100 font-medium tracking-[0.03em] text-gray-800'>
+              {titleCase('recover')}
             </div>
             {/* Modal for Cancel Confirmation */}
-            <Modal isOpen={isModalOpen} onClose={handleCloseModal} content="Are you sure! you want to cancel the Trip?" onConfirm={handleConfirm} onCancel={handleCancel} />
+            <Modal 
+            handleOperation={tripRecovery} 
+            isOpen={isModalOpen} 
+            onClose={handleCloseModal} 
+            // itineraryId={TravelRequestData.travelRequestId}
+            content="Are you sure! you want to cancel the Trip?" 
+            routeData={routeData}
+            onCancel={handleCancel} 
+            handleOpenOverlay={handleOpenOverlay}/>
           </div>
         )}
       </div>
@@ -215,8 +269,12 @@ const TripRecovery = () => {
           </div>
         </div>
       </div>
+      {showConfirmationOverlay && (
+        <NotifyModal/>
+      )}
     </>
   );
 };
 
-export default TripRecovery;
+export default TravelRecovery;
+

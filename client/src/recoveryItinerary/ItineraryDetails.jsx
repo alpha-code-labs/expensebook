@@ -1,18 +1,21 @@
 import React,{useState} from "react";
 import Modal from "../components/Modal";
-import { cancel, double_arrow, receipt } from '../assets/icon';
+import { cancel, double_arrow, receipt  } from '../assets/icon';
 import TravelRequestData from "../utils/travelrequest";
-import { tripCancellationApi } from "../utils/tripApi";
+import {tripRecovery} from '../utils/tripApi';
+import { titleCase } from "../utils/handyFunctions";
 
-
-
-const ItineneryDetails= ({ icon ,airplane ,preferences ,actionBtnText ,routeData , handleOpenOverlay}) => {
+const ItineneryDetails= ({ icon ,airplane ,preferences ,actionBtnText ,routeData ,handleOpenOverlay}) => {
     
+
+
+
+
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isModalOpen2, setIsModalOpen2] = useState(false);
   
     const [selectedItineraryId, setSelectedItineraryId] = useState(null);
-    const showButton = TravelRequestData.tripStatus === 'booked';
+    
 
   const handleOpenModal = (itineraryId) => {
     setSelectedItineraryId(itineraryId);
@@ -103,32 +106,39 @@ const ItineneryDetails= ({ icon ,airplane ,preferences ,actionBtnText ,routeData
                   </div>
                 </div>
                 
-                <div className='flex justify-end items-center px-8'>
-                  
+               {/* {tripData.departure.status==='paid and cancelled' && ( */}
+                 <div className='flex justify-end items-center px-8'>
+                  {tripData.departure.status==='paid and cancelled' ? (
+                     <div
+                     className={`flex w-auto items-center px-3 pt-[6px] pb-2 py-3 rounded-[12px] text-[14px] font-medi cursor-pointerum tracking-[0.03em] bg-red-100 text-red-900`}
+                     onClick={() => handleOpenModal(tripData.departure.itineraryId)}>
+                     {actionBtnText}
+                     
+                     </div>
+                  ): (
                     <div
-                    className={`flex w-auto items-center px-3 pt-[6px] pb-2 py-3 rounded-[12px] text-[14px] font-medi cursor-pointerum tracking-[0.03em] bg-red-100 text-red-900`}
-                    onClick={() => {
-                      handleOpenModal(tripData.departure.itineraryId);
-                    
-                    }}>
-                    {actionBtnText}
+                    className={`flex w-auto items-center px-3 pt-[6px] pb-2 py-3 rounded-[12px] text-[14px] font-medi cursor-pointerum tracking-[0.03em] bg-red-100 text-red-900`}>
+                    {titleCase(tripData.departure.status)}
                     
                     </div>
-                 
-                  
-        <Modal
-          handleOperation={tripCancellationApi}
-          isOpen={isModalOpen}
-          onClose={handleCloseModal}
-          itineraryId={selectedItineraryId}
-          content="Are you sure ! you want to cancel the Onboarding Travel ?"
-          // onConfirm={handleConfirm}
-          handleOpenOverlay={handleOpenOverlay}
-          onCancel={handleCancel}
-          routeData={routeData}
-        />
-                 
-                </div>
+                  )}
+                
+              
+               
+               <Modal
+               handleOpenOverlay={handleOpenOverlay}
+               handleOperation={tripRecovery}
+       isOpen={isModalOpen}
+       onClose={handleCloseModal}
+       itineraryId={selectedItineraryId}
+       content="Are you sure ! you want to cancel the Onboarding Travel ?"
+       
+       onCancel={handleCancel}
+       routeData={routeData}
+     />
+              
+             </div>
+               {/* )} */}
     
               </div>
               <div className='flight hotel and cab flex flex-row py-3 px-2 divide-x '>
@@ -141,6 +151,7 @@ const ItineneryDetails= ({ icon ,airplane ,preferences ,actionBtnText ,routeData
               pickupAddress={tripData.boardingTransfer.pickupAddress}
               dropAddress={tripData.boardingTransfer.dropAddress}
               itineraryId={tripData.boardingTransfer.itineraryId}
+              status={tripData.boardingTransfer.status}
               routeData={routeData}
               handleOpenOverlay={handleOpenOverlay}
               
@@ -156,6 +167,7 @@ const ItineneryDetails= ({ icon ,airplane ,preferences ,actionBtnText ,routeData
               pickupAddress={tripData.hotelTransfer.pickupAddress}
               dropAddress={tripData.hotelTransfer.dropAddress}
               itineraryId={tripData.hotelTransfer.itineraryId}
+              status={tripData.hotelTransfer.status}
               routeData={routeData}
               handleOpenOverlay={handleOpenOverlay}
               />
@@ -215,6 +227,7 @@ const ItineneryDetails= ({ icon ,airplane ,preferences ,actionBtnText ,routeData
               </div>
             </div>
           </div>
+          {tripData.return.status==='paid and cancelled' && (
           <div className='flex justify-end items-center px-8'>
             <div
               className={`flex w-auto items-center px-3 pt-[6px] pb-2 py-3 rounded-[12px] text-[14px] font-medi cursor-pointerum tracking-[0.03em] bg-red-100 text-red-900`}
@@ -223,7 +236,8 @@ const ItineneryDetails= ({ icon ,airplane ,preferences ,actionBtnText ,routeData
              {actionBtnText}
             </div>
             <Modal
-            handleOperation={tripCancellationApi}
+            handleOpenOverlay={handleOpenOverlay}
+            handleOperation={tripRecovery}
               isOpen={isModalOpen2}
               onClose={handleCloseModal2}
               content={`Are you sure! you want to Return Travel`}
@@ -232,7 +246,8 @@ const ItineneryDetails= ({ icon ,airplane ,preferences ,actionBtnText ,routeData
               onCancel={handleCancel}
               routeData={routeData}
             />
-          </div>
+          </div>)
+}
         </div>
       </div>
     ) : null}
@@ -246,7 +261,7 @@ const ItineneryDetails= ({ icon ,airplane ,preferences ,actionBtnText ,routeData
   
   
   
-  const SubItinerary = ({titleText ,pickupTime ,pickupAddress ,dropAddress , itineraryId,routeData  ,handleOpenOverlay})=>{
+  const SubItinerary = ({titleText ,pickupTime ,pickupAddress ,dropAddress , itineraryId,routeData ,status,handleOpenOverlay })=>{
   
   
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -298,21 +313,28 @@ const ItineneryDetails= ({ icon ,airplane ,preferences ,actionBtnText ,routeData
               </div>
               </div>
       </div>
-      
-      <div onClick={handleOpenModal} className='p-3 bg-slate-100 rounded-full m-4 hover:bg-red-100'>
-            <img src={cancel} alt="double arrow" width={20} height={20} />
-      </div>
-      <Modal
-      handleOperation={tripCancellationApi}
-          isOpen={isModalOpen}
-          onClose={handleCloseModal}
-          itineraryId={itineraryId}          
-          content="Are you sure ! you want to cancel the hotel Itinerary ?"
-          // onConfirm={handleConfirm}
-          onCancel={handleCancel}
-          routeData={routeData}
-          handleOpenOverlay={handleOpenOverlay}
-        />
+      {status==='paid and cancelled' && 
+      (<>
+        <div onClick={handleOpenModal} className='p-3 bg-slate-100 rounded-full m-4 hover:bg-red-100'>
+        <img src={cancel} alt="double arrow" width={20} height={20} />
+  </div>
+  <Modal
+  handleOpenOverlay={handleOpenOverlay}
+  handleOperation={tripRecovery}
+      isOpen={isModalOpen}
+      onClose={handleCloseModal}
+      itineraryId={itineraryId}          
+      content={<div>
+        <h1 className="font-bold font-inter  ">Are you sure ?</h1>
+        <p className="font-medium font-cabin ">This itinerary will be cancel after confirm !</p>
+      </div>}
+      // onConfirm={handleConfirm}
+      onCancel={handleCancel}
+      routeData={routeData}
+    />
+    </>
+      )}
+     
   
       </div>
       

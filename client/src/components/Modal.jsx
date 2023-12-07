@@ -1,7 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { cancelTrip } from '../utils/tripApi';
 
-const Modal = ({ isOpen, onClose, content,  onCancel ,itineraryId , routeData}) => {
+const Modal = ({ isOpen, onClose, content,  onCancel ,itineraryId , routeData ,handleOpenOverlay ,handleOperation }) => {
   
   const modalRef = useRef();
   const handleClickOutside = (event) => {
@@ -12,58 +11,45 @@ const Modal = ({ isOpen, onClose, content,  onCancel ,itineraryId , routeData}) 
 
 // ...
 
-const handleConfirm = async () => {
-  try {
-    // Assuming you have the correct values for tenantId, empId, and itineraryId
-    const { tenantId, empId, tripId } = routeData;
-
-    if (itineraryId) {
-      // If itineraryId is present, it means cancellation is initiated from the itinerary
-      // You need to obtain the correct tripId from your data
-      await cancelTrip(tenantId, empId, tripId, itineraryId);
-    } else {
-      // If itineraryId is not present, it means cancellation is initiated from the header
-      // You need to obtain the correct tripId from your data
-      await cancelTrip(tenantId, empId, tripId);
-    }
-
-    // If the API call is successful, close the modal
-    onClose();
-  } catch (error) {
-    console.error('Error confirming trip:', error.message);
-    // Handle error or show a notification to the user
-  }
-};
-
 // const handleConfirm = async () => {
 //   try {
-//     // Assuming you have the correct values for tenantId, empId, and itineraryId
-//     const tenantId = routeData.tenantId
-//     const empId = routeData.empId;
-//     const tripId = routeData.tripId
-    
+//     const { tenantId, empId, tripId } = routeData;
 
 //     if (itineraryId) {
-//       // If itineraryId is present, it means cancellation is initiated from the itinerary
-//        // You need to obtain the correct tripId from your data
-//       await cancelTrip(tenantId, empId, tripId, itineraryId, 'itinerary');
+//       await tripCancellationApi(tenantId, empId, tripId, itineraryId);
 //     } else {
-//       // If itineraryId is not present, it means cancellation is initiated from the header
-//       // You need to obtain the correct tripId from your data
-//       await cancelTrip(tenantId, empId, tripId, null, 'header');
+//       await tripCancellationApi(tenantId, empId, tripId);
 //     }
 
 //     // If the API call is successful, close the modal
 //     onClose();
+//     handleOpenOverlay()
+
 //   } catch (error) {
 //     console.error('Error confirming trip:', error.message);
 //     // Handle error or show a notification to the user
 //   }
 // };
 
+const handleConfirm = async () => {
+  try {
+    const { tenantId, empId, tripId } = routeData;
 
- 
+    if (itineraryId) {
+      await handleOperation(tenantId, empId, tripId, itineraryId);
+    } else {
+      await handleOperation(tenantId, empId, tripId);
+    }
 
+    // If the API call is successful, close the modal
+    onClose();
+    handleOpenOverlay();
+
+  } catch (error) {
+    console.error('Error confirming trip:', error.message);
+    // Handle error or show a notification to the user
+  }
+};
 
   return (
     <div className={`fixed inset-0 flex items-center justify-center ${isOpen ? 'visible' : 'hidden'}`} onClick={handleClickOutside} aria-hidden="true">

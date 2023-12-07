@@ -1,8 +1,9 @@
 import React,{ useState } from "react";
 import { double_arrow ,location } from '../assets/icon';
-import { tripCancellationApi } from "../utils/tripApi";
 import Modal from "../components/Modal";
-const HotelDetails = ({ allHotel , travelRequest ,actionBtnText , routeData ,handleOpenOverlay})=>{
+import {tripRecovery} from '../utils/tripApi';
+
+const HotelDetails = ({ allHotel , travelRequest ,actionBtnText , routeData,handleOpenOverlay})=>{
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedItineraryId , setSelectedItineraryId]=useState(null);
@@ -103,8 +104,8 @@ const HotelDetails = ({ allHotel , travelRequest ,actionBtnText , routeData ,han
     
     </div>
     
-    
-    <div className='flex justify-end items-center px-8'>
+    {hotel.status==='paid and cancelled' &&
+    (<div className='flex justify-end items-center px-8'>
     <div className={`flex items-center px-3 pt-[6px] pb-2 py-3 rounded-[12px] text-[14px] font-medium tracking-[0.03em] text-gray-600 cursor-pointer bg-slate-100  hover:bg-red-100  hover:text-red-900 `}
     onClick={()=>handleOpenModal(hotel.itineraryId)}
     >
@@ -112,8 +113,8 @@ const HotelDetails = ({ allHotel , travelRequest ,actionBtnText , routeData ,han
       
     </div>
     <Modal
-    handleOpenOverlay={handleOpenOverlay}
-    handleOperation={tripCancellationApi}
+          handleOpenOverlay={handleOpenOverlay}
+          handleOperation={tripRecovery}
           isOpen={isModalOpen}
           onClose={handleCloseModal}
           itineraryId={selectedItineraryId}  
@@ -121,7 +122,8 @@ const HotelDetails = ({ allHotel , travelRequest ,actionBtnText , routeData ,han
           routeData={routeData}
           onCancel={handleCancel}
         />
-    </div>
+    </div>)}
+    
     
     </div>  
    

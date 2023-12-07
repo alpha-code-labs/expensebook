@@ -1,10 +1,11 @@
 import React,{ useState } from "react";
-import {airplane_1, cab, calender, cancel, double_arrow, receipt ,location, cab_purple, airplane, train, bus } from '../assets/icon'
+import { tripCancellationApi } from "../utils/tripApi";
+import {double_arrow, cab_purple } from '../assets/icon'
 import Modal from "../components/Modal";
 
 
 
-const CabDetails = ({ allCabs , travelRequest , actionBtnText , routeData})=>{
+const CabDetails = ({ allCabs , travelRequest , actionBtnText , routeData ,handleOpenOverlay})=>{
   
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedItineraryId,setSelectedItineraryId]= useState(null)
@@ -112,12 +113,15 @@ const CabDetails = ({ allCabs , travelRequest , actionBtnText , routeData})=>{
       
     </div>
     <Modal
+    handleOpenOverlay={handleOpenOverlay}
+          handleOperation={tripCancellationApi}
           isOpen={isModalOpen}
           onClose={handleCloseModal}
           itineraryId={selectedItineraryId}
           routeData={routeData}
           content="Are you sure ! you want to cancel the cab cancel ?"
           onCancel={handleCancel}
+          
         />
     </div>
     

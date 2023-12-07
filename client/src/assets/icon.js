@@ -33,6 +33,7 @@ export {default as down_left_arrow} from './down-left-arrow.svg';
 export {default as modify} from './modify.svg'
 export {default as cab_purple} from './cab-purple.svg';
 export {default as train} from './train.png';
-export {default as bus} from './bus.png'
+export {default as bus} from './bus.png';
+export {default as check_tick} from './check-tick.svg';
 
 

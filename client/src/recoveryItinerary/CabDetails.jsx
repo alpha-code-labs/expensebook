@@ -1,11 +1,14 @@
 import React,{ useState } from "react";
-import { double_arrow ,location } from '../assets/icon';
-import { tripCancellationApi } from "../utils/tripApi";
+import {airplane_1, cab, calender, cancel, double_arrow, receipt ,location, cab_purple, airplane, train, bus } from '../assets/icon'
 import Modal from "../components/Modal";
-const HotelDetails = ({ allHotel , travelRequest ,actionBtnText , routeData ,handleOpenOverlay})=>{
+import {tripRecovery} from '../utils/tripApi';
 
+
+
+const CabDetails = ({ allCabs , travelRequest , actionBtnText , routeData,handleOpenOverlay})=>{
+  
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [selectedItineraryId , setSelectedItineraryId]=useState(null);
+    const [selectedItineraryId,setSelectedItineraryId]= useState(null)
   
     const handleOpenModal = (itineraryId) => {
       setSelectedItineraryId(itineraryId)
@@ -15,15 +18,15 @@ const HotelDetails = ({ allHotel , travelRequest ,actionBtnText , routeData ,han
     const handleCloseModal = () => {
       setIsModalOpen(false);
     };
-  
+
+
   
     const handleCancel = () => {
       // Handle the cancellation logic
       console.log('Cancelled');
     };
-
-
-
+  
+  
     return (
   
   
@@ -31,35 +34,33 @@ const HotelDetails = ({ allHotel , travelRequest ,actionBtnText , routeData ,han
    {travelRequest.itinerary.map((journey, journeyIndex) => (
   <React.Fragment key={journeyIndex}>
   <p>From: {journey.journey.from} | To: {journey.journey.to}</p>
-  {allHotel(journey).map((hotel, cabIndex) => (
+  {/* <div className='Prefrence flex items-center w-full h-[40px] justify-end' /> */}
+  {allCabs(journey).map((cab, cabIndex) => (
                   <React.Fragment key={cabIndex}>
   
       
       {/* </div> */}
   
   <div className='Itinenery mb-4 bg-slate-50 mt-2' >
-     <div className='h-auto w-auto border border-slate-300 rounded-md'>
-       
-     {/* <h2>Journey {journeyIndex + 1}</h2> */}      
+     <div className='h-auto w-auto border border-slate-300 rounded-md'>     
   
     <div className='flex flex-row py-3 px-2 divide-x'>
     <div className='flex items-center flex-grow divide-x '>
      <div className='flex items-start justify-start  flex-col shrink w-auto md:w-[200px] mr-4'>
        <div className='flex items-center justify-center mb-2'>
        <div className='pl-2'>
-         <img src={location} alt="calendar" width={16} height={16} />
+         <img src={cab_purple} alt="calendar" width={16} height={16} />
        </div>
        <span className="ml-2 tracking-[0.03em] font-cabin leading-normal text-gray-800 text-xs md:text-sm">
-        {/* Class : {hotel.city} */}
-        Lucknow
+        Class : {cab.class}
        </span>
        </div>
        <div className='ml-4 max-w-[200px] w-auto'>
         <span className='text-xs font-cabin'>
         <div className='ml-4 max-w-[200px] w-auto'>
     <span className='text-xs font-cabin '>
-      {/* {hotel.locationPrefrence} */}
-      {hotel.locationPrefrence !== undefined && hotel.locationPrefrence !== '' ? hotel.locationPrefrence : '-'}
+      {cab.date}, {cab.prefferedTime}
+      {/* {hotelDetails.locationPreference !== undefined && hotelDetails.locationPreference !== '' ? hotelDetails.locationPreference : '-'} */}
     </span>
   </div>
   
@@ -79,7 +80,7 @@ const HotelDetails = ({ allHotel , travelRequest ,actionBtnText , routeData ,han
          <div className='flex flex-col text-lg font-cabin w-3/7  items-center text-center shrink '>
            <span className='text-xs'>Pick-Up</span>
            <span className=' '>
-            {hotel.checkIn}
+            {cab.pickupAddress}
             
            </span> 
          </div>
@@ -93,7 +94,7 @@ const HotelDetails = ({ allHotel , travelRequest ,actionBtnText , routeData ,han
            <span className='text-xs'>Drop-Off</span>
            <span className=''>
   
-            {hotel.checkOut}
+            {cab.dropAddress}
             </span> 
   
          </div>
@@ -104,24 +105,28 @@ const HotelDetails = ({ allHotel , travelRequest ,actionBtnText , routeData ,han
     </div>
     
     
-    <div className='flex justify-end items-center px-8'>
+    {
+      cab.status ==='paid and cancelled' && (
+        <div className='flex justify-end items-center px-8'>
     <div className={`flex items-center px-3 pt-[6px] pb-2 py-3 rounded-[12px] text-[14px] font-medium tracking-[0.03em] text-gray-600 cursor-pointer bg-slate-100  hover:bg-red-100  hover:text-red-900 `}
-    onClick={()=>handleOpenModal(hotel.itineraryId)}
+    onClick={()=>handleOpenModal(cab.itineraryId)}
     >
       {actionBtnText}
       
     </div>
     <Modal
-    handleOpenOverlay={handleOpenOverlay}
-    handleOperation={tripCancellationApi}
+          handleOperation={tripRecovery}
+          handleOpenOverlay={handleOpenOverlay}
           isOpen={isModalOpen}
           onClose={handleCloseModal}
-          itineraryId={selectedItineraryId}  
-          content="Are you sure ! you want to cancel the hotel Itinerary ?"
+          itineraryId={selectedItineraryId}
           routeData={routeData}
+          content="Are you sure ! you want to cancel the cab cancel ?"
           onCancel={handleCancel}
         />
     </div>
+      )
+    }
     
     </div>  
    
@@ -144,4 +149,4 @@ const HotelDetails = ({ allHotel , travelRequest ,actionBtnText , routeData ,han
   }
 
 
-  export default HotelDetails
+  export default CabDetails
