@@ -1,9 +1,21 @@
 import express  from "express";
 import { NonTravelExpenseStatusApproved, NonTravelExpenseStatusRejected, getExpensesByApproverId, getExpensesByEmployeeName, getExpensesByExpenseStatus, viewNonTravelExpenseList } from "../controllers/nonTravelExpenseApproval.js";
 
-
 const router = express.Router();
 
+//!!IMPORTANT- FOR NOW -- APPROVAL OF NON TRAVEL EXPENSE REPORTS IS REMOVED ---
+//!!IMPORTANT- FOR NOW -- APPROVAL OF NON TRAVEL EXPENSE REPORTS IS REMOVED ---
+//!!IMPORTANT- FOR NOW -- APPROVAL OF NON TRAVEL EXPENSE REPORTS IS REMOVED ---
+//!!IMPORTANT- FOR NOW -- APPROVAL OF NON TRAVEL EXPENSE REPORTS IS REMOVED ---
+
+
+
+
+
+
+
+
+//GET NON TRAVEL EXPENSE REPORTS FOR APPROVAL
 router.get('/nonTravel/:empId', getExpensesByApproverId);
 
 //Search non travel expenses by employeeName

@@ -70,10 +70,12 @@ export const saveDataInApprovalContainer = async (req, res) => {
 //Get list of travel expenses  for approver
 export const getExpenseDetails = async (req, res) => {
   try {
-    const empId = req.params.empId;
+    const {tenantId, empId} = req.params;
 
     // Filter approval documents by approver's empId and expenseHeaderType: Travel
     const approvalDocuments = await Approval.find({
+      'tenantId': tenantId,
+      'approvalType':'travel-expense',
       'embeddedExpenseSchema.approvers.empId': empId,
       'embeddedExpenseSchema.expenseHeaderType': 'travel',
     }).exec();
@@ -87,7 +89,7 @@ export const getExpenseDetails = async (req, res) => {
     const extractedData = approvalDocuments.map((document) => ({
       EmployeeName: document.embeddedExpenseSchema?.createdBy?.name || 'EmpName',
       TripPurpose: document.embeddedExpenseSchema?.tripPurpose || 'tripPurpose',
-      departureCity: document.embeddedTravelRequest?.itinerary?.cities || 'from - to',
+      departureCity: document.embeddedTravelRequest?.itinerary || 'from - to',
       ExpenseHeaderID: document.embeddedExpenseSchema?.expenseHeaderID || 'Missing ExpenseHeaderID',
       EmpId: empId || 'approver id',
       ExpenseHeaderType: document.embeddedExpenseSchema?.expenseHeaderType || 'travel',
@@ -130,7 +132,7 @@ export const viewTravelExpenseDetails = async (req, res) => {
     approvalDocuments.forEach(approvalDoc => {
       const tripPurpose = approvalDoc.embeddedExpenseSchema?.tripPurpose || 'tripPurpose';
       const billDetails = approvalDoc.embeddedExpenseSchema.expenseLines || 'expense details';
-      const expenseStatus = approvalDoc.embeddedExpenseSchema.expenseStatus || 'travelExpense status';
+      const expenseHeaderStatus = approvalDoc.embeddedExpenseSchema.expenseHeaderStatus || 'travelExpense status';
 
       if (billDetails) {
         // Extract the relevant details from each bill in expenseLines
@@ -149,7 +151,7 @@ export const viewTravelExpenseDetails = async (req, res) => {
             ExpenseType: expenseType,
             TotalAmount: billTotalAmount, 
             BillDate: billDate,
-            ExpenseStatus : expenseStatus,
+            ExpenseHeaderStatus : expenseHeaderStatus,
             EmpId: empId,
             ExpenseHeaderID: expenseHeaderID,
           };

@@ -2,56 +2,255 @@ import { Approval } from '../models/approvalSchema.js';
 
 // Standalone cash advance with travel requests 'approved' status for an approver
 export const getPendingCashAdvances = async (req, res) => {
-    try {
-        const empId = req.params.empId;
-    
-        // Use the Mongoose model for 'Approval' to find all travel requests where the provided empId exists in the 'approvers' array within 'embeddedTravelRequest'
-        // and travel request status is 'approved'
-        const travelRequests = await Approval.find({
-          'embeddedTravelRequest.approvers.empId': empId,
-          'embeddedTravelRequest.travelRequestStatus': 'approved',
-        }).exec();
-    
-        if (travelRequests.length === 0) {
-          // If no approved travel requests are found, respond with a 404 Not Found status and a specific message
-          return res.status(404).json({ message: 'No approved travel requests found for this user.' });
-        }
-    
-        // Extracted fields for travel requests and associated cash advances are added as objects in an array
-        const extractedData = travelRequests.map((request) => {
-          const extractedRequestData = {
-            travelRequestStatus: request.embeddedTravelRequest?.travelRequestStatus,
-            itineraryCities: request.embeddedTravelRequest?.itinerary.cities || 'cities',
-          };
-    
-          if (request.embeddedCashAdvance && request.embeddedCashAdvance.cashAdvanceStatus === 'pending approval') {
-            const cashAdvance = request.embeddedCashAdvance;
-    
-    
-            // Extract amount from amountDetails or set to 'Missing'
-            extractedRequestData.amountDetailsCashAdvance = cashAdvance?.amountDetails.map((amountDetail) => {
-              return {
-                amount: amountDetail.amount,
-                currency: amountDetail.currency,
-              };
-            }) || 'Missing';
-    
-            // Extract other fields
-            extractedRequestData.createdByCashAdvance = cashAdvance?.createdBy.name || 'EmpName';
-            extractedRequestData.tripPurposeCashAdvance = cashAdvance?.tripPurpose || 'tripPurpose';
-            extractedRequestData.cashAdvanceStatus = cashAdvance?.cashAdvanceStatus || 'CashAdvanceStatus';
-            extractedRequestData.cashAdvanceViolations = cashAdvance?.cashAdvanceViolations || 'Violations';
+  try {
+    const { tenantId, empId } = req.params;
+
+    // Find travel requests with 'approved' or 'booked' status for the provided empId and tenantId
+    const travelRequests = await Approval.find({
+      'tenantId': tenantId,
+      'approvalType': 'travel',
+      'embeddedTravelRequest.isCashAdvanceTaken': true,
+      'embeddedTravelRequest.approvers.empId': empId,
+      'embeddedTravelRequest.travelRequestStatus': { $in: ['approved', 'booked'] }, 
+    }).exec();
+
+    if (travelRequests.length === 0) {
+      return res.status(404).json({ message: 'No approved or booked travel requests found for this user.' });
+    }
+
+    const extractedData = [];
+
+    for (const request of travelRequests) {
+      const extractedRequestData = {
+        travelRequestStatus: request.embeddedTravelRequest?.travelRequestStatus,
+        itineraryCities: request.embeddedTravelRequest?.itinerary.map(item => item.departure.to) || [],
+      };
+
+      if (request.embeddedCashAdvance) {
+        for (const cashAdvance of request.embeddedCashAdvance.cashAdvances) {
+          if (cashAdvance.cashAdvanceStatus === 'pending approval') {
+            const {
+              amountDetails,
+              createdBy,
+              tripPurpose,
+              cashAdvanceStatus,
+              cashAdvanceViolations,
+            } = cashAdvance;
+
+            extractedRequestData.amountDetailsCashAdvance = amountDetails.map(amountDetail => ({
+              amount: amountDetail.amount,
+              currency: amountDetail.currency,
+            }));
+            extractedRequestData.createdByCashAdvance = createdBy.name || 'EmpName';
+            extractedRequestData.tripPurposeCashAdvance = tripPurpose || 'tripPurpose';
+            extractedRequestData.cashAdvanceStatus = cashAdvanceStatus || 'CashAdvanceStatus';
+            extractedRequestData.cashAdvanceViolations = cashAdvanceViolations || [];
+            extractedData.push(extractedRequestData);
           }
-    
-          return extractedRequestData;
-        });
-    
-        // If approved travel requests are found, respond with a 200 OK status and the array of extracted fields
-        return res.status(200).json(extractedData);
-      } catch (error) {
-        // Handle and log errors
-        console.error('An error occurred:', error);
-        // Respond with a 500 Internal Server Error status and an error message
-        return res.status(500).json({ error: 'An error occurred while processing the request.' });
+        }
       }
+    }
+
+    return res.status(200).json(extractedData);
+  } catch (error) {
+    console.error('An error occurred:', error);
+    return res.status(500).json({ error: 'An error occurred while processing the request.' });
+  }
+};
+
+//for a single travel request 
+export const getPendingCashAdvancesForATravelRequest = async (req, res) => {
+  try {
+    const { tenantId, empId, travelRequestId } = req.params;
+
+    const travelRequests = await Approval.find({
+      'tenantId': tenantId,
+      'approvalType': 'travel',
+      'embeddedTravelRequest.travelRequestId': travelRequestId,
+      'embeddedTravelRequest.isCashAdvanceTaken': true,
+      'embeddedTravelRequest.approvers.empId': empId,
+      'embeddedTravelRequest.travelRequestStatus': { $in: ['approved', 'booked'] },
+    }).exec();
+
+    if (travelRequests.length === 0) {
+      return res.status(404).json({ message: 'No approved or booked travel requests found for this user.' });
+    }
+
+    const extractedData = [];
+
+    for (const request of travelRequests) {
+      const extractedRequestData = {
+        travelRequestStatus: request.embeddedTravelRequest?.travelRequestStatus,
+        itineraryCities: request.embeddedTravelRequest?.itinerary.map(item => item.departure.to) || [],
+      };
+
+      if (request.embeddedCashAdvance) {
+        for (const cashAdvance of request.embeddedCashAdvance.cashAdvances) {
+          if (cashAdvance.cashAdvanceStatus === 'pending approval') {
+            const {
+              amountDetails,
+              createdBy,
+              tripPurpose,
+              cashAdvanceStatus,
+              cashAdvanceViolations,
+            } = cashAdvance;
+
+            extractedRequestData.amountDetailsCashAdvance = amountDetails.map(amountDetail => ({
+              amount: amountDetail.amount,
+              currency: amountDetail.currency,
+            }));
+            extractedRequestData.createdByCashAdvance = createdBy.name || 'EmpName';
+            extractedRequestData.tripPurposeCashAdvance = tripPurpose || 'tripPurpose';
+            extractedRequestData.cashAdvanceStatus = cashAdvanceStatus || 'CashAdvanceStatus';
+            extractedRequestData.cashAdvanceViolations = cashAdvanceViolations || [];
+            extractedData.push(extractedRequestData);
+          }
+        }
+      }
+    }
+
+    return res.status(200).json(extractedData);
+  } catch (error) {
+    console.error('An error occurred:', error);
+    return res.status(500).json({ error: 'An error occurred while processing the request.' });
+  }
+};
+
+// Standalone cash advance with travel requests 'approved' status for a single tr - details
+export const getPendingCashAdvancesForEmployee = async (req, res) => {
+  try {
+    const { tenantId, empId, travelRequestId } = req.params;
+
+    const travelRequest = await Approval.findOne({
+      'tenantId': tenantId,
+      'approvalType': 'travel',
+      'embeddedTravelRequest.travelRequestId': travelRequestId,
+      'embeddedTravelRequest.isCashAdvanceTaken': true,
+      'embeddedTravelRequest.approvers.empId': empId,
+      'embeddedTravelRequest.travelRequestStatus': { $in: ['approved', 'booked'] },
+    }).exec();
+
+    if (!travelRequest) {
+      return res.status(404).json({ message: 'No approved or booked travel request found.' });
+    }
+
+    const extractedTravelData = {
+      travelRequestStatus: travelRequest.embeddedTravelRequest?.travelRequestStatus || 'No Status',
+      departureFrom: travelRequest.embeddedTravelRequest?.itinerary.map(item => item.departure.from) || [],
+      departureTo: travelRequest.embeddedTravelRequest?.itinerary.map(item => item.departure.to) || [],
+      cashAdvances: [],
     };
+
+    if (travelRequest.embeddedCashAdvance) {
+      for (const cashAdvance of travelRequest.embeddedCashAdvance.cashAdvances || []) {
+        if (cashAdvance.cashAdvanceStatus === 'pending approval') {
+          const {
+            amountDetails = [],
+            createdBy = {},
+            tripPurpose,
+            cashAdvanceStatus,
+            cashAdvanceViolations = [],
+          } = cashAdvance;
+
+          const cashAdvanceData = {
+            amountDetailsCashAdvance: amountDetails.map(amountDetail => ({
+              amount: amountDetail.amount || 0,
+              currency: amountDetail.currency || 'Currency',
+            })),
+            createdByCashAdvance: createdBy.name || 'EmpName',
+            tripPurposeCashAdvance: tripPurpose || 'tripPurpose',
+            cashAdvanceStatus: cashAdvanceStatus || 'CashAdvanceStatus',
+            cashAdvanceViolations,
+          };
+
+          extractedTravelData.cashAdvances.push(cashAdvanceData);
+        }
+      }
+    }
+
+    return res.status(200).json(extractedTravelData);
+  } catch (error) {
+    console.error('An error occurred:', error);
+    return res.status(500).json({ error: 'An error occurred while processing the request.' });
+  }
+};
+
+
+
+// approve cash advance raised LATER
+export const approveCashRaisedLater = async (req, res) => {
+  try {
+    const { tenantId, empId, travelRequestId } = req.params;
+
+    const approval = await Approval.findOne({
+      'tenantId': tenantId,
+      'approvalType': 'travel',
+      'embeddedTravelRequest.travelRequestId': travelRequestId,
+      'embeddedTravelRequest.isCashAdvanceTaken': true,
+      'embeddedTravelRequest.approvers.empId': empId,
+      'embeddedTravelRequest.travelRequestStatus': { $in: ['approved', 'booked'] },
+    }).exec();
+
+    if (!approval) {
+      return res.status(404).json({ message: 'No approved or booked travel request found.' });
+    }
+
+    approval.embeddedCashAdvance.cashAdvances.forEach((cashAdvance) => {
+      if (cashAdvance.cashAdvanceStatus === 'pending approval') {
+        cashAdvance.cashAdvanceStatus = 'approved';
+      }
+    });
+
+    // Save the updated approval document
+    const updatedApproval = await approval.save();
+
+    return res.status(200).json({
+      message: 'Cash advances approved for the travel request.',
+      updatedApproval,
+    });
+  } catch (error) {
+    console.error('An error occurred:', error);
+    return res.status(500).json({ error: 'An error occurred while processing the request.' });
+  }
+};
+
+
+// Reject cash ADVANCE RAISED LATER 
+export const rejectCashAdvanceRaisedLater = async (req, res) => {
+  try {
+    const { tenantId, empId, travelRequestId } = req.params;
+    const { rejectionReasons } = req.body;
+
+    const approval = await Approval.findOne({
+      'tenantId': tenantId,
+      'approvalType': 'travel',
+      'embeddedTravelRequest.travelRequestId': travelRequestId,
+      'embeddedTravelRequest.isCashAdvanceTaken': true,
+      'embeddedTravelRequest.approvers.empId': empId,
+      'embeddedTravelRequest.travelRequestStatus': { $in: ['approved', 'booked'] },
+    }).exec();
+
+    if (!approval) {
+      return res.status(404).json({ message: 'No approved or booked travel request found.' });
+    }
+
+    // Update cash advances' rejection reasons
+    approval.embeddedCashAdvance.cashAdvances.forEach((cashAdvance) => {
+      if (cashAdvance.cashAdvanceStatus === 'pending approval') {
+        cashAdvance.cashAdvanceRejectionReason = rejectionReasons || 'No specific reason provided';
+        cashAdvance.cashAdvanceStatus = 'rejected';
+      }
+    });
+
+    // Save the updated approval document
+    const updatedApproval = await approval.save();
+
+    return res.status(200).json({
+      message: 'Cash advances rejected for the travel request.',
+      updatedApproval,
+    });
+  } catch (error) {
+    console.error('An error occurred:', error);
+    return res.status(500).json({ error: 'An error occurred while processing the request.' });
+  }
+};

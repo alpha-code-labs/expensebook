@@ -1,5 +1,5 @@
 
-import { travelRequest } from '../dummyData/dummyData.js';
+import { travelRequest } from '../dummyData/dummyDataUpdated.js';
 
 export const fetchTravelRequestData = async () => {
   try {

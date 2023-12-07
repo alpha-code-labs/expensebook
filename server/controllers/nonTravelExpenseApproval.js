@@ -1,16 +1,25 @@
 import { Approval } from '../models/approvalSchema.js';
 
+//!!IMPORTANT- FOR NOW -- APPROVAL OF NON TRAVEL EXPENSE REPORTS IS REMOVED ---
+//!!IMPORTANT- FOR NOW -- APPROVAL OF NON TRAVEL EXPENSE REPORTS IS REMOVED ---
+//!!IMPORTANT- FOR NOW -- APPROVAL OF NON TRAVEL EXPENSE REPORTS IS REMOVED ---
+//!!IMPORTANT- FOR NOW -- APPROVAL OF NON TRAVEL EXPENSE REPORTS IS REMOVED ---
+
+
+
+
+
 
 // Get Expenses by Approver ID
 export const getExpensesByApproverId = async (req, res) => {
   try {
     const empId = req.params.empId;
 
-    // Filter approval documents by approver's empId, matching expenseStatus, and expenseHeaderType
+    // Filter approval documents by approver's empId, matching expenseHeaderStatus, and expenseHeaderType
     const approvalDocuments = await Approval.find({
       'embeddedExpenseSchema.approvers.empId': empId,
-      'embeddedExpenseSchema.expenseHeaderType': 'non travel',
-      'embeddedExpenseSchema.expenseStatus': { $nin: ['approved', 'rejected'] }, 
+      'embeddedExpenseSchema.expenseHeaderType': 'non-travel',
+      'embeddedExpenseSchema.expenseHeaderStatus': { $nin: ['approved', 'rejected'] }, 
     }).exec();
 
     if (approvalDocuments.length === 0) {
@@ -23,7 +32,7 @@ export const getExpensesByApproverId = async (req, res) => {
 
     approvalDocuments.forEach((document) => {
       const expenseHeaderID = document.embeddedExpenseSchema?.expenseHeaderID || 'Missing ExpenseHeaderID';
-      const expenseStatus = document.embeddedExpenseSchema?.expenseStatus || 'Missing expenseStatus';
+      const expenseHeaderStatus = document.embeddedExpenseSchema?.expenseHeaderStatus || 'Missing expenseHeaderStatus';
       const purpose = document.embeddedExpenseSchema?.purpose || 'Missing purpose';
 
       const totalAmounts = [];
@@ -53,7 +62,7 @@ export const getExpensesByApproverId = async (req, res) => {
         FirstBillDate: firstBillDate,
         ExpenseHeaderID: expenseHeaderID,
         Purpose: purpose,
-        ExpenseStatus: expenseStatus,
+        ExpenseHeaderStatus: expenseHeaderStatus,
       };
 
       extractedData.push(expenseObject);
@@ -79,8 +88,8 @@ export const getExpensesByEmployeeName = async (req, res) => {
     const approvalDocuments = await Approval.find({
       'embeddedExpenseSchema.approvers.empId': empId,
       'embeddedExpenseSchema.createdFor.name': employeeName,
-      'embeddedExpenseSchema.expenseStatus': 'pending approval',
-      'embeddedExpenseSchema.expenseHeaderType': 'non travel',
+      'embeddedExpenseSchema.expenseHeaderStatus': 'pending approval',
+      'embeddedExpenseSchema.expenseHeaderType': 'non-travel',
     }).exec();
 
     if (approvalDocuments.length === 0) {
@@ -93,7 +102,7 @@ export const getExpensesByEmployeeName = async (req, res) => {
 
     approvalDocuments.forEach((document) => {
       const expenseHeaderID = document.embeddedExpenseSchema?.expenseHeaderID || 'Missing ExpenseHeaderID';
-      const expenseStatus = document.embeddedExpenseSchema?.expenseStatus || 'Missing expenseStatus';
+      const expenseHeaderStatus = document.embeddedExpenseSchema?.expenseHeaderStatus || 'Missing expenseHeaderStatus';
       const purpose = document.embeddedExpenseSchema?.purpose || 'Missing purpose';
 
       const totalAmounts = [];
@@ -121,7 +130,7 @@ export const getExpensesByEmployeeName = async (req, res) => {
         FirstBillDate: firstBillDate,
         ExpenseHeaderID: expenseHeaderID,
         Purpose: purpose,
-        ExpenseStatus: expenseStatus,
+        ExpenseHeaderStatus: expenseHeaderStatus,
       };
 
       extractedData.push(expenseObject);
@@ -134,30 +143,30 @@ export const getExpensesByEmployeeName = async (req, res) => {
   }
 };
 
-// Get Expenses by ExpenseStatus for approver
+// Get Expenses by expenseHeaderStatus for approver
 export const getExpensesByExpenseStatus = async (req, res) => {
   try {
     const empId = req.params.empId;
-    const expenseStatus = req.params.expenseStatus;
+    const expenseHeaderStatus = req.params.expenseHeaderStatus;
 
-    // Filter approval documents by approver's empId, matching ExpenseStatus, and expenseHeaderType
+    // Filter approval documents by approver's empId, matching expenseHeaderStatus, and expenseHeaderType
     const approvalDocuments = await Approval.find({
       'embeddedExpenseSchema.approvers.empId': empId,
-      'embeddedExpenseSchema.expenseStatus': expenseStatus, 
-      'embeddedExpenseSchema.expenseHeaderType': 'non travel',
+      'embeddedExpenseSchema.expenseHeaderStatus': expenseHeaderStatus, 
+      'embeddedExpenseSchema.expenseHeaderType': 'non-travel',
     }).exec();
 
     if (approvalDocuments.length === 0) {
       // If no approval documents are found, respond with a 404 Not Found status and a specific message
-      return res.status(404).json({ message: 'No pending approval documents found for this user and expenseStatus.' });
+      return res.status(404).json({ message: 'No pending approval documents found for this user and expenseHeaderStatus.' });
     }
 
-    // Extracted expense data by expenseStatus
+    // Extracted expense data by expenseHeaderStatus
     const extractedData = [];
 
     approvalDocuments.forEach((document) => {
       const expenseHeaderID = document.embeddedExpenseSchema?.expenseHeaderID || 'Missing ExpenseHeaderID';
-      const expenseStatus = document.embeddedExpenseSchema?.expenseStatus || 'Missing expenseStatus';
+      const expenseHeaderStatus = document.embeddedExpenseSchema?.expenseHeaderStatus || 'Missing expenseHeaderStatus';
       const purpose = document.embeddedExpenseSchema?.purpose || 'Missing purpose';
 
       const totalAmounts = [];
@@ -186,7 +195,7 @@ export const getExpensesByExpenseStatus = async (req, res) => {
         FirstBillDate: firstBillDate,
         ExpenseHeaderID: expenseHeaderID,
         Purpose: purpose,
-        ExpenseStatus: expenseStatus, 
+        ExpenseHeaderStatus: expenseHeaderStatus, 
       };
 
       extractedData.push(expenseObject);
@@ -213,10 +222,10 @@ export const viewNonTravelExpenseList = async (req, res) => {
     // Find all documents that match the criteria
     const approvalDocuments = await Approval.find({
       'embeddedExpenseSchema.expenseHeaderID': expenseHeaderID,
-      'embeddedExpenseSchema.expenseHeaderType': 'non travel',
+      'embeddedExpenseSchema.expenseHeaderType': 'non-travel',
       'embeddedExpenseSchema.approvers.empId': empId,
-      'embeddedExpenseSchema.expenseStatus': { $nin: ['approved', 'rejected'] },
-      'embeddedExpenseSchema.expenseStatus': 'pending approval',
+      'embeddedExpenseSchema.expenseHeaderStatus': { $nin: ['approved', 'rejected'] },
+      'embeddedExpenseSchema.expenseHeaderStatus': 'pending approval',
     }).exec();
 
     if (approvalDocuments.length === 0) {
@@ -273,12 +282,12 @@ export const viewNonTravelExpenseList = async (req, res) => {
 //     // Find the single document matching the expenseHeaderID
 //     const approvalDocument = await Approval.findOne({
 //       'embeddedExpenseSchema.expenseHeaderID': expenseHeaderID,
-//       'embeddedExpenseSchema.expenseHeaderType': 'non travel',
+//       'embeddedExpenseSchema.expenseHeaderType': 'non-travel',
 //     }).exec();
 
 //     // Check if the document exists
 //     if (!approvalDocument) {
-//       return res.status(404).json({ message: 'No matching approval document found to view non travel expense bill details' });
+//       return res.status(404).json({ message: 'No matching approval document found to view non-travel expense bill details' });
 //     }
 
 //     // Find the bill details within the embeddedExpenseSchema
@@ -290,7 +299,7 @@ export const viewNonTravelExpenseList = async (req, res) => {
 
 //     // Check if the bill was found
 //     if (!billDetails) {
-//       return res.status(404).json({ message: 'No matching bill found to view non travel expense bill details.' });
+//       return res.status(404).json({ message: 'No matching bill found to view non-travel expense bill details.' });
 //     }
 
 //     // Extract the relevant details from the found bill
@@ -315,8 +324,8 @@ export const viewNonTravelExpenseList = async (req, res) => {
 //     // Respond with the extracted data
 //     res.status(200).json(expenseObject);
 //   } catch (error) {
-//     console.error('An error occurred while fetching non travel expense bill details:', error.message);
-//     res.status(500).json({ error: 'An error occurred while fetching non travel expense bill details.' });
+//     console.error('An error occurred while fetching non-travel expense bill details:', error.message);
+//     res.status(500).json({ error: 'An error occurred while fetching non-travel expense bill details.' });
 //   }
 // };
 
@@ -336,7 +345,7 @@ export const NonTravelExpenseStatusApproved = async (req, res) => {
     const approvalDocument = await Approval.findOne({
       'embeddedExpenseSchema.expenseHeaderID': expenseHeaderID,
       'embeddedExpenseSchema.approvers.empId': empId,
-      'embeddedExpenseSchema.expenseHeaderType': 'non travel',
+      'embeddedExpenseSchema.expenseHeaderType': 'non-travel',
     }).exec();
 
     if (!approvalDocument) {
@@ -345,16 +354,16 @@ export const NonTravelExpenseStatusApproved = async (req, res) => {
 
     const embeddedExpenseSchema = approvalDocument.embeddedExpenseSchema;
 
-    if (!embeddedExpenseSchema || !embeddedExpenseSchema.expenseStatus) {
+    if (!embeddedExpenseSchema || !embeddedExpenseSchema.expenseHeaderStatus) {
       return res.status(404).json({ message: 'No matching Travel expense details found for updating bill status.' });
     }
 
-    if (embeddedExpenseSchema.expenseStatus !== 'pending approval') {
-      return res.status(400).json({ message: `Approval failed. Current status: ${embeddedExpenseSchema.expenseStatus}. It must be 'pending approval' to approve.` });
+    if (embeddedExpenseSchema.expenseHeaderStatus !== 'pending approval') {
+      return res.status(400).json({ message: `Approval failed. Current status: ${embeddedExpenseSchema.expenseHeaderStatus}. It must be 'pending approval' to approve.` });
     }
 
-    // Update the expenseStatus to 'approved'
-    embeddedExpenseSchema.expenseStatus = 'approved';
+    // Update the expenseHeaderStatus to 'approved'
+    embeddedExpenseSchema.expenseHeaderStatus = 'approved';
 
     try {
       await approvalDocument.save();
@@ -378,7 +387,7 @@ export const NonTravelExpenseStatusRejected = async (req, res) => {
     const approvalDocument = await Approval.findOne({
       'embeddedExpenseSchema.expenseHeaderID': expenseHeaderID,
       'embeddedExpenseSchema.approvers.empId': empId,
-      'embeddedExpenseSchema.expenseHeaderType': 'non travel',
+      'embeddedExpenseSchema.expenseHeaderType': 'non-travel',
     }).exec();
 
     if (!approvalDocument) {
@@ -387,20 +396,20 @@ export const NonTravelExpenseStatusRejected = async (req, res) => {
 
     const embeddedExpenseSchema = approvalDocument.embeddedExpenseSchema;
 
-    if (!embeddedExpenseSchema || !embeddedExpenseSchema.expenseStatus) {
+    if (!embeddedExpenseSchema || !embeddedExpenseSchema.expenseHeaderStatus) {
       return res.status(404).json({ message: 'No matching Travel expense details found for updating bill status.' });
     }
 
-    if (embeddedExpenseSchema.expenseStatus !== 'pending approval') {
-      return res.status(400).json({ message: `Deny failed. Current status: ${embeddedExpenseSchema.expenseStatus}. It must be 'pending approval' to reject/Send back to the employee.` });
+    if (embeddedExpenseSchema.expenseHeaderStatus !== 'pending approval') {
+      return res.status(400).json({ message: `Deny failed. Current status: ${embeddedExpenseSchema.expenseHeaderStatus}. It must be 'pending approval' to reject/Send back to the employee.` });
     }
 
     if (!expenseRejectionReason) {
       return res.status(400).json({ message: 'Deny failed. An embeddedExpenseSchema.expenseRejectionReason is required to reject/Send back to the employee.' });
     }
 
-    // Update the embeddedExpenseSchema.expenseStatus to 'rejected'
-    embeddedExpenseSchema.expenseStatus = 'rejected';
+    // Update the embeddedExpenseSchema.expenseHeaderStatus to 'rejected'
+    embeddedExpenseSchema.expenseHeaderStatus = 'rejected';
     // Update the embeddedExpenseSchema.expenseRejectionReason
     embeddedExpenseSchema.expenseRejectionReason = expenseRejectionReason;
 

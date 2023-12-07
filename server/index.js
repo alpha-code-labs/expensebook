@@ -5,7 +5,7 @@ import mongoose from 'mongoose';
 import nodeCron from 'node-cron';
 import dotenv from 'dotenv';
 import { config } from './config.js';
-import approvalRoutes from './routes/approvalRoutes.js';
+import approvalRoutes from './routes/dataSaveRoutes.js';
 import travelApprovalRoutes from './routes/travelApprovalRoutes.js';
 import travelExpenseApprovalRoutes from './routes/travelExpenseApprovalRoutes.js';
 import nonTravelExpenses from './routes/nonTravelExpense.js';
@@ -31,7 +31,7 @@ app.use(bodyParser.json());
 app.use(cors());
 
 //Routes
-app.use('/api/approvals', approvalRoutes);
+app.use('/api/approvals', approvalRoutes); // dummy data
 app.use('/approvals/tr-ca', travelApprovalRoutes);
 app.use('/approvals/cash', cashAdvance);
 app.use('/travelExpense',travelExpenseApprovalRoutes);
