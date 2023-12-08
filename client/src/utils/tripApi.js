@@ -2,7 +2,7 @@ import axios from 'axios';
 
 const BASE_URL = 'http://localhost:8080/';
 
-const retry = 1;
+const retry = 3;
 const retryDelay = 3000;
 
 const errorMessages = {
@@ -50,12 +50,18 @@ export const tripFetchApi = async (tripId, tenantId, empId) => {
   const url = `${BASE_URL}/api/get/${tenantId}/${empId}/${tripId}`;
 
   try {
-    return await axiosRetry(axios.get, url);
+    const response = await axiosRetry(axios.get, url);
+    return { data: response.data, error: null };
   } catch (error) {
-    handleRequestError(error);
-    throw new Error(`Error fetching trip data: ${error.message}`);
+    const errorObject = {
+      status: error.response ? error.response.status : null,
+      message: error.message,
+    };
+
+    return { data: null, error: errorObject };
   }
 };
+
 
 
 export const tripCancellationApi = async (tenantId, empId, tripId, itineraryId) => {

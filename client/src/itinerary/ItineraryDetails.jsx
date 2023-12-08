@@ -5,7 +5,6 @@ import TravelRequestData from "../utils/travelrequest";
 import { tripCancellationApi } from "../utils/tripApi";
 
 
-
 const ItineneryDetails= ({ icon ,airplane ,preferences ,actionBtnText ,routeData , handleOpenOverlay}) => {
     
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -62,7 +61,7 @@ const ItineneryDetails= ({ icon ,airplane ,preferences ,actionBtnText ,routeData
         {airplane.map((tripData, index) => (
   
           <div className='Itinenery mb-5' key={index}>
-            <div className='h-auto w-auto border border-slate-300 rounded-md'>
+            <div className='h-auto w-auto border-[1px] border-slate-300 bg-slate-50 hover:border-purple-500 rounded-md cursor-pointer'>
               <div className='flex flex-row py-3 px-2 divide-x'>
                 <div className='flex items-center flex-grow divide-x '>
                   <div className='flex items-start justify-start flex-col shrink w-auto md:w-[200px] mr-4'>
@@ -175,7 +174,7 @@ const ItineneryDetails= ({ icon ,airplane ,preferences ,actionBtnText ,routeData
   {airplane.map((tripData, index) => (
   <div className='Itinenery mb-5' key={index}>
     {tripData.return.itineraryId ? (
-      <div className='h-auto w-auto border flex-col border-slate-300 rounded-md'>
+      <div className='h-auto w-auto border flex-col border-slate-300 bg-slate-50 hover:border-purple-500 rounded-md'>
         <div className='flex flex-row py-3 px-2 divide-x'>
           <div className='flex items-center flex-grow divide-x '>
             <div className='flex items-start justify-start flex-col shrink w-auto md:w-[200px] mr-4'>

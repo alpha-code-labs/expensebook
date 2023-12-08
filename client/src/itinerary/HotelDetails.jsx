@@ -38,7 +38,7 @@ const HotelDetails = ({ allHotel , travelRequest ,actionBtnText , routeData ,han
       {/* </div> */}
   
   <div className='Itinenery mb-4 bg-slate-50 mt-2' >
-     <div className='h-auto w-auto border border-slate-300 rounded-md'>
+     <div className='h-auto w-auto  border-[1px] border-slate-300 bg-slate-50 hover:border-purple-500 rounded-md'>
        
      {/* <h2>Journey {journeyIndex + 1}</h2> */}      
   

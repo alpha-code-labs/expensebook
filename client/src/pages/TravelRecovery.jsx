@@ -17,7 +17,9 @@ const TravelRecovery = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showConfirmationOverlay, setShowConfirmationOverlay] = useState(false);
   const [tripData, setTripData] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [loadingErrMsg, setLoadingErrMsg] = useState(true)
+
 
 
   const routeData={
@@ -29,26 +31,27 @@ const TravelRecovery = () => {
    console.log(routeData)
 
 
-  //fetching data from apis 
-  
-  
-  const fetchData = async () => {
-    try {
-      setLoading(true);
-      const data = await tripFetchApi(routeData.tripId, routeData.tenantId, routeData.empId);
-      setTripData(data);
-    } catch (error) {
-      console.error('Error fetching trip data:', error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
 
+useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const { data, error } = await tripFetchApi(routeData.tripId, routeData.tenantId, routeData.empId);
 
-  
-  useEffect(() => {
+        if (error) {
+          setLoadingErrMsg(`Error (${error.status}): ${error.message}`);
+        } else {
+          setTripData(data);
+        }
+
+        setLoading(false);
+      } catch (error) {
+        setLoadingErrMsg(`Error fetching trip data: ${error.message}`);
+        setLoading(false);
+      }
+    };
+
     fetchData();
-  }, []); 
+  }, []);
 
   //-----------------------------
 
@@ -185,8 +188,18 @@ const TravelRecovery = () => {
 
   return (
     <>
-      {/* Header */}
-      {loading ? fetchData : "Loading....."}
+    {loading && (
+        <div className='min-w-screen min-h-screen flex justify-center items-center'>
+          <span className="flex">
+            <span className="animate-ping relative right-[-20px] h-5 w-5 rounded-full bg-sky-400 opacity-75"></span>
+            <span className="absolute rounded-full h-5 w-5 bg-sky-500"></span>
+          </span>
+        </div>
+      )}
+      {loadingErrMsg && !loading && <div>{loadingErrMsg}</div>}
+      {!loading && !loadingErrMsg && (
+      <>
+      {tripData}
       <div className='justify-between w-full h-[65px] border-b-[1px] border-gray-100 flex flex-row gap-2 fixed bg-cover bg-white-100 px-8 shadow-lg'>
         {/* Back Button */}
         <div className='flex flex-row items-center'>
@@ -272,6 +285,7 @@ const TravelRecovery = () => {
       {showConfirmationOverlay && (
         <NotifyModal/>
       )}
+      </>)}
     </>
   );
 };

@@ -41,8 +41,8 @@ const CabDetails = ({ allCabs , travelRequest , actionBtnText , routeData ,handl
       
       {/* </div> */}
   
-  <div className='Itinenery mb-4 bg-slate-50 mt-2' >
-     <div className='h-auto w-auto border border-slate-300 rounded-md'>     
+  <div className='Itinenery mb-4 bg-slate-50  mt-2' >
+     <div className='h-auto w-auto rounded-md border-[1px] border-slate-300 bg-slate-50 hover:border-purple-500'>     
   
     <div className='flex flex-row py-3 px-2 divide-x'>
     <div className='flex items-center flex-grow divide-x '>
