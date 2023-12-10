@@ -15,9 +15,6 @@ const TravelExpenseApproval = () => {
           <DashBoardProfile /> 
           <DashboardBellIcon />
           <DashboardOptions/>
-        <b className="absolute top-[27px] left-[308px] tracking-[0.02em] text-gray-300">
-          Approvals
-        </b>
     </div>
     )
 }

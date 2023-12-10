@@ -64,3 +64,6 @@ export {default as vector5} from './vector5.svg';
 
 export {default as group1} from './group1.svg';
 export {default as group2} from './group2.svg';
+
+export {default as checklist} from './settlement-checklist.png';
+
