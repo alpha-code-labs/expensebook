@@ -101,6 +101,14 @@ const DashboardOptions = () => {
             </div>
           </div>
         </div>
+
+         {/* Cash Advances */}
+         <div className="relative bg-eb-primary-blue-50 w-[244px] h-8 overflow-hidden shrink-0 ">
+          <div className="absolute  top-[calc(50% - 8px)] left-[32px] flex flex-row items-center justify-start gap-[8px]">
+            <img className="relative w-4 h-4 overflow-hidden shrink-0" alt="" src={airplay2} />
+            <div className="relative" onClick={redirectToCash}>Cash Advances</div>
+          </div>
+        </div>
       </div>
 
       <img
