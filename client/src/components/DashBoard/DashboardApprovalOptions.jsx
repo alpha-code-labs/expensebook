@@ -11,9 +11,12 @@ const DashboardApprovalOptions = () => {
   };
 
   const options = [
-    { key: '', label: 'Travel Requests & Cash Advances' },
-    { key: 'travelExpenseApproval', label: 'Travel Expenses' },
-    { key: 'nonTravelExpenseApproval', label: 'Non Travel Expenses' },
+    { key: 'settlingCashAdvance', label: 'Settling Cash Advance' },
+    { key: 'settlingTravelExpense', label: 'Settling Travel Expense' },
+    { key: 'settlingNonTravelExpense', label: 'Settling Non Travel Expense' },
+    { key: 'recoveringPaidandCanceledCashAdvance', label: 'Recovering Paid and Canceled Cash Advance' },
+    { key: 'settlingAccountingEntriesforAllExpenses', label: 'Settling accounting entries for all expenses' },
+    { key: 'otherFinanceRequirements', label: 'Other Finance Requirements' },
   ];
 
   return (
