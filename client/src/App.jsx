@@ -22,9 +22,12 @@ function App() {
         <Route path='/' element={<TravelApproval />}/>
         <Route path='/td/:travelRequestId' element={<TravelRequestDetails />} />
         <Route path='/view' element={<ViewTrip/>}/>
-        <Route path='/dashCash' element={<CashAdvance />}/>
-        <Route path='/travelExpenseApproval' element={<TravelExpenseApproval />}/>
-        <Route path='/nonTravelExpenseApproval' element={<NonTravelExpenseApproval />}/>
+        <Route path='/settlingCashAdvance' element={<CashAdvance />}/>
+        <Route path='/settlingTravelExpense' element={<TravelExpenseApproval />}/>
+        <Route path='/settlingNonTravelExpense' element={<NonTravelExpenseApproval />}/>
+        <Route path='/recoveringPaidandCanceledCashAdvance' element={<NonTravelExpenseApproval />}/>
+        <Route path='/settlingAccountingEntriesforAllExpenses' element={<NonTravelExpenseApproval />}/>
+        <Route path='/otherFinanceRequirements' element={<NonTravelExpenseApproval />}/>
         <Route path='/travelExpense/:ExpenseHeaderType/:ExpenseHeaderID/:EmpId' element={<TravelExpenseDetails />}/>
         <Route path='/expense/nonTravel/:ExpenseHeaderID/:BillNumber' element={<NonTravelExpenseDetails />}/>
         <Route path='/testing' element={<TestingTravelRequestWithCash/>}/>
