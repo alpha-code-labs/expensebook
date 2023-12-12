@@ -1,11 +1,9 @@
 import { chevronDown } from "../../assets/icon";
 import Select from "../common/Select";
 import Search from "../common/searchNonTravel";
-import NonTravelExpenseComponent from "./NonTravelExpenseComponent";
-import NonTravelExpenseSearchBar from "./NonTravelExpenseSearchbar";
 
 
-const NonTravelExpenseContainer = () => {
+const SettlingNonTravelExpenseContainer = () => {
   
     return (
       <div>
@@ -49,9 +47,9 @@ const NonTravelExpenseContainer = () => {
                 </div>
               </div>
              </div>
-             <NonTravelExpenseComponent />
+             {/* <NonTravelExpenseComponent /> */}
           </div>
-           <NonTravelExpenseSearchBar/>
+          
           {/* Searchbar 
           <div className="flex mt-14 px-6 py-2 gap-8">
 
@@ -65,7 +63,7 @@ const NonTravelExpenseContainer = () => {
     );
   };
   
-  export default NonTravelExpenseContainer;
+  export default SettlingNonTravelExpenseContainer;
   
 
 

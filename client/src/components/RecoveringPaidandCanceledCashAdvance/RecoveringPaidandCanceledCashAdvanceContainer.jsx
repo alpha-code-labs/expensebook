@@ -1,28 +1,11 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import TravelRequestComponent from "./TravelRequestComponent";
-import TravelAndCashSearchBar from "./TravelAndCashSearchBar";
-
-const TravelRequestsContainer = () => {
-  const navigate = useNavigate();
-
-  // Redirect to TR Details
-  const redirectToTRDetails = (id) => {
-    navigate(`/trDetails/${id}`);
-  };
+const RecoveringPaidandCanceledCashAdvanceContainer = () => {
 
   return (
-    <div className="relative rounded-2xl bg-white box-border w-[912px] h-[439px] overflow-hidden shrink-0 text-base text-black border-[1px] border-solid border-gainsboro-200">
-      <div className="absolute top-[20px] left-[36px]">Travel Requests & Cash Advances</div>
-      <TravelAndCashSearchBar/>
-      <div className="overflow-y-auto" style={{ maxHeight: "calc(100% - 109px)" }}>
-        <TravelRequestComponent />
-      </div>
-    </div>
+  <div>RecoveringPaidandCanceledCashAdvanceContainer</div>
   );
 };
 
-export default TravelRequestsContainer;
+export default RecoveringPaidandCanceledCashAdvanceContainer;
 
 
 

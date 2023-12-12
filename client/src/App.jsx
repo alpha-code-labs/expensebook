@@ -1,15 +1,12 @@
-import { useState } from 'react'
 import './App.css'
-import { BrowserRouter,Route,Routes,useParams } from 'react-router-dom';
-import ViewTrip from './components/ViewTrip';
-import CashAdvance from './pages/CashApproval';
-import TravelRequestDetails from './components/TravelRequest/TravelRequestDetails';
-import TravelApproval from './pages/TravelApproval';
-import NonTravelExpenseApproval from './pages/NonTravelExpenses';
-import TravelExpenseApproval from './pages/TravelExpenseApproval';
-import NonTravelExpenseDetails from './components/NonTravelExpense/NonTravelExpenseDetails/NonTravelExpenseDetails';
-import TravelExpenseDetails from './components/TravelExpense/TravelExpenseDetails/TravelExpenseDetails';
-import TestingTravelRequestWithCash from './components/TravelRequest/trwithcash';
+import { BrowserRouter,Route,Routes } from 'react-router-dom';
+
+import SettlingCashAdvance from './pages/SettlingCashAdvance';
+import RecoveringPaidandCanceledCashAdvance from './pages/RecoveringPaidandCanceledCashAdvance';
+import SettlingNonTravelExpense from './pages/SettlingNonTravelExpense';
+import SettlingTravelExpense from './pages/SettlingTravelExpense';
+import SettlingAccountingEntriesforAllExpenses from './pages/SettlingAccountingEntriesforAllExpenses';
+import OtherFinanceRequirements from './pages/OtherFinanceRequirements';
 
 
 
@@ -19,18 +16,14 @@ function App() {
     <div>
     <BrowserRouter>
       <Routes>
-        <Route path='/' element={<TravelApproval />}/>
-        <Route path='/td/:travelRequestId' element={<TravelRequestDetails />} />
-        <Route path='/view' element={<ViewTrip/>}/>
-        <Route path='/settlingCashAdvance' element={<CashAdvance />}/>
-        <Route path='/settlingTravelExpense' element={<TravelExpenseApproval />}/>
-        <Route path='/settlingNonTravelExpense' element={<NonTravelExpenseApproval />}/>
-        <Route path='/recoveringPaidandCanceledCashAdvance' element={<NonTravelExpenseApproval />}/>
-        <Route path='/settlingAccountingEntriesforAllExpenses' element={<NonTravelExpenseApproval />}/>
-        <Route path='/otherFinanceRequirements' element={<NonTravelExpenseApproval />}/>
-        <Route path='/travelExpense/:ExpenseHeaderType/:ExpenseHeaderID/:EmpId' element={<TravelExpenseDetails />}/>
-        <Route path='/expense/nonTravel/:ExpenseHeaderID/:BillNumber' element={<NonTravelExpenseDetails />}/>
-        <Route path='/testing' element={<TestingTravelRequestWithCash/>}/>
+        <Route path='/' element={<SettlingCashAdvance />}/>
+        <Route path='/settlingCashAdvance' element={<SettlingCashAdvance />}/>
+        <Route path='/settlingTravelExpense' element={<SettlingTravelExpense />}/>
+        <Route path='/settlingNonTravelExpense' element={<SettlingNonTravelExpense />}/>
+        <Route path='/recoveringPaidandCanceledCashAdvance' element={<RecoveringPaidandCanceledCashAdvance />}/>
+        <Route path='/settlingAccountingEntriesforAllExpenses' element={<SettlingAccountingEntriesforAllExpenses />}/>
+        <Route path='/otherFinanceRequirements' element={<OtherFinanceRequirements />}/>
+        
       </Routes>
     </BrowserRouter>
     </div>

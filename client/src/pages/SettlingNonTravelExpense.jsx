@@ -2,11 +2,11 @@ import DashboardBellIcon from "../components/DashBoard/DashBoardBellIcon";
 import DashboardOptions from "../components/DashBoard/DashBoardOptions";
 import DashBoardProfile from "../components/DashBoard/DashBoardProfile";
 import DashboardApprovalOptions from "../components/DashBoard/DashboardApprovalOptions";
-import NonTravelExpenseContainer from "../components/NonTravelExpense/NonTravelExpenseContainer";
+import NonTravelExpenseContainer from "../components/SettlingNonTravelExpense/SettlingNonTravelExpenseContainer";
 
 
 
-const NonTravelExpenseApproval = () => {
+const SettlingNonTravelExpense = () => {
   
 
   return (
@@ -22,4 +22,4 @@ const NonTravelExpenseApproval = () => {
   );
 };
 
-export default NonTravelExpenseApproval;
+export default SettlingNonTravelExpense;

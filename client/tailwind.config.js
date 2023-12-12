@@ -31,6 +31,8 @@ export const theme = {
       "ebgrey-600": "#5e606e",
       blueviolet: "#4c38e4",
       "ebgrey-50": "#f1f1f3",
+      red:"#FF0000" , 
+      green:"#008000"
     },
     spacing: {},
     fontFamily: {
