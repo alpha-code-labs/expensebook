@@ -25,7 +25,7 @@ const RecoveringPaidandCanceledCashAdvanceContainer = () => {
 
   return (
     <div className="border-[1px] border-solid border-gainsboro-200 rounded-2xl box-border w-[912px] h-[422px] overflow-auto">
-      <div className="m-8">Recovering paid and cancelled cash advance</div>
+      <div className="m-8 text-base">Recovering paid and cancelled cash advance</div>
       <table className="w-full">
         <thead>
           <tr className="border-b border-solid border-gainsboro-200">
