@@ -12,6 +12,7 @@ import TableItem from '../../components/table/TableItem'
 import { postTravelRequest_API, updateTravelRequest_API, policyValidation_API } from '../../utils/api'
 import CloseButton from '../../components/common/closeButton'
 import PopupMessage from '../../components/common/PopupMessage'
+import Error from '../../components/common/Error'
 
 const travelAllocation = [
     {
@@ -36,6 +37,10 @@ const travelAllocation = [
 export default function BasicDetails(props){
 
     const DASHBOARD_URL = import.meta.env.VITE_DASHBOARD_URL
+
+    //loader state
+    const [isLoading, setIsLoading] = useState(false)
+    const [loadingErrMsg, setLoadingErrMsg] = useState(null)
     
     //onboarding data...
     const onBoardingData = props.onBoardingData
@@ -78,6 +83,8 @@ export default function BasicDetails(props){
 
 
     const handleContinueButton = async ()=>{
+        setIsLoading(true)
+
         console.log(sectionForm)
         console.log(formData)
         let allowSubmit = false
@@ -118,27 +125,35 @@ export default function BasicDetails(props){
         
         await checkRequiredFields()
 
+        setIsLoading(false)
+
         if(allowSubmit){
+            setIsLoading(true)
+
             if(!formData.travelRequestId){
-                const travelRequestId = await postTravelRequest_API({...formData, travelRequestState:'section 0', travelRequestStatus:'draft', tenantId:144,  })
+                const res = await postTravelRequest_API({...formData, travelRequestState:'section 0', travelRequestStatus:'draft',})
                 
+                if(res.err){
+                    setLoadingErrMsg(res.err)
+                    return
+                }
+
+                const travelRequestId = res.data.travelRequestId
+
                 console.log(travelRequestId, 'travel request id')
                 const formData_copy = JSON.parse(JSON.stringify(formData))
                 formData_copy.travelRequestId = travelRequestId
                 setFormData(formData_copy)
+                navigate(nextPage)
 
-                if(travelRequestId){
-                    navigate(nextPage)
-                }
-                else{
-                    //show server error
-                    console.log('server error')
-                }
             }
             else{
-                const res = await updateTravelRequest_API({...formData, travelRequestState:'section 0', travelRequestStatus:'draft', tenantId:144,  })
-                console.log(res, 'res')
-                //do some error handling if updation fails
+                setIsLoading(true)
+                const res = await updateTravelRequest_API({...formData, submitted: false})
+                if(res.err){
+                    setLoadingErrMsg(res.err)
+                    return
+                }
                 navigate(nextPage)
             }
         }
@@ -147,6 +162,7 @@ export default function BasicDetails(props){
     const handleSaveAsDraft = async ()=>{
         console.log(sectionForm)
         console.log(formData)
+        setIsLoading(true)
         let allowSubmit = false
         //check required fields
         async function checkRequiredFields(){
@@ -184,20 +200,29 @@ export default function BasicDetails(props){
             }
             
             await checkRequiredFields()
+            setIsLoading(false)
     
             if(allowSubmit){
+                setIsLoading(true)
                 if(!formData.travelRequestId){
-                    const travelRequestId = await postTravelRequest_API({...formData, travelRequestState:'section 0', travelRequestStatus:'draft', tenantId:144,  })
-                    
+                    const res = await postTravelRequest_API({...formData, travelRequestState:'section 0', travelRequestStatus:'draft'})
+                    if(res.err){
+                        setLoadingErrMsg(res.err)
+                        return
+                    }
+
+                    const travelRequestId = res.data.travelRequestId
                     console.log(travelRequestId, 'travel request id')
                     const formData_copy = JSON.parse(JSON.stringify(formData))
                     formData_copy.travelRequestId = travelRequestId
                     setFormData(formData_copy)
+
+                    setIsLoading(false)
     
                     if(travelRequestId){
                         //show popup
                         
-                        setPopupMessage(`Your travel request with ID ${travelRequestId} has been submitted successfull`)
+                        setPopupMessage(`Your draft travel request with ID ${travelRequestId} has been saved`)
                         setshowPopup(true)
 
                         setTimeout(()=>{
@@ -213,10 +238,14 @@ export default function BasicDetails(props){
                     }
                 }
                 else{
-                    const res = await updateTravelRequest_API({...formData, travelRequestState:'section 0', travelRequestStatus:'draft', tenantId:formData.tenantId,  })
-                    console.log(res, 'res')
-                    //do some error handling if updation fails
-                    setPopupMessage(`Your travel request with ID ${formData.travelRequestId} has been submitted successfull`)
+                    setIsLoading(true)
+                    const res = await updateTravelRequest_API({...formData, travelRequestState:'section 0', travelRequestStatus:'draft', tenantId:formData.tenantId})
+                    if(res.err){
+                        setLoadingErrMsg(res.err)
+                        return
+                    }
+                    
+                    setPopupMessage(`Your travel request with ID ${formData.travelRequestId} has been saved as draft successfull`)
                     setshowPopup(true)
 
                     setTimeout(()=>{
@@ -226,8 +255,7 @@ export default function BasicDetails(props){
                         //navigate(DASHBOARD_URL)
                     },5000)
                 }
-            }
-        
+            }        
     }
 
     useEffect(()=>{
@@ -458,7 +486,9 @@ export default function BasicDetails(props){
     }
 
     return(<>
-        <div className="w-full h-full relative bg-white md:px-24 md:mx-0 sm:px-0 sm:mx-auto py-12 select-none">
+            {isLoading && <Error message={loadingErrMsg}/> }
+            {!isLoading && <>
+            <div className="w-full h-full relative bg-white md:px-24 md:mx-0 sm:px-0 sm:mx-auto py-12 select-none">
             {/* app icon */}
             <div className='w-full flex justify-center  md:justify-start lg:justify-start'>
                 <Icon/>
@@ -600,7 +630,7 @@ export default function BasicDetails(props){
                 </div>}
              
                 <div className='my-8 w-full flex justify-between items-center'>
-                    <Button variant='fit' text='Save as Draft' onClick={handleSaveAsDraft}/>
+                    <Button disabled={isLoading} variant='fit' text='Save as Draft' onClick={handleSaveAsDraft}/>
                 
                     <Button 
                         variant='fit'
@@ -611,6 +641,7 @@ export default function BasicDetails(props){
                 </div> 
             </div>
         <PopupMessage message={popupMessage} showPopup={showPopup} setshowPopup={setshowPopup} />
+        </>}
     </>)
 }
 
@@ -670,5 +701,3 @@ function DesignationCol(props){
         </div>
     )
 }
-
-
