@@ -48,7 +48,7 @@ const getTravelRequests = async (req, res) => {
       "approved",
       "rejected",
       "booked",
-      "canceled",
+      "cancelled",
       "completed",
     ];
 
@@ -81,7 +81,7 @@ const updateTravelRequestStatus = async (req, res) => {
       "approved",
       "rejected",
       "booked",
-      "canceled",
+      "cancelled",
       "completed",
     ];
 
@@ -115,28 +115,132 @@ const updateTravelRequest = async (req, res) => {
       "travelRequestStatus",
       "travelRequestState",
       "createdFor",
+      "tripPurpose",
+      "travelAllocationHeaders",
+      "itinerary",
+      "travelDocuments",
+      "approvers",
+      "preferences",
+      "teamMembers",
+      "travelViolations",
+    ];
+
+    // Check if one of the required fields are present in the request body
+    const fieldsPresent = requiredFields.some((field) => field in req.body);
+
+    if (!fieldsPresent) {
+      return res.status(400).json({ message: "You haven't provided any valid fields to update" });
+    }
+
+    const {
+      tenantId,
+      travelRequestStatus,
+      travelRequestState,
+    } = req.body;
+
+    if(!tenantId || tenantId==null || tenantId == "") {
+      return res.status(400).json({ message: "tenant Id is missing" });
+    }
+
+    //validate tenant Id
+
+
+    //validate status
+    const status = [
+      'draft', 
+    'pending approval', 
+    'approved', 
+    'rejected', 
+    'pending booking', 
+    'booked',
+    'transit', 
+    'cancelled',  
+    ];
+
+    if (travelRequestStatus && travelRequestStatus !="" && !status.includes(travelRequestStatus)) {
+      return res.status(400).json({ message: "Invalid status ", travelRequestStatus });
+    }
+
+    //validate state
+    const state = ["section 0", "section 1", "section 2", "section 3", "section 4", "section 5"];
+    
+    if (travelRequestState && travelRequestState !="" && !state.includes(travelRequestState)) {
+      return res.status(400).json({ message: "Invalid state ", travelRequestState });
+    }
+
+    //other validation methods are also needed,
+
+    const expectedFields = [
+      "createdFor",
+      "teamMembers",
+      "tripPurpose",
+      "travelRequestStatus",
+      "travelRequestState",
       "travelAllocationHeaders",
       "itinerary",
       "travelDocuments",
       "approvers",
       "preferences",
       "travelViolations",
+      "isModified",
+      "isCancelled",
+      "cancellationDate",
+      "cancellationReason",
+      "sentToTrip",
+      "isCashAdvanceTaken"
     ];
-
-    // Check if all required fields are present in the request body
-    const fieldsPresent = requiredFields.every((field) => field in req.body);
-
-    if (!fieldsPresent) {
-      return res.status(400).json({ message: "Required fields are missing." });
+    
+    // Initialize an array to store the updated fields that are present in the request
+    const present = [];
+    
+    // Check which fields are present in the request
+    for (const field of expectedFields) {
+      if (req.body.hasOwnProperty(field)) {
+        present.push(field);
+      }
     }
-
-    //other validation methods are also needed,
+    
+    const updatedFields = {};
+    present.forEach((field) => {updatedFields[field] = req.body[field]});
+    console.log(updatedFields);
 
     const { travelRequestId } = req.params;
-    await TravelRequest.findOneAndUpdate(travelRequestId, req.body);
-    return res
-      .status(200)
-      .json({ message: "Travel Request updated successfully" });
+    //validate travelRequestId
+    const travelRequestExists = await TravelRequest.findOne({travelRequestId}, {travelRequestId})
+    if(!travelRequestExists || travelRequestExists.length==0){
+      return res.status(404).json({message: 'Travel Request not found'})
+    }
+
+    //check if cash advance is taken
+    if(req.body.hasOwnProperty('isCashAdvanceTaken')){
+      if(req.body.isCashAdvanceTaken){
+        //send data to cash microservice
+
+      }
+    }
+    
+    await TravelRequest.findOneAndUpdate({travelRequestId}, {$set: updatedFields});
+
+    //check for approvers
+    if(travelRequestStatus==='pending approval'){
+      if(req.body.hasOwnProperty(approvers)){
+        if(req.body.approvers.length>0 && r){
+          // might need to 
+          //check with t&e how many approvers should be there
+          //and wether he is selecting correct approvers
+  
+          // send data to approval microservice
+
+          return res.status(200).json({message: 'Travel Request submitted for approval'})
+        }
+      }
+    }
+
+    if(travelRequestStatus==='pending booking'){
+      return res.status(200).json({message: 'Travel Request submitted for booking'})
+    }
+
+    return res.status(200).json({ message: "Travel Request updated" });
   } catch (e) {
     console.error(e);
     return res.status(500).json({ message: "Internal server error" });
