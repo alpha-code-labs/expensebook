@@ -4,15 +4,136 @@ import axios from 'axios'
 import BasicDetails from "./basicDetails/basicDetails";
 import Itinerary from "./itinerary/Itinerary"
 import Review from "./review/Review"
+import Error from "../components/common/Error";
+import { TR_frontendTransformer } from "../utils/transformers";
 
+const dummyItinerary = [{
+  from:null,
+  to:null,
+  departure: {
+    from: null,
+    to: null,
+    date: null,
+    time: null,
+    bkd_from: null,
+    bkd_to: null,
+    bkd_date: null,
+    bkd_time: null,
+    modified: false,
+    isCancelled: false,
+    cancellationDate: null,
+    cancellationReason: null,
+    status:'draft',
+    bookingDetails:{
+      docURL: null,
+      docType: null,
+      billDetails: {}, 
+    }
+  }, 
+  return:{
+    from: null,
+    to: null,
+    date: null,
+    time: null,
+    bkd_from: null,
+    bkd_to: null,
+    bkd_date: null,
+    bkd_time: null,
+    modified: false,
+    isCancelled: false,
+    cancellationDate: null,
+    cancellationReason: null,
+    status:'draft',
+    bookingDetails:{
+      docURL: null,
+      docType: null,
+      billDetails: {}, 
+    }
+    },
+  hotels:[
+    {
+      location:null,
+      class:null, 
+      checkIn:null, 
+      checkOut:null,
+      violations:{
+        class: null,
+        amount: null,
+      }, 
+      bkd_location:null,
+      bkd_class:null,
+      bkd_checkIn:null,
+      bkd_checkOut:null,
+      bkd_violations:{
+        class: null,
+        amount: null,
+      },
+      modified:false, 
+      isCancelled:false, 
+      cancellationDate:null,
+      cancellationReason:null, 
+      status:'draft',
+      bookingDetails:{
+        docURL: null,
+        docType: null,
+        billDetails: {}, 
+      }
+    }
+  ],
+  cabs:[
+    {
+      date:null, 
+      class:null, 
+      preferredTime:null, 
+      pickupAddress:null, 
+      dropAddress:null, 
+      violations:{
+        class: null,
+        amount: null,
+      }, 
+      bkd_date:null,
+      bkd_class:null,
+      bkd_preferredTime:null,
+      bkd_pickupAddress:null,
+      bkd_dropAddress:null,
+  
+      modified:false, 
+      isCancelled:false, 
+      cancellationDate:null, 
+      cancellationReason:null, 
+      status:'draft',
+      bookingDetails:{
+        docURL: null,
+        docType: null,
+        billDetails: {}, 
+      },
+      type:null
+    }
+  ],
+  modeOfTransit:null,
+  travelClass:null,
+  needsVisa:false,
+  transfers:{
+    needsDeparturePickup:false,
+    needsDepartureDrop:false,
+    needsReturnPickup:false,
+    needsReturnDrop:false,
+  },
+  needsHotel:false,
+  needsCab:false,
+  modified:false, 
+  isCancelled:false, 
+  cancellationDate:null, 
+  cancellationReason:null,
+  status:'draft',
+}]
 
 export default function () {
   //get travel request Id from params
     const {travelRequestId} = useParams()
     console.log(travelRequestId, 'travelRequestId')
-
-    const [loadingTR, setLoadingTR] = useState(true)
-    const [loadingOnboardingData, setLoadingOnboardingData] = useState(true)
+    const [isLoading, setIsLoading] = useState(true)
+    const [loadingErrMsg, setLoadingErrMsg] = useState(null)
 
     //fetch travel request data from backend
     useEffect(()=>{
@@ -20,13 +141,16 @@ export default function () {
         .get(`${TRAVEL_API}/travel-requests/${travelRequestId}`)
         .then((response) => {
             console.log(response.data)
-            const travelRequestDetails = response.data
+            const travelRequestDetails = TR_frontendTransformer(response.data)
+            console.log(travelRequestDetails)
            //set form data...
 
            const currentFomData = {
               travelRequestId: travelRequestDetails.travelRequestId,
               approvers: travelRequestDetails.approvers,
               tenantId: travelRequestDetails.tenantId,
+              tenantName:travelRequestDetails.tenantName,
+              companyName:travelRequestDetails.companyName,
               status: travelRequestDetails.status,
               state: travelRequestDetails.state,
               createdBy: travelRequestDetails.createdBy,
@@ -48,123 +172,54 @@ export default function () {
               tripType: travelRequestDetails.tripType,
               preferences:travelRequestDetails.preferences,
               travelViolations:travelRequestDetails.travelViolations,
+              cancellationDate:travelRequestDetails.cancellationDate,
+              cancellationReason:travelRequestDetails.cancellationReason,
+              isCancelled:travelRequestDetails.isCancelled,
+              travelRequestStatus:travelRequestDetails.travelRequestStatus,
            }
 
+
+                  axios
+            .get(`${TRAVEL_API}/initial-data/${tenantId}/${EMPLOYEE_ID}`)
+            .then((response) => {
+              console.log(response.data)
+              setOnBoardingData(response.data)
+              setIsLoading(false)
+            })
+            .catch(err=>{ 
+              console.error(err)
+              setLoadingErrMsg(err.response.message)
+              //handle possible scenarios
+            })
+
            setFormData(currentFomData)
-           setLoadingTR(false)
+           
+
         })
         .catch(err=>{ 
             console.error(err)
+            setLoadingErrMsg(err.response.message)
             //handle possible scenarios
         })
     },[])
 
-
   const TRAVEL_API = import.meta.env.VITE_TRAVEL_API_URL 
-
   //hardcoded for now we will get it from dashboard/token
   const tenantId = 'tynod76eu' 
   const EMPLOYEE_ID  = '1001' 
   const EMPLOYEE_NAME = 'Abhishek Kumar'
 
 
-  const [formData, setFormData] = useState({
-    travelRequestId: null,
-    approvers: [],
-    tenantId:tenantId,
-    status: 'draft',
-    state: 'section0',
-    createdBy: {name: EMPLOYEE_NAME, empId: EMPLOYEE_ID},
-    createdFor: null,
-    travelAllocationHeaders:[],
-    tripPurpose:null,
-    
-    raisingForDelegator:false,
-    nameOfDelegator:null,
-    isDelegatorManager:false,
-    selectDelegatorTeamMembers:false,
-    delegatorsTeamMembers:[],
-
-    bookingForSelf:true,
-    bookiingForTeam:false,
-    teamMembers : [],
-
-
-    itinerary: [{
-      journey:{
-        from:null, 
-        to:null, 
-        departure:{date:null, time:null, isModified:false, isCanceled:false, cancellationDate:null, cancellationReason:null} , 
-        return:{date:null, time:null, isModified:false, isCanceled:false, cancellationDate:null, cancellationReason:null}
-      },
-      hotels:[{class:null, checkIn:null, checkOut:null, hotelClassViolationMessage:null, isModified:false, isCanceled:false, cancellationDate:null, cancellationReason:null}],
-      cabs:[{date:null, class:null, prefferedTime:null, pickupAddress:null, dropAddress:null, cabClassVioilationMessage:null, isModified:false, isCanceled:false, cancellationDate:null, cancellationReason:null}],
-      modeOfTransit:null,
-      travelClass:null,
-      needsVisa:false,
-      needsBoardingTransfer:false,
-      needsHotelTransfer:false,
-      boardingTransfer:{
-        prefferedTime:null,
-        pickupAddress:null,
-        dropAddress:null, 
-        isModified:false, 
-        isCanceled:false, 
-        cancellationDate:null, 
-        cancellationReason:null
-      },
-      hotelTransfer:{
-        prefferedTime:null,
-        pickupAddress:null,
-        dropAddress:null, 
-        isModified:false, 
-        isCanceled:false, 
-        cancellationDate:null, 
-        cancellationReason:null
-      },
-      needsHotel:false,
-      needsCab:false,
-      isModified:false, 
-      isCanceled:false, 
-      cancellationDate:null, 
-      cancellationReason:null
-    }],
-
-    travelDocuments:[],
-    tripType:{oneWayTrip:true, roundTrip:false, multiCityTrip:false},
-    preferences:[],
-    travelViolations:{
-      tripPurposeViolationMessage:null,
-      travelClassViolationMessage:null,
-      hotelClassViolationMessage:null,
-      cabClassVioilationMessage:null,
-    },
-  })
-
+  const [formData, setFormData] = useState()
 
 
   const [onBoardingData, setOnBoardingData] = useState()
 
   //flags
-  
-useEffect(() => {
-  
-  axios
-    .get(`${TRAVEL_API}/initial-data/${tenantId}/${EMPLOYEE_ID}`)
-    .then((response) => {
-      console.log(response.data)
-      setOnBoardingData(response.data)
-      setLoadingOnboardingData(false)
-    })
-    .catch(err=>{ 
-      console.error(err)
-      //handle possible scenarios
-    })
-},[])
 
   return <>
-        {(loadingTR || loadingOnboardingData) && <div>Loading Travel Request...</div>}
-      {!loadingTR && !loadingOnboardingData && <Routes>
+        {isLoading && <Error message={loadingErrMsg} />}
+      {!isLoading && <Routes>
         <Route path='/' element={<BasicDetails 
                                     formData={formData} 
                                     setFormData={setFormData} 

@@ -1,10 +1,10 @@
 import { useState, useEffect, createContext } from "react";
 import {BrowserRouter as Router, Routes, Route} from 'react-router-dom'
-import axios from 'axios'
 import BasicDetails from "./basicDetails/basicDetails";
 import Itinerary from "./itinerary/Itinerary"
 import Review from "./review/Review"
-
+import { getOnboardingData_API } from "../utils/api";
+import Error from "../components/common/Error";
 
 export default function () {
   
@@ -13,13 +13,14 @@ export default function () {
   const tenantId = 'tynod76eu'
   const EMPLOYEE_NAME = 'Abhishek Kumar'
 
-
   const [formData, setFormData] = useState({
     travelRequestId: null,
     approvers: [],
-    tenantId:tenantId,
-    status: 'draft',
-    state: 'section0',
+    tenantId: tenantId,
+    tenantName: '',
+    companyName: '',
+    travelRequestStatus: 'draft',
+    travelRequestState: 'section 0',
     createdBy: {name: EMPLOYEE_NAME, empId: EMPLOYEE_ID},
     createdFor: null,
     travelAllocationHeaders:[],
@@ -34,77 +35,105 @@ export default function () {
     bookingForSelf:true,
     bookiingForTeam:false,
     teamMembers : [],
-
-
+    sentToTrip:false,
     itinerary: [{
-      journey:{
-        from:null, 
-        to:null, 
-        departure:{date:null, time:null, isModified:false, isCanceled:false, cancellationDate:null, cancellationReason:null} , 
-        return:{date:null, time:null, isModified:false, isCanceled:false, cancellationDate:null, cancellationReason:null}
-      },
-      hotels:[{class:null, checkIn:null, checkOut:null, hotelClassViolationMessage:null, isModified:false, isCanceled:false, cancellationDate:null, cancellationReason:null}],
-      cabs:[{date:null, class:null, prefferedTime:null, pickupAddress:null, dropAddress:null, cabClassVioilationMessage:null, isModified:false, isCanceled:false, cancellationDate:null, cancellationReason:null}],
+      from:null,
+      to:null,
+      departure: {
+        from: null,
+        to: null,
+        date: null,
+        time: null,
+        bkd_from: null,
+        bkd_to: null,
+        bkd_date: null,
+        bkd_time: null,
+        modified: false,
+        isCancelled: false,
+        cancellationDate: null,
+        cancellationReason: null,
+        status:'draft',
+        bookingDetails:{
+          docURL: null,
+          docType: null,
+          billDetails: {}, 
+        }
+      }, 
+      return:{
+        from: null,
+        to: null,
+        date: null,
+        time: null,
+        bkd_from: null,
+        bkd_to: null,
+        bkd_date: null,
+        bkd_time: null,
+        modified: false,
+        isCancelled: false,
+        cancellationDate: null,
+        cancellationReason: null,
+        status:'draft',
+        bookingDetails:{
+          docURL: null,
+          docType: null,
+          billDetails: {}, 
+        }
+        },
+      hotels:[],
+      cabs:[],
       modeOfTransit:null,
       travelClass:null,
       needsVisa:false,
-      needsBoardingTransfer:false,
-      needsHotelTransfer:false,
-      boardingTransfer:{
-        prefferedTime:null,
-        pickupAddress:null,
-        dropAddress:null, 
-        isModified:false, 
-        isCanceled:false, 
-        cancellationDate:null, 
-        cancellationReason:null
-      },
-      hotelTransfer:{
-        prefferedTime:null,
-        pickupAddress:null,
-        dropAddress:null, 
-        isModified:false, 
-        isCanceled:false, 
-        cancellationDate:null, 
-        cancellationReason:null
+      transfers:{
+        needsDeparturePickup:false,
+        needsDepartureDrop:false,
+        needsReturnPickup:false,
+        needsReturnDrop:false,
       },
       needsHotel:false,
       needsCab:false,
-      isModified:false, 
-      isCanceled:false, 
-      cancellationDate:null, 
-      cancellationReason:null
+      modified:false, 
     }],
 
     travelDocuments:[],
     tripType:{oneWayTrip:true, roundTrip:false, multiCityTrip:false},
     preferences:[],
     travelViolations:{
-      tripPurposeViolationMessage:null,
-      travelClassViolationMessage:null,
-      hotelClassViolationMessage:null,
-      cabClassVioilationMessage:null,
+      tripPurpose:null,
+      class:null,
+      amount:null,
     },
+    isCancelled:false,
+    cancellationDate:null,
+    cancellationReason:null,
+    isCashAdvanceTaken:null,
+    sentToTrip:false,
   })
 
   const [onBoardingData, setOnBoardingData] = useState()
 
   //flags
   
+const [isLoading, setIsLoading] = useState(true)
+const [loadingErrMsg, setLoadingErrMsg] = useState(null)
+
 useEffect(() => {
-  axios
-    .get(`${TRAVEL_API}/initial-data/${tenantId}/${EMPLOYEE_ID}`)
-    .then((response) => {
-      console.log(response.data)
-      setOnBoardingData(response.data)
-    })
-    .catch(err=>{ 
-      console.error(err)
-      //handle possible scenarios
-    })
+  (async function(){
+    const response = await getOnboardingData_API({tenantId, EMPLOYEE_ID})
+    if(response.err){
+      setLoadingErrMsg(response.err)
+    }  
+    else{
+      setOnBoardingData(response.data.onboardingData)
+      setIsLoading(false)
+    }
+  })()
 },[])
 
   return <>  
+      {isLoading && <Error message={loadingErrMsg} />}
+
+      {!isLoading &&
       <Routes>
         <Route path='/' element={<BasicDetails 
                                     formData={formData} 
@@ -128,6 +157,6 @@ useEffect(() => {
                                             onBoardingData={onBoardingData}
                                             nextPage={'/create/section2'}
                                             lastPage={'/create/section1'} />} />
-      </Routes>
+      </Routes>}
   </>;
 }
