@@ -6,6 +6,7 @@ export default function Input(props){
     const value = props.value
     const title = props.title || "Title";
     const onBlur = props.onBlur
+    const onChange = props.onChange
     const inputRef = useRef(null)
     const [textInput, setTextInput] = useState(value? titleCase(value) : '')
     const error = props.error || {set:false, message:''}
@@ -17,11 +18,16 @@ export default function Input(props){
         if(e.target.value == '')
             setInputEntered(false)
         else setInputEntered(true)
+        if(onChange??false){
+            onChange(e)
+        }
     }
 
     const handleBlur= (e)=>{
         setTextInput(pre=>titleCase(pre))
-        onBlur(e)
+        if(onBlur??false){
+            onBlur(e)
+        }
     }
 
 
