@@ -3,6 +3,32 @@ import Checkbox from '../../components/common/Checkbox'
 import Transfers from './Transfers'
 import { useEffect, useState } from 'react'
 
+const dummyCabs = {
+    date:null, 
+    class:null, 
+    preferredTime:null, 
+    pickupAddress:null, 
+    dropAddress:null, 
+    violations:{
+      class: null,
+      amount: null,
+    }, 
+    bkd_date:null,
+    bkd_class:null,
+    bkd_preferredTime:null,
+    bkd_pickupAddress:null,
+    bkd_dropAddress:null,
+    modified:false,  
+    cancellationDate:null, 
+    cancellationReason:null,
+    status:'draft',
+    bookingDetails:{
+      docURL: null,
+      docType: null,
+      billDetails: {}, 
+    },
+    type:'regular',
+  }
 export default function ModeOfTransit({
     formData,
     setFormData,
@@ -18,35 +44,48 @@ export default function ModeOfTransit({
     const modeOfTransit = formData.itinerary[itemIndex].modeOfTransit
     const travelClass = formData.itinerary[itemIndex].travelClass
     const needsVisa = formData.itinerary[itemIndex].needsVisa
-    const boardingTransfer = formData.itinerary[itemIndex].boardingTransfer
-    const hotelTransfer = formData.itinerary[itemIndex].hotelTransfer
-    const needsBoardingTransfer = formData.itinerary[itemIndex].needsBoardingTransfer
-    const needsHotelTransfer = formData.itinerary[itemIndex].needsHotelTransfer
     const travelClassViolationMessage = formData.travelViolations.travelClassViolationMessage
-    
+    const [transferNeeds, setTransferNeeds] = useState(null)
+
+    const transferNeedsData = {
+        needsDeparturePickup : formData.itinerary[itemIndex].cabs.filter(c=>c.type=='departure pickup')[0],
+        needsDepartureDrop  : formData.itinerary[itemIndex].cabs.filter(c=>c.type=='departure drop')[0],
+        needsReturnPickup : formData.itinerary[itemIndex].cabs.filter(c=>c.type=='return pickup')[0],
+        needsReturnDrop  : formData.itinerary[itemIndex].cabs.filter(c=>c.type=='return drop')[0],
+    }
+
+    const transfers = formData.itinerary[itemIndex].transfers
+ 
+
     useEffect(()=>{
         console.log(modeOfTransit, 'modeOfTransit')
     },[modeOfTransit])
+
+    useEffect(()=>{
+        if(!formData.tripType.roundTrip){
+            setTransferNeeds([{checkbox: 'needsDeparturePickup', status:'departure pickup'}, {checkbox:'needsDepartureDrop', status:'departure drop'}])
+            const formData_copy = JSON.parse(JSON.stringify(formData))
+            formData_copy.itinerary[itemIndex].transfers.needsReturnDrop = false
+            formData_copy.itinerary[itemIndex].transfers.needsReturnPickup = false
+            //delete values from cabs array if present
+            const newCabs = formData.itinerary[itemIndex].cabs.filter((cab)=> (cab.type != 'return pickup' || cab.type != 'return drop'))
+            formData_copy.itinerary[itemIndex].cabs = newCabs
+            setFormData(formData_copy)
+        }
+        else{
+            setTransferNeeds([{checkbox:'needsDeparturePickup', status:'departure pickup'},
+            {checkbox:"needsDepartureDrop", status:'departure drop'},
+            {checkbox:"needsReturnPickup", status:'return pickup'}, 
+            {checkbox:"needsReturnDrop", status:'return drop'}])
+         }
+
+    },[formData.tripType.roundTrip, formData.itinerary[itemIndex].modeOfTransit])
 
     const setNeedsVisa = (val)=>{
         const formData_copy = JSON.parse(JSON.stringify(formData))
         formData_copy.itinerary[itemIndex].needsVisa = val 
         setFormData(formData_copy)
     }
-
-    const setNeedsHotelTransfer = (val)=>{
-        const formData_copy = JSON.parse(JSON.stringify(formData))
-        formData_copy.itinerary[itemIndex].needsHotelTransfer = val 
-        setFormData(formData_copy)
-    }
-
-    const setNeedsBoardingTransfer = (val)=>{
-        const formData_copy = JSON.parse(JSON.stringify(formData))
-        formData_copy.itinerary[itemIndex].needsBoardingTransfer = val 
-        setFormData(formData_copy)
-    }
-
-
 
     const setModeOfTransit = (option)=>{
         console.log('this ran', modeOfTransit, travelClass)
@@ -98,50 +137,49 @@ export default function ModeOfTransit({
         
     }
 
-    const handleBoardingTransferPickupAddressChange = (e)=>{
+    const handleTransfersChange = (e, field, type)=>{
         const formData_copy = JSON.parse(JSON.stringify(formData))
-        formData_copy.itinerary[itemIndex].boardingTransfer.pickupAddress = e.target.value 
+        const ind = formData.itinerary[itemIndex].cabs.map((cab, index)=>({index, type:cab.type})).filter((cab)=>cab.type == type)[0].index
+        formData_copy.itinerary[itemIndex].cabs[ind][field] = e.target.value 
         setFormData(formData_copy)
     }
 
-    const handleBoardingTransferDropAddressChange = (e)=>{
+    const setNeeds = (val, field, type)=>{
         const formData_copy = JSON.parse(JSON.stringify(formData))
-        formData_copy.itinerary[itemIndex].boardingTransfer.dropAddress = e.target.value 
-        setFormData(formData_copy)
-    }
+        formData_copy.itinerary[itemIndex].transfers[field] = val 
 
-    const handleHotelTransferPickupAddressChange = (e)=>{
-        const formData_copy = JSON.parse(JSON.stringify(formData))
-        formData_copy.itinerary[itemIndex].hotelTransfer.pickupAddress = e.target.value 
-        setFormData(formData_copy)
-    }
-
-    const handleHotelTransferDropAddressChange = (e)=>{
-        const formData_copy = JSON.parse(JSON.stringify(formData))
-        formData_copy.itinerary[itemIndex].hotelTransfer.dropAddress = e.target.value 
-        setFormData(formData_copy)
-    }
-
-    const boardingTransferTimeChange = (e)=>{
-        const formData_copy = JSON.parse(JSON.stringify(formData))
-        formData_copy.itinerary[itemIndex].boardingTransfer.prefferedTime = e.target.value 
-        setFormData(formData_copy)
-    }
-
-    const hotelTransferTimeChange = (e)=>{
-        const formData_copy = JSON.parse(JSON.stringify(formData))
-        formData_copy.itinerary[itemIndex].hotelTransfer.prefferedTime = e.target.value 
-        setFormData(formData_copy)
+        if(val){
+            formData_copy.itinerary[itemIndex].cabs.push({...dummyCabs, type})
+        }
+        else{
+            const ind = formData.itinerary[itemIndex].cabs.map((cab, index)=>({index, type:cab.type})).filter((cab)=>cab.type == type)[0].index
+            formData_copy.itinerary[itemIndex].cabs.splice(ind,1)
+        }
+        
+        console.log(formData_copy)
+        setFormData(formData_copy)        
     }
 
 
     function spitBoardingPlace(modeOfTransit){
         if(modeOfTransit === 'Flight')
-            return 'an airport'
+            return 'airport'
         else if(modeOfTransit === 'Train')
-            return 'a railway station'
+            return 'Railway Station'
         else if(modeOfTransit === 'Bus')
-            return 'a Bus station'
+            return 'Bus Station'
+    }
+
+    function spitPhrasalVerb(transferType, modeOfTransit){
+        console.log(transferType, modeOfTransit, 'phrasal')
+        if(transferType == 'needsDeparturePickup')
+            return `Need a ride to the ${spitBoardingPlace(modeOfTransit)} for your departure?`
+        if(transferType == 'needsDepartureDrop')
+            return `Need a drop from the ${spitBoardingPlace(modeOfTransit)} upon arrival?`
+        if(transferType == 'needsReturnPickup')
+            return `Need a ride to the ${spitBoardingPlace(modeOfTransit)} for your return?`
+        if(transferType == 'needsReturnDrop')
+            return `Need a drop from the ${spitBoardingPlace(modeOfTransit)} for your return?`
     }
 
     return(<>
@@ -176,44 +214,31 @@ export default function ModeOfTransit({
                         <Checkbox checked={needsVisa} onClick={(e)=>{setNeedsVisa(e.target.checked)}} />
                     </div>}
                     
+
                     {/* needs Airport/railway station/bus station Transfer */}
-                    <div>
-                        <div className="flex gap-2 items-center">
-                            <p className="text-neutral-700 w-fit h-full text-sm font-normal font-cabin">
-                                {`Will you need ${spitBoardingPlace(modeOfTransit)} transfer?`}
-                            </p>
-                            <Checkbox checked={needsBoardingTransfer} onClick={(e)=>{setNeedsBoardingTransfer(e.target.checked)}} />
-                        </div>
+                    {transferNeeds && transferNeeds.length>0 && transferNeeds.map((transferNeed, _index)=>{
+                        
+                        return(
+                        <div key={_index}>
+                            <div className="flex items-center justify-between w-[300px]">
+                                <p className="text-neutral-700 w-fit h-full text-sm font-normal font-cabin">
+                                    {spitPhrasalVerb(transferNeed.checkbox, modeOfTransit)}
+                                </p>
+                                <Checkbox checked={transfers[transferNeed.checkbox]} onClick={(e)=>{setNeeds(e.target.checked, transferNeed.checkbox, transferNeed.status)}} />
+                            </div>
 
-                        {needsBoardingTransfer && <div className='mt-4'>
-                            <Transfers
-                                pickupAddress={boardingTransfer.pickupAddress} 
-                                dropAddress={boardingTransfer.dropAddress}
-                                transferTime={boardingTransfer.prefferedTime} 
-                                onTimeChange={boardingTransferTimeChange} 
-                                onPickupAddressChange={handleBoardingTransferPickupAddressChange} 
-                                onDropAddressChange={handleBoardingTransferDropAddressChange} />
-                            </div>}
-                    </div>
-
-                    {/* needs Hotel Transfer Checkbox */}
-                    <div className="flex gap-2 items-center">
-                        <p className="text-neutral-700 w-fit h-full text-sm font-normal font-cabin">
-                        {`Will you need ${spitBoardingPlace(modeOfTransit)} to hotel transfer?`}
-                        </p>
-                        <Checkbox checked={needsHotelTransfer} onClick={(e)=>{setNeedsHotelTransfer(e.target.checked)}} />
-                    </div>
-
-                    {needsHotelTransfer && <div className='mt-4'>
-                            <Transfers
-                                pickupAddress={hotelTransfer.pickupAddress} 
-                                dropAddress={hotelTransfer.dropAddress}
-                                transferTime={hotelTransfer.prefferedTime} 
-                                onTimeChange={hotelTransferTimeChange} 
-                                onPickupAddressChange={handleHotelTransferPickupAddressChange} 
-                                onDropAddressChange={handleHotelTransferDropAddressChange} />
-                            </div>}
-
+                            {transfers[transferNeed.checkbox] && <div className='mt-4'>
+                                <Transfers
+                                    pickupAddress={transferNeedsData[transferNeed.checkbox].pickupAddress} 
+                                    dropAddress={transferNeedsData[transferNeed.checkbox].dropAddress}
+                                    transferTime={transferNeedsData[transferNeed.checkbox].prefferedTime} 
+                                    onTimeChange={(e)=>handleTransfersChange(e,'prefferedTime', transferNeed.status)} 
+                                    onPickupAddressChange={(e)=>handleTransfersChange(e,'pickupAddress',transferNeed.status)} 
+                                    onDropAddressChange={(e)=>handleTransfersChange(e,'dropAddress',transferNeed.status)} />
+                                </div>}
+                        </div>)
+                    })}
+                    
                 </div> </>}
     </>)
 }

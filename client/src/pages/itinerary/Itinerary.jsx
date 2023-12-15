@@ -10,8 +10,76 @@ import Hotels from "./Hotels"
 import Cabs from "./Cabs"
 import UploadDocuments from "./UploadDocuments"
 import AddMore from "../../components/common/AddMore"
+import Error from "../../components/common/Error"
+
+const dummyItinerary = {
+    from:null,
+    to:null,
+    departure: {
+      from: null,
+      to: null,
+      date: null,
+      time: null,
+      bkd_from: null,
+      bkd_to: null,
+      bkd_date: null,
+      bkd_time: null,
+      modified: false,
+      isCancelled: false,
+      cancellationDate: null,
+      cancellationReason: null,
+      status:'draft',
+      bookingDetails:{
+        docURL: null,
+        docType: null,
+        billDetails: {}, 
+      }
+    }, 
+    return:{
+      from: null,
+      to: null,
+      date: null,
+      time: null,
+      bkd_from: null,
+      bkd_to: null,
+      bkd_date: null,
+      bkd_time: null,
+      modified: false,
+      isCancelled: false,
+      cancellationDate: null,
+      cancellationReason: null,
+      status:'draft',
+      bookingDetails:{
+        docURL: null,
+        docType: null,
+        billDetails: {}, 
+      }
+      },
+    hotels:[],
+    cabs:[],
+    modeOfTransit:null,
+    travelClass:null,
+    needsVisa:false,
+    transfers:{
+      needsDeparturePickup:false,
+      needsDepartureDrop:false,
+      needsReturnPickup:false,
+      needsReturnDrop:false,
+    },
+    needsHotel:false,
+    needsCab:false,
+    modified:false, 
+    isCancelled:false, 
+    cancellationDate:null, 
+    cancellationReason:null,
+    status:'draft',
+  }
 
 export default function (props){
+
+    //loader state
+    const [isLoading, setIsLoading] = useState(false)
+    const [loadingErrMsg, setLoadingErrMsg] = useState(null)
 
     //next and last pages
     const nextPage = props.nextPage
@@ -31,18 +99,12 @@ export default function (props){
     const [roundTrip, setRoundTrip] = useState(formData.tripType.roundTrip)
     const [multiCityTrip, setMultiCityTrip] = useState(formData.tripType.multiCityTrip)
     
-    
     const group = 'group 1'
     const type = 'international'
-    const [modeOfTransitError, setModeOfTransitError] = useState({set:false, message:'Select mode of transit'})
-    const [travelClassError, setTravelClassError] = useState({set:false, message: 'Select travel Class'})
-    const [hotelsError, setHotelsError] = useState([])
-    const [citiesError, setCitiesError] = useState([])
-
-    const [errors, setErrors] = useState([{citiesError:{}, cabsError:[], hotelsError:[], modeOfTransitError:null, travelClassError:null,}])
-
+    const [errors, setErrors] = useState(formData.itinerary.map(itn =>({citiesError:{}, cabsError:[], hotelsError:[], modeOfTransitError:null, travelClassError:null})))
     
     const handleContinueButton = async ()=>{
+        setIsLoading(true)
         console.log(formData)
 
         let allowSubmit = false
@@ -92,7 +154,7 @@ export default function (props){
                             let dateError = {set:false, message:'Select date for cab'}
                             let classError = {set:false, message:'Select cab class'}
     
-                            if(cab.date == null) {
+                            if(cab.date == null && cab.type == 'regular') {
                                 dateError.set = true
                                 allowSubmit = false
                             }
@@ -107,17 +169,17 @@ export default function (props){
                     let departureDateError = {set:false, message:'Enter departure date'}
                     let returnDateError = {set:false, message:'Enter return date'}
 
-                    if(item.journey.from == null || item.journey.from == ''){
+                    if(item.departure.from == null || item.departure.from == ''){
                         fromError.set = true
                         allowSubmit = false
                     }
 
-                    if(item.journey.to == null || item.journey.to == ''){
+                    if(item.departure.to == null || item.departure.to == ''){
                         toError.set = true
                         allowSubmit = false
                     }
 
-                    if(item.journey.departure.date == null){
+                    if(item.departure.date == null){
                         departureDateError.set = true
                         allowSubmit = false
                     }
@@ -128,7 +190,7 @@ export default function (props){
                             allowSubmit = false
                         }
     
-                        else if(item.journey.return.date < city.departure.date){
+                        else if(item.return.date < item.departure.date){
                             returnDateError.set = true
                             returnDateError.message = 'Return date cannot be before departure date'
                             allowSubmit = false
@@ -164,13 +226,9 @@ export default function (props){
         await checkRequiredFields()
         console.log(allowSubmit, 'allowSubmit...')
 
+        setIsLoading(false)
 
         if(allowSubmit){
-            if(formData.travelRequestId){
-                const response = await updateTravelRequest_API({...formData, travelRequestState:'section 1', travelRequestStatus:'draft'})
-                console.log(response)   
-            }
-
             navigate(nextPage)
         }   
     }
@@ -179,33 +237,7 @@ export default function (props){
         const formData_copy = JSON.parse(JSON.stringify(formData))
         const errors_copy = JSON.parse(JSON.stringify(errors))
         errors_copy.push({citiesError:{}, cabsError:[], hotelsError:[], modeOfTransitError:null, travelClassError:null})
-
-        formData_copy.itinerary.push(
-            {
-                journey:{from:null, to:null, departure:{date:null, time:null}, return:{date:null, time:null}},
-                hotels:[{class:null, checkIn:null, checkOut:null, hotelClassViolationMessage:null}],
-                cabs:[{date:null, class:null, prefferedTime:null, pickupAddress:null, dropAddress:null, cabClassVioilationMessage:null}],
-                modeOfTransit:null,
-                travelClass:null,
-                needsVisa:false,
-                needsBoardingTransfer:false,
-                needsHotelTransfer:false,
-                boardingTransfer:{
-                  prefferedTime:null,
-                  pickupAddress:null,
-                  dropAddress:null, 
-                },
-                hotelTransfer:{
-                  prefferedTime:null,
-                  pickupAddress:null,
-                  dropAddress:null, 
-                },
-                needsHotel:false,
-                needsCab:false,
-                travelDocuments:[],
-              }
-        )
-        
+        formData_copy.itinerary.push(dummyItinerary)
         setErrors(errors_copy)
         setFormData(formData_copy)
     }
@@ -268,6 +300,8 @@ export default function (props){
     
 
     return(<>
+        {isLoading && <Error message={loadingErrMsg} /> }
+        {!isLoading &&
         <div className="w-full h-full relative bg-white md:px-24 md:mx-0 sm:px-0 sm:mx-auto py-12 select-none">
             {/* app icon */}
             <div className='w-full flex justify-center  md:justify-start lg:justify-start'>
@@ -275,7 +309,7 @@ export default function (props){
             </div>
 
             {/* Rest of the section */}
-            <div className="w-full h-full mt-10 p-10">
+            <div className="w-full h-full mt-10 p-4 sm:p-10">
 
                 {/* back link */}
                 <div className='flex items-center gap-4 cursor-pointer' onClick={handleBackButton}>
@@ -300,7 +334,7 @@ export default function (props){
                 <Cities itemIndex={itemIndex} 
                         formData={formData}
                         setFormData={setFormData}
-                        citiesError={errors[itemIndex].citiesError}
+                        citiesError={errors[itemIndex]?.citiesError}
                          />
 
                 <hr className='mt-4' />
@@ -314,8 +348,8 @@ export default function (props){
                             type={type}
                             groups={group}
                             travelClassOptions={travelClassOptions}
-                            modeOfTransitError={errors[itemIndex].modeOfTransitError}
-                            travelClassError={errors[itemIndex].travelClassError}
+                            modeOfTransitError={errors[itemIndex]?.modeOfTransitError}
+                            travelClassError={errors[itemIndex]?.travelClassError}
                             modeOfTransitList={modeOfTransitList}
                              />
                 </div>
@@ -330,7 +364,7 @@ export default function (props){
                     setFormData={setFormData}
                     type={type}
                     groups={group}
-                    cabsError={errors[itemIndex].cabsError}
+                    cabsError={errors[itemIndex]?.cabsError}
                     allowedCabClass={allowedCabClass} />
         
                 
@@ -341,7 +375,7 @@ export default function (props){
                     itemIndex={itemIndex}
                     formData={formData}
                     setFormData={setFormData}
-                    hotelsError = {errors[itemIndex].hotelsError}
+                    hotelsError = {errors[itemIndex]?.hotelsError}
                     groups = {group}
                     allowedHotelClass={allowedHotelClass} 
                     />
@@ -369,6 +403,7 @@ export default function (props){
             </div>
 
         </div>
+        }
     </>)
 }
 
