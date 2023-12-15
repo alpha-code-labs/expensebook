@@ -18,6 +18,8 @@ export default function (props){
     const formData = props.formData
     const setFormData = props.setFormData  
     const [showPopup, setShowPopup] = useState(false)
+    const [loadingErrMsg, setLoadingErrMsg] = useState(false)
+
     const navigate = useNavigate()
     
     useEffect(()=>{
@@ -31,21 +33,37 @@ export default function (props){
 
     const handleCashAdvance = async (needed)=>{
         //send data to backend
-        const res = await updateTravelRequest_API({...formData, isCashAdvanceTaken:needed, travelRequestStatus: formData.approvers?.length>0? 'pending approval' : 'pending booking'})
-    
-        if(res.status === 200){
-            if(needed){
-                //redirect to cash microservice
-            }
-            else{
-                //redirect to dashboard
+        if(needed){
+            if(formData.travelRequestId){
+                if(needed){
+                    console.log('sending call')
+                    const res = await updateTravelRequest_API({...formData,  isCashAdvanceTaken:false, submitted:true})
+                    if(res.err){
+                        setLoadingErrMsg(res.err)
+                        return
+                    }
+
+                    console.log(res)
+                    //redirect to cash microservice
+                }
+                else{
+                    const res = await updateTravelRequest_API({...formData, isCashAdvanceTaken:false, submitted:true})
+                    if(res.err){
+                        setLoadingErrMsg(res.err)
+                        return
+                    }
+
+                    console.log(res)
+                    //redirect to Dashboard microservice
+                }
+                   
             }
         }
+
     }
 
     const handleSaveAsDraft = async ()=>{
-        //send data to backend
-        const res = await updateTravelRequest_API({...formData, travelRequestState:'Section 3', travelRequestStatus: 'draft'})   
+        //send data to backend   
     }
 
     return(
@@ -136,7 +154,7 @@ export default function (props){
                         <p className='text-zinc-800 text-base font-medium font-cabin mt-4'>Would you like to raise a cash advance request for this trip?</p>
                         <div className='flex gap-10 justify-between mt-10'>
                             <Button text='Yes' onClick={()=>handleCashAdvance(true)} />
-                            <Button text='No' onClick={()=>CashAdvance(false)} />
+                            <Button text='No' onClick={()=>handleCashAdvance(false)} />
                         </div>
                     </div>
                 </Modal>
