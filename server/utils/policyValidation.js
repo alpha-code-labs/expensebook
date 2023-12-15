@@ -17,6 +17,10 @@ export default async function policyValidation(type, groups, policy, value){
             }
         }
     })
+
+    if(notAllowed){
+        return {allowed:false, violationMessage: policies['policies'][type][group][policy][value].violationMessage }
+    }
     
     //in case there are no policies to verify
     if(!notAllowed){
