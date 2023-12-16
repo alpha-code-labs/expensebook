@@ -14,26 +14,6 @@ import CloseButton from '../../components/common/closeButton'
 import PopupMessage from '../../components/common/PopupMessage'
 import Error from '../../components/common/Error'
 
-const travelAllocation = [
-    {
-      headerName: "circles",
-      headerValues: [
-        "North India",
-        "South India",
-        "Central India"
-      ],
-    },
-    {
-      headerName: "department",
-      headerValues: [
-        "HR",
-        "Finance",
-        "Engineering",
-        "Marketing"
-      ],
-    }
-  ]
-
 export default function BasicDetails(props){
 
     const DASHBOARD_URL = import.meta.env.VITE_DASHBOARD_URL
@@ -48,8 +28,7 @@ export default function BasicDetails(props){
     const MANAGER_FLAG =  onBoardingData?.MANAGER_FLAG
     const DELEGATED_FLAG = onBoardingData?.DELEGATED_FLAG
     const listOfAllManagers = onBoardingData?.managersList
-    const ALLOCATION_HEADER = onBoardingData?.ALLOCATION_HEADER
-    const travelAllocationHeaders = onBoardingData?.travelAllocationHeaderOptions 
+    const travelAllocations = onBoardingData?.travelAllocations 
     const tripPurposeOptions = onBoardingData?.tripPurposeOptions
     const delegatedFor = onBoardingData?.delegatedFor
 
@@ -551,18 +530,18 @@ export default function BasicDetails(props){
                 
 
                 {/* allocating travel budget... will be displayed if travel allocation headers are present */}
-                { ALLOCATION_HEADER && <div>
+                { travelAllocations?.length>0 && <div>
                     <p className='text-base font-medium text-neutral-700 font-cabin'>Allocate travel.</p>
                     
                     <div className='mt-8 flex flex-wrap gap-4'>
-                        {travelAllocation.map((header, index)=>{
+                        {travelAllocations?.length>0 && travelAllocations.map((header, index)=>{
                             return(
                                 <>
                                 <Select
-                                    options={travelAllocation[index].headerValues}
-                                    onSelect = {(option)=>{handleAllocationHeaderSelect(travelAllocation[index].headerName, option)}}
-                                    placeholder={`Select ${travelAllocation[index].headerName}`} 
-                                    title={travelAllocation[index].headerName} />
+                                    options={travelAllocations[index].headerValues}
+                                    onSelect = {(option)=>{handleAllocationHeaderSelect(travelAllocations[index].headerName, option)}}
+                                    placeholder={`Select ${travelAllocations[index].headerName}`} 
+                                    title={travelAllocations[index].headerName} />
                                 </>
                             )
                         })}
