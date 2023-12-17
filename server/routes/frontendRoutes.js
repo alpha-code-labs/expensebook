@@ -21,7 +21,7 @@ router.patch("/travel-requests/:travelRequestId", updateTravelRequest);
 router.patch("/travel-requests/:travelRequestId/status", updateTravelRequestStatus);
 router.patch("/travel-requests/:travelRequestId/cancel", cancelTravelRequest);
 router.post("/travel-request", createTravelRequest);
-router.get("/validate-policy/:type/:group/:policy/:value", validateTravelPolicy);
+router.post("/validate-policy/:tenantId", validateTravelPolicy);
 router.get("/user-travel-requests/:employeeId", getTravelRequests);
 router.get("/travel-requests/modify/:travelRequestId", getTravelRequest);
 
