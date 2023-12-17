@@ -55,7 +55,26 @@ export async function fetchOnboardingData(
     const employeeGroups = employeeData.group
     const employeeRoles = employeeData.employeeRoles
     const tenantPolicies = tenantData.policies
-    const travelAllocation = tenantData.travelAllocation
+    const travelAllocations = [
+      {
+        headerName: "circles",
+        headerValues: [
+          "North India",
+          "South India",
+          "Central India"
+        ],
+      },
+      {
+        headerName: "department",
+        headerValues: [
+          "HR",
+          "Finance",
+          "Engineering",
+          "Marketing"
+        ],
+      }
+    ]
+   //tenantData.travelAllocation
     const MANAGER_FLAG = employeeRoles.employeeManager
     const APPROVAL_FLAG = tenantPolicies[0][Object.keys(tenantPolicies[0])[0]][travelType]['Approval Flow'].approval.approvers.length>0 ? true : false
     const approvers = tenantPolicies[0][Object.keys(tenantPolicies[0])[0]][travelType]['Approval Flow'].approval.approvers
@@ -83,7 +102,7 @@ export async function fetchOnboardingData(
         employeeGroups, 
         employeeRoles, 
         tenantPolicies, 
-        travelAllocation, 
+        travelAllocations, 
         MANAGER_FLAG,
         APPROVAL_FLAG,
         approvers,
