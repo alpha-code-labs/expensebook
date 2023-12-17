@@ -6,8 +6,6 @@ import {
 } from "../services/onboardingService.js";
 import { fetchProfileData } from "../services/dashboardService.js";
 import policyValidation from "../utils/policyValidation.js";
-import { createCashAdvance } from "../services/cashService.js";
-import mongoose from "mongoose";
 import HRMaster from "../models/hrMaster.js";
 
 const getOnboardingAndProfileData = async (req, res) => {
@@ -114,8 +112,8 @@ const createTravelRequest = async (req, res) => {
     }
 
     //to do: validate tenantId, employeeId, some other as well
-
-    const travelRequestId = createTravelRequestId(tenantId, createdFor?.empId??createdBy.empId)
+    const count = await TravelRequest.countDocuments({tenantId});
+    const travelRequestId = createTravelRequestId(companyName, count)
     //fileds which will not be received in request
     const travelRequestDate = Date.now();
     const newTravelRequest = new TravelRequest({
@@ -183,11 +181,15 @@ const getTravelRequest = async (req, res) => {
 
 const validateTravelPolicy = async (req, res) => {
   try {
-    const { type, groups, policy, value } = req.params;
+    const {tenantId} = req.params
+    const { type, groups, policy, value } = req.body;
+    console.log(tenantId, type, groups, policy, value)
     //input validation needed
-    console.log(type, groups, policy, value)
+    if(!type || !groups || !policy || !value || !tenantId){
+      return res.status(400).json({message: 'Bad request missing values'})
+    }
 
-    const validation = await policyValidation(type.toLowerCase(), groups.map(group=>group.toLowerCase()), policy.toLowerCase(), value.toLowerCase());
+    const validation = await policyValidation(type.toLowerCase(), groups?.map(group=>group.toLowerCase()), policy.toLowerCase(), value.toLowerCase());
     console.log(validation)
     return res.status(200).json({...validation});
   } catch (e) {
@@ -355,10 +357,10 @@ const updateTravelRequest = async (req, res) => {
 
     //case travelRequest status is draft
     if(travelRequestStatus == 'draft'){
-      if(!req.body?.submitted??true){ 
+      if(req.body?.submitted == null || req.body?.submitted == undefined){ 
         return res.status(400).json({ message: "Field or value for field is missing: 'submitted' " })
       }
-
+      
       //check for approvers
       if(req.body.hasOwnProperty("approvers") && req.body.approvers.length>0){
         // might need to 
@@ -368,21 +370,21 @@ const updateTravelRequest = async (req, res) => {
         //update status of each itinerary item to pending approval
         if(updatedFields.hasOwnProperty('itinerary')){
             updatedFields.itinerary.forEach(item=>{
-              if(item?.departure?.date??false) item.departure.status = 'pending approval'
-              if(item?.return?.date??false) item.return.status = 'pending approval'
-              if(item?.boardingTransfer?.date??false) item.boardingTransfer.status = 'pending approval'
-              if(item?.hotelTransfer?.date??false) item.hotelTransfer.status = 'pending approval'
+              if(item?.departure?.date??false) item.departure.status = req.body.submitted? 'pending approval' : 'draft'
+              if(item?.return?.date??false) item.return.status = req.body.submitted? 'pending approval' : 'draft'
+              if(item?.boardingTransfer?.date??false) item.boardingTransfer.status = req.body.submitted? 'pending approval' : 'draft'
+              if(item?.hotelTransfer?.date??false) item.hotelTransfer.status = req.body.submitted? 'pending approval' : 'draft'
               item.cabs.forEach(cab=>{
-                if(cab.date??false) cab.status = 'pending approval'
+                if(cab.date??false) cab.status = req.body.submitted? 'pending approval' : 'draft'
               })
               item.hotels.forEach(hotel=>{
-                if(hotel.checkIn??false) hotel.status = 'pending approval'
+                if(hotel.checkIn??false) hotel.status = req.body.submitted? 'pending approval' : 'draft'
               })
             }) 
         }
 
         //update data in backend with status 'pending approval'
-        await TravelRequest.findOneAndUpdate({travelRequestId}, {$set: {...updatedFields, travelRequestStatus:'pending approval'}});
+        await TravelRequest.findOneAndUpdate({travelRequestId}, {$set: {...updatedFields, travelRequestStatus: req.body.submitted? 'pending approval' : 'draft'}});
         res.status(200).json({message: 'Travel Request submitted for approval'})
         // send data to approval microservice
       }
@@ -392,22 +394,22 @@ const updateTravelRequest = async (req, res) => {
         //update status of each itinerary item to pending booking
         if(updatedFields.hasOwnProperty('itinerary')){
             updatedFields.itinerary.flights.forEach(flight=>{
-              if(flight.date??false) flight.status = 'pending booking'
+              if(flight.date??false) flight.status = req.body.submitted? 'pending approval' : 'draft'
             })
             updatedFields.itinerary.trains.forEach(train=>{
-              if(train.date??false) train.status = 'pending booking'
+              if(train.date??false) train.status = req.body.submitted? 'pending approval' : 'draft'
             })
             updatedFields.itinerary.buses.forEach(bus=>{
-              if(bus.date??false) bus.status = 'pending booking'
+              if(bus.date??false) bus.status = req.body.submitted? 'pending approval' : 'draft'
             })
             updatedFields.itinerary.cabs.forEach(cab=>{
-              if((cab.date??false) || (cab.type!='regular')) cab.status = 'pending booking'
+              if((cab.date??false) || (cab.type!='regular')) cab.status = req.body.submitted? 'pending approval' : 'draft'
             })
             updatedFields.itinerary.hotels.forEach(hotel=>{
-              if(hotel.checkIn??false) hotel.status = 'pending booking'
+              if(hotel.checkIn??false) hotel.status = req.body.submitted? 'pending approval' : 'draft'
             }) 
         }
-        await TravelRequest.findOneAndUpdate({travelRequestId}, {$set: {...updatedFields, travelRequestStatus:'pending booking'}});
+        await TravelRequest.findOneAndUpdate({travelRequestId}, {$set: {...updatedFields, travelRequestStatus: req.body.submitted? 'pending approval' : 'draft'}});
         res.status(200).json({message: 'Travel Request submitted for booking'})
         // send data to approval microservice
       } 
