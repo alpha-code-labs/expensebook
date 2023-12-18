@@ -99,7 +99,7 @@ export default function (props){
     const [roundTrip, setRoundTrip] = useState(formData.tripType.roundTrip)
     const [multiCityTrip, setMultiCityTrip] = useState(formData.tripType.multiCityTrip)
     
-    const group = 'group 1'
+    const groups = ['group 1']
     const type = 'international'
     const [errors, setErrors] = useState(formData.itinerary.map(itn =>({citiesError:{}, cabsError:[], hotelsError:[], modeOfTransitError:null, travelClassError:null})))
     
@@ -346,7 +346,7 @@ export default function (props){
                             formData={formData}
                             setFormData={setFormData}
                             type={type}
-                            groups={group}
+                            groups={groups}
                             travelClassOptions={travelClassOptions}
                             modeOfTransitError={errors[itemIndex]?.modeOfTransitError}
                             travelClassError={errors[itemIndex]?.travelClassError}
@@ -363,7 +363,7 @@ export default function (props){
                     formData={formData}
                     setFormData={setFormData}
                     type={type}
-                    groups={group}
+                    groups={groups}
                     cabsError={errors[itemIndex]?.cabsError}
                     allowedCabClass={allowedCabClass} />
         
@@ -376,7 +376,8 @@ export default function (props){
                     formData={formData}
                     setFormData={setFormData}
                     hotelsError = {errors[itemIndex]?.hotelsError}
-                    groups = {group}
+                    groups = {groups}
+                    type={type}
                     allowedHotelClass={allowedHotelClass} 
                     />
                         </>)

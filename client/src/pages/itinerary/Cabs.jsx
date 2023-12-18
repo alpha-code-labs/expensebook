@@ -51,15 +51,15 @@ export default function Cabs({
         
         const formData_copy = JSON.parse(JSON.stringify(formData))
         formData_copy.itinerary[itemIndex].cabs[index].class = option
-        setFormData(formData_copy)
+        
 
-        const res = await policyValidation_API({type, policy:'cab class', value:option, groups:groups})
+        const res = await policyValidation_API({tenantId:formData.tenantId, type, policy:'cab class', value:option, groups})
         if(!res.err){
-            const formData_copy = JSON.parse(JSON.stringify(formData))
             formData_copy.itinerary[itemIndex].cabs[index].vioilation.class = res.data.response.violationMessage
-            setFormData(formData_copy)
             console.log(res.violationMessage)
         }
+
+        setFormData(formData_copy)
     }
 
     const handleCabDateChange = (date, index) => {

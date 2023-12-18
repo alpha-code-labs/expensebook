@@ -5,6 +5,7 @@ import Itinerary from "./itinerary/Itinerary"
 import Review from "./review/Review"
 import { getOnboardingData_API } from "../utils/api";
 import Error from "../components/common/Error";
+import { createNoSubstitutionTemplateLiteral } from "typescript";
 
 export default function () {
   
@@ -12,13 +13,14 @@ export default function () {
   const EMPLOYEE_ID  = '1001'
   const tenantId = 'tynod76eu'
   const EMPLOYEE_NAME = 'Abhishek Kumar'
+  const companyName = 'Amex'
 
   const [formData, setFormData] = useState({
     travelRequestId: null,
     approvers: [],
     tenantId: tenantId,
-    tenantName: '',
-    companyName: '',
+    tenantName: companyName,
+    companyName: companyName,
     travelRequestStatus: 'draft',
     travelRequestState: 'section 0',
     createdBy: {name: EMPLOYEE_NAME, empId: EMPLOYEE_ID},
@@ -44,10 +46,18 @@ export default function () {
         to: null,
         date: null,
         time: null,
+        violations:{
+          class: null,
+          amount: null,
+        },
         bkd_from: null,
         bkd_to: null,
         bkd_date: null,
         bkd_time: null,
+        bkd_violations:{
+          class: null,
+          amount: null,
+        },
         modified: false,
         isCancelled: false,
         cancellationDate: null,
@@ -64,10 +74,18 @@ export default function () {
         to: null,
         date: null,
         time: null,
+        violations:{
+          class: null,
+          amount: null,
+        },
         bkd_from: null,
         bkd_to: null,
         bkd_date: null,
         bkd_time: null,
+        bkd_violations:{
+          class: null,
+          amount: null,
+        },
         modified: false,
         isCancelled: false,
         cancellationDate: null,
@@ -125,6 +143,7 @@ useEffect(() => {
     }  
     else{
       setOnBoardingData(response.data.onboardingData)
+      console.log(response.data.onboardingData)
       setIsLoading(false)
     }
   })()

@@ -2,6 +2,8 @@ import Select from '../../components/common/Select'
 import Checkbox from '../../components/common/Checkbox'
 import Transfers from './Transfers'
 import { useEffect, useState } from 'react'
+import { policyValidation_API } from '../../utils/api'
+
 
 const dummyCabs = {
     date:null, 
@@ -101,40 +103,43 @@ export default function ModeOfTransit({
 
     const setTravelClassViolationMessage = (message)=>{
         const formData_copy = JSON.parse(JSON.stringify(formData))
-        formData_copy.travelViolations.travelClassViolationMessage = message
+        formData_copy.itinerary[itemIndex].departure.violations.class = message
         setFormData(formData_copy)
     }
 
     const handleTravelClassChange = async (option)=>{
         const formData_copy = JSON.parse(JSON.stringify(formData))
         formData_copy.itinerary[itemIndex].travelClass = option 
-        setFormData(formData_copy)
 
         //policy validation
         switch(modeOfTransit){
             case 'Flight':{
-                policyValidation_API({type:type, policy:'airfare class', value:option, groups})
-                .then(res=>{ console.log(res); setTravelClassViolationMessage(res.violationMessage)})
-                .catch(err=>console.error('error in policy validation ', err))
-
-                return
+                const res = await policyValidation_API({tenantId:formData.tenantId, type:type, policy:'airfare class', value:option, groups})
+                if(!res.err){
+                    console.log(res); 
+                    formData_copy.itinerary[itemIndex].departure.violations.class = res.data.response.violationMessage
+                }            
+                break
             }
             case 'Train':{
-                policyValidation_API({type:type, policy:'railway class', value:option, groups})
-                .then(res=>{setTravelClassViolationMessage(res.violationMessage)})
-                .catch(err=>console.error('error in policy validation ', err))
-
-                return
+                const res = await policyValidation_API({tenantId:formData.tenantId, type:type, policy:'railway class', value:option, groups})
+                if(!res.err){
+                    console.log(res); 
+                    formData_copy.itinerary[itemIndex].departure.violations.class = res.data.response.violationMessage
+                }            
+                break
             }
             case 'Cab':{
-                policyValidation_API({type:type, policy:'cab class', value:option, groups})
-                .then(res=>{setTravelClassViolationMessage(res.violationMessage)})
-                .catch(err=>console.error('error in policy validation ', err))
-
-                return
+                const res = await policyValidation_API({tenantId:formData.tenantId, type:type, policy:'car rentals class', value:option, groups})
+                if(!res.err){
+                    console.log(res); 
+                    formData_copy.itinerary[itemIndex].departure.violations.class = res.data.response.violationMessage
+                }            
+                break
             }
         }
-        
+
+        setFormData(formData_copy)        
     }
 
     const handleTransfersChange = (e, field, type)=>{
@@ -196,7 +201,7 @@ export default function ModeOfTransit({
                 error={travelClassError}
                 onSelect={(option)=>{handleTravelClassChange(option)}}
                 currentOption={travelClass}
-                violationMessage={travelClassViolationMessage}
+                violationMessage={formData.itinerary[itemIndex]?.departure?.violations?.class}
                 title='Select travel Class' 
                 placeholder='Select travel class' />
         </div>

@@ -49,7 +49,7 @@ export default function BasicDetails(props){
     
     //get this as props
     const EMPLOYEE_ID  = props.EMPLOYEE_ID || '123'
-    const group = props.group || 'group 1'
+    const groups = props.groups || ['group 1']
 
     //get this from onboarding....
     const teamMembers = props.teamMembers || [{name: 'Aman Bhagel', empId: '204', designation: 'Sales Executive'}, {name: 'Vikas Rajput', empId: '245', designation:'System Engineer II'}, {name: 'Rahul Suyush Singh', empId: '318', designation:'Sr. Software Engineer'}, {name: 'Vilakshan Vibhut Giri Babaji Maharaj', empId: '158', designation:'Sr. Sales Executive'}]
@@ -245,11 +245,13 @@ export default function BasicDetails(props){
     const updateTripPurpose = async (option)=>{
 
         let tripPurposeViolationMessage_ = null
-        await policyValidation_API({type:'international', policy:'trip purpose', value:option, group:group})
-        .then(res=>{tripPurposeViolationMessage_ = res.violationMessage})
-        .catch(err=>console.error('error in policy validation ', err))
-
-        setTripPurposeViiolationMessage(tripPurposeViolationMessage_)
+        const res = await policyValidation_API({tenantId:formData.tenantId, type:'international', policy:'trip purpose', value:option, groups:groups})
+        if(!res.err){
+            tripPurposeViolationMessage_ = res.data.response.violationMessage
+            setTripPurposeViiolationMessage(tripPurposeViolationMessage_)
+            console.log(tripPurposeViolationMessage_)
+            console.log(res.data)
+        }
 
         const formData_copy = JSON.parse(JSON.stringify(formData))
         formData_copy.tripPurpose = option
