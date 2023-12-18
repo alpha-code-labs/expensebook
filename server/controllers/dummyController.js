@@ -13,17 +13,15 @@ export const saveToEmbeddedTrip = async (req, res) => {
         tenantId,
         tenantName,
         companyName: companyName,
-        embeddedTrip: {
-          tripId: travelRequestId,
+        tripId: travelRequestId,
           ...tripDummyData 
-        }
       });
 
       const savedData = await newData.save();
       console.log('Saved new data:', savedData);
       return res.status(200).json({ message: 'New data saved to embedded trip successfully.' });
     } else {
-      existingData.embeddedTrip = {
+      existingData = {
         tripId: travelRequestId,
         ...tripDummyData // Assuming tripDummyData contains all the necessary fields
       };

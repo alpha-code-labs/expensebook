@@ -9,121 +9,6 @@ export const tripDummyData = {
     "tripStartDate":"2023-12-16T15:30:00.000Z",
     "tripCompletionDate":"2023-12-29T15:30:00.000Z",
     "notificationSentToDashboardFlag":true,
-    "embeddedTravelRequest": {
-        "tenantId": "TNTABG",
-        "tenantName": "AdithyaBirlaGroup",
-        "companyName": "AdithyaBirlaGroup",
-        "travelRequestId": "TRABG000001",
-        "tripPurpose": "Delhi Branch Opening",
-        "travelRequestStatus": "booked",
-        "travelRequestState": "section 3",
-        "createdBy": { empId: "empL001", name: "Luffy" },
-        "createdFor": 
-            { empId: "empL001", name: "Luffy" },
-        "teamMembers": [
-            { empId: "empZ001", name: "Zoro" },
-            { empId: "empN001", name: "Nami" },
-            { empId: "empS001", name: "Sanji" },
-            { empId: "empC001", name: "Chopper" },
-        ],
-        "travelAllocationHeaders": [
-          {
-            "department": "Sales",
-            "percentage": 30
-          },
-          {
-            "department": "Marketing",
-            "percentage": 70
-          }
-        ],
-        "itinerary": {
-            "formState": [
-              {
-                "formId": "form123",
-                "transfers": {
-                  "needsDeparturePickup": true,
-                  "needsDepartureDrop": true,
-                  "needsReturnPickup": false,
-                  "needsReturnDrop": true
-                },
-                "needsHotel": true,
-                "needsCab": false,
-                "needsVisa": true,
-                "cancellationDate": " ",
-                "cancellationReason": "Change in travel plans",
-                "formStatus": "Submitted"
-              }
-            ],
-            "flights": [
-              {
-                "itineraryId": "5fec83753a4959001771449a",
-                "formId": "form123",
-                "from": "Mumbai",
-                "to": "Delhi",
-                "date": "2023-12-16T15:30:00.000Z"            ,
-                "time": "11:00",
-                "travelClass": "Business Class",
-                "violations": {
-                  "class": "Type A",
-                  "amount": "100 USD"
-                },
-                "bkd_from": "Mumbai",
-                "bkd_to": "Delhi",
-                "bkd_date": "2023-12-21T15:30:00.000Z"            ,
-                "bkd_time": "12:20",
-                "bkd_travelClass": "Business Class",
-                "bkd_violations": {
-                  "class": "Type A",
-                  "amount": "100 USD"
-                },
-                "modified": false,
-                "cancellationDate": "",
-                "cancellationReason": "Flight canceled by airline",
-                "status": "booked",
-                "bookingDetails": {
-                  "docURL": "https://example.com/booking.pdf",
-                  "docType": "PDF",
-                  "billDetails": {}
-                }
-              }
-            ],
-          },
-        "travelDocuments": ["Passport", "Visa"],
-        "approvers": [
-          {
-            "empId": "empG001",
-            "name": "Garp",
-            "status": "approved"
-          },
-          {
-            "empId": "empM001",
-            "name": "MarcoPolo",
-            "status": "approved"
-          }
-        ],
-        "preferences": ["Window seat", "Non-smoking room"],
-        "travelViolations": {
-          "violationType": "None",
-          "violationDetails": ""
-        },
-        "travelRequestDate": "2023-12-08T15:30:00.000Z"    ,
-        "travelBookingDate": "2023-12-16T15:30:00.000Z"    ,
-        "travelCompletionDate": "2023-12-29T15:30:00.000Z",
-        "travelRequestRejectionReason": "Not enough budget allocated",
-        "travelAndNonTravelPolicies": {
-          "policyType": "Business Travel",
-          "policyDetails": "Comply with company travel policy"
-        }
-      },
-    "embeddedCashAdvance":  {
-        tenantId: "TNTABG",
-        tenantName: "AdithyaBirlaGroup",
-        companyName: "AdithyaBirlaGroup",
-        travelRequestId: "TRABG000001",
-        embeddedTravelRequest:   {
-          "tenantId": "TNTABG",
-          "tenantName": "AdithyaBirlaGroup",
-          "companyName": "AdithyaBirlaGroup",
           "travelRequestId": "TRABG000001",
           "tripPurpose": "Delhi Branch Opening",
           "travelRequestStatus": "booked",
@@ -349,8 +234,7 @@ export const tripDummyData = {
           "travelAndNonTravelPolicies": {
             "policyType": "Business Travel",
             "policyDetails": "Comply with company travel policy"
-          }
-        },
+          },
         cashAdvances: [
           {
             tenantId: "TNTABG",
@@ -414,7 +298,5 @@ export const tripDummyData = {
             cashAdvanceRejectionReason: "reason",
             notificationSentToDashboardFlag: true,
           },
-        ],
-      },    
-    
+        ],   
 }

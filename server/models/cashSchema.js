@@ -1,5 +1,4 @@
 import mongoose from 'mongoose';
-import { travelRequestSchema } from './travelSchema.js';
 
 const cashAdvanceStateEnums = [
   'section 0',
@@ -38,7 +37,6 @@ export const cashAdvanceSchema = new mongoose.Schema({
   travelRequestId: {
       type: String,
   },
-  embeddedTravelRequest: travelRequestSchema,
   cashAdvances: [
     {
       tenantId: {

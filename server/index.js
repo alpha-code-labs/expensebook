@@ -22,6 +22,7 @@ app.use(cors());
 //Routes
 app.use('/api/dummydata', dummy); // dummy data for testing
 app.use('/api/dashboard/overview', overview ); // dashboard overview screen
+app.get('/ping', (req,res) => { return res.status(200).json({message:'(:(:(:(:(:(:(:(:'})})
 
 const connectToMongoDB = async () => {
   try {
