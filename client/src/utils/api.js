@@ -86,8 +86,8 @@ async function updateTravelRequest_API(data){
 
 async function policyValidation_API(data){
   try{
-    const {type, group, policy, value} = data;
-    const res = await axios.get(`${TRAVEL_API_URL}/validate-policy/${type}/${group}/${policy}/${value}`, {retry, retryDelay})
+    const {type, groups, policy, value, tenantId} = data;
+    const res = await axios.post(`${TRAVEL_API_URL}/validate-policy/${tenantId}/`, {type, groups, policy, value}, {retry, retryDelay})
 
     if(res.status >= 200 && res.status<300){
       return {data: {response: res.data}, err:null}
