@@ -1,65 +1,141 @@
-import { chevronDown } from "../../assets/icon";
-import Select from "../common/Select";
-import Search from "../common/searchNonTravel";
+import Backdrop from '@mui/material/Backdrop';
+import CircularProgress from '@mui/material/CircularProgress';
+import { useEffect, useState } from 'react';
+import { arrowLeft } from "../../assets/icon.jsx";
 
+
+const employeeData = [
+  {
+    name: "Employee1",
+    amount: 200,
+    currency: "$",
+    settlementMode: "Cash",
+  },
+  {
+    name: "Employee2",
+    amount: 500,
+    currency: "$",
+    settlementMode: "Cheque",
+  },
+  {
+    name: "Employee3",
+    amount: 5400,
+    currency: "Rs",
+    settlementMode: "Cash",
+  },
+];
 
 const SettlingNonTravelExpenseContainer = () => {
-  
+  const [checkedValues, setCheckedValues] = useState([]);
+  // console.log(checkedValues);
+
+  const handleChange = (e) => {
+    const empData = e.target.value;
+    const isSelected = e.target.checked;
+    if (isSelected) {
+      setCheckedValues([...checkedValues, empData]);
+    } else {
+      setCheckedValues((prevData) => {
+        return prevData.filter((empName) => {
+          return empName !== empData;
+        });
+      });
+    }
+
+    // console.log(checkedValues);
+  };
+  const [wait  , setWait] = useState(true);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setWait(false);
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, []);
     return (
-      <div>
-        <div className="relative rounded-2xl bg-white box-border w-[912px] h-[504px] overflow-hidden shrink-0 text-base text-black border-[1px] border-solid border-gainsboro-200">
-          <div className="absolute top-[24px] left-[44px]">
-            Non Travel Expenses
+      <div className="flex space-x-4 ">
+        {wait && <Backdrop
+      sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+      open={open}
+      
+    >
+      <CircularProgress color="inherit" />
+    </Backdrop>}
+      <div className="border-[1px] border-solid border-gainsboro-200 rounded-2xl box-border w-[912px] h-[422px]">
+        <div className="m-8">
+        <div className="flex justify-center space-x-2 bg-eb-primary-blue-50 text-eb-primary-blue-500 p-1 rounded-xl w-[100px] cursor-pointer my-2">
+            <img className=" w-4 h-4 bg-eb-primary-blue-500 rounded-lg " alt="" src={arrowLeft} />
+            <div>Dashboard</div>
           </div>
-
-          <div className="absolute top-[140px] left-[24px] right-[49] bottom-[5] flex flex-col items-start justify-start gap-[8px] text-sm text-ebgrey-600 ">
-             <div className="w-[826px] flex flex-col items-start justify-start">
-              <div className="bg-white w-[826px] flex flex-row items-start justify-start">
-                <div className="relative w-[140px] h-14 overflow-hidden shrink-0">
-                  <div className="absolute top-[calc(50%_-_8px)] left-[calc(50%_-_50px)] font-medium">
-                    Employee Name
-                  </div>
-                </div>
-                <div className="relative w-[126px] h-14 overflow-hidden shrink-0">
-                  <div className="absolute top-[calc(50%_-_8px)] left-[calc(50%_-_31px)] font-medium">
-                    Amount
-                  </div>
-                </div>
-                <div className="relative w-14 h-14 overflow-hidden shrink-0">
-                  <div className="absolute top-[calc(50%_-_8px)] left-[calc(50%_-_21px)] font-medium">
-                    Invoice
-                  </div>
-                </div>
-                <div className="relative w-[126px] h-14 overflow-hidden shrink-0">
-                  <div className="absolute top-[calc(50%_-_8px)] left-[calc(50%_-_27px)] font-medium">
-                    Category
-                  </div>
-                </div>
-                <div className="relative w-[126px] h-14 overflow-hidden shrink-0">
-                  <div className="absolute top-[calc(50%_-_8px)] left-[calc(50%_-_17px)] font-medium">
-                    Date
-                  </div>
-                </div>
-                <div className="relative w-[126px] h-14 overflow-hidden shrink-0">
-                  <div className="absolute top-[calc(50%_-_8px)] left-[calc(50%_-_15px)] font-medium">
-                  Payment
-                  </div>
-                </div>
-              </div>
-             </div>
-             {/* <NonTravelExpenseComponent /> */}
-          </div>
-          
-          {/* Searchbar 
-          <div className="flex mt-14 px-6 py-2 gap-8">
-
-            <Search options={['Ajay', 'Sumesh', 'Kanhaiya', 'Ravindra']} placeholder='search category' />
-
-          </div> */}
-
-          <div className="absolute top-[130.5px] left-[16.5px] box-border w-[883px] h-px border-t-[1px] border-solid border-ebgrey-100" />
+          <p className="text-base">Settling Non Travel Expense</p>
         </div>
-      </div>    
+        <table className="w-full">
+          <thead>
+            <tr className="border-b border-solid border-gainsboro-200">
+              <th className="p-2"></th>
+              <th className="p-4 text-lg text-center">Name of Employee</th>
+              <th className="p-4 text-lg text-center">Amount</th>
+              <th className="p-4 text-lg text-center">Currency Requested</th>
+              <th className="p-4 text-lg text-center">Mode of Settlement</th>
+              <th className="p-4 text-lg text-center"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {employeeData.map((employee, index) => (
+              <tr
+                key={index}
+                className="w-[800px] h-[70px] border-b border-solid border-gainsboro-200"
+              >
+                <td className="p-2 text-center">
+                  <input
+                    type="checkbox"
+                    name={`employee${index + 1}`}
+                    id={`employee${index + 1}`}
+                    value={employee.name}
+                    className="mx-auto"
+                    onChange={handleChange}
+                    checked={checkedValues.includes(employee.name)}
+                  />
+                </td>
+                <td className="p-4 text-center">{employee.name}</td>
+                <td className="p-4 text-center">{employee.amount}</td>
+                <td className="p-4 text-center">{employee.currency}</td>
+                <td className="p-4 text-center">{employee.settlementMode}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Settled Employee */}
+      <div className="border-[1px] border-solid border-gainsboro-200 rounded-2xl box-border w-[150px] h-[422px] bg-dimgray">
+        <div className="m-4">
+          <p className="text-base">Settled Employee</p>
+        </div>
+        <table className="w-full">
+          <thead>
+            <tr className="border-b border-solid border-gainsboro-200">
+              <th className="p-2"></th>
+              <th className="p-4 text-lg text-center">Name of Employee</th>
+              <th className="p-4 text-lg text-center"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {checkedValues.map((employee, index) => (
+              <tr
+                key={index}
+                className="w-[120px] h-[70px] border-b border-solid border-gainsboro-200"
+              >
+                <td className="p-2 text-center">
+                 
+                </td>
+                <td className="p-4 text-center">{employee}</td>
+                
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>  
     );
   };
   

@@ -27,7 +27,7 @@ export const theme = {
       darkslategray: "#333",
       darkseagreen: "#70ae80",
       "ebgrey-500": "#32333b",
-      dimgray: "#707070",
+      dimgray: "#e6e6e6",
       "ebgrey-600": "#5e606e",
       blueviolet: "#4c38e4",
       "ebgrey-50": "#f1f1f3",
