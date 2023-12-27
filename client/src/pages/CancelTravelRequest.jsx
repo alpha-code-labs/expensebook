@@ -5,7 +5,6 @@ import Icon from "../components/common/Icon";
 import { titleCase } from "../utils/handyFunctions";
 import Button from "../components/common/Button";
 import Error from "../components/common/Error";
-import { updateTravelRequest_API, cancelTravelRequest_API } from "../utils/api";
 import PopupMessage from "../components/common/PopupMessage";
 import cab_icon from "../assets/cab-purple.svg"
 import airplane_icon from "../assets/Airplane_1.svg"
@@ -13,8 +12,7 @@ import bus_icon from "../assets/bus.png"
 import train_icon from '../assets/train.png'
 import calendar_icon from "../assets/calendar.svg"
 import double_arrow from '../assets/double-arrow.svg'
-
-const TRAVEL_API = import.meta.env.VITE_TRAVEL_API_URL
+import { getRawTravelRequest_API, updateRawTravelRequest_API, cancelTravelRequest_API } from "../utils/api";
 
 console.log(import.meta.env.VITE_TRAVEL_API_URL)
 
@@ -26,57 +24,96 @@ export default function () {
     const [message, setMessage] = useState(false)
     const [showConfimationForCancllingTR, setShowConfirmationForCancellingTr] = useState(false)
 
-    const handleCancel = (toSet, type, legIndex, itemIndex)=>{
-        console.log('type legIndex itemIndex', type, legIndex, itemIndex)
+    const handleCancel = (type, formId, itemIndex, isReturn)=>{
+        console.log('type formId itemIndex', type, formId, itemIndex, isReturn)
         setItemType(type)
         setItemIndex(itemIndex)
-        setItineraryIndex(legIndex)
-
+        setFormId(formId)
+        setIsReturn(isReturn)
         setShowCancelModal(true)
     }
 
-    const handleCancelItem = async (type, itineraryIndex, itemIndex=null)=>{
+    const handleCancelItem = async (type, itemIndex, formId, isReturn)=>{
         const formData_copy = JSON.parse(JSON.stringify(formData))
-        console.log('this ran with type, itineraryIndex, itemIndex', type, itineraryIndex, itemIndex)
+        console.log('this ran with type, formId, itemIndex', type, formId, itemIndex)
 
-        switch(type){
-            case 'boardingTransfer':{
-                formData_copy.itinerary[itineraryIndex].boardingTransfer = null;
-                formData_copy.itinerary[itineraryIndex].needsBoardingTransfer = false;
-                break;
+        if(type== 'cab'){
+            formData_copy.itinerary.cabs = formData.itinerary.cabs.filter((_,index)=>index!=itemIndex);
+            const regularCabsCount = formData_copy.itinerary.cabs.filter(cab=> cab.type == 'regular' && cab.formId == formId).length
+            
+            const departruePickupCab = formData_copy.itinerary.cabs.filter(cab=> cab.type == 'departure pickup' && cab.formId == formId).length
+            if(!departruePickupCab) formData_copy.itinerary.formState[formId].transfers.needsDeparturePickup = false
+            
+            const departureDropCab = formData_copy.itinerary.cabs.filter(cab=> cab.type == 'departure drop' && cab.formId == formId).length
+            if(!departureDropCab) formData_copy.itinerary.formState[formId].transfers.needsDepartureDrop = false
+            
+            const returnPickupCab = formData_copy.itinerary.cabs.filter(cab=> cab.type == 'return pickup' && cab.formId == formId).length
+            if(!returnPickupCab) formData_copy.itinerary.formState[formId].transfers.needsReturnPickup = false
+            
+            const returnDropCab = formData_copy.itinerary.cabs.filter(cab=> cab.type == 'return drop' && cab.formId == formId).length
+            if(!returnDropCab) formData_copy.itinerary.formState[formId].transfers.needsReturnDrop = false
+            
+            if(!regularCabsCount) formData_copy.itinerary.formState[formId].needsCab = false
+            
+        }
+        else if(type == 'hotel'){
+            console.log(type, itemIndex, formId)
+            console.log(formData.itinerary.hotels.filter((_,index)=>index!=itemIndex))
+            formData_copy.itinerary.hotels = formData.itinerary.hotels.filter((_,index)=>index!=itemIndex)
+            const hotelCount = formData_copy.itinerary.hotels.filter(hotel=> hotel.formId == formId).length
+            if(hotelCount == 0) formData_copy.itinerary.formState[formId].needsHotel = false
+        }
+        else if(type == 'flight'){
+            console.log(isReturn)
+            formData_copy.itinerary.flights = formData.itinerary.flights.filter((_,index)=>index!=itemIndex);
+            if(isReturn){
+                //flight is for return remove transfer cabs if available
+                console.log('this ran return should be true', isReturn)
+                console.log(formData_copy.itinerary.cabs.filter(cab=> cab.formId != formId || cab.type == 'regular' || cab.type == 'departure pickup' || cab.type == 'departure drop'))
+                formData_copy.itinerary.cabs = formData_copy.itinerary.cabs.filter(cab=> cab.formId != formId || cab.type == 'regular' || cab.type == 'departure pickup' || cab.type == 'departure drop' )
+                formData_copy.itinerary.formState[formId].transfers.needsReturnPickup = false
+                formData_copy.itinerary.formState[formId].transfers.needsReturnDrop = false
+            }else{
+                //flight is for departure remove transfer cabs if available
+                console.log('this ran return should be false', isReturn)
+                formData_copy.itinerary.cabs = formData_copy.itinerary.cabs.filter(cab=> cab.formId != formId || cab.type == 'regular' || cab.type == 'return pickup' || cab.type == 'return drop')
+                console.log(formData_copy.itinerary.cabs.filter(cab=> cab.formId != formId || cab.type == 'regular' || cab.type == 'return pickup' || cab.type == 'return drop'))
+                formData_copy.itinerary.formState[formId].transfers.needsDeparturePickup = false
+                formData_copy.itinerary.formState[formId].transfers.needsDepartureDrop = false
             }
-            case 'hotelTransfer': {
-                formData_copy.itinerary[itineraryIndex].hotelTransfer = null;
-                formData_copy.itinerary[itineraryIndex].needsHotelTransfer = false;
-                break;
+        }
+        else if(type == 'train'){
+            formData_copy.itinerary.trains = formData.itinerary.trains.filter((_,index)=>index!=itemIndex);
+            if(isReturn){
+                //remove transfer cabs if available
+                formData_copy.itinerary.cabs = formData_copy.itinerary.cabs.filter(cab=> cab.formId != formId || cab.type == 'regular' || cab.type == 'departure pickup' || cab.type == 'departure drop' )
+                formData_copy.itinerary.formState[formId].transfers.needsReturnPickup = false
+                formData_copy.itinerary.formState[formId].transfers.needsReturnDrop = false
+            }else{
+                //remove transfer cabs if available
+                formData_copy.itinerary.cabs = formData_copy.itinerary.cabs.filter(cab=> cab.formId != formId || cab.type == 'regular' || cab.type == 'return pickup' || cab.type == 'return drop' )
+                formData_copy.itinerary.formState[formId].transfers.needsDeparturePickup = false
+                formData_copy.itinerary.formState[formId].transfers.needsDepartureDrop = false
             }
-            case 'cab':{
-                formData_copy.itinerary[itineraryIndex].cabs = formData.itinerary[itineraryIndex].cabs.filter((_,index)=>index!=itemIndex);
-                if(formData_copy.itinerary[itineraryIndex].cabs.length == 0) formData_copy.itinerary[itineraryIndex].needsCab = false
-                break;
-            }
-            case 'hotel':{
-                formData_copy.itinerary[itineraryIndex].hotels = formData.itinerary[itineraryIndex].hotels.filter((_,index)=>index!=itemIndex);
-                if(formData_copy.itinerary[itineraryIndex].needsHotel.length == 0) formData_copy.itinerary[itineraryIndex].needsHotel = false
-                break;
-            }
-            case 'leg':{
-                formData_copy.itinerary = formData.itinerary.filter((_,index)=>index!=itineraryIndex);
-                break;
-            }
-            case 'return':{
-                formData_copy.itinerary[itineraryIndex].return.date = null
-                formData_copy.tripType.oneWayTrip = true
-                formData_copy.tripType.roundTrip = false
-                formData_copy.tripType.multiCityTrip = false
-                break;
+        }
+        else if(type == 'bus'){
+            formData_copy.itinerary.buses = formData.itinerary.buses.filter((_,index)=>index!=itemIndex);
+            if(isReturn){
+                //remove transfer cabs if available
+                formData_copy.itinerary.cabs = formData_copy.itinerary.cabs.filter(cab=> cab.formId != formId || cab.type == 'regular' || cab.type == 'departure pickup' || cab.type == 'departure drop' )
+                formData_copy.itinerary.formState[formId].transfers.needsReturnPickup = false
+                formData_copy.itinerary.formState[formId].transfers.needsReturnDrop = false
+            }else{
+                //remove transfer cabs if available
+                formData_copy.itinerary.cabs = formData_copy.itinerary.cabs.filter(cab=> cab.formId != formId || cab.type == 'regular' || cab.type == 'return pickup' || cab.type == 'return drop' )
+                formData_copy.itinerary.formState[formId].transfers.needsDeparturePickup = false
+                formData_copy.itinerary.formState[formId].transfers.needsDepartureDrop = false
             }
         }
 
         setFormData(formData_copy)
         setShowCancelModal(false)
     }
-
 
     const handleTrCancel = async ()=>{    
         //cancel the travel request and redirect the user on dashboard
@@ -88,74 +125,55 @@ export default function () {
 
         setMessage('Your Travel Request has been cancelled')
         setShowPopup(true)
-        setTimeout(()=>{setShowPopup(false)},5000)
+        setTimeout(()=>{
+            setShowPopup(false)
+            //redirect to dashaboard
+            //window.location.href = DASHBOARD_URL
+        },5000)
     }
 
     const handleSubmit = async ()=>{
         setIsLoading(true)
-        await updateTravelRequest_API(formData)
+        console.log('sending data to backend', formData )
+        const res = await updateRawTravelRequest_API({travelRequest:formData, submitted:true})
+        if(res.err){
+            setIsLoading(false)
+            setMessage('Cancellation Failed. Please try again after some time') 
+            setShowPopup(true)
+            return   
+        }
         setIsLoading(false)
         setMessage('Cancellation processed')
         setShowPopup(true)
-        //redirect to dashboard..
+        //wait for 5 seconds
+        setTimeOut(()=>{
+            setShowPopup(false)
+            //redirect to dashboard
+            //window.location.href = DASHBOARD_URL
+        },5000)
     }
 
     const [isLoading, setIsLoading] = useState(true)
     const [loadingErrMsg, setLoadingErrMsg] = useState(null)
     const [showCancelModal, setShowCancelModal] = useState(false)
+    const [isReturn, setIsReturn] = useState(false)
 
     //fetch travel request data from backend
-    useEffect(()=>{
-        axios
-        .get(`${TRAVEL_API}/travel-requests/${travelRequestId}`)
-        .then((response) => {
-            console.log(response.data)
-            const travelRequestDetails = response.data
-           //set form data...
-
-           const currentFomData = {
-              travelRequestId: travelRequestDetails.travelRequestId,
-              approvers: travelRequestDetails.approvers,
-              tenantId: travelRequestDetails.tenantId,
-              tenantName:travelRequestDetails.tenantName,
-              companyName:travelRequestDetails.companyName,
-              status: travelRequestDetails.status,
-              state: travelRequestDetails.state,
-              createdBy: travelRequestDetails.createdBy,
-              createdFor: travelRequestDetails.createdFor,
-              travelAllocationHeaders:travelRequestDetails.travelAllocationHeaders,
-              tripPurpose:travelRequestDetails.tripPurpose,
-
-              raisingForDelegator: travelRequestDetails.createdFor === null ? false : true,
-              nameOfDelegator: travelRequestDetails?.createdFor?.name || null,
-              isDelegatorManager: false,
-              selectDelegatorTeamMembers:false,
-              delegatorsTeamMembers:[],
-
-              bookingForSelf:true,
-              bookiingForTeam:false,
-              teamMembers : travelRequestDetails.teamMembers,
-              travelDocuments: travelRequestDetails.travelDocuments,
-              itinerary: travelRequestDetails.itinerary,
-              tripType: travelRequestDetails.tripType,
-              preferences:travelRequestDetails.preferences,
-              travelViolations:travelRequestDetails.travelViolations,
-              cancellationDate:travelRequestDetails.cancellationDate,
-              cancellationReason:travelRequestDetails.cancellationReason,
-              isCancelled:travelRequestDetails.isCancelled,
-              travelRequestStatus:travelRequestDetails.travelRequestStatus,
-           }
-
-           setFormData(currentFomData)
-            setIsLoading(false)
-
-        })
-        .catch(err=>{ 
-            console.error(err)
-            setLoadingErrMsg(err.response.message)
-            //handle possible scenarios
-        })
-    },[])
+    //fetch travel request data from backend
+    useEffect(() => {
+        (async function(){
+          const travel_res = await getRawTravelRequest_API({travelRequestId})
+          if(travel_res.err){
+            setLoadingErrMsg(travel_res.err)
+            return
+          }
+          const travelRequestDetails = travel_res.data
+          console.log('form state got reset reset')
+          setFormData({...travelRequestDetails})
+          setIsLoading(false)
+        })()
+      },[])
+      
 
     useEffect(()=>{
         if(showCancelModal){
@@ -169,7 +187,7 @@ export default function () {
     const [formData, setFormData] = useState()
     const [itemType, setItemType] = useState(null)
     const [itemIndex, setItemIndex] = useState(null)
-    const [itineraryIndex, setItineraryIndex] = useState(null)
+    const [formId, setFormId] = useState(null)
 
   return <>
         {isLoading && <Error message={loadingErrMsg}/>}
@@ -206,118 +224,68 @@ export default function () {
         
             <hr/>
             <div className="mt-5 flex flex-col gap-4">
-                {formData.itinerary.map((leg,index)=>{
-                    console.log(leg)
-                    return(<>
-                        <div className="flex items-center gap-2">
-                            <p className="text-xl text-neutral-700">
-                                {`${titleCase(leg.departure.from)}`}
-                            </p>
-                            <img src={double_arrow} className="w-6 h-6"/>
-                            <p className="text-xl text-neutral-700">
-                                {`${titleCase(leg.departure.to)} `}
-                            </p>
-                        </div>
-
-                        <div className='flex flex-col gap-2'>
-                        {<>
-                            <FlightCard
-                                onClick={()=>handleCancel('leg', 'leg', index, null)}
-                                id={index} 
-                                from={leg.departure.from} 
-                                to={leg.departure.to} 
-                                date={leg.departure.date}
-                                travelClass={leg.travelClass} 
-                                mode={leg.modeOfTransit}
-                                time={leg.departure.time}/>
-                            {leg.return?.date!=null && leg?.return?.date!=undefined && 
-                                <FlightCard 
-                                    onClick={()=>handleCancel('return', 'return', index, null)}
-                                    id={index}
-                                    from={leg.departure.to} 
-                                    to={leg.departure.from} 
-                                    date={leg.return.date}
-                                    travelClass={leg.travelClass} 
-                                    mode={leg.modeOfTransit} 
-                                    time={leg.return.time }/>
-                            }
-                         </>}
-
-                         {leg.needsBoardingTransfer && <>
-                            <CabCard
-                                onClick={()=>handleCancel('boardingTransfer', 'boardingTransfer', index, null)}
-                                id={index} 
-                                from={leg.boardingTransfer.pickupAddress} 
-                                to={leg.boardingTransfer.dropAddress} 
-                                date={leg.departure.date} 
-                                isTransfer={true}
-                                mode={leg.modeOfTransit}
-                                time={leg.boardingTransfer.prefferedTime}/>
-                         </>}
-
-                         {leg.needsHotelTransfer && <>
-                            <CabCard
-                                onClick={()=>handleCancel('hotelTransfer', 'hotelTransfer', index, null)} 
-                                id={index}
-                                from={leg.hotelTransfer?.pickupAddress??spitBoardingPlace(leg.modeOfTransit)} 
-                                to={leg.hotelTransfer?.dropAddress??'Hotel'} 
-                                date={leg.departure.date} 
-                                isTransfer={true}
-                                mode={leg.modeOfTransit}
-                                time={leg.hotelTransfer.prefferedTime}/>
-                         </>}
-
-                         {leg.needsCab && leg.cabs.length>0 && leg.cabs.map((cab,ind)=>
-                            <CabCard
-                            onClick={()=>handleCancel('cabs', 'cab', index, ind)}
-                            from={cab.pickupAddress} 
-                            to={cab.dropAddress} 
-                            date={cab.date} 
-                            mode={leg.modeOfTransit}
-                            time={cab.prefferedTime}/>
-                         )}
-
-                        {leg.needsHotel && leg.hotels.length>0 && leg.hotels.map((hotel, ind)=>
-                            <HotelCard
-                            onClick={()=>handleCancel('hotels', 'hotel', index, ind)} 
-                            checkIn={hotel.checkIn} 
-                            checkOut={hotel.checkOut}
-                            hotelClass={hotel.class}
-                            preference={'Close to Airport'} 
-                            />
-                         )}
-                        </div>
-                         
-
-                        {showCancelModal && <div className="fixed overflow-hidden max-h-4/5 flex justify-center items-center inset-0 backdrop-blur-sm w-full h-full left-0 top-0 bg-gray-800/60 scroll-none">
-                            <div className='z-10 max-w-4/5 w-2/5 min-h-4/5 max-h-4/5 scroll-none bg-white rounded-lg shadow-md'>
-                                <div className="p-10">
-                                    <p className="text-xl font-cabin">Are you sure you want to cancel?</p>
-                                    <div className="flex mt-10 justify-between">
-                                        <Button variant='fit' text='Yes, cancel it' onClick={()=>handleCancelItem(itemType, itineraryIndex, itemIndex)} />
-                                        <Button variant='fit' text='No' onClick={()=>setShowCancelModal(false)} />
+                {['flights', 'trains', 'buses', 'cabs', 'hotels'].map((itnItem, itnItemIndex) => {
+                        if (formData.itinerary[itnItem].length > 0) {
+                            return (
+                                <div key={itnItemIndex}>
+                                    <p className="text-xl text-neutral-700">
+                                        {`${titleCase(itnItem)} `}
+                                    </p>
+                                    <div className='flex flex-col gap-1'>
+                                        {formData.itinerary[itnItem].map((item, itemIndex) => {
+                                            if (['flights', 'trains', 'buses'].includes(itnItem)) {
+                                                return (
+                                                    <div key={itemIndex}>
+                                                        <FlightCard onClick={()=>handleCancel(itnItem.slice(0, -1), itemIndex, item.formId, item.isReturnTravel)} from={item.from} to={item.to} date={item.date} time={item.time} travelClass={item.travelClass} mode={titleCase(itnItem.slice(0, -1))} />
+                                                    </div>
+                                                );
+                                            } else if (itnItem === 'cabs') {
+                                                return (
+                                                    <div key={itemIndex}>
+                                                        <CabCard onClick={()=>handleCancel(itnItem.slice(0, -1), itemIndex, item.formId)} from={item.pickupAddress} to={item.dropAddress} date={item.date} time={item.time} travelClass={item.travelClass} isTransfer={item.type !== 'regular'} />
+                                                    </div>
+                                                );
+                                            } else if (itnItem === 'hotels') {
+                                                return (
+                                                    <div key={itemIndex}>
+                                                        <HotelCard onClick={()=>handleCancel(itnItem.slice(0, -1), itemIndex, item.formId)} checkIn={item.checkIn} checkOut={item.checkOut} date={item.data} time={item.time} travelClass={item.travelClass} mode='Train' />
+                                                    </div>
+                                                );
+                                            }
+                                        })}
                                     </div>
                                 </div>
-                            </div>
-                        </div>} 
-
-                        {showConfimationForCancllingTR && <div className="fixed overflow-hidden max-h-4/5 flex justify-center items-center inset-0 backdrop-blur-sm w-full h-full left-0 top-0 bg-gray-800/60 scroll-none">
-                            <div className='z-10 max-w-4/5 w-2/5 min-h-4/5 max-h-4/5 scroll-none bg-white rounded-lg shadow-md'>
-                                <div className="p-10">
-                                    <p className="text-xl font-cabin">Are you about cancelling this Travel Request?</p>
-                                    <div className="flex mt-10 justify-between">
-                                        <Button variant='fit' text='Yes, cancel it' onClick={handleTrCancel} />
-                                        <Button variant='fit' text='No' onClick={()=>setShowConfirmationForCancellingTr(false)} />
-                                    </div>
-                                </div>
-                            </div>
-                            </div>
+                            );
                         }
-   
-                    </>)
-                })}
+                        return null; // Return null if no items in the itinerary
+                    })}
             </div>
             
+            
+            {showCancelModal && <div className="fixed overflow-hidden max-h-4/5 flex justify-center items-center inset-0 backdrop-blur-sm w-full h-full left-0 top-0 bg-gray-800/60 scroll-none">
+                <div className='z-10 max-w-4/5 w-2/5 min-h-4/5 max-h-4/5 scroll-none bg-white rounded-lg shadow-md'>
+                    <div className="p-10">
+                        <p className="text-xl font-cabin">Are you sure you want to cancel?</p>
+                        <div className="flex mt-10 justify-between">
+                            <Button variant='fit' text='Yes, cancel it' onClick={()=>handleCancelItem(itemType, formId, itemIndex, isReturn)} />
+                            <Button variant='fit' text='No' onClick={()=>setShowCancelModal(false)} />
+                        </div>
+                    </div>
+                </div>
+            </div>} 
+
+            {showConfimationForCancllingTR && <div className="fixed overflow-hidden max-h-4/5 flex justify-center items-center inset-0 backdrop-blur-sm w-full h-full left-0 top-0 bg-gray-800/60 scroll-none">
+                <div className='z-10 max-w-4/5 w-2/5 min-h-4/5 max-h-4/5 scroll-none bg-white rounded-lg shadow-md'>
+                    <div className="p-10">
+                        <p className="text-xl font-cabin">Are you about cancelling this Travel Request?</p>
+                        <div className="flex mt-10 justify-between">
+                            <Button variant='fit' text='Yes, cancel it' onClick={handleTrCancel} />
+                            <Button variant='fit' text='No' onClick={()=>setShowConfirmationForCancellingTr(false)} />
+                        </div>
+                    </div>
+                </div>
+                </div>
+            }
         </div>
         
         <div className="flex mt-10 flex-row-reverse">
@@ -461,7 +429,7 @@ function CabCard_({from, to, date, time, travelClass, onClick, mode, isTransfer=
     )
 }
 
-function HotelCard({checkIn, checkOut, hotelClass, onClick, preference={preference}}){
+function HotelCard({checkIn, checkOut, hotelClass, onClick, preference='close to airport'}){
     return(
     <div className="shadow-sm min-h-[76px] bg-slate-50 rounded-md border border-slate-300 w-full px-6 py-4 flex flex-col sm:flex-row gap-4 items-center sm:divide-x">
     <p className='font-semibold text-base text-neutral-600'>Hotel</p>
@@ -510,7 +478,7 @@ function CabCard({from, to, date, time, travelClass, onClick, mode, isTransfer=f
     <div className="shadow-sm min-h-[76px] bg-slate-50 rounded-md border border-slate-300 w-full px-6 py-4 flex flex-col sm:flex-row gap-4 items-center sm:divide-x">
     <div className='font-semibold text-base text-neutral-600'>
     <img src={cab_icon} className='w-6 h-6' />
-        {isTransfer && <p className="text-xs text-neutral-500">{spitBoardingPlace(mode)}</p>}
+        <p className="text-xs text-neutral-500">{isTransfer? 'Transfer Cab': 'Cab'}</p>
     </div>
     <div className="w-full flex sm:block">
         <div className='mx-2 text-xs text-neutral-600 flex justify-between flex-col sm:flex-row'>
