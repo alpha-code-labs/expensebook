@@ -53,7 +53,42 @@ async function postTravelRequest_API(data){
 
 async function updateTravelRequest_API(data){
   try{
-    const res = await axios.patch(`${TRAVEL_API_URL}/travel-requests/${data.travelRequestId}`, TR_backendTransformer(data), {retry, retryDelay})
+    const {travelRequest, submitted} = data
+    const res = await axios.patch(`${TRAVEL_API_URL}/travel-requests/${travelRequest.travelRequestId}`, {travelRequest:TR_backendTransformer(travelRequest), submitted}, {retry, retryDelay})
+
+    if(res.status >= 200 && res.status<300){
+      return {data: {response: res.data}, err:null}
+    }
+
+  }catch(e){
+    if(e.response){
+      //respose received from server
+      if(e.response.status == 400){
+        return {data: null, err:errorMessages[400]}
+      }
+      if(e.response.status == 404){
+        return {data: null, err:errorMessages[404]}
+      }
+      if(e.response.status == 500){
+        return {data: null, err:errorMessages[500]}
+      }
+    }
+
+    if(e.request){
+      //request was sent but no response
+      return {data: null, err:errorMessages.request}
+    }
+
+    else{
+      return {data: null, err:errorMessages.else}      
+    }
+  }
+}
+
+async function updateRawTravelRequest_API(data){
+  try{
+    const {travelRequest, submitted} = data
+    const res = await axios.patch(`${TRAVEL_API_URL}/travel-requests/${travelRequest.travelRequestId}`, {travelRequest, submitted}, {retry, retryDelay})
 
     if(res.status >= 200 && res.status<300){
       return {data: {response: res.data}, err:null}
@@ -214,6 +249,72 @@ async function getTravelRequest_API(data){
   } 
 }
 
+async function getRawTravelRequest_API(data){
+  try{
+    const {travelRequestId} = data
+    const res = await axios.get(`${TRAVEL_API_URL}/travel-requests/${travelRequestId}`)
+    if(res.status >=200 && res.status<300){
+      return {data:res.data, err:null}
+    }
+  }catch(e){
+    if(e.response){
+      //respose received from server
+      if(e.response.status == 400){
+        return {data: null, err:errorMessages[400]}
+      }
+      if(e.response.status == 404){
+        return {data: null, err:errorMessages[404]}
+      }
+      if(e.response.status == 500){
+        return {data: null, err:errorMessages[500]}
+      }
+    }
+
+    if(e.request){
+      //request was sent but no response
+      return {data: null, err:errorMessages.request}
+    }
+
+    else{
+      return {data: null, err:errorMessages.else}      
+    }
+  }   
+}
+
+async function updateTravelBookings_API(data){
+  try{
+    const {itinerary, travelRequestId, submitted} = data
+    const res = await axios.patch(`${TRAVEL_API_URL}/travel-requests/${travelRequestId}/bookings`, {itinerary, submitted}, {retry, retryDelay})
+
+    if(res.status >= 200 && res.status<300){
+      return {data: {response: res.data}, err:null}
+    }
+
+  }catch(e){
+    if(e.response){
+      //respose received from server
+      if(e.response.status == 400){
+        return {data: null, err:errorMessages[400]}
+      }
+      if(e.response.status == 404){
+        return {data: null, err:errorMessages[404]}
+      }
+      if(e.response.status == 500){
+        return {data: null, err:errorMessages[500]}
+      }
+    }
+
+    if(e.request){
+      //request was sent but no response
+      return {data: null, err:errorMessages.request}
+    }
+
+    else{
+      return {data: null, err:errorMessages.else}      
+    }
+  }
+}
+
 async function getTravelPolicies_API(data){
   try{
     const {tenantId, travelType, groups} = data
@@ -246,11 +347,46 @@ async function getTravelPolicies_API(data){
   } 
 }
 
+async function getTravelBookingOnboardingData_API(data){
+  try{
+    const {tenantId, employeeId, travelType} = data
+    const res = await axios.get(`${TRAVEL_API_URL}/bookings-initial-data/${tenantId}/${employeeId}/${travelType}`)
+    if(res.status >=200 && res.status<300){
+      return {data:res.data, err:null}
+    }
+  }catch(e){
+    if(e.response){
+      //respose received from server
+      if(e.response.status == 400){
+        return {data: null, err:errorMessages[400]}
+      }
+      if(e.response.status == 404){
+        return {data: null, err:errorMessages[404]}
+      }
+      if(e.response.status == 500){
+        return {data: null, err:errorMessages[500]}
+      }
+    }
+    if(e.request){
+      //request was sent but no response
+      return {data: null, err:errorMessages.request}
+    }
+    else{
+      return {data: null, err:errorMessages.else}      
+    }
+  } 
+}
+
+
 
 export { 
   getTravelRequest_API,
+  getRawTravelRequest_API,
   postTravelRequest_API, 
-  updateTravelRequest_API, 
+  updateTravelRequest_API,
+  updateRawTravelRequest_API,
+  updateTravelBookings_API, 
   policyValidation_API, 
-  getOnboardingData_API, 
+  getOnboardingData_API,
+  getTravelBookingOnboardingData_API, 
   cancelTravelRequest_API};
