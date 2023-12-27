@@ -1,4 +1,78 @@
-import { Trip } from '../models/tripSchema.js';
+import Trip from '../models/tripSchema.js';
+
+// old code
+export const cancelUpcomingTrip = async (req, res) => {
+  try {
+    const { tripId, tenantId, userId } = req.params;
+
+    if (!tripId || !tenantId || !userId) {
+      return res.status(400).json({ error: 'Invalid input, please provide valid tripId, tenantId, userId' });
+    }
+
+    // Use the Mongoose model for 'Trip' to find the trip by tripId
+    const trip = await Trip.findOne({
+      'tenantId': tenantId,
+      'userId': userId,
+      'tripId': tripId,
+      'tripStatus': 'upcoming', 
+    });
+
+    if (!trip) {
+      return res.status(404).json({ error: 'Trip not found or not upcoming' });
+    }
+
+    // Check cash advance status
+    const cashAdvanceStatus = trip.cashAdvancesData.cashAdvanceStatus;
+
+    // Update statuses based on conditions
+    const updateStatuses = {};
+    if (cashAdvanceStatus === 'Paid') {
+      updateStatuses['tripStatus'] = 'paid and cancelled';
+      updateStatuses['travelRequestData.travelRequestStatus'] = 'paid and cancelled';
+      updateStatuses['cashAdvancesData.cashAdvanceStatus'] = 'paid and cancelled';
+    } else {
+      updateStatuses['tripStatus'] = 'cancelled';
+      updateStatuses['travelRequestData.travelRequestStatus'] = 'cancelled';
+      updateStatuses['cashAdvancesData.cashAdvanceStatus'] = 'cancelled';
+    }
+
+    // Update the trip
+    await Trip.updateOne(
+      { 'tripId': tripId },
+      { $set: updateStatuses }
+    );
+
+    res.status(200).json({ message: 'Upcoming trip cancelled successfully' });
+  } catch (error) {
+    console.error('An error occurred:', error.message);
+    res.status(500).json({ error: 'Internal server error: cancelUpcomingTrip' });
+  }
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 export const getTop3TripsByUserId = async (req, res) => {
   try {
@@ -43,7 +117,6 @@ export const getTop3TripsByUserId = async (req, res) => {
         // Display a message and handle user response here (e.g., show a confirmation dialog)
         // If the user chooses to continue, navigate to the modify trip form
         // If the user cancels, end the process
-        // You can implement this logic according to your frontend framework (React, Angular, etc.)
         // For simplicity, I'll return a message here
         return res.status(200).json({ message: 'Your first date of travel is less than 10 days away. Please contact your admin for modifications.' });
       }
@@ -339,7 +412,7 @@ const isWithinTenDays = (date) => {
 //             // If the trip is in transit, display a message
 //             tripMessages.push({
 //               message: 'We detect that you are In Transit. We recommend you talk to your business admin/travel person to make the alterations on priority.',
-//               tripId: userTrip._id,
+//               tripId: userTrip.tripId,
 //             });
 //           } else if (trip.tripStatus === 'upcoming') {
 //             // If the trip is upcoming, check if the first date of travel is less than 10 days
@@ -352,7 +425,7 @@ const isWithinTenDays = (date) => {
 //               // If less than 10 days, display a message and open a form
 //               tripMessages.push({
 //                 message: 'We detect that your first date of travel is less than 10 days. We recommend you talk to your business admin/travel person to make the alterations on priority.',
-//                 tripId: userTrip._id,
+//                 tripId: userTrip.tripId,
 //               });
 //             }
 //           }

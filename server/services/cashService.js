@@ -1,22 +1,12 @@
-import { cashAdvances } from '../dummyData/dummyData.js'; 
-import axios from 'axios';
-
-// Comment out the old URL since we're not using it
-// const CASH_MICROSERVICE_URL = 'https://hr-and-company.onrender.com/cashAdvance';
+import { cashAdvances } from '../dummyData/dummyData.js';
 
 export const fetchCashAdvanceDataWithBookedTravel = async () => {
   try {
     // Use the dummy cash advance data instead of making an HTTP request
-    const fetchedCashAdvances = cashAdvances;
-
-    // Filter cash advances with corresponding "Booked" travel requests
-    const filteredCashAdvances = fetchedCashAdvances.filter((cashAdvance) => {
-      // You may need to adjust the condition depending on your data structure
-      return cashAdvance.travelRequestStatus === 'booked';
-    });
+    const filteredCashAdvances = cashAdvances;
 
     // Display a success message if data is fetched successfully
-    console.log('Success: Dummy cash advances with corresponding "Booked" travel requests fetched.');
+    console.log('Success: Dummy cash advances fetched.');
 
     // Return the array of filtered cash advances
     return filteredCashAdvances;
@@ -26,6 +16,30 @@ export const fetchCashAdvanceDataWithBookedTravel = async () => {
     throw error;
   }
 };
+
+
+// export const fetchCashAdvanceDataWithBookedTravel = async () => {
+//   try {
+//     // Use the dummy cash advance data instead of making an HTTP request
+//     const fetchedCashAdvances = cashAdvances;
+
+//     // Filter cash advances with corresponding "Booked" travel requests
+//     const filteredCashAdvances = fetchedCashAdvances.filter((cashAdvance) => {
+//       // You may need to adjust the condition depending on your data structure
+//       return cashAdvance.travelRequestId === 'booked';
+//     });
+
+//     // Display a success message if data is fetched successfully
+//     console.log('Success: Dummy cash advances with corresponding "Booked" travel requests fetched.');
+
+//     // Return the array of filtered cash advances
+//     return filteredCashAdvances;
+//   } catch (error) {
+//     // Handle network errors or other exceptions
+//     console.error(`An error occurred while fetching cash advance data: ${error.message}`);
+//     throw error;
+//   }
+// };
 
 
 

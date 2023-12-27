@@ -1,3 +1,45 @@
+// import amqp from 'amqplib';
+
+// async function startProducer() {
+//   try {
+//     const connection = await amqp.connect('amqp:http://localhost:15672/#/exchanges/%2F/approvals');
+//     const channel = await connection.createChannel();
+
+//     const exchangeName = 'approvals';
+//     const queueName = 'travelApprovals';
+//     const routingKey = 'travelStandalone';
+
+//     // Ensure the exchange exists
+//     await channel.assertExchange(exchangeName, 'direct', { durable: true });
+
+//     // Ensure the queue exists
+//     await channel.assertQueue(queueName, { durable: true });
+
+//     // Bind the queue to the exchange with the routing key
+//     await channel.bindQueue(queueName, exchangeName, routingKey);
+
+//     console.log(`Waiting for messages on queue: ${queueName}`);
+
+//     // Consume messages from the queue
+//     await channel.consume(queueName, (msg) => {
+//       if (msg) {
+//         const message = JSON.parse(msg.content.toString());
+//         console.log(`Received message: ${JSON.stringify(message)}`);
+        
+//         // Process the message (implement your processing logic here)
+
+//         // Acknowledge the message
+//         channel.ack(msg);
+//       }
+//     });
+//   } catch (error) {
+//     console.error('Error setting up consumer:', error.message);
+//   }
+// }
+
+// startProducer();
+
+
 import amqp from 'amqplib';
 
 // RabbitMQ connection URL

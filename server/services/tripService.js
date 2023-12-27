@@ -1,4 +1,4 @@
-import { Trip, TravelRequest } from '../models/tripSchema.js';
+import Trip from '../models/tripSchema.js';
 import Approval from '../models/otherMsSchema.js';
 
 const fetchOldData = async (container, id) => {

@@ -1,27 +1,28 @@
 import cron from 'node-cron';
-import { createTrip } from '../controllers/tripController.js';
-import { extractAndCompareData } from './extractAndCompareData.js'; 
+import { dummyDataTrip } from '../controllers/tripController.js';
+import {
+  fetchAndProcessTravelRequests,
+  fetchAndProcessCashAdvances
+} from './extractAndCompareData.js';
 
 export const startBatchJob = () => {
-  // Schedule the cron job to run daily at midnight
+  // Schedule the cron job to run daily at midnight (for every 20 seconds */20 * * * * *)
   cron.schedule('0 0 * * *', async () => {
     try {
       console.log('Batch job started at the predefined time.');
 
-      // Call the function to extract and compare data
-      const processedData = await extractAndCompareData();
+      // Call the functions from updated extractAndCompareData file
+      const travelRequestsData = await fetchAndProcessTravelRequests();
+      const cashAdvanceMap = await fetchAndProcessCashAdvances();
 
-      // Now you can use processedData to perform further operations, such as creating trips
-      createTrip(processedData);
+      // Perform operations using the processed data
+      createTrip(travelRequestsData, cashAdvanceMap);
       console.log('Batch job completed successfully.');
     } catch (error) {
       console.error('Batch job encountered an error:', error);
-      // Handle the error gracefully, e.g., send notifications or log details
     }
   });
 };
-
-
 
 
 // import cron from 'node-cron';

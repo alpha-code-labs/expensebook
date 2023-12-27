@@ -1,4 +1,4 @@
-import { Trip } from '../models/tripSchema.js';
+import Trip from '../models/tripSchema.js';
 
 // Define a function to extract trip details for all trips related to a user by userId
 export const tripDetailsForUser = async (userId) => {
@@ -17,11 +17,11 @@ export const tripDetailsForUser = async (userId) => {
 
     // Extract trip details for all upcoming trips
     const tripDetails = trips.map((trip) => ({
-      TripName: trip.tripName,
+      TripPurpose: trip.tripPurpose,
       TripStartDate: trip.tripStartDate,
       TripEndDate: trip.tripCompletionDate,
-      departureCity: trip.embeddedTravelRequest?.itinerary?.departureCity || 'N/A',
-      arrivalCity: trip.embeddedTravelRequest?.itinerary?.arrivalCity || 'N/A',
+      departureCity: trip.travelRequestData?.itinerary?.departureCity || 'N/A',
+      arrivalCity: trip.travelRequestData?.itinerary?.arrivalCity || 'N/A',
     }));
 
     return tripDetails;
@@ -63,7 +63,6 @@ export const upcomingTripsByUserId = async (req, res) => {
   }
 };
 
-
 // Define a function to extract trip details for all transit trips related to a user by userId
 export const transitTripsForUser = async (userId) => {
   try {
@@ -81,11 +80,11 @@ export const transitTripsForUser = async (userId) => {
 
     // Extract trip details for all transit trips
     const tripDetails = trips.map((trip) => ({
-      TripName: trip.tripName,
+      TripPurpose: trip.tripPurpose,
       TripStartDate: trip.tripStartDate,
       TripEndDate: trip.tripCompletionDate,
-      departureCity: trip.embeddedTravelRequest?.itinerary?.departureCity || 'N/A',
-      arrivalCity: trip.embeddedTravelRequest?.itinerary?.arrivalCity || 'N/A',
+      departureCity: trip.travelRequestData?.itinerary?.departureCity || 'N/A',
+      arrivalCity: trip.travelRequestData?.itinerary?.arrivalCity || 'N/A',
     }));
 
     return tripDetails;
@@ -144,11 +143,11 @@ export const allTripsForUser = async (userId) => {
 
     // Extract trip details for all trips
     const tripDetails = trips.map((trip) => ({
-      TripName: trip.tripName,
+      TripPurpose: trip.tripPurpose,
       TripStartDate: trip.tripStartDate,
       TripEndDate: trip.tripCompletionDate,
-      departureCity: trip.embeddedTravelRequest?.itinerary?.departureCity || 'N/A',
-      arrivalCity: trip.embeddedTravelRequest?.itinerary?.arrivalCity || 'N/A',
+      departureCity: trip.travelRequestData?.itinerary?.departureCity || 'N/A',
+      arrivalCity: trip.travelRequestData?.itinerary?.arrivalCity || 'N/A',
       tripStatus: trip.tripStatus,
     }));
 
@@ -190,3 +189,8 @@ export const allTripsByUserId = async (req, res) => {
     return res.status(500).json({ error: 'Internal Server Error' });
   }
 };
+
+
+
+ 
+

@@ -25,7 +25,7 @@
 //     const filter = {
 //       'tripStatus': 'transit',
 //       'notificationSentToDashboardFlag': true,
-//       'embeddedCashAdvance.cashAdvanceStatus': 'paid',
+//       'cashAdvanceData.cashAdvanceStatus': 'paid',
 //     };
 
 //     // Find all documents matching the filter
@@ -73,7 +73,7 @@
 //             'notificationSentToDashboardFlag': false,
 //           },
 //           $inc: {
-//             'embeddedCashAdvance.amountDetails.amount': -remainingCashAdvance,
+//             'cashAdvanceData.amountDetails.amount': -remainingCashAdvance,
 //           },
 //         }
 //       );

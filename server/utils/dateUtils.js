@@ -6,5 +6,4 @@ export function calculateDateDifferenceInDays(date1, date2) {
     const differenceInDays = Math.round(Math.abs((firstDate - secondDate) / oneDay));
   
     return differenceInDays;
-  }
-  
+}

@@ -1,6 +1,6 @@
 import cron from 'node-cron';
 import { config } from 'dotenv';
-import { Trip } from '../models/tripSchema.js';
+import Trip  from '../models/tripSchema.js';
 
 // Load environment variables from .env file
 config();
@@ -23,7 +23,7 @@ export async function runCashBatchJob() {
     const filter = {
       'tripStatus': 'transit',
       'notificationSentToDashboardFlag': true,
-      'embeddedCashAdvance.cashAdvanceStatus': 'paid',
+      'cashAdvanceData.cashAdvanceStatus': 'paid',
     };
 
     const update = {
