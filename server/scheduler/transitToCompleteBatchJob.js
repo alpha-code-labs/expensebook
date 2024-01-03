@@ -2,6 +2,7 @@ import cron from 'node-cron';
 import { Trip } from '../models/tripSchema.js';
 import { sendNotificationToDashboard, sendNotificationToEmployee } from './notificationService.js';
 import { calculateDateDifferenceInDays } from './dateUtils.js';
+import { sendTripsToDashboardQueue } from '../rabbitmq/dashboardMicroservice.js';
 
 // Define the schedule time for the batch job (e.g., daily at midnight)
 const scheduleTime = '0 0 * * *';
@@ -91,7 +92,7 @@ const updateDocumentsForCompletion = async (trip) => {
   });
 
   // Combine the transportation queries using $or operator
-  updateConditions.$and = transportationQuery.map(query => ({ $or: [query] }));
+   updateConditions.$and = transportationQuery.map(query => ({ $or: [query] }));
 
   await Trip.updateMany(
     updateConditions,
@@ -102,6 +103,12 @@ const updateDocumentsForCompletion = async (trip) => {
       },
     }
   );
+
+   //RabbitMq - sending to dashboard 
+   const data = 'batch';
+   const needConfirmation = false;
+   // Send updated trip to the dashboard synchronously
+   await sendTripsToDashboardQueue(trip, data,needConfirmation );
 };
 
 
@@ -113,6 +120,12 @@ const processClosureIfApplicable = async (trip) => {
     // Additional data processing for closure, if needed
     trip.status = 'closed';
     await saveDataInTripContainer(trip);
+
+    //RabbitMq - sending to dashboard 
+    const data = 'batch';
+    const needConfirmation = false;
+    // Send updated trip to the dashboard synchronously
+   await sendTripsToDashboardQueue(trip, data,needConfirmation );
   }
 };
 

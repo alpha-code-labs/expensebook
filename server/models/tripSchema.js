@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
-import { expenseSchema } from './expenseSchema.js';
+
+//---------------travel---------
 
 const travelRequestStatusEnums = [
   'draft', 
@@ -20,8 +21,6 @@ const travelRequestStateEnums = [
   'section 2', 
   'section 3', 
 ]
-
-
 
 const itineraryStatusEnums = [
 'draft', 
@@ -233,22 +232,14 @@ cabs:[{
 }
 )
 
-const tripStatusEnum = [
-    'upcoming',
-    'modification',
-    'transit',
-    'completed',
-    'paid and cancelled',
-    'cancelled',
-    'recovered',
-  ];
+//---------------------cash---------
   
-  const cashAdvanceStateEnums = [
+const cashAdvanceStateEnums = [
     'section 0',
     'section 1',
-  ];
+];
   
-  const cashAdvanceStatusEnum = [
+const cashAdvanceStatusEnum = [
   'draft',
   'pending approval',
   'approved',
@@ -256,14 +247,99 @@ const tripStatusEnum = [
   'awaiting pending settlement',
   'pending settlement',
   'paid',
-  ];
+];
   
-  const approverStatusEnums = [
+const approverStatusEnums = [
     'pending approval',
     'approved',
     'rejected',
-  ];
+];
 
+//-----------trip---------
+const tripStatusEnum = [
+  'upcoming',
+  'modification',
+  'transit',
+  'completed',
+  'paid and cancelled',
+  'cancelled',
+  'recovered',
+];
+
+//-----travel expense --------------
+const expenseHeaderTypeEnums = ['travel'];
+
+// Define constant enums for expenseStatus and expenseHeaderType
+const expenseHeaderStatusEnums = [
+  'draft',
+  'pending approval', 
+  'approved',
+  'rejected',
+  'paid',
+  'pending settlement',
+  'paid and distributed',
+];
+
+const lineItemStatusEnums = [
+  'draft',
+  'save',
+  'submit',
+  'delete'
+]
+
+const expenseLineSchema = new mongoose.Schema({
+  expenseLineId:mongoose.Schema.Types.ObjectId,
+  transactionData: {
+    businessPurpose: String,
+    vendorName: String,
+    billNumber: String,
+    billDate: String,
+    taxes: Number,
+    totalAmount: Number,
+    description: String,
+  },
+  lineItemStatus: {
+    type: String,
+    enum: lineItemStatusEnums,
+  },
+  expenseLineAllocation : [{ //Travel expense allocation comes here
+    headerName: {
+      type: String,
+    },
+    headerValues: [{
+      type: String,
+    }],
+  }],
+  alreadySaved: Boolean, // when saving a expense line , make sure this field marked as true
+  expenseLineCategory: [{
+    categoryName: String,
+  }], //expense category comes here, ex- flights, cabs for travel ,etc
+  modeOfPayment: String,
+  isInMultiCurrency: Boolean, // if currency is part of multiCurrency Table
+  multiCurrencyDetails: {
+    type: [{
+      nonDefaultCurrencyType: String,
+      originalAmountInNonDefaultCurrency: Number,
+      conversionRateToDefault: Number,
+      convertedAmountToDefaultCurrency: Number,
+    }],
+    required: function() {
+      return this.isInMultiCurrency === true;
+    },
+  },
+  isPersonalExpense: Boolean, //if bill has personal expense, can be partially or entire bill.
+  personalExpenseAmount: {
+    type: Number,
+    // This field is required if 'isPersonalExpense' is true
+    required: function() {
+      return this.isPersonalExpense === true;
+    },
+  },
+  billImageUrl: String,
+  billRejectionReason: String,
+});
+
+// trip microservice and travel expense microservice have same schema
  export const tripSchema = new mongoose.Schema({
     tenantId: {
       type: String,
@@ -286,9 +362,6 @@ const tripStatusEnum = [
       type: String,
       // required: true,
     },
-    tripPurpose:{
-      type: String,
-    },
     tripStatus: {
       type: String,
       enum: tripStatusEnum,
@@ -302,7 +375,29 @@ const tripStatusEnum = [
       type: Date,
       required: true,
     },
-    isSentToExpense: Boolean, 
+    expenseAmountStatus: {
+      totalCashAmount: {
+        type: Number,
+        default: 0,
+      },
+      totalAlreadyBookedExpenseAmount: {
+        type: Number,
+        default: 0,
+      },
+      totalExpenseAmount: {
+        type: Number,
+        default: 0,
+      },
+      totalPersonalExpenseAmount: {
+        type: Number,
+        default: 0,
+      },
+      totalremainingCash: {
+        type: Number,
+        default: 0,
+      },
+    },
+    isSentToExpense: Boolean,  
     notificationSentToDashboardFlag: Boolean,
       travelRequestData: 
     {
@@ -451,7 +546,60 @@ const tripStatusEnum = [
           cashAdvanceRejectionReason: String,
         },
       ],
-      travelExpenseData:expenseSchema,
+      travelExpenseData:[
+        {
+          tenantId: {
+            type: String,
+            required: true,
+          },
+          tenantName: {
+            type: String,
+            required: true,
+          },
+          companyName: {
+            type: String,
+            required: true,
+          },
+          travelRequestId: {
+            type: mongoose.Types.ObjectId, 
+            // required: true,
+          },
+          travelRequestNumber:{
+            type: String,
+            // required: true,
+          },
+          expenseHeaderId: { 
+            type: mongoose.Schema.Types.ObjectId,
+            required: true,
+          },
+          expenseHeaderType: { 
+            type: String,
+            enum: expenseHeaderTypeEnums,
+          },
+          expenseHeaderStatus: { 
+            type: String,
+            enum: expenseHeaderStatusEnums,
+          },
+          alreadyBookedExpenseLines: {
+            type: [itinerarySchema],
+            default: undefined,
+          },
+          expenseLines: [expenseLineSchema],
+          approvers: [ // added directly from travel request approvers
+            {
+              empId: String,
+              name: String,
+              status: {
+                type: String,
+                enum: approverStatusEnums,
+              },
+            }
+          ],
+          expenseViolations: [String],
+          expenseRejectionReason: String,
+          expenseSubmissionDate: Date,
+        }
+      ],
   }); 
   
 const Trip = mongoose.model('trips', tripSchema);

@@ -2,6 +2,7 @@ import Trip from "../models/tripSchema.js";
 import { recoveryAtHeaderLevelToCash, recoveryAtLineItemLevelToCash } from "../internal/controllers/cashMicroservice.js";
 import { recoveryAtHeaderLevelToExpense, recoveryAtLineItemLevelToExpense } from "../internal/controllers/expenseMicroservice.js";
 import { recoveryAtHeaderLevelToTravel, recoveryAtLineItemLevelToTravel } from "../internal/controllers/travelMicroservice.js";
+import { sendTripsToDashboardQueue } from "../rabbitmq/dashboardMicroservice.js";
 
 //Trip Microservice -Travel recovery flow for paid and cancelled Trips
 // 1) get trip details -- for Recovery
@@ -316,6 +317,12 @@ export const recoveryAtHeaderLevel = async (req, res) => {
     // Save the modified document
     await trip.save();
 
+    const data = 'online';
+    const needConfirmation = false;
+
+    // Send updated trip to the dashboard asynchronously
+    await sendTripsToDashboardQueue(trip, data, needConfirmation);
+
     console.log('Header level recovery successful.');
     res.status(200).json({ message: 'Header level recovery successful', trip });
   } catch (error) {
@@ -408,6 +415,12 @@ export const recoveryAtLineItemLevel = async (req, res) => {
    
     // Save the updated trip
     await trip.save();
+
+    const data = 'online';
+    const needConfirmation = false;
+
+    // Send updated trip to the dashboard asynchronously
+    await sendTripsToDashboardQueue(trip, data, needConfirmation);
 
     // Send changes to expense microservice asynchronously
     await recoveryAtLineItemLevelToExpense(lineItemStatusUpdate);

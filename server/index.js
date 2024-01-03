@@ -45,9 +45,6 @@ app.use('/api/trips/cancel',  cancelTripRouter);
 
 
 
-
-
-
 // Start the batch job
 startBatchJob();
 

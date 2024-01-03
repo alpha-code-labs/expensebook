@@ -48,7 +48,7 @@ const transferEnums = [
   'return drop',
 ] 
 
-const itinerarySchema = (
+export const itinerarySchema = (
   {
    formState:[{
     formId:String,

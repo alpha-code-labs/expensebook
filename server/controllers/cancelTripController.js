@@ -2,6 +2,7 @@ import { tripLineItemCancelledToCashService } from '../internal/controllers/cash
 import { TripLineItemCancelledToExpense } from '../internal/controllers/expenseMicroservice.js';
 import { tripLineItemCancelledToTravelService } from '../internal/controllers/travelMicroservice.js';
 import Trip from '../models/tripSchema.js';
+import { sendTripsToDashboardQueue } from '../rabbitmq/dashboardMicroservice.js';
 
 // 1) get trip details -- for cancellation 
 // Trip cancellation 
@@ -199,88 +200,86 @@ export const getTripDetails = async (req, res) => {
 
 
 // 2) cancel at header level - for upcoming/completed trips only --( header level cancel is allowed to upcoming and completed trips , not allowed for transit trips) 
+// Line item cancel
 export const cancelTripAtHeaderLevel = async (req, res) => {
-    try {
-      const { tenantId, tripId, empId } = req.params;
-  
-      // Input validation
-      if (!empId || !tenantId || !tripId) {
-        return res.status(400).json({ error: 'Invalid input parameters.' });
-      }
-  
-      // Find the trip
-      const trip = await Trip.findOne({
-        tenantId,
-        tripId,
-        $or: [
-          { 'tripStatus':'upcoming'  },
-          { 'tripStatus': 'completed'},
-          {$or: [
+  try {
+    const { tenantId, tripId, empId } = req.params;
+
+    // Input validation
+    if (!empId || !tenantId || !tripId) {
+      return res.status(400).json({ error: 'Invalid input parameters.' });
+    }
+
+    // Find the trip asynchronously
+    const trip = await Trip.findOne({
+      tenantId,
+      tripId,
+      $or: [
+        { 'tripStatus': 'upcoming' },
+        { 'tripStatus': 'completed' },
+        {
+          $or: [
             { 'travelRequestData.createdBy.empId': empId },
             { 'travelRequestData.createdFor.empId': empId },
-        ],}
+          ],
+        },
       ],
+    });
+
+    // Check if trip exists
+    if (!trip) {
+      return res.status(404).json({ error: 'Trip not found' });
+    }
+
+    const updateStatus = (item) => {
+      return item.status === 'booked' ? 'paid and cancelled' : 'cancelled';
+    };
+
+    // Updating status for all itinerary types
+    const updateItineraryType = (itineraryType) => {
+      trip.travelRequestData.itinerary[itineraryType].forEach((item) => {
+        item.status = updateStatus(item);
       });
-  
+    };
 
+    // Update status for each itinerary type
+    updateItineraryType('flights');
+    updateItineraryType('hotels');
+    updateItineraryType('cabs');
+    updateItineraryType('buses');
+    updateItineraryType('trains');
+
+    // Apply the same logic for cash advance
+    if (trip.travelRequestData.isCashAdvanceTaken) {
+      trip.cashAdvancesData.forEach((cashAdvance) => {
+        cashAdvance.cashAdvanceStatus = updateStatus(cashAdvance);
+      });
+    }
+
+    // Update trip status (upcoming/completed)
+    trip.tripStatus = 'paid and cancelled';
+
+    // Update travel status
+    trip.travelRequestData.travelRequestStatus = trip.travelRequestData.travelRequestStatus === 'booked' ? 'paid and cancelled' : 'cancelled';
+
+    // Save the updated trip asynchronously
+    await trip.save();
       
-      // Check if trip exists
-      if (!trip) {
-        return res.status(404).json({ error: 'Trip not found' });
-      }
-  
-      const updateStatus = (item) => {
-        return item.status === 'booked' ? 'paid and cancelled' : 'cancelled';
-      };
-  
-      // Updating status for all itinerary types
-      const updateItineraryType = (itineraryType) => {
-        trip.travelRequestData.itinerary[itineraryType].forEach((item) => {
-          item.status = updateStatus(item);
-        });
-      };
-  
-      // Update status for each itinerary type
-      updateItineraryType('flights');
-      updateItineraryType('hotels');
-      updateItineraryType('cabs');
-      updateItineraryType('buses');
-      updateItineraryType('trains');
-  
-      // Apply the same logic for cash advance
-      if (trip.travelRequestData.isCashAdvanceTaken) {
-        trip.cashAdvancesData.forEach((cashAdvance) => {
-          cashAdvance.cashAdvanceStatus = updateStatus(cashAdvance);
-        });
-      }
-  
-      // Update trip status (upcoming/completed)
-      trip.tripStatus = 'paid and cancelled' ;
+    const onlineVsBatch = 'online';
+    const needConfirmation = true;
 
-     // Update travel status
-      trip.travelRequestData.travelRequestStatus = trip.travelRequestData.travelRequestStatus === 'booked' ? 'paid and cancelled' : 'cancelled';
-  
-      // Save the updated trip
-      await trip.save();
+    // Send updated trip to the dashboard asynchronously
+    await sendTripsToDashboardQueue(trip, onlineVsBatch, needConfirmation);
 
-      //Send changes to expense microservice asynchronously
-       await upcomingTripCancelledToExpense(trip);
-
-      // Check if cash advance is taken and send to the appropriate microservice
-          if (trip.travelRequestData.isCashAdvanceTaken) {
-       console.log('Is cash advance taken:', trip.travelRequestData.isCashAdvanceTaken);
-           await upcomingTripCancelledToCash(trip);
-        } else {
-      await upcomingTripCancelledToTravel(trip);
-         }
-  
-return res.status(200).json({ message: 'Trip cancelled successfully.', data: trip });
-} catch (error) {
+    return res.status(200).json({ message: 'Trip cancelled successfully.', data: trip });
+  } catch (error) {
     console.error(error);
     const errorMessage = error.message || 'Internal server error.';
     return res.status(500).json({ error: errorMessage });
-}
+  }
 };
+
+
   
 
 // 3) Itinerary line item (Already booked line item) cancelled,  then update status from 'booked' to 'paid and cancelled'
@@ -290,7 +289,7 @@ return res.status(200).json({ message: 'Trip cancelled successfully.', data: tri
   };
 
   // Update status fields conditionally
-  const itineraryLineItem = async (trip, itineraryIds) => {
+  const itineraryLineItem = async (tripDetails, itineraryIds) => {
     const updateItemStatus = (items) => {
       items.forEach(item => {
         if (itineraryIds.includes(item.itineraryId.toString())) {   // .toString() is very important to make the code work.
@@ -299,22 +298,20 @@ return res.status(200).json({ message: 'Trip cancelled successfully.', data: tri
       });
     };
   
-    updateItemStatus(trip.travelRequestData.itinerary.flights);
-    updateItemStatus(trip.travelRequestData.itinerary.hotels);
-    updateItemStatus(trip.travelRequestData.itinerary.cabs);
-    updateItemStatus(trip.travelRequestData.itinerary.buses);
+    updateItemStatus(tripDetails.travelRequestData.itinerary.flights);
+    updateItemStatus(tripDetails.travelRequestData.itinerary.hotels);
+    updateItemStatus(tripDetails.travelRequestData.itinerary.cabs);
+    updateItemStatus(tripDetails.travelRequestData.itinerary.buses);
   
-    await trip.save();
+    await tripDetails.save();
   
-    return trip;
+    return tripDetails;
   };
 
   
   // Line item cancel
   export const cancelTripAtLineItemLevel = async (req, res) => {
-  
     try {
-  
       const { tenantId, tripId, empId } = req.params;
       const { itineraryIds } = req.body;
       
@@ -323,7 +320,7 @@ return res.status(200).json({ message: 'Trip cancelled successfully.', data: tri
         return res.status(400).json({ error: 'Invalid input parameters.' });
       }
   
-      const trip = await Trip.findOne({
+      const tripDetails = await Trip.findOne({
         tenantId,
         tripId, 
         $or: [
@@ -332,25 +329,29 @@ return res.status(200).json({ message: 'Trip cancelled successfully.', data: tri
           ],
       });
   
-      if(!trip) {
+      if(!tripDetails) {
         return res.status(404).json({error: 'Trip not found'});
       }
   
-      const lineItemStatusUpdate = await itineraryLineItem(trip, itineraryIds);
-
+      const trip = await itineraryLineItem(tripDetails, itineraryIds);
 
        // Send changes to expense microservice asynchronously
-       await TripLineItemCancelledToExpense(lineItemStatusUpdate);
+       await TripLineItemCancelledToExpense(trip);
 
-       if (trip.travelRequestData.isCashAdvanceTaken) {
-           console.log('Is cash advance taken:', trip.travelRequestData.isCashAdvanceTaken);
-           await tripLineItemCancelledToCashService(lineItemStatusUpdate);
-       } else {
-           await tripLineItemCancelledToTravelService(lineItemStatusUpdate);
-       }
+      //  if (trip.travelRequestData.isCashAdvanceTaken) {
+      //      console.log('Is cash advance taken:', trip.travelRequestData.isCashAdvanceTaken);
+      //      await tripLineItemCancelledToCashService(trip);
+      //  } else {
+      //      await tripLineItemCancelledToTravelService(trip);
+      //  }
   
-       return res.status(200).json({ message: 'Trip updated successfully', data: lineItemStatusUpdate });
-  
+      const data = 'online';
+      const needConfirmation = true;
+
+      // Send updated trip to the dashboard synchronously
+      sendTripsToDashboardQueue(trip, data, needConfirmation );
+
+       return res.status(200).json({ message: 'Trip updated successfully', data: trip });
     } catch (error) {
       
       console.error(error);

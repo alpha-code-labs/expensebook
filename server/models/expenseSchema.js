@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { itinerarySchema } from './travelSchema';
 
 const expenseHeaderTypeEnums = ['travel', 'non travel'];
 
@@ -15,21 +16,46 @@ const expenseStatusEnums = [
 
 
 const expenseLineSchema = new mongoose.Schema({
+  expenseLineId:mongoose.Schema.Types.ObjectId,
   transactionData: {
     businessPurpose: String,
     vendorName: String,
     billNumber: String,
     billDate: String,
-    grossAmount: Number,
     taxes: Number,
     totalAmount: Number,
     description: String,
   },
-  bookingType: String,
-  billRejectionReason: String,
-  isPersonalExpense: Boolean,
+  lineItemStatus: {
+    type: String,
+    enum: lineItemStatusEnums,
+  },
+  expenseLineAllocation : [{ //Travel expense allocation comes here
+    headerName: {
+      type: String,
+    },
+    headerValues: [{
+      type: String,
+    }],
+  }],
+  alreadySaved: Boolean, // when saving a expense line , make sure this field marked as true
+  expenseLineCategory: [{
+    categoryName: String,
+  }], //expense category comes here, ex- flights, cabs for travel ,etc
   modeOfPayment: String,
-  billImageUrl: String,
+  isInMultiCurrency: Boolean, // if currency is part of multiCurrency Table
+  multiCurrencyDetails: {
+    type: [{
+      nonDefaultCurrencyType: String,
+      originalAmountInNonDefaultCurrency: Number,
+      conversionRateToDefault: Number,
+      convertedAmountToDefaultCurrency: Number,
+    }],
+    required: function() {
+      return this.isInMultiCurrency === true;
+    },
+  },
+  isPersonalExpense: Boolean, //if bill has personal expense, can be partially or entire bill.
   personalExpenseAmount: {
     type: Number,
     // This field is required if 'isPersonalExpense' is true
@@ -37,6 +63,8 @@ const expenseLineSchema = new mongoose.Schema({
       return this.isPersonalExpense === true;
     },
   },
+  billImageUrl: String,
+  billRejectionReason: String,
 });
 
 
@@ -46,85 +74,56 @@ const approverStatusEnums = [
   'rejected',
 ];
 
-export const expenseSchema = new mongoose.Schema({
-tenantId: {
-  type: String,
-  required: true,
-},
-tenantName: {
-  type: String,
-  required: true,
-},
-companyName: {
-  type: String,
-  required: true,
-},
-travelRequestId: String, // only for travel expense
-expenseHeaderID: {
-  type: mongoose.Schema.Types.ObjectId,
-  required: true,
-},
-expenseHeaderType: {
-  type: String,
-  enum: expenseHeaderTypeEnums,
-},
-expensePurpose:{  //Only for non travel expense 
-  type: String,
-},
-approvedCashAdvance: [
+// 
+export const travelExpenseSchema = new mongoose.Schema([
   {
-    amount: Number,
-    currency: String,
-    mode: String,
-  },
-],
-createdBy:{
-  type: {empId: String, name: String},  //employee Id by whom Expense is raised
-  required: true
-},
-createdFor: {
-  type: [{empId: String, name: String}], //employee Id's for whom Expense is raised
-  required: true
-},
-teamMembers:{
-  type: [{empId: String, name: String}], //employee Id's for whom Expense is raised
-},
-expenseStatus: {
-  type: String,
-  enum: expenseStatusEnums,
-},
-expenseAmountStatus: {
-  totalCashAmount: {
-    type: Number,
-    default: 0,
-  },
-  totalExpenseAmount: {
-    type: Number,
-    default: 0,
-  },
-  remainingCash: {
-    type: Number,
-    default: 0,
-  },
-},
-alreadyBookedExpenseLines:[expenseLineSchema],
-expenseLines: [expenseLineSchema],
-approvers: [
-  {
-    empId: String,
-    name: String,
-    status: {
+    tenantId: {
       type: String,
-      enum: approverStatusEnums,
+      required: true,
     },
+    tenantName: {
+      type: String,
+      required: true,
+    },
+    companyName: {
+      type: String,
+      required: true,
+    },
+    travelRequestId: String,
+    expenseHeaderID: {
+      type: mongoose.Schema.Types.ObjectId,
+      required: true,
+    },
+    expenseHeaderType: {
+      type: String,
+      enum: expenseHeaderTypeEnums,
+    },
+    expenseStatus: {
+      type: String,
+      enum: expenseStatusEnums,
+    },
+    alreadyBookedExpenseLines: {
+      type: [itinerarySchema],
+      default: undefined,
+    },
+    expenseLines: [expenseLineSchema],
+    approvers: [
+      {
+        empId: String,
+        name: String,
+        status: {
+          type: String,
+          enum: approverStatusEnums,
+        },
+      }
+    ],
+    expenseViolations: [String],
+    expenseRejectionReason: String,
+    expenseSubmissionDate: Date,
   }
-],
-expenseViolations: [String],
-expenseRejectionReason: String,
-expenseSubmissionDate: Date,
-});
- 
-// const Expense = mongoose.model('Expense', expenseSchema);
+]);
+
+// const Expense = mongoose.model('Expense', travelExpenseSchema);
   
 
 
