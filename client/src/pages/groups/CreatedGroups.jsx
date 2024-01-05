@@ -4,6 +4,8 @@ import { useNavigate, useParams } from "react-router-dom"
 import { useLocation } from "react-router-dom"
 import axios from 'axios'
 import { useState, useEffect } from "react"
+import { updateFor } from "typescript"
+import { updateFormState_API } from "../../utils/api"
 
 export default function CreatedGroups(props){
     const groupData = props.groupData
@@ -72,6 +74,18 @@ export default function CreatedGroups(props){
                     navigate(`/${tenantId}/setup-company-policies`, {state:{groups:groupData.map(group=>group.groupName)}})
                 })
 
+        const update_res = await updateFormState_API({tenantId, state:'/setup-company-policies'})
+
+    }
+
+    const handleSaveAsDraft = async ()=>{
+        await axios.post(`http://localhost:8001/api/tenant/${tenantId}/groups`, {groups: groupData})
+            .then(res=>{
+                console.log(res.data)
+                //navigate(`/${tenantId}/setup-company-policies`, {state:{groups:groupData.map(group=>group.groupName)}})
+            })
+        
+        const update_res = await updateFormState_API({tenantId, state:'/groups/created-groups'})
     }
 
     return(<>
@@ -116,9 +130,10 @@ export default function CreatedGroups(props){
                                     onClick={() => navigate(`/${tenantId}/groups/create-groups`, {state:{tenantId:tenantId}})} 
                                     text='Add Group' />
                             </div>
-                            
+                            <Button text='Save As Draft' disabled={groupData?.length>0? false : true } onClick={handleSaveAsDraft}/>
                             <div className='w-fit'>
                             <Button
+                                disabled={groupData?.length>0? false : true }
                                 onClick={() => updateTenantGroups()} 
                                 text='Save & Continue' />
                             </div>

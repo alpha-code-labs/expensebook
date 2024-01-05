@@ -61,7 +61,7 @@ export default function (props){
             const res = await axios.post(`http://localhost:8001/api/tenant/${tenantId}/expense-settlement-options`, {expenseSettlementOptions:options})
             if(res.status == 200){
                 alert('Expense Settlement Options Updated !')
-                //navigate()
+                navigate(`/${tenantId}/onboarding-completed`)
             }
         }
         catch(e){
@@ -78,6 +78,32 @@ export default function (props){
             alert('Cant save changes at the moment, please try again later')
         }
     }
+
+
+    const handleSaveAsDraft = async ()=>{
+        try{
+            const res = await axios.post(`http://localhost:8001/api/tenant/${tenantId}/expense-settlement-options`, {expenseSettlementOptions:options})
+            if(res.status == 200){
+                alert('Expense Settlement Options Updated !')
+                updateFormState_API({tenantId, state:'/others/cash-expense-settlement-options'})
+                window.location.href = 'https://google.com'
+            }
+        }
+        catch(e){
+            if(e.response){
+
+            }
+            else if(e.request){
+
+            }
+            else{
+
+            }
+
+            alert('Cant save changes at the moment, please try again later')
+    }
+    }
+
 
     return(<>
         
@@ -115,10 +141,9 @@ export default function (props){
                     })}    
                 </div>
 
-                <div className="mt-10 w-full">
-                    <div className="w-fit">
-                        <Button text='Save Expense Settlement Options' onClick={()=>saveExpenseSettlementOptions()} />
-                    </div>
+                <div className="mt-10 w-full flex justify-between">
+                    <Button variant='fit' text='Save As draft' onClick={handleSaveAsDraft} />
+                    <Button variant='fit' text='Save Expense Settlement Options' onClick={()=>saveExpenseSettlementOptions()} />
                 </div>
 
             </div>

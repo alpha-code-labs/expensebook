@@ -10,6 +10,7 @@ import NonTravelPolicies from "./policies/NonTravelPolicies";
 import Icon from "../components/common/Icon";
 import { useLocation, useParams } from "react-router-dom";
 import HollowButton from "../components/common/HollowButton";
+import NonTravelPoliciesPageComponent from "./policies/NonTravelPoliciesPageComponent";
 
 export default function (props){
   
@@ -25,156 +26,117 @@ export default function (props){
 
 
   const [ruleEngineData, setRuleEngineData] = useState({
-      international:{
-        ['Allowed Trip Purpose']: {
-          class: ['Business', 'Personal', 'Training', 'Events', 'Others'],
-        },
-
-        ['Flights']:{
-          class: ['Economy', 'Premium Economy', 'Business', 'First'],
+      nonTravel:{
+        ['Office Supplies']:{
           limit: '',
+          fields: [{name:'Description', type:'text'}, 
+                    {name:'Quantity', type:'number'}, 
+                    {name:'Unit Cost', type:'amount'}, 
+                    {name:'Total Cost', type:'amount'} ]
         },
 
-        ['Trains']:{
-          class: ['AC 1st Class', 'AC 2nd Class', 'AC 3rd Class', 'Sleeper Class', 'General'],
+        ['Utilities']:{
           limit: '',
+          fields: [{name:'Type of Utility', type:'text'}, 
+                    {name:'Total Cost', type:'amount'} ]
         },
-        
-        ['Car Rentals']:{
-          class: ['Compact', 'Intermediate', 'Large'],
+
+        ['Insurance']:{
           limit: '',
+          fields: [{name:'Policy Type', type:'text'}, 
+                    {name:'Insurance Provider', type:'text'}, 
+                    {name:'Premium Amount', type:'amount'},]
         },
-        
-        ['Hotels']:{
-          class: ['3 Star', '4 Star', '5 Star'],
+
+        ['Marketing and advertising']:{
           limit: '',
+          fields: [{name:'Description', type:'text'}, 
+                    {name:'Advertising Channels', type:'text'},  
+                    {name:'Cost', type:'amount'} ]
         },
-        
-        ['Meals']:{
+
+        ['Professional Fees']:{
           limit: '',
+          fields: [{name:'Service Providerr', type:'text'}, 
+                    {name:'Nature of Service', type:'text'}, 
+                    {name:'Total Cost', type:'amount'} ]
         },
 
-        ['Advance Payment']:{
+        ['Software and License']:{
           limit: '',
+          fields: [{name:'Software Name', type:'text'}, 
+                    {name:'license Type', type:'text'},  
+                    {name:'Total Cost', type:'amount'} ]
         },
 
-        ['Expense Report Submission Deadline']:{
-          dayLimit: '',
-        },
-
-        ['Minimum Days to Book Before Travel']:{
-          dayLimit: '',
-        },
-        ['Expense Type Restriction']:{
-          class: ['Alcohol', 'Entertainment' ]
-        },
-        ['Policy Exception And Esclation Process']:{
-          text:'',
-        },
-        
-        ['Approval Flow']:{
-          approval:'',
-        },
-      },
-
-      domestic:{
-        ['Allowed Trip Purpose']: {
-          class: ['Business', 'Personal', 'Training', 'Events', 'Others'],
-        },
-
-        ['Flights']:{
-          class: ['Economy', 'Premium Economy', 'Business', 'First'],
+        ['Equipment']:{
           limit: '',
+          fields: [{name:'Description', type:'text'}, 
+                    {name:'Quantity', type:'number'}, 
+                    {name:'Unit Cost', type:'amount'}, 
+                    {name:'Total Cost', type:'amount'} ]
         },
 
-        ['Trains']:{
-          class: ['AC 1st Class', 'AC 2nd Class', 'AC 3rd Class', 'Sleeper Class', 'General'],
+        ['Repair and Maintainance']:{
           limit: '',
+          fields: [{name:'Description', type:'text'}, 
+                    {name:'Service Provider', type:'number'}, 
+                    {name:'Total Cost', type:'amount'} ]
         },
-        
-        ['Car Rentals']:{
-          class: ['Compact', 'Intermediate', 'Large'],
+
+        ['Legal and Compliance']:{
           limit: '',
+          fields: [
+                    {name:'Total Cost', type:'amount'} ]
         },
-        
-        ['Hotels']:{
-          class: ['3 Star', '4 Star', '5 Star'],
+
+        ['Communication']:{
           limit: '',
+          fields: [
+                    {name:'Total Cost', type:'amount'} ]
         },
-        
-        ['Meals']:{
+
+        ['Research and Development']:{
           limit: '',
+          fields: [{name:'Description', type:'text'}, 
+                    {name:'Total Cost', type:'amount'} ]
         },
 
-        ['Advance Payment']:{
+        ['Training']:{
           limit: '',
+          fields: [{name:'Description', type:'text'}, 
+                    {name:'Trainer', type:'text'},  
+                    {name:'Total Cost', type:'amount'} ]
         },
 
-        ['Expense Report Submission Deadline']:{
-          dayLimit: '',
-        },
-
-        ['Minimum Days to Book Before Travel']:{
-          dayLimit: '',
-        },
-        ['Expense Type Restriction']:{
-          class: ['Alcohol', 'Entertainment' ]
-        },
-        ['Policy Exception And Esclation Process']:{
-          text:'',
-        },
-        
-        ['Approval Flow']:{
-          approval:'',
-        },
-      },
-
-      local:{
-        ['Allowed Car Rentals']: {
-          class: ['Compact', 'Intermediate', 'Large'],
+        ['Software Subscription']:{
           limit: '',
+          fields: [{name:'Software Name', type:'text'}, 
+                    {name:'Subscription Type', type:'number'}, 
+                    {name:'Total Cost', type:'amount'} ]
         },
 
-        ['Maximum Number of kilometers per day']:{
+        ['Legal Expenses']:{
           limit: '',
+          fields: [{name:'Description', type:'text'}, 
+                    {name:'Law Firm', type:'text'}, 
+                    {name:'Total Cost', type:'amount'} ]
         },
 
-        ['Meals']:{
+        ['Client Entertainment']:{
           limit: '',
+          fields: [
+                    {name:'Total Cost', type:'amount'} ]
         },
 
-        ['Milage Reimbursement Rate [Car]']:{
-          limit: ''
+        ['Client Gift']:{
+          limit: '',
+          fields: [
+                    {name:'Total Cost', type:'amount'} ]
         },
 
-        ['Milage Reimbursement Rate [Bike]']:{
-          limit: ''
-        },
 
-        ['Ground Transportation Allowance']:{
-          limit:''
-        },
-
-        ['Expense Report Submission Deadline']:{
-          dayLimit: '',
-        },
-
-        ['Minimum Days to Book Before Travel']:{
-          dayLimit: '',
-        },
-
-        ['Non Compliant travel Consequences']:{
-          text:''
-        },
-
-        ['Policy Exception And Esclation Process']:{
-          text:'',
-        },
-        
-        ['Approval Flow']:{
-          approval:'',
-        },
-      },
+      }
   })
 
   useEffect(() => {
@@ -189,9 +151,8 @@ export default function (props){
           console.log('this ran..');
           try {
             const groups_data_response = await axios.get(`http://localhost:8001/api/tenant/${tenantId}/groups`);
-            const policies_data_response = await axios.get(`http://localhost:8001/api/tenant/${tenantId}/policies/travel`);
+            const policies_data_response = await axios.get(`http://localhost:8001/api/tenant/${tenantId}/policies/non-travel`);
 
-            
             const groups = groups_data_response.data.groups
             const policies = policies_data_response.data.policies
             console.log(policies, 'policies')
@@ -296,52 +257,15 @@ export default function (props){
     return obj
   }
 
-
   useEffect(()=>{
     console.log(ruleEngineState)
   },[ruleEngineState])
 
-
   return <>
-
-      {groupsNotFound && <> 
-      <Icon/>
-        <div className="bg-slate-50 min-h-[calc(100vh-107px)] px-[20px] md:px-[50px] lg:px-[104px] pb-10 w-full tracking-tight">
-            <div className='px-6 py-10 bg-white rounded shadow'>
-              <div className="text text-xl font-cabin">No groups are found to setup company policies. Click <a className="underline text-indigo-600" href={`/${tenantId}/groups`}>here</a> to setup groups</div>
-              <div className='w-fit'>
-                <HollowButton title='Skip' onClick={`/others`} />
-              </div>
-            </div>
-        </div>
-        </>
-      }
-
-      {!groupsNotFound &&
-      <Routes>
-        <Route path='/' 
-              element={<Home 
-                ruleEngineData={ruleEngineData}
-                ruleEngineState={ruleEngineState} 
-                setRuleEngineState={setRuleEngineState} />} />
-
-        <Route path='/international'  
-                element={<InternationalPolicies 
-                  ruleEngineData={ruleEngineData}
-                  ruleEngineState={ruleEngineState} 
-                  setRuleEngineState={setRuleEngineState}/>} />
-
-        <Route path='/domestic' 
-                element={<DomesticPolicies 
-                  ruleEngineData={ruleEngineData}
-                  ruleEngineState={ruleEngineState} 
-                  setRuleEngineState={setRuleEngineState} />} />
-        
-        <Route path='/local' 
-                element={<LocalPolicies 
-                  ruleEngineData={ruleEngineData}
-                  ruleEngineState={ruleEngineState} 
-                  setRuleEngineState={setRuleEngineState} />} />
-      </Routes>}
+    <NonTravelPoliciesPageComponent 
+        tenantId = {tenantId}
+        ruleEngineState={ruleEngineState}
+        setRuleEngineState={setRuleEngineState}
+        travelType='nonTravel' />
   </>;
 }

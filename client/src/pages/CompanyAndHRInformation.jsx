@@ -12,44 +12,22 @@ import Button from '../components/common/Button';
 import Modal from '../components/common/Modal';
 import { set } from 'mongoose';
 import UploadFile from '../components/common/UploadFile';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams} from 'react-router-dom';
+import { postTenantCompanyInfo_API } from '../utils/api';
 
+const WEB_PAGE_URL = 'http://localhost:575/home'
 
 export default function CompanyAndHRInformation(){
+  const {tenantId} = useParams()
   const [companyList, setCompanyList] = useState([])
   const [businessCategoriesList, setBusinessCategoriesList] = useState([])
   const [locationsList, setLocationsList] = useState(['Bangalore', 'Mumbai', 'Delhi', 'Chennai', 'Hyderabad', 'Kolkata'])
-  const [formData, setFormData] = useState({companyName:'', businessCategory:'', teamSize:'', companyHQ:'',  filename:''},)
-
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [fileSelected, setFileSelected] = useState(false);
+  const [formData, setFormData] = useState({companyName:'', businessCategory:'', teamSize:'', companyHQ:'', onboardingCompleted: false, state: 'section_1'})
 
   const [diyFlag, setDiyFlag] = useState(true); //initialize this with the actual value
-  const [prompt, setPrompt] = useState(null);
   const [showPrompt, setShowPrompt] = useState(false)
-  const templateColumns = [
-    {header: 'Employee Name', key: 'employeeName', width: 20},
-    {header: 'Employee Id', key: 'employeeId', width: 20},
-    {header: 'Designation', key: 'designation', width: 20},
-    {header: 'Grade', key: 'grade', width: 20},
-    {header: 'Department', key: 'department', width: 20},
-    {header: 'Business Unit', key: 'businessUnit', width: 20},
-    {header: 'Legal Entity', key: 'legalEntity', width: 20},
-    {header: 'Cost Center', key: 'costCenter', width: 20},
-    {header: 'Profit Center', key: 'profitCenter', width: 20},
-    {header: 'Responsibility Center', key: 'responsibilityCenter', width: 20},
-    {header: 'Division', key: 'division', width: 20},
-    {header: 'Project', key: 'project', width: 20},
-    {header: 'Geographical Location', key: 'geographicalLocation', width: 20},
-    {header: 'L1 Manager', key: 'l1Manager', width: 20},
-    {header: 'L2 Manager', key: 'l2Manager', width: 20},
-    {header: 'L3 Manager', key: 'l3Manager', width: 20},
-    {header: 'Joining Date', key: 'joiningDate', width: 20},
-    {header: 'Mobile Number', key: 'mobileNumber', width: 20},
-    {header: 'Phone Number', key: 'phoneNumber', width: 20},
-    {header: 'Email Id', key: 'emailId', width: 20}
-  ]
-  const templateData = []
+  const [isLoading, setIsLoading] = useState(false)
+  const [loadingErr, setLoadingErr] = useState(false)
 
   const navigate = useNavigate()
 
@@ -96,15 +74,12 @@ export default function CompanyAndHRInformation(){
   const [errors,setErrors] = useState({companyNameError:false, businessCategoryError:false, teamSizeError:false, companyHQError:false})
   const [filename, setFileName] = useState(null)
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
 
     let allowSubmit = true
-
     const data = new FormData();
-
-      
     //validate form
-   (function async(){
+   async function validateForm(){
     return new Promise((resolve, reject)=>{
       if(formData.companyName == ''){
         setErrors(pre=>({...pre, companyNameError:true}))
@@ -125,62 +100,69 @@ export default function CompanyAndHRInformation(){
 
       resolve()
     })
-  })().then(()=>{
+  }
+
+  await validateForm()
    
-   if(diyFlag){
-      if (selectedFile) {
-        data.append('file', selectedFile);
-        axios.
-        post('http://localhost:8001/api/upload-hrInfo', data)
-        .then((response) => {
-          console.log('File uploaded successfully:', response.data);
-      
-          // Make a POST request using Axios to post the filename along with other data to the backend
-          if(allowSubmit){
-          // Make a POST request using Axios
-          console.log('trying to submit....', formData)
-            axios
-            .post('http://localhost:8001/api/hrCompanyInfo/new', {...formData, filename:response.data.fileName})
-            .then((response) => {
-              console.log('HR master created:', response.data);
-              //move to the next section
-              navigate(`/${response.data.tenantId}/expense-allocations`, {state:{tenantId:response.data.tenantId}})
-            })
-            .catch((error) => {
-              console.error('Error in uploading information:', error);
-            });
-          }
-    
-        })
-        .catch((error) => {
-          console.error('Error in uploading file:', error);
-          return
-        })
-      } else {
-        setPrompt('Without HR information this process cannot be completed. We have your email Id and will get in touch with you shortly.');
-        setShowPrompt(true)
+    // Make a POST request using Axios to post company data to the backend
+    if(allowSubmit){
+    // Make a POST request using Axios
+    console.log('trying to submit....', formData)
+      setIsLoading(true)
+      const res = await postTenantCompanyInfo_API({tenantId, companyInfo:{...formData}})
+      if(res.err){
+        setLoadingErr(res.err)
         return
       }
-   }
-   else{
-    if(allowSubmit){
-          // Make a POST request using Axios
-      console.log('trying to submit....', data)
-
-      axios
-      .post('http://localhost:8001/api/hrCompanyInfo/new', {companyName:formData.companyName, businessCategory:formData.businessCategory, teamSize:formData.teamSize, companyHQ:formData.companyHQ })
-      .then((response) => {
-        console.log('File uploaded successfully:', response.data);
-      })
-      .catch((error) => {
-        console.error('Error in uploading file:', error);
-      });
+      navigate(`/${response.data.tenantId}/upload-Excel`, {state:{tenantId}})
     }
-   }
+  
+  }
 
-  })
-  };
+  const handleSaveAsDraft = async ()=>{
+    let allowSubmit = true
+    const data = new FormData();
+    //validate form
+   async function validateForm(){
+    return new Promise((resolve, reject)=>{
+      if(formData.companyName == ''){
+        setErrors(pre=>({...pre, companyNameError:true}))
+        allowSubmit=false
+      }
+      if(formData.businessCategory == ''){
+        setErrors(pre=>({...pre, businessCategoryError:true}))
+        allowSubmit=false
+      }
+      if(formData.teamSize == ''){
+        setErrors(pre=>({...pre, teamSizeError:true}))
+        allowSubmit=false
+      }
+      if(formData.companyHQ == ''){
+        setErrors(pre=>({...pre, companyHQError:true}))
+        allowSubmit=false
+      }
 
+      resolve()
+    })
+  }
+
+  await validateForm()
+   
+    // Make a POST request using Axios to post company data to the backend
+    if(allowSubmit){
+    // Make a POST request using Axios
+    console.log('trying to submit....', formData)
+      setIsLoading(true)
+      const res = await postTenantCompanyInfo_API({tenantId, companyInfo:{...formData}})
+      if(res.err){
+        setLoadingErr(res.err)
+        return
+      }
+      
+      //navigate to main page
+      //window.location.href = WEB_PAGE_URL
+    }
+  }
 
 
   return (
@@ -232,62 +214,15 @@ export default function CompanyAndHRInformation(){
               onSelect={(option)=>{handleHqLocation(option)}} />
           </div>
 
-
           </div>
 
-         {diyFlag && <div className="flex flex-col items-start justify-start gap-[16px] text-sm">
-            <div className="flex flex-col items-start justify-start gap-[8px]">
-              <div className="font-medium font-cabin text-sm text-neutral-700">HR Details</div>
-              <div className="flex flex-row items-start justify-start gap-[16px] text-dimgray">
-                <div className="tracking-tight text-zinc-400 font-cabin">
-                  Upload your company HR details in CSV format
-                </div>
-                {<DownloadTemplate columns = {templateColumns} data = {templateData} />}
-              </div>
-            </div>
-
-            <UploadFile 
-              selectedFile={selectedFile} 
-              setSelectedFile={setSelectedFile} 
-              fileSelected={fileSelected} 
-              setFileSelected={setFileSelected} />
-
-            {fileSelected ? (
-                <div className="flex flex-col items-start justify-start gap-[8px] text-[12px]">
-                <img
-                  className="relative w-10 h-10 overflow-hidden shrink-0"
-                  alt=""
-                  src={file_icon}
-                />
-                <div className="relative font-medium inline-block overflow-hidden text-ellipsis whitespace-nowrap w-[43px]">
-                  BMS Data
-                </div>
-              </div>
-            ) : (
-              null
-            )}
-          </div>}
-
-          <div className='mb-10 w-full float-right flex justify-center items-center'>
-            <Button text='Continue' onClick={()=>{handleSubmit();}} />
+          <div className='mb-10 w-full flex gap-8 items-center flex-wrap'>
+            <Button variant='fit' text='Save as Draft' onClick={()=>{handleSaveAsDraft();}} />
+            <Button variant='fit' text='Save and Continue' onClick={()=>{handleSubmit();}} />
           </div>
 
       </div>
     </div>
-    
-    <Modal showModal={showPrompt} setShowModal={setShowPrompt} skipable={true} >
-          <div className='p-10'>
-              <p className='text-zinc-800 text-base font-medium font-cabin mt-4'>
-                {prompt}  
-              </p>
-              <div className='inline-flex justify-end w-[100%] mt-10'>
-                  <div className='w-[150px]'>
-                    <Button text='Ok' />
-                  </div>
-              </div>
-          </div>
-    </Modal>
-
   </div> 
   );
 };

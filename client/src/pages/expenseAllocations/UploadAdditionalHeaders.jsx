@@ -12,20 +12,18 @@ import remove_icon from '../../assets/XCircle.svg'
 import UploadFile from '../../components/common/UploadFile';
 import DownloadTemplate from '../../components/DownloadExcelTemplate';
 import file_icon from '../../assets/teenyicons_csv-solid.svg'
+import { updateFormState_API } from '../../utils/api';
 import { titleCase } from '../../utils/handyFunctions';
+import close_icon from "../../assets/close.svg"
 
-export default function (props) {
+export default function ({showAddHeaderModal, setShowAddHeaderModal, tenantId, setUpdatedOrgHeaders}) {
   
 const [showSkipModal, setShowSkipModal] = useState(false);
-const [showAddHeaderModal, setShowAddHeaderModal] = useState(false)
-
 const {state} = useLocation()
 const navigate = useNavigate();
 const [flags, setFlags] = useState({ORG_HEADERS_FLAG:true})
 const [orgHeaders, setOrgHeaders] = useState([])
-const [readyToSelect, setReadyToSelect] = useState(false)
-const {tenantId} = useParams()
-const [selectedOrgHeaders, setSelectedOrgHeaders] = useState([])
+console.log(tenantId, '...tenantId')
 const [addedHeaders, setAddedHeaders] = useState([''])
 const [readyToUpload, setReadyToUpload] = useState(false)
 const [selectedFile, setSelectedFile] = useState(null);
@@ -36,20 +34,16 @@ const [templateColumns, setTemplateColumns] = useState([])
 const [templateData, setTemplateData] = useState([])
 const modalRef = useRef(null);
 const [excelDataError, setExcelDataError] = useState(null)
-const [headersUpdated, setHeadersUpdated] = useState(null)
+const [headersUpdated, setHeadersUpdated] = useState(false)
+const [showPrompt, setShowPrompt] = useState(false)
+const [prompt, setPrompt] = useState(false)
+const [isUploading, setIsUploading] = useState(false)
 
-    useEffect(()=>{
-        if(showSkipModal || showAddHeaderModal){
-            document.body.style.overflow = 'hidden'
-        }
-        else{
-            document.body.style.overflow = 'visible'
-        }
 
-    },[showSkipModal, showAddHeaderModal])
 
-    useEffect(() => {
+    const handleUpload = async ()=>{
         setExcelDataError(null)
+        setIsUploading(true)
         let errorSet = false
         console.log(excelData, '...excelData')
         if(excelData){
@@ -58,6 +52,7 @@ const [headersUpdated, setHeadersUpdated] = useState(null)
                     if(row[header] === undefined || row[header]==='' || row[header]===null){
                         setExcelDataError(`Header ${header} is missing values for one or more employees`)
                         errorSet = true
+                        setIsUploading(false)
                         return
                     }
                 })
@@ -95,99 +90,61 @@ const [headersUpdated, setHeadersUpdated] = useState(null)
                         //added headers have values, add values update employee data & org headers in database
                         await axios
                         .post(`http://localhost:8001/api/tenant/${tenantId}/employeeDetails`, {employeeDetails:transformedExcelData})
-                        .then(res => {res.status === 200 && setHeadersUpdated(true)})
+                        .then(res => {
+                            if(res.status > 199 && res.status<300){
+                                console.log('Employees updated')
+                            }
+                            else{
+                                throw new Error('Unable to update employees details')
+                            }
+                        
+                        })
 
                         //update org headers in database
                         await axios
                         .post(`http://localhost:8001/api/tenant/${tenantId}/org-headers`, {orgHeaders:existingOrgHeadersData.data.orgHeaders})
-                        .then(res => {res.status === 200 && setHeadersUpdated(true)})
-
-                        setHeadersUpdated(true)
+                        .then(res => {
+                            if(res.status > 199 && res.status < 300){
+                                setHeadersUpdated(pre=>!pre)
+                                setShowAddHeaderModal(false)
+                                setIsUploading(false)
+                                setUpdatedOrgHeaders(existingOrgHeadersData.data.orgHeaders)
+                            }
+                            else{
+                                throw new Error('Unable to update org headers')
+                            }
+                        })
                         
                     }
                     catch(e){
                         console.log(e)
+                        setPrompt('Some Error occured please try again later')
+                        setShowPrompt(true)
+                        setIsUploading(false)
                     }
                 }
 
                 updateOrgHeaders()
             }
+            else{
+                setExcelDataError('Excel File missing values')
+                setReadyToUpload(false)
+                setShowAddHeaderModal(false)
+                setPrompt('Excel File missing values')
+                setShowPrompt(true)
+            }
 
         }
         else{
             setExcelDataError('Empty Excel File received')
+            setReadyToUpload(false)
+            setPrompt('Excel File missing values')
+            setShowPrompt(true)
+            setIsUploading(false)
         }
-    }, [excelData])
 
-    useEffect(() => {
-        (async function(){
-            try{
-            const res = await axios.get(`http://localhost:8001/api/tenant/${tenantId}/org-headers`)
-            const flags_res = await axios.get(`http://localhost:8001/api/tenant/${tenantId}/flags`)
-            const flags = flags_res.data.flags
-                
-            if(res.status === 200 && flags_res.status === 200){
-    
-                console.log(res.data, '...res.data')
-                let orgHeadersData = res.data.orgHeaders
-                let tmpOrgHeaders = []
-                Object.keys(orgHeadersData).forEach(key => {
-                if(orgHeadersData[key].length !== 0){
-                    tmpOrgHeaders.push(key)
-                }
-                })
-        
-                console.log(tmpOrgHeaders, '...tmpOrgHeaders')
-        
-                if(tmpOrgHeaders.length === 0){
-                    setFlags({...flags, ORG_HEADERS_FLAG:false})
-                }
-                else{
-                setOrgHeaders(tmpOrgHeaders)
-                setFlags({...flags, ORG_HEADERS_FLAG:true})
-                console.log()
-                }
-            }
-            }catch(e){
-            console.log(e)
-            }
-        })()
-    },[headersUpdated])
-
-    useEffect(() => {
-        setShowAddHeaderModal(false)
-    }, [headersUpdated])
+    }
   
-    const handleOrgHeaderSelection = (e,index) => {
-        let tmpSelectedOrgHeaders = [...selectedOrgHeaders]
-        if(e.target.checked){
-            tmpSelectedOrgHeaders.push(orgHeaders[index])
-        }
-        else{
-            let orgHeaderIndex = tmpSelectedOrgHeaders.indexOf(orgHeaders[index])
-            tmpSelectedOrgHeaders.splice(orgHeaderIndex,1)
-        }
-        setSelectedOrgHeaders(tmpSelectedOrgHeaders)    
-    }
-
-    const saveTravelAllocationHeaders = async () => {
-        //save travel allocation headers...
-        console.log(selectedOrgHeaders, '...selectedOrgHeaders')
-        //get org headers
-        const orgHeadersData = await axios.get(`http://localhost:8001/api/tenant/${tenantId}/org-headers`)
-        console.log(orgHeadersData, '...orgHeadersData')
-        let allocationHeaders = selectedOrgHeaders.map(orgHeader => ({headerName:orgHeader, headerValues:orgHeadersData.data.orgHeaders[orgHeader]}))
-        axios
-        .post(`http://localhost:8001/api/tenant/${tenantId}/non-travel-expense-allocation`, {allocationHeaders})
-        .then(res => {
-            console.log(res.data, '...res.data')
-            res.status === 200 &&
-            navigate(`/${tenantId}/groups`, {state:{tenantId}})
-        })
-        //navigate to next page
-     
-    }
-
     //handle header input change when user adds custom header
     const handleHeaderInputChange = (e, index)=> {
         let tmpAddedHeaders = [...addedHeaders]
@@ -198,18 +155,13 @@ const [headersUpdated, setHeadersUpdated] = useState(null)
 
     //remove header input when user clicks on remove icon
     const removeHeaderInput = (index) => {
-        console.log(index, '...index')
-        let tmpAddedHeaders = addedHeaders.slice()
+        let tmpAddedHeaders = [...addedHeaders]
         tmpAddedHeaders.splice(index,1)
-        console.log(tmpAddedHeaders, '...tmpAddedHeaders')
         setAddedHeaders(tmpAddedHeaders)
     }
 
-    const handleOutsideClick = (e)=>{
-        e.preventDefault()
-        e.stopPropagation()
+    const handleClose = (e)=>{
         setShowAddHeaderModal(false)
-        setReadyToUpload(false)
         setAddedHeaders([''])
     }
 
@@ -245,131 +197,13 @@ const [headersUpdated, setHeadersUpdated] = useState(null)
         }
     },[readyToUpload])
 
-    useEffect(() => {
-        console.log(selectedOrgHeaders, '...selectedOrgHeaders')
-    },[selectedOrgHeaders])
-
     return(<>
-
-        <Icon/>
-        { <div className="bg-slate-50 min-h-[calc(100vh-107px)] px-[20px] md:px-[50px] lg:px-[104px] pb-10 w-full tracking-tight">
-            
-            <div className='px-6 py-10 bg-white rounded shadow w-full'>
-               
-                {/* rest of the section */}
-                <div className='w-full flex flex-col gap-4'>  
-                    
-                    <div className='flex justify-between items-center'>
-                        <div className='flex gap-4 items-center'>
-                           <div className='cursor-pointer'>
-                                <img src={back_icon} onClick={()=>{readyToSelect?setReadyToSelect(false) : navigate(-1)}} />
-                            </div>
-                            <p className='text text-xl font-cabin text-neutral-700'>
-                                Setup non-Travel Expense Allocations
-                            </p>
-                        </div>
-                        <div>
-                            <HollowButton title='Skip' onClick={()=>navigate(`/${tenantId}/groups`, {state:{tenantId}})} />
-                        </div>
-                    </div>
-
-                    <hr/>
-                    { !readyToSelect && <>
-                     
-
-                     <div className='p-4 border border-gray-200 rounded-xl w-fit'>
-                         <div className='text text-sm font-cabin'>
-                             {orgHeaders.map(orgHeader => {
-                                 return <div className='flex px-6'>
-                                     <div className='text-md text-neutral-600'>{camelCaseToTitleCase(orgHeader)}</div>
-                                 </div>
-                         })}
-                     </div>
- 
-                     </div>
-                     
-                     <div>
-                     <p className='text text-base font-cabin text-neutral-700'>
-                     We have gathered the above headers from your HR data. <br/> Do you have all you need or are they headers missing 
-                         </p>
-                         <div className='flex gap-10 mt-4'>
-                             <div>
-                                 <Button text='I have all I need' onClick={()=>setReadyToSelect(true)} />
-                             </div>
-                             <div>
-                                 <Button text='I have some other headers' onClick={()=>setShowAddHeaderModal(true)} />
-                             </div>
-                         </div>
-                     </div>
-                     </>
-                   }
-
-                    {readyToSelect &&                     
-                        <>
-                        <p className='text text-base font-cabin text-neutral-700'>
-                            Select the entities you want to allocate non-travel expenses to
-                        </p>
-
-                         <div classsName='shadow bg-white border border-grey-200'>
-                            {orgHeaders.map((orgHeader,index) => {
-                                return <div className='flex justify-between items-center px-6 py-4 border-b border-grey-200'>
-                                    <div className='text text-md font-cabin text-neutral-700'>{camelCaseToTitleCase(orgHeader)}</div>
-                                    <div className='text text-base font-cabin text-neutral-700'>
-                                        <Checkbox id={index} onClick={(e, id)=>handleOrgHeaderSelection(e,id)} />
-                                    </div>
-                                </div>
-                            })}    
-                        </div>
-
-                        <div className='flex flex-row-reverse'>
-                            <div className='fit'>
-                                <Button text='Continue' onClick={()=>setShowSkipModal(true)} />
-                            </div>
-                        </div>
-                        
-                        </>
-                    }
+            {showAddHeaderModal && <div  className="fixed z-[1000] overflow-hidden flex justify-center items-center inset-0 backdrop-blur-sm w-full h-full left-0 top-0 bg-gray-800/60 scroll-none">
+                <div className='z-[1001] max-w-[600px] w-[90%] md:w-[75%] lg:w-[60%] min-h-[200px] scroll-none bg-white rounded-lg shadow-md'>
+                <div className='flex w-full h-10 items-center flex-row-reverse pr-6 pt-6'>
+                    <img src={close_icon} onClick={()=>handleClose()}/>
                 </div>
-            </div>
-
-            
-            <Modal showModal={showSkipModal} setShowModal={setShowSkipModal} skipable={true}>
-                <div className='p-10'>
-                    
-                    { selectedOrgHeaders.length>0 && <>
-                        <p className='text-neutral-700 text-base font-cabin '>Selected Options... </p>
-                    <div className='flex flex-col gap-4 mt-4'>
-                        {selectedOrgHeaders.map(orgHeader => {
-                            return <div className='text text-sm font-cabin text-neutral-700'>{camelCaseToTitleCase(orgHeader)}</div>
-                        })}
-                    </div>
-
-                    <div className='w-[200px] mt-10'>
-                        <Button text='Correct' onClick={()=>{saveTravelAllocationHeaders()}} />
-                    </div>
-                    </>
-                    }
-
-                    {selectedOrgHeaders.length===0 && <>
-                        
-                        <p className='text-neutral-700 text-base font-cabin '>You have not selected any options, do you want to skip this step? </p>
-                        <div className='flex justify-between items-center mt-6  '> 
-                            <div className=''>
-                                <Button text='Yes' onClick={()=>{navigate(`/${tenantId}/groups`, {state:{tenantId}})}} />
-                            </div>
-                            <div>
-                                <Button text='No' onClick={()=>{setShowSkipModal(false)}} />
-                            </div> 
-                        </div>
-                    </>}
-
-                    
-                </div>
-            </Modal>
-
-            {showAddHeaderModal && flags.DIY_FLAG && <div onClick={handleOutsideClick} className="fixed z-[1000] overflow-hidden flex justify-center items-center inset-0 backdrop-blur-sm w-full h-full left-0 top-0 bg-gray-800/60 scroll-none">
-                <div ref={modalRef} onClick={(e)=>e.stopPropagation()} className='z-[1001] max-w-[600px] w-[90%] md:w-[75%] lg:w-[60%] min-h-[200px] scroll-none bg-white rounded-lg shadow-md'>
-                <div className='p-10'>
+                <div className='px-10 pb-10 pt-4'>
                     {/* allow user to add headers*/}
                     {!readyToUpload && <>
                         <p className='text-neutral-700 text-base font-cabin '>Add Headers for the values you want to upload </p>
@@ -379,7 +213,7 @@ const [headersUpdated, setHeadersUpdated] = useState(null)
                             {addedHeaders.length>0 && addedHeaders.map((header, index) => {
                                 return(
                                     <div key={index}  className='flex gap-2 items-center'>
-                                        <Input placeholder='Header Name' value={header} showTitle={false} onChange={(e)=>handleHeaderInputChange(e, index)} />
+                                        <Input placeholder='Header Name' showTitle={false} onChange={(e)=>handleHeaderInputChange(e, index)} />
                                         <img src={remove_icon} onClick={()=>removeHeaderInput(index)} />
                                     </div>)
                             })}
@@ -445,7 +279,7 @@ const [headersUpdated, setHeadersUpdated] = useState(null)
                             src={file_icon}
                             />
                             <div className="relative font-medium inline-block overflow-hidden text-ellipsis whitespace-nowrap w-[43px]">
-                            BMS Data
+                            {selectedFile.name}
                             </div>
                         </div>
                         ) : (
@@ -453,16 +287,21 @@ const [headersUpdated, setHeadersUpdated] = useState(null)
                         )}
                     </div>
                         
-                        
+                    <div className='flex w-full flex-row-reverse mt-4'>
+                        <Button variant='fit' disabled={!fileSelected} isloading={isUploading} text='Upload File' onClick={handleUpload} />
+                    </div>
                         </>
                     }
                 </div>
                 </div>
             </div>}
 
-            {showAddHeaderModal && !flags.DIY_FLAG && <div onClick={handleOutsideClick} className="fixed z-[1000] overflow-hidden flex justify-center items-center inset-0 backdrop-blur-sm w-full h-full left-0 top-0 bg-gray-800/60 scroll-none">
-                <div ref={modalRef} onClick={(e)=>e.stopPropagation()} className='z-[1001] max-w-[600px] w-[90%] md:w-[75%] lg:w-[60%] min-h-[200px] scroll-none bg-white rounded-lg shadow-md'>
-                <div className='p-10'>
+            {showAddHeaderModal && false && <div className="fixed z-[1000] overflow-hidden flex justify-center items-center inset-0 backdrop-blur-sm w-full h-full left-0 top-0 bg-gray-800/60 scroll-none">
+                <div className='z-[1001] max-w-[600px] w-[90%] md:w-[75%] lg:w-[60%] min-h-[200px] scroll-none bg-white rounded-lg shadow-md'>
+                <div className='flex w-full h-10 items-center flex-row-reverse pr-6 pt-6'>
+                    <img src={close_icon} onClick={()=>handleClose()}/>
+                </div>
+                <div className='px-10 pb-10 pt-4'>
                                         
                     <p className='text-neutral-800 font-cabin text-lg'>
                         We detect that you are onboarded through People Strong, If you want to add extra headers for allocating travel Related expenses please contact your company
@@ -471,10 +310,6 @@ const [headersUpdated, setHeadersUpdated] = useState(null)
                 </div>
                 </div>
             </div> }
-            
-
-        </div>}
-        
         </>
     );
   }

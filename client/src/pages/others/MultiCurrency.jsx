@@ -6,6 +6,7 @@ import { CircleFlag } from 'react-circle-flags'
 import Select from "../../components/common/Select"
 import { useEffect, useState } from "react"
 import axios from "axios"
+import { updateFormState_API } from "../../utils/api"
 
 export default function (props){
     const navigate = useNavigate()
@@ -255,6 +256,30 @@ export default function (props){
         }
     }
 
+    const handleSaveAsDraft = async ()=>{
+      //upload non empty values to database
+      const filteredEntries = currencyTable.filter(entry=>entry.exchangeValue.value!='')
+      const exchangeValue = filteredEntries.map(entry=>entry.exchangeValue)
+      console.log(exchangeValue)
+
+      if(exchangeValue.length!=0){
+          // alert('No values provided')
+        try{
+            const res = await axios.post(`http://localhost:8001/api/tenant/${tenantId}/multicurrency`, {multiCurrencyTable:{defaultCurrency:tenantDefaultCurrency, exchangeValue}})
+            if(res.status === 200){
+                // alert('Multicurrency table updated')
+                // navigate(`/${tenantId}/others/blanket-delegations`)
+            }
+
+        }catch(e){
+            console.log(e)
+        }
+      }
+
+      //update form state
+      updateFormState_API({tenantId, state:'others/multicurrency'})
+    }
+
     useEffect(()=>{
         console.log(currencyTable)
     },[currencyTable])
@@ -288,7 +313,7 @@ export default function (props){
     return(<>
         
         <Icon/>
-        <div className="bg-slate-50 min-h-[calc(100vh-107px)] px-[20px] md:px-[50px] lg:px-[104px] pb-10 w-full tracking-tight">
+        <div className="bg-slate-50 min-h-[calc(100vh-107px)] px-[20px] md:px-[50px] overflow-y-auto lg:px-[104px] pb-10 w-full tracking-tight">
             <div className='px-6 py-10 bg-white rounded shadow'>
                 <div className="flex justify-between">
                     <div className="gap-2">
@@ -343,6 +368,7 @@ export default function (props){
                     <div className='flex gap-4 items-end'>
                         <div className='w-[214px]'>
                             <Select title='Add Currency' 
+                                drop='up'
                                 titleCase={false}
                                 onSelect={handleCurrencySelection} 
                                 options={currenciesList.map(currency=>currency.fullName).sort()} />
@@ -352,11 +378,11 @@ export default function (props){
                             <Button text='Add' onClick={addCurrency} />
                         </div>
                     </div>
+                </div>
 
-                    <div className="w-fit">
-                        <Button text='Save Changes' onClick={handleSaveChanges} />
-                    </div>
-
+                <div className="flex w-full justify-between mt-10">
+                   <Button variant='fit' text='Save as Draft' onClick={handleSaveAsDraft} />
+                    <Button variant='fit' text='Save and Continue' onClick={handleSaveChanges} />
                 </div>
 
             </div>

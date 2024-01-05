@@ -5,6 +5,7 @@ import HollowButton from "../../components/common/HollowButton"
 import { useEffect, useState } from "react"
 import axios from 'axios'
 import Input from "../../components/common/Input"
+import { updateFormState_API } from "../../utils/api"
 
 export default function (props){
     const navigate = useNavigate()
@@ -91,6 +92,36 @@ export default function (props){
 
             alert('Cant save changes at the moment, please try again later')
         }
+
+        const update_res = await updateFormState_API({tenantId, state:'/others/roles'})
+    }
+
+    const handleSaveAsDraft = async ()=>{
+       
+        try{
+            const res = await axios.post(`http://localhost:8001/api/tenant/${tenantId}/account-lines`, {accountLines})
+            if(res.status == 200){
+                alert('Account Lines Updated !')
+            }
+        }
+        catch(e){
+            if(e.response){
+
+            }
+            else if(e.request){
+
+            }
+            else{
+
+            }
+
+            alert('Cant save changes at the moment, please try again later')
+        }
+
+
+        const update_res = await updateFormState_API({tenantId, state:'/others/account-lines'})
+        window.location.href = 'https://google.com'
+
     }
 
     return(<>
@@ -135,10 +166,9 @@ export default function (props){
                     )}
                 </div>
                     
-                <div className="mt-10 w-full">
-                    <div className="w-fit">
-                        <Button text='Save Account Lines' onClick={()=>saveAccountLines()} />
-                    </div>
+                <div className="mt-10 w-full flex justify-between">
+                    <Button variant='fit' text='Save As Draft' onClick={handleSaveAsDraft} />
+                    <Button variant='fit' text='Save and Continue' onClick={()=>saveAccountLines()} />
                 </div>
 
             </div>

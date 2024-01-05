@@ -10,6 +10,7 @@ import arrow_down from "../../assets/chevron-down.svg";
 import Checkbox from "../../components/common/Checkbox"
 import Modal from "../../components/common/Modal"
 import { useState, useEffect } from "react"
+import { updateFormState_API } from "../../utils/api"
 
 
 export default function (props){
@@ -26,6 +27,25 @@ export default function (props){
         }
     },[showSkipModal])
 
+    const handleSaveAsDraft = async ()=>{
+        const update_res = await updateFormState_API({tenantId, state:'/setup-company-policies'})
+        if(update_res.err){
+
+        }
+
+        //navigate
+        window.location.href = 'https://google.com'
+    }
+    
+    const handleContinue = async ()=>{
+        const update_res = await updateFormState_API({tenantId, state:'/non-travel-expenses'})
+        if(update_res.err){
+
+        }
+
+        navigate(`/${tenantId}/non-travel-expenses`)
+    }
+
     return(<>
         
         <Icon/>
@@ -34,7 +54,7 @@ export default function (props){
                 <div className="flex justify-between">
                     <div className="gap-2">
                         <p className="text-neutral-700 text-xl font-semibold tracking-tight">
-                            Setting up your Expensbook
+                            Setting up your Travel Related Policies
                         </p>
                         <p className="text-gray-600 text-sm font-normal font-cabin" >
                             Use existing policies or add custom policies to your company's travel policy
@@ -61,13 +81,12 @@ export default function (props){
                         onClick={() => navigate('local')}
                         text='Local Travel'
                         icon={local_travel_icon}/>
-                    
-                    <CollapsedPolicy 
-                        onClick={() => navigate('non-travel')}
-                        text='Non Travel Expenses'
-                        icon={non_travel_icon}/>
                 </div>
 
+                <div className="mt-10 flex w-full justify-between">
+                    <Button variant='fit' text='Save As Draft' onClick={handleSaveAsDraft} />
+                    <Button variant='fit' text='Continue' onClick={handleContinue} />
+                </div>
             </div>
         </div>
 

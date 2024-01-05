@@ -2,7 +2,6 @@ import internatinal_travel_icon from '../../assets/in-flight.svg'
 import domestic_travel_icon from '../../assets/briefcase.svg'
 import local_travel_icon from '../../assets/map-pin.svg'
 import non_travel_icon from '../../assets/paper-money-two.svg'
-
 import back_icon from '../../assets/arrow-left.svg'
 import Icon from '../../components/common/Icon';
 import arrow_down from "../../assets/chevron-down.svg";
@@ -17,10 +16,11 @@ import Button from '../../components/common/Button'
 import MultiSelect from '../../components/common/MultiSelect'
 import axios from 'axios'
 import Modal from '../../components/common/Modal'
-import { EmitFlags } from 'typescript'
 import Select from '../../components/common/Select'
 import remove_icon from '../../assets/XCircle.svg'
-import { updateFormState_API } from '../../utils/api'
+import close_icon from "../../assets/close.svg"
+import UploadAdditionalHeaders from '../expenseAllocations/UploadAdditionalHeaders'
+import { getTenantOrgHeaders_API, updateFormState_API, updateNonTravelAllocation_API, updateNonTravelPolicies_API } from '../../utils/api'
 
 export default function (props) {
     const [ruleEngineState, setRuleEngineState] = [props.ruleEngineState, props.setRuleEngineState]
@@ -53,7 +53,7 @@ export default function (props) {
                 case 'local':
                     return 'Local Travel Policies'
                 case 'nonTravel':
-                    return 'Non Travel Policies'
+                    return 'Vendor Payments'
             }
     }
     
@@ -68,13 +68,11 @@ export default function (props) {
         setPolicies(policies)
     },[ruleEngineState] )
 
-    const savePolicies = async ()=>{
+    const savePolicies = ()=>{
         //save policies to backend
-        axios.post(`http://localhost:8001/api/tenant/${tenantId}/policies/travel`, {policies:ruleEngineState})
+        axios.post(`http://localhost:8001/api/tenant/${tenantId}/policies/non-travel`, {policies:ruleEngineState})
         .then(res=>{
             console.log(res.data)
-            updateFormState_API({tenantId, state:'/setup-company-policies'})
-            alert('Changes Saved')
         })
         .catch(error=>{
             if(error.response){
@@ -90,11 +88,75 @@ export default function (props) {
         })
     }
 
+    const savePolicyAndAllocationHeaders = async()=>{
+        setIsUploading(true)
+        const allocation_res = await updateNonTravelAllocation_API({tenantId, allocationHeaders: selectedOrgHeaders})
+        if(allocation_res.err){
+            console.log(err)
+            return
+        }
+
+        const policies_res = await updateNonTravelPolicies_API({tenantId, policies:ruleEngineState})
+
+        if(policies_res.err){
+            console.log(res.err)
+            return
+        }
+
+
+        alert('Changes Saved !')
+        setIsUploading(false)
+
+        //update non-travel expense allocations
+
+
+    } 
+
     const [expenseCategoryName, setExpenseCategoryName] = useState(null)
     const [expenseCategoryFields, setExpenseCategoryFieds] = useState([])
     const [existingCategory, setExistingCategory] = useState(false)
     const [existingCategoryName, setExistingCategoryName] = useState(null)
+    const [orgHeaders, setOrgHeaders] = useState([])
+    const [selectedOrgHeaders, setSelectedOrgHeaders] = useState([])
+    const [presentFieldLength, setPresentFieldLength] = useState([])
+    const [isUploading, setIsUploading] = useState(false)
+    
+    //###File upload related
+    const [showAddHeaderModal, setShowAddHeaderModal] = useState(false)
+    const [updatedOrgHeadeers, setUpdatedOrgHeaders] = useState([])
+    useEffect(()=>{
+        if(showAddHeaderModal){
+            document.body.style.overflow = 'hidden'
+        }
+        else{
+            document.body.style.overflow = 'visible'
+        }
 
+    },[showAddHeaderModal])
+    //##File upload related --- end
+    useEffect(()=>{
+        (async function(){
+            const res = await getTenantOrgHeaders_API({tenantId})
+            if(res.err){
+                console.log(err)
+                //handle error
+            }
+            else{
+                console.log(res.data, '...res.data')
+                let orgHeadersData = res.data.orgHeaders
+                let tmpOrgHeaders = []
+                Object.keys(orgHeadersData).forEach(key => {
+                if(orgHeadersData[key].length !== 0){
+                    tmpOrgHeaders.push({headerName:key, headerValues: orgHeadersData[key]})
+                }
+                })
+        
+                console.log(tmpOrgHeaders, '...tmpOrgHeaders')
+                setOrgHeaders(tmpOrgHeaders)
+            }
+
+        })()
+    },[])
 
     useEffect(()=>{
         console.log(expenseCategoryName)
@@ -171,7 +233,7 @@ export default function (props) {
         setExpenseCategoryFieds(expenseCategoryFields_copy)
     }
 
-    const handleCategoryFieldNameChang = (e, index)=>{
+    const handleCategoryFieldNameChange = (e, index)=>{
         let expenseCategoryFields_copy = JSON.parse(JSON.stringify(expenseCategoryFields))
         expenseCategoryFields_copy[index].name = e.target.value
         setExpenseCategoryFieds(expenseCategoryFields_copy)
@@ -188,6 +250,8 @@ export default function (props) {
         setExistingCategoryName(category)
         setExpenseCategoryName(category)
         setExpenseCategoryFieds(fields)
+        setPresentFieldLength(fields.length)
+        console.log('present field length', fields.length)
         setShowAddExpenseCategoriesModal(true)
     }
 
@@ -201,6 +265,12 @@ export default function (props) {
             alert('Please add atleast one field to continue')
             return
         }
+
+        if(expenseCategoryFields.some(category=> category.name == '' || category.name == undefined || category.type == '' || category.type == undefined)){
+            alert('Please provide filed name and field type')
+            return
+        }
+
  
         try{
                 //update existing category
@@ -228,9 +298,10 @@ export default function (props) {
             setRuleEngineState(ruleEngineState_copy)
             setShowAddExpenseCategoriesModal(false)
 
-            const res = await axios.post(`http://localhost:8001/api/tenant/${tenantId}/policies`, {policies:ruleEngineState_copy})
+            // const res = await axios.post(`http://localhost:8001/api/tenant/${tenantId}/policies/non-travel`, {policies:ruleEngineState_copy})
+            const res = await updateNonTravelPolicies_API({tenantId, policies:ruleEngineState_copy})
 
-            alert('category added')
+            alert(`${existingCategory? 'category updated!' : 'category added'}`)
         }
         catch(e){
             if(e.response){
@@ -249,6 +320,53 @@ export default function (props) {
         setExistingCategory(false)
         setExistingCategoryName(null)
     }
+
+    const handleAllocationHeaderChange = async (e, categoryName, index)=>{
+        console.log(e.target.checked, index)
+        let selectedOrgHeaders_copy = JSON.parse(JSON.stringify(selectedOrgHeaders))
+        if(e.target.checked){
+            const indexOfCategory = selectedOrgHeaders.findIndex(category=>category.categoryName.toLowerCase() == categoryName.toLowerCase())
+            if(indexOfCategory > -1){
+                const indexOfElement = selectedOrgHeaders[indexOfCategory].allocations.findIndex(header=>header.headerName.toLowerCase() == orgHeaders[index].headerName.toLowerCase())
+                console.log(indexOfElement, 'ioe')
+                if(indexOfElement>-1) return
+                selectedOrgHeaders_copy[indexOfCategory].allocations.push(orgHeaders[index])
+            }
+            else{
+                selectedOrgHeaders_copy.push({categoryName, allocations:[{...orgHeaders[index]}]})
+            }
+            
+            console.log(orgHeaders[index])
+
+        }
+        else{
+            const indexOfCategory = selectedOrgHeaders.findIndex(category=>category.categoryName.toLowerCase() == categoryName.toLowerCase())
+            const indexOfElement = selectedOrgHeaders[indexOfCategory].allocations.findIndex(header=>header.headerName.toLowerCase() == orgHeaders[index].headerName.toLowerCase())
+            if(indexOfElement<0) return
+            selectedOrgHeaders_copy[indexOfCategory].allocations = selectedOrgHeaders[indexOfCategory].allocations.filter((_,ind)=> ind!=indexOfElement)
+        }
+
+        console.log(selectedOrgHeaders_copy)
+        setSelectedOrgHeaders(selectedOrgHeaders_copy)
+    }
+
+    const handleSaveAsDraft = async ()=>{
+        //everhting should be already updated. Just update the form state
+        const res = updateFormState_API({tenantId, state:'/non-travel-expenses/setup'})
+        window.location.href = 'https://google.com'
+    }
+
+    const handleContinue = async ()=>{
+        const res = updateFormState_API({tenantId, state: '/others'})
+        //naviage to others section
+        navigate(`/${tenantId}/others`)
+    }
+
+    useEffect(()=>{
+        if(updatedOrgHeadeers.length>0){
+            setOrgHeaders(updatedOrgHeadeers)
+        }
+    },[updatedOrgHeadeers])
 
     return(<>
         <Icon />
@@ -278,21 +396,32 @@ export default function (props) {
                     {policies.map((policy,index)=>{
 
                             if(ruleEngineState[0][Object.keys(ruleEngineState[0])[0]][travelType][policy]){
-                                return (<Policy key={index} handleEditFields={handleEditFields} savePolicies={savePolicies} title={policy} tripType={travelType} ruleEngineState={ruleEngineState} setRuleEngineState={setRuleEngineState} />)
+                                return (<Policy key={index} handleEditFields={handleEditFields} isUploading={isUploading} savePolicies={savePolicyAndAllocationHeaders} title={policy} tripType={travelType} ruleEngineState={ruleEngineState} setRuleEngineState={setRuleEngineState} selectedOrgHeaders={selectedOrgHeaders} orgHeaders={orgHeaders} handleAllocationHeaderChange={handleAllocationHeaderChange} setShowAddHeaderModal={setShowAddHeaderModal} />)
                             }
                         }
                     )}
-                        { travelType==='nonTravel' && 
-                            <div className='mt-6'>
-                                <HollowButton title='Add Expense Categories' onClick={()=>{setExistingCategory(false); setShowAddExpenseCategoriesModal(true)}} />
-                            </div>
-                        }  
+                     
+                    <div className='mt-6'>
+                        <HollowButton title='Add Expense Categories' onClick={()=>{setExistingCategory(false); setShowAddExpenseCategoriesModal(true)}} />
+                    </div>
+                    
+                    <div className='flex justify-between mt-10'>
+                        <Button text='Save As Draft' onClick={handleSaveAsDraft} />
+                        <Button text='Continue' onClick={handleContinue} />
+                    </div>
                 </div>
 
             </div>
         </div>}
         
-        {showAddExpenseCategoriesModal &&
+        {showAddHeaderModal && 
+        <UploadAdditionalHeaders 
+            showAddHeaderModal={showAddHeaderModal} 
+            tenantId={tenantId}
+            setUpdatedOrgHeaders={setUpdatedOrgHeaders}
+            setShowAddHeaderModal={setShowAddHeaderModal} />}
+
+{showAddExpenseCategoriesModal &&
         <div className="fixed  z-[1000]  overflow-hidden flex justify-center items-center inset-0 backdrop-blur-sm w-full h-full left-0 top-0 bg-gray-800/60 scroll-none">
             <div className='z-[10001] max-w-[600px] w-[90%] md:w-[75%] lg:w-[60%] min-h-[200px] scroll-none bg-white rounded-lg shadow-md'>
                 <div className=' relative p-10 text text-neutral-400 text-xs font-cabin'>
@@ -304,8 +433,8 @@ export default function (props) {
                         <div className='flex flex-col gap-2'>
                             {expenseCategoryFields.length>0 && expenseCategoryFields.map((field, index)=>(
                                 <div key={index} className='flex flex-wrap gap-4 items-center'>
-                                    <Input  showTitle={false} placeholder='eg. Amount' value={field.name} onChange={(e)=>{handleCategoryFieldNameChang(e, index)}} />
-                                    <select value={field.type} onChange={e=>handleCategoryFieldTypeChange(e,index)} className='min-w-[200px] w-full md:w-fit max-w-[403px] h-[45px] flex-col justify-start items-start gap-2 inline-flex px-6 py-2 text-neutral-700 w-full  h-full text-sm font-normal font-cabin border rounded-md border border-neutral-300 focus-visible:outline-0 focus-visible:border-indigo-600'>
+                                    <Input  showTitle={false} placeholder='eg. Amount' value={field.name} onChange={(e)=>{handleCategoryFieldNameChange(e, index)}} readOnly={index<presentFieldLength?true:false} />
+                                    <select value={field.type} disabled={index<presentFieldLength?true:false} onChange={e=>handleCategoryFieldTypeChange(e,index)} className='min-w-[200px] w-full md:w-fit max-w-[403px] h-[45px] flex-col justify-start items-start gap-2 inline-flex px-6 py-2 text-neutral-700 w-full  h-full text-sm font-normal font-cabin border rounded-md border border-neutral-300 focus-visible:outline-0 focus-visible:border-indigo-600'>
                                         <option value='default'>
                                             Select Type
                                         </option>
@@ -359,47 +488,6 @@ export default function (props) {
     );
   }
 
-  function ClassTable(props){
-    const tripType = props.tripType || 'international'
-    const policy = props.policy || 'allowedTripPurpose'
-    const groups = props.groups || ['Executives', 'Managers', "VC's"]
-    const values = props.values || ['Client Meeting', 'Training', 'Audit', 'Conference']
-
-    const ruleEngineState = props.ruleEngineState
-    const setRuleEngineState = props.setRuleEngineState
-    
-    const colWidth = '134px'
-    
-    const handleCellState = (groupIndex, valIndex)=>{
-        const ruleEngineState_copy = JSON.parse(JSON.stringify(ruleEngineState))
-        ruleEngineState_copy[groupIndex][groups[groupIndex]][tripType][policy]['class'][values[valIndex]].allowed   =   !ruleEngineState_copy[groupIndex][groups[groupIndex]][tripType][policy]['class'][values[valIndex]].allowed
-        setRuleEngineState(ruleEngineState_copy)
-    }
-
-   return(<>
-    {/* top row */}
-    <div className='flex justify-content divide-x'>
-        <div className={`w-[${colWidth}]`} ></div>
-        {groups.map((group,index)=><div key={index} className={`w-[${colWidth}] inline-flex justify-center items-center p-2 text-zinc-500 text-sm font-normal font-cabiin tracking-tight`} >{group}</div>)}
-    </div>
-
-    {values.map((value,valIndex) =>{
-    
-        return(<>
-            {/* rest of the rows */}
-            <div className='flex justify-content divide-x'>
-                <div className={`w-[${colWidth}] p-2 text-zinc-500 text-sm font-normal font-cabiin tracking-tight`} >{`${value} :`}</div>
-                {groups.map((group,groupIndex)=><div key={groupIndex} className={`w-[${colWidth}] inline-flex justify-center items-center p-2 text-zinc-500 text-sm font-normal font-cabiin tracking-tight`} >
-
-                    { ruleEngineState[groupIndex][groups[groupIndex]][tripType][policy]['class'][values[valIndex]].allowed ? <CheckIcon onClick={()=>handleCellState(groupIndex,valIndex)}/> : <CrossIcon onClick={()=>handleCellState(groupIndex,valIndex)}/>}
-                </div>)}
-            </div>
-
-        </>)
-    })}
-
-   </>)
-  }
 
   function CheckIcon(props){
     const onClick = props.onClick
@@ -519,50 +607,6 @@ function AmountTable(props){
     </>)
 }
 
-function ApprovalSetup(props){
-    const groups = props.groups || ['Executives', 'Managers', "VC's"]
-    const tripType = props.tripType
-    const policy = props.policy
-    const ruleEngineState = props.ruleEngineState
-    const setRuleEngineState = props.setRuleEngineState
-
-
-    const handleSelect = (options, index)=>{
-        console.log(options)
-        const ruleEngineState_copy = JSON.parse(JSON.stringify(ruleEngineState))
-        ruleEngineState_copy[index][groups[index]][tripType][policy]['approval']['approvers'] = options
-        setRuleEngineState(ruleEngineState_copy)
-    }
-
-
-    return(<>
-        <div className='py-6 px-auto'>
-
-            {<div className='flex flex divide-x flex-wrap'>
-                {groups.map((group,index)=> 
-                
-                <div key={index} className='div flex w-[337px] h-[110px] flex-col gap-3 px-6 items-center justify-center'>
-                    <div key={index} className='text inline-flex w-[132px] text-sm tracking-tight text-zinc-500 font-normal font-cabin'>{group}</div>
-                   
-                    <div className="relative text-neutral-700 w-full  h-full text-sm font-normal font-cabin">
-                        <MultiSelect 
-                            title='Who needs to approve this group?'
-                            placeholder='Approval flow'
-                            currentOption={ruleEngineState[index][groups[index]][tripType][policy]['approval']['approvers']}
-                            options={['L1', 'L2', 'L3', 'Finance']}
-                            onSelect={(options)=>handleSelect(options, index)}
-                            />
-                    </div>    
-
-                </div>)}
-
-            </div>}
-
-
-        </div>
-    </>)
-
-}
 
 function Policy(props){
     const title = props.title || 'Title'
@@ -572,6 +616,11 @@ function Policy(props){
     const setRuleEngineState = props.setRuleEngineState
     const savePolicies = props.savePolicies
     const handleEditFields = props.handleEditFields
+    const handleAllocationHeaderChange = props.handleAllocationHeaderChange
+    const orgHeaders = props.orgHeaders
+    const selectedOrgHeaders = props.selectedOrgHeaders
+    const setShowAddHeaderModal = props.setShowAddHeaderModal
+    const isUploading = props.isUploading??false
 
     const [fieldsPresent, setFieldsPresent] = useState(false)
 
@@ -580,20 +629,6 @@ function Policy(props){
     if(indexOfFileds){
      //   types.splice(indexOfFileds, 1)
      //   setFieldsPresent(true)
-    }
-
-    const [byClass, setByClass] = useState(types.includes('class')? true : false)
-    const [byBudget, setByBudget] = useState((types.includes('class'))? false : true)
-    const [approvalSetup, setApprovalSetup] = useState(types.includes('approval')? true: false)
-
-    const selectPolicyType = (type)=>{
-        if(type.includes('byClass')){
-            setByClass(true)
-            setByBudget(false)
-        }else{
-            setByClass(false)
-            setByBudget(true)
-        }
     }
 
     const groups = ruleEngineState.map(item=>Object.keys(item)[0])
@@ -612,7 +647,7 @@ function Policy(props){
     }
 
     return (
-        <div className={`w-full p-6 transition-max-height duration-1000 ${collapse? 'max-h-[75px]' : 'max-h-[900px]'} bg-white rounded-xl border border-neutral-200`}>
+        <div className={`w-full p-6 transition-max-height duration-1000 ${collapse? 'max-h-[75px]' : 'max-h-[2000px]'} bg-white rounded-xl border border-neutral-200 font-cabin`}>
             <div onClick={()=>setCollapse(pre=>!pre)} className="w-full relative bg-white cursor-pointer">
                 <div className="flex justify-between items-center">
                     
@@ -632,50 +667,65 @@ function Policy(props){
             </div>
 
             <div className={`transition-max-height transition-all duration-1000 ${collapse? 'max-h-0 h-0 hidden': 'max-h-[1000px]'} `}>
-            {!approvalSetup && types.length==2 && !types.includes('fields') &&
-                <div>
-                    {/* by class, by budget*/}
-                    <div className="w-fit h-6 justify-start items-center gap-4 inline-flex mt-5">
-                        <div onClick={()=>{selectPolicyType('byClass')}} className={`${ byClass? 'text-zinc-100 bg-indigo-600 px-2 py-1 rounded-xl' : 'text-zinc-500' } text-xs font-medium font-cabin cursor-pointer`}>By Class </div>
-                        <div onClick={()=>selectPolicyType('byBudget')} className={`${ byBudget? 'text-zinc-100 bg-indigo-600 px-2 py-1 rounded-xl' : 'text-zinc-500' } text-xs font-medium font-cabin cursor-pointer `}>By Budget</div>
-                    </div> 
-                    <hr className='mt-2'/>
-                </div>}
-
-            {/* table */}
-            {!approvalSetup && byClass && 
-                <div className={`w-full h-fit bg-white transition-max-height  ${collapse? 'hidden max-height-0': 'max-height-[1000px]' }`} >
-                    {/* table */}
-                    <div className='mt-10'>
-                        <ClassTable tripType={tripType} policy={title} groups={groups} values={values} ruleEngineState={ruleEngineState} setRuleEngineState={setRuleEngineState} />
-                    </div>
-                </div>}
-
-            {!approvalSetup && byBudget && 
+            { 
             <div className={`w-full h-fit bg-white transition-opacity transition-max-height delay-1000  ${collapse? 'hidden opacity-0 max-height-0': 'opacity-100 max-height-[1000px]' }`} >
-                {/* table */}
                 <div className='mt-10'>
+                    <p className='text-neutral-800 text-base'>Captured Fields</p>
+                    <div className='flex gap-2 divide-x'>
+                        {fields.map((field, fieldIndex)=>
+                            <div key={fieldIndex} className='flex gap-4 pl-1 items-center'>
+                                <p className='text-neutral-700 text-sm font-cabin'>{field.name}</p>
+                                {/* <img className='w-4 h-4 cursor-pointer' src={close_icon} onClick={()=>removeField(index)} /> */}
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {
+                    types.includes('fields') && 
+                    <div className='mt-4 w-fit h-10 inline-flex items-center'>
+                        <p className='text-indigo-600 font-cabin text-sm cursor-pointer' onClick={()=>handleEditFields({category:title, fields})}> Add / Remove Captured Fields</p>
+                    </div>
+                }
+
+                {/* table */}
+                <div className='mt-10 text-base text-neutral-800'>Set Limit</div>
+                <div className='mt-2'>
                     <AmountTable tripType={tripType} types={types} policy={title} groups={groups} ruleEngineState={ruleEngineState} setRuleEngineState={setRuleEngineState} />
                 </div>
-            </div>}
-
-            {approvalSetup && 
-                <div className={`w-full h-fit bg-white transition-opacity transition-max-height delay-1000  ${collapse? 'hidden opacity-0 max-height-0': 'opacity-100 max-height-[1000px]' }`} >
-                    <div className='mt-10'>
-                        <ApprovalSetup tripType={tripType} policy={title} groups={groups} ruleEngineState={ruleEngineState} setRuleEngineState={setRuleEngineState}/>
-                    </div>
-                </div> }
+                </div>}
                 
-           {types.includes('fields') && 
-            <div className='mt-4 w-fit h-10 inline-flex items-center float-left'>
-                <p className='text-indigo-600 font-cabin text-sm cursor-pointer' onClick={()=>handleEditFields({category:title, fields})}>Edit Category name/captured fields</p>
-            </div>}
+                <ExpenseAllocation orgHeaders={orgHeaders} setShowAddHeaderModal={setShowAddHeaderModal} handleAllocationHeaderChange={handleAllocationHeaderChange} title={title} />
 
-            <div className='mt-4 float-right'>
-                <HollowButton title='Save Policies' onClick={()=>savePolicies()} />
+            <div className='mt-4 flex flex-row-reverse'>
+                <HollowButton title='Save Changes' isLoading={isUploading} onClick={()=>savePolicies()} />
             </div>
 
             </div>
         </div>)
       
+}
+
+
+function ExpenseAllocation({orgHeaders, setShowAddHeaderModal, handleAllocationHeaderChange, title}){
+    return(<>
+        {orgHeaders.length>0 && 
+        <div className='mt-10'>
+            <p className='text-base text-neutral-800'>Allocate Expenses for this category</p>
+            <p className='text-sm text-neutral-600'>We have identified following entities on which you might be allocating non-Travel Expenses</p>
+            <div className='flex flex-col gap-1 mt-2'>
+                {orgHeaders.map((header, headerIndex) => 
+                <div key={headerIndex} className='flex items-center justify-between'>
+                    <p className='text-sm flex-1 text-neutral-700'>{header.headerName}</p>
+                    <div className='flex-1 inline-flex'>
+                        <Checkbox onChange={(e)=>handleAllocationHeaderChange(e, title, headerIndex)} />
+                    </div>
+                </div>)}
+            </div>
+
+            <div className='mt-4 w-fit h-10 inline-flex items-center'>
+                <p className='text-indigo-600 font-cabin text-sm cursor-pointer' onClick={()=>setShowAddHeaderModal(true)}> Add additional org level entities</p>
+            </div>
+        </div>}
+    </>)
 }

@@ -21,7 +21,7 @@ export default function (props) {
 
                 <p class="text-gray-600 mb-6">🎉 Congratulations on taking the first step toward effortless expense management! 🎉</p>
 
-                <p class="text-gray-800 mb-6">We're thrilled to have you on board. In the next few minutes, we'll guide you through a seamless onboarding experience to set up your Your Product Name account.</p>
+                <p class="text-gray-800 mb-6">We're thrilled to have you on board. In the next few minutes, we'll guide you through a seamless onboarding experience to set up your Expensebook account.</p>
 
                 <div class="mb-6">
                     <strong class="block mb-2 font-cabin">What to expect:</strong>
@@ -47,7 +47,4 @@ export default function (props) {
       );
 
   }
-
-
-
 

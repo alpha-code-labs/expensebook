@@ -5,8 +5,7 @@ import { useLocation} from "react-router-dom";
 import ExpenseAllocations from "./expenseAllocations/expenseAllocations";
 import TravelAllocations from "./expenseAllocations/TravelAllocations";
 import TravelRelatedExpenses from "./expenseAllocations/travelRelatedExpenses";
-import NonTravelExpenses from "./expenseAllocations/nonTravelExpenses";
-
+import TravelCategoriesExpenseAllocation from "./expenseAllocations/TravelCategoriesExpenseAllocation";
 
 export default function (props){
   
@@ -25,7 +24,6 @@ export default function (props){
         const flags_res = await axios.get(`http://localhost:8001/api/tenant/${tenantId}/flags`)
 
         if(res.status === 200){
-
           console.log(res.data, '...res.data')
           let orgHeadersData = res.data.orgHeaders
           let tmpOrgHeaders = []
@@ -60,7 +58,7 @@ export default function (props){
         <Route path={`/`} element={<ExpenseAllocations tenantId={tenantId} />} />
         <Route path="/travel" element={<TravelAllocations />} />
         <Route path="/travel-related" element={<TravelRelatedExpenses />} />
-        <Route path="/non-travel" element={<NonTravelExpenses />} />
+        <Route path="/travel-categories-related" element={<TravelCategoriesExpenseAllocation />} />
       </Routes>}
   </>;
 }
