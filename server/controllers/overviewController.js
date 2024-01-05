@@ -27,8 +27,8 @@ const getTripByTripId = async (tripId, tenantId, empId) => {
     const trip = await Dashboard.findOne({
       tenantId,
       $or: [
-        { 'createdBy.empId': empId, tripId: tripId.toUpperCase(), tripStatus: { $in: validTripStatus } },
-        { 'createdFor.empId': empId, tripId: tripId.toUpperCase(), tripStatus: { $in: validTripStatus } },
+        { 'createdBy.empId': empId, tripId: tripId, tripStatus: { $in: validTripStatus } },
+        { 'createdFor.empId': empId, tripId: tripId, tripStatus: { $in: validTripStatus } },
       ],
     });
 
@@ -123,7 +123,7 @@ export const addFlight = async (req, res) => {
       const newFlightDetails = {
         itineraryId: new mongoose.Types.ObjectId(),
         ...newFlight,
-        status: updateLineItemStatus(approvers), // Use helper function for determining status
+        status: updateLineItemStatus(approvers), // Using helper function for determining status
       };
 
       flights.push(newFlightDetails);
@@ -476,4 +476,5 @@ export const addHotel = async (req, res) => {
     return handleMicroserviceError(res, error.message);
   }
 };
+
 

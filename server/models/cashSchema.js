@@ -1,58 +1,62 @@
 import mongoose from 'mongoose';
+import { travelRequestSchema } from './travelSchema.js';
+
+
+const cashAdvanceStatusEnum = [
+  'draft',
+  'pending approval',
+  'approved',
+  'rejected',
+  'awaiting pending settlement',
+  'pending settlement',
+  'paid',
+  'cancelled',
+  'paid and cancelled'
+];
+
 
 const cashAdvanceStateEnums = [
   'section 0',
   'section 1',
+  'section 2',
+  'section 3',
 ];
 
-const cashAdvanceStatusEnum = [
-'draft',
-'pending approval',
-'approved',
-'rejected',
-'awaiting pending settlement',
-'pending settlement',
-'paid',
-];
 
-  
 const approverStatusEnums = [
   'pending approval',
   'approved',
   'rejected',
 ];
 
-// Define the Cash Advance schema with a reference to Travel Request
+
 export const cashAdvanceSchema = new mongoose.Schema({
-  tenantId: {
-    type: String,
-    // required: true,
-  },
-  tenantName: {
-    type: String,
-  },
-  companyName: {
-    type: String,
-  },
-  travelRequestId: {
-      type: String,
-  },
-  cashAdvances: [
+  travelRequestData:  {
+      type: travelRequestSchema,
+      required: true,
+    },
+  cashAdvancesData: [
     {
       tenantId: {
         type: String,
-        // required: true,
+        required: true,
       },
       travelRequestId: {
-        // type: mongoose.Schema.Types.ObjectId,
         type: String,
-        // required: true,
+        required: true,
+      },
+      travelRequestNumber:{
+        type: String,
+        required: true,
       },
       cashAdvanceId: {
-        // type: mongoose.Schema.Types.ObjectId,
         type: String,
         // unique: true,
-        // required: true,
+        required: true,
+      },
+      cashAdvanceNumber:{
+        type: String,
+        required: true,
       },
       createdBy: {
           empId: String,
@@ -61,19 +65,19 @@ export const cashAdvanceSchema = new mongoose.Schema({
       cashAdvanceStatus: {
         type: String,
         enum: cashAdvanceStatusEnum,
-        // required: true,
+        required: true,
         default: 'draft',
       },
       cashAdvanceState: {
         type: String,
         enum: cashAdvanceStateEnums,
         default: 'section 0',
-        // required: true,
+        required: true,
       },
       amountDetails: [
         {
           amount: Number,
-          currency: String,
+          currency: {},
           mode: String,
         },
       ],
@@ -87,15 +91,26 @@ export const cashAdvanceSchema = new mongoose.Schema({
           },
         },
       ],
+      assignedTo:{empId:String, name:String},
+      paidBy:{empId:String, name:String},
+      recoveredBy:{empId:String, name:String},
       cashAdvanceRequestDate: Date,
       cashAdvanceApprovalDate: Date,
       cashAdvanceSettlementDate: Date,
-      cashAdvanceViolations: [String],
+      cashAdvanceViolations: String,
       cashAdvanceRejectionReason: String,
     },
   ],
 });
 
-// // Create the Cash Advance model
+
 // const CashAdvance = mongoose.model('CashAdvance', cashAdvanceSchema);
+
+
+// export default CashAdvance
+
+
+
+
+
 
