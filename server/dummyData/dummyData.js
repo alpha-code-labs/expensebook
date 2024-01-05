@@ -1,729 +1,478 @@
-
-const travelRequest = [
-    {
-      tenantId: 'tenant1',
-      tenantName: 'Aramco industries',
-      travelRequestId: 'tenant1_emp001_tr_001',
-      tripPurpose: 'AeroCity Investors Meeting ',
-      travelRequestStatus: 'pending approval',
-      travelRequestState: 'section 1',
-      createdBy: { empId: 'emp001', name: 'Luffy' },
-      createdFor: [
-        { empId: 'emp002', name: 'nami' },
-        { empId: 'emp003', name: 'zoro' },
-      ],
-      travelAllocationHeaders: [
-        { department: 'Dept1', percentage: 40 },
-        { department: 'Dept2', percentage: 60 },
-      ],
-      // itinerary: {
-      //   cities: [
-      //     { from: 'Mumbai', to: 'Delhi', 
-      // departure: { date: '2023-11-01', time: '09:00 AM' },
-      // return: { date: '2023-11-05', time: '05:00 PM' } },
-      //   ],
-      //   hotels: [{ class: '5-star', checkIn: '2023-01-01', checkOut: '2023-01-05' }],
-      //   cabs: [],
-      //   modeOfTransit: 'Flight',
-      //   travelClass: 'Business',
-      //   needsVisa: false,
-      //   needsAirportTransfer: true,
-      //   needsHotel: true,
-      //   needsFullDayCabs: true,
-      //   tripType: { oneWayTrip: false, roundTrip: true, multiCityTrip: false },
-      // },
-      itinerary: [
-        {
-          "departure": {
-            "itineraryId": "6123456789abcdef01234567",
-            "from": "New York",
-            "to": "London",
-            "date": "2023-12-10",
-            "time": "08:00",
-            "modified": false,
-            "isCancelled": false,
-            "status": "pending approval",
-            "bookingDetails": {
-              "docURL": "https://example.com/doc1",
-              "docType": "PDF",
-              "billDetails": {}
-            }
-          },
-          "return": {
-            "itineraryId": "abcdef012345678901234567",
-            "from": "London",
-            "to": "New York",
-            "date": "2023-12-20",
-            "time": "12:00",
-            "modified": false,
-            "isCancelled": false,
-            "status": "pending approval",
-            "bookingDetails": {
-              "docURL": "https://example.com/doc2",
-              "docType": "PDF",
-              "billDetails": {}
-            }
-          },
-          "hotels": [
-            {
-              "location": "Paris",
-              "class": "Luxury",
-              "checkIn": "2023-12-12",
-              "checkOut": "2023-12-15",
-              "violations": {
-                "class": "",
-                "amount": ""
-              },
-              "modified": false,
-              "isCancelled": false,
-              "cancellationDate": "",
-              "cancellationReason": "",
-              "status": "pending approval",
-              "bookingDetails": {
-                "docURL": "https://example.com/doc3",
-                "docType": "PDF",
-                "billDetails": {}
-              }
-            }
-          ],
-          "cabs": [
-            {
-              "date": "2023-12-10",
-              "class": "Sedan",
-              "preferredTime": "10:00",
-              "pickupAddress": "Airport",
-              "dropAddress": "Hotel",
-              "violations": {
-                "class": "",
-                "amount": ""
-              },
-              "modified": false,
-              "isCancelled": false,
-              "cancellationDate": "",
-              "cancellationReason": "",
-              "status": "pending approval",
-              "bookingDetails": {
-                "docURL": "https://example.com/doc4",
-                "docType": "PDF",
-                "billDetails": {}
-              }
-            }
-          ],
-          "modeOfTransit": "Flight",
-          "travelClass": "Business",
-          "needsVisa": false,
-          "needsBoardingTransfer": true,
-          "needsHotelTransfer": true,
-          "boardingTransfer": {
-            "date": "2023-12-10",
-            "class": "Standard",
-            "preferredTime": "09:00",
-            "pickupAddress": "Hotel",
-            "dropAddress": "Airport",
-            "violations": {
-              "class": "",
-              "amount": ""
-            },
-            "modified": false,
-            "isCancelled": false,
-            "cancellationDate": "",
-            "cancellationReason": "",
-            "status": "pending approval",
-            "bookingDetails": {
-              "docURL": "https://example.com/doc5",
-              "docType": "PDF",
-              "billDetails": {}
-            }
-          },
-          "hotelTransfer": {
-            "date": "2023-12-12",
-            "class": "Standard",
-            "preferredTime": "15:00",
-            "pickupAddress": "Hotel",
-            "dropAddress": "Airport",
-            "violations": {
-              "class": "",
-              "amount": ""
-            },
-            "modified": false,
-            "isCancelled": false,
-            "cancellationDate": "",
-            "cancellationReason": "",
-            "status": "pending approval",
-            "bookingDetails": {
-              "docURL": "https://example.com/doc6",
-              "docType": "PDF",
-              "billDetails": {}
-            }
-          },
-          "needsHotel": true,
-          "needsCab": true,
-          "isCancelled": false,
-          "cancellationDate": "",
-          "cancellationReason": "",
-          "status": "pending approval",
-          "itineraryId": "0123456789abcdefabcdef01"
-        }
-      ],      
-      travelDocuments: ['Document1.pdf', 'Document2.pdf'],
-      bookings: [
-        {
-          vendorName: 'Hotel ABC',
-          billNumber: '12345',
-          billDescription: 'Hotel stay for 4 nights',
-          grossAmount: 500,
-          taxes: 50,
-          date: '2023-01-01',
-          imageUrl: 'https://example.com/hotel_receipt.jpg',
-        },
-        {
-          vendorName: 'Flight XYZ',
-          billNumber: '67890',
-          billDescription: 'Round-trip flight ticket',
-          grossAmount: 300,
-          taxes: 30,
-          date: '2023-01-01',
-          imageUrl: 'https://example.com/flight_receipt.jpg',
-        },
-      ],
-      approvers: [{ empId: 'emp004', name: 'Brook' }],
-      preferences: ['Preference1', 'Preference2'],
-      travelViolations: [],
-      travelRequestDate: '2023-01-01',
-      travelBookingDate: '2023-01-05',
-      travelCompletionDate: '2023-01-10',
-      travelRequestRejectionReason: '',
+export const travelRequestData =  {
+    "tenantId": "TNTBAMBOOHR",
+    "tenantName": "BambooHr",
+    "companyName": "BambooHr",
+    "travelRequestNumber": "TNTBAMBOOHR_Luffy_tr_#1",
+    "travelRequestId":"65705525844d9e43f549e275",
+    "tripPurpose": "Business Trip",
+    "travelRequestStatus": "pending approval",
+    "travelRequestState": "section 3",
+    "createdBy": {
+      "empId": "empL001",
+      "name": "Luffy"
     },
-    {
-      tenantId: 'tenant2',
-      travelRequestId: 'tenant2_emp002_tr_001',
-      tripPurpose: 'Delhi Investors Meeting ',
-      travelRequestStatus: 'pending approval',
-      travelRequestState: 'section 5',
-      createdBy: { empId: 'emp002', name: 'nami' },
-      createdFor: [{ empId: 'emp003', name: 'zoro' }],
-      travelAllocationHeaders: [],
-      itinerary: [
-        {
-          "departure": {
-            "itineraryId": "6123456789abcdef01234567",
-            "from": "New York",
-            "to": "London",
-            "date": "2023-12-10",
-            "time": "08:00",
-            "modified": false,
-            "isCancelled": false,
-            "status": "pending approval",
-            "bookingDetails": {
-              "docURL": "https://example.com/doc1",
-              "docType": "PDF",
-              "billDetails": {}
-            }
-          },
-          "return": {
-            "itineraryId": "abcdef012345678901234567",
-            "from": "London",
-            "to": "New York",
-            "date": "2023-12-20",
-            "time": "12:00",
-            "modified": false,
-            "isCancelled": false,
-            "status": "pending approval",
-            "bookingDetails": {
-              "docURL": "https://example.com/doc2",
-              "docType": "PDF",
-              "billDetails": {}
-            }
-          },
-          "hotels": [
-            {
-              "location": "Paris",
-              "class": "Luxury",
-              "checkIn": "2023-12-12",
-              "checkOut": "2023-12-15",
-              "violations": {
-                "class": "",
-                "amount": ""
-              },
-              "modified": false,
-              "isCancelled": false,
-              "cancellationDate": "",
-              "cancellationReason": "",
-              "status": "pending approval",
-              "bookingDetails": {
-                "docURL": "https://example.com/doc3",
-                "docType": "PDF",
-                "billDetails": {}
-              }
-            }
-          ],
-          "cabs": [
-            {
-              "date": "2023-12-10",
-              "class": "Sedan",
-              "preferredTime": "10:00",
-              "pickupAddress": "Airport",
-              "dropAddress": "Hotel",
-              "violations": {
-                "class": "",
-                "amount": ""
-              },
-              "modified": false,
-              "isCancelled": false,
-              "cancellationDate": "",
-              "cancellationReason": "",
-              "status": "pending approval",
-              "bookingDetails": {
-                "docURL": "https://example.com/doc4",
-                "docType": "PDF",
-                "billDetails": {}
-              }
-            }
-          ],
-          "modeOfTransit": "Flight",
-          "travelClass": "Business",
-          "needsVisa": false,
-          "needsBoardingTransfer": true,
-          "needsHotelTransfer": true,
-          "boardingTransfer": {
-            "date": "2023-12-10",
-            "class": "Standard",
-            "preferredTime": "09:00",
-            "pickupAddress": "Hotel",
-            "dropAddress": "Airport",
-            "violations": {
-              "class": "",
-              "amount": ""
-            },
-            "modified": false,
-            "isCancelled": false,
-            "cancellationDate": "",
-            "cancellationReason": "",
-            "status": "pending approval",
-            "bookingDetails": {
-              "docURL": "https://example.com/doc5",
-              "docType": "PDF",
-              "billDetails": {}
-            }
-          },
-          "hotelTransfer": {
-            "date": "2023-12-12",
-            "class": "Standard",
-            "preferredTime": "15:00",
-            "pickupAddress": "Hotel",
-            "dropAddress": "Airport",
-            "violations": {
-              "class": "",
-              "amount": ""
-            },
-            "modified": false,
-            "isCancelled": false,
-            "cancellationDate": "",
-            "cancellationReason": "",
-            "status": "pending approval",
-            "bookingDetails": {
-              "docURL": "https://example.com/doc6",
-              "docType": "PDF",
-              "billDetails": {}
-            }
-          },
-          "needsHotel": true,
-          "needsCab": true,
-          "isCancelled": false,
-          "cancellationDate": "",
-          "cancellationReason": "",
-          "status": "pending approval",
-          "itineraryId": "0123456789abcdefabcdef01"
-        }
-      ], 
-      "tripType": {
-        "oneWayTrip": true,
-        "roundTrip": false,
-        "multiCityTrip": false
-      },
-      "travelDocuments": ["Passport", "Visa"],
-      bookings: [],
-      approvers: [{ empId: 'emp004', name: 'Brook' },{ empId: 'emp001', name: 'Luffy' }],
-      "preferences": ["Window seat", "Non-smoking room"],
-      "travelViolations": {},
-      "travelRequestDate": "2023-12-01",
-      "travelBookingDate": "2023-12-03",
-      "travelCompletionDate": "2023-12-20",
-      "travelRequestRejectionReason": "",
-      "isCancelled": false,
-      "cancellationDate": "",
-      "cancellationReason": "",
-      "isCashAdvanceTaken": true,
-      "sentToTrip": false
-      
+    "createdFor": {
+      "empId": "empZ001",
+      "name": "Zoro"
     },
-    {
-        tenantId: 'tenant1',
-        travelRequestId: 'tenant1_emp003_tr_001',
-        tripPurpose: 'Release 1 Launch ',
-        travelRequestStatus: 'pending approval',
-        travelRequestState: 'section 1',
-        createdBy: { empId: 'emp003', name: 'zoro' },
-        createdFor: [
-          { empId: 'emp002', name: 'nami' }
-        ],
-        travelAllocationHeaders: [
-          { department: 'Dept1', percentage: 40 },
-          { department: 'Dept2', percentage: 60 },
-        ],
-        itinerary: {
-          cities: [
-            { from: 'Tezpur', to: 'Itanagar', departure: { date: '2023-11-29', time: '09:00 AM' }, return: { date: '2023-12-02', time: '05:00 PM' } },
-          ],
-          hotels: [{ class: '3-star', checkIn: '2023-01-01', checkOut: '2023-01-05' }],
-          cabs: [],
-          modeOfTransit: 'Flight',
-          travelClass: 'Business',
-          needsVisa: false,
-          needsAirportTransfer: true,
-          needsHotel: true,
-          needsFullDayCabs: true,
-          tripType: { oneWayTrip: true, roundTrip: false, multiCityTrip: false },
-        },
-        travelDocuments: ['Document1.pdf', 'Document2.pdf'],
-        bookings: [
-          {
-            vendorName: 'Hotel ABC',
-            billNumber: '12345',
-            billDescription: 'Hotel stay for 4 nights',
-            grossAmount: 500,
-            taxes: 50,
-            date: '2023-01-01',
-            imageUrl: 'https://example.com/hotel_receipt.jpg',
-          },
-          {
-            vendorName: 'Flight XYZ',
-            billNumber: '67890',
-            billDescription: 'Round-trip flight ticket',
-            grossAmount: 300,
-            taxes: 30,
-            date: '2023-01-01',
-            imageUrl: 'https://example.com/flight_receipt.jpg',
-          },
-        ],
-        approvers: [{ empId: 'emp004', name: 'Brook' }],
-        preferences: ['Preference1', 'Preference2'],
-        travelViolations: [],
-        travelRequestDate: '2023-01-01',
-        travelBookingDate: '2023-01-05',
-        travelCompletionDate: '2023-01-10',
-        travelRequestRejectionReason: '',
-      },
-      {
-        tenantId: 'tenant2',
-        travelRequestId: 'tenant2_emp005_tr_001',
-        tripPurpose: 'Bengaluru Investors Meeting ',
-        travelRequestStatus: 'pending approval',
-        travelRequestState: 'section 2',
-        createdBy: { empId: 'emp005', name: 'sanji' },
-        createdFor: [{ empId: 'emp003', name: 'zoro' }],
-        travelAllocationHeaders: [],
-        itinerary: {
-          cities: [
-            { from: 'Jamshedpur', to: 'Belgavi', departure: { date: '2023-11-17', time: '09:00 AM' }, return: { date: '2023-11-19', time: '05:00 PM' } },
-          ],
-          hotels: [{ class: '5-star', checkIn: '2023-01-01', checkOut: '2023-01-05' }],
-          cabs: [],
-          modeOfTransit: 'Flight',
-          travelClass: 'Business',
-          needsVisa: false,
-          needsAirportTransfer: true,
-          needsHotel: true,
-          needsFullDayCabs: true,
-          tripType: { oneWayTrip: true, roundTrip: false, multiCityTrip: false },
-        },
-        travelDocuments: [],
-        bookings: [],
-        approvers: [{ empId: 'emp004', name: 'Brook' }],
-        preferences: [],
-        travelViolations: [],
-        travelRequestDate: '2023-10-02',
-        travelBookingDate: '',
-        travelCompletionDate: '2023-11-20',
-        travelRequestRejectionReason: '',
-        
-      }, {
-        tenantId: 'tenant1',
-        travelRequestId: 'tenant1_emp001_tr_002',
-        tripPurpose: 'Branch Opening ',
-        travelRequestStatus: 'pending approval',
-        travelRequestState: 'section 0',
-        createdBy: { empId: 'emp001', name: 'Luffy' },
-        createdFor: [
-          { empId: 'emp002', name: 'nami' },
-          { empId: 'emp003', name: 'zoro' },
-        ],
-        travelAllocationHeaders: [
-          { department: 'Dept1', percentage: 40 },
-          { department: 'Dept2', percentage: 60 },
-        ],
-        itinerary: {
-          cities: [
-            { from: 'Mumbai', to: 'Aizawl', departure: { date: '2023-12-08', time: '09:00 AM' }, return: { date: '2023-12-14', time: '05:00 PM' } },
-          ],
-          hotels: [{ class: '5-star', checkIn: '2023-12-08', checkOut: '2023-12-14' }],
-          cabs: [],
-          modeOfTransit: 'Flight',
-          travelClass: 'Business',
-          needsVisa: false,
-          needsAirportTransfer: true,
-          needsHotel: true,
-          needsFullDayCabs: true,
-          tripType: { oneWayTrip:false, roundTrip: true, multiCityTrip: false },
-        },
-        travelDocuments: ['Document1.pdf', 'Document2.pdf'],
-        bookings: [
-          {
-            vendorName: 'Hotel ABC',
-            billNumber: '12345',
-            billDescription: 'Hotel stay for 4 nights',
-            grossAmount: 500,
-            taxes: 50,
-            date: '2023-01-01',
-            imageUrl: 'https://example.com/hotel_receipt.jpg',
-          },
-          {
-            vendorName: 'Flight XYZ',
-            billNumber: '67890',
-            billDescription: 'Round-trip flight ticket',
-            grossAmount: 300,
-            taxes: 30,
-            date: '2023-01-01',
-            imageUrl: 'https://example.com/flight_receipt.jpg',
-          },
-        ],
-        approvers: [{ empId: 'emp004', name: 'Brook' }],
-        preferences: ['Preference1', 'Preference2'],
-        travelViolations: [],
-        travelRequestDate: '2023-01-01',
-        travelBookingDate: '2023-01-05',
-        travelCompletionDate: '2023-01-10',
-        travelRequestRejectionReason: '',
-        
-      },
-      
-    // Add more dummy data for other status
-  ];
-  
-const cashAdvances = [
-{
-  "tenantId": "tenant1",
-  "travelRequestId": "tenant1_emp001_tr_001",
-  "cashAdvanceId": "tenant1_emp001_CA_001",
-  "createdBy": { empId: 'emp001', name: 'Luffy' },
-  "cashAdvanceStatus": "pending approval",
-  "cashAdvanceState": "section 3",
-  "amountDetails": [
-      {
-          "amount": 1300,
-          "currency": "INR",
-          "mode": "UPI",
-      }
-  ],
-  "approvers": [{ empId: 'emp004', name: 'Brook' }],
-  "cashAdvanceRequestDate": "2023-10-16T16:18:58.828Z",
-  "cashAdvanceApprovalDate": null,
-  "cashAdvanceSettlementDate": null,
-  "cashAdvanceViolations": [],
-  "cashAdvanceRejectionReason": null,
-  "additionalCashAdvanceField": null,
-  "embeddedTravelRequest": {
-    tenantId: 'tenant1',
-    travelRequestId: 'tenant1_emp001_tr_001',
-    tripPurpose: 'AeroCity Investors Meeting ',
-    travelRequestStatus: 'pending approval',
-    travelRequestState: 'section 1',
-    createdBy: { empId: 'emp001', name: 'Luffy' },
-    createdFor: [
-      { empId: 'emp002', name: 'nami' },
-      { empId: 'emp003', name: 'zoro' },
+    "teamMembers": [
+      {"empId": "empN001", "name": "Nami"},
+      {"empId": "empU001", "name": "Usopp"}
     ],
-    travelAllocationHeaders: [
-      { department: 'Dept1', percentage: 40 },
-      { department: 'Dept2', percentage: 60 },
+    "travelAllocationHeaders": [
+      {"allocationType": "Flights", "allocationAmount": 1000},
+      {"allocationType": "Hotels", "allocationAmount": 800}
     ],
     itinerary: {
-      cities: [
-        { from: 'Mumbai', to: 'Delhi', departure: { date: '2023-11-01', time: '09:00 AM' }, return: { date: '2023-11-05', time: '05:00 PM' } },
+      "formState": [
+        {
+          "formId": "Form1",
+          "transfers": {
+            "needsDeparturePickup": true,
+            "needsDepartureDrop": false,
+            "needsReturnPickup": true,
+            "needsReturnDrop": false
+          },
+          "needsHotel": true,
+          "needsCab": false,
+          "needsVisa": true,
+          "cancellationDate": null,
+          "cancellationReason": null,
+          "formStatus": "pending approval"
+        },
+        {
+          "formId": "Form2",
+          "transfers": {
+            "needsDeparturePickup": false,
+            "needsDepartureDrop": true,
+            "needsReturnPickup": false,
+            "needsReturnDrop": true
+          },
+          "needsHotel": false,
+          "needsCab": true,
+          "needsVisa": false,
+          "cancellationDate": "2023-12-15",
+          "cancellationReason": "Change of plans",
+          "formStatus": "Cancelled"
+        }
       ],
-      hotels: [{ class: '5-star', checkIn: '2023-01-01', checkOut: '2023-01-05' }],
-      cabs: [],
-      modeOfTransit: 'Flight',
-      travelClass: 'Business',
-      needsVisa: false,
-      needsAirportTransfer: true,
-      needsHotel: true,
-      needsFullDayCabs: true,
-      tripType: { oneWayTrip: false, roundTrip: true, multiCityTrip: false },
-    },
-    travelDocuments: ['Document1.pdf', 'Document2.pdf'],
-    bookings: [
-      {
-        vendorName: 'Hotel ABC',
-        billNumber: '12345',
-        billDescription: 'Hotel stay for 4 nights',
-        grossAmount: 500,
-        taxes: 50,
-        date: '2023-01-01',
-        imageUrl: 'https://example.com/hotel_receipt.jpg',
-      },
-      {
-        vendorName: 'Flight XYZ',
-        billNumber: '67890',
-        billDescription: 'Round-trip flight ticket',
-        grossAmount: 300,
-        taxes: 30,
-        date: '2023-01-01',
-        imageUrl: 'https://example.com/flight_receipt.jpg',
-      },
-    ],
-    approvers: [{ empId: 'emp004', name: 'Brook' }],
-    preferences: ['Preference1', 'Preference2'],
-    travelViolations: [],
-    travelRequestDate: '2023-01-01',
-    travelBookingDate: '2023-01-05',
-    travelCompletionDate: '2023-01-10',
-    travelRequestRejectionReason: '',
-},},
-{
-"tenantId": "tenant2",
-"travelRequestId": "tenant2_emp002_tr_001",
-"cashAdvanceId": "tenant2_emp002_CA_53",
-"createdBy": { empId: 'emp002', name: 'nami' },
-"cashAdvanceStatus": "pending approval",
-"cashAdvanceState": "section 3",
-"amountDetails": [
-    {
-        "amount": 9800,
-        "currency": "INR",
-        "mode": "NEFT",
-    }
-],
-"approvers": [{ empId: 'emp004', name: 'Brook' },{ empId: 'emp001', name: 'Luffy' }],
-"cashAdvanceRequestDate": "2023-10-18T16:18:58.828Z",
-"cashAdvanceApprovalDate": null,
-"cashAdvanceSettlementDate": null,
-"cashAdvanceViolations": [],
-"cashAdvanceRejectionReason": null,
-"additionalCashAdvanceField": null,
-"embeddedTravelRequest": { tenantId: 'tenant2',
-travelRequestId: 'tenant2_emp002_tr_001',
-tripPurpose: 'Delhi Investors Meeting ',
-travelRequestStatus: 'pending approval',
-travelRequestState: 'section 5',
-createdBy: { empId: 'emp002', name: 'nami' },
-createdFor: [{ empId: 'emp003', name: 'zoro' }],
-travelAllocationHeaders: [],
-itinerary: {
-  cities: [
-    { from: 'Hyderabad', to: 'Delhi', departure: { date: '2023-12-22', time: '09:00 AM' }, return: { date: '2023-12-27', time: '05:00 PM' } },
-  ],
-  hotels: [{ class: '4-star', checkIn: '2023-01-01', checkOut: '2023-01-05' }],
-  cabs: [],
-  modeOfTransit: 'Flight',
-  travelClass: 'Economy',
-  needsVisa: false,
-  needsAirportTransfer: true,
-  needsHotel: true,
-  needsFullDayCabs: true,
-  tripType: { oneWayTrip: false, roundTrip: true, multiCityTrip: false },
-},
-travelDocuments: [],
-bookings: [],
-approvers: [{ empId: 'emp004', name: 'Brook' },{ empId: 'emp001', name: 'Luffy' }],
-preferences: [],
-travelViolations: [],
-travelRequestDate: '2023-10-12',
-travelBookingDate: '',
-travelCompletionDate: '2023-11-2',
-travelRequestRejectionReason: '',
-},},
-{
-  "tenantId": "tenant1",
-  tenantName: 'Aramco industries',
-  "travelRequestId": "tenant1_emp003_tr_001",
-  "cashAdvanceId": "tenant1_emp003_CA_006",
-  "createdBy": { empId: 'emp003', name: 'zoro' },
-  "cashAdvanceStatus": "pending approval",
-  "cashAdvanceState": "section 3",
-  "amountDetails": [
-      {
-          "amount": 124200,
-          "currency": "INR",
-          "mode": "Check",
-      }
-  ],
-  "approvers": [{ empId: 'emp004', name: 'Brook' }],
-  "cashAdvanceRequestDate": "2023-10-12T16:18:58.828Z",
-  "cashAdvanceApprovalDate": null,
-  "cashAdvanceSettlementDate": null,
-  "cashAdvanceViolations": ["Exceeded the limit set by the T&E policy"],
-  "cashAdvanceRejectionReason": null,
-  "additionalCashAdvanceField": null,
-  "embeddedTravelRequest": {
-    tenantId: 'tenant1',
-    tenantName: 'Aramco industries',
-    travelRequestId: 'tenant1_emp003_tr_001',
-    tripPurpose: 'Release 1 Launch ',
-    travelRequestStatus: 'pending approval',
-    travelRequestState: 'section 1',
-    createdBy: { empId: 'emp003', name: 'zoro' },
-    createdFor: [
-      { empId: 'emp002', name: 'nami' }
-    ],
-    travelAllocationHeaders: [
-      { department: 'Dept1', percentage: 40 },
-      { department: 'Dept2', percentage: 60 },
-    ],
-    itinerary: {
-      cities: [
-        { from: 'Tezpur', to: 'Itanagar', departure: { date: '2023-11-29', time: '09:00 AM' }, return: { date: '2023-12-02', time: '05:00 PM' } },
-      ],
-      hotels: [{ class: '3-star', checkIn: '2023-01-01', checkOut: '2023-01-05' }],
-      cabs: [],
-      modeOfTransit: 'Flight',
-      travelClass: 'Business',
-      needsVisa: false,
-      needsAirportTransfer: true,
-      needsHotel: true,
-      needsFullDayCabs: true,
-      tripType: { oneWayTrip: true, roundTrip: false, multiCityTrip: false },
-    },
-    travelDocuments: ['Document1.pdf', 'Document2.pdf'],
-    bookings: [
-      {
-        vendorName: 'Hotel ABC',
-        billNumber: '12345',
-        billDescription: 'Hotel stay for 4 nights',
-        grossAmount: 500,
-        taxes: 50,
-        date: '2023-01-01',
-        imageUrl: 'https://example.com/hotel_receipt.jpg',
-      },
-      {
-        vendorName: 'Flight XYZ',
-        billNumber: '67890',
-        billDescription: 'Round-trip flight ticket',
-        grossAmount: 300,
-        taxes: 30,
-        date: '2023-01-01',
-        imageUrl: 'https://example.com/flight_receipt.jpg',
-      },
-    ],
-    approvers: [{ empId: 'emp004', name: 'Brook' }],
-    preferences: ['Preference1', 'Preference2'],
-    travelViolations: [],
-    travelRequestDate: '2023-01-01',
-    travelBookingDate: '2023-01-05',
-    travelCompletionDate: '2023-01-10',
-    travelRequestRejectionReason: '',
     
-  },},
-];
+      "flights": [
+        {
+          "itineraryId": "5f72f04e2d1c6b4e234b49c1",
+          "formId": "Form1",
+          "from": "CityA",
+          "to": "CityB",
+          "date": "2023-12-20",
+          "time": "10:00 AM",
+          "travelClass": "Business",
+          "isReturnTravel": "No",
+          "violations": {
+            "class": "None",
+            "amount": "0"
+          },
+          "bkd_from": "CityA",
+          "bkd_to": "CityB",
+          "bkd_date": "2023-12-20",
+          "bkd_time": "10:00 AM",
+          "bkd_travelClass": "Business",
+          "bkd_isReturnTravel": "No",
+          "modified": false,
+          "cancellationDate": null,
+          "cancellationReason": null,
+          "status": "pending approval",
+          "bookingDetails": {
+            "docURL": "https://example.com/ticket",
+            "docType": "E-Ticket",
+            "billDetails": {}
+          }
+        },
+        {
+          "itineraryId": "5f72f04e2d1c6b4e234b49c2",
+          "formId": "Form2",
+          "from": "CityX",
+          "to": "CityY",
+          "date": "2023-12-25",
+          "time": "2:00 PM",
+          "travelClass": "Economy",
+          "isReturnTravel": "Yes",
+          "violations": {
+            "class": "Overweight",
+            "amount": "50"
+          },
+          "bkd_from": "CityX",
+          "bkd_to": "CityY",
+          "bkd_date": "2023-12-25",
+          "bkd_time": "2:00 PM",
+          "bkd_travelClass": "Economy",
+          "bkd_isReturnTravel": "Yes",
+          "modified": true,
+          "cancellationDate": "2023-12-22",
+          "cancellationReason": "Change of plans",
+          "status": "pending approval",
+          "bookingDetails": {
+            "docURL": "https://example.com/ticket-cancelled",
+            "docType": "E-Ticket",
+            "billDetails": {}
+          }
+        }
+      ],
+    
+      "buses": [
+        {
+          "itineraryId": "6123456789abcdef01234567",
+          "formId": "B001",
+          "from": "CityA",
+          "to": "CityB",
+          "date": "2023-12-10",
+          "time": "12:00 PM",
+          "travelClass": "Economy",
+          "isReturnTravel": "No",
+          "violations": {
+            "class": "ClassA",
+            "amount": "50"
+          },
+          "bkd_from": "CityA",
+          "bkd_to": "CityB",
+          "bkd_date": "2023-12-10",
+          "bkd_time": "12:00 PM",
+          "bkd_travelClass": "Economy",
+          "bkd_isReturnTravel": "No",
+          "modified": false,
+          "cancellationDate": null,
+          "cancellationReason": null,
+          "status": "pending approval",
+          "bookingDetails": {
+            "docURL": "http://example.com/ticket",
+            "docType": "PDF",
+            "billDetails": {}
+          }
+        },
+        {
+          "itineraryId": "6123456789abcdef01234568",
+          "formId": "B002",
+          "from": "CityC",
+          "to": "CityD",
+          "date": "2023-12-12",
+          "time": "02:00 PM",
+          "travelClass": "Business",
+          "isReturnTravel": "Yes",
+          "violations": {
+            "class": "ClassB",
+            "amount": "75"
+          },
+          "bkd_from": "CityC",
+          "bkd_to": "CityD",
+          "bkd_date": "2023-12-12",
+          "bkd_time": "02:00 PM",
+          "bkd_travelClass": "Business",
+          "bkd_isReturnTravel": "Yes",
+          "modified": false,
+          "cancellationDate": null,
+          "cancellationReason": null,
+          "status": "pending approval",
+          "bookingDetails": {
+            "docURL": "http://example.com/ticket2",
+            "docType": "PDF",
+            "billDetails": {}
+          }
+        }
+      ],
+    
+      "trains": [
+        {
+          "itineraryId": "6123456789abcdef01234569",
+          "formId": "T001",
+          "from": "StationX",
+          "to": "StationY",
+          "date": "2023-12-15",
+          "time": "08:00 AM",
+          "travelClass": "Sleeper",
+          "isReturnTravel": "No",
+          "violations": {
+            "class": "ClassC",
+            "amount": "60"
+          },
+          "bkd_from": "StationX",
+          "bkd_to": "StationY",
+          "bkd_date": "2023-12-15",
+          "bkd_time": "08:00 AM",
+          "bkd_travelClass": "Sleeper",
+          "bkd_isReturnTravel": "No",
+          "bkd_violations": {
+            "class": "ClassD",
+            "amount": "80"
+          },
+          "modified": false,
+          "cancellationDate": null,
+          "cancellationReason": null,
+          "status": "pending approval",
+          "bookingDetails": {
+            "docURL": "http://example.com/ticket3",
+            "docType": "PDF",
+            "billDetails": {}
+          }
+        },
+        {
+          "itineraryId": "6123456789abcdef0123456a",
+          "formId": "T002",
+          "from": "StationZ",
+          "to": "StationW",
+          "date": "2023-12-18",
+          "time": "10:30 AM",
+          "travelClass": "AC",
+          "isReturnTravel": "Yes",
+          "violations": {
+            "class": "ClassE",
+            "amount": "90"
+          },
+          "bkd_from": "StationZ",
+          "bkd_to": "StationW",
+          "bkd_date": "2023-12-18",
+          "bkd_time": "10:30 AM",
+          "bkd_travelClass": "AC",
+          "bkd_isReturnTravel": "Yes",
+          "bkd_violations": {
+            "class": "ClassF",
+            "amount": "100"
+          },
+          "modified": false,
+          "cancellationDate": null,
+          "cancellationReason": null,
+          "status": "pending approval",
+          "bookingDetails": {
+            "docURL": "http://example.com/ticket4",
+            "docType": "PDF",
+            "billDetails": {}
+          }
+        }
+      ],
+    
+      "hotels": [
+        {
+          "itineraryId": "6123456789abcdef0123456b",
+          "formId": "H001",
+          "location": "CityX",
+          "locationPreference": "Downtown",
+          "class": "Luxury",
+          "checkIn": "2023-12-20",
+          "checkOut": "2023-12-25",
+          "violations": {
+            "class": "ClassG",
+            "amount": "120"
+          },
+          "bkd_location": "CityX",
+          "bkd_class": "Luxury",
+          "bkd_checkIn": "2023-12-20",
+          "bkd_checkOut": "2023-12-25",
+          "bkd_violations": {
+            "class": "ClassH",
+            "amount": "150"
+          },
+          "modified": false,
+          "cancellationDate": null,
+          "cancellationReason": null,
+          "status": "pending approval",
+          "bookingDetails": {
+            "docURL": "http://example.com/bookingconfirmation",
+            "docType": "PDF",
+            "billDetails": {}
+          }
+        },
+        {
+          "itineraryId": "6123456789abcdef0123456c",
+          "formId": "H002",
+          "location": "CityY",
+          "locationPreference": "Suburb",
+          "class": "Standard",
+          "checkIn": "2023-12-28",
+          "checkOut": "2024-01-02",
+          "violations": {
+            "class": "ClassI",
+            "amount": "80"
+          },
+          "bkd_location": "CityY",
+          "bkd_class": "Standard",
+          "bkd_checkIn": "2023-12-28",
+          "bkd_checkOut": "2024-01-02",
+          "bkd_violations": {
+            "class": "ClassJ",
+            "amount": "100"
+          },
+          "modified": false,
+          "cancellationDate": null,
+          "cancellationReason": null,
+          "status": "pending approval",
+          "bookingDetails": {
+            "docURL": "http://example.com/bookingconfirmation2",
+            "docType": "PDF",
+            "billDetails": {}
+          }
+        }
+      ],
+    
+      "cabs": [
+        {
+          "itineraryId": "6123456789abcdef0123456d",
+          "formId": "C001",
+          "date": "2023-12-22",
+          "class": "Sedan",
+          "preferredTime": "09:00 AM",
+          "pickupAddress": "LocationA",
+          "dropAddress": "LocationB",
+          "isReturnTravel": "No",
+          "violations": {
+            "class": "ClassK",
+            "amount": "40"
+          },
+          "bkd_date": "2023-12-22",
+          "bkd_class": "Sedan",
+          "bkd_preferredTime": "09:00 AM",
+          "bkd_pickupAddress": "LocationA",
+          "bkd_dropAddress": "LocationB",
+          "bkd_isReturnTravel": "No",
+          "bkd_violations": {
+            "class": "ClassL",
+            "amount": "60"
+          },
+          "modified": false,
+          "cancellationDate": null,
+          "cancellationReason": null,
+          "status": "pending approval",
+          "bookingDetails": {
+            "docURL": "http://example.com/cabbooking",
+            "docType": "PDF",
+            "billDetails": {}
+          },
+          "type": "departure pickup"
+        },
+        {
+          "itineraryId": "6123456789abcdef0123456e",
+          "formId": "C002",
+          "date": "2023-12-30",
+          "class": "SUV",
+          "preferredTime": "03:00 PM",
+          "pickupAddress": "LocationC",
+          "dropAddress": "LocationD",
+          "isReturnTravel": "Yes",
+          "violations": {
+            "class": "ClassM",
+            "amount": "50"
+          },
+          "bkd_date": "2023-12-30",
+          "bkd_class": "SUV",
+          "bkd_preferredTime": "03:00 PM",
+          "bkd_pickupAddress": "LocationC",
+          "bkd_dropAddress": "LocationD",
+          "bkd_isReturnTravel": "Yes",
+          "bkd_violations": {
+            "class": "ClassN",
+            "amount": "70"
+          },
+          "modified": false,
+          "cancellationDate": null,
+          "cancellationReason": null,
+          "status": "pending approval",
+          "bookingDetails": {
+            "docURL": "http://example.com/cabbooking2",
+            "docType": "PDF",
+            "billDetails": {}
+          },
+        }
+      ] },
+              "approvers": [
+                {
+                  "empId": "empM001",
+                  "name": "Sanji",
+                  "status": "approved"
+                },
+                {
+                  "empId": "empR001",
+                  "name": "Robin",
+                  "status": "approved"
+                }
+              ],
+              "preferences": ["Window seat", "Non-smoking room"],
+              "travelViolations": {},
+              "travelRequestDate": "2023-12-08T15:30:00.000Z",
+              "assignedTo": {"empId": "empZ001", "name": "Zoro"},
+              "pending approvalBy": {"empId": "empL001", "name": "Luffy"},
+              "travelRequestDate ": "2023-12-14T15:30:00.000Z",
+              "travelBookingDate": "2023-12-28T15:30:00.000Z",
+              "travelCompletionDate": "2024-01-29T15:30:00.000Z",
+              "travelRequestRejectionReason": "Not enough budget allocated",
+              "isCancelled": false,
+              "cancellationDate": '',
+              "cancellationReason": '',
+              "isCashAdvanceTaken": true,
 
-export { travelRequest, cashAdvances };
+}
+      
+export const cashAdvancesData =  [ 
+            {
+              tenantId: "TNTBAMBOOHR",
+              tenantName: "BambooHr",
+              companyName: "BambooHr",
+              "travelRequestNumber": "TNTBAMBOOHR_Luffy_tr_#1",
+              "travelRequestId":"65705525844d9e43f549e275",
+              cashAdvanceNumber: "CABHR000001",
+              "cashAdvanceId":"65705525844d9e43f549e277",
+              createdBy: { empId: "empL001", name: "Luffy" },
+              createdFor: { empId: "empL001", name: "Luffy" },
+              cashAdvanceStatus: "approved",
+              cashAdvanceState: "section 0",
+              amountDetails: [
+                {
+                  amount: 6900.0,
+                  currency: "INR",
+                  mode: "Credit Card",
+                },
+              ],
+              approvers: [
+                {
+                  empId: "empG001",
+                  name: "Garp",
+                  status: "approved",
+                },
+              ],
+              cashAdvanceRequestDate: "2023-12-08T15:30:00.000Z" ,
+              cashAdvanceApprovalDate: "2023-12-15T15:30:00.000Z" ,
+              cashAdvanceSettlementDate: "2023-12-19T10:40:00.000Z",
+              cashAdvanceViolations: [],
+              cashAdvanceRejectionReason: "funds excess transferred",
+              notificationSentToDashboardFlag: true,
+            },
+            {
+              tenantId: "TNTBAMBOOHR",
+              tenantName: "BambooHr",
+              companyName: "BambooHr",
+              "travelRequestNumber": "TNTBAMBOOHR_Luffy_tr_#1",
+              "travelRequestId":"65705525844d9e43f549e275",
+              cashAdvanceNumber: "CABHR000002",
+              "cashAdvanceId":"65705525844d9e43f549e279",
+              createdBy: { empId: "empL001", name: "Luffy" },
+              createdFor: { empId: "empL001", name: "Luffy" },
+              cashAdvanceStatus: "paid",
+              cashAdvanceState: "section 0",
+              amountDetails: [
+                {
+                  amount: 8000.0,
+                  currency: "INR",
+                  mode: "UPI",
+                },
+              ],
+              approvers: [
+                {
+                  empId: "empG001",
+                  name: "Garp",
+                  status: "approved",
+                },
+              ],
+              cashAdvanceRequestDate: "2023-12-08T15:30:00.000Z",
+              cashAdvanceApprovalDate: "2023-12-08T05:30:00.000Z",
+              cashAdvanceSettlementDate: "2023-12-19T10:40:00.000Z",
+              cashAdvanceViolations: [],
+              cashAdvanceRejectionReason: "reason",
+              notificationSentToDashboardFlag: true,
+            },
+    ]

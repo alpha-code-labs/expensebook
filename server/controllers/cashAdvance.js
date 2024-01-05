@@ -9,9 +9,9 @@ export const getPendingCashAdvances = async (req, res) => {
     const travelRequests = await Approval.find({
       'tenantId': tenantId,
       'approvalType': 'travel',
-      'embeddedTravelRequest.isCashAdvanceTaken': true,
-      'embeddedTravelRequest.approvers.empId': empId,
-      'embeddedTravelRequest.travelRequestStatus': { $in: ['approved', 'booked'] }, 
+      'travelRequestData.isCashAdvanceTaken': true,
+      'travelRequestData.approvers.empId': empId,
+      'travelRequestData.travelRequestStatus': { $in: ['approved', 'booked'] }, 
     }).exec();
 
     if (travelRequests.length === 0) {
@@ -22,12 +22,12 @@ export const getPendingCashAdvances = async (req, res) => {
 
     for (const request of travelRequests) {
       const extractedRequestData = {
-        travelRequestStatus: request.embeddedTravelRequest?.travelRequestStatus,
-        itineraryCities: request.embeddedTravelRequest?.itinerary.map(item => item.departure.to) || [],
+        travelRequestStatus: request.travelRequestData?.travelRequestStatus,
+        itineraryCities: request.travelRequestData?.itinerary.map(item => item.departure.to) || [],
       };
 
-      if (request.embeddedCashAdvance) {
-        for (const cashAdvance of request.embeddedCashAdvance.cashAdvances) {
+      if (request.cashAdvancesData) {
+        for (const cashAdvance of request.cashAdvancesData.cashAdvances) {
           if (cashAdvance.cashAdvanceStatus === 'pending approval') {
             const {
               amountDetails,
@@ -66,10 +66,10 @@ export const getPendingCashAdvancesForATravelRequest = async (req, res) => {
     const travelRequests = await Approval.find({
       'tenantId': tenantId,
       'approvalType': 'travel',
-      'embeddedTravelRequest.travelRequestId': travelRequestId,
-      'embeddedTravelRequest.isCashAdvanceTaken': true,
-      'embeddedTravelRequest.approvers.empId': empId,
-      'embeddedTravelRequest.travelRequestStatus': { $in: ['approved', 'booked'] },
+      'travelRequestData.travelRequestId': travelRequestId,
+      'travelRequestData.isCashAdvanceTaken': true,
+      'travelRequestData.approvers.empId': empId,
+      'travelRequestData.travelRequestStatus': { $in: ['approved', 'booked'] },
     }).exec();
 
     if (travelRequests.length === 0) {
@@ -80,12 +80,12 @@ export const getPendingCashAdvancesForATravelRequest = async (req, res) => {
 
     for (const request of travelRequests) {
       const extractedRequestData = {
-        travelRequestStatus: request.embeddedTravelRequest?.travelRequestStatus,
-        itineraryCities: request.embeddedTravelRequest?.itinerary.map(item => item.departure.to) || [],
+        travelRequestStatus: request.travelRequestData?.travelRequestStatus,
+        itineraryCities: request.travelRequestData?.itinerary.map(item => item.departure.to) || [],
       };
 
-      if (request.embeddedCashAdvance) {
-        for (const cashAdvance of request.embeddedCashAdvance.cashAdvances) {
+      if (request.cashAdvancesData) {
+        for (const cashAdvance of request.cashAdvancesData.cashAdvances) {
           if (cashAdvance.cashAdvanceStatus === 'pending approval') {
             const {
               amountDetails,
@@ -124,10 +124,10 @@ export const getPendingCashAdvancesForEmployee = async (req, res) => {
     const travelRequest = await Approval.findOne({
       'tenantId': tenantId,
       'approvalType': 'travel',
-      'embeddedTravelRequest.travelRequestId': travelRequestId,
-      'embeddedTravelRequest.isCashAdvanceTaken': true,
-      'embeddedTravelRequest.approvers.empId': empId,
-      'embeddedTravelRequest.travelRequestStatus': { $in: ['approved', 'booked'] },
+      'travelRequestData.travelRequestId': travelRequestId,
+      'travelRequestData.isCashAdvanceTaken': true,
+      'travelRequestData.approvers.empId': empId,
+      'travelRequestData.travelRequestStatus': { $in: ['approved', 'booked'] },
     }).exec();
 
     if (!travelRequest) {
@@ -135,14 +135,14 @@ export const getPendingCashAdvancesForEmployee = async (req, res) => {
     }
 
     const extractedTravelData = {
-      travelRequestStatus: travelRequest.embeddedTravelRequest?.travelRequestStatus || 'No Status',
-      departureFrom: travelRequest.embeddedTravelRequest?.itinerary.map(item => item.departure.from) || [],
-      departureTo: travelRequest.embeddedTravelRequest?.itinerary.map(item => item.departure.to) || [],
+      travelRequestStatus: travelRequest.travelRequestData?.travelRequestStatus || 'No Status',
+      departureFrom: travelRequest.travelRequestData?.itinerary.map(item => item.departure.from) || [],
+      departureTo: travelRequest.travelRequestData?.itinerary.map(item => item.departure.to) || [],
       cashAdvances: [],
     };
 
-    if (travelRequest.embeddedCashAdvance) {
-      for (const cashAdvance of travelRequest.embeddedCashAdvance.cashAdvances || []) {
+    if (travelRequest.cashAdvancesData) {
+      for (const cashAdvance of travelRequest.cashAdvancesData.cashAdvances || []) {
         if (cashAdvance.cashAdvanceStatus === 'pending approval') {
           const {
             amountDetails = [],
@@ -185,17 +185,17 @@ export const approveCashRaisedLater = async (req, res) => {
     const approval = await Approval.findOne({
       'tenantId': tenantId,
       'approvalType': 'travel',
-      'embeddedTravelRequest.travelRequestId': travelRequestId,
-      'embeddedTravelRequest.isCashAdvanceTaken': true,
-      'embeddedTravelRequest.approvers.empId': empId,
-      'embeddedTravelRequest.travelRequestStatus': { $in: ['approved', 'booked'] },
+      'travelRequestData.travelRequestId': travelRequestId,
+      'travelRequestData.isCashAdvanceTaken': true,
+      'travelRequestData.approvers.empId': empId,
+      'travelRequestData.travelRequestStatus': { $in: ['approved', 'booked'] },
     }).exec();
 
     if (!approval) {
       return res.status(404).json({ message: 'No approved or booked travel request found.' });
     }
 
-    approval.embeddedCashAdvance.cashAdvances.forEach((cashAdvance) => {
+    approval.cashAdvancesData.cashAdvances.forEach((cashAdvance) => {
       if (cashAdvance.cashAdvanceStatus === 'pending approval') {
         cashAdvance.cashAdvanceStatus = 'approved';
       }
@@ -224,10 +224,10 @@ export const rejectCashAdvanceRaisedLater = async (req, res) => {
     const approval = await Approval.findOne({
       'tenantId': tenantId,
       'approvalType': 'travel',
-      'embeddedTravelRequest.travelRequestId': travelRequestId,
-      'embeddedTravelRequest.isCashAdvanceTaken': true,
-      'embeddedTravelRequest.approvers.empId': empId,
-      'embeddedTravelRequest.travelRequestStatus': { $in: ['approved', 'booked'] },
+      'travelRequestData.travelRequestId': travelRequestId,
+      'travelRequestData.isCashAdvanceTaken': true,
+      'travelRequestData.approvers.empId': empId,
+      'travelRequestData.travelRequestStatus': { $in: ['approved', 'booked'] },
     }).exec();
 
     if (!approval) {
@@ -235,7 +235,7 @@ export const rejectCashAdvanceRaisedLater = async (req, res) => {
     }
 
     // Update cash advances' rejection reasons
-    approval.embeddedCashAdvance.cashAdvances.forEach((cashAdvance) => {
+    approval.cashAdvancesData.cashAdvances.forEach((cashAdvance) => {
       if (cashAdvance.cashAdvanceStatus === 'pending approval') {
         cashAdvance.cashAdvanceRejectionReason = rejectionReasons || 'No specific reason provided';
         cashAdvance.cashAdvanceStatus = 'rejected';

@@ -1,19 +1,26 @@
+// import { travelRequestData } from '../dummyData/dummyData.js';
 
-import { travelRequest } from '../dummyData/dummyDataUpdated.js';
+// export const fetchTravelRequestData = async () => {
+//   try {
+//     // Ensure travelRequestData is an object
+//     if (typeof travelRequestData !== 'object' || Array.isArray(travelRequestData)) {
+//       console.error('Error: travelRequestData is not a single object.');
+//       return null; // or handle it accordingly based on your use case
+//     }
 
-export const fetchTravelRequestData = async () => {
-  try {
-    // Filter travel requests with a status of 'pending approval'
-    const filteredTravelRequests = travelRequest.filter((item) => {
-      return item.travelRequestStatus === 'pending approval';
-    });
-    console.log(filteredTravelRequests)
-    return filteredTravelRequests;
-  } catch (error) {
-    console.error('An error occurred while fetching travel request data:', error.message);
-    throw error;
-  }
-};
+//     // Check the condition directly on the single object
+//     if (travelRequestData.travelRequestStatus === 'pending approval') {
+//       console.log(travelRequestData);
+//       return [travelRequestData]; // return an array with the matching object
+//     } else {
+//       console.log('No travel request with status "pending approval" found.');
+//       return [];
+//     }
+//   } catch (error) {
+//     console.error('An error occurred while fetching travel request data:', error.message);
+//     throw error;
+//   }
+// };
 
 
 
@@ -153,3 +160,42 @@ export const fetchTravelRequestData = async () => {
 //     };
 //   }
 // };
+
+import { travelRequestData, cashAdvancesData } from '../dummyData/dummyData.js';
+
+export const fetchTravelRequestData = async () => {
+  try {
+    // Ensure travelRequestData is an object
+    if (typeof travelRequestData !== 'object' || Array.isArray(travelRequestData)) {
+      console.error('Error: travelRequestData is not a single object.');
+      return null; // or handle it accordingly based on your use case
+    }
+
+    // Check the condition directly on the single object
+    if (travelRequestData.travelRequestStatus === 'pending approval') {
+      // Find the matching cash advance data based on travelRequestId
+      const matchingCashAdvance = cashAdvancesData.find(
+        (cashAdvance) => cashAdvance.travelRequestId === travelRequestData.travelRequestId
+      );
+
+      // If a matching cash advance is found, combine the data
+      if (matchingCashAdvance) {
+        const combinedData = {
+          ...travelRequestData,
+          cashAdvancesData: matchingCashAdvance,
+        };
+        console.log(combinedData);
+        return [combinedData]; 
+      } else {
+        console.log('No matching cash advance found for the travel request.');
+        return [travelRequestData]; // return an array with the travel request data only
+      }
+    } else {
+      console.log('No travel request with status "pending approval" found.');
+      return [];
+    }
+  } catch (error) {
+    console.error('An error occurred while fetching travel request data:', error.message);
+    throw error;
+  }
+};

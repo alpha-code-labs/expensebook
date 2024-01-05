@@ -1,4 +1,4 @@
-const expense = [
+export const travelExpenseData = [
   {
     tenantId: 'tenant2',
     expenseHeaderID: '910236',
@@ -522,7 +522,6 @@ const expense = [
     expenseViolations: [],
     expenseRejectionReason: ''
   }
-  ];
+];
   
-  export {expense}
   

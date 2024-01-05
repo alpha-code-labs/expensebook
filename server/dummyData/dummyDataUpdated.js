@@ -1,5 +1,5 @@
 
-const travelRequest = [
+export const travelRequestData = [
     {
       tenantId: 'tenant456',
       tenantName: 'Dragon',
@@ -195,89 +195,7 @@ const travelRequest = [
   ];
 
 
-const cashAdvances = [ 
-  {
-        tenantId: "tenant456",
-        tenantName: "Dragon",
-        companyName: "Dragon",
-        travelRequestId: "65719fa874eb31742e095c0a",
-        embeddedTravelRequest:     {
-          "tenantId": "tenant456",
-          "tenantName": "Dragon",
-          "companyName": "Dragon",
-          "travelRequestId": "65719fa874eb31742e095c0a",
-          "tripPurpose": "Delhi Branch Opening",
-          "travelRequestStatus": "pending approval",
-          "travelRequestState": "section 5",
-          "createdBy": { empId: "empL001", name: "Luffy" },
-          "createdFor": 
-              { empId: "empL001", name: "Luffy" },
-          "teamMembers": [
-              { empId: "empZ001", name: "Zoro" },
-              { empId: "empN001", name: "Nami" },
-              { empId: "empS001", name: "Sanji" },
-              { empId: "empC001", name: "Chopper" },
-          ],
-          "travelAllocationHeaders": [
-            {
-              "department": "Sales",
-              "percentage": 30
-            },
-            {
-              "department": "Marketing",
-              "percentage": 70
-            }
-          ],
-          "itinerary": {
-            "departureCity": "New York",
-            "arrivalCity": "Los Angeles",
-            "departureDate": "2023-12-15",
-            "arrivalDate": "2023-12-17"
-          },
-          travelDocuments: ['Document1.pdf', 'Document2.pdf'],
-          bookings: [
-            {
-              vendorName: 'Hotel ABC',
-              billNumber: '12345',
-              billDescription: 'Hotel stay for 4 nights',
-              grossAmount: 500,
-              taxes: 50,
-              date: '2023-01-01',
-              imageUrl: 'https://example.com/hotel_receipt.jpg',
-            },
-            {
-              vendorName: 'Flight XYZ',
-              billNumber: '67890',
-              billDescription: 'Round-trip flight ticket',
-              grossAmount: 300,
-              taxes: 30,
-              date: '2023-01-01',
-              imageUrl: 'https://example.com/flight_receipt.jpg',
-            },
-          ],
-          "approvers": [
-            {
-              "empId": 'emp004',
-              "name":  'Brook' , 
-              "status": "pending approval"
-              
-            },
-            {
-              "empId": "EMP002",
-              "name": "Jane Smith",
-              "status": "approved"
-            },
-          ],
-          preferences: ['Preference1', 'Preference2'],
-          travelViolations: [],
-          travelRequestDate: '2023-01-01',
-          travelBookingDate: '2023-01-05',
-          travelCompletionDate: '2023-01-10',
-          travelRequestRejectionReason: '',
-          "isCashAdvanceTaken": false,
-          "sentToTrip": false
-            },
-        cashAdvances: [
+export const cashAdvancesData =  [
           {
             tenantId: "tenant456",
             tenantName: "Dragon",
@@ -346,8 +264,5 @@ const cashAdvances = [
             cashAdvanceRejectionReason: "",
             notificationSentToDashboardFlag: true,
           },
-        ],
-      },    
-];
+        ]
 
-export { travelRequest, cashAdvances };

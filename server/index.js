@@ -8,7 +8,6 @@ import { config } from './config.js';
 import approvalRoutes from './routes/dataSaveRoutes.js';
 import travelApprovalRoutes from './routes/travelApprovalRoutes.js';
 import travelExpenseApprovalRoutes from './routes/travelExpenseApprovalRoutes.js';
-import nonTravelExpenses from './routes/nonTravelExpense.js';
 import cashAdvance from './routes/cashAdvance.js';
 import { errorHandler } from './errorHandler/errorHandler.js';
 
@@ -22,7 +21,7 @@ const castStrings = config[environment].castStrings;
 console.log(`Running in ${environment} environment`);
 console.log(`Database URI: ${config[environment].mongoURI}`);
 
-const mongoURI = process.env.mongoURI;
+const MONGODB_URI = process.env.MONGODB_URI;
 
 const app = express();
 
@@ -35,16 +34,13 @@ app.use('/api/approvals', approvalRoutes); // dummy data
 app.use('/approvals/tr-ca', travelApprovalRoutes);
 app.use('/approvals/cash', cashAdvance);
 app.use('/travelExpense',travelExpenseApprovalRoutes);
-app.use('/approvals/expense', nonTravelExpenses);
 
 /// Start the batch job
 //startBatchJob();
 
 const mongodb = async () => {
   try {
-    await mongoose.connect(mongoURI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
+    await mongoose.connect(MONGODB_URI, {
     });
     console.log('You are Connected to Mongodb');
   } catch (error) {
@@ -58,7 +54,7 @@ mongodb();
 // Use the errorHandler middleware at the end
 app.use(errorHandler);
 
-const port = process.env.PORT || 8080;
+const port = process.env.PORT || 8085;
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });

@@ -1,10 +1,10 @@
-import { cashAdvances } from '../dummyData/dummyDataUpdated.js';
+import { cashAdvancesData } from '../dummyData/dummyData.js';
 
 export const fetchCashAdvanceData = async () => {
   try {
     // Filter cash advances with a status of 'pending approval'
-    const filteredCashAdvances = cashAdvances.reduce((filtered, item) => {
-      const cashAdvancesArray = item.cashAdvances || []; // Access the array of cash advances
+    const filteredCashAdvances = cashAdvancesData.reduce((filtered, item) => {
+      const cashAdvancesArray = item.cashAdvanceStatus || []; // Access the array of cash advances
 
       // Filter cash advances within the array
       const filteredAdvances = cashAdvancesArray.filter((advance) => {
@@ -14,12 +14,7 @@ export const fetchCashAdvanceData = async () => {
       if (filteredAdvances.length > 0) {
         // If there are pending advances, add the main details to the result
         filtered.push({
-          tenantId: item.tenantId,
-          tenantName: item.tenantName,
-          companyName: item.companyName,
-          travelRequestId: item.travelRequestId,
-          embeddedTravelRequest: item.embeddedTravelRequest,
-          cashAdvances: filteredAdvances, // Attach filtered advances
+          cashAdvancesData: filteredAdvances, // Attach filtered advances
         });
       }
 

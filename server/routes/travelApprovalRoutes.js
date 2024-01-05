@@ -1,12 +1,12 @@
 import express  from "express";
-import { getTravelRequestDetails, getTravelRequestsAndCashAdvancesForApprover, getTravelRequestsStandalone, 
-    getTravelWithCashDetails, travelStandaloneApprove, travelStandaloneReject, travelWithCashApproveCashAdvance, 
+import { ApproveAddALeg, getTravelRequestDetails, getTravelRequestDetailsForApprover, getTravelRequestsAndCashAdvancesForApprover, getTravelRequestsStandalone, 
+    getTravelWithCashDetails, getTravelWithCashDetailsForAddALeg, travelStandaloneApprove, travelStandaloneReject, travelWithCashApproveCashAdvance, 
     travelWithCashApproveTravelRequest, travelWithCashRejectCashAdvance, travelWithCashRejectTravelRequest,  
 } from "../controllers/travelApproval.js";
 
 const travel = express.Router();
 
-//------Approval Flow for Travel Requests without cash advance --- 
+//------Approval Flow for Travel Requests without cash advance ---
 
 //1) standalone tr -- row 5 --
 travel.get("/tr-list/:tenantId/:empId", getTravelRequestsStandalone); // working
@@ -41,6 +41,19 @@ travel.patch('/tr-ca-approve-ca/:tenantId/:travelRequestId/:empId', travelWithCa
 // 10) travel with cash advance -- Reject cash advance 
 travel.patch('/tr-ca-reject-ca/:tenantId/:travelRequestId/:empId', travelWithCashRejectCashAdvance); // working
 
+
+// 12) Add a leg - get travel request details 
+travel.get('/leg/details/:tenantId/:travelRequestId/:empId', getTravelWithCashDetailsForAddALeg); // working
+
+
+// 13  -- Approve add a leg
+travel.patch('/leg/approve/:tenantId/:travelRequestId/:empId', ApproveAddALeg); // working
+
+// 14)  -- Reject add a leg 
+travel.patch('/leg/reject/:tenantId/:travelRequestId/:empId', ApproveAddALeg); // working
+
+// 15) -- get all travel Request Details
+travel.get('/getTravelRequest/:tenantId/:empId/:travelRequestId', getTravelRequestDetailsForApprover);
 
 // To Other MICROSERVICES
 

@@ -1,5 +1,5 @@
 import express from 'express';
-import { getTravelRequestByField, saveTravelRequestsAndCashAdvances } from "../controllers/approvalController.js";
+import { createOrUpdateApproval, getTravelRequestByField } from "../controllers/approvalController.js";
 import { fetchTravelRequestData } from '../services/travelService.js';
 import { fetchCashAdvanceData } from '../services/cashService.js';
 
@@ -12,7 +12,7 @@ router.get('/travelRequests', fetchTravelRequestData);
 router.get('/cashAdvances', fetchCashAdvanceData);
 
 //Save travel requests and cash advances in Approval
-router.post('/save', saveTravelRequestsAndCashAdvances);
+router.post('/save', createOrUpdateApproval);
 
 //GET travel requests by tripPurpose / createdBy / createdFor for approver
 router.get("/:empId", getTravelRequestByField);

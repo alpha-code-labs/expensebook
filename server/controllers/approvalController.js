@@ -1,185 +1,95 @@
 import { Approval } from '../models/approvalSchema.js';
-import { fetchTravelRequestData } from '../services/travelService.js';
-import { fetchCashAdvanceData } from '../services/cashService.js';
+import { travelRequestData, cashAdvancesData } from '../dummyData/dummyData.js';
 
-// Save Travel Requests and Cash Advances
-export const saveTravelRequestsAndCashAdvances = async (req, res) => {
+// Extract the logic to create the approvalData object
+const createApprovalData = (travelRequest, cashAdvance) => {
+  const { tenantId, tenantName, companyName } = travelRequest;
+
+  return {
+    tenantId,
+    tenantName,
+    companyName,
+    approvalType: travelRequest.approvalType || 'travel', // Default value 'travel'
+    travelRequestData: travelRequest,
+    cashAdvancesData: cashAdvance,
+    notificationSentToDashboardFlag: false, // You may set this based on your logic
+  };
+};
+
+export const createOrUpdateApproval = async (travelRequest, cashAdvance) => {
   try {
-    const travelRequests = await fetchTravelRequestData();
-    const cashAdvances = await fetchCashAdvanceData();
+    // Call the createApprovalData function to get the approvalData object
+    const approvalData = createApprovalData(travelRequest, cashAdvance);
 
-    for (const travelRequest of travelRequests) {
-      // Check if an approval record with the same travelRequestId already exists
+    // Check if an approval record with the same travelRequestId already exists
+    const existingApproval = await Approval.findOne({
+      'travelRequestData.travelRequestId': travelRequest.travelRequestId,
+    });
+
+    if (existingApproval) {
+      // If approval record exists, update it
+      await Approval.findOneAndUpdate(
+        { 'travelRequestData.travelRequestId': travelRequest.travelRequestId },
+        approvalData
+      );
+    } else {
+      // If no approval record exists, create a new one
+      await Approval.create(approvalData);
+    }
+
+    console.log(`Success: Approval record created or updated for travelRequestId ${travelRequest.travelRequestId}`);
+  } catch (error) {
+    console.error('An error occurred while creating or updating approval record:', error.message);
+    throw error;
+  }
+};
+
+// Iterate through each travel request and associated cash advance
+for (const travelRequest of travelRequestData) {
+  const matchingCashAdvance = cashAdvancesData.find(
+    (cashAdvance) => cashAdvance.travelRequestId === travelRequest.travelRequestId
+  );
+
+  if (matchingCashAdvance) {
+    await createOrUpdateApproval(travelRequest, matchingCashAdvance);
+  }
+}
+
+
+
+export const lsaveTravelRequestsAndCashAdvances = async (req, res) => {
+  try {
+    const travelRequestData = await fetchTravelRequestData();
+
+    for (const travelRequest of travelRequestData) {
       const existingApproval = await Approval.findOne({
-        'embeddedTravelRequest.travelRequestId': travelRequest.travelRequestId,
+        'travelRequestData.travelRequestId': travelRequest.travelRequestId,
       });
 
       if (!existingApproval) {
-        // If no approval record exists, create a new one with the travel request
-        await Approval.create({ embeddedTravelRequest: travelRequest });
+        await Approval.create({ travelRequestData: travelRequest });
       }
 
-      const matchingCashAdvance = cashAdvances.find(
-        (cashAdvance) => cashAdvance.travelRequestId === travelRequest.travelRequestId
-      );
+      const matchingCashAdvance = travelRequest.cashAdvance; 
 
       if (matchingCashAdvance) {
-        // Check if the travel request ID in the embedded cash advance object matches the travel request ID in the embedded travel request object
-        if (matchingCashAdvance.embeddedTravelRequest.travelRequestId === travelRequest.travelRequestId) {
-          // Save the embedded cash advance object with its respective embedded travel request object
-          const approvalData = {
-            embeddedTravelRequest: travelRequest,
-            embeddedCashAdvance: matchingCashAdvance,
-          };
-
-          // Update the approval record with the new data
-          await Approval.findOneAndUpdate(
-            { 'embeddedTravelRequest.travelRequestId': travelRequest.travelRequestId },
-            approvalData
-          );
+        if (matchingCashAdvance.travelRequestData.travelRequestId === travelRequest.travelRequestId) {
+          await updateOrCreateApproval(travelRequest, matchingCashAdvance);
         }
       }
     }
 
     console.log('Success: Travel requests and cash advances saved or updated in the approval container.');
 
-    res.status(200).json({ message: 'Success: Travel requests and cash advances saved or updated in the approval container.' });
-
+    res.status(200).json({
+      message: 'Success: Travel requests and cash advances saved or updated in the approval container.',
+    });
   } catch (error) {
     console.error('An error occurred while saving travel requests and cash advances:', error.message);
     res.status(500).json({ error: 'An error occurred while saving data.' });
   }
 };
 
-
-// // Get travel request for an approver
-// export const getTravelRequestsByApprovalId = async (req, res) => {
-//   try {
-//     const empId = req.params.empId;
-
-//     // Use the Mongoose model for 'Approval' to find all travel requests where the provided empId exists in the 'approvers' array within 'embeddedTravelRequest'
-//     const travelRequests = await Approval.find(
-//       {
-//         'embeddedTravelRequest.approvers.empId': empId,
-//         'embeddedTravelRequest.travelRequestStatus': 'pending approval',
-//       },
-//       {
-//         'embeddedTravelRequest.travelRequestId': 1,
-//         'embeddedTravelRequest.createdBy.name': 1,
-//         'embeddedTravelRequest.tripPurpose': 1,
-//         'embeddedTravelRequest.itinerary.cities': 1,
-//       }
-//     ).exec();
-
-//     if (travelRequests.length === 0) {
-//       // If no travel requests are found, respond with a 404 Not Found status and a specific message
-//       return res.status(404).json({ message: 'No pending travel requests found for this user.' });
-//     }
-
-//     // Extracted fields are added as objects in an array
-//     const extractedRequests = travelRequests.map((request) => {
-//       const extractedData = {};
-
-//       // Handle the 'travelRequestId' field
-//       if (request.embeddedTravelRequest.travelRequestId) {
-//         extractedData.travelRequestId = request.embeddedTravelRequest.travelRequestId;
-//       } else {
-//         extractedData.travelRequestId = 'No Travel Request ID Available';
-//       }
-
-//       // Handle the 'createdBy' field
-//       if (request.embeddedTravelRequest.createdBy && request.embeddedTravelRequest.createdBy.name) {
-//         extractedData.createdBy = request.embeddedTravelRequest.createdBy.name;
-//       } else {
-//         extractedData.createdBy = 'Unknown';
-//       }
-
-//       // Handle the 'tripPurpose' field
-//       if (request.embeddedTravelRequest.tripPurpose) {
-//         extractedData.tripPurpose = request.embeddedTravelRequest.tripPurpose;
-//       } else {
-//         extractedData.tripPurpose = 'No Trip Purpose Available';
-//       }
-
-//       // Handle the 'departureCity' field
-//       if (request.embeddedTravelRequest.itinerary && request.embeddedTravelRequest.itinerary.cities) {
-//         extractedData.departureCity = request.embeddedTravelRequest.itinerary.cities;
-//       } else {
-//         extractedData.departureCity = 'No Departure City Available';
-//       }
-
-//       return extractedData;
-//     });
-
-//     // If travel requests are found, respond with a 200 OK status and the array of extracted fields
-//     return res.status(200).json(extractedRequests);
-//   } catch (error) {
-//     // Handle and log errors
-//     console.error('An error occurred:', error);
-//     // Respond with a 500 Internal Server Error status and an error message
-//     return res.status(500).json({ error: 'An error occurred while processing the request.' });
-//   }
-// };
-
-// //Get travel request for an approver
-// export const getTravelRequestsByApprovalId = async (req, res) => {
-//   try {
-//     const empId = req.params.empId;
-
-//     // Use the Mongoose model for 'Approval' to find all travel requests where the provided empId exists in the 'approvers' array within 'embeddedTravelRequest'
-//     const travelRequests = await Approval.find(
-//       {
-//         'embeddedTravelRequest.approvers.empId': empId,
-//         'embeddedTravelRequest.travelRequestStatus': 'pending approval',
-//       },
-//       {
-//         'embeddedTravelRequest.travelRequestId': 1,
-//         'embeddedTravelRequest.createdBy.name': 1,
-//         'embeddedTravelRequest.tripPurpose': 1,
-//         'embeddedTravelRequest.itinerary.cities': 1,
-//       }
-//     ).exec();
-
-//     if (travelRequests.length === 0) {
-//       // If no travel requests are found, respond with a 404 Not Found status and a specific message
-//       return res.status(404).json({ message: 'No pending travel requests found for this user.' });
-//     }
-
-//     // Extracted fields are added as objects in an array
-//     const extractedRequests = travelRequests.map((request) => {
-//       const extractedData = {};
-      
-//       if (request.embeddedTravelRequest.travelRequestId) {
-//         extractedData.travelRequestId = request.embeddedTravelRequest.travelRequestId;
-//       }
-
-//       if (request.embeddedTravelRequest.createdBy.name) {
-//         extractedData.createdBy = request.embeddedTravelRequest.createdBy.name;
-//       }
-
-//       if (request.embeddedTravelRequest.tripPurpose) {
-//         extractedData.tripPurpose = request.embeddedTravelRequest.tripPurpose;
-//       }
-
-//       if (request.embeddedTravelRequest.itinerary.cities) {
-//         extractedData.departureCity = request.embeddedTravelRequest.itinerary.cities;
-//       }
-//       console.log(extractedData)
-//       return extractedData;
-//     });
-
-//     // If travel requests are found, respond with a 200 OK status and the array of extracted fields
-//     return res.status(200).json(extractedRequests);
-//   } catch (error) {
-//     // Handle and log errors
-//     console.error('An error occurred:', error);
-//     // Respond with a 500 Internal Server Error status and an error message
-//     return res.status(500).json({ error: 'An error occurred while processing the request.' });
-//   }
-// };
-
-
-//Search Travel requests by tripPurpose or destination or EmployeeName for an approver
 export const getTravelRequestByField = async (req, res) => {
   try {
     const empId = req.params.empId;
@@ -193,19 +103,19 @@ export const getTravelRequestByField = async (req, res) => {
 
     // Create a dynamic query object based on the provided field
     const query = {
-      'embeddedTravelRequest.approvers.empId': empId,
+      'travelRequestData.approvers.empId': empId,
     };
 
     // Construct the field-specific query based on the 'field' parameter
     switch (field) {
       case 'tripPurpose':
-        query['embeddedTravelRequest.tripPurpose'] = value;
+        query['travelRequestData.tripPurpose'] = value;
         break;
       case 'destination':
-        query['embeddedTravelRequest.itinerary.cities.to'] = value;
+        query['travelRequestData.itinerary.cities.to'] = value;
         break;
       case 'employeeName':
-        query['embeddedTravelRequest.createdBy.name'] = value;
+        query['travelRequestData.createdBy.name'] = value;
         break;
     }
 
@@ -221,20 +131,20 @@ export const getTravelRequestByField = async (req, res) => {
     const allExtractedRequests = travelRequest.map((request) => {
       const extractedData = {};
       
-      if (request.embeddedTravelRequest.travelRequestId) {
-        extractedData.travelRequestId = request.embeddedTravelRequest.travelRequestId;
+      if (request.travelRequestData.travelRequestId) {
+        extractedData.travelRequestId = request.travelRequestData.travelRequestId;
       }
 
-      if (request.embeddedTravelRequest.createdBy.name) {
-        extractedData.createdBy = request.embeddedTravelRequest.createdBy.name;
+      if (request.travelRequestData.createdBy.name) {
+        extractedData.createdBy = request.travelRequestData.createdBy.name;
       }
 
-      if (request.embeddedTravelRequest.tripPurpose) {
-        extractedData.tripPurpose = request.embeddedTravelRequest.tripPurpose;
+      if (request.travelRequestData.tripPurpose) {
+        extractedData.tripPurpose = request.travelRequestData.tripPurpose;
       }
 
-      if (request.embeddedTravelRequest.itinerary.cities) {
-        extractedData.departureCity = request.embeddedTravelRequest.itinerary.cities;
+      if (request.travelRequestData.itinerary.cities) {
+        extractedData.departureCity = request.travelRequestData.itinerary.cities;
       }
       console.log(extractedData)
       return extractedData;
@@ -273,16 +183,16 @@ export const getTravelRequestByField = async (req, res) => {
 //   try {
 //     // Find all approvals where the embedded TravelRequest matches the criteria
 //     // const pendingRequests = await approval.find({
-//     //   'embeddedTravelRequest.approvers': {
+//     //   'travelRequestData.approvers': {
 //     //     $elemMatch: {
 //     //       id: approversId,
 //     //     },
 //     //   },
-//     //   'embeddedTravelRequest.travelRequestStatus': 'pending approval',
+//     //   'travelRequestData.travelRequestStatus': 'pending approval',
 //     // });
 //     const pendingRequests = await approval.find({
-//       'embeddedTravelRequest.approvers.id': approversId,
-//       'embeddedTravelRequest.travelRequestStatus': 'pending approval',
+//       'travelRequestData.approvers.id': approversId,
+//       'travelRequestData.travelRequestStatus': 'pending approval',
 //     });
     
 
@@ -293,17 +203,17 @@ export const getTravelRequestByField = async (req, res) => {
 
 //     // Extract the required fields from each request and create a new array
 //     const extractedRequests = pendingRequests.map((approval) => ({
-//       employeeName: approval.embeddedTravelRequest.createdFor.name,
-//       tripPurpose: approval.embeddedTravelRequest.tripPurpose,
+//       employeeName: approval.travelRequestData.createdFor.name,
+//       tripPurpose: approval.travelRequestData.tripPurpose,
 //       destination: {
-//         from: approval.embeddedTravelRequest.itinerary.departureCity,
-//         to: approval.embeddedTravelRequest.itinerary.arrivalCity,
+//         from: approval.travelRequestData.itinerary.departureCity,
+//         to: approval.travelRequestData.itinerary.arrivalCity,
 //       },
 //       dates: { 
-//         startDate: approval.embeddedTravelRequest.itinerary.departureDate,
-//         endDate: approval.embeddedTravelRequest.itinerary.returnDate,
+//         startDate: approval.travelRequestData.itinerary.departureDate,
+//         endDate: approval.travelRequestData.itinerary.returnDate,
 //       },
-//       createdFor: approval.embeddedTravelRequest.createdFor.id,
+//       createdFor: approval.travelRequestData.createdFor.id,
 //     }));
 
 //     // Send the extracted data as a response

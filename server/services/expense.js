@@ -14,18 +14,15 @@
 //   }
 // };
 
-
-
-import { expense } from '../dummyData/expenseDummyData.js';
+import { travelExpenseData } from '../dummyData/expenseDummyData.js';
 
 export const fetchExpenseData = async () => {
   try {
 
     // Filter travel requests with a status of 'pending approval'
-    const filteredExpense = expense.filter((item) => {
+    const filteredExpense = travelExpenseData.filter((item) => {
       return item.expenseStatus === 'pending approval';
     });
-  
       return filteredExpense;
   } catch (error) {
     console.error('An error occurred while fetching expense data:', error.message);

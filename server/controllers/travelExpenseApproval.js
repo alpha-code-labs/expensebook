@@ -1,5 +1,6 @@
 import { fetchExpenseData } from '../services/expense.js';
 import { Approval } from '../models/approvalSchema.js';
+import { sendTripApprovalToDashboardQueue } from '../rabbitmq/dashboardMicroservice.js';
 
 //for saving both travel and non travel dummy data into Approval container.
 export const saveDataInApprovalContainer = async (req, res) => {
@@ -15,7 +16,7 @@ export const saveDataInApprovalContainer = async (req, res) => {
 
       // Construct a query to find an existing Approval document based on conditions
       const query = {
-        'embeddedTravelRequest.travelRequestId': newExpenseData.travelRequestId
+        'travelRequestData.travelRequestId': newExpenseData.travelRequestId
       };
 
       // Find the existing approval document
@@ -23,9 +24,9 @@ export const saveDataInApprovalContainer = async (req, res) => {
 
       if (existingApproval) {
         // Update the existing approval document with the new data
-        if (existingApproval.embeddedExpenseSchema) {
+        if (existingApproval.travelExpenseData) {
           // Find the specific expenseLine using billNumber
-          const existingBill = existingApproval.embeddedExpenseSchema.expenseLines.find(
+          const existingBill = existingApproval.travelExpenseData.expenseLines.find(
             (line) => line.transactionData.billNumber === newExpenseData.expenseLines[0].transactionData.billNumber
           );
 
@@ -35,20 +36,20 @@ export const saveDataInApprovalContainer = async (req, res) => {
             console.log('Bill is updated.');
           } else {
             // Add a new bill to the expenseLines
-            existingApproval.embeddedExpenseSchema.expenseLines.push(newExpenseData.expenseLines[0]);
+            existingApproval.travelExpenseData.expenseLines.push(newExpenseData.expenseLines[0]);
           }
         } else {
-          // Update the embeddedExpenseSchema if it doesn't exist
-          existingApproval.embeddedExpenseSchema = newExpenseData;
+          // Update the travelExpenseData if it doesn't exist
+          existingApproval.travelExpenseData = newExpenseData;
         }
 
         // Save the updated approval document
         await existingApproval.save();
       } else {
-        // Create a new approval document with the embeddedExpenseSchema
+        // Create a new approval document with the travelExpenseData
         const newApprovalData = {
-          embeddedTravelRequest: newExpenseData,
-          embeddedExpenseSchema: newExpenseData,
+          travelRequestData: newExpenseData,
+          travelExpenseData: newExpenseData,
         };
 
         const newApproval = new Approval(newApprovalData);
@@ -66,7 +67,7 @@ export const saveDataInApprovalContainer = async (req, res) => {
   }
 };
 
-
+ 
 //Get list of travel expenses  for approver
 export const getExpenseDetails = async (req, res) => {
   try {
@@ -76,8 +77,8 @@ export const getExpenseDetails = async (req, res) => {
     const approvalDocuments = await Approval.find({
       'tenantId': tenantId,
       'approvalType':'travel-expense',
-      'embeddedExpenseSchema.approvers.empId': empId,
-      'embeddedExpenseSchema.expenseHeaderType': 'travel',
+      'tripData.travelExpenseData.approvers.empId': empId,
+      'tripData.travelExpenseData.expenseHeaderType': 'travel',
     }).exec();
 
     if (approvalDocuments.length === 0) {
@@ -87,12 +88,12 @@ export const getExpenseDetails = async (req, res) => {
 
     // Extracted travel expense data for approval
     const extractedData = approvalDocuments.map((document) => ({
-      EmployeeName: document.embeddedExpenseSchema?.createdBy?.name || 'EmpName',
-      TripPurpose: document.embeddedExpenseSchema?.tripPurpose || 'tripPurpose',
-      departureCity: document.embeddedTravelRequest?.itinerary || 'from - to',
-      ExpenseHeaderID: document.embeddedExpenseSchema?.expenseHeaderID || 'Missing ExpenseHeaderID',
+      EmployeeName: document.travelExpenseData?.createdBy?.name || 'EmpName',
+      TripPurpose: document.travelExpenseData?.tripPurpose || 'tripPurpose',
+      itinerary: document.travelRequestData?.itinerary || 'from - to',
+      ExpenseHeaderID: document.travelExpenseData?.expenseHeaderID || 'Missing ExpenseHeaderID',
       EmpId: empId || 'approver id',
-      ExpenseHeaderType: document.embeddedExpenseSchema?.expenseHeaderType || 'travel',
+      ExpenseHeaderType: document.travelExpenseData?.expenseHeaderType || 'travel',
     }));
 
     // Respond with the extracted data as an array of objects
@@ -111,9 +112,9 @@ export const viewTravelExpenseDetails = async (req, res) => {
 
     // Filter approval documents by approver's empId and expenseHeaderType: Travel
     const approvalDocuments = await Approval.find({
-      'embeddedExpenseSchema.expenseHeaderType': expenseHeaderType,
-      'embeddedExpenseSchema.expenseHeaderID': expenseHeaderID,
-      'embeddedExpenseSchema.approvers.empId': empId,
+      'tripData.travelExpenseData.expenseHeaderType': expenseHeaderType,
+      'tripData.travelExpenseData.expenseHeaderID': expenseHeaderID,
+      'tripData.travelExpenseData.approvers.empId': empId,
     }).exec();
 
     if (approvalDocuments.length === 0) {
@@ -130,9 +131,10 @@ export const viewTravelExpenseDetails = async (req, res) => {
 
     // Extract billDetails
     approvalDocuments.forEach(approvalDoc => {
-      const tripPurpose = approvalDoc.embeddedExpenseSchema?.tripPurpose || 'tripPurpose';
-      const billDetails = approvalDoc.embeddedExpenseSchema.expenseLines || 'expense details';
-      const expenseHeaderStatus = approvalDoc.embeddedExpenseSchema.expenseHeaderStatus || 'travelExpense status';
+      const tripPurpose = approvalDoc.tripData.travelExpenseData?.tripPurpose || 'tripPurpose';
+      const tripId = approvalDoc.tripData.tripId || 'tripId'; // tripId added as need for approval client screen
+      const billDetails = approvalDoc.tripData.travelExpenseData.expenseLines || 'expense details';
+      const expenseHeaderStatus = approvalDoc.tripData.travelExpenseData.expenseHeaderStatus || 'travelExpense status';
 
       if (billDetails) {
         // Extract the relevant details from each bill in expenseLines
@@ -147,6 +149,7 @@ export const viewTravelExpenseDetails = async (req, res) => {
 
           // Create an object with the extracted data
           const expenseObject = {
+            tripId: tripId,
             TripPurpose: tripPurpose,
             ExpenseType: expenseType,
             TotalAmount: billTotalAmount, 
@@ -201,30 +204,34 @@ export const TravelExpenseStatusApproved = async (req, res) => {
       });
     }
 
-    const approvalDocument = await Approval.findOne({
-      'embeddedExpenseSchema.expenseHeaderID': expenseHeaderID,
-      'embeddedExpenseSchema.approvers.empId': empId,
+    const tripApprovalDoc = await Approval.findOne({
+      'travelExpenseData.expenseHeaderID': expenseHeaderID,
+      'travelExpenseData.approvers.empId': empId,
     }).exec();
 
-    if (!approvalDocument) {
+    if (!tripApprovalDoc) {
       return res.status(404).json({ message: 'No matching approval document found for updating travel expenses status.' });
     }
 
-    const embeddedExpenseSchema = approvalDocument.embeddedExpenseSchema;
+    const travelExpenseData = tripApprovalDoc.travelExpenseData;
 
-    if (!embeddedExpenseSchema || !embeddedExpenseSchema.expenseStatus) {
+    if (!travelExpenseData || !travelExpenseData.expenseStatus) {
       return res.status(404).json({ message: 'No matching Travel expense details found for updating bill status.' });
     }
 
-    if (embeddedExpenseSchema.expenseStatus !== 'pending approval') {
-      return res.status(400).json({ message: `Approval failed. Current status: ${embeddedExpenseSchema.expenseStatus}. It must be 'pending approval' to approve.` });
+    if (travelExpenseData.expenseStatus !== 'pending approval') {
+      return res.status(400).json({ message: `Approval failed. Current status: ${travelExpenseData.expenseStatus}. It must be 'pending approval' to approve.` });
     }
 
     // Update the expenseStatus to 'approved'
-    embeddedExpenseSchema.expenseStatus = 'approved';
+    travelExpenseData.expenseStatus = 'approved';
 
     try {
-      await approvalDocument.save();
+      await tripApprovalDoc.save();
+
+      // rabbitmq to send it to dashboard
+      await sendTripApprovalToDashboardQueue(tripApprovalDoc);
+
       res.status(200).json({ message: 'Travel expense status updated to approved.' });
     } catch (saveError) {
       console.error('An error occurred while saving the status update:', saveError.message);
@@ -242,36 +249,40 @@ export const TravelExpenseStatusRejected = async (req, res) => {
     const { expenseHeaderID, empId } = req.params;
     const { expenseRejectionReason } = req.body;
 
-    const approvalDocument = await Approval.findOne({
-      'embeddedExpenseSchema.expenseHeaderID': expenseHeaderID,
-      'embeddedExpenseSchema.approvers.empId': empId,
+    const tripApprovalDoc = await Approval.findOne({
+      'travelExpenseData.expenseHeaderID': expenseHeaderID,
+      'travelExpenseData.approvers.empId': empId,
     }).exec();
 
-    if (!approvalDocument) {
+    if (!tripApprovalDoc) {
       return res.status(404).json({ message: 'No matching approval document found for updating travel expenses status.' });
     }
 
-    const embeddedExpenseSchema = approvalDocument.embeddedExpenseSchema;
+    const travelExpenseData = tripApprovalDoc.travelExpenseData;
 
-    if (!embeddedExpenseSchema || !embeddedExpenseSchema.expenseStatus) {
+    if (!travelExpenseData || !travelExpenseData.expenseStatus) {
       return res.status(404).json({ message: 'No matching Travel expense details found for updating bill status.' });
     }
 
-    if (embeddedExpenseSchema.expenseStatus !== 'pending approval') {
-      return res.status(400).json({ message: `Deny failed. Current status: ${embeddedExpenseSchema.expenseStatus}. It must be 'pending approval' to reject/Send back to the employee.` });
+    if (travelExpenseData.expenseStatus !== 'pending approval') {
+      return res.status(400).json({ message: `Deny failed. Current status: ${travelExpenseData.expenseStatus}. It must be 'pending approval' to reject/Send back to the employee.` });
     }
 
     if (!expenseRejectionReason) {
-      return res.status(400).json({ message: 'Deny failed. An embeddedExpenseSchema.expenseRejectionReason is required to reject/Send back to the employee.' });
+      return res.status(400).json({ message: 'Deny failed. An travelExpenseData.expenseRejectionReason is required to reject/Send back to the employee.' });
     }
 
-    // Update the embeddedExpenseSchema.expenseStatus to 'rejected'
-    embeddedExpenseSchema.expenseStatus = 'rejected';
-    // Update the embeddedExpenseSchema.expenseRejectionReason
-    embeddedExpenseSchema.expenseRejectionReason = expenseRejectionReason;
+    // Update the travelExpenseData.expenseStatus to 'rejected'
+    travelExpenseData.expenseStatus = 'rejected';
+    // Update the travelExpenseData.expenseRejectionReason
+    travelExpenseData.expenseRejectionReason = expenseRejectionReason;
 
     try {
-      await approvalDocument.save();
+      await tripApprovalDoc.save();
+
+       // rabbitmq to send it to dashboard
+       await sendTripApprovalToDashboardQueue(tripApprovalDoc);
+       
       res.status(200).json({ message: 'Travel expense status updated to Rejected.' });
     } catch (saveError) {
       console.error('An error occurred while saving the status update:', saveError.message);
