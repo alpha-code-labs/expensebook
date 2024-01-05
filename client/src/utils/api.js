@@ -315,38 +315,6 @@ async function updateTravelBookings_API(data){
   }
 }
 
-async function getTravelPolicies_API(data){
-  try{
-    const {tenantId, travelType, groups} = data
-    const res = await axios.get(`${TRAVEL_API_URL}/travel-policies/${tenantId}/${travelType}/${groups}`)
-    if(res.status >=200 && res.status<300){
-      return {data:res.data, err:null}
-    }
-  }catch(e){
-    if(e.response){
-      //respose received from server
-      if(e.response.status == 400){
-        return {data: null, err:errorMessages[400]}
-      }
-      if(e.response.status == 404){
-        return {data: null, err:errorMessages[404]}
-      }
-      if(e.response.status == 500){
-        return {data: null, err:errorMessages[500]}
-      }
-    }
-
-    if(e.request){
-      //request was sent but no response
-      return {data: null, err:errorMessages.request}
-    }
-
-    else{
-      return {data: null, err:errorMessages.else}      
-    }
-  } 
-}
-
 async function getTravelBookingOnboardingData_API(data){
   try{
     const {tenantId, employeeId, travelType} = data

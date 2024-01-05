@@ -12,18 +12,14 @@ import Tesseract from "tesseract.js";
 import { extractDateFromText, extractTotalAmountFromText2, extractVendorName } from "../utils/regex";
 import SlimDate from "../components/common/SlimDate";
 import TimePicker from "../components/common/TimePicker";
-import { getTravelRequest_API } from "../utils/api";
-import cab_icon from "../assets/cab-purple.svg"
-import airplane_icon from "../assets/Airplane_1.svg"
-import bus_icon from "../assets/bus.png"
-import train_icon from '../assets/train.png'
-import calendar_icon from "../assets/calendar.svg"
-import double_arrow from '../assets/double-arrow.svg'
+import {getRawTravelRequest_API, updateRawTravelRequest_API, getTravelBookingOnboardingData_API, updateTravelBookings_API } from "../utils/api";
+import { cab_icon, bus_icon, train_icon, biderectional_arrows_icon as double_arrow, calender_icon, clock_icon, airplane_icon } from "../assets/icon";
 
 
 const TRAVEL_API = import.meta.env.VITE_TRAVEL_API_URL
 
 console.log(import.meta.env.VITE_TRAVEL_API_URL)
+
 
 const expenseCategories = {
     'flight' : [{name:'Vendor Name', id:'vendorName', toSet:'bookingDetails', type:'text'}, 
@@ -59,14 +55,23 @@ export default function () {
     const [isLoading, setIsLoading] = useState(true)
     const [loadingErrMsg, setLoadingErrMsg] = useState(null)
 
-    //fetch travel request rejection reason
+    //fetch travel request details and other details
     useEffect(()=>{
         (async function(){
-            const res = await getTravelRequest_API({travelRequestId})
+            const res = await getRawTravelRequest_API({travelRequestId})
+            
             if(res.err){
                 setLoadingErrMsg(res.err)
                 return;
             }
+
+            const employeeId = res.data?.createdFor?.empId??res.data?.createdBy?.empId
+            console.log(employeeId)
+            const onboarding_res = await getTravelBookingOnboardingData_API({tenantId, employeeId, travelType:'international'})
+            console.log(onboarding_res.data, 'onboarding')
+            setOnBoardingData(onboarding_res.data)
+
+            console.log(res.data)
             setFormData(res.data)
             setIsLoading(false)
         })()
@@ -82,65 +87,58 @@ export default function () {
 
     },[showTicketModal])
 
-  const TRAVEL_MICROSERVICE_SERVER_URL = 'http://localhost:8001/travel/api' 
-  const EMPLOYEE_ID  = '1001'
-  const EMPLOYEE_NAME = 'Abhishek Kumar'
-
-
   const [formData, setFormData] = useState({})
-
   const [onBoardingData, setOnBoardingData] = useState()
   const [selectedFile, setSelectedFile] = useState(null)
   const [fileSelected, setFileSelected] = useState(null)
   const [preview, setPreview] = useState()
-
   const [extractedVendorName, setExtractedVendorName] = useState(null)
   const [extractedDate, setExtractedDate] = useState(null)
   const [extractedAmount2, setExtractedAmount2] = useState(null)
   const [status, setStatus] = useState(null)
   const [progress, setProgress] = useState(0)
   const [formFields, setFormFields] = useState([])
-  const [addTicketVariables, setAddTicketVariables] = useState({toSet:null, transportType:null, legIndex:null, itemIndex:null})
+  const [addTicketVariables, setAddTicketVariables] = useState({toSet:null, itemIndex:null, transportType:null})
   const [fileState, setFileState] = useState({fileSelected:null, selectedFile:null, preview:null})
   const [tesseractState, setTesseractState] = useState({status:null, progress:null, extractedVendorName:null, extractedDate:null, extractedAmount:null})
 
-  const handleAddTicket = (toSet, transportType, legIndex, itemIndex)=>{
-    setAddTicketVariables({toSet, transportType, legIndex, itemIndex})
+  const handleAddTicket = (toSet, itemIndex)=>{
+    setAddTicketVariables({toSet, itemIndex, transportType:toSet.slice(0,-1)})
     setShowTicketModal(true)
   }
 
   const handleFieldValueChange = (toSet, id, e)=>{
     console.log(addTicketVariables)
     const _toSet = addTicketVariables.toSet
-    const legIndex = addTicketVariables.legIndex
     const itemIndex = addTicketVariables.itemIndex
-
     const formData_copy = JSON.parse(JSON.stringify(formData))
     
-
     if(toSet != 'bookingDetails'){
-
-        if(addTicketVariables.itemIndex!=null && addTicketVariables.itemIndex!=undefined){
-            formData_copy.itinerary[legIndex][_toSet][itemIndex][toSet] = e.target.value 
-        }
-        else{
-            formData_copy.itinerary[legIndex][_toSet][toSet] = e.target.value
-        }
+        formData_copy.itinerary[_toSet][itemIndex][toSet] = e.target.value
     }
 
     else{
-
-        if(addTicketVariables.itemIndex!=null && addTicketVariables.itemIndex!=undefined){
-            formData_copy.itinerary[legIndex][_toSet][itemIndex][toSet] = {...formData_copy.itinerary[legIndex][_toSet][itemIndex][toSet], [id]:e.target.value} 
-        }
-        else{
-            formData_copy.itinerary[legIndex][_toSet][toSet] = {...formData_copy.itinerary[legIndex][_toSet][toSet], [id]:e.target.value}
-        }
+        formData_copy.itinerary[_toSet][itemIndex][toSet] = {...formData_copy.itinerary[_toSet][itemIndex][toSet], [id]:e.target.value} 
     }
 
     console.log(formData_copy)
     setFormData(formData_copy)
-    console.log(toSet, id)
+    console.log(_toSet, itemIndex, toSet, id)
+  }
+
+  const handleIndividualTicketSave = async (toSet, itemIndex)=>{
+    //we fist have to validate the fields.. but booking admin can not be forced to submit all values at once
+    //maybe we need a second button for handling individual submits
+    //for now simply send a call to backend for updating the itinerary.
+
+    //if file is uploaded then upload filel get url and set the url as doc url
+
+    //send data to backend
+    const data = {itinerary:formData.itinerary, travelRequestId:formData.travelRequestId, submitted:false}
+    const res = await updateTravelBookings_API(data)
+    
+    setShowTicketModal(false)
+    console.log(res.data)
   }
     
     // create a preview as a side effect, whenever selected file is changed
@@ -184,24 +182,10 @@ export default function () {
       useEffect(()=>{
         console.log(extractedVendorName, extractedDate, extractedAmount2, "Vendor Name, Date, Amount")
       }, [extractedVendorName, extractedDate, extractedAmount2])
-  //flags
-    useEffect(() => {
-    axios
-        .get(`${TRAVEL_API}/initial-data/${tenantId}/${EMPLOYEE_ID}`)
-        .then((response) => {
-        console.log(response.data)
-        setOnBoardingData(response.data)
-        setLoadingOnboardingData(false)
-        })
-        .catch(err=>{ 
-        console.error(err)
-        //handle possible scenarios
-        })
-    },[])
 
   return <>
-        {(isLoading || loadingOnboardingData) && <div>Loading Booking Request...</div>}
-      {!isLoading && !loadingOnboardingData && 
+        {(isLoading) && <div>Loading Booking Request...</div>}
+      {!isLoading && 
         <div className="w-full h-full relative bg-white md:px-24 md:mx-0 sm:px-0 sm:mx-auto py-12 select-none">
         {/* app icon */}
         <div className='w-full flex justify-center  md:justify-start lg:justify-start'>
@@ -212,7 +196,7 @@ export default function () {
         <div className="w-full h-full mt-10 p-10 font-cabin tracking-tight">
             <p className="text-2xl text-neutral-600 mb-5">{`${formData.tripPurpose} Trip`}</p>
             <div className='flex flex-col sm:flex-row'>
-                <div className='flex-1'>
+                <div className='flex-2'>
                     <div className="flex gap-2 font-cabin text-xs tracking-tight">
                         <p className="w-[100px] text-neutral-600">Raised By:</p>
                         <p className="text-neutral-700">{formData.createdBy.name}</p>
@@ -226,118 +210,85 @@ export default function () {
                         <p className="text-neutral-700">{formData.teamMembers.length>0 ? formData.teamMembers.map(member=>`${member.name}, `) : 'N/A'}</p>
                     </div>
                 </div>
-                <div className="flex-1">
-                    <p>Applicable policies</p>
-                </div>
             </div>
             <hr/>
-            <div className="mt-5 flex flex-col gap-4">
-                {formData.itinerary.map((leg,index)=>{
-                    console.log(leg)
-                    return(<>
-                        <div className="flex items-center gap-2">
-                            <p className="text-xl text-neutral-700">
-                                {`${titleCase(leg.departure.from)}`}
-                            </p>
-                            <img src={double_arrow} className="w-6 h-6"/>
-                            <p className="text-xl text-neutral-700">
-                                {`${titleCase(leg.departure.to)} `}
-                            </p>
+            <div className='flex gap-2 divide-x'>
+                <div className="flex-1 mt-5 flex flex-col gap-4">
+                    {['flights', 'trains', 'buses', 'cabs', 'hotels'].map((itnItem, itnItemIndex) => {
+                        if (formData.itinerary[itnItem].length > 0) {
+                            return (
+                                <div key={itnItemIndex}>
+                                    <p className="text-xl text-neutral-700">
+                                        {`${titleCase(itnItem)} `}
+                                    </p>
+
+                                    {formData.itinerary[itnItem].map((item, itemIndex) => {
+                                        if (['flights', 'trains', 'buses'].includes(itnItem)) {
+                                            return (
+                                                <div key={itemIndex}>
+                                                    <FlightCard onClick={() => handleAddTicket(itnItem, itemIndex)} from={item.from} to={item.to} date={item.date} time={item.time} travelClass={item.travelClass} mode={titleCase(itnItem.slice(0, -1))} />
+                                                </div>
+                                            );
+                                        } else if (itnItem === 'cabs') {
+                                            return (
+                                                <div key={itemIndex}>
+                                                    <CabCard onClick={() => handleAddTicket('cabs', itemIndex)} from={item.pickupAddress} to={item.dropAddress} date={item.date} time={item.time} travelClass={item.travelClass} isTransfer={item.type !== 'regular'} />
+                                                </div>
+                                            );
+                                        } else if (itnItem === 'hotels') {
+                                            return (
+                                                <div key={itemIndex}>
+                                                    <HotelCard onClick={() => handleAddTicket('hotels', itemIndex)} checkIn={item.checkIn} checkOut={item.checkOut} date={item.data} time={item.time} travelClass={item.travelClass} mode='Train' />
+                                                </div>
+                                            );
+                                        }
+                                    })}
+                                </div>
+                            );
+                        }
+                        return null; // Return null if no items in the itinerary
+                    })}
+                </div>
+
+                <div className="flex-3 px-2">
+                        <p className='text-md underline semibold mt-1'>Applicable policies</p>
+                        <div className="grid grid-cols-1 mt-2 font-cabin">
+                            {Object.keys(onBoardingData.policies).map(pl_key=>{
+                                return(<>
+                                    <div className="mt-1">
+                                        <p className='text-sm text-neutral-600'>{`${pl_key}:`}</p>
+                                        <div className='flex divide-x text-neutral-800'>
+                                            {Object.keys(onBoardingData.policies[pl_key].class).map((cl,ind)=>{if(onBoardingData.policies[pl_key].class[cl]) return(<div className='text-sm px-[2px]'>{cl}</div>)})}
+                                        </div>
+                                    </div>
+                                    <p className='text-sm text-neutral-600'>{`max. amount limit: ${onBoardingData.policies[pl_key].limit}`}</p>
+                                </>)
+                            })}
                         </div>
-
-                        <div className='flex flex-col gap-2'>
-                        {<>
-                            <FlightCard
-                                onClick={()=>handleAddTicket('departure', leg.modeOfTransit, index, null)}
-                                id={index} 
-                                from={leg.departure.from} 
-                                to={leg.departure.to} 
-                                date={leg.departure.date}
-                                travelClass={leg.travelClass} 
-                                mode={leg.modeOfTransit}
-                                time={leg.departure.time}/>
-                            {(leg.return?.date??false) && 
-                                <FlightCard 
-                                    onClick={()=>handleAddTicket('return', leg.modeOfTransit, index, null)}
-                                    id={index}
-                                    from={leg.journey.to} 
-                                    to={leg.journey.from} 
-                                    date={leg.journey.return.date}
-                                    travelClass={leg.travelClass} 
-                                    mode={leg.modeOfTransit} 
-                                    time={leg.journey.return.time }/>
-                            }
-                         </>}
-
-                         {leg.needsBoardingTransfer && <>
-                            <CabCard
-                                onClick={()=>handleAddTicket('boardingTransfer', 'cab', index, null)}
-                                id={index} 
-                                from={leg.boardingTransfer.pickupAddress} 
-                                to={leg.boardingTransfer.dropAddress} 
-                                date={leg.journey.departure.date} 
-                                isTransfer={true}
-                                mode={leg.modeOfTransit}
-                                time={leg.boardingTransfer.prefferedTime}/>
-                         </>}
-
-                         {leg.needsHotelTransfer && <>
-                            <CabCard
-                                onClick={()=>handleAddTicket('hotelTransfer', 'cab', index, null)} 
-                                id={index}
-                                from={leg.hotelTransfer?.pickupAddress??spitBoardingPlace(leg.modeOfTransit)} 
-                                to={leg.hotelTransfer?.dropAddress??'Hotel'} 
-                                date={leg.journey.departure.date} 
-                                isTransfer={true}
-                                mode={leg.modeOfTransit}
-                                time={leg.hotelTransfer.prefferedTime}/>
-                         </>}
-
-                         {leg.needsCab && leg.cabs.length>0 && leg.cabs.map((cab,ind)=>
-                            <CabCard
-                            onClick={()=>handleAddTicket('cabs', 'cab', index, ind)}
-                            from={cab.pickupAddress} 
-                            to={cab.dropAddress} 
-                            date={cab.date} 
-                            mode={leg.modeOfTransit}
-                            time={cab.prefferedTime}/>
-                         )}
-
-                        {leg.needsHotel && leg.hotels.length>0 && leg.hotels.map((hotel, ind)=>
-                            <HotelCard
-                            onClick={()=>handleAddTicket('hotels', 'hotel', index, ind)} 
-                            checkIn={hotel.checkIn} 
-                            checkOut={hotel.checkOut}
-                            hotelClass={hotel.class}
-                            preference={'Close to Airport'} 
-                            />
-                         )}
-                        </div>
-                         
-
-                        {showTicketModal && <div className="fixed overflow-hidden max-h-4/5 flex justify-center items-center inset-0 backdrop-blur-sm w-full h-full left-0 top-0 bg-gray-800/60 scroll-none">
-                            <div className='z-10 w-4/5 min-h-4/5 max-h-4/5 scroll-none bg-white rounded-lg shadow-md'>
-                                <AddTicket  setShowModal={setShowTicketModal} 
-                                            
-                                            selectedFile={selectedFile} 
-                                            setSelectedFile={setSelectedFile} 
-                                            fileSelected={fileSelected} 
-                                            setFileSelected={setFileSelected}
-                                            preview={preview}
-                                            setPreview={setPreview}
-                                            addTicketVariables={addTicketVariables}
-                                            handleConvert={handleConvert}
-                                            handleFieldValueChange={handleFieldValueChange}
-                                            expenseCategories={expenseCategories}
-                                             />
-                            </div>
-                        </div>}
-                        
-                    </>)
-                })}
+                </div>
             </div>
             
         </div>
+
+        {showTicketModal && <div className="fixed overflow-hidden max-h-4/5 flex justify-center items-center inset-0 backdrop-blur-sm w-full h-full left-0 top-0 bg-gray-800/60 scroll-none">
+            <div className='z-10 w-full h-full sm:w-4/5 min-h-4/5 sm:max-h-4/5 scroll-none bg-white rounded-lg shadow-md'>
+                <AddTicket  setShowModal={setShowTicketModal} 
+                            
+                            selectedFile={selectedFile} 
+                            setSelectedFile={setSelectedFile} 
+                            fileSelected={fileSelected} 
+                            setFileSelected={setFileSelected}
+                            preview={preview}
+                            setPreview={setPreview}
+                            addTicketVariables={addTicketVariables}
+                            handleConvert={handleConvert}
+                            handleFieldValueChange={handleFieldValueChange}
+                            expenseCategories={expenseCategories}
+                            handleIndividualTicketSave={handleIndividualTicketSave}
+                            itinerary={formData.itinerary}
+                                />
+            </div>
+        </div>}
 
         </div>
       }
@@ -364,43 +315,33 @@ function spitImageSource(modeOfTransit){
 
 function FlightCard({from, to, date, time, travelClass, onClick, mode='Flight'}){
     return(
-        <div className="shadow-sm min-h-[76px] bg-slate-50 rounded-md border border-slate-300 w-full px-6 py-4 flex flex-col sm:flex-row gap-4 items-center sm:divide-x">
+        <div className="shadow-sm min-h-[60px] bg-slate-50 rounded-md border border-slate-300 w-full px-6 py-4 flex flex-col sm:flex-row gap-4 items-center sm:divide-x">
         <img src={spitImageSource(mode)} className='w-4 h-4' />
         <div className="w-full flex sm:block">
-            <div className='mx-2 text-xs text-neutral-600 flex justify-between flex-col sm:flex-row'>
-                <div className="flex-1">
-                    From     
+            <div className="mx-2 text-sm w-full flex gap-1 flex-col lg:flex-row lg:justify-between lg:items-center">
+                <div className='flex items-center gap-1'>
+                    <div className="text-lg semibold">
+                        {titleCase(from)}     
+                    </div>
+                    <img src={double_arrow} className="w-5"/>
+                    <div className="text-lg semibold">
+                        {titleCase(to)}     
+                    </div>
                 </div>
-                <div className="flex-1" >
-                    To     
+                <div className="">
+                    <div className="flex">
+                        <img src={calender_icon} className='w-4'/>
+                        <p>{date}</p>
+                    </div>
                 </div>
-    
-                <div className="flex-1">
-                        Date
+                <div className="">
+                    <div className='flex'>
+                        <img src={clock_icon} className='w-4'/>
+                        <p>{time??'N/A'}</p>    
+                    </div>
                 </div>
-                <div className="flex-1">
-                    Preffered Time
-                </div>
-                <div className="flex-1">
-                    Class/Type
-                </div>
-            </div>
-    
-            <div className="mx-2 text-sm w-full flex justify-between flex-col sm:flex-row">
-                <div className="flex-1">
-                    {titleCase(from)}     
-                </div>
-                <div className="flex-1">
-                    {titleCase(to)}     
-                </div>
-                <div className="flex-1">
-                    {date}
-                </div>
-                <div className="flex-1">
-                    {time??'N/A'}
-                </div>
-                <div className="flex-1">
-                    {travelClass??'N/A'}
+                <div className="">
+                    {travelClass?.toUpperCase()??'N/A'}
                 </div>
             </div>
         </div>
@@ -414,47 +355,35 @@ function FlightCard({from, to, date, time, travelClass, onClick, mode='Flight'})
     </div>)
 }
 
-function CabCard({from, to, date, time, travelClass, onClick, mode, isTransfer=false}){
+function CabCard({from, to, date, time, travelClass, onClick, isTransfer=false}){
     return(
         <div className="shadow-sm min-h-[76px] bg-slate-50 rounded-md border border-slate-300 w-full px-6 py-4 flex flex-col sm:flex-row gap-4 items-center sm:divide-x">
         <div className='font-semibold text-base text-neutral-600'>
         <img src={cab_icon} className='w-6 h-6' />
-            {isTransfer && <p className="text-xs text-neutral-500">{spitBoardingPlace(mode)}</p>}
+            {<p className="text-xs text-neutral-500">{isTransfer? 'Transfer Cab' : 'Cab'}</p>}
         </div>
         <div className="w-full flex sm:block">
-            <div className='mx-2 text-xs text-neutral-600 flex justify-between flex-col sm:flex-row'>
+            <div className="mx-2 text-sm w-full flex gap-1 flex-col lg:flex-row lg:justify-between lg:items-center">
                 <div className="flex-1">
-                    Pickup     
-                </div>
-                <div className="flex-1" >
-                    Drop    
+                    {`pickup: ${from??'not provided'}`}   
                 </div>
                 <div className="flex-1">
-                        Date
+                    {`drop: ${from??'not provided'}`}      
                 </div>
-                <div className="flex-1">
-                    Preffered Time
+                <div className="">
+                    <div className="flex">
+                        <img src={calender_icon} className='w-4'/>
+                        <p>{date}</p>
+                    </div>
                 </div>
-                {!isTransfer && <div className="flex-1">
-                    Class/Type
-                </div>}
-            </div>
-    
-            <div className="mx-2 text-sm w-full flex justify-between flex-col sm:flex-row">
-                <div className="flex-1">
-                    {from??'not provided'}     
-                </div>
-                <div className="flex-1">
-                    {to??'not provided'}     
-                </div>
-                <div className="flex-1">
-                    {date??'not provided'}
-                </div>
-                <div className="flex-1">
-                    {time??'N/A'}
+                <div className="">
+                    <div className='flex'>
+                        <img src={clock_icon} className='w-4'/>
+                        <p>{time??'N/A'}</p>    
+                    </div>
                 </div>
                {!isTransfer && <div className="flex-1">
-                    {travelClass??'N/A'}
+                    {travelClass?.toUpperCase()??'Any'}
                 </div>}
             </div>
         </div>
@@ -467,35 +396,22 @@ function CabCard({from, to, date, time, travelClass, onClick, mode, isTransfer=f
     </div>)
 }
 
-function HotelCard({checkIn, checkOut, hotelClass, onClick, preference={preference}}){
+function HotelCard({checkIn, checkOut, hotelClass, onClick, preference='close to airport'}){
     return(
         <div className="shadow-sm min-h-[76px] bg-slate-50 rounded-md border border-slate-300 w-full px-6 py-4 flex flex-col sm:flex-row gap-4 items-center sm:divide-x">
         <p className='font-semibold text-base text-neutral-600'>Hotel</p>
         <div className="w-full flex sm:block">
-            <div className='mx-2 text-xs text-neutral-600 flex justify-between flex-col sm:flex-row'>
-                <div className="flex-1">
-                    Check-In  
+            <div className="mx-2 text-sm w-full flex gap-1 flex-col lg:flex-row lg:justify-between lg:items-center">
+                <div className="flex">
+                    <img src={calender_icon} className='w-4'/>
+                    <p>{checkIn}</p>
                 </div>
-                <div className="flex-1" >
-                    Checkout
-                </div>
-                <div className="flex-1">
-                    Class/Type
-                </div>
-                <div className='flex-1'>
-                    Site Preference
-                </div>
-            </div>
-    
-            <div className="mx-2 text-sm w-full flex justify-between flex-col sm:flex-row">
-                <div className="flex-1">
-                    {checkIn}     
+                <div className="flex">
+                    <img src={calender_icon} className='w-4'/>
+                    <p>{checkOut}</p>
                 </div>
                 <div className="flex-1">
-                    {checkOut}     
-                </div>
-                <div className="flex-1">
-                    {hotelClass??'N/A'}
+                    {hotelClass?.toUpperCase()??'N/A'}
                 </div>
                 <div className='flex-1'>
                     {preference??'N/A'}
@@ -524,10 +440,12 @@ function AddTicket(
         addTicketVariables, 
         handleFieldValueChange,
         expenseCategories,
+        handleIndividualTicketSave,
+        itinerary
         }){
     
     return(<div className="relative">
-        <div className='flex flex-col md:flex-row mx-6 my-4 relative'>
+        <div className='flex flex-col overflow-y-scroll md:flex-row mx-6 my-4 relative'>
 
             <div className="relative h-[80vh] flex-1 flex-col items-center justify-center overflow-y-scroll">
                 
@@ -550,7 +468,7 @@ function AddTicket(
                     Re-Upload
                 </p>}
 
-                {preview && <div className="absolute left-[calc(50%-57px)] flex gap-2 items-center border border-gray-800 bottom-10 bg-gray-100 px-6 py-2 rounded-md text-neutral-700 cursor-pointer">
+                {preview && <div className="absolute left-[calc(50%-57px)] bottom-10 flex gap-2 items-center border border-gray-800 bg-gray-100 px-6 py-2 rounded-md text-neutral-700 cursor-pointer">
                     <p>Scan</p>
                     <img src={scanner_icon} className="w-6 h-6" onClick={handleConvert} />
                 </div>}
@@ -564,7 +482,10 @@ function AddTicket(
                     switch(field.type){
                         case 'text' : return(  
                                         <div className='' key={index}>
-                                            <Input title={field.name} onChange={(e)=>handleFieldValueChange(field.toSet, field.id, e)} />
+                                            <Input 
+                                                title={field.name} 
+                                                value={field.toSet == field.id ? itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet] : itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet][field.id]} 
+                                                onChange={(e)=>handleFieldValueChange(field.toSet, field.id, e)} />
                                         </div>)
 
                         case 'date' : return(  
@@ -581,6 +502,7 @@ function AddTicket(
                                             type='date' 
                                             className="w-full h-full decoration:none px-6 py-2 border rounded-md border border-neutral-300 focus-visible:outline-0 focus-visible:border-indigo-600 "
                                             name={field.name} 
+                                            value={itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet]}
                                             onChange={(e)=>handleFieldValueChange(field.toSet, field.id, e)} />
                                         </div>
                                     </div>
@@ -589,7 +511,9 @@ function AddTicket(
 
                         case 'time' : return(  
                             <div className='' key={index}>
-                                <TimePicker title={field.name} onChange={(e)=>handleFieldValueChange(field.toSet, field.id, e)} />
+                                <TimePicker 
+                                    time={itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet]} title={field.name} 
+                                    onChange={(e)=>handleFieldValueChange(field.toSet, field.id, e)} />
                             </div>)
 
                         case 'amount' : return(  
@@ -605,7 +529,8 @@ function AddTicket(
                                             <input 
                                             type='number' 
                                             className="w-full h-full decoration:none px-6 py-2 border rounded-md border border-neutral-300 focus-visible:outline-0 focus-visible:border-indigo-600 "
-                                            name={field.name} 
+                                            name={field.name}
+                                            value={itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet][field.id]} 
                                             onChange={(e)=>handleFieldValueChange(field.toSet, field.id, e)} />
                                         </div>
                                     </div>
@@ -615,7 +540,7 @@ function AddTicket(
                 })}
                 
                 <div className="my-4">
-                    <Button text='Save Details'/>
+                    <Button text='Save Details' onClick={()=>handleIndividualTicketSave(addTicketVariables.toSet, addTicketVariables.itemIndex)} />
                 </div>
             </div>
         </div>

@@ -6,6 +6,8 @@ import Itinerary from "./itinerary/Itinerary"
 import Review from "./review/Review"
 import Error from "../components/common/Error";
 import { TR_frontendTransformer } from "../utils/transformers";
+import { getTravelRequest_API, getOnboardingData_API } from "../utils/api";
+
 
 const dummyItinerary = [{
   from:null,
@@ -127,7 +129,6 @@ const dummyItinerary = [{
   cancellationReason:null,
   status:'draft',
 }]
-
 export default function () {
   //get travel request Id from params
     const {travelRequestId} = useParams()
@@ -135,88 +136,69 @@ export default function () {
     const [isLoading, setIsLoading] = useState(true)
     const [loadingErrMsg, setLoadingErrMsg] = useState(null)
 
+    //hardcoded for now we will get it from dashboard/token
+    const tenantId = 'tynod76eu' 
+    const EMPLOYEE_ID  = '1001' 
+    const EMPLOYEE_NAME = 'Abhishek Kumar'
+
+    const [formData, setFormData] = useState()
+    const [onBoardingData, setOnBoardingData] = useState()
+
+
     //fetch travel request data from backend
-    useEffect(()=>{
-        axios
-        .get(`${TRAVEL_API}/travel-requests/${travelRequestId}`)
-        .then((response) => {
-            console.log(response.data)
-            const travelRequestDetails = TR_frontendTransformer(response.data)
-            console.log(travelRequestDetails)
-           //set form data...
+    useEffect(() => {
+      (async function(){
+        const response = await getOnboardingData_API({tenantId, EMPLOYEE_ID})
+        if(response.err){
+          setLoadingErrMsg(response.err)
+          return
+        }  
 
-           const currentFomData = {
-              travelRequestId: travelRequestDetails.travelRequestId,
-              approvers: travelRequestDetails.approvers,
-              tenantId: travelRequestDetails.tenantId,
-              tenantName:travelRequestDetails.tenantName,
-              companyName:travelRequestDetails.companyName,
-              status: travelRequestDetails.status,
-              state: travelRequestDetails.state,
-              createdBy: travelRequestDetails.createdBy,
-              createdFor: travelRequestDetails.createdFor,
-              travelAllocationHeaders:travelRequestDetails.travelAllocationHeaders,
-              tripPurpose:travelRequestDetails.tripPurpose,
+        const travel_res = await getTravelRequest_API({travelRequestId})
+        if(travel_res.err){
+          setLoadingErrMsg(travel_res.err)
+          return
+        }
+        const travelRequestDetails = travel_res.data
+        const currentFormData = {
+          travelRequestId: travelRequestDetails.travelRequestId,
+          approvers: travelRequestDetails.approvers,
+          tenantId: travelRequestDetails.tenantId,
+          tenantName:travelRequestDetails.tenantName,
+          companyName:travelRequestDetails.companyName,
+          status: travelRequestDetails.status,
+          state: travelRequestDetails.state,
+          createdBy: travelRequestDetails.createdBy,
+          createdFor: travelRequestDetails.createdFor,
+          travelAllocationHeaders:travelRequestDetails.travelAllocationHeaders,
+          tripPurpose:travelRequestDetails.tripPurpose,
 
-              raisingForDelegator: travelRequestDetails.createdFor === null ? false : true,
-              nameOfDelegator: travelRequestDetails?.createdFor?.name || null,
-              isDelegatorManager: false,
-              selectDelegatorTeamMembers:false,
-              delegatorsTeamMembers:[],
+          raisingForDelegator: travelRequestDetails.createdFor === null ? false : true,
+          nameOfDelegator: travelRequestDetails?.createdFor?.name || null,
+          isDelegatorManager: false,
+          selectDelegatorTeamMembers:false,
+          delegatorsTeamMembers:[],
 
-              bookingForSelf:true,
-              bookiingForTeam:false,
-              teamMembers : travelRequestDetails.teamMembers,
-              travelDocuments: travelRequestDetails.travelDocuments,
-              itinerary: travelRequestDetails.itinerary,
-              tripType: travelRequestDetails.tripType,
-              preferences:travelRequestDetails.preferences,
-              travelViolations:travelRequestDetails.travelViolations,
-              cancellationDate:travelRequestDetails.cancellationDate,
-              cancellationReason:travelRequestDetails.cancellationReason,
-              isCancelled:travelRequestDetails.isCancelled,
-              travelRequestStatus:travelRequestDetails.travelRequestStatus,
-           }
-
-
-                  axios
-            .get(`${TRAVEL_API}/initial-data/${tenantId}/${EMPLOYEE_ID}`)
-            .then((response) => {
-              console.log(response.data)
-              setOnBoardingData(response.data)
-              setIsLoading(false)
-            })
-            .catch(err=>{ 
-              console.error(err)
-              setLoadingErrMsg(err.response.message)
-              //handle possible scenarios
-            })
-
-           setFormData(currentFomData)
-           
-
-        })
-        .catch(err=>{ 
-            console.error(err)
-            setLoadingErrMsg(err.response.message)
-            //handle possible scenarios
-        })
+          bookingForSelf:true,
+          bookiingForTeam:false,
+          teamMembers : travelRequestDetails.teamMembers,
+          travelDocuments: travelRequestDetails.travelDocuments,
+          itinerary: travelRequestDetails.itinerary,
+          tripType: travelRequestDetails.tripType,
+          preferences:travelRequestDetails.preferences,
+          travelViolations:travelRequestDetails.travelViolations,
+          cancellationDate:travelRequestDetails.cancellationDate,
+          cancellationReason:travelRequestDetails.cancellationReason,
+          isCancelled:travelRequestDetails.isCancelled,
+          travelRequestStatus:travelRequestDetails.travelRequestStatus,
+       }
+        setFormData(currentFormData)
+        setOnBoardingData(response.data.onboardingData)
+        console.log(response.data.onboardingData)
+        setIsLoading(false)
+      })()
     },[])
-
-  const TRAVEL_API = import.meta.env.VITE_TRAVEL_API_URL 
-  //hardcoded for now we will get it from dashboard/token
-  const tenantId = 'tynod76eu' 
-  const EMPLOYEE_ID  = '1001' 
-  const EMPLOYEE_NAME = 'Abhishek Kumar'
-
-
-  const [formData, setFormData] = useState()
-
-
-  const [onBoardingData, setOnBoardingData] = useState()
-
-  //flags
-
+    
   return <>
         {isLoading && <Error message={loadingErrMsg} />}
       {!isLoading && <Routes>

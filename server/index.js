@@ -7,10 +7,15 @@ import cors from "cors"
 import { statusUpdateBatchJob } from "./scheduler/updateStatus.js";
 import amqp from 'amqplib';
 import cron from 'node-cron'
+import { sendToDashboardQueue } from "./rabbitMQ/publisher.js";
+import pino from 'pino'
+const logger = pino({})
 
+logger.info('Hello World')
+logger.
 
 //later to be done using cron
-statusUpdateBatchJob();
+//statusUpdateBatchJob();
 
 dotenv.config();
 const app = express();
@@ -22,6 +27,10 @@ app.use(express.json())
 app.use(cors())
 app.use("/travel/internal/api", internalRoutes);
 app.use("/travel/api", frontendRoutes);
+app.post('/test/rabbitmq', async (req, res)=>{
+  const result = await sendToDashboardQueue({message:'Hello from Travel'})
+  console.log(result)
+})
 
 async function startProducer() {
   try {
@@ -92,7 +101,6 @@ async function receiveTravelApprovedMessage() {
     console.error('Error receiving message from RabbitMQ:', error.message);
   }
 }
-
 
 async function connectToMongoDB() {
   try {

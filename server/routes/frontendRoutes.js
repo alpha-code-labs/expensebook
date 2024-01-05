@@ -9,6 +9,8 @@ import {
   validateTravelPolicy,
   getTravelRequests,
   cancelTravelRequest,
+  updateTravelBookings,
+  getBookingsInitialData,
 } from "../controllers/frontendTravelRequestController.js";
 
 const router = express.Router();
@@ -24,7 +26,8 @@ router.post("/travel-request", createTravelRequest);
 router.post("/validate-policy/:tenantId", validateTravelPolicy);
 router.get("/user-travel-requests/:employeeId", getTravelRequests);
 router.get("/travel-requests/modify/:travelRequestId", getTravelRequest);
-
+router.patch("/travel-requests/:travelRequestId/bookings", updateTravelBookings)
+router.get('/bookings-initial-data/:tenantId/:employeeId/:travelType', getBookingsInitialData)
 
 export default router;
 

@@ -9,6 +9,8 @@ const travelRequestStatusEnums = [
 'booked',
 'transit',
 'cancelled',
+'recovered',
+'paid and cancelled',
 ]
 
 const travelRequestStateEnums = [
@@ -67,11 +69,12 @@ itineraryId: mongoose.Schema.ObjectId,
 formId:String,
 from: String,
 to: String,
-date: String,
+date: Date,
 time: String,
 travelClass:String,
 violations:{
 class: String,
+isReturnTravel:Boolean,
 amount: String,
 },
 bkd_from: String,
@@ -91,7 +94,6 @@ bookingDetails:{
 docURL: String,
 docType: String,
 billDetails: {},
-isReturnTravel:Boolean,
 }
 }],
 
@@ -100,9 +102,10 @@ itineraryId: mongoose.Schema.ObjectId,
 formId:String,
 from: String,
 to: String,
-date: String,
+date: Date,
 time: String,
 travelClass:String,
+isReturnTravel: Boolean,
 violations:{
 class: String,
 amount: String,
@@ -120,7 +123,6 @@ bookingDetails:{
 docURL: String,
 docType: String,
 billDetails: {},
-isReturnTravel: Boolean
 }
 }],
 
@@ -129,9 +131,10 @@ itineraryId: mongoose.Schema.ObjectId,
 formId:String,
 from: String,
 to: String,
-date: String,
+date: Date,
 time: String,
 travelClass:String,
+isReturnTravel: Boolean,
 violations:{
 class: String,
 amount: String,
@@ -153,7 +156,6 @@ bookingDetails:{
 docURL: String,
 docType: String,
 billDetails: {},
-isReturnTravel: Boolean
 }
 }],
 
@@ -172,6 +174,7 @@ class: String,
 amount: String,
 },
 bkd_location:String,
+bkd_locationPreference:String,
 bkd_class:String,
 bkd_checkIn:String,
 bkd_checkOut:String,
@@ -242,9 +245,13 @@ companyName:{
 type: String,
 },
 travelRequestId: {
-type: String, // tenantId_createdBy_tr_#(tr number) | tentative | not fixed
-required: true,
+type: mongoose.Schema.Types.ObjectId, // tenantId_createdBy_tr_#(tr number) | tentative | not fixed
 unique: true,
+required: true,
+},
+travelRequestNumber:{
+  type: String,
+  required: true,
 },
 tripPurpose: {
 type: String,
@@ -291,41 +298,27 @@ type: String,
 enum: approverStatusEnums,
 },
 },],
-
+assignedTo:{empId: String, name: String},
+bookedBy:{empId: String, name: String}, 
+recoveredBy:{empId: String, name: String},
 preferences: [String],
 travelViolations: {},
 travelRequestDate: {
 type: String,
 required:true
 },
-travelBookingDate: String,
-travelCompletionDate: String,
+travelBookingDate: Date,
+travelCompletionDate: Date,
+cancellationDate:Date,
 travelRequestRejectionReason: String,
 isCancelled:Boolean,
-cancellationDate:String,
 cancellationReason:String,
-isCashAdvanceTaken: String,
+isCashAdvanceTaken: Boolean,
 sentToTrip:Boolean,
 })
 
 travelRequestSchema.pre('save', async function (next) {
 // Generate a new ObjectId and set it for each section if not already there
-
-if (!this.travelRequestId) {
-  // Fetch the company name (assuming it is available in the schema)
-  const companyName = this.companyName;
-
-  // Count the number of existing travel requests for the company
-  const count = await TravelRequest.countDocuments({
-    companyName: companyName,
-  });
-
-  // Generate the six-digit number with leading zeros
-  const sixDigitNumber = count.toString().padStart(6, '0');
-
-  // Create the travelRequestId using the specified format
-  this.travelRequestId = `TR${companyName.substring(0, 2)}${sixDigitNumber}`;
-}
 
 this.itinerary.flights.forEach(flight=>{
   if(!flight.itineraryId) flight.itineraryId = new mongoose.Types.ObjectId()

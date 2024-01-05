@@ -203,9 +203,7 @@ const selectDivFocus = (e)=>{
                   ))}
               </div>
             )}
-
           </div>
-
         </div>
       </div>
     </>

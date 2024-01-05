@@ -16,13 +16,24 @@ async function batchJob(){
             const results = await TravelRequest.find({
                 travelRequestStatus : 'booked',
                 sentToTrip : false,
-                isCashAdvanceTaken: false,
+               // isCashAdvanceTaken: false,
             });
-
 
             //send results to trip 
             //const res_trip  = await axios.post(`${TRIP_API}/${trip_endpoint}`, {trips:results})
             //if(res_trip.status!=200) throw new Error('Unable to send data to trip-ms')
+
+            const approvedTravelRequestIds = []
+            //iterate throught results and check for TR that went for approval
+            results.forEach(result=>{
+              if(result.approvers.length>0){
+                approvedTravelRequestIds.push(result.travelRequestId)
+              }
+            })
+
+            //send results to approval
+            //const res_approval  = await axios.post(`${APPROVAL_API}/${approval_endpoint}`, {travelRequestIds, status:'booked'})
+            //if(res_approval.status!=200) throw new Error('Unable to send data to approval-ms')
 
             //update  sentToTrip flag to true 
             const updateResults = await TravelRequest.updateMany({
@@ -32,13 +43,16 @@ async function batchJob(){
             }, 
             {$set : {sentToTrip:true}});
                        
+
+
         } catch (e) {
         console.error('error in statusUpdateBatchJob', e);
       }    
 }
 
-// Schedule the cron job to run every day at midnight
-cron.schedule('0 0 * * *', () => {
+
+ // Schedule the cron job to run every day at midnight
+ cron.schedule('0 0 * * *', () => {
     console.log('Running batch job...');
     batchJob();
   });

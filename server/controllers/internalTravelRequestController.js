@@ -109,6 +109,31 @@ const updateTravelRequestStatus = async (req, res) => {
   }
 };
 
+const updateCashAdvanceFlag = async (req, res) => {
+  try {
+    const { travelRequestId } = req.params;
+    let { isCashAdvanceTaken } = req.body;
+
+    //everything is okay attempt updating status
+    const result = await TravelRequest.findOneAndUpdate(
+      { travelRequestId },
+      {$set: {isCashAdvanceTaken} }
+    );
+    
+    if (!result) {
+      return res.status(404).json({ message: "Record not found" });
+    }
+
+
+    return res.status(200).json({
+      message: `isCashAdvanceTaken flag updated`,
+    });
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 const updateTravelRequest = async (req, res) => {
   try {
     const requiredFields = [
@@ -223,15 +248,15 @@ const updateTravelRequest = async (req, res) => {
 
     //check for approvers
     if(travelRequestStatus==='pending approval'){
-      if(req.body.hasOwnProperty(approvers)){
-        if(req.body.approvers.length>0 && r){
+      if(req.body.hasOwnProperty('approvers')){
+        if(req.body.approvers.length>0){
           // might need to 
           //check with t&e how many approvers should be there
           //and wether he is selecting correct approvers
   
           // send data to approval microservice
 
-          return res.status(200).json({message: 'Travel Request submitted for approval'})
+         // return res.status(200).json({message: 'Travel Request submitted for approval'})
         }
       }
     }
@@ -295,6 +320,7 @@ export {
   updateTravelRequest,
   getTravelRequestStatus,
   updateTravelRequestStatus,
+  updateCashAdvanceFlag,
   getTravelRequests,
   updateOnboardingContainer,
 };

@@ -27,7 +27,7 @@ export default function BasicDetails(props){
     const APPROVAL_FLAG = onBoardingData?.APPROVAL_FLAG
     const MANAGER_FLAG =  onBoardingData?.MANAGER_FLAG
     const DELEGATED_FLAG = onBoardingData?.DELEGATED_FLAG
-    const listOfAllManagers = onBoardingData?.managersList
+    const listOfAllManagers = onBoardingData?.listOfManagers
     const travelAllocations = onBoardingData?.travelAllocations 
     const tripPurposeOptions = onBoardingData?.tripPurposeOptions
     const delegatedFor = onBoardingData?.delegatedFor
@@ -128,11 +128,6 @@ export default function BasicDetails(props){
             }
             else{
                 setIsLoading(true)
-                const res = await updateTravelRequest_API({...formData, submitted: false})
-                if(res.err){
-                    setLoadingErrMsg(res.err)
-                    return
-                }
                 navigate(nextPage)
             }
         }
@@ -200,7 +195,13 @@ export default function BasicDetails(props){
     
                     if(travelRequestId){
                         //show popup
-                        
+                        setIsLoading(true)
+                        const res = await updateTravelRequest_API({travelRequest:formData, submitted:false})
+                        if(res.err){
+                            setLoadingErrMsg(res.err)
+                            return
+                        }
+                        setIsLoading(false)
                         setPopupMessage(`Your draft travel request with ID ${travelRequestId} has been saved`)
                         setshowPopup(true)
 
@@ -261,7 +262,7 @@ export default function BasicDetails(props){
 
     const updateApprovers = (option)=>{
         const formData_copy = JSON.parse(JSON.stringify(formData))
-        formData_copy.approvers = option
+        formData_copy.approvers = option.map(o=>({name: o.employeeName, empId:o.employeeId, status:'pending approval'}))
         setFormData(formData_copy)
     }
 
@@ -411,24 +412,6 @@ export default function BasicDetails(props){
         setFormData(formData_copy)
     }
 
-    const handleAllocationPercentageChange = (percentage, item)=>{
-        const updatedSelectedTravelAllocationHeaders =  
-        selectedTravelAllocationHeaders.map(prevItem=>{
-            if(JSON.stringify(prevItem) == JSON.stringify(item)){
-                console.log('item matches')
-                return{...prevItem, percentage}
-            }
-            else{
-                console.log('item doesnt matches')
-                return prevItem
-            }
-        })
-
-        console.log(updatedSelectedTravelAllocationHeaders)
-        setSelectedTravelAllocationHeaders(updatedSelectedTravelAllocationHeaders)
-    
-    }
-
     const handleAllocationHeaderSelect = (headerName, option)=>{
         let optionPresent = false
         
@@ -442,13 +425,9 @@ export default function BasicDetails(props){
         }
         
         if(!optionPresent){
-            setSelectedTravelAllocationHeaders((pre)=>[...pre, {headerName, headerValue:option, percentage:''}])
+            setSelectedTravelAllocationHeaders((pre)=>[...pre, {headerName, headerValue:option}])
         }
         
-    }
-
-    const removeAllocationItem = (item)=>{
-        setSelectedTravelAllocationHeaders((pre)=>pre.filter(presentItem=>JSON.stringify(presentItem)!=JSON.stringify(item)))
     }
 
     useEffect(()=>{
@@ -540,6 +519,7 @@ export default function BasicDetails(props){
                             return(
                                 <>
                                 <Select
+                                    currentOption={formData?.travelAllocationHeaders[index]?.headerValue}
                                     options={travelAllocations[index].headerValues}
                                     onSelect = {(option)=>{handleAllocationHeaderSelect(travelAllocations[index].headerName, option)}}
                                     placeholder={`Select ${travelAllocations[index].headerName}`} 
@@ -555,23 +535,6 @@ export default function BasicDetails(props){
                         <p className='text-zinc-800 text-sm font-medium font-cabin'>Not Sure</p>
                     </div>}
                     
-                    {selectedTravelAllocationHeaders && selectedTravelAllocationHeaders.length>0 &&
-                        <div className='mt-8'>
-                        <p className='text-base font-medium text-neutral-700 font-cabin'>Allocate percentage</p>
-                        <div className='flex gap-4 items-center flex-wrap'>
-                            {selectedTravelAllocationHeaders && selectedTravelAllocationHeaders.map((item,index)=> 
-                                <div className='mt-4 flex  gap-2'>
-                                    <InputPercentage 
-                                    key={index}
-                                    title={`${item.headerName} > ${item.headerValue}`} 
-                                    textInput={item.percentage}
-                                    onBlur={(percentage)=>handleAllocationPercentageChange(percentage, item)}
-                                    />
-                                    <CloseButton onClick={()=>removeAllocationItem(item)} />
-                                </div> )}
-                        </div>
-                    </div>}
-
                 </div> }
                 
                 {/* slect team members */}

@@ -67,6 +67,7 @@ export default function Hotels({
             hotel.nearby = null
         })
         setFormData(formData_copy)
+        
     },[formData.itinerary[itemIndex].modeOfTransit])
 
     const handleHotelClassChange = async (option, index)=>{

@@ -28,6 +28,3 @@ export default async function convertToGrayscale(inputImage) {
   
     return canvas.toDataURL('image/png'); // Convert canvas back to image data URL
   }
-  
-  
-  

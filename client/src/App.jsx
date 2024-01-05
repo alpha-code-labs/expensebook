@@ -7,7 +7,6 @@ import CancelTravelRequest from './pages/CancelTravelRequest'
 import ClearRejectedTravelRequest from './pages/ClearRejectedTravelRequest';
 import Bookings from './pages/Bookings'
 
-
 function App() {
   return <>
     <Router>
