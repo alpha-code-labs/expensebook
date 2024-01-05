@@ -2,6 +2,7 @@ import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import frontendRoutes from './routes/frontendRoutes.js'
+import internalRoutes from './routes/internalRoutes.js'
 import PSFirstTimeIntegrationRoute from './routes/psHRIntegrationRoute.js'
 import cors from "cors"
 
@@ -15,6 +16,7 @@ const PORT = process.env.PORT;
 app.use(express.json())
 app.use(cors())
 app.use("/api", frontendRoutes);
+app.use("/api/internal/", internalRoutes)
 app.use("/api", PSFirstTimeIntegrationRoute)
 
 
