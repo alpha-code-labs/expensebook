@@ -9,6 +9,11 @@ import AllocateExpenses from "./pages/AllocateExpenses";
 import UploadFile from "./components/common/UploadFile";
 import OtherData from "./pages/OtherData";
 import OnboardingHome from "./pages/OnboardingHome"
+import NonTravelExpensePoliciesHome from "./pages/NonTravelExpensePoliciesHome";
+import NonTravelExpensePolicies from "./pages/NonTravelExpensePolicies";
+import UploadHRInformation from "./pages/UploadHRInformation";
+import Playground from './pages/Playground'
+import OnboardingCompleted from "./pages/OnboardingCompleted";
 
 function App() {
   //flags
@@ -19,8 +24,10 @@ function App() {
       <Routes>
       <Route path='/'
             element={<OnboardingHome/>} />
-        <Route path='/company-info'
+        <Route path='/:tenantId/company-info'
             element={<CompanyAndHRInformation/>} />
+        <Route path='/:tenantId/upload-hr-data'
+            element={<UploadHRInformation/>} />
         <Route path='/:tenantId/expense-allocations/*' element={<AllocateExpenses />}/>
         <Route path={`/:tenantId/groups/*`} 
             element={<Groups/>} />
@@ -28,8 +35,17 @@ function App() {
             element={<CompanyPolicies
                 flags={flags}
                 />} />
+        <Route path="/:tenantId/non-travel-expenses/" 
+            element={<NonTravelExpensePoliciesHome
+                flags={flags}
+                />} />
+        <Route path="/:tenantId/non-travel-expenses/setup" 
+            element={<NonTravelExpensePolicies
+                flags={flags}
+                />} />
         <Route path='/:tenantId/others/*' element={<OtherData/>}/>
-        <Route path='/playground' element={<UploadFile/>} />
+        <Route path='/:tenantId/onboarding-completed/' element={<OnboardingCompleted />}/>
+        <Route path='/playground/:tenantId' element={<Playground/>} />
         
       </Routes>
     </Router>
