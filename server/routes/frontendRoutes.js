@@ -36,6 +36,12 @@ import {
     updateTenantSystemRelatedRoles,
     updateBlanketDelegations,
     getBlanketDelegations,
+    updateTenantCompanyInfo,
+    handleHRData,
+    getTenantNonTravelPolicies,
+    updateTenantNonTravelPolicies,
+    updateTravelCategoriesExpenseAllocation,
+    updateTenantState,
 } from "../controllers/frontendController.js";
 
 import { upload } from "../middlewares/upload.js";
@@ -44,7 +50,8 @@ import { upload } from "../middlewares/upload.js";
 const router = express.Router();
 router.post("/hrCompanyInfo/existing", updateExistingHrCompanyInfo);
 router.post("/hrCompanyInfo/new", createNewHrCompanyInfo);
-router.post("/upload-hrInfo", upload.single('file'), handleUpload)
+//router.post("/upload-hrInfo", upload.single('file'), handleUpload)
+router.post("/tenant/:tenantId/upload-hr-data", handleHRData)
 router.get('/tenant/:tenantId/hrCompanyInfo', getTenantHRMaster);
 router.get('/tenant/:tenantId/employees', getTenantEmployees);
 router.post('/tenant/:tenantId/employeeDetails', updateTenantEmployeeDetails);
@@ -54,10 +61,13 @@ router.post('/tenant/:tenantId/org-headers', updateTenantOrgHeaders);
 router.get('/tenant/:tenantId/flags', getTenantFlags);
 router.get('/tenant/:tenantId/group-headers', getTenantGroupHeaders);
 
+router.post('/tenant/:tenantId/company-info', updateTenantCompanyInfo)
+
 //allocations
 //router.get('/tenant/:tenantId/travelAllocations', getTenantTravelAllocations);
 router.post('/tenant/:tenantId/travel-allocation', updateTravelAllocation);
 router.post('/tenant/:tenantId/travel-expense-allocation', updateTravelExpenseAllocation);
+router.post('/tenant/:tenantId/travel-categories-expense-allocation', updateTravelCategoriesExpenseAllocation);
 router.post('/tenant/:tenantId/non-travel-expense-allocation', updateNonTravelExpenseAllocation);
 //get routes
 router.get('/tenant/:tenantId/travel-allocation', getTenantTravelAllocation);
@@ -71,8 +81,11 @@ router.post('/tenant/:tenantId/groups', updateTenantGroups)
 router.get('/tenant/:tenantId/groups', getTenantGroups)
 
 //policies
-router.get('/tenant/:tenantId/policies', getTenantPolicies)
-router.post('/tenant/:tenantId/policies', updateTenantPolicies)
+router.get('/tenant/:tenantId/policies/travel', getTenantPolicies)
+router.post('/tenant/:tenantId/policies/travel', updateTenantPolicies)
+
+router.get('/tenant/:tenantId/policies/non-travel', getTenantNonTravelPolicies)
+router.post('/tenant/:tenantId/policies/non-travel', updateTenantNonTravelPolicies)
 
 //expense categories
 router.get('/tenant/:tenantId/expense-categories', getTenantExpenseCategories)
@@ -101,5 +114,9 @@ router.get('/tenant/:tenantId/system-related-roles', getTenantSystemRelatedRoles
 //blanket delegations
 router.post('/tenant/:tenantId/blanket-delegations', updateBlanketDelegations)
 router.get('/tenant/:tenantId/blanket-delegations', getBlanketDelegations)
+
+
+//form state
+router.post('/tenant/:tenantId/state', updateTenantState)
 
 export default router;
