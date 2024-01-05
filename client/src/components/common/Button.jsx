@@ -1,26 +1,30 @@
+import loader_icon from '../../assets/spinning-loading.gif'
+
 export default function Button(props){
 
     const text = props.text
     const onClick = props.onClick
-    let disabled = props.disabled
-    if(disabled==undefined){
-        disabled=false
-    }
+    const variant = props.variant?? 'fit'
+    const disabled = props.disabled?? false
+    const isLoading = props.isLoading?? false
+    console.log(disabled)
 
-    const handleButtonClick = ()=>{
-        if(disabled){
-
+    const handleClick = (e)=>{
+        if(!disabled && !isLoading){
+            onClick(e)
         }
         else{
-            onClick()
+            console.log('disabled')
         }
     }
 
     return(<>
     <div
-        onClick={handleButtonClick} 
-        className={`${disabled? 'hover:bg-indigo-100 hover:text-gray-400 bg-indigo-100 text-gray-400': 'hover:bg-indigo-500  text-white' }  w-full h-10 px-8 py-4 bg-indigo-600 rounded-[32px] justify-center items-center gap-2 inline-flex cursor-pointer`} >
-        <div className="w-full h-5 whitespace-nowrap text-center text-base font-medium font-cabin">{text}</div>
+        onClick={handleClick} 
+        className={`${variant=='fit'? 'w-fit':'w-full' } ${disabled && !isLoading? 'hover:bg-indigo-400 hover:text-gray-400 bg-indigo-400 text-gray-400 cursor-not-allowed': 'bg-indigo-600 hover:bg-indigo-500  text-white cursor-pointer' } h-12 px-8 py-4 rounded-[32px] justify-center items-center gap-2 inline-flex`}>
+        <div className="w-full h-5 text-center text-white text-base font-medium font-cabin">
+            {!isLoading? text : <img src={loader_icon} className='w-4 h-4' />}
+        </div>
     </div>
     </>)
 }

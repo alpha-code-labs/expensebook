@@ -19,6 +19,7 @@ export default function Select(props) {
   const required = props.required || false
   const submitAttempted = props.submitAttempted || false
   let convertToTitleCase = props.titleCase
+  const drop = props?.drop??'down'
 
   if(props.titleCase == undefined || props.titleCase == null){
     convertToTitleCase=true
@@ -188,7 +189,7 @@ const selectDivFocus = (e)=>{
               <div
                 key='dropdown'
                 ref={dropdownRef}
-                className="absolute z-10 w-[calc(100%-10px)] h-fit max-h-[230px] overflow-y-scroll scroll rounded-b left-[5px] top-11 bg-white transition-all border-b  border-l border-r border-neutral-300 shadow-sm"
+                className={`absolute z-10 w-[calc(100%-10px)] h-fit max-h-[230px] overflow-y-scroll scroll left-[5px] ${drop=='down'? 'top-11 border-b rounded-b' : 'top-[-230px] border-t rounded-t'}  border-l border-r bg-white transition-all border-neutral-300 shadow-sm`}
               >
                 {optionsList &&
                   optionsList.map((option, index) => (

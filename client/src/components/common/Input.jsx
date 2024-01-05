@@ -5,10 +5,8 @@ export default function Input(props){
     const placeholder = props.placeholder || "Placeholder Text";
     const value = props.value
     const title = props.title || "Title";
-    let showTitle = props.showTitle
-    if(showTitle === undefined || showTitle == null){
-        showTitle = true
-    }
+    const readOnly = props?.readOnly??false
+    let showTitle = props.showTitle??true
     const onBlur = props.onBlur
     const onChange = props.onChange || null
     const inputRef = useRef(null)
@@ -39,13 +37,14 @@ export default function Input(props){
 
             {/* input */}
             <div className="relative w-full h-full bg-white items-center flex">
-                <div className="text-neutral-700 w-full  h-full text-sm font-normal font-cabin">
+                <div className={`${readOnly? 'text-zinc-600' : 'text-neutral-700' } w-full  h-full text-sm font-normal font-cabin`}>
                     <input
                         ref={inputRef}
                         onChange={handleChange} 
                         onBlur={handleBlur}
                         className=" w-full h-full decoration:none px-6 py-2 border rounded-md border border-neutral-300 focus-visible:outline-0 focus-visible:border-indigo-600 " 
-                        value={textInput} 
+                        value={textInput}
+                        readOnly={readOnly} 
                         placeholder={placeholder}></input>
                 </div>
 

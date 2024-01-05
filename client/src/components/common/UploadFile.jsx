@@ -40,10 +40,7 @@ export default function (props){
                setSelectedFile(file);
                setFileSelected(true);
                const excelData = XLSX.utils.sheet_to_json(sheet);
-               if(setExcelData){
-                setExcelData(excelData)
-                console.log(excelData, '...excelData')
-               }
+               setExcelData(excelData)
              } else {
                // Sheet is empty or not valid
                setSelectedFile(null);
