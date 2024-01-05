@@ -1,6 +1,7 @@
 import Input from "../../components/common/Input"
 import DateTime from "../../components/common/DateTime"
 import AddMore from "../../components/common/AddMore"
+import { useEffect } from "react"
 
 
 export default function Cities({
@@ -10,35 +11,38 @@ export default function Cities({
     citiesError,
 }){
 
-    console.log(formData)
+    console.log(formData, formData.itinerary[itemIndex])
 
-    const from = formData.itinerary[itemIndex].journey.from
-    const to = formData.itinerary[itemIndex].journey.to
-    const departureDate = formData.itinerary[itemIndex].journey.departure.date
-    const departureTime = formData.itinerary[itemIndex].journey.departure.time
-    const returnDate = formData.itinerary[itemIndex].journey.return.date
-    const returnTime = formData.itinerary[itemIndex].journey.return.time
-
+    const from = formData.itinerary[itemIndex].departure.from
+    const to = formData.itinerary[itemIndex].departure.to
+    const departureDate = formData.itinerary[itemIndex].departure.date
+    const departureTime = formData.itinerary[itemIndex].departure.time
+    const returnDate = formData.itinerary[itemIndex].return.date
+    const returnTime = formData.itinerary[itemIndex].return.time
     const roundTrip = formData.tripType.roundTrip
-   
 
     const updateCity = (e, field)=>{
         const formData_copy = JSON.parse(JSON.stringify(formData))
-        formData_copy.itinerary[itemIndex].journey[field] = e.target.value
+        formData_copy.itinerary[itemIndex].departure[field] = e.target.value
+        formData_copy.itinerary[itemIndex].return[field=='from'?to:from] = e.target.value
         setFormData(formData_copy)
     }
 
     const handleTimeChange = (e, field)=>{
         const formData_copy = JSON.parse(JSON.stringify(formData))
-        formData_copy.itinerary[itemIndex].journey[field].time = e.target.value
+        formData_copy.itinerary[itemIndex][field].time = e.target.value
         setFormData(formData_copy)
       }
     
     const handleDateChange = (e, field)=>{
         const formData_copy = JSON.parse(JSON.stringify(formData))
-        formData_copy.itinerary[itemIndex].journey[field].date = e.target.value
+        formData_copy.itinerary[itemIndex][field].date = e.target.value
         setFormData(formData_copy)
     }
+
+    useEffect(()=>{
+        console.log(formData.tripType)
+    },[formData.tripType])
 
 
     return(<>

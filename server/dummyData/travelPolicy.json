@@ -1,4 +1,4 @@
-export const policies = {
+{
     "policies": {
       "international": {
         "group 1": {
@@ -112,7 +112,7 @@ export const policies = {
             "5 star": { "allowed": false, "violationMessage": "Your company policies do not allow you to book 5-star hotels" }
           },
           "hotel budget": { "amount": 9000, "violationMessage": "Hotel booking amount exceeds the allowed limit" },
-          "cash Advance": { "amount": 20000, "violationMessage": `Maximum allowed cash advance limit exceeded` },
+          "cash advance": { "amount": 20000, "violationMessage": "Maximum allowed cash advance limit exceeded" },
           "meal allowance": { "amount": 800, "violationMessage": "Meal allowance budget exceeded" },
           "expense submission deadline": { "days": 14, "violationMessage": "Your expense submission is overdue" },
           "per-diem allowance": { "amount": 12000, "violationMessage": "Per day allowance limit exceeded" }
@@ -120,3 +120,4 @@ export const policies = {
       }
     }
   }
+  

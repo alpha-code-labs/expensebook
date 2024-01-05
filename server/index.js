@@ -7,49 +7,27 @@ import {config} from './config.js';
 import frontendRoutes from './routes/frontendRoutes.js'
 
 dotenv.config();
+const app = express();
 
-const environment = process.env.NODE_ENV || 'development'
-const databaseURI = config[environment].mongoURI
-const castStrings = config[environment].castStrings
-console.log(`Running in ${environment} environment`);
-console.log(`Database URI: ${config[environment].mongoURI}`);
+const MONGO_URI = process.env.MONGO_URI;
+const PORT = process.env.PORT;
 
-const mongoURI = process.env.mongoURI
-
-const app =express()
-
-
-
-app.use(bodyParser.json())
+app.use(express.json())
 app.use(cors())
 
-app.use('/cash-advance/api',frontendRoutes) //cashAdvanceRoutes
+app.use('/cash-advance/api', frontendRoutes) //cashAdvanceRoutes
 
-const mongodb = async ()=>{
-    try{
-        await mongoose.connect(mongoURI,{
-            useNewUrlParser: true,
-            useUnifiedTopology:true
-        }).then(
-            
-        )
-        console.log('You are connect to MongoDB')
-
-    }catch(error){
-        console.error('Error connecting to MongoDB',error)
-
-        
-
-    }
-
+async function connectToMongoDB() {
+  try {
+    await mongoose.connect(MONGO_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
+    console.log("Connected to MongoDB");
+    app.listen(PORT, () => console.log(`Server Port: ${PORT}`));
+  } catch (error) {
+    console.error(`${error} did not connect`);
+  }
 }
 
-mongodb()
-
-
-const port = process.env.PORT || 8080
-
-app.listen(port ,()=>{
-    console.log(`Server is running on ${port}`);
-})
-
+connectToMongoDB();

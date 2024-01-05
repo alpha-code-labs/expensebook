@@ -6,8 +6,13 @@ import Button from '../../components/common/Button'
 import { updateTravelRequest_API} from '../../utils/api'
 import { useEffect, useState } from 'react'
 import Modal from '../../components/common/Modal'
-import Cities from './Cities'
+import Cities from './Itinerary'
 import Preferences from './Preferences'
+import Itinerary from './Itinerary'
+import Error from '../../components/common/Error'
+
+const DASHBOARD_URL = import.meta.env.VITE_DASHBOARD_URL
+const CASH_URL = import.meta.env.VITE_CASH_URL
 
 export default function (props){
     //next and last pages
@@ -18,6 +23,8 @@ export default function (props){
     const formData = props.formData
     const setFormData = props.setFormData  
     const [showPopup, setShowPopup] = useState(false)
+    const [loadingErrMsg, setLoadingErrMsg] = useState(false)
+
     const navigate = useNavigate()
     
     useEffect(()=>{
@@ -31,21 +38,65 @@ export default function (props){
 
     const handleCashAdvance = async (needed)=>{
         //send data to backend
-        const res = await updateTravelRequest_API({...formData, isCashAdvanceTaken:needed, travelRequestStatus: formData.approvers?.length>0? 'pending approval' : 'pending booking'})
-    
-        if(res.status === 200){
-            if(needed){
-                //redirect to cash microservice
+        if(needed){
+            //redirect to create cash advance page
+            //navigate(`${CASH_URL}/create/advance/${formData.travelRequestId}`)
+            window.location.href = `${CASH_URL}/create/advance/${formData.travelRequestId}`
+            setShowPopup(false)
+        }    
+        else{
+            //redirect to desktop
+            //navigate(DASHBOARD_URL)
+            setShowPopup(false)
+        }
+
+    }
+
+    const [requestDrafted, setRequestDrafted] = useState(false)
+    const [showSaveAsDraftPopup, setShowSaveAsDraftPopup] = useState(false)
+
+    const handleSaveAsDraft = async ()=>{
+        if(formData.travelRequestId){
+            console.log('sending call')
+            setShowSaveAsDraftPopup(true)
+            setRequestDrafted(false)
+            const res = await updateTravelRequest_API({travelRequest:{...formData,  isCashAdvanceTaken:false}, submitted:false})
+            if(res.err){
+                setLoadingErrMsg(res.err)
+                return
             }
             else{
-                //redirect to dashboard
+                setRequestDrafted(true)
+                setTimeout(()=>{
+                    //navigate to dashboard
+                    //navigate(DASHBOARD_URL)
+                    setShowSaveAsDraftPopup(false)   
+                   }, 5000)
             }
+
+            console.log(res)        
         }
     }
 
-    const handleSaveAsDraft = async ()=>{
-        //send data to backend
-        const res = await updateTravelRequest_API({...formData, travelRequestState:'Section 3', travelRequestStatus: 'draft'})   
+    const [requestSubmitted, setRequestSubmitted] = useState(false)
+
+    const handleSubmit = async()=>{
+        if(formData.travelRequestId){
+            console.log('sending call')
+            setShowPopup(true)
+            setRequestSubmitted(false)
+            const res = await updateTravelRequest_API({travelRequest:{...formData,  isCashAdvanceTaken:false}, submitted:true})
+            
+            if(res.err){
+                setLoadingErrMsg(res.err)
+                return
+            }
+            else{
+                setRequestSubmitted(true)
+            }
+
+            console.log(res)        
+        }
     }
 
     return(
@@ -58,61 +109,41 @@ export default function (props){
 
             {/* Rest of the section */}
             <div className="w-full rounded-md shadow-xl h-full mt-10 p-10">
-                <div className="flex justify-between item-center">
-                    <p className="text-neutral-700 text-xl font-semibold font-cabin">Trip Details</p>
-                    <img src={close_icon} onClick={handleClose} alt="close" className="w-6 h-6 cursor-pointer"/>
+                <div className='flex w-full flex-row-reverse'>
+                    <div className='rounded-full hover:bg-gray-50 p-1'>
+                        <img src={close_icon} onClick={handleClose} className='cursor-pointer w-5'/>
+                    </div>
                 </div>
-                
-                <Cities cities={formData.itinerary.cities} />
-
-               {formData?.createdFor?.length>0 && formData.createdFor[0]!=formData.createdBy && <div className="mt-10">
-                    <p className='text-neutral-500 text-sm font-cabin'>Booked for</p>
-                    <p className='text-neutral-700 text-sm font-cabin'>{formData.createdFor[0].name}</p>
-                </div>}
-
-               { formData.tripPurpose && <div className="mt-4">
-                    <p className='text-neutral-500 text-sm font-cabin'>Trip purpose</p>
-                    <p className='text-neutral-700 text-sm font-cabin'>{formData.tripPurpose}</p>
-                </div>}
-
-            
-               {formData?.teamMembers && formData?.teamMembers?.length>0 && <div className="mt-4">
-                    <p className='text-neutral-500 text-sm font-cabin'>Team members coming on trip</p>
-                    <p className='text-neutral-700 text-sm font-cabin'>
-                        {formData.teamMembers.map((item, index)=><>{item.name}{index!=formData.teamMembers.length-1 && <>, </>}</>)}
-                    </p>
-                </div>}
-
-                {formData?.approvers && formData?.approvers?.length>0 && <div className="mt-4">
-                    <p className='text-neutral-500 text-sm font-cabin'>Approvers</p>
-                    <p className='text-neutral-700 text-sm font-cabin'>
-                    {formData.approvers.map((item, index)=><>{item.name}{index!=formData.approvers.length-1 && <>, </>}</>)}
-                    </p>
-                </div>}
-
-                {formData?.travelAllocationHeaders?.length>0 && <div className="mt-4">
-                    <p className='text-neutral-500 text-sm font-cabin'>Travel budget allocation</p>
-                    <p className='text-neutral-700 text-sm font-cabin'>
-                    {formData.travelAllocationHeaders.map((item, index)=><>{item.department}<span className='text-neutral-400'>({item.percentage})</span>{index!=formData.travelAllocationHeaders.length-1 && <>, </>}</>)}
-                    </p>
-                </div>}
-                    
+                <div className="w-full h-full font-cabin tracking-tight">
+                    <p className="text-2xl text-neutral-600 mb-5">{`${formData.tripPurpose} Trip`}</p>
+                    <div className='flex flex-col sm:flex-row'>
+                        <div className='grid grid-cols-1 md:grid-cols-2 gap-x-10 '>
+                            <div className="flex gap-2 font-cabin text-sm tracking-tight">
+                                <p className="w-[100px] text-neutral-600">Raised By:</p>
+                                <p className="text-neutral-700">{formData.createdBy.name}</p>
+                            </div>
+                            <div className="flex gap-2 font-cabin text-sm tracking-tight">
+                                <p className="w-[100px] text-neutral-600">Raised For:</p>
+                                <p className="text-neutral-700">{formData.createdFor?.name??'Self'}</p>
+                            </div>
+                            <div className="flex gap-2 font-cabin text-sm tracking-tight">
+                                <p className="w-[100px] text-neutral-600">Team-members:</p>
+                                <p className="text-neutral-700">{formData.teamMembers.length>0 ? formData.teamMembers.map(member=>`${member.name}, `) : 'N/A'}</p>
+                            </div>
+                            <div className="flex gap-2 font-cabin text-sm tracking-tight">
+                                <p className="w-[100px] text-neutral-600">Approvers:</p>
+                                <p className="text-neutral-700">{formData.approvers.length>0 ? formData.approvers.map(approver=>`${approver.name}, `) : 'N/A'}</p>
+                            </div>
+                            <div className="flex gap-2 font-cabin text-sm tracking-tight">
+                                <p className="w-[100px] text-neutral-600">Travel Allocations:</p>
+                                <p className="text-neutral-700">{formData.travelAllocationHeaders.length>0 ? formData.travelAllocationHeaders.map(allocation=>`${allocation.headerName}:${allocation.headerValue}(${allocation?.percentage??100}%), `) : 'N/A'}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <hr className='mt-4'></hr>
-
-                {formData.itinerary.modeOfTransit && <div className="mt-4">
-                    <p className='text-neutral-500 text-sm font-cabin'>Mode of Transit</p>
-                    <p className='text-neutral-700 text-sm font-cabin'>{formData.itinerary.modeOfTransit} <span className='text-neutral-400'>(Economy)</span>  </p>
-                </div>}
-
-               {formData.itinerary.needsHotel && <div className="mt-4">
-                    <p className='text-neutral-500 text-sm font-cabin'>Hotels</p>
-                    {formData.itinerary.hotels.map((item, index)=><p className='text-neutral-700 text-sm font-cabin'>{formatDate2(item.checkIn)}  to {formatDate2(item.checkOut)}<span className='text-neutral-400'>({ item.class})</span> </p>)}
-                </div>}
-
-                <div className="mt-4">
-                    <p className='text-neutral-500 text-sm font-cabin'>Cabs</p>
-                    <p className='text-neutral-700 text-sm font-cabin'>{formData?.itinerary?.cabs?.dates?.map(d=>formatDate3(d)).join(', ')}</p>
-                </div>
+                <div className="mt-5 flex flex-col gap-4" />
+                <Itinerary itinerary={formData.itinerary} />
 
                 <div className='mt-4'>
                     <Preferences preferences={formData.preferences} />
@@ -127,18 +158,26 @@ export default function (props){
                 <Button 
                     variant='fit'
                     text='Submit' 
-                    onClick={()=>setShowPopup(true)} />
+                    onClick={handleSubmit} />
             </div>
 
                 <Modal showModal={showPopup} setShowModal={setShowPopup} skipable={true}>
-                    <div className='p-10'>
+                    {!requestSubmitted && <Error/>}
+                    {requestSubmitted && <div className='p-10'>
                         <p className='text-2xl text-neutral-700 font-semibold font-cabin'>Travel Request Submitted !</p>
                         <p className='text-zinc-800 text-base font-medium font-cabin mt-4'>Would you like to raise a cash advance request for this trip?</p>
                         <div className='flex gap-10 justify-between mt-10'>
                             <Button text='Yes' onClick={()=>handleCashAdvance(true)} />
-                            <Button text='No' onClick={()=>CashAdvance(false)} />
+                            <Button text='No' onClick={()=>handleCashAdvance(false)} />
                         </div>
-                    </div>
+                    </div>}
+                </Modal>
+
+                <Modal showModal={showSaveAsDraftPopup} setShowModal={setShowSaveAsDraftPopup} skipable={true}>
+                    {!requestDrafted && <Error/>}
+                    {requestDrafted && <div className='p-10'>
+                        <p className='text-2xl text-neutral-700 font-semibold font-cabin'>{`Your travel Request #${formData.travelRequestId} is saved as draft`}</p>
+                    </div>}
                 </Modal>
 
             </div>           

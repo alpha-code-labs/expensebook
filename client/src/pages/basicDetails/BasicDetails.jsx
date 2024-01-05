@@ -12,39 +12,23 @@ import TableItem from '../../components/table/TableItem'
 import { postTravelRequest_API, updateTravelRequest_API, policyValidation_API } from '../../utils/api'
 import CloseButton from '../../components/common/closeButton'
 import PopupMessage from '../../components/common/PopupMessage'
-
-const travelAllocation = [
-    {
-      headerName: "circles",
-      headerValues: [
-        "North India",
-        "South India",
-        "Central India"
-      ],
-    },
-    {
-      headerName: "department",
-      headerValues: [
-        "HR",
-        "Finance",
-        "Engineering",
-        "Marketing"
-      ],
-    }
-  ]
+import Error from '../../components/common/Error'
 
 export default function BasicDetails(props){
 
     const DASHBOARD_URL = import.meta.env.VITE_DASHBOARD_URL
+
+    //loader state
+    const [isLoading, setIsLoading] = useState(false)
+    const [loadingErrMsg, setLoadingErrMsg] = useState(null)
     
     //onboarding data...
     const onBoardingData = props.onBoardingData
     const APPROVAL_FLAG = onBoardingData?.APPROVAL_FLAG
     const MANAGER_FLAG =  onBoardingData?.MANAGER_FLAG
     const DELEGATED_FLAG = onBoardingData?.DELEGATED_FLAG
-    const listOfAllManagers = onBoardingData?.managersList
-    const ALLOCATION_HEADER = onBoardingData?.ALLOCATION_HEADER
-    const travelAllocationHeaders = onBoardingData?.travelAllocationHeaderOptions 
+    const listOfAllManagers = onBoardingData?.listOfManagers
+    const travelAllocations = onBoardingData?.travelAllocations 
     const tripPurposeOptions = onBoardingData?.tripPurposeOptions
     const delegatedFor = onBoardingData?.delegatedFor
 
@@ -65,7 +49,7 @@ export default function BasicDetails(props){
     
     //get this as props
     const EMPLOYEE_ID  = props.EMPLOYEE_ID || '123'
-    const group = props.group || 'group 1'
+    const groups = props.groups || ['group 1']
 
     //get this from onboarding....
     const teamMembers = props.teamMembers || [{name: 'Aman Bhagel', empId: '204', designation: 'Sales Executive'}, {name: 'Vikas Rajput', empId: '245', designation:'System Engineer II'}, {name: 'Rahul Suyush Singh', empId: '318', designation:'Sr. Software Engineer'}, {name: 'Vilakshan Vibhut Giri Babaji Maharaj', empId: '158', designation:'Sr. Sales Executive'}]
@@ -78,6 +62,8 @@ export default function BasicDetails(props){
 
 
     const handleContinueButton = async ()=>{
+        setIsLoading(true)
+
         console.log(sectionForm)
         console.log(formData)
         let allowSubmit = false
@@ -118,27 +104,30 @@ export default function BasicDetails(props){
         
         await checkRequiredFields()
 
+        setIsLoading(false)
+
         if(allowSubmit){
+            setIsLoading(true)
+
             if(!formData.travelRequestId){
-                const travelRequestId = await postTravelRequest_API({...formData, travelRequestState:'section 0', travelRequestStatus:'draft', tenantId:144,  })
+                const res = await postTravelRequest_API({...formData, travelRequestState:'section 0', travelRequestStatus:'draft',})
                 
+                if(res.err){
+                    setLoadingErrMsg(res.err)
+                    return
+                }
+
+                const travelRequestId = res.data.travelRequestId
+
                 console.log(travelRequestId, 'travel request id')
                 const formData_copy = JSON.parse(JSON.stringify(formData))
                 formData_copy.travelRequestId = travelRequestId
                 setFormData(formData_copy)
+                navigate(nextPage)
 
-                if(travelRequestId){
-                    navigate(nextPage)
-                }
-                else{
-                    //show server error
-                    console.log('server error')
-                }
             }
             else{
-                const res = await updateTravelRequest_API({...formData, travelRequestState:'section 0', travelRequestStatus:'draft', tenantId:144,  })
-                console.log(res, 'res')
-                //do some error handling if updation fails
+                setIsLoading(true)
                 navigate(nextPage)
             }
         }
@@ -147,6 +136,7 @@ export default function BasicDetails(props){
     const handleSaveAsDraft = async ()=>{
         console.log(sectionForm)
         console.log(formData)
+        setIsLoading(true)
         let allowSubmit = false
         //check required fields
         async function checkRequiredFields(){
@@ -184,20 +174,35 @@ export default function BasicDetails(props){
             }
             
             await checkRequiredFields()
+            setIsLoading(false)
     
             if(allowSubmit){
+                setIsLoading(true)
                 if(!formData.travelRequestId){
-                    const travelRequestId = await postTravelRequest_API({...formData, travelRequestState:'section 0', travelRequestStatus:'draft', tenantId:144,  })
-                    
+                    const res = await postTravelRequest_API({...formData, travelRequestState:'section 0', travelRequestStatus:'draft'})
+                    if(res.err){
+                        setLoadingErrMsg(res.err)
+                        return
+                    }
+
+                    const travelRequestId = res.data.travelRequestId
                     console.log(travelRequestId, 'travel request id')
                     const formData_copy = JSON.parse(JSON.stringify(formData))
                     formData_copy.travelRequestId = travelRequestId
                     setFormData(formData_copy)
+
+                    setIsLoading(false)
     
                     if(travelRequestId){
                         //show popup
-                        
-                        setPopupMessage(`Your travel request with ID ${travelRequestId} has been submitted successfull`)
+                        setIsLoading(true)
+                        const res = await updateTravelRequest_API({travelRequest:formData, submitted:false})
+                        if(res.err){
+                            setLoadingErrMsg(res.err)
+                            return
+                        }
+                        setIsLoading(false)
+                        setPopupMessage(`Your draft travel request with ID ${travelRequestId} has been saved`)
                         setshowPopup(true)
 
                         setTimeout(()=>{
@@ -213,10 +218,14 @@ export default function BasicDetails(props){
                     }
                 }
                 else{
-                    const res = await updateTravelRequest_API({...formData, travelRequestState:'section 0', travelRequestStatus:'draft', tenantId:formData.tenantId,  })
-                    console.log(res, 'res')
-                    //do some error handling if updation fails
-                    setPopupMessage(`Your travel request with ID ${formData.travelRequestId} has been submitted successfull`)
+                    setIsLoading(true)
+                    const res = await updateTravelRequest_API({...formData, travelRequestState:'section 0', travelRequestStatus:'draft', tenantId:formData.tenantId})
+                    if(res.err){
+                        setLoadingErrMsg(res.err)
+                        return
+                    }
+                    
+                    setPopupMessage(`Your travel request with ID ${formData.travelRequestId} has been saved as draft successfull`)
                     setshowPopup(true)
 
                     setTimeout(()=>{
@@ -226,8 +235,7 @@ export default function BasicDetails(props){
                         //navigate(DASHBOARD_URL)
                     },5000)
                 }
-            }
-        
+            }        
     }
 
     useEffect(()=>{
@@ -238,11 +246,13 @@ export default function BasicDetails(props){
     const updateTripPurpose = async (option)=>{
 
         let tripPurposeViolationMessage_ = null
-        await policyValidation_API({type:'international', policy:'trip purpose', value:option, group:group})
-        .then(res=>{tripPurposeViolationMessage_ = res.violationMessage})
-        .catch(err=>console.error('error in policy validation ', err))
-
-        setTripPurposeViiolationMessage(tripPurposeViolationMessage_)
+        const res = await policyValidation_API({tenantId:formData.tenantId, type:'international', policy:'trip purpose', value:option, groups:groups})
+        if(!res.err){
+            tripPurposeViolationMessage_ = res.data.response.violationMessage
+            setTripPurposeViiolationMessage(tripPurposeViolationMessage_)
+            console.log(tripPurposeViolationMessage_)
+            console.log(res.data)
+        }
 
         const formData_copy = JSON.parse(JSON.stringify(formData))
         formData_copy.tripPurpose = option
@@ -252,7 +262,7 @@ export default function BasicDetails(props){
 
     const updateApprovers = (option)=>{
         const formData_copy = JSON.parse(JSON.stringify(formData))
-        formData_copy.approvers = option
+        formData_copy.approvers = option.map(o=>({name: o.employeeName, empId:o.employeeId, status:'pending approval'}))
         setFormData(formData_copy)
     }
 
@@ -402,24 +412,6 @@ export default function BasicDetails(props){
         setFormData(formData_copy)
     }
 
-    const handleAllocationPercentageChange = (percentage, item)=>{
-        const updatedSelectedTravelAllocationHeaders =  
-        selectedTravelAllocationHeaders.map(prevItem=>{
-            if(JSON.stringify(prevItem) == JSON.stringify(item)){
-                console.log('item matches')
-                return{...prevItem, percentage}
-            }
-            else{
-                console.log('item doesnt matches')
-                return prevItem
-            }
-        })
-
-        console.log(updatedSelectedTravelAllocationHeaders)
-        setSelectedTravelAllocationHeaders(updatedSelectedTravelAllocationHeaders)
-    
-    }
-
     const handleAllocationHeaderSelect = (headerName, option)=>{
         let optionPresent = false
         
@@ -433,13 +425,9 @@ export default function BasicDetails(props){
         }
         
         if(!optionPresent){
-            setSelectedTravelAllocationHeaders((pre)=>[...pre, {headerName, headerValue:option, percentage:''}])
+            setSelectedTravelAllocationHeaders((pre)=>[...pre, {headerName, headerValue:option}])
         }
         
-    }
-
-    const removeAllocationItem = (item)=>{
-        setSelectedTravelAllocationHeaders((pre)=>pre.filter(presentItem=>JSON.stringify(presentItem)!=JSON.stringify(item)))
     }
 
     useEffect(()=>{
@@ -458,7 +446,9 @@ export default function BasicDetails(props){
     }
 
     return(<>
-        <div className="w-full h-full relative bg-white md:px-24 md:mx-0 sm:px-0 sm:mx-auto py-12 select-none">
+            {isLoading && <Error message={loadingErrMsg}/> }
+            {!isLoading && <>
+            <div className="w-full h-full relative bg-white md:px-24 md:mx-0 sm:px-0 sm:mx-auto py-12 select-none">
             {/* app icon */}
             <div className='w-full flex justify-center  md:justify-start lg:justify-start'>
                 <Icon/>
@@ -521,18 +511,19 @@ export default function BasicDetails(props){
                 
 
                 {/* allocating travel budget... will be displayed if travel allocation headers are present */}
-                { ALLOCATION_HEADER && <div>
+                { travelAllocations?.length>0 && <div>
                     <p className='text-base font-medium text-neutral-700 font-cabin'>Allocate travel.</p>
                     
                     <div className='mt-8 flex flex-wrap gap-4'>
-                        {travelAllocation.map((header, index)=>{
+                        {travelAllocations?.length>0 && travelAllocations.map((header, index)=>{
                             return(
                                 <>
                                 <Select
-                                    options={travelAllocation[index].headerValues}
-                                    onSelect = {(option)=>{handleAllocationHeaderSelect(travelAllocation[index].headerName, option)}}
-                                    placeholder={`Select ${travelAllocation[index].headerName}`} 
-                                    title={travelAllocation[index].headerName} />
+                                    currentOption={formData.travelAllocationHeaders[index].headerValue}
+                                    options={travelAllocations[index].headerValues}
+                                    onSelect = {(option)=>{handleAllocationHeaderSelect(travelAllocations[index].headerName, option)}}
+                                    placeholder={`Select ${travelAllocations[index].headerName}`} 
+                                    title={travelAllocations[index].headerName} />
                                 </>
                             )
                         })}
@@ -544,23 +535,6 @@ export default function BasicDetails(props){
                         <p className='text-zinc-800 text-sm font-medium font-cabin'>Not Sure</p>
                     </div>}
                     
-                    {selectedTravelAllocationHeaders && selectedTravelAllocationHeaders.length>0 &&
-                        <div className='mt-8'>
-                        <p className='text-base font-medium text-neutral-700 font-cabin'>Allocate percentage</p>
-                        <div className='flex gap-4 items-center flex-wrap'>
-                            {selectedTravelAllocationHeaders && selectedTravelAllocationHeaders.map((item,index)=> 
-                                <div className='mt-4 flex  gap-2'>
-                                    <InputPercentage 
-                                    key={index}
-                                    title={`${item.headerName} > ${item.headerValue}`} 
-                                    textInput={item.percentage}
-                                    onBlur={(percentage)=>handleAllocationPercentageChange(percentage, item)}
-                                    />
-                                    <CloseButton onClick={()=>removeAllocationItem(item)} />
-                                </div> )}
-                        </div>
-                    </div>}
-
                 </div> }
                 
                 {/* slect team members */}
@@ -600,7 +574,7 @@ export default function BasicDetails(props){
                 </div>}
              
                 <div className='my-8 w-full flex justify-between items-center'>
-                    <Button variant='fit' text='Save as Draft' onClick={handleSaveAsDraft}/>
+                    <Button disabled={isLoading} variant='fit' text='Save as Draft' onClick={handleSaveAsDraft}/>
                 
                     <Button 
                         variant='fit'
@@ -611,6 +585,7 @@ export default function BasicDetails(props){
                 </div> 
             </div>
         <PopupMessage message={popupMessage} showPopup={showPopup} setshowPopup={setshowPopup} />
+        </>}
     </>)
 }
 
@@ -670,5 +645,3 @@ function DesignationCol(props){
         </div>
     )
 }
-
-

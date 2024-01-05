@@ -8,6 +8,34 @@ import { policyValidation_API } from "../../utils/api"
 import { useState, useEffect } from "react"
 import CloseButton from "../../components/common/closeButton"
 
+const dummyCabs = {
+    date:null, 
+    class:null, 
+    preferredTime:null, 
+    pickupAddress:null, 
+    dropAddress:null, 
+    violations:{
+      class: null,
+      amount: null,
+    }, 
+    bkd_date:null,
+    bkd_class:null,
+    bkd_preferredTime:null,
+    bkd_pickupAddress:null,
+    bkd_dropAddress:null,
+
+    modified:false, 
+    isCancelled:false, 
+    cancellationDate:null, 
+    cancellationReason:null,
+    status:'draft',
+    bookingDetails:{
+      docURL: null,
+      docType: null,
+      billDetails: {}, 
+    },
+    type:'regular'
+  }
 
 export default function Cabs({
     itemIndex,
@@ -19,26 +47,25 @@ export default function Cabs({
     cabsError,
 }){
 
-    const handleCabClassChange = (option, index) => {
+    const handleCabClassChange = async (option, index) => {
         
         const formData_copy = JSON.parse(JSON.stringify(formData))
         formData_copy.itinerary[itemIndex].cabs[index].class = option
-        setFormData(formData_copy)
+        
 
-        policyValidation_API({type, policy:'cab class', value:option, groups:groups})
-        .then(res=>{
-            const formData_copy = JSON.parse(JSON.stringify(formData))
-            formData_copy.itinerary[itemIndex].cabs[index].cabClassViolationMessage = res.violationMessage
-            setFormData(formData_copy)
+        const res = await policyValidation_API({tenantId:formData.tenantId, type, policy:'cab class', value:option, groups})
+        if(!res.err){
+            formData_copy.itinerary[itemIndex].cabs[index].vioilation.class = res.data.response.violationMessage
             console.log(res.violationMessage)
-        })
-        .catch(err=>console.error('error in policy validation', err))
-           
+        }
+
+        setFormData(formData_copy)
     }
 
     const handleCabDateChange = (date, index) => {
         const formData_copy = JSON.parse(JSON.stringify(formData))
         formData_copy.itinerary[itemIndex].cabs[index].date = date
+        console.log('date changed to :', date, index)
         setFormData(formData_copy)
     }
 
@@ -63,23 +90,33 @@ export default function Cabs({
     const handleNeedsCabChange = (e) => {
         const formData_copy = JSON.parse(JSON.stringify(formData))
         formData_copy.itinerary[itemIndex].needsCab = e.target.checked
+        if(e.target.checked){
+            formData_copy.itinerary[itemIndex].cabs.push(dummyCabs)
+        }
+        else{
+            const newCabs = formData_copy.itinerary[itemIndex].cabs.filter(cab=>cab.type != 'regular')
+            formData_copy.itinerary[itemIndex].cabs = newCabs
+        }
         console.log(formData_copy)
         setFormData(formData_copy)
     }
 
     const addCabs = () => {
         const formData_copy = JSON.parse(JSON.stringify(formData))
-        formData_copy.itinerary[itemIndex].cabs.push({data:null, class:null, pickupAddress:null, dropAddress:null, prefferedTime:null, cabClassViolationMessage:null, isModified:false, isCanceled:false, cancellationDate:null, cancellationReason:null})
+        formData_copy.itinerary[itemIndex].cabs.push(dummyCabs)
         setFormData(formData_copy)
     }
 
     const deleteCab = (e, index) => {
         console.log(index)
         const formData_copy = JSON.parse(JSON.stringify(formData))
-        formData_copy.itinerary[itemIndex].cabs = formData_copy.itinerary[itemIndex].cabs.filter((_, i) => i !== index);
+        formData_copy.itinerary[itemIndex].cabs = formData.itinerary[itemIndex].cabs.filter((_, i) => i !== index);
+        const regularCabsCount = formData_copy.itinerary[itemIndex].cabs.filter(cab=>cab.type=='regular').length
+        if(regularCabsCount<1){
+            formData_copy.itinerary[itemIndex].needsCab = false
+        }
         setFormData(formData_copy)
     }
-
 
     return(<>
     <div className="flex gap-2 items-center">
@@ -96,7 +133,8 @@ export default function Cabs({
                         
                         console.log(index, cab, 'index cab')
 
-                        return( <div key={index} className="relative mt-4 bt-4 py-4 px-6 border border-gray-200 rounded-xl">
+                        if(cab.type=='regular')
+                        return( <div key={index} className="relative mt-4 bt-4 py-4 border-t border-b border-gray-200 rounded-t-xl bg-white">
                             <div  className="flex flex-wrap gap-8 items-center">
                                 <Date value={cab.date} onSelect={(date)=>{handleCabDateChange(date, index)}} error={cabsError[index]?.dateError} />
                                 {allowedCabClass && allowedCabClass.length>0 && 
@@ -105,7 +143,7 @@ export default function Cabs({
                                         validRange={{min:null, max:null}}
                                         placeholder='Select cab class'
                                         currentOption={cab.class} 
-                                        violationMessage={cab.cabClassViolationMessage}
+                                        violationMessage={cab.violations.class}
                                         onSelect={(option)=>handleCabClassChange(option, index)} />}
                                 
                             </div>
@@ -120,9 +158,9 @@ export default function Cabs({
                                 onDropAddressChange={(e)=>handleDropAddressChange(e,index)} />
                             </div>
 
-                            <div className='absolute right-2 top-2 md:right-4 md:top-4 '>
+                            {cab.status == 'draft' && <div className='absolute right-2 top-2 md:right-4 md:top-4 '>
                                 <CloseButton onClick={(e)=>deleteCab(e, index)} />
-                            </div>
+                            </div>}
                         </div>)
                     })
                     }

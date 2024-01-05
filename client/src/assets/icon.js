@@ -1,0 +1,15 @@
+export {default as airplane_icon} from './Airplane_1.svg';
+export {default as train_icon} from './train.png'
+export {default as bus_icon} from './bus.png'
+export {default as cab_icon} from './cab-purple.svg';
+export {default as chevron_down_icon} from './chevron-down.svg';
+export {default as calender_icon} from './calendar.svg';
+export {default as location_icon} from './location.svg';
+export {default as biderectional_arrows_icon} from './double-arrow.svg';
+export {default as spinner_gif_icon} from './spinning-loading.gif'
+export {default as close_icon} from './x.svg'
+export {default as upload_icon} from './upload.svg'
+export {default as seat_icon} from './seat.svg'
+export {default as scanner_icon} from './scanner.svg'
+export {default as left_arrow_icon} from './arrow-left.svg'
+//export {default as alert_circle_icon} from './alert-circle.svg';

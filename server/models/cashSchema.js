@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import travelRequestSchema from './travelRequest.js';
+import {travelRequestSchema} from './travelRequest.js';
 
 const cashAdvanceStatusEnum = [
   'draft',
@@ -26,27 +26,12 @@ const approverStatusEnums = [
   'rejected',
 ];
 
-
-
 const cashAdvanceSchema = new mongoose.Schema({
-  tenantId: {
-    type: String,
-    required: true,
-  },
-  tenantName: {
-    type: String,
-  },
-  companyName: {
-    type: String,
-  },
-  travelRequestId: {
-      type: String,
-    },
-  embeddedTravelRequest:  {
+  travelRequestData:  {
       type: travelRequestSchema, 
       required: true,
     },
-  cashAdvances: [
+  cashAdvancesData: [
     {
       tenantId: {
         type: String,
@@ -56,9 +41,17 @@ const cashAdvanceSchema = new mongoose.Schema({
         type: String,
         required: true,
       },
-      cashAdvanceId: {
+      travelRequestNumber:{
         type: String,
+        required: true,
+      },
+      cashAdvanceId: {
+        type: mongoose.Schema.Types.ObjectId,
         unique: true,
+        required: true,
+      },
+      cashAdvanceNumber:{
+        type: String,
         required: true,
       },
       createdBy: {
@@ -80,7 +73,7 @@ const cashAdvanceSchema = new mongoose.Schema({
       amountDetails: [
         {
           amount: Number,
-          currency: String,
+          currency: {},
           mode: String,
         },
       ],
@@ -94,13 +87,16 @@ const cashAdvanceSchema = new mongoose.Schema({
           },
         },
       ],
+      assignedTo:{empId:String, name:String},
+      paidBy:{empId:String, name:String},
+      recoveredBy:{empId:String, name:String},
       cashAdvanceRequestDate: Date,
       cashAdvanceApprovalDate: Date,
       cashAdvanceSettlementDate: Date,
-      cashAdvanceViolations: [String],
+      cashAdvanceViolations: String,
       cashAdvanceRejectionReason: String,
     },
-  ],
+  ]
 });
 
 const CashAdvance = mongoose.model('CashAdvance', cashAdvanceSchema);
