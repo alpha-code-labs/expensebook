@@ -5,7 +5,7 @@ async function updateAccountLinesAndExpenseCategories(tenantId){
     try{    
     
         const hrCompany = await HRCompany.findOne({tenantId}, {tenantId:1, policies:1, accountLines:1})
-        const policies = hrCompany.policies
+        const policies = hrCompany.policies.nonTravel
         const accountLines = hrCompany.accountLines
 
         //predefined categories
