@@ -37,7 +37,10 @@ const hrCompanySchema = new mongoose.Schema({
     DIY_FLAG: Boolean,
     GROUPING_FLAG: Boolean,
     ORG_HEADERS_FLAG: Boolean,
+    
   },
+  onboardingCompleted: Boolean,
+  state: String,
   companyDetails: companyDetailsSchema,
   employees: [employeeSchema],
   groups:[{
@@ -45,11 +48,14 @@ const hrCompanySchema = new mongoose.Schema({
     filters: [],
   }],
   policies:{
+    travelPolicies: {},
+    nonTravelPolicies: {}
   },
   groupHeaders:{
   },
   orgHeaders:{
   },
+  listOfManagers:[],
   travelAllocation: [{
     headerName: {
       type: String,
@@ -66,13 +72,19 @@ const hrCompanySchema = new mongoose.Schema({
       type: String,
     }],
   }],
+  travelCategoriesExpenseAllocation: [{
+    categoryName: String,
+    allocations:[{
+      headerName: String,
+      headerValues: [String],
+    }]
+  }],
   nonTravelExpenseAllocation: [{
-    headerName: {
-      type: String,
-    },
-    headerValues: [{
-      type: String,
-    }],
+    categoryName: String,
+    allocations:[{
+      headerName: String,
+      headerValues: [String],
+    }]
   }],
   groupingLabels: [{
     headerName: {
