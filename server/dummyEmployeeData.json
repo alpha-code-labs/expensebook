@@ -1,0 +1,48 @@
+{
+    "employeeData":[
+        {
+            "employeeName": "Jane Smith",
+            "employeeId": "1002",
+            "designation": "Analyst",
+            "grade": "B",
+            "department": "Finance",
+            "businessUnit": "Finance Department",
+            "legalEntity": "Company ABC",
+            "costCenter": "CC-002",
+            "profitCenter": "PC-102",
+            "responsibilityCenter": "RC-002",
+            "division": "Financial",
+            "project": "Project 2",
+            "geographicalLocation": "Chicago",
+            "l1Manager": "Michael Brown",
+            "l2Manager": "Emily Smith",
+            "l3Manager": "David Johnson",
+            "joiningDate": "2022-02-10T00:00:00.000Z",
+            "mobileNumber": "234-567-8901",
+            "phoneNumber": "555-555-5556",
+            "emailId": "janesmith@example.com"
+        },
+        {
+        "employeeName": "Robert Johnson",
+        "employeeId": "1003",
+        "designation": "Engineer",
+        "grade": "C",
+        "department": "Engineering",
+        "businessUnit": "Engineering Department",
+        "legalEntity": "Company XYZ",
+        "costCenter": "CC-003",
+        "profitCenter": "PC-103",
+        "responsibilityCenter": "RC-003",
+        "division": "Engineering",
+        "project": "Project 3",
+        "geographicalLocation": "Los Angeles",
+        "l1Manager": "Emily Smith",
+        "l2Manager": "David Johnson",
+        "l3Manager": "Michael Brown",
+        "joiningDate": "2022-03-05T00:00:00.000Z",
+        "mobileNumber": "345-678-9012",
+        "phoneNumber": "555-555-5557",
+        "emailId": "robertjohnson@example.com"
+        }
+    ]
+}
