@@ -241,7 +241,7 @@ export const cancelTripAtHeaderLevel = async (req, res) => {
         item.status = updateStatus(item);
       });
     };
-
+ 
     // Update status for each itinerary type
     updateItineraryType('flights');
     updateItineraryType('hotels');
