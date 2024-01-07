@@ -13,7 +13,7 @@ import Dashboard from "../models/dashboardSchema.js";
  */
 
 // to-do - (empId in params -to be added)fianace employee must be verified using hrCompanyStructure
-export const financeSettlements = async (req, res) => {
+export const financeLayout = async (req, res) => {
     const { tenantId } = req.params;
 
     try {
