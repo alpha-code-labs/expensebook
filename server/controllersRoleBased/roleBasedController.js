@@ -1,5 +1,6 @@
 import { financeLayout } from "../controllers/financeController.js";
 import { cashAdvanceSchema } from "../models/cashSchema.js";
+import dashboard from "../models/dashboardSchema.js";
 import HRCompany from "../models/hrCompanySchema.js";
 import { travelRequestSchema } from "../models/travelSchema.js";
 
@@ -636,14 +637,13 @@ const approvalsForManager = async (tenantId, empId) => {
 //---------------------------------------------------------------------Travel admin
 const businessAdminLayout = async ({tenantId,empId}) => {
     try {
-        const bookingDoc = await cashAdvanceSchema
-            .find({
+        const bookingDoc = await dashboard.find({
                 tenantId,
                 $or: [
                     {
                         $or: [
-                            { 'cashAdvanceSchema.travelRequestData.isAddALeg': true },
-                            { 'cashAdvanceSchema.travelRequestData.travelRequestStatus': 'pending booking' },
+                            { 'travelRequestSchema.isAddALeg': true },
+                            { 'travelRequestSchema.travelRequestStatus': 'pending booking' },
                         ],
                     },
                     {
@@ -660,30 +660,54 @@ const businessAdminLayout = async ({tenantId,empId}) => {
             .lean()
             .exec();
 
-        const travelBooking = [];
-        
-        bookingDoc.forEach((approval) => {
-            const { cashAdvanceSchema } = approval;
-            const { travelRequestData } = cashAdvanceSchema;
+        if(bookingDoc){
 
-
-            const extractedKeyValuePairs = ['travelRequestId', 'approvers', 'travelRequestNumber', 'travelRequestStatus'];
-              Object.entries(travelRequestData).forEach(([key, value]) => {
-            if (extractedKeyValuePairs.includes(key)) {
-                const isValidTravelStatus = key === 'travelRequestStatus' && value === status;
-                if (isValidTravelStatus && travelRequestData.approvers.empId === empId) {
-                    travelWithCashRaisedLater.push({ [key]: value });
-                }
-            }
+        //travel standalone -- pending booking or add a leg
+         const pendingBooking = [];
+         const filteredTravelDocs = bookingDoc.filter((travel) => {return(
+                travel.travelRequestSchema.travelRequestStatus === 'pending booking' || travelRequestSchema.isAddALeg === true 
+            )
         });
+
+        filteredTravelDocs.forEach((travel) => {
+        const { travelRequestSchema } = travel;
+    
+        const { travelRequestId, travelRequestNumber, tripPurpose, travelRequestStatus , isAddALeg } = travelRequestSchema;
+    
+         pendingBooking.push({
+           travelRequestId,
+           travelRequestNumber,
+           tripPurpose,
+           travelRequestStatus,
+           isAddALeg
+         });
+        });
+
+        // cashAdvanceSchema -- extracting travel booking
+        const filteredCashDocs = bookingDoc.filter((cash) => {return( 
+            cash.cashAdvanceSchema.travelRequestData.travelRequestStatus === 'pending booking' ||
+            cash.cashAdvanceSchema.travelRequestData.travelRequestStatus === 'booked' ||
+            cash.cashAdvanceSchema.travelRequestData.isAddALeg === true)})
+        
+        filteredCashDocs.forEach((booking) => {
+            const { cashAdvanceSchema } = booking;
+            const {travelRequestData} = cashAdvanceSchema;
+
+            const extractedProperties = {};
+            const extractedKeyValuePairs = ['travelRequestId', 'travelRequestNumber', 'tripPurpose','travelRequestStatus'];
+         Object.entries(travelRequestData).forEach(([key, value]) => {
+             if(extractedKeyValuePairs.includes(key)){
+                extractedProperties[key] = value;
+             }
+           });
+          });
 
             if (Object.keys(extractedKeyValuePairs).length > 0) {
-                travelBooking.push({ approvalId: approval._id, extractedKeyValuePairs });
-            
-            }
-        });
+                  pendingBooking.push(extractedProperties);
+           }
+        }    
 
-        return { travelBooking };
+        return { pendingBooking };
 
     } catch (error) {
         return { error: 'Error in fetching data for business admin' };
@@ -691,6 +715,33 @@ const businessAdminLayout = async ({tenantId,empId}) => {
 };
 
 
+
+
+// const travelBooking = [];
+// const cancelledTrips = [];
+
+// bookingDoc.forEach((approval) => {
+//     const { cashAdvanceSchema } = approval;
+//     const { travelRequestData } = cashAdvanceSchema;
+
+
+//     const extractedKeyValuePairs = ['travelRequestId', 'travelRequestNumber', 'tripPurpose','travelRequestStatus'];
+//       Object.entries(travelRequestData).forEach(([key, value]) => {
+//     if (extractedKeyValuePairs.includes(key)) {
+//         const isValidTravelStatus = key === 'travelRequestStatus' && value === status;
+//         if (isValidTravelStatus && travelRequestData.approvers.empId === empId) {
+//             travelWithCashRaisedLater.push({ [key]: value });
+//         }
+//     }
+// });
+
+//     if (Object.keys(extractedKeyValuePairs).length > 0) {
+//         travelBooking.push({ approvalId: approval._id, extractedKeyValuePairs });
+    
+//     }
+// });
+
+// return { travelBooking };
 
 
 
