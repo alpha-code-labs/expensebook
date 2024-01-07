@@ -4,14 +4,12 @@ import cors from 'cors';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import { startBatchJob } from './scheduler/scheduleBatchJob.js';
-import tripRoutes from './routes/tripRoutes.js';
 import batchJobRoutes from './routes/batchJobRoutes.js';
-import dashboardRoutes from './routes/dashboardRoutes.js';
 import { config } from './config.js';
 // import { applyTenantFilter } from './middleware/tripMiddleware.js';
 import mainInternalRoutes from './internal/routes/mainInternalRoutes.js';
-import cancelTripRouter from './routes/cancelTripRoutes.js';
 import mainFrontendRoutes from './routes/mainFrontendRoutes.js';
+import oldTripRoutes from './routes/tripsRoutes.js';
 
 // Load environment variables using dotenv
 dotenv.config();
@@ -32,16 +30,14 @@ app.use(cors());
 // app.use('/api/:tenantId/*', applyTenantFilter); // Global Middleware for all /api/:tenantId/* routes
 
 //Routes 
-app.use('/api/trips', mainFrontendRoutes);
+app.use('/api/trips/fe', mainFrontendRoutes);
 app.use('/api/internal', mainInternalRoutes);
 
 
 
-app.use('/api/trips', tripRoutes); 
+app.use('/api/trips', oldTripRoutes); 
 app.use('/api', batchJobRoutes);
 // app.use('/api/:tenantId/trips/cancel', applyTenantFilter, cancelTripRoutes);
-app.use('/api/dash',  dashboardRoutes);
-app.use('/api/trips/cancel',  cancelTripRouter);
 
 
 

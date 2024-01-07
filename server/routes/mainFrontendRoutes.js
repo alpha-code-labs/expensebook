@@ -1,14 +1,11 @@
 import express from 'express';
-import recoveryFlowRoutes from "./recoveryFlowRoutes.js";
-import tripRoutes from "./tripRoutes.js";
-import cancelTripRouter from './cancelTripRoutes.js';
+import oldTripRoutes from './tripsRoutes.js';
+import tripRoutes from './tripRoutes.js';
 
 const mainFrontendRoutes = express.Router();
 
-mainFrontendRoutes.use('/trip', tripRoutes);
+mainFrontendRoutes.use('/:tenantId/:empId', tripRoutes);
 
-mainFrontendRoutes.use('/cancel', cancelTripRouter);
-
-mainFrontendRoutes.use('/recovery', recoveryFlowRoutes)
+mainFrontendRoutes.use('/:tenantId/:empId/tripold', oldTripRoutes);
 
 export default mainFrontendRoutes;

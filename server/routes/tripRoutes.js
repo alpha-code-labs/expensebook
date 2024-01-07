@@ -1,27 +1,26 @@
 import express from 'express';
-import {  dummyDataTrip} from '../controllers/tripController.js';
-import { getTop3TripsByUserId ,getTripStatusByUserId  } from '../controllers/modifyTripController.js';
-import { getSingleTripStatus } from '../controllers/modifyTripController.js';
-import { upcomingTripById, transitTripById } from '../controllers/tripDetails.js';
+import { cancelTripAtHeaderLevel, cancelTripAtLineItemLevel, getTripDetails } from '../controllers/cancelTripController.js';
+import { recoveryAtHeaderLevel, recoveryAtLineItemLevel } from '../controllers/recoveryFlow.js';
 
 const tripRoutes = express.Router();
 
-// Create a new trip
-tripRoutes.post('/create/:tenantId/:travelRequestId', dummyDataTrip);
+// - Requirement - Cancellation workflow for Trips
+// Get trip details by trip Id -- row 16 - category 10 & Trip Microservice -Travel recovery flow for paid and cancelled Trips - 51 - category 10
+tripRoutes.get('/get/:tripId', getTripDetails);
 
-//Upcoming trip details by id
-tripRoutes.get('/upcomingTripById/:tripId', upcomingTripById);
+// cancel at header level - upcoming trips only-- row 30 - category 4
+tripRoutes.patch('/cancel/:tripId', cancelTripAtHeaderLevel);
 
-//Transit trip details by id
-tripRoutes.get('/transitTripById/:tripId', transitTripById);
+// cancel at Line item level - upcoming/transit trips only -- row 43 - category 4
+tripRoutes.patch('/cancel-itinerary/:tripId', cancelTripAtLineItemLevel);
 
-//Top 3 trips for a user by userId
-tripRoutes.get('/getTop3Trips/:userId', getTop3TripsByUserId);
+// recovery trips
+tripRoutes.get('/details/:tenantId/:empId/:tripId', getTripDetails);
 
-// Get a list of all trips
-tripRoutes.get('/getTripStatusByUserId/:userId', getTripStatusByUserId);
+// recovery for entire trip
+tripRoutes.patch('/recover/:tripId', recoveryAtHeaderLevel);
 
-// GET route to retrieve trip status by trip ID
-tripRoutes.get('/status/:tripId', getSingleTripStatus);
+// recovery for line item
+tripRoutes.patch('/recover-itinerary/:tenantId/:empId/:tripId', recoveryAtLineItemLevel);
 
 export default tripRoutes;
