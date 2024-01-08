@@ -115,6 +115,6 @@ const hrCompanySchema = new mongoose.Schema({
 })
 
 // model from the schema
-const HRCompany = mongoose.model('HRCompany', hrCompanySchema)
+const HRMaster = mongoose.model('HRMaster', hrCompanySchema)
 
-export default HRCompany
+export default HRMaster

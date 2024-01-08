@@ -8,7 +8,7 @@ import dummy from './routes/dummyRoute.js';
 import overview from './routes/overviewRoutes.js';
 import { handleErrors } from './errorHandler/errorHandler.js';
 import amqp from 'amqplib';
-
+import { updateHRMaster } from './rabbitmq/messageProcessor/hrMaster.js';
 const rabbitMQUrl = 'amqp://localhost:5672';
 
 
@@ -84,16 +84,72 @@ app.listen(port, () => {
 
 
 
+//start consuming messages..
+async function startConsumer(){
+  const rabbitMQUrl = 'amqp://guest:guest@192.168.1.11:5672';
 
+ const connectToRabbitMQ = async () => {
+  try {
+    console.log('Connecting to RabbitMQ...');
+    const connection = await amqp.connect(rabbitMQUrl);
+     const channel = await connection.createConfirmChannel();
+    console.log('Connected to RabbitMQ.');
+    return channel;
+  } catch (error) {
+    console.log('Error connecting to RabbitMQ:', error);
+    throw error;
+  }
+};
 
+const channel = await connectToRabbitMQ();
+const exchangeName = 'amqp.dashboard';
+const queue = 'async_microservice_to_microservice';
 
+console.log(`Asserting exchange: ${exchangeName}`);
+await channel.assertExchange(exchangeName, 'direct', { durable: true });
 
+console.log(`Asserting queue: ${queue}`);
+await channel.assertQueue(queue, { durable: true });
+ 
 
+console.log(`Binding queue ${queue} to exchange ${exchangeName}`);
+await channel.bindQueue(queue, exchangeName,`dashboard_${queue}`);
 
+console.log('listening for messages. To exit press CTRL+C');
 
+  // Listen for response
+  channel.consume(queue, async (msg) => {
+    if (msg && msg.content) {
 
+    const content = JSON.parse(msg.content.toString());
 
+    console.log(`coming from ${content.headers?.source} meant for ${content.headers?.destination}`)
+    //console.log('payload', content?.payload)
+    const payload = content?.payload
+    const source = content.headers.source
 
+    if(content.headers.destination == 'dashboard'){
+
+      if(source == 'onboarding'){
+        console.log('trying to update HR Master')
+        const res = await updateHRMaster(payload)
+        console.log(res)
+        if(res.success){
+          //acknowledge message
+          channel.ack(msg)
+          console.log('message processed successfully')
+        }
+        else{
+          //implement retry mechanism
+          console.log('update failed with error code', res.error)
+        }
+      }
+    }
+    
+  }}, { noAck: false });
+}
+
+startConsumer();
 
 
 
@@ -179,312 +235,294 @@ app.listen(port, () => {
 //   }
 // };
 
-const consumeAsyncMessages = async (channel, callback) => {
-  try {
-    console.log('Receiving messages from RabbitMQ...');
+// const consumeSyncMessages = async (channel) => {
+//   try {
+//     console.log('Receiving messages from RabbitMQ...Sync queue');
 
-    await consumeMessagesFromQueue(channel, 'async', async (message) => {
-      const content = JSON.parse(message.content.toString());
+//     await consumeMessagesFromQueue(channel, 'sync', async (message) => {
+//       const content = JSON.parse(message.content.toString());
 
-      // Check if message type is 'new'
-      if (content.type === 'new') {
-        await processNewMessage(content, channel, message, callback);
-      } else {
-        // Message type is not 'new', do not process and acknowledge
-        console.log('Ignoring message with type other than "new".');
-        acknowledgeMessage(channel, message);
-      }
-    });
-  } catch (error) {
-    console.error('Error receiving messages from RabbitMQ:', error);
-    throw error;
-  }
-};
+//       // Check if message type is 'new'
+//       if (content.type === 'new') {
+//         // Process the message for sync queue (if needed)
+//         console.log('Processing message for sync queue:', content);
+//       } else {
+//         // Message type is not 'new', do not process and acknowledge
+//         console.log('Ignoring message with type other than "new".');
+//         channel.ack(message);
+//       }
+//     });
+//   } catch (error) {
+//     console.error('Error receiving messages from RabbitMQ:', error);
+//     throw error;
+//   }
+// };
 
-const consumeSyncMessages = async (channel) => {
-  try {
-    console.log('Receiving messages from RabbitMQ...Sync queue');
+// const consumeMessagesFromQueue = async (channel, queueName, callback) => {
+//   const exchangeName = 'amqp.dashboard';
+//   const noAckOption = queueName === 'async' ? false : true;
 
-    await consumeMessagesFromQueue(channel, 'sync', async (message) => {
-      const content = JSON.parse(message.content.toString());
+//   await channel.assertExchange(exchangeName, 'headers', { durable: true });
+//   await channel.assertQueue(queueName, { durable: true });
+//   await channel.bindQueue(queueName, exchangeName);
 
-      // Check if message type is 'new'
-      if (content.type === 'new') {
-        // Process the message for sync queue (if needed)
-        console.log('Processing message for sync queue:', content);
-      } else {
-        // Message type is not 'new', do not process and acknowledge
-        console.log('Ignoring message with type other than "new".');
-        channel.ack(message);
-      }
-    });
-  } catch (error) {
-    console.error('Error receiving messages from RabbitMQ:', error);
-    throw error;
-  }
-};
+//   channel.consume(queueName, async (message) => {
+//     if (message !== null) {
+//       try {
+//         const content = JSON.parse(message.content.toString());
 
-const consumeMessagesFromQueue = async (channel, queueName, callback) => {
-  const exchangeName = 'amqp.dashboard';
-  const noAckOption = queueName === 'async' ? false : true;
+//         // Check if message type is 'new'
+//         if (content.type === 'new') {
+//           await processNewMessage(content, channel, message, callback);
+//         } else {
+//           // Message type is not 'new', do not process and acknowledge
+//           console.log('Ignoring message with type other than "new".');
+//           acknowledgeMessage(channel, message);
+//         }
+//       } catch (error) {
+//         console.error('Error processing and acknowledging message:', error);
+//       }
+//     }
+//   }, { noAck: noAckOption });
+// };
 
-  await channel.assertExchange(exchangeName, 'headers', { durable: true });
-  await channel.assertQueue(queueName, { durable: true });
-  await channel.bindQueue(queueName, exchangeName);
+// const processNewMessage = async (content, channel, message, callback) => {
+//   // Perform the necessary processing on the received message
+//   const result = await callback(content);
 
-  channel.consume(queueName, async (message) => {
-    if (message !== null) {
-      try {
-        const content = JSON.parse(message.content.toString());
+//   // Acknowledge the message
+//   acknowledgeMessage(channel, message);
 
-        // Check if message type is 'new'
-        if (content.type === 'new') {
-          await processNewMessage(content, channel, message, callback);
-        } else {
-          // Message type is not 'new', do not process and acknowledge
-          console.log('Ignoring message with type other than "new".');
-          acknowledgeMessage(channel, message);
-        }
-      } catch (error) {
-        console.error('Error processing and acknowledging message:', error);
-      }
-    }
-  }, { noAck: noAckOption });
-};
+//   if (content.headers && content.headers.needConfirmation) {
+//     // If needConfirmation is true, send success/failure response
+//     const correlationId = message.properties.correlationId;
 
-const processNewMessage = async (content, channel, message, callback) => {
-  // Perform the necessary processing on the received message
-  const result = await callback(content);
+//     const responseHeaders = {
+//       type: 'response',
+//       source: 'dashboard',
+//       onlineVsBatch: onlineVsBatch, 
+//       success: result,
+//     };
 
-  // Acknowledge the message
-  acknowledgeMessage(channel, message);
+//     const responseMessage = {
+//       headers: responseHeaders,
+//       payload: trip.tripId, // sending tripId as response
+//     };
 
-  if (content.headers && content.headers.needConfirmation) {
-    // If needConfirmation is true, send success/failure response
-    const correlationId = message.properties.correlationId;
+//     // Send response to RabbitMQ
+//     publish(channel, 'amqp.dashboard', '', JSON.stringify(responseMessage), {
+//       persistent: true,
+//       correlationId: correlationId,
+//     });
+//   }
+// };
 
-    const responseHeaders = {
-      type: 'response',
-      source: 'dashboard',
-      onlineVsBatch: onlineVsBatch, 
-      success: result,
-    };
+// // const saveAsyncToDashboard = async (message) => {
+// //   try {
+// //     const { header } = message;
 
-    const responseMessage = {
-      headers: responseHeaders,
-      payload: trip.tripId, // sending tripId as response
-    };
+// //     // Check the type and source in the header
+// //     switch (true) {
+// //       case header.type === 'new' && header.source === 'trip':
+// //         await processTransitTrip(message);
+// //         break;
 
-    // Send response to RabbitMQ
-    publish(channel, 'amqp.dashboard', '', JSON.stringify(responseMessage), {
-      persistent: true,
-      correlationId: correlationId,
-    });
-  }
-};
+// //       case header.type === 'new' && header.source === 'travelRequest':
+// //         await processTravelRequest(message);
+// //         break;
 
-const saveAsyncToDashboard = async (message) => {
-  try {
-    const { header } = message;
+// //       case header.type === 'new' && header.source === 'approval':
+// //         await processApproval(message);
+// //         break;
 
-    // Check the type and source in the header
-    switch (true) {
-      case header.type === 'new' && header.source === 'trip':
-        await processTransitTrip(message);
-        break;
+// //       case header.type === 'new' && header.source === 'travel-expense':
+// //         await processTravelExpense(message);
+// //         break;
 
-      case header.type === 'new' && header.source === 'travelRequest':
-        await processTravelRequest(message);
-        break;
+// //         case header.type === 'new' && header.source === 'onboarding':
+// //           await processOnboardingData(message);
+// //           break;
 
-      case header.type === 'new' && header.source === 'approval':
-        await processApproval(message);
-        break;
+// //       default:
+// //         console.warn('Unhandled message type or source:', header.type, header.source);
+// //     }
 
-      case header.type === 'new' && header.source === 'travel-expense':
-        await processTravelExpense(message);
-        break;
-
-      default:
-        console.warn('Unhandled message type or source:', header.type, header.source);
-    }
-
-    return true; 
-  } catch (error) {
-    console.error('Error saving to the dashboard:', error);
-    return false;
-  }
-};
+// //     return true; 
+// //   } catch (error) {
+// //     console.error('Error saving to the dashboard:', error);
+// //     return false;
+// //   }
+// // };
 
 
-// Handle graceful shutdown
-process.on('SIGINT', async () => {
-  console.log('Received SIGINT. Gracefully shutting down Consumer Microservice.');
+// // Handle graceful shutdown
+// process.on('SIGINT', async () => {
+//   console.log('Received SIGINT. Gracefully shutting down Consumer Microservice.');
 
-  // Close the channel and connection
-  if (channel) {
-    await channel.close();
-  }
+//   // Close the channel and connection
+//   if (channel) {
+//     await channel.close();
+//   }
 
-  process.exit(0);
-});
+//   process.exit(0);
+// });
 
-const startAsyncConsumerMicroservice = async () => {
-  try {
-    // Check RabbitMQ connection
-    const channel = await connectToRabbitMQ();
-    if (channel) {
-      // Start consuming messages continuously
-      await consumeAsyncMessages(channel, saveAsyncToDashboard);
-    } else {
-      console.error('Failed to connect to RabbitMQ in Consumer Microservice');
-    }
-  } catch (error) {
-    console.error('Error starting Consumer Microservice:', error);
-  }
-};
+// const startAsyncConsumerMicroservice = async () => {
+//   try {
+//     // Check RabbitMQ connection
+//     const channel = await connectToRabbitMQ();
+//     if (channel) {
+//       // Start consuming messages continuously
+//       await consumeAsyncMessages(channel, saveAsyncToDashboard);
+//     } else {
+//       console.error('Failed to connect to RabbitMQ in Consumer Microservice');
+//     }
+//   } catch (error) {
+//     console.error('Error starting Consumer Microservice:', error);
+//   }
+// };
 
-// Start to listen Async consumer queue - from Trip microservice
-startAsyncConsumerMicroservice();
+// // Start to listen Async consumer queue - from Trip microservice
+// startAsyncConsumerMicroservice();
 
 
 //-------------- approval Microservice ----
 
-const consumesyncMessagesFromApproval = async (channel, callback) => {
-  try {
-    console.log('Receiving messages from RabbitMQ...');
+// const consumesyncMessagesFromApproval = async (channel, callback) => {
+//   try {
+//     console.log('Receiving messages from RabbitMQ...');
 
-    await consumeMessagesFromQueueApproval(channel, 'sync', async (message) => {
-      const content = JSON.parse(message.content.toString());
+//     await consumeMessagesFromQueueApproval(channel, 'sync', async (message) => {
+//       const content = JSON.parse(message.content.toString());
 
-      // Check if message type is 'new'
-      if (content.type === 'new') {
-        await processNewMessage(content, channel, message, callback);
-      } else {
-        // Message type is not 'new', do not process and acknowledge
-        console.log('Ignoring message with type other than "new".');
-        acknowledgeMessage(channel, message);
-      }
-    });
-  } catch (error) {
-    console.error('Error receiving messages from RabbitMQ:', error);
-    throw error;
-  }
-};
+//       // Check if message type is 'new'
+//       if (content.type === 'new') {
+//         await processNewMessage(content, channel, message, callback);
+//       } else {
+//         // Message type is not 'new', do not process and acknowledge
+//         console.log('Ignoring message with type other than "new".');
+//         acknowledgeMessage(channel, message);
+//       }
+//     });
+//   } catch (error) {
+//     console.error('Error receiving messages from RabbitMQ:', error);
+//     throw error;
+//   }
+// };
 
-const consumeMessagesFromQueueApproval = async (channel, callback) => {
-  const exchangeName = 'amqp.dashboard';
-  const queueName = 'sync';
+// const consumeMessagesFromQueueApproval = async (channel, callback) => {
+//   const exchangeName = 'amqp.dashboard';
+//   const queueName = 'sync';
 
-  await channel.assertExchange(exchangeName, 'headers', { durable: true });
-  await channel.assertQueue(queueName, { durable: true });
-  await channel.bindQueue(queueName, exchangeName);
+//   await channel.assertExchange(exchangeName, 'headers', { durable: true });
+//   await channel.assertQueue(queueName, { durable: true });
+//   await channel.bindQueue(queueName, exchangeName);
 
-  channel.consume(queueName, async (message) => {
-    if (message !== null) {
-      try {
-        const content = JSON.parse(message.content.toString());
+//   channel.consume(queueName, async (message) => {
+//     if (message !== null) {
+//       try {
+//         const content = JSON.parse(message.content.toString());
 
-        // Check if message type is 'new'
-        if (content.type === 'new') {
-          await processNewMessageApproval(content, channel, message, callback);
-        } else {
-          // Message type is not 'new', do not process and acknowledge
-          console.log('Ignoring message with type other than "new".');
-          acknowledgeMessageForApproval(channel, message);
-        }
-      } catch (error) {
-        console.error('Error processing and acknowledging message:', error);
-      }
-    }
-  }, { noAck: false });
-};
+//         // Check if message type is 'new'
+//         if (content.type === 'new') {
+//           await processNewMessageApproval(content, channel, message, callback);
+//         } else {
+//           // Message type is not 'new', do not process and acknowledge
+//           console.log('Ignoring message with type other than "new".');
+//           acknowledgeMessageForApproval(channel, message);
+//         }
+//       } catch (error) {
+//         console.error('Error processing and acknowledging message:', error);
+//       }
+//     }
+//   }, { noAck: false });
+// };
 
-const processNewMessageApproval = async (content, channel, message, callback) => {
-  // Perform the necessary processing on the received message
-  const result = await callback(content);
+// const processNewMessageApproval = async (content, channel, message, callback) => {
+//   // Perform the necessary processing on the received message
+//   const result = await callback(content);
 
-  // Acknowledge the message
-  acknowledgeMessageForApproval(channel, message);
+//   // Acknowledge the message
+//   acknowledgeMessageForApproval(channel, message);
 
-  if (content.headers && content.headers.needConfirmation) {
-    // If needConfirmation is true, send success/failure response
-    const correlationId = message.properties.correlationId;
+//   if (content.headers && content.headers.needConfirmation) {
+//     // If needConfirmation is true, send success/failure response
+//     const correlationId = message.properties.correlationId;
 
-    const responseHeaders = {
-      type: 'response',
-      source: 'approval',
-      onlineVsBatch: 'online', 
-      success: result,
-    };
+//     const responseHeaders = {
+//       type: 'response',
+//       source: 'approval',
+//       onlineVsBatch: 'online', 
+//       success: result,
+//     };
 
-    const responseMessage = {
-      headers: responseHeaders,
-      payload: tripApprovalDoc.appovalId, //...
-    };
+//     const responseMessage = {
+//       headers: responseHeaders,
+//       payload: tripApprovalDoc.appovalId, //...
+//     };
 
-    // Send response to RabbitMQ
-    publish(channel, 'amqp.dashboard', '', JSON.stringify(responseMessage), {
-      persistent: true,
-      correlationId: correlationId,
-    });
-  }
-};
+//     // Send response to RabbitMQ
+//     publish(channel, 'amqp.dashboard', '', JSON.stringify(responseMessage), {
+//       persistent: true,
+//       correlationId: correlationId,
+//     });
+//   }
+// };
 
-const acknowledgeMessageForApproval = (channel, message) => {
-  // Acknowledge the message
-  channel.ack(message);
-};
+// const acknowledgeMessageForApproval = (channel, message) => {
+//   // Acknowledge the message
+//   channel.ack(message);
+// };
 
 
-const savesyncToDashboardApproval = async (message,correlationId) => {
-  try {
-    const { header } = message;
+// const savesyncToDashboardApproval = async (message,correlationId) => {
+//   try {
+//     const { header } = message;
 
-    if (header.type === 'new' && header.source === 'approval') {
-      await updateTripToDashboardSync(message,correlationId);
-    } else if (header.type === 'new' && header.source === 'approval') {
-      await updateTravelToDashboardSync(message,correlationId);
-    } else (header.type === 'new' && header.source === 'approval');{
-      await updateCashToDashboardSync(message,correlationId);
-    }
+//     if (header.type === 'new' && header.source === 'approval') {
+//       await updateTripToDashboardSync(message,correlationId);
+//     } else if (header.type === 'new' && header.source === 'approval') {
+//       await updateTravelToDashboardSync(message,correlationId);
+//     } else (header.type === 'new' && header.source === 'approval');{
+//       await updateCashToDashboardSync(message,correlationId);
+//     }
 
-    return true; // Return true if processing is successful
-  } catch (error) {
-    console.error('Error saving to the dashboard:', error);
-    return false; // Return false if processing fails
-  }
-};
+//     return true; // Return true if processing is successful
+//   } catch (error) {
+//     console.error('Error saving to the dashboard:', error);
+//     return false; // Return false if processing fails
+//   }
+// };
 
 // Handle graceful shutdown
-process.on('SIGINT', async () => {
-  console.log('Received SIGINT. Gracefully shutting down Consumer Microservice.');
+// process.on('SIGINT', async () => {
+//   console.log('Received SIGINT. Gracefully shutting down Consumer Microservice.');
 
-  // Close the channel and connection
-  if (channel) {
-    await channel.close();
-  }
+//   // Close the channel and connection
+//   if (channel) {
+//     await channel.close();
+//   }
 
-  process.exit(0);
-});
+//   process.exit(0);
+// });
 
-const startsyncConsumerMicroserviceApproval = async () => {
-  try {
-    // Check RabbitMQ connection
-    const channel = await connectToRabbitMQ();
-    if (channel) {
-      // Start consuming messages continuously
-      await consumesyncMessagesFromApproval(channel, savesyncToDashboardApproval);
-    } else {
-      console.error('Failed to connect to RabbitMQ in Consumer Microservice');
-    }
-  } catch (error) {
-    console.error('Error starting Consumer Microservice:', error);
-  }
-};
+// const startsyncConsumerMicroserviceApproval = async () => {
+//   try {
+//     // Check RabbitMQ connection
+//     const channel = await connectToRabbitMQ();
+//     if (channel) {
+//       // Start consuming messages continuously
+//       await consumesyncMessagesFromApproval(channel, savesyncToDashboardApproval);
+//     } else {
+//       console.error('Failed to connect to RabbitMQ in Consumer Microservice');
+//     }
+//   } catch (error) {
+//     console.error('Error starting Consumer Microservice:', error);
+//   }
+// };
 
-// Start to listen Async consumer queue - from Trip microservice
-startsyncConsumerMicroserviceApproval();
+// // Start to listen Async consumer queue - from Trip microservice
+// startsyncConsumerMicroserviceApproval();
 
 
 
@@ -737,6 +775,8 @@ startsyncConsumerMicroserviceApproval();
 // consumeMessagesSyncWithRetry(channel);
 
 // //old
+
+
 // const consumeMessagesSync = (channel, callback) => {
 //   try {
 //     console.log('Receiving messages from RabbitMQ...synq queue');

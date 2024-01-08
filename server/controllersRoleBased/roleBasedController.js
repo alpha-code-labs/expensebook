@@ -1,7 +1,7 @@
 import { financeLayout } from "../controllers/financeController.js";
 import { cashAdvanceSchema } from "../models/cashSchema.js";
 import dashboard from "../models/dashboardSchema.js";
-import HRCompany from "../models/hrCompanySchema.js";
+import HRMaster from "../models/hrMasterSchema.js";
 import { travelRequestSchema } from "../models/travelSchema.js";
 
 //Role based Layout
@@ -9,7 +9,7 @@ export const roleBasedLayout = async (req, res) => {
     try {
         const { tenantId, empId } = req.params;
 
-        const hrDocument = await HRCompany.findOne({
+        const hrDocument = await HRMaster.findOne({
             'tenantId': tenantId,
             'employees.employeeDetails.employeeId': empId,
         });
