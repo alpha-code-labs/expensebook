@@ -19,44 +19,6 @@ const updateLineItemStatus = (approvers) => {
   return currentLineItemStatus;
 };
 
-// Retrieve Trip document by tripId, tenantId, and userId from dashboard ms
-const getTripByTripId = async (tripId, tenantId, empId) => {
-  try {
-    const validTripStatus = ['transit', 'upcoming'];
-
-    const trip = await Dashboard.findOne({
-      tenantId,
-      $or: [
-        { 'createdBy.empId': empId, tripId: tripId, tripStatus: { $in: validTripStatus } },
-        { 'createdFor.empId': empId, tripId: tripId, tripStatus: { $in: validTripStatus } },
-      ],
-    });
-
-    if (trip) {
-      return trip;
-    } else {
-      const currentStatus = await Dashboard.findOne({
-        tenantId,
-        $or: [
-          { 'createdBy.empId': empId, tripId, 'userId.empId': empId },
-          { 'createdFor.empId': empId, tripId, 'userId.empId': empId },
-        ],
-      }, { tripStatus: 1 });
-
-      if (currentStatus) {
-        const { tripStatus } = currentStatus;
-        throw new Error(`Cannot add a leg as the status is ${tripStatus}`);
-      } else {
-        throw new Error('Trip not found');
-      }
-    }
-  } catch (error) {
-    // Log the error for monitoring purposes
-    console.error('Error retrieving trip to dashboard:', error);
-    throw new Error('Internal Server Error: getTripByTripId');
-  }
-};
-
 // Save updated dashboard document
 const saveInDashboard = async (dashboardDoc) => {
   try {
@@ -107,14 +69,23 @@ export const addFlight = async (req, res) => {
     }
 
     // Retrieve dashboard document
-    const trip = await getTripByTripId(tripId, tenantId, empId);
+    const trip = await Dashboard.findOne({
+      tenantId,
+      tripStatus: { $in: ['transit', 'upcoming'] },
+      tripId,
+      $or: [
+        { 'createdBy.empId': empId},
+        { 'createdFor.empId': empId},
+      ],
+    })
 
     // Check if trip exists
     if (!trip) {
       return res.status(404).json({ error: 'Trip not found or not in transit' });
     }
 
-    // Extract necessary data directly from the trip document
+    if (trip) {
+      // Extract necessary data directly from the trip document
     const { itinerary, approvers } = trip;
     const { flights } = itinerary || { flights: [] };
 
@@ -153,6 +124,8 @@ export const addFlight = async (req, res) => {
 
     // Respond with success message and the updated trip
     return res.status(200).json({ success: true, message: 'Flights added successfully', trip: updatedTrip });
+  
+    } 
   } catch (error) {
     // Log the error for monitoring purposes
     console.error(error);
@@ -160,7 +133,6 @@ export const addFlight = async (req, res) => {
     return handleMicroserviceError(res, error.message);
   }
 };
-
 
 //  Validate bus details
 const validateBusDetails = (busDetails) => {
@@ -185,13 +157,22 @@ export const addBus = async (req, res) => {
     }
 
     // Retrieve dashboard document
-    const trip = await getTripByTripId(tripId, tenantId, empId);
+    const trip = await Dashboard.findOne({
+      tenantId,
+      tripStatus: { $in: ['transit', 'upcoming'] },
+      tripId,
+      $or: [
+        { 'createdBy.empId': empId},
+        { 'createdFor.empId': empId},
+      ],
+    })
 
     // Check if trip exists
     if (!trip) {
       return res.status(404).json({ error: 'Trip not found or not in transit' });
     }
 
+    if(trip){
     // Extract necessary data directly from the trip document
     const { itinerary, approvers } = trip;
     const { buses } = itinerary || { buses: [] };
@@ -231,6 +212,8 @@ export const addBus = async (req, res) => {
 
     // Respond with success message and the updated trip
     return res.status(200).json({ success: true, message: 'Buses added successfully', trip: updatedTrip });
+    }
+
   } catch (error) {
     // Log the error for monitoring purposes
     console.error(error);
@@ -263,14 +246,23 @@ export const addTrain = async (req, res) => {
     }
 
     // Retrieve dashboard document
-    const trip = await getTripByTripId(tripId, tenantId, empId);
+    const trip = await Dashboard.findOne({
+      tenantId,
+      tripStatus: { $in: ['transit', 'upcoming'] },
+      tripId,
+      $or: [
+        { 'createdBy.empId': empId},
+        { 'createdFor.empId': empId},
+      ],
+    })
 
     // Check if trip exists
     if (!trip) {
       return res.status(404).json({ error: 'Trip not found or not in transit' });
     }
 
-    // Extract necessary data directly from the trip document
+    if(trip){
+          // Extract necessary data directly from the trip document
     const { itinerary, approvers } = trip;
     const { trains } = itinerary || { trains: [] };
 
@@ -309,6 +301,9 @@ export const addTrain = async (req, res) => {
 
     // Respond with success message and the updated trip
     return res.status(200).json({ success: true, message: 'Trains added successfully', trip: updatedTrip });
+    }
+
+
   } catch (error) {
     // Log the error for monitoring purposes
     console.error(error);
@@ -316,9 +311,6 @@ export const addTrain = async (req, res) => {
     return handleMicroserviceError(res, error.message);
   }
 };
-
-
-
 
 
 // Validate cab details
@@ -344,14 +336,23 @@ export const addCab = async (req, res) => {
     }
 
     // Retrieve dashboard document
-    const trip = await getTripByTripId(tripId, tenantId, empId);
+    const trip = await Dashboard.findOne({
+      tenantId,
+      tripStatus: { $in: ['transit', 'upcoming'] },
+      tripId,
+      $or: [
+        { 'createdBy.empId': empId},
+        { 'createdFor.empId': empId},
+      ],
+    })
 
     // Check if trip exists
     if (!trip) {
       return res.status(404).json({ error: 'Trip not found or not in transit' });
     }
 
-    // Extract necessary data directly from the trip document
+    if(trip){
+          // Extract necessary data directly from the trip document
     const { itinerary, approvers } = trip;
     const { cabs } = itinerary || { cabs: [] }; // Replace 'trains' with 'cabs'
 
@@ -390,6 +391,9 @@ export const addCab = async (req, res) => {
 
     // Respond with success message and the updated trip
     return res.status(200).json({ success: true, message: 'Cabs added successfully', trip: updatedTrip });
+    }
+
+
   } catch (error) {
     // Log the error for monitoring purposes
     console.error(error);
@@ -423,14 +427,23 @@ export const addHotel = async (req, res) => {
     }
 
     // Retrieve dashboard document
-    const trip = await getTripByTripId(tripId, tenantId, empId);
+    const trip = await Dashboard.findOne({
+      tenantId,
+      tripStatus: { $in: ['transit', 'upcoming'] },
+      tripId,
+      $or: [
+        { 'createdBy.empId': empId},
+        { 'createdFor.empId': empId},
+      ],
+    })
 
     // Check if trip exists
     if (!trip) {
       return res.status(404).json({ error: 'Trip not found or not in transit' });
     }
 
-    // Extract necessary data directly from the trip document
+    if(trip){
+       // Extract necessary data directly from the trip document
     const { itinerary, approvers } = trip;
     const { hotels } = itinerary || { hotels: [] };
 
@@ -469,6 +482,9 @@ export const addHotel = async (req, res) => {
 
     // Respond with success message and the updated trip
     return res.status(200).json({ success: true, message: 'Hotels added successfully', trip: updatedTrip });
+    }
+
+   
   } catch (error) {
     // Log the error for monitoring purposes
     console.error(error);

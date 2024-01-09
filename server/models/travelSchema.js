@@ -99,6 +99,14 @@ cancellationReason: String,
 rejectionReason: String,
 rejectionDate:Date,
 status:{type:String, enum:itineraryStatusEnums},
+approvers: [{
+  empId: String,
+  name: String,
+  status: {
+  type: String,
+  enum: approverStatusEnums,
+  },
+  },],
 bookingDetails:{
 docURL: String,
 docType: String,
@@ -130,6 +138,14 @@ cancellationDate: Date,
 cancellationReason: String,
 rejectionReason: String,
 status:{type:String, enum:itineraryStatusEnums},
+approvers: [{
+  empId: String,
+  name: String,
+  status: {
+  type: String,
+  enum: approverStatusEnums,
+  },
+  },],
 bookingDetails:{
 docURL: String,
 docType: String,
@@ -165,6 +181,14 @@ cancellationDate: Date,
 cancellationReason: String,
 rejectionReason: String,
 status:{type:String, enum:itineraryStatusEnums},
+approvers: [{
+  empId: String,
+  name: String,
+  status: {
+  type: String,
+  enum: approverStatusEnums,
+  },
+  },],
 bookingDetails:{
 docURL: String,
 docType: String,
@@ -203,6 +227,14 @@ cancellationDate:String,
 cancellationReason:String,
 rejectionReason: String,
 status:{type:String, enum:itineraryStatusEnums},
+approvers: [{
+  empId: String,
+  name: String,
+  status: {
+  type: String,
+  enum: approverStatusEnums,
+  },
+  },],
 bookingDetails:{
 docURL: String,
 docType: String,
@@ -237,6 +269,14 @@ cancellationDate:String,
 cancellationReason:String,
 rejectionReason: String,
 status:{type:String, enum:itineraryStatusEnums},
+approvers: [{
+  empId: String,
+  name: String,
+  status: {
+  type: String,
+  enum: approverStatusEnums,
+  },
+  },],
 bookingDetails:{
 docURL: String,
 docType: String,

@@ -145,11 +145,11 @@ console.log('listening for messages. To exit press CTRL+C');
         }
       }
     }
-    
+
   }}, { noAck: false });
 }
 
-startConsumer();
+startConsumer('dashboard');
 
 
 

@@ -82,7 +82,6 @@ const employeeLayout = async ({tenantId,empId}) => {
 }
 
 //----------------travel standalone for an employee
-
 const travelStandAloneForEmployee = async (tenantId, empId) => {
     try {
         let allTravelRequests = [];
@@ -150,7 +149,6 @@ const travelStandAloneForEmployee = async (tenantId, empId) => {
 };
 
 //----------------travel with cash for an employee
-
 const travelWithCashForEmployee = async (tenantId, empId) => {
     try {
         let allTravelRequests = [];
@@ -252,135 +250,384 @@ const travelWithCashForEmployee = async (tenantId, empId) => {
 };
 
 //----------------trip, travel and non-travel expenseReports for an employee
-const processTripsByStatus = (tripDocs, status) => {
-    const trips = [];
-    const travelExpenseContainer = [];
-    const rejectedExpenseReports = [];
+// const processTripsByStatus = async (tripDocs, status) => {
+//     const trips = [];
+//     const travelExpenseContainer = [];
+//     const rejectedExpenseReports = [];
     
-    tripDocs.forEach((trip) => {
-      const {
-        travelRequestId,
-        travelRequestNumber,
-        tripPurpose,
-        tripStartDate,
-        tripCompletionDate,
-        travelRequestStatus,
-        isCashAdvanceTaken,
-        cashAdvancesData,
-        travelExpenseData,
-        expenseAmountStatus
-      } = trip.tripSchema;
+//     tripDocs.forEach((trip) => {
+//       const {
+//         travelRequestId,
+//         travelRequestNumber,
+//         tripPurpose,
+//         tripStartDate,
+//         tripCompletionDate,
+//         travelRequestStatus,
+//         isCashAdvanceTaken,
+//         cashAdvancesData,
+//         travelExpenseData,
+//         expenseAmountStatus
+//       } = trip.tripSchema;
     
-      const { totalCashAmount, totalremainingCash } = expenseAmountStatus;
+//       const { totalCashAmount, totalremainingCash } = expenseAmountStatus;
     
-      const tripWithExpense = {
-        travelRequestId,
-        travelRequestNumber,
-        tripPurpose,
-        tripStartDate,
-        tripCompletionDate,
-        travelRequestStatus,
-        isCashAdvanceTaken,
-        totalCashAmount,
-        totalremainingCash,
-        cashAdvances: [],
-        travelExpenses: []
-      };
+//       const tripWithExpense = {
+//         travelRequestId,
+//         travelRequestNumber,
+//         tripPurpose,
+//         tripStartDate,
+//         tripCompletionDate,
+//         travelRequestStatus,
+//         isCashAdvanceTaken,
+//         totalCashAmount,
+//         totalremainingCash,
+//         cashAdvances: [],
+//         travelExpenses: []
+//       };
     
-      cashAdvancesData.forEach((cashAdvance) => {
-        const { cashAdvanceId, cashAdvanceNumber, amountDetails } = cashAdvance;
-        tripWithExpense.cashAdvances.push({ cashAdvanceId, cashAdvanceNumber, amountDetails });
-      });
+//       cashAdvancesData.forEach((cashAdvance) => {
+//         const { cashAdvanceId, cashAdvanceNumber, amountDetails } = cashAdvance;
+//         tripWithExpense.cashAdvances.push({ cashAdvanceId, cashAdvanceNumber, amountDetails });
+//       });
     
-      const isTransitTrip = status === 'transit';
-      const isCompletedTrip = status === 'completed';
-      const isRejectedExpenseReport = status === 'rejected';
+//       const isTransitTrip = status === 'transit';
+//       const isCompletedTrip = status === 'completed';
+//       const isRejectedExpenseReport = status === 'rejected';
   
-      if (isTransitTrip) {
-        travelExpenseData.forEach((travelExpense) => {
-          const { tripId, expenseHeaderId, expenseHeaderNumber, expenseHeaderStatus } = travelExpense;
-          tripWithExpense.travelExpenses.push({ tripId, expenseHeaderId, expenseHeaderNumber, expenseHeaderStatus });
-        });
-        trips.push(tripWithExpense);
-      } else if (isCompletedTrip) {
-        travelExpenseData.forEach((travelExpense) => {
-          const { tripId, expenseHeaderId, expenseHeaderNumber, expenseHeaderStatus } = travelExpense;
-          travelExpenseContainer.push({ tripId, tripPurpose, expenseHeaderId, expenseHeaderNumber, expenseHeaderStatus });
-        });
-      } else if (isRejectedExpenseReport) {
-        travelExpenseData.forEach((travelExpense) => {
-          const { tripId, tripNumber, expenseHeaderNumber, expenseHeaderId, expenseAmountStatus } = travelExpense;
-          rejectedExpenseReports.push({ tripId, tripPurpose, tripNumber, expenseHeaderNumber, expenseHeaderId, expenseAmountStatus });
-        });
-      }
-    });
+//       if (isTransitTrip) {
+//         travelExpenseData.forEach((travelExpense) => {
+//           const { tripId, expenseHeaderId, expenseHeaderNumber, expenseHeaderStatus } = travelExpense;
+//           tripWithExpense.travelExpenses.push({ tripId, expenseHeaderId, expenseHeaderNumber, expenseHeaderStatus });
+//         });
+//         trips.push(tripWithExpense);
+//       } else if (isCompletedTrip) {
+//         travelExpenseData.forEach((travelExpense) => {
+//           const { tripId, expenseHeaderId, expenseHeaderNumber, expenseHeaderStatus } = travelExpense;
+//           travelExpenseContainer.push({ tripId, tripPurpose, expenseHeaderId, expenseHeaderNumber, expenseHeaderStatus });
+//         });
+//       } else if (isRejectedExpenseReport) {
+//         travelExpenseData.forEach((travelExpense) => {
+//           const { tripId, tripNumber, expenseHeaderNumber, expenseHeaderId, expenseAmountStatus } = travelExpense;
+//           rejectedExpenseReports.push({ tripId, tripPurpose, tripNumber, expenseHeaderNumber, expenseHeaderId, expenseAmountStatus });
+//         });
+//       }
+//     });
   
-    if (isTransitTrip) {
-      return { [status]: trips };
-    } else if (isCompletedTrip) {
-      return { [status]: travelExpenseContainer };
-    } else {
-      return { [status]: rejectedExpenseReports };
-    }
-};
+//     if (isTransitTrip) {
+//       return { [status]: trips };
+//     } else if (isCompletedTrip) {
+//       return { [status]: travelExpenseContainer };
+//     } else {
+//       return { [status]: rejectedExpenseReports };
+//     }
+// };
 
-  // non travel expense reports for an employeee
-const processNonTravelExpenseReports = (tripDocs, empId) => {
-    const nonTravelExpenseReports = [];
+// non travel expense reports for an employeee
+// const processNonTravelExpenseReports = (tripDocs, empId) => {
+//     const nonTravelExpenseReports = [];
   
-    tripDocs.forEach((expense) => {
-      const { nonTravelExpenseSchema } = expense;
-      const { createdBy, expenseHeaderId, expenseHeaderNumber, expenseHeaderStatus } = nonTravelExpenseSchema;
+//     tripDocs.forEach((expense) => {
+//       const { nonTravelExpenseSchema } = expense;
+//       const { createdBy, expenseHeaderId, expenseHeaderNumber, expenseHeaderStatus } = nonTravelExpenseSchema;
   
-      const isValidEmployee = empId === createdBy.empId;
+//       const isValidEmployee = empId === createdBy.empId;
   
-      if (isValidEmployee) {
-        nonTravelExpenseReports.push({ expenseHeaderId, createdBy, expenseHeaderNumber, expenseHeaderStatus });
-      }
-    });
+//       if (isValidEmployee) {
+//         nonTravelExpenseReports.push({ expenseHeaderId, createdBy, expenseHeaderNumber, expenseHeaderStatus });
+//       }
+//     });
   
-    if (nonTravelExpenseReports.length > 0) {
-      return { [empId]: nonTravelExpenseReports };
-    } else {
-      return {}; // Return an empty object if there are no valid non-travel expense reports for the employee
-    }
-};
+//     if (nonTravelExpenseReports.length > 0) {
+//       return { [empId]: nonTravelExpenseReports };
+//     } else {
+//       return {}; // Return an empty object if there are no valid non-travel expense reports for the employee
+//     }
+// };
+
+// const processTripsByStatus = async (tripDocs, status) => {
+//     const transitTrips = [];
+//     const travelExpenseContainer = [];
+//     const rejectedExpenseReports = [];
+//     const upcomingTrips = [];
   
-//trip for the employee 
+//     tripDocs.forEach(trip => {
+//       const {
+//         travelRequestId,
+//         travelRequestNumber,
+//         tripPurpose,
+//         tripStartDate,
+//         tripCompletionDate,
+//         travelRequestStatus,
+//         isCashAdvanceTaken,
+//         itinerary,
+//         cashAdvancesData,
+//         travelExpenseData,
+//         expenseAmountStatus
+//       } = trip.tripSchema;
+  
+//       const { totalCashAmount, totalremainingCash } = expenseAmountStatus;
+  
+//       const commonTripDetails = {
+//         travelRequestId,
+//         travelRequestNumber,
+//         tripPurpose,
+//         tripStartDate,
+//         tripCompletionDate,
+//         travelRequestStatus,
+//         isCashAdvanceTaken,
+//         totalCashAmount,
+//         totalremainingCash,
+//         ItineraryArray: []
+//       };
+  
+//       if (status === 'transit') {
+//         const transitTrip = { ...commonTripDetails, cashAdvances: [], travelExpenses: [] };
+  
+//         cashAdvancesData.forEach(cashAdvance => {
+//           const { cashAdvanceId, cashAdvanceNumber, amountDetails } = cashAdvance;
+//           transitTrip.cashAdvances.push({ cashAdvanceId, cashAdvanceNumber, amountDetails });
+//         });
+  
+//         travelExpenseData.forEach(travelExpense => {
+//           const { tripId, expenseHeaderId, expenseHeaderNumber, expenseHeaderStatus } = travelExpense;
+//           transitTrip.travelExpenses.push({ tripId, expenseHeaderId, expenseHeaderNumber, expenseHeaderStatus });
+//         });
+  
+//         Object.keys(itinerary).forEach(category => {
+//           if (category !== 'formState') {
+//             const modifiedCategory = itinerary[category].map(item => ({
+//               bkd_from: item.bkd_from,
+//               bkd_to: item.bkd_to,
+//               status: item.status,
+//               itineraryId: item.itineraryId
+//             }));
+//             transitTrip.ItineraryArray.push({ [category]: modifiedCategory });
+//           }
+//         });
+  
+//         transitTrips.push(transitTrip);
+//       } else if (status === 'completed') {
+//         travelExpenseData.forEach(travelExpense => {
+//           const { tripId, expenseHeaderId, expenseHeaderNumber, expenseHeaderStatus } = travelExpense;
+//           travelExpenseContainer.push({ tripId, tripPurpose, expenseHeaderId, expenseHeaderNumber, expenseHeaderStatus });
+//         });
+//       } else if (status === 'rejected') {
+//         travelExpenseData.forEach(travelExpense => {
+//           const { tripId, tripNumber, expenseHeaderNumber, expenseHeaderId, expenseAmountStatus } = travelExpense;
+//           rejectedExpenseReports.push({ tripId, tripPurpose, tripNumber, expenseHeaderNumber, expenseHeaderId, expenseAmountStatus });
+//         });
+//       } else if (status === 'upcoming') {
+//         const upcomingTrip = { ...commonTripDetails, cashAdvances: [], ItineraryArray: [] };
+  
+//         upcomingTrips.push(upcomingTrip);
+  
+//         cashAdvancesData.forEach(cashAdvance => {
+//           const { cashAdvanceId, cashAdvanceNumber, amountDetails } = cashAdvance;
+//           upcomingTrip.cashAdvances.push({ cashAdvanceId, cashAdvanceNumber, amountDetails });
+//         });
+  
+//         Object.keys(itinerary).forEach(category => {
+//           if (category !== 'formState') {
+//             const modifiedCategory = itinerary[category].map(item => ({
+//               bkd_from: item.bkd_from,
+//               bkd_to: item.bkd_to,
+//               status: item.status,
+//               itineraryId: item.itineraryId
+//             }));
+//             upcomingTrip.ItineraryArray.push({ [category]: modifiedCategory });
+//           }
+//         });
+//       }
+//     });
+  
+//     if (status === 'transit') {
+//       return { [status]: transitTrips };
+//     } else if (status === 'completed') {
+//       return { [status]: travelExpenseContainer };
+//     } else if (status === 'upcoming') {
+//       return { [status]: upcomingTrips };
+//     } else {
+//       return { [status]: rejectedExpenseReports };
+//     }
+//   };
+  
+// //trip for the employee 
+// const getTripForEmployee = async (tenantId, empId) => {
+//     try {
+//       const tripDocs = await cashAdvanceSchema.find({
+//         tenantId,
+//         'createdBy.empId': empId,
+//         $or: [
+//           { 'tripSchema.tripStatus': { $in: ['transit', 'upcoming', 'completed'] } },
+//           { 'tripSchema.travelExpenseData.expenseHeaderStatus': { $in: ['rejected'] } },
+//         ],
+//         'tripSchema.cashAdvanceData.cashAdvanceStatus': { $nin: ['rejected'] },
+//         'nonTravelExpenseSchema.createdBy.empId': empId,
+//       }).lean().exec();
+  
+//       if (!tripDocs || tripDocs.length === 0) {
+//         return { message: 'There are no trips found for the user' };
+//       }
+  
+//       const transitTrips = await processTripsByStatus(tripDocs.filter(trip => trip.tripSchema.tripStatus === 'transit'), 'transit');
+//       const upcomingTrips = await processTripsByStatus(tripDocs.filter(trip => trip.tripSchema.tripStatus === 'upcoming'), 'upcoming');
+//       const completedTrips = await processTripsByStatus(tripDocs.filter(trip => trip.tripSchema.tripStatus === 'completed'), 'completed');
+//       const rejectedExpenseReports = await processTripsByStatus(tripDocs.filter(trip => trip.tripSchema.travelExpenseData.expenseHeaderStatus === 'rejected'), 'rejected');
+  
+//       const nonTravelExpenseReports = [];
+//       for (const expense of tripDocs) {
+//         const { nonTravelExpenseSchema } = expense;
+//         const { createdBy, expenseHeaderId, expenseHeaderNumber, expenseHeaderStatus } = nonTravelExpenseSchema;
+//         const isValidEmployee = empId === createdBy.empId;
+//         if (isValidEmployee) {
+//           nonTravelExpenseReports.push({ expenseHeaderId, createdBy, expenseHeaderNumber, expenseHeaderStatus });
+//         }
+//       }
+  
+//       if (nonTravelExpenseReports.length > 0) {
+//         return { [empId]: nonTravelExpenseReports };
+//       } else {
+//         return {}; // Return an empty object if there are no valid non-travel expense reports for the employee
+//       }
+//     } catch (error) {
+//       return { error: 'Error in fetching employee Dashboard' };
+//     }
+//   };
+  
 const getTripForEmployee = async (tenantId, empId) => {
     try {
-        const tripDocs = await cashAdvanceSchema.find({
-            tenantId,
-            'createdBy.empId': empId,
-            $or: [
-              { 'tripSchema.tripStatus': { $in: ['transit', 'upcoming', 'completed'] } },
-              { 'tripSchema.travelExpenseData.expenseHeaderStatus': { $in: ['rejected'] } },
-            ],
-            'tripSchema.cashAdvanceData.cashAdvanceStatus': { $nin: ['rejected'] },
-            'nonTravelExpenseSchema.createdBy.empId': empId, 
-          }).lean().exec(); // Use .lean().exec() to execute the query and await the result
-          
+      const tripDocs = await cashAdvanceSchema.find({
+        tenantId,
+        'createdBy.empId': empId,
+        $or: [
+          { 'tripSchema.tripStatus': { $in: ['transit', 'upcoming', 'completed'] } },
+          { 'tripSchema.travelExpenseData.expenseHeaderStatus': 'rejected' },
+        ],
+        'tripSchema.cashAdvanceData.cashAdvanceStatus': { $nin: ['rejected'] },
+        'nonTravelExpenseSchema.createdBy.empId': empId,
+      }).lean().exec();
+  
       if (!tripDocs || tripDocs.length === 0) {
         return { message: 'There are no trips found for the user' };
       }
-
-      if(tripDocs){
-         const transitTrips = await processTripsByStatus(tripDocs.filter(trip => trip.tripSchema.tripStatus === 'transit'), 'transit');
-      const upcomingTrips = await  processTripsByStatus(tripDocs.filter(trip => trip.tripSchema.tripStatus === 'upcoming'), 'upcoming');
-      const completedTrips = await processTripsByStatus(tripDocs.filter(trip => trip.tripSchema.tripStatus === 'completed'), 'completed');
-      const rejectedExpenseReports = await processTripsByStatus(tripDocs.filter(trip =>trip.tripSchema.travelExpenseData.expenseHeaderStatus === 'rejected'), 'rejected');
-      const nonTravelExpenseReports = await processNonTravelExpenseReports(tripDocs.filter(trip => trip.nonTravelExpenseSchema.createdBy.empId === empId), empId);
   
-      return { transitTrips, upcomingTrips, completedTrips, rejectedExpenseReports, nonTravelExpenseReports};
-
+      const transitTrips = [];
+      const travelExpenseContainer = [];
+      const rejectedExpenseReports = [];
+      const upcomingTrips = [];
+      const nonTravelExpenseReports = [];
+  
+      tripDocs.forEach((trip) => {
+        const {
+          travelRequestId,
+          travelRequestNumber,
+          tripPurpose,
+          tripStartDate,
+          tripCompletionDate,
+          travelRequestStatus,
+          isCashAdvanceTaken,
+          itinerary,
+          cashAdvancesData,
+          travelExpenseData,
+          expenseAmountStatus,
+          tripStatus,
+        } = trip.tripSchema;
+  
+        const { totalCashAmount, totalremainingCash } = expenseAmountStatus;
+  
+        const commonTripDetails = {
+          travelRequestId,
+          travelRequestNumber,
+          tripPurpose,
+          tripStartDate,
+          tripCompletionDate,
+          travelRequestStatus,
+          isCashAdvanceTaken,
+          totalCashAmount,
+          totalremainingCash,
+          ItineraryArray: [],
+        };
+  
+        if (tripStatus === 'transit') {
+          const transitTrip = { ...commonTripDetails, cashAdvances: [], travelExpenses: [] };
+  
+          cashAdvancesData.forEach((cashAdvance) => {
+            const { cashAdvanceId, cashAdvanceNumber, amountDetails } = cashAdvance;
+            transitTrip.cashAdvances.push({ cashAdvanceId, cashAdvanceNumber, amountDetails });
+          });
+  
+          travelExpenseData.forEach((travelExpense) => {
+            const {  expenseHeaderId, expenseHeaderNumber, expenseHeaderStatus } = travelExpense;
+            transitTrip.travelExpenses.push({  expenseHeaderId, expenseHeaderNumber, expenseHeaderStatus });
+          });
+  
+          Object.entries(itinerary).forEach(([category, items]) => {
+            if (category !== 'formState') {
+              const modifiedCategory = items.map((item) => ({
+                bkd_from: item.bkd_from,
+                bkd_to: item.bkd_to,
+                status: item.status,
+                itineraryId: item.itineraryId,
+              }));
+              transitTrip.ItineraryArray.push({ [category]: modifiedCategory });
+            }
+          });
+  
+          transitTrips.push(transitTrip);
+        } else if (tripStatus === 'completed') {
+          travelExpenseData.forEach((travelExpense) => {
+            const { tripId, expenseHeaderId, expenseHeaderNumber, expenseHeaderStatus } = travelExpense;
+            travelExpenseContainer.push({ tripId, tripPurpose, expenseHeaderId, expenseHeaderNumber, expenseHeaderStatus });
+          });
+        } else if (tripStatus === 'rejected') {
+          travelExpenseData.forEach((travelExpense) => {
+            const { tripId, tripNumber, expenseHeaderNumber, expenseHeaderId, expenseAmountStatus } = travelExpense;
+            rejectedExpenseReports.push({ tripId, tripPurpose, tripNumber, expenseHeaderNumber, expenseHeaderId, expenseAmountStatus });
+          });
+        } else if (tripStatus === 'upcoming') {
+          const upcomingTrip = { ...commonTripDetails, cashAdvances: [], ItineraryArray: [] };
+  
+          upcomingTrips.push(upcomingTrip);
+  
+          cashAdvancesData.forEach((cashAdvance) => {
+            const { cashAdvanceId, cashAdvanceNumber, amountDetails } = cashAdvance;
+            upcomingTrip.cashAdvances.push({ cashAdvanceId, cashAdvanceNumber, amountDetails });
+          });
+  
+          Object.entries(itinerary).forEach(([category, items]) => {
+            if (category !== 'formState') {
+              const modifiedCategory = items.map((item) => ({
+                bkd_from: item.bkd_from,
+                bkd_to: item.bkd_to,
+                status: item.status,
+                itineraryId: item.itineraryId,
+              }));
+              upcomingTrip.ItineraryArray.push({ [category]: modifiedCategory });
+            }
+          });
+        }
+      });
+  
+      // Fetching non-travel expense reports related to the employee
+      for (const expense of tripDocs) {
+        const { nonTravelExpenseSchema } = expense;
+        const { createdBy, expenseHeaderId, expenseHeaderNumber, expenseHeaderStatus } = nonTravelExpenseSchema;
+        const isValidEmployee = empId === createdBy.empId;
+        if (isValidEmployee) {
+          nonTravelExpenseReports.push({ expenseHeaderId, createdBy, expenseHeaderNumber, expenseHeaderStatus });
+        }
       }
   
-     
+      if (nonTravelExpenseReports.length > 0) {
+        return { [empId]: nonTravelExpenseReports };
+      } else {
+        return { message: 'No valid non-travel expense reports found for the employee' };
+      }
     } catch (error) {
       return { error: 'Error in fetching employee Dashboard' };
     }
 };
-
+  
 //------------------------------------------------------------------------------- employeeManger
 
 const managerLayout = async ({tenantId,empId}) => {
@@ -635,116 +882,89 @@ const approvalsForManager = async (tenantId, empId) => {
 
 
 //---------------------------------------------------------------------Travel admin
-const businessAdminLayout = async ({tenantId,empId}) => {
+const businessAdminLayout = async ({ tenantId, empId }) => {
     try {
         const bookingDoc = await dashboard.find({
-                tenantId,
-                $or: [
-                    {
-                        $or: [
-                            { 'travelRequestSchema.isAddALeg': true },
-                            { 'travelRequestSchema.travelRequestStatus': 'pending booking' },
-                        ],
-                    },
-                    {
-                        $or: [
-                            { 'cashAdvanceSchema.travelRequestData.travelRequestStatus': { $in: ['pending booking', 'booked'] } },
-                            { 'cashAdvanceSchema.travelRequestData.isAddALeg': true },
-                        ],
-                    },
-                    { 
-                        'tripSchema.travelRequestData.isAddALeg':true, // to get tripId
-                    }
-                ],
-            })
-            .lean()
-            .exec();
+            tenantId,
+            $or: [
+                { 'travelRequestSchema.travelRequestStatus': 'pending booking' },
+                { 'cashAdvanceSchema.travelRequestData.travelRequestStatus': 'pending booking' },
+                { $and:[
+                        {'tripSchema.travelRequestData.isAddALeg': true},
+                        {'tripSchema.travelRequestData.travelRequestStatus': 'booked'} 
+                    ]  
+                },
+                { 'tripSchema.travelRequestData.tripStatus': 'paid and cancelled' },
+            ],
+        })
+        .lean()
+        .exec();
 
-        if(bookingDoc){
+        if (!bookingDoc || bookingDoc.length === 0) return { error: 'Error in fetching data for business admin' };
 
-        //travel standalone -- pending booking or add a leg
-         const pendingBooking = [];
-         const filteredTravelDocs = bookingDoc.filter((travel) => {return(
-                travel.travelRequestSchema.travelRequestStatus === 'pending booking' || travelRequestSchema.isAddALeg === true 
-            )
+        const pendingBooking = [];
+        const paidAndCancelledTrips = [];
+        const pendingItineraryLines = [];
+
+        bookingDoc.forEach((booking) => {
+            const { travelRequestSchema, cashAdvanceSchema, tripSchema } = booking;
+
+            if (travelRequestSchema.travelRequestStatus === 'pending booking' || travelRequestSchema.isAddALeg === true) {
+                const { travelRequestId, travelRequestNumber, tripPurpose, travelRequestStatus, isAddALeg } = travelRequestSchema;
+                pendingBooking.push({ travelRequestId, travelRequestNumber, tripPurpose, travelRequestStatus, isAddALeg });
+            }
+
+            const { travelRequestData } = cashAdvanceSchema;
+            const extractedProperties = Object.keys(travelRequestData)
+                .filter(key => ['travelRequestId', 'travelRequestNumber', 'tripPurpose', 'travelRequestStatus'].includes(key))
+                .reduce((acc, key) => {
+                    acc[key] = travelRequestData[key];
+                    return acc;
+                }, {});
+
+            if (Object.keys(extractedProperties).length > 0) {
+                pendingBooking.push(extractedProperties);
+            }
+
+            if (tripSchema.travelRequestData.tripStatus === 'paid and cancelled') {
+                const { tripId, tripNumber, tripStatus } = tripSchema.travelRequestData;
+                paidAndCancelledTrips.push({ tripId, tripNumber, tripStatus });
+            }
+
+            const { travelRequestData: tripData } = tripSchema;
+            const isAddALeg = tripData.isAddALeg;
+
+            const filteredItineraries = Object.entries(tripData.itinerary).reduce((acc, [key, value]) => {
+                const filteredArray = value.filter(item => item.status === 'pending booking');
+                if (filteredArray.length > 0) {
+                    acc.push({ itineryKEYName: key, itineraryStatus: 'pending booking' });
+                }
+                return acc;
+            }, []);
+
+            if (isAddALeg && filteredItineraries.length > 0) {
+                Object.entries(tripData.itinerary).forEach(([category, items]) => {
+                    items.forEach((itineraryItem) => {
+                        if (itineraryItem.status === 'pending booking') {
+                            const { itineraryId, status } = itineraryItem;
+                            const { travelRequestId, travelRequestNumber, tripPurpose, travelRequestStatus } = booking;
+                            pendingItineraryLines.push({
+                                itineraryId,
+                                status,
+                                travelRequestId,
+                                travelRequestNumber,
+                                tripPurpose,
+                                travelRequestStatus,
+                            });
+                        }
+                    });
+                });
+            }
         });
 
-        filteredTravelDocs.forEach((travel) => {
-        const { travelRequestSchema } = travel;
-    
-        const { travelRequestId, travelRequestNumber, tripPurpose, travelRequestStatus , isAddALeg } = travelRequestSchema;
-    
-         pendingBooking.push({
-           travelRequestId,
-           travelRequestNumber,
-           tripPurpose,
-           travelRequestStatus,
-           isAddALeg
-         });
-        });
-
-        // cashAdvanceSchema -- extracting travel booking
-        const filteredCashDocs = bookingDoc.filter((cash) => {return( 
-            cash.cashAdvanceSchema.travelRequestData.travelRequestStatus === 'pending booking' ||
-            cash.cashAdvanceSchema.travelRequestData.travelRequestStatus === 'booked' ||
-            cash.cashAdvanceSchema.travelRequestData.isAddALeg === true)})
-        
-        filteredCashDocs.forEach((booking) => {
-            const { cashAdvanceSchema } = booking;
-            const {travelRequestData} = cashAdvanceSchema;
-
-            const extractedProperties = {};
-            const extractedKeyValuePairs = ['travelRequestId', 'travelRequestNumber', 'tripPurpose','travelRequestStatus'];
-         Object.entries(travelRequestData).forEach(([key, value]) => {
-             if(extractedKeyValuePairs.includes(key)){
-                extractedProperties[key] = value;
-             }
-           });
-          });
-
-            if (Object.keys(extractedKeyValuePairs).length > 0) {
-                  pendingBooking.push(extractedProperties);
-           }
-        }    
-
-        return { pendingBooking };
-
+        return { pendingBooking, paidAndCancelledTrips, pendingItineraryLines };
     } catch (error) {
         return { error: 'Error in fetching data for business admin' };
     }
 };
-
-
-
-
-// const travelBooking = [];
-// const cancelledTrips = [];
-
-// bookingDoc.forEach((approval) => {
-//     const { cashAdvanceSchema } = approval;
-//     const { travelRequestData } = cashAdvanceSchema;
-
-
-//     const extractedKeyValuePairs = ['travelRequestId', 'travelRequestNumber', 'tripPurpose','travelRequestStatus'];
-//       Object.entries(travelRequestData).forEach(([key, value]) => {
-//     if (extractedKeyValuePairs.includes(key)) {
-//         const isValidTravelStatus = key === 'travelRequestStatus' && value === status;
-//         if (isValidTravelStatus && travelRequestData.approvers.empId === empId) {
-//             travelWithCashRaisedLater.push({ [key]: value });
-//         }
-//     }
-// });
-
-//     if (Object.keys(extractedKeyValuePairs).length > 0) {
-//         travelBooking.push({ approvalId: approval._id, extractedKeyValuePairs });
-    
-//     }
-// });
-
-// return { travelBooking };
-
-
-
-
-
 

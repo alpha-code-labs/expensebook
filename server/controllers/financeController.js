@@ -28,15 +28,21 @@ export const financeLayout = async (req, res) => {
             return res.status(404).json({ message: 'No matching settlements found.' });
         }
 
-        const pendingCashAdvanceSettlements = settlements.filter(doc => {
+       const pendingCashAdvanceSettlements = []
+       const pendingTravelExpenseSettlements = []
+       const pendingNonTravelExpenseSettlements = []
+
+
+         pendingCashAdvanceSettlements = settlements.filter(doc => {
             return doc.cashAdvanceSchema.cashAdvancesData.some(
                 data =>
                     data.cashAdvanceStatus === 'pending settlement' ||
                     data.cashAdvanceStatus === 'Paid and Cancelled'
             );
+        
         });
 
-        const pendingTravelExpenseSettlements = settlements.filter(doc => {
+        pendingTravelExpenseSettlements = settlements.filter(doc => {
             return doc.tripSchema.travelExpenseData.some(
                 data =>
                     data.expenseHeaderStatus === 'pending settlement' ||
@@ -44,7 +50,7 @@ export const financeLayout = async (req, res) => {
             );
         });
 
-        const pendingNonTravelExpenseSettlements = settlements.filter(doc => {
+        pendingNonTravelExpenseSettlements = settlements.filter(doc => {
             return doc.nonTravelExpenseSchema.some(
                 data =>
                     data.expenseHeaderStatus === 'pending settlement' 
