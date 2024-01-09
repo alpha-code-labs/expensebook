@@ -1,12 +1,15 @@
-const express=require("express")
-const mongoose=require("mongoose")
-const app=express()
-const Product=require('./models/productModel')
+const express = require("express")
+const mongoose = require("mongoose")
+const cors = require("cors");
 
-app.use(express.json())
-app.use(express.urlencoded({extended: false}))
+const Product=require('./models/cashAdvance');
 
+const cashAdvanceRouter = require("./routes/cashAdvanceRouter");
 
+const app = express();
+
+app.use(express.json());
+app.use(express.urlencoded({extended: false}));
 app.get('/',(req,res)=>{
     res.send('Hello Node API')
 })
@@ -78,6 +81,10 @@ app.delete("/product/:id", async(req, res)=>{
         res.status(500).json({message: error.message})
     }
 })
+
+// 09/01/24
+app.use(cors());
+app.use("/api/cashAdvance" , cashAdvanceRouter);
 
 mongoose.connect("mongodb+srv://acladmin:QlSYiddbBy7J9yS6@mycluster.58esz73.mongodb.net/?retryWrites=true&w=majority")
 .then(()=>{

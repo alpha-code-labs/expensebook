@@ -17,7 +17,7 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path='/' element={<SettlingCashAdvance />}/>
-        <Route path='/settlingCashAdvance' element={<SettlingCashAdvance />}/>
+        <Route path='/settlingCashAdvance/:id' element={<SettlingCashAdvance />}/>
         <Route path='/settlingTravelExpense' element={<SettlingTravelExpense />}/>
         <Route path='/settlingNonTravelExpense' element={<SettlingNonTravelExpense />}/>
         <Route path='/recoveringPaidandCanceledCashAdvance' element={<RecoveringPaidandCanceledCashAdvance />}/>

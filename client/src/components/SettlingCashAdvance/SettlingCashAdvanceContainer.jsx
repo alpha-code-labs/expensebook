@@ -2,6 +2,7 @@ import Backdrop from '@mui/material/Backdrop';
 import CircularProgress from '@mui/material/CircularProgress';
 import { useEffect, useState } from 'react';
 import { arrowLeft } from "../../assets/icon.jsx";
+import axios from "axios";
 const employeeData = [
   {
     name: "Employee1",
@@ -24,6 +25,17 @@ const employeeData = [
 ];
 
 const SettlingCashAdvanceContainer = () => {
+  const [dummyValues, setDummyValues] = useState([]);
+  const getdummyCashAdvanceData = async ()=>{
+    try {
+      const data = await axios.get("http://localhost:3000/api/cashAdvance/find");
+      setDummyValues(data);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+  getdummyCashAdvanceData();
+  console.log(dummyValues);
   const [checkedValues, setCheckedValues] = useState([]);
   // console.log(checkedValues);
 
