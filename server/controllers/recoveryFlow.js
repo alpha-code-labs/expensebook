@@ -1,8 +1,7 @@
 import Trip from "../models/tripSchema.js";
-import { recoveryAtHeaderLevelToCash, recoveryAtLineItemLevelToCash } from "../internal/controllers/cashMicroservice.js";
 import { recoveryAtHeaderLevelToExpense, recoveryAtLineItemLevelToExpense } from "../internal/controllers/expenseMicroservice.js";
-import { recoveryAtHeaderLevelToTravel, recoveryAtLineItemLevelToTravel } from "../internal/controllers/travelMicroservice.js";
 import { sendTripsToDashboardQueue } from "../rabbitmq/dashboardMicroservice.js";
+import { sendToOtherMicroservice } from "../rabbitmq/publisher.js";
 
 //Trip Microservice -Travel recovery flow for paid and cancelled Trips
 // 1) get trip details -- for Recovery
@@ -317,11 +316,30 @@ export const recoveryAtHeaderLevel = async (req, res) => {
     // Save the modified document
     await trip.save();
 
-    const data = 'online';
+    const payload = {...trip}
+    const onlineVsBatch = 'online';
     const needConfirmation = false;
 
     // Send updated trip to the dashboard asynchronously
-    await sendTripsToDashboardQueue(trip, data, needConfirmation);
+    await sendTripsToDashboardQueue(payload, onlineVsBatch, needConfirmation);
+
+    const travel = {
+      travelRequestData:trip?.travelRequestData ??{} 
+    }
+
+    const cash = {
+      travelRequestData:trip?.travelRequestData ?? {},
+      cashAdvancesData: trip?.cashAdvancesData ?? [],
+    }
+
+    //send to travel microservices
+    sendToOtherMicroservice(travel, 'full-update', 'travel', 'to update entire travel request in Travel microservice- recovery done after cancellation of entire trip ')
+
+    //send to cash microservices
+    sendToOtherMicroservice(cash, 'full-update', 'cash', 'to update travelRequestStatus and cashAdvances status in cash microservice- recovery done after cancellation of entire trip')
+
+    // To expense microservice
+    sendToOtherMicroservice(cash, 'full-update', 'expense', 'to update travelRequestStatus and cashAdvances status in epense microservice- recover done after cancellation of entire trip')
 
     console.log('Header level recovery successful.');
     res.status(200).json({ message: 'Header level recovery successful', trip });
@@ -425,13 +443,32 @@ export const recoveryAtLineItemLevel = async (req, res) => {
     // Send changes to expense microservice asynchronously
     await recoveryAtLineItemLevelToExpense(lineItemStatusUpdate);
 
-    // Check if cash advance was taken
-    if (trip.travelRequestData.isCashAdvanceTaken) {
-      console.log('Is cash advance taken:', trip.travelRequestData.isCashAdvanceTaken);
-      await recoveryAtLineItemLevelToCash(lineItemStatusUpdate);
-    } else {
-      await recoveryAtLineItemLevelToTravel(lineItemStatusUpdate);
+    // // Check if cash advance was taken
+    // if (trip.travelRequestData.isCashAdvanceTaken) {
+    //   console.log('Is cash advance taken:', trip.travelRequestData.isCashAdvanceTaken);
+    //   await recoveryAtLineItemLevelToCash(lineItemStatusUpdate);
+    // } else {
+    //   await recoveryAtLineItemLevelToTravel(lineItemStatusUpdate);
+    // }
+
+
+    const travel = {
+      travelRequestData:trip.travelRequestData ?? {},
     }
+
+    const cash = {
+      travelRequestData:trip?.travelRequestData ?? {},
+      cashAdvancesData: trip?.cashAdvancesData ?? [],
+    }
+  
+    //send to other microservices
+    sendToOtherMicroservice(travel, 'full-update', 'travel', 'to update entire travel request in Travel microservice- recovery after cancellation of trip at itinerary level')
+
+    //send to cash microservice
+    sendToOtherMicroservice(cash, 'full-update', 'cash', 'to update entire travel and cashAdvances data in cash microservice- recovery after cancellation of trip at itinerary level')
+
+    // send to expense microservice
+    sendToOtherMicroservice(cash, 'full-update', 'expense', 'to update entire travel and cashAdvances data in expense microservice-recovery after cancellation of trip at itinerary level')
 
     // Send success response
     return res.status(200).json({

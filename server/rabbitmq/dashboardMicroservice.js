@@ -18,7 +18,7 @@ const connectToRabbitMQ = async () => {
   }
 };
 
-export const sendTripsToDashboardQueue = async (trip, needConfirmation, onlineVsBatch) => {
+export const sendTripsToDashboardQueue = async (payload, onlineVsBatch, needConfirmation) => {
   try {
     console.log('Sending message to RabbitMQ...');
 
@@ -29,13 +29,13 @@ export const sendTripsToDashboardQueue = async (trip, needConfirmation, onlineVs
     const queue = needConfirmation ? 'sync' : 'async';
 
     console.log(`Asserting exchange: ${exchangeName}`);
-    await channel.assertExchange(exchangeName, 'headers', { durable: true });
+    await channel.assertExchange(exchangeName, 'direct', { durable: true });
 
     console.log(`Asserting queue: ${queue}`);
     await channel.assertQueue(queue, { durable: true });
 
     console.log(`Binding queue ${queue} to exchange ${exchangeName}`);
-    await channel.bindQueue(queue, exchangeName);
+    await channel.bindQueue(queue, exchangeName, 'ms-ms');
 
     // Set different headers based on needConfirmation
     const messageHeaders = {
@@ -47,7 +47,7 @@ export const sendTripsToDashboardQueue = async (trip, needConfirmation, onlineVs
 
     const messageToSend = {
       headers: messageHeaders,
-      payload: trip,
+      payload,
     };
 
     console.log('Publishing message to RabbitMQ:', messageToSend);
@@ -84,7 +84,7 @@ export const sendTripsToDashboardQueue = async (trip, needConfirmation, onlineVs
 
       // Wait for response if needConfirmation is true
       if (needConfirmation && result === false) {
-        const extractedTrip = await extractTrip(trip.tripId);
+        const extractedTrip = await extractTrip(payload.tripId);
 
         const extractedMessageHeaders = {
           type: 'new',

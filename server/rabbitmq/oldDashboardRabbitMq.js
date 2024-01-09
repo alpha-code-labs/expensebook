@@ -4,6 +4,7 @@ import { generateUniqueIdentifier } from '../utils/uuid.js';
 const rabbitMQUrl = 'amqp://localhost:5672';
 
 let channel
+
 const connectToRabbitMQ = async () => {
   try {
     console.log('Connecting to RabbitMQ...');
@@ -17,7 +18,7 @@ const connectToRabbitMQ = async () => {
   }
 };
 
-// send to asynchronous queue -- batchjobs,
+// send to asynchronous queue -- batchjobs
 const sendTransitTripsToDashboard = async (updatedTripsInMemory) => {
   try {
     console.log('Sending message to RabbitMQ...');

@@ -10,6 +10,7 @@ import { config } from './config.js';
 import mainInternalRoutes from './internal/routes/mainInternalRoutes.js';
 import mainFrontendRoutes from './routes/mainFrontendRoutes.js';
 import oldTripRoutes from './routes/tripsRoutes.js';
+import startConsumer from './rabbitmq/consumer.js';
 
 // Load environment variables using dotenv
 dotenv.config();
@@ -62,3 +63,8 @@ const port = process.env.PORT || 8081;
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
+
+startConsumer('trip');
+// const trip = await Trip.findOne({tripId:'658d602bcb8a8aefaacab9ae'})
+// const res = await sendTripsToDashboardQueue(trip, 'online', true)
+
