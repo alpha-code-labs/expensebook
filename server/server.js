@@ -2,12 +2,13 @@ const express = require("express")
 const mongoose = require("mongoose")
 const cors = require("cors");
 
-const Product=require('./models/cashAdvance');
-
 const cashAdvanceRouter = require("./routes/cashAdvanceRouter");
+const travelExpenseRouter = require("./routes/travelExpenseRouter");
 
 const app = express();
 
+
+const Product=require('./models/cashAdvance');
 app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 app.get('/',(req,res)=>{
@@ -85,6 +86,7 @@ app.delete("/product/:id", async(req, res)=>{
 // 09/01/24
 app.use(cors());
 app.use("/api/cashAdvance" , cashAdvanceRouter);
+app.use("/api/travelExpense" , travelExpenseRouter);
 
 mongoose.connect("mongodb+srv://acladmin:QlSYiddbBy7J9yS6@mycluster.58esz73.mongodb.net/?retryWrites=true&w=majority")
 .then(()=>{
