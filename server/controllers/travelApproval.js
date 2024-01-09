@@ -7,6 +7,7 @@ import { ApproveAddALegToCash, rejectAddALegToCash } from '../internal/controlle
 import {  approveAddALegToTravel, rejectAddALegToTravel } from '../internal/controllers/travelMicroservice.js';
 import { handleDatabaseError, validateInput } from '../utils/validations.js';
 import { sendCashApprovalToDashboardQueue, sendTravelApprovalToDashboardQueue } from '../rabbitmq/dashboardMicroservice.js';
+import { sendToOtherMicroservice } from '../rabbitmq/publisher.js';
 
 const logger = pino({
   transport: {
@@ -200,6 +201,16 @@ export const travelStandaloneApprove = async (req, res) => {
     // Send updated travel to the dashboard asynchronously
     await sendTravelApprovalToDashboardQueue(travelApprovalDoc)
 
+    const payload = {
+      travelRequestId: travelApprovalDoc.travelRequestData.travelRequestId,
+      travelRequestStatus: travelApprovalDoc.travelRequestData.travelRequestStatus,
+      approvers:travelApprovalDoc.travelRequestData.approvers,
+      rejectionReasons: '',
+    }
+
+    // send approval to travel
+    sendToOtherMicroservice(payload, 'approve-reject-tr', 'travel', 'travel standalone approved ')
+
     res.status(200).json({ message: `Approval for empId ${empId} updated to 'approved'.` });
   } catch (error) {
     if (error.message === 'Travel request not found.') {
@@ -302,50 +313,7 @@ export const travelStandaloneApprove = async (req, res) => {
 
 // (microservice) travel request standalone- status- rejected , microservice- travel
 
-const sendTravelRejectedToTravelMicroservice = async (tenantId, empId, travelRequestId, travelRejected, rejectionReasons) => {
-  try {
-    const travelMicroserviceUrl = process.env.TRAVEL_MICROSERVICE_URL;
-    const travelRejected = {
-        tenantId,
-        'travelRequestData.travelRequestId': Approval.travelRequestId ,
-        'travelRequestData.approvers.empId': Approval.empId,
-        'travelRequestData.approvers.status': 'rejected',
-        'travelRequestData.travelRequestRejectionReason': Approval.rejectionReasons,
-        approvalStatus : 'rejected',
-    }
 
-    // Make an API call to the Travel Microservice with the updated data
-    await axios.post(`${travelMicroserviceUrl}/ts-rejected`, 
-    travelRejected, { retry : 5, retryInterval: 3000});
-  } catch (error) {
-    logger.error('Error sending changes to Travel Microservice:', error.message);
-    throw error;
-  }
-};
-
-// (microservice) travel request standalone- status- rejected, microservice- trip
-const sendTravelRejectedToTripMicroservice = async (tenantId, empId, travelRequestId, travelRejected, rejectionReasons) => {
-  try {
-    const tripMicroserviceUrl = process.env.TRIP_MICROSERVICE_URL;
-    
-    const travelRejected = {
-      tenantId: tenantId,
-      'travelRequestData.approvers.empId': empId,
-      'travelRequestData.travelRequestId': travelRequestId,
-      'travelRequestData.approvers.status': 'rejected',
-      'travelRequestData.travelRequestRejectionReason': rejectionReasons,
-      approvalStatus :'rejected',
-
-    }
-
-    // Make an API call to the Trip Microservice with the rejection reasons
-    await axios.post(`${tripMicroserviceUrl}/ts-rejected`,
-     travelRejected , { retry: 5, retryInterval: 3000 });
-  } catch (error) {
-    logger.error('Error sending changes to Trip Microservice:', error.message);
-    throw error;
-  }
-};
 
 // 4) travel request standalone - status-rejected
 // export const travelStandaloneReject = async (req, res) => {
@@ -455,7 +423,7 @@ export const travelStandaloneReject = async (req, res) => {
 
     // Update the travelApprovalDoc document with the modified approvers array and rejection reasons
     travelApprovalDoc.travelRequestData.approvers = updatedApprovers;
-    travelApprovalDoc.travelRequestData.travelRequestRejectionReason = rejectionReasons;
+    travelApprovalDoc.travelRequestData.rejectionReason = rejectionReasons;
 
     // Update the status within the travelApprovalDoc document
     travelApprovalDoc.travelRequestData.travelRequestStatus = 'rejected';
@@ -476,6 +444,16 @@ export const travelStandaloneReject = async (req, res) => {
     //  // Send changes to the Trip Microservice
     // await  sendTravelRejectedToTripMicroservice(tenantId, empId, travelRejected, rejectionReasons); 
 
+    const payload = {
+      travelRequestId: travelApprovalDoc.travelRequestData.travelRequestId,
+      travelRequestStatus: travelApprovalDoc.travelRequestData.travelRequestStatus,
+      approvers:travelApprovalDoc.travelRequestData.approvers,
+      rejectionReasons:  travelApprovalDoc.travelRequestData.rejectionReason,
+    }
+
+    // send approval to travel
+    sendToOtherMicroservice(payload, 'approve-reject-tr', 'travel', 'travel standalone rejected ')
+
     console.log('After saving approval...');
     res.status(200).json({ 
       message: `Approval for empId ${empId} updated to 'rejected'.`
@@ -491,8 +469,6 @@ export const travelStandaloneReject = async (req, res) => {
     }
   }
 }
-
-
 
 //-------------------------------------------------------------------------------
 
@@ -610,50 +586,6 @@ export const getTravelWithCashDetails = async (req, res) => {
   }
 };
 
-
-// (microservice) status- Approved , microservice- travel
-const  updatedApproveTwcApproveTravelToTravelMicroservice = async (tenantId, UpdatedApproveTwcApproveTravel) => {
-  try {
-    const travelMicroserviceUrl = process.env.TRAVEL_MICROSERVICE_URL;
-    const UpdatedApproveTwcApproveTravel = {
-        tenantId,
-        'travelRequestData.travelRequestId': Approval.travelRequestId ,
-        'travelRequestData.approvers.empId': Approval.empId,
-        'travelRequestData.approvers.status': 'approved',
-        approvalStatus : 'approved',
-    }
-
-    // Make an API call to the Travel Microservice with the updated data
-    await axios.post(`${travelMicroserviceUrl}/twca-tr-approved`, 
-    UpdatedApproveTwcApproveTravel, { retry : 5, retryInterval: 3000});
-  } catch (error) {
-    logger.error('Error sending changes to Travel Microservice:', error.message);
-    throw error;
-  }
-};
-
-// (microservice) status- Approved, microservice- trip
-const updatedApproveTwcApproveTravelToTripMicroservice = async (tenantId, empId, travelRequestId, UpdatedApproveTwcApproveTravel) => {
-  try {
-    const tripMicroserviceUrl = process.env.TRIP_MICROSERVICE_URL;
-    
-    const UpdatedApproveTwcApproveTravel = {
-      tenantId: tenantId,
-      'cashAdvancesData.approvers.empId': empId,
-      'cashAdvancesData.travelRequestId': travelRequestId,
-      'cashAdvancesData.approvers.status': 'approved',
-      approvalStatus :'approved',
-    }
-
-    // Make an API call to the Trip Microservice with the rejection reasons
-    await axios.post(`${tripMicroserviceUrl}/twca-tr-approved`,
-    UpdatedApproveTwcApproveTravel , { retry: 5, retryInterval: 3000 });
-  } catch (error) {
-    logger.error('Error sending changes to Trip Microservice:', error.message);
-    throw error;
-  }
-};
-
 // 7) travel with cash advance -- Approve Travel Request
 export const travelWithCashApproveTravelRequest = async (req, res) => {
   try {
@@ -709,6 +641,17 @@ export const travelWithCashApproveTravelRequest = async (req, res) => {
     //   updatedApproveTwcApproveTravelToTripMicroservice(tenantId, empId, UpdatedApproveTwcApproveTravel),
     // ]);
 
+    const payload = {
+      travelRequestId: cashApprovalDoc.travelRequestData.travelRequestId,
+      travelRequestStatus: cashApprovalDoc.travelRequestData.travelRequestStatus,
+      approvers:cashApprovalDoc.travelRequestData.approvers,
+      rejectionReasons:  '',
+    }
+
+    // send approval to Cash
+    sendToOtherMicroservice(payload, 'approve-reject-tr', 'cash', 'To update travelRequestStatus to approved in cash microservice')
+
+
     res.status(200).json({ message: `Approval for empId ${empId} updated to 'approved'.` });
   } catch (error) {
     if (error.message === 'Travel request not found.') {
@@ -720,72 +663,6 @@ export const travelWithCashApproveTravelRequest = async (req, res) => {
   }
 };
 
-
-//
-const twcRejectTravel = async (approval) => {
-  const { cashAdvancesData } = approval;
-  const { approvers } = cashAdvancesData;
-
-  // Find the matching approver by empId and update its status to 'approved'
-  const updatedApprovers = approvers.map((approver) => {
-    if (approver.empId === empId) {
-      return {
-        ...approver,
-        status: 'approved',
-      };
-    }
-    return approver;
-  });
-
-  // Update the approval document with the modified approvers array and rejection reasons
-  approval.cashAdvancesData.approvers = updatedApprovers;
-  approval.cashAdvancesData.travelRequestStatus = 'approved'; //NEED TO BE UPDATED
-  // Save the updated approval document
-  return await approval.save();
-};
-
-// (microservice) status- rejected , microservice- travel
-const  updatedTwcRejectTravelToTravelMicroservice = async (tenantId, UpdatedTwcRejectTravel) => {
-  try {
-    const travelMicroserviceUrl = process.env.TRAVEL_MICROSERVICE_URL;
-    const UpdatedTwcRejectTravel = {
-        tenantId,
-        'travelRequestData.travelRequestId': approval.travelRequestId ,
-        'travelRequestData.approvers.empId': approval.empId,
-        'travelRequestData.approvers.status': 'rejected',
-        approvalStatus : 'rejected',
-    }
-
-    // Make an API call to the Travel Microservice with the updated data
-    await axios.post(`${travelMicroserviceUrl}/twca-tr-rejected`, 
-    UpdatedTwcRejectTravel, { retry : 5, retryInterval: 3000});
-  } catch (error) {
-    logger.error('Error sending changes to Travel Microservice:', error.message);
-    throw error;
-  }
-};
-
-// (microservice) status- rejected, microservice- trip
-const updatedTwcRejectTravelToTripMicroservice = async (tenantId, empId, travelRequestId, UpdatedTwcRejectTravel) => {
-  try {
-    const tripMicroserviceUrl = process.env.TRIP_MICROSERVICE_URL;
-    
-    const UpdatedTwcRejectTravel = {
-      tenantId: tenantId,
-      'cashAdvancesData.approvers.empId': empId,
-      'cashAdvancesData.travelRequestId': travelRequestId,
-      'cashAdvancesData.approvers.status': 'rejected',
-      approvalStatus :'rejected',
-    }
-
-    // Make an API call to the Trip Microservice with the rejection reasons
-    await axios.post(`${tripMicroserviceUrl}/twca-tr-rejected`,
-    UpdatedTwcRejectTravel , { retry: 5, retryInterval: 3000 });
-  } catch (error) {
-    logger.error('Error sending changes to Trip Microservice:', error.message);
-    throw error;
-  }
-};
 
 // 8) travel with cash advance -- Reject Travel Request (IF Travel request is rejected then status of cash advance is updated to draft)
 export const travelWithCashRejectTravelRequest = async (req, res) => {
@@ -827,7 +704,7 @@ export const travelWithCashRejectTravelRequest = async (req, res) => {
 
     // Update the cashApprovalDoc document with the approvers array and rejection reasons
     cashApprovalDoc.travelRequestData.approvers = updatedApprovers;
-    cashApprovalDoc.travelRequestData.travelRequestRejectionReason = rejectionReasons;
+    cashApprovalDoc.travelRequestData.rejectionReason = rejectionReasons;
 
     // Update the status within the cashApprovalDoc document
     cashApprovalDoc.travelRequestData.travelRequestStatus = 'rejected';
@@ -844,11 +721,15 @@ export const travelWithCashRejectTravelRequest = async (req, res) => {
       //Sending to dashboard via rabbitmq
       await sendCashApprovalToDashboardQueue(cashApprovalDoc);
 
-    // // Send changes to the Travel Microservice and the Trip Microservice
-    // await Promise.all([
-    //   updatedTwcRejectTravelToTravelMicroservice(tenantId, empId, UpdatedTwcRejectTravel),
-    //   updatedTwcRejectTravelToTripMicroservice(tenantId, empId, UpdatedTwcRejectTravel),
-    // ]);
+    const payload = {
+      travelRequestId: cashApprovalDoc.travelRequestData.travelRequestId,
+      travelRequestStatus: cashApprovalDoc.travelRequestData.travelRequestStatus,
+      approvers:cashApprovalDoc.travelRequestData.approvers,
+      rejectionReasons: cashApprovalDoc.travelRequestData.rejectionReason,
+    }
+
+    // send Rejected Travel request to Cash microservice
+    sendToOtherMicroservice(payload, 'approve-reject-tr', 'cash', 'To update travelRequestStatus to rejected in cash microservice')
 
     res.status(200).json({ message: `Travel request is rejected then status of cash advance is updated to draft` });
   } catch (error) {
@@ -861,75 +742,10 @@ export const travelWithCashRejectTravelRequest = async (req, res) => {
   }
 };
 
-//
-const cashApprovedTrApproved = async (approval) => {
-  const { cashAdvancesData } = approval;
-  const { approvers } = cashAdvancesData;
-
-  // Find the matching approver by empId and update its status to 'approved'
-  const updatedApprovers = approvers.map((approver) => {
-    if (approver.empId === empId) {
-      return {
-        ...approver,
-        status: 'approved',
-      };
-    }
-    return approver;
-  });
-
-  // Update the approval document with the modified approvers array and rejection reasons
-  approval.cashAdvancesData.approvers = updatedApprovers;
-  approval.cashAdvancesData.travelRequestStatus = 'approved'; //NEED TO BE UPDATED
-  // Save the updated approval document
-  return await approval.save();
-};
-
-// (microservice) status- Approved , microservice- travel
-const  cashApprovedTrApprovedToTravelMicroservice = async (tenantId, updateCashApprovedTrApproved) => {
-  try {
-    const travelMicroserviceUrl = process.env.TRAVEL_MICROSERVICE_URL;
-    const updateCashApprovedTrApproved = {
-        tenantId,
-        'travelRequestData.travelRequestId': approval.travelRequestId ,
-        'travelRequestData.approvers.empId': approval.empId,
-        'travelRequestData.approvers.status': 'approved',
-        approvalStatus : 'approved',
-    }
-
-    // Make an API call to the Travel Microservice with the updated data
-    await axios.post(`${travelMicroserviceUrl}/twca-ca-approved`, 
-    updateCashApprovedTrApproved, { retry : 5, retryInterval: 3000});
-  } catch (error) {
-    logger.error('Error sending changes to Travel Microservice:', error.message);
-    throw error;
-  }
-};
-
-// (microservice) status- Approved, microservice- trip
-const cashApprovedTrApprovedToTripMicroservice = async (tenantId, empId, travelRequestId, updateCashApprovedTrApproved) => {
-  try {
-    const tripMicroserviceUrl = process.env.TRIP_MICROSERVICE_URL;
-    
-    const updateCashApprovedTrApproved = {
-      tenantId: tenantId,
-      'cashAdvancesData.approvers.empId': empId,
-      'cashAdvancesData.travelRequestId': travelRequestId,
-      'cashAdvancesData.approvers.status': 'approved',
-      approvalStatus :'approved',
-    }
-
-    // Make an API call to the Trip Microservice with the rejection reasons
-    await axios.post(`${tripMicroserviceUrl}/twca-ca-approved`,
-    updateCashApprovedTrApproved , { retry: 5, retryInterval: 3000 });
-  } catch (error) {
-    logger.error('Error sending changes to Trip Microservice:', error.message);
-    throw error;
-  }
-};
 
 // 9) travel with cash advance -- Approve cash advance 
   export const travelWithCashApproveCashAdvance = async (req, res) => {
-    const { tenantId, empId, travelRequestId } = req.params;
+    const { tenantId, empId, travelRequestId, cashAdvanceId } = req.params;
   
     try {
       const cashApprovalDoc = await Approval.findOne({
@@ -972,11 +788,17 @@ const cashApprovedTrApprovedToTripMicroservice = async (tenantId, empId, travelR
       //Sending to dashboard via rabbitmq
       await sendCashApprovalToDashboardQueue(cashApprovalDoc);
 
-    // // Send changes to the Travel Microservice
-    // await cashApprovedTrApprovedToTravelMicroservice(tenantId, empId, updateCashApprovedTrApproved);
+    const payload = {
+      travelRequestId: cashApprovalDoc.travelRequestData.travelRequestId,
+      cashAdvanceId: cashAdvanceId,
+      cashAdvanceStatus: cashAdvances.filter(ca=>ca.cashAdvanceId = cashAdvanceId)[0]?.cashAdvanceStatus,
+      approvers: cashAdvances.filter(ca=>ca.cashAdvanceId = cashAdvanceId)[0]?.approvers,
+      rejectionReason: '',
+    }
 
-    // // Send changes to the Trip Microservice
-    // await cashApprovedTrApprovedToTripMicroservice(tenantId, empId, updateCashApprovedTrApproved);
+    // send Approved cashAdvance to Cash microservice
+    sendToOtherMicroservice(payload, 'approve-reject-ca', 'cash', 'To update cashAdvanceStatus to approved in cash microservice')
+
 
     res.status(200).json({ message: `travel with cash advance -- cash advance:'approved' ` });
   } catch (error) {
@@ -990,81 +812,11 @@ const cashApprovedTrApprovedToTripMicroservice = async (tenantId, empId, travelR
 };
 
 
-//
-const cashRejectedTrApproved = async (approval, rejectionReasons) => {
-  const { cashAdvancesData } = approval;
-  const { approvers } = cashAdvancesData;
-
-  // Find the matching approver by empId and update its status to 'rejected'
-  const updatedApprovers = approvers.map((approver) => {
-    if (approver.empId === empId) {
-      return {
-        ...approver,
-        status: 'rejected',
-      };
-    }
-    return approver;
-  });
-
-  // Update the approval document with the modified approvers array and rejection reasons
-  approval.cashAdvancesData.approvers = updatedApprovers;
-  approval.cashAdvancesData.travelRequestStatus = 'rejected'; 
-  approval.cashAdvancesData.travelRequestRejectionReason = rejectionReasons; 
-  // Save the updated approval document
-  return await approval.save();
-};
-
-
-// (microservice) status- rejected , microservice- travel
-const  cashRejectedTrApprovedToTravelMicroservice = async (tenantId, empId, travelRequestId, UpdateCashRejectedTrApproved, rejectionReasons) => {
-  try {
-    const travelMicroserviceUrl = process.env.TRAVEL_MICROSERVICE_URL;
-    const UpdateCashRejectedTrApproved = {
-        tenantId,
-        'travelRequestData.travelRequestId': approval.travelRequestId ,
-        'travelRequestData.approvers.empId': approval.empId,
-        'travelRequestData.approvers.status': 'rejected',
-        'travelRequestData.travelRequestRejectionReason': approval.rejectionReasons,
-        approvalStatus : 'rejected',
-    }
-
-    // Make an API call to the Travel Microservice with the updated data
-    await axios.post(`${travelMicroserviceUrl}/ts-rejected`, 
-    UpdateCashRejectedTrApproved, { retry : 5, retryInterval: 3000});
-  } catch (error) {
-    logger.error('Error sending changes to Travel Microservice:', error.message);
-    throw error;
-  }
-};
-
-// (microservice) status- rejected, microservice- trip
-const cashRejectedTrApprovedToTripMicroservice = async (tenantId, empId, travelRequestId, UpdateCashRejectedTrApproved, rejectionReasons) => {
-  try {
-    const tripMicroserviceUrl = process.env.TRIP_MICROSERVICE_URL;
-    
-    const UpdateCashRejectedTrApproved = {
-      tenantId: tenantId,
-      'travelRequestData.approvers.empId': empId,
-      'travelRequestData.travelRequestId': travelRequestId,
-      'travelRequestData.approvers.status': 'rejected',
-      'travelRequestData.travelRequestRejectionReason': rejectionReasons,
-      approvalStatus :'rejected',
-
-    }
-
-    // Make an API call to the Trip Microservice with the rejection reasons
-    await axios.post(`${tripMicroserviceUrl}/ts-rejected`,
-     UpdateCashRejectedTrApproved , { retry: 5, retryInterval: 3000 });
-  } catch (error) {
-    logger.error('Error sending changes to Trip Microservice:', error.message);
-    throw error;
-  }
-};
 
 // 10) travel with cash advance -- Reject cash advance 
 export const travelWithCashRejectCashAdvance = async (req, res) => {
   const { tenantId, empId, travelRequestId } = req.params;
-  const { rejectionReasons } = req.body; 
+  const { cashAdvanceId, rejectionReasons } = req.body; 
 
   try {
     const cashApprovalDoc = await Approval.findOne({
@@ -1103,6 +855,17 @@ export const travelWithCashRejectCashAdvance = async (req, res) => {
     //Sending to dashboard via rabbitmq
     await sendCashApprovalToDashboardQueue(cashApprovalDoc);
 
+    const payload = {
+      travelRequestId: cashApprovalDoc.travelRequestData.travelRequestId,
+      cashAdvanceId: cashAdvanceId,
+      cashAdvanceStatus: cashAdvances.filter(ca=>ca.cashAdvanceId = cashAdvanceId)[0]?.cashAdvanceStatus,
+      approvers: cashAdvances.filter(ca=>ca.cashAdvanceId = cashAdvanceId)[0]?.approvers,
+      rejectionReason:cashAdvances.filter(ca=>ca.cashAdvanceId = cashAdvanceId)[0]?.rejectionReason,
+    }
+
+    // send Rejected cash advance to Cash microservice
+    sendToOtherMicroservice(payload, 'approve-reject-ca', 'cash', 'To update cashAdvanceStatus to rejected in cash microservice')
+
     res.status(200).json({ message: `Travel with cash advance - cash advance: 'rejected'` });
   } catch (error) {
     if (error.message === 'Travel request not found.') {
@@ -1114,49 +877,6 @@ export const travelWithCashRejectCashAdvance = async (req, res) => {
   } 
 };
 
-
-// export const travelWithCashRejectCashAdvance = async (req, res) => {
-//   const { tenantId, empId } = req.params;
-//   const { rejectionReasons } = req.body;
-
-//   try {
-//     // Find the approval document
-//     const approval = await  Approval.findOne({
-//       'tenantId': tenantId,
-//       'approvalType': 'travel',
-//       'travelRequestData.isCashAdvanceTaken': true,
-//       'travelRequestData.approvers.empId': empId,
-//       'travelRequestData.travelRequestStatus': { $in: ['approved', 'booked'] },
-//     }).exec();
-  
-
-//     if (!approval) {
-//       return res.status(404).json({ error: 'Travel request not found.' });
-//     }
-
-//     // Update approval document status and rejection reasons
-//     const UpdateCashRejectedTrApproved = await cashRejectedTrApproved(approval, rejectionReasons);
-
-//     // Send changes to the Travel Microservice
-//     await cashRejectedTrApprovedToTravelMicroservice(tenantId, empId, UpdateCashRejectedTrApproved, rejectionReasons);
-
-//     // Send changes to the Trip Microservice
-//     await cashRejectedTrApprovedToTripMicroservice(tenantId, empId, UpdateCashRejectedTrApproved, rejectionReasons);
-
-//     res.status(200).json({ 
-//       message: `Approval for empId ${empId} updated to 'rejected'.`,
-//       UpdateCashRejectedTrApproved, 
-//     });
-
-//   } catch (error) {
-//     logger.error('An error occurred while updating approval:', error.message);
-//     res.status(500).json({ error: 'Failed to update approval.' });
-//   }
-// };
-
-const dummyFunction = async (req,res)=> {
-
-}
 
 // 11) Get add a leg all 'booked' Travel Requests with cash advance -- !! important - isAddALeg : true
 export const getAddALegTravelRequestsForApprover = async (req, res) => {
@@ -1402,14 +1122,26 @@ export const ApproveAddALeg = async (req, res) => {
 
    // Send changes to the Travel Microservice and the Trip Microservice
    // Send Changes to dashboard via rabbitmq 
-   if (approval.travelRequestData.isCashAdvanceTaken){
-    console.log('Is cash advance taken:', approval.travelRequestData.isCashAdvanceTaken);
-    await sendCashApprovalToDashboardQueue(cashApprovalDoc);
-    await ApproveAddALegToCash(changesMade);
-   } else{
-    await sendTravelApprovalToDashboardQueue(travelApprovalDoc);
-    await approveAddALegToTravel(changesMade);
-   }
+  //  if (approval.travelRequestData.isCashAdvanceTaken){
+  //   console.log('Is cash advance taken:', approval.travelRequestData.isCashAdvanceTaken);
+  //   await sendCashApprovalToDashboardQueue(cashApprovalDoc);
+  //   await ApproveAddALegToCash(changesMade);
+  //  } else{
+  //   await sendTravelApprovalToDashboardQueue(travelApprovalDoc);
+  //   await approveAddALegToTravel(changesMade);
+  //  }
+
+
+   const payload = {
+    travelRequestId: cashApprovalDoc.travelRequestData.travelRequestId,
+    cashAdvanceId: cashAdvanceId,
+    cashAdvanceStatus: cashAdvances.filter(ca=>ca.cashAdvanceId = cashAdvanceId)[0]?.cashAdvanceStatus,
+    approvers: cashAdvances.filter(ca=>ca.cashAdvanceId = cashAdvanceId)[0]?.approvers,
+    rejectionReason: '',
+  }
+
+  // send Rejected Travel request to Cash microservice
+  sendToOtherMicroservice(payload, 'approve-reject-ca', 'cash', 'To update travelRequestStatus to rejected in cash microservice')
 
     res.status(200).json({ message: `Approval for empId ${empId} updated to 'approved'.`, changesMade });
   } catch (error) {

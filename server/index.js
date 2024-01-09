@@ -10,7 +10,7 @@ import travelApprovalRoutes from './routes/travelApprovalRoutes.js';
 import travelExpenseApprovalRoutes from './routes/travelExpenseApprovalRoutes.js';
 import cashAdvance from './routes/cashAdvance.js';
 import { errorHandler } from './errorHandler/errorHandler.js';
-
+import { startConsumer } from './rabbitmq/consumer.js';
 
 // Load environment variables using dotenv
 dotenv.config();
@@ -51,6 +51,9 @@ const mongodb = async () => {
 mongodb();
 
 
+//start consuming messages..From RabbitMq
+startConsumer("approval");
+
 // Use the errorHandler middleware at the end
 app.use(errorHandler);
 
@@ -58,3 +61,11 @@ const port = process.env.PORT || 8085;
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
+
+
+
+
+
+
+
+

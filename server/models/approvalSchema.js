@@ -272,6 +272,10 @@ const approvalSchema = new mongoose.Schema({
     approvalId:{
       type: mongoose.Schema.Types.ObjectId,
     },
+    travelRequestId:{
+      type: mongoose.Schema.Types.ObjectId,
+      required:true
+    },
     approvalNumber:{
       type: String,
     },
@@ -304,13 +308,11 @@ const approvalSchema = new mongoose.Schema({
       travelRequestStatus: { //initialize with status as 'draft'
       type: String,
       enum: travelRequestStatusEnums,
-      default: 'draft',
       required: true,
       },
       travelRequestState: { //initialize with state as 'section 0'
       type: String,
       enum: travelRequestStateEnums,
-      default: 'section 0',
       required: true,
       },
       createdBy:{
@@ -355,7 +357,7 @@ const approvalSchema = new mongoose.Schema({
       travelCompletionDate: Date,
       cancellationDate:Date,
       travelRequestDate: Date,
-      travelRequestRejectionReason: String,
+      rejectionReason: String,
       isCancelled:Boolean,
       cancellationReason:String,
       isCashAdvanceTaken: Boolean,
@@ -377,7 +379,6 @@ const approvalSchema = new mongoose.Schema({
           },
           cashAdvanceId: {
             type: mongoose.Types.ObjectId, 
-            unique: true,
             required: true,
           },
           cashAdvanceNumber:{
@@ -424,7 +425,7 @@ const approvalSchema = new mongoose.Schema({
           cashAdvanceApprovalDate: Date,
           cashAdvanceSettlementDate: Date,
           cashAdvanceViolations: String,
-          cashAdvanceRejectionReason: String,
+          rejectionReason: String,
         },
       ],    
     tripData: tripSchema, // used when expense sends expense for approval entire tripData is updated
@@ -432,7 +433,7 @@ const approvalSchema = new mongoose.Schema({
   });
   
 // Pre hook to generate and assign an ObjectId to approvalId before saving the document
-approvalSchema.pre('validate', function(next) {// Include 'next' as a parameter
+approvalSchema.pre('save', function(next) {// Include 'next' as a parameter
   if(!this.approvalId) {
     this.approvalId = new mongoose.Types.ObjectId(); 
   }
@@ -446,7 +447,7 @@ const generateIncrementalNumber = (tenantName, incrementalValue) => {
 };
 
 // Pre-save hook to generate and assign approvalNumber if it doesn't exist
-approvalSchema.pre('validate ', async function (next) {
+approvalSchema.pre('save ', async function (next) {
   try {
     if (!this.approvalNumber) {
       // Find the highest incremental value
