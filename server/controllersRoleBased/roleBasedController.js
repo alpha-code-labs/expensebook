@@ -935,9 +935,9 @@ const businessAdminLayout = async ({ tenantId, empId }) => {
             const isAddALeg = tripData.isAddALeg;
 
             const filteredItineraries = Object.entries(tripData.itinerary).reduce((acc, [key, value]) => {
-                const filteredArray = value.filter(item => item.status === 'pending booking');
+                const filteredArray = value.filter(item => item.status === 'pending booking' || item.status === 'paid and cancelled');
                 if (filteredArray.length > 0) {
-                    acc.push({ itineryKEYName: key, itineraryStatus: 'pending booking' });
+                    acc.push({ itineryKEYName: key, itineraryStatus: 'pending booking' ||  'paid and cancelled'});
                 }
                 return acc;
             }, []);
@@ -956,6 +956,17 @@ const businessAdminLayout = async ({ tenantId, empId }) => {
                                 tripPurpose,
                                 travelRequestStatus,
                             });
+                        }
+                        if (itineraryItem.status === 'paid and cancelled') {
+                            const { itineraryId, status } = itineraryItem;
+                            const { travelRequestId, travelRequestNumber,  travelRequestStatus } = booking;
+                            paidAndCancelledTrips.push({travelRequestId, travelRequestNumber,  travelRequestStatus})
+                            const itinerary = []
+                            itinerary.push({
+                                itineraryId,
+                                status,
+                            });
+                            paidAndCancelledTrips.push({itinerary})
                         }
                     });
                 });
