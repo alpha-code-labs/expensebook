@@ -1117,8 +1117,6 @@ export const ApproveAddALeg = async (req, res) => {
     await approveAddALegToExpense(changesMade);
 
    // Check if cash advance was taken 
-   const travelApprovalDoc = {...approval};
-   const cashApprovalDoc = {...approval};
 
    // Send changes to the Travel Microservice and the Trip Microservice
    // Send Changes to dashboard via rabbitmq 
@@ -1134,9 +1132,9 @@ export const ApproveAddALeg = async (req, res) => {
 
    const payload = {
     travelRequestId: cashApprovalDoc.travelRequestData.travelRequestId,
-    cashAdvanceId: cashAdvanceId,
-    cashAdvanceStatus: cashAdvances.filter(ca=>ca.cashAdvanceId = cashAdvanceId)[0]?.cashAdvanceStatus,
-    approvers: cashAdvances.filter(ca=>ca.cashAdvanceId = cashAdvanceId)[0]?.approvers,
+    status,
+    itineraryId: itineraryId,
+    approvers: itinerary.filter(ca=>ca.cashAdvanceId = cashAdvanceId)[0]?.approvers,
     rejectionReason: '',
   }
 
@@ -1226,6 +1224,7 @@ export const rejectAddALeg = async (req, res) => {
      await rejectAddALegToExpense(changesMade);
  
 
+     // action = 'approve-reject-add-leg'
      // Check if cash advance was taken 
    const travelApprovalDoc = {...approval};
    const cashApprovalDoc = {...approval};

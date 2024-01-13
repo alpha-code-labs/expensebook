@@ -146,6 +146,37 @@ export const updateCashStatus = async (payload) => {
 };
 
 
+//Itinerary added to during trip - came for approval - add it to travelRequestData
+export const itineraryAddedToTravelRequest = async (payload) => {
+  try {
+    const { tenantId, travelRequestId, isAddALeg, itineraryType, itineraryDetails } = payload;
+
+    const updated = await Approval.updateOne(
+      {
+        'travelRequestData.tenantId': tenantId,
+        'travelRequestData.travelRequestId': travelRequestId
+      },
+      {
+        $set: {
+          'travelRequestData.isAddALeg': isAddALeg
+        },
+        $push: {
+          [`travelRequestData.itinerary.${itineraryType}`]: {
+            $each: itineraryDetails
+          }
+        }
+      },
+      { upsert: true, new: true }
+    );
+
+    console.log('Saved to travelRequestData in approval microservice: using async queue', updated);
+    return { success: true, error: null };
+  } catch (error) {
+    console.error('Failed to update travelRequestData in approval microservice: using synchronous queue', error);
+    return { success: false, error: error };
+  }
+};
+
 
 
 

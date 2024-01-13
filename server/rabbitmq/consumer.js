@@ -137,7 +137,22 @@ export async function startConsumer(receiver){
                 }
             }
       }
-    }}, { noAck: false });
+      else if (source == 'dashboard'){
+        if(action == 'add-leg'){
+            console.log('cancel travel request and its cash advance in approval microservice')
+            const res = await itineraryAddedToTravelRequest(payload);
+            console.log(res)
+            if(res.success){
+              //acknowledge message
+              channel.ack(msg)
+              console.log('message processed successfully')
+            }
+            else{
+              //implement retry mechanism
+              console.log('update failed with error code', res.error)
+            }
+        }  
+    }}}, { noAck: false });
 }
 
 
