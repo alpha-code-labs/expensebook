@@ -182,3 +182,42 @@ export const recoveryAtLineItemLevelToTravel = async (lineItemStatusUpdate) => {
 
 //-------------------------------------------------------------------------------------------
 
+export const upcomingTripsBatchJob = async (trips) => {
+  try{
+      const travelBaseUrl = process.env.TRAVEL_BASE_URL;
+      const extendedUrl = '/upcoming';
+
+      const currentTravelUrl = `${travelBaseUrl}${extendedUrl}`;
+
+      const response = await axios.post(currentTravelUrl,lineItemStatusUpdate);
+      if (response.status >= 200 && response.status < 300) {
+          console.log('Travel updated successfully in travel Microservice');
+          // You can log or handle a successful response here
+        } else {
+          // Handle unexpected response status
+          console.error('Unexpected response status:', response.status);
+          console.error('Response Data:', response.data);
+          // Handle the error appropriately
+        }
+      } catch (error) {
+        console.error('Error updating travel in travel Microservice:', error);
+    
+        if (axios.isAxiosError(error)) {
+          if (error.response) {
+            // Handle Axios error with a response
+            console.error('Response Status:', error.response.status);
+            console.error('Response Data:', error.response.data);
+            // Handle the error appropriately
+          } else if (error.request) {
+            console.error('No response received from the server');
+            // Handle the error appropriately
+          } else {
+            console.error('Axios error without a request');
+            // Handle the error appropriately
+          }
+        } else {
+          console.error('Non-Axios exception:', error.message);
+          // Handle the error appropriately
+        }
+      }
+}

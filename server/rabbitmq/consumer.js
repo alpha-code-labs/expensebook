@@ -1,7 +1,7 @@
 
 import amqp from 'amqplib';
 import { updateHRMaster } from './messageProcessor/hrMessage.js';
-import { partialCashUpdate, updateCashStatus } from './messageProcessor/cashMessage.js';
+import { partialCashUpdate, settleCashStatus, settleExpenseReport, updateCashStatus } from './messageProcessor/cashMessage.js';
 
 //start consuming messages..
 export default async function startConsumer(receiver) {
@@ -86,11 +86,30 @@ export default async function startConsumer(receiver) {
                     console.log('error updating travel and cash')
                 }
             }
-       }
+       } else if (source == 'finance'){
+        if(action == 'settle-cash') {
+            console.log("trying to update cash partially")
+            const res = await settleCashStatus(payload);
+            if(res.success){
+                channel.ack(msg)
+                console.log('cash update successful ')
+            }else{
+                console.log('error updating travel and cash')
+            }
         }
-      }},
-      { noAck: false }
-    );
-  }
+        if(action == 'settle-expense') {
+          console.log(" expenseheaderstatus paid")
+          const res = await settleExpenseReport(payload);
+          if(res.success){
+              channel.ack(msg)
+              console.log('cash update successful ')
+          }else{
+              console.log('error updating travel and cash')
+          }
+      }
+        }
+      }}
+    },{ noAck: false }
+    )}
   
 

@@ -340,7 +340,7 @@ const expenseLineSchema = new mongoose.Schema({
 });
 
 // trip microservice and travel expense microservice have same schema
- export const tripSchema = new mongoose.Schema({
+ const tripSchema = new mongoose.Schema({
     tenantId: {
       type: String,
       required: true,

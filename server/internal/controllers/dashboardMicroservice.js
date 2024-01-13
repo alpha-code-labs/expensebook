@@ -1,6 +1,6 @@
 import Trip  from '../../models/tripSchema.js';
 
-  // Function to update a single trip or create a new one if it doesn't exist
+// Function to update a single trip or create a new one if it doesn't exist
 export const updateAddLegToTrip = async (req, res) => {
    try {
         // Fetch the Trip update data from the request body
@@ -50,7 +50,9 @@ export const updateAddLegToTrip = async (req, res) => {
         console.error('Error updating Trip:', error);
         return res.status(500).json({ error: 'Internal Server Error', message: 'An internal server error occurred.' });
       }
-    };
+};
+
+
     
     
 

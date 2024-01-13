@@ -1,55 +1,72 @@
-import cron from 'node-cron';
-import { dummyDataTrip } from '../controllers/tripController.js';
-import {
-  fetchAndProcessTravelRequests,
-  fetchAndProcessCashAdvances
-} from './extractAndCompareData.js';
+import axios from 'axios';
+import Trip from '../models/tripSchema.js';
 
-export const startBatchJob = () => {
-  // Schedule the cron job to run daily at midnight (for every 20 seconds */20 * * * * *)
-  cron.schedule('0 0 * * *', async () => {
-    try {
-      console.log('Batch job started at the predefined time.');
+const handleErrorResponse = (errorMessage, status = 500) => {
+  console.error(errorMessage);
+  return { status, data: { success: false, message: errorMessage } };
+};
 
-      // Call the functions from updated extractAndCompareData file
-      const travelRequestsData = await fetchAndProcessTravelRequests();
-      const cashAdvanceMap = await fetchAndProcessCashAdvances();
+const upcomingTripsBatchJob = async (trips) => {
+  try {
+    const tripPromises = trips.map(async (trip) => {
+      const { travelRequestData, cashAdvanceData } = trip;
+      const { tenantId } = travelRequestData;
 
-      // Perform operations using the processed data
-      createTrip(travelRequestsData, cashAdvanceMap);
-      console.log('Batch job completed successfully.');
-    } catch (error) {
-      console.error('Batch job encountered an error:', error);
+      // Create a Trip instance with extracted data
+      return Trip.create({
+        tenantId,
+        travelRequestData,
+        cashAdvancesData: cashAdvanceData ?? [],
+      });
+    });
+
+    const results = await Promise.allSettled(tripPromises);
+
+    const insertedTrips = results
+      .filter((result) => result.status === 'fulfilled')
+      .map((result) => result.value);
+
+    await sendBatchjobTripsToDashboard(insertedTrips)
+
+    console.log('Successfully inserted trips into Trip model:', insertedTrips.length);
+
+    const failedTrips = results.filter((result) => result.status === 'rejected');
+    if (failedTrips.length > 0) {
+      console.error('Failed to insert trips into Trip model:', failedTrips);
     }
-  });
+
+    return { success: true, message: 'Trips updated successfully' };
+  } catch (error) {
+    return handleErrorResponse('Failed to update trips', 500);
+  }
+};
+
+export const triggerBatchJob = async (trips) => {
+  try {
+    const travelBaseUrl = process.env.TRAVEL_BASE_URL;
+    const extendedUrl = '/booked';
+    const currentTravelUrl = `${travelBaseUrl}${extendedUrl}`;
+
+    const response = await axios.post(currentTravelUrl, trips);
+
+    if (response.status >= 200 && response.status < 300) {
+      console.log('Travel updated successfully in travel Microservice');
+      const result = await upcomingTripsBatchJob(trips);
+      if (result.success) {
+        return { status: 200, data: { success: true, message: 'Trips updated successfully' } };
+      } else {
+        return handleErrorResponse('Failed to update trips', 500);
+      }
+    } else {
+      return handleErrorResponse('Unexpected response', response.status);
+    }
+  } catch (error) {
+    return handleErrorResponse('Failed to update travel in Microservice');
+  }
 };
 
 
-// import cron from 'node-cron';
-// import { fetchTravelRequestData } from '../services/travelService.js';
-// import { fetchCashAdvanceDataWithBookedTravel } from '../services/cashService.js';
-// import { extractAndCompareData } from './extractAndCompareData.js';
+//batchjob
 
-// export const startBatchJob = () => {
-//   // Schedule the cron job to run daily at midnight
-//   cron.schedule('0 0 * * *', async () => {
-//     try {
-//       console.log('Batch job started at the predefined time.');
 
-//       // Data Extraction
-//       const cashAdvanceData = await fetchCashAdvanceDataWithBookedTravel();
-//       const travelRequestData = await fetchTravelRequestData();
 
-//       // Call the function to extract and compare data
-//       await extractAndCompareData(cashAdvanceData, travelRequestData);
-
-//       // Data Transfer to Trip Microservice
-//       await saveDataToTripContainer();
-
-//       console.log('Batch job completed successfully.');
-//     } catch (error) {
-//       console.error('Batch job encountered an error:', error);
-//       // Handle the error gracefully, e.g., send notifications or log details
-//     }
-//   });
-// };
