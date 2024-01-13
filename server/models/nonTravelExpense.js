@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+const mongoose=require("mongoose");
 
 
 // Define constant enums for expenseStatus and expenseHeaderType

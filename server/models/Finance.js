@@ -30,7 +30,7 @@ const approverStatusEnums = [
 ];
 
 
-const cashAdvanceSchema = new mongoose.Schema({
+const financeSchema = new mongoose.Schema({
   travelRequestData:  {
       type: String, //travelRequestSchema,
       required: true,
@@ -104,10 +104,10 @@ const cashAdvanceSchema = new mongoose.Schema({
 });
 
 
-module.exports = mongoose.model('CashAdvance', cashAdvanceSchema);
+module.exports = mongoose.model('Finance', financeSchema);
 
 
-// export default CashAdvance
+// export default finance
 
 
  

@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+const mongoose=require("mongoose");
 
 
 //---------------travel---------
@@ -623,5 +623,5 @@ const expenseLineSchema = new mongoose.Schema({
 const Trip = mongoose.model('trips', tripSchema);
 
 
-export default Trip;
+export default Trip; 
 

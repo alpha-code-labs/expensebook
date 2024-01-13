@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+const mongoose=require("mongoose");
 import { tripSchema } from './trip.js';
 
 // Define constant enums for expenseStatus and expenseHeaderType

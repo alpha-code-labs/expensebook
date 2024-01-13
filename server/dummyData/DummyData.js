@@ -15,6 +15,7 @@ const tripDummyData = {
     tripCompletionDate: "25-Dec-2023",
     isSentToExpense: false,
     notificationSentToDashboardFlag: false,
+    
     travelRequestData: {
       tenantId: "exampleTenantId",
       tenantName: "Example Tenant",
@@ -370,6 +371,8 @@ const tripDummyData = {
       isCashAdvanceTaken: false,
       sentToTrip: false,
     },
+
+
     cashAdvancesData: [
       {
         tenantId: "exampleTenantId",
@@ -523,7 +526,37 @@ const tripDummyData = {
       remainingCash: 500,
     },
    
-
+    
+      pendingCashAdvanceSettlements: [
+          {
+              // Cash Advance Settlement Details
+              cashAdvanceId: "CA123",
+              cashAdvanceStatus: "pending settlement",
+              // ...other cash advance settlement details
+          },
+          // ...more pending cash advance settlements
+      ],
+      pendingTravelExpenseSettlements: [
+          {
+              // Travel Expense Settlement Details
+              tripId: "T123",
+              expenseHeaderId: "EH001",
+              expenseHeaderStatus: "pending settlement",
+              // ...other travel expense settlement details
+          },
+          // ...more pending travel expense settlements
+      ],
+      pendingNonTravelExpenseSettlements: [
+          {
+              // Non-Travel Expense Settlement Details
+              nonTravelExpenseId: "NTE001",
+              expenseHeaderStatus: "pending settlement",
+              // ...other non-travel expense settlement details
+          },
+          // ...more pending non-travel expense settlements
+      ],
+      message: "Settlements processed successfully."
+  
 
 
 
