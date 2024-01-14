@@ -2,6 +2,7 @@ import Backdrop from '@mui/material/Backdrop';
 import CircularProgress from '@mui/material/CircularProgress';
 import { useEffect, useState } from 'react';
 import { arrowLeft } from "../../assets/icon.jsx";
+import axios from 'axios';
 
 
 const employeeData = [
@@ -26,6 +27,21 @@ const employeeData = [
 ];
 
 const SettlingNonTravelExpenseContainer = () => {
+  const [dummyValues, setDummyValues] = useState([]);
+
+  useEffect(()=>{
+    const getdummytravelExpenseData = async ()=>{
+      try {
+        const data = await axios.get("http://localhost:3000/api/travelExpense/find");
+        setDummyValues(data.data);
+        
+      } catch (error) {
+        console.log(error);
+      }
+    }
+     getdummytravelExpenseData();
+  } , []);
+  console.log(dummyValues);
   const [checkedValues, setCheckedValues] = useState([]);
   // console.log(checkedValues);
 

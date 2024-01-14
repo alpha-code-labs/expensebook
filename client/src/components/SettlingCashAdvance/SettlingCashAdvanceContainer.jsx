@@ -42,9 +42,9 @@ const SettlingCashAdvanceContainer = () => {
   } , []);
 
   // console.log( "LINE AT 43" , {...dummyValues[0]});
-  const name = dummyValues[0].createdBy.name;
-  const amount = {...dummyValues[0].amountDetails}[0].amount;
-  const mode = {...dummyValues[0].amountDetails}[0].mode;
+  const name = dummyValues[0]?.createdBy.name;
+  const amount = {...dummyValues[0]?.amountDetails}[0]?.amount;
+  const mode = {...dummyValues[0]?.amountDetails}[0]?.mode;
   // console.log( "LINE AT 45" , amount);
   const employeeData = [{name , amount , mode}]
   const [checkedValues, setCheckedValues] = useState([]);

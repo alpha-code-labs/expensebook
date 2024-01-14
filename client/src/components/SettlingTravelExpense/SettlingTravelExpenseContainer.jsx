@@ -2,6 +2,8 @@ import Backdrop from '@mui/material/Backdrop';
 import CircularProgress from '@mui/material/CircularProgress';
 import { useEffect, useState } from 'react';
 import { arrowLeft } from "../../assets/icon.jsx";
+import axios from 'axios';
+
 const employeeData = [
   {
     name: "Employee1",
@@ -24,6 +26,31 @@ const employeeData = [
 ];
 
 const SettlingTravelExpenseContainer = () => {
+  const [dummyValues, setDummyValues] = useState([]);
+
+  useEffect(()=>{
+    const getdummytravelExpenseData = async ()=>{
+      try {
+        const data = await axios.get("http://localhost:3000/api/travelExpense/find");
+        setDummyValues(data.data);
+        
+      } catch (error) {
+        console.log(error);
+      }
+    }
+     getdummytravelExpenseData();
+  } , []);
+  console.log(dummyValues);
+
+  // const name = dummyValues[0]?.createdBy.name;
+  // const amount = {...dummyValues[0]?.alreadyBookedExpenseLines}[0]?.transactionData.totalAmount;
+  // const mode = {...dummyValues[0]?.amountDetails}[0]?.modeOfPayment;
+
+  // const employeeData = [name , amount , mode];
+
+  // const pendingStatus = {...dummyValues[0]?.approvers}[0]?.status;
+
+ 
   const [checkedValues, setCheckedValues] = useState([]);
   console.log(checkedValues);
 
@@ -39,6 +66,7 @@ const SettlingTravelExpenseContainer = () => {
         });
       });
     }
+
 
     // console.log(checkedValues);
   };
@@ -95,8 +123,9 @@ const SettlingTravelExpenseContainer = () => {
                     checked={checkedValues.includes(employee.name)}
                   />
                 </td>
-                <td className="p-4 text-center">{employee.name}</td>
-                {index % 2 == 0 ? (
+                <td className="p-4 text-center">{employee.name}</td> 
+                
+                {index %2 != 0? (
                   <td className="p-4 text-center text-red">
                     {employee.amount}
                   </td>
