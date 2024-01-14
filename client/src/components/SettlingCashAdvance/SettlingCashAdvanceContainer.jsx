@@ -3,39 +3,50 @@ import CircularProgress from '@mui/material/CircularProgress';
 import { useEffect, useState } from 'react';
 import { arrowLeft } from "../../assets/icon.jsx";
 import axios from "axios";
-const employeeData = [
-  {
-    name: "Employee1",
-    amount: 200,
-    currency: "$",
-    settlementMode: "Cash",
-  },
-  {
-    name: "Employee2",
-    amount: 500,
-    currency: "$",
-    settlementMode: "Cheque",
-  },
-  {
-    name: "Employee3",
-    amount: 5400,
-    currency: "Rs",
-    settlementMode: "Cash",
-  },
-];
+
+// const employeeData = [
+//   {
+//     name: "Employee1",
+//     amount: 200,
+//     currency: "$",
+//     settlementMode: "Cash",
+//   },
+//   {
+//     name: "Employee2",
+//     amount: 500,
+//     currency: "$",
+//     settlementMode: "Cheque",
+//   },
+//   {
+//     name: "Employee3",
+//     amount: 5400,
+//     currency: "Rs",
+//     settlementMode: "Cash",
+//   },
+// ];
 
 const SettlingCashAdvanceContainer = () => {
   const [dummyValues, setDummyValues] = useState([]);
-  const getdummyCashAdvanceData = async ()=>{
-    try {
-      const data = await axios.get("http://localhost:3000/api/cashAdvance/find");
-      setDummyValues(data);
-    } catch (error) {
-      console.log(error);
+
+  useEffect(()=>{
+    const getdummyCashAdvanceData = async ()=>{
+      try {
+        const data = await axios.get("http://localhost:3000/api/cashAdvance/find");
+        setDummyValues(data.data);
+        
+      } catch (error) {
+        console.log(error);
+      }
     }
-  }
-  getdummyCashAdvanceData();
-  console.log(dummyValues);
+     getdummyCashAdvanceData();
+  } , []);
+
+  // console.log( "LINE AT 43" , {...dummyValues[0]});
+  const name = dummyValues[0].createdBy.name;
+  const amount = {...dummyValues[0].amountDetails}[0].amount;
+  const mode = {...dummyValues[0].amountDetails}[0].mode;
+  // console.log( "LINE AT 45" , amount);
+  const employeeData = [{name , amount , mode}]
   const [checkedValues, setCheckedValues] = useState([]);
   // console.log(checkedValues);
 
@@ -110,7 +121,7 @@ const SettlingCashAdvanceContainer = () => {
                 <td className="p-4 text-center">{employee.name}</td>
                 <td className="p-4 text-center">{employee.amount}</td>
                 <td className="p-4 text-center">{employee.currency}</td>
-                <td className="p-4 text-center">{employee.settlementMode}</td>
+                <td className="p-4 text-center">{employee.mode}</td>
               </tr>
             ))}
           </tbody>
