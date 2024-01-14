@@ -2,10 +2,10 @@ const express = require("express");
 const router = express.Router();
 const CashAdvance = require("../models/cashAdvance");
 
-router.get("/find/:id" , async(req , res)=>{
+router.get("/find" , async(req , res)=>{
     try {
-        const singleCashAdvanceData = await CashAdvance.findById(req.param.id);
-        res.status(200).json(singleCashAdvanceData)
+        const singleCashAdvanceData = await CashAdvance.find();
+        res.status(200).json(singleCashAdvanceData);
     } catch (error) {
         res.status(500).json(error);
     }
