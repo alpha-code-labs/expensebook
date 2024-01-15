@@ -5,26 +5,26 @@ import { arrowLeft } from "../../assets/icon.jsx";
 import axios from 'axios';
 
 
-const employeeData = [
-  {
-    name: "Employee1",
-    amount: 200,
-    currency: "$",
-    settlementMode: "Cash",
-  },
-  {
-    name: "Employee2",
-    amount: 500,
-    currency: "$",
-    settlementMode: "Cheque",
-  },
-  {
-    name: "Employee3",
-    amount: 5400,
-    currency: "Rs",
-    settlementMode: "Cash",
-  },
-];
+// const employeeData = [
+//   {
+//     name: "Employee1",
+//     amount: 200,
+//     currency: "$",
+//     settlementMode: "Cash",
+//   },
+//   {
+//     name: "Employee2",
+//     amount: 500,
+//     currency: "$",
+//     settlementMode: "Cheque",
+//   },
+//   {
+//     name: "Employee3",
+//     amount: 5400,
+//     currency: "Rs",
+//     settlementMode: "Cash",
+//   },
+// ];
 
 const SettlingNonTravelExpenseContainer = () => {
   const [dummyValues, setDummyValues] = useState([]);
@@ -42,6 +42,20 @@ const SettlingNonTravelExpenseContainer = () => {
      getdummytravelExpenseData();
   } , []);
   console.log(dummyValues);
+
+  const name = dummyValues[0]?.createdBy?.name;
+  console.log("LINE AT 46" , name);
+
+  const amount = {...dummyValues[0]?.alreadyBookedExpenseLines}[0]?.transactionData.totalAmount;
+  console.log("LINE AT 46" , amount);
+
+  const settlementMode = {...dummyValues[0]?.alreadyBookedExpenseLines}[0]?.modeOfPayment;
+  console.log("LINE AT 46" , settlementMode);
+
+  const employeeData = [{name , amount , settlementMode}];
+
+  // const pendingStatus = {...dummyValues[0]?.approvers}[0]?.status;
+  // console.log("LINE AT 46" , pendingStatus);
   const [checkedValues, setCheckedValues] = useState([]);
   // console.log(checkedValues);
 
