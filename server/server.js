@@ -51,27 +51,26 @@ app.get("/cashadvance", async (req, res) => {
 });
 
 //modify status when marked as settled
-app.put("/cashadvance/:id", async (req, res) => {
-  try {
-    const { id } = req.params;
-    const cashadvance = await Cash.findByIdAndUpdate(
-      /*id,
-        { $set: { cashAdvanceStatus: "paid" } }, // Update only the cashAdvanceStatus field
-        { new: true } // To return the updated document*/
-      id,
-      req.body
-    );
+// app.put("/cashadvance", async (req, res) => {
+//   try {
+//     const cashadvance = await Cash.findOneAndUpdate(
+//       /*id,*/
+//         { $set: { settlementFlag: true } }, // Update only the cashAdvanceStatus field
+//         { new: true } // To return the updated document
+//       // id,
+//       // req.body
+//     );
 
-    if (!cashadvance) {
-      return res.status(404).json({ message: `Element not found` });
-    }
-    const updatedcashadvance = await Cash.findById(id);
-    res.status(200).json(updatedcashadvance);
-  } catch (error) {
-    console.log(error.message);
-    res.status(500).json({ message: error.message });
-  }
-});
+//     if (!cashadvance) {
+//       return res.status(404).json({ message: `Element not found` });
+//     }
+//     const updatedcashadvance = await Cash.findById(id);
+//     res.status(200).json(updatedcashadvance);
+//   } catch (error) {
+//     console.log(error.message);
+//     res.status(500).json({ message: error.message });
+//   }
+// });
 
 
 

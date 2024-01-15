@@ -1,6 +1,7 @@
 const  mongoose = require('mongoose') ;
 
 const nonExpenseSchema = new mongoose.Schema({
+  settlementFlag: {type:Boolean} , 
   tripId:"String" , 
   expenseHeaderId : "String" , 
   expenseHeaderStatus: "String" ,

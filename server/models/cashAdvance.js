@@ -31,7 +31,7 @@ const approverStatusEnums = [
 
 
 const cashAdvanceSchema = new mongoose.Schema({
-  settlementFlag: {typeL:Boolean} , 
+  settlementFlag: {type:Boolean} , 
   travelRequestData:  {
       type: String, //travelRequestSchema,
       required: true,
