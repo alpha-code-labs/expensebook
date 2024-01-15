@@ -4,28 +4,29 @@ import { useEffect, useState } from 'react';
 import { arrowLeft } from "../../assets/icon.jsx";
 import axios from 'axios';
 
-const employeeData = [
-  {
-    name: "Employee1",
-    amount: 200,
-    currency: "$",
-    settlementMode: "Cash",
-  },
-  {
-    name: "Employee2",
-    amount: 500,
-    currency: "$",
-    settlementMode: "Cheque",
-  },
-  {
-    name: "Employee3",
-    amount: 5400,
-    currency: "Rs",
-    settlementMode: "Cash",
-  },
-];
+// const employeeData = [
+//   {
+//     name: "Employee1",
+//     amount: 200,
+//     currency: "$",
+//     settlementMode: "Cash",
+//   },
+//   {
+//     name: "Employee2",
+//     amount: 500,
+//     currency: "$",
+//     settlementMode: "Cheque",
+//   },
+//   {
+//     name: "Employee3",
+//     amount: 5400,
+//     currency: "Rs",
+//     settlementMode: "Cash",
+//   },
+// ];
 
 const SettlingTravelExpenseContainer = () => {
+
   const [dummyValues, setDummyValues] = useState([]);
 
   useEffect(()=>{
@@ -40,15 +41,21 @@ const SettlingTravelExpenseContainer = () => {
     }
      getdummytravelExpenseData();
   } , []);
-  console.log(dummyValues);
+  console.log("LINE AT 43" , dummyValues);
 
-  // const name = dummyValues[0]?.createdBy.name;
-  // const amount = {...dummyValues[0]?.alreadyBookedExpenseLines}[0]?.transactionData.totalAmount;
-  // const mode = {...dummyValues[0]?.amountDetails}[0]?.modeOfPayment;
+  const name = dummyValues[0]?.createdBy?.name;
+  // console.log("LINE AT 46" , name);
 
-  // const employeeData = [name , amount , mode];
+  const amount = {...dummyValues[0]?.alreadyBookedExpenseLines}[0]?.transactionData.totalAmount;
+  // console.log("LINE AT 46" , amount);
 
-  // const pendingStatus = {...dummyValues[0]?.approvers}[0]?.status;
+  const settlementMode = {...dummyValues[0]?.alreadyBookedExpenseLines}[0]?.modeOfPayment;
+  // console.log("LINE AT 46" , settlementMode);
+
+  const employeeData = [{name , amount , settlementMode}];
+
+  const pendingStatus = {...dummyValues[0]?.approvers}[0]?.status;
+  // console.log("LINE AT 46" , pendingStatus);
 
  
   const [checkedValues, setCheckedValues] = useState([]);
@@ -125,7 +132,7 @@ const SettlingTravelExpenseContainer = () => {
                 </td>
                 <td className="p-4 text-center">{employee.name}</td> 
                 
-                {index %2 != 0? (
+                {(pendingStatus === "pending approval")? (
                   <td className="p-4 text-center text-red">
                     {employee.amount}
                   </td>
