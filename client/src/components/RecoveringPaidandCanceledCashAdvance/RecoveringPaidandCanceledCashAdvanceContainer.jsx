@@ -2,32 +2,68 @@ import Backdrop from '@mui/material/Backdrop';
 import CircularProgress from '@mui/material/CircularProgress';
 import { useEffect, useState } from 'react';
 import { arrowLeft } from "../../assets/icon.jsx";
+import axios from "axios";
+
+  // const employeeData = [
+  //   {
+  //     name: "Employee1",
+  //     amount: 200,
+  //     currency: "$",
+  //     settlementMode: "Cash",
+  //     recovered: "Yes",
+  //   },
+  //   {
+  //     name: "Employee2",
+  //     amount: 500,
+  //     currency: "$",
+  //     settlementMode: "Cheque",
+  //     recovered: "No",
+  //   },
+  //   {
+  //     name: "Employee3",
+  //     amount: 5400,
+  //     currency: "Rs",
+  //     settlementMode: "Cash",
+  //     recovered: "No",
+  //   },
+  // ];
+
+  
 const RecoveringPaidandCanceledCashAdvanceContainer = () => {
-  const employeeData = [
-    {
-      name: "Employee1",
-      amount: 200,
-      currency: "$",
-      settlementMode: "Cash",
-      recovered: "Yes",
-    },
-    {
-      name: "Employee2",
-      amount: 500,
-      currency: "$",
-      settlementMode: "Cheque",
-      recovered: "No",
-    },
-    {
-      name: "Employee3",
-      amount: 5400,
-      currency: "Rs",
-      settlementMode: "Cash",
-      recovered: "No",
-    },
-  ];
+
   const [checkedValues, setCheckedValues] = useState([]);
   // console.log(checkedValues);
+
+  const [dummyValues, setDummyValues] = useState([]);
+
+  useEffect(()=>{
+    const getdummytravelExpenseData = async ()=>{
+      try {
+        const data = await axios .get("http://localhost:3000/api/travelExpense/find");
+        setDummyValues(data.data);
+        
+      } catch (error) {
+        console.log(error);
+      }
+    }
+     getdummytravelExpenseData();
+  } , []);
+  console.log("LINE AT 43" , dummyValues);
+
+  const name = dummyValues[0]?.createdBy?.name;
+  // console.log("LINE AT 46" , name);
+
+  const amount = {...dummyValues[0]?.alreadyBookedExpenseLines}[0]?.transactionData.totalAmount;
+  // console.log("LINE AT 46" , amount);
+
+  const settlementMode = {...dummyValues[0]?.alreadyBookedExpenseLines}[0]?.modeOfPayment;
+  // console.log("LINE AT 46" , settlementMode);
+
+  const employeeData = [{name , amount , settlementMode}];
+
+  const pendingStatus = {...dummyValues[0]?.approvers}[0]?.status;
+  // console.log("LINE AT 46" , pendingStatus);
+
 
   const handleChange = (e) => {
     const empData = e.target.value;
@@ -101,9 +137,12 @@ const RecoveringPaidandCanceledCashAdvanceContainer = () => {
                 <td className="p-4 text-center">{employee.currency}</td>
                 <td className="p-4 text-center">{employee.settlementMode}</td>
                 <td className="p-2 text-center">
-                  <button className="bg-green-500 text-black rounded-full py-2 px-4 bg-green-700 ">
+                  {(pendingStatus === "pending approval") ? <button className="bg-green-500 text-red rounded-full py-2 px-4 bg-green-700 ">
+                    Pending
+                  </button> : <button className="bg-green-500 text-green rounded-full py-2 px-4 bg-green-700 ">
                     Recovered
-                  </button>
+                  </button>}
+                  
                 </td>
               </tr>
             ))}
