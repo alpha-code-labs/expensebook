@@ -43,6 +43,8 @@ const SettlingNonTravelExpenseContainer = () => {
   } , []);
   console.log(dummyValues);
 
+  const id = {...dummyValues[0]}._id;
+
   const name = dummyValues[0]?.createdBy?.name;
   console.log("LINE AT 46" , name);
 
@@ -59,13 +61,34 @@ const SettlingNonTravelExpenseContainer = () => {
   const [checkedValues, setCheckedValues] = useState([]);
   // console.log(checkedValues);
 
+  const updateSettlementColumn = async ()=>{
+    const data = {_id:id} ;
+      try {
+        await axios.put("http://localhost:3000/api/cashAdvance/settlement" , data);
+      } catch (error) {
+        console.log(error);
+      }
+     };
+
+  const notUpdateSettlementColumn = async ()=>{
+      const data = {_id:id} ;
+      console.log("LINE AT 68" , data);
+      try {
+        await axios.put("http://localhost:3000/api/cashAdvance/unSettlement" , data);
+      } catch (error) {
+        console.log(error);
+      }
+     };
+
   const handleChange = (e) => {
     const empData = e.target.value;
     const isSelected = e.target.checked;
     if (isSelected) {
+      updateSettlementColumn();
       setCheckedValues([...checkedValues, empData]);
     } else {
       setCheckedValues((prevData) => {
+        notUpdateSettlementColumn();
         return prevData.filter((empName) => {
           return empName !== empData;
         });
@@ -171,33 +194,3 @@ const SettlingNonTravelExpenseContainer = () => {
   
   export default SettlingNonTravelExpenseContainer;
   
-
-
-
-//   <div className="absolute top-[67px] left-[44px] flex flex-row items-center justify-start gap-[24px] text-justify text-xs text-ebgrey-400">
-//   <div className="rounded-md bg-white box-border w-[206px] flex flex-row items-center justify-start py-2 px-4 border-[1px] border-solid border-ebgrey-200">
-//     <div className="relative">Search by category</div>
-//   </div>
-//   <div className="rounded-md bg-white box-border w-[206px] flex flex-row items-center justify-start py-2 px-4 border-[1px] border-solid border-ebgrey-200">
-//     <div className="relative">Search by Employee Name</div>
-//   </div>
-//   <div className="flex flex-row items-center justify-start gap-[8px] text-left text-darkslategray">
-//     <div className="relative font-medium">Select Month</div>
-//     <div className="relative w-[133px] h-8 text-sm text-black">
-//       <div className="absolute top-[0px] left-[0px] rounded-md bg-white box-border w-[93px] h-8 border-[1px] border-solid border-ebgrey-200">
-//         <div className="absolute top-[4px] left-[calc(50%_-_27.5px)] flex flex-row items-center justify-start gap-[8px]">
-//           <div className="flex flex-row items-center justify-center">
-//             <div className="flex flex-row items-center justify-center">
-//               <div className="relative">Aug</div>
-//             </div>
-//           </div>
-//           <img
-//             className="relative w-6 h-6 overflow-hidden shrink-0"
-//             alt=""
-//             src={chevronDown}
-//           />
-//         </div>
-//       </div>
-//     </div>
-//   </div>
-// </div>

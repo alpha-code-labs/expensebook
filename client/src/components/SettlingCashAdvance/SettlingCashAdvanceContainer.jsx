@@ -26,6 +26,9 @@ import axios from "axios";
 // ];
 
 const SettlingCashAdvanceContainer = () => {
+  const [checkedValues, setCheckedValues] = useState([]);
+  console.log("LINE AT 30" , checkedValues);
+
   const [dummyValues, setDummyValues] = useState([]);
 
   useEffect(()=>{
@@ -39,31 +42,53 @@ const SettlingCashAdvanceContainer = () => {
       }
     }
      getdummyCashAdvanceData();
+
+     
+     
   } , []);
 
-  // console.log( "LINE AT 43" , {...dummyValues[0]});
+  console.log( "LINE AT 43" , {...dummyValues[0]}._id);
+  const id = {...dummyValues[0]}._id;
   const name = dummyValues[0]?.createdBy.name;
   const amount = {...dummyValues[0]?.amountDetails}[0]?.amount;
   const mode = {...dummyValues[0]?.amountDetails}[0]?.mode;
-  // console.log( "LINE AT 45" , amount);
   const employeeData = [{name , amount , mode}]
-  const [checkedValues, setCheckedValues] = useState([]);
-  // console.log(checkedValues);
+
+  const updateSettlementColumn = async ()=>{
+  const data = {_id:id} ;
+    try {
+      await axios.put("http://localhost:3000/api/cashAdvance/settlement" , data);
+    } catch (error) {
+      console.log(error);
+    }
+   };
+   const notUpdateSettlementColumn = async ()=>{
+    const data = {_id:id} ;
+    console.log("LINE AT 68" , data);
+    try {
+      await axios.put("http://localhost:3000/api/cashAdvance/unSettlement" , data);
+    } catch (error) {
+      console.log(error);
+    }
+   };
 
   const handleChange = (e) => {
     const empData = e.target.value;
     const isSelected = e.target.checked;
     if (isSelected) {
       setCheckedValues([...checkedValues, empData]);
+      updateSettlementColumn();
     } else {
+      notUpdateSettlementColumn();
       setCheckedValues((prevData) => {
         return prevData.filter((empName) => {
           return empName !== empData;
-        });
+        }); 
       });
+     
     }
 
-    // console.log(checkedValues);
+    console.log("LINE AT 91",  checkedValues);
   };
 
   const [wait  , setWait] = useState(true);

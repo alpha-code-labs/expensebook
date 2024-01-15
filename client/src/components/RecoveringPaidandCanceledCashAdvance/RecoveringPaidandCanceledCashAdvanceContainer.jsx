@@ -64,13 +64,37 @@ const RecoveringPaidandCanceledCashAdvanceContainer = () => {
   const pendingStatus = {...dummyValues[0]?.approvers}[0]?.status;
   // console.log("LINE AT 46" , pendingStatus);
 
+  const id = {...dummyValues[0]}._id;
+  const updateSettlementColumn = async ()=>{
+    const data = {_id:id} ;
+      try {
+      console.log("LINE AT 64" , data);
+
+        await axios.put("http://localhost:3000/api/travelExpense/settlement" , data);
+      } catch (error) {
+        console.log(error);
+      }
+     };
+
+  const notUpdateSettlementColumn = async ()=>{
+      const data = {_id:id} ;
+      console.log("LINE AT 68" , data);
+      try {
+        await axios.put("http://localhost:3000/api/travelExpense/unSettlement" , data);
+      } catch (error) {
+        console.log(error);
+      }
+     };
+
 
   const handleChange = (e) => {
     const empData = e.target.value;
     const isSelected = e.target.checked;
     if (isSelected) {
+      updateSettlementColumn();
       setCheckedValues([...checkedValues, empData]);
     } else {
+      notUpdateSettlementColumn();
       setCheckedValues((prevData) => {
         return prevData.filter((empName) => {
           return empName !== empData;
