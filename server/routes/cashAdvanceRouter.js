@@ -12,9 +12,9 @@ router.get("/find" , async(req , res)=>{
 });
 
 router.put("/settlement" , async(req , res)=>{
-    // console.log("LINE AT 15" , req.body);
+    console.log("LINE AT 15" , req.body);
     const id = req.body._id;
-    // console.log("LINE AT 15" , id);
+    console.log("LINE AT 17" , id);
 
     try {
     const singleCashAdvanceUpdate = await CashAdvance.findByIdAndUpdate(
