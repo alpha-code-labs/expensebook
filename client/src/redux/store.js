@@ -1,5 +1,6 @@
 import { configureStore , combineReducers } from '@reduxjs/toolkit'
 import updateReducer from "./updateRedux";
+import dummyDataReducer from './dummyDataRedux';
 import {
   persistStore,
   persistReducer,

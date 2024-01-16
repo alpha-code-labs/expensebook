@@ -1,10 +1,14 @@
-import Backdrop from '@mui/material/Backdrop';
-import CircularProgress from '@mui/material/CircularProgress';
-import { useEffect, useState } from 'react';
+import Backdrop from "@mui/material/Backdrop";
+import CircularProgress from "@mui/material/CircularProgress";
+import { useEffect, useState } from "react";
 import { arrowLeft } from "../../assets/icon.jsx";
 import axios from "axios";
-import { updateSettlementColumn , notUpdateSettlementColumn } from "../../redux/apiCalls.js";
-import { useDispatch, useSelector } from 'react-redux';
+import {
+  updateSettlementColumn,
+  notUpdateSettlementColumn,
+ 
+} from "../../redux/apiCalls.js";
+import { useDispatch, useSelector } from "react-redux";
 
 // const employeeData = [
 //   {
@@ -28,27 +32,28 @@ import { useDispatch, useSelector } from 'react-redux';
 // ];
 
 const SettlingCashAdvanceContainer = () => {
-  const [checkedValues, setCheckedValues] = useState([]);
+  // const [checkedValues, setCheckedValues] = useState([]);
   // console.log("LINE AT 30" , checkedValues);
-
-  const [dummyValues, setDummyValues] = useState([]);
-
-  useEffect(()=>{
-    const getdummyCashAdvanceData = async ()=>{
+  const [dummyValues , setDummyValues] = useState([])
+  const dispatch = useDispatch();
+  useEffect(() => {
+    const getdummyCashAdvanceData = async () => {
       try {
-        const data = await axios.get("http://localhost:3000/api/cashAdvance/find");
+        const data = await axios.get(
+          "http://localhost:3000/api/cashAdvance/find"
+        );
         setDummyValues(data.data);
-        
       } catch (error) {
         console.log(error);
       }
-    }
-     getdummyCashAdvanceData();
+    };
+    getdummyCashAdvanceData();
 
-  } , []);
+  
+  }, []);
 
-  console.log( "LINE AT 50" , {...dummyValues[0]}?._id);
-  const id = {...dummyValues[0]}?._id;
+  // console.log( "LINE AT 55" , dummyValues);
+  const id = { ...dummyValues[0] }?._id;
 
   // const name = dummyValues[0]?.createdBy.name;
   // const amount = {...dummyValues[0]?.amountDetails}[0]?.amount;
@@ -73,27 +78,25 @@ const SettlingCashAdvanceContainer = () => {
   //   }
   //  };
 
-   const dispatch = useDispatch();
-   const {isFetching } = useSelector((state)=>(state?.update));
+  
+  const { isFetching } = useSelector((state) => state?.update);
 
-   const flag = useSelector((state)=>(state?.update));
-   console.log(flag.update?.settlementFlag);
-
+  const flag = useSelector((state) => state?.update);
+  //  console.log(flag.update?.settlementFlag);
 
   const handleChange = (e) => {
-    const empData = e.target.value;
+    // const empData = e.target.value;
     const isSelected = e.target.checked;
     if (isSelected) {
-      setCheckedValues([...checkedValues, empData]);
-      updateSettlementColumn(dispatch , id);
+      // setCheckedValues([...checkedValues, empData]);
+      updateSettlementColumn(dispatch, id, "cashAdvance");
     } else {
-      notUpdateSettlementColumn(dispatch , id);
-      setCheckedValues((prevData) => {
-        return prevData.filter((empName) => {
-          return empName !== empData;
-        }); 
-      });
-     
+      notUpdateSettlementColumn(dispatch, id, "cashAdvance");
+      // setCheckedValues((prevData) => {
+      //   return prevData.filter((empName) => {
+      //     return empName !== empData;
+      //   });
+      // });
     }
 
     // console.log("LINE AT 107",  checkedValues);
@@ -101,17 +104,22 @@ const SettlingCashAdvanceContainer = () => {
 
   return (
     <div className="flex space-x-4 ">
-        {isFetching && <Backdrop
-      sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
-      open={open}
-      
-    >
-      <CircularProgress color="inherit" />
-    </Backdrop>}
+      {isFetching && (
+        <Backdrop
+          sx={{ color: "#fff", zIndex: (theme) => theme.zIndex.drawer + 1 }}
+          open={open}
+        >
+          <CircularProgress color="inherit" />
+        </Backdrop>
+      )}
       <div className="border-[1px] border-solid border-gainsboro-200 rounded-2xl box-border w-[912px] h-[422px]">
         <div className="m-8">
           <div className="flex justify-center space-x-2 bg-eb-primary-blue-50 text-eb-primary-blue-500 p-1 rounded-xl w-[100px] cursor-pointer my-2">
-            <img className=" w-4 h-4 bg-eb-primary-blue-500 rounded-lg " alt="" src={arrowLeft} />
+            <img
+              className=" w-4 h-4 bg-eb-primary-blue-500 rounded-lg "
+              alt=""
+              src={arrowLeft}
+            />
             <div>Dashboard</div>
           </div>
           <div className="text-base">Settling Cash Advance</div>
@@ -129,7 +137,6 @@ const SettlingCashAdvanceContainer = () => {
           </thead>
           <tbody>
             {dummyValues.map((employee, index) => (
-              
               <tr
                 key={index}
                 className="w-[800px] h-[70px] border-b border-solid border-gainsboro-200"
@@ -144,10 +151,16 @@ const SettlingCashAdvanceContainer = () => {
                     // checked={checkedValues.includes(employee.name)}
                   />
                 </td>
-                <td className="p-4 text-center">{dummyValues[index]?.createdBy.name}</td>
-                <td className="p-4 text-center">{{...dummyValues[index]?.amountDetails}[0]?.amount}</td>
+                <td className="p-4 text-center">
+                  {dummyValues[index]?.createdBy.name}
+                </td>
+                <td className="p-4 text-center">
+                  {{ ...dummyValues[index]?.amountDetails }[0]?.amount}
+                </td>
                 <td className="p-4 text-center">{employee.currency}</td>
-                <td className="p-4 text-center">{{...dummyValues[index]?.amountDetails}[0]?.mode}</td>
+                <td className="p-4 text-center">
+                  {{ ...dummyValues[index]?.amountDetails }[0]?.mode}
+                </td>
               </tr>
             ))}
           </tbody>
@@ -168,8 +181,7 @@ const SettlingCashAdvanceContainer = () => {
             </tr>
           </thead>
           <tbody>
-            
-           {/* {flag.update?.settlementFlag &&
+            {/* {flag.update?.settlementFlag &&
             (checkedValues.map((employee, index) => (
               <tr
                 key={index}
@@ -180,16 +192,14 @@ const SettlingCashAdvanceContainer = () => {
               </tr>
             )))} */}
 
-        {flag.update?.settlementFlag &&
-              <tr
-                
-                className="w-[120px] h-[70px] border-b border-solid border-gainsboro-200"
-              >
+            {flag.update?.settlementFlag && (
+              <tr className="w-[120px] h-[70px] border-b border-solid border-gainsboro-200">
                 <td className="p-2 text-center"></td>
-                <td className="p-4 text-center">{flag.update?.createdBy?.name}</td>
+                <td className="p-4 text-center">
+                  {flag.update?.createdBy?.name}
+                </td>
               </tr>
-            }
-            
+            )}
           </tbody>
         </table>
       </div>

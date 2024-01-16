@@ -3,6 +3,8 @@ import CircularProgress from '@mui/material/CircularProgress';
 import { useEffect, useState } from 'react';
 import { arrowLeft } from "../../assets/icon.jsx";
 import axios from "axios";
+import { notUpdateSettlementColumn, updateSettlementColumn } from '../../redux/apiCalls.js';
+import { useDispatch, useSelector } from 'react-redux';
 
   // const employeeData = [
   //   {
@@ -31,7 +33,7 @@ import axios from "axios";
   
 const RecoveringPaidandCanceledCashAdvanceContainer = () => {
 
-  const [checkedValues, setCheckedValues] = useState([]);
+  // const [checkedValues, setCheckedValues] = useState([]);
   // console.log(checkedValues);
 
   const [dummyValues, setDummyValues] = useState([]);
@@ -48,72 +50,76 @@ const RecoveringPaidandCanceledCashAdvanceContainer = () => {
     }
      getdummytravelExpenseData();
   } , []);
-  console.log("LINE AT 43" , dummyValues);
+  // console.log("LINE AT 43" , dummyValues);
 
-  const name = dummyValues[0]?.createdBy?.name;
+  // const name = dummyValues[0]?.createdBy?.name;
   // console.log("LINE AT 46" , name);
 
-  const amount = {...dummyValues[0]?.alreadyBookedExpenseLines}[0]?.transactionData.totalAmount;
-  // console.log("LINE AT 46" , amount);
+  // const amount = {...dummyValues[0]?.alreadyBookedExpenseLines}[0]?.transactionData.totalAmount;
+  // // console.log("LINE AT 46" , amount);
 
-  const settlementMode = {...dummyValues[0]?.alreadyBookedExpenseLines}[0]?.modeOfPayment;
-  // console.log("LINE AT 46" , settlementMode);
+  // const settlementMode = {...dummyValues[0]?.alreadyBookedExpenseLines}[0]?.modeOfPayment;
+  // // console.log("LINE AT 46" , settlementMode);
 
-  const employeeData = [{name , amount , settlementMode}];
+  // const employeeData = [{name , amount , settlementMode}];
 
-  const pendingStatus = {...dummyValues[0]?.approvers}[0]?.status;
-  // console.log("LINE AT 46" , pendingStatus);
+  // const pendingStatus = {...dummyValues[0]?.approvers}[0]?.status;
+  // // console.log("LINE AT 46" , pendingStatus);
 
   const id = {...dummyValues[0]}._id;
-  const updateSettlementColumn = async ()=>{
-    const data = {_id:id} ;
-      try {
-      console.log("LINE AT 64" , data);
 
-        await axios.put("http://localhost:3000/api/travelExpense/settlement" , data);
-      } catch (error) {
-        console.log(error);
-      }
-     };
+  // const updateSettlementColumn = async ()=>{
+  //   const data = {_id:id} ;
+  //     try {
+  //     console.log("LINE AT 64" , data);
 
-  const notUpdateSettlementColumn = async ()=>{
-      const data = {_id:id} ;
-      console.log("LINE AT 68" , data);
-      try {
-        await axios.put("http://localhost:3000/api/travelExpense/unSettlement" , data);
-      } catch (error) {
-        console.log(error);
-      }
-     };
+  //       await axios.put("http://localhost:3000/api/travelExpense/settlement" , data);
+  //     } catch (error) {
+  //       console.log(error);
+  //     }
+  //    };
 
+  // const notUpdateSettlementColumn = async ()=>{
+  //     const data = {_id:id} ;
+  //     console.log("LINE AT 68" , data);
+  //     try {
+  //       await axios.put("http://localhost:3000/api/travelExpense/unSettlement" , data);
+  //     } catch (error) {
+  //       console.log(error);
+  //     }
+  //    };
 
+  const dispatch = useDispatch();
+  const {isFetching } = useSelector((state)=>(state?.update));
+
+  const flag = useSelector((state)=>(state?.update));
   const handleChange = (e) => {
-    const empData = e.target.value;
+    // const empData = e.target.value;
     const isSelected = e.target.checked;
     if (isSelected) {
-      updateSettlementColumn();
-      setCheckedValues([...checkedValues, empData]);
+      updateSettlementColumn(dispatch , id , "travelExpense");
+      // setCheckedValues([...checkedValues, empData]);
     } else {
-      notUpdateSettlementColumn();
-      setCheckedValues((prevData) => {
-        return prevData.filter((empName) => {
-          return empName !== empData;
-        });
-      });
+      notUpdateSettlementColumn(dispatch , id , "travelExpense");
+      // setCheckedValues((prevData) => {
+      //   return prevData.filter((empName) => {
+      //     return empName !== empData;
+      //   });
+      // });
     }
 
     // console.log(checkedValues);
   };
-  const [wait  , setWait] = useState(true);
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setWait(false);
-    }, 1000);
-    return () => clearTimeout(timer);
-  }, []);
+  // const [wait  , setWait] = useState(true);
+  // useEffect(() => {
+  //   const timer = setTimeout(() => {
+  //     setWait(false);
+  //   }, 1000);
+  //   return () => clearTimeout(timer);
+  // }, []);
   return (
     <div className="flex space-x-4">
-        {wait && <Backdrop
+        {isFetching && <Backdrop
       sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
       open={open}
       
@@ -140,7 +146,7 @@ const RecoveringPaidandCanceledCashAdvanceContainer = () => {
             </tr>
           </thead>
           <tbody>
-            {employeeData.map((employee, index) => (
+            {dummyValues.map((employee, index) => (
               <tr
                 key={index}
                 className="w-[800px] h-[70px] border-b border-solid border-gainsboro-200"
@@ -153,15 +159,15 @@ const RecoveringPaidandCanceledCashAdvanceContainer = () => {
                     value={employee.name}
                     className="mx-auto"
                     onChange={handleChange}
-                    checked={checkedValues.includes(employee.name)}
+                    // checked={checkedValues.includes(employee.name)}
                   />
                 </td>
-                <td className="p-4 text-center">{employee.name}</td>
-                <td className="p-4 text-center">{employee.amount}</td>
+                <td className="p-4 text-center">{dummyValues[index]?.createdBy?.name}</td>
+                <td className="p-4 text-center">{{...dummyValues[index]?.alreadyBookedExpenseLines}[0]?.transactionData.totalAmount}</td>
                 <td className="p-4 text-center">{employee.currency}</td>
-                <td className="p-4 text-center">{employee.settlementMode}</td>
+                <td className="p-4 text-center">{{...dummyValues[index]?.alreadyBookedExpenseLines}[0]?.modeOfPayment}</td>
                 <td className="p-2 text-center">
-                  {(pendingStatus === "pending approval") ? <button className="bg-green-500 text-red rounded-full py-2 px-4 bg-green-700 ">
+                  {({...dummyValues[index]?.approvers}[0]?.status === "pending approval") ? <button className="bg-green-500 text-red rounded-full py-2 px-4 bg-green-700 ">
                     Pending
                   </button> : <button className="bg-green-500 text-green rounded-full py-2 px-4 bg-green-700 ">
                     Recovered
@@ -187,7 +193,7 @@ const RecoveringPaidandCanceledCashAdvanceContainer = () => {
             </tr>
           </thead>
           <tbody>
-            {checkedValues.map((employee, index) => (
+            {/* {checkedValues.map((employee, index) => (
               <tr
                 key={index}
                 className="w-[120px] h-[70px] border-b border-solid border-gainsboro-200"
@@ -195,7 +201,16 @@ const RecoveringPaidandCanceledCashAdvanceContainer = () => {
                 <td className="p-2 text-center"></td>
                 <td className="p-4 text-center">{employee}</td>
               </tr>
-            ))}
+            ))} */}
+            {flag.update?.settlementFlag &&
+              <tr
+                
+                className="w-[120px] h-[70px] border-b border-solid border-gainsboro-200"
+              >
+                <td className="p-2 text-center"></td>
+                <td className="p-4 text-center">{flag.update?.createdBy?.name}</td>
+              </tr>
+            }
           </tbody>
         </table>
       </div>
