@@ -64,7 +64,7 @@ const SettlingAccountingEntriesforAllExpensesContainer = () => {
   // console.log("LINE AT 46" , pendingStatus);
 
   const headers = [
-    { label: " Employee Name", key: "employeename" },
+    { label: "Employee Name", key: "employeename" },
     { label: "Amount", key: "amount" },
     { label: "Mode of Payment", key: "modeofpayment" } , 
     { label: "Paid Status", key: "paidstatus" }
@@ -94,6 +94,7 @@ const SettlingAccountingEntriesforAllExpensesContainer = () => {
         console.log(error);
       }
      };
+     
   const handleChange = (e) => {
     const empData = e.target.value;
     const isSelected = e.target.checked;

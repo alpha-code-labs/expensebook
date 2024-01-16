@@ -3,6 +3,8 @@ import CircularProgress from '@mui/material/CircularProgress';
 import { useEffect, useState } from 'react';
 import { arrowLeft } from "../../assets/icon.jsx";
 import axios from "axios";
+import { updateSettlementColumn , notUpdateSettlementColumn } from "../../redux/apiCalls.js";
+import { useDispatch, useSelector } from 'react-redux';
 
 // const employeeData = [
 //   {
@@ -27,7 +29,7 @@ import axios from "axios";
 
 const SettlingCashAdvanceContainer = () => {
   const [checkedValues, setCheckedValues] = useState([]);
-  console.log("LINE AT 30" , checkedValues);
+  // console.log("LINE AT 30" , checkedValues);
 
   const [dummyValues, setDummyValues] = useState([]);
 
@@ -43,43 +45,49 @@ const SettlingCashAdvanceContainer = () => {
     }
      getdummyCashAdvanceData();
 
-     
-     
   } , []);
 
-  console.log( "LINE AT 43" , {...dummyValues[0]}._id);
-  const id = {...dummyValues[0]}._id;
-  const name = dummyValues[0]?.createdBy.name;
-  const amount = {...dummyValues[0]?.amountDetails}[0]?.amount;
-  const mode = {...dummyValues[0]?.amountDetails}[0]?.mode;
-  const employeeData = [{name , amount , mode}]
+  console.log( "LINE AT 50" , {...dummyValues[0]}?._id);
+  const id = {...dummyValues[0]}?._id;
 
-  const updateSettlementColumn = async ()=>{
-  const data = {_id:id} ;
-    try {
-      await axios.put("http://localhost:3000/api/cashAdvance/settlement" , data);
-    } catch (error) {
-      console.log(error);
-    }
-   };
-   const notUpdateSettlementColumn = async ()=>{
-    const data = {_id:id} ;
-    console.log("LINE AT 68" , data);
-    try {
-      await axios.put("http://localhost:3000/api/cashAdvance/unSettlement" , data);
-    } catch (error) {
-      console.log(error);
-    }
-   };
+  // const name = dummyValues[0]?.createdBy.name;
+  // const amount = {...dummyValues[0]?.amountDetails}[0]?.amount;
+  // const mode = {...dummyValues[0]?.amountDetails}[0]?.mode;
+  // const employeeData = [{name , amount , mode}]
+
+  // const updateSettlementColumn = async ()=>{
+  // const data = {_id:id} ;
+  //   try {
+  //     await axios.put("http://localhost:3000/api/cashAdvance/settlement" , data);
+  //   } catch (error) {
+  //     console.log(error);
+  //   }
+  //  };
+  //  const notUpdateSettlementColumn = async ()=>{
+  //   const data = {_id:id} ;
+  //   console.log("LINE AT 68" , data);
+  //   try {
+  //     await axios.put("http://localhost:3000/api/cashAdvance/unSettlement" , data);
+  //   } catch (error) {
+  //     console.log(error);
+  //   }
+  //  };
+
+   const dispatch = useDispatch();
+   const {isFetching } = useSelector((state)=>(state?.update));
+
+   const flag = useSelector((state)=>(state?.update));
+   console.log(flag.update?.settlementFlag);
+
 
   const handleChange = (e) => {
     const empData = e.target.value;
     const isSelected = e.target.checked;
     if (isSelected) {
       setCheckedValues([...checkedValues, empData]);
-      updateSettlementColumn();
+      updateSettlementColumn(dispatch , id);
     } else {
-      notUpdateSettlementColumn();
+      notUpdateSettlementColumn(dispatch , id);
       setCheckedValues((prevData) => {
         return prevData.filter((empName) => {
           return empName !== empData;
@@ -88,19 +96,12 @@ const SettlingCashAdvanceContainer = () => {
      
     }
 
-    console.log("LINE AT 91",  checkedValues);
+    // console.log("LINE AT 107",  checkedValues);
   };
 
-  const [wait  , setWait] = useState(true);
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setWait(false);
-    }, 1000);
-    return () => clearTimeout(timer);
-  }, []);
   return (
     <div className="flex space-x-4 ">
-        {wait && <Backdrop
+        {isFetching && <Backdrop
       sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
       open={open}
       
@@ -127,7 +128,8 @@ const SettlingCashAdvanceContainer = () => {
             </tr>
           </thead>
           <tbody>
-            {employeeData.map((employee, index) => (
+            {dummyValues.map((employee, index) => (
+              
               <tr
                 key={index}
                 className="w-[800px] h-[70px] border-b border-solid border-gainsboro-200"
@@ -135,18 +137,17 @@ const SettlingCashAdvanceContainer = () => {
                 <td className="p-2 text-center">
                   <input
                     type="checkbox"
-                    name={`employee${index + 1}`}
-                    id={`employee${index + 1}`}
-                    value={employee.name}
+                    id={`${employee.name}`}
+                    value={`${employee.name}`}
                     className="mx-auto"
                     onChange={handleChange}
-                    checked={checkedValues.includes(employee.name)}
+                    // checked={checkedValues.includes(employee.name)}
                   />
                 </td>
-                <td className="p-4 text-center">{employee.name}</td>
-                <td className="p-4 text-center">{employee.amount}</td>
+                <td className="p-4 text-center">{dummyValues[index]?.createdBy.name}</td>
+                <td className="p-4 text-center">{{...dummyValues[index]?.amountDetails}[0]?.amount}</td>
                 <td className="p-4 text-center">{employee.currency}</td>
-                <td className="p-4 text-center">{employee.mode}</td>
+                <td className="p-4 text-center">{{...dummyValues[index]?.amountDetails}[0]?.mode}</td>
               </tr>
             ))}
           </tbody>
@@ -167,7 +168,9 @@ const SettlingCashAdvanceContainer = () => {
             </tr>
           </thead>
           <tbody>
-            {checkedValues.map((employee, index) => (
+            
+           {/* {flag.update?.settlementFlag &&
+            (checkedValues.map((employee, index) => (
               <tr
                 key={index}
                 className="w-[120px] h-[70px] border-b border-solid border-gainsboro-200"
@@ -175,7 +178,18 @@ const SettlingCashAdvanceContainer = () => {
                 <td className="p-2 text-center"></td>
                 <td className="p-4 text-center">{employee}</td>
               </tr>
-            ))}
+            )))} */}
+
+        {flag.update?.settlementFlag &&
+              <tr
+                
+                className="w-[120px] h-[70px] border-b border-solid border-gainsboro-200"
+              >
+                <td className="p-2 text-center"></td>
+                <td className="p-4 text-center">{flag.update?.createdBy?.name}</td>
+              </tr>
+            }
+            
           </tbody>
         </table>
       </div>
