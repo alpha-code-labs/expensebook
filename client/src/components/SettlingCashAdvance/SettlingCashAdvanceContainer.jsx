@@ -62,7 +62,7 @@ const SettlingCashAdvanceContainer = () => {
     postFullFinanceData();
 
   
-  }, []);
+  }, [dummyValues]);
   // useEffect(() => {
   //   const postFullFinanceData = async () => {
   //     try {
