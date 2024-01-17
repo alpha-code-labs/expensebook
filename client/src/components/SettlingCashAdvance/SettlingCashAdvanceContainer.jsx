@@ -48,37 +48,26 @@ const SettlingCashAdvanceContainer = () => {
       }
     };
     getdummyCashAdvanceData();
+    
+
+  
+  }, []);
+  useEffect(() => {
     const postFullFinanceData = async () => {
       try {
-          await axios.post(
-          "http://localhost:3000/api/finance/post" , {dummyData:dummyValues}
-         );
-         console.log("LINE AT 60 'done'");
-        
-      } catch (error) {
-        console.log(error);
-      }
-    };
-    postFullFinanceData();
+        await axios.post(
+        "http://localhost:3000/api/finance/post" , {dummyData:dummyValues}
+       );
+       console.log("LINE AT 60 'done'");
+      
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  postFullFinanceData();
 
   
-  }, [dummyValues]);
-  // useEffect(() => {
-  //   const postFullFinanceData = async () => {
-  //     try {
-  //        const data = await axios.get(
-  //         "http://localhost:3000/api/finance/"
-  //        );
-  //        console.log("LINE AT 60 'done'" ,  data);
-        
-  //     } catch (error) {
-  //       console.log(error);
-  //     }
-  //   };
-  //   postFullFinanceData();
-
-  
-  // }, []);
+  }, );
 
   // console.log( "LINE AT 55" , dummyValues);
   const id = { ...dummyValues[0] }?._id;
