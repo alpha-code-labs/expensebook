@@ -51,7 +51,7 @@ const SettlingCashAdvanceContainer = () => {
     const postFullFinanceData = async () => {
       try {
           await axios.post(
-          "http://localhost:3000/api/finance/post"
+          "http://localhost:3000/api/finance/post" , {dummyData:dummyValues}
          );
          console.log("LINE AT 60 'done'");
         
