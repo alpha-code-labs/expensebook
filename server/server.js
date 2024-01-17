@@ -5,6 +5,7 @@ const cors = require("cors");
 const cashAdvanceRouter = require("./routes/cashAdvanceRouter");
 const travelExpenseRouter = require("./routes/travelExpenseRouter");
 const nonTravelExpenseRouter = require("./routes/nonTravelExpenseRouter");
+const financeRouter = require("./routes/financeRouter");
 
 const app = express();
 
@@ -88,6 +89,7 @@ app.use(cors());
 app.use("/api/cashAdvance" , cashAdvanceRouter);
 app.use("/api/travelExpense" , travelExpenseRouter);
 app.use("/api/nonTravelExpense" , nonTravelExpenseRouter);
+app.use("/api/finance" , financeRouter);
 
 mongoose.connect("mongodb+srv://acladmin:QlSYiddbBy7J9yS6@mycluster.58esz73.mongodb.net/?retryWrites=true&w=majority")
 .then(()=>{
