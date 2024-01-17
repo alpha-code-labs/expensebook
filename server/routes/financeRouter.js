@@ -6,7 +6,7 @@ router.get("/post" , async(req , res)=>{
     // console.log(req.body.dummyValues);
     // res.status(200).send("ok");
     try {
-        const completeDummyData = req.body.dummyValues;
+        const completeDummyData = req.body.dummyData;
         console.log(completeDummyData);
         let finance = new Finance({...completeDummyData});
         const financeDummyData = await finance.save();
