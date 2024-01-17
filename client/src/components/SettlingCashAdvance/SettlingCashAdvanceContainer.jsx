@@ -48,9 +48,37 @@ const SettlingCashAdvanceContainer = () => {
       }
     };
     getdummyCashAdvanceData();
+    const postFullFinanceData = async () => {
+      try {
+          await axios.post(
+          "http://localhost:3000/api/finance/post"
+         );
+         console.log("LINE AT 60 'done'");
+        
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    postFullFinanceData();
 
   
   }, []);
+  // useEffect(() => {
+  //   const postFullFinanceData = async () => {
+  //     try {
+  //        const data = await axios.get(
+  //         "http://localhost:3000/api/finance/"
+  //        );
+  //        console.log("LINE AT 60 'done'" ,  data);
+        
+  //     } catch (error) {
+  //       console.log(error);
+  //     }
+  //   };
+  //   postFullFinanceData();
+
+  
+  // }, []);
 
   // console.log( "LINE AT 55" , dummyValues);
   const id = { ...dummyValues[0] }?._id;
@@ -81,8 +109,9 @@ const SettlingCashAdvanceContainer = () => {
   
   const { isFetching } = useSelector((state) => state?.update);
 
-  const flag = useSelector((state) => state?.update);
-  //  console.log(flag.update?.settlementFlag);
+  const fullDummyData = useSelector((state) => state?.update);
+   console.log(fullDummyData.update);
+  //  console.log(fullDummyData.update?.actionedUpon);
 
   const handleChange = (e) => {
     // const empData = e.target.value;
@@ -136,7 +165,9 @@ const SettlingCashAdvanceContainer = () => {
             </tr>
           </thead>
           <tbody>
-            {dummyValues.map((employee, index) => (
+            {dummyValues.map((employee, index) => ( 
+              //AS PER REQUIREMENT
+              //fullDummyData.update?.actionedUpon &&
               <tr
                 key={index}
                 className="w-[800px] h-[70px] border-b border-solid border-gainsboro-200"
@@ -181,7 +212,7 @@ const SettlingCashAdvanceContainer = () => {
             </tr>
           </thead>
           <tbody>
-            {/* {flag.update?.settlementFlag &&
+            {/* {fullDummyData.update?.settlementFlag &&
             (checkedValues.map((employee, index) => (
               <tr
                 key={index}
@@ -192,11 +223,11 @@ const SettlingCashAdvanceContainer = () => {
               </tr>
             )))} */}
 
-            {flag.update?.settlementFlag && (
+            {fullDummyData.update?.settlementFlag && (
               <tr className="w-[120px] h-[70px] border-b border-solid border-gainsboro-200">
                 <td className="p-2 text-center"></td>
                 <td className="p-4 text-center">
-                  {flag.update?.createdBy?.name}
+                  {fullDummyData.update?.createdBy?.name}
                 </td>
               </tr>
             )}
