@@ -18,6 +18,19 @@
   }
 
 
+  .no-scroll::-webkit-scrollbar {
+    width: 0px;
+  }
+  
+  .no-scroll::-webkit-scrollbar-track {
+    border-radius: 0px;
+  }
+  
+  .no-scroll::-webkit-scrollbar-thumb {
+    border-radius: 0px;
+  }
+
+
 .slim::-webkit-calendar-picker-indicator{
     background-color: #ffffff;
     color: black;
