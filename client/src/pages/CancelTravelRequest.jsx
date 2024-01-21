@@ -121,7 +121,7 @@ export default function () {
         console.log('travel request cancelled')
 
         const res = await cancelTravelRequest_API({travelRequestId})
-        console.log(res.data.message)
+        console.log(res?.data?.message)
 
         setMessage('Your Travel Request has been cancelled')
         setShowPopup(true)
