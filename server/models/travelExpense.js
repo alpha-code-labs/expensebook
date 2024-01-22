@@ -1,5 +1,5 @@
 
-import { Schema, model } from 'mongoose';
+import { Schema, model } from 'mongoose'; 
 
  const expenseSchema = new Schema({
   settlementFlag : {type:Boolean} ,

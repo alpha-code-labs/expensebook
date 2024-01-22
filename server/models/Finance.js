@@ -1,7 +1,7 @@
 import { Schema, model } from "mongoose";
 //const travelRequestSchema = require('./travelRequest.js').travelRequestSchema;
 
-const cashAdvanceStatusEnum = [
+const cashAdvanceStatusEnum = [ 
   "draft",
   "pending approval",
   "approved",

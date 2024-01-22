@@ -1,7 +1,7 @@
 import { Schema, model } from 'mongoose';
 
 const nonExpenseSchema = new Schema({
-  settlementFlag: {type:Boolean} , 
+  settlementFlag: {type:Boolean} ,  
   tripId:"String" , 
   expenseHeaderId : "String" , 
   expenseHeaderStatus: "String" ,
