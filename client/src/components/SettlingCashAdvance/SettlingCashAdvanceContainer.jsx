@@ -67,7 +67,7 @@ const SettlingCashAdvanceContainer = () => {
   postFullFinanceData();
 
   
-  }, );
+  },[dummyValues] );
 
   // console.log( "LINE AT 55" , dummyValues);
   const id = { ...dummyValues[0] }?._id;
