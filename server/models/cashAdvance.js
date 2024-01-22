@@ -1,4 +1,4 @@
-const mongoose=require("mongoose");
+import { Schema, model } from "mongoose";
 //const travelRequestSchema = require('./travelRequest.js').travelRequestSchema;
 
 
@@ -30,7 +30,7 @@ const approverStatusEnums = [
 ];
 
 
-const cashAdvanceSchema = new mongoose.Schema({
+const cashAdvanceSchema = new Schema({
   settlementFlag: {type:Boolean} , 
   travelRequestData:  {
       type: String, //travelRequestSchema,
@@ -105,7 +105,7 @@ const cashAdvanceSchema = new mongoose.Schema({
 });
 
 
-module.exports = mongoose.model('CashAdvance', cashAdvanceSchema);
+export default model('CashAdvance', cashAdvanceSchema);
 
 
 // export default CashAdvance

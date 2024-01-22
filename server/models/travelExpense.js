@@ -1,7 +1,7 @@
 
-const  mongoose = require('mongoose') ;
+import { Schema, model } from 'mongoose';
 
- const expenseSchema = new mongoose.Schema({
+ const expenseSchema = new Schema({
   settlementFlag : {type:Boolean} ,
   tripId:"String" , 
   expenseHeaderId : "String" , 
@@ -206,7 +206,7 @@ const  mongoose = require('mongoose') ;
 
 
 
-module.exports = mongoose.model('travelExpense', expenseSchema);
+export default model('travelExpense', expenseSchema);
 
 
 

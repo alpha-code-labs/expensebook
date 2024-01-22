@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import { Schema, model } from "mongoose";
 //const travelRequestSchema = require('./travelRequest.js').travelRequestSchema;
 
 const cashAdvanceStatusEnum = [
@@ -22,12 +22,12 @@ const cashAdvanceStateEnums = [
 
 const approverStatusEnums = ["pending approval", "approved", "rejected"];
 
-const financeSchema = new mongoose.Schema({
-  settlementFlag: { type: Boolean },
-  travelRequestData: {
-    type: String, //travelRequestSchema,
-    required: true,
-  },
+const financeSchema = new Schema({
+  settlementFlag: {type:Boolean} , 
+  travelRequestData:  {
+      type: String, //travelRequestSchema,
+      // required: true,
+    },
   cashAdvancesData: [
     {
       tenantId: {
@@ -38,7 +38,7 @@ const financeSchema = new mongoose.Schema({
         type: String,
         required: true,
       },
-      travelRequestNumber: {
+      travelRequestNumber:{
         type: String,
         required: true,
       },
@@ -47,24 +47,24 @@ const financeSchema = new mongoose.Schema({
         unique: true,
         required: true,
       },
-      cashAdvanceNumber: {
+      cashAdvanceNumber:{
         type: String,
         required: true,
       },
       createdBy: {
-        empId: String,
-        name: String,
+          empId: String,
+          name: String,
       },
       cashAdvanceStatus: {
         type: String,
         enum: cashAdvanceStatusEnum,
         required: true,
-        default: "draft",
+        default: 'draft',
       },
       cashAdvanceState: {
         type: String,
         enum: cashAdvanceStateEnums,
-        default: "section 0",
+        default: 'section 0',
         required: true,
       },
       amountDetails: [
@@ -84,46 +84,18 @@ const financeSchema = new mongoose.Schema({
           },
         },
       ],
-      assignedTo: { empId: String, name: String },
-      paidBy: { empId: String, name: String },
-      recoveredBy: { empId: String, name: String },
+      assignedTo:{empId:String, name:String},
+      paidBy:{empId:String, name:String},
+      recoveredBy:{empId:String, name:String},
       cashAdvanceRequestDate: Date,
       cashAdvanceApprovalDate: Date,
       cashAdvanceSettlementDate: Date,
       cashAdvanceViolations: String,
       cashAdvanceRejectionReason: String,
-      tripId: "String",
-      expenseHeaderId: "String",
-
-      expenseHeaderStatus: "String",
-      tenantId: "String",
-      tenantName: "String",
-      companyName: "String",
-      travelRequestId: "String",
-      expenseHeaderNumber: "String",
-      expenseHeaderType: "String",
-
-      createdBy: {
-        type: Object,
-      },
-
-      createdFor: { type: Object },
-
-      teamMembers: { type: Array },
-
-      alreadyBookedExpenseLines: { type: Array },
-
-      expenseLines: { type: Array },
-
-      approvers: { type: Array },
-
-      expenseViolations: { type: Array },
-      expenseRejectionReason: "String",
-      expenseSubmissionDate: Date,
     },
   ],
 });
 
-module.exports = mongoose.model("Finance", financeSchema);
+export default model("Finance", financeSchema);
 
 // export default finance
