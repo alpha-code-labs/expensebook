@@ -1,4 +1,4 @@
-import { View, Pressable, TouchableOpacity } from "react-native";
+import { View, Pressable, TouchableOpacity, Text } from "react-native";
 
 export default function(){
     return(<>
