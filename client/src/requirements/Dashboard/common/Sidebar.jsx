@@ -17,7 +17,7 @@ const Sidebar = () => {
   const sidebarItems = [
     { label: 'Overview', icon: overview_icon, screen: Overview },
     { label: 'Travel', icon: travel_icon, screen: Travel },
-    { label: 'Cash-Advance', icon: cash_icon, screen: Cash },
+    { label: 'Advance', icon: cash_icon, screen: Cash },
     { label: 'Expense', icon: exp_icon, screen: Expense },
   ];
 
@@ -30,17 +30,25 @@ const Sidebar = () => {
    
  <Tab.Navigator
       screenOptions={{
-        activeTintColor: '#4C36F1',
+        
+        tabBarLabelStyle: {
+          // color: ({ focused }) => (focused ? '#4C36F1' : '#5E606E'),
+          color: '#4C36F1',
+          fontFamily: 'Cabin',
+          fontSize: 14,
+          fontWeight: 400,
+          letterSpacing: 0.28,
+        },
       }}
     >
       {sidebarItems.map((item, index) => (
         <Tab.Screen key={index} name={item.label} component={item.screen} options={{
             tabBarIcon: ({ focused, color, size }) => (
               <Image
-               className='w-6 h-6'
+               className={` ${focused ? 'w-8 h-8' : 'w-6 h-6' }`}
                 source={item.icon}
 
-                // style={{ width: size, height: size, tintColor: color }} 
+                // style={{tintColor: color ,activeTintColor: '#4C36F1',}} 
               />
             ),
           }}/>
