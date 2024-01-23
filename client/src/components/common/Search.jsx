@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { titleCase } from "../../utils/handyFunctions";
-import { TextInput,View,Text,TouchableOpacity,TouchableWithoutFeedback } from "react-native";
+import { TextInput,View,Text,Pressable,TouchableWithoutFeedback } from "react-native";
 
 
     export default function Search(props) {
@@ -164,7 +164,7 @@ import { TextInput,View,Text,TouchableOpacity,TouchableWithoutFeedback } from "r
                     {filteredOptionsList &&
                     filteredOptionsList.map((option, index) => (
                         <>
-                        <TouchableOpacity
+                        <Pressable
                             key={index}
                             tabIndex={index+1}
                             onKeyDown={handleDropdownKeyDown}
@@ -174,7 +174,7 @@ import { TextInput,View,Text,TouchableOpacity,TouchableWithoutFeedback } from "r
                             className="text-xs font-medium font-cabin text-neutral-700 px-4 py-3 cursor-pointer transition-color hover:bg-gray-200 focus-visible:outline-0 focus-visible:bg-gray-100"
                         >
                            <Text>{titleCase(option)}</Text> 
-                        </TouchableOpacity>
+                        </Pressable>
                         {index != optionsList.length - 1 && <Text key={option} />}
                         </>
                     ))}

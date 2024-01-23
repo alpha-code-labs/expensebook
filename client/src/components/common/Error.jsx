@@ -1,17 +1,16 @@
-import { ActivityIndicator ,View,Text} from "react-native";
+import { ActivityIndicator ,View,Text, Modal} from "react-native";
 
 import React from 'react'
 
 const Error = () => {
   return (
-    <>
-    
-   
-        <View className='w-full h-full items-center justify-center'>
-        <ActivityIndicator size="large" color="#0000ff"/>
-        <Text>Loading...</Text>  
-        </View> 
-   
+    <>  
+        <Modal transparent>
+          <View className='w-full h-full flex items-center justify-center bg-gray-800/30'>
+             <ActivityIndicator size="large" color="#0000ff"/>
+            <Text>Loading...</Text> 
+         </View> 
+        </Modal> 
     </>
    
   )

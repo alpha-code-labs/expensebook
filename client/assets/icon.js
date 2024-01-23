@@ -4,4 +4,11 @@ export { default as app_bg } from './app_bg.png';
 export { default as circle } from './circle-96.png';
 export { default as check_circle } from './check_circle.png';
 export { default as x_b_icon } from './x.png';
-export { default as x_w_icon } from './x_w.png';
+
+export { default as travel_icon } from './travel.png';
+export { default as cash_icon } from './cash.png';
+export { default as overview_icon } from './overview.png';
+export { default as exp_icon } from './Receipt.png';
+export { default as exp_c_icon } from './Receipt-c.png';
+
+

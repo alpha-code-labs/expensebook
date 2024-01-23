@@ -1,6 +1,6 @@
 
 import React, { useState, useRef } from 'react';
-import { View, TextInput, Image, Text, Button, TouchableOpacity , TouchableWithoutFeedback } from 'react-native';
+import { View, TextInput, Image, Text, Button, Pressable , TouchableWithoutFeedback } from 'react-native';
 import { titleCase } from '../../utils/handyFunctions';
 import { visibility_off,visibility_on } from '../../../assets/icon';
 
@@ -79,9 +79,9 @@ const Input = (props) => {
             placeholder={ placeholder}
           />
           {type === 'password' && 
-        <TouchableOpacity onPress={handleVisibilityToggle}  className='absolute w-6 top-4 right-3 bg-white'>
+        <Pressable onPress={handleVisibilityToggle}  className='absolute w-6 top-4 right-3 bg-white'>
           <Image  source={visibility ? visibility_on : visibility_off}   />
-        </TouchableOpacity>
+        </Pressable>
           }
         </View>
 

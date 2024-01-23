@@ -1,5 +1,5 @@
 import React from 'react';
-import { TouchableOpacity,  Text, View } from 'react-native';
+import { Pressable,  Text, View } from 'react-native';
 
 const  CancelButton=(props)=>{
 
@@ -15,7 +15,7 @@ const  CancelButton=(props)=>{
   };
 
     return(<>
-    <TouchableOpacity
+    <Pressable
        onPress={handlePress}
        onPressIn={() => {}}
       onPressOut={() => {}}
@@ -23,7 +23,7 @@ const  CancelButton=(props)=>{
      
             <Text className={`w-[113px] ${text_color || 'text-white'} h-5 text-center  text-sm font-medium font-cabin`}>{text}</Text>
       
-        </TouchableOpacity>
+        </Pressable>
     </>)
 }
 

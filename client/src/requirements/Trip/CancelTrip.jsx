@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, TextInput,CheckBox, TouchableOpacity,SafeAreaView, Text,Image,Keyboard,Pressable, ScrollView,Modal } from 'react-native';
+import { View, TextInput,CheckBox, SafeAreaView, Text,Image,Keyboard,Pressable, ScrollView,Modal } from 'react-native';
 import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
 import { app_bg,circle,check_circle,x_w_icon } from '../../../assets/icon';
@@ -80,9 +80,13 @@ const handleSelectedItinerary=()=>{
    
   return (
 <>
-    {isLoading && <Error/>} 
-    {loadingErrorMsg && <Text>{loadingErrorMsg}</Text>}
-    <View  className='flex-1 w-full py-[60px] backdrop-blur-sm px-2 bg-slate-300 bg-blend-multiply  blur-md  flex justify-center items-center'>
+
+{isLoading && <Error/>} 
+
+{loadingErrorMsg && <Text>{loadingErrorMsg}</Text>}
+<View  className=' relative flex-1 w-full py-[60px] backdrop-blur-sm px-2 bg-slate-300 bg-blend-multiply  blur-md  flex justify-center items-center'>
+    
+  
     
     
       <View className='flex bg-white rounded-[24px] flex-col justify-center items-center h-full max-h-[938px] w-full' >
@@ -94,9 +98,9 @@ const handleSelectedItinerary=()=>{
        
         <Text numberOfLines={1} ellipsizeMode="tail" className='text-white w-full pr-16   h-8 font-Cabin text-lg font-semibold tracking-normal truncate'>{tripData?.tripPurpose}</Text>
         
-        <TouchableOpacity onPress={()=>console.log('redirect to dashboard')} className='absolute right-4 top-3 rounded-full p-1 active:bg-white'> 
+        <Pressable onPress={()=>console.log('redirect to dashboard')} className='absolute right-4 top-3 rounded-full p-1 active:bg-white'> 
         <Image source={x_w_icon} className='w-8 h-8'/>
-        </TouchableOpacity>
+        </Pressable>
       
        
         <Text  className='font-Cabin font-semibold text-lg text-indigo-500'>
@@ -199,12 +203,12 @@ const handleSelectedItinerary=()=>{
           <View style={{ padding: 20 }}>
             <Text style={{ fontSize: 18, fontFamily: 'cabin' }}>Select option for Enter Expense Line</Text>
             <View style={{ marginTop: 20, flexDirection: 'row', justifyContent: 'space-between' }}>
-  <TouchableOpacity onPress={() => handleScanPress()} style={{ flex: 1, marginRight: 5 }}>
+  <Pressable onPress={() => handleScanPress()} style={{ flex: 1, marginRight: 5 }}>
     <Text style={{ fontSize: 16, color: 'white', backgroundColor: 'blue', padding: 10, borderRadius: 5, textAlign: 'center' }}>Scan</Text>
-  </TouchableOpacity>
-  <TouchableOpacity onPress={handleModalVisible} style={{ flex: 1, marginLeft: 5 }}>
+  </Pressable>
+  <Pressable onPress={handleModalVisible} style={{ flex: 1, marginLeft: 5 }}>
     <Text style={{ fontSize: 16, color: 'white', backgroundColor: 'green', padding: 10, borderRadius: 5, textAlign: 'center' }}>Manually</Text>
-  </TouchableOpacity>
+  </Pressable>
 </View>
 
           </View>
@@ -224,10 +228,10 @@ const handleSelectedItinerary=()=>{
                         <View className="flex mt-10 flex-row justify-between gap-2">
                           <View className='flex-1'>
                           
-                            <CancelButton variant='full' text_color='text-red-200' text='Scan' onPress={""} />
+                            <CancelButton variant='full' text_color='text-red-200' text='Cancel' onPress={handleModalVisible} />
                           </View>
                            <View className='flex-1'>
-                            <CancelButton variant='full' bg_color='bg-red-200' text='Manually' onPress={handleModalVisible} />
+                            <CancelButton variant='full' bg_color='bg-red-200' text='Confirm' onPress={handleModalVisible} />
                            </View>
                             
                         </View>
@@ -270,11 +274,11 @@ function Flight({ selectedIds,from , to , itineraryId , date , time ,handleSelec
             </View>
          
           
-            <TouchableOpacity onPress={()=>handleSelectedIds(itineraryId)}>
+            <Pressable onPress={()=>handleSelectedIds(itineraryId)}>
             <Image 
              source={selectedIds.includes(itineraryId) ? check_circle  : circle}
              className='w-8 h-8'/> 
-             </TouchableOpacity>
+             </Pressable>
          </View>
           <View className='px-1  '>
           <View className='  flex  flex-row'>
@@ -309,11 +313,11 @@ function Hotel({itineraryId,selectedIds,handleSelectedIds,index,
             </View>
          
           
-            <TouchableOpacity onPress={()=>handleSelectedIds(itineraryId)}>
+            <Pressable onPress={()=>handleSelectedIds(itineraryId)}>
             <Image 
              source={selectedIds.includes(itineraryId) ? check_circle  : circle}
              className='w-8 h-8'/> 
-             </TouchableOpacity>
+             </Pressable>
          </View>
           <View className='px-1  '>
           <View className='  flex  flex-row'>
@@ -348,11 +352,11 @@ function Cab({selectedIds,itineraryId,date, preferredTime, pickupAddress,dropAdd
           </View>
          
           
-            <TouchableOpacity onPress={()=>handleSelectedIds(itineraryId)}>
+            <Pressable onPress={()=>handleSelectedIds(itineraryId)}>
             <Image 
              source={selectedIds.includes(itineraryId) ? check_circle  : circle}
              className='w-8 h-8'/> 
-             </TouchableOpacity>
+             </Pressable>
          </View>
           <View className='px-1  '>
           <View className='  flex  flex-row'>

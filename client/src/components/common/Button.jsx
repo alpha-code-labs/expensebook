@@ -1,5 +1,5 @@
 import React from 'react';
-import { TouchableOpacity,  Text, View } from 'react-native';
+import { Pressable,  Text, View } from 'react-native';
 
 const  Button=(props)=>{
 
@@ -14,7 +14,7 @@ const  Button=(props)=>{
   };
 
     return(<>
-    <TouchableOpacity
+    <Pressable
        onPress={handlePress}
        onPressIn={() => {}}
       onPressOut={() => {}}
@@ -22,7 +22,7 @@ const  Button=(props)=>{
      
             <Text className="w-full h-6 text-center text-white text-base font-medium font-cabin">{text}</Text>
       
-        </TouchableOpacity>
+        </Pressable>
     </>)
 }
 

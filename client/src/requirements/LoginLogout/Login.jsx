@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, TextInput, TouchableOpacity, Text,Image,Keyboard,Pressable } from 'react-native';
+import { View, TextInput,  Text,Image,Keyboard,Pressable } from 'react-native';
 import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
 import { app_bg } from '../../../assets/icon';
