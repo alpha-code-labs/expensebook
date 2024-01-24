@@ -33,6 +33,7 @@ import { TextInput,View,Text,Pressable,TouchableWithoutFeedback } from "react-na
       
         const inputChange = (text) => {
           setTextInput(text);
+          // console.log(text)
       
           if (text.length === 0) {
             setShowDropdown(false);

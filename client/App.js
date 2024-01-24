@@ -16,35 +16,24 @@ import CreateTravelRequest from './src/requirements/Travel/CreateTravelRequest.j
 
 const Stack = createStackNavigator()
 const App = () => {
-
-
-  // const [fontsLoaded] = useFonts({
-  //   "Cabin-Regular": require("./assets/fonts/Cabin-Regular.ttf"),
-  //   // "SourceCodePro-LightIt": require("./assets/fonts/SourceCodePro-LightIt.otf"),
-  // });
-  // if (!fontsLoaded) {
-  //   return <Text>Loading...</Text>;
-  // }
  
     return (
       <NavigationContainer>
         <Stack.Navigator initialRouteName='dashboard'>
-          <Stack.Screen name='dashboard' component={Index}/>
-          <Stack.Screen name='createTravel'  component={CreateTravelRequest}/>
+          <Stack.Screen name='dashboard' component={Index} options={{ headerShown: false }}/>
+          <Stack.Screen name='createTravel'  component={CreateTravelRequest} options={{ title: 'Create Travel Request' }}/>
 
         </Stack.Navigator>
 
       </NavigationContainer>
-
 
     //   <SafeAreaView className="flex-1 bg-blue-900  items-center  font-Cabin  justify-center">
       
     //   {/* <Text className='text-blue-900'>Open up t working on your app! data is there</Text>
     //   <StatusBar style="auto" /> */}
       
-      
-    //   {/* <CancelTrip/> */}
-    //   {/* <Login/> */}
+    //   <CancelTrip/>
+     //d <Login/> 
     //   {/* <UpdatePassword/> */}
    
     // </SafeAreaView>

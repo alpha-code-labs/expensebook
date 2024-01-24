@@ -8,11 +8,8 @@ const Travel = ({navigation}) => {
          <Text>
          Travel
 </Text>
-<Button onPress={()=>navigation.navigate('createTravel')} text='Create Travel Request'/>
-
-
-     
-    </View>
+<Button onPress={()=>navigation.navigate('createTravel')} text='Create Travel Request'/> 
+</View>
   )
 }
 

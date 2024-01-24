@@ -6,7 +6,7 @@ export const employeeRole={
     "group": "exampleGroup",
     "employeeRoles": {
       "employee": true,
-      "employeeManager": true,
+      "employeeManager": false,
       "finance": true,
       "travelAdmin": true,
       "superAdmin": true

@@ -92,14 +92,11 @@ const handleSelectedItinerary=()=>{
       <View className='flex bg-white rounded-[24px] flex-col justify-center items-center h-full max-h-[938px] w-full' >
 
         
-      <View className='  items-start relative  flex flex-col w-full h-[20%] px-4 pt-4 bg-indigo-300 rounded-t-[24px]'>
-     
-        
-       
+      <View className='items-start relative  flex flex-col w-full h-[20%] px-4 pt-4 bg-indigo-300 rounded-t-[24px]'>
         <Text numberOfLines={1} ellipsizeMode="tail" className='text-white w-full pr-16   h-8 font-Cabin text-lg font-semibold tracking-normal truncate'>{tripData?.tripPurpose}</Text>
         
         <Pressable onPress={()=>console.log('redirect to dashboard')} className='absolute right-4 top-3 rounded-full p-1 active:bg-white'> 
-        <Image source={x_w_icon} className='w-8 h-8'/>
+         <Image source={x_w_icon} className='w-8 h-8'/>
         </Pressable>
       
        
@@ -107,9 +104,7 @@ const handleSelectedItinerary=()=>{
           Please choose the itinerary, you would like to cancel or cancel the trip.
         </Text>
       </View>
-      <ScrollView showsVerticalScrollIndicator={false} className='px-4 min-w-full mt-1'>  
-        
-
+      <ScrollView showsVerticalScrollIndicator={false} className='px-4 min-w-full mt-1'>
        <View className='flex'>  
        {['flights', 'trains', 'buses', 'cabs', 'hotels'].map((itnItem, itnItemIndex)=>{
       if(itinerary && itinerary[itnItem].length>0){
