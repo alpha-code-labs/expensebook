@@ -16,6 +16,15 @@ import CreateTravelRequest from './src/requirements/Travel/CreateTravelRequest.j
 
 const Stack = createStackNavigator()
 const App = () => {
+
+
+  const [fontsLoaded] = useFonts({
+    "Cabin": require("./assets/fonts/cabin-regular.ttf"),
+    // "SourceCodePro-LightIt": require("./assets/fonts/SourceCodePro-LightIt.otf"),
+  });
+  if (!fontsLoaded) {
+    return <Text>Loading...</Text>;
+  }
  
     return (
       <NavigationContainer>
