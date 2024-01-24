@@ -18,13 +18,13 @@ const Stack = createStackNavigator()
 const App = () => {
 
 
-  // const [fontsLoaded] = useFonts({
-  //   "Cabin-Regular": require("./assets/fonts/Cabin-Regular.ttf"),
-  //   // "SourceCodePro-LightIt": require("./assets/fonts/SourceCodePro-LightIt.otf"),
-  // });
-  // if (!fontsLoaded) {
-  //   return <Text>Loading...</Text>;
-  // }
+  const [fontsLoaded] = useFonts({
+    "Cabin": require("./assets/fonts/cabin-regular.ttf"),
+    // "SourceCodePro-LightIt": require("./assets/fonts/SourceCodePro-LightIt.otf"),
+  });
+  if (!fontsLoaded) {
+    return <Text>Loading...</Text>;
+  }
  
     return (
       <NavigationContainer>

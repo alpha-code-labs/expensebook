@@ -10,5 +10,6 @@ export { default as cash_icon } from './cash.png';
 export { default as overview_icon } from './overview.png';
 export { default as exp_icon } from './Receipt.png';
 export { default as exp_c_icon } from './Receipt-c.png';
+export {default as chevron_down_icon} from './chevron-down.png'
 
 

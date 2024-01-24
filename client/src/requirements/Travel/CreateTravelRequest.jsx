@@ -1,9 +1,12 @@
-import { View, Pressable, TouchableOpacity, Text } from "react-native";
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+import BasicDetails from './basicDetails/basicDetails';
+
 
 export default function(){
-    return(<>
-        <View>
-            <Text>Create Travel Request</Text>
-        </View>
-    </>)
+
+
+    return(      
+            <BasicDetails/>
+      )
 }
