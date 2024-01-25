@@ -15,6 +15,7 @@ export { default as bell_icon } from './Bell.png';
 export { default as breifcase_icon } from './briefcase.png';
 export { default as travel_c_icon } from './travel_c.png';
 export { default as list_icon } from './List.png';
+export {default as check_icon} from './check.png'
 
 
 export {default as chevron_down_icon} from './chevron-down.png'
