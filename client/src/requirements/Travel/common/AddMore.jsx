@@ -1,5 +1,5 @@
-import { cash_icon } from '../../../../assets/icon'
-import { View } from 'react-native'
+import { plus_icon } from '../../../../assets/icon'
+import { View, Image, Text, TouchableOpacity } from 'react-native'
 
 
 export default function AddMore(props){
@@ -7,12 +7,12 @@ export default function AddMore(props){
     const text = props.text || 'Add More'
 
     return(<>
-        <View onClick={onClick} 
-            className=" h-12 cursor-pointer px-6 py-4 rounded-[32px] border border-indigo-600 justify-center items-center gap-2 inline-flex">
-            <View className="text-center text-indigo-600 text-base font-medium font-cabin">{text}</View>
-            <View className="w-6 h-6 " >
-                <Image source={cash_icon} alt='add' />
+        <TouchableOpacity onPress={onClick} 
+            className="h-10 cursor-pointer px-6 py-2 rounded-[32px] border border-indigo-600 justify-center items-center flex flex-row">
+            <Text className="h-6 text-center text-indigo-600 text-base font-medium font-Cabin">{text}</Text>
+            <View className="w-6 h-6 flex flex-row items-center justify-center " >
+                <Image className="w-5 h-5 " source={plus_icon} alt='add' />
             </View>
-        </View>
+        </TouchableOpacity>
     </>)
 }

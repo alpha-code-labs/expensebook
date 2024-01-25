@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { chevron_down_icon } from "../../../../assets/icon";
 import { titleCase } from "../../../utils/handyFunctions";
-import { View, Text, Image, TouchableOpacity, TouchableWithoutFeedback } from "react-native";
+import { View, Text, Image, TouchableOpacity, TouchableWithoutFeedback, ScrollView, Pressable } from "react-native";
 
 export default function Select(props) {
   const placeholder = props.placeholder || "Placeholder Text";
@@ -132,82 +132,91 @@ const selectDivFocus = (e)=>{
   //close dropdown on outside click
   const handleClickOutside = (e)=>{
     setShowDropdown(false)
+    console.log('clicked outside search component')
   }
 
 
   return (
     <>
-    <TouchableWithoutFeedback >
-        <View className="min-w-[300px] w-full max-w-[403px] h-[73px] flex-col justify-start items-start gap-2 inline-flex">
+
+    <TouchableWithoutFeedback className={`bg-blue-100 ${showDropdown? 'w-full h-full' : '' } `} onPress={handleClickOutside}>
+        <View style={`${showDropdown? {elevation:5}:{elevation:0}}`} className={`w-[302px] ${showDropdown? 'z-[100]':''} h-[73px] flex-col justify-start items-start gap-2 flex`}>
             {/* title*/}
-            <Text className="text-zinc-600 text-sm font-cabin">{title}</Text>
-            <View className="self-stretch h-12 justify-start items-start gap-4 inline-flex">
-            <View className={`grow relative shrink basis-0 self-stretch px-6 py-2 bg-white rounded-md border border-neutral-300 justify-between items-center flex`} >
-                <TouchableOpacity
-                tabIndex={0}
-                onKeyDown={selectKeyDown}
-                onFocus={selectDivFocus}
-                ref={selectDivRef}
-                className="grow shrink basis-0 h-6 relative justify-between items-center flex cursor-pointer focus-visible:outline-0"
-                onPress={handleSelectClick}
-                >
-                {!hidePlaceholder && (
-                    <Text className="text-zinc-400 text-sm font-normal font-cabin">
-                    {placeholder}
-                    </Text>
-                )}
-                {hidePlaceholder && <View className='text-neutral-700 text-sm font-normal font-cabin'>
-                    <Text>{selectedOption}</Text>
+            <Text style={{fontFamily:'Cabin'}} className="text-zinc-600 text-sm font-Cabin">{title}</Text>
+           
+            <View className="self-stretch w-full h-12 justify-start items-start flex">
+                <View className={`w-full h-12 relative px-6 py-3 bg-white rounded-md border border-neutral-300 justify-between items-center flex`} >
+                    <Pressable
+                    tabIndex={0}
+                    onKeyDown={selectKeyDown}
+                    onFocus={selectDivFocus}
+                    ref={selectDivRef}
+                    className="w-full h-6 relative cursor-pointer focus-visible:outline-0"
+                    onPress={handleSelectClick}
+                    >
+                    <View className="w-full h-6 relative justify-between flex flex-row cursor-pointer focus-visible:outline-0">
+                    {!hidePlaceholder && (
+                        <Text style={{fontFamily:'Cabin'}} className="text-zinc-400  h-6 text-sm font-normal font-Cabin">
+                            {placeholder}
+                        </Text>
+                    )}
+                    {hidePlaceholder && <View className='text-neutral-700 h-6 text-sm font-normal font-Cabin'>
+                        <Text style={{fontFamily:'Cabin'}} className='font-Cabin h-6 text-neutral-700 text-sm font-normal'>{selectedOption}</Text>
+                        </View>}
+
+                    <View className={`w-6 h-6 relative  transition-all  ${showDropdown && 'rotate-180'}`}>
+                        <Image source={chevron_down_icon} className='w-6 h-6' alt='chevron-down' />
+                    </View>
+
+                    
+                    {!showDropdown && hidePlaceholder && violationMessage && <View className="absolute top-[35px] w-full">
+                        <Text style={{fontFamily:'Cabin'}} className='text-xs text-yellow-600 font-Cabin'>
+                            {violationMessage}
+                        </Text>
                     </View>}
-                <View className={`w-6 h-6 relative transition ${showDropdown && 'rotate-180'}`}>
-                    <Image source={chevron_down_icon} />
+                    
+                    {!showDropdown && !hidePlaceholder && error?.set && <View className="absolute top-[35px] w-full">
+                        <Text style={{fontFamily:'Cabin'}} className='text-xs text-red-600 font-Cabin'>{error?.message}</Text>
+                    </View>}
+
+                    </View>
+                    </Pressable>
+
+                    {/* options */}
+                    {showDropdown && (
+                    <View
+                        key='dropdown'
+                        ref={dropdownRef}
+                        className="absolute w-[292px] h-fit max-h-[230px] overflow-y-scroll scroll rounded-b left-[5px] top-11 bg-white transition-all border-b  border-l border-r border-neutral-300 shadow-sm"
+                    >
+                        <ScrollView >
+                            {optionsList &&
+                            optionsList.map((option, index) => (
+                                <View key={index}>
+                                <TouchableOpacity
+                                    tabIndex={index+1}
+                                    onKeyDown={handleDropdownKeyDown}
+                                    ref={el => dropdownOptionsRef.current[index] = el} 
+                                    onPress={()=>{ handleOptionSelect(option, index) }}
+                                    className="text-xs focus-visible:outline-0 focus-visible:bg-gray-100 font-medium font-Cabin text-neutral-700 px-4 py-3 cursor-pointer transition-color hover:bg-gray-100"
+                                >
+                                    <Text style={{fontFamily:'Cabin'}} className='text-sm text-neutral-700 font-Cabin'>{titleCase(option)}</Text>
+                                </TouchableOpacity>
+                                {index != optionsList.length - 1 && <View
+                                    key='dropdown'
+                                    className="w-[292px] h-[1px] bg-neutral-300"
+                                />}
+                            </View>
+                            ))}
+                        </ScrollView>
+                    </View>
+                    )}
                 </View>
-
-                
-                {!showDropdown && hidePlaceholder && violationMessage && <Text className="absolute top-[35px] w-full text-xs text-yellow-600 font-cabin">
-                {violationMessage}
-                </Text>}
-                
-                {!showDropdown && !hidePlaceholder && error?.set && <Text className="absolute top-[35px] w-full text-xs text-red-600 font-cabin">
-                {error?.message}
-                </Text>}
-
-
-                </TouchableOpacity>
-
-                {/* options */}
-                {showDropdown && (
-                <View
-                    key='dropdown'
-                    ref={dropdownRef}
-                    className="absolute z-10 w-[calc(100%-10px)] h-fit max-h-[230px] overflow-y-scroll scroll rounded-b left-[5px] top-11 bg-white transition-all border-b  border-l border-r border-neutral-300 shadow-sm"
-                >
-                    {optionsList &&
-                    optionsList.map((option, index) => (
-                        <View key={index}>
-                        <TouchableOpacity
-                            tabIndex={index+1}
-                            onKeyDown={handleDropdownKeyDown}
-                            ref={el => dropdownOptionsRef.current[index] = el} 
-                            onPress={()=>{ handleOptionSelect(option, index) }}
-                            className="text-xs focus-visible:outline-0 focus-visible:bg-gray-100 font-medium font-cabin text-neutral-700 px-4 py-3 cursor-pointer transition-color hover:bg-gray-100"
-                        >
-                            <Text>{titleCase(option)}</Text>
-                        </TouchableOpacity>
-                        {index != optionsList.length - 1 && <View
-                            key='dropdown'
-                            ref={dropdownRef}
-                            className="absolute z-10 w-[calc(100%-10px)] h-1 max-h-[230px] bg-neutral-300 transition-all border-b"
-                        />}
-
-                        </View>
-                    ))}
-                </View>
-                )}
-            </View>
             </View>
         </View>
     </TouchableWithoutFeedback>
+        
+
     </>
   );
 }

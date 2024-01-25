@@ -5,8 +5,9 @@ module.exports = {
     extend: {
       fontFamily: {
         'geo': 'Georama_400Regular',
-        'Cabin':'./assets/fonts/cabin-regular.ttf',
-        'Inter':'Inter-Regular'
+        
+        'Inter':'Inter-Regular',
+        'Cabin': ['Cabin', 'san-serif'],
       }
       ,colors:{
         red:{
