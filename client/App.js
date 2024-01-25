@@ -22,6 +22,9 @@ const App = () => {
     "Cabin": require("./assets/fonts/cabin-regular.ttf"),
     // "SourceCodePro-LightIt": require("./assets/fonts/SourceCodePro-LightIt.otf"),
   });
+
+  const [showBackButtonOnTravelRequest, setShowBackButtonOnTravelRequest] = useState(true)
+
   if (!fontsLoaded) {
     return <Text>Loading...</Text>;
   }
@@ -30,11 +33,17 @@ const App = () => {
       <NavigationContainer>
         <Stack.Navigator initialRouteName='dashboard'>
           <Stack.Screen name='dashboard' component={Index} options={{ headerShown: false }}/>
-          <Stack.Screen name='createTravel'  component={CreateTravelRequest} options={{ title: 'Create Travel Request' }}/>
-
+          <Stack.Screen 
+            name='createTravel'
+            options={{ title: 'Create Travel Request' }}
+          >
+            {(props) => <CreateTravelRequest  {...props} />}
+          </Stack.Screen>
         </Stack.Navigator>
 
       </NavigationContainer>
+
+      
 
     //   <SafeAreaView className="flex-1 bg-blue-900  items-center  font-Cabin  justify-center">
       

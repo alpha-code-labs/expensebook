@@ -10,16 +10,15 @@ export { default as cash_icon } from './cash.png';
 export { default as overview_icon } from './overview.png';
 export { default as exp_icon } from './Receipt.png';
 export { default as exp_c_icon } from './Receipt-c.png';
-<<<<<<< HEAD
 export { default as logout_icon } from './SignOut.png';
 export { default as bell_icon } from './Bell.png';
 export { default as breifcase_icon } from './briefcase.png';
 export { default as travel_c_icon } from './travel_c.png';
 export { default as list_icon } from './List.png';
-
-
-=======
+export {default as check_icon} from './check.png'
+export {default as plus_icon} from './plus.png'
 export {default as chevron_down_icon} from './chevron-down.png'
->>>>>>> 5177c68c19f250af5652c651aeac2318c21f73fd
+
+
 
 

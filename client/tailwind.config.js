@@ -4,9 +4,7 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        'geo': 'Georama_400Regular',
-        'Cabin':'./assets/fonts/Cabin-Regular.ttf',
-        'Inter':'Inter-Regular'
+        'Cabin': ['Cabin', 'san-serif'],
       }
       ,colors:{
         red:{
