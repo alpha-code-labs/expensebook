@@ -7,7 +7,7 @@ import { getStatusClass, titleCase } from '../../../utils/handyFunctions';
 import { allTravelRequest } from '../../../dummyData/dashboard/travel';
 
 
-const AllTravelRequest = ({travelData}) => {
+const AllTravelRequest = ({travelData,navigation}) => {
   return (
  
 <View className='flex flex-col w-full h-[485px] mb-2'>

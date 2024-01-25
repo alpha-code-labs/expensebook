@@ -40,7 +40,7 @@ const Travel = ({navigation}) => {
       </Pressable>
 </View>
 
-    {activeScreen=== 'All Travel Requests' && <AllTravelRequest travelData={allTravelReq}/>}
+    {activeScreen=== 'All Travel Requests' && <AllTravelRequest travelData={allTravelReq} navigation={navigation}/>}
     {activeScreen=== 'Rejected Travel Requests' && <RejectedTravelRequest/>}
   
 
