@@ -103,7 +103,6 @@ const handleSelectedItinerary=()=>{
         <Text  className='font-Cabin font-semibold text-lg text-indigo-500'>
           Please choose the itinerary, you would like to cancel or cancel the trip.
         </Text>
-      </View>
       <ScrollView showsVerticalScrollIndicator={false} className='px-4 min-w-full mt-1'>
        <View className='flex'>  
        {['flights', 'trains', 'buses', 'cabs', 'hotels'].map((itnItem, itnItemIndex)=>{
@@ -171,7 +170,8 @@ const handleSelectedItinerary=()=>{
        
         </View> 
       
-      </ScrollView>
+      </ScrollView></View>
+      
 
       <View className=' flex flex-row py-4  gap-2'>
       <View >

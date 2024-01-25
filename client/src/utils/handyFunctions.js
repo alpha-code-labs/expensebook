@@ -129,6 +129,30 @@ function formatDate(date=Date.now()) {
   
     return camelCaseString;
   }
+
+
+  function getStatusClass(status){
+    switch(status){
+      case "approved":
+        case "completed":
+        case "booked":
+        return 'bg-[#C2FFD2] text-[#0E862D]';
+      case "rejected":
+      case "cancelled":  
+      case "paid and cancelled":  
+        return 'bg-red-100 text-red-900';
+      case "pending settlement":
+      case "pending approval": 
+      case "pending": 
+      case "pending booking": 
+      
+      case "transit":
+        return 'bg-yellow-100 text-yellow-600';
+      default:
+        return " ";  
+
+    }
+  } 
   
 
-export {titleCase, formatDate, formatDate2, formatDate3, camelCaseToTitleCase, titleCaseToCamelCase,urlRedirection}
+export {titleCase, getStatusClass,formatDate, formatDate2, formatDate3, camelCaseToTitleCase, titleCaseToCamelCase,urlRedirection}

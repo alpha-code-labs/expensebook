@@ -29,6 +29,7 @@ const Sidebar = () => {
 
    
  <Tab.Navigator
+  initialRouteName='Travel'
       screenOptions={{
         tabBarLabelStyle: {
           color:'#5E606E', 

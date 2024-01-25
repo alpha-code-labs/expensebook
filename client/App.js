@@ -41,7 +41,7 @@ const App = () => {
     //   {/* <Text className='text-blue-900'>Open up t working on your app! data is there</Text>
     //   <StatusBar style="auto" /> */}
       
-    //   <CancelTrip/>
+      // <CancelTrip/>
      //d <Login/> 
     //   {/* <UpdatePassword/> */}
    

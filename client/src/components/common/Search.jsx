@@ -150,7 +150,7 @@ import { TextInput,View,Text,Pressable,TouchableWithoutFeedback } from "react-na
                         onFocus={inputFocus}
                         onBlur={inputBlur}
                         onKeyDown={inputKeyDown}
-                        onClick={(e)=>{e.stopPropagation()}}
+                        onPress={(e)=>{e.stopPropagation()}}
                         className=" w-full h-full decoration:none px-6 py-2 border rounded-md   border-neutral-300 focus:border-indigo-600 " 
                         value={textInput} 
                         placeholder={placeholder}></TextInput>
@@ -371,7 +371,7 @@ import { TextInput,View,Text,Pressable,TouchableWithoutFeedback } from "react-na
 //                         onFocus={inputFocus}
 //                         onBlur={inputBlur}
 //                         onKeyDown={inputKeyDown}
-//                         onClick={(e)=>{e.stopPropagation()}}
+//                         onPress={(e)=>{e.stopPropagation()}}
 //                         className=" w-full h-full decoration:none px-6 py-2 rounded-md border border-neutral-300 focus-visible:outline-0 focus-visible:border-indigo-600 " 
 //                         value={textInput} 
 //                         placeholder={placeholder}></TextInput>
@@ -392,7 +392,7 @@ import { TextInput,View,Text,Pressable,TouchableWithoutFeedback } from "react-na
 //                             onKeyDown={handleDropdownKeyDown}
 //                             //ref={firstDropDownOptionsRef}
 //                             ref={el => dropdownOptionsRef.current[index] = el} 
-//                             onClick={(e)=>{ handleOptionSelect(option, index) }}
+//                             onPress={(e)=>{ handleOptionSelect(option, index) }}
 //                             className="text-xs font-medium font-cabin text-neutral-700 px-4 py-3 cursor-pointer transition-color hover:bg-gray-200 focus-visible:outline-0 focus-visible:bg-gray-100"
 //                         >
 //                             {titleCase(option)}
