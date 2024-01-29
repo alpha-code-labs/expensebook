@@ -1,0 +1,24 @@
+{
+  "lineItem": [
+   
+    {
+      "category": "travel",
+      "currencyName": "EURO",
+      "totalAmount": "43534",
+      "convertedTotalAmount": "",
+      "isPersonalExpense": false,
+      "personalAmount": "",
+      "convertedPersonalAmount": "",
+      "document": "fileName.jpg",
+      "nonPersonalAmount": "",
+      "convertedNonPersonalAmount": "",
+      "allocations": [
+        {
+          "headerName": "legal entity",
+          "valueName": "le2"
+        }
+      ],
+      "id": "8VRuAo0"
+    }
+  ]
+}

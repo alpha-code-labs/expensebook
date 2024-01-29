@@ -1,3 +1,6 @@
+@import url('https://fonts.googleapis.com/css2?family=Cabin&family=Inter&family=Montserrat:wght@200&family=Palanquin:wght@100&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

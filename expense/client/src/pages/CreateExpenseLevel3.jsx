@@ -1,17 +1,3 @@
-# React + Vite
-
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
-
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
-
-
-//create expense 
-
-
 /* eslint-disable react/jsx-key */
 /* eslint-disable react-refresh/only-export-components */
 /* eslint-disable react/display-name */
@@ -25,12 +11,12 @@ import Error from "../components/common/Error";
 import PopupMessage from "../components/common/PopupMessage";
 import { cab_purple as cab_icon, airplane_1 as airplane_icon ,house_simple , chevron_down,  cancel, modify} from "../assets/icon";
 import tripDummyData from "../dummyData/tripDummyData";
-import { hrDummyData } from "../dummyData/requiredDummy";
+import { bookAnExpenseDataLevel2, hrDummyData } from "../dummyData/requiredDummy";
 import Select from "../components/common/Select";
 import ActionButton from "../components/common/ActionButton";
 import Input from "../components/common/Input";
 import Upload from "../components/common/Upload";
-import { postMultiCurrencyForTravelExpenseApi, submitOrSaveAsDraftApi } from "../utils/api.js";
+import { cancelTravelExpenseLineItemApi, postMultiCurrencyForTravelExpenseApi, submitOrSaveAsDraftApi } from "../utils/api.js";
 import { bookAnExpenseData } from "../dummyData/requiredDummy";
 import Dropdown from "../components/common/DropDown.jsx";
 import Search from "../components/common/Search.jsx";
@@ -59,17 +45,19 @@ export default function () {
   const [settlementOptions, setSettlementOptions]=useState([])
 
   const [currencyTableData, setCurrencyTableData] = useState(null) //for get data after conversion
+
+  const [selectedTravelType, setSelectedTravelType] = useState(null);
+
+ 
   
 
-
-
-
-
-
   useEffect(() => {
-    const onboardingData = bookAnExpenseData;
+    const onboardingData = bookAnExpenseDataLevel2;
     const travelAllocationFlags = onboardingData?.companyDetails?.travelAllocationFlags;
+    
+
     const expenseCategoryAndFields = onboardingData?.companyDetails?.travelExpenseCategories
+    // const expenseCategoryAndFields = onboardingData?.companyDetails?.travelExpenseCategories
     const onboardingLevel = Object.keys(travelAllocationFlags).find((level) => travelAllocationFlags[level] === true);
     
     const settlementOptionArray =onboardingData?.companyDetails?.expenseSettlementOptions
@@ -81,16 +69,25 @@ export default function () {
     setCategoryFields(expenseCategoryAndFields) //this is for get form fields
     //for get level
 
-      const expenseAllocation= onboardingData?.companyDetails?.travelAllocations?.expenseAllocation
+      
+    
+    
+      const expenseAllocation= onboardingData?.companyDetails?.travelAllocations[selectedTravelType]?.expenseAllocation
       setTravelExpenseAllocation(expenseAllocation)  
 
-  }, [bookAnExpenseData]);
+  }, [selectedTravelType]);
+//   bookAnExpenseData
+const handleTravelTypeSelect = (type) => {
+
+    setSelectedTravelType(type);
+
+  };
    
 
   const defaultCurrency =  onboardingData?.companyDetails?.defaultCurrency ?? 'N/A'
 
   // console.log(travelAllocationFlag)
-  // console.log('expense allocation',travelExpenseAllocation)
+  console.log('expense allocation',travelExpenseAllocation)
   // console.log('onboardingData',onboardingData)
   // console.log('categoryViseFields',categoryfields)
 
@@ -103,6 +100,8 @@ export default function () {
   const handleCategorySelection = (selectedCategory) => {
     setSelectedCategory(selectedCategory);
   
+    
+  
     // Update lineItemDetails with empty strings for all fields of the selected category
     const emptyFields = categoryfields
       .find((category) => category.categoryName === selectedCategory)
@@ -113,7 +112,6 @@ export default function () {
   
     setLineItemDetails(emptyFields);
   };
-
   
  
 
@@ -160,14 +158,15 @@ const handlePersonalFlag=()=>{
   }
 }
 
+
+
+
+
 const onAllocationSelection = (option, headerName) => {
   // Create a new allocation object
   const newAllocation = { headerName: headerName, headerValue: option };
-
   // Update the allocations array
   setSelectedAllocations((prevAllocations) => [...prevAllocations, newAllocation]);
-
-  // ... (rest of your code)
 };
 
     const onReasonSelection = (option) => {
@@ -194,6 +193,7 @@ const onAllocationSelection = (option, headerName) => {
   const handleInputChange=(e)=>{
     const {name , value} = e.target
     setLineItemDetails((prevState)=>({...prevState,[name]:value}))
+
   }
 
 
@@ -376,6 +376,49 @@ const handleSubmitOrDraft=async(action)=>{
       console.log('save line item', dataWithCompanyDetails)
     };
 
+    const handleModifyLineItem=()=>{
+      const expenseLines = { ...lineItemDetails, category: selectedCategory ,isPersonalExpense:personalFlag , document : fileSelected ? selectedFile : ""};  
+      // Set the updated line item details
+      setLineItemDetails((prevState)=>({...prevState ,expenseLines}));
+      
+      
+      //for companyDetails
+      // const companyDetails = onboardingData?.companyDetails
+      // Log the updated details
+      // const dataWithCompanyDetails={
+      //   companyDetails:companyDetails,
+      //   expenseLines:[{...expenseLines}],
+      //   allocations: selectedAllocations
+      // }
+      console.log('save line item', expenseLines)
+
+    }
+
+    const handleDeleteLineItem=async(lineItemId)=>{
+      try{
+        setIsLoading(true)
+        const response= await cancelTravelExpenseLineItemApi(lineItemId) //pass tripId, headerexpense report and lineItemId
+        if(response.error){
+          setLoadingErrMsg(response.error.message)
+          setCurrencyTableData(null)
+        }else{
+          setLoadingErrMsg(null)
+          setLoadingErrMsg(response.data) 
+        }
+      }catch(error){
+        setLoadingErrMsg(error.message)
+        setMessage(error.message)
+        setShowPopup(true)
+        setTimeout(() => {
+          setShowPopup(false)
+        }, 3000);
+        
+      } finally{
+        setIsLoading(false);
+      }
+
+    }
+
 
   return <>
 {/* <Error message={loadingErrMsg}/> */}
@@ -395,7 +438,15 @@ const handleSubmitOrDraft=async(action)=>{
         <div>
                Expense Type: Travel
         </div>
-        <div  className="flex md:flex-row flex-col my-5 justify-evenly items-center flex-wrap">            
+        <div  className="flex md:flex-row flex-col my-5 justify-evenly items-center flex-wrap">
+            <Select 
+            placeholder='Travel Type'
+            title='Select Travel Type'
+            options={['international','domestic','local']}
+            onSelect={handleTravelTypeSelect}
+
+            
+            />            
              
          {travelExpenseAllocation && travelExpenseAllocation.map((expItem , index)=>(
               <>
@@ -584,41 +635,26 @@ const handleSubmitOrDraft=async(action)=>{
 <div className="w-full flex-wrap flex flex-col justify-center items-center p-2">
 
 
-  {item.expenseLines.map((lineItem, index) => (
+{item.expenseLines.map((lineItem, index) => (
+
     lineItem._id === editLineItemById ? 
     (<>
-     <div className=" w-full flex-wrap flex flex-col justify-center items-center p-2">
+    <div className=" w-full flex-wrap flex flex-col justify-center items-center p-2">
     <div className="w-1/2">
       <Search 
-      currentOption={lineItem.category}
+      defaultValue={lineItem.category}
       title="Category" 
       placeholder='Select Category' 
       options={categoryNames}
       onSelect={(category)=>handleCategorySelection(category)}/>
      </div>   
- <div className="w-full flex-row  border">
-  <div className="w-full border flex flex-wrap items-center justify-center">
-     {/* {selectedCategory &&
-         categoryfields.find((category)=>category.categoryName === selectedCategory).fields.map((field)=>(
-          <>
-          <div key={field.name} className="w-1/2 flex justify-center items-center">
-          
-            <Input
-            title={field.name}
-            name={field.name}
-            type={field.type == 'date' ? 'date' : field.type === 'numeric' ? 'number' : 'text'}
-            placeholder={`Enter ${field.name}`} 
-            value={lineItemDetails[field.name] !== undefined ? lineItemDetails[field.name] : lineItem[field.name] || ""} 
-            onChange={handleInputChange}                      
-            />
-           
-          </div>
-   
-          
-          
-          </>
-         ))} */}
-         {selectedCategory &&
+   <div className="w-full flex-row  border">
+   <div className="w-full border flex flex-wrap items-center justify-center">
+
+     
+
+
+    {selectedCategory &&
         categoryfields.find((category) => category.categoryName === selectedCategory).fields.map((field) => (
           <>
             <div key={field.name} className="w-1/2 flex justify-center items-center">
@@ -627,7 +663,7 @@ const handleSubmitOrDraft=async(action)=>{
                 name={field.name}
                 type={field.type == 'date' ? 'date' : field.type === 'numeric' ? 'number' : 'text'}
                 placeholder={`Enter ${field.name}`}
-                value={lineItemDetails[field.name] !== undefined ? lineItemDetails[field.name] : lineItem[field.name] || ""}
+                value={lineItem[field.name] !== undefined ? lineItem[field.name] : lineItem[field.name] || ""}
                 onChange={handleInputChange}
               />
             </div>
@@ -654,7 +690,7 @@ title='Personal Amount'
 error={ errorMsg.personalAmount}
 name='personalAmount'
 type={'text'}
-value={lineItemDetails.personalAmount || ""}
+value={lineItemDetails.personalAmount || lineItem.personalAmount}
 onChange={handleInputChange}
 />}
 
@@ -662,7 +698,7 @@ onChange={handleInputChange}
 </div>
 {/* //personal expense */}
 <div className="h-[48px] w-1/2 justify-center items-center inline-flex gap-4 ">
-   <div className="w-[150px] h-auto ">
+   <div className="w-[150px] h-auto">
    <Dropdown
          label="Currency"
          name="currency"
@@ -671,7 +707,7 @@ onChange={handleInputChange}
        placeholder="Select Currency"
        options={['INR',"USD",'AUD']} //this data will get from currency  api
       //  onSelect={(value) => handleDropdownChange(value, 'currencyName')}
-       currentOption=""
+       defaultOption={lineItem.currencyName}
        violationMessage="Your violation message" 
        error={{ set: true, message: "Your error message" }} 
        required={true} 
@@ -730,7 +766,7 @@ onChange={handleInputChange}
 
 <div className="w-full mt-5 px-4" >
  <Button text="Save" 
-  onClick={handleSaveLineItemDetails} />
+  onClick={handleModifyLineItem} />
 </div>     
 
 {/* -------------------- */}
@@ -743,11 +779,14 @@ onChange={handleInputChange}
     </>)  :
     <div className="w-full flex-row  border mt-2">
         <h2>LineItem {index+1}</h2>
-    <div key={index} className="w-full border flex flex-wrap items-center justify-center gap-2">
+     <div className="w-full flex items-center justify-start h-[52px] border px-4 ">
+      <p className="text-zinc-600 text-medium font-semibold font-cabin">Category -{titleCase(lineItem.category)}</p>
+    </div>   
+    <div key={index} className="w-full  border flex flex-wrap items-center px-4 justify-between  py-4">
         {Object.entries(lineItem).map(([key, value]) => (
             key !== '_id' && (
               <>
-                    <div className="min-w-[200px] w-full md:w-fit   flex-col justify-start items-start gap-2 ">
+        <div className="min-w-[200px] w-full md:w-fit   flex-col justify-start items-start gap-2 ">
                     
         <div className="text-zinc-600 text-sm font-cabin">{titleCase(key)}</div>
         
@@ -768,8 +807,9 @@ onChange={handleInputChange}
          )
          ))}
      
-     <div className="w-full mt-5 m-4 flex justify-end" >
+     <div className="w-full mt-5 m-4 flex justify-end gap-4" >
       <Button text="Edit" onClick={()=>(setEditLineItemById(lineItem._id))} />
+      <Button text="Delete" onClick={()=>(handleDeleteLineItem(lineItem._id))} />
      </div>
     </div>
     
@@ -784,14 +824,14 @@ onChange={handleInputChange}
 </div>
 
 </div>
-{/* ///saved lineItem */}
+
  </div>
           )}
         </div>))}
       
-    </div>
+ </div>
 
-{/* //lineItemform */}
+{/*start new //lineItemform */}
    
     <div className=" w-full flex flex-col  lg:flex-row  ">
 
@@ -812,7 +852,7 @@ onChange={handleInputChange}
       onSelect={(category)=>handleCategorySelection(category)}/>
      </div>   
  <div className="w-full flex-row  border">
-  <div className="w-full border flex flex-wrap items-center justify-center">
+  <div className="w-full border flex flex-wrap items-center justify-center  py-4">
      {selectedCategory &&
          categoryfields.find((category)=>category.categoryName === selectedCategory).fields.map((field)=>(
           <>
@@ -1000,3 +1040,248 @@ onChange={handleInputChange}
 
   </>;
 }
+
+
+
+function spitImageSource(modeOfTransit){
+    if(modeOfTransit === 'Flight')
+        return airplane_icon
+    else if(modeOfTransit === 'Train')
+        return cab_icon
+    else if(modeOfTransit === 'Bus')
+        return cab_icon
+}
+
+
+
+
+
+function FlightCard({amount,from, mode='Flight', showActionButtons, itnId, handleLineItemAction}){
+    return(
+    <div className="shadow-sm min-h-[76px] bg-slate-50 rounded-md border border-slate-300 w-full px-6 py-4 flex flex-col sm:flex-row gap-4 items-center sm:divide-x">
+    <img src={spitImageSource(mode)} className='w-4 h-4' />
+    <div className="w-full flex sm:block">
+        <div className='mx-2 text-xs text-neutral-600 flex justify-between flex-col sm:flex-row'>
+            <div className="flex-1">
+                Travel Allocation   
+            </div>
+           
+            <div className="flex-1">
+                Amount
+            </div>
+            <div className="flex-1">
+                Already Booked
+            </div>
+        </div>
+
+        <div className="mx-2 text-sm w-full flex justify-between flex-col sm:flex-row">
+            <div className="flex-1">
+                {titleCase(from)}     
+            </div>
+            
+            <div className="flex-1">
+                {amount??'N/A'}
+            </div>
+            <div className='flex-1'>
+                <input type="checkbox" checked={true}/>
+            </div>
+        </div>
+    </div>
+
+    {/* {showActionButtons && 
+    <div className={`flex items-center gap-2 px-3 pt-[6px] pb-2 py-3 rounded-[12px] text-[14px] font-medium tracking-[0.03em] text-gray-600 cursor-pointer bg-slate-100  hover:bg-red-100  hover:text-red-900 `} onClick={onClick}>
+        <div onClick={()=>handleLineItemAction(itnId, 'approved')}>
+            <ActionButton text={'approve'}/>
+        </div>
+        <div onClick={()=>handleLineItemAction(itnId, 'rejected')}>
+            <ActionButton text={'reject'}/>   
+        </div>   
+    </div>} */}
+
+    </div>)
+}
+
+
+
+function HotelCard({amount, hotelClass, onClick, preference='close to airport,'}){
+    return(
+    <div className="shadow-sm min-h-[76px] bg-slate-50 rounded-md border border-slate-300 w-full px-6 py-4 flex flex-col sm:flex-row gap-4 items-center sm:divide-x">
+    <p className='font-semibold text-base text-neutral-600'>Hotel</p>
+    <div className="w-full flex sm:block">
+        <div className='mx-2 text-xs text-neutral-600 flex justify-between flex-col sm:flex-row'>
+           <div className="flex-1">
+           Travel Allocation   
+            </div>
+            <div className="flex-1">
+                Amount
+            </div>
+            
+            <div className='flex-1'>
+                Already Booked
+            </div>
+        </div>
+
+        <div className="mx-2 text-sm w-full flex justify-between flex-col sm:flex-row">
+            <div className="flex-1">
+                {/* {checkIn}      */}
+                Deparment
+            </div>
+            <div className="flex-1">
+                {hotelClass??'N/A'}
+            </div>
+            <div className='flex-1'>
+                <input type="checkbox" checked/>
+            </div>
+        </div>
+
+    </div>
+
+   
+
+    </div>)
+}
+
+function CabCard({amount,from, to, date, time, travelClass, onClick, mode, isTransfer=false, showActionButtons, itnId, handleLineItemAction}){
+    return(
+    <div className="shadow-sm min-h-[76px] bg-slate-50 rounded-md border border-slate-300 w-full px-6 py-4 flex flex-col sm:flex-row gap-4 items-center sm:divide-x">
+    <div className='font-semibold text-base text-neutral-600'>
+    <img src={cab_icon} className='w-6 h-6' />
+        <p className="text-xs text-neutral-500">{isTransfer? 'Transfer Cab': 'Cab'}</p>
+    </div>
+    <div className="w-full flex sm:block">
+        <div className='mx-2 text-xs text-neutral-600 flex justify-between flex-col sm:flex-row'>
+            {/* <div className="flex-1">
+                Pickup     
+            </div> */}
+            <div className="flex-1" >
+            Travel Allocation   
+            </div>
+            {/* <div className="flex-1">
+                    Date
+            </div> */}
+            <div className="flex-1">
+                Amount
+            </div>
+            {<div className="flex-1">
+               Already Booked
+            </div>}
+        </div>
+
+        <div className="mx-2 text-sm w-full flex justify-between flex-col sm:flex-row">
+            {/* <div className="flex-1">
+                {from??'not provided'}     
+            </div> */}
+            <div className="flex-1">
+                {/* {to??'not provided'}      */}
+                Legal Entity
+            </div>
+            {/* <div className="flex-1">
+                {date??'not provided'}
+            </div> */}
+            <div className="flex-1">
+                {amount??'N/A'}
+            </div>
+           {/* {!isTransfer && <div className="flex-1">
+                {travelClass??'N/A'}
+            </div>} */}
+             <div className='flex-1'>
+                <input type="checkbox" checked/>
+            </div>
+        </div>
+    </div>
+  
+    </div>)
+}
+
+
+{/* <div className="mt-5">
+    <div> <Button text="Add Line Item"/></div>
+<div>
+
+<div className="form w-[50px] flex flex-row gap-2">
+<Select 
+         options={travelExpenseCategoryOptions}
+         onSelect={onReasonSelection}
+         placeholder='Select Category'
+         title='Category'
+/>
+<div className="inline-flex">
+<Input title='Amount' placeholder='Enter Amount' /> 
+
+<Select 
+         options={travelExpenseCategoryOptions}
+         onSelect={onReasonSelection}
+         placeholder='Select Currency'
+         title="Currency"
+/>
+<div className="w-full flex flex-row gap-4 m-2">
+<ActionButton text="convert"/>
+    <div>
+        <h2>Coverted Amt:<strong> INR50000</strong></h2>
+    </div>
+</div>
+<Select 
+         options={travelExpenseCategoryOptions}
+         onSelect={onReasonSelection}
+         placeholder='Allocation Header'
+         title="Allocation Header"
+/>
+
+    <div>
+    <h1> Personal Expense</h1>
+    <button
+        className={`${
+          isPersonalExpense ? 'bg-green-500' : 'bg-red-500'
+        } text-white font-bold py-2 px-2 rounded-full`}
+        onClick={handleButtonClick}
+      >
+        {isPersonalExpense ? 'YES': 'NO'}
+      </button>
+    </div>
+
+
+
+<div className="pb-8 ml-4">
+            <div className="flex gap-2">
+                <p className='text-base font-medium text-neutral-700 font-cabin'>Upload Bills</p>
+                <p className='text-base font-medium text-neutral-500 font-cabin'>{`(Optional)`}</p>
+            </div>
+<div className=""> 
+<Upload selectedFile={selectedFile} 
+                    setSelectedFile={setSelectedFile} 
+                    fileSelected={fileSelected} 
+                    setFileSelected={setFileSelected} />
+</div>
+            
+
+            {fileSelected ? (
+                <div className="flex flex-col items-start justify-start gap-[8px] text-[12px]">
+                <img
+                  className="relative w-10 h-10 overflow-hidden shrink-0"
+                  alt=""
+                  src={file_icon}
+                />
+                <div className="relative font-medium inline-block overflow-hidden text-ellipsis whitespace-nowrap w-[43px]">
+                  {selectedFile.name}
+                </div>
+              </div>
+            ) : (
+              null
+            )}
+
+            <hr className='mt-8' />
+ </div>
+<div className="m-4 flex gap-2">
+ <ActionButton text="Save"/>
+ <ActionButton text="modify"/>
+ <ActionButton text="delete"/>
+ </div>
+
+
+
+
+</div>
+
+</div>
+</div>
+</div>    */}

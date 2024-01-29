@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="104" height="104" viewBox="0 0 104 104" fill="none">
+<rect width="104" height="104" fill="white"/>
+<path d="M68.6456 16.2558C68.6456 16.2558 56.181 32.0444 36.2376 22.6264C16.2942 13.2085 -9.6734 45.4885 7.49981 61C24.673 76.5115 15.8328 84.9936 27.5 94.5C40.7604 105.305 50.4743 89.5141 61 94.5C84.2307 105.504 101.331 88.2737 97.4529 75.532C90.6458 53.1658 81.9413 51.711 88.5892 40.0771C95.237 28.4432 80.565 4.25422 68.6456 16.2558Z" fill="#D4CFFC"/>
+<path d="M2 52.8523L11.4543 66L23 63.9666L6.83956 52L2 52.8523Z" fill="white" stroke="#4C36F1" stroke-width="1.48613" stroke-linecap="round" stroke-linejoin="round"/>
+<mask id="mask0_1522_1315" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="11" y="53" width="87" height="21">
+<path fill-rule="evenodd" clip-rule="evenodd" d="M93.7343 57.0925C88.4136 53.7994 82.0555 52.6105 75.9043 53.7586L11.2393 65.8122C11.9791 69.8031 12.2005 71.0333 15.591 73.1381L97.9994 58.5341C96.3014 56.9725 96.1663 58.5983 93.7343 57.0925Z" fill="white"/>
+</mask>
+<g mask="url(#mask0_1522_1315)">
+<path d="M53.2549 56.1978L55.4569 58.2116C58.5963 61.0849 62.8912 62.339 67.0835 61.6064L102.034 55.4923L89.0254 44.1133L57.4987 56.002L53.2549 56.1978Z" fill="#CFCFD0"/>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M53.2549 56.1978L55.4569 58.2116C58.5963 61.0849 62.8912 62.339 67.0835 61.6064L102.034 55.4923L89.0254 44.1133L57.4987 56.002L53.2549 56.1978Z" stroke="#3D3D3C" stroke-width="1.48613" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+<path fill-rule="evenodd" clip-rule="evenodd" d="M93.7723 56.9871C88.4982 53.4955 82.1958 52.2349 76.0985 53.4522L12 66.2325C12.7334 70.464 12.9528 71.7683 16.3137 74L98 58.5157C96.3169 56.8599 96.183 58.5837 93.7723 56.9871Z" fill="#EAE7FD" stroke="#4C36F1" stroke-width="1.48613" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M23.8795 53.0577L28.6053 52.1469C30.3036 51.8197 32.0582 52.0421 33.6297 52.784L60 65.4618L41.0247 69L23.4227 55.0389C22.683 54.4522 22.9638 53.2342 23.8795 53.0577Z" fill="white" stroke="#4C36F1" stroke-width="1.48613" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M24 69L20 70" stroke="#4C36F1" stroke-width="1.48613" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
