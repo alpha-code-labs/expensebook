@@ -2,7 +2,7 @@ import travelExpense from "../models/travelExpense.js" ;
  
 export const getTravelExpenseData = async(req , res)=>{
     try {
-        const singletravelExpenseData = await travelExpense.find();
+        const singletravelExpenseData = await travelExpense.find({actionedUpon:"No"});
         res.status(200).json(singletravelExpenseData)
     } catch (error) {
         res.status(500).json(error);

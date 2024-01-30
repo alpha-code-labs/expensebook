@@ -20,36 +20,36 @@ app.use(json());
 app.use(urlencoded({ extended: false }));
 
 //finding cash advances with actionedUpon flag as No
-app.get("/cashadvance", async (req, res) => {
-  try {
-    const cashadvances = await find({ actionedUpon: "No" });
+// app.get("/cashadvance", async (req, res) => {
+//   try {
+//     const cashadvances = await find({ actionedUpon: "No" });
 
-    // Extracting empId and name from each approver and storing in separate variables
-    /*const cashAdvancesWithApprovers = cashadvances.map((cashadvance) => {
-      const empIds = cashadvance.approvers.map((approver) => approver.empId);
-      const names = cashadvance.approvers.map((approver) => approver.name);
+//     // Extracting empId and name from each approver and storing in separate variables
+//     /*const cashAdvancesWithApprovers = cashadvances.map((cashadvance) => {
+//       const empIds = cashadvance.approvers.map((approver) => approver.empId);
+//       const names = cashadvance.approvers.map((approver) => approver.name);
 
-      return {
-        ...cashadvance._doc,
-        empIds: empIds,
-        names: names,
-      };
-    });*/
-    /*
-      const Finance = require('./models/Finance');
-      // Insert the data into the 'finance' collection
-      const result = await Finance.insertMany(cashadvances);*/
-    //const financeData = await Finance.find({});
-    res.status(200).json({
-        cashadvances
-      //cashAdvances: cashAdvancesWithApprovers,
-      //financeData: financeData,
-    });
-  } catch (error) {
-    console.log(error.message);
-    res.status(500).json({ message: error.message });
-  }
-});
+//       return {
+//         ...cashadvance._doc,
+//         empIds: empIds,
+//         names: names,
+//       };
+//     });*/
+//     /*
+//       const Finance = require('./models/Finance');
+//       // Insert the data into the 'finance' collection
+//       const result = await Finance.insertMany(cashadvances);*/
+//     //const financeData = await Finance.find({});
+//     res.status(200).json({
+//         cashadvances
+//       //cashAdvances: cashAdvancesWithApprovers,
+//       //financeData: financeData,
+//     });
+//   } catch (error) {
+//     console.log(error.message);
+//     res.status(500).json({ message: error.message });
+//   }
+// });
 
 //modify status when marked as settled
 // app.put("/cashadvance", async (req, res) => {
