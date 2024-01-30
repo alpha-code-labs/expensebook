@@ -17,15 +17,15 @@ import { updateStart, updateSuccess, updateFailure } from "./updateRedux";
 //   }
 // };
 
-export const updateSettlementColumn = async (dispatch, id , path) => {
+export const updateSettlementColumn = async (dispatch, tenantId , travelRequestId , path) => {
   // console.log(path);
   dispatch(updateStart());
-  const data = { _id: id };
+  // console.log("LINE AT 23" , ten);
+
 
   try {
     const res = await axios.put(
-      `http://localhost:3000/api/${path}/settlement`,
-      data
+      `http://localhost:3000/api/${path}/settlement/${tenantId}/${travelRequestId}`,
     );
     // console.log(res.data);
     dispatch(updateSuccess(res.data));
@@ -35,13 +35,13 @@ export const updateSettlementColumn = async (dispatch, id , path) => {
   }
 };
 
-export const notUpdateSettlementColumn = async (dispatch , id , path) => {
-  const data = { _id: id };
-  console.log("LINE AT 68", data);
+export const notUpdateSettlementColumn = async (dispatch , tenantId , travelRequestId ,  path) => {
+  // const data = { _id: id };
+  // console.log("LINE AT 40", tenantId);
   dispatch(updateStart());
 
   try {
-const res =    await axios.put(`http://localhost:3000/api/${path}/unSettlement`, data);
+const res =    await axios.put(`http://localhost:3000/api/${path}/unSettlement/${tenantId}/${travelRequestId}`);
     dispatch(updateSuccess(res.data));
 
 } catch (error) {

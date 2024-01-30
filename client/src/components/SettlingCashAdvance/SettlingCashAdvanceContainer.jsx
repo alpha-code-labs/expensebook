@@ -9,6 +9,7 @@ import {
  
 } from "../../redux/apiCalls.js";
 import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 
 // const employeeData = [
 //   {
@@ -42,7 +43,7 @@ const SettlingCashAdvanceContainer = () => {
         const data = await axios.get(
           "http://localhost:3000/api/cashAdvance/find"
         );
-        console.log(data.data);
+        // console.log(data.data);
         setDummyValues(data.data);
       } catch (error) {
         console.log(error);
@@ -68,7 +69,10 @@ const SettlingCashAdvanceContainer = () => {
   },[dummyValues] );
 
   // console.log( "LINE AT 55" , dummyValues);
-  const id = { ...dummyValues[0] }?._id;
+  // const id = { ...dummyValues[0] }?._id;
+  const tenantId = { ...dummyValues[0] }?.tenantId;
+  const travelRequestId = { ...dummyValues[0] }?.travelRequestId;
+  // console.log(ten);
 
   // const name = dummyValues[0]?.createdBy.name;
   // const amount = {...dummyValues[0]?.amountDetails}[0]?.amount;
@@ -97,7 +101,7 @@ const SettlingCashAdvanceContainer = () => {
   const { isFetching } = useSelector((state) => state?.update);
 
   const fullDummyData = useSelector((state) => state?.update);
-   console.log(fullDummyData.update);
+  //  console.log(fullDummyData.update);
   //  console.log(fullDummyData.update?.actionedUpon);
 
   const handleChange = (e) => {
@@ -105,9 +109,9 @@ const SettlingCashAdvanceContainer = () => {
     const isSelected = e.target.checked;
     if (isSelected) {
       // setCheckedValues([...checkedValues, empData]);
-      updateSettlementColumn(dispatch, id, "cashAdvance");
+      updateSettlementColumn(dispatch, tenantId, travelRequestId , "cashAdvance");
     } else {
-      notUpdateSettlementColumn(dispatch, id, "cashAdvance");
+      notUpdateSettlementColumn(dispatch, tenantId, travelRequestId ,  "cashAdvance");
       // setCheckedValues((prevData) => {
       //   return prevData.filter((empName) => {
       //     return empName !== empData;
@@ -117,6 +121,8 @@ const SettlingCashAdvanceContainer = () => {
 
     // console.log("LINE AT 107",  checkedValues);
   };
+
+  const navigate = useNavigate();
 
   return (
     <div className="flex space-x-4 ">
@@ -157,7 +163,8 @@ const SettlingCashAdvanceContainer = () => {
               //fullDummyData.update?.actionedUpon &&
               <tr
                 key={index}
-                className="w-[800px] h-[70px] border-b border-solid border-gainsboro-200"
+                className="w-[800px] h-[70px] border-b border-solid border-gainsboro-200 cursor-pointer"
+                onClick={(()=>(navigate(`/settlingCashAdvance/${tenantId}/${travelRequestId}`))) }
               >
                 <td className="p-2 text-center">
                   <input
@@ -167,6 +174,7 @@ const SettlingCashAdvanceContainer = () => {
                     className="mx-auto"
                     onChange={handleChange}
                     // checked={checkedValues.includes(employee.name)}
+                    // onClick={(()=>(navigate(`/settlement/${ten}`))) }
                   />
                 </td>
                 <td className="p-4 text-center">
