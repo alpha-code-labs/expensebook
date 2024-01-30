@@ -1,15 +1,15 @@
-const express = require("express");
-const Finance = require("../models/Finance");
-const router = express.Router();
+import { Router } from "express";
+import Finance from "../models/Finance.js";
+const router = Router();
 
 router.post("/post" , async(req , res)=>{
     // console.log("LINE AT 6" , req.body.dummyData);
     // res.status(200).send("ok");
     try {
         const completeDummyData = req.body.dummyData;
-        console.log("LINE AT 10" , {...completeDummyData[0]});
+        // console.log("LINE AT 10" , completeDummyData);
         const {_id , ...others} = {...completeDummyData[0]};
-        console.log("LINE AT 12" , others);
+        // console.log("LINE AT 12" , others);
 
         let finance = new Finance(others);
         const financeDummyData = await finance.save();
@@ -20,4 +20,4 @@ router.post("/post" , async(req , res)=>{
     }
 });
 
-module.exports = router;
+export default router;
