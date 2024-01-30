@@ -1,28 +1,28 @@
-const express = require("express")
-const mongoose = require("mongoose")
-const cors = require("cors");
+import express, { json, urlencoded } from "express";
+import { connect } from "mongoose";
+import cors from "cors";
 
-const cashAdvanceRouter = require("./routes/cashAdvanceRouter");
-const travelExpenseRouter = require("./routes/travelExpenseRouter");
-const nonTravelExpenseRouter = require("./routes/nonTravelExpenseRouter");
-const financeRouter = require("./routes/financeRouter");
+import cashAdvanceRouter from "./routes/cashAdvanceRouter.js";
+import travelExpenseRouter from "./routes/travelExpenseRouter.js";
+import nonTravelExpenseRouter from "./routes/nonTravelExpenseRouter.js";
+import financeRouter from "./routes/financeRouter.js";
 
 const app = express();
 
 
-const Product=require('./models/cashAdvance');
+// import Product from './models/cashAdvance';
 
 
-const Cash = require("./models/cashAdvance");
+// import { find } from "./models/cashAdvance";
 
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+app.use(json());
+app.use(urlencoded({ extended: false }));
 
 //finding cash advances with actionedUpon flag as No
 app.get("/cashadvance", async (req, res) => {
   try {
-    const cashadvances = await Cash.find({ actionedUpon: "No" });
+    const cashadvances = await find({ actionedUpon: "No" });
 
     // Extracting empId and name from each approver and storing in separate variables
     /*const cashAdvancesWithApprovers = cashadvances.map((cashadvance) => {
@@ -91,7 +91,7 @@ app.use("/api/travelExpense" , travelExpenseRouter);
 app.use("/api/nonTravelExpense" , nonTravelExpenseRouter);
 app.use("/api/finance" , financeRouter);
 
-mongoose.connect("mongodb+srv://acladmin:QlSYiddbBy7J9yS6@mycluster.58esz73.mongodb.net/?retryWrites=true&w=majority")
+connect("mongodb+srv://acladmin:QlSYiddbBy7J9yS6@mycluster.58esz73.mongodb.net/?retryWrites=true&w=majority")
 .then(()=>{
     console.log("Connected to mongodb")
     app.listen (3000,()=>{
