@@ -42,6 +42,7 @@ const SettlingCashAdvanceContainer = () => {
         const data = await axios.get(
           "http://localhost:3000/api/cashAdvance/find"
         );
+        console.log(data.data);
         setDummyValues(data.data);
       } catch (error) {
         console.log(error);
