@@ -1,4 +1,4 @@
-const nonTravelExpense = require("../models/nonTravelExpense").default;
+import  nonTravelExpense from "../models/nonTravelExpense.js" ;
  
 export const getNonTravelExpenseData = async(req , res)=>{
     try {

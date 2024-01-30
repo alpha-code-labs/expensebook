@@ -1,8 +1,7 @@
-const express = require("express");
-const router = express.Router();
+import { Router } from "express";
+const router = Router();
  
-const { getCashAdvanceData, settlement, unSettlement } = require("../controller/cashAdvanceController");
-
+import { getCashAdvanceData, settlement, unSettlement } from "../controller/cashAdvanceController.js";
 router.get("/find" , getCashAdvanceData);
 
 router.put("/settlement" , settlement);
@@ -10,7 +9,7 @@ router.put("/settlement" , settlement);
 router.put("/unSettlement" , unSettlement);
 
 
-module.exports = router;
+export default router;
 
 
 
