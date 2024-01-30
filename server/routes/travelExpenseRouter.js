@@ -1,6 +1,6 @@
-const express = require("express");
-const router = express.Router();
-const { getTravelExpenseData, settlementTravelExpenseData, unSettlementTravelExpenseData } = require("../controller/travelExpenseController");
+import { Router } from "express";
+const router = Router();
+import { getTravelExpenseData, settlementTravelExpenseData, unSettlementTravelExpenseData } from "../controller/travelExpenseController.js";
  
 
 router.get("/find" , getTravelExpenseData);
@@ -9,4 +9,4 @@ router.put("/settlement" , settlementTravelExpenseData);
 
 router.put("/unSettlement" , unSettlementTravelExpenseData);
 
-module.exports = router;
+export default router;

@@ -58,7 +58,7 @@ const cashAdvanceSchema = new Schema({
       cashAdvanceNumber:{
         type: String,
         required: true,
-      },
+      }, 
       createdBy: {
           empId: String,
           name: String,

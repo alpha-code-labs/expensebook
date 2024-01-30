@@ -1,5 +1,6 @@
-const CashAdvance = require("../models/cashAdvance");
-export const getCashAdvanceData = async(req , res)=>{
+import  CashAdvance from "../models/cashAdvance.js";
+
+ const getCashAdvanceData = async(req , res)=>{
     try { 
         const singleCashAdvanceData = await CashAdvance.find();
         res.status(200).json(singleCashAdvanceData);
@@ -8,7 +9,7 @@ export const getCashAdvanceData = async(req , res)=>{
     }
 };
 
-export const settlement = async(req , res)=>{
+ const settlement = async(req , res)=>{
     // console.log("LINE AT 15" , req.body);
     const id = req.body._id;
     // console.log("LINE AT 17" , id);
@@ -30,7 +31,7 @@ export const settlement = async(req , res)=>{
     }
 };
 
-export const unSettlement = async(req , res)=>{
+ const unSettlement = async(req , res)=>{
     // console.log("LINE AT 37" , req.body);
     const id = req.body._id;
     // console.log("LINE AT 39" , id);
@@ -51,3 +52,4 @@ export const unSettlement = async(req , res)=>{
       res.status(500).json(error);
     }
 }
+export {getCashAdvanceData , settlement , unSettlement};

@@ -28,72 +28,74 @@ const financeSchema = new Schema({
       type: String, //travelRequestSchema,
       // required: true,
     },
-  cashAdvancesData: [
-    {
-      tenantId: {
-        type: String,
-        required: true,
-      },
-      travelRequestId: {
-        type: String,
-        required: true,
-      },
-      travelRequestNumber:{
-        type: String,
-        required: true,
-      },
-      cashAdvanceId: {
-        type: String,
-        unique: true,
-        required: true,
-      },
-      cashAdvanceNumber:{
-        type: String,
-        required: true,
-      },
-      createdBy: {
-          empId: String,
-          name: String,
-      },
-      cashAdvanceStatus: {
-        type: String,
-        enum: cashAdvanceStatusEnum,
-        required: true,
-        default: 'draft',
-      },
-      cashAdvanceState: {
-        type: String,
-        enum: cashAdvanceStateEnums,
-        default: 'section 0',
-        required: true,
-      },
-      amountDetails: [
-        {
-          amount: Number,
-          currency: {},
-          mode: String,
+    
+    cashAdvancesData: [
+      {
+        tenantId: {
+          type: String,
+          required: true,
         },
-      ],
-      approvers: [
-        {
-          empId: String,
-          name: String,
-          status: {
-            type: String,
-            enum: approverStatusEnums,
+        travelRequestId: {
+          type: String,
+          required: true,
+        },
+        travelRequestNumber:{
+          type: String,
+          required: true,
+        },
+        cashAdvanceId: {
+          type: String,
+          unique: true,
+          required: true,
+        },
+        cashAdvanceNumber:{
+          type: String,
+          required: true,
+        }, 
+        createdBy: {
+            empId: String,
+            name: String,
+        },
+        cashAdvanceStatus: {
+          type: String,
+          enum: cashAdvanceStatusEnum,
+          required: true,
+          default: 'draft',
+        },
+        cashAdvanceState: {
+          type: String,
+          enum: cashAdvanceStateEnums,
+          default: 'section 0',
+          required: true,
+        },
+        amountDetails: [
+          {
+            amount: Number,
+            currency: {},
+            mode: String,
           },
-        },
-      ],
-      assignedTo:{empId:String, name:String},
-      paidBy:{empId:String, name:String},
-      recoveredBy:{empId:String, name:String},
-      cashAdvanceRequestDate: Date,
-      cashAdvanceApprovalDate: Date,
-      cashAdvanceSettlementDate: Date,
-      cashAdvanceViolations: String,
-      cashAdvanceRejectionReason: String,
-    },
-  ],
+        ],
+        approvers: [
+          {
+            empId: String,
+            name: String,
+            status: {
+              type: String,
+              enum: approverStatusEnums,
+            },
+          },
+        ],
+        assignedTo:{empId:String, name:String},
+        paidBy:{empId:String, name:String},
+        recoveredBy:{empId:String, name:String},
+        cashAdvanceRequestDate: Date,
+        cashAdvanceApprovalDate: Date,
+        cashAdvanceSettlementDate: Date,
+        cashAdvanceViolations: String,
+        cashAdvanceRejectionReason: String,
+      },
+    ],
+  
 });
 
 export default model("Finance", financeSchema);
