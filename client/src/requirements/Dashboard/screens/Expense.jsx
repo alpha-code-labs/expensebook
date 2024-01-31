@@ -1,8 +1,5 @@
 import React,{useEffect, useState} from 'react'
 import { View ,Text,Image, Pressable, FlatList, SectionList, ScrollView, ScrollViewComponent} from 'react-native'
-import Button from '../../../components/common/Button'
-import { breifcase_icon, list_icon } from '../../../../assets/icon';
-import { getStatusClass, titleCase } from '../../../utils/handyFunctions'
 import Expenses from '../components/Expense/Expenses';
 import CompletedTrips from '../components/Expense/CompletedTrips';
 import RejectedExpenses from '../components/Expense/RejectedExpenses';
@@ -61,11 +58,9 @@ renderItem={(({item,index})=>(
 
   
 </View>
-
 {activeScreen=== 'Travel & Non-Travel Expenses' && <Expenses  navigation={navigation}/>}
 {activeScreen=== 'Completed Trips' && <CompletedTrips data={completedTripData}  navigation={navigation}/>}
 {activeScreen=== 'Rejected Expense' && <RejectedExpenses data={rejectedExpenseReport} navigation={navigation}/>}
-  
 </View>
   )
 }

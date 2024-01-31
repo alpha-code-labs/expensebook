@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, TextInput,CheckBox, SafeAreaView, Text,Image,Keyboard,Pressable, ScrollView,Modal } from 'react-native';
+import { View, TextInput,CheckBox, SafeAreaView, Text,Image,Keyboard,Pressable, ScrollView,Modal, TouchableWithoutFeedback } from 'react-native';
 import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
 import { app_bg,circle,check_circle,x_w_icon } from '../../../assets/icon';
@@ -220,9 +220,13 @@ const handleSelectedItinerary=()=>{
         </View>
       </View>
     </Modal> */}
-    <Modal visible={isModalVisible} transparent animationType='slide' >
+   
+    <Modal onRequestClose={handleModalVisible} visible={isModalVisible} transparent animationType='slide' >
+    <TouchableWithoutFeedback onPress={handleModalVisible}>
+    
 <View className="fixed  max-h-4/5 flex-1 justify-center items-center  backdrop-blur-sm w-full h-full bg-gray-800/60 scroll-none ">
                 <View className='z-10 mx-6 max-w-4/5 min-h-4/5 max-h-4/5 scroll-none  rounded-lg shadow-md '>
+                  <TouchableWithoutFeedback>
                     <View className="  flex gap-2 px-8 py-6 bg-slate-100 rounded-3xl">
                       <View className='flex flex-col  justify-center gap-2'>
                         
@@ -241,9 +245,13 @@ const handleSelectedItinerary=()=>{
                             
                         </View>
                     </View>
+                    </TouchableWithoutFeedback> 
                 </View>
   </View>
+  </TouchableWithoutFeedback>
         </Modal>
+      
+   
        
 
 </>    

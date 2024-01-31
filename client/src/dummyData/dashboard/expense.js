@@ -146,7 +146,7 @@ export const completedTrips = [
       tripStatus: "completed",
       tripPurpose: "Business Trip to Sydney",
       travelExpenses: [
-        { expenseHeaderNumber: "#TREX000301",expenseHeaderStatus: "rejected",expenseRejectionReason:'budget constraints'},
+        { expenseHeaderNumber: "#TREX000301",expenseHeaderStatus: "rejected",expenseRejectionReason:'budget constraints due to data delete by someone'},
         { expenseHeaderNumber: "#TREX000311", expenseHeaderStatus: "rejected" ,expenseRejectionReason:'too many violations'}
       ]
     },

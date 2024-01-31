@@ -10,7 +10,7 @@ const Expenses= () => {
     const [nonTravelExpenseData , setNonTravelData]=useState(null)
 
   useEffect(()=>{
-
+    
     setTravelData(travelExpense)
     setNonTravelData(nonTravelExpenses)
 
@@ -74,7 +74,7 @@ function TravelExpenseBlock({data}){
            { item?.travelExpense?.length>0 && <View className='bg-neutral-300 h-[1px] mx-2'/>}
            {item && item?.travelExpense?.map((trItem, trIndex)=>(
             
-            <View index={trIndex} className='flex flex-row justify-between items-center px-4 gap-2 py-2'>
+            <View index={trIndex} className='flex flex-row justify-between items-center px-4 gap-2 '>
               <View className='flex flex-row'>
             <Image source={down_right_icon} alt='right-arrow-icon' className='w-6 h-6' />
             <Text style={{fontFamily: 'Cabin'}} className='font-Cabin leading-[0.28px] text-neutral-600 text-base tracking-[0.5px]'>

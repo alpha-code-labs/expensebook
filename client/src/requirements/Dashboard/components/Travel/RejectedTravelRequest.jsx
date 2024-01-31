@@ -36,39 +36,41 @@ const RejectedTravelRequest = ({travelData,navigation}) => {
         renderItem={(({item, index})=>(
           <View key={index} className='w-fit flex  justify-center items-center'> 
           <View  className='flex flex-col w-[330px] border-[1px] border-neutral-300  rounded-[12px] h-auto mb-3 '>
-            <View className='flex flex-row w-[330px]  px-2 py-2  h-[129px]'>
-            <View className='flex-1  justify-evenly'>
+            <View className='flex flex-row w-[330px]  px-2 py-2  h-auto'>
+            <View className='justify-between gap-2'>
             <Text style={{fontFamily: 'Cabin'}} className='font-Cabin leading-[0.28px] text-neutral-600 text-base tracking-[0.5px] font-semibold'>
               {item?.travelRequestNumber}
             </Text>
            
-             <Text numberOfLines={1} ellipsizeMode="tail" style={{fontFamily: 'Cabin'}} className='w-[200px] overflow-hidden  text-neutral-700 text-base font-medium  text-left  tracking-[0.28px] leading-normal font-Cabin '>
+             <Text numberOfLines={2} ellipsizeMode="tail" style={{fontFamily: 'Cabin'}} className='w-[200px] overflow-hidden  text-neutral-700 text-base font-medium  text-left  tracking-[0.28px] leading-normal font-Cabin '>
                 {titleCase(item?.tripPurpose ?? "")}
             </Text>
            
         
            
             </View>
-            <View className='flex-1 flex-col items-end justify-between pb-2'>
+
+
+            <View className=' flex-col items-center justify-between'>
               
                 
          
-            <View>
-         <Pressable onPress={()=>handlePress(index)} className='relative flex pr-10 top-6'>
+         <Pressable onPress={()=>handlePress(index)} className='relative flex top-2'>
               <Image source={info_icon} alt='menu-icon' className='w-6 h-6 rounded-full ' />
-           </Pressable> 
+        </Pressable> 
 
+    
       {showMessage === index && (
-        <View className='absolute z-20 right-2 top-6 bg-white shadow-xl shadow-neutral-800 rounded-[12px] px-4 py-4'>
-          <Text style={{fontFamily: 'Cabin'}} className='text-neutral-800 font-normal'>{titleCase(item?.rejectionReason ?? "")}</Text>
-        </View>
-      )}
-    </View>
-              <Pressable className='py-2 rounded-[12px] px-2 bg-indigo-100/40' onPress={()=>(console.log('reject reason'))}>
-              <Text style={{fontFamily: 'Cabin' ,}} className='font-Cabin text-indigo-600 leading-normal tracking-[0.28px]   text-sm'>
-                Clear Rejected
-              </Text>
-            </Pressable>          
+              <View  className='absolute h-auto flex justify-center z-20 w-auto min-w-[100px] max-w-[200px] right-0 top-8 bg-white shadow-xl shadow-neutral-800 rounded-[12px]  px-2' >
+                <Text className='font-Inter text-center text-neutral-800 font-normal w-full  '>{titleCase(item?.rejectionReason ?? "")}</Text>
+              </View>
+        )}
+    
+
+    <Pressable>
+                  <Text className='font-Cabin font-semibold text-indigo-600'>Clear Rejected</Text>
+    </Pressable>
+                 
            </View>
            </View>
           

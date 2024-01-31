@@ -8,6 +8,7 @@ import AllTravelRequest      from '../components/Travel/AllTravelRequest';
 import RejectedTravelRequest from '../components/Travel/RejectedTravelRequest';
 
 const Travel = ({navigation}) => {
+  
 
   const [activeScreen, setActiveScreen] = useState('All Travel Requests');
   const handleScreenChange = (screen) => {
@@ -51,6 +52,7 @@ const Travel = ({navigation}) => {
 </View>
       
 </View>
+
   )
 }
 

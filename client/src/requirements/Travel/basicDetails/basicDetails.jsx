@@ -607,7 +607,7 @@ function TableItem(props){
 
     return(
             <View className="w-[134px] shrink text-ellipsis overflow-hidden py-2 h-10 justify-start items-center inline-flex">
-                <View className={`${header? 'text-neutral-500' : 'text-neutral-700'} text-sm font-normal font-cabin`}>{text}</View>
+                <Text className={`${header? 'text-neutral-500' : 'text-neutral-700'} text-sm font-normal font-cabin`}>{text}</Text>
             </View>
     )
 }

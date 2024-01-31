@@ -1,17 +1,19 @@
-import React ,{useEffect, useState}from 'react'
-import { View,Text ,Image, Pressable, ScrollView ,ListItem ,List, FlatList} from 'react-native'
-import { bell_icon, breifcase_icon, down_right_icon, list_icon, logout_icon, travel_c_icon } from '../../../../assets/icon'
-import { transitTrip1, upcomingTrip1 } from '../../../dummyData/dashboard/trips'
-import { getStatusClass, titleCase } from '../../../utils/handyFunctions'
+import React ,{useEffect, useState}from 'react';
+import { View,Text ,Image, Pressable, ScrollView ,ListItem ,List, FlatList} from 'react-native';
+import { bell_icon, breifcase_icon, down_right_icon, list_icon, logout_icon, profile_icon, travel_c_icon } from '../../../../assets/icon';
+import { transitTrip1, upcomingTrip1 } from '../../../dummyData/dashboard/trips';
+import { getStatusClass, titleCase } from '../../../utils/handyFunctions';
 import CancelButton from '../../../components/common/CancelButton';
 import { useNavigation } from '@react-navigation/native';
+import Menu from '../../../components/common/Menu';
+
 
 
 
 const Overview = () => {
-  const navigation = useNavigation();
 
-  const [upcomingTrip, setUpcomingTrip]=useState(null)
+  const navigation = useNavigation();
+  const [upcomingTrip, setUpcomingTrip]=useState(null);
 
 
   useEffect(()=>{
@@ -27,19 +29,8 @@ const Overview = () => {
     borderBottomColor: '#ccc',
   };
 
-
-  
-  
-
-
-
-
-
-
   return (
     <View className=''>
-       
-
         <View className=' flex flex-row gap-4 items-center  justify-end  p-4 '>
             <Pressable onPress={()=>console.log('logout')}>
               <View className='bg-white p-2  shadow-xl shadow-neutral-800 rounded-md '>
@@ -49,6 +40,11 @@ const Overview = () => {
           <Pressable>
           <View className='bg-white p-2  shadow-xl shadow-neutral-800 rounded-md'>
               <Image source={bell_icon} alt='bell-icon' className='w-6 h-6'/>
+          </View>
+          </Pressable>
+          <Pressable onPress={() => navigation.navigate('Profile')}>
+          <View className='bg-white p-2  shadow-xl shadow-neutral-800 rounded-md'>
+              <Image source={profile_icon} alt='bell-icon' className='w-6 h-6'/>
           </View>
           </Pressable>
         </View>
@@ -91,6 +87,9 @@ function UpcomingTrip({ tripData }) {
       return newTabs;
     });
   };
+
+
+ 
 
 
 
@@ -195,10 +194,10 @@ function TransitTrip({ tripData }) {
 
   const renderTabContent = (index, item) => {
     
-  
+   
     switch (activeTabs[index]) {
       case 'Trip':
-        return <TripContent navigation={navigation} index={index} itinerary={item.itinerary} tripPurpose={item.tripPurpose} />;
+        return <TripContent navigation={navigation}  index={index} itinerary={item.itinerary} tripPurpose={item.tripPurpose} />;
       case 'Cash Advance':
         return <CashAdvanceContent index={index} cash={item.cashAdvances} />;
       case 'Expense':
@@ -282,19 +281,29 @@ function TransitTrip({ tripData }) {
 }
 
 
+const TripContent = ({navigation, itinerary, tripPurpose, index }) => {
+  const menuOptions = [{
+    title:'Cancel',
+    navigate:'Cancel-Trip'
+  },
+{
+  title:'Add a Leg',
+  navigate:'Cancel-Trip'
+}];
 
 
-
-
-const TripContent = ({navigation, itinerary, tripPurpose, index }) => (
+return(
   <View className='  px-2 flex flex-grow shrink w-[327px]   ' key={index}>
     {/* Content for the "Trip" tab */}
     <View className='flex flex-row  justify-between   py-2'>
 
     <Text className='text-neutral-700 text-base font-medium font-Cabin'>{tripPurpose}</Text>
-    <Pressable onPress={() => navigation.navigate('Cancel-Trip')}>
-          <Image source={list_icon} alt='menu-icon' className='w-6 h-6' />
-    </Pressable>
+    {/* <Pressable onPress={() => navigation.navigate('Cancel-Trip')}> */}
+    {/* onOptionPress={(option)=>{console.log(option)}} */}
+          <View>
+          <Menu  options={menuOptions}  />
+          </View>
+   
     </View>
 
  
@@ -371,7 +380,7 @@ const TripContent = ({navigation, itinerary, tripPurpose, index }) => (
     </ScrollView>
      
   </View>
-);
+);}
 
 
 const CashAdvanceContent = ({ cash, index }) => (

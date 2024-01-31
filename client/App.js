@@ -10,13 +10,12 @@ import CancelTrip from './src/requirements/Trip/CancelTrip.jsx';
 import Sidebar from './src/requirements/Dashboard/common/Sidebar.jsx';
 import Index from './src/requirements/Dashboard/common/Index.jsx';
 import CreateTravelRequest from './src/requirements/Travel/CreateTravelRequest.jsx';
-
+import Profile from './src/requirements/Dashboard/components/Overview/Profile.jsx';
 
 
 
 const Stack = createStackNavigator()
 const App = () => {
-
 
   const [fontsLoaded] = useFonts({
     "Cabin": require("./assets/fonts/cabin-regular.ttf"),
@@ -32,7 +31,7 @@ const App = () => {
  
     return (
       <NavigationContainer>
-        <Stack.Navigator initialRouteName='dashboard'>
+        <Stack.Navigator initialRouteName='Profile'>
           <Stack.Screen name='dashboard' component={Index} options={{ headerShown: false }}/>
           <Stack.Screen 
             name='createTravel'
@@ -41,6 +40,7 @@ const App = () => {
             {(props) => <CreateTravelRequest  {...props} />}
           </Stack.Screen>
           <Stack.Screen name='Cancel-Trip' component={CancelTrip} options={{ headerShown: false }}/>
+          <Stack.Screen name="Profile" component={Profile} />
         </Stack.Navigator>
 
       </NavigationContainer>
