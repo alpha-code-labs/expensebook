@@ -8,12 +8,14 @@ import CancelButton from '../../components/common/CancelButton';
 import {dummyTripData} from '../../dummyData/tripData'
 import { titleCase } from '../../utils/handyFunctions';
 import Error from '../../components/common/Error';
+import { useNavigation } from '@react-navigation/native';
 
 
 
 const CancelTrip = () => {
+  const navigation = useNavigation();
    const [tripData , setTripData]=useState(null);
-   const [itinerary , setItinerary]=useState(null)
+   const [itinerary , setItinerary]=useState(null);
    const [isLoading , setIsLoading]=useState(false);
    const [loadingErrorMsg, setLoadingErrorMsg]= useState('data');
    const [selectedIds, setSelectedIds]=useState([]);
@@ -84,33 +86,35 @@ const handleSelectedItinerary=()=>{
 {isLoading && <Error/>} 
 
 {loadingErrorMsg && <Text>{loadingErrorMsg}</Text>}
-<View  className=' relative flex-1 w-full py-[60px] backdrop-blur-sm px-2 bg-slate-300 bg-blend-multiply  blur-md  flex justify-center items-center'>
+<View  className='flex-1 w-full py-[60px] backdrop-blur-sm px-2 bg-slate-300 bg-blend-multiply  blur-md  flex justify-center items-center'>
     
   
     
     
-      <View className='flex bg-white rounded-[24px] flex-col justify-center items-center h-full max-h-[938px] w-full' >
+  <View className='flex rounded-[24px] flex-col justify-start items-center h-full max-h-[938px] w-full' >
 
         
-      <View className='items-start relative  flex flex-col w-full h-[20%] px-4 pt-4 bg-indigo-300 rounded-t-[24px]'>
-        <Text numberOfLines={1} ellipsizeMode="tail" className='text-white w-full pr-16   h-8 font-Cabin text-lg font-semibold tracking-normal truncate'>{tripData?.tripPurpose}</Text>
-        
-        <Pressable onPress={()=>console.log('redirect to dashboard')} className='absolute right-4 top-3 rounded-full p-1 active:bg-white'> 
-         <Image source={x_w_icon} className='w-8 h-8'/>
-        </Pressable>
-      
-       
-        <Text  className='font-Cabin font-semibold text-lg text-indigo-500'>
+    <View className='items-start   flex flex-col  w-full    rounded-t-[24px]'>
+    <View className=' w-full rounded-t-3xl  bg-indigo-200  px-4 pt-8'>
+   
+    <Pressable onPress={() => navigation.navigate('dashboard')} className='absolute top-2 right-4  rounded-full  w-auto p-1  active:bg-white/20'> 
+         <Image source={x_w_icon} className='w-6 h-6'/>
+    </Pressable>
+    <Text numberOfLines={1} ellipsizeMode="tail" className='text-white w-auto font-Cabin text-lg font-semibold tracking-normal truncate'>{tripData?.tripPurpose}</Text>
+        <Text  className='font-Cabin font-semibold text-base text-indigo-500'>
           Please choose the itinerary, you would like to cancel or cancel the trip.
         </Text>
-      <ScrollView showsVerticalScrollIndicator={false} className='px-4 min-w-full mt-1'>
-       <View className='flex'>  
+    </View>
+    
+    <ScrollView showsVerticalScrollIndicator={false} className='px-4 min-w-full    h-[450px] bg-white'>
+    
+    <View className='flex '>  
        {['flights', 'trains', 'buses', 'cabs', 'hotels'].map((itnItem, itnItemIndex)=>{
       if(itinerary && itinerary[itnItem].length>0){
         return (
           <View className='' key={itnItemIndex}>
-        <Text  className='text-xl text-neutral-700'>{titleCase(itnItem || "")} </Text>
-        <View className='py-2'>
+        <Text  className='text-xl text-neutral-700 '>{titleCase(itnItem || "")} </Text>
+        <View className='py-2 '>
           {itinerary[itnItem].map((item, itemIndex)=>{
             if(['flights', 'trains', 'buses'].includes(itnItem)){
               return (
@@ -169,24 +173,30 @@ const handleSelectedItinerary=()=>{
        
        
         </View> 
-      
-      </ScrollView></View>
-      
+   
+      </ScrollView>
+   
+    </View>
 
-      <View className=' flex flex-row py-4  gap-2'>
+    <View className=' flex flex-row  justify-evenly py-2 bg-white w-full rounded-b-3xl'>
       <View >
       <CancelButton onPress={handleSelectedItinerary} variant='fit' text='Cancel Selected' text_color='text-red-200' />
       </View>
       <View> 
       <CancelButton variant='fit' text='Cancel Trip' bg_color='bg-red-200' onPress={handleModalVisible} />
       </View>
-      </View>
+      </View>    
+   
+      
+      
+
+      
        
 
       </View>
       
   
-       
+    
        
    
      
@@ -216,7 +226,7 @@ const handleSelectedItinerary=()=>{
                     <View className="  flex gap-2 px-8 py-6 bg-slate-100 rounded-3xl">
                       <View className='flex flex-col  justify-center gap-2'>
                         
-                        <Text className="text-xl font-semibold text-neutral-600 font-cabin">Are you sure you want to cancel the trips?</Text>
+                        <Text className="font-Inter text-xl font-semibold text-neutral-600 ">Are you sure you want to cancel the trips?</Text>
                         <Text className='text-xs text-neutral-600'>This will notify the booking admin to recover the trip.</Text>
                        
                       </View>  

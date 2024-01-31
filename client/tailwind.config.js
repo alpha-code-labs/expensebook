@@ -5,8 +5,7 @@ module.exports = {
     extend: {
       fontFamily: {
         'geo': 'Georama_400Regular',
-        
-        'Inter':'Inter-Regular',
+        'Inter':['Inter', 'san-serif'],
         'Cabin': ['Cabin', 'san-serif'],
       }
       ,colors:{
@@ -17,7 +16,11 @@ module.exports = {
         green:{
           100:'#C2FFD2',
           200:'#0E862D'
-        }
+        },
+        red:{
+          100:'#FFC2C6',
+          200:'#BC2D2D'
+        },
       }
     },
   },

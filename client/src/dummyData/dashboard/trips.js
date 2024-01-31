@@ -1,9 +1,10 @@
-export const transitTrip1= [   
+export const transitTrip1= [  
+
     {
         "travelRequestId": "6587f7d3f1bc28bda7fd77d4",
         "tripId": "6587f7d3f1bc28bda7fd77d4",
         "travelRequestNumber": "TRN1",
-        "tripPurpose": "Business Trip for forr",
+        "tripPurpose": "Business Trip for for",
         "totalCashAmount": 1000,
         "totalremainingCash": 200,
         itinerary: {
@@ -275,6 +276,36 @@ export const transitTrip1= [
           // Additional cash advances associated with this trip
       ],
         "travelExpenses": [
+            {
+                "tripId": "T1",
+                "expenseHeaderId": "EH1",
+                "expenseHeaderNumber": "EHN1",
+                "expenseHeaderStatus": "Pending Approval"
+            },
+            {
+                "tripId": "T1",
+                "expenseHeaderId": "EH1",
+                "expenseHeaderNumber": "EHN1",
+                "expenseHeaderStatus": "Pending Approval"
+            },
+            {
+                "tripId": "T1",
+                "expenseHeaderId": "EH1",
+                "expenseHeaderNumber": "EHN1",
+                "expenseHeaderStatus": "Pending Approval"
+            },
+            {
+                "tripId": "T1",
+                "expenseHeaderId": "EH1",
+                "expenseHeaderNumber": "EHN1",
+                "expenseHeaderStatus": "Pending Approval"
+            },
+            {
+                "tripId": "T1",
+                "expenseHeaderId": "EH1",
+                "expenseHeaderNumber": "EHN1",
+                "expenseHeaderStatus": "Pending Approval"
+            },
             {
                 "tripId": "T1",
                 "expenseHeaderId": "EH1",
@@ -1140,3 +1171,5 @@ export const upcomingTrip1= [
     },
     // Additional trips in transit
 ]
+
+
