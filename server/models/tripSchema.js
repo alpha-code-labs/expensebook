@@ -93,7 +93,11 @@ flights:[{
   bookingDetails:{
     docURL: String,
     docType: String,
-    billDetails: {}, 
+    billDetails:{
+      vendorName: String,
+      totalAmount: String,
+      taxAmount: String
+      }
   }
 }],
 
@@ -123,7 +127,11 @@ buses:[{
   bookingDetails:{
     docURL: String,
     docType: String,
-    billDetails: {}, 
+    billDetails:{
+      vendorName: String,
+      totalAmount: String,
+      taxAmount: String
+      }
   }
 }],
 
@@ -157,7 +165,11 @@ trains:[{
   bookingDetails:{
     docURL: String,
     docType: String,
-    billDetails: {}, 
+    billDetails:{
+      vendorName: String,
+      totalAmount: String,
+      taxAmount: String
+      } 
   }
 }],
 
@@ -187,8 +199,12 @@ hotels:[{
   status:{type:String, enum:itineraryStatusEnums},
   bookingDetails:{
     docURL: String,
-    docType: String,
-    billDetails: {}, 
+    docType: String, 
+    billDetails:{
+      vendorName: String,
+      totalAmount: String,
+      taxAmount: String
+      }
   }
 }],
 
@@ -222,7 +238,11 @@ cabs:[{
   bookingDetails:{
     docURL: String,
     docType: String,
-    billDetails: {}, 
+    billDetails:{
+      vendorName: String,
+      totalAmount: String,
+      taxAmount: String
+      }
   },
   type:{
     type:String,
@@ -503,7 +523,7 @@ const expenseLineSchema = new mongoose.Schema({
           },
           cashAdvanceId: {
             type: mongoose.Types.ObjectId, 
-            unique: true,
+            // unique: true,
             required: true,
           },
           cashAdvanceNumber:{

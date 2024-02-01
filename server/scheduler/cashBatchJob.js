@@ -64,7 +64,6 @@ runCashBatchJob();
 
 export default cashBatchJob;
 
-
 const handleErrorResponse = (errorMessage, status = 500) => {
   console.error(errorMessage);
   return { status, data: { success: false, message: errorMessage } };
@@ -207,7 +206,6 @@ export const triggerBatchJobAps = async (trips) => {
   }
 };
 
-//
 
 
 

@@ -6,21 +6,18 @@ const tripRoutes = express.Router();
 
 // - Requirement - Cancellation workflow for Trips
 // Get trip details by trip Id -- row 16 - category 10 & Trip Microservice -Travel recovery flow for paid and cancelled Trips - 51 - category 10
-tripRoutes.get('/get/:tripId', getTripDetails);
+tripRoutes.get('/:tenantId/:empId/:tripId/details', getTripDetails);
 
 // cancel at header level - upcoming trips only-- row 30 - category 4
-tripRoutes.patch('/cancel/:tripId', cancelTripAtHeaderLevel);
+tripRoutes.patch('/:tenantId/:empId/:tripId/cancel', cancelTripAtHeaderLevel);
 
 // cancel at Line item level - upcoming/transit trips only -- row 43 - category 4
-tripRoutes.patch('/cancel-itinerary/:tripId', cancelTripAtLineItemLevel);
-
-// recovery trips
-tripRoutes.get('/details/:tenantId/:empId/:tripId', getTripDetails);
+tripRoutes.patch('/:tenantId/:empId/:tripId/cancel-itinerary', cancelTripAtLineItemLevel);
 
 // recovery for entire trip
-tripRoutes.patch('/recover/:tripId', recoveryAtHeaderLevel);
+tripRoutes.patch('/:tenantId/:empId/:tripId/recover', recoveryAtHeaderLevel);
 
 // recovery for line item
-tripRoutes.patch('/recover-itinerary/:tenantId/:empId/:tripId', recoveryAtLineItemLevel);
+tripRoutes.patch('/:tenantId/:empId/:tripId/recover-itinerary', recoveryAtLineItemLevel);
 
 export default tripRoutes;

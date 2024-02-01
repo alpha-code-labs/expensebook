@@ -47,12 +47,13 @@ const getTrips = async (tenantId, tripId, empId) => {
 
 // extracting Entire Trip Details 
 const mapTripDetails = (trips) => {
-    return trips.map((trip) => ({
+    return  trips.map((trip) => ({
         tripId:trip.tripId,
         travelRequestId:trip.travelRequestData?.travelRequestId,
         TripPurpose: trip.tripPurpose,
         TripStartDate: trip.tripStartDate,
         TripEndDate: trip.tripCompletionDate,
+        TripStatus: trip.tripStatus,
         approvers: trip.travelRequestData?.approvers,
         // itinerary: trip.travelRequestData?.itinerary,
         flights: mapFlights(trip.travelRequestData?.itinerary?.flights)|| [],

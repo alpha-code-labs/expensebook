@@ -1,43 +1,56 @@
 import axios from 'axios';
 import Trip from '../models/tripSchema.js';
 
+
 const handleErrorResponse = (errorMessage, status = 500) => {
   console.error(errorMessage);
   return { status, data: { success: false, message: errorMessage } };
 };
 
+
 const upcomingTripsBatchJob = async (trips) => {
   try {
     const tripPromises = trips.map(async (trip) => {
-      const { travelRequestData, cashAdvanceData } = trip;
+      const { travelRequestData, cashAdvancesData = [] } = trip;
       const { tenantId } = travelRequestData;
 
-      // Create a Trip instance with extracted data
-      return Trip.create({
-        tenantId,
-        travelRequestData,
-        cashAdvancesData: cashAdvanceData ?? [],
-      });
+      try {
+        // Create a Trip instance with extracted data
+        return await Trip.create({
+          tenantId,
+          travelRequestData,
+          cashAdvancesData,
+        });
+      } catch (error) {
+        console.error('Failed to insert trip into Trip model:', error);
+        throw error;
+      }
     });
 
-    const results = await Promise.allSettled(tripPromises);
+    const results = await Promise.all(tripPromises);
 
-    const insertedTrips = results
-      .filter((result) => result.status === 'fulfilled')
-      .map((result) => result.value);
+    const insertedTrips = results.filter((result) => result instanceof Error === false);
 
-    await sendBatchjobTripsToDashboard(insertedTrips)
+    const failedTrips = results.filter((result) => result instanceof Error);
+    failedTrips.forEach((error) => {
+      console.error('Failed to insert trip into Trip model:', error);
+    });
+
+    try {
+      await sendBatchjobTripsToDashboard(insertedTrips);
+    } catch (error) {
+      console.error('Failed to send trips to dashboard:', error);
+    }
 
     console.log('Successfully inserted trips into Trip model:', insertedTrips.length);
 
-    const failedTrips = results.filter((result) => result.status === 'rejected');
     if (failedTrips.length > 0) {
-      console.error('Failed to insert trips into Trip model:', failedTrips);
+      throw new Error('Failed to insert trips into Trip model');
     }
 
     return { success: true, message: 'Trips updated successfully' };
   } catch (error) {
-    return handleErrorResponse('Failed to update trips', 500);
+    throw new Error('Failed to update trips');
   }
 };
 

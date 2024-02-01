@@ -1,13 +1,12 @@
 
 import amqp from 'amqplib';
-import { updateHRMaster } from './messageProcessor/hrMessage.js';
-import { partialCashUpdate, settleCashStatus, settleExpenseReport, updateCashStatus } from './messageProcessor/cashMessage.js';
+import { updateHRMaster, updatePreferences } from './messageProcessor/hrMessage.js';
+import { partialCashUpdate, settleExpenseReport, updateCashStatus } from './messageProcessor/cashMessage.js';
 
 //start consuming messages..
 export default async function startConsumer(receiver) {
     // const rabbitMQUrl = "amqp://guest:guest@192.168.1.11:5672";
     const rabbitMQUrl = 'amqp://localhost:5672/';
-
   
     const connectToRabbitMQ = async () => {
       try {
@@ -89,7 +88,7 @@ export default async function startConsumer(receiver) {
        } else if (source == 'finance'){
         if(action == 'settle-cash') {
             console.log("trying to update cash partially")
-            const res = await settleCashStatus(payload);
+            // const res = await settleCashStatus(payload);
             if(res.success){
                 channel.ack(msg)
                 console.log('cash update successful ')
@@ -107,6 +106,20 @@ export default async function startConsumer(receiver) {
               console.log('error updating travel and cash')
           }
       }
+        } else if (source == 'dashboard'){
+          if(action == 'profile-update'){
+            const res = await updatePreferences(payload);
+            console.log(res)
+            if(res.success){
+              //acknowledge message
+              channel.ack(msg)
+              console.log('message processed successfully')
+            }
+            else{
+              //implement retry mechanism
+              console.log('update failed with error code', res.error)
+            }
+          }
         }
       }}
     },{ noAck: false }

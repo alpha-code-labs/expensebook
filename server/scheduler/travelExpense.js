@@ -44,7 +44,7 @@ export const travelExpenseApprovedToNextState = async (trips) => {
   };
   
   
-  export const triggerBatchJobAps = async (trips) => {
+export const triggerBatchJobAps = async (trips) => {
     try {
       const travelBaseUrl = process.env.TRAVEL_BASE_URL;
       const extendedUrl = '/approved';
@@ -66,7 +66,7 @@ export const travelExpenseApprovedToNextState = async (trips) => {
     } catch (error) {
       return handleErrorResponse('Failed to update travel in Microservice');
     }
-  };
+};
 
 
 //
