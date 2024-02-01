@@ -5,7 +5,6 @@ const overview = express.Router();
 
 // Dashboard - overview - add various items to an existing trip
 overview.post('/addleg/:tenantId/:tripId/:empId', (req, res) => {
-  const { tenantId, tripId, empId } = req.params; // sent as params for add a leg 
   const { action } = req.body;
 
   // Input validation for the request body
@@ -15,7 +14,7 @@ overview.post('/addleg/:tenantId/:tripId/:empId', (req, res) => {
 
   // Delegate to the appropriate controller function based on the action
   switch (action) {
-    case 'addflight':
+    case 'addFlight':
       return addFlight(req, res);
     case 'addbus':
       return addBus(req, res);
@@ -31,3 +30,8 @@ overview.post('/addleg/:tenantId/:tripId/:empId', (req, res) => {
 });
 
 export default overview;
+
+
+
+
+

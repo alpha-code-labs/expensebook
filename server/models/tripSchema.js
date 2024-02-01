@@ -45,6 +45,12 @@ const transferEnums = [
 'return drop',
 ] 
 
+const approverStatusEnums = [
+  'pending approval',
+  'approved',
+  'rejected',
+];
+
 const itinerarySchema = (
 {
  formState:[{
@@ -64,8 +70,14 @@ const itinerarySchema = (
 }],
 
 flights:[{
-  itineraryId: mongoose.Schema.ObjectId,
-  formId:String,
+  itineraryId:{ 
+    type: mongoose.Schema.ObjectId,
+    default: new mongoose.Types.ObjectId(),
+  },
+  formId:{
+    type: String,
+    default: () => new mongoose.Types.ObjectId().toString(),
+  },
   from: String,
   to: String,
   date: String,
@@ -98,8 +110,14 @@ flights:[{
 }],
 
 buses:[{
-  itineraryId: mongoose.Schema.ObjectId,
-  formId:String,
+  itineraryId: {
+    type: mongoose.Schema.Types.ObjectId,
+    default: new mongoose.Types.ObjectId(),
+  },
+  formId:{
+    type: String,
+    default: () => new mongoose.Types.ObjectId().toString(),
+  },
   from: String,
   to: String,
   date: String,
@@ -128,8 +146,14 @@ buses:[{
 }],
 
 trains:[{
-  itineraryId: mongoose.Schema.ObjectId,
-  formId:String,
+  itineraryId:{
+    type: mongoose.Schema.Types.ObjectId,
+    default: new mongoose.Types.ObjectId(),
+  },
+  formId:{
+    type: String,
+    default: () => new mongoose.Types.ObjectId().toString(),
+  },
   from: String,
   to: String,
   date: String,
@@ -161,40 +185,70 @@ trains:[{
   }
 }],
 
+
 hotels:[{
-  itineraryId: mongoose.Schema.ObjectId,
-  formId:String,
+  itineraryId: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    default: new mongoose.Types.ObjectId() },
+  formId:{
+    type: String,
+    default :() => new mongoose.Types.ObjectId().toString(),
+  },
   location:String,
   locationPreference:String,
-  class:String, 
-  checkIn:String, 
+  class:String,
+  checkIn:String,
   checkOut:String,
+  checkInTime:String,
+  checkOutTime:String,
   violations:{
-    class: String,
-    amount: String,
-  }, 
+  class: String,
+  amount: String,
+  },
   bkd_location:String,
+  bkd_locationPreference:String,
   bkd_class:String,
   bkd_checkIn:String,
   bkd_checkOut:String,
+  bkd_checkInTime:String,
+  bkd_checkOutTime:String,
   bkd_violations:{
-    class: String,
-    amount: String,
+  class: String,
+  amount: String,
   },
-  modified:Boolean,  
+  modified:Boolean,
   cancellationDate:String,
-  cancellationReason:String, 
+  cancellationReason:String,
+  rejectionReason: String,
   status:{type:String, enum:itineraryStatusEnums},
+  approvers: [{
+    empId: String,
+    name: String,
+    status: {
+    type: String,
+    enum: approverStatusEnums,
+    },
+    },],
   bookingDetails:{
-    docURL: String,
-    docType: String,
-    billDetails: {}, 
+  docURL: String,
+  docType: String,
+  billDetails:{
+    vendorName: String,
+    totalAmount: String,
+    taxAmount: String
+    }
   }
 }],
 
 cabs:[{
-  itineraryId: mongoose.Schema.ObjectId,
-  formId:String,
+  itineraryId:{ 
+    type :mongoose.Schema.ObjectId,
+    default: new mongoose.Types.ObjectId(),
+  },
+  formId:{
+    type:String,
+    default: new mongoose.Types.ObjectId().toString(),
+  },
   date:String, 
   class:String, 
   preferredTime:String, 
@@ -248,12 +302,7 @@ const cashAdvanceStatusEnum = [
   'pending settlement',
   'paid',
 ];
-  
-const approverStatusEnums = [
-    'pending approval',
-    'approved',
-    'rejected',
-];
+
 
 //-----------trip---------
 const tripStatusEnum = [
@@ -479,6 +528,7 @@ const expenseLineSchema = new mongoose.Schema({
       isCancelled:Boolean,
       cancellationReason:String,
       isCashAdvanceTaken: Boolean,
+      isAddALeg: Boolean,
       sentToTrip:Boolean,
       sentForNotification: Boolean,
       },

@@ -110,7 +110,11 @@ approvers: [{
 bookingDetails:{
 docURL: String,
 docType: String,
-billDetails: {},
+billDetails:{
+  vendorName: String,
+  totalAmount: String,
+  taxAmount: String
+  }
 }
 }],
 
@@ -149,7 +153,11 @@ approvers: [{
 bookingDetails:{
 docURL: String,
 docType: String,
-billDetails: {},
+billDetails:{
+  vendorName: String,
+  totalAmount: String,
+  taxAmount: String
+  }
 }
 }],
 
@@ -192,14 +200,23 @@ approvers: [{
 bookingDetails:{
 docURL: String,
 docType: String,
-billDetails: {},
+billDetails:{
+  vendorName: String,
+  totalAmount: String,
+  taxAmount: String
+  }
 }
 }],
 
 
 hotels:[{
-itineraryId: mongoose.Schema.ObjectId,
-formId:String,
+itineraryId: { 
+  type: mongoose.Schema.Types.ObjectId, 
+  default: new mongoose.Types.ObjectId() },
+formId:{
+  type: String,
+  default :() => new mongoose.Types.ObjectId().toString(),
+},
 location:String,
 locationPreference:String,
 class:String,
@@ -238,7 +255,11 @@ approvers: [{
 bookingDetails:{
 docURL: String,
 docType: String,
-billDetails: {},
+billDetails:{
+  vendorName: String,
+  totalAmount: String,
+  taxAmount: String
+  }
 }
 }],
 
@@ -280,7 +301,11 @@ approvers: [{
 bookingDetails:{
 docURL: String,
 docType: String,
-billDetails: {},
+billDetails:{
+  vendorName: String,
+  totalAmount: String,
+  taxAmount: String
+  }
 },
 type:{
 type:String,

@@ -1,5 +1,4 @@
 import express from 'express';
-import bodyParser from 'body-parser';
 import cors from 'cors';
 // import { MongoClient } from 'mongodb';
 import mongoose from 'mongoose';
@@ -8,8 +7,8 @@ import dummy from './routes/dummyRoute.js';
 import overview from './routes/overviewRoutes.js';
 import { handleErrors } from './errorHandler/errorHandler.js';
 import amqp from 'amqplib';
-import { updateHRMaster } from './rabbitmq/messageProcessor/hrMaster.js';
-const rabbitMQUrl = 'amqp://localhost:5672';
+// import { updateHRMaster } from './rabbitmq/messageProcessor/hrMaster.js';
+// const rabbitMQUrl = 'amqp://localhost:5672';
 
 
 dotenv.config();
@@ -21,7 +20,7 @@ const mongoURI = process.env.mongoURI;
 
 const app = express();
 
-app.use(bodyParser.json());
+app.use(express.json());
 app.use(cors());
 
 //Routes
@@ -40,22 +39,22 @@ const connectToMongoDB = async () => {
 
 connectToMongoDB();
 
-let channel;
+// let channel;
 
-export const connectToRabbitMQ = async () => {
-  try {
-    console.log('Connecting to RabbitMQ...');
-    const connection = await amqp.connect(rabbitMQUrl);
-    channel = await connection.createConfirmChannel();
-    console.log('Connected to RabbitMQ...channel;');
-    return channel;
-  } catch (error) {
-    console.error('Error connecting to RabbitMQ:', error);
-    throw error;
-  }
-};
+// export const connectToRabbitMQ = async () => {
+//   try {
+//     console.log('Connecting to RabbitMQ...');
+//     const connection = await amqp.connect(rabbitMQUrl);
+//     channel = await connection.createConfirmChannel();
+//     console.log('Connected to RabbitMQ...channel;');
+//     return channel;
+//   } catch (error) {
+//     console.error('Error connecting to RabbitMQ:', error);
+//     throw error;
+//   }
+// };
 
-connectToRabbitMQ();
+// connectToRabbitMQ();
 
 // const mongodb = async () => {
 //     try {
@@ -149,7 +148,7 @@ console.log('listening for messages. To exit press CTRL+C');
   }}, { noAck: false });
 }
 
-startConsumer('dashboard');
+// startConsumer('dashboard');
 
 
 

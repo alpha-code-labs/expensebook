@@ -1,12 +1,6 @@
 import mongoose from 'mongoose';
 import Dashboard from '../models/dashboardSchema.js';
-import {dashboardToTripMicroservice} from '../internal/controllers/toTripMicroservice.js';
-import {dashboardToExpenseMicroservice} from '../internal/controllers/toExpenseMicroservice.js';
-import { dashboardToApprovalMicroservice } from '../internal/controllers/toApprovalMicroservice.js';
-import { dashboardToCashMicroservice } from '../internal/controllers/toCashMicroservice.js';
-import { dashboardToTravelMicroservice } from '../internal/controllers/toTravelMicroservice.js';
 import { sendToOtherMicroservice } from '../rabbitmq/publisher.js';
-   
 
 /// Validate flight details
 const validateFlightDetails = (flightDetails) => {
@@ -31,27 +25,6 @@ const saveInDashboard = async (dashboardDoc) => {
   }
 };
 
-
-// Helper function to generate specific error responses based on the failed operation
-const handleMicroserviceError = (res, errorMessage) => {
-  const errorMap = {
-    dashboardToTripMicroservice: 'Failed to send data to Trip Microservice',
-    dashboardToExpenseMicroservice: 'Failed to send data to Expense Microservice',
-    dashboardToApprovalMicroservice: 'Failed to send data to Approval Microservice',
-    dashboardToCashMicroservice: 'Failed to send data to Cash Microservice',
-    dashboardToTravelMicroservice: 'Failed to send data to Travel Microservice',
-  };
-
-  const specificError = Object.entries(errorMap).find(([key]) => errorMessage.includes(key));
-
-  if (specificError) {
-    const [, message] = specificError;
-    return res.status(500).json({ error: message });
-  }
-
-  return res.status(500).json({ error: 'Internal Server Error' });
-};
-
 // 1) Add a flight/flights to exiting trip
 export const addFlight = async (req, res) => {
   try {
@@ -69,72 +42,87 @@ export const addFlight = async (req, res) => {
       return res.status(400).json({ error: 'Invalid flight details, please provide an array of flight details' });
     }
 
-    // Retrieve dashboard document
     const trip = await Dashboard.findOne({
       tenantId,
-      tripStatus: { $in: ['transit', 'upcoming'] },
-      tripId,
+      "tripSchema.tripStatus": { $in: ['transit', 'upcoming'] },
+      "tripSchema.tripId": tripId,
       $or: [
-        { 'createdBy.empId': empId},
-        { 'createdFor.empId': empId},
+        { 'tripSchema.travelRequestData.createdBy.empId': empId},
+        { 'tripSchema.travelRequestData.createdFor.empId': empId},
       ],
-    })
+    });
 
-    // Check if trip exists
     if (!trip) {
       return res.status(404).json({ error: 'Trip not found or not in transit' });
     }
 
     if (trip) {
-      // Extract necessary data directly from the trip document
-    const { itinerary, approvers } = trip;
-    const { flights } = itinerary || { flights: [] };
+      let payload = [];
+      let { travelRequestId, isCashAdvanceTaken, itinerary, approvers, isAddALeg } = trip.tripSchema.travelRequestData;
+      const { flights } = itinerary || { flights: [] };
+    
+      let isAddALegFlag = true;
+      trip.tripSchema.travelRequestData.isAddALeg = isAddALegFlag;
+    
+      payload.push({ travelRequestId });
 
-    // Add new flights to the existing flights array
-    flightDetails.forEach((newFlight) => {
-      const newFlightDetails = {
-        itineraryId: new mongoose.Types.ObjectId(),
-        ...newFlight,
-        status: updateLineItemStatus(approvers), // Using helper function for determining status
-       approvers: approvers.map((approver) => ({ empId: approver.empId, name: approver.name })),
-      };
+      flightDetails.forEach((newFlight) => {
+        const itineraryDetails = {
+          itineraryId: new mongoose.Types.ObjectId(),
+          formId: new mongoose.Types.ObjectId().toString(),
+          ...initializeFields(), // Initialize all fields to null
+          ...newFlight,
+          status: updateLineItemStatus(approvers),
+          approvers: approvers.map((approver) => ({ empId: approver.empId, name: approver.name })),
+        };
+        console.log("flight",itineraryDetails)
+    
+        flights.push(itineraryDetails);
+        payload.push(itineraryDetails);
+      });
 
-      flights.push(newFlightDetails);
-    });
+      trip.tripSchema.travelRequestData.itinerary.flights = flights;
 
-    // Update the flights array and tripStatus in the database
-    itinerary.flights = flights;
-    const updatedTrip = await trip.save()
+      const updatedTrip = await trip.save();
+      
+      if (!updatedTrip) {
+        return res.status(500).json({ error: 'Failed to save trip' });
+      } else {
+        console.log("after saving hotel", updatedTrip.tripSchema.travelRequestData.itinerary.flights.length-1)
+        const flightsArray = updatedTrip.tripSchema.travelRequestData.itinerary.flights;
+        const flightsAdded = flightsArray.length > 0 ? flightsArray[flightsArray.length-1] : 0;
 
-    //Send data to microservices
-    await dashboardToTripMicroservice(updatedTrip);
-    await dashboardToExpenseMicroservice(updatedTrip);
+        const dataToSend = {
+          tenantId,
+          flight: flightsAdded,
+          itineraryType: 'flights',
+          isAddALeg: true, // Include isAddALeg as true in dataToSend
+        };
 
-    // Check if there are approvers and send to approval microservice accordingly
-    if (updatedTrip.approvers && updatedTrip.approvers.length > 0) {
-      console.log("Approvers found for this trip:", updatedTrip.approvers);
-      await dashboardToApprovalMicroservice(updatedTrip);
+        await sendToOtherMicroservice(dataToSend);
+        
+        if (approvers && approvers?.length > 0) {
+          console.log("Approvers found for this trip:", approvers);
+          await sendToOtherMicroservice(dataToSend, 'add-leg', 'approval', 'to update itinerary added to travelRequestData for trips');
+        }
+        
+        if (isCashAdvanceTaken) {
+          console.log('Is cash advance taken:', isCashAdvanceTaken);
+          await sendToOtherMicroservice(dataToSend, 'add-leg', 'cash', 'to update itinerary added to travelRequestData for trips');
+        } else {
+          await sendToOtherMicroservice(dataToSend, 'add-leg', 'travel', 'to update itinerary added to travelRequestData for trips');
+        }
+        
+      }
+
+      return res.status(200).json({ success: true, message: 'flights added successfully', trip: updatedTrip });
     }
-
-    // Check if cash advance is taken and send to the appropriate microservice
-    if (updatedTrip.isCashAdvanceTaken) {
-      console.log('Is cash advance taken:', updatedTrip.isCashAdvanceTaken);
-      await dashboardToCashMicroservice(updatedTrip);
-    } else {
-      await dashboardToTravelMicroservice(updatedTrip);
-    }
-
-    // Respond with success message and the updated trip
-    return res.status(200).json({ success: true, message: 'Flights added successfully', trip: updatedTrip });
-  
-    } 
   } catch (error) {
-    // Log the error for monitoring purposes
-    console.error(error);
-    // Use the helper function to handle error responses based on the failed operation
-    return handleMicroserviceError(res, error.message);
+    return res.status(500).json({success:false , message: "Failed to add flights ", error})
   }
-};
+}
+
+  
 
 //  Validate bus details
 const validateBusDetails = (busDetails) => {
@@ -158,72 +146,87 @@ export const addBus = async (req, res) => {
       return res.status(400).json({ error: 'Invalid bus details, please provide an array of bus details' });
     }
 
-    // Retrieve dashboard document
     const trip = await Dashboard.findOne({
       tenantId,
-      tripStatus: { $in: ['transit', 'upcoming'] },
-      tripId,
+      "tripSchema.tripStatus": { $in: ['transit', 'upcoming'] },
+      "tripSchema.tripId": tripId,
       $or: [
-        { 'createdBy.empId': empId},
-        { 'createdFor.empId': empId},
+        { 'tripSchema.travelRequestData.createdBy.empId': empId},
+        { 'tripSchema.travelRequestData.createdFor.empId': empId},
       ],
-    })
+    });
 
-    // Check if trip exists
     if (!trip) {
       return res.status(404).json({ error: 'Trip not found or not in transit' });
     }
 
-    if(trip){
-    // Extract necessary data directly from the trip document
-    const { itinerary, approvers } = trip;
-    const { buses } = itinerary || { buses: [] };
+    if (trip) {
+      let payload = [];
+      let { travelRequestId, isCashAdvanceTaken, itinerary, approvers, isAddALeg } = trip.tripSchema.travelRequestData;
+      const { buses } = itinerary || { buses: [] };
+    
+      let isAddALegFlag = true;
+      trip.tripSchema.travelRequestData.isAddALeg = isAddALegFlag;
+    
+      payload.push({ travelRequestId });
 
-    // Add new buses to the existing buses array
-    busDetails.forEach((newBus) => {
-      const newBusDetails = {
-        itineraryId: new mongoose.Types.ObjectId(),
-        ...newBus,
-        status: updateLineItemStatus(approvers), // Use helper function for determining status
-        approvers: approvers.map((approver) => ({ empId: approver.empId, name: approver.name })),
-      };
+      // add formId before sending to travel/cash
+      busDetails.forEach((newBus) => {
+        const itineraryDetails = {
+          itineraryId: new mongoose.Types.ObjectId(),
+          formId: new mongoose.Types.ObjectId().toString(),
+          ...initializeFields(), // Initialize all fields to null
+          ...newBus,
+          status: updateLineItemStatus(approvers),
+          approvers: approvers.map((approver) => ({ empId: approver.empId, name: approver.name })),
+        };
+        console.log("bus",itineraryDetails)
+    
+        buses.push(itineraryDetails);
+        payload.push(itineraryDetails);
+      });
 
-      buses.push(newBusDetails);
-    });
+      trip.tripSchema.travelRequestData.itinerary.buses = buses;
 
-    // Update the buses array and tripStatus in the database
-    itinerary.buses = buses;
-    const updatedTrip = await saveInDashboard(trip);
+      const updatedTrip = await trip.save();
+      
+      if (!updatedTrip) {
+        return res.status(500).json({ error: 'Failed to save trip' });
+      } else {
+        console.log("after saving hotel", updatedTrip.tripSchema.travelRequestData.itinerary.buses.length-1)
+        const busesArray = updatedTrip.tripSchema.travelRequestData.itinerary.buses;
+        const busesAdded = busesArray.length > 0 ? busesArray[busesArray.length-1] : 0;
 
-    // Send data to microservices
-    await dashboardToTripMicroservice(updatedTrip);
-    await dashboardToExpenseMicroservice(updatedTrip);
+        const dataToSend = {
+          tenantId,
+          buse: busesAdded,
+          itineraryType: 'buses',
+          isAddALeg: true, // Include isAddALeg as true in dataToSend
+        };
 
-    // Check if there are approvers and send to approval microservice accordingly
-    if (updatedTrip.approvers && updatedTrip.approvers.length > 0) {
-      console.log("Approvers found for this trip:", updatedTrip.approvers);
-      await dashboardToApprovalMicroservice(updatedTrip);
+        await sendToOtherMicroservice(dataToSend);
+        
+        if (approvers && approvers?.length > 0) {
+          console.log("Approvers found for this trip:", approvers);
+          await sendToOtherMicroservice(dataToSend, 'add-leg', 'approval', 'to update itinerary added to travelRequestData for trips');
+        }
+        
+        if (isCashAdvanceTaken) {
+          console.log('Is cash advance taken:', isCashAdvanceTaken);
+          await sendToOtherMicroservice(dataToSend, 'add-leg', 'cash', 'to update itinerary added to travelRequestData for trips');
+        } else {
+          await sendToOtherMicroservice(dataToSend, 'add-leg', 'travel', 'to update itinerary added to travelRequestData for trips');
+        }
+        
+      }
+
+      return res.status(200).json({ success: true, message: 'Buses added successfully', trip: updatedTrip });
     }
-
-    // Check if cash advance is taken and send to the appropriate microservice
-    if (updatedTrip.isCashAdvanceTaken) {
-      console.log('Is cash advance taken:', updatedTrip.isCashAdvanceTaken);
-      await dashboardToCashMicroservice(updatedTrip);
-    } else {
-      await dashboardToTravelMicroservice(updatedTrip);
-    }
-
-    // Respond with success message and the updated trip
-    return res.status(200).json({ success: true, message: 'Buses added successfully', trip: updatedTrip });
-    }
-
   } catch (error) {
-    // Log the error for monitoring purposes
-    console.error(error);
-    // Use the helper function to handle error responses based on the failed operation
-    return handleMicroserviceError(res, error.message);
+    return res.status(500).json({success:false , message: "Failed to add Buses ", error})
   }
-};
+}
+
 
 
 // Validate train details
@@ -248,73 +251,87 @@ export const addTrain = async (req, res) => {
       return res.status(400).json({ error: 'Invalid train details, please provide an array of train details' });
     }
 
-    // Retrieve dashboard document
     const trip = await Dashboard.findOne({
       tenantId,
-      tripStatus: { $in: ['transit', 'upcoming'] },
-      tripId,
+      "tripSchema.tripStatus": { $in: ['transit', 'upcoming'] },
+      "tripSchema.tripId": tripId,
       $or: [
-        { 'createdBy.empId': empId},
-        { 'createdFor.empId': empId},
+        { 'tripSchema.travelRequestData.createdBy.empId': empId},
+        { 'tripSchema.travelRequestData.createdFor.empId': empId},
       ],
-    })
+    });
 
-    // Check if trip exists
     if (!trip) {
       return res.status(404).json({ error: 'Trip not found or not in transit' });
     }
 
-    if(trip){
-          // Extract necessary data directly from the trip document
-    const { itinerary, approvers } = trip;
-    const { trains } = itinerary || { trains: [] };
+    if (trip) {
+      let payload = [];
+      let { travelRequestId, isCashAdvanceTaken, itinerary, approvers, isAddALeg } = trip.tripSchema.travelRequestData;
+      const { trains } = itinerary || { trains: [] };
+    
+      let isAddALegFlag = true;
+      trip.tripSchema.travelRequestData.isAddALeg = isAddALegFlag;
+    
+      payload.push({ travelRequestId });
 
-    // Add new trains to the existing trains array
-    trainDetails.forEach((newTrain) => {
-      const newTrainDetails = {
-        itineraryId: new mongoose.Types.ObjectId(),
-        ...newTrain,
-        status: updateLineItemStatus(approvers), // Use helper function for determining status
-        approvers: approvers.map((approver) => ({ empId: approver.empId, name: approver.name })),
-      };
+      // add formId before sending to travel/cash
+      trainDetails.forEach((newTrain) => {
+        const itineraryDetails = {
+          itineraryId: new mongoose.Types.ObjectId(),
+          formId: new mongoose.Types.ObjectId().toString(),
+          ...initializeFields(), // Initialize all fields to null
+          ...newTrain,
+          status: updateLineItemStatus(approvers),
+          approvers: approvers.map((approver) => ({ empId: approver.empId, name: approver.name })),
+        };
+        console.log("Train",itineraryDetails)
+    
+        trains.push(itineraryDetails);
+        payload.push(itineraryDetails);
+      });
 
-      trains.push(newTrainDetails);
-    });
+      trip.tripSchema.travelRequestData.itinerary.trains = trains;
 
-    // Update the trains array and tripStatus in the database
-    itinerary.trains = trains;
-    const updatedTrip = await trip.save()
+      const updatedTrip = await trip.save();
+      
+      if (!updatedTrip) {
+        return res.status(500).json({ error: 'Failed to save trip' });
+      } else {
+        console.log("after saving Train", updatedTrip.tripSchema.travelRequestData.itinerary.trains.length-1)
+        const trainsArray = updatedTrip.tripSchema.travelRequestData.itinerary.trains;
+        const trainsAdded = trainsArray.length > 0 ? trainsArray[trainsArray.length-1] : 0;
 
-    // Send data to microservices
-    await dashboardToTripMicroservice(updatedTrip);
-    await dashboardToExpenseMicroservice(updatedTrip);
+        const dataToSend = {
+          tenantId,
+          train: trainsAdded,
+          itineraryType: 'trains',
+          isAddALeg: true, // Include isAddALeg as true in dataToSend
+        };
 
-    // Check if there are approvers and send to approval microservice accordingly
-    if (updatedTrip.approvers && updatedTrip.approvers.length > 0) {
-      console.log("Approvers found for this trip:", updatedTrip.approvers);
-      await dashboardToApprovalMicroservice(updatedTrip);
+        await sendToOtherMicroservice(dataToSend);
+        
+        if (approvers && approvers?.length > 0) {
+          console.log("Approvers found for this trip:", approvers);
+          await sendToOtherMicroservice(dataToSend, 'add-leg', 'approval', 'to update itinerary added to travelRequestData for trips');
+        }
+        
+        if (isCashAdvanceTaken) {
+          console.log('Is cash advance taken:', isCashAdvanceTaken);
+          await sendToOtherMicroservice(dataToSend, 'add-leg', 'cash', 'to update itinerary added to travelRequestData for trips');
+        } else {
+          await sendToOtherMicroservice(dataToSend, 'add-leg', 'travel', 'to update itinerary added to travelRequestData for trips');
+        }
+        
+      }
+
+      return res.status(200).json({ success: true, message: 'train added successfully', trip: updatedTrip });
     }
-
-    // Check if cash advance is taken and send to the appropriate microservice
-    if (updatedTrip.isCashAdvanceTaken) {
-      console.log('Is cash advance taken:', updatedTrip.isCashAdvanceTaken);
-      await dashboardToCashMicroservice(updatedTrip);
-    } else {
-      await dashboardToTravelMicroservice(updatedTrip);
-    }
-
-    // Respond with success message and the updated trip
-    return res.status(200).json({ success: true, message: 'Trains added successfully', trip: updatedTrip });
-    }
-
-
   } catch (error) {
-    // Log the error for monitoring purposes
-    console.error(error);
-    // Use the helper function to handle error responses based on the failed operation
-    return handleMicroserviceError(res, error.message);
+    return res.status(500).json({success:false , message: "Failed to add trains ", error})
   }
-};
+}
+
 
 
 // Validate cab details
@@ -339,73 +356,87 @@ export const addCab = async (req, res) => {
       return res.status(400).json({ error: 'Invalid cab details, please provide an array of cab details' });
     }
 
-    // Retrieve dashboard document
     const trip = await Dashboard.findOne({
       tenantId,
-      tripStatus: { $in: ['transit', 'upcoming'] },
-      tripId,
+      "tripSchema.tripStatus": { $in: ['transit', 'upcoming'] },
+      "tripSchema.tripId": tripId,
       $or: [
-        { 'createdBy.empId': empId},
-        { 'createdFor.empId': empId},
+        { 'tripSchema.travelRequestData.createdBy.empId': empId},
+        { 'tripSchema.travelRequestData.createdFor.empId': empId},
       ],
-    })
+    });
 
-    // Check if trip exists
     if (!trip) {
       return res.status(404).json({ error: 'Trip not found or not in transit' });
     }
 
-    if(trip){
-          // Extract necessary data directly from the trip document
-    const { itinerary, approvers } = trip;
-    const { cabs } = itinerary || { cabs: [] }; // Replace 'trains' with 'cabs'
+    if (trip) {
+      let payload = [];
+      let { travelRequestId, isCashAdvanceTaken, itinerary, approvers, isAddALeg } = trip.tripSchema.travelRequestData;
+      const { cabs } = itinerary || { cabs: [] };
+    
+      let isAddALegFlag = true;
+      trip.tripSchema.travelRequestData.isAddALeg = isAddALegFlag;
+    
+      payload.push({ travelRequestId });
 
-    // Add new cabs to the existing cabs array
-    cabDetails.forEach((newCab) => {
-      const newCabDetails = {
-        itineraryId: new mongoose.Types.ObjectId(),
-        ...newCab,
-        status: updateLineItemStatus(approvers), // Use helper function for determining status
-        approvers: approvers.map((approver) => ({ empId: approver.empId, name: approver.name })),
-      };
+      // add formId before sending to travel/cash
+      cabDetails.forEach((newCab) => {
+        const itineraryDetails = {
+          itineraryId: new mongoose.Types.ObjectId(),
+          formId: new mongoose.Types.ObjectId().toString(),
+          ...initializeCabFields(), // Initialize all fields to null
+          ...newCab,
+          status: updateLineItemStatus(approvers),
+          approvers: approvers.map((approver) => ({ empId: approver.empId, name: approver.name })),
+        };
+        console.log("cabs",itineraryDetails)
+    
+        cabs.push(itineraryDetails);
+        payload.push(itineraryDetails);
+      });
 
-      cabs.push(newCabDetails); // Replace 'flights' with 'cabs'
-    });
+      trip.tripSchema.travelRequestData.itinerary.cabs = cabs;
 
-    // Update the cabs array and tripStatus
-    itinerary.cabs = cabs; 
-    const updatedTrip = await trip.save()
+      const updatedTrip = await trip.save();
+      
+      if (!updatedTrip) {
+        return res.status(500).json({ error: 'Failed to save trip' });
+      } else {
+        console.log("after saving hotel", updatedTrip.tripSchema.travelRequestData.itinerary.cabs.length-1)
+        const cabsArray = updatedTrip.tripSchema.travelRequestData.itinerary.cabs;
+        const cabsAdded = cabsArray.length > 0 ? cabsArray[cabsArray.length-1] : 0;
 
-    // Send data to microservices
-    await dashboardToTripMicroservice(updatedTrip);
-    await dashboardToExpenseMicroservice(updatedTrip);
+        const dataToSend = {
+          tenantId,
+          cab: cabsAdded,
+          itineraryType: 'cabs',
+          isAddALeg: true, // Include isAddALeg as true in dataToSend
+        };
 
-    // Check if there are approvers and send to approval microservice accordingly
-    if (updatedTrip.approvers && updatedTrip.approvers.length > 0) {
-      console.log("Approvers found for this trip:", updatedTrip.approvers);
-      await dashboardToApprovalMicroservice(updatedTrip);
+        await sendToOtherMicroservice(dataToSend);
+        
+        if (approvers && approvers?.length > 0) {
+          console.log("Approvers found for this trip:", approvers);
+          await sendToOtherMicroservice(dataToSend, 'add-leg', 'approval', 'to update itinerary added to travelRequestData for trips');
+        }
+        
+        if (isCashAdvanceTaken) {
+          console.log('Is cash advance taken:', isCashAdvanceTaken);
+          await sendToOtherMicroservice(dataToSend, 'add-leg', 'cash', 'to update itinerary added to travelRequestData for trips');
+        } else {
+          await sendToOtherMicroservice(dataToSend, 'add-leg', 'travel', 'to update itinerary added to travelRequestData for trips');
+        }
+        
+      }
+
+      return res.status(200).json({ success: true, message: 'cabs added successfully', trip: updatedTrip });
     }
-
-    // Check if cash advance is taken and send to the appropriate microservice
-    if (updatedTrip.isCashAdvanceTaken) {
-      console.log('Is cash advance taken:', updatedTrip.isCashAdvanceTaken);
-      await dashboardToCashMicroservice(updatedTrip);
-    } else {
-      await dashboardToTravelMicroservice(updatedTrip);
-    }
-
-    // Respond with success message and the updated trip
-    return res.status(200).json({ success: true, message: 'Cabs added successfully', trip: updatedTrip });
-    }
-
-
   } catch (error) {
-    // Log the error for monitoring purposes
-    console.error(error);
-    // Use the helper function to handle error responses based on the failed operation
-    return handleMicroserviceError(res, error.message);
+    return res.status(500).json({success:false , message: "Failed to add cabs ", error})
   }
-};
+}
+
 
 
 // Validate hotel details
@@ -415,87 +446,6 @@ const validateHotelDetails = (hotelDetails) => {
 
 
 // 5) Add hotel details via dashboard
-export const addHotels = async (req, res) => {
-  try {
-    const { tenantId, tripId, empId } = req.params;
-    const { hotelDetails } = req.body;
-
-    if (!tripId || !tenantId || !empId) {
-      return res.status(400).json({ error: 'Invalid input, please provide valid tripId, tenantId, empId' });
-    }
-
-    if (!hotelDetails || !Array.isArray(hotelDetails) || hotelDetails.length === 0) {
-      return res.status(400).json({ error: 'Invalid hotel details, please provide an array of hotel details' });
-    }
-
-    const filter = {
-      tenantId,
-      tripStatus: { $in: ['transit', 'upcoming'] },
-      tripId,
-      $or: [
-        { 'createdBy.empId': empId },
-        { 'createdFor.empId': empId },
-      ],
-    };
-
-    const update = {
-      $set: {
-        'tripSchema.travelRequestData.isAddALeg': true,
-      },
-      $push: {
-        'tripSchema.travelRequestData.itinerary.hotels': { $each: hotelDetails.map((newHotel) => ({
-          itineraryId: new mongoose.Types.ObjectId(),
-          ...newHotel,
-          status: updateLineItemStatus(newHotel.approvers),
-          approvers: newHotel.approvers.map((approver) => ({ empId: approver.empId, name: approver.name })),
-        }))},
-      },
-    };
-
-    const options = { new: true }; // To return the updated document
-
-    const updatedTrip = await Dashboard.findOneAndUpdate(filter, update, options);
-
-    if (updatedTrip) {
-      const { tripSchema } = updatedTrip;
-      const { travelRequestData } = tripSchema;
-
-      const { approvers = [], travelRequestId, isCashAdvanceTaken } = travelRequestData;
-
-      const dataToSend = {
-        tenantId,
-        travelRequestId,
-        isCashAdvanceTaken: isCashAdvanceTaken || false,
-        isAddALeg: true,
-        newHotelDetails: hotelDetails,
-      };
-
-      await sendToOtherMicroservice(dataToSend, 'isAddALeg', 'trip', 'to update itinerary added to travelRequestData for trips');
-      await sendToOtherMicroservice(dataToSend, 'isAddALeg', 'expense', 'to update itinerary added to travelRequestData for trips');
-
-      if (approvers.length > 0) {
-        console.log("Approvers found for this trip:", approvers);
-        await sendToOtherMicroservice(dataToSend, 'isAddALeg', 'approval', 'to update itinerary added to travelRequestData for trips');
-      }
-
-      if (isCashAdvanceTaken) {
-        console.log('Is cash advance taken:', isCashAdvanceTaken);
-        await sendToOtherMicroservice(dataToSend, 'isAddALeg', 'cash', 'to update itinerary added to travelRequestData for trips');
-      } else {
-        await sendToOtherMicroservice(dataToSend, 'isAddALeg', 'travel', 'to update itinerary added to travelRequestData for trips');
-      }
-
-      return res.status(200).json({ success: true, message: 'Hotels added successfully' });
-    }
-
-    return res.status(404).json({ error: 'Trip not found or not in transit' });
-  } catch (error) {
-    console.error(error);
-    return handleMicroserviceError(res, error.message);
-  }
-};
-
-// method 2
 export const addHotel = async (req, res) => {
   try {
     const { tenantId, tripId, empId } = req.params;
@@ -511,11 +461,11 @@ export const addHotel = async (req, res) => {
 
     const trip = await Dashboard.findOne({
       tenantId,
-      tripStatus: { $in: ['transit', 'upcoming'] },
-      tripId,
+      "tripSchema.tripStatus": { $in: ['transit', 'upcoming'] },
+      "tripSchema.tripId": tripId,
       $or: [
-        { 'createdBy.empId': empId},
-        { 'createdFor.empId': empId},
+        { 'tripSchema.travelRequestData.createdBy.empId': empId},
+        { 'tripSchema.travelRequestData.createdFor.empId': empId},
       ],
     });
 
@@ -524,60 +474,204 @@ export const addHotel = async (req, res) => {
     }
 
     if (trip) {
-      const { itinerary, approvers } = trip.tripSchema.travelRequestData;
+      let payload = [];
+      let { travelRequestId, isCashAdvanceTaken, itinerary, approvers, isAddALeg } = trip.tripSchema.travelRequestData;
       const { hotels } = itinerary || { hotels: [] };
-
-      const payload = [];
-      const { travelRequestId, isCashAdvanceTaken } = trip.tripSchema.travelRequestData;
-      const isAddALeg = true; // Update isAddALeg to true
-
+    
+      let isAddALegFlag = true;
+      trip.tripSchema.travelRequestData.isAddALeg = isAddALegFlag;
+    
       payload.push({ travelRequestId });
 
-      //add formId before sending to travel/cash
+      // add formId before sending to travel/cash
       hotelDetails.forEach((newHotel) => {
         const itineraryDetails = {
           itineraryId: new mongoose.Types.ObjectId(),
+          formId: new mongoose.Types.ObjectId().toString(),
+          ...initializeHotelFields(), // Initialize all fields to null
           ...newHotel,
           status: updateLineItemStatus(approvers),
           approvers: approvers.map((approver) => ({ empId: approver.empId, name: approver.name })),
         };
-
+        console.log("hotel",itineraryDetails)
+    
         hotels.push(itineraryDetails);
         payload.push(itineraryDetails);
       });
 
-      itinerary.hotels = hotels;
+      trip.tripSchema.travelRequestData.itinerary.hotels = hotels;
+
       const updatedTrip = await trip.save();
-
-      const dataToSend = {
-        tenantId,
-        ...payload,
-        itineraryType: 'hotels',
-        itineraryDetails: payload.slice(2),
-        isAddALeg: true, // Include isAddALeg as true in dataToSend
-      };
-
-      await sendToOtherMicroservice(dataToSend);
-
-      if (approvers && approvers?.length > 0) {
-        console.log("Approvers found for this trip:", approvers);
-        await sendToOtherMicroservice(dataToSend, 'add-leg', 'approval', 'to update itinerary added to travelRequestData for trips');
-      }
-
-      if (isCashAdvanceTaken) {
-        console.log('Is cash advance taken:', isCashAdvanceTaken);
-        await sendToOtherMicroservice(dataToSend, 'add-leg', 'cash', 'to update itinerary added to travelRequestData for trips');
+      
+      if (!updatedTrip) {
+        return res.status(500).json({ error: 'Failed to save trip' });
       } else {
-        await sendToOtherMicroservice(dataToSend, 'add-leg', 'travel', 'to update itinerary added to travelRequestData for trips');
+        console.log("after saving hotel", updatedTrip.tripSchema.travelRequestData.itinerary.hotels.length-1)
+        const hotelsArray = updatedTrip.tripSchema.travelRequestData.itinerary.hotels;
+        const hotelAdded = hotelsArray.length > 0 ? hotelsArray[hotelsArray.length-1] : 0;
+
+        const dataToSend = {
+          tenantId,
+          hotel: hotelAdded,
+          itineraryType: 'hotels',
+          isAddALeg: true, // Include isAddALeg as true in dataToSend
+        };
+
+        console.log("data to send", dataToSend.hotel)
+        await sendToOtherMicroservice(dataToSend);
+        
+        if (approvers && approvers?.length > 0) {
+          console.log("Approvers found for this trip:", approvers);
+          await sendToOtherMicroservice(dataToSend, 'add-leg', 'approval', 'to update itinerary added to travelRequestData for trips');
+        }
+        
+        if (isCashAdvanceTaken) {
+          console.log('Is cash advance taken:', isCashAdvanceTaken);
+          await sendToOtherMicroservice(dataToSend, 'add-leg', 'cash', 'to update itinerary added to travelRequestData for trips');
+        } else {
+          await sendToOtherMicroservice(dataToSend, 'add-leg', 'travel', 'to update itinerary added to travelRequestData for trips');
+        }
+        
       }
 
       return res.status(200).json({ success: true, message: 'Hotels added successfully', trip: updatedTrip });
     }
   } catch (error) {
-    console.error(error);
-    return handleMicroserviceError(res, error.message);
+    return res.status(500).json({success:false , message: "Failed to add Hotel ", error})
   }
-};
+}
+    
+const initializeHotelFields = () => ({
+  location: null,
+  locationPreference: null,
+  class: null,
+  checkIn: null,
+  checkOut: null,
+  checkInTime: null,
+  checkOutTime: null,
+  violations: {
+    class: null,
+    amount: null,
+  },
+  bkd_location: null,
+  bkd_locationPreference: null,
+  bkd_class: null,
+  bkd_checkIn: null,
+  bkd_checkOut: null,
+  bkd_checkInTime: null,
+  bkd_checkOutTime: null,
+  bkd_violations: {
+    class: null,
+    amount: null,
+  },
+  modified: null,
+  cancellationDate: null,
+  cancellationReason: null,
+  rejectionReason: null,
+  status: {
+    type: null,
+    enum: null, 
+  },
+  approvers: [{
+    empId: null,
+    name: null,
+    status: {
+      type: null,
+      enum: null, 
+    },
+  }],
+  bookingDetails: {
+    docURL: null,
+    docType: null,
+    billDetails: {
+      vendorName: null,
+      totalAmount: null,
+      taxAmount: null,
+    },
+  },
+});
+
+const initializeCabFields = () => ({
+  itineraryId: new mongoose.Types.ObjectId(),
+  formId: new mongoose.Types.ObjectId().toString(),
+  date: null,
+  class: null,
+  preferredTime: null,
+  pickupAddress: null,
+  dropAddress: null,
+  isReturnTravel: null,
+  violations: {
+    class: null,
+    amount: null,
+  },
+  bkd_date: null,
+  bkd_class: null,
+  bkd_preferredTime: null,
+  bkd_pickupAddress: null,
+  bkd_dropAddress: null,
+  bkd_isReturnTravel: null,
+  bkd_violations: {
+    class: null,
+    amount: null,
+  },
+  modified: null,
+  cancellationDate: null,
+  cancellationReason: null,
+  status: null,
+  bookingDetails: {
+    docURL: null,
+    docType: null,
+    billDetails: {
+      vendorName: null,
+      totalAmount: null,
+      taxAmount: null,
+    },
+  },
+  type: null,
+});
+
+
+const initializeFields = () => ({
+  itineraryId: new mongoose.Types.ObjectId(),
+  formId: new mongoose.Types.ObjectId().toString(),
+  from: null,
+  to: null,
+  date: null,
+  time: null,
+  travelClass: null,
+  isReturnTravel: null,
+  violations: {
+    class: null,
+    amount: null,
+  },
+  bkd_from: null,
+  bkd_to: null,
+  bkd_date: null,
+  bkd_time: null,
+  bkd_travelClass: null,
+  bkd_isReturnTravel: null,
+  bkd_violations: {
+    class: null,
+    amount: null,
+  },
+  modified: null,
+  cancellationDate: null,
+  cancellationReason: null,
+  status: null,
+  bookingDetails: {
+    docURL: null,
+    docType: null,
+    billDetails: {
+      vendorName: null,
+      totalAmount: null,
+      taxAmount: null,
+    },
+  },
+});
+
+
+
+
 
 
 

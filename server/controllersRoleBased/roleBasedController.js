@@ -728,6 +728,8 @@ cashAdvanceSchema.forEach((cashAdvance) => {
     }
 };
 
+
+
 //approver- cash raised later
 const processApprovalCashRaisedLater = async (approvalDoc, status, empId) => {
     const travelWithCashRaisedLater = [];
@@ -835,9 +837,14 @@ const approvalsForManager = async (tenantId, empId) => {
                     },
                 ]
               },
-              {
-                'tripSchema.travelExpenseData.approvers.empId': empId,
-                'tripSchema.travelExpenseData.approvers.status': 'pending approval'
+              { 
+                $or: [
+                    {'tripSchema.travelRequestData.isAddALeg': true},
+                    {
+                        'tripSchema.travelExpenseData.approvers.empId': empId,
+                        'tripSchema.travelExpenseData.approvers.status': 'pending approval'        
+                    }
+                ]
               },
             ]
           }).lean().exec(); // Use .lean().exec() to execute the query and await the result
@@ -872,7 +879,11 @@ const approvalsForManager = async (tenantId, empId) => {
         empId
     );
     
-      return {travelRequests,travelWithCash,cashAdvanceRaisedLater,travelExpenseReports};
+      return { 
+        travelAndCash: [...travelRequests, ...travelWithCash, ...cashAdvanceRaisedLater],
+        travelExpenseReports: travelExpenseReports.travelExpenseReportsApproval
+      };
+      
       }
   
     } catch (error) {
@@ -881,6 +892,16 @@ const approvalsForManager = async (tenantId, empId) => {
 };
 
 
+const addAleg = await processApprovaltravelExpenseReports(
+    approvalDoc.filter(approval => {
+        return (
+            approval.tripSchema.travelRequestData.isAddALeg.status === true &&
+            approval.tripSchema.travelExpenseData.approvers.empId === empId
+        );
+    }),
+    'pending approval',
+    empId
+);
 //---------------------------------------------------------------------Travel admin
 const businessAdminLayout = async ({ tenantId, empId }) => {
     try {
