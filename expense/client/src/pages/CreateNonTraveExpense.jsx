@@ -1,5 +1,5 @@
 import React ,{useState,useEffect}from 'react'
-import { getCategoryFormElementApi, getNonTravelExpenseMiscellaneousDataApi, postMultiCurrencyForNonTravelExpenseApi, postNonTravelExpenseLineItems, saveAsDraftNonTravelExpense, submitNonTravelExpenseApi, submitOrSaveAsDraftApi } from '../utils/api'
+import { getCategoryFormElementApi, getNonTravelExpenseMiscellaneousDataApi, nonTravelOcrApi, postMultiCurrencyForNonTravelExpenseApi, postNonTravelExpenseLineItems, saveAsDraftNonTravelExpense, submitNonTravelExpenseApi, submitOrSaveAsDraftApi } from '../utils/api'
 import { useParams } from 'react-router-dom'
 import Error from '../components/common/Error'
 import Button from '../components/common/Button'
@@ -7,7 +7,7 @@ import PopupMessage from '../components/common/PopupMessage'
 import Icon from '../components/common/Icon'
 import Dropdown from '../components/common/DropDown'
 import Input from '../components/common/Input'
-import { chevron_down, file_icon, validation_sym } from '../assets/icon'
+import { cancel, cancel_round, chevron_down, file_icon, validation_sym } from '../assets/icon'
 import {nonTravelExpenseData} from '../dummyData/nonTravelExpens'
 import { titleCase, urlRedirection } from '../utils/handyFunctions'
 import { reimbursementAfterCategory } from '../dummyData/requiredDummy'
@@ -52,9 +52,20 @@ const CreateNonTraveExpense = () => {
               { name: 'Quantity', type: 'numeric' },
               { name: 'Unit Cost', type: 'numeric' },
               { name: 'Tax Amount', type: 'numeric' },
-              { name: 'Total Amount', type: 'numeric' },     
-        
+              { name: 'Total Amount', type: 'numeric' },        
     ];
+
+    ///now this is dummy after data will set by ocr
+    const ocrValue = {
+       'Bill Date' :'2023-12-12',
+       'Bill Number' : 'sdfsd',
+       'Vendor Name': 'Hello Vendor',
+       'Description' : 'Hello Description',
+       'Quantity' : '23', 
+       'Unit Cost' : '23',
+       'Tax Amount' : '45',
+      'Total Amount': '2500'     
+    }
 
     
     const [miscellaneousData, setMiscellaneousData]=useState(null) //for onboarding dat
@@ -91,6 +102,7 @@ const CreateNonTraveExpense = () => {
     
     const [selectedLineItemId, setSelectedLineItemId]=useState(null)
     const [isLoading,setIsLoading]=useState(false)
+    const [isUploading,setIsUploading]=useState(false)
     const [loadingErrorMsg, setLoadingErrorMsg]=useState(null)
     const [errorMsg,setErrorMsg]=useState({
       currencyFlag:{set:false,msg:""},
@@ -98,7 +110,7 @@ const CreateNonTraveExpense = () => {
     })
 
     const [openLineItemForm,setOpenLineItemForm]=useState(false)
-    const [openModal,setOpenModal]=useState(false);
+    const [openModal,setOpenModal]=useState(null);
     const [showPopup ,setShowPopup]=useState(false);
     const [message,setMessage]=useState(null)  ///this is for modal message
 
@@ -119,7 +131,13 @@ const onAllocationSelection = (option, headerName) => {
 
 const [selectedCategory , setSelectedCategory]= useState(null) //this is for dropdown
 
-const initialFormValues = Object.fromEntries(categoryElement.map((field) => [field.name, '']));
+// const initialFormValues = Object.fromEntries(categoryElement.map((field) => [field.name, '']));
+const initialFormValues = Object.fromEntries(
+  categoryElement.map((field) => [
+    field.name,
+     ocrValue?.[field.name] || '',
+  ])
+);
 
 const [formDataValues, setFormDataValues] = useState(initialFormValues); // for line items form
 
@@ -160,6 +178,7 @@ const [formDataValues, setFormDataValues] = useState(initialFormValues); // for 
       console.log(`Updating ${name} with value:`, value);
       setFormDataValues((prevState) => ({ ...prevState, [name]: value || "" }));
     };
+
 
     const handleEmptyValues = () => {
       const updatedFormData = { ...formDataValues };
@@ -256,27 +275,27 @@ const handleConverter =async ( totalAmount , selectedCurrency) => {
     //this is for miscellaneous data
     //for get categories , dashboard to non tr expense ms 
 
-    useEffect(() => {
-        const fetchData = async () => {
-          try {
-            setIsLoading(true);
-            const { data, error } = await getNonTravelExpenseMiscellaneousDataApi(tenantId,empId);
+    // useEffect(() => {
+    //     const fetchData = async () => {
+    //       try {
+    //         setIsLoading(true);
+    //         const { data, error } = await getNonTravelExpenseMiscellaneousDataApi(tenantId,empId);
     
-            if (error) {
-              setLoadingErrorMsg(error.message);
-            } else {
-              setMiscellaneousData(data);
-            }
-          } catch (error) {
-            setLoadingErrorMsg(error.message);
-          } finally {
-            setIsLoading(false);
-          }
-        };
+    //         if (error) {
+    //           setLoadingErrorMsg(error.message);
+    //         } else {
+    //           setMiscellaneousData(data);
+    //         }
+    //       } catch (error) {
+    //         setLoadingErrorMsg(error.message);
+    //       } finally {
+    //         setIsLoading(false);
+    //       }
+    //     };
     
-        fetchData();
-      }, []);
-      console.log(miscellaneousData)   
+    //     fetchData();
+    //   }, []);
+    //   console.log(miscellaneousData)   
 
 
     //i think this no need to do
@@ -443,6 +462,62 @@ const handleCancelExpenseHeader =()=>{
         }
       }
 
+      const handleOpenModal=(id)=>{
+        if(id==='upload'){
+          setOpenModal('upload')
+        }
+        if(id==='form'){
+          setOpenModal('form')
+        }
+       }
+
+
+      const [ocrFileSelected , setOcrFileSelected]=useState(false)
+      const [ocrSelectedFile , setOcrSelectedFile]=useState(null)
+      const [ocrField , setOcrField]=useState(null)
+      
+      const handleOcrScan = async () => {
+        // console.log('ocrfile from handle', ocrSelectedFile);
+      
+        const formData = new FormData();
+          formData.append('file', ocrSelectedFile);
+      
+        console.log('ocrfile from handle',formData)
+      
+        try {
+
+          setIsUploading(true);
+          
+          // Assuming ocrScanApi is an asynchronous function
+          const response = await nonTravelOcrApi(formData);
+      
+          if (response.error) {
+            loadingErrorMsg(response.error.message);
+            setCurrencyTableData(null);
+          } else {
+            loadingErrorMsg(null);
+            setOcrField(response.data);
+      
+            if (!currencyTableData.currencyFlag) {
+              setErrorMsg((prevErrors) => ({
+                ...prevErrors,
+                currencyFlag: { set: true, msg: 'OCR failed, Please try again' },
+              }));
+              console.log('Currency is not found in onboarding');
+            }
+          }
+        } catch (error) {
+          loadingErrorMsg(error.message);
+          setMessage(error.message);
+          setShowPopup(true);
+      
+          setTimeout(() => {
+            setShowPopup(false);
+          }, 3000);
+        } finally {
+          setIsUploading(false);
+        }
+      };
 
   return (
     <div>
@@ -514,7 +589,7 @@ const handleCancelExpenseHeader =()=>{
            
      <hr/>
      <div>
-     <div className="w-fit my-5" onClick={handleModal}>
+     <div className="w-fit my-5" onClick={()=>handleOpenModal('form')}>
            <Button text={"Add Line Item"}/>
      </div>
      </div>
@@ -541,7 +616,8 @@ const handleCancelExpenseHeader =()=>{
 <>
 <div className='flex flex-col lg:flex-row border '>
   <div className='w-full lg:w-1/2 border'>
-    bill details
+    <DocumentPreview initialFile={lineItem.Document}/>
+
   </div>
   <div className='w-full lg:w-1/2 border' key={index}>  
      <div >
@@ -625,12 +701,13 @@ const handleCancelExpenseHeader =()=>{
  <div className='h-[73px] mt-2'>        
     <Input 
             placeholder={titleCase(`Enter ${element.name}`)}
-            initialValue={""}
+            initialValue={formDataValues[element.name]}
+            // initialValue={ocrValue[element.name]}
             title={element.name}
             error={element.name === "Total Amount" ? errorMsg.totalAmount : null}
-            name={element.name}
+            // name={element.name}
             type={element.type === 'date' ? 'date' : element.type === 'amount' ? 'number' : 'text'}
-            value={formDataValues[element.name] || ""}
+            // value={formDataValues[element.name] || ""}
             onChange={(value) => handleInputChange( element.name , value)}
     />
 </div>   
@@ -707,20 +784,86 @@ const handleCancelExpenseHeader =()=>{
 
 
 {/* //---------save line item form end----------------------- */}
-           {openModal && <div className="fixed overflow-hidden max-h-4/5 flex justify-center items-center inset-0 backdrop-blur-sm w-full h-full left-0 top-0 bg-gray-800/60 scroll-none" >
+           {openModal==='form' && <div className="fixed overflow-hidden max-h-4/5 flex justify-center items-center inset-0 backdrop-blur-sm w-full h-full left-0 top-0 bg-gray-800/60 scroll-none" >
                 <div className='z-10 max-w-4/5 w-2/5 min-h-4/5 max-h-4/5 scroll-none bg-white-100  rounded-lg shadow-md'>
+                <div onClick={()=>{setOpenModal(null);}} className=' w-10 h-10 flex mr-5 mt-5 justify-center items-center float-right   hover:bg-red-300 rounded-full'>
+                      <img src={cancel} className='w-8 h-8'/>
+                  </div>
                     <div className="p-10">
-                        <p className="text-xl font-cabin">Seletct option for Enter Expense Line</p>
+                        <p className="text-xl  text-center font-cabin">Seletct option for Enter Expense Line</p>
                         {/* <Select 
                             options={rejectionReasonOptions}
                             onSelect={onReasonSelection}
                             placeholder='Please select reason for rejection'
                         /> */}
                         <div className="flex mt-10 justify-between">
-                            <Button variant='fit' text='Scan' onClick={handleModal} />
+                            <Button variant='fit' text='Scan' onClick={()=>handleOpenModal('upload')}  />
                             {/* setOpenLineItemForm(true) */}
                             <Button variant='fit' text='Manually' onClick={()=>{setOpenLineItemForm(true);handleModal()}} />
                         </div>
+                    </div>
+                </div>
+                </div>
+            }
+
+{openModal==='upload' && <div className="fixed overflow-hidden max-h-4/5 flex justify-center items-center inset-0 backdrop-blur-sm w-full h-full left-0 top-0 bg-gray-800/60 scroll-none" >
+                <div className='z-10 max-w-5/5 w-2/5 min-h-4/5 max-h-4/5 scroll-none bg-white-100  rounded-lg shadow-md'>
+                  <div onClick={()=>{setOpenModal(null);setOcrSelectedFile(null);setOcrFileSelected(false)}} className=' w-10 h-10 flex mr-5 mt-5 justify-center items-center float-right   hover:bg-red-300 rounded-full'>
+                      <img src={cancel} className='w-8 h-8'/>
+                  </div>
+                    <div className="p-10 ">
+                     
+                      <div className="flex flex-col justify-center items-center">
+                       
+
+                       
+                        {ocrFileSelected ? 
+                        
+                        <div className="w-full  flex flex-col justify-center items-center h-[500px]  overflow-x-auto">
+                        <p>Document Name: {ocrSelectedFile.name}</p>
+                        <Button  text='reupload' onClick={()=>{setOcrFileSelected(false);setOcrSelectedFile(null)}}/>
+                        {/* <p>Size: {selectedFile.size} bytes</p>
+                        <p>Last Modified: {selectedFile.lastModifiedDate.toString()}</p> */}
+                        {ocrSelectedFile.type.startsWith('image/') ? (
+                          
+                          <img
+                            src={URL.createObjectURL(ocrSelectedFile)}
+                            alt="Preview"
+                            className=' w-full'
+                            
+                          />
+                          
+                        ) : ocrSelectedFile.type === 'application/pdf' ? (
+                          <embed
+                          
+                            src={URL.createObjectURL(ocrSelectedFile)}
+                            type="application/pdf"
+                            width="100%"
+                            height="100%"
+                            onScroll={false}
+                          />
+                        ) : (
+
+                          <p>Preview not available for this file type.</p>
+
+                        )}
+
+                         <Button loading={isUploading} variant='fit' text='Scan' onClick={handleOcrScan} />
+                      </div>:
+                      <>
+                       <p className="text-xl font-cabin">Upload the document for scan the fields.</p>
+
+                                  <div className="w-fit">
+                                   <Upload
+                                   selectedFile={ocrSelectedFile}
+                                   setSelectedFile={setOcrSelectedFile}
+                                   fileSelected={ocrFileSelected}
+                                   setFileSelected={setOcrFileSelected}/>
+                                  </div>
+                                  </> }
+
+                        </div>
+
                     </div>
                 </div>
                 </div>
@@ -814,9 +957,7 @@ const [formData, setFormData] = useState(lineItem);
       [key]: value,
     }));
   };
- 
   
-
   const onAllocationSelection = (option, headerName) => {
     // Create a new allocation object
     const newAllocation = { headerName: headerName, headerValue: option || "" };
@@ -873,7 +1014,7 @@ const [formData, setFormData] = useState(lineItem);
    <DocumentPreview selectedFile={selectedFile} initialFile={initialFile}/>
   </div>
   <div className='w-full lg:w-1/2 border'>     
-<div  className="w-full border flex flex-wrap items-start justify-between py-4 px-2"></div>
+
 <div  className="w-full border flex flex-wrap items-start justify-between py-4 px-2">
 
   {expenseLineAllocation.length>0 && expenseLineAllocation.map((allItem , allIndex )=>(

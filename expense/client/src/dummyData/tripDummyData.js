@@ -7,6 +7,19 @@ const tripDummyData = {
       empId: "exampleEmpId",
       name: "John Doe",
     },
+    approvers: [
+      {
+        empId: 'emp999',
+        name: 'Approver 1',
+        status: 'pending approval',
+      },
+      {
+        empId: 'emp888',
+        name: 'Approver 2',
+        status: 'pending approval',
+      },
+    ],
+
     tripId: "6587f7d3f1bc28bda7fd77d4",
     tripPurpose: "Business Trip with instaMart",
     tripStatus: "approved",
@@ -424,6 +437,7 @@ const tripDummyData = {
         "expenseHeaderId":"expheaderId",
         "expenseReportNumber": "ERTNT000055",
         
+        
         "alreadyBookedExpense": {
             "formState": [
                 {
@@ -685,6 +699,7 @@ const tripDummyData = {
       } ,
     {
       "tripId": "6587f7d3f1bc28bda7fd77d4",
+      
       "tripNumber": "TRIPABG000002",
       "tripPurpose": "Delhi Branch Opening",
       "newExpenseReport": true,
@@ -700,12 +715,13 @@ const tripDummyData = {
         [
           
   {
-    _id:'idfkjds',
+       _id:'idfkjds',
+       "travelType":"international",
       'categoryName':'Cab',
       'Date': '2024-12-12',
       'Time': '08:29 AM',
       'Class of Service': 'Executive',
-      'Pickup Location': 'Sample Pickup Location',
+      'Pickup Location': 'Sample Pickup Location form Delhi to Lucknow to America',
       'DropOff Location': 'Sample DropOff Location',
       'Total Fare': '$50.00',
       'Tax Amount': '$5.00',
@@ -730,7 +746,8 @@ const tripDummyData = {
   },
   {
     _id:'idfkj32',
-    'categoryName':'Meals',
+      "travelType":"international",
+      'categoryName':'Meals',
       'Bill Date': '2023-10-23',
       'Bill Number': 'MB123456',
       'Vendor Name': 'Sample Vendor',
@@ -740,12 +757,13 @@ const tripDummyData = {
       'Tax Amount': '$2.00',
       'Total Amount': '$32.00',
       'Currency'   : 'CAD',
-      'Document': 'invoice3.docx',
+      'Document': 'https://humanium-metal.com/app/uploads/2020/03/im-logotype-rgb-digital.png',
       isPersonalExpense: true,
       personalExpenseAmount: '5000'
   },
   {
     _id:'idf67j32',
+    "travelType":"international",
     'categoryName':'Travel Reimbursement',
     'From': 'Sample From, Sample To, 10 miles',
     'Bill Date': '2023-10-23',
@@ -757,7 +775,7 @@ const tripDummyData = {
     'Tax Amount': '$3.00',
     'Total Amount': '78.00',
     'Currency': 'CAD',
-    'Document': 'invoice3.docx',
+    'Document': '',
     isPersonalExpense: false,
     personalExpenseAmount: '',
     policyViolation : {
@@ -781,6 +799,7 @@ const tripDummyData = {
   },
   {
     _id:'id76j32',
+    "travelType":"international",
     'Bill Date': '2022-12-01',
     'Bill Number': '223344',
     Description: 'Sed Consectetur',
@@ -789,9 +808,9 @@ const tripDummyData = {
     'Total Amount': '50.00',
     'Unit Cost': '25.00',
     'Vender Name': 'EFG Ltd',
-    categoryName: 'travel',
+    categoryName: 'Travel Expenses',
     currencyName: 'CAD',
-    document: 'invoice3.docx',
+    Document: 'https://www.africau.edu/images/default/sample.pdf',
     isPersonalExpense: false,
     personalExpenseAmount: ''
   },

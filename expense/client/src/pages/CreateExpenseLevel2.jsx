@@ -9,7 +9,7 @@ import { titleCase, urlRedirection } from "../utils/handyFunctions";
 import Button from "../components/common/Button";
 import Error from "../components/common/Error";
 import PopupMessage from "../components/common/PopupMessage";
-import { cab_purple as cab_icon, airplane_1 as airplane_icon ,house_simple , chevron_down,  cancel, modify} from "../assets/icon";
+import { cab_purple as cab_icon, airplane_1 as airplane_icon ,house_simple , chevron_down,  cancel, modify, airplane_1, airplane, airplay_1, check_tick} from "../assets/icon";
 import tripDummyData from "../dummyData/tripDummyData";
 import { bookAnExpenseDataLevel2, hrDummyData } from "../dummyData/requiredDummy";
 import Select from "../components/common/Select";
@@ -48,7 +48,9 @@ export default function () {
 
   const [selectedTravelType, setSelectedTravelType] = useState(null);
 
- 
+  // const [travelType , setTravelType]=useState('International')
+
+  // console.log(travelType)
   
 
   useEffect(() => {
@@ -77,11 +79,11 @@ export default function () {
 
   }, [selectedTravelType]);
 //   bookAnExpenseData
-const handleTravelTypeSelect = (type) => {
+// const handleTravelTypeSelect = (type) => {
 
-    setSelectedTravelType(type);
+//     setSelectedTravelType(type);
 
-  };
+//   };
    
 
   const defaultCurrency =  onboardingData?.companyDetails?.defaultCurrency ?? 'N/A'
@@ -92,8 +94,17 @@ const handleTravelTypeSelect = (type) => {
   console.log('categoryViseFields',categoryfields)
 
   //categories array for search the category to get fields
-  const categoryNames = categoryfields &&  categoryfields.map((category)=>(category[selectedTravelType]))
-  console.log('ffff',categoryNames)
+  const categoryNames = categoryfields  &&  categoryfields.map((category)=>(category[selectedTravelType]))
+// Filter out undefined values
+const filteredCategoryNames = categoryNames && categoryNames.filter((name) => name !== undefined);
+
+console.log('Filtered Category Names:', filteredCategoryNames);
+
+
+
+
+
+  
 //   if (categoryNames) {
 //     const categoriesForType = categoryNames[selectedTravelType].map((category) => category.categoryName);
 //    console.log('objectcatt',categoriesForType)
@@ -179,7 +190,8 @@ const onAllocationSelection = (option, headerName) => {
         setRejectionReason(option)
         console.log(option)
     }
-
+    
+console.log('selected allocation',selectedAllocations)
 
    
 
@@ -426,6 +438,9 @@ const handleSubmitOrDraft=async(action)=>{
     }
 
 
+
+
+
   return <>
 {/* <Error message={loadingErrMsg}/> */}
     {isLoading && <Error/>}
@@ -444,34 +459,67 @@ const handleSubmitOrDraft=async(action)=>{
         <div>
                Expense Type: Travel
         </div>
-        <div  className="flex md:flex-row flex-col my-5 justify-evenly items-center flex-wrap">
-            <Select 
-            placeholder='Travel Type'
-            title='Select Travel Type'
-            options={['international','domestic','local']}
-            onSelect={handleTravelTypeSelect}
+       
+       <>
 
-            
-            />            
-             
-         {travelExpenseAllocation && travelExpenseAllocation.map((expItem , index)=>(
-              <>
-             
-              <div key={index}  className="h-[48px] inline-flex my-4 mx-2">
-               
-                <Select 
-                  options={expItem.headerValues}
-                  onSelect={(option) => onAllocationSelection(option, expItem.headerName)}
-                  placeholder='Select Allocation'
-                  title={`${titleCase(expItem.headerName ?? "")}`}
-                />
-               
-              </div>
-              </>
-       ))}       
-          
-
+   <div className="flex flex-col md:flex-row gap-4">  
+   
+      <div  onClick={() => setSelectedTravelType('international')} className={`flex gap-x-4 flex-row items-center ${selectedTravelType === 'international' ? 'border border-indigo-600' : 'border border-neutral-400'} max-w-[350px] accent-indigo-600 px-6 py-2 rounded`}>
+        <div className={`w-[20px] h-[20px] ${selectedTravelType === 'international' ? 'bg-indigo-600 border border-indigo-600' : 'border border-neutral-400'} flex items-center justify-center rounded-sm`}>
+          {selectedTravelType === 'international' && <img src={check_tick} alt="Check Icon" className='w-[20px] h-[20px] rounded-sm' />}
         </div>
+
+        <div>
+          <p className='font-Cabin text-neutral-800 text-lg tracking-wider'> International </p>
+          <p className='font-Cabin -mt-1 text-neutral-600 text-sm tracking-tight'>Travelling out of country</p>
+        </div>
+      </div>
+
+      <div onClick={() => setSelectedTravelType('domestic')} className={`flex gap-x-4 flex-row items-center ${selectedTravelType === 'domestic' ? 'border border-indigo-600' : 'border border-neutral-400'} max-w-[350px] accent-indigo-600 px-6 py-2 rounded `}>
+        <div className={`w-[20px] h-[20px] ${selectedTravelType === 'domestic' ? 'bg-indigo-600 border border-indigo-600' : 'border border-neutral-400'} flex items-center justify-center rounded-sm`}>
+          {selectedTravelType === 'domestic' && <img src={check_tick} alt="Check Icon" className='w-[20px] h-[20px] rounded-sm' />}
+        </div>
+
+        <div>
+          <p className='font-Cabin text-neutral-800 text-lg tracking-wider'> Domestic </p>
+          <p className='font-Cabin -mt-1 text-neutral-600 text-sm tracking-tight'>Travelling within the country</p>
+        </div>
+      </div>
+
+      <div onClick={() => setSelectedTravelType('local')}  className={`flex gap-x-4 flex-row items-center ${selectedTravelType === 'local' ? 'border border-indigo-600' : 'border border-neutral-400'} max-w-[350px] accent-indigo-600 px-6 py-2 rounded `}>
+        <div className={`w-[20px] h-[20px] ${selectedTravelType === 'local' ? 'bg-indigo-600 border border-indigo-600' : 'border border-neutral-400'} flex items-center justify-center rounded-sm`}>
+          {selectedTravelType === 'local' && <img src={check_tick} alt="Check Icon" className='w-[20px] h-[20px] rounded-sm' />}
+        </div>
+
+        <div>
+          <p className='font-Cabin text-neutral-800 text-lg tracking-wider'> Local </p>
+          <p className='font-Cabin -mt-1 text-neutral-600 text-sm tracking-tight'>Travelling nearby</p>
+        </div>
+      </div>
+ </div>  
+    </>
+    
+    <div  className="flex md:flex-row flex-col my-5 justify-evenly items-start flex-wrap">
+                   
+             
+                   {travelExpenseAllocation && travelExpenseAllocation.map((expItem , index)=>(
+                        <>
+                       
+                        <div key={index}  className="h-[48px] inline-flex my-4 mx-2">
+                         
+                          <Select 
+                            options={expItem.headerValues}
+                            onSelect={(option) => onAllocationSelection(option, expItem.headerName)}
+                            placeholder='Select Allocation'
+                            title={`${titleCase(expItem?.headerName ?? "")}`}
+                          />
+                         
+                        </div>
+                        </>
+                 ))}       
+                    
+          
+    </div>
             <div className='flex flex-col md:flex-row mb-2 justify-between items-center'>
               <div>
                 <p className="text-2xl text-neutral-600 mb-5">{`${formData?.tripPurpose?? "N/A"}`}</p>
@@ -573,7 +621,7 @@ const handleSubmitOrDraft=async(action)=>{
         <details>
           <summary>
             <p className="inline-flex text-xl text-neutral-700">
-              {`${titleCase(itnItem)} `}
+              {`${titleCase(itnItem ?? "")} `}
             </p>
           </summary>
           <div className='flex flex-col gap-1'>
@@ -588,7 +636,7 @@ const handleSubmitOrDraft=async(action)=>{
                       itnId={item.itineraryId}
                       // handleLineItemAction={handleLineItemAction}
                       showActionButtons={travelRequestStatus !== 'pending approval' && item.status == 'pending approval'}
-                      date={item.date} time={item.time} travelClass={item.travelClass} mode={titleCase(itnItem.slice(0, -1))} />
+                      date={item.date} time={item.time} travelClass={item.travelClass} mode={titleCase(itnItem.slice(0, -1) ?? "")} />
                   </div>
                 );
               } else if (itnItem === 'cabs') {
@@ -708,8 +756,6 @@ onChange={handleInputChange}
    <Dropdown
          label="Currency"
          name="currency"
-         id='currency'
-         htmlFor='currency'
        placeholder="Select Currency"
        options={['INR',"USD",'AUD']} //this data will get from currency  api
       //  onSelect={(value) => handleDropdownChange(value, 'currencyName')}
@@ -786,7 +832,7 @@ onChange={handleInputChange}
     <div className="w-full flex-row  border mt-2">
         <h2>LineItem {index+1}</h2>
      <div className="w-full flex items-center justify-start h-[52px] border px-4 ">
-      <p className="text-zinc-600 text-medium font-semibold font-cabin">Category -{titleCase(lineItem.category)}</p>
+      <p className="text-zinc-600 text-medium font-semibold font-cabin">Category -{titleCase(lineItem?.category ?? "")}</p>
     </div>   
     <div key={index} className="w-full  border flex flex-wrap items-center px-4 justify-between  py-4">
         {Object.entries(lineItem).map(([key, value]) => (

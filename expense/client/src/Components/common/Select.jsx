@@ -168,9 +168,9 @@ const selectDivFocus = (e)=>{
               </div>
 
               
-            {!showDropdown && hidePlaceholder && violationMessage && <div className="absolute top-[35px] w-full text-xs text-yellow-600 font-cabin">
+            {/* {!showDropdown && hidePlaceholder && violationMessage && <div className="absolute top-[35px] w-full text-xs text-yellow-600 font-cabin">
               {violationMessage}
-            </div>}
+            </div>} */}
             
             {!showDropdown && !hidePlaceholder && error?.set && <div className="absolute top-[35px] w-full text-xs text-red-600 font-cabin">
               {error?.message}

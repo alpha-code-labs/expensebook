@@ -72,9 +72,44 @@ export const getTravelExpenseApi = async (tenantId,empId,tripId) => {
   }
 };
 
+
+export const ocrScanApi = async (data) => {
+ 
+  const url = `${BASE_URL}/ocr-scan`;
+  try {
+    const response = await axiosRetry(axios.post, url,data);
+    return { data: response.data, error: null };
+  } catch (error) {
+    handleRequestError(error);
+    const errorObject = {
+      status: error.response?.status || null,
+      message: error.message || 'Unknown error',
+    };
+
+    return { data: null, error: errorObject };
+  }
+};
+
+///non travel handler
+export const nonTravelOcrApi = async (data) => {
+ 
+  const url = `${BASE_URL}/ocr-scan`;
+  try {
+    const response = await axiosRetry(axios.post, url,data);
+    return { data: response.data, error: null };
+  } catch (error) {
+    handleRequestError(error);
+    const errorObject = {
+      status: error.response?.status || null,
+      message: error.message || 'Unknown error',
+    };
+
+    return { data: null, error: errorObject };
+  }
+};
+
 //verfied by backend
 //when user will get for modify
-
 
 export const logoutApi = async (authToken) => {
   try {
