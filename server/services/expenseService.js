@@ -1,64 +1,40 @@
-// Import necessary modules
-import axios from 'axios';
-import dotenv from 'dotenv';
-import pino from 'pino';
-import pinoPretty from 'pino-pretty';
+import Trip from '../models/tripSchema.js';
 
-// Create a logger instance using pino with pretty printing
-const logger = pino({
-  prettifier: pinoPretty,
-});
-
-// Load environment variables
-dotenv.config();
-
-// Get the base Expense API URL from environment variables
-const expense_API_BASE_URL = process.env.EXPENSE_API_BASE_URL;
-
-// Trip Service in Trip Microservice for Expense Microservice interactions
-const tripExpenseService = {
-  getExpenseAPIBaseURL: () => {
-    return expense_API_BASE_URL;
-  },
-
-  // Function to handle API calls to the Expense Microservice for CRUD operations
-  performExpenseAPICall: async (endpoint, method, data) => {
-    try {
-      const url = `${expense_API_BASE_URL}/${endpoint}`;
-
-      // Validate if the Expense Microservice URL is available
-      if (!expense_API_BASE_URL) {
-        throw new Error('Expense Microservice URL is not defined');
-      }
-
-      // Make an API call based on method (GET, POST, PUT, DELETE)
-      let response;
-      switch (method) {
-        case 'GET':
-          response = await axios.get(url);
-          break;
-        case 'POST':
-          response = await axios.post(url, data);
-          break;
-        case 'PUT':
-          response = await axios.put(url, data);
-          break;
-        case 'DELETE':
-          response = await axios.delete(url);
-          break;
-        default:
-          throw new Error('Invalid HTTP method');
-      }
-
-      // Return the response from the API call
-      return response.data;
-    } catch (error) {
-      // Handle errors
-      logger.error(`Error performing Expense API call: ${error.message}`);
-      throw new Error('Failed to perform Expense API call');
-    }
-  },
+// Function to find trips to process
+export const findTripsToProcess = async () => {
+  return await Trip.find({ sentToExpense: false });
 };
 
-// Export the Trip service in Trip Microservice for Expense Microservice interactions
-export default tripExpenseService;
+// Function to send data to Expense
+export const sendToExpense = async (trip) => {
+  // Implement your actual logic to send data to Expense
+};
+
+// Function to update the isSentToExpense flag
+export const updateSentToExpenseFlag = async (tenantId, tripId, isSentToExpense) => {
+  try {
+    const updateResult = await Trip.updateOne(
+      {
+        tenantId: tenantId,
+        tripId: tripId,
+        isSentToExpense: false,
+      },
+      {
+        $set: {
+          isSentToExpense: isSentToExpense,
+        },
+      }
+    );
+
+    if (updateResult.nModified > 0) {
+      console.log(`Updated isSentToExpense flag for tenantId: ${tenantId}, tripId: ${tripId}`);
+    } else {
+      console.log(`No matching document found for update: tenantId: ${tenantId}, tripId: ${tripId}`);
+    }
+
+    return updateResult;
+  } catch (error) {
+    console.error('Error in updateSentToExpenseFlag:', error);
+    throw error;
+  }
+};

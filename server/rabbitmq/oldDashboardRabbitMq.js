@@ -202,7 +202,7 @@ const consumeMessagesSync = async (channel) => {
   }
 };
 
-// Eusage:
+// usage:
 // const channel = await connectToRabbitMQ();
 // consumeMessagesSync(channel);
 

@@ -75,4 +75,4 @@ export async function sendToOtherMicroservice(payload, action, destination, comm
         console.log(Error` cash advance data to ${destination} microservice:`, error);
         return false;
       }
-  }
+}

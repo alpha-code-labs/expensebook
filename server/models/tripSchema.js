@@ -374,9 +374,10 @@ const expenseLineSchema = new mongoose.Schema({
       required: true,
     },
     tripId:{
-      type: mongoose.Types.ObjectId, 
-      // unique: true,
-      // required: true,
+      type: mongoose.Schema.Types.ObjectId, 
+      default: () => new mongoose.Types.ObjectId(),
+      unique: true,
+      required: true,
     },
     tripNumber:{
       type: String,
@@ -385,6 +386,7 @@ const expenseLineSchema = new mongoose.Schema({
     tripStatus: {
       type: String,
       enum: tripStatusEnum,
+      default:"upcoming",
       required: true,
     },
     tripStartDate: {
@@ -417,10 +419,15 @@ const expenseLineSchema = new mongoose.Schema({
         default: 0,
       },
     },
-    isSentToExpense: Boolean,  
-    notificationSentToDashboardFlag: Boolean,
-      travelRequestData: 
-    {
+    isSentToExpense:{
+      type: Boolean,
+      default: false,
+    },  
+    notificationSentToDashboardFlag: {
+      type: Boolean,
+      default: false,
+    },  
+      travelRequestData: {
       tenantId: {
         type: String,
         // required: true,
@@ -432,7 +439,7 @@ const expenseLineSchema = new mongoose.Schema({
         type: String,
       },
       travelRequestId: {
-        type: mongoose.Types.ObjectId, // tenantId_createdBy_tr_#(tr number) | tentative | not fixed
+        type: mongoose.Types.ObjectId, 
         required: true,
         // unique: true,
       },
@@ -628,6 +635,48 @@ const expenseLineSchema = new mongoose.Schema({
         }
       ],
   }); 
+
+  
+// Function to generate the incremental number
+const generateIncrementalNumber = (tenantName, incrementalValue) => {
+  if (typeof tenantName !== 'string' || tenantName === null || tenantName === undefined) {
+    throw new Error('Invalid tenantName parameter');
+  }
+  
+  if (typeof incrementalValue !== 'number' || isNaN(incrementalValue)) {
+    throw new Error('Invalid incrementalValue parameter');
+  }
+  
+  try {
+    const formattedTenant = (tenantName || '').toUpperCase().substring(0, 3);
+    return `TRIP${formattedTenant}${incrementalValue.toString().padStart(6, '0')}`;
+  } catch (error) {
+    console.error('Error generating incremental number:', error);
+    throw error;
+  }
+};
+
+// Pre-save hook to generate and assign tripNumber if it doesn't exist
+tripSchema.pre('validate', async function (next) {
+  if (!this.tripNumber) {
+    // Query to find the maximum incremental value
+    const maxIncrementalValue = await this.constructor.findOne({}, 'tripNumber')
+      .sort('-tripNumber')
+      .limit(1);
+
+    // Calculate the next incremental value
+    const nextIncrementalValue = (maxIncrementalValue && maxIncrementalValue.tripNumber)
+      ? parseInt(maxIncrementalValue.tripNumber.substring(9), 10) + 1
+      : 1;
+
+    // Generate the new tripNumber
+    this.tripNumber = generateIncrementalNumber(this.tenantName, nextIncrementalValue);
+
+    // Logging the latest generated tripNumber
+    console.log(`Latest generated tripNumber: ${this.tripNumber}`);
+  }
+  next();
+});
   
 const Trip = mongoose.model('trips', tripSchema);
 
