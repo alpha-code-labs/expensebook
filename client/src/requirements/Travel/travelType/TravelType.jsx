@@ -55,7 +55,7 @@ export default function({setShowBackButton, formData, setFormData, onBoardingDat
 
     useEffect(() => {
         (async function(){
-          const response = await getOnboardingData_API({tenantId, EMPLOYEE_ID, travelType})
+          const response = await getOnboardingData_API({tenantId: formData.tenantId, EMPLOYEE_ID:formData.createdBy.empId, travelType: formData.travelType})
           if(response.err){
             setLoadingErrMsg(response.err)
             console.log('Error in fetching onboaridn gdata', response.err)

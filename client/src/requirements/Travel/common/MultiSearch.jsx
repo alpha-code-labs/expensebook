@@ -14,6 +14,8 @@ export default function Search(props){
     const [textInput, setTextInput] = useState(currentOption? `${currentOption.map(o=>o.name).join(', ')}${currentOption.length>0? ', ': ''}` : '')
     const [filteredOptionsList, setFilteredOptionsList] = useState(null)
     const [keyboardFocusIndex, setKeyboardFocusIndex] = useState(-1)
+    const focusOut = props.focusOut??false
+
     const error = props.error || null
     const drop = props.drop || 'down'
 
@@ -24,19 +26,28 @@ export default function Search(props){
         setKeyboardFocusIndex(-1)
     },[filteredOptionsList])
 
+    useEffect(()=>{
+        if(showDropdown || inputRef.current.isFocused()){
+            setShowDropdown(false)
+            Keyboard.dismiss()
+        }
+    },[focusOut])
+
     //methods passed as props
     const onSelect = props.onSelect || null
     
     //length of input text above which dropdown appears
     const startShowingOptions = optionsList.length < 200 ? -1 : 0
+    const [caretIndex, setCaretIndex] = useState(0)
+
 
     const inputChange = (text)=>{
         const inputValue = text
         const keywords = inputValue.split(',').map((keyword) => keyword.trim());
         setTextInput(inputValue)
 
-        const caretIndex = inputRef.current.onSelectinChange
-        console.log(inputRef.current.NativeProps)
+        // const caretIndex = inputRef.current.onSelectionChange
+        // console.log(inputRef.current.NativeProps)
         console.log(caretIndex, 'caretIndex')
 
         if(keywords[keywords.length-1].length == 0){
@@ -49,7 +60,7 @@ export default function Search(props){
             selectedOption.forEach((option, index)=>{
                 
                 //not sure if we should keep this
-                if(selectedOption.slice(0, index+1).map(o=>o.employeeName).join(', ').length == inputValue.length){
+                if(selectedOption.slice(0, index+1).map(o=>o.employeeName).join(', ').length <= caretIndex){
                     removeOption(option)
                 }    
             })
@@ -69,6 +80,11 @@ export default function Search(props){
             }
         }
     }
+
+    const handleSelectionChange = (event) => {
+        const { start } = event.nativeEvent.selection;
+        setCaretIndex(start);
+      };
 
     const inputFocus = () => {
         
@@ -102,17 +118,18 @@ export default function Search(props){
         //setShowDropdown(false)
     }
 
-
     useEffect(()=>{
         console.log('show dropdown', showDropdown)
     }, [showDropdown])
 
-    //changes focused element on arrow key down/up press
-    useEffect(()=>{
-        if( keyboardFocusIndex!=-1 && dropdownOptionsRef.current[keyboardFocusIndex]){
-            dropdownOptionsRef.current[keyboardFocusIndex].focus()
-        }
-    },[keyboardFocusIndex])
+    // //changes focused element on arrow key down/up press
+    // useEffect(()=>{
+    //     if( keyboardFocusIndex!=-1 && dropdownOptionsRef.current[keyboardFocusIndex]){
+    //         dropdownOptionsRef.current[keyboardFocusIndex].focus()
+    //     }
+
+    //     console.log('focus changed')
+    // },[keyboardFocusIndex])
 
     //iterating through options using keyboard
     const handleDropdownKeyDown = (e)=>{
@@ -173,6 +190,7 @@ export default function Search(props){
     
     //handles selection of options
     const handleOptionSelect = (option, index=0)=>{
+        console.log('this ran...')
         if(!selectedOption.some(o=> o.employeeId == option.employeeId)){
             const updatedSlectedOption = [...selectedOption, option]
             setSelectedOption(updatedSlectedOption)
@@ -184,12 +202,12 @@ export default function Search(props){
             }
 
             setShowDropdown(false)
-            Keyboard.dismiss
+            //Keyboard.dismiss
         }
         else{
             setTextInput(selectedOption.map(o=>o.employeeName).join(', ')+', ')
             setShowDropdown(false)  
-            Keyboard.dismiss 
+            //Keyboard.dismiss 
         }
     }
 
@@ -222,13 +240,42 @@ export default function Search(props){
     // }, []);
 
     const handleOutsideClick = ()=>{
-        Keyboard.dismiss
-        setShowDropdown(false)
+        // Keyboard.dismiss
+        // setShowDropdown(false)
     }
+
+
+    const [isKeyboardVisible, setKeyboardVisible] = useState(false);
+
+    useEffect(() => {
+        const keyboardDidShowListener = Keyboard.addListener(
+        'keyboardDidShow',
+        () => {
+            setKeyboardVisible(true); // or some other action
+        }
+        );
+        const keyboardDidHideListener = Keyboard.addListener(
+        'keyboardDidHide',
+        () => {
+            setKeyboardVisible(false); // or some other action
+        }
+        );
+
+        return () => {
+        keyboardDidHideListener.remove();
+        keyboardDidShowListener.remove();
+        };
+    }, []);
     
+    useEffect(()=>{
+        if(!isKeyboardVisible){
+            //delay by 100ms
+            
+        }
+    },[isKeyboardVisible])
 
     return(<>
-    <TouchableWithoutFeedback className={`bg-blue-100 ${showDropdown? 'w-full h-full' : '' } `} onPress={handleOutsideClick}>
+
         <View style={`${showDropdown? {elevation:5}:{elevation:0}}`} className={`w-[302px] ${showDropdown? 'z-10' : ''} h-[73px] flex-col justify-start items-start gap-2 inline-flex`}>
             {/* title */}
             <Text style={{fontFamily:'Cabin'}} className="text-zinc-600 text-sm font-cabin">{title}</Text>
@@ -240,10 +287,11 @@ export default function Search(props){
                     <TextInput
                         ref={inputRef}
                         onChangeText={inputChange} 
-                        onFocus={inputFocus}
-                        onBlur={inputBlur}
-                        onSubmitEditing={inputBlur}
-                        onKeyPress={inputKeyDown}
+                        onSelectionChange={handleSelectionChange}
+                        //onFocus={inputFocus}
+                        //onBlur={inputBlur}
+                        //onSubmitEditing={inputBlur}
+                        //onKeyPress={inputKeyDown}
                         
                         className=" w-full  decoration:none px-6 py-2 border rounded-md border border-neutral-300 focus-visible:outline-0 focus-visible:border-indigo-600 " 
                         value={textInput} 
@@ -258,19 +306,18 @@ export default function Search(props){
                 {showDropdown && 
                 <View
                     ref={dropdownRef}
-                    className={`absolute z-10 w-[292px] h-fit max-h-[230px] overflow-y-scroll scroll left-[5px] ${drop=='down'? 'top-11 border-b rounded-b' : 'bottom-[45px] border-t rounded-t'} bg-white transition-all  border-l border-r border-neutral-300 shadow-sm`}
+                    className={`absolute z-10 w-[292px] h-fit max-h-[230px] overflow-y-scroll scroll left-[5px] ${drop=='down'? 'top-11 border-b rounded-b' : 'bottom-[45px] border-t rounded-t'} bg-white transition-all  border-l border-r border-neutral-300`}
                 >
                     <ScrollView >
                         {filteredOptionsList &&
                         filteredOptionsList.map((option, index) => (
                             <Pressable
                                 className="cursor-pointer w-full transition-color hover:bg-gray-200 focus-visible:outline-0 focus-visible:bg-gray-100"
-                                tabIndex={index+1}
-                                onKeyDown={handleDropdownKeyDown}
+                                //tabIndex={index+1}
+                                //onKeyDown={handleDropdownKeyDown}
                                 //ref={firstDropDownOptionsRef}
-                                onPress={(e)=>{ handleOptionSelect(option, index) }}
+                                onPress={(e)=>{e.preventDefault(); e.stopPropagation(); handleOptionSelect(option, index) }}
                                 data={JSON.stringify(option)}
-                                ref={el => dropdownOptionsRef.current[index] = el}
                                 key={index}>
                                 <Text style={{fontFamily:'Cabin'}} className="text-sm font-medium font-cabin text-neutral-700 px-4 pt-3">
                                     {`${titleCase(option.employeeName)}-${option.employeeId}`}
@@ -287,6 +334,6 @@ export default function Search(props){
                 }
             </View>
         </View>
-    </TouchableWithoutFeedback>
+
     </>)
 }

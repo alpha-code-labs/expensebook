@@ -1,13 +1,19 @@
 function titleCase(str){
+  return(str)
+  try{
     str = str.toLowerCase().split(' ')
     str = str.map(word=>{
         if(word.length>0 && word){
             return word.trim()
         }
     })
-   str = str.filter(word=>word!=undefined)
+    str = str.filter(word=>word!=undefined)
     str= str.map(word=>word.replace(word[0],word[0].toUpperCase()))
     return str.join(' ')
+  }catch(e){
+    console.log(e)
+    return(str)
+  }
 }
 
 function urlRedirection(url){
@@ -88,7 +94,6 @@ function formatDate(date=Date.now()) {
     return dayWithSuffix + ' ' + month + ' ' + year;
   }
   
-
   function formatDate3(inputDate) {
     
     const datePattern = /^\d{4}-\d{2}-\d{2}$/;
@@ -109,7 +114,6 @@ function formatDate(date=Date.now()) {
     return dayWithSuffix + ' ' + month;
   }
   
-
   function camelCaseToTitleCase(inputString) {
     // Use a regular expression to split words at capital letters
     const words = inputString.split(/(?=[A-Z])/);
@@ -129,7 +133,6 @@ function formatDate(date=Date.now()) {
   
     return camelCaseString;
   }
-
 
   function getStatusClass(status){
     switch(status){
@@ -154,5 +157,4 @@ function formatDate(date=Date.now()) {
     }
   } 
   
-
 export {titleCase, getStatusClass,formatDate, formatDate2, formatDate3, camelCaseToTitleCase, titleCaseToCamelCase,urlRedirection}
