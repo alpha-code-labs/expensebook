@@ -35,7 +35,7 @@ export const allTravelRequest = [
         {
           cashAdvanceId: '#CA0005',
           
-cashAdvanceNumber: 'CAN1',
+       cashAdvanceNumber: 'CAN1',
 
 
           amountDetails: [
@@ -272,3 +272,77 @@ cashAdvanceNumber: 'CAN1',
       ],
     },
   ];
+
+
+
+export const rejectedTravelRequests=[
+  {
+      travelRequestNumber:"TRAM00000001",
+      travelRequestId:"tr000878hjjyuy1",
+      rejectionReason:"too many violations",
+      tripPurpose: 'Training Workshop in Las Vegas for Internal works',
+  },
+  
+    {
+        "travelRequestNumber": "TRAM00000002",
+        "travelRequestId": "tr000879hjjyuy2",
+        "rejectionReason": "insufficient details",
+        "tripPurpose": "Client Meeting in New York"
+    },
+    {
+        "travelRequestNumber": "TRAM00000003",
+        "travelRequestId": "tr000880hjjyuy3",
+        "rejectionReason": "conflict with schedule",
+        "tripPurpose": "Product Launch in San Francisco"
+    },
+    {
+        "travelRequestNumber": "TRAM00000004",
+        "travelRequestId": "tr000881hjjyuy4",
+        "rejectionReason": "budget constraints",
+        "tripPurpose": "Business Conference in Chicago"
+    },
+    {
+        "travelRequestNumber": "TRAM00000005",
+        "travelRequestId": "tr000882hjjyuy5",
+        "rejectionReason": "lack of documentation",
+        "tripPurpose": "Team Building in Miami"
+    },
+    {
+        "travelRequestNumber": "TRAM00000006",
+        "travelRequestId": "tr000883hjjyuy6",
+        "rejectionReason": "security concerns",
+        "tripPurpose": "Sales Training in Dallas"
+    },
+    {
+        "travelRequestNumber": "TRAM00000007",
+        "travelRequestId": "tr000884hjjyuy7",
+        "rejectionReason": "unapproved destination",
+        "tripPurpose": "Product Demo in Seattle"
+    },
+    {
+        "travelRequestNumber": "TRAM00000008",
+        "travelRequestId": "tr000885hjjyuy8",
+        "rejectionReason": "incomplete itinerary",
+        "tripPurpose": "Strategic Planning in Denver"
+    },
+    {
+        "travelRequestNumber": "TRAM00000009",
+        "travelRequestId": "tr000886hjjyuy9",
+        "rejectionReason": "medical concerns",
+        "tripPurpose": "Health and Safety Training in Houston"
+    },
+    {
+        "travelRequestNumber": "TRAM00000010",
+        "travelRequestId": "tr000887hjjyuy10",
+        "rejectionReason": "weather-related issues",
+        "tripPurpose": "Product Launch in Orlando"
+    },
+    {
+        "travelRequestNumber": "TRAM00000011",
+        "travelRequestId": "tr000888hjjyuy11",
+        "rejectionReason": "non-compliance with policies",
+        "tripPurpose": "Marketing Campaign in Los Angeles"
+    }
+
+
+]  

@@ -3,12 +3,13 @@ import { View,Text ,Image, Pressable, ScrollView ,ListItem ,List, FlatList} from
 import { bell_icon, breifcase_icon, down_right_icon, list_icon, logout_icon, travel_c_icon } from '../../../../assets/icon'
 import { transitTrip1, upcomingTrip1 } from '../../../dummyData/dashboard/trips'
 import { getStatusClass, titleCase } from '../../../utils/handyFunctions'
-import CancelButton from '../../../components/common/CancelButton'
+import CancelButton from '../../../components/common/CancelButton';
+import { useNavigation } from '@react-navigation/native';
 
 
 
 const Overview = () => {
-
+  const navigation = useNavigation();
 
   const [upcomingTrip, setUpcomingTrip]=useState(null)
 
@@ -177,6 +178,7 @@ function UpcomingTrip({ tripData }) {
 
 
 function TransitTrip({ tripData }) {
+  const navigation = useNavigation();
   const [trip, setTrip]=useState(tripData)
   const initialTabs = Array.from({ length: tripData&& tripData.length }, () => 'Trip');
   const [activeTabs, setActiveTabs] = useState(initialTabs);
@@ -196,7 +198,7 @@ function TransitTrip({ tripData }) {
   
     switch (activeTabs[index]) {
       case 'Trip':
-        return <TripContent index={index} itinerary={item.itinerary} tripPurpose={item.tripPurpose} />;
+        return <TripContent navigation={navigation} index={index} itinerary={item.itinerary} tripPurpose={item.tripPurpose} />;
       case 'Cash Advance':
         return <CashAdvanceContent index={index} cash={item.cashAdvances} />;
       case 'Expense':
@@ -219,7 +221,7 @@ function TransitTrip({ tripData }) {
        
 
     <FlatList  
-
+    nestedScrollEnabled
     data={tripData} 
     horizontal
     renderItem={({item, index})=>(
@@ -282,59 +284,22 @@ function TransitTrip({ tripData }) {
 
 
 
-// function TransitTrip({activeTab,handleTabChange}){
-
-  
-//   return(
-//     <View className='bg-white'>
-//       <View className='flex flex-row justify-between px-6 py-8'>
-//         <View className='flex flex-row gap-2 '>
-//           <Image source={travel_c_icon} alt='transit-icon' className='w-6 h-6' />
-//           <Text className='font- font-semibold text-base text-neutral-800 leading-normal'>Transit Trip</Text>
-//         </View>
-        
-//        <Pressable onPress={()=>console.log('open menu')}>
-//         <Image source={list_icon} alt='menu-icon' className='w-6 h-6'/>
-//       </Pressable>
-//       </View>
-
-//       <View className='flex flex-row items-center justify-start text-center p-4 '>
-//             <Pressable className={`py-1 px-2 rounded-xl   ${activeTab==="Trip" ? ' font-medium bg-indigo-600  text-white text-xs rounded-xl':""}`} onPress={()=>handleTabChange("Trip")}>
-//              <Text className={`${activeTab==="Trip" && 'font-medium bg-indigo-600 text-white text-xs'}`}>Trip </Text> 
-//             </Pressable>
-//             <Pressable className={`py-1 px-2 rounded-xl    ${activeTab==="Cash Advance" ? 'font-medium bg-indigo-600 text-white text-xs ': ""}`} onPress={()=> handleTabChange("Cash Advance" )}>
-//             <Text className={`${activeTab==="Cash Advance" && 'font-medium bg-indigo-600 text-white text-xs'}`}> Cash Advance </Text> 
-//             </Pressable>  
-//             <Pressable className={`py-1 px-2 rounded-xl    ${activeTab==="Expense" ? 'font-medium bg-indigo-600 text-white text-xs ': ""}`} onPress={()=> handleTabChange("Expense" )}>
-//             <Text className={`${activeTab==="Expense" && 'font-medium bg-indigo-600 text-white text-xs'}`}> Expense </Text> 
-//             </Pressable>  
-//       </View>
 
 
-
-
-//     </View>
-//   )
-
-// }
-
-
-
-
-const TripContent = ({ itinerary, tripPurpose, index }) => (
-  <View className='bg-white px-2 flex flex-grow shrink w-[327px]  mb-28  ' key={index}>
+const TripContent = ({navigation, itinerary, tripPurpose, index }) => (
+  <View className='  px-2 flex flex-grow shrink w-[327px]   ' key={index}>
     {/* Content for the "Trip" tab */}
-    <View className='flex flex-row  justify-between  py-2'>
+    <View className='flex flex-row  justify-between   py-2'>
 
-    <Text className='text-neutral-700 text-base font-medium font-Cabin'>{tripPurpose} l</Text>
-    <Pressable onPress={() => console.log(`hello ${index}`,)}>
+    <Text className='text-neutral-700 text-base font-medium font-Cabin'>{tripPurpose}</Text>
+    <Pressable onPress={() => navigation.navigate('Cancel-Trip')}>
           <Image source={list_icon} alt='menu-icon' className='w-6 h-6' />
-        </Pressable>
+    </Pressable>
     </View>
 
-
-    <ScrollView showsVerticalScrollIndicator={false} className='min-w-full mt-1  rounded-[12px]'>
-       <View className='flex'>  
+ 
+    <ScrollView nestedScrollEnabled showsVerticalScrollIndicator={false} className='min-w-full mt-1  rounded-[12px] mb-44'> 
+       <View className='flex '>  
        {['flights', 'trains', 'buses', 'cabs', 'hotels'].map((itnItem, itnItemIndex)=>{
       if(itinerary && itinerary[itnItem]){
         return (
@@ -342,6 +307,7 @@ const TripContent = ({ itinerary, tripPurpose, index }) => (
         <Text  className='text-xl text-neutral-700'>{titleCase(itnItem || "")} </Text>
         <View className='py-2'>
         <FlatList 
+        nestedScrollEnabled
   data={itinerary && itinerary[itnItem]}
   renderItem={({ item: flatListItem, index: flatItemIndex }) => { 
     if(['flights', 'trains', 'buses'].includes(itnItem)){
@@ -402,7 +368,7 @@ const TripContent = ({ itinerary, tripPurpose, index }) => (
         </View> 
        
       
-      </ScrollView>
+    </ScrollView>
      
   </View>
 );
@@ -411,7 +377,8 @@ const TripContent = ({ itinerary, tripPurpose, index }) => (
 const CashAdvanceContent = ({ cash, index }) => (
   <View className='bg-white mb-16 ' key={index}>
 
-    <FlatList data={cash} renderItem={({ item, index }) => (
+
+    <FlatList showsVerticalScrollIndicator={false} nestedScrollEnabled  data={cash} renderItem={({ item, index }) => (
       
           <View key={index}  className='flex flex-row justify-between  px-4 py-2 h-[150px] border-b-[1px] border-neutral-300 rounded-[8px]'>
           <View className='relative flex flex-1 min-w-[100px] flex-grow  flex-col justify-between items-start'>
@@ -441,9 +408,9 @@ const CashAdvanceContent = ({ cash, index }) => (
               <Image source={list_icon} alt='menu-icon' className='w-6 h-6' />
               </Pressable> 
             <View className='flex-1 items-center '>
-              <View className={`${getStatusClass(item?.cashAdvanceStatus)} w-fit px-4 py-2 rounded-[12px] mt-5`}>
-              <Text className={`${getStatusClass(item?.cashAdvanceStatus)}`}>
-                {item?.cashAdvanceStatus ?? ""}
+              <View className={`${getStatusClass(item?.cashAdvanceStatus)} w-fit px-2 py-1 rounded-[12px] mt-5`}>
+              <Text style={{fontFamily: 'Cabin'}} className={`${getStatusClass(item?.cashAdvanceStatus)} text-xs`}>
+                {titleCase(item?.cashAdvanceStatus ?? "")}
               </Text>
               </View>
               </View>
@@ -462,7 +429,7 @@ const CashAdvanceContent = ({ cash, index }) => (
 const ExpenseContent = ({ expense, index }) => (
   <View className='bg-white mb-16 mx-2' key={index}>
 
-    <FlatList data={expense} renderItem={({ item, index }) => (
+    <FlatList nestedScrollEnabled showsVerticalScrollIndicator={false} data={expense} renderItem={({ item, index }) => (
       
       <View key={index}  className='border h-[48px] rounded-[12px] flex flex-row justify-between items-center px-4 py-2 my-2' >
         <View className='flex flex-row items-center'>
@@ -490,8 +457,8 @@ function Flight({ from , to , itineraryId , date , time ,index,status}){
             <Text className='text-neutral-600 rounded-[12px] text-base font-Cabin'> {titleCase(from)} <Text className=' text-neutral-500 text-sm'> to</Text> {titleCase(to)}</Text>
             </View>
            
-              <View className={` ${getStatusClass(status)} w-fit px-2 py-2 rounded-[12px]  absolute  right-0`}>
-              <Text className={`${getStatusClass(status)}`}>
+              <View className={` ${getStatusClass(status)} w-fit px-2 py-1 rounded-[12px]  absolute  right-0`}>
+              <Text style={{fontFamily: 'Cabin'}} className={`${getStatusClass(status)} text-xs`}>
                 {titleCase(status) ?? ""}
               </Text>
               </View>
@@ -533,11 +500,11 @@ function Hotel({itineraryId,index,status,
             </View>
          
           
-            <View className={` ${getStatusClass(status)} w-fit px-2 py-2 rounded-[12px]  absolute  right-0`}>
-              <Text className={`${getStatusClass(status)}`}>
+            <View className={` ${getStatusClass(status)} w-fit px-2 py-1 rounded-[12px]  absolute  right-0`}>
+              <Text style={{fontFamily: 'Cabin'}} className={`${getStatusClass(status)} text-xs`}>
                 {titleCase(status) ?? ""}
               </Text>
-            </View>
+              </View>
          </View>
           <View className='px-1  '>
             <View className='  flex  flex-row'>
@@ -571,10 +538,10 @@ function Cab({itineraryId,date, preferredTime, pickupAddress,dropAddress,index ,
                 <Text className='text-neutral-600 rounded-[12px] text-base font-Cabin'> {`${date} ${preferredTime}`}</Text>
               </View>
          
-              <View className={` ${getStatusClass(status)} w-fit px-2 py-2 rounded-[12px]  absolute  right-0`}>
-                  <Text className={`${getStatusClass(status)}`}>
-                    {titleCase(status) ?? ""}
-                  </Text>
+              <View className={` ${getStatusClass(status)} w-fit px-2 py-1 rounded-[12px]  absolute  right-0`}>
+              <Text style={{fontFamily: 'Cabin'}} className={`${getStatusClass(status)} text-xs`}>
+                {titleCase(status) ?? ""}
+              </Text>
               </View>
          </View>
           <View className='px-1  '>

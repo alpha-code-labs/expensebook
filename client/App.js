@@ -20,6 +20,7 @@ const App = () => {
 
   const [fontsLoaded] = useFonts({
     "Cabin": require("./assets/fonts/cabin-regular.ttf"),
+    "Inter": require("./assets/fonts/Inter-Regular.ttf"),
     // "SourceCodePro-LightIt": require("./assets/fonts/SourceCodePro-LightIt.otf"),
   });
 
@@ -39,6 +40,7 @@ const App = () => {
           >
             {(props) => <CreateTravelRequest  {...props} />}
           </Stack.Screen>
+          <Stack.Screen name='Cancel-Trip' component={CancelTrip} options={{ headerShown: false }}/>
         </Stack.Navigator>
 
       </NavigationContainer>

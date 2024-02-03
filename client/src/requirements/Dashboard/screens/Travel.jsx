@@ -3,8 +3,9 @@ import { View ,Text,Image, Pressable, FlatList, SectionList, ScrollView, ScrollV
 import Button from '../../../components/common/Button'
 import { breifcase_icon, list_icon } from '../../../../assets/icon';
 import { getStatusClass, titleCase } from '../../../utils/handyFunctions';
-import { allTravelRequest } from '../../../dummyData/dashboard/travel';
-import AllTravelRequest from './AllTravelRequest';
+import { allTravelRequest, rejectedTravelRequests } from '../../../dummyData/dashboard/travel';
+import AllTravelRequest      from '../components/Travel/AllTravelRequest';
+import RejectedTravelRequest from '../components/Travel/RejectedTravelRequest';
 
 const Travel = ({navigation}) => {
 
@@ -15,15 +16,18 @@ const Travel = ({navigation}) => {
 
 
   const [allTravelReq , setAllTravelReq]=useState(null);
+  const [rejectedTravelReq , setRejectedTravelReq]=useState(null)
 
   useEffect(()=>{
     setAllTravelReq(allTravelRequest)
-
+    setRejectedTravelReq(rejectedTravelRequests)
   },[])
-  console.log(allTravelReq)
+  
 
   return (
-  <View className='flex justify-center items-center mx-2 mt-8 '>
+    
+
+<View className='flex justify-center items-center mx-2 mt-8'>
 <View className='bg-white w-full rounded-[12px] h-auto flex items-center shadow-xl shadow-neutral-800'>
 <View style={{fontFamily: 'Cabin'}} className="flex flex-row items-center justify-start gap-2 sm:gap-4 font-cabin py-4 ">
       <Pressable
@@ -41,7 +45,7 @@ const Travel = ({navigation}) => {
 </View>
 
     {activeScreen=== 'All Travel Requests' && <AllTravelRequest travelData={allTravelReq} navigation={navigation}/>}
-    {activeScreen=== 'Rejected Travel Requests' && <RejectedTravelRequest/>}
+    {activeScreen=== 'Rejected Travel Requests' && <RejectedTravelRequest travelData={rejectedTravelReq}/>}
   
 
 </View>
@@ -58,10 +62,3 @@ export default Travel
 
 
 
-function RejectedTravelRequest(){
-
-
-  return(
-    <View><Text>rejeceted Travel request</Text></View>
-  )
-}
