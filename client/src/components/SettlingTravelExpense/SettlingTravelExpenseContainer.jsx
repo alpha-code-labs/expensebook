@@ -8,6 +8,7 @@ import {
   updateSettlementColumn,
 } from "../../redux/apiCalls.js";
 import { useDispatch, useSelector } from "react-redux";
+import {useNavigate} from "react-router-dom";
 
 // const employeeData = [
 //   {
@@ -86,6 +87,9 @@ const SettlingTravelExpenseContainer = () => {
 
   // const [checkedValues, setCheckedValues] = useState([]);
   // console.log(checkedValues);
+  const tenantId = { ...dummyValues[0] }?.tenantId;
+  const travelRequestId = { ...dummyValues[0] }?.travelRequestId;
+
   const dispatch = useDispatch();
   const { isFetching } = useSelector((state) => state?.update);
 
@@ -115,6 +119,7 @@ const SettlingTravelExpenseContainer = () => {
   //   }, 1000);
   //   return () => clearTimeout(timer);
   // }, []);
+  const navigate = useNavigate();
   return (
     <div className="flex space-x-4">
       {isFetching && (
@@ -153,6 +158,7 @@ const SettlingTravelExpenseContainer = () => {
               <tr
                 key={index}
                 className="w-[800px] h-[70px] border-b border-solid border-gainsboro-200"
+                  onClick={(()=>(navigate(`/settlingCashAdvance/${tenantId}/${travelRequestId}`)))}
               >
                 <td className="p-2 text-center">
                   <input

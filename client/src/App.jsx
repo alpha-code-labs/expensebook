@@ -20,6 +20,7 @@ function App() {
         <Route path='/settlingCashAdvance'element={<SettlingCashAdvance />}/>
         <Route path='/settlingCashAdvance/:tenantId/:travelRequest' element={<SettlingCashAdvance />}/>
         <Route path='/settlingTravelExpense' element={<SettlingTravelExpense />}/>
+        <Route path='/settlingTravelExpense/:tenantId/:travelRequest' element={<SettlingTravelExpense />}/>
         <Route path='/settlingNonTravelExpense' element={<SettlingNonTravelExpense />}/>
         <Route path='/recoveringPaidandCanceledCashAdvance' element={<RecoveringPaidandCanceledCashAdvance />}/>
         <Route path='/settlingAccountingEntriesforAllExpenses' element={<SettlingAccountingEntriesforAllExpenses />}/>
