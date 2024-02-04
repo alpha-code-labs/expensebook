@@ -20,18 +20,15 @@ export { default as breifcase_icon } from './briefcase.png';
 export { default as travel_c_icon } from './travel_c.png';
 export { default as travel_c2_icon } from './travel_c2.png';
 export { default as list_icon } from './List.png';
-export { default as profile_bg } from './profile-bg.png';
-export { default as mail_icon } from './mail.png';
-export { default as location_icon } from './location.png';
-
+<<<<<<<<< Temporary merge branch 1
+export {default as check_icon} from './check.png'
+=========
 export {default as down_right_icon} from './right-arrow.png'
 export {default as cancel_icon} from './x_red.png';
 export {default as edit_icon} from './edit.png';
 export {default as info_icon} from './Info.png';
 export {default as cash_c_icon} from './cash_c.png';
-
-export {default as check_icon} from './check.png'
-
+>>>>>>>>> Temporary merge branch 2
 
 
 export {default as chevron_down_icon} from './chevron-down.png'

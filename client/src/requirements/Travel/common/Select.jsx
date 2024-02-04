@@ -6,21 +6,32 @@ import { View, Text, Image, TouchableOpacity, TouchableWithoutFeedback, ScrollVi
 export default function Select(props) {
   const placeholder = props.placeholder || "Placeholder Text";
   const title = props.title || "Title";
-  const [hidePlaceholder, setHidePlaceholder] = useState(false);
-  const [showDropdown, setShowDropdown] = useState(false);
-  const dropdownRef = useRef(null);
-  const selectDivRef = useRef(null)
   const optionsList = props.options;
   const onSelect = props.onSelect || null
   const currentOption = props.currentOption || null
-  const [selectedOption, setSelectedOption] = useState(currentOption)
-  const [keyboardFocusIndex, setKeyboardFocusIndex] = useState(-1)
   const violationMessage = props.violationMessage || null
-  const error = props.error || null
+  const error = props.error || nulld
   const required = props.required || false
   const submitAttempted = props.submitAttempted || false
+  const focusOut = props.focusOut??false //
+
+  const [selectedOption, setSelectedOption] = useState(currentOption)
+  const [keyboardFocusIndex, setKeyboardFocusIndex] = useState(-1)
+  const [hidePlaceholder, setHidePlaceholder] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+
+  const dropdownRef = useRef(null);
+  const selectDivRef = useRef(null)
 
     console.log('select component')
+
+
+    useEffect(()=>{
+        if(showDropdown){
+            console.log(focusOut)
+            handleClickOutside()
+        }
+    },[focusOut])
 
     useEffect(()=>{
       if(currentOption != null && currentOption != undefined && currentOption != '' ){
@@ -139,7 +150,7 @@ const selectDivFocus = (e)=>{
   return (
     <>
 
-    <TouchableWithoutFeedback className={`bg-blue-100 ${showDropdown? 'w-full h-full' : '' } `} onPress={handleClickOutside}>
+    {/* <Pressable style={{position:'absolute-fill'}} className={`bg-blue-100/90 ${showDropdown? 'w-full h-full' : '' } `} onPress={handleClickOutside}> */}
         <View style={`${showDropdown? {elevation:5}:{elevation:0}}`} className={`w-[302px] ${showDropdown? 'z-[100]':''} h-[73px] flex-col justify-start items-start gap-2 flex`}>
             {/* title*/}
             <Text style={{fontFamily:'Cabin'}} className="text-zinc-600 text-sm font-Cabin">{title}</Text>
@@ -214,7 +225,7 @@ const selectDivFocus = (e)=>{
                 </View>
             </View>
         </View>
-    </TouchableWithoutFeedback>
+    {/* </Pressable> */}
         
 
     </>

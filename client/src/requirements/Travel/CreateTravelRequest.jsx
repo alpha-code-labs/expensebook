@@ -12,10 +12,12 @@ const Stack = createStackNavigator()
 
 export default function({navigation}){
 
-  const EMPLOYEE_ID  = '1001'
-  const tenantId = 'tynod76eu'
+
+
+  const EMPLOYEE_ID  = '1002'
+  const tenantId = '9j4ro3how'
   const EMPLOYEE_NAME = 'Abhishek Kumar'
-  const companyName = ''
+  const companyName = 'Amex'
 
   const [showBackButton, setShowBackButton] = useState(true)
 
@@ -27,7 +29,7 @@ export default function({navigation}){
         travelRequestId: null,
         approvers: [],
         tenantId: tenantId,
-        travelType: null,
+        travelType: 'international',
         tenantName: companyName,
         companyName: companyName,
         travelRequestStatus: 'draft',

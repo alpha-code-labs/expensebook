@@ -140,7 +140,7 @@ const handleClickOutside = (e)=>{
     <TouchableWithoutFeedback className={`bg-blue-100/0 ${showDropdown? 'w-full h-full z-10' : '' } `} onPress={handleClickOutside}>
       <View style={`${showDropdown? {elevation:5}:{elevation:0}}`} className={`w-[302px] h-[73px] ${showDropdown? 'z-10':''} flex-col justify-start items-start gap-2 flex`}>
         {/* title*/}
-        <Text className="text-zinc-600 text-sm font-Cabin">{title}</Text>
+        <Text style={{fontFamily:'Cabin'}} className="text-zinc-600 text-sm font-Cabin">{title}</Text>
 
         <View className="h-12">
           <View className={`relative h-12 w-[302px] px-6 py-2 bg-white rounded-md border border-neutral-300 justify-between items-center flex`} >
@@ -154,11 +154,11 @@ const handleClickOutside = (e)=>{
             >
              <View className='h-6 justify-between flex flex-row focus-visible:outline-0 items-center'>
               {!hidePlaceholder && (
-                <Text className="text-zinc-400 text-sm font-normal font-Cabin">
+                <Text style={{fontFamily:'Cabin'}} className="text-zinc-400 text-sm font-normal font-Cabin">
                   {placeholder}
                 </Text>
               )}
-              {hidePlaceholder && <Text className='text-neutral-700 text-sm font-normal font-Cabin'>{selectedOption}</Text>}
+              {hidePlaceholder && <Text style={{fontFamily:'Cabin'}} className='text-neutral-700 text-sm font-normal font-Cabin'>{selectedOption}</Text>}
               <View className={`w-6 h-6 relative transition ${showDropdown && 'rotate-180'}`}>
                 <Image source={chevron_down_icon} />
               </View>
@@ -185,12 +185,12 @@ const handleClickOutside = (e)=>{
                         data={JSON.stringify(option)}
                         ref={el => dropdownOptionsRef.current[index] = el}
                         key={index}>
-                        <Text className="text-xs font-medium font-Cabin text-neutral-700 px-4 pt-3">
+                        <Text style={{fontFamily:'Cabin'}} className="text-xs font-medium font-Cabin text-neutral-700 px-4 pt-3">
                             {titleCase(option.employeeName)}
                         </Text>
                         <View className='flex px-4 pb-3 pt-.5 gap-1'>
-                            <Text className="text-xs font-medium font-Cabin text-neutral-400">{`${option.designation? titleCase(option?.designation) : ''}`} </Text>
-                            <Text className="text-xs font-medium font-Cabin text-neutral-400">{`${option.department? titleCase(option?.department) : ''}`} </Text>
+                            <Text style={{fontFamily:'Cabin'}} className="text-xs font-medium font-Cabin text-neutral-400">{`${option.designation? titleCase(option?.designation) : ''}`} </Text>
+                            <Text style={{fontFamily:'Cabin'}} className="text-xs font-medium font-Cabin text-neutral-400">{`${option.department? titleCase(option?.department) : ''}`} </Text>
                         </View>
                         {index != optionsList.length - 1 && <View key={option} className='h-[1px] bg-neutral-300 w-[292px]' />}
                     </TouchableOpacity>

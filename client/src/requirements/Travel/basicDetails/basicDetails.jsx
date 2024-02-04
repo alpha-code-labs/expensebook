@@ -433,10 +433,24 @@ export default function({formData, setFormData, onBoardingData, nextPage, naviga
             console.log('LOADING:', isLoading)
         },[isLoading])
 
-        
+        const [closeSelect, setCloseSelect] = useState(false)
+        const [closeApprovalSearch, setCloseApprovalSearch] = useState(false)
+
+        const handleContinerPress = ()=>{
+            setCloseSelect(true)
+            setCloseApprovalSearch(true)
+
+            //set to false after 100ms
+            setTimeout(()=>{
+                setCloseSelect(false)
+                setCloseApprovalSearch(false)
+            }, 100)
+        }
+
     return(<>
         {isLoading && <Error message={loadingErrMsg}/> }
         {!isLoading && <>
+        <TouchableWithoutFeedback onPress={handleContinerPress}>
             <View className="w-full h-full relative bg-white px-4 py-4 select-none">
                 {/* only for manager */}
                     { MANAGER_FLAG && <>
@@ -465,6 +479,7 @@ export default function({formData, setFormData, onBoardingData, nextPage, naviga
                         violationMessage={tripPurposeViolationMessage}
                         error={errors.tripPurposeError}
                         currentOption={formData.tripPurpose}
+                        focusOut={closeSelect}
                         onSelect = {(option)=> {updateTripPurpose(option)}} />
                 </View>
 
@@ -487,6 +502,7 @@ export default function({formData, setFormData, onBoardingData, nextPage, naviga
                         onSelect = {(option)=>{updateApprovers(option)}}
                         error={errors.approversError}
                         currentOption={formData.approvers && formData.approvers.length>0? formData.approvers : []}
+                        focusOut={closeApprovalSearch}
                         options={listOfAllManagers}/>}
                 </View>
                 
@@ -536,6 +552,7 @@ export default function({formData, setFormData, onBoardingData, nextPage, naviga
                 </View>
 
             </View>
+        </TouchableWithoutFeedback>
         </>}
     </>)
 

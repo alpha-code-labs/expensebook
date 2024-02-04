@@ -8,9 +8,8 @@ function TR_frontendTransformer(data){
     return data
 }
 
-
-const TRAVEL_API_URL = 'http://192.168.1.13:8021/travel/api' //import.meta.env.VITE_TRAVEL_API_URL
-
+//const TRAVEL_API_URL = 'http://192.168.1.8:8021/travel/api' //import.meta.env.VITE_TRAVEL_API_URL
+const TRAVEL_API_URL = 'https://d1c1-2405-201-4011-b1a1-4cb8-7cc0-177c-4d6.ngrok-free.app/travel/api' 
 const retry =  3
 const retryDelay = 3000
 
@@ -21,7 +20,6 @@ const errorMessages = {
   'request': 'Network Error',
   'else': 'Something went wrong. Please try after sometime'
 }
-
 
 async function postTravelRequest_API(data){
   try{
@@ -349,8 +347,6 @@ async function getTravelBookingOnboardingData_API(data){
     }
   } 
 }
-
-
 
 export { 
   getTravelRequest_API,
