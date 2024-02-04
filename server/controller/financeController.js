@@ -1,4 +1,5 @@
-export const finnanceController = async(req , res)=>{
+import Finance from "../models/Finance.js";
+export const financeController = async(req , res)=>{
     // console.log("LINE AT 6" , req.body.dummyData);
     // res.status(200).send("ok");
     try {

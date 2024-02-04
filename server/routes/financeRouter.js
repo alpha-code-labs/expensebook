@@ -1,7 +1,6 @@
 import { Router } from "express";
-import Finance from "../models/Finance.js";
-import { finnanceController } from "../controller/financeController.js";
+import { financeController } from "../controller/financeController.js";
 const router = Router();
 
-router.post("/post" , finnanceController);
+router.post("/post" , financeController);
 export default router;
