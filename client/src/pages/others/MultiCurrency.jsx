@@ -7,191 +7,15 @@ import Select from "../../components/common/Select"
 import { useEffect, useState } from "react"
 import axios from "axios"
 import { updateFormState_API } from "../../utils/api"
+import {currenciesList} from "../../data/currenciesList"
+import { getTenantDefaultCurrency_API, getTenantMulticurrencyTable_API, postTenantMulticurrencyTable_API } from "../../utils/api"
 
 export default function (props){
     const navigate = useNavigate()
     const {tenantId} = useParams()
-    const defaultCurrency = {fullName:'Indian Rupees', shortName:'INR', symbol:'₹', countryCode:'in' }
-    const [tenantDefaultCurrency, setTenantDefaultCurrency] =  useState(defaultCurrency)
+    const [tenantDefaultCurrency, setTenantDefaultCurrency] =  useState({fullName:'', shortName:'', symbol:'', countryCode:''})
     const [currencyTable, setCurrencyTable] = useState([])
-    const currenciesList = [
-        {
-          fullName: "United States Dollar",
-          shortName: "USD",
-          symbol: "$",
-          countryCode: "US"
-        },
-        {
-          fullName: "Euro",
-          shortName: "EUR",
-          symbol: "€",
-          countryCode: "EU"
-        },
-        {
-          fullName: "British Pound Sterling",
-          shortName: "GBP",
-          symbol: "£",
-          countryCode: "GB"
-        },
-        {
-          fullName: "Japanese Yen",
-          shortName: "JPY",
-          symbol: "¥",
-          countryCode: "JP"
-        },
-        {
-          fullName: "Swiss Franc",
-          shortName: "CHF",
-          symbol: "CHF",
-          countryCode: "CH"
-        },
-        {
-          fullName: "Canadian Dollar",
-          shortName: "CAD",
-          symbol: "CA$",
-          countryCode: "CA"
-        },
-        {
-          fullName: "Australian Dollar",
-          shortName: "AUD",
-          symbol: "A$",
-          countryCode: "AU"
-        },
-        {
-          fullName: "Chinese Yuan",
-          shortName: "CNY",
-          symbol: "¥",
-          countryCode: "CN"
-        },
-        {
-          fullName: "Indian Rupee",
-          shortName: "INR",
-          symbol: "₹",
-          countryCode: "IN"
-        },
-        {
-          fullName: "Brazilian Real",
-          shortName: "BRL",
-          symbol: "R$",
-          countryCode: "BR"
-        },
-        {
-          fullName: "Russian Ruble",
-          shortName: "RUB",
-          symbol: "₽",
-          countryCode: "RU"
-        },
-        {
-          fullName: "South African Rand",
-          shortName: "ZAR",
-          symbol: "R",
-          countryCode: "ZA"
-        },
-        {
-          fullName: "Singapore Dollar",
-          shortName: "SGD",
-          symbol: "S$",
-          countryCode: "SG"
-        },
-        {
-            fullName: "Mexican Peso",
-            shortName: "MXN",
-            symbol: "$",
-            countryCode: "MX"
-          },
-          {
-            fullName: "New Zealand Dollar",
-            shortName: "NZD",
-            symbol: "NZ$",
-            countryCode: "NZ"
-          },
-          {
-            fullName: "Norwegian Krone",
-            shortName: "NOK",
-            symbol: "kr",
-            countryCode: "NO"
-          },
-          {
-            fullName: "Swedish Krona",
-            shortName: "SEK",
-            symbol: "kr",
-            countryCode: "SE"
-          },
-          {
-            fullName: "Turkish Lira",
-            shortName: "TRY",
-            symbol: "₺",
-            countryCode: "TR"
-          },
-          {
-            fullName: "South Korean Won",
-            shortName: "KRW",
-            symbol: "₩",
-            countryCode: "KR"
-          },
-          {
-            fullName: "Argentine Peso",
-            shortName: "ARS",
-            symbol: "$",
-            countryCode: "AR"
-          },
-          {
-            fullName: "South African Rand",
-            shortName: "ZAR",
-            symbol: "R",
-            countryCode: "ZA"
-          },
-          {
-            fullName: "Indonesian Rupiah",
-            shortName: "IDR",
-            symbol: "Rp",
-            countryCode: "ID"
-          },
-          {
-            fullName: "Saudi Riyal",
-            shortName: "SAR",
-            symbol: "﷼",
-            countryCode: "SA"
-          },
-          {
-            fullName: "Polish Złoty",
-            shortName: "PLN",
-            symbol: "zł",
-            countryCode: "PL"
-          },
-          {
-            fullName: "Hungarian Forint",
-            shortName: "HUF",
-            symbol: "Ft",
-            countryCode: "HU"
-          },
-          {
-            fullName: "Czech Koruna",
-            shortName: "CZK",
-            symbol: "Kč",
-            countryCode: "CZ"
-          },
-          {
-            fullName: "Chilean Peso",
-            shortName: "CLP",
-            symbol: "$",
-            countryCode: "CL"
-          },
-          {
-            fullName: "Malaysian Ringgit",
-            shortName: "MYR",
-            symbol: "RM",
-            countryCode: "MY"
-          },
-          {
-            fullName: "Philippine Peso",
-            shortName: "PHP",
-            symbol: "₱",
-            countryCode: "PH"
-          },
-        // Add more currencies as needed
-      ];
-
+    
     const [selectedCurrency, setSelectedCurrency] = useState(null)
     const handleCurrencySelection = (option)=>{
         setSelectedCurrency(option)
@@ -245,10 +69,10 @@ export default function (props){
         }
 
         try{
-            const res = await axios.post(`http://localhost:8001/api/tenant/${tenantId}/multicurrency`, {multiCurrencyTable:{defaultCurrency:tenantDefaultCurrency, exchangeValue}})
+            const res = await postTenantMulticurrencyTable_API({tenantId, multiCurrencyTable:{defaultCurrency:tenantDefaultCurrency, exchangeValue} })
             if(res.status === 200){
                 alert('Multicurrency table updated')
-                navigate(`/${tenantId}/others/blanket-delegations`)
+                navigate(`/${tenantId}/others/roles`)
             }
 
         }catch(e){
@@ -265,7 +89,7 @@ export default function (props){
       if(exchangeValue.length!=0){
           // alert('No values provided')
         try{
-            const res = await axios.post(`http://localhost:8001/api/tenant/${tenantId}/multicurrency`, {multiCurrencyTable:{defaultCurrency:tenantDefaultCurrency, exchangeValue}})
+            const res = await postTenantMulticurrencyTable_API({tenantId, multiCurrencyTable:{defaultCurrency:tenantDefaultCurrency, exchangeValue} })
             if(res.status === 200){
                 // alert('Multicurrency table updated')
                 // navigate(`/${tenantId}/others/blanket-delegations`)
@@ -277,17 +101,23 @@ export default function (props){
       }
 
       //update form state
-      updateFormState_API({tenantId, state:'others/multicurrency'})
+      await updateFormState_API({tenantId, state:'others/multicurrency'})
+      //redirect to homepage
+      window.location.href = 'http://google.com'
     }
 
     useEffect(()=>{
         console.log(currencyTable)
     },[currencyTable])
+
+    useEffect(()=>{
+        
+    },[])
       
     useEffect(()=>{
         (async function(){
             try{
-                const res = await axios.get(`http://localhost:8001/api/tenant/${tenantId}/multicurrency`)
+                const res = await getTenantMulticurrencyTable_API({tenantId})
                 const multiCurrencyData = res.data.multiCurrencyTable
                 console.log(multiCurrencyData)
                 if(multiCurrencyData.exchangeValue.length>0){
@@ -300,6 +130,14 @@ export default function (props){
                     })
                 
                     setCurrencyTable(currencyTable_copy)
+                }
+                else{
+                    //fetch default currency
+                    const resD = await getTenantDefaultCurrency_API({tenantId})
+                    if(!resD.err){
+                        if(resD.data?.defaultCurrency?.shortName != '')
+                            setTenantDefaultCurrency(resD.data.defaultCurrency)
+                    }
                 }
                                 
             }catch(e){
