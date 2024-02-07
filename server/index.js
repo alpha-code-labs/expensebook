@@ -8,7 +8,7 @@ import overview from './routes/overviewRoutes.js';
 import { handleErrors } from './errorHandler/errorHandler.js';
 import amqp from 'amqplib';
 // import { updateHRMaster } from './rabbitmq/messageProcessor/hrMaster.js';
-// const rabbitMQUrl = 'amqp://localhost:5672';
+const rabbitMQUrl = 'amqp://localhost:5672';
 
 
 dotenv.config();
@@ -39,22 +39,22 @@ const connectToMongoDB = async () => {
 
 connectToMongoDB();
 
-// let channel;
+let channel;
 
-// export const connectToRabbitMQ = async () => {
-//   try {
-//     console.log('Connecting to RabbitMQ...');
-//     const connection = await amqp.connect(rabbitMQUrl);
-//     channel = await connection.createConfirmChannel();
-//     console.log('Connected to RabbitMQ...channel;');
-//     return channel;
-//   } catch (error) {
-//     console.error('Error connecting to RabbitMQ:', error);
-//     throw error;
-//   }
-// };
+export const connectToRabbitMQ = async () => {
+  try {
+    console.log('Connecting to RabbitMQ...');
+    const connection = await amqp.connect(rabbitMQUrl);
+    channel = await connection.createConfirmChannel();
+    console.log('Connected to RabbitMQ...channel;');
+    return channel; 
+  } catch (error) {
+    console.error('Error connecting to RabbitMQ:', error);
+    return error;
+  }
+};
 
-// connectToRabbitMQ();
+connectToRabbitMQ();
 
 // const mongodb = async () => {
 //     try {

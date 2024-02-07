@@ -14,17 +14,6 @@ const updateLineItemStatus = (approvers) => {
   return currentLineItemStatus;
 };
 
-// Save updated dashboard document
-const saveInDashboard = async (dashboardDoc) => {
-  try {
-    return await dashboardDoc.save();
-  } catch (error) {
-    // Log the error for monitoring purposes
-    console.error('Error saving dashboard:', error);
-    throw new Error('Internal Server Error');
-  }
-};
-
 // 1) Add a flight/flights to exiting trip
 export const addFlight = async (req, res) => {
   try {
@@ -94,12 +83,11 @@ export const addFlight = async (req, res) => {
 
         const dataToSend = {
           tenantId,
-          flight: flightsAdded,
+          travelRequestId,
+          itineraryDetails: flightsAdded,
           itineraryType: 'flights',
           isAddALeg: true, // Include isAddALeg as true in dataToSend
         };
-
-        await sendToOtherMicroservice(dataToSend);
         
         if (approvers && approvers?.length > 0) {
           console.log("Approvers found for this trip:", approvers);
@@ -111,8 +99,7 @@ export const addFlight = async (req, res) => {
           await sendToOtherMicroservice(dataToSend, 'add-leg', 'cash', 'to update itinerary added to travelRequestData for trips');
         } else {
           await sendToOtherMicroservice(dataToSend, 'add-leg', 'travel', 'to update itinerary added to travelRequestData for trips');
-        }
-        
+        } 
       }
 
       return res.status(200).json({ success: true, message: 'flights added successfully', trip: updatedTrip });
@@ -122,7 +109,6 @@ export const addFlight = async (req, res) => {
   }
 }
 
-  
 
 //  Validate bus details
 const validateBusDetails = (busDetails) => {
@@ -199,12 +185,11 @@ export const addBus = async (req, res) => {
 
         const dataToSend = {
           tenantId,
-          buse: busesAdded,
+          travelRequestId,
+          itineraryDetails: busesAdded,
           itineraryType: 'buses',
           isAddALeg: true, // Include isAddALeg as true in dataToSend
         };
-
-        await sendToOtherMicroservice(dataToSend);
         
         if (approvers && approvers?.length > 0) {
           console.log("Approvers found for this trip:", approvers);
@@ -304,12 +289,11 @@ export const addTrain = async (req, res) => {
 
         const dataToSend = {
           tenantId,
-          train: trainsAdded,
+          travelRequestId,
+          itineraryDetails: trainsAdded,
           itineraryType: 'trains',
           isAddALeg: true, // Include isAddALeg as true in dataToSend
         };
-
-        await sendToOtherMicroservice(dataToSend);
         
         if (approvers && approvers?.length > 0) {
           console.log("Approvers found for this trip:", approvers);
@@ -409,12 +393,12 @@ export const addCab = async (req, res) => {
 
         const dataToSend = {
           tenantId,
-          cab: cabsAdded,
+          travelRequestId,
+          itineraryDetails: cabsAdded,
           itineraryType: 'cabs',
           isAddALeg: true, // Include isAddALeg as true in dataToSend
         };
 
-        await sendToOtherMicroservice(dataToSend);
         
         if (approvers && approvers?.length > 0) {
           console.log("Approvers found for this trip:", approvers);
@@ -512,13 +496,13 @@ export const addHotel = async (req, res) => {
 
         const dataToSend = {
           tenantId,
-          hotel: hotelAdded,
+          travelRequestId,
+          itineraryDetails: hotelAdded,
           itineraryType: 'hotels',
           isAddALeg: true, // Include isAddALeg as true in dataToSend
         };
 
         console.log("data to send", dataToSend.hotel)
-        await sendToOtherMicroservice(dataToSend);
         
         if (approvers && approvers?.length > 0) {
           console.log("Approvers found for this trip:", approvers);
