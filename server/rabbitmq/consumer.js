@@ -1,6 +1,7 @@
 import amqp from 'amqplib';
-import { updateHRMaster } from './messageProcessor/hrMasterMessage.js';
-import { TravelAndCashUpdate, cancelTravelWithCash, updateCashStatus, updateTravel, updateTravelStatus } from './messageProcessor/travelMessage.js';
+import { updateHRMaster, updatePreferences } from './messageProcessor/hrMasterMessage.js';
+import { TravelAndCashUpdate, cancelTravelWithCash, itineraryAddedToTravelRequest, updateCashStatus, updateTravel, updateTravelStatus } from './messageProcessor/travelMessage.js';
+
 
 export async function startConsumer(receiver){
     const rabbitMQUrl = 'amqp://localhost:5672/';
@@ -14,7 +15,7 @@ export async function startConsumer(receiver){
       return channel;
     } catch (error) {
       console.log('Error connecting to RabbitMQ:', error);
-      throw error;
+      return error;
     }
   };
   
@@ -139,7 +140,7 @@ export async function startConsumer(receiver){
       }
       else if (source == 'dashboard'){
         if(action == 'add-leg'){
-            console.log('cancel travel request and its cash advance in approval microservice')
+            console.log('add-leg from dashboard microservice to approval microservice')
             const res = await itineraryAddedToTravelRequest(payload);
             console.log(res)
             if(res.success){
@@ -152,6 +153,20 @@ export async function startConsumer(receiver){
               console.log('update failed with error code', res.error)
             }
         }  
+        if(action == 'profile-update'){
+          const res = await updatePreferences(payload);
+          console.log(res)
+          if(res.success){
+            //acknowledge message
+            channel.ack(msg)
+            console.log('message processed successfully')
+          }
+          else{
+            //implement retry mechanism
+            console.log('update failed with error code', res.error)
+          }
+
+        }
     }}}, { noAck: false });
 }
 

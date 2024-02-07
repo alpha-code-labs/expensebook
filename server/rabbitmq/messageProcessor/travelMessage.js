@@ -151,6 +151,7 @@ export const itineraryAddedToTravelRequest = async (payload) => {
   try {
     const { tenantId, travelRequestId, isAddALeg, itineraryType, itineraryDetails } = payload;
 
+    console.log("While adding add a leg to db",payload)
     const updated = await Approval.updateOne(
       {
         'travelRequestData.tenantId': tenantId,
@@ -161,9 +162,7 @@ export const itineraryAddedToTravelRequest = async (payload) => {
           'travelRequestData.isAddALeg': isAddALeg
         },
         $push: {
-          [`travelRequestData.itinerary.${itineraryType}`]: {
-            $each: itineraryDetails
-          }
+          [`travelRequestData.itinerary.${itineraryType}`]:  itineraryDetails
         }
       },
       { upsert: true, new: true }

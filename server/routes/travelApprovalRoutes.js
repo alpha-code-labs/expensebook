@@ -56,10 +56,8 @@ travel.patch('/leg/reject/:tenantId/:travelRequestId/:empId', ApproveAddALeg); /
 travel.get('/getTravelRequest/:tenantId/:empId/:travelRequestId', getTravelRequestDetailsForApprover);
 
 // To Other MICROSERVICES
-
 // TRAVEL REQUEST WITH CASH ADVANCE --approved  -- row 27-- (APPROVED - CASH BACKEND)
 // TRAVEL REQUEST WITH CASH ADVANCE --rejected -- row 27--
-
 
 export default travel
 
