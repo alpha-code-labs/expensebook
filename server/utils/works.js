@@ -139,3 +139,57 @@
 //     throw error; 
 //   }
 // };
+
+
+
+
+// Example JSON structure
+const itinerary = {
+    section1: [
+        { itineraryId: 1, approvers: ['Alice', 'Bob'] },
+        { itineraryId: 2, approvers: ['Charlie', 'David'] },
+    ],
+    section2: [
+        { itineraryId: 3, approvers: ['Eve', 'Frank'] },
+        { itineraryId: 4, approvers: ['Grace', 'Harry'] },
+    ],
+    section3: [
+        { itineraryId: 5, approvers: ['Ivy', 'Jack'] },
+        { itineraryId: 6, approvers: ['Kim', 'Leo'] },
+    ],
+};
+
+// Step 1: Object.values(itinerary)
+const step1Result = Object.values(itinerary);
+// Result:
+// [
+//     [
+//         { itineraryId: 1, approvers: ['Alice', 'Bob'] },
+//         { itineraryId: 2, approvers: ['Charlie', 'David'] },
+//     ],
+//     [
+//         { itineraryId: 3, approvers: ['Eve', 'Frank'] },
+//         { itineraryId: 4, approvers: ['Grace', 'Harry'] },
+//     ],
+//     [
+//         { itineraryId: 5, approvers: ['Ivy', 'Jack'] },
+//         { itineraryId: 6, approvers: ['Kim', 'Leo'] },
+//     ],
+// ]
+
+// Step 2: .flatMap(value => Array.isArray(value) ? value : [])
+const step2Result = step1Result.flatMap(value => Array.isArray(value) ? value : []);
+// Result:
+// [
+//     { itineraryId: 1, approvers: ['Alice', 'Bob'] },
+//     { itineraryId: 2, approvers: ['Charlie', 'David'] },
+//     { itineraryId: 3, approvers: ['Eve', 'Frank'] },
+//     { itineraryId: 4, approvers: ['Grace', 'Harry'] },
+//     { itineraryId: 5, approvers: ['Ivy', 'Jack'] },
+//     { itineraryId: 6, approvers: ['Kim', 'Leo'] },
+// ]
+
+// Step 3: .find(obj => obj.itineraryId === itineraryId)?.approvers
+const itineraryId = 4; // Example itineraryId
+const foundApprovers = step2Result.find(obj => obj.itineraryId === itineraryId)?.approvers;
+// Result: ['Grace', 'Harry']

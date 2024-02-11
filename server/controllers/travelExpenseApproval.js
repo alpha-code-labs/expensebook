@@ -77,8 +77,8 @@ export const getExpenseDetails = async (req, res) => {
     const approvalDocuments = await Approval.find({
       'tenantId': tenantId,
       'approvalType':'travel-expense',
-      'tripData.travelExpenseData.approvers.empId': empId,
-      'tripData.travelExpenseData.expenseHeaderType': 'travel',
+      'travelExpenseData.approvers.empId': empId,
+      'travelExpenseData.expenseHeaderType': 'travel',
     }).exec();
 
     if (approvalDocuments.length === 0) {
@@ -91,7 +91,7 @@ export const getExpenseDetails = async (req, res) => {
       EmployeeName: document.travelExpenseData?.createdBy?.name || 'EmpName',
       TripPurpose: document.travelExpenseData?.tripPurpose || 'tripPurpose',
       itinerary: document.travelRequestData?.itinerary || 'from - to',
-      ExpenseHeaderID: document.travelExpenseData?.expenseHeaderID || 'Missing ExpenseHeaderID',
+      expenseHeaderId: document.travelExpenseData?.expenseHeaderId || 'Missing expenseHeaderId',
       EmpId: empId || 'approver id',
       ExpenseHeaderType: document.travelExpenseData?.expenseHeaderType || 'travel',
     }));
@@ -105,16 +105,46 @@ export const getExpenseDetails = async (req, res) => {
 };
 
 
-// Get Expense Details for all the bills in expenseLines
 export const viewTravelExpenseDetails = async (req, res) => {
   try {
-    const {empId, expenseHeaderID, expenseHeaderType} = req.params;
+    const {tenantId, empId, expenseHeaderId} = req.params;
+
+    // Filter approval documents by approver's empId and expenseHeaderType: Travel
+    const approvalDocument = await Approval.findOne({
+       tenantId,
+       'travelExpenseData':{
+        $elemMatch:{
+          'expenseHeaderId':expenseHeaderId,
+          'approvers':{
+            $elemMatch:{
+              'empId':empId,
+            }
+          }
+        }
+       },
+    }).exec();
+
+    if (!approvalDocument) {
+      return res.status(404).json({ message: 'No pending travel approval documents found for this user.' });
+    } else{
+      return  res.status(200).json({ success: true , approvalDocument});
+    }
+   } catch (error) {
+    console.error('An error occurred while fetching travel expense bill details:', error.message);
+    res.status(500).json({ error: 'An error occurred while fetching non-travel expense bill details.' });
+  }
+};
+
+// Get Expense Details for all the bills in expenseLines
+export const oldviewTravelExpenseDetails = async (req, res) => {
+  try {
+    const {tenantId, empId, expenseHeaderId} = req.params;
 
     // Filter approval documents by approver's empId and expenseHeaderType: Travel
     const approvalDocuments = await Approval.find({
-      'tripData.travelExpenseData.expenseHeaderType': expenseHeaderType,
-      'tripData.travelExpenseData.expenseHeaderID': expenseHeaderID,
-      'tripData.travelExpenseData.approvers.empId': empId,
+       tenantId,
+      'travelExpenseData.expenseHeaderId': expenseHeaderId,
+      'travelExpenseData.approvers.empId': empId,
     }).exec();
 
     if (approvalDocuments.length === 0) {
@@ -131,10 +161,10 @@ export const viewTravelExpenseDetails = async (req, res) => {
 
     // Extract billDetails
     approvalDocuments.forEach(approvalDoc => {
-      const tripPurpose = approvalDoc.tripData.travelExpenseData?.tripPurpose || 'tripPurpose';
-      const tripId = approvalDoc.tripData.tripId || 'tripId'; // tripId added as need for approval client screen
-      const billDetails = approvalDoc.tripData.travelExpenseData.expenseLines || 'expense details';
-      const expenseHeaderStatus = approvalDoc.tripData.travelExpenseData.expenseHeaderStatus || 'travelExpense status';
+      const tripPurpose = approvalDoc.travelExpenseData?.tripPurpose || 'tripPurpose';
+      const tripId = approvalDoc.tripId || 'tripId'; // tripId added as need for approval client screen
+      const billDetails = approvalDoc.travelExpenseData.expenseLines || 'expense details';
+      const expenseHeaderStatus = approvalDoc.travelExpenseData.expenseHeaderStatus || 'travelExpense status';
 
       if (billDetails) {
         // Extract the relevant details from each bill in expenseLines
@@ -151,12 +181,11 @@ export const viewTravelExpenseDetails = async (req, res) => {
           const expenseObject = {
             tripId: tripId,
             TripPurpose: tripPurpose,
-            ExpenseType: expenseType,
             TotalAmount: billTotalAmount, 
             BillDate: billDate,
             ExpenseHeaderStatus : expenseHeaderStatus,
             EmpId: empId,
-            ExpenseHeaderID: expenseHeaderID,
+            expenseHeaderId: expenseHeaderId,
           };
 
           expenseLines.push(expenseObject);
@@ -194,19 +223,28 @@ export const viewTravelExpenseDetails = async (req, res) => {
 
 
 
-export const TravelExpenseStatusApproved = async (req, res) => {
+export const TravelexpenseHeaderStatusApproved = async (req, res) => {
   try {
-    const { expenseHeaderID, empId } = req.params;
+    const { tenantId,expenseHeaderId, empId } = req.params;
 
-    if (!expenseHeaderID || !empId) {
+    if (!expenseHeaderId || !empId) {
       return res.status(400).json({
-        message: 'Missing or invalid parameters in the request. Both expenseHeaderID and empId are required.',
+        message: 'Missing or invalid parameters in the request. Both expenseHeaderId and empId are required.',
       });
     }
 
     const tripApprovalDoc = await Approval.findOne({
-      'travelExpenseData.expenseHeaderID': expenseHeaderID,
-      'travelExpenseData.approvers.empId': empId,
+      tenantId,
+      'travelExpenseData':{
+        $elemMatch:{
+          'expenseHeaderId':expenseHeaderId,
+          approvers:{
+            $elemMatch:{
+              "empId": empId,
+            }
+          }
+        }
+      },
     }).exec();
 
     if (!tripApprovalDoc) {
@@ -215,16 +253,16 @@ export const TravelExpenseStatusApproved = async (req, res) => {
 
     const travelExpenseData = tripApprovalDoc.travelExpenseData;
 
-    if (!travelExpenseData || !travelExpenseData.expenseStatus) {
+    if (!travelExpenseData || !travelExpenseData.expenseHeaderStatus) {
       return res.status(404).json({ message: 'No matching Travel expense details found for updating bill status.' });
     }
 
-    if (travelExpenseData.expenseStatus !== 'pending approval') {
-      return res.status(400).json({ message: `Approval failed. Current status: ${travelExpenseData.expenseStatus}. It must be 'pending approval' to approve.` });
+    if (travelExpenseData.expenseHeaderStatus !== 'pending approval') {
+      return res.status(400).json({ message: `Approval failed. Current status: ${travelExpenseData.expenseHeaderStatus}. It must be 'pending approval' to approve.` });
     }
 
-    // Update the expenseStatus to 'approved'
-    travelExpenseData.expenseStatus = 'approved';
+    // Update the expenseHeaderStatus to 'approved'
+    travelExpenseData.expenseHeaderStatus = 'approved';
 
     try {
       await tripApprovalDoc.save();
@@ -244,14 +282,23 @@ export const TravelExpenseStatusApproved = async (req, res) => {
 };
 
 
-export const TravelExpenseStatusRejected = async (req, res) => {
+export const TravelexpenseHeaderStatusRejected = async (req, res) => {
   try {
-    const { expenseHeaderID, empId } = req.params;
+    const {tenantId, expenseHeaderId, empId } = req.params;
     const { expenseRejectionReason } = req.body;
 
     const tripApprovalDoc = await Approval.findOne({
-      'travelExpenseData.expenseHeaderID': expenseHeaderID,
-      'travelExpenseData.approvers.empId': empId,
+      tenantId,
+      'travelExpenseData':{
+        $elemMatch:{
+          expenseHeaderId,
+          approvers:{
+            $elemMatch:{
+              empId
+            }
+          }
+        }
+      },
     }).exec();
 
     if (!tripApprovalDoc) {
@@ -260,20 +307,20 @@ export const TravelExpenseStatusRejected = async (req, res) => {
 
     const travelExpenseData = tripApprovalDoc.travelExpenseData;
 
-    if (!travelExpenseData || !travelExpenseData.expenseStatus) {
+    if (!travelExpenseData || !travelExpenseData.expenseHeaderStatus) {
       return res.status(404).json({ message: 'No matching Travel expense details found for updating bill status.' });
     }
 
-    if (travelExpenseData.expenseStatus !== 'pending approval') {
-      return res.status(400).json({ message: `Deny failed. Current status: ${travelExpenseData.expenseStatus}. It must be 'pending approval' to reject/Send back to the employee.` });
+    if (travelExpenseData.expenseHeaderStatus !== 'pending approval') {
+      return res.status(400).json({ message: `Deny failed. Current status: ${travelExpenseData.expenseHeaderStatus}. It must be 'pending approval' to reject/Send back to the employee.` });
     }
 
     if (!expenseRejectionReason) {
       return res.status(400).json({ message: 'Deny failed. An travelExpenseData.expenseRejectionReason is required to reject/Send back to the employee.' });
     }
 
-    // Update the travelExpenseData.expenseStatus to 'rejected'
-    travelExpenseData.expenseStatus = 'rejected';
+    // Update the travelExpenseData.expenseHeaderStatus to 'rejected'
+    travelExpenseData.expenseHeaderStatus = 'rejected';
     // Update the travelExpenseData.expenseRejectionReason
     travelExpenseData.expenseRejectionReason = expenseRejectionReason;
 

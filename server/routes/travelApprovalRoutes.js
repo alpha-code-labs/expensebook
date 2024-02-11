@@ -1,6 +1,6 @@
 import express  from "express";
-import { ApproveAddALeg, getTravelRequestDetails, getTravelRequestDetailsForApprover, getTravelRequestsAndCashAdvancesForApprover, getTravelRequestsStandalone, 
-    getTravelWithCashDetails, getTravelWithCashDetailsForAddALeg, travelStandaloneApprove, travelStandaloneReject, travelWithCashApproveCashAdvance, 
+import {  approveAddALeg, getTravelRequestDetails, getTravelRequestDetailsForApprover, getTravelRequestsAndCashAdvancesForApprover, getTravelRequestsStandalone, 
+    getTravelWithCashDetails, getTravelWithCashDetailsForAddALeg, rejectAddALeg, travelStandaloneApprove, travelStandaloneReject, travelWithCashApproveCashAdvance, 
     travelWithCashApproveTravelRequest, travelWithCashRejectCashAdvance, travelWithCashRejectTravelRequest,  
 } from "../controllers/travelApproval.js";
 
@@ -12,13 +12,13 @@ const travel = express.Router();
 travel.get("/tr-list/:tenantId/:empId", getTravelRequestsStandalone); // working
 
 //2) standalone TRAVEL REQUEST DETAILS for an approver -- row 5--
-travel.get('/tr-details/:tenantId/:travelRequestId/:empId', getTravelRequestDetails);// working
+travel.get('/tr-details/:tenantId/:empId/:travelRequestId', getTravelRequestDetails);// working
 
 //3) standalone tr--approve -- row 8
-travel.patch("/tr-approve/:tenantId/:travelRequestId/:empId", travelStandaloneApprove); // working
+travel.patch("/tr-approve/:tenantId/:empId/:travelRequestId", travelStandaloneApprove); // working
 
 //4) standalone tr--approve -- row 16
-travel.patch("/tr-reject/:tenantId/:travelRequestId/:empId", travelStandaloneReject); // working
+travel.patch("/tr-reject/:tenantId/:empId/:travelRequestId", travelStandaloneReject); // working
 
 //-------Approval Flow for Travel Requests with cash advance - Raised Together-----
 
@@ -47,10 +47,10 @@ travel.get('/leg/details/:tenantId/:travelRequestId/:empId', getTravelWithCashDe
 
 
 // 13  -- Approve add a leg
-travel.patch('/leg/approve/:tenantId/:travelRequestId/:empId', ApproveAddALeg); // working
+travel.patch('/leg/approve/:tenantId/:travelRequestId/:empId/:itineraryId', approveAddALeg); // working
 
 // 14)  -- Reject add a leg 
-travel.patch('/leg/reject/:tenantId/:travelRequestId/:empId', ApproveAddALeg); // working
+travel.patch('/leg/reject/:tenantId/:travelRequestId/:empId/:itineraryId', rejectAddALeg); // working
 
 // 15) -- get all travel Request Details
 travel.get('/getTravelRequest/:tenantId/:empId/:travelRequestId', getTravelRequestDetailsForApprover);

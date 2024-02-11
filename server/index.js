@@ -1,5 +1,4 @@
 import express from 'express';
-import bodyParser from 'body-parser';
 import cors from 'cors';
 import mongoose from 'mongoose';
 import nodeCron from 'node-cron';
@@ -26,15 +25,16 @@ const MONGODB_URI = process.env.MONGODB_URI;
 const app = express();
 
 // middleware
-app.use(bodyParser.json());
+app.use(express.json());
 app.use(cors());
 
 //Routes
 app.use('/api/approvals', approvalRoutes); // dummy data
-app.use('/approvals/tr-ca', travelApprovalRoutes);
+app.use('/api/fe/approvals/tr-ca', travelApprovalRoutes);
 app.use('/approvals/cash', cashAdvance);
-app.use('/travelExpense',travelExpenseApprovalRoutes);
+app.use('/api/fe/approvals/travel-expense',travelExpenseApprovalRoutes);
 
+app.get('/get',(req,res) => res.status(200).json({message:"Approval microservice is live"}))
 /// Start the batch job
 //startBatchJob();
 
@@ -52,7 +52,7 @@ mongodb();
 
 
 //start consuming messages..From RabbitMq
-startConsumer("approval");
+// startConsumer("approval");
 
 // Use the errorHandler middleware at the end
 app.use(errorHandler);

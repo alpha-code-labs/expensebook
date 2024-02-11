@@ -1,5 +1,5 @@
 import express from 'express';
-import { TravelExpenseStatusApproved, TravelExpenseStatusRejected, getExpenseDetails, saveDataInApprovalContainer, viewTravelExpenseDetails } from '../controllers/travelExpenseApproval.js';
+import { TravelexpenseHeaderStatusApproved, TravelexpenseHeaderStatusRejected, getExpenseDetails, saveDataInApprovalContainer, viewTravelExpenseDetails } from '../controllers/travelExpenseApproval.js';
 
 const router = express.Router();
 
@@ -9,13 +9,13 @@ router.post('/saveDataInApprovalContainer', saveDataInApprovalContainer);
 //travelExpenseDetails
 router.get('/list/:empId', getExpenseDetails);
 
-router.get('/:expenseHeaderType/:empId/:expenseHeaderID', viewTravelExpenseDetails);
+router.get('/details/:tenantId/:empId/:expenseHeaderId', viewTravelExpenseDetails);
 
 //To approve travel expense
-router.put('/approve/:empId/:expenseHeaderID',TravelExpenseStatusApproved);
+router.patch('/approve/tenantId/:empId/:expenseHeaderId',TravelexpenseHeaderStatusApproved);
 
 //To reject travel expense
-router.put('/reject/:empId/:expenseHeaderID', TravelExpenseStatusRejected);
+router.patch('/reject/:empId/:expenseHeaderId', TravelexpenseHeaderStatusRejected);
 
 // Export the router
 export default router;
