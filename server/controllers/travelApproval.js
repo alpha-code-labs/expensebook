@@ -1,13 +1,10 @@
 import axios from 'axios';
 import { Approval } from '../models/approvalSchema.js';
 import pino from 'pino';
-import { approveAddALegToTrip, rejectAddALegToTrip } from '../internal/controllers/tripMicroservice.js';
-import {  approveAddALegToExpense, rejectAddALegToExpense } from '../internal/controllers/expenseMicroservice.js';
-import { ApproveAddALegToCash, rejectAddALegToCash } from '../internal/controllers/cashMicroservice.js';
-import {  approveAddALegToTravel, rejectAddALegToTravel } from '../internal/controllers/travelMicroservice.js';
-import { handleDatabaseError, validateInput } from '../utils/validations.js';
+import { approveAddALegToTrip} from '../internal/controllers/tripMicroservice.js';
+import {  approveAddALegToExpense } from '../internal/controllers/expenseMicroservice.js';
 import { sendCashApprovalToDashboardQueue, sendTravelApprovalToDashboardQueue } from '../rabbitmq/dashboardMicroservice.js';
-import { sendToOtherMicroservice } from '../rabbitmq/publisher.js';
+import { sendToDashboardQueue, sendToOtherMicroservice } from '../rabbitmq/publisher.js';
 
 const logger = pino({
   transport: {
@@ -73,45 +70,58 @@ export const getTravelRequestsStandalone = async (req, res) => {
 
 
 //2) travel request standalone - Details
-export const getTravelRequestDetails = (req, res) => {
-  const { tenantId, travelRequestId, empId } = req.params;
-  console.log("hi 78", req.params)
-  const travelApproveDoc = {
-    'tenantId': tenantId,
-    'travelRequestData.travelRequestId': travelRequestId,
-    'travelRequestData.approvers.empId': empId,
-  };
+export const getTravelRequestDetails = async (req, res) => {
+  try {
+    const { tenantId, travelRequestId, empId } = req.params;
+    console.log("hi 78", req.params)
 
-  // Fetch travel request details by travelRequestId
-  Approval.findOne(travelApproveDoc)
-    .then((approval) => {
-      if (!approval) {
-        // If the travel request doesn't exist, return a 404 Not Found response
-        return res.status(404).json({ error: 'Travel request not found.' });
-      }
+    const commonConditions = {
+      'travelRequestData.tenantId': tenantId,
+      'travelRequestData.approvers.empId': empId,
+    };
+    
+    // Fetch travel request details by travelRequestId
+    const approval = await Approval.findOne({
+      $or: [
+        {
+          ...commonConditions,
+          'travelRequestData.travelRequestId': travelRequestId,
+        },
+        {
+          ...commonConditions,
+          'travelRequestData.isAddALeg': true,
+          'travelRequestData.travelRequestStatus': 'booked',
+        },
+      ]
+    }).exec();
+    
+    // const travelApproveDoc = {
+    //   'travelRequestData.tenantId': tenantId,
+    //   'travelRequestData.travelRequestId': travelRequestId,
+    //   'travelRequestData.approvers.empId': empId,
+    // };
 
-      const { travelRequestData: travelRequest } = approval;
+    if (!approval) {
+      // If the travel request doesn't exist, return a 404 Not Found response
+      return res.status(404).json({ error: 'Travel request not found.' });
+    }
+    const { travelRequestData , cashAdvancesData} = approval
+    
+   if (travelRequestData.isCashAdvanceTaken ) {
+       return res.status(200).json({ success: true , travelRequestData, cashAdvancesData})
+   } else {
+       return res.status(200).json({success: true, travelRequestData, cashAdvancesData:[]});
+   }
 
-      // Filter out null, empty, or undefined values from an object
-      const filterObject = (obj) =>
-        Object.fromEntries(
-          Object.entries(obj).filter(([_, v]) => v !== null && v !== undefined && v !== '')
-        );
-
-      // Filter the travel request details
-      const filteredTravelRequest = filterObject(travelRequest);
-
-      // Return the filtered travel request details
-      res.status(200).json(filteredTravelRequest);
-    })
-    .catch((error) => {
-      // Handle errors
-      console.error('An error occurred while fetching travel request details:', error.message);
-      // Send an error response
-      res.status(500).json({ error: 'An error occurred while fetching travel request details.' });
-    });
+    // Return the filtered travel request details
+  } catch (error) {
+    // Handle errors
+    console.error('An error occurred while fetching travel request details:', error.message);
+    // Send an error response
+    res.status(500).json({ error: 'An error occurred while fetching travel request details.' });
+  }
 };
-
+ 
 
 // 3) travel request standalone -status-Approved 
 export const travelStandaloneApprove = async (req, res) => {
@@ -119,7 +129,7 @@ export const travelStandaloneApprove = async (req, res) => {
     const { tenantId, empId, travelRequestId } = req.params;
 
     const travelApprovalDoc = await Approval.findOne({
-      tenantId,
+      "travelRequestData.tenantId":tenantId,
       'travelRequestData.isCashAdvanceTaken': false,
       'travelRequestData.travelRequestId': travelRequestId,
       'travelRequestData.travelRequestStatus': 'pending approval',
@@ -150,7 +160,7 @@ export const travelStandaloneApprove = async (req, res) => {
         })
         
         const isPendingApproval = booking.status == 'pending approval'
-        const allApproversApproved = booking.approvers.every(approver => approver.status == 'pending approval') 
+        const allApproversApproved = booking.approvers.every(approver => approver.status == 'approved') 
         if (allApproversApproved && isPendingApproval){
           booking.status = 'approved'
         }})
@@ -179,201 +189,32 @@ export const travelStandaloneApprove = async (req, res) => {
 
     await travelApprovalDoc.save();
 
-    // `sendTravelApprovedToTravelMicroservice` is an asynchronous function
-    // await sendTravelApprovedToTravelMicroservice(tenantId, empId, travelRequestId, updatedApprovers);
+    const employee = travelRequestData.createdBy.name;
 
-    // Send updated travel to the dashboard asynchronously
-    await sendTravelApprovalToDashboardQueue(travelApprovalDoc)
+    // Send updated travel to the dashboard synchronously
+     await sendToDashboardQueue(travelApprovalDoc, true, 'online')
 
     const payload = {
       travelRequestId: travelApprovalDoc.travelRequestData.travelRequestId,
       travelRequestStatus: travelApprovalDoc.travelRequestData.travelRequestStatus,
       approvers:travelApprovalDoc.travelRequestData.approvers,
-      rejectionReasons: '',
+      rejectionReasons: travelApprovalDoc.travelRequestData.rejectionReason,
     }
 
     // send approval to travel
     sendToOtherMicroservice(payload, 'approve-reject-tr', 'travel', 'travel standalone approved ')
 
-    res.status(200).json({ message: `Approval for empId ${empId} updated to 'approved'.` });
+    return res.status(200).json({ message: `Travel request is approved for ${employee}` });
   } catch (error) {
-    if (error.message === 'Travel request not found.') {
-      res.status(404).json({ error: 'Travel request not found.' });
-    } else {
-      console.error('An error occurred while updating approval:', error.message);
-      res.status(500).json({ error: 'Failed to update approval.' });
-    }
+    console.error('An error occurred while updating approval:', error.message);
+    return res.status(500).json({ error: 'Failed to update approval.', error: error.message });
   }
 };
 
-// export const travelStandaloneApprove = (req, res) => {
-//   const { tenantId, empId, travelRequestId } = req.params;
-
-//   Approval.findOne({
-//     tenantId,
-//     'approvalType': 'travel',
-//     'travelRequestData.isCashAdvanceTaken': false,
-//     'travelRequestData.travelRequestId': travelRequestId,
-//     'travelRequestData.travelRequestStatus': 'pending approval',
-//     'travelRequestData.approvers': {
-//       $elemMatch: {
-//         'empId': empId,
-//         'status': 'pending approval'
-//       }
-//     }
-//   })
-//     .then((approval) => {
-//       if (!approval) {
-//         throw new Error('Travel request not found.');
-//       }
-
-//       const { travelRequestData } = approval;
-//       const { approvers } = travelRequestData;
-
-//       const updatedApprovers = approvers.map((approver) => {
-//         if (approver.empId === empId) {
-//           return {
-//             ...approver,
-//             status: 'approved',
-//           };
-//         }
-//         return approver;
-//       });
-
-//       approval.travelRequestData.approvers = updatedApprovers;
-
-//       const allApproved = updatedApprovers.every(approver => approver.status === 'approved');
-
-//       if (allApproved) {
-//         approval.travelRequestData.travelRequestStatus = 'approved';
-//       }
-
-//       return approval.save();
-//     })
-//     .then(() => {
-//       // `sendTravelApprovedToTravelMicroservice` is an asynchronous function
-//       // sendTravelApprovedToTravelMicroservice(tenantId, empId, travelRequestId, updatedApprovers);
-
-//       res.status(200).json({ message: `Approval for empId ${empId} updated to 'approved'.` });
-//     })
-//     .catch((error) => {
-//       if (error.message === 'Travel request not found.') {
-//         res.status(404).json({ error: 'Travel request not found.' });
-//       } else {
-//         console.error('An error occurred while updating approval:', error.message);
-//         res.status(500).json({ error: 'Failed to update approval.' });
-//       }
-//     });
-// };
-
-
-
-// 
-
-
-// const updateApprovalDocument = async (approval, rejectionReasons) => {
-//   const { travelRequestData } = approval;
-//   const { approvers } = travelRequestData;
-
-//   // Find the matching approver by empId and update its status to 'rejected'
-//   const updatedApprovers = approvers.map((approver) => {
-//     if (approver.empId === empId) {
-//       return {
-//         ...approver,
-//         status: 'rejected',
-//       };
-//     }
-//     return approver;
-//   });
-
-//   // Update the approval document with the modified approvers array and rejection reasons
-//   approval.travelRequestData.approvers = updatedApprovers;
-//   approvalStatus = 'rejected',
-//   approval.travelRequestData.travelRequestRejectionReason = rejectionReasons;
-
-//   // Save the updated approval document
-//   return await approval.save();
-// };
-
-// (microservice) travel request standalone- status- rejected , microservice- travel
-
-
-
-// 4) travel request standalone - status-rejected
-// export const travelStandaloneReject = async (req, res) => {
-//   const { tenantId, empId, travelRequestId } = req.params;
-//   const { rejectionReasons } = req.body;
-
-//   try {
-//     const approval = await Approval.findOne({
-//       'tenantId': tenantId,
-//       'approvalType': 'travel',
-//       'travelRequestData.isCashAdvanceTaken': false,
-//       'travelRequestData.travelRequestId': travelRequestId,
-//       'travelRequestData.travelRequestStatus': 'pending approval',
-//       'travelRequestData.approvers': {
-//         $elemMatch: {
-//           'empId': empId,
-//           'status': 'pending approval'
-//         }
-//       }
-//     });
-
-//     if (!approval) {
-//       throw new Error('Travel request not found.');
-//     }
-
-//     const { travelRequestData } = approval;
-//     const { approvers } = travelRequestData;
-
-//     const updatedApprovers = approvers.map((approver) => {
-//       if (approver.empId === empId) {
-//         return {
-//           ...approver,
-//           status: 'rejected',
-//         };
-//       }
-//       return approver;
-//     });
-
-//     // Update the approval document with the modified approvers array and rejection reasons
-//     approval.travelRequestData.approvers = updatedApprovers;
-//     approval.travelRequestData.travelRequestRejectionReason = rejectionReasons;
-
-//     // Update the status within the approval document
-//     approval.travelRequestData.travelRequestStatus = 'rejected';
-
-//     // Save the updated approval document
-//     await approval.save();
-
-//     // Update approval document status and rejection reasons
-//     // const travelRejected = await updateApprovalDocument(approval, rejectionReasons);
-    
-//     //    // Send changes to the Travel Microservice
-//     // await sendTravelRejectedToTravelMicroservice(tenantId, empId, travelRejected, rejectionReasons);
-
-//     //  // Send changes to the Trip Microservice
-//     // await  sendTravelRejectedToTripMicroservice(tenantId, empId, travelRejected, rejectionReasons); 
-
-
-//     res.status(200).json({ 
-//       message: `Approval for empId ${empId} updated to 'rejected'.`
-//       // travelRejected, // Define or remove this variable from response
-//     });
-//   } catch (error) {
-//     if (error.message === 'Travel request not found.') {
-//       res.status(404).json({ error: 'Travel request not found.' });
-//       logger.error('An error occurred while updating approval:', error.message);
-//     } else {
-//       console.error('An error occurred while updating approval:', error.message);
-//       res.status(500).json({ error: 'Failed to update approval.' });
-//     }
-//   }
-// }
 
 export const travelStandaloneReject = async (req, res) => {
   const { tenantId, empId, travelRequestId } = req.params;
-  const { rejectionReasons } = req.body;
+  const { rejectionReason } = req.body;
 
   try {
     const travelApprovalDoc = await Approval.findOne({
@@ -408,7 +249,7 @@ export const travelStandaloneReject = async (req, res) => {
     const isPendingApproval = booking.status == 'pending approval'
     if (isPendingApproval){
       booking.status = 'rejected'
-      booking.rejectionReason = rejectionReasons
+      booking.rejectionReason = rejectionReason
     }})
 
 } else {
@@ -426,54 +267,39 @@ export const travelStandaloneReject = async (req, res) => {
       return approver;
     });
 
-    // Update the travelApprovalDoc document with the modified approvers array and rejection reasons
+    // Update the travelApprovalDoc document with the modified approvers array and rejection reason
     travelApprovalDoc.travelRequestData.approvers = updatedApprovers;
-    travelApprovalDoc.travelRequestData.rejectionReason = rejectionReasons;
+    travelApprovalDoc.travelRequestData.rejectionReason = rejectionReason;
 
     // Update the status within the travelApprovalDoc document
     travelApprovalDoc.travelRequestData.travelRequestStatus = 'rejected';
 
-    console.log(updatedApprovers , rejectionReasons);
+    console.log(updatedApprovers , rejectionReason);
     // Save the updated travelApprovalDoc document
     await travelApprovalDoc.save();
 
-    // Send updated travel to the dashboard asynchronously
-    await sendTravelApprovalToDashboardQueue(travelApprovalDoc)
+    const employee = travelRequestData.createdBy.name;
 
-    // Update approval document status and rejection reasons
-    // const travelRejected = await updateApprovalDocument(approval, rejectionReasons);
-    
-    //    // Send changes to the Travel Microservice
-    // await sendTravelRejectedToTravelMicroservice(tenantId, empId, travelRejected, rejectionReasons);
-
-    //  // Send changes to the Trip Microservice
-    // await  sendTravelRejectedToTripMicroservice(tenantId, empId, travelRejected, rejectionReasons); 
+    // Send updated travel to the dashboard synchronously
+    await sendToDashboardQueue(travelApprovalDoc, true, 'online')
 
     const payload = {
       travelRequestId: travelApprovalDoc.travelRequestData.travelRequestId,
       travelRequestStatus: travelApprovalDoc.travelRequestData.travelRequestStatus,
       approvers:travelApprovalDoc.travelRequestData.approvers,
-      rejectionReasons:  travelApprovalDoc.travelRequestData.rejectionReason,
+      rejectionReason:  travelApprovalDoc.travelRequestData.rejectionReason,
     }
 
     // send approval to travel
-    sendToOtherMicroservice(payload, 'approve-reject-tr', 'travel', 'travel standalone rejected ')
+    await sendToOtherMicroservice(payload, 'approve-reject-tr', 'travel', 'travel standalone rejected ')
 
     console.log('After saving approval...');
-    res.status(200).json({ 
-      message: `Approval for empId ${empId} updated to 'rejected'.`
-      // travelRejected, // Define or remove this variable from response
-    });
+    return res.status(200).json({ message: `Travel request is rejected for ${employee}` });
   } catch (error) {
     console.error('An error occurred while updating approval:', error.message);
-    if (error.message === 'Travel request not found.') {
-      res.status(404).json({ error: 'Travel request not found.' });
-      logger.error('An error occurred while updating approval:', error.message);
-    } else {
-      res.status(500).json({ error: 'Failed to update approval.' });
-    }
+    return res.status(500).json({ error: 'Failed to update approval.', error: error.message });
   }
-}
+};
 
 //-------------------------------------------------------------------------------
 
@@ -544,7 +370,7 @@ export const getTravelWithCashDetails = async (req, res) => {
 
     // Use the Mongoose model for 'Approval' to find a single travel request with the provided travelRequestId and relevant conditions
     const travelRequest = await Approval.findOne({
-      'tenantId': tenantId,
+      'travelRequestData.tenantId': tenantId,
       'travelRequestData.travelRequestId': travelRequestId,
       'travelRequestData.isCashAdvanceTaken': true,
       'travelRequestData.approvers.empId': empId,
@@ -594,9 +420,9 @@ export const travelWithCashApproveTravelRequest = async (req, res) => {
   try {
     const { tenantId, empId, travelRequestId } = req.params;
 
+    console.log("now ---", req.params)
     const cashApprovalDoc = await Approval.findOne({
-      tenantId,
-      'approvalType': 'travel',
+      "travelRequestData.tenantId":tenantId,
       'travelRequestData.isCashAdvanceTaken': true,
       'travelRequestData.travelRequestId': travelRequestId,
       'travelRequestData.travelRequestStatus': 'pending approval',
@@ -613,7 +439,27 @@ export const travelWithCashApproveTravelRequest = async (req, res) => {
     }
 
     const { travelRequestData } = cashApprovalDoc;
-    const { approvers } = travelRequestData;
+    const { itinerary, approvers } = travelRequestData;
+
+    if (typeof itinerary === 'object' ) {
+      const itineraryApproved = Object.values(itinerary).flatMap(Object.values);
+
+    itineraryApproved.forEach(booking => {  
+      booking.approvers.forEach(approver => {
+        if(approver.empId === req.params.empId && approver.status == 'pending approval' && booking.status == 'pending approval'){
+         approver.status = 'approved'
+        }
+      })
+      
+      const isPendingApproval = booking.status == 'pending approval'
+      const allApproversApproved = booking.approvers.every(approver => approver.status == 'approved') 
+      if (allApproversApproved && isPendingApproval){
+        booking.status = 'approved'
+      }})
+
+  } else {
+    throw new Error('Travel Request doenst have anything in itinerary to approve');
+  }
 
     const updatedApprovers = approvers.map((approver) => {
       if (approver.empId === empId) {
@@ -634,6 +480,8 @@ export const travelWithCashApproveTravelRequest = async (req, res) => {
     }
 
     await cashApprovalDoc.save();
+    console.log("approved", cashApprovalDoc)
+    const employee = travelRequestData.createdBy.name;
 
     //Sending to dashboard via rabbitmq
     await sendCashApprovalToDashboardQueue(cashApprovalDoc);
@@ -648,21 +496,16 @@ export const travelWithCashApproveTravelRequest = async (req, res) => {
       travelRequestId: cashApprovalDoc.travelRequestData.travelRequestId,
       travelRequestStatus: cashApprovalDoc.travelRequestData.travelRequestStatus,
       approvers:cashApprovalDoc.travelRequestData.approvers,
-      rejectionReasons:  '',
+      rejectionReason: cashApprovalDoc.travelRequestData?.rejectionReason,
     }
-
+    console.log("hiiiii", payload)
     // send approval to Cash
     sendToOtherMicroservice(payload, 'approve-reject-tr', 'cash', 'To update travelRequestStatus to approved in cash microservice')
 
-
-    res.status(200).json({ message: `Approval for empId ${empId} updated to 'approved'.` });
-  } catch (error) {
-    if (error.message === 'Travel request not found.') {
-      res.status(404).json({ error: 'Travel request not found.' });
-    } else {
-      console.error('An error occurred while updating approval:', error.message);
-      res.status(500).json({ error: 'Failed to update approval.' });
-    }
+   return res.status(200).json({ message: `TravelRequest approved for ${employee}` });
+ } catch (error) {
+    console.error('An error occurred while updating approval:', error.message);
+    return res.status(500).json({ error: 'Failed to update approval.', error: error.message });
   }
 };
 
@@ -670,15 +513,15 @@ export const travelWithCashApproveTravelRequest = async (req, res) => {
 // 8) travel with cash advance -- Reject Travel Request (IF Travel request is rejected then status of cash advance is updated to draft)
 export const travelWithCashRejectTravelRequest = async (req, res) => {
   const { tenantId, empId, travelRequestId } = req.params;
-  const { rejectionReasons } = req.body;
-
+  const { rejectionReason } = req.body;
+  
+  console.log("reject tr req.body", req.body, req.params)
   try {
     const cashApprovalDoc = await Approval.findOne({
-      'approvalType': 'travel',
+      'travelRequestData.tenantId':tenantId,
       'travelRequestData.isCashAdvanceTaken': true,
       'travelRequestData.travelRequestId': travelRequestId,
       'travelRequestData.travelRequestStatus': 'pending approval',
-      'travelRequestData.tenantId': tenantId,
       'travelRequestData.approvers': {
         $elemMatch: {
           'empId': empId,
@@ -692,7 +535,25 @@ export const travelWithCashRejectTravelRequest = async (req, res) => {
     }
 
     const { travelRequestData } = cashApprovalDoc;
-    const { approvers } = travelRequestData;
+    const { itinerary, approvers } = travelRequestData;
+
+    if (typeof itinerary === 'object') {
+      const itineraryApproved = Object.values(itinerary).flatMap(Object.values);
+
+    itineraryApproved.forEach(booking => {  
+      booking.approvers.forEach(approver => {
+        if(approver.empId === req.params.empId && approver.status == 'pending approval' && booking.status == 'pending approval'){
+         approver.status = 'rejected'
+        }
+      })
+      
+      const isPendingApproval = booking.status == 'pending approval'
+      if (isPendingApproval){
+        booking.status = 'rejected'
+      }})
+  } else {
+    throw new Error('Travel Request doenst have anything in itinerary to approve');
+  }
 
     console.log(approvers , );
     const updatedApprovers = approvers.map((approver) => {
@@ -705,21 +566,32 @@ export const travelWithCashRejectTravelRequest = async (req, res) => {
       return approver;
     });
 
-    // Update the cashApprovalDoc document with the approvers array and rejection reasons
+    // Update the cashApprovalDoc document with the approvers array and rejection reason
     cashApprovalDoc.travelRequestData.approvers = updatedApprovers;
-    cashApprovalDoc.travelRequestData.rejectionReason = rejectionReasons;
+    cashApprovalDoc.travelRequestData.rejectionReason = rejectionReason;
 
     // Update the status within the cashApprovalDoc document
     cashApprovalDoc.travelRequestData.travelRequestStatus = 'rejected';
-    cashApprovalDoc.cashAdvancesData.cashAdvances = cashApprovalDoc.cashAdvancesData.cashAdvances.map(cashAdvance => ({
-    ...cashAdvance,
-    cashAdvanceStatus: 'draft'
-    }));
 
+    cashApprovalDoc.cashAdvancesData.forEach(cashAdvance => {
+      cashAdvance.approvers = cashAdvance.approvers.map(approver => {
+        if (approver.empId === empId && approver.status === 'pending approval') {
+          return { ...approver, status: 'rejected' };
+        }
+        return approver;
+      });
+    
+      // Check if cashAdvanceStatus is 'pending approval', update to 'rejected'
+      if (cashAdvance.cashAdvanceStatus === 'pending approval') {
+        cashAdvance.cashAdvanceStatus = 'rejected';
+      }
+    });
 
-    console.log(updatedApprovers , rejectionReasons);
+    console.log( "these are the updated approvers , rejectionReason", updatedApprovers , rejectionReason);
     // Save the updated cashApprovalDoc document
      await cashApprovalDoc.save();
+
+     const employee = travelRequestData.createdBy.name;
 
       //Sending to dashboard via rabbitmq
       await sendCashApprovalToDashboardQueue(cashApprovalDoc);
@@ -728,157 +600,195 @@ export const travelWithCashRejectTravelRequest = async (req, res) => {
       travelRequestId: cashApprovalDoc.travelRequestData.travelRequestId,
       travelRequestStatus: cashApprovalDoc.travelRequestData.travelRequestStatus,
       approvers:cashApprovalDoc.travelRequestData.approvers,
-      rejectionReasons: cashApprovalDoc.travelRequestData.rejectionReason,
+      rejectionReason: cashApprovalDoc.travelRequestData.rejectionReason,
     }
 
+    console.log("Travel reject payload", payload);
     // send Rejected Travel request to Cash microservice
     sendToOtherMicroservice(payload, 'approve-reject-tr', 'cash', 'To update travelRequestStatus to rejected in cash microservice')
 
-    res.status(200).json({ message: `Travel request is rejected then status of cash advance is updated to draft` });
+    return res.status(200).json({ message: `Travel request is rejected for ${employee}` });
   } catch (error) {
-    if (error.message === 'Travel request not found.') {
-      res.status(404).json({ error: 'Travel request not found.' });
-    } else {
-      console.error('An error occurred while updating approval:', error.message);
-      res.status(500).json({ error: 'Failed to update approval.' });
-    }
+    console.error('An error occurred while updating approval:', error.message);
+    return res.status(500).json({ error: 'Failed to update approval.', error: error.message });
   }
 };
 
+// 9) travel with cash advance -- Approve cash advance / approve cashAdvance raised later
+export const travelWithCashApproveCashAdvance = async (req, res) => {
+  const { tenantId, empId, travelRequestId, cashAdvanceId } = req.params;
 
-// 9) travel with cash advance -- Approve cash advance 
-  export const travelWithCashApproveCashAdvance = async (req, res) => {
-    const { tenantId, empId, travelRequestId, cashAdvanceId } = req.params;
-  
-    try {
-      const cashApprovalDoc = await Approval.findOne({
-        'approvalType': 'travel',
-        'travelRequestData.isCashAdvanceTaken': true,
-        'travelRequestData.travelRequestId': travelRequestId,
-        'travelRequestData.tenantId': tenantId,
-        'travelRequestData.approvers': {
-          $elemMatch: {
-            'empId': empId,
-            'status': 'approved'
-          }
-        }
-      });
-  
-      if (!cashApprovalDoc) {
-        throw new Error('Travel request not found.');
-      }
-  
-      const { cashAdvancesData } = cashApprovalDoc;
-      const { cashAdvances } = cashAdvancesData;
-  
-      cashAdvances.forEach(cashAdvance => {
-        cashAdvance.approvers.forEach(approver => {
-          if (approver.empId === empId) {
-            approver.status = 'approved';
-          }
-        });
-  
-        const allApproved = cashAdvance.approvers.every(approver => approver.status === 'approved');
-  
-        if (allApproved) {
-          cashAdvance.cashAdvanceStatus = 'approved';
-        }
-      });
-  
-      // Save the updated cashApprovalDoc document
-      await cashApprovalDoc.save();
-
-      //Sending to dashboard via rabbitmq
-      await sendCashApprovalToDashboardQueue(cashApprovalDoc);
-
-    const payload = {
-      travelRequestId: cashApprovalDoc.travelRequestData.travelRequestId,
-      cashAdvanceId: cashAdvanceId,
-      cashAdvanceStatus: cashAdvances.filter(ca=>ca.cashAdvanceId = cashAdvanceId)[0]?.cashAdvanceStatus,
-      approvers: cashAdvances.filter(ca=>ca.cashAdvanceId = cashAdvanceId)[0]?.approvers,
-      rejectionReason: '',
-    }
-
-    // send Approved cashAdvance to Cash microservice
-    sendToOtherMicroservice(payload, 'approve-reject-ca', 'cash', 'To update cashAdvanceStatus to approved in cash microservice')
-
-
-    res.status(200).json({ message: `travel with cash advance -- cash advance:'approved' ` });
-  } catch (error) {
-    if (error.message === 'Travel request not found.') {
-      res.status(404).json({ error: 'Travel request not found.' });
-    } else {
-      console.error('An error occurred while updating approval:', error.message);
-      res.status(500).json({ error: 'Failed to update approval.' });
-    }
-  }
-};
-
-
-
-// 10) travel with cash advance -- Reject cash advance 
-export const travelWithCashRejectCashAdvance = async (req, res) => {
-  const { tenantId, empId, travelRequestId } = req.params;
-  const { cashAdvanceId, rejectionReasons } = req.body; 
+  console.log("cash advance approve params ......", req.params);
 
   try {
     const cashApprovalDoc = await Approval.findOne({
-      'approvalType': 'travel',
-      'travelRequestData.isCashAdvanceTaken': true,
-      'travelRequestData.travelRequestId': travelRequestId,
       'travelRequestData.tenantId': tenantId,
-      'travelRequestData.approvers': {
-        $elemMatch: {
-          'empId': empId,
-          'status': 'approved'
+      'travelRequestData.travelRequestId': travelRequestId,
+      'travelRequestData.isCashAdvanceTaken': true,
+      $or: [
+        {
+          'travelRequestData.approvers': {
+            $elemMatch: {
+              'empId': empId,
+              'status': 'approved'
+            }
+          }
+        },
+        {
+          'travelRequestData.approvers': {
+            $elemMatch: {
+              'empId': empId
+            }
+          },
+          'travelRequestData.travelRequestStatus': { $in: ['approved', 'booked'] },
         }
+      ]
+    }).exec();
+
+    if (!cashApprovalDoc) {
+      return res.status(404).json({ error: 'Travel request not found.' });
+    }
+
+    const { cashAdvancesData } = cashApprovalDoc;
+    const cashAdvanceFound = cashAdvancesData.find(cashAdvance => cashAdvance.cashAdvanceId.toString() == cashAdvanceId);
+
+    console.log("valid cash advanceId", cashAdvanceFound);
+
+    if (cashAdvanceFound) {
+      cashAdvanceFound.approvers.forEach(approver => {
+        if (approver.empId === empId && approver.status === 'pending approval') {
+          approver.status = 'approved';
+        }
+      });
+
+      const allApproved = cashAdvanceFound.approvers.every(approver => approver.status == 'approved');
+
+      if (allApproved) {
+        cashAdvanceFound.cashAdvanceStatus = 'approved';
       }
-    });
+
+      // Save the updated cashApprovalDoc document
+      const cashApproved = await cashApprovalDoc.save();
+
+      const employee = cashAdvanceFound.createdBy.name;
+      console.log("after approved ..", cashApproved);
+
+      // Sending to dashboard via rabbitmq
+      await sendCashApprovalToDashboardQueue(cashApprovalDoc);
+
+      const payload = {
+        travelRequestId: cashApprovalDoc.travelRequestData.travelRequestId,
+        cashAdvanceId: cashAdvanceId,
+        cashAdvanceStatus: cashAdvanceFound?.cashAdvanceStatus,
+        approvers: cashAdvanceFound?.approvers,
+        rejectionReason: cashAdvanceFound?.rejectionReason,
+      };
+
+      console.log("is payload updated save()....", payload);
+
+      // send Approved cashAdvance to Cash microservice
+      sendToOtherMicroservice(payload, 'approve-reject-ca', 'cash', 'To update cashAdvanceStatus to approved in cash microservice');
+
+      return res.status(200).json({ message: `Cash advance approved for ${employee}` });
+    }
+  } catch (error) {
+    console.error('An error occurred while updating approval:', error.message);
+    return res.status(500).json({ error: 'Failed to update approval.', error: error.message });
+  }
+};
+
+
+
+// 10) travel with cash advance -- Reject cash advance / reject cash Advance raised later
+export const travelWithCashRejectCashAdvance = async (req, res) => {
+  const { tenantId, empId, travelRequestId, cashAdvanceId } = req.params;
+  const {  rejectionReason } = req.body; 
+
+  try {
+    // const cashApprovalDoc = await Approval.findOne({
+    //   'travelRequestData.tenantId': tenantId,
+    //   'travelRequestData.isCashAdvanceTaken': true,
+    //   'travelRequestData.travelRequestId': travelRequestId,
+    //   'travelRequestData.tenantId': tenantId,
+    //   'travelRequestData.approvers': {
+    //     $elemMatch: {
+    //       'empId': empId,
+    //       'status': 'approved'
+    //     }
+    //   }
+    // });
+
+    const cashApprovalDoc = await Approval.findOne({
+      'travelRequestData.tenantId': tenantId,
+      'travelRequestData.travelRequestId': travelRequestId,
+      'travelRequestData.isCashAdvanceTaken': true,
+      $or: [
+        {
+          'travelRequestData.approvers': {
+            $elemMatch: {
+              'empId': empId,
+              'status': 'approved'
+            }
+          }
+        },
+        {
+          'travelRequestData.approvers': {
+            $elemMatch: {
+              'empId': empId
+            }
+          },
+          'travelRequestData.travelRequestStatus': { $in: ['approved', 'booked'] },
+        }
+      ]
+    }).exec();
 
     if (!cashApprovalDoc) {
       throw new Error('Travel request not found.');
     }
 
     const { cashAdvancesData } = cashApprovalDoc;
-    const { cashAdvances } = cashAdvancesData;
 
-    cashAdvances.forEach(cashAdvance => {
-      cashAdvance.approvers.forEach(approver => {
-        if (approver.empId === empId) {
+    const cashAdvanceFound = cashAdvancesData.find(cashAdvance => cashAdvance.cashAdvanceId.toString() == cashAdvanceId);
+
+    console.log("valid cash advanceId", cashAdvanceFound);
+
+    if (cashAdvanceFound) {
+      cashAdvanceFound.approvers.forEach(approver => {
+        if (approver.empId === empId && approver.status === 'pending approval') {
           approver.status = 'rejected';
+          cashAdvanceFound.cashAdvanceStatus = 'rejected'; 
+          cashAdvanceFound.cashAdvanceRejectionReason = rejectionReason; // Update rejection reason
         }
       });
-      cashAdvance.cashAdvanceStatus = 'rejected'; 
-      cashAdvance.cashAdvanceRejectionReason = rejectionReasons; // Update rejection reason
-    });
+  
+      // Save the updated cashApprovalDoc document
+      await cashApprovalDoc.save();
+      const employee = cashAdvanceFound.createdBy.name;
+  
+      //Sending to dashboard via rabbitmq
+      await sendCashApprovalToDashboardQueue(cashApprovalDoc);
+  
+      const payload = {
+        travelRequestId: cashApprovalDoc.travelRequestData.travelRequestId,
+        cashAdvanceId: cashAdvanceId,
+        cashAdvanceStatus: cashAdvanceFound?.cashAdvanceStatus,
+        approvers: cashAdvanceFound?.approvers,
+        cashAdvanceRejectionReason:cashAdvanceFound?.cashAdvanceRejectionReason,
+      }
 
-    // Save the updated cashApprovalDoc document
-    await cashApprovalDoc.save();
-
-    //Sending to dashboard via rabbitmq
-    await sendCashApprovalToDashboardQueue(cashApprovalDoc);
-
-    const payload = {
-      travelRequestId: cashApprovalDoc.travelRequestData.travelRequestId,
-      cashAdvanceId: cashAdvanceId,
-      cashAdvanceStatus: cashAdvances.filter(ca=>ca.cashAdvanceId = cashAdvanceId)[0]?.cashAdvanceStatus,
-      approvers: cashAdvances.filter(ca=>ca.cashAdvanceId = cashAdvanceId)[0]?.approvers,
-      rejectionReason:cashAdvances.filter(ca=>ca.cashAdvanceId = cashAdvanceId)[0]?.rejectionReason,
+      console.log("payload updated?", payload)
+  
+      // send Rejected cash advance to Cash microservice
+      sendToOtherMicroservice(payload, 'approve-reject-ca', 'cash', 'To update cashAdvanceStatus to rejected in cash microservice')
+  
+     return res.status(200).json({ message: `Cash advance rejected for ${employee}` });
     }
-
-    // send Rejected cash advance to Cash microservice
-    sendToOtherMicroservice(payload, 'approve-reject-ca', 'cash', 'To update cashAdvanceStatus to rejected in cash microservice')
-
-    res.status(200).json({ message: `Travel with cash advance - cash advance: 'rejected'` });
   } catch (error) {
-    if (error.message === 'Travel request not found.') {
-      res.status(404).json({ error: 'Travel request not found.' });
-    } else {
-      console.error('An error occurred while updating approval:', error.message);
-      res.status(500).json({ error: 'Failed to update approval.' });
-    }
-  } 
+    console.error('An error occurred while updating approval:', error.message);
+    return res.status(500).json({ error: 'Failed to update approval.', error: error.message });
+  }
 };
+
 
 
 // 11) Get add a leg all 'booked' Travel Requests with cash advance -- !! important - isAddALeg : true
@@ -889,8 +799,7 @@ export const getAddALegTravelRequestsForApprover = async (req, res) => {
     // Use the Mongoose model for 'Approval' to find all travel requests where the provided empId exists in the 'approvers' array within 'travelRequestData'
     const travelRequests = await Approval.find(
       {
-        'tenantId': tenantId,
-        'approvalType': 'travel',
+        'travelRequestData.tenantId': tenantId,
         'travelRequestData.approvers.empId': empId,
         'travelRequestData.isAddALeg': true,
         'travelRequestData.travelRequestStatus': 'booked',
@@ -948,8 +857,7 @@ export const getTravelWithCashDetailsForAddALeg = async (req, res) => {
 
     // Use the Mongoose model for 'Approval' to find a single travel request with the provided travelRequestId and relevant conditions
     const travelRequest = await Approval.findOne({
-      'tenantId': tenantId,
-      'approvalType': 'travel',
+      'travelRequestData.tenantId': tenantId,
       'travelRequestData.travelRequestId': travelRequestId,
       'travelRequestData.isAddALeg': true,
       'travelRequestData.approvers.empId': empId,
@@ -1072,7 +980,7 @@ export const approveAddALeg = async (req, res) => {
     console.log("adda leg params", req.params);
     
     const approval = await Approval.findOne({
-      tenantId,
+      'travelRequestData.tenantId': tenantId,
       'travelRequestData.travelRequestId': travelRequestId,
       'travelRequestData.isAddALeg': true,
       'travelRequestData.travelRequestStatus': 'booked',
@@ -1153,10 +1061,14 @@ export const rejectAddALeg = async (req, res) => {
       return res.status(400).json({ error: 'Missing required parameters.' });
     }
 
+    if (!rejectionReason){
+      return res.status(400).json({error: "missing rejection reason"})
+    }
+
     console.log("adda leg params", req.params);
     
     const approval = await Approval.findOne({
-      tenantId,
+       "travelRequestData.tenantId": tenantId,
       'travelRequestData.travelRequestId': travelRequestId,
       'travelRequestData.isAddALeg': true,
       'travelRequestData.travelRequestStatus': 'booked',
@@ -1227,8 +1139,6 @@ if (isCashAdvanceTaken) {
 
 
 
-
-
 // // 13) travel with cash advance -- Approve Travel Request
 // !! Important -- checking isAddALeg flag is very imporatant and after the action updating it too is important.
 export const oldApproveAddALegss = async (req, res) => {
@@ -1296,20 +1206,6 @@ export const oldApproveAddALegss = async (req, res) => {
 
     // Send changes to expense microservice asynchronously
     await approveAddALegToExpense(changesMade);
-
-   // Check if cash advance was taken 
-
-   // Send changes to the Travel Microservice and the Trip Microservice
-   // Send Changes to dashboard via rabbitmq 
-  //  if (approval.travelRequestData.isCashAdvanceTaken){
-  //   console.log('Is cash advance taken:', approval.travelRequestData.isCashAdvanceTaken);
-  //   await sendCashApprovalToDashboardQueue(cashApprovalDoc);
-  //   await ApproveAddALegToCash(changesMade);
-  //  } else{
-  //   await sendTravelApprovalToDashboardQueue(travelApprovalDoc);
-  //   await approveAddALegToTravel(changesMade);
-  //  }
-
 
    const payload = {
     travelRequestId: cashApprovalDoc.travelRequestData.travelRequestId,

@@ -105,6 +105,14 @@ export async function startConsumer(receiver){
                 }
             }  
         } else if (source == 'cash'){
+            if(action == 'full-update') {
+            const res = await TravelAndCashUpdate(payload);
+            if(res.success){
+                channel.ack(msg)
+            }else{
+                console.log('error updating travel and cash')
+            }
+            }
             if(action == 'cancellation-update'){
                 console.log('cancel travel request and its cash advance in approval microservice')
                 const res = await cancelTravelWithCash(payload);
@@ -119,14 +127,6 @@ export async function startConsumer(receiver){
                   console.log('update failed with error code', res.error)
                 }
             }  
-            if(action == 'full-update') {
-                const res = await TravelAndCashUpdate(payload);
-                if(res.success){
-                    channel.ack(msg)
-                }else{
-                    console.log('error updating travel and cash')
-                }
-            }
             if(action == 'cancel-cash-update') {
                 console.log("trying to update cash partially")
                 const res = await updateCashStatus(payload);
@@ -137,8 +137,7 @@ export async function startConsumer(receiver){
                     console.log('error updating travel and cash')
                 }
             }
-      }
-      else if (source == 'dashboard'){
+       } else if (source == 'dashboard'){
         if(action == 'add-leg'){
             console.log('add-leg from dashboard microservice to approval microservice')
             const res = await itineraryAddedToTravelRequest(payload);

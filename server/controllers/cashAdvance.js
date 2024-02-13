@@ -64,8 +64,7 @@ export const getPendingCashAdvancesForATravelRequest = async (req, res) => {
     const { tenantId, empId, travelRequestId } = req.params;
 
     const travelRequests = await Approval.find({
-      'tenantId': tenantId,
-      'approvalType': 'travel',
+      'travelRequestData.tenantId': tenantId,
       'travelRequestData.travelRequestId': travelRequestId,
       'travelRequestData.isCashAdvanceTaken': true,
       'travelRequestData.approvers.empId': empId,
@@ -116,7 +115,7 @@ export const getPendingCashAdvancesForATravelRequest = async (req, res) => {
   }
 };
 
-// Standalone cash advance with travel requests 'approved' status for a single tr - details
+// Standalone cash advance with travel requests 'approved' status for a tr - details
 export const getPendingCashAdvancesForEmployee = async (req, res) => {
   try {
     const { tenantId, empId, travelRequestId } = req.params;
@@ -176,15 +175,13 @@ export const getPendingCashAdvancesForEmployee = async (req, res) => {
 };
 
 
-
 // approve cash advance raised LATER
 export const approveCashRaisedLater = async (req, res) => {
   try {
-    const { tenantId, empId, travelRequestId } = req.params;
+    const { tenantId, empId, travelRequestId, cashAdvanceId } = req.params;
 
     const approval = await Approval.findOne({
-      'tenantId': tenantId,
-      'approvalType': 'travel',
+      'travelRequestData.tenantId': tenantId,
       'travelRequestData.travelRequestId': travelRequestId,
       'travelRequestData.isCashAdvanceTaken': true,
       'travelRequestData.approvers.empId': empId,
@@ -195,7 +192,17 @@ export const approveCashRaisedLater = async (req, res) => {
       return res.status(404).json({ message: 'No approved or booked travel request found.' });
     }
 
-    approval.cashAdvancesData.cashAdvances.forEach((cashAdvance) => {
+    const {cashAdvancesData} = approval
+
+    cashAdvancesData.forEach(cashAdvance => {
+      cashAdvance.approvers = cashAdvance.approvers.map(approver => {
+        if (approver.empId === empId && approver.status === 'pending approval') {
+          return { ...approver, status: 'approved' };
+        }
+        return approver;
+      });
+    
+      // Check if cashAdvanceStatus is 'pending approval', update to 'approved'
       if (cashAdvance.cashAdvanceStatus === 'pending approval') {
         cashAdvance.cashAdvanceStatus = 'approved';
       }
@@ -218,12 +225,11 @@ export const approveCashRaisedLater = async (req, res) => {
 // Reject cash ADVANCE RAISED LATER 
 export const rejectCashAdvanceRaisedLater = async (req, res) => {
   try {
-    const { tenantId, empId, travelRequestId } = req.params;
+    const { tenantId, empId, travelRequestId, cashAdvanceId } = req.params;
     const { rejectionReasons } = req.body;
 
     const approval = await Approval.findOne({
-      'tenantId': tenantId,
-      'approvalType': 'travel',
+      'travelRequestData.tenantId': tenantId,
       'travelRequestData.travelRequestId': travelRequestId,
       'travelRequestData.isCashAdvanceTaken': true,
       'travelRequestData.approvers.empId': empId,
@@ -254,3 +260,7 @@ export const rejectCashAdvanceRaisedLater = async (req, res) => {
     return res.status(500).json({ error: 'An error occurred while processing the request.' });
   }
 };
+
+
+
+

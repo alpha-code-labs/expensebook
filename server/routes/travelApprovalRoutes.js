@@ -15,10 +15,10 @@ travel.get("/tr-list/:tenantId/:empId", getTravelRequestsStandalone); // working
 travel.get('/tr-details/:tenantId/:empId/:travelRequestId', getTravelRequestDetails);// working
 
 //3) standalone tr--approve -- row 8
-travel.patch("/tr-approve/:tenantId/:empId/:travelRequestId", travelStandaloneApprove); // working
+travel.patch("/approve-tr-standalone/:tenantId/:empId/:travelRequestId", travelStandaloneApprove); // working
 
 //4) standalone tr--approve -- row 16
-travel.patch("/tr-reject/:tenantId/:empId/:travelRequestId", travelStandaloneReject); // working
+travel.patch("/reject-tr-standalone/:tenantId/:empId/:travelRequestId", travelStandaloneReject); // working
 
 //-------Approval Flow for Travel Requests with cash advance - Raised Together-----
 
@@ -26,20 +26,20 @@ travel.patch("/tr-reject/:tenantId/:empId/:travelRequestId", travelStandaloneRej
 travel.get("/tr-ca-list/:tenantId/:empId", getTravelRequestsAndCashAdvancesForApprover); //working
 
 //6) TRAVEL REQUEST WITH CASH ADVANCE DETAILS  -- row 24--
-travel.get('/tr-ca-details/:tenantId/:travelRequestId/:empId', getTravelWithCashDetails); // working
+travel.get('/tr-ca-details/:tenantId/:empId/:travelRequestId', getTravelWithCashDetails); // working
 
 // 7) travel with cash advance -- Approve Travel Request
-travel.patch('/tr-ca-approve-tr/:tenantId/:travelRequestId/:empId', travelWithCashApproveTravelRequest); // working
+travel.patch('/approve-tr/:tenantId/:empId/:travelRequestId', travelWithCashApproveTravelRequest); // working
 
 // 8) travel with cash advance -- Reject Travel Request
 // (IF Travel request is rejected then status of cash advance is updated to draft)
-travel.patch('/tr-ca-reject-tr/:tenantId/:travelRequestId/:empId', travelWithCashRejectTravelRequest); // working
+travel.patch('/reject-tr/:tenantId/:empId/:travelRequestId', travelWithCashRejectTravelRequest); // working
 
 // 9) travel with cash advance -- Approve cash advance 
-travel.patch('/tr-ca-approve-ca/:tenantId/:travelRequestId/:empId', travelWithCashApproveCashAdvance); //Working..
+travel.patch('/approve-ca/:tenantId/:empId/:travelRequestId/:cashAdvanceId', travelWithCashApproveCashAdvance); //Working..
 
 // 10) travel with cash advance -- Reject cash advance 
-travel.patch('/tr-ca-reject-ca/:tenantId/:travelRequestId/:empId', travelWithCashRejectCashAdvance); // working
+travel.patch('/reject-ca/:tenantId/:empId/:travelRequestId/:cashAdvanceId', travelWithCashRejectCashAdvance); // working
 
 
 // 12) Add a leg - get travel request details 

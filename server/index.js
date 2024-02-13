@@ -31,12 +31,14 @@ app.use(cors());
 //Routes
 app.use('/api/approvals', approvalRoutes); // dummy data
 app.use('/api/fe/approvals/tr-ca', travelApprovalRoutes);
-app.use('/approvals/cash', cashAdvance);
+app.use('/api/fe/approvals/cash', cashAdvance);
 app.use('/api/fe/approvals/travel-expense',travelExpenseApprovalRoutes);
 
 app.get('/get',(req,res) => res.status(200).json({message:"Approval microservice is live"}))
 /// Start the batch job
 //startBatchJob();
+
+
 
 const mongodb = async () => {
   try {

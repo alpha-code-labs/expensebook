@@ -66,6 +66,7 @@ const cashAdvanceStatusEnum = [
 'awaiting pending settlement',
 'pending settlement',
 'paid',
+'cancelled'
 ];
 
 
@@ -348,7 +349,6 @@ const itinerarySchema = (
 const approvalSchema = new mongoose.Schema({
     tenantId: {
       type: String,
-      required: true,
     },
     tenantName:{
       type: String,
@@ -449,6 +449,7 @@ const approvalSchema = new mongoose.Schema({
       isCancelled:Boolean,
       cancellationReason:String,
       isCashAdvanceTaken: Boolean,
+      isAddALeg:Boolean,
       sentToTrip:Boolean,
       },
       cashAdvancesData: [
@@ -513,7 +514,7 @@ const approvalSchema = new mongoose.Schema({
           cashAdvanceApprovalDate: Date,
           cashAdvanceSettlementDate: Date,
           cashAdvanceViolations: String,
-          rejectionReason: String,
+          cashAdvanceRejectionReason: String,
         },
       ],    
     tripData: tripSchema, // used when expense sends expense for approval entire tripData is updated

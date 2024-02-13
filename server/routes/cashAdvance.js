@@ -8,13 +8,13 @@ const router = express.Router();
 router.get('/raised-later/:tenantId/:empId', getPendingCashAdvances);
 
 // get details of cash advance raised later for a single travel request
-router.get( '/details/:tenantId/:travelRequestId/:empId', getPendingCashAdvancesForEmployee);
+router.get( '/details/:tenantId/:empId/:travelRequestId', getPendingCashAdvancesForEmployee);
 
 // approve cash advance raised later
-router.patch( '/approve/:tenantId/:travelRequestId/:empId', approveCashRaisedLater);
+router.patch( '/approve/:tenantId/:empId/:travelRequestId', approveCashRaisedLater);
 
 // reject cash advance raised later
-router.patch( '/reject/:tenantId/:travelRequestId/:empId', rejectCashAdvanceRaisedLater);
+router.patch( '/reject/:tenantId/:empId/:travelRequestId', rejectCashAdvanceRaisedLater);
 
 
 export default router;
