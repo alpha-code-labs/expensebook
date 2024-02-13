@@ -13,9 +13,17 @@ import { postTravelRequest_API, updateTravelRequest_API, policyValidation_API } 
 import CloseButton from '../../components/common/closeButton'
 import PopupMessage from '../../components/common/PopupMessage'
 import Error from '../../components/common/Error'
+import { useQuery } from '../../utils/hooks'
 
 export default function BasicDetails(props){
 
+    const query = useQuery()
+    const travelType = props.formData.travelType
+    const navigate = useNavigate()
+
+    if(!['international', 'domestic', 'local'].includes(travelType)){
+        return navigate(props.lastPage)
+    }
     const DASHBOARD_URL = import.meta.env.VITE_DASHBOARD_URL
 
     //loader state
@@ -28,9 +36,12 @@ export default function BasicDetails(props){
     const MANAGER_FLAG =  onBoardingData?.MANAGER_FLAG
     const DELEGATED_FLAG = onBoardingData?.DELEGATED_FLAG
     const listOfAllManagers = onBoardingData?.listOfManagers
-    const travelAllocations = onBoardingData?.travelAllocations 
+    const travelAllocations = onBoardingData?.travelAllocations?.allocation 
     const tripPurposeOptions = onBoardingData?.tripPurposeOptions
     const delegatedFor = onBoardingData?.delegatedFor
+    const travelAllocationFlags = onBoardingData?.travelAllocationFlags??{level1:false, level2:false, level3:false}
+
+    console.log(onBoardingData)
 
     //popup message
     const [showPopup, setshowPopup] = useState(false)
@@ -49,7 +60,7 @@ export default function BasicDetails(props){
     
     //get this as props
     const EMPLOYEE_ID  = props.EMPLOYEE_ID || '123'
-    const groups = props.groups || ['group 1']
+    const groups = props.groups || ['All', 'Engineering']
 
     //get this from onboarding....
     const teamMembers = props.teamMembers || [{name: 'Aman Bhagel', empId: '204', designation: 'Sales Executive'}, {name: 'Vikas Rajput', empId: '245', designation:'System Engineer II'}, {name: 'Rahul Suyush Singh', empId: '318', designation:'Sr. Software Engineer'}, {name: 'Vilakshan Vibhut Giri Babaji Maharaj', empId: '158', designation:'Sr. Sales Executive'}]
@@ -57,9 +68,6 @@ export default function BasicDetails(props){
     //local states
     const [tripPurposeViolationMessage, setTripPurposeViiolationMessage] = useState(formData.travelViolations.tripPurposeViolationMessage)
     const [errors, setErrors] = useState({tripPurposeError:{set:false, message:'Trip Purpose is required'}, approversError:{set:false, message:'Please select approvers'}})
-    
-    const navigate = useNavigate()
-
 
     const handleContinueButton = async ()=>{
         setIsLoading(true)
@@ -106,13 +114,16 @@ export default function BasicDetails(props){
 
         setIsLoading(false)
 
+
         if(allowSubmit){
             setIsLoading(true)
-
+            console.log('submit allowed')
             if(!formData.travelRequestId){
+                console.log('posting tr')
                 const res = await postTravelRequest_API({...formData, travelRequestState:'section 0', travelRequestStatus:'draft',})
                 
                 if(res.err){
+                    console.log('Error in submission')
                     setLoadingErrMsg(res.err)
                     return
                 }
@@ -124,7 +135,6 @@ export default function BasicDetails(props){
                 formData_copy.travelRequestId = travelRequestId
                 setFormData(formData_copy)
                 navigate(nextPage)
-
             }
             else{
                 setIsLoading(true)
@@ -458,7 +468,7 @@ export default function BasicDetails(props){
             <div className="w-full h-full mt-10 p-10">
                 {/* back link */}
                 <div className='flex items-center gap-4 cursor-pointer'>
-                    <img className='w-[24px] h-[24px]' src={leftArrow_icon} />
+                    <img className='w-[24px] h-[24px]' src={leftArrow_icon} onClick={()=>navigate(props.lastPage)} />
                     <p className='text-neutral-700 text-md font-semibold font-cabin'>Create travel request</p>
                 </div>
 
@@ -511,7 +521,7 @@ export default function BasicDetails(props){
                 
 
                 {/* allocating travel budget... will be displayed if travel allocation headers are present */}
-                { travelAllocations?.length>0 && <div>
+                {!travelAllocationFlags.level3 && travelAllocations?.length>0 && <div>
                     <p className='text-base font-medium text-neutral-700 font-cabin'>Allocate travel.</p>
                     
                     <div className='mt-8 flex flex-wrap gap-4'>
@@ -519,7 +529,7 @@ export default function BasicDetails(props){
                             return(
                                 <>
                                 <Select
-                                    currentOption={formData.travelAllocationHeaders[index].headerValue}
+                                    currentOption={formData?.travelAllocationHeaders[index]?.headerValue}
                                     options={travelAllocations[index].headerValues}
                                     onSelect = {(option)=>{handleAllocationHeaderSelect(travelAllocations[index].headerName, option)}}
                                     placeholder={`Select ${travelAllocations[index].headerName}`} 
