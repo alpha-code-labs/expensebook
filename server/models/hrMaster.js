@@ -3,7 +3,30 @@ import mongoose from "mongoose"
 // employee schema
 const employeeSchema = new mongoose.Schema({
   employeeDetails: {}, //for now it makes sense to make it flexible, extracting groups tag from here
-  group: [String], 
+  group: [String],
+  travelPreferences:{
+    busPreference: {
+      seat: String,
+      meal: String
+    },
+    dietaryAllergy: String,
+    emergencyContact: {
+      contactNumber: String,
+      relationship: String
+    },
+    flightPreference: {
+      seat: String,
+      meal: String
+    },
+    hotelPreference: {
+      roomType: String,
+      bedType: String,
+    },
+    trainPreference: {
+      seat: String,
+      meal: String
+    }
+  },  
   employeeRoles: {
     employee: Boolean,
     employeeManager: Boolean,
@@ -21,7 +44,7 @@ const companyDetailsSchema = new mongoose.Schema({
   companyEmail: String,
   companyHeadquarters: String,
   companySize: String,
-  defaultCurrency: String, // default currency symbol is needed or not here
+  defaultCurrency: {countryCode: String, fullName: String, shortName: String, symbol: String}, // default currency symbol is needed or not here
   industry: String,
 })
 
@@ -32,12 +55,17 @@ const ExchangeValueSchema = new mongoose.Schema({
 
 // HR & Company Structure schema
 const hrCompanySchema = new mongoose.Schema({
-  tenantId: String,
+  tenantId: mongoose.Types.ObjectId,
+  
   flags:{
     DIY_FLAG: Boolean,
     GROUPING_FLAG: Boolean,
     ORG_HEADERS_FLAG: Boolean,
+    POLICY_SETUP_FLAG: Boolean,
   },
+
+  onboardingCompleted: Boolean,
+  state: String,
   companyDetails: companyDetailsSchema,
   employees: [employeeSchema],
   groups:[{
@@ -45,35 +73,127 @@ const hrCompanySchema = new mongoose.Schema({
     filters: [],
   }],
   policies:{
+    travelPolicies: {},
+    nonTravelPolicies: [],
   },
   groupHeaders:{
   },
   orgHeaders:{
   },
-  travelAllocation: [{
-    headerName: {
-      type: String,
-    },
-    headerValues: [{
-      type: String,
-    }],
+  listOfManagers:[],
+
+  travelAllocationFlags:{
+    level1:Boolean,
+    level2:Boolean,
+    level3:Boolean,
+  },
+
+  travelAllocations : {
+    //LEVEL1 Structure
+		// allocation: [ {headerName:String, headerValues:[String]} ]
+		// expenseAllocation: [ {headerName:String, headerValues:[String]} ]
+		// allocation_accountLine: String
+		// expenseAllocation_accountLine: String
+
+    //LEVEL2 Structure
+
+    // international:{
+		// allocation: [ {headerName:String, headerValues:[String]} ]
+		// expenseAllocation: [ {headerName:String, headerValues:[String]} ]
+		// allocation_accountLine: String
+		// expenseAllocation_accountLine: String
+		// },
+
+		// domestic:{
+    // allocation: [ {headerName:String, headerValues:[String]} ]
+		// expenseAllocation: [ {headerName:String, headerValues:[String]} ]
+		// allocation_accountLine: String
+		// expenseAllocation_accountLine: String
+		// },
+
+		// local:{
+    // allocation: [ {headerName:String, headerValues:[String]} ]
+		// expenseAllocation: [ {headerName:String, headerValues:[String]} ]
+		// allocation_accountLine: String
+		// expenseAllocation_accountLine: String
+		// }
+
+
+    //LEVEL3 Structure
+      // international:[{
+      //  categoryName: String,
+      //  allocation: [ {headerName:String, headerValues:[String]} ]
+      //  expenseAllocation: [ {headerName:String, headerValues:[String]} ]
+      //  allocation_accountLine: String
+      //  expenseAllocation_accountLine: String
+		// }],
+
+		// domestic:[{
+    //  categoryName: String,
+    //  allocation: [ {headerName:String, headerValues:[String]} ]
+		//  expenseAllocation: [ {headerName:String, headerValues:[String]} ]
+		//  allocation_accountLine: String
+		//  expenseAllocation_accountLine: String
+		// }],
+
+		// local:[{
+    //  categoryName: String,
+    //  allocation: [ {headerName:String, headerValues:[String]} ]
+		//  expenseAllocation: [ {headerName:String, headerValues:[String]} ]
+		//  allocation_accountLine: String
+		//  expenseAllocation_accountLine: String
+		// }],
+
+  },
+
+  reimbursementAllocations: [{
+    categoryName: String,
+    expenseAllocation: [
+      {
+        headerName: String,
+        headerValues: [String]
+      }
+    ],
+    expenseAllocation_accountLine: String,
+    fields:[]
   }],
-  travelExpenseAllocation: [{
-    headerName: {
-      type: String,
-    },
-    headerValues: [{
-      type: String,
-    }],
-  }],
-  nonTravelExpenseAllocation: [{
-    headerName: {
-      type: String,
-    },
-    headerValues: [{
-      type: String,
-    }],
-  }],
+
+  travelExpenseCategories: [
+    //LEVEL1 Structure
+    //{ 
+    //   categoryName: String, 
+		//   fields:[name: String, type: String] 
+    // },
+
+    //LEVEL2 and LEVEL3
+    //{'international' : [
+    //  { 
+    //    categoryName: String, 
+		//    fields:[name: String, type: String] 
+    //  },
+    //]}
+    //{'domestic' : [
+    //  { 
+    //    categoryName: String, 
+		//    fields:[name: String, type: String] 
+    //  },
+    //]}
+    //{'local' : [
+    //  { 
+    //    categoryName: String, 
+		//    fields:[name: String, type: String] 
+    //  },
+    //]}
+
+  ],
+
+  reimbursementExpenseCategories: [
+    // {
+    //   categoryName:String,
+    //   fields: [ {name: String, type: String} ]
+    // }
+  ],
+
   groupingLabels: [{
     headerName: {
       type: String,
@@ -82,35 +202,29 @@ const hrCompanySchema = new mongoose.Schema({
       type: String,
     }],
   }],
-  accountLines: [{
-    categoryName: String,
-    accountLine: String,
-  }],
+
   multiCurrencyTable: 
     {
       defaultCurrency: {},
       exchangeValue: [ExchangeValueSchema], // Store the exchange rate for each currency
     },
-  expenseCategories: [
-    // {
-    //   categoryName: String,
-    //   fields: [{name:String, type:String}],
-    // },
-  ],
+
   systemRelatedRoles:{
     finance:[],
     businessAdmin:[],
     superAdmin:[],
   },
+
   blanketDelegations:{
     groups:[{groupName:String, filters:[], canDelegate:Boolean}],
     employees:[],
   },
+
   advanceSettlementOptions: {Cash:Boolean, Cheque:Boolean, ['Salary Account']:Boolean, ['Prepaid Card']:Boolean, ['NEFT Bank Transfer']:Boolean}, // add options here if its fixed values 
   expenseSettlementOptions: {Cash:Boolean, Cheque:Boolean, ['Salary Account']:Boolean, ['Prepaid Card']:Boolean, ['NEFT Bank Transfer']:Boolean},// add options here if its fixed values 
 })
 
 // model from the schema
-const HRMaster = mongoose.model('travel_onboarding_container', hrCompanySchema)
+const HRCompany = mongoose.model('HRCompany', hrCompanySchema)
 
-export default HRMaster
+export default HRCompany
