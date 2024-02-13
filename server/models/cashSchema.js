@@ -45,6 +45,7 @@ const cashAdvanceSchema = new mongoose.Schema({
         type: String,
         required: true,
       },
+      travelType: String,
       cashAdvanceId: {
         type: mongoose.Schema.Types.ObjectId,
         unique: true,
