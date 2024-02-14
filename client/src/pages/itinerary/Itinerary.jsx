@@ -3,14 +3,19 @@ import leftArrow_icon from '../../assets/arrow-left.svg'
 import { useEffect, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import Button from "../../components/common/Button"
-import { updateTravelRequest_API, policyValidation_API } from "../../utils/api"
-import Cities from "./Cities"
-import ModeOfTransit from "./ModeOfTransit"
-import Hotels from "./Hotels"
-import Cabs from "./Cabs"
-import UploadDocuments from "./UploadDocuments"
-import AddMore from "../../components/common/AddMore"
+// import { updateTravelRequest_API, policyValidation_API } from "../../utils/api"
+// import UploadDocuments from "./UploadDocuments"
+// import AddMore from "../../components/common/AddMore"
 import Error from "../../components/common/Error"
+import TopBar from "./topBar"
+import Cabs from "./Cab"
+import Flight from "./Flight"
+import { dummyCabs, dummyFlight } from "../../data/dummy"
+import Train from "./Train"
+import Bus from "./Bus"
+import CarRental from "./CarRental"
+import PersonalVehicle from "./PersonalVehicle"
+import Hotel from "./Hotel"
 
 const dummyItinerary = {
     from:null,
@@ -75,37 +80,27 @@ const dummyItinerary = {
     status:'draft',
   }
 
-export default function (props){
+export default function({formData, setFormData, nextPage, lastPage, onBoardingData}){
 
-    //loader state
-    const [isLoading, setIsLoading] = useState(false)
-    const [loadingErrMsg, setLoadingErrMsg] = useState(null)
-
-    //next and last pages
-    const nextPage = props.nextPage
-    const lastPage = props.lastPage
-
-    //onboarding data
-    const onBoardingData = props.onBoardingData
-    const modeOfTransitList = onBoardingData?.modeOfTransitOptions
-    const travelClassOptions = onBoardingData?.travelClassOptions
-    const allowedCabClass = onBoardingData?.cabClassOptions 
-    const allowedHotelClass = onBoardingData?.hotelClassOptions
-
-    //formdata
-    const [formData, setFormData] = [props.formData, props.setFormData]
-
-    const [oneWayTrip, setOneWayTrip] = useState(formData.tripType.oneWayTrip)
-    const [roundTrip, setRoundTrip] = useState(formData.tripType.roundTrip)
-    const [multiCityTrip, setMultiCityTrip] = useState(formData.tripType.multiCityTrip)
+    const [networkState, setNetworkState] = useState({isLoading:false, loadingErrMsg:null, isUploading:null})
+    const [errors, setErrors] = useState({flightsError:[], cabsError:[], carRentalsError:[], hotelsError:[], busessError:[], trainsError:[], modeOfTransitError:null, travelClassError:null})
+    const [activeTab, setActiveTab] = useState('flight')
+    const navigate = useNavigate()
     
-    const groups = ['group 1']
-    const type = 'international'
-    const [errors, setErrors] = useState(formData.itinerary.map(itn =>({citiesError:{}, cabsError:[], hotelsError:[], modeOfTransitError:null, travelClassError:null})))
+    // const modeOfTransitList = onBoardingData?.modeOfTransitOptions
+    // const travelClassOptions = onBoardingData?.travelClassOptions
+    // const allowedCabClass = onBoardingData?.cabClassOptions 
+    // const allowedHotelClass = onBoardingData?.hotelClassOptions
     
+    const min = onBoardingData?.minDaysBeforeTravelBooking??0
+
+    const handleBackButton = ()=>{
+        navigate(lastPage)
+    }
+
     const handleContinueButton = async ()=>{
-        setIsLoading(true)
         console.log(formData)
+
 
         let allowSubmit = false
         //check required fields
@@ -116,106 +111,136 @@ export default function (props){
                 
                 const errors_copy = JSON.parse(JSON.stringify(errors))
 
-                formData.itinerary.forEach((item, itemIndex)=>{
+                formData.itinerary.cabs.forEach(cab=>{
+                    let dateError = {set:false, message:'Select date for cab'}
+                    let classError = {set:false, message:'Select cab class'}
 
-                    if(item.needsHotel){
-                        item.hotels?.forEach(hotel=>{
-                            let checkInDateError = {set:false, message:'Enter Check-in date'}
-                            let checkOutDateError = {set:false, message:'Enter Check-out date'}
-                            let classError = {set:false, message:'Select hotel class'}
-    
-                            if(hotel.checkIn == null) {
-                                checkInDateError.set = true
-                                allowSubmit = false
-                            }
-    
-                            if(hotel.checkOut == null) {
-                                checkOutDateError.set = true
-                                allowSubmit = false
-                            }
-    
-                            else if(hotel.checkOut < hotel.checkIn){
-                                checkOutDateError.set = true
-                                checkOutDateError.message = 'Check-out date cannot be before check-in date'
-                                allowSubmit = false
-                            }
-    
-                            if(hotel.class == null){
-                                classError.set = true
-                                allowSubmit = false
-                            }
-                            
-                            errors_copy[itemIndex].hotelsError.push({checkInDateError, checkOutDateError, classError})
-                        })
+                    if(cab.date == null) {
+                        dateError.set = true
+                        allowSubmit = false
                     }
+                        
+                    errors_copy.cabsError.push({dateError, classError})
+                })
 
-                    if(item.needsCab){
-                        item.cabs?.forEach(cab=>{
-                            let dateError = {set:false, message:'Select date for cab'}
-                            let classError = {set:false, message:'Select cab class'}
-    
-                            if(cab.date == null && cab.type == 'regular') {
-                                dateError.set = true
-                                allowSubmit = false
-                            }
-                                
-                            errors_copy[itemIndex].cabsError.push({dateError, classError})
-                        })
-                    }
-
-                    
+                formData.itinerary.flights.forEach(flight=>{
+                    console.log('looking for flight errors...')
                     let fromError = {set:false, message:'Enter departure city'}
                     let toError = {set:false, message:'Enter destination city'}
                     let departureDateError = {set:false, message:'Enter departure date'}
                     let returnDateError = {set:false, message:'Enter return date'}
 
-                    if(item.departure.from == null || item.departure.from == ''){
-                        fromError.set = true
-                        allowSubmit = false
-                    }
-
-                    if(item.departure.to == null || item.departure.to == ''){
-                        toError.set = true
-                        allowSubmit = false
-                    }
-
-                    if(item.departure.date == null){
+                    if(flight.date == null) {
                         departureDateError.set = true
                         allowSubmit = false
                     }
 
-                    if(formData.itinerary[itemIndex].roundTripTrip){
-                        if(city.return.date == null){
-                            returnDateError.set = true
-                            allowSubmit = false
-                        }
+                    if(flight.from == null){
+                        fromError.set = true 
+                        allowSubmit = false
+                    }
+
+                    if(flight.to == null){
+                        toError.set = true 
+                        allowSubmit = false
+                    }
     
-                        else if(item.return.date < item.departure.date){
-                            returnDateError.set = true
-                            returnDateError.message = 'Return date cannot be before departure date'
-                            allowSubmit = false
-                        }
+                    errors_copy.flightsError.push({fromError, toError, departureDateError, returnDateError})
+                })
+
+                formData.itinerary.trains.forEach(train=>{
+                    let fromError = {set:false, message:'Enter departure city'}
+                    let toError = {set:false, message:'Enter destination city'}
+                    let departureDateError = {set:false, message:'Enter departure date'}
+                    let returnDateError = {set:false, message:'Enter return date'}
+
+                    if(train.date == null) {
+                        departureDateError.set = true
+                        allowSubmit = false
+                    }
+
+                    if(train.from == null){
+                        fromError.set = true 
+                        allowSubmit = false
+                    }
+
+                    if(train.to == null){
+                        toError.set = true 
+                        allowSubmit = false
+                    }
+    
+                    errors_copy.trainsError.push({fromError, toError, departureDateError, returnDateError})
+                })
+
+                formData.itinerary.buses.forEach(bus=>{
+                    let fromError = {set:false, message:'Enter departure city'}
+                    let toError = {set:false, message:'Enter destination city'}
+                    let departureDateError = {set:false, message:'Enter departure date'}
+                    let returnDateError = {set:false, message:'Enter return date'}
+
+                    if(bus.date == null) {
+                        departureDateError.set = true
+                        allowSubmit = false
+                    }
+
+                    if(bus.from == null){
+                        fromError.set = true 
+                        allowSubmit = false
+                    }
+
+                    if(bus.to == null){
+                        toError.set = true 
+                        allowSubmit = false
+                    }
+    
+                    errors_copy.busesError.push({fromError, toError, departureDateError, returnDateError})
+                })
+
+                formData.itinerary.carRentals.forEach(cab=>{
+                    let dateError = {set:false, message:'Select date for cab'}
+                    let classError = {set:false, message:'Select cab class'}
+
+                    if(cab.date == null) {
+                        dateError.set = true
+                        allowSubmit = false
+                    }
+                        
+                    errors_copy.carRentalsError.push({dateError, classError})
+                })
+
+                formData.itinerary.hotels.forEach(hotel=>{
+                    let checkInDateError = {set:false, message:'Enter Check-in date'}
+                    let checkOutDateError = {set:false, message:'Enter Check-out date'}
+                    let locationError = {set:false, message:'Location Error'}
+                    let classError = {set:false, message:'Select hotel class'}
+
+                    if(hotel.checkIn == null) {
+                        checkInDateError.set = true
+                        allowSubmit = false
+                    }
+
+                    if(hotel.checkOut == null) {
+                        checkOutDateError.set = true
+                        allowSubmit = false
+                    }
+
+                    else if(hotel.checkOut < hotel.checkIn){
+                        checkOutDateError.set = true
+                        checkOutDateError.message = 'Check-out date cannot be before check-in date'
+                        allowSubmit = false
+                    }
+
+                    if(hotel.class == null){
+                        classError.set = true
+                       // allowSubmit = false
+                    }
+
+                    if(hotel.location == null || hotel.location == undefined){
+                        locationError.set = true 
+                        allowSubmit = false
                     }
                     
-                    errors_copy[itemIndex].citiesError = {fromError, toError, departureDateError, returnDateError}
-
-
-                    if(item.modeOfTransit == null){
-                        errors_copy[itemIndex].modeOfTransitError = {set:true, message:'Select mode of transit'}
-                        allowSubmit = false
-                    }
-                    else{
-                        errors_copy[itemIndex].modeOfTransitError = {set:false, message:'Select mode of transit'}
-                    }
-    
-                    if(item.travelClass == null){
-                        errors_copy[itemIndex].travelClassError = {set:true, message:'Select travel class'}
-                        allowSubmit = false
-                    }
-                    else{
-                        errors_copy[itemIndex].travelClassError = {set:false, message:'Select travel class'}
-                    }
-
+                    errors_copy.hotelsError.push({checkInDateError, checkOutDateError, classError, locationError})
                 })
 
                 setErrors(errors_copy)
@@ -224,84 +249,23 @@ export default function (props){
         }
 
         await checkRequiredFields()
+
         console.log(allowSubmit, 'allowSubmit...')
-
-        setIsLoading(false)
-
+        
         if(allowSubmit){
-            navigate(nextPage)
+            //check if level3 allocations are there
+            if(onBoardingData.travelAllocationFlags.level3){
+                navigate(nextPage)
+            }
+            else{
+                navigate(nextPage)
+            }
         }   
     }
 
-    const addMoreCities = async() =>{
-        const formData_copy = JSON.parse(JSON.stringify(formData))
-        const errors_copy = JSON.parse(JSON.stringify(errors))
-        errors_copy.push({citiesError:{}, cabsError:[], hotelsError:[], modeOfTransitError:null, travelClassError:null})
-        formData_copy.itinerary.push(dummyItinerary)
-        setErrors(errors_copy)
-        setFormData(formData_copy)
-    }
-
-    //update type of trip
-    useEffect(()=>{
-        const formData_copy = JSON.parse(JSON.stringify(formData))
-        formData_copy.tripType = {oneWayTrip, roundTrip, multiCityTrip}
-        console.log(formData_copy.itinerary.tripType, 'trip type')
-        setFormData(formData_copy)
-    }, [oneWayTrip, roundTrip, multiCityTrip])
-    
-    const navigate = useNavigate()
-
-    const handleBackButton = ()=>{
-        navigate(lastPage)    
-    }
-
-    function selectTripType(type){
-
-        switch(type){
-            case 'oneWay':{
-                setOneWayTrip(true)
-                setRoundTrip(false)
-                setMultiCityTrip(false)
-                return
-            }
-
-            case 'round':{
-                setOneWayTrip(false)
-                setRoundTrip(true)
-                setMultiCityTrip(false)
-                return
-            }
-
-            case 'multiCity':{
-                setOneWayTrip(false)
-                setRoundTrip(false)
-                setMultiCityTrip(true)
-                return
-            }
-
-            default : {
-                setOneWayTrip(true)
-                setRoundTrip(false)
-                setMultiCityTrip(false)
-                return
-            }
-
-        }
-    }
-
-    useEffect(()=>{
-        if(!multiCityTrip){
-            const formData_copy = JSON.parse(JSON.stringify(formData))
-            formData_copy.itinerary.splice(1, formData_copy.itinerary.length-1)
-            setFormData(formData_copy)
-        }
-    },[multiCityTrip])
-    
-
     return(<>
-        {isLoading && <Error message={loadingErrMsg} /> }
-        {!isLoading &&
+        {networkState.isLoading && <Error message={networkState.loadingErrMsg} /> }
+        {!networkState.isLoading &&
         <div className="w-full h-full relative bg-white md:px-24 md:mx-0 sm:px-0 sm:mx-auto py-12 select-none">
             {/* app icon */}
             <div className='w-full flex justify-center  md:justify-start lg:justify-start'>
@@ -317,94 +281,25 @@ export default function (props){
                     <p className='text-neutral-700 text-md font-semibold font-cabin'>Add travel details</p>
                 </div>
 
-                {/* one way, round trip, multi-city */}
-               <div className="w-fit h-6 justify-start items-center gap-4 inline-flex mt-5">
-                    <div onClick={()=>{selectTripType('oneWay')}} className={`${ oneWayTrip? 'text-zinc-100 bg-indigo-600 px-2 py-1 rounded-xl' : 'text-zinc-500' } text-xs font-medium font-cabin cursor-pointer`}>One Way </div>
-                    <div onClick={()=>selectTripType('round')} className={`${ roundTrip? 'text-zinc-100 bg-indigo-600 px-2 py-1 rounded-xl' : 'text-zinc-500' } text-xs font-medium font-cabin cursor-pointer `}>Round Trip</div>
-                    <div onClick={()=>{selectTripType('multiCity')}} className={`${ multiCityTrip? 'text-zinc-100 bg-indigo-600 px-2 py-1 rounded-xl' : 'text-zinc-500' } text-xs font-medium font-cabin cursor-pointer `}>Multi City</div>
-                </div> 
-                <hr className='mt-2 -mb-4' />
-
-                {
-            formData.itinerary.map((_,itemIndex)=>{
-                        return(<>
+                <TopBar activeTab={activeTab} setActiveTab={setActiveTab} />
                 
-                {itemIndex!=0 && <hr className="border-dashed mt-8 border-2 border-indigo-600" />}
-                {/* from, to , date */}
-                <Cities itemIndex={itemIndex} 
-                        formData={formData}
-                        setFormData={setFormData}
-                        citiesError={errors[itemIndex]?.citiesError}
-                         />
+                {activeTab=='cab' && <Cabs min={min} cabsError={errors.cabsError} formData={formData} setFormData={setFormData}  />}
+                {activeTab=='flight' && <Flight min={min} flightsError={errors.flightsError} formData={formData} setFormData={setFormData} /> }
+                {activeTab=='train' && <Train min={min} flightsError={errors.trainsError} formData={formData} setFormData={setFormData} /> }
+                {activeTab=='bus' && <Bus min={min} flightsError={errors.busessError} formData={formData} setFormData={setFormData} /> }
+                {activeTab=='carRental' && <CarRental min={min} carRentalsError={errors.carRentalsError} formData={formData} setFormData={setFormData} /> }
+                {activeTab=='personalVehicle' && <PersonalVehicle min={min} personalVehiclesError={errors.personalVehiclesError} formData={formData} setFormData={setFormData} /> }
+                {activeTab=='hotel' && <Hotel min={min} hotelsError={errors.hotelsError} formData={formData} setFormData={setFormData} /> }
+                
+                <hr className="text-indigo-600 my-4"/>
 
-                <hr className='mt-4' />
-
-                {/* mode of transit */}
-                <div className="pt-8">
-                    <ModeOfTransit
-                            itemIndex={itemIndex}
-                            formData={formData}
-                            setFormData={setFormData}
-                            type={type}
-                            groups={groups}
-                            travelClassOptions={travelClassOptions}
-                            modeOfTransitError={errors[itemIndex]?.modeOfTransitError}
-                            travelClassError={errors[itemIndex]?.travelClassError}
-                            modeOfTransitList={modeOfTransitList}
-                             />
+                <div className="flex flex-reverse justify-between items-center mt-10">
+                    <Button variant='fit' text='Continue' onClick={handleContinueButton} />
                 </div>
-
-                <hr className='mt-8 mb-8' />
-
-
-                {/* cabs */}
-                <Cabs
-                    itemIndex={itemIndex}
-                    formData={formData}
-                    setFormData={setFormData}
-                    type={type}
-                    groups={groups}
-                    cabsError={errors[itemIndex]?.cabsError}
-                    allowedCabClass={allowedCabClass} />
-        
-                
-                {/* hotels */}
-                <hr className='mt-8 mb-8' />
-
-                <Hotels
-                    itemIndex={itemIndex}
-                    formData={formData}
-                    setFormData={setFormData}
-                    hotelsError = {errors[itemIndex]?.hotelsError}
-                    groups = {groups}
-                    type={type}
-                    allowedHotelClass={allowedHotelClass} 
-                    />
-                        </>)
-                    })
-
-                }
-
-                { multiCityTrip &&              
-                    <>
-                    <hr className="mt-8 mb-8"/>            
-                    <AddMore text='Add Another City' onClick={addMoreCities} />
-                    </>
-                }
-                <hr className='mt-8' />
-                {/* upload document */}
-                <UploadDocuments />
-
-                <div className='my-8 w-[134px] float-bottom float-right'>
-                    <Button 
-                        text='Continue' 
-                        onClick={handleContinueButton} />
-                </div> 
-
             </div>
 
-        </div>
-        }
+        </div>}
+
     </>)
 }
 
