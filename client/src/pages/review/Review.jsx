@@ -20,6 +20,8 @@ export default function (props){
     const lastPage = props.lastPage
     
     const onBoardingData = props.onBoardingData
+    const cashAdvanceAllowed = onBoardingData.cashAdvanceAllowed
+
     const formData = props.formData
     const setFormData = props.setFormData  
     const [showPopup, setShowPopup] = useState(false)
@@ -145,9 +147,9 @@ export default function (props){
                 <div className="mt-5 flex flex-col gap-4" />
                 <Itinerary itinerary={formData.itinerary} />
 
-                <div className='mt-4'>
+                {false && <div className='mt-4'>
                     <Preferences preferences={formData.preferences} />
-                </div>
+                </div>}
 
             <div className='my-8 w-full flex justify-between'>
                 <Button 
@@ -165,11 +167,19 @@ export default function (props){
                     {!requestSubmitted && <Error/>}
                     {requestSubmitted && <div className='p-10'>
                         <p className='text-2xl text-neutral-700 font-semibold font-cabin'>Travel Request Submitted !</p>
-                        <p className='text-zinc-800 text-base font-medium font-cabin mt-4'>Would you like to raise a cash advance request for this trip?</p>
-                        <div className='flex gap-10 justify-between mt-10'>
-                            <Button text='Yes' onClick={()=>handleCashAdvance(true)} />
-                            <Button text='No' onClick={()=>handleCashAdvance(false)} />
-                        </div>
+                        { cashAdvanceAllowed && <> 
+                            <p className='text-zinc-800 text-base font-medium font-cabin mt-4'>Would you like to raise a cash advance request for this trip?</p>
+                            <div className='flex gap-10 justify-between mt-10'>
+                                <Button text='Yes' onClick={()=>handleCashAdvance(true)} />
+                                <Button text='No' onClick={()=>handleCashAdvance(false)} />
+                            </div>
+                         </>
+                        }
+
+                        {!cashAdvanceAllowed && <div className='flex gap-10 justify-between mt-10'>
+                                <Button text='Ok' onClick={()=>handleCashAdvance(false)} />
+                            </div>}
+
                     </div>}
                 </Modal>
 
