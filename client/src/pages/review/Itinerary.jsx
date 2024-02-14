@@ -5,22 +5,28 @@ import {
   bus_icon,
   train_icon,
   cab_icon,
-  biderectional_arrows_icon,
+  clock_icon,
+  biderectional_arrows_icon as double_arrow,
+  location_icon,
 } from "../../assets/icon";
+
+import { material_flight_black_icon, material_train_black_icon, material_bus_black_icon, material_cab_black_icon, material_car_rental_black_icon, material_hotel_black_icon, material_personal_black_icon } from "../../assets/icon";
 import { titleCase } from "../../utils/handyFunctions";
 
 export default function ({ itinerary }) {
     
+    console.log(itinerary)
     return(<>
-        {itinerary.map((leg, index)=>{
+
+        {itinerary.flights?.map((flight, index)=>{
            return(<div key={index}>
             <div className="flex items-center gap-2">
                 <p className="text-xl text-neutral-700">
-                    {`${titleCase(leg.departure.from)}`}
+                    {`${titleCase(flight.from)}`}
                 </p>
-                <img src={biderectional_arrows_icon} className="w-6 h-6"/>
+                <img src={double_arrow} className="w-6 h-6"/>
                 <p className="text-xl text-neutral-700">
-                    {`${titleCase(leg.departure.to)} `}
+                    {`${titleCase(flight.to)} `}
                 </p>
             </div>
 
@@ -28,134 +34,188 @@ export default function ({ itinerary }) {
             {<>
                 <FlightCard
                     id={index} 
-                    from={leg.departure.from} 
-                    to={leg.departure.to} 
-                    date={leg.departure.date}
-                    travelClass={leg.travelClass} 
-                    mode={leg.modeOfTransit}
-                    time={leg.departure.time}/>
-                {(leg.return?.date??false) && 
+                    from={flight.from} 
+                    to={flight.to} 
+                    date={flight.date}
+                    returnDate={flight.returnDate}
+                    returnTime={flight.returnTime}
+                    travelClass={flight.travelClass} 
+                    mode={'Flight'}
+                    time={flight.time}/>
+                {/* {(flight.return?.date??false) && 
                     <FlightCard 
                         id={index}
-                        from={leg.journey.to} 
-                        to={leg.journey.from} 
-                        date={leg.journey.return.date}
-                        travelClass={leg.travelClass} 
-                        mode={leg.modeOfTransit} 
-                        time={leg.journey.return.time }/>
-                }
+                        from={flight.to} 
+                        to={flight.from} 
+                        date={flight.returnDate}
+                        travelClass={'N/A'} 
+                        mode={'flight'} 
+                        time={flight.returnTime }/>
+                } */}
              </>}
-
-             {leg.needsCab && leg.cabs.length>0 && leg.cabs.map((cab,ind)=>
-                <CabCard
-                from={cab.pickupAddress} 
-                to={cab.dropAddress} 
-                date={cab.date} 
-                isTransfer={cab.type!='regular'}
-                mode={leg.modeOfTransit}
-                time={cab.prefferedTime}/>
-             )}
-
-            {leg.needsHotel && leg.hotels.length>0 && leg.hotels.map((hotel, ind)=>
-                <HotelCard
-                checkIn={hotel.checkIn} 
-                checkOut={hotel.checkOut}
-                hotelClass={hotel.class}
-                preference={'Close to Airport'} 
-                />
-             )}
             </div>
         </div>) 
         })}
+
+{itinerary.trains?.map((train, index)=>{
+           return(<div key={index}>
+
+            <div className='flex flex-col gap-2 mt-2'>
+            {<>
+                <FlightCard
+                    id={index} 
+                    from={train.from} 
+                    to={train.to} 
+                    date={train.date}
+                    travelClass={train.travelClass} 
+                    mode={'Train'}
+                    time={train.time}/>
+             </>}
+            </div>
+        </div>) 
+        })}
+
+        {itinerary.cabs?.map((cab, index)=>{
+           return(<div key={index}>
+            
+            <div className='flex flex-col gap-2 mt-2'>
+            {<>
+                <CabCard
+                    id={index} 
+                    from={cab.pickupAddress} 
+                    to={cab.dropAddress} 
+                    date={cab.date}
+                    travelClass={cab.travelClass} 
+                    mode={'Cab'}
+                    time={cab.time}/>
+             </>}
+            </div>
+        </div>) 
+        })}
+
+        {itinerary.carRentals?.map((cab, index)=>{
+           return(<div key={index}>
+            
+            <div className='flex flex-col gap-2 mt-2'>
+            {<>
+                <CabCard
+                    id={index} 
+                    from={cab.pickupAddress} 
+                    to={cab.dropAddress} 
+                    date={cab.date}
+                    travelClass={cab.travelClass} 
+                    mode={'Cab'}
+                    time={cab.time}/>
+             </>}
+            </div>
+        </div>) 
+        })}
+
+        {itinerary.hotels?.map((hotel, index)=>{
+           return(<div key={index}>
+            
+            <div className='flex flex-col gap-2 mt-2'>
+            {<>
+                <HotelCard
+                    id={index} 
+                    checkIn={hotel.checkIn} 
+                    checkOut={hotel.checkOut} 
+                    location={hotel.location}
+                    time={hotel.preferredTime}/>
+             </>}
+            </div>
+        </div>) 
+        })}
+
     </>)
 }
 
-
-function FlightCard({from, to, date, time, travelClass, onClick, mode='Flight'}){
+function FlightCard({from, to, date, returnDate, time, returnTime, travelClass, onClick, mode='Flight'}){
   return(
       <div className="shadow-sm min-h-[76px] bg-slate-50 rounded-md border border-slate-300 w-full px-6 py-4 flex flex-col sm:flex-row gap-4 items-center sm:divide-x">
-      <img src={spitImageSource(mode)} className='w-4 h-4' />
-      <div className="w-full flex sm:block">
-          <div className='mx-2 text-xs text-neutral-600 flex justify-between flex-col sm:flex-row'>
-              <div className="flex-1">
-                  From     
-              </div>
-              <div className="flex-1" >
-                  To     
-              </div>
-  
-              <div className="flex-1">
-                      Date
-              </div>
-              <div className="flex-1">
-                  Preffered Time
-              </div>
-              <div className="flex-1">
-                  Class/Type
-              </div>
-          </div>
-  
-          <div className="mx-2 text-sm w-full flex justify-between flex-col sm:flex-row">
-              <div className="flex-1">
-                  {titleCase(from)}     
-              </div>
-              <div className="flex-1">
-                  {titleCase(to)}     
-              </div>
-              <div className="flex-1">
-                  {date}
-              </div>
-              <div className="flex-1">
-                  {time??'N/A'}
-              </div>
-              <div className="flex-1">
-                  {travelClass??'N/A'}
-              </div>
-          </div>
+      <div className="flex flex-col justify-center">
+        <img src={spitImageSource(mode)} className='w-4 h-4 md:w-6 md:h-6' />
       </div>
+      <div className="w-full flex sm:block">
+            <div className="mx-2 text-sm w-full flex gap-1 flex-col lg:flex-row lg:justify-between lg:items-center">
+                <div className='flex items-center gap-1'>
+                    <div className="text-lg semibold">
+                        {titleCase(from)}     
+                    </div>
+                    <img src={double_arrow} className="w-5"/>
+                    <div className="text-lg semibold">
+                        {titleCase(to)}     
+                    </div>
+                </div>
+                <div className="">
+                    <p className="text-xs text-neutral-600 flex justify-between flex-col sm:flex-row">Departure Date</p>
+                    <div className="flex items-center gap-1">
+                        <img src={calender_icon} className='w-4'/>
+                        <p>{isoString(date)}</p>
+                    </div>
+                </div>
+                {returnDate!=null && returnDate != undefined && 
+                <div className="">
+                    <p className="text-xs text-neutral-600 flex justify-between flex-col sm:flex-row">Return Date</p>
+                    <div className="flex items-center gap-1">
+                        <img src={calender_icon} className='w-4'/>
+                        <p>{isoString(returnDate)}</p>
+                    </div>
+                </div>
+                }
+
+                {returnTime!=null && 
+                <div className="">
+                    <p className="text-xs text-neutral-600 flex justify-between flex-col sm:flex-row">Retrun Time</p>
+                    <div className='flex items-center gap-1'>
+                        <img src={clock_icon} className='w-4'/>
+                        <p>{formattedTime(returnTime)??'--:--'}</p>    
+                    </div>
+                </div>
+                }
+
+            </div>
+        </div>
+      
   </div>)
 }
 
-
-
-function CabCard({from, to, date, time, travelClass, mode, isTransfer=false}){
+function CabCard({from, to, date, time, travelClass, onClick, mode, isTransfer=false}){
   return(
       <div className="shadow-sm min-h-[76px] bg-slate-50 rounded-md border border-slate-300 w-full px-6 py-4 flex flex-col sm:flex-row gap-4 items-center sm:divide-x">
       <div className='font-semibold text-base text-neutral-600'>
-      <img src={cab_icon} className='w-6 h-6' />
-          {isTransfer && <p className="text-xs text-neutral-500">Transfer Cab</p>}
+      <img src={spitImageSource(mode)} className='w-4 h-4 md:w-6 md:h-6' />
       </div>
       <div className="w-full flex sm:block">
-          <div className='mx-2 text-xs text-neutral-600 flex justify-between flex-col sm:flex-row'>
-              <div className="flex-1">
-                  Pickup     
-              </div>
-              <div className="flex-1" >
-                  Drop    
-              </div>
-              <div className="flex-1">
-                  Date
-              </div>
-              <div className="flex-1">
-                  Preffered Time
-              </div>
-              {!isTransfer && <div className="flex-1">
-                  Class/Type
-              </div>}
-          </div>
-  
+          
           <div className="mx-2 text-sm w-full flex justify-between flex-col sm:flex-row">
               <div className="flex-1">
-                  {from??'not provided'}     
+                 <p className="text-xs text-neutral-600 flex justify-between flex-col sm:flex-row">Pickup Location</p>
+                  <div className="flex items-center gap-1">
+                    <img src={location_icon} className="w-4 h-4"/>
+                    <p className="whitespace-wrap">{from??'not provided'}</p>
+                  </div>     
               </div>
               <div className="flex-1">
-                  {to??'not provided'}     
+                  <p className="text-xs text-neutral-600 flex justify-between flex-col sm:flex-row">Drop Location</p>
+                  <div className="flex items-center gap-1">
+                    <img src={location_icon} className="w-4 h-4"/>
+                    <p className="whitespace-wrap">{to??'not provided'}</p>
+                  </div>     
               </div>
               <div className="flex-1">
-                  {date??'not provided'}
+                  <p className="text-xs text-neutral-600 flex justify-between flex-col sm:flex-row">{mode} Date</p>
+                  <div className="flex items-center gap-1">
+                    <img src={calender_icon} className="w-4 h-4"/>
+                    <p className="whitespace-wrap">{isoString(date)??'not provided'}</p>
+                  </div>
               </div>
               <div className="flex-1">
-                  {time??'N/A'}
+                  <p className="text-xs text-neutral-600 flex justify-between flex-col sm:flex-row">Prefferred Time</p>
+                  <div className="flex items-center gap-1">
+                    <img src={clock_icon} className="w-4 h-4"/>
+                    <p className="whitespace-wrap">{formattedTime(time)??'not provided'}</p>
+                  </div>
               </div>
              {!isTransfer && <div className="flex-1">
                   {travelClass??'N/A'}
@@ -165,39 +225,33 @@ function CabCard({from, to, date, time, travelClass, mode, isTransfer=false}){
   </div>)
 }
 
-function HotelCard({checkIn, checkOut, hotelClass, onClick, preference={preference}}){
+function HotelCard({checkIn, checkOut, location, onClick}){
   return(
       <div className="shadow-sm min-h-[76px] bg-slate-50 rounded-md border border-slate-300 w-full px-6 py-4 flex flex-col sm:flex-row gap-4 items-center sm:divide-x">
-      <p className='font-semibold text-base text-neutral-600'>Hotel</p>
+      <img src={material_hotel_black_icon} className="w-4 h-4 md:w-6 md:h-6"/>
       <div className="w-full flex sm:block">
-          <div className='mx-2 text-xs text-neutral-600 flex justify-between flex-col sm:flex-row'>
-              <div className="flex-1">
-                  Check-In  
-              </div>
-              <div className="flex-1" >
-                  Checkout
-              </div>
-              <div className="flex-1">
-                  Class/Type
-              </div>
-              <div className='flex-1'>
-                  Site Preference
-              </div>
-          </div>
-  
           <div className="mx-2 text-sm w-full flex justify-between flex-col sm:flex-row">
-              <div className="flex-1">
-                  {checkIn}     
-              </div>
-              <div className="flex-1">
-                  {checkOut}     
-              </div>
-              <div className="flex-1">
-                  {hotelClass??'N/A'}
-              </div>
-              <div className='flex-1'>
-                  {preference??'N/A'}
-              </div>
+          <div className="flex-1">
+                    <p className="text-xs text-neutral-600 flex justify-between flex-col sm:flex-row">CheckIn Date</p>
+                    <div className="flex items-center gap-1">
+                        <img src={calender_icon} className='w-4'/>
+                        <p>{isoString(checkIn)}</p>
+                    </div>
+                </div>
+                <div className="flex-1">
+                    <p className="text-xs text-neutral-600 flex justify-between flex-col sm:flex-row">CheckOut Date</p>
+                    <div className="flex items-center gap-1">
+                        <img src={calender_icon} className='w-4'/>
+                        <p>{isoString(checkOut)}</p>
+                    </div>
+                </div>
+                <div className='flex-1'>
+                    <p className="text-xs text-neutral-600 flex justify-between flex-col sm:flex-row">Location</p>
+                    <div className="flex items-center gap-1">
+                        <img src={location_icon} className='w-4'/>
+                        <p>{location??'not provided'}</p>
+                    </div>
+                </div>
           </div>
       </div>
   </div>)
@@ -213,10 +267,41 @@ function spitBoardingPlace(modeOfTransit){
 }
 
 function spitImageSource(modeOfTransit){
-  if(modeOfTransit === 'Flight')
-      return airplane_icon
-  else if(modeOfTransit === 'Train')
-      return train_icon
-  else if(modeOfTransit === 'Bus')
-      return bus_icon
+    if(modeOfTransit === 'Flight')
+        return material_flight_black_icon
+    else if(modeOfTransit === 'Train')
+        return material_train_black_icon
+    else if(modeOfTransit === 'Bus')
+        return material_bus_black_icon
+    else if(modeOfTransit === 'Cab')
+        return material_cab_black_icon
+    else if(modeOfTransit === 'Cab Rentals')
+        return material_car_rental_black_icon
+    else if(modeOfTransit === 'Personal Vehicle')
+        return material_personal_black_icon
+}
+
+function isoString(dateString){
+    console.log('receivedDate', dateString)
+    if(dateString==null || dateString == undefined) return ''
+    // Convert string to Date object
+    const dateObject = new Date(dateString);
+    // Convert Date object back to ISO string
+    const isoDateString = dateObject.toDateString();
+    console.log(isoDateString);
+    return isoDateString
+}
+
+function formattedTime(timeValue){
+    try{
+        if(timeValue == null || timeValue == undefined) return timeValue
+        const hours = timeValue.split(':')[0]>=12? timeValue.split(':')[0]-12 : timeValue.split(':')[0]
+        const minutes = timeValue.split(':')[1]
+        const suffix = timeValue.split(':')[0]>=12? 'PM' : 'AM'
+
+        return `${hours}:${minutes} ${suffix}`
+    }
+    catch(e){
+        return timeValue
+    }
 }
