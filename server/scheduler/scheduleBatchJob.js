@@ -7,7 +7,6 @@ const handleErrorResponse = (errorMessage, status = 500) => {
   return { status, data: { success: false, message: errorMessage } };
 };
 
-
 const upcomingTripsBatchJob = async (trips) => {
   try {
     const tripPromises = trips.map(async (trip) => {
@@ -78,8 +77,6 @@ export const triggerBatchJob = async (trips) => {
   }
 };
 
-
 //batchjob
-
 
 

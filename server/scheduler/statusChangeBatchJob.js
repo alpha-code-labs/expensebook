@@ -38,7 +38,7 @@ export const statusChangeBatchJob = async () => {
     const data = 'batch';
     const needConfirmation = false;
     // Send updated trip to the dashboard synchronously
-   await sendTripsToDashboardQueue(trip, data,needConfirmation );
+    const sendResult = await sendTripsToDashboardQueue(trip, data,needConfirmation );
 
     // Trigger sending transit trips to the dashboard microservice
     // const sendResult = await sendTransitTripsToDashboard(updatedTripsInMemory);
@@ -66,7 +66,7 @@ export const statusChangeBatchJob = async () => {
   } catch (error) {
     // Handle errors with consistent error handling
     console.error('Error in statusChangeBatchJob:', error);
-    throw error;
+    return error;
   }
 };
 

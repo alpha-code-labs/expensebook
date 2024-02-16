@@ -1,7 +1,8 @@
 import amqp from 'amqplib';
 
-const rabbitMQUrl = 'amqp://localhost:5672/';
-  
+// const rabbitMQUrl = 'amqp://localhost:5672/';
+const rabbitMQUrl = process.env.rabbitMQUrl
+
 const connectToRabbitMQ = async () => {
     try {
       console.log('Connecting to RabbitMQ...');
@@ -52,7 +53,6 @@ export async function sendToOtherMicroservice(payload, action, destination, comm
         console.log('Publishing message to RabbitMQ:', messageToSend);
     
         try {
-          
             // Publish for asynchronous processing
             channel.publish(exchangeName, routingKey, Buffer.from(JSON.stringify(messageToSend)), {
               persistent: true,
@@ -72,7 +72,7 @@ export async function sendToOtherMicroservice(payload, action, destination, comm
         }
       } catch (error) {
         // Handle errors with consistent error handling
-        console.log(Error` cash advance data to ${destination} microservice:`, error);
+        console.log(Error` Trip Microservice data to ${destination} microservice:`, error);
         return false;
       }
 }

@@ -1,7 +1,7 @@
 import amqp from 'amqplib';
 import { generateUniqueIdentifier } from '../utils/uuid.js';
 
-const rabbitMQUrl = 'amqp://localhost:5672';
+// const rabbitMQUrl = 'amqp://localhost:5672';
 
 let channel
 

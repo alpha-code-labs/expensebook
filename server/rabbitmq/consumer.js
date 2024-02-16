@@ -2,6 +2,7 @@
 import amqp from 'amqplib';
 import { updateHRMaster, updatePreferences } from './messageProcessor/hrMessage.js';
 import { partialCashUpdate, settleExpenseReport, updateCashStatus } from './messageProcessor/cashMessage.js';
+import { processTravelRequests } from './messageProcessor/travelMessageProcessor.js';
 
 //start consuming messages..
 export default async function startConsumer(receiver) {
@@ -17,7 +18,7 @@ export default async function startConsumer(receiver) {
         return channel;
       } catch (error) {
         console.log("Error connecting to RabbitMQ:", error);
-        throw error;
+        return error;
       }
     };
   
@@ -63,8 +64,26 @@ export default async function startConsumer(receiver) {
               //implement retry mechanism
               console.log("update failed with error code", res.error);
             }
-          }
-          else if (source == 'cash'){
+          } else if ( source == 'travel'){
+            if(action =='trip-creation'){
+              const res = await processTravelRequests(payload)
+              if(res.success){
+                channel.ack(msg)
+                console.log('trip creation successful')
+              } else{
+                console.log('error in trip creation rabbitmq')
+              }
+            }
+          } else if (source == 'cash'){
+            if(action =='trip-creation'){
+              const res = await processTravelRequests(payload)
+              if(res.success){
+                channel.ack(msg)
+                console.log('trip creation successful')
+              } else{
+                console.log('error in trip creation rabbitmq')
+              }
+            }
             if(action == 'partial-cash-update') {
                 console.log("trying to update cash partially")
                 const res = await partialCashUpdate(payload);
@@ -85,7 +104,7 @@ export default async function startConsumer(receiver) {
                     console.log('error updating travel and cash')
                 }
             }
-       } else if (source == 'finance'){
+          } else if (source == 'finance'){
         if(action == 'settle-cash') {
             console.log("trying to update cash partially")
             // const res = await settleCashStatus(payload);
@@ -106,7 +125,7 @@ export default async function startConsumer(receiver) {
               console.log('error updating travel and cash')
           }
       }
-        } else if (source == 'dashboard'){
+          } else if (source == 'dashboard'){
           if(action == 'profile-update'){
             const res = await updatePreferences(payload);
             console.log(res)
@@ -120,7 +139,7 @@ export default async function startConsumer(receiver) {
               console.log('update failed with error code', res.error)
             }
           }
-        }
+          }
       }}
     },{ noAck: false }
     )}

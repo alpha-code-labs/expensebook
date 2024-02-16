@@ -8,9 +8,10 @@ import { config } from './config.js';
 // import { applyTenantFilter } from './middleware/tripMiddleware.js';
 import mainInternalRoutes from './internal/routes/mainInternalRoutes.js';
 import oldTripRoutes from './routes/tripsRoutes.js';
-// import startConsumer from './rabbitmq/consumer.js';
+import startConsumer from './rabbitmq/consumer.js';
 import tripRoutes from './routes/tripRoutes.js';
 import { processTravelRequests } from './rabbitmq/messageProcessor/travelMessageProcessor.js';
+import { connectToRabbitMQ } from './rabbitmq/dashboardMicroservice.js';
 
 
 // Load environment variables using dotenv
@@ -31,12 +32,12 @@ app.use(express.json());
 app.use(cors());
 // app.use('/api/:tenantId/*', applyTenantFilter); // Global Middleware for all /api/:tenantId/* routes
 
-
 //Routes 
-app.use('/api/trips/fe', tripRoutes);
+app.use('/api/fe/trips', tripRoutes);
 app.use('/api/internal', mainInternalRoutes);
 app.use('/api/trips', oldTripRoutes); 
 app.use('/api', batchJobRoutes);
+app.get('/get', (req,res) => res.status(200).json("hi from trips"))
 // app.use('/api/:tenantId/trips/cancel', applyTenantFilter, cancelTripRoutes);
 
 
@@ -56,17 +57,18 @@ const mongodb = async () => {
 };
 
 mongodb();
+connectToRabbitMQ();
 
 const port = process.env.PORT || 8081;
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
 
-// startConsumer('trip');
+//startConsumer('trip');
 // const trip = await Trip.findOne({tripId:'658d602bcb8a8aefaacab9ae'})
 // const res = await sendTripsToDashboardQueue(trip, 'online', true)
 
-export const exampleTripArray = [
+const exampleTripArray = [
   {
       travelRequestData: {
       tenantId: 'Tenant1',
@@ -121,11 +123,11 @@ export const exampleTripArray = [
 ];
 
 // Usage of the "After" version
-try {
-  const resultDataAfter = await processTravelRequests(exampleTripArray);
-  console.log('After: Processing completed. Result:', resultDataAfter);
-} catch (error) {
-  console.error('After: Error processing travel requests:', error);
-}
+// try {
+//   const resultDataAfter = await processTravelRequests(exampleTripArray);
+//   console.log('After: Processing completed. Result:', resultDataAfter);
+// } catch (error) {
+//   console.error('After: Error processing travel requests:', error);
+// }
 
-processTravelRequests(exampleTripArray)
+// processTravelRequests(exampleTripArray)

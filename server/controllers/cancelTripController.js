@@ -37,7 +37,7 @@ const getTrips = async (tenantId, tripId, empId) => {
     return await Trip.find({
         tenantId,
         tripId,
-        tripStatus: { $in: ['transit', 'upcoming', 'completed'] },
+        // tripStatus: { $in: ['transit', 'upcoming', 'completed' , 'closed', 'paid and cancelled' },
         $or: [
             { 'travelRequestData.createdBy.empId': empId },
             { 'travelRequestData.createdFor.empId': empId },
@@ -55,13 +55,14 @@ const mapTripDetails = (trips) => {
         TripEndDate: trip.tripCompletionDate,
         TripStatus: trip.tripStatus,
         approvers: trip.travelRequestData?.approvers,
-        // itinerary: trip.travelRequestData?.itinerary,
-        flights: mapFlights(trip.travelRequestData?.itinerary?.flights)|| [],
-        hotels: mapHotels(trip.travelRequestData?.itinerary?.hotels)|| [],
-        buses: mapBuses(trip.travelRequestData?.itinerary?.buses)|| [],
-        trains: mapTrains(trip.travelRequestData?.itinerary?.trains) || [],
-        cabs: mapCabs(trip.travelRequestData?.itinerary?.cabs) || [],
-        cashAdvances: trip.cashAdvancesData?.map(mapCashAdvance) || [],
+        itinerary: trip.travelRequestData?.itinerary,
+        // flights: mapFlights(trip.travelRequestData?.itinerary?.flights)|| [],
+        // hotels: mapHotels(trip.travelRequestData?.itinerary?.hotels)|| [],
+        // buses: mapBuses(trip.travelRequestData?.itinerary?.buses)|| [],
+        // trains: mapTrains(trip.travelRequestData?.itinerary?.trains) || [],
+        // cabs: mapCabs(trip.travelRequestData?.itinerary?.cabs) || [],
+        // cashAdvances: trip.cashAdvancesData?.map(mapCashAdvance) || [],
+        cashAdvances: trip.cashAdvancesData?.length > 1 ? trip.cashAdvancesData.map(mapCashAdvance) : [],
     }));
 };
 
@@ -182,21 +183,29 @@ export const getTripDetails = async (req, res) => {
       return res.status(400).json({ error: 'Invalid input parameters.' });
     }
 
-    const tripDetails = await extractTripDetails(tenantId, tripId, empId);
+    // const tripDetails = await extractTripDetails(tenantId, tripId, empId);
+    const tripDetails = await Trip.findOne({
+      tenantId,
+      tripId,
+      tripStatus: { $in: ['transit', 'upcoming', 'completed' , 'closed', 'paid and cancelled' ] },
+      $or: [
+          { 'travelRequestData.createdBy.empId': empId },
+          { 'travelRequestData.createdFor.empId': empId },
+      ],
+  });
 
+   if(tripDetails){
+    const { tripPurpose} = tripDetails.travelRequestData
     return res.status(200).json({
+      success: true,
       message: 'trip details for the employee.',
-      trip: tripDetails,
+      trip:tripDetails,
     });
+   }
+   
   } catch (error) {
     console.error('Error fetching transit trips:', error);
-
-    if (error.message === 'Invalid input parameters.') {
-      return res.status(400).json({ error: 'Invalid input parameters.' });
-    } else if (error.message === 'No transit trips found for this user.') {
-      return res.status(404).json({ error: 'No transit trips found for this user.' });
-    }
-    return res.status(500).json({ error: 'Internal Server Error' });
+    return res.status(500).json({ error: 'Internal Server Error', error });
   }
 };
 
@@ -212,10 +221,13 @@ export const cancelTripAtHeaderLevel = async (req, res) => {
       return res.status(400).json({ error: 'Invalid input parameters.' });
     }
 
+    // const tripId_ObjectId = new mongoose.Types.ObjectId(tripId);
+
     // Find the trip asynchronously
     const trip = await Trip.findOne({
       tenantId,
       tripId,
+      // tripId: tripId_ObjectId,
       $or: [
         { 'tripStatus': 'upcoming' },
         { 'tripStatus': 'completed' },
@@ -232,7 +244,8 @@ export const cancelTripAtHeaderLevel = async (req, res) => {
     if (!trip) {
       return res.status(404).json({ error: 'Trip not found' });
     }
-
+     const { travelRequestData} = trip
+     const {isCashAdvanceTaken} = travelRequestData
     const updateStatus = (item) => {
       return item.status === 'booked' ? 'paid and cancelled' : 'cancelled';
     };
@@ -271,25 +284,30 @@ export const cancelTripAtHeaderLevel = async (req, res) => {
     const needConfirmation = true;
 
     // Send updated trip to the dashboard asynchronously
-    await sendTripsToDashboardQueue(trip, onlineVsBatch, needConfirmation);
-
+    // await sendTripsToDashboardQueue(trip, onlineVsBatch, needConfirmation);
+ 
     const travel = {
       travelRequestData:trip?.travelRequestData ??{} 
     }
 
     const cash = {
-      travelRequestData:trip?.travelRequestData ?? {},
+      travelRequestData: trip?.travelRequestData ?? {},
       cashAdvancesData: trip?.cashAdvancesData ?? [],
     }
 
-    //send to travel microservices
-    sendToOtherMicroservice(travel, 'full-update', 'travel', 'to update entire travel request in Travel microservice- after cancellation of entire trip ')
+   // To expense microservice
+   await sendToOtherMicroservice(cash, 'full-update', 'expense', 'to update travelRequestStatus and cashAdvances status in epense microservice- after cancellation of entire trip')
 
+    if(trip.travelRequestData.isCashAdvanceTaken){
     //send to cash microservices
-    sendToOtherMicroservice(cash, 'full-update', 'cash', 'to update travelRequestStatus and cashAdvances status in cash microservice- after cancellation of entire trip')
+    console.log("rabbitmq cash", cash)
 
-    // To expense microservice
-    sendToOtherMicroservice(cash, 'full-update', 'expense', 'to update travelRequestStatus and cashAdvances status in epense microservice- after cancellation of entire trip')
+    await  sendToOtherMicroservice(cash, 'full-update', 'cash', 'to update travelRequestStatus and cashAdvances status in cash microservice- after cancellation of entire trip')
+    } else {
+    //send to travel microservices
+    console.log("rabbitmq travel", travel)
+    await  sendToOtherMicroservice(travel, 'full-update', 'travel', 'to update entire travel request in Travel microservice- after cancellation of entire trip ')
+    }
 
     return res.status(200).json({ message: 'Trip cancelled successfully.', data: trip });
   } catch (error) {
@@ -298,6 +316,8 @@ export const cancelTripAtHeaderLevel = async (req, res) => {
     return res.status(500).json({ error: errorMessage });
   }
 };
+
+
 
 
   
@@ -334,7 +354,9 @@ export const cancelTripAtHeaderLevel = async (req, res) => {
     try {
       const { tenantId, tripId, empId } = req.params;
       const { itineraryIds } = req.body;
-      
+
+      console.log("params", req.params)
+      console.log(" itinerary ids", req.body)
        // Input validation
        if (!tenantId || !tripId || !empId || !itineraryIds || !Array.isArray(itineraryIds)) {
         return res.status(400).json({ error: 'Invalid input parameters.' });
@@ -355,9 +377,6 @@ export const cancelTripAtHeaderLevel = async (req, res) => {
   
       const trip = await itineraryLineItem(tripDetails, itineraryIds);
 
-       // Send changes to expense microservice asynchronously
-       await TripLineItemCancelledToExpense(trip);
-
       //  if (trip.travelRequestData.isCashAdvanceTaken) {
       //      console.log('Is cash advance taken:', trip.travelRequestData.isCashAdvanceTaken);
       //      await tripLineItemCancelledToCashService(trip);
@@ -369,7 +388,7 @@ export const cancelTripAtHeaderLevel = async (req, res) => {
       const needConfirmation = true;
 
       // Send updated trip to the dashboard synchronously
-      sendTripsToDashboardQueue(trip, data, needConfirmation );
+      // sendTripsToDashboardQueue(trip, data, needConfirmation );
 
 
       const travel = {
@@ -381,14 +400,14 @@ export const cancelTripAtHeaderLevel = async (req, res) => {
         cashAdvancesData: trip?.cashAdvancesData ?? [],
       }
     
-      //send to other microservices
-      sendToOtherMicroservice(travel, 'full-update', 'travel', 'to update entire travel request in Travel microservice- after cancellation of trip at itinerary level')
+      // //send to other microservices
+      // sendToOtherMicroservice(travel, 'full-update', 'travel', 'to update entire travel request in Travel microservice- after cancellation of trip at itinerary level')
 
-      //send to cash microservice
-      sendToOtherMicroservice(cash, 'full-update', 'cash', 'to update entire travel and cashAdvances data in cash microservice- after cancellation of trip at itinerary level')
+      // //send to cash microservice
+      // sendToOtherMicroservice(cash, 'full-update', 'cash', 'to update entire travel and cashAdvances data in cash microservice- after cancellation of trip at itinerary level')
 
-      // send to expense microservice
-      sendToOtherMicroservice(cash, 'full-update', 'expense', 'to update entire travel and cashAdvances data in expense microservice- after cancellation of trip at itinerary level')
+      // // send to expense microservice
+      // sendToOtherMicroservice(cash, 'full-update', 'expense', 'to update entire travel and cashAdvances data in expense microservice- after cancellation of trip at itinerary level')
 
        return res.status(200).json({ message: 'Trip updated successfully', data: trip });
     } catch (error) {

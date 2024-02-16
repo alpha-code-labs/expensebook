@@ -12,12 +12,12 @@ tripRoutes.get('/:tenantId/:empId/:tripId/details', getTripDetails);
 tripRoutes.patch('/:tenantId/:empId/:tripId/cancel', cancelTripAtHeaderLevel);
 
 // cancel at Line item level - upcoming/transit trips only -- row 43 - category 4
-tripRoutes.patch('/:tenantId/:empId/:tripId/cancel-itinerary', cancelTripAtLineItemLevel);
+tripRoutes.patch('/:tenantId/:empId/:tripId/cancel-line', cancelTripAtLineItemLevel);
 
 // recovery for entire trip
 tripRoutes.patch('/:tenantId/:empId/:tripId/recover', recoveryAtHeaderLevel);
 
 // recovery for line item
-tripRoutes.patch('/:tenantId/:empId/:tripId/recover-itinerary', recoveryAtLineItemLevel);
+tripRoutes.patch('/:tenantId/:empId/:tripId/recover-line', recoveryAtLineItemLevel);
 
 export default tripRoutes;

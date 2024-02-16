@@ -2,10 +2,11 @@ import amqp from 'amqplib';
 import { generateUniqueIdentifier } from '../utils/uuid.js';
 import Trip from '../models/tripSchema.js';
 
-const rabbitMQUrl = 'amqp://localhost:5672';
+// const rabbitMQUrl = 'amqp://localhost:5672';
+const rabbitMQUrl = process.env.rabbitMQUrl
 
 let channel
-const connectToRabbitMQ = async () => {
+export const connectToRabbitMQ = async () => {
   try {
     console.log('Connecting to RabbitMQ...');
     const connection = await amqp.connect(rabbitMQUrl);

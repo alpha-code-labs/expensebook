@@ -2,6 +2,7 @@ import Trip from "../models/tripSchema.js";
 import { recoveryAtHeaderLevelToExpense, recoveryAtLineItemLevelToExpense } from "../internal/controllers/expenseMicroservice.js";
 import { sendTripsToDashboardQueue } from "../rabbitmq/dashboardMicroservice.js";
 import { sendToOtherMicroservice } from "../rabbitmq/publisher.js";
+import HRMaster from "../models/hrCompanySchema.js";
 
 //Trip Microservice -Travel recovery flow for paid and cancelled Trips
 // 1) get trip details -- for Recovery
@@ -240,16 +241,56 @@ const hrData = [
   { empId: 'empt00001', name: 'travelAdmin' },
 ];
 
+
+
+
+
 // Function to find a verified travel admin
 export const travelAdmin = async (empId) => {
   try {
-    const verifiedEmployee = hrData.find((employee) => employee.empId === empId);
+    // const verifiedEmployee = hrData.find((employee) => employee.empId === empId);
+    const verifyEmployee = await HRMaster.findOne({
+      'employees': {
+        $elemMatch: {
+          'employeeDetails.employeeId': empId,
+          'employeeRoles.finance': true
+        }
+      }
+    });
+    
+    // const verifiedEmployee = await HRMaster.findOne({
+    //   'systemRelatedRoles.finance': {
+    //     $elemMatch: {
+    //       'employeeId': empId,
+    //     }
+    //   }
+    // });
 
-    if (verifiedEmployee) {
-      console.log(`${empId} is a verified Travel Admin.`);
-      return { empId: verifiedEmployee.empId, name: verifiedEmployee.name };
+    // console.log('verifiedEmployee:', verifyEmployee);
+    
+    if (verifyEmployee) {
+      const {finance} = verifyEmployee.systemRelatedRoles
+
+      const isValidFinance = finance.map((employee) => {if(employee.employeeId === empId){
+        return employee
+      }})
+
+      // Assuming isValidFinance always has one object
+const verifiedEmployee = isValidFinance[0];
+
+// Check if a verified employee is found
+if (!verifiedEmployee) {
+  // Throw an error if the employee is not associated with the finance role
+  throw new Error('Employee is not a valid finance employee');
+}
+
+// Construct object with employeeName and employeeId
+const { employeeName, employeeId } = verifiedEmployee;
+
+      console.log(`${empId} is a verified Travel Admin.`,verifiedEmployee, verifiedEmployee);
+      return { empId:employeeId , name: employeeName };
     } else {
-      console.log(`${empId} is not a verified Travel Admin.`);
+      console.log(`${empId} Employee is not a valid finance employee.`);
       return null;
     }
   } catch (error) {
@@ -259,7 +300,7 @@ export const travelAdmin = async (empId) => {
 };
 
 // Function to update status based on conditions
-const updateStatus = (newStatus, verifiedTravelAdmin) => ({
+const updateStatus = (newStatus, isValidFinance) => ({
   $set: {
     'travelRequestData.itinerary.flights.$[].status': newStatus === 'recovered' ? 'recovered' : 'cancelled',
     'travelRequestData.itinerary.trains.$[].status': newStatus === 'recovered' ? 'recovered' : 'cancelled',
@@ -269,8 +310,8 @@ const updateStatus = (newStatus, verifiedTravelAdmin) => ({
     'tripStatus': newStatus === 'recovered' ? 'recovered' : 'cancelled',
     'travelRequestData.travelRequestStatus': newStatus === 'recovered' ? 'recovered' : 'cancelled',
     'travelRequestData.recoveredBy': {
-      empId: verifiedTravelAdmin.empId,
-      name: verifiedTravelAdmin.name,
+      empId: isValidFinance.empId,
+      name: isValidFinance.name,
     },
   },
 });
@@ -279,7 +320,7 @@ const updateStatus = (newStatus, verifiedTravelAdmin) => ({
 export const recoveryAtHeaderLevel = async (req, res) => {
   try {
     const { tenantId, tripId, empId } = req.params;
-
+ console.log("params ", req.params)
     // Verify if the employee is a travel admin
     const verifiedTravelAdmin = await travelAdmin(empId);
 
@@ -320,8 +361,8 @@ export const recoveryAtHeaderLevel = async (req, res) => {
     const onlineVsBatch = 'online';
     const needConfirmation = false;
 
-    // Send updated trip to the dashboard asynchronously
-    await sendTripsToDashboardQueue(payload, onlineVsBatch, needConfirmation);
+    // // Send updated trip to the dashboard asynchronously
+    // await sendTripsToDashboardQueue(payload, onlineVsBatch, needConfirmation);
 
     const travel = {
       travelRequestData:trip?.travelRequestData ??{} 
@@ -332,17 +373,17 @@ export const recoveryAtHeaderLevel = async (req, res) => {
       cashAdvancesData: trip?.cashAdvancesData ?? [],
     }
 
-    //send to travel microservices
-    sendToOtherMicroservice(travel, 'full-update', 'travel', 'to update entire travel request in Travel microservice- recovery done after cancellation of entire trip ')
+    // //send to travel microservices
+    // sendToOtherMicroservice(travel, 'full-update', 'travel', 'to update entire travel request in Travel microservice- recovery done after cancellation of entire trip ')
 
-    //send to cash microservices
-    sendToOtherMicroservice(cash, 'full-update', 'cash', 'to update travelRequestStatus and cashAdvances status in cash microservice- recovery done after cancellation of entire trip')
+    // //send to cash microservices
+    // sendToOtherMicroservice(cash, 'full-update', 'cash', 'to update travelRequestStatus and cashAdvances status in cash microservice- recovery done after cancellation of entire trip')
 
-    // To expense microservice
-    sendToOtherMicroservice(cash, 'full-update', 'expense', 'to update travelRequestStatus and cashAdvances status in epense microservice- recover done after cancellation of entire trip')
+    // // To expense microservice
+    // sendToOtherMicroservice(cash, 'full-update', 'expense', 'to update travelRequestStatus and cashAdvances status in epense microservice- recover done after cancellation of entire trip')
 
     console.log('Header level recovery successful.');
-    res.status(200).json({ message: 'Header level recovery successful', trip });
+   return res.status(200).json({ message: `'Header level recovery successful done by ${verifiedTravelAdmin.name}` });
   } catch (error) {
     // Handle the error using standardized response structures
     console.error('Error in header level recovery:', error);
@@ -382,6 +423,7 @@ export const recoveryAtLineItemLevel = async (req, res) => {
   try {
     const { tenantId, tripId, empId } = req.params;
     const { itineraryIds } = req.body;
+    console.log("hiiii", req.params, itineraryIds)
 
     // Input validation
     if (!tenantId || !tripId || !empId || !itineraryIds || !Array.isArray(itineraryIds)) {
@@ -430,18 +472,18 @@ export const recoveryAtLineItemLevel = async (req, res) => {
     }
 
     const lineItemStatusUpdate = await itineraryLineItem(trip, itineraryIds);
-   
+   const { isCashAdvanceTaken} = trip.travelRequestData
     // Save the updated trip
     await trip.save();
 
     const data = 'online';
     const needConfirmation = false;
 
-    // Send updated trip to the dashboard asynchronously
-    await sendTripsToDashboardQueue(trip, data, needConfirmation);
+    // // Send updated trip to the dashboard asynchronously
+    // await sendTripsToDashboardQueue(trip, data, needConfirmation);
 
-    // Send changes to expense microservice asynchronously
-    await recoveryAtLineItemLevelToExpense(lineItemStatusUpdate);
+    // // Send changes to expense microservice asynchronously
+    // await recoveryAtLineItemLevelToExpense(lineItemStatusUpdate);
 
     // // Check if cash advance was taken
     // if (trip.travelRequestData.isCashAdvanceTaken) {
@@ -460,20 +502,20 @@ export const recoveryAtLineItemLevel = async (req, res) => {
       travelRequestData:trip?.travelRequestData ?? {},
       cashAdvancesData: trip?.cashAdvancesData ?? [],
     }
-  
-    //send to other microservices
-    sendToOtherMicroservice(travel, 'full-update', 'travel', 'to update entire travel request in Travel microservice- recovery after cancellation of trip at itinerary level')
 
+    await  sendToOtherMicroservice(cash, 'full-update', 'expense', 'to update entire travel and cashAdvances data in expense microservice-recovery after cancellation of trip at itinerary level')
+
+    if(isCashAdvanceTaken){
     //send to cash microservice
-    sendToOtherMicroservice(cash, 'full-update', 'cash', 'to update entire travel and cashAdvances data in cash microservice- recovery after cancellation of trip at itinerary level')
-
-    // send to expense microservice
-    sendToOtherMicroservice(cash, 'full-update', 'expense', 'to update entire travel and cashAdvances data in expense microservice-recovery after cancellation of trip at itinerary level')
+     await  sendToOtherMicroservice(cash, 'full-update', 'cash', 'to update entire travel and cashAdvances data in cash microservice- recovery after cancellation of trip at itinerary level')
+    } else {
+    //send to other microservices
+     await sendToOtherMicroservice(travel, 'full-update', 'travel', 'to update entire travel request in Travel microservice- recovery after cancellation of trip at itinerary level')     
+    }
 
     // Send success response
     return res.status(200).json({
-      message: 'Trip recovery at line item level successful.',
-      lineItemStatusUpdate,
+      message: `'Trip recovery at line item level successfully done by ${verifiedTravelAdmin.name}'`,
       trip,
     });
   } catch (error) {
