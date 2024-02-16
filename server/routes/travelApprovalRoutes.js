@@ -47,10 +47,10 @@ travel.get('/leg/details/:tenantId/:travelRequestId/:empId', getTravelWithCashDe
 
 
 // 13  -- Approve add a leg
-travel.patch('/leg/approve/:tenantId/:travelRequestId/:empId/:itineraryId', approveAddALeg); // working
+travel.patch('/leg/approve/:tenantId/:empId/:travelRequestId/:itineraryId', approveAddALeg); // working
 
 // 14)  -- Reject add a leg 
-travel.patch('/leg/reject/:tenantId/:travelRequestId/:empId/:itineraryId', rejectAddALeg); // working
+travel.patch('/leg/reject/:tenantId/:empId/:travelRequestId/:itineraryId', rejectAddALeg); // working
 
 // 15) -- get all travel Request Details
 travel.get('/getTravelRequest/:tenantId/:empId/:travelRequestId', getTravelRequestDetailsForApprover);

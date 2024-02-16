@@ -1,6 +1,7 @@
 import amqp from 'amqplib';
 import { generateUniqueIdentifier } from '../utils/uuid.js';
 import dotenv from 'dotenv'
+import { extractApproval } from './messageProcessor/approvalMessage.js';
 
 dotenv.config()
 
@@ -91,8 +92,7 @@ const rabbitMQUrl = process.env.RBMQ_URL
   
         // Wait for response if needConfirmation is true
         if (needConfirmation && result === false) {
-          const extractedCashData = await extractCashData(payload.travelRequestData.travelRequestId);
-  
+          const extractedCashData = await extractApproval(payload.travelRequestData.tenantId,payload.travelRequestData.travelRequestId);
   
           const extractedMessageHeaders = {
             type: 'new',

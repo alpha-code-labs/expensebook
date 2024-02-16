@@ -20,7 +20,7 @@ const castStrings = config[environment].castStrings;
 console.log(`Running in ${environment} environment`);
 console.log(`Database URI: ${config[environment].mongoURI}`);
 
-const MONGODB_URI = process.env.MONGODB_URI;
+const MONGODB = process.env.MONGODB_URI;
 
 const app = express();
 
@@ -42,8 +42,7 @@ app.get('/get',(req,res) => res.status(200).json({message:"Approval microservice
 
 const mongodb = async () => {
   try {
-    await mongoose.connect(MONGODB_URI, {
-    });
+    await mongoose.connect(MONGODB);
     console.log('You are Connected to Mongodb');
   } catch (error) {
     console.error('Error connecting to Mongodb:', error);
@@ -63,11 +62,6 @@ const port = process.env.PORT || 8085;
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
-
-
-
-
-
 
 
 

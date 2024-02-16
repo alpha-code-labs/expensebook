@@ -9,10 +9,10 @@ const createApprovalData = (travelRequest, cashAdvance) => {
     tenantId,
     tenantName,
     companyName,
-    approvalType: travelRequest.approvalType || 'travel', // Default value 'travel'
+    approvalType: travelRequest.approvalType || 'travel', 
     travelRequestData: travelRequest,
     cashAdvancesData: cashAdvance,
-    notificationSentToDashboardFlag: false, // You may set this based on your logic
+    notificationSentToDashboardFlag: false, 
   };
 };
 
