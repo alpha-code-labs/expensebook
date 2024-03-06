@@ -1,20 +1,23 @@
 import express from 'express';
 import cors from 'cors';
-// import { MongoClient } from 'mongodb';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import dummy from './routes/dummyRoute.js';
 import overview from './routes/overviewRoutes.js';
 import { handleErrors } from './errorHandler/errorHandler.js';
 import amqp from 'amqplib';
-// import { updateHRMaster } from './rabbitmq/messageProcessor/hrMaster.js';
-const rabbitMQUrl = 'amqp://localhost:5672';
+import { updateHRMaster } from './rabbitmq/messageProcessor/hrMaster.js';
+import { startConsumer } from './rabbitmq/consumer.js';
+import { mainRouter} from './routes/mainFrontendRoutes.js';
+import { consumeFromDashboardQueue } from './rabbitmq/consumerNew.js';
 
 
 dotenv.config();
 
 const environment = process.env.NODE_ENV || 'development';
 console.log(`Running in ${environment} environment`);
+const rabbitMQUrl = process.env.rabbitMQUrl;
+
 
 const mongoURI = process.env.mongoURI;
 
@@ -26,7 +29,9 @@ app.use(cors());
 //Routes
 app.use('/api/dummydata', dummy); // dummy data for testing
 app.use('/api/dashboard/overview', overview ); // dashboard overview screen
-app.get('/ping', (req,res) => { return res.status(200).json({message:'(:(:(:(:(:(:(:(:'})})
+app.use('/api/fe/dashboard', mainRouter);
+
+app.get('/ping', (req,res) => { return res.status(200).json({message:'Dashboard microservice is live'})})
 
 const connectToMongoDB = async () => {
   try {
@@ -39,22 +44,22 @@ const connectToMongoDB = async () => {
 
 connectToMongoDB();
 
-let channel;
+// let channel;
 
-export const connectToRabbitMQ = async () => {
-  try {
-    console.log('Connecting to RabbitMQ...');
-    const connection = await amqp.connect(rabbitMQUrl);
-    channel = await connection.createConfirmChannel();
-    console.log('Connected to RabbitMQ...channel;');
-    return channel; 
-  } catch (error) {
-    console.error('Error connecting to RabbitMQ:', error);
-    return error;
-  }
-};
+// export const connectToRabbitMQ = async () => {
+//   try {
+//     console.log('Connecting to RabbitMQ...');
+//     const connection = await amqp.connect(rabbitMQUrl);
+//     channel = await connection.createConfirmChannel();
+//     console.log('Connected to RabbitMQ...channel;');
+//     return channel; 
+//   } catch (error) {
+//     console.error('Error connecting to RabbitMQ:', error);
+//     return error;
+//   }
+// };
 
-connectToRabbitMQ();
+// connectToRabbit();
 
 // const mongodb = async () => {
 //     try {
@@ -80,86 +85,10 @@ app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
 
-
-
-
-//start consuming messages..
-async function startConsumer(){
-  const rabbitMQUrl = 'amqp://guest:guest@192.168.1.11:5672';
-
- const connectToRabbitMQ = async () => {
-  try {
-    console.log('Connecting to RabbitMQ...');
-    const connection = await amqp.connect(rabbitMQUrl);
-     const channel = await connection.createConfirmChannel();
-    console.log('Connected to RabbitMQ.');
-    return channel;
-  } catch (error) {
-    console.log('Error connecting to RabbitMQ:', error);
-    throw error;
-  }
-};
-
-const channel = await connectToRabbitMQ();
-const exchangeName = 'amqp.dashboard';
-const queue = 'async_microservice_to_microservice';
-
-console.log(`Asserting exchange: ${exchangeName}`);
-await channel.assertExchange(exchangeName, 'direct', { durable: true });
-
-console.log(`Asserting queue: ${queue}`);
-await channel.assertQueue(queue, { durable: true });
- 
-
-console.log(`Binding queue ${queue} to exchange ${exchangeName}`);
-await channel.bindQueue(queue, exchangeName,`dashboard_${queue}`);
-
-console.log('listening for messages. To exit press CTRL+C');
-
-  // Listen for response
-  channel.consume(queue, async (msg) => {
-    if (msg && msg.content) {
-
-    const content = JSON.parse(msg.content.toString());
-
-    console.log(`coming from ${content.headers?.source} meant for ${content.headers?.destination}`)
-    //console.log('payload', content?.payload)
-    const payload = content?.payload
-    const source = content.headers.source
-
-    if(content.headers.destination == 'dashboard'){
-
-      if(source == 'onboarding'){
-        console.log('trying to update HR Master')
-        const res = await updateHRMaster(payload)
-        console.log(res)
-        if(res.success){
-          //acknowledge message
-          channel.ack(msg)
-          console.log('message processed successfully')
-        }
-        else{
-          //implement retry mechanism
-          console.log('update failed with error code', res.error)
-        }
-      }
-    }
-
-  }}, { noAck: false });
-}
-
+// start consuming messages..
 // startConsumer('dashboard');
 
-
-
-
-
-
-
-
-
-
-
+// consumeFromDashboardQueue();
 
 
 //-----------------------------------------------------------------------------------------------------

@@ -54,4 +54,33 @@ export const updateCashToDashboardSync = async (message,correlationId) => {
       console.error('Failed to send failed updates confirmation,using synchrnous queue:', error);
     }
   }
-  }
+}
+
+
+export const fullUpdateCash = async (payload) => {
+    console.log('full update cashAdvanceSchema', payload)
+    const{ travelRequestData, cashAdvancesData} = payload
+    const { tenantId, travelRequestId } = travelRequestData;
+      try {
+      const updated = await dashboard.findOneAndUpdate(
+        {"cashAdvanceSchema.travelRequestData.tenantId": tenantId, 
+         "cashAdvanceSchema.travelRequestData.travelRequestId": travelRequestId,
+        },
+        {
+         "cashAdvanceSchema.travelRequestData": travelRequestData,
+         "cashAdvanceSchema.cashAdvancesData": cashAdvancesData,
+        },
+        { upsert: true, new: true }
+      );
+      if(updated){
+        console.log('Saved to dashboard: cashAdvanceSchema using async queue', updated);
+        return { success: true, error: null}
+      }else{
+        return { success: false, error: 'document not found in cashAdvanceSchema'}
+      }
+    } catch (error) {
+      console.error('Failed to update dashboard: cashAdvanceSchema using synchronous queue', error);
+      return { success: false, error: error}
+    }
+}
+

@@ -54,4 +54,55 @@ export const processTravelExpense = async (message,correlationId) => {
       console.error('Failed to send failed updates confirmation,using synchrnous queue:', error);
     }
   }
+}
+
+export const fullUpdateExpense = async (payload) => {
+  const {_doc} = payload
+  const { 
+    tenantId,
+    tripStatus,
+    tripCompletionDate,
+    tripStartDate,
+    tripNumber,
+    isSentToExpense,
+    notificationSentToDashboardFlag,
+    tripId,
+    travelRequestData,
+    cashAdvancesData,
+    travelExpenseData
+  } = _doc;
+    const {travelRequestId} = travelRequestData
+    console.log("payload for travelExpenseData", payload )
+
+    const updateFields = {
+      $set: {
+        tenantId,
+        tripStatus,
+        tripCompletionDate: new Date(tripCompletionDate),
+        tripStartDate: new Date(tripStartDate),
+        tripNumber,
+        isSentToExpense,
+        notificationSentToDashboardFlag,
+        tripId,
+        travelRequestData,
+        cashAdvancesData,
+        travelExpenseData,
+      }
+    };
+    
+
+    try {
+    const updated = await dashboard.findOneAndUpdate(
+      { 'tenantId': tenantId , 'tripSchema.travelRequestData.travelRequestId':travelRequestId},
+      {
+       ...updateFields,
+      },
+      { upsert: true, new: true }
+    );
+    console.log('Saved to dashboard: TravelExpenseData updated successfully', updated);
+    return { success: true, error: null}
+  } catch (error) {
+    console.error('Failed to update dashboard: TravelExpenseData updation failed', error);
+    return { success: false, error: error}
   }
+}

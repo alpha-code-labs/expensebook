@@ -16,13 +16,13 @@ overview.post('/addleg/:tenantId/:tripId/:empId', (req, res) => {
   switch (action) {
     case 'addFlight':
       return addFlight(req, res);
-    case 'addbus':
+    case 'addBus':
       return addBus(req, res);
-    case 'addtrain':
+    case 'addTrain':
       return addTrain(req, res);
-    case 'addhotel':
+    case 'addHotel':
       return addHotel(req, res);
-    case 'addcab':
+    case 'addCab':
       return addCab(req, res);
     default:
       return res.status(400).json({ error: 'Invalid action in the request body.' });

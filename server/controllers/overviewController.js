@@ -47,6 +47,8 @@ export const addFlight = async (req, res) => {
 
     if (trip) {
       let payload = [];
+      let itineraryDetails;
+
       let { travelRequestId, isCashAdvanceTaken, itinerary, approvers, isAddALeg } = trip.tripSchema.travelRequestData;
       const { flights } = itinerary || { flights: [] };
     
@@ -54,15 +56,15 @@ export const addFlight = async (req, res) => {
       trip.tripSchema.travelRequestData.isAddALeg = isAddALegFlag;
     
       payload.push({ travelRequestId });
-
+    
       flightDetails.forEach((newFlight) => {
-        const itineraryDetails = {
+         itineraryDetails = {
           itineraryId: new mongoose.Types.ObjectId(),
           formId: new mongoose.Types.ObjectId().toString(),
           ...initializeFields(), // Initialize all fields to null
           ...newFlight,
           status: updateLineItemStatus(approvers),
-          approvers: approvers.map((approver) => ({ empId: approver.empId, name: approver.name })),
+          approvers: approvers.map((approver) => ({ empId: approver.empId, name: approver.name, status: "pending approval" })),
         };
         console.log("flight",itineraryDetails)
     
@@ -71,15 +73,18 @@ export const addFlight = async (req, res) => {
       });
 
       trip.tripSchema.travelRequestData.itinerary.flights = flights;
-
+       console.log("the payload ....", itineraryDetails)
       const updatedTrip = await trip.save();
       
       if (!updatedTrip) {
         return res.status(500).json({ error: 'Failed to save trip' });
       } else {
-        console.log("after saving hotel", updatedTrip.tripSchema.travelRequestData.itinerary.flights.length-1)
+
+        console.log("the itinerary ..........", itineraryDetails)
         const flightsArray = updatedTrip.tripSchema.travelRequestData.itinerary.flights;
         const flightsAdded = flightsArray.length > 0 ? flightsArray[flightsArray.length-1] : 0;
+
+        console.log("retriving from flights array", flightsAdded)
 
         const dataToSend = {
           tenantId,
@@ -164,7 +169,7 @@ export const addBus = async (req, res) => {
           ...initializeFields(), // Initialize all fields to null
           ...newBus,
           status: updateLineItemStatus(approvers),
-          approvers: approvers.map((approver) => ({ empId: approver.empId, name: approver.name })),
+          approvers: approvers.map((approver) => ({ empId: approver.empId, name: approver.name, status: "pending approval" })),
         };
         console.log("bus",itineraryDetails)
     
@@ -268,7 +273,7 @@ export const addTrain = async (req, res) => {
           ...initializeFields(), // Initialize all fields to null
           ...newTrain,
           status: updateLineItemStatus(approvers),
-          approvers: approvers.map((approver) => ({ empId: approver.empId, name: approver.name })),
+          approvers: approvers.map((approver) => ({ empId: approver.empId, name: approver.name, status: "pending approval" })),
         };
         console.log("Train",itineraryDetails)
     
@@ -372,7 +377,7 @@ export const addCab = async (req, res) => {
           ...initializeCabFields(), // Initialize all fields to null
           ...newCab,
           status: updateLineItemStatus(approvers),
-          approvers: approvers.map((approver) => ({ empId: approver.empId, name: approver.name })),
+          approvers: approvers.map((approver) => ({ empId: approver.empId, name: approver.name, status: "pending approval" })),
         };
         console.log("cabs",itineraryDetails)
     
@@ -475,7 +480,7 @@ export const addHotel = async (req, res) => {
           ...initializeHotelFields(), // Initialize all fields to null
           ...newHotel,
           status: updateLineItemStatus(approvers),
-          approvers: approvers.map((approver) => ({ empId: approver.empId, name: approver.name })),
+          approvers: approvers.map((approver) => ({ empId: approver.empId, name: approver.name, status: "pending approval" })),
         };
         console.log("hotel",itineraryDetails)
     
@@ -554,15 +559,11 @@ const initializeHotelFields = () => ({
   rejectionReason: null,
   status: {
     type: null,
-    enum: null, 
   },
   approvers: [{
     empId: null,
     name: null,
-    status: {
-      type: null,
-      enum: null, 
-    },
+    status: "pending approval", 
   }],
   bookingDetails: {
     docURL: null,
@@ -601,7 +602,13 @@ const initializeCabFields = () => ({
   modified: null,
   cancellationDate: null,
   cancellationReason: null,
+  rejectionReason: null,
   status: null,
+  approvers: [{
+    empId: null,
+    name: null,
+    status: "pending approval", 
+  }],
   bookingDetails: {
     docURL: null,
     docType: null,
@@ -641,7 +648,13 @@ const initializeFields = () => ({
   modified: null,
   cancellationDate: null,
   cancellationReason: null,
+  rejectionReason: null,
   status: null,
+  approvers: [{
+    empId: null,
+    name: null,
+    status: "pending approval", 
+  }],
   bookingDetails: {
     docURL: null,
     docType: null,

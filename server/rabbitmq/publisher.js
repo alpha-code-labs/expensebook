@@ -1,8 +1,11 @@
 import amqp from 'amqplib';
+import dotenv from 'dotenv';
 
-const rabbitMQUrl = 'amqp://localhost:5672/';
+dotenv.config();
+
   
 const connectToRabbitMQ = async () => {
+  const rabbitMQUrl = process.env.rabbitMQUrl;
     try {
       console.log('Connecting to RabbitMQ...');
       const connection = await amqp.connect(rabbitMQUrl);
@@ -75,4 +78,4 @@ export async function sendToOtherMicroservice(payload, action, destination, comm
         console.log(Error` cash advance data to ${destination} microservice:`, error);
         return false;
       }
-  }
+}

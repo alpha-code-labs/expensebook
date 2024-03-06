@@ -55,27 +55,27 @@ const originalData = {
 };
 
 // Modified function to automatically flatten data
-const flattenedData = (() => {
-  const flattenedData = {};
+// const flattenedData = (() => {
+//   const flattenedData = {};
 
-  const flattenObject = (obj, prefix = "") => {
-    for (const key in obj) {
-      if (typeof obj[key] === "object" && obj[key] !== null) {
-        flattenObject(obj[key], `${prefix}${key}_`);
-      } else {
-        flattenedData[`${prefix}${key}`] = obj[key];
-      }
-    }
-  };
+//   const flattenObject = (obj, prefix = "") => {
+//     for (const key in obj) {
+//       if (typeof obj[key] === "object" && obj[key] !== null) {
+//         flattenObject(obj[key], `${prefix}${key}_`);
+//       } else {
+//         flattenedData[`${prefix}${key}`] = obj[key];
+//       }
+//     }
+//   };
 
-  flattenObject(originalData);
+//   flattenObject(originalData);
 
-  return flattenedData;
-})();
+//   return flattenedData;
+// })();
 
 // Output the original and flattened data
-console.log("Original Data:", originalData);
-console.log("\nFlattened Data:", flattenedData);
+// console.log("Original Data:", originalData);
+// console.log("\nFlattened Data:", flattenedData);
 
 
 import Dashboard from '../models/dashboardSchema.js';

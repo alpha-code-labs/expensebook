@@ -329,7 +329,7 @@ type: String,
 },
 travelRequestId: {
 type: mongoose.Types.ObjectId, // tenantId_createdBy_tr_#(tr number) | tentative | not fixed
-unique: true,
+// unique: true,
 required: true,
 },
 travelRequestNumber:{       
@@ -387,9 +387,10 @@ recoveredBy:{empId: String, name: String},
 preferences: [String],
 travelViolations: {},
 travelRequestDate: {
-type: String,
-required:true
-},
+  type: Date,
+  required:true
+  },
+  travelType: String,
 travelBookingDate: Date,
 travelCompletionDate: Date,
 cancellationDate:Date,

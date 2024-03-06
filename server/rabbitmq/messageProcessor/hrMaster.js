@@ -5,11 +5,11 @@ export const updateHRMaster = async (payload) => {
       const updated = await HRMaster.findOneAndUpdate(
         { 'tenantId': payload.tenantId},
         {
-         payload,
+         ...payload,
         },
         { upsert: true, new: true }
       );
-      console.log('Saved to dashboard: using async queue', updated);
+      console.log('Saved to dashboard: successfully', updated);
       return { success: true, error: null}
     } catch (error) {
       console.error('Failed to update dashboard: using synchronous queue', error);

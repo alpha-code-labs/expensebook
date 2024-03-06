@@ -1,5 +1,57 @@
-import { sendFailedConfirmationToTripMicroservice, sendSuccessConfirmationToTripMicroservice } from '../../index.js';
+// import { sendFailedConfirmationToTripMicroservice, sendSuccessConfirmationToTripMicroservice } from '../../index.js';
 import dashboard from '../../models/dashboardSchema.js';
+import pino from 'pino';
+import pinoPretty from 'pino-pretty';
+
+const logger = pino({
+  prettifier: pinoPretty
+});
+
+/**
+ * Function to update or create trip documents based on payload.
+ * @param {Array} payload - Array of objects containing tenantId and tripId.
+ * @returns {Promise} - Promise representing the update operation.
+ */
+export const updateTrip = async (payload) => {
+  try {
+    if (!Array.isArray(payload)) {
+      throw new Error('Invalid input. Payload must be an array.');
+    }
+
+    const promises = payload.map(async (item) => {
+      console.log("each trip ...... ", item)
+      const { tenantId, tripId } = item;
+      
+      // Use $set to replace the entire tripSchema object with the new item
+      const updatedTrip = await dashboard.findOneAndUpdate(
+        { 'tripSchema.tenantId': tenantId, 'tripSchema.tripId': tripId },
+        { $set: { tripSchema: item } },
+        { upsert: true, new: true }
+      );
+      
+      // If the update is successful, return a success message
+      if (updatedTrip) {
+        return { success: true, message: 'Trip updated successfully' };
+      } else {
+        throw new Error('Failed to update trip');
+      }
+    });
+
+    const results = await Promise.all(promises);
+
+    // Return the results array containing success messages
+    return results;
+  } catch (error) {
+    // Handle errors
+    logger.error({ error: error.message }, 'Error occurred in updateTrip function');
+    // Instead of re-throwing the error, return an object with error details
+    return { error: 'Error occurred', message: error.message };
+  }
+};
+
+
+
+
 
 
 // Process transit trip message (received from - trip microservice, received -All transit trips (batchjob))
@@ -167,7 +219,6 @@ if (failedUpdates.length > 0) {
   }
 }
 }
-
 
 
 
