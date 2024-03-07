@@ -5,7 +5,7 @@ export const updateHRMaster = async (payload) => {
       const updated = await HRMaster.findOneAndUpdate(
         { 'tenantId': payload.tenantId},
         {
-         payload,
+         ...payload,
         },
         { upsert: true, new: true }
       );

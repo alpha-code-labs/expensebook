@@ -41,7 +41,7 @@ export const travelExpenseApprovedToNextState = async (trips) => {
     } catch (error) {
       return handleErrorResponse('Failed to update trips', 500);
     }
-  };
+};
   
   
 export const triggerBatchJobAps = async (trips) => {

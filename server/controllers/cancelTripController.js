@@ -198,7 +198,7 @@ export const getTripDetails = async (req, res) => {
     const { tripPurpose} = tripDetails.travelRequestData
     return res.status(200).json({
       success: true,
-      message: 'trip details for the employee.',
+      message: 'trip details for the employee',
       trip:tripDetails,
     });
    }
@@ -400,6 +400,8 @@ export const cancelTripAtHeaderLevel = async (req, res) => {
         cashAdvancesData: trip?.cashAdvancesData ?? [],
       }
     
+      sendTripsToDashboardQueue(payload,  action, comments, onlineVsBatch, needConfirmation)
+
       // //send to other microservices
       // sendToOtherMicroservice(travel, 'full-update', 'travel', 'to update entire travel request in Travel microservice- after cancellation of trip at itinerary level')
 

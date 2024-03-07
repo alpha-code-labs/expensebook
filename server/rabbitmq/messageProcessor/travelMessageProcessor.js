@@ -1,4 +1,5 @@
 import Trip from "../../models/tripSchema.js";
+import { sendToOtherMicroservice } from "../publisher.js";
 
 // const createTrip = async (travelRequest) => {
 //   const {travelRequestData , cashAdvancesData } = travelRequest;
@@ -40,10 +41,12 @@ import Trip from "../../models/tripSchema.js";
 
 
 const createTrip = async (travelRequest) => {
-  const { travelRequestData, cashAdvancesData } = travelRequest;
-  const { tenantId, tenantName, travelRequestId } = travelRequestData;
+  // const { travelRequestData, cashAdvancesData } = travelRequest;
+  // const { tenantId, tenantName, travelRequestId } = travelRequestData;
 
-  const itinerary = travelRequestData?.itinerary ?? {};
+  const { tenantId, tenantName, travelRequestId, createdBy } = travelRequest;
+
+  const itinerary = travelRequest?.itinerary ?? {};
 
   // Extract all booking dates
   const bookingDates = Object.values(itinerary).flatMap(bookings => bookings.map(booking => new Date(booking.bkd_date)));
@@ -58,14 +61,13 @@ const createTrip = async (travelRequest) => {
     travelRequestId,
     tripStartDate: earliestDateTime,
     tripCompletionDate: lastDateTime,
-    travelRequestData,
-    cashAdvancesData
+    createdBy:createdBy,
+    travelRequestData: travelRequest,
   };
 };
 
-
 const updateOrCreateTrip = async (trip) => {
-  const { tenantId, tenantName, travelRequestId, tripStartDate, tripCompletionDate, travelRequestData, cashAdvancesData } = trip;
+  const { tenantId, tenantName, travelRequestId, tripStartDate, tripCompletionDate, travelRequestData } = trip;
   const { isCashAdvanceTaken } = travelRequestData;
 
   try {
@@ -105,34 +107,108 @@ const updateOrCreateTrip = async (trip) => {
 
 
 export const processTravelRequests = async (tripArray) => {
+  console.log("from travel", tripArray);
   if (tripArray.length === 0) {
     return [];
   }
 
-  const resultData = await Promise.all(tripArray.map(async (travelRequest) => {
-    try {
-      const trip = await createTrip(travelRequest);
-      return trip;
-    } catch (error) {
-      console.error('Error creating trip:', error);
-      throw error;
-    }
-  }));
-
-  await Promise.all(resultData.map(async (trip) => {
-    try {
-      const tripsAdded = await updateOrCreateTrip(trip);
-      if(tripsAdded){
-        //send to dashboard all newly added trips.
+  try {
+    const resultData = await Promise.all(tripArray.map(async (travelRequest) => {
+      try {
+        const trip = await createTrip(travelRequest);
+        return trip;
+      } catch (error) {
+        console.error('Error creating trip:', error);
+        throw error;
       }
-    } catch (error) {
-      console.error('Error updating/creating trip:', error);
-      throw error;
-    }
-  }));
+    }));
 
-  return resultData;
+    // Process each trip in parallel
+    const tripPromises = resultData.map(async (trip) => {
+      try {
+        const tripsAdded = await updateOrCreateTrip(trip);
+        return tripsAdded; // Return the result of updateOrCreateTrip
+      } catch (error) {
+        console.error('Error updating/creating trip:', error);
+        throw error;
+      }
+    });
+
+    // Wait for all trip promises to resolve
+    const tripsAdded = await Promise.all(tripPromises);
+  
+    // Filter out null or undefined results
+    const validTripsAdded = tripsAdded.filter(trip => trip);
+   console.log("validTripsAdded for dashboard", validTripsAdded)
+    // Send valid trips to dashboard
+      await sendToOtherMicroservice(validTripsAdded, 'trip-creation', 'dashboard', 'Trip creation successful and sent to dashboard', 'trip', 'online');
+  
+
+    return {success: true};
+  } catch (error) {
+    console.error('Error processing trips:', error);
+    throw error;
+  }
 };
+
+
+// export const processTravelRequests = async (tripArray) => {
+//   console.log("from travel", tripArray)
+//   if (tripArray.length === 0) {
+//     return [];
+//   }
+
+//   const resultData = await Promise.all(tripArray.map(async (travelRequest) => {
+//     try {
+//       const trip = await createTrip(travelRequest);
+//       return trip;
+//     } catch (error) {
+//       console.error('Error creating trip:', error);
+//       throw error;
+//     }
+//   }));
+
+//   // Process each trip in parallel
+// const tripPromises = resultData.map(async (trip) => {
+//   try {
+//     const tripsAdded = await updateOrCreateTrip(trip);
+//     return tripsAdded; // Return the result of updateOrCreateTrip
+//   } catch (error) {
+//     console.error('Error updating/creating trip:', error);
+//     throw error;
+//   }
+// });
+
+// try {
+//   // Wait for all trip promises to resolve
+//   const tripsAdded = await Promise.all(tripPromises);
+  
+//   // Filter out null or undefined results
+//   const validTripsAdded = tripsAdded.filter(trip => trip);
+  
+//   // Send valid trips to dashboard
+//   for (const trip of validTripsAdded) {
+//     await sendToOtherMicroservice(trip, 'trip-creation', 'dashboard', 'Trip creation successful and sent to dashboard', 'trip', 'online');
+//   }
+// } catch (error) {
+//   console.error('Error processing trips:', error);
+//   throw error;
+// }
+//   // await Promise.all(resultData.map(async (trip) => {
+//   //   try {
+//   //     const tripsAdded = await updateOrCreateTrip(trip);
+//   //     if(tripsAdded){
+//   //       //send to dashboard all newly added trips.
+//   //      await sendToOtherMicroservice(tripsAdded, 'trip-creation', 'dashboard', 'trip creation successfull and sent to dashboard','trip','online')
+//   //     }
+//   //   } catch (error) {
+//   //     console.error('Error updating/creating trip:', error);
+//   //     throw error;
+//   //   }
+//   };
+
+//   return resultData;
+// };
 
 
 

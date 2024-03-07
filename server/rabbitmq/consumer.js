@@ -3,17 +3,20 @@ import amqp from 'amqplib';
 import { updateHRMaster, updatePreferences } from './messageProcessor/hrMessage.js';
 import { partialCashUpdate, settleExpenseReport, updateCashStatus } from './messageProcessor/cashMessage.js';
 import { processTravelRequests } from './messageProcessor/travelMessageProcessor.js';
+import dotenv from 'dotenv';
+import { processTravelRequestsWithCash } from './messageProcessor/cashAdvanceProcessor.js';
+
+dotenv.config();
+
 
 //start consuming messages..
-export default async function startConsumer(receiver) {
-    // const rabbitMQUrl = "amqp://guest:guest@192.168.1.11:5672";
-    const rabbitMQUrl = 'amqp://localhost:5672/';
-  
+export  async function startConsumer(receiver) {
+  const rabbitMQUrl = process.env.rabbitMQUrl ;
     const connectToRabbitMQ = async () => {
       try {
         console.log("Connecting to RabbitMQ...");
         const connection = await amqp.connect(rabbitMQUrl);
-        const channel = await connection.createConfirmChannel();
+        const channel = await connection.createChannel();
         console.log("Connected to RabbitMQ.");
         return channel;
       } catch (error) {
@@ -64,7 +67,7 @@ export default async function startConsumer(receiver) {
               //implement retry mechanism
               console.log("update failed with error code", res.error);
             }
-          } else if ( source == 'travel'){
+          } else  if ( source == 'travel'){
             if(action =='trip-creation'){
               const res = await processTravelRequests(payload)
               if(res.success){
@@ -76,7 +79,7 @@ export default async function startConsumer(receiver) {
             }
           } else if (source == 'cash'){
             if(action =='trip-creation'){
-              const res = await processTravelRequests(payload)
+              const res = await processTravelRequestsWithCash(payload)
               if(res.success){
                 channel.ack(msg)
                 console.log('trip creation successful')
@@ -142,6 +145,5 @@ export default async function startConsumer(receiver) {
           }
       }}
     },{ noAck: false }
-    )}
+)}
   
-

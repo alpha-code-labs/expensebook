@@ -1,6 +1,13 @@
 import amqp from 'amqplib';
 import { generateUniqueIdentifier } from '../utils/uuid.js';
 import Trip from '../models/tripSchema.js';
+import pino from 'pino';
+import pinoPretty from 'pino-pretty';
+
+// Create a Pino logger with pretty formatting
+const logger = pino({
+  prettifier: pinoPretty,
+});
 
 // const rabbitMQUrl = 'amqp://localhost:5672';
 const rabbitMQUrl = process.env.rabbitMQUrl
@@ -19,109 +26,220 @@ export const connectToRabbitMQ = async () => {
   }
 };
 
-export const sendTripsToDashboardQueue = async (payload, onlineVsBatch, needConfirmation) => {
+// export const sendTripsToDashboardQueue = async (payload, action, comments, source = 'trip', onlineVsBatch = 'batch', needConfirmation = true) => {
+//  try {
+//     const connection = await amqp.connect(process.env.rabbitMQUrl);
+//     const channel = await connection.createConfirmChannel();
+//     const exchangeName = 'amqp.dashboard';
+//     const queue = 'sync';
+//     const correlationId = generateUniqueIdentifier(); // Assuming this function is defined elsewhere
+//     const replyQueue = await channel.assertQueue('', { exclusive: true });
+
+//     console.log(`Asserting exchange: ${exchangeName}`);
+//     await channel.assertExchange(exchangeName, 'direct', { durable: true });
+
+//     console.log(`Asserting queue: ${queue}`);
+//     await channel.assertQueue(queue, { durable: true });
+
+//     console.log(`Binding queue ${queue} to exchange ${exchangeName}`);
+//     await channel.bindQueue(queue, exchangeName, '');
+
+//     const messageHeaders = {
+//       type: 'new',
+//       source,
+//       onlineVsBatch,
+//       action,
+//       comments,
+//       needConfirmation: 'true',
+//       correlationId,
+//     };
+
+//     const messageToSend = {
+//       headers: messageHeaders,
+//       payload,
+//     };
+
+//     return new Promise((resolve, reject) => {
+//       channel.consume(replyQueue.queue, (msg) => {
+//         if (msg.properties.correlationId === correlationId) {
+//           const response = JSON.parse(msg.content.toString());
+//           console.log('Received response:', response);
+//           resolve(response.success); // Resolve the promise with the success status
+//           channel.ack(msg); // Acknowledge the message
+//           channel.close(); // Close the channel
+//           connection.close(); // Close the connection
+//         }
+//       }, { noAck: false }); // Important: Set noAck to false to allow acknowledgement of the message
+
+//       channel.sendToQueue(queue, Buffer.from(JSON.stringify(messageToSend)), {
+//         replyTo: replyQueue.queue,
+//         correlationId,
+//       });
+//     });
+//  } catch (error) {
+//     console.error('Error sending transit trips to the dashboard microservice:', error);
+//     return false;
+//  }
+// };
+export const sendTripsToDashboardQueue = async (payload, action, comments, source = 'trip', onlineVsBatch = 'batch', needConfirmation = true) => {
   try {
-    console.log('Sending message to RabbitMQ...');
+     console.log('Connecting to RabbitMQ...');
+     const connection = await amqp.connect(process.env.rabbitMQUrl);
+     console.log('Connected to RabbitMQ.');
+ 
+     console.log('Creating confirm channel...');
+     const channel = await connection.createConfirmChannel();
+     console.log('Confirm channel created.');
+ 
+     const exchangeName = 'amqp.dashboard';
+     const queue = 'sync';
+     const correlationId = generateUniqueIdentifier(); // Assuming this function is defined elsewhere
+     const replyQueue = await channel.assertQueue('', { exclusive: true });
+ 
+     console.log(`Asserting exchange: ${exchangeName}`);
+     await channel.assertExchange(exchangeName, 'direct', { durable: true });
+ 
+     console.log(`Asserting queue: ${queue}`);
+     await channel.assertQueue(queue, { durable: true });
+ 
+     console.log(`Binding queue ${queue} to exchange ${exchangeName}`);
+     await channel.bindQueue(queue, exchangeName, '');
+ 
+     const messageHeaders = {
+       type: 'new',
+       source,
+       onlineVsBatch,
+       action,
+       comments,
+       needConfirmation: 'true',
+       correlationId,
+     };
+ 
+     const messageToSend = {
+       headers: messageHeaders,
+       payload,
+     };
+ 
+     console.log('Sending message to queue...');
+     return new Promise((resolve, reject) => {
+       channel.consume(replyQueue.queue, (msg) => {
+         if (msg.properties.correlationId === correlationId) {
+           const response = JSON.parse(msg.content.toString());
+           console.log('Received response:', response);
+ 
+           // Check if the response is a confirmation message
+           if (response.headers && response.headers.type === 'confirmation') {
+             // Assuming the success status is directly under payload.success
+             const success = response.payload.success;
+             console.log(`Confirmation received with success status: ${success}`);
+             resolve(success); // Resolve the promise with the success status
+           } else {
+             console.error('Unexpected response format.');
+             reject(new Error('Unexpected response format.'));
+           }
+ 
+           channel.ack(msg); // Acknowledge the message
+           console.log('Message acknowledged.');
+           channel.close(); // Close the channel
+           console.log('Channel closed.');
+           connection.close(); // Close the connection
+           console.log('Connection closed.');
+         }
+       }, { noAck: false }); // Important: Set noAck to false to allow acknowledgement of the message
+ 
+       channel.sendToQueue(queue, Buffer.from(JSON.stringify(messageToSend)), {
+         replyTo: replyQueue.queue,
+         correlationId,
+       });
+       console.log('Message sent to queue.');
+     });
+  } catch (error) {
+     console.error('Error sending transit trips to the dashboard microservice:', error);
+     return false;
+  }
+ };
+ 
+ 
 
-    const channel = await connectToRabbitMQ();
 
-    const exchangeName = 'amqp.dashboard';
+ 
+const sendTripsToDashboardQueueT = async (payload, action, comments, onlineVsBatch, needConfirmation) => {
+  return new Promise((resolve, reject) => {
+    connectToRabbitMQ(async (channel) => {
+      const exchangeName = 'amqp.dashboard';
+      const queue = 'sync';
+      const correlationId = generateUniqueIdentifier();
 
-    const queue = needConfirmation ? 'sync' : 'async';
+      try {
+        // Assert exchange and queue
+        await channel.assertExchange(exchangeName, 'direct', { durable: true });
+        await channel.assertQueue(queue, { durable: true });
+        await channel.bindQueue(queue, exchangeName, 'Dashboard');
 
-    console.log(`Asserting exchange: ${exchangeName}`);
-    await channel.assertExchange(exchangeName, 'direct', { durable: true });
-
-    console.log(`Asserting queue: ${queue}`);
-    await channel.assertQueue(queue, { durable: true });
-
-    console.log(`Binding queue ${queue} to exchange ${exchangeName}`);
-    await channel.bindQueue(queue, exchangeName, 'ms-ms');
-
-    // Set different headers based on needConfirmation
-    const messageHeaders = {
-      type: 'new',
-      source: 'trip',
-      onlineVsBatch: onlineVsBatch,
-      needConfirmation: needConfirmation,
-    };
-
-    const messageToSend = {
-      headers: messageHeaders,
-      payload,
-    };
-
-    console.log('Publishing message to RabbitMQ:', messageToSend);
-
-    try {
-      let result;
-
-      if (needConfirmation) {
-        const correlationId = generateUniqueIdentifier();
-
-        // Implement request-response pattern for synchronous confirmation
-        result = await new Promise((resolve) => {
-          // Listen for response
-          channel.consume(queue, (msg) => {
-            if (msg.properties.correlationId === correlationId) {
-              resolve(JSON.parse(msg.content.toString()));
-            }
-          }, { noAck: true });
-
-          // Publishing message to RabbitMQ with correlationId
-          channel.publish(exchangeName, '', Buffer.from(JSON.stringify(messageToSend)), {
-            persistent: true,
-            correlationId: correlationId,
-          });
-        });
-      } else {
-        // Publish directly for asynchronous processing
-        channel.publish(exchangeName, '', Buffer.from(JSON.stringify(messageToSend)), {
-          persistent: true,
-        });
-      }
-
-      console.log('Message sent to RabbitMQ:', messageToSend);
-
-      // Wait for response if needConfirmation is true
-      if (needConfirmation && result === false) {
-        const extractedTrip = await extractTrip(payload.tripId);
-
-        const extractedMessageHeaders = {
+        // Construct message headers
+        const messageHeaders = {
           type: 'new',
           source: 'trip',
-          onlineVsBatch: onlineVsBatch,
-          needConfirmation: needConfirmation,
+          onlineVsBatch,
+          action,
+          comments,
+          needConfirmation: true,
         };
 
-        const extractedMessageToSend = {
-          headers: extractedMessageHeaders,
-          payload: extractedTrip,
+        // Construct message to send
+        const messageToSend = {
+          headers: messageHeaders,
+          payload,
         };
 
-        // Publish extractedTrip to the same queue with needConfirmation
-        channel.publish(exchangeName, '', Buffer.from(JSON.stringify(extractedMessageToSend)), {
-          persistent: true,
+        // Listen for response
+        channel.consume(queue, (msg) => {
+          if (msg.properties.correlationId === correlationId) {
+            resolve(JSON.parse(msg.content.toString()));
+            channel.ack(msg);
+            channel.close();
+          }
+        }, { noAck: false });
+
+        // Publish message to RabbitMQ with correlationId
+        await new Promise((resolve, reject) => {
+          channel.publish(exchangeName, '', Buffer.from(JSON.stringify(messageToSend)), {
+            persistent: true,
+            correlationId,
+            replyTo: queue,
+          }, (err, ok) => {
+            if (err !== null) {
+              reject(err);
+            } else {
+              resolve(ok);
+            }
+          });
         });
+        
+      } catch (error) {
+        // Log the error using Pino with structured logging
+        logger.error({
+          timestamp: new Date().toISOString(),
+          error: {
+            message: error.message,
+            stack: error.stack,
+          },
+          correlationId,
+          payload,
+          action,
+          comments,
+          onlineVsBatch,
+          needConfirmation,
+        }, 'Error in sendTripsToDashboardQueue');
+        // Reject the promise with the error
+        reject(error);
       }
-
-      return needConfirmation ? result : true;
-    } catch (error) {
-      console.error('Error sending message to RabbitMQ:', error);
-      throw error;
-    } finally {
-      // Close the channel after a short delay
-      setTimeout(async () => {
-        await channel.close();
-        console.log('Channel closed.');
-      }, 5000);
-    }
-  } catch (error) {
-    // Handle errors with consistent error handling
-    console.error('Error sending transit trips to the dashboard microservice:', error);
-    return false;
-  }
+    });
+  });
 };
+
+
+
 
 // extarct trip and send again
 const extractTrip = async (tripId) => {

@@ -194,7 +194,7 @@ export const oldCreateTrip = async () => {
           console.error('An internal server error occurred:', error.message);
         }
       }
-    };
+};
     
 
 // export const createTrip = async () => {

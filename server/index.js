@@ -2,26 +2,23 @@ import express from 'express';
 import cors from 'cors';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
-// import { startBatchJob } from './scheduler/scheduleBatchJob.js';
-import batchJobRoutes from './routes/batchJobRoutes.js';
-import { config } from './config.js';
+// import { config } from './config.js';
 // import { applyTenantFilter } from './middleware/tripMiddleware.js';
 import mainInternalRoutes from './internal/routes/mainInternalRoutes.js';
 import oldTripRoutes from './routes/tripsRoutes.js';
-import startConsumer from './rabbitmq/consumer.js';
+import {startConsumer} from './rabbitmq/consumer.js';
 import tripRoutes from './routes/tripRoutes.js';
 import { processTravelRequests } from './rabbitmq/messageProcessor/travelMessageProcessor.js';
-import { connectToRabbitMQ } from './rabbitmq/dashboardMicroservice.js';
+import { scheduleTripTransitBatchJob } from './scheduler/statusChangeBatchJob.js';
+import Trip from './models/tripSchema.js';
+import { sendToOtherMicroservice } from './rabbitmq/publisher.js';
 
 
 // Load environment variables using dotenv
 dotenv.config();
 
 const environment = process.env.NODE_ENV || 'development';
-const databaseURI = config[environment].MONGODB_URI; 
-const castStrings = config[environment].castStrings;
 console.log(`Running in ${environment} environment`);
-console.log(`Database URI: ${config[environment].MONGODB_URI}`);
 
 const MONGODB_URI = process.env.MONGODB_URI;
 
@@ -36,13 +33,13 @@ app.use(cors());
 app.use('/api/fe/trips', tripRoutes);
 app.use('/api/internal', mainInternalRoutes);
 app.use('/api/trips', oldTripRoutes); 
-app.use('/api', batchJobRoutes);
 app.get('/get', (req,res) => res.status(200).json("hi from trips"))
 // app.use('/api/:tenantId/trips/cancel', applyTenantFilter, cancelTripRoutes);
 
 
 // // Start the batch job
 // startBatchJob();
+scheduleTripTransitBatchJob()
 
 const mongodb = async () => {
   try {
@@ -57,16 +54,17 @@ const mongodb = async () => {
 };
 
 mongodb();
-connectToRabbitMQ();
 
 const port = process.env.PORT || 8081;
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
 
-//startConsumer('trip');
+startConsumer('trip');
 // const trip = await Trip.findOne({tripId:'658d602bcb8a8aefaacab9ae'})
 // const res = await sendTripsToDashboardQueue(trip, 'online', true)
+// const trip = await Trip.find({tripId:'65df0d66aceac59a438079ad'})
+// const res = await sendToOtherMicroservice(trip, 'trip-creation', 'dashboard', 'Trip creation successful and sent to dashboard', 'trip', 'online');
 
 const exampleTripArray = [
   {
@@ -121,6 +119,7 @@ const exampleTripArray = [
     },
   },
 ];
+
 
 // Usage of the "After" version
 // try {

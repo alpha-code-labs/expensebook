@@ -154,7 +154,7 @@ export const expenseBatchJob = async () => {
 };
   
 
-cron.schedule('*/20 * * * * *', async () => {
+cron.schedule('*/20 * * * * ', async () => {
   console.log('Running expense batch job ...');
   try {
     await expenseBatchJob();
