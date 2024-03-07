@@ -65,7 +65,7 @@ export async function startConsumer(receiver) {
             console.log('update failed with error code', res.error)
           }
         } else if(source == 'travel'){
-            console.log('trying to update HR Master')
+            console.log('trying to update Travel')
             const res = await fullUpdateTravel(payload)
             console.log(res)
             if(res.success){
@@ -110,18 +110,23 @@ export async function startConsumer(receiver) {
           }
           } else if (source == 'trip'){
             if (action == 'trip-creation') {
-              console.log('Trying to update travelExpense Data');
-              const results = await updateTrip(payload);
-              for (const res of results) {
-                if (res.success) {
-                  // Acknowledge message
-                  channel.ack(msg);
-                  console.log('Message processed successfully');
-                } else {
-                  // Implement retry mechanism or handle error
-                  console.log('Update failed with error:', res.error);
+              console.log('Trying to update trip Data');
+              if(Array.isArray(payload)){
+                const results = await updateTrip(payload);
+                for (const res of results) {
+                  if (res.success) {
+                    // Acknowledge message
+                    channel.ack(msg);
+                    console.log('Message processed successfully');
+                  } else {
+                    // Implement retry mechanism or handle error
+                    console.log('Update failed with error:', res.error);
+                  }
                 }
+              } else{
+                console.error(Error,"Payload is not an array");
               }
+
             }
           }
       }

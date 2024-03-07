@@ -86,10 +86,10 @@ app.listen(port, () => {
 });
 
 // start consuming messages..
-// startConsumer('dashboard');
+startConsumer('dashboard');
 
 // consumeFromDashboardQueue();
-
+consumeFromDashboardQueue();
 
 //-----------------------------------------------------------------------------------------------------
 // const consumeAsyncMessages = async (channel, callback) => {

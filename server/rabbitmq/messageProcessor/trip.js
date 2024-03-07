@@ -49,9 +49,86 @@ export const updateTrip = async (payload) => {
   }
 };
 
-
-
-
+//Trip status update function
+// export const updateTripStatus = async (payload) => {
+//   console.log("payload received by message processor ...", payload);
+ 
+//   if (!Array.isArray(payload)) {
+//      throw new Error('Invalid input. Payload must be an array.');
+//   }
+ 
+//   // Initialize counters for success and failure
+//   let successCount = 0;
+//   let failureCount = 0;
+ 
+//   const results = await Promise.all(payload.map(async ({ tripId, tripStatus }) => {
+//      try {
+//        // Assuming 'tripSchema' is a typo and you meant to use the field directly, adjust as necessary
+//        const updatedTrip = await dashboard.findOneAndUpdate(
+//          { 'tripId': tripId }, // Assuming 'tripId' is the correct field name
+//          { $set: { 'tripStatus': tripStatus } }, // Update operation
+//          { new: true } // Return the updated document
+//        );
+ 
+//        if (updatedTrip) {
+//          successCount++;
+//          return { success: true, message: `Trip ${tripId} updated successfully` };
+//        } else {
+//          throw new Error(`Failed to update trip ${tripId}`);
+//        }
+//      } catch (error) {
+//        failureCount++;
+//        return { success: false, message: `Error occurred while updating trip ${tripId}: ${error.message}` };
+//      }
+//   }));
+ 
+//   // Return a summary of the update operation
+//   return {
+//      success: successCount === payload.length, // True if all updates were successful
+//      message: `Successfully updated ${successCount} trips. Failed to update ${failureCount} trips.`
+//   };
+//  };
+export const updateTripStatus = async (payload) => {
+  console.log("Payload received by message processor:", payload);
+  
+  if (!Array.isArray(payload)) {
+      throw new Error('Invalid input. Payload must be an array.');
+  }
+  
+  let successCount = 0;
+  let failureCount = 0;
+  
+  const results = await Promise.all(payload.map(async ({ tripId, tripStatus }) => {
+      try {
+        console.log(`Attempting to update trip with ID: ${tripId} to status: ${tripStatus}`);
+        const updatedTrip = await dashboard.findOneAndUpdate(
+          { 'tripSchema.tripId': tripId },
+          { $set: { 'tripSchema.tripStatus': tripStatus } },
+          { new: true }
+        );
+  
+        if (updatedTrip) {
+          successCount++;
+          console.log(`Trip ${tripId} updated successfully`);
+          return { success: true, message: `Trip ${tripId} updated successfully` };
+        } else {
+          throw new Error(`Failed to update trip ${tripId}`);
+        }
+      } catch (error) {
+        failureCount++;
+        console.log(`Error occurred while updating trip ${tripId}: ${error.message}`);
+        return { success: false, message: `Error occurred while updating trip ${tripId}: ${error.message}` };
+      }
+  }));
+  
+  console.log(`Update summary: Successfully updated ${successCount} trips. Failed to update ${failureCount} trips.`);
+  
+  return {
+      success: successCount === payload.length,
+      message: `Successfully updated ${successCount} trips. Failed to update ${failureCount} trips.`
+  };
+ };
+ 
 
 
 // Process transit trip message (received from - trip microservice, received -All transit trips (batchjob))
