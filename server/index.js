@@ -1,7 +1,6 @@
 import express from 'express';
 import cors from 'cors';
 import mongoose from 'mongoose';
-import nodeCron from 'node-cron';
 import dotenv from 'dotenv';
 import { config } from './config.js';
 import approvalRoutes from './routes/dataSaveRoutes.js';
@@ -9,16 +8,14 @@ import travelApprovalRoutes from './routes/travelApprovalRoutes.js';
 import travelExpenseApprovalRoutes from './routes/travelExpenseApprovalRoutes.js';
 import cashAdvance from './routes/cashAdvance.js';
 import { errorHandler } from './errorHandler/errorHandler.js';
-import { startConsumer } from './rabbitmq/consumer.js';
-
+import startConsumer from './rabbitmq/consumer.js'
 // Load environment variables using dotenv
 dotenv.config();
 
 const environment = process.env.NODE_ENV || 'development';
-const databaseURI = config[environment].mongoURI; 
-const castStrings = config[environment].castStrings;
 console.log(`Running in ${environment} environment`);
 console.log(`Database URI: ${config[environment].mongoURI}`);
+
 
 const MONGODB = process.env.MONGODB_URI;
 
@@ -33,6 +30,7 @@ app.use('/api/approvals', approvalRoutes); // dummy data
 app.use('/api/fe/approvals/tr-ca', travelApprovalRoutes);
 app.use('/api/fe/approvals/cash', cashAdvance);
 app.use('/api/fe/approvals/travel-expense',travelExpenseApprovalRoutes);
+
 
 app.get('/get',(req,res) => res.status(200).json({message:"Approval microservice is live"}))
 /// Start the batch job
@@ -53,7 +51,7 @@ mongodb();
 
 
 //start consuming messages..From RabbitMq
-// startConsumer("approval");
+startConsumer('approval')
 
 // Use the errorHandler middleware at the end
 app.use(errorHandler);

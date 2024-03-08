@@ -104,12 +104,16 @@ export const getTravelRequestDetails = async (req, res) => {
     if (!approval) {
       // If the travel request doesn't exist, return a 404 Not Found response
       return res.status(404).json({ error: 'Travel request not found.' });
+      console.log("approvals not found", res.status)
     }
     const { travelRequestData , cashAdvancesData} = approval
-    
+    console.log("found approval", approval)
    if (travelRequestData.isCashAdvanceTaken ) {
+    console.error('CashAdvanceTaken:', travelRequestData.isCashAdvanceTaken);
        return res.status(200).json({ success: true , travelRequestData, cashAdvancesData})
    } else {
+    console.error('cashAdvance not taken ', travelRequestData.isCashAdvanceTaken);
+
        return res.status(200).json({success: true, travelRequestData, cashAdvancesData:[]});
    }
 
@@ -202,7 +206,7 @@ export const travelStandaloneApprove = async (req, res) => {
     }
 
     // send approval to travel
-    sendToOtherMicroservice(payload, 'approve-reject-tr', 'travel', 'travel standalone approved ')
+    await sendToOtherMicroservice(payload, 'approve-reject-tr', 'travel', 'travel standalone approved ')
 
     return res.status(200).json({ message: `Travel request is approved for ${employee}` });
   } catch (error) {

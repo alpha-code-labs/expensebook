@@ -1,10 +1,13 @@
 import amqp from 'amqplib';
 import { updateHRMaster, updatePreferences } from './messageProcessor/hrMasterMessage.js';
 import { TravelAndCashUpdate, cancelTravelWithCash, itineraryAddedToTravelRequest, updateCashStatus, updateTravel, updateTravelStatus } from './messageProcessor/travelMessage.js';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 
-export async function startConsumer(receiver){
-    const rabbitMQUrl = 'amqp://localhost:5672/';
+export default async function startConsumer(receiver){
+    const rabbitMQUrl = process.env.rabbitMQUrl ;
   
    const connectToRabbitMQ = async () => {
     try {

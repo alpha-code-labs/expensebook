@@ -2,11 +2,13 @@ import amqp from 'amqplib';
 import { generateUniqueIdentifier } from '../utils/uuid.js';
 import { Approval } from '../models/approvalSchema.js';
 
-const rabbitMQUrl = 'amqp://localhost:5672';
+
 
 let channel
 // Establishing connection to rabbitmq
 const connectToRabbitMQ = async () => {
+  const rabbitMQUrl = process.env.rabbitMQUrl ;
+
   try {
     console.log('Connecting to RabbitMQ...');
     const connection = await amqp.connect(rabbitMQUrl);

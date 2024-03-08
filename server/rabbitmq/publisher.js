@@ -5,8 +5,8 @@ import { extractApproval } from './messageProcessor/approvalMessage.js';
 
 dotenv.config()
 
-const rabbitMQUrl = process.env.RBMQ_URL
-  
+const rabbitMQUrl = process.env.rabbitMQUrl ;
+
    const connectToRabbitMQ = async () => {
     try {
       console.log('Connecting to RabbitMQ...');
