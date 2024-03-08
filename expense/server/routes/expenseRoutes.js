@@ -1,16 +1,37 @@
 import express from 'express';
-import { getEmbeddedTripDetails, updateExpense } from '../controllers/expense.js';
+import {  cancelAtHeaderLevelForAReport, cancelAtLine, getClearRejectedReport, getModifyExpenseReport, getRejectedReport, getRejectionReasons, getTravelExpenseReport, onSaveAsDraftExpenseHeader, onSubmitExpenseHeader,} from '../controller/expenseController.js';
+
+export const travelExpenseRoutes = express.Router();
+
+//modify expense report 
+travelExpenseRoutes.get('/:expenseHeaderId/modify', getModifyExpenseReport);
+
+// get clear rejected travel expense reports ---- 
+travelExpenseRoutes.get('/:expenseHeaderId/clear-rejected', getClearRejectedReport)
+
+//on Draft 
+travelExpenseRoutes.post('/:expenseHeaderId/draft', onSaveAsDraftExpenseHeader);
+
+//on submit
+travelExpenseRoutes.post('/:expenseHeaderId/submit', onSubmitExpenseHeader);
+
+// cancel at header level
+travelExpenseRoutes.post('/:expenseHeaderId/cancel-report', cancelAtHeaderLevelForAReport);
+
+// cancel at line item
+travelExpenseRoutes.post('/:expenseHeaderId/cancel-line', cancelAtLine);
+
+//get expense report -- modify and this is same----
+travelExpenseRoutes.get('/:tenantId/:tripId/:expenseHeaderId/expense-report', getTravelExpenseReport);
+
+// get rejected expense report
+travelExpenseRoutes.get('/rejected/:tenantId/:tripId/:expenseHeaderId', getRejectedReport);
+
+// get rejection reason ---/clear-rejected
+travelExpenseRoutes.get('/rejectionReason/:tenantId/:tripId/:expenseHeaderId', getRejectionReasons);
 
 
-const expenseRouter = express.Router();
 
-// expenseRouter.post('/savemod', insertDummyData );
 
-// Define a route to receive updates from the Trip microservice
-expenseRouter.post('/updateFromTrip', updateExpense);
 
-//get embedded trip details
-// Define the route to get the embedded Trip from Expense
-expenseRouter.get('/trip/:tenantId/:empId/:expenseHeaderID', getEmbeddedTripDetails);
 
-export default expenseRouter;

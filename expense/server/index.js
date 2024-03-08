@@ -1,49 +1,53 @@
 import express from 'express';
-import bodyParser from 'body-parser';
 import cors from 'cors';
 import mongoose from 'mongoose';
 import nodeCron from 'node-cron';
 import dotenv from 'dotenv';
-import { config } from './config.js';
-import expenseRoutes from './routes/expenseRoutes.js';
+import { mainFrontendRoutes } from './routes/mainFrontendRoutes.js';
 import { handleErrors } from './errorHandler/errorHandler.js';
-import  triggerBatchJobRoutes  from './routes/triggerBatchJobRoutes.js';
-import expenseReportRoutes from './routes/expenseReportRoutes.js';
-import modifyExpenseRouter from './routes/modifyExpenseReportRoutes.js';
-import nonTravelExpenseReport from './routes/nonTravelExpenseRoutes/nonTravelExpenseReportRoutes.js';
-// import { applyTenantFilter } from './middleware/tenantMiddleware.js';
+import { startConsumer } from './rabbitmq/consumer.js';
+import { reportingRouter } from './routes/reportingRoutes.js';
+// import logger from './logger/logger.js';
+
+//test
+// logger.info('This is an info message from another file');
+// logger.error('This is an error message from another file');
+
+// // logger
+// logger.info('This is an info message from expense');
+// logger.error('This is an error message from expense');
+
 
 // Load environment variables using dotenv
 dotenv.config();
 
 const environment = process.env.NODE_ENV || 'development';
-const databaseURI = config[environment].mongoURI; 
-const castStrings = config[environment].castStrings;
 console.log(`Running in ${environment} environment`);
-console.log(`Database URI: ${config[environment].mongoURI}`);
 
 const mongoURI = process.env.mongoURI;
 
 const app = express();
 
 // middleware
-app.use(bodyParser.json());
+app.use(express.json());
 app.use(cors());
-// app.use('/api/:tenantId/*', applyTenantFilter);
 
 //Routes
-app.use('/api/expense',  expenseRoutes);
-app.use('/api/expense/update', expenseReportRoutes);
-app.use('/api/expense/m', modifyExpenseRouter);
-app.use('/api/expense/non_travel', nonTravelExpenseReport);
+app.use('/api/fe/expense', mainFrontendRoutes);
+app.use('/api/report', reportingRouter);
+// //Routes Internal
+// app.use('/api/internal', mainInternalRoutes);
 
-
-//Routes batchJobs
-app.use('/expense/trigger', triggerBatchJobRoutes);
+// //Routes batchJobs
+// app.use('/expense/trigger', triggerBatchJobRoutes); 
 
 
 /// Start the batch job
 //startBatchJob();
+
+app.get('/test', (req,res) =>{
+  res.send('welcome to alpha code labs ')
+})
 
 const mongodb = async () => {
   try {
@@ -60,7 +64,6 @@ const mongodb = async () => {
 mongodb();
 
 
-
 // Error handling middleware - Should be the last middleware
 app.use((err, req, res, next) => {
   handleErrors(err, req, res, next);
@@ -70,3 +73,6 @@ const port = process.env.PORT || 8083;
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
+
+//RabbitMq
+// startConsumer("expense");

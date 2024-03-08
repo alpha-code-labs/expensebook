@@ -1,0 +1,2565 @@
+import mongoose from "mongoose";
+import HRMaster from "../models/hrCompanySchema.js";
+import Expense from "../models/travelExpenseSchema.js";
+import { calculateHaversineDistance } from "../utils/haversine.js";
+import { sendToOtherMicroservice } from "../rabbitmq/publisher.js";
+
+const formatTenantId = (tenantId) => {
+    return tenantId.toUpperCase(); 
+};
+
+// to generate and add expense report number
+const generateIncrementalNumber = (tenantId, incrementalValue) => {
+    try {
+    if (typeof tenantId !== 'string' || typeof incrementalValue !== 'number') {
+        throw new Error('Invalid input parameters');
+    }
+    const formattedTenant = formatTenantId(tenantId);
+    // return `ER${formattedTenant}${incrementalValue.toString().padStart(6, '0')}`;
+    const paddedIncrementalValue = incrementalValue !== null && incrementalValue !== undefined ? incrementalValue.toString().padStart(6, '0') : '';
+    return `ER${formattedTenant}${paddedIncrementalValue}`;
+} catch (error) {
+    console.error(error);
+    throw new Error('An error occurred while generating the incremental number.');
+}
+}
+
+// to get expense report related company details
+const getExpenseRelatedHrData = async (tenantId,res = {}) => {
+    try {
+        const companyDetails = await HRMaster.findOne({ tenantId });
+
+        if (!companyDetails) {
+            return res.status(404).json({ message: 'Company details not found, please check the req details' });
+        }
+
+       
+        // const { travelExpenseCategories = [],  } = companyDetails 
+        // const expenseCategoryNames = travelExpenseCategories.map(category => category.categoryName);
+
+        let {
+            flags:{policyFlag} = {}, // the name need to be cross-checked with HRMaster later --
+            companyDetails: { defaultCurrency } = {},
+            travelAllocationFlags = {}, // 3 types
+            travelAllocations = {},
+            travelExpenseCategories = {},
+            expenseSettlementOptions = {},
+        } = companyDetails;
+
+        // const { expenseAllocation, expenseAllocation_accountLine} =travelAllocations
+        const isLevel3 = travelAllocationFlags?.level3
+     if(isLevel3){
+      return { defaultCurrency, travelAllocationFlags, travelExpenseCategories: travelAllocations, expenseSettlementOptions}
+     }
+        return { defaultCurrency, travelAllocationFlags, travelExpenseCategories, travelAllocations, expenseSettlementOptions};
+    } catch (error) {
+        console.error('Error in getExpenseRelatedHrData:', error);
+        logger.error('Error in getExpenseRelatedHrData:', error);
+        return { error: 'Server error' };
+    }
+};
+
+//Calculate total cash advnace
+export const calculateTotalCashAdvances = async (cashAdvanceData) => {
+    const totalCashAdvances = { totalPaid: [], totalUnpaid: [] };
+
+    const updateTotal = (totalsArray, currency, amount) => {
+        let existingTotal = totalsArray.find(item => item.currency === currency);
+
+        if (!existingTotal) {
+            existingTotal = { currency, amount: 0 };
+            totalsArray.push(existingTotal);
+        }
+
+        existingTotal.amount += amount || 0;
+    };
+
+    for (const { amountDetails, cashAdvanceStatus } of cashAdvanceData) {
+        if (Array.isArray(amountDetails) && amountDetails.length > 0) {
+            for (const { amount, currency } of amountDetails) {
+                if (cashAdvanceStatus === 'paid') {
+                    updateTotal(totalCashAdvances.totalPaid, currency, amount);
+                } else {
+                    updateTotal(totalCashAdvances.totalUnpaid, currency, amount);
+                }
+            }
+        } else {
+            throw new Error("Cash advance not taken");
+        }
+    }
+    return totalCashAdvances;
+};
+
+// 'pending approval', if it is rejected, then create a new oneTNTABG
+const allExpenseReports = async (expenseReport) => {
+  try {
+      const { tenantId, tenantName, companyName, travelRequestData, travelExpenseData } = expenseReport;
+      const { travelRequestId, travelRequestNumber, approvers } = travelRequestData;
+      let { travelType , createdBy} = travelRequestData
+      // console.log("req params for all expense reports", travelRequestId, travelRequestNumber, approvers, travelType)
+      const { travelAllocationFlags } = travelExpenseData[0];
+      const approverNames = approvers.map(({ empId, name }) => ({ empId, name }));
+      //console.log("travelType..........", travelType)
+      let flagToOpen;
+      let expenseHeaderStatus; // Declare expenseHeaderStatus here
+
+
+      const validPaidStatuses = ['paid', 'paid and distributed'];
+      const validStatuses = ['draft', 'pending approval', 'approved', 'pending settlement', 'new', 'rejected'];
+      
+      if (Array.isArray(travelExpenseData)) {
+        // console.log(" i am in travelExpenseData array with expenseHeaderStatus ",travelExpenseData )
+          const areAllExpenseReportsPaid = travelExpenseData.every(report =>
+              validPaidStatuses.includes(report.expenseHeaderStatus)
+          );
+      // console.log("areAllExpenseReportsPaid", areAllExpenseReportsPaid)
+          const areAllExpenseReportsValid = travelExpenseData
+          .filter(report=>!validPaidStatuses.includes(report.expenseHeaderStatus))
+          .every(report =>
+              validStatuses.includes(report.expenseHeaderStatus) 
+          );
+      
+          console.log("areAllExpenseReportsValid", areAllExpenseReportsValid)
+
+      // if (Array.isArray(travelExpenseData)) {
+      //     for (const travelExpenseReport of travelExpenseData) {
+      //         expenseHeaderStatus = travelExpenseReport.expenseHeaderStatus;
+
+      //         if (expenseHeaderStatus === 'paid' || expenseHeaderStatus === 'paid and distributed') 
+if (areAllExpenseReportsPaid) {
+  // console.log("i am in areAllExpenseReportsPaid ", areAllExpenseReportsPaid)
+const maxIncrementalValue = await Expense.findOne({}, 'travelExpenseData.expenseHeaderNumber')
+    .sort({ 'travelExpenseData.expenseHeaderNumber': -1 })
+    .limit(1);
+
+let nextIncrementalValue = 0;
+
+if (maxIncrementalValue && maxIncrementalValue.travelExpenseData && maxIncrementalValue.travelExpenseData.expenseHeaderNumber) {
+    nextIncrementalValue = parseInt(maxIncrementalValue.travelExpenseData.expenseHeaderNumber.substring(9), 10) + 1;
+}
+
+let expenseHeaderNumber = generateIncrementalNumber(tenantId, nextIncrementalValue);
+let newExpenseHeaderId = new mongoose.Types.ObjectId();
+flagToOpen = newExpenseHeaderId;
+console.log("flagToOpen-- newExpenseHeaderId",newExpenseHeaderId,"new expenseHeaderNumber---", expenseHeaderNumber)
+
+//based on travelAllocationFlags
+travelType = travelAllocationFlags.level1 ? travelType : "";
+
+// Creating newTravelExpenseData object
+const newTravelExpenseData = {
+    tenantId,
+    tenantName,
+    companyName,
+    travelRequestId,
+    travelRequestNumber,
+    expenseHeaderNumber,
+    expenseHeaderId: newExpenseHeaderId,
+    expenseHeaderType: "travel",
+    travelAllocationFlags,
+    approvers: approverNames,
+    travelType:travelType,
+};
+
+// Adding newTravelExpenseData to travelExpenseData array
+expenseReport.travelExpenseData.push(newTravelExpenseData);
+
+// Saving the updated document
+await expenseReport.save();
+} // } else if (Array.isArray(travelExpenseData) && areAllExpenseReportsValid){
+else if (areAllExpenseReportsValid) {
+  // console.log("i am in areAllExpenseReportsValid", areAllExpenseReportsValid)
+    // const matchingExpenseReport = travelExpenseData.find(item => item.expenseHeaderStatus === expenseHeaderStatus);
+    const matchingExpenseReport = travelExpenseData.find(item => validStatuses.includes(item.expenseHeaderStatus));
+    // console.log("matching expenseReport .........", matchingExpenseReport )
+
+    if (matchingExpenseReport) {
+        flagToOpen = matchingExpenseReport.expenseHeaderId;
+    }
+}
+  } else{
+    throw new Error("No expense reports found");
+  }
+// console.log("Returning from Array:", { expenseReport, flagToOpen });
+  return { entireExpenseReport : expenseReport,  createdBy, flagToOpen };
+}
+  catch (error) {
+      console.error("An error occurred in allExpenseReports:", error.message);
+      // Log the error using a logging service in production
+      throw new Error('An error occurred while processing expense reports. Check logs for details.');
+  }
+};
+
+
+// Exporting the async function named BookExpenseReport
+export const BookExpenseReport = async (req, res) => {
+    try {
+      // Destructuring the parameters from the request object
+      const { tenantId, empId, tripId } = req.params;
+      // console.log('Params:', tenantId, empId, tripId);
+
+      const bookExpenseParams = ['tenantId', 'empId', 'tripId']
+      const missingExpenseFields = bookExpenseParams.filter(field => !req.params[field])
+      if(missingExpenseFields.length > 0){
+         return res.status(404).json({message: `missing required fields:${missingExpenseFields.join(", ")}`})
+      }
+     // Retrieving the expense report based on specified conditions
+     const expenseReport = await Expense.findOne({
+      tenantId,
+      tripId,
+      $or: [
+        { 'travelRequestData.createdBy.empId': empId },
+        { 'travelRequestData.createdFor.empId': empId },
+      ],
+     });
+  
+      // Handling the case when no expense report is found
+      if (!expenseReport) {
+        return res.status(404).json({ message: 'expenseReport not found' });
+      }
+  
+      // Getting additional details from HRMaster
+      let additionalDetails;
+      try {
+        additionalDetails = await getExpenseRelatedHrData(tenantId, res);
+        // const travelAllocationFlags = {}
+        // additionalDetails = {travelAllocationFlags};
+      } catch (error) {
+        console.error('Error in getExpenseRelatedHrData:', error);
+        return res.status(500).json({ message: 'Server error' });
+      }
+  
+      // Destructuring additional details
+      const { defaultCurrency, travelAllocationFlags,expenseAllocation, expenseAllocation_accountLine,  expenseCategoryNames, expenseSettlementOptions } = additionalDetails;
+  
+      // Destructuring properties from the expense report
+      const { tripNumber, tenantName, companyName, travelRequestData: { travelRequestId, travelRequestNumber, tripPurpose, approvers } } = expenseReport;
+      let { travelRequestData:{ travelType, createdBy}} = expenseReport
+
+      let expenseHeaderNumber = expenseReport?.travelExpenseData?.[0]?.expenseHeaderNumber;
+  
+      const approversNames = approvers.map(({ empId, name }) => ({ empId, name }));
+  
+      // Handling the case when expenseHeaderNumber is present
+      if (expenseHeaderNumber) {
+       const allExpenseReportsList = await allExpenseReports(expenseReport);
+    //    console.log(" all expense reports", allExpenseReportsList)
+       const {  entireExpenseReport, flagToOpen} = allExpenseReportsList
+       const{expenseAmountStatus,travelExpenseData } =  entireExpenseReport
+        return res.status(200).json({
+          success: true,
+          tripId,
+          tripNumber,
+          tripPurpose,
+          createdBy,
+          newExpenseReport: false, 
+          flagToOpen:flagToOpen ? flagToOpen : undefined,
+          expenseAmountStatus,
+          travelExpenseData,
+          companyDetails: additionalDetails,
+        });
+      } else {
+        const maxIncrementalValue = await Expense.findOne({}, 'travelExpenseData.expenseHeaderNumber')
+          .sort({ 'travelExpenseData.expenseHeaderNumber': -1 })
+          .limit(1);
+
+        let nextIncrementalValue = 0;
+
+        if (maxIncrementalValue && maxIncrementalValue.travelExpenseData && maxIncrementalValue.travelExpenseData.expenseHeaderNumber) {
+          nextIncrementalValue = parseInt(maxIncrementalValue.travelExpenseData.expenseHeaderNumber.substring(9), 10) + 1;
+        }
+
+        expenseHeaderNumber = generateIncrementalNumber(tenantId, nextIncrementalValue);
+
+        // Updating the expense header number in the travelExpenseData
+        expenseReport.travelExpenseData.expenseHeaderNumber = expenseHeaderNumber;
+
+        // Extracting already booked expenses
+        const alreadyBookedExpenseLines = expenseReport.travelRequestData?.itinerary;
+
+        // Initialize total expense amount
+// let currentTotalExpenseAmount = 0;
+
+// // Iterate over each key in alreadyBookedExpenseLines
+// for (const key in alreadyBookedExpenseLines) {
+//   if (Object.prototype.hasOwnProperty.call(alreadyBookedExpenseLines, key)) {
+//     const array = alreadyBookedExpenseLines[key];
+//     const totalAmounts = array.map(obj => parseFloat(obj.bookingDetails?.billDetails?.totalAmount) || 0);
+    
+//     // Sum the totalAmounts to calculate total expenses for the current key
+//     const totalAmountForKey = totalAmounts.reduce((total, amount) => total + amount, 0);
+    
+//     // Accumulate the total expenses across all keys
+//     currentTotalExpenseAmount += totalAmountForKey;
+//   }
+// }
+
+// // Set the total already booked expense amount outside the loop
+// let currentTotalAlreadyBookedExpense = currentTotalExpenseAmount;
+
+
+// Initialize total expense amount
+const currentTotalExpenseAmount = Object.values(alreadyBookedExpenseLines)
+  // Map over each array and extract totalAmount from billDetails, converting to number
+  .map(array =>
+    array.reduce((total, obj) =>
+      total + parseFloat(obj.bookingDetails?.billDetails?.totalAmount) || 0, 0))
+  // Sum the totalAmounts to calculate total expenses across all keys
+  .reduce((total, totalAmountForKey) => total + totalAmountForKey, 0);
+
+  // Set the total already booked expense amount outside the loop
+const currentTotalAlreadyBookedExpense = currentTotalExpenseAmount;
+
+
+        // Handling cash advance details
+        let currentTotalcashAdvance = 0;
+        let currentRemainingCash = 0;
+        const isCashAdvanceTaken = expenseReport.travelRequestData?.isCashAdvanceTaken;
+        const cashAdvanceData = expenseReport?.cashAdvancesData;
+
+        if (isCashAdvanceTaken) {
+          // console.log("i am isCashAdvanceTaken", isCashAdvanceTaken)
+          const cashAdvanceResult = await calculateTotalCashAdvances(cashAdvanceData, res);
+
+          currentTotalcashAdvance += cashAdvanceResult.totalPaid.reduce((total, item) => total + item.amount, 0);
+          currentTotalcashAdvance = parseFloat(currentTotalcashAdvance) + 0.00;
+          currentRemainingCash = currentTotalcashAdvance;
+          // console.log("cashAdvanceResult - currentTotalcashAdvance", currentTotalcashAdvance)
+        }
+
+        // Updating the expenseAmountStatus in the existing document
+        expenseReport.expenseAmountStatus.totalCashAmount = isCashAdvanceTaken ? currentTotalcashAdvance : 0 ;
+        expenseReport.expenseAmountStatus.totalAlreadyBookedExpenseAmount = currentTotalAlreadyBookedExpense;
+        expenseReport.expenseAmountStatus.totalExpenseAmount = currentTotalExpenseAmount;
+        expenseReport.expenseAmountStatus.totalRemainingCash = isCashAdvanceTaken ? currentRemainingCash : 0;
+
+        //create a expenseHeaderId
+        const newExpenseHeaderId = new mongoose.Types.ObjectId();
+
+        //based on travelAllocationFlags
+        travelType = travelAllocationFlags.level1 ? travelType : "";
+
+        // Creating newTravelExpenseData object
+        const newTravelExpenseData = {
+          tenantId,
+          tenantName,
+          companyName,
+          travelRequestId,
+          travelRequestNumber,
+          expenseHeaderNumber,
+          expenseHeaderId:newExpenseHeaderId,
+          expenseHeaderType: "travel",
+          travelAllocationFlags,
+          alreadyBookedExpenseLines: alreadyBookedExpenseLines,
+          approvers: approversNames,
+          travelType: travelType,
+        };
+
+        // Adding newTravelExpenseData to travelExpenseData array
+        expenseReport?.travelExpenseData?.push(newTravelExpenseData);
+
+        // Saving the updated document
+        await expenseReport.save();
+         const {expenseAmountStatus,travelExpenseData} = expenseReport
+
+        //  console.log("travelType.........ONE.", travelType)
+
+        // Returning success response with relevant details
+        return res.status(200).json({
+          success: true,
+          tripId,
+          tripNumber,
+          tripPurpose,
+          createdBy,
+          newExpenseReport: true,
+          expenseHeaderNumber,
+          expenseAmountStatus,
+          travelExpenseData,
+          isCashAdvanceTaken: isCashAdvanceTaken, 
+          companyDetails: additionalDetails,
+        });
+      }
+    } catch (error) {
+      // Handling generic errors and returning a standardized response
+      console.error('Error:', error);
+      return res.status(500).json({ message: 'Internal Server Error' });
+    }
+};
+
+
+// travel Policy Validation 
+export const travelPolicyValidation = async (tenantId, empId, travelType, travelClass, categoryName, totalAmount, res) => {
+    try {
+        // Find the matching document in HRCompany based on tenantId and tenantName
+        const companyDetails = await HRMaster.findOne({ tenantId });
+
+        if (!companyDetails) {
+            return res.status(404).json({ message: 'Company details not found' });
+        }
+
+        const { employees } = companyDetails;
+
+        // Find the employee in the employees array based on empId
+        const employee = employees.find(emp => emp.employeeDetails.employeeId === empId);
+
+        if (!employee) {
+            return res.status(404).json({ message: 'Employee not found' });
+        }
+
+        // Get the groups associated with the employee
+        const employeeGroups = employee.group;
+
+        // Initialize a response object
+        const response = {
+            greenFlag: 'No violation',
+            yellowFlag: [],
+        };
+
+        // Flag to track if at least one group has limit.amount <= totalAmount
+        let hasAllowedLimit = false;
+
+        // Loop through each group
+        for (const group of employeeGroups) {
+            // Access policies for the group from companyDetails
+            const groupPolicies = companyDetails.policies.travelPolicies[0][group];
+
+            if (!groupPolicies) {
+                return res.status(404).json({ message: 'Group policies not found' });
+            }
+
+            // Check if travelType, categoryName, travelClass, and totalAmount are all allowed
+            const typeAllowed = groupPolicies[travelType].allowed;
+            const travelModeAllowed = groupPolicies[categoryName].allowed;
+            const travelClassAllowed = groupPolicies[categoryName].class[travelClass].allowed;
+            const limitAmount = groupPolicies[categoryName].limit.amount;
+            const totalAmountAllowed = !limitAmount || totalAmount <= limitAmount;
+
+            // Check if all conditions are true
+            if (typeAllowed && travelModeAllowed && travelClassAllowed && totalAmountAllowed) {
+                response.greenFlag = 'At least one group allows all travel policies.';
+                hasAllowedLimit = true;
+                break; // Exit loop if at least one group allows
+            }
+
+            // Handle violations
+            const travelModeViolationMessage = groupPolicies[categoryName].violationMessage;
+            const travelClassViolationMessage = groupPolicies[categoryName].class[travelClass].violationMessage;
+            const limitViolationMessage = groupPolicies[categoryName].limit.violationMessage;
+
+            if (!travelModeAllowed) {
+                response.yellowFlag.push({
+                    group,
+                    travelModeViolationMessage,
+                });
+                continue; // Skip to the next group
+            }
+
+            if (!travelClassAllowed) {
+                response.yellowFlag.push({
+                    group,
+                    travelClassViolationMessage,
+                });
+                continue; // Skip to the next group
+            }
+
+            if (!totalAmountAllowed) {
+                response.yellowFlag.push({
+                    group,
+                    limitViolationMessage,
+                });
+                continue; // Skip to the next group
+            }
+        }
+
+        // If at least one group has limit.amount <= totalAmount, discard all yellowFlags
+        if (hasAllowedLimit) {
+            response.yellowFlag = [];
+        }
+
+        // Respond based on the evaluation
+        return res.status(200).json({ message: 'Travel policies evaluation result.', response });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: 'Internal Server Error' });
+    }
+};
+
+
+const extractTotalAmount = (expenseLine, totalAmountNames) => {
+  const keyFound = Object.entries(expenseLine)
+      .find(([key]) => totalAmountNames.some(name => name.trim().toUpperCase() === key.trim().toUpperCase()));
+
+  return keyFound ? keyFound[1] : '';
+};
+
+//On save expense Line
+export const onSaveExpenseLine = async (req, res) => {
+  try {
+    const {
+      tenantId,
+      tripId,
+      empId,
+      expenseHeaderId
+    } = req.params;
+    // console.log("req.params on save", req.params)
+    let {
+      travelType,
+      isCashAdvanceTaken,
+      expenseAmountStatus,
+      expenseLine,
+      allocations
+    } = req.body;
+    // console.log("req.body", req.body)
+    // Destructuring for better readability
+    let {
+      isPersonalExpense,
+      isMultiCurrency
+    } = expenseLine;
+
+    const isLineUpdate = expenseLine?.expenseLineId
+    // Validate required fields
+    const requiredFields = ['expenseAmountStatus', 'expenseLine', 'travelType', 'allocations'];
+    const missingFields = requiredFields.filter(field => !req.body[field]);
+    if (missingFields.length > 0) {
+      return res.status(404).json({
+        message: `Missing required fields: ${missingFields.join(", ")}`
+      });
+    }
+
+    // Extract total amount
+    let totalAmount = extractTotalAmount(expenseLine, ['Total Fare', 'Total Amount', 'Subscription cost', 'Cost', 'Premium Cost']);
+
+    // Convert amounts to numbers
+    let {
+      totalExpenseAmount,
+      totalPersonalExpenseAmount,
+      totalRemainingCash
+    } = expenseAmountStatus;
+    const totalAmountField = Number(totalAmount);
+
+
+    // Handle personal expenses and multicurrency
+    if (isPersonalExpense) {
+      console.log("is personal expoense", isPersonalExpense)
+      const personalExpenseAmount = expenseLine?.personalExpenseAmount || 0;
+
+      if (!isMultiCurrency) {
+        // Logic for non-multicurrency personal expenses
+        if (personalExpenseAmount > totalAmountField) {
+          return res.status(400).json({
+            message: "Personal expense amount cannot exceed total amount"
+          });
+        }
+
+        const nonPersonalExpenseAmount = totalAmountField - personalExpenseAmount;
+        totalExpenseAmount += nonPersonalExpenseAmount;
+        totalPersonalExpenseAmount += personalExpenseAmount;
+        totalRemainingCash -= nonPersonalExpenseAmount;
+      } else {
+        // Logic for multicurrency personal expenses
+        console.log(" personal expense and multicurrency", isPersonalExpense, isMultiCurrency)
+        const {
+          convertedTotalAmount,
+          convertedPersonalAmount,
+          convertedBookableTotalAmount
+        } = expenseLine?.convertedAmountDetails || {};
+
+        if (convertedBookableTotalAmount) {
+          console.log("convertedBookableTotalAmount in expenseLine", convertedBookableTotalAmount)
+          totalExpenseAmount += convertedBookableTotalAmount;
+          totalPersonalExpenseAmount += convertedPersonalAmount;
+          totalRemainingCash -= convertedBookableTotalAmount ;
+        } else {
+          return res.status(400).json({
+            message: "Invalid converted bookable total amount"
+          });
+        }
+      }
+    } else if (isMultiCurrency) {
+      // Logic for multicurrency non-personal expenses
+      const convertedTotalAmount = expenseLine?.convertedAmountDetails?.convertedTotalAmount;
+
+      if (!convertedTotalAmount) {
+        return res.status(404).json({
+          success: false,
+          message: "Conversion total amount is missing"
+        });
+      }
+
+      totalExpenseAmount += convertedTotalAmount;
+      totalRemainingCash -= convertedTotalAmount;
+    } else {
+      // Logic for non-personal, non-multicurrency expenses
+      totalRemainingCash -= totalAmountField;
+      totalExpenseAmount += totalAmountField;
+    }
+
+
+    const filter = { 
+      tenantId, 
+      tripId,
+      $or: [
+        { 'travelRequestData.createdBy.empId': empId },
+        { 'travelRequestData.createdFor.empId': empId },
+      ],
+      'travelExpenseData.expenseHeaderId': expenseHeaderId,
+    }
+
+    let update = {
+      $set: {
+        'expenseAmountStatus.totalPersonalExpenseAmount': totalPersonalExpenseAmount,
+        'expenseAmountStatus.totalExpenseAmount': totalExpenseAmount,
+        'expenseAmountStatus.totalRemainingCash': totalRemainingCash,
+        'travelExpenseData.$.allocations': allocations,
+        'travelExpenseData.$.travelType': travelType,
+      }
+    }
+
+    const options = { new: true}
+
+
+    if (isLineUpdate) {
+      console.log("edit expense Line", isLineUpdate)
+      // If expenseLineId is present, find and update matching expenseLine
+
+      let updateAddOn = {
+        $set:{
+          'travelExpenseData.$[header].expenseLines.$[elem]':expenseLine
+        }
+      }
+     let totalUpdate = { ...update, ...updateAddOn}
+      const arrayFilters = [
+        {'header.expenseHeaderId': expenseHeaderId},
+        { 'elem.expenseLineId': expenseLine.expenseLineId }];
+     const updatedExpenseReport = await Expense.findOneAndUpdate(filter, totalUpdate, { arrayFilters, ...options });
+
+       if (!updatedExpenseReport) {
+      return res.status(404).json({ message: "Expense report not found" });
+    } else {
+          const { travelExpenseData, expenseAmountStatus } = updatedExpenseReport;
+      console.log("expenseLine edited...........",travelExpenseData )
+      return res.status(200).json({
+        message: 'Expense line updated successfully.',
+        travelExpenseData,
+        expenseAmountStatus,
+      })
+    }
+    } else {
+      console.log("adding a new expense LiNE")
+      // If expenseLineId is not present, push the new expenseLine to the array
+      // expenseLine.alreadySaved = true;
+      // expenseLine.lineItemStatus = 'save';
+      
+      if(!expenseLine.hasOwnProperty('expenseLineId')){
+        console.log("checking hasOwnProperty")
+        const expenseLineId = new mongoose.Types.ObjectId();
+        expenseLine.expenseLineId = expenseLineId;
+        console.log("added expense Line", expenseLine)
+        let updateAddOn = {
+          $push:{
+            'travelExpenseData.$.expenseLines': expenseLine
+          }
+        }
+        const totalUpdate = {...update, ...updateAddOn}
+        const updatedExpenseReport = await Expense.findOneAndUpdate(filter, totalUpdate, options);
+  
+      if (!updatedExpenseReport) {
+        console.log("error .... here")
+        return res.status(404).json({ message: "Expense report not found" });
+      } else {
+        console.log("updated and i am here",updatedExpenseReport )
+            const { travelExpenseData, expenseAmountStatus } = updatedExpenseReport;
+        console.log("expenseLine saved ...........",travelExpenseData )
+        return res.status(200).json({
+          message: 'Expense line added successfully.',
+          expenseLineId,
+          travelExpenseData,
+          expenseAmountStatus,
+        })
+      }
+      }
+      }
+  } catch (error) {
+    console.error('An error occurred while saving the expense line items:', error);
+    return res.status(500).json({
+      error: 'An error occurred while saving the expense line items.'
+    });
+  }
+};
+
+// on edit expensemLine
+export const onEditExpenseLine = async (req, res) => {
+  try {
+    const {tenantId,tripId,empId,expenseHeaderId} = req.params;
+    console.log("req.params on edit expense", req.params)
+    let {travelType, expenseAmountStatus, expenseLine, expenseLineEdited, allocations,} = req.body;
+    console.log("req.body for edit expense", req.body)
+    // Destructuring for better readability
+
+      // Validate required fields
+      const requiredFields = ['expenseAmountStatus', 'expenseLine', 'travelType', 'allocations'];
+      const missingFields = requiredFields.filter(field => !req.body[field]);
+      if (missingFields.length > 0) {
+        return res.status(404).json({
+          message: `Missing required fields: ${missingFields.join(", ")}`
+        });
+      }
+  
+      // Extract total amount
+      let totalAmount = extractTotalAmount(expenseLine, ['Total Fare', 'Total Amount', 'Subscription cost', 'Cost', 'Premium Cost']);
+      let totalAmountEdited = extractTotalAmount(expenseLineEdited, ['Total Fare', 'Total Amount', 'Subscription cost', 'Cost', 'Premium Cost']);
+      console.log("totalAmount -- ", totalAmount, "totalAmountEdited", totalAmountEdited)
+ 
+    const isLineUpdate = expenseLine?.expenseLineId.toString() === expenseLineEdited?.expenseLineId.toString()
+    const totalAmountOld = Number(totalAmount);
+    const totalAmountNew = Number(totalAmountEdited);
+  
+    if(isLineUpdate){
+      let {isPersonalExpense, isMultiCurrency } = expenseLine;
+        // Convert amounts to numbers
+   let {
+    totalExpenseAmount,
+    totalPersonalExpenseAmount,
+    totalRemainingCash
+  } = expenseAmountStatus;
+    // Handle personal expenses and multicurrency
+    if (isPersonalExpense) {
+      console.log("is personal expoense", isPersonalExpense)
+      const personalExpenseAmount = expenseLine?.personalExpenseAmount || 0;
+  
+      if (!isMultiCurrency) {
+        // Logic for non-multicurrency personal expenses
+        if (personalExpenseAmount > totalAmountOld) {
+          return res.status(400).json({
+            message: "Personal expense amount cannot exceed total amount"
+          });
+        }
+  
+        const nonPersonalExpenseAmount = totalAmountOld - personalExpenseAmount;
+        totalExpenseAmount -= nonPersonalExpenseAmount;
+        totalPersonalExpenseAmount -= personalExpenseAmount;
+        totalRemainingCash += nonPersonalExpenseAmount;
+      } else {
+        // Logic for multicurrency personal expenses
+        console.log(" personal expense and multicurrency", isPersonalExpense, isMultiCurrency)
+        const {
+          convertedTotalAmount,
+          convertedPersonalAmount,
+          convertedBookableTotalAmount
+        } = expenseLine?.convertedAmountDetails || {};
+  
+        if (convertedBookableTotalAmount) {
+          console.log("convertedBookableTotalAmount in expenseLine", convertedBookableTotalAmount)
+          totalExpenseAmount -= convertedBookableTotalAmount;
+          totalPersonalExpenseAmount -= convertedPersonalAmount;
+          totalRemainingCash += convertedBookableTotalAmount ;
+        } else {
+          return res.status(400).json({
+            message: "Invalid converted bookable total amount"
+          });
+        }
+      }
+    } else if (isMultiCurrency) {
+      // Logic for multicurrency non-personal expenses
+      const convertedTotalAmount = expenseLine?.convertedAmountDetails?.convertedTotalAmount;
+  
+      if (!convertedTotalAmount) {
+        return res.status(404).json({
+          success: false,
+          message: "Conversion total amount is missing"
+        });
+      }
+  
+      totalExpenseAmount -= convertedTotalAmount;
+      totalRemainingCash += convertedTotalAmount;
+    } else {
+      // Logic for non-personal, non-multicurrency expenses
+      totalRemainingCash += totalAmountOld;
+      totalExpenseAmount -= totalAmountOld;
+    }
+  
+      // Replace totalRemainingCash in MongoDB and delete the expense line completely
+      const removeAtLineItem = await Expense.findOneAndUpdate(
+        { 
+          tenantId,
+          'tripId': tripId,
+          $or: [
+            { 'travelRequestData.createdBy.empId': empId }, 
+            { 'travelRequestData.createdFor.empId': empId }
+          ],
+          'travelExpenseData':{
+            $elemMatch:{
+              'expenseHeaderId':expenseHeaderId,
+            }
+          },
+        },
+        {
+          $set: {
+            'expenseAmountStatus.totalExpenseAmount': totalExpenseAmount,
+            'expenseAmountStatus.totalPersonalExpenseAmount': totalPersonalExpenseAmount,
+            'expenseAmountStatus.totalRemainingCash': totalRemainingCash ,
+          },
+          // $pull:{
+          //   'travelExpenseData.$.expenseLines':{'expenseLineId': expenseLineId},
+          // },
+        },
+        { new: true }
+      );
+
+      if(!removeAtLineItem){
+        res.status(404).json({ error:'Failed to edit expense'});
+      } else {
+
+      const {expenseAmountStatus} = removeAtLineItem
+    // Convert amounts to numbers
+    console.log("i am go to add expenseLineEdited","expenseAmountStatus -after- update", expenseAmountStatus)
+   let {
+    totalExpenseAmount,
+    totalPersonalExpenseAmount,
+    totalRemainingCash
+  } = expenseAmountStatus;
+  console.log("totalAmountNew ---", totalAmountNew, "totalRemainingCash", totalRemainingCash)
+
+        const filter = { 
+          tenantId, 
+          tripId,
+          $or: [
+            { 'travelRequestData.createdBy.empId': empId },
+            { 'travelRequestData.createdFor.empId': empId },
+          ],
+          'travelExpenseData.expenseHeaderId': expenseHeaderId,
+        }
+    
+        let update = {
+          $set: {
+            'expenseAmountStatus.totalPersonalExpenseAmount': totalPersonalExpenseAmount,
+            'expenseAmountStatus.totalExpenseAmount': totalExpenseAmount,
+            'expenseAmountStatus.totalRemainingCash': totalRemainingCash,
+            'travelExpenseData.$.allocations': allocations,
+            'travelExpenseData.$.travelType': travelType,
+          }
+        }
+    
+        const options = { new: true}
+    
+         // Handle personal expenses and multicurrency
+    if (isPersonalExpense) {
+      // console.log("is personal expoense", isPersonalExpense)
+      const personalExpenseAmount = expenseLineEdited?.personalExpenseAmount || 0;
+
+      if (!isMultiCurrency) {
+        // Logic for non-multicurrency personal expenses
+        if (personalExpenseAmount > totalAmountNew) {
+          return res.status(400).json({
+            message: "Personal expense amount cannot exceed total amount"
+          });
+        }
+
+        const nonPersonalExpenseAmount = totalAmountNew - personalExpenseAmount;
+        totalExpenseAmount += nonPersonalExpenseAmount;
+        totalPersonalExpenseAmount += personalExpenseAmount;
+        totalRemainingCash -= nonPersonalExpenseAmount;
+      } else {
+        // Logic for multicurrency personal expenses
+        console.log(" personal expense and multicurrency", isPersonalExpense, isMultiCurrency)
+        const {
+          convertedTotalAmount,
+          convertedPersonalAmount,
+          convertedBookableTotalAmount
+        } = expenseLineEdited?.convertedAmountDetails || {};
+
+        if (convertedBookableTotalAmount) {
+          console.log("convertedBookableTotalAmount in expenseLineEdited", convertedBookableTotalAmount)
+          totalExpenseAmount += convertedBookableTotalAmount;
+          totalPersonalExpenseAmount += convertedPersonalAmount;
+          totalRemainingCash -= convertedBookableTotalAmount ;
+        } else {
+          return res.status(400).json({
+            message: "Invalid converted bookable total amount"
+          });
+        }
+      }
+    } else if (isMultiCurrency) {
+      // Logic for multicurrency non-personal expenses
+      const convertedTotalAmount = expenseLineEdited?.convertedAmountDetails?.convertedTotalAmount;
+
+      if (!convertedTotalAmount) {
+        return res.status(404).json({
+          success: false,
+          message: "Conversion total amount is missing"
+        });
+      }
+
+      totalExpenseAmount += convertedTotalAmount;
+      totalRemainingCash -= convertedTotalAmount;
+    } else {
+      // Logic for non-personal, non-multicurrency expenses
+      totalRemainingCash -= totalAmountNew;
+      totalExpenseAmount += totalAmountNew;
+      console.log("totalRemainingCash", totalRemainingCash)
+    }
+      let updateAddOn = {
+        $set:{
+          'travelExpenseData.$[header].expenseLines.$[elem]':expenseLineEdited
+        }
+      }
+     let totalUpdate = { ...update, ...updateAddOn}
+      const arrayFilters = [
+        {'header.expenseHeaderId': expenseHeaderId},
+        { 'elem.expenseLineId': expenseLineEdited.expenseLineId }];
+     const updatedExpenseReport = await Expense.findOneAndUpdate(filter, totalUpdate, { arrayFilters, ...options });
+
+       if (!updatedExpenseReport) {
+      return res.status(404).json({ message: "Expense report not found" });
+    } else {
+          const { travelExpenseData, expenseAmountStatus } = updatedExpenseReport;
+      console.log("expenseLineEdited edited...........",travelExpenseData )
+      return res.status(200).json({
+        message: 'Expense line updated successfully.',
+        travelExpenseData,
+        expenseAmountStatus,
+      })
+    }}
+    } else{
+      res.status(404).json({ error:'Invalid request sent'});
+    }  
+  } catch (error) {
+    console.error('An error occurred while saving the expense line items:', error);
+    return res.status(500).json({
+      error: 'An error occurred while saving the expense line items.'
+    });
+  }
+};
+
+// export const onEditExpenseLine = async (req, res) => {
+//   try {
+//     const { tenantId, tripId, empId, expenseHeaderId } = req.params;
+//     console.log("req.params on edit expense", req.params);
+
+//     let { travelType, expenseAmountStatus, expenseLine, expenseLineEdited, allocations } = req.body;
+//     console.log("req.body for edit expense", req.body);
+
+//     // Validate required fields
+//     const requiredFields = ['expenseAmountStatus', 'expenseLine', 'travelType', 'allocations'];
+//     const missingFields = requiredFields.filter(field => !req.body[field]);
+//     if (missingFields.length > 0) {
+//       return res.status(404).json({
+//         message: `Missing required fields: ${missingFields.join(", ")}`
+//       });
+//     }
+
+//     // Extract total amount
+//     const totalAmountOld = extractTotalAmount(expenseLine, ['Total Fare', 'Total Amount', 'Subscription cost', 'Cost', 'Premium Cost']);
+//     const totalAmountNew = extractTotalAmount(expenseLineEdited, ['Total Fare', 'Total Amount', 'Subscription cost', 'Cost', 'Premium Cost']);
+//     console.log("totalAmount -- ", totalAmountOld, "totalAmountNew", totalAmountNew);
+
+//     const isLineUpdate = expenseLine?.expenseLineId.toString() === expenseLineEdited?.expenseLineId.toString();
+
+//     if (isLineUpdate) {
+//       const {
+//         isPersonalExpense,
+//         isMultiCurrency,
+//         convertedAmountDetails: {
+//           // convertedTotalAmount,
+//           convertedPersonalAmount,
+//           convertedBookableTotalAmount
+//         } = {}
+//       } = expenseLine;
+
+//       // Common logic for updating expense report
+//       let {
+//         totalExpenseAmount,
+//         totalPersonalExpenseAmount,
+//         totalRemainingCash
+//       } = expenseAmountStatus;
+
+//       if (isPersonalExpense) {
+//         const personalExpenseAmount = expenseLine?.personalExpenseAmount || 0;
+
+//         if (!isMultiCurrency) {
+//           if (personalExpenseAmount > totalAmountOld) {
+//             return res.status(400).json({
+//               message: "Personal expense amount cannot exceed total amount"
+//             });
+//           }
+
+//           const nonPersonalExpenseAmount = totalAmountOld - personalExpenseAmount;
+//           totalExpenseAmount -= nonPersonalExpenseAmount;
+//           totalPersonalExpenseAmount -= personalExpenseAmount;
+//           totalRemainingCash += nonPersonalExpenseAmount;
+//         } else {
+//           if (convertedBookableTotalAmount) {
+//             totalExpenseAmount -= convertedBookableTotalAmount;
+//             totalPersonalExpenseAmount -= convertedPersonalAmount;
+//             totalRemainingCash += convertedBookableTotalAmount;
+//           } else {
+//             return res.status(400).json({
+//               message: "Invalid converted bookable total amount"
+//             });
+//           }
+//         }
+//       } else if (isMultiCurrency) {
+//         const convertedTotalAmount = expenseLineEdited?.convertedAmountDetails?.convertedTotalAmount;
+
+//         if (!convertedTotalAmount) {
+//           return res.status(404).json({
+//             success: false,
+//             message: "Conversion total amount is missing"
+//           });
+//         }
+
+//         totalExpenseAmount -= convertedTotalAmount;
+//         totalRemainingCash += convertedTotalAmount;
+//       } else {
+//         totalRemainingCash += totalAmountOld;
+//         totalExpenseAmount -= totalAmountOld;
+//       }
+
+//       console.log("expenseAmountStatus before removing", expenseAmountStatus)
+//       // Update total amounts in MongoDB
+//       const removeAtLineItem = await Expense.findOneAndUpdate(
+//         {
+//           tenantId,
+//           'tripId': tripId,
+//           $or: [
+//             { 'travelRequestData.createdBy.empId': empId },
+//             { 'travelRequestData.createdFor.empId': empId }
+//           ],
+//           'travelExpenseData': {
+//             $elemMatch: {
+//               'expenseHeaderId': expenseHeaderId,
+//             }
+//           },
+//         },
+//         {
+//           $set: {
+//             'expenseAmountStatus.totalExpenseAmount': totalExpenseAmount,
+//             'expenseAmountStatus.totalPersonalExpenseAmount': totalPersonalExpenseAmount,
+//             'expenseAmountStatus.totalRemainingCash': totalRemainingCash,
+//           },
+//         },
+//         { new: true }
+//       );
+
+//       if (!removeAtLineItem) {
+//         res.status(404).json({ error: 'Failed to edit expense' });
+//       } else {
+//         console.log("expenseAmountStatus after removing", expenseAmountStatus)
+
+//         const { expenseAmountStatus } = removeAtLineItem;
+
+//         let {
+//           totalExpenseAmount,
+//           totalPersonalExpenseAmount,
+//           totalRemainingCash
+//         } = expenseAmountStatus;
+
+//         console.log("expenseAmountStatus after removing coming from db", removeAtLineItem.expenseAmountStatus)
+
+
+//         if (isPersonalExpense) {
+//           const personalExpenseAmount = expenseLineEdited?.personalExpenseAmount || 0;
+
+//           if (!isMultiCurrency) {
+//             if (personalExpenseAmount > totalAmountNew) {
+//               return res.status(400).json({
+//                 message: "Personal expense amount cannot exceed total amount"
+//               });
+//             }
+
+//             const nonPersonalExpenseAmount = totalAmountNew - personalExpenseAmount;
+//             totalExpenseAmount += nonPersonalExpenseAmount;
+//             totalPersonalExpenseAmount += personalExpenseAmount;
+//             totalRemainingCash -= nonPersonalExpenseAmount;
+//           } else {
+//             const {
+//               convertedTotalAmount,
+//               convertedPersonalAmount,
+//               convertedBookableTotalAmount
+//             } = expenseLineEdited?.convertedAmountDetails || {};
+
+//             if (convertedBookableTotalAmount) {
+//               totalExpenseAmount += convertedBookableTotalAmount;
+//               totalPersonalExpenseAmount += convertedPersonalAmount;
+//               totalRemainingCash -= convertedBookableTotalAmount;
+//             } else {
+//               return res.status(400).json({
+//                 message: "Invalid converted bookable total amount"
+//               });
+//             }
+//           }
+//         } else if (isMultiCurrency) {
+//           const convertedTotalAmount = expenseLineEdited?.convertedAmountDetails?.convertedTotalAmount;
+
+//           if (!convertedTotalAmount) {
+//             return res.status(404).json({
+//               success: false,
+//               message: "Conversion total amount is missing"
+//             });
+//           }
+
+//           totalExpenseAmount += convertedTotalAmount;
+//           totalRemainingCash -= convertedTotalAmount;
+//         } else {
+//           totalRemainingCash -= totalAmountNew;
+//           totalExpenseAmount += totalAmountNew;
+//         }
+
+//         const filter = {
+//           tenantId,
+//           tripId,
+//           $or: [
+//             { 'travelRequestData.createdBy.empId': empId },
+//             { 'travelRequestData.createdFor.empId': empId },
+//           ],
+//           'travelExpenseData.expenseHeaderId': expenseHeaderId,
+//         };
+
+//         const update = {
+//           $set: {
+//             'expenseAmountStatus.totalPersonalExpenseAmount': totalPersonalExpenseAmount,
+//             'expenseAmountStatus.totalExpenseAmount': totalExpenseAmount,
+//             'expenseAmountStatus.totalRemainingCash': totalRemainingCash,
+//             'travelExpenseData.$.allocations': allocations,
+//             'travelExpenseData.$.travelType': travelType,
+//           }
+//         };
+
+//         const updateAddOn = {
+//           $set: {
+//             'travelExpenseData.$[header].expenseLines.$[elem]': expenseLineEdited
+//           }
+//         };
+
+//         const totalUpdate = { ...update, ...updateAddOn };
+//         const arrayFilters = [
+//           { 'header.expenseHeaderId': expenseHeaderId },
+//           { 'elem.expenseLineId': expenseLineEdited.expenseLineId }
+//         ];
+
+//         const updatedExpenseReport = await Expense.findOneAndUpdate(filter, totalUpdate, { arrayFilters, new: true });
+
+//         if (!updatedExpenseReport) {
+//           return res.status(404).json({ message: "Expense report not found" });
+//         } else {
+//           const { travelExpenseData, expenseAmountStatus } = updatedExpenseReport;
+//           const { expenseLines} = travelExpenseData[0]
+//           console.log("expenseLineEdited edited after db update last ...........", expenseAmountStatus, "expenseLines from db last ", expenseLines);
+//           return res.status(200).json({
+//             message: 'Expense line updated successfully.',
+//             travelExpenseData,
+//             expenseAmountStatus,
+//           });
+//         }
+//       }
+//     } else {
+//       res.status(404).json({ error: 'Invalid request sent' });
+//     }
+//   } catch (error) {
+//     console.error('An error occurred while saving the expense line items:', error);
+//     return res.status(500).json({
+//       error: 'An error occurred while saving the expense line items.'
+//     });
+//   }
+// };
+
+
+
+// on save line item 
+export const oldonSaveExpenseLine = async (req, res) => {
+    try {
+      const { tenantId, tripId, empId, expenseHeaderId } = req.params;
+      const {travelType,isCashAdvanceTaken, expenseAmountStatus, expenseLine, allocations} = req.body;
+      console.log("Params",req.params)
+      console.log("on save req.body", req.body)
+      const requiredParamFields = ['tenantId', 'tripId', 'empId', 'expenseHeaderId']
+      const missingParamFields = requiredParamFields.filter(field => !req.params[field]);
+      if (missingParamFields.length > 0){
+        return res.status(404).json({message: `Missing required fields:${missingParamFields.join(", ")}`})
+      }
+    
+      const requiredFields = ['expenseAmountStatus', 'expenseLine', 'travelType', 'allocations']
+      const missingFields = requiredFields.filter(field => !req.body[field]);
+      if (missingFields.length > 0){
+        return res.status(404).json({message: `Missing required fields:${missingFields.join(", ")}`})
+      }
+
+      const isPersonalExpense  = expenseLine?.isPersonalExpense
+      const isMultiCurrency = expenseLine?.isMultiCurrency
+      const isLineUpdate = expenseLine?.expenseLineId
+      console.log("isPersonalExpense", isPersonalExpense)
+    
+      let {totalExpenseAmount, totalPersonalExpenseAmount,totalRemainingCash} = expenseAmountStatus
+      const totalAmountNames = ['Total Fare', 'Total Amount', 'Subscription cost', 'Cost', 'Premium Cost'];
+
+      let totalAmount = extractTotalAmount(expenseLine, totalAmountNames);
+
+      console.log("totalAmount received", totalAmount)
+
+      //Converting to Numbers
+      totalExpenseAmount = Number(totalExpenseAmount)
+      totalPersonalExpenseAmount = Number(totalPersonalExpenseAmount)
+      totalRemainingCash = Number(totalRemainingCash)
+      totalAmount = Number(totalAmount)
+
+
+      console.log("totalAmount received", totalAmount)
+      // totalAmount = expenseLine['Total Amount'] ? expenseLine['Total Amount'].trim().toUpperCase() : '';
+      const travelClass = expenseLine['Class of Service'] ? expenseLine['Class of Service'].trim().toUpperCase() : '';
+      const categoryName = expenseLine['Category Name'] ? expenseLine['Category Name'].trim().toUpperCase() : '';
+      console.log("is this key ....", totalAmount)
+      let { personalExpenseAmount } = expenseLine;
+      const expenseLineId = new mongoose.Types.ObjectId();
+      const filter = { 
+        tenantId, 
+        tripId,
+        $or: [
+          { 'travelRequestData.createdBy.empId': empId },
+          { 'travelRequestData.createdFor.empId': empId },
+        ],
+        'travelExpenseData': {
+          $elemMatch: { 'expenseHeaderId': expenseHeaderId },
+        },
+      }
+      if (isPersonalExpense && !isMultiCurrency)  {
+        console.log("personalExpenseAmount: -........", personalExpenseAmount , "totalAmount-", totalAmount)
+        if (personalExpenseAmount > totalAmount) {
+          console.log("Personal expense amount cannot exceed total amount, personalExpenseAmount: -", personalExpenseAmount , "totalAmount-", totalAmount)
+          return res.status(400).json({ message: "Personal expense amount cannot exceed total amount" });
+        }        
+        console.log("i am inside multicurrency and personal expense", isPersonalExpense, !isMultiCurrency )
+
+        const nonPersonalExpenseAmount = totalAmount - personalExpenseAmount;
+        totalExpenseAmount += nonPersonalExpenseAmount;
+        totalPersonalExpenseAmount += personalExpenseAmount;
+        totalRemainingCash -= nonPersonalExpenseAmount;
+        expenseLine.alreadySaved = true;
+        expenseLine.lineItemStatus = 'save';
+        expenseLine.expenseLineId = expenseLineId;
+
+        // if(isCashAdvanceTaken){
+
+        // } else {
+
+        // }
+      //  const policyValidationResult = await policyValidationHr(
+      //   tenantId,
+      //   empId,
+      //   categoryName,
+      //   travelType,
+      //   travelClass,
+      //   totalAmount,
+      //   res
+      // );
+
+      // if(policyValidationResult){
+      //   return policyValidationResult
+      //   console.log("policyValidationResult..........", policyValidationResult)
+      // }
+
+          const updatedExpenseReport = await Expense.findOneAndUpdate(filter,
+            {
+              $set: {
+                'expenseAmountStatus.totalPersonalExpenseAmount': totalPersonalExpenseAmount,
+                'expenseAmountStatus.totalExpenseAmount': totalExpenseAmount,
+                'expenseAmountStatus.totalRemainingCash': totalRemainingCash,
+                'travelExpenseData.$.allocations':allocations,
+                'travelExpenseData.$.travelType': travelType,
+              },
+              $push: {
+                'travelExpenseData.$.expenseLines': expenseLine,
+              },
+            },
+            {
+              // arrayFilters: [{ 'element.expenseHeaderNumber': expenseHeaderNumber }],
+              new: true, // To return the modified document
+            }
+          );
+
+      if(!updatedExpenseReport){
+        return res.status(404).json({message:"Expense report not found"})
+      } else {
+        const {travelExpenseData, expenseAmountStatus } = updatedExpenseReport
+        console.log("569....",travelExpenseData, expenseAmountStatus )
+
+      return res.status(200).json({
+        message: 'Expense line items updated successfully.',
+        travelExpenseData,
+        expenseAmountStatus
+      });}
+      } else if(isPersonalExpense && isMultiCurrency){
+        console.log("i am inside multicurrency and personal expense", isPersonalExpense, isMultiCurrency )
+        console.log("personalExpenseAmount: -........", personalExpenseAmount , "totalAmount-", totalAmount)
+        let {convertedTotalAmount, convertedPersonalAmount, convertedBookableTotalAmount } = expenseLine?.convertedAmountDetails
+        totalAmount = convertedTotalAmount;
+        personalExpenseAmount = convertedPersonalAmount;
+        if (personalExpenseAmount > totalAmount) {
+          console.log("Personal expense amount cannot exceed total amount, personalExpenseAmount: -", personalExpenseAmount , "totalAmount-", totalAmount)
+          return res.status(400).json({ message: "Personal expense amount cannot exceed total amount" });
+        }        
+        console.log("i am inside multicurrency and personal expense", isPersonalExpense, !isMultiCurrency )
+
+
+
+        const nonPersonalExpenseAmount = totalAmount - personalExpenseAmount;
+        if(convertedBookableTotalAmount == nonPersonalExpenseAmount){
+          totalExpenseAmount += nonPersonalExpenseAmount;
+          totalPersonalExpenseAmount += personalExpenseAmount;
+          totalRemainingCash -= nonPersonalExpenseAmount;
+        }
+
+        expenseLine.alreadySaved = true;
+        expenseLine.lineItemStatus = 'save';
+        expenseLine.expenseLineId = expenseLineId;
+
+
+      //  const policyValidationResult = await policyValidationHr(
+      //   tenantId,
+      //   empId,
+      //   categoryName,
+      //   travelType,
+      //   travelClass,
+      //   totalAmount,
+      //   res
+      // );
+
+      // if(policyValidationResult){
+      //   return policyValidationResult
+      //   console.log("policyValidationResult..........", policyValidationResult)
+      // }
+
+          const updatedExpenseReport = await Expense.findOneAndUpdate( filter,
+            {
+              $set: {
+                'expenseAmountStatus.totalPersonalExpenseAmount': totalPersonalExpenseAmount,
+                'expenseAmountStatus.totalExpenseAmount': totalExpenseAmount,
+                'expenseAmountStatus.totalRemainingCash': totalRemainingCash,
+                'travelExpenseData.$.allocations':allocations,
+                'travelExpenseData.$.travelType': travelType,
+              },
+              $push: {
+                'travelExpenseData.$.expenseLines': expenseLine,
+              },
+            },
+            {
+              // arrayFilters: [{ 'element.expenseHeaderNumber': expenseHeaderNumber }],
+              new: true, // To return the modified document
+            }
+          );
+      console.log("625",categoryName, updatedExpenseReport )
+      if(!updatedExpenseReport){
+        return res.status(404).json({message:"Expense report not found"})
+      } else {
+        const {travelExpenseData, expenseAmountStatus} = updatedExpenseReport
+      return res.status(200).json({
+        message: 'Expense line items updated successfully.',
+        travelExpenseData, expenseAmountStatus
+      });}
+      } else if(!isPersonalExpense && isMultiCurrency){
+        console.log("only multicurrency", !isPersonalExpense, isMultiCurrency)
+        let {convertedTotalAmount } = expenseLine?.convertedAmountDetails
+        if(!convertedTotalAmount){
+          return res.status(404).json({success: false, message: " conversion total amount is missing"})
+        }
+        console.log( "convertedTotalAmount-", convertedTotalAmount)
+
+          totalExpenseAmount += convertedTotalAmount;
+          totalRemainingCash -= convertedTotalAmount;
+
+          expenseLine.alreadySaved = true;
+          expenseLine.lineItemStatus = 'save';
+          expenseLine.expenseLineId = expenseLineId;
+
+
+      //  const policyValidationResult = await policyValidationHr(
+      //   tenantId,
+      //   empId,
+      //   categoryName,
+      //   travelType,
+      //   travelClass,
+      //   totalAmount,
+      //   res
+      // );
+
+      // if(policyValidationResult){
+      //   return policyValidationResult
+      //   console.log("policyValidationResult..........", policyValidationResult)
+      // }
+
+          const updatedExpenseReport = await Expense.findOneAndUpdate( filter,
+            {
+              $set: {
+                'expenseAmountStatus.totalExpenseAmount': totalExpenseAmount,
+                'expenseAmountStatus.totalRemainingCash': totalRemainingCash,
+                'travelExpenseData.$.allocations':allocations,
+                'travelExpenseData.$.travelType': travelType,
+              },
+              $push: {
+                'travelExpenseData.$.expenseLines': expenseLine,
+              },
+            },
+            {
+              // arrayFilters: [{ 'element.expenseHeaderNumber': expenseHeaderNumber }],
+              new: true, // To return the modified document
+            }
+          );
+      console.log("775",categoryName, updatedExpenseReport )
+      if(!updatedExpenseReport){
+        return res.status(404).json({message:"Expense report not found"})
+      } else{
+      return res.status(200).json({
+        message: 'Expense line items updated successfully.',
+        updatedExpenseReport,
+      });}
+      } else {
+        // updated remaining cash is added to totalRemainingCash
+        totalRemainingCash -= totalAmount;
+        console.log("totalRemainingCash after update", totalRemainingCash)
+         // total amount from fields in expense category
+         totalExpenseAmount += totalAmount;
+
+         expenseLine.alreadySaved = true;
+         expenseLine.lineItemStatus = 'save';
+         expenseLine.expenseLineId = expenseLineId;
+
+         console.log("totalRemainingCash after update", totalRemainingCash, "totalExpenseAmount", totalExpenseAmount)
+
+    // const policyValidationResult = await policyValidationHr(
+    //   tenantId,
+    //   empId,
+    //   categoryName,
+    //   travelType,
+    //   travelClass,
+    //   totalAmount,
+    //   res
+    // );
+
+    // if(policyValidationResult){
+    //   return policyValidationResult
+    //   console.log("policyValidationResult..........", policyValidationResult)
+    // }
+
+        const ExpenseReport = await Expense.findOneAndUpdate( filter,
+            {
+              $push: {
+                'travelExpenseData.$.expenseLines': expenseLine,
+              },
+              $set: {
+                'travelExpenseData.$.allocations':allocations,
+                'expenseAmountStatus.totalExpenseAmount': totalExpenseAmount,
+                'expenseAmountStatus.totalRemainingCash': totalRemainingCash,
+                'travelExpenseData.$.travelType': travelType,
+              },
+            },
+            {
+              // arrayFilters: [{ 'element.expenseHeaderId': expenseHeaderId }],
+              new: true, // To return the modified document
+            }
+          );
+          console.log("715.......",ExpenseReport)
+          if(!ExpenseReport){
+            return res.status(404).json({message:"Expense report not found"})
+          } else{
+            return res.status(200).json({
+              message: 'Expense line items updated successfully.',
+              ExpenseReport,
+            });
+          }
+          
+      }
+    } catch (error) {
+      console.error('An error occurred while saving the expense line items:', error);
+      return res.status(500).json({ error: 'An error occurred while saving the expense line items.' });
+    }
+};
+
+
+
+// if (isLineUpdate) {
+//   // If expenseLineId is present, find and update matching expenseLine
+//   update.$set[`travelExpenseData.0.expenseLines.$[elem]`] = expenseLine;
+//   const arrayFilters = [{ 'elem.expenseLineId': expenseLine.expenseLineId }];
+//   await Expense.findOneAndUpdate(filter, update, { arrayFilters, ...options });
+// } else {
+//   // If expenseLineId is not present, push the new expenseLine to the array
+//   update.$push = {
+//     'travelExpenseData.$.expenseLines': expenseLine,
+//   };
+//   await Expense.findOneAndUpdate(filter, update, options);
+// }
+
+// const updatedExpenseReport = await Expense.findOne(filter).select('travelExpenseData expenseAmountStatus');
+
+// if (!updatedExpenseReport) {
+//   return res.status(404).json({ message: "Expense report not found" });
+// } else {
+//   const { travelExpenseData, expenseAmountStatus } = updatedExpenseReport;
+//   return res.status(200).json({
+//     message: 'Expense line items updated successfully.',
+//     travelExpenseData,
+//     expenseAmountStatus,
+//   });
+// }
+
+
+
+
+//policy validator
+export const policyValidationHr = async (tenantId, empId, categoryName, travelType, travelClass, totalAmount, res) => {
+  try {
+    const isPersonalVehicle = categoryName === 'personalVehicle';
+    const isCarRentals = categoryName === 'carRentals';
+
+    if (isPersonalVehicle || isCarRentals) {
+      const travelDistance = await calculateKilometers(
+        expenseLine.from_lat,
+        expenseLine.from_long,
+        expenseLine.to_lat,
+        expenseLine.to_long
+      );
+
+      if (travelDistance) {
+
+        const policyValidation = await policyValidationForVehicle(
+          tenantId,
+          empId,
+          travelDistance,
+          vehicleType
+        );
+
+        return res.status(200).json({
+          success: true,
+          message: 'Successfully processed travelDistance and policy validation.',
+          data: { policyValidation },
+        });
+      } else {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid travelDistance value.',
+          error: 'Travel distance must be a valid value.',
+        });
+      }
+    } else {
+      const policyValidationForAll = await travelPolicyValidation(
+        tenantId,
+        empId,
+        travelType,
+        travelClass,
+        categoryName,
+        totalAmount,
+        res
+      );
+
+      return res.status(200).json({
+        success: true,
+        message: 'Successfully processed travelDistance and policy validation.',
+        data: policyValidationForAll,
+      });
+    }
+  } catch (error) {
+    console.error('Error processing travelDistance and policy validation:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Error processing travelDistance and policy validation.',
+      error: error.message,
+    });
+  }
+};
+
+
+export const currencyConverter = async (req, res) => {
+    try {
+        const { tenantId} = req.params;
+        console.log("params", req.params)
+        const { currencyName, totalAmount, personalAmount, nonPersonalAmount } = req.body;
+        console.log("req. body",currencyName, totalAmount, personalAmount, nonPersonalAmount)
+        if (!currencyName ||!totalAmount ) {
+            return res.status(400).json({ message: 'Currency name, total amount are required' });
+        }
+        const hrDocument = await HRMaster.findOne({tenantId});
+
+        if (!hrDocument) {
+            return res.status(404).json({ message: 'Tenant not found' });
+        }
+
+        const { multiCurrencyTable } = hrDocument;
+        const { defaultCurrency, exchangeValue } = multiCurrencyTable;
+        const currencyNameInUpperCase = currencyName?.toUpperCase();
+        const foundDefaultCurrency = defaultCurrency?.shortName?.toUpperCase() === currencyNameInUpperCase;
+        const foundCurrency = exchangeValue.find(currency => currency.currency.shortName.toUpperCase() === currencyNameInUpperCase);
+
+        const currencyConverterData ={
+        currencyFlag: false, message: 'Currency not available for conversion'
+        }
+        if (!foundCurrency) {
+          return res.status(200).json({success: false, currencyConverterData});
+      }
+
+        if (foundDefaultCurrency && !nonPersonalAmount && !personalAmount) {
+            const currencyConverterData = {
+                currencyFlag: true,
+                companyName: hrDocument?.companyDetails?.companyName || 'Dummy Company',
+                defaultCurrency: defaultCurrency.shortName,
+                convertedCurrency: currencyName.toUpperCase(),
+                message: 'This is your company default currency, no need to do conversion',
+                originalAmount: totalAmount,
+                originalPersonalAmount: personalAmount,
+                originalNonPersonalAmount: nonPersonalAmount,
+                originalCurrencyName: currencyName,
+            };
+            return res.status(200).json({ success: true , currencyConverterData });
+        } else if(nonPersonalAmount && personalAmount) {
+            // const foundCurrency = exchangeValue.find(currency => currency?.currency?.shortName?.toUpperCase() === currencyNameInUpperCase);
+
+            // if (!foundCurrency) {
+            //     return res.status(202).json({ success: false, currencyFlag: false, message: 'Currency not available for conversion' });
+            // }
+
+            const conversionPrice = foundCurrency.value;
+            const convertedTotalAmount = totalAmount * conversionPrice;
+
+            let personalAmountInDefaultCurrency, convertedBookableTotalAmount;
+
+            if (personalAmount !== undefined && nonPersonalAmount !== undefined) {
+                personalAmountInDefaultCurrency = personalAmount * conversionPrice;
+                convertedBookableTotalAmount = nonPersonalAmount * conversionPrice;
+            }
+
+            const currencyConverterData = {
+                currencyFlag: true,
+                companyName: hrDocument?.companyDetails?.companyName || 'Dummy Company',
+                defaultCurrencyName: defaultCurrency.shortName,
+                convertedCurrencyName: currencyName,
+                convertedTotalAmount: convertedTotalAmount,
+                convertedPersonalAmount: personalAmountInDefaultCurrency,
+                convertedBookableTotalAmount: convertedBookableTotalAmount,
+            };
+            return res.status(200).json({ success: true, currencyConverterData });
+        } else if(totalAmount && currencyName) {
+          const foundCurrency = exchangeValue.find(currency => currency.currency.shortName.toUpperCase() === currencyNameInUpperCase);
+
+          if (!foundCurrency) {
+              return res.status(202).json({ success: false, currencyFlag: false,message: 'Currency not available for conversion' });
+          }
+
+          const conversionPrice = foundCurrency.value;
+          const convertedTotalAmount = totalAmount * conversionPrice;
+
+          const currencyConverterData = {
+              currencyFlag: true,
+              companyName: hrDocument?.companyDetails?.companyName || 'Dummy Company',
+              defaultCurrencyName: defaultCurrency.shortName,
+              convertedCurrencyName: currencyName,
+              conversionRate: conversionPrice,
+              convertedTotalAmount: convertedTotalAmount,
+          };
+          return res.status(200).json({ success: true,  currencyConverterData });
+      } else{
+        const currencyConverterData ={
+          success: false,
+          message: 'Invalid request',
+        }
+        return res.status(400).json({success: false, currencyConverterData});
+      }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({success: false,  message: 'Internal server error' });
+    }
+};
+ 
+export const getModifyExpenseReport = async (req, res) => {
+    try {
+        const { tenantId, empId, expenseHeaderId } = req.params;
+  
+        // Check if required parameters are provided
+        if (!tenantId || !empId || !expenseHeaderId) {
+            return res.status(400).json({
+                success: false,
+                message: 'Missing required parameters',
+            });
+        }
+  
+        const expense = await Expense.findOne({
+           tenantId,
+           $or:[
+            { "travelRequestData.createdBy.empId":empId},
+            {"travelRequestData.createdFor.empId":empId}
+          ],
+           "travelExpenseData":{
+              $elemMatch: { "expenseHeaderId":expenseHeaderId}
+           }
+          });
+        
+        if (!expense) {
+            return res.status(404).json({
+                success: false,
+                message: 'Travel expense Report not found or unauthorized',
+            });
+        }
+  
+        res.status(200).json({
+            success: true,
+            message: 'Travel expense Report retrieved successfully',
+            expense
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Failed to retrieve Travel expense Report' });
+    }
+};
+
+export const onSaveAsDraftExpenseHeader = async (req, res) => {
+    const {tenantId, empId, tripId, expenseHeaderId } = req.params;
+  console.log('onSaveAsDraftExpenseHeader', req.params)
+    try {
+      const draftExpenseReport = await Expense.findOneAndUpdate(
+        { 'tenantId': tenantId,
+          'tripId': tripId,
+          $or: [
+            { 'travelRequestData.createdBy.empId': empId },
+            { 'travelRequestData.createdFor.empId': empId }
+          ],
+          'travelExpenseData': {
+            $elemMatch: {
+              'expenseHeaderId': expenseHeaderId,
+              'expenseHeaderStatus':{$in
+                :['new','draft']},
+            }
+          },
+        },
+        {
+          $set: {
+            'travelExpenseData.$.expenseHeaderStatus': 'draft',
+          }
+        },
+        { new: true }
+      );
+  
+      if (!draftExpenseReport) {
+        return res.status(404).json({ message: 'Expense report not found' });
+      } else{
+       // send it to trip
+      // await onSaveAsDraftExpenseHeaderToTrip(draftExpenseReport);
+
+      const payload = {...draftExpenseReport};
+      const needConfirmation = false;
+      const source = 'expense'
+      const onlineVsBatch = 'online';
+      const action = 'full-update';
+      const comments = 'expense report saved as Draft';
+
+// await sendTravelExpenseToDashboardQueue(payload, needConfirmation, onlineVsBatch, source);
+  
+await  sendToOtherMicroservice(payload, action, 'dashboard', comments, source, onlineVsBatch='online')
+await sendToOtherMicroservice(payload, action, 'trip', comments, source, onlineVsBatch='online')
+
+  // Process the updated expenseReport if needed
+      return  res.status(200).json({ message: 'Expense report status updated as draft' });
+    } 
+    } catch (error) {
+      console.error('An error occurred while saving the expense header:', error);
+      return res.status(500).json({ error: 'An error occurred while status updated as draft at the expense header.' });
+    }
+};
+
+
+// pending settlemet  
+// To update expense header status
+// const getExpenseHeaderStatus  = (travelExpenseData) => {
+//   console.log("i am here for status update",travelExpenseData )
+//     if (travelExpenseData?.approvers && travelExpenseData.approvers.length > 0) {
+//       console.log("approvers", travelExpenseData.approvers);
+//       return 'pending approval';
+//     } else if (
+//       travelExpenseData.expenseLines &&
+//       travelExpenseData.expenseLines.length > 0 &&
+//       travelExpenseData?.expenseLines.some((line) => line.lineItemId === itineraryId)
+//     ) {
+//       return 'paid';
+//     } else {
+//       return 'pending settlement'; // finance admin
+//     }
+//   };
+const getExpenseHeaderStatus = (travelExpenseData) => {
+  console.log("I am here for status update", travelExpenseData);
+
+  const hasApprovers = travelExpenseData?.approvers?.length > 0;
+  const hasPaidLines =travelExpenseData?.alreadyBookedExpenseLines?.formState?.length > 0;
+  const hasNoExpenseLines = travelExpenseData?.expenseLines?.length === 0
+
+  if (hasApprovers) {
+      console.log("Approvers", travelExpenseData.approvers);
+      return 'pending approval';
+  } else if (hasPaidLines && hasNoExpenseLines) {
+    console.log("AlreadybookedExpense", hasPaidLines, hasNoExpenseLines)
+      return 'paid';
+  } else {
+      return 'pending settlement'; // finance admin
+      console.log("pending settlement")
+  }
+};
+
+// Exported function for handling expense header submission ()(when cancelling at header level check length of travelExpenseData, if it is just 1 object and getting cancelled then reset all amounts to 0 or else - the total amounts   is available if it is available)
+export const onSubmitExpenseHeader = async (req, res) => {
+    const {tenantId, empId, tripId, expenseHeaderId } = req.params;
+  console.log("params----onSubmitExpenseHeader", req.params)
+    try {
+      const expenseReport = await Expense.findOne(
+        {
+          'tenantId': tenantId,
+          'tripId': tripId,
+          $or: [
+            { 'travelRequestData.createdBy.empId': empId },
+            { 'travelRequestData.createdFor.empId': empId },
+          ],
+          'travelExpenseData':{
+            $elemMatch:{
+            'expenseHeaderId':expenseHeaderId,
+            'expenseHeaderStatus':{$in:['new','draft', 'pending approval', 'approved', 'pending settlement']},
+            },
+          },
+        },
+      );
+  
+      // Check if the expense report is not found
+      if (!expenseReport) {
+        return res.status(404).json({ message: 'Expense report not found' });
+      } else {
+        const { travelExpenseData} = expenseReport
+        console.log("travelExpenseData", travelExpenseData)
+        let { expenseHeaderStatus} = travelExpenseData
+         const matchingIndex = travelExpenseData.findIndex(data => data.expenseHeaderId.toString() === expenseHeaderId.toString());
+
+         console.log("Matching index:", matchingIndex);
+
+console.log("Matching index:", matchingIndex);
+
+if (matchingIndex !== -1) {
+    const updatedStatus = getExpenseHeaderStatus(travelExpenseData[matchingIndex]);
+    travelExpenseData[matchingIndex].expenseHeaderStatus = updatedStatus;
+    console.log("Updated expense header status:", updatedStatus);
+
+    // Save the updated status in the database
+    await expenseReport.save();
+         // await onSaveLineItemToTrip(updatedExpenseReport);
+         const payload = {...expenseReport};
+         const needConfirmation = false;
+         const source = 'expense'
+         const onlineVsBatch = 'online';
+         const action = 'full-update';
+         const comments = 'expense report submitted';
+   
+   // await sendTravelExpenseToDashboardQueue(payload, needConfirmation, onlineVsBatch, source);
+ 
+   await  sendToOtherMicroservice(payload, action, 'dashboard', comments, source, 'online')
+   await sendToOtherMicroservice(payload, action, 'trip', comments, source, 'online')
+   
+     // Process the updated expenseReport if needed
+     return res.status(200).json({ message: 'Your Expense report submitted successfully' });
+       } 
+        
+       }
+} catch (error) {
+      // Handle errors in a consistent manner
+      console.error('An error occurred while updating the expense header:', error);
+      return res.status(500).json({ error: 'An error occurred while updating the expense header.' });
+    }
+};
+  
+
+export const cancelAtHeaderLevelForAReport = async (req, res) => {
+    const { tenantId, tripId, empId, expenseHeaderId } = req.params;
+    const { expenseAmountStatus, travelExpenseReport } = req.body;
+ console.log("req.body on header level cancel", req.body)
+    if(expenseAmountStatus){
+      let {  totalExpenseAmount, totalPersonalExpenseAmount, totalRemainingCash } = expenseAmountStatus;
+    }
+  
+  try {
+  // const hasAlreadyBookedExpense = travelExpenseReport && travelExpenseReport.alreadyBookedExpenseLines && Array.isArray(travelExpenseReport.alreadyBookedExpenseLines) && travelExpenseReport.alreadyBookedExpenseLines.length > 0;
+  const hasAlreadyBookedExpense = !!(travelExpenseReport?.alreadyBookedExpenseLines &&
+    Object.values(travelExpenseReport.alreadyBookedExpenseLines)
+      .filter(Array.isArray)
+      .some(arr => arr.length > 0)
+  );  
+  
+  const isMatchingExpenseHeaderId = travelExpenseReport && travelExpenseReport.expenseHeaderId === expenseHeaderId;
+  const {expenseLines} = travelExpenseReport
+  console.log("hasAlreadyBookedExpense , isMatchingExpenseHeaderId",hasAlreadyBookedExpense , isMatchingExpenseHeaderId )
+  if (hasAlreadyBookedExpense && isMatchingExpenseHeaderId){
+        const updatedExpenseReport = await Expense.findOneAndUpdate(
+          {
+            'tenantId': tenantId,
+            'tripId': tripId,
+            $or: [
+              { 'travelRequestData.createdBy.empId': empId },
+              { 'travelRequestData.createdFor.empId': empId }
+            ],
+            'travelExpenseData.expenseHeaderId': expenseHeaderId,
+          },
+          {
+              $pull: { 'travelExpenseData': { 'expenseHeaderId': expenseHeaderId } },
+              $unset: { 'expenseAmountStatus': 1 },
+          },
+          { new: true }
+        );
+
+        if(updatedExpenseReport){
+        const payload = {...updatedExpenseReport};
+        const needConfirmation = true;
+        let source = 'travel-expense'
+        let onlineVsBatch = 'online';
+        const action = 'full-update';
+        const destination = 'dashboard';
+        const comments = 'All expenseReports are deleted'
+        //  await sendTravelExpenseToDashboardQueue(payload, needConfirmation, onlineVsBatch, source);
+
+        await  sendToOtherMicroservice(payload, action, destination, comments, source='expense', onlineVsBatch='online')
+  
+        // Process the updated expenseReport if needed
+        return res.status(200).json({ success: true, message:"Your expense Report deleted Successfully" });} else{
+        return res.status(404).json({ success: false, message:"Your expense report deletion failed"})
+       }
+} else {
+// Iterate through expense lines to update totals and remove object
+  expenseLines.forEach((expenseLine) => {
+  const { isPersonalExpense, isMultiCurrency } = expenseLine;
+// Extract total amount
+ let totalAmount = extractTotalAmount(expenseLine, ['Total Fare', 'Total Amount', 'Subscription cost', 'Cost', 'Premium Cost']);
+      
+      if (isPersonalExpense) {
+          if (isMultiCurrency) {
+              const { convertedPersonalAmount } = expenseLine.convertedAmountDetails;
+              totalPersonalExpenseAmount -= convertedPersonalAmount;
+              totalRemainingCash += totalAmount - convertedPersonalAmount;
+          } else {
+              totalPersonalExpenseAmount -= expenseLine.personalExpenseAmount;
+              totalRemainingCash += totalAmount - expenseLine.personalExpenseAmount;
+          }
+      } else {
+          if (isMultiCurrency) {
+              totalExpenseAmount -= totalAmount;
+              totalRemainingCash += totalAmount;
+          } else {
+              totalExpenseAmount -= totalAmount;
+              totalRemainingCash += totalAmount;
+          }
+      }
+  });
+
+  // Perform MongoDB update operation
+  await Expense.updateMany(
+      {
+          tenantId,
+          tripId,
+          $or: [
+              { 'travelRequestData.createdBy.empId': empId },
+              { 'travelRequestData.createdFor.empId': empId }
+          ],
+          'travelExpenseData': {
+              $elemMatch: { expenseHeaderId }
+          },
+      },
+      {
+          $set: {
+              'expenseAmountStatus.totalExpenseAmount': totalExpenseAmount,
+              'expenseAmountStatus.totalPersonalExpenseAmount': totalPersonalExpenseAmount,
+              'expenseAmountStatus.totalRemainingCash': totalRemainingCash,
+          },
+          $pull: {
+              'travelExpenseData.$': { expenseHeaderId },
+          },
+      }
+  );          
+
+const payload = {...newExpenseReport};
+const needConfirmation = true;
+const source = 'travel-expense'
+const onlineVsBatch = 'online';
+
+await sendTravelExpenseToDashboardQueue(payload, needConfirmation, onlineVsBatch, source);
+// Process the updated expenseReport if needed
+return res.status(200).json({ success: true, message: 'Expense Report canceled successfully.' });
+
+    } }catch (error) {
+      console.error('Error canceling at header level:', error);
+      res.status(500).json({ success: false, message: 'Internal server error.', error: error.message });
+    }
+};
+
+//cancel at line
+export const cancelAtLine = async (req, res) => {
+    try {
+      const {tenantId, empId, tripId, expenseHeaderId } = req.params;
+      console.log(" params", req.params)
+      const {expenseAmountStatus, expenseLine } = req.body;
+      console.log("req.body for cancel line", req.body)
+      const {expenseLineId , isPersonalExpense, isMultiCurrency} = expenseLine
+     console.log("3", expenseLineId , isPersonalExpense, isMultiCurrency)
+
+      let totalAmount = extractTotalAmount(expenseLine, ['Total Fare', 'Total Amount', 'Subscription cost', 'Cost', 'Premium Cost']);
+
+      console.log("totalAmount -- ", totalAmount)
+
+  // Convert amounts to numbers
+    let {
+      totalExpenseAmount,
+      totalPersonalExpenseAmount,
+      totalRemainingCash
+    } = expenseAmountStatus;
+    const totalAmountField = Number(totalAmount);
+
+
+    // Handle personal expenses and multicurrency
+    if (isPersonalExpense) {
+      console.log("is personal expoense", isPersonalExpense)
+      const personalExpenseAmount = expenseLine?.personalExpenseAmount || 0;
+
+      if (!isMultiCurrency) {
+        // Logic for non-multicurrency personal expenses
+        if (personalExpenseAmount > totalAmountField) {
+          return res.status(400).json({
+            message: "Personal expense amount cannot exceed total amount"
+          });
+        }
+
+        const nonPersonalExpenseAmount = totalAmountField - personalExpenseAmount;
+        totalExpenseAmount -= nonPersonalExpenseAmount;
+        totalPersonalExpenseAmount -= personalExpenseAmount;
+        totalRemainingCash += nonPersonalExpenseAmount;
+      } else {
+        // Logic for multicurrency personal expenses
+        console.log(" personal expense and multicurrency", isPersonalExpense, isMultiCurrency)
+        const {
+          convertedTotalAmount,
+          convertedPersonalAmount,
+          convertedBookableTotalAmount
+        } = expenseLine?.convertedAmountDetails || {};
+
+        if (convertedBookableTotalAmount) {
+          console.log("convertedBookableTotalAmount in expenseLine", convertedBookableTotalAmount)
+          totalExpenseAmount -= convertedBookableTotalAmount;
+          totalPersonalExpenseAmount -= convertedPersonalAmount;
+          totalRemainingCash += convertedBookableTotalAmount ;
+        } else {
+          return res.status(400).json({
+            message: "Invalid converted bookable total amount"
+          });
+        }
+      }
+    } else if (isMultiCurrency) {
+      // Logic for multicurrency non-personal expenses
+      const convertedTotalAmount = expenseLine?.convertedAmountDetails?.convertedTotalAmount;
+
+      if (!convertedTotalAmount) {
+        return res.status(404).json({
+          success: false,
+          message: "Conversion total amount is missing"
+        });
+      }
+
+      totalExpenseAmount -= convertedTotalAmount;
+      totalRemainingCash += convertedTotalAmount;
+    } else {
+      // Logic for non-personal, non-multicurrency expenses
+      totalRemainingCash += totalAmountField;
+      totalExpenseAmount -= totalAmountField;
+    }
+
+      // Replace totalRemainingCash in MongoDB and delete the expense line completely
+      const cancelExpenseAtLineItem = await Expense.findOneAndUpdate(
+        { 
+          tenantId,
+          'tripId': tripId,
+          $or: [
+            { 'travelRequestData.createdBy.empId': empId }, 
+            { 'travelRequestData.createdFor.empId': empId }
+          ],
+          'travelExpenseData':{
+            $elemMatch:{
+              'expenseHeaderId':expenseHeaderId,
+            }
+          },
+        },
+        {
+          $set: {
+            'expenseAmountStatus.totalExpenseAmount': totalExpenseAmount,
+            'expenseAmountStatus.totalPersonalExpenseAmount': totalPersonalExpenseAmount,
+            'expenseAmountStatus.totalRemainingCash': totalRemainingCash ,
+          },
+          $pull:{
+            'travelExpenseData.$.expenseLines':{'expenseLineId': expenseLineId},
+          },
+        },
+        { new: true }
+      );
+  
+  if(!cancelExpenseAtLineItem){
+  return res.status(404).json({success: false , message:"Internal server error"})
+  } else {
+      if(cancelExpenseAtLineItem){
+        const { travelExpenseData, expenseAmountStatus} = cancelExpenseAtLineItem
+        const payload = {...cancelExpenseAtLineItem};
+        const needConfirmation = true;
+        let source = 'travel-expense'
+        let onlineVsBatch = 'online';
+        const action = 'full-update';
+        const destination = 'dashboard';
+        const comments = 'All expenseReports are deleted'
+        //  await sendTravelExpenseToDashboardQueue(payload, needConfirmation, onlineVsBatch, source);
+
+        await  sendToOtherMicroservice(payload, action, destination, comments, source='expense', onlineVsBatch='online')
+
+        await  sendToOtherMicroservice(payload, action, 'trip', comments, source='expense', onlineVsBatch='online')
+  
+        // Process the updated expenseReport if needed
+        return res.status(200).json({ success: true, travelExpenseData, expenseAmountStatus, message:"Your expense deleted Successfully" });
+      } else{
+        return res.status(404).json({ success: false, message:"Your expense deletion failed"})
+       }
+      } }catch (error) {
+      console.error(error);
+      res.status(500).json({ success: false, message: 'Failed to cancel expense at line item level.' });
+    }
+};
+
+
+// rejection reasons
+export const getRejectionReasons = async (req, res) => {
+  try {
+    const { tenantId, empId, tripId,  expenseHeaderId } = req.params;
+    console.log('Received request params for getRejectionReasons:', req.params);
+
+    const expenseReport = await Expense.findOne({
+      tenantId,
+      tripId,
+      $or: [
+        { 'travelRequestData.createdBy.empId': empId },
+        { 'travelRequestData.createdFor.empId': empId },
+      ],
+      'travelExpenseData': {
+        $elemMatch: {
+          "expenseHeaderId": expenseHeaderId,
+          "expenseHeaderStatus": { $in: ["rejected"] }
+        }
+      }
+    });
+
+    console.log('Retrieved expense report:', expenseReport);
+
+    if (!expenseReport) {
+      console.log('Expense report not found');
+      return res.status(404).json({
+        success: false,
+        message: 'Expense Report not found for the given IDs',
+      });
+    }
+
+    console.log("expenseReport",expenseReport)
+
+    const {tripNumber} = expenseReport
+    const {expenseHeaderNumber, rejectionReason } = expenseReport.travelExpenseData[0];
+    console.log('Retrieved rejection reason:', rejectionReason);
+    
+    return res.status(200).json({
+      success: true,
+      tripNumber,
+      expenseHeaderId,
+      expenseHeaderNumber,
+      flagToOpen:expenseHeaderId,
+      rejectionReason,
+    });
+  } catch (error) {
+    console.error('Error occurred:', error);
+
+    res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve rejected TravelExpenseReport',
+    });
+  }
+};
+
+
+//Add a leg - flights,cabs,trains,buses, hotels,public transportation
+export const addALegToTravelRequestData = async (payload) => {
+    const { tenantId, travelRequestId, isAddALeg, itineraryType, itineraryDetails: itinerary } = payload;
+
+    const processArray = async (currentArray, targetArray) => {
+        let newAlreadyBookedAmount = 0;
+
+        itinerary.forEach(item => {
+            const foundItemIndex = currentArray.findIndex(entry => entry.bookingDetails.billDetails.totalAmount === item.bookingDetails.billDetails.totalAmount);
+
+            if (foundItemIndex !== -1) {
+                const foundItem = currentArray.splice(foundItemIndex, 1)[0];
+                targetArray.push(foundItem);
+
+                newAlreadyBookedAmount += foundItem.bookingDetails.billDetails.totalAmount;
+            }
+        });
+
+        try {
+            const expenseReport = await Expense.findOneAndUpdate(
+                { 'tenantId': tenantId, 'travelRequestData.travelRequestId': travelRequestId },
+                {
+                    $set: {
+                        'travelRequestData.isAddALeg': isAddALeg
+                    },
+                    $push: { [`travelRequestData.itinerary.${itineraryType}`]: { $each: targetArray } },
+                    $inc: {
+                        'expenseAmountStatus.totalAlreadyBookedExpenseAmount': newAlreadyBookedAmount,
+                        'expenseAmountStatus.totalExpenseAmount': newAlreadyBookedAmount
+                    }
+                },
+                { new: true }
+            );
+
+            if (!expenseReport) {
+                return {
+                    success: false,
+                    message: 'Expense report not found'
+                };
+            }
+
+            return {
+                success: true,
+                message: 'Expense report updated successfully',
+                expenseReport
+            };
+        } catch (err) {
+            return {
+                success: false,
+                message: err.message 
+            };
+        }
+    };
+
+    // Call the processArray function with the correct target array based on the itinerary type
+    try {
+        const targetArray = req.body.travelRequestData.itinerary[itineraryType] || [];
+        const result = await processArray(targetArray, targetArray);
+        return result;
+    } catch (error) {
+        return {
+            success: false,
+            message: 'Failed to add leg: ' + error.message
+        };
+    }
+};
+
+//delete add a leg
+export const deleteALegFromTravelRequestData = async (req, res) => {
+    const { tenantId, travelRequestId, isAddALeg, itineraryType, itineraryDetails: itinerary } = payload;
+
+    const processArray = async (currentArray, targetArray) => {
+        let newAlreadyBookedAmount = 0;
+
+        itinerary.forEach(item => {
+            const foundItemIndex = currentArray.findIndex(entry => entry.bookingDetails.billDetails.totalAmount === item.bookingDetails.billDetails.totalAmount);
+
+            if (foundItemIndex !== -1) {
+                const foundItem = currentArray.splice(foundItemIndex, 1)[0];
+                targetArray.push(foundItem);
+
+                newAlreadyBookedAmount += foundItem.bookingDetails.billDetails.totalAmount;
+            }
+        });
+
+        try {
+            const expenseReport = await Expense.findOneAndUpdate(
+                { 'tenantId': tenantId, 'travelRequestData.travelRequestId': travelRequestId },
+                {
+                    $set: {
+                        'travelRequestData.isAddALeg': isAddALeg
+                    },
+                    $push: { [`travelRequestData.itinerary.${itineraryType}`]: { $each: targetArray } },
+                    $inc: {
+                        'expenseAmountStatus.totalAlreadyBookedExpenseAmount': -newAlreadyBookedAmount,
+                        'expenseAmountStatus.totalExpenseAmount': -newAlreadyBookedAmount
+                    }
+                },
+                { new: true }
+            );
+
+            if (!expenseReport) {
+                return {
+                    success: false,
+                    message: 'Expense report not found'
+                };
+            }
+
+            return {
+                success: true,
+                message: 'Expense report updated successfully',
+                expenseReport
+            };
+        } catch (err) {
+            return {
+                success: false,
+                message: err.message 
+            };
+        }
+    };
+
+    // Call the processArray function with the correct target array based on the itinerary type
+    try {
+        const targetArray = req.body.travelRequestData.itinerary[itineraryType] || [];
+        const result = await processArray(targetArray, targetArray);
+        return result;
+    } catch (error) {
+        return {
+            success: false,
+            message: 'Failed to add leg: ' + error.message
+        };
+    }
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// testing
+export const getTripDetails = async (req,res) => {
+    const {tenantId, empId, tripId} = req.params;
+ try{
+    const tripDetails = await Expense.findOne({
+        tenantId: tenantId,
+        tripId: tripId,
+        $or:[
+            {'travelRequestData.createdBy.empId': empId},
+            {'travelRequestData.createdFor.empId': empId}
+        ]
+    })
+
+    if(tripDetails){
+        res.status(200).json({ message :'tripDetails fetched successully', tripDetails})
+    }
+ } catch(error){
+    return res.status(500).json({ message: 'server error', error: error.message})
+ }
+    
+}
+
+//Policy validation for personal fuel or cab rentals we use km calculation
+// export const calculateKilometers = async (from_lat, from_long, to_lat, to_long, res) => {
+//     try {
+//       const fromLat = parseFloat(from_lat);
+//       const fromLong = parseFloat(from_long);
+//       const toLat = parseFloat(to_lat);
+//       const toLong = parseFloat(to_long);
+  
+//       if (isNaN(fromLat) || isNaN(fromLong) || isNaN(toLat) || isNaN(toLong)) {
+//         return res.status(400).json({ message: 'Invalid latitude or longitude values' });
+//       }
+  
+//       try {
+//         const distanceInKilometers = await calculateHaversineDistance(fromLat, fromLong, toLat, toLong);
+//         if(res && res.status == 200){
+//             return res.json({ distanceInKilometers});
+//         } else{
+//             return res.status(500).json({error:"internal server error"});
+// }
+//   } catch (error) {
+//   console.error(error);
+//   return res.status(404).json({ error: 'Error fetching details of travel policy' });
+// }
+// } catch (error) {
+// console.error(error);
+// return res.status(500).json({ message: 'Internal server error' });
+// }
+// };
+export const calculateKilometers = async (from_lat, from_long, to_lat, to_long, res) => {
+    try {
+      const fromLat = parseFloat(from_lat);
+      const fromLong = parseFloat(from_long);
+      const toLat = parseFloat(to_lat);
+      const toLong = parseFloat(to_long);
+  
+      if (isNaN(fromLat) || isNaN(fromLong) || isNaN(toLat) || isNaN(toLong)) {
+        console.log('Invalid latitude or longitude values');
+        return res?.status(400).json({ message: 'Invalid latitude or longitude values' });
+      }
+  
+      try {
+        const distanceInKilometers = await calculateHaversineDistance(fromLat, fromLong, toLat, toLong);
+        if (res && res.status && res.status === 200) {
+          console.log('Response object:', res); // Log the response object
+          return res.json({ distanceInKilometers });
+        } else {
+          console.log('Invalid response status:', res?.status); // Log the status for debugging
+          return res?.status(500).json({ error: 'Internal server error' });
+        }
+      } catch (error) {
+        console.error(error);
+        return res?.status(404).json({ error: 'Error fetching details of travel policy' });
+      }
+    } catch (error) {
+      console.error(error);
+      return res?.status(500).json({ message: 'Internal server error' });
+    }
+  };
+  
+  
+  
+
+
+// policy for personal vehicle or cab rentals
+export const policyValidationForVehicle = async (req, res) => {
+    try {
+        const { tenantId, empId, travelDistance, categoryName } = req.params;
+
+        // Find company details based on tenantId and empId
+        const companyDetails = await HRMaster.findOne({ tenantId, empId });
+
+        if (!companyDetails) {
+            return res.status(404).json({ message: 'Company details not found, please check the req details' });
+        }
+
+        const { employees } = companyDetails;
+        const employee = employees.find((emp) => emp.employeeDetails.employeeId === empId);
+
+        if (!employee) {
+            return res.status(404).json({ message: 'Employee not found' });
+        }
+
+        // Get the groups associated with the employee
+        const employeeGroups = employee.group;
+
+        // Initialize a response object
+        const response = {
+            greenFlag: 'No violation',
+            yellowFlag: [],
+        };
+
+        // Flag to track if at least one group has limit.amount <= totalAmount
+        let hasAllowedLimit = false;
+
+        // Loop through each group
+        for (const group of employeeGroups) {
+            // Access policies for the group from companyDetails
+            const groupPolicies = companyDetails.policies.travelPolicies[0][group];
+
+            if (!groupPolicies) {
+                return res.status(404).json({ message: 'Group policies not found' });
+            }
+
+            // Determine the specific policy based on categoryName
+            const specificPolicy = categoryName === 'personal vehicle' ? groupPolicies.personalVehicle : groupPolicies.cabRentals;
+
+            // Assuming totalLimit, perKmLimit, and travelDistance are defined somewhere in your code
+            const totalLimit = specificPolicy.limit.amount;
+            const perKmLimit = specificPolicy.perKmLimit.amount;
+
+            // Calculate the cost for the given travel distance
+            const cost = Math.min(travelDistance, totalLimit / perKmLimit) * perKmLimit;
+
+            // Check for violation
+            if (travelDistance > totalLimit / perKmLimit) {
+                // Create a yellowFlag object with the violation message
+                const yellowFlag = { violationMessage: `Travel distance exceeds the specified limit for ${categoryName}. Violation message sent.` };
+
+                // Append the yellowFlag to the specificPolicy object
+                specificPolicy.yellowFlag = yellowFlag;
+
+                // Update the response with the yellowFlag
+                response.yellowFlag.push(specificPolicy);
+                hasAllowedLimit = true; // Set the flag to true since there is a violation
+            }
+        }
+
+        if (hasAllowedLimit) {
+            return res.status(200).json(response);
+        } else {
+            return res.status(200).json(response);
+        }
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
+
+// step1, onsavelineitem , if(isPersonalVehical || isCarRentals){
+// const travelDistance = await calculateKilometrs() and const policyValidation = await policyValidationForVehicle (tenantId, empId, travelDistance) }
+
+// get per/km limit and calculate the -- const result = calculateTravelCost(perKmLimit, totalLimit, travelDistance);
+
+// Function to calculate travel cost and check for violation
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Example parameters for testing
+const testParams = {
+    from_lat: 28.459497, 
+    from_long: 77.026634, 
+    to_lat: 28.704060, 
+    to_long: 77.102493, 
+};
+
+// Mock request and response objects for testing
+const mockReq = {
+    params: testParams,
+};
+
+const mockRes = {
+    status: (statusCode) => ({
+        json: (data) => {
+            console.log(`Status Code: ${statusCode}`);
+            console.log('Response:', data);
+        },
+    }),
+};
+
+
+(async () => {
+    try {
+        const result = await calculateKilometers(mockReq, mockRes);
+        console.log(result); // This should log 'undefined' since the function returns undefined
+    } catch (error) {
+        console.error(error);
+    }
+})();
+

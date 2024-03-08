@@ -1,122 +1,160 @@
-// import mongoose from "mongoose"
+// export const BookExpenseReport = async (req, res) => {
+//   try {
+//       const { tenantId, empId, tripId } = req.params;
+//       console.log('Params:', tenantId, empId, tripId);
 
-// const fixedOrgHeaders = {
-//     "Legal Entity Container": String,
-//     "Cost Centre Container": String,
-//     "Profit Centre Container": String,
-//     "Department Container": String,
-//     "Business Unit Container": String,
-//     "Geography Locations Container": String,
-//     "Divisions Container": String,
-//     "Projects Container": String,
-//     "Responsibility Centre Container": String,
-//   };
+//       const expenseReport = await Expense.findOne({
+//           'tenantId': tenantId,
+//           'tripId': tripId,
+//           $or: [
+//               { 'travelRequestData.createdBy.empId': empId },
+//               { 'travelRequestData.createdFor.empId': empId },
+//           ],
+//       });
+
+//       console.log('Expense Report:', expenseReport);
+
+//       if (!expenseReport) {
+//           return res.status(404).json({ message: 'expenseReport not found' });
+//       }
+
+//       // get additional details from HRMaster
+//       let additionalDetails;
+//       try {
+//              additionalDetails = await getExpenseRelatedHrData(tenantId, res);
+//          } catch (error) {
+//              console.error('Error in getExpenseRelatedHrData:', error);
+//              return res.status(500).json({ message: 'Server error' });
+//          }
+
+//          const { defaultCurrency, travelAllocationFlags, travelAllocations, expenseCategoryNames, expenseSettlementOptions } = additionalDetails;
+
+//       const { tripNumber,tenantName, companyName, travelRequestData: { tripPurpose, approvers } } = expenseReport;
+//       let expenseHeaderNumber = expenseReport?.travelExpenseData?.[0]?.expenseHeaderNumber;
+       
+//       const approversNames = approvers.map(({empId, name}) => ({empId,name}))
+
+//       if (expenseHeaderNumber) {
+//           await allExpenseReports(expenseReport);
   
-//   // To Create a schema for the custom organization headers without specifying their data types.
-//   const customOrgHeadersSchema = {
-//     type: mongoose.Schema.Types.Mixed,
-//   };
-  
-//   const orgHeadersSchema = new mongoose.Schema({
-//     ...fixedOrgHeaders,
-//     ...customOrgHeadersSchema,
-//   });
+//           return res.status(200).json({
+//               tripId,
+//               tripNumber,
+//               tripPurpose,
+//               newExpenseReport: false,
+//               newExpenseReport: expenseHeaderNumber,
+//               alreadyBookedExpense,
+//               totalExpenseAmount,
+//               totalAlreadyBookedExpense,
+//               totalCashAmount,
+//               remainingCash: currentRemainingCash,
+//               companyDetails: currentCompanyDetails,
+//               expenseAmountStatus,
+//           });
+//       } else {
+//           const maxIncrementalValue = await Expense.findOne({}, 'travelExpenseData.expenseHeaderNumber')
+//               .sort({ 'travelExpenseData.expenseHeaderNumber': -1 })
+//               .limit(1);
 
-// // employee schema
-// const employeeSchema = new mongoose.Schema({
-//   employeeDetails: {}, //for now it makes sense to make it flexible, extracting groups tag from here
-//   group: String, 
-//   employeeRoles: {
-//     employee: Boolean,
-//     employeeManager: Boolean,
-//     finance: Boolean,
-//     travelAdmin: Boolean,  //Old name Business admin
-//     superAdmin: Boolean,
-//   },
-// })
+//           let nextIncrementalValue = 0;
 
-// // company details schema
-// const companyDetailsSchema = new mongoose.Schema({
-//   companyName: String,
-//   companyLogo: String,
-//   companyEmail: String,
-//   companyHeadquarters: String,
-//   companySize: String,
-//   defaultCurrency: String, // default currency symbol is needed or not here
-//   industry: String,
-// })
+//           if (maxIncrementalValue && maxIncrementalValue.travelExpenseData && maxIncrementalValue.travelExpenseData.expenseHeaderNumber) {
+//               nextIncrementalValue = parseInt(maxIncrementalValue.travelExpenseData.expenseHeaderNumber.substring(9), 10) + 1;
+//           }
 
-// const ExchangeValueSchema = new mongoose.Schema({
-//   currencyName: String,
-//   value: Number, // Represents the exchange rate for the entered currency
-// });
+//           expenseHeaderNumber = generateIncrementalNumber(tenantId, nextIncrementalValue);
 
-// // HR & Company Structure schema
-// const mod = new mongoose.Schema({
-//   tenantId: String,
-//   tenantName: String,
-//   CompanyName: String,
-//   flags:{
-//     DIY_FLAG: Boolean,
-//     GROUPING_FLAG: Boolean,
-//     ORG_HEADERS_FLAG: Boolean,
-//   },
-//   companyDetails: companyDetailsSchema,
-//   employees: [employeeSchema],
-//   groups:{
-//     groupHeaders: [String],
-//     groupName: [String],
-//   },
-//   policies:{},
-//   groupHeaders:{
-//     grades: [String],
-//     bands:[String],
-//     designations: [String],
-//   },
-//   orgHeaders:orgHeadersSchema,
-//   travelAllocation: [{
-//     headerName: {
-//       type: String,
-//     },
-//     headerValues: [{
-//       type: String,
-//     }],
-//   }],
-//   travelExpenseAllocation: [{
-//     headerName: {
-//       type: String,
-//     },
-//     headerValues: [{
-//       type: String,
-//     }],
-//   }],
-//   nonTravelExpenseAllocation: [{
-//     headerName: {
-//       type: String,
-//     },
-//     headerValues: [{
-//       type: String,
-//     }],
-//   }],
-//   expenseCategories: [{
-//     categoryName: String,
-//     categoryValues: [String],
-//   }],
-//   accountLines: [{
-//     categoryName: String,
-//     accountLine: String,
-//   }],
-//   multiCurrencyTable: [
-//     {
-//       currencyName: String,
-//       exchangeValue: [ExchangeValueSchema], // Store the exchange rate for each currency
-//     },
-//   ],
-//   cashAdvanceOptions: [String], // add options here if its fixed values 
-//   cashExpenseOptions: [String],// add options here if its fixed values 
-// })
+//           // expense header Number
+//           expenseReport.travelExpenseData.expenseHeaderNumber = expenseHeaderNumber;
 
-// //
-// const miscFromOnboarding = mongoose.model('miscFromOnboarding', mod)
+//           // Already booked expense reference directly
+//           const alreadyBookedExpense = expenseReport.travelRequestData?.itinerary;
 
-// export default miscFromOnboarding
+//           // total amount from already booked expenses
+//           let currentTotalExpenseAmount = 0;
+//           let currentTotalAlreadyBookedExpense = 0;
+
+//           for (const key in alreadyBookedExpense) {
+//               if (Object.prototype.hasOwnProperty.call(alreadyBookedExpense, key)) {
+//                   const array = alreadyBookedExpense[key];
+//                   const totalAmounts = array.map(obj => obj.bookingDetails?.billDetails?.totalAmount || 0);
+//                   const totalAmount = totalAmounts.reduce((total, amount) => total + amount, 0);
+//                   currentTotalExpenseAmount += totalAmount;
+//                   currentTotalAlreadyBookedExpense = currentTotalExpenseAmount;
+//               }
+//           }
+
+//           // const totalAmount = Array.isArray(alreadyBookedExpense)
+//           // .flatMap(array => array.map(obj => obj.bookingDetails?.billDetails?.totalAmount || 0))
+//           // .reduce((total, amount) => total + amount, 0);
+        
+//           // currentTotalExpenseAmount += totalAmount;
+//           // currentTotalAlreadyBookedExpense = currentTotalExpenseAmount;
+
+//           // if cash advance taken
+//           let currentTotalcashAdvance = 0;
+//           let currentRemainingCash = 0;
+//           const isCashAdvanceTaken = expenseReport.travelRequestData?.isCashAdvanceTaken;
+//           const cashAdvanceData = expenseReport?.cashAdvancesData ;
+
+//           if (isCashAdvanceTaken) {
+//               const cashAdvanceResult = await calculateTotalCashAdvances(cashAdvanceData, res);
+
+//               currentTotalcashAdvance += cashAdvanceResult.totalPaid.reduce((total, item) => total + item.amount, 0);
+//               // important - here -- No expense is booked so ,  total remaining cash advance is equal to total cash advance taken
+//               currentRemainingCash = currentTotalcashAdvance;
+
+//               const newTravelExpenseReport = await Expense.findOneAndUpdate(
+//                   { tenantId, tripId }, 
+//                   {
+//                     $push: {
+//                       expenseAmountStatus: {
+//                           totalCashAmount: isCashAdvanceTaken ? currentTotalcashAdvance : 0,
+//                           totalAlreadyBookedExpenseAmount: currentTotalAlreadyBookedExpense,
+//                           totalExpenseAmount: currentTotalExpenseAmount,
+//                           totalremainingCash: isCashAdvanceTaken ? currentTotalcashAdvance : 0,
+//                         },
+//                       travelExpenseData: {
+//                         tenantId,
+//                         tenantName,
+//                         companyName,
+//                         travelRequestId,
+//                         travelRequestNumber,
+//                         expenseHeaderNumber,
+//                         expenseHeaderType: "travel",
+//                         travelAllocationFlags,
+//                         alreadyBookedExpenseLines:alreadyBookedExpens,
+//                         approvers:approversNames,
+//                   }
+//               }
+//             },
+//             { new: true } 
+//           );
+
+//           if(newTravelExpenseReport){
+//               return res.status(200).json({success:true,newTravelExpenseReport,
+//               additionalDetails,
+              
+//               })
+//           }
+//           }
+
+//           return res.status(200).json({
+//               tripId,
+//               tripNumber,
+//               tripPurpose,
+//               newExpenseReport: true,
+//               expenseReportNumber: expenseHeaderNumber,
+//               alreadyBookedExpense,
+//               totalExpenseAmount : currentTotalExpenseAmount,
+//               totalAlreadyBookedExpense: currentTotalAlreadyBookedExpense,
+//               isCashAdvanceTaken: isCashAdvanceTaken,
+//               totalCashAmount: currentTotalcashAdvance,
+//               remainingCash: currentRemainingCash,
+//               companyDetails: additionalDetails,
+//           });
+//       }  
+//   } catch (error) {
+//       console.error('Error:', error);
+//       return res.status(500).json({ message: 'Internal Server Error' });
+//   }
