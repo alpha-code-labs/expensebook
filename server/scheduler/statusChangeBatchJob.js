@@ -1,6 +1,6 @@
 import cron from 'node-cron';
 import Trip from '../models/tripSchema.js';
-import {  sendTripsToDashboardQueue } from '../rabbitmq/dashboardMicroservice.js';
+import {  sendToDashboardMicroservice } from '../rabbitmq/dashboardMicroservice.js';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -39,7 +39,7 @@ export const statusChangeBatchJob = async () => {
       console.log("updatedTrips before rabbitMq", updatedTrips);
   
       // Send updatedTrips to RabbitMQ
-      const sendResult = await sendTripsToDashboardQueue(updatedTrips, action, 'Batchjob trip status change from upcoming to transit', 'trip', 'batch', needConfirmation);
+      const sendResult = await sendToDashboardMicroservice(updatedTrips, action, 'Batchjob trip status change from upcoming to transit', 'trip', 'batch', needConfirmation);
   
       if (sendResult) {
         // Update the database only if the message was successfully sent to RabbitMQ

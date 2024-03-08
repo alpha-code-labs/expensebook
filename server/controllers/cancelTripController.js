@@ -2,7 +2,7 @@ import { tripLineItemCancelledToCashService } from '../internal/controllers/cash
 import { TripLineItemCancelledToExpense } from '../internal/controllers/expenseMicroservice.js';
 import { tripLineItemCancelledToTravelService } from '../internal/controllers/travelMicroservice.js';
 import Trip from '../models/tripSchema.js';
-import { sendTripsToDashboardQueue } from '../rabbitmq/dashboardMicroservice.js';
+import { sendToDashboardMicroservice } from '../rabbitmq/dashboardMicroservice.js';
 import { sendToOtherMicroservice } from '../rabbitmq/publisher.js';
 
 // 1) get trip details -- for cancellation 
@@ -284,7 +284,7 @@ export const cancelTripAtHeaderLevel = async (req, res) => {
     const needConfirmation = true;
 
     // Send updated trip to the dashboard asynchronously
-    // await sendTripsToDashboardQueue(trip, onlineVsBatch, needConfirmation);
+    // await sendToDashboardMicroservice(trip, onlineVsBatch, needConfirmation);
  
     const travel = {
       travelRequestData:trip?.travelRequestData ??{} 
@@ -295,19 +295,21 @@ export const cancelTripAtHeaderLevel = async (req, res) => {
       cashAdvancesData: trip?.cashAdvancesData ?? [],
     }
 
-   // To expense microservice
-   await sendToOtherMicroservice(cash, 'full-update', 'expense', 'to update travelRequestStatus and cashAdvances status in epense microservice- after cancellation of entire trip')
+    // To expense microservice
+    await sendToOtherMicroservice(cash, 'full-update', 'expense', 'to update travelRequestStatus and cashAdvances status in epense microservice- after cancellation of entire trip')
 
-    if(trip.travelRequestData.isCashAdvanceTaken){
+    if(isCashAdvanceTaken){
     //send to cash microservices
     console.log("rabbitmq cash", cash)
-
+    await sendToDashboardMicroservice(updatedTrips, 'full-update', 'Batchjob trip status change from upcoming to transit', 'trip', 'batch', 'true');
     await  sendToOtherMicroservice(cash, 'full-update', 'cash', 'to update travelRequestStatus and cashAdvances status in cash microservice- after cancellation of entire trip')
     } else {
     //send to travel microservices
     console.log("rabbitmq travel", travel)
+    await sendToDashboardMicroservice(updatedTrips, 'full-update', 'Batchjob trip status change from upcoming to transit', 'trip', 'batch', 'true');
     await  sendToOtherMicroservice(travel, 'full-update', 'travel', 'to update entire travel request in Travel microservice- after cancellation of entire trip ')
     }
+
 
     return res.status(200).json({ message: 'Trip cancelled successfully.', data: trip });
   } catch (error) {
@@ -377,20 +379,6 @@ export const cancelTripAtHeaderLevel = async (req, res) => {
   
       const trip = await itineraryLineItem(tripDetails, itineraryIds);
 
-      //  if (trip.travelRequestData.isCashAdvanceTaken) {
-      //      console.log('Is cash advance taken:', trip.travelRequestData.isCashAdvanceTaken);
-      //      await tripLineItemCancelledToCashService(trip);
-      //  } else {
-      //      await tripLineItemCancelledToTravelService(trip);
-      //  }
-  
-      const data = 'online';
-      const needConfirmation = true;
-
-      // Send updated trip to the dashboard synchronously
-      // sendTripsToDashboardQueue(trip, data, needConfirmation );
-
-
       const travel = {
         travelRequestData:trip.travelRequestData ?? {},
       }
@@ -399,17 +387,22 @@ export const cancelTripAtHeaderLevel = async (req, res) => {
         travelRequestData:trip?.travelRequestData ?? {},
         cashAdvancesData: trip?.cashAdvancesData ?? [],
       }
+       const isCashAdvanceTaken = trip.travelRequestData.isCashAdvanceTaken;
     
-      sendTripsToDashboardQueue(payload,  action, comments, onlineVsBatch, needConfirmation)
-
-      // //send to other microservices
-      // sendToOtherMicroservice(travel, 'full-update', 'travel', 'to update entire travel request in Travel microservice- after cancellation of trip at itinerary level')
-
-      // //send to cash microservice
+       if (isCashAdvanceTaken) {
+           console.log('Is cash advance taken:', isCashAdvanceTaken);
+      //send to cash microservice
       // sendToOtherMicroservice(cash, 'full-update', 'cash', 'to update entire travel and cashAdvances data in cash microservice- after cancellation of trip at itinerary level')
+      await sendToDashboardMicroservice(updatedTrips, 'full-update', 'Batchjob trip status change from upcoming to transit', 'trip', 'batch', 'true');
+       } else {
+      //send to other microservices
+      // sendToOtherMicroservice(travel, 'full-update', 'travel', 'to update entire travel request in Travel microservice- after cancellation of trip at itinerary level')
+        await sendToDashboardMicroservice(updatedTrips, 'full-update', 'Batchjob trip status change from upcoming to transit', 'trip', 'batch', 'true');
+      }
 
-      // // send to expense microservice
+        // // send to expense microservice
       // sendToOtherMicroservice(cash, 'full-update', 'expense', 'to update entire travel and cashAdvances data in expense microservice- after cancellation of trip at itinerary level')
+
 
        return res.status(200).json({ message: 'Trip updated successfully', data: trip });
     } catch (error) {

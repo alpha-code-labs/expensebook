@@ -81,7 +81,7 @@ export const connectToRabbitMQ = async () => {
 //     return false;
 //  }
 // };
-export const sendTripsToDashboardQueue = async (payload, action, comments, source = 'trip', onlineVsBatch = 'batch', needConfirmation = true) => {
+export const sendToDashboardMicroservice = async (payload, action, comments, source = 'trip', onlineVsBatch = 'batch', needConfirmation = true) => {
   try {
      console.log('Connecting to RabbitMQ...');
      const connection = await amqp.connect(process.env.rabbitMQUrl);
