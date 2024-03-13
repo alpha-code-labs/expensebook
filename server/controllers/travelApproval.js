@@ -4,7 +4,8 @@ import pino from 'pino';
 import { approveAddALegToTrip} from '../internal/controllers/tripMicroservice.js';
 import {  approveAddALegToExpense } from '../internal/controllers/expenseMicroservice.js';
 import { sendCashApprovalToDashboardQueue, sendTravelApprovalToDashboardQueue } from '../rabbitmq/dashboardMicroservice.js';
-import { sendToDashboardQueue, sendToOtherMicroservice } from '../rabbitmq/publisher.js';
+import { sendToOtherMicroservice } from '../rabbitmq/publisher.js';
+import { sendToDashboardMicroservice } from '../rabbitmq/publisherDashboard.js';
 
 const logger = pino({
   transport: {
@@ -195,15 +196,15 @@ export const travelStandaloneApprove = async (req, res) => {
 
     const employee = travelRequestData.createdBy.name;
 
-    // Send updated travel to the dashboard synchronously
-     await sendToDashboardQueue(travelApprovalDoc, true, 'online')
-
     const payload = {
       travelRequestId: travelApprovalDoc.travelRequestData.travelRequestId,
       travelRequestStatus: travelApprovalDoc.travelRequestData.travelRequestStatus,
       approvers:travelApprovalDoc.travelRequestData.approvers,
       rejectionReasons: travelApprovalDoc.travelRequestData.rejectionReason,
     }
+
+    // Send updated travel to the dashboard synchronously
+    await sendToDashboardMicroservice(payload, 'approve-reject-tr', 'travel standalone approved ', 'approval', 'online', true)
 
     // send approval to travel
     await sendToOtherMicroservice(payload, 'approve-reject-tr', 'travel', 'travel standalone approved ')
@@ -255,11 +256,9 @@ export const travelStandaloneReject = async (req, res) => {
       booking.status = 'rejected'
       booking.rejectionReason = rejectionReason
     }})
-
 } else {
   throw new Error('Travel Request doenst have anything in itinerary to approve');
 }
-
     console.log(approvers , );
     const updatedApprovers = approvers.map((approver) => {
       if (approver.empId === empId) {
@@ -280,13 +279,12 @@ export const travelStandaloneReject = async (req, res) => {
 
     console.log(updatedApprovers , rejectionReason);
     // Save the updated travelApprovalDoc document
-    await travelApprovalDoc.save();
+   const getTravelRequest = await travelApprovalDoc.save();
 
+   if(getTravelRequest){
+    return res.staus(404).json({message:'error occured while rejecting Travel request'})
+   } else{
     const employee = travelRequestData.createdBy.name;
-
-    // Send updated travel to the dashboard synchronously
-    await sendToDashboardQueue(travelApprovalDoc, true, 'online')
-
     const payload = {
       travelRequestId: travelApprovalDoc.travelRequestData.travelRequestId,
       travelRequestStatus: travelApprovalDoc.travelRequestData.travelRequestStatus,
@@ -294,11 +292,16 @@ export const travelStandaloneReject = async (req, res) => {
       rejectionReason:  travelApprovalDoc.travelRequestData.rejectionReason,
     }
 
+    // Send updated travel to the dashboard synchronously
+    await sendToDashboardMicroservice(payload, 'approve-reject-tr', 'travel standalone rejected ', 'approval', 'online', true)
+
     // send approval to travel
     await sendToOtherMicroservice(payload, 'approve-reject-tr', 'travel', 'travel standalone rejected ')
 
     console.log('After saving approval...');
     return res.status(200).json({ message: `Travel request is rejected for ${employee}` });
+   }
+
   } catch (error) {
     console.error('An error occurred while updating approval:', error.message);
     return res.status(500).json({ error: 'Failed to update approval.', error: error.message });
@@ -502,8 +505,12 @@ export const travelWithCashApproveTravelRequest = async (req, res) => {
       rejectionReason: cashApprovalDoc.travelRequestData?.rejectionReason,
     }
     console.log("hiiiii", payload)
+    
+    // Send updated travel to the dashboard synchronously
+    await sendToDashboardMicroservice(payload, 'approve-reject-tr', 'To update travelRequestStatus to approved in cash microservice', 'approval', 'online', true)
+
     // send approval to Cash
-    sendToOtherMicroservice(payload, 'approve-reject-tr', 'cash', 'To update travelRequestStatus to approved in cash microservice')
+   await  sendToOtherMicroservice(payload, 'approve-reject-tr', 'cash', 'To update travelRequestStatus to approved in cash microservice')
 
    return res.status(200).json({ message: `TravelRequest approved for ${employee}` });
  } catch (error) {
@@ -608,7 +615,10 @@ export const travelWithCashRejectTravelRequest = async (req, res) => {
 
     console.log("Travel reject payload", payload);
     // send Rejected Travel request to Cash microservice
-    sendToOtherMicroservice(payload, 'approve-reject-tr', 'cash', 'To update travelRequestStatus to rejected in cash microservice')
+    await sendToOtherMicroservice(payload, 'approve-reject-tr', 'cash', 'To update travelRequestStatus to rejected in cash microservice')
+
+    // Send updated travel to the dashboard synchronously
+    await sendToDashboardMicroservice(payload, 'approve-reject-tr', 'To update travelRequestStatus to rejected in cash microservice', 'approval', 'online', true)
 
     return res.status(200).json({ message: `Travel request is rejected for ${employee}` });
   } catch (error) {
@@ -676,9 +686,6 @@ export const travelWithCashApproveCashAdvance = async (req, res) => {
       const employee = cashAdvanceFound.createdBy.name;
       console.log("after approved ..", cashApproved);
 
-      // Sending to dashboard via rabbitmq
-      await sendCashApprovalToDashboardQueue(cashApprovalDoc);
-
       const payload = {
         travelRequestId: cashApprovalDoc.travelRequestData.travelRequestId,
         cashAdvanceId: cashAdvanceId,
@@ -689,8 +696,11 @@ export const travelWithCashApproveCashAdvance = async (req, res) => {
 
       console.log("is payload updated save()....", payload);
 
+          // Send updated travel to the dashboard synchronously
+    await sendToDashboardMicroservice(payload, 'approve-reject-ca',  'To update cashAdvanceStatus to approved in cash microservice', 'approval', 'online', true)
+
       // send Approved cashAdvance to Cash microservice
-      sendToOtherMicroservice(payload, 'approve-reject-ca', 'cash', 'To update cashAdvanceStatus to approved in cash microservice');
+    await   sendToOtherMicroservice(payload, 'approve-reject-ca', 'cash', 'To update cashAdvanceStatus to approved in cash microservice');
 
       return res.status(200).json({ message: `Cash advance approved for ${employee}` });
     }
@@ -765,11 +775,12 @@ export const travelWithCashRejectCashAdvance = async (req, res) => {
       });
   
       // Save the updated cashApprovalDoc document
-      await cashApprovalDoc.save();
+     const getApproval = await cashApprovalDoc.save();
+
+     if(!getApproval){
+      return res.status(404).json({ message: 'error occured while rejecting cash Advance'})
+     } else{
       const employee = cashAdvanceFound.createdBy.name;
-  
-      //Sending to dashboard via rabbitmq
-      await sendCashApprovalToDashboardQueue(cashApprovalDoc);
   
       const payload = {
         travelRequestId: cashApprovalDoc.travelRequestData.travelRequestId,
@@ -782,10 +793,13 @@ export const travelWithCashRejectCashAdvance = async (req, res) => {
       console.log("payload updated?", payload)
   
       // send Rejected cash advance to Cash microservice
-      sendToOtherMicroservice(payload, 'approve-reject-ca', 'cash', 'To update cashAdvanceStatus to rejected in cash microservice')
-  
+      await sendToOtherMicroservice(payload, 'approve-reject-ca', 'cash', 'To update cashAdvanceStatus to rejected in cash microservice')
+    // Send updated travel to the dashboard synchronously
+    await sendToDashboardMicroservice(payload, 'approve-reject-ca',  'To update cashAdvanceStatus to rejected in cash microservice', 'approval', 'online', true)
+
      return res.status(200).json({ message: `Cash advance rejected for ${employee}` });
     }
+     }
   } catch (error) {
     console.error('An error occurred while updating approval:', error.message);
     return res.status(500).json({ error: 'Failed to update approval.', error: error.message });
@@ -813,8 +827,7 @@ export const getAddALegTravelRequestsForApprover = async (req, res) => {
     if (travelRequests.length === 0) {
       // If no travel requests are found, respond with a 404 Not Found status and a specific message
       return res.status(404).json({ message: 'No pending travel requests found for this user.' });
-    }
-
+    }else {
     // Extracted fields for travel requests and associated cash advances are added as objects in an array 
     const extractedData = travelRequests.map((request) => {
       const extractedRequestData = {
@@ -843,7 +856,7 @@ export const getAddALegTravelRequestsForApprover = async (req, res) => {
 
     // If travel requests are found, respond with a 200 OK status and the array of extracted fields
     return res.status(200).json(extractedData);
-  } catch (error) {
+ }} catch (error) {
     // Handle and log errors
     console.error('An error occurred:', error);
     // Respond with a 500 Internal Server Error status and an error message
@@ -951,15 +964,18 @@ export const approveAddALeg = async (req, res) => {
           travelRequestStatus: approval.travelRequestData.travelRequestStatus,
           itineraryId: itineraryId,
           approvers:updatedApprovers,
+          rejectionReason:  itineraryFound.rejectionReason || '',
           status:isAllApproved,
         };
 
         console.log("the payload", payload)
 
         if (isCashAdvanceTaken) {
-          await sendToOtherMicroservice(payload, 'approve-add-leg', 'cash', 'To update itinerary approved status in cash microservice');
-        } else {
-          await sendToOtherMicroservice(payload, 'approve-add-leg', 'travel', 'To update itinerary approved status in travel microservice');
+          await sendToDashboardMicroservice(payload, 'add-leg',  'To update cashAdvanceStatus to rejected in cash microservice', 'approval', 'online', true)
+          await sendToOtherMicroservice(payload, 'add-leg', 'cash', 'To update itinerary approved status in cash microservice');
+        } else {   
+          await sendToDashboardMicroservice(payload, 'add-leg',  'To update cashAdvanceStatus to rejected in cash microservice', 'approval', 'online', true)      
+          await sendToOtherMicroservice(payload, 'add-leg', 'travel', 'To update itinerary approved status in travel microservice');
         }
      
      return res.status(200).json({ message: `Approval for empId ${empId} updated to 'approved'.`, itineraryFound });
@@ -1049,7 +1065,9 @@ export const rejectAddALeg = async (req, res) => {
 if (isCashAdvanceTaken) {
   console.log('Is cash advance taken:', isCashAdvanceTaken);
   await sendToOtherMicroservice(payload, 'add-leg', 'cash', 'To update itinerary rejected status in cash microservice')
+  await sendToDashboardMicroservice(payload, 'add-leg',  'To update itinerary rejected status in cash microservice', 'approval', 'online', true)      
 } else {
+  await sendToDashboardMicroservice(payload, 'add-leg',  'To update itinerary rejected status in cash microservice', 'approval', 'online', true)      
   await sendToOtherMicroservice(payload, 'add-leg', 'travel', 'To update itinerary rejected status in travel microservice');
 }
       console.log("Updated itineraryFound after save payload payload:", payload);
@@ -1067,7 +1085,7 @@ if (isCashAdvanceTaken) {
 
 
 
-// // 13) travel with cash advance -- Approve Travel Request
+// 13) travel with cash advance -- Approve Travel Request
 // !! Important -- checking isAddALeg flag is very imporatant and after the action updating it too is important.
 export const oldApproveAddALegss = async (req, res) => {
   try {

@@ -1,6 +1,8 @@
 import { fetchExpenseData } from '../services/expense.js';
 import { Approval } from '../models/approvalSchema.js';
 import { sendTripApprovalToDashboardQueue } from '../rabbitmq/dashboardMicroservice.js';
+import { sendToDashboardMicroservice } from '../rabbitmq/publisherDashboard.js';
+import { sendToOtherMicroservice } from '../rabbitmq/publisher.js';
 
 //for saving both travel and non travel dummy data into Approval container.
 export const saveDataInApprovalContainer = async (req, res) => {
@@ -107,12 +109,14 @@ export const getExpenseDetails = async (req, res) => {
 
 export const viewTravelExpenseDetails = async (req, res) => {
   try {
-    const {tenantId, empId, expenseHeaderId} = req.params;
+    const {tenantId, empId,tripId, expenseHeaderId} = req.params;
 
+    console.log(`viewTravelExpenseDetails`,req.params)
     // Filter approval documents by approver's empId and expenseHeaderType: Travel
     const approvalDocument = await Approval.findOne({
-       tenantId,
-       'travelExpenseData':{
+       'tripSchema.tenantId':tenantId,
+       'tripSchema.tripId':tripId,
+       'tripSchema.travelExpenseData':{
         $elemMatch:{
           'expenseHeaderId':expenseHeaderId,
           'approvers':{
@@ -127,7 +131,14 @@ export const viewTravelExpenseDetails = async (req, res) => {
     if (!approvalDocument) {
       return res.status(404).json({ message: 'No pending travel approval documents found for this user.' });
     } else{
-      return  res.status(200).json({ success: true , approvalDocument});
+      console.log(" before ",approvalDocument)
+      const {travelExpenseData} = approvalDocument.tripSchema
+      const expenseReport = travelExpenseData.find(expense => expense.expenseHeaderId.toString() === expenseHeaderId);
+      console.log("after",expenseReport)
+
+      if(expenseReport){
+        return  res.status(200).json({ success: true , expenseReport});
+      }
     }
    } catch (error) {
     console.error('An error occurred while fetching travel expense bill details:', error.message);
@@ -226,6 +237,7 @@ export const oldviewTravelExpenseDetails = async (req, res) => {
 export const TravelexpenseHeaderStatusApproved = async (req, res) => {
   try {
     const { tenantId,expenseHeaderId, empId } = req.params;
+    console.log("approve expense report", req.params)
 
     if (!expenseHeaderId || !empId) {
       return res.status(400).json({
@@ -234,8 +246,8 @@ export const TravelexpenseHeaderStatusApproved = async (req, res) => {
     }
 
     const tripApprovalDoc = await Approval.findOne({
-      tenantId,
-      'travelExpenseData':{
+      'tripSchema.tenantId':tenantId,
+      'tripSchema.travelExpenseData':{
         $elemMatch:{
           'expenseHeaderId':expenseHeaderId,
           approvers:{
@@ -265,13 +277,33 @@ export const TravelexpenseHeaderStatusApproved = async (req, res) => {
     travelExpenseData.expenseHeaderStatus = 'approved';
 
     try {
-      await tripApprovalDoc.save();
+     const getTravelExpense = await tripApprovalDoc.save();
 
+     if (!getTravelExpense){
+       res.status(404).json({ message: 'Invalid data sent for approval' });
+     } else{
+      const {tripSchema} = getTravelExpense
+      const { travelExpenseData } = tripSchema;
+      const matchedExpense = travelExpenseData.find(expense => expense.expenseHeaderId.toString() === expenseHeaderId);
+      
+      // Create the payload object
+      const payload = {
+        tenantId,
+        expenseHeaderId,
+        expenseHeaderStatus: 'approved',
+        expenseRejectionReason: matchedExpense ? matchedExpense.expenseRejectionReason : '',
+        approvers: matchedExpense ? matchedExpense.approvers : null,
+      };
+
+      console.log("payload for approve", payload)
+      const action = 'expense-approval';
       // rabbitmq to send it to dashboard
-      await sendTripApprovalToDashboardQueue(tripApprovalDoc);
+      await sendToOtherMicroservice(payload, action, 'trip', comments, source='approval', onlineVsBatch='online')
+      await sendToOtherMicroservice(payload, action, 'expense', comments, source='approval', onlineVsBatch='online')
+      await sendToDashboardMicroservice(payload, action, comments, source = 'trip', 'online', true)
 
-      res.status(200).json({ message: 'Travel expense status updated to approved.' });
-    } catch (saveError) {
+     return res.status(200).json({ message: 'Travel expense status updated to approved.' });
+    }} catch (saveError) {
       console.error('An error occurred while saving the status update:', saveError.message);
       res.status(500).json({ error: 'An error occurred while updating Travel Expense status.' });
     }
@@ -288,8 +320,8 @@ export const TravelexpenseHeaderStatusRejected = async (req, res) => {
     const { expenseRejectionReason } = req.body;
 
     const tripApprovalDoc = await Approval.findOne({
-      tenantId,
-      'travelExpenseData':{
+      'tripSchema.tenantId':tenantId,
+      'tripSchema.travelExpenseData':{
         $elemMatch:{
           expenseHeaderId,
           approvers:{
@@ -325,12 +357,37 @@ export const TravelexpenseHeaderStatusRejected = async (req, res) => {
     travelExpenseData.expenseRejectionReason = expenseRejectionReason;
 
     try {
-      await tripApprovalDoc.save();
+    const getExpenseReport =  await tripApprovalDoc.save();
 
-       // rabbitmq to send it to dashboard
-       await sendTripApprovalToDashboardQueue(tripApprovalDoc);
+    if(!getExpenseReport){
+        return res.status(404).json({success: false, message:'error in updating data'})
+    } else{
+
+      const {tripSchema} = getExpenseReport
+      const { travelExpenseData } = tripSchema;
+      const matchedExpense = travelExpenseData.find(expense => expense.expenseHeaderId.toString() === expenseHeaderId);
+      console.log("expense report approvers", matchedExpense)
+      // Create the payload object
+      const payload = {
+        tenantId,
+        expenseHeaderId,
+        expenseHeaderStatus: 'rejected',
+        expenseRejectionReason: matchedExpense ? matchedExpense.expenseRejectionReason : '',
+        approvers: matchedExpense ? matchedExpense.approvers : null,
+      };
+
+      console.log("payload for rejected", payload)
+      const action = 'expense-approval';
+      // rabbitmq to send it to dashboard
+      await sendToOtherMicroservice(payload, action, 'trip', comments, source='approval', onlineVsBatch='online')
+      await sendToOtherMicroservice(payload, action, 'expense', comments, source='approval', onlineVsBatch='online')
+      await sendToDashboardMicroservice(payload, action, comments, source = 'trip', 'online', true)
+
        
       res.status(200).json({ message: 'Travel expense status updated to Rejected.' });
+    }
+
+
     } catch (saveError) {
       console.error('An error occurred while saving the status update:', saveError.message);
       res.status(500).json({ error: 'An error occurred while updating Travel Expense status.' });

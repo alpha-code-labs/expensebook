@@ -29,7 +29,7 @@ app.use(cors());
 app.use('/api/approvals', approvalRoutes); // dummy data
 app.use('/api/fe/approvals/tr-ca', travelApprovalRoutes);
 app.use('/api/fe/approvals/cash', cashAdvance);
-app.use('/api/fe/approvals/travel-expense',travelExpenseApprovalRoutes);
+app.use('/api/fe/approvals/expense',travelExpenseApprovalRoutes);
 
 
 app.get('/get',(req,res) => res.status(200).json({message:"Approval microservice is live"}))

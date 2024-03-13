@@ -9,13 +9,13 @@ router.post('/saveDataInApprovalContainer', saveDataInApprovalContainer);
 //travelExpenseDetails
 router.get('/list/:empId', getExpenseDetails);
 
-router.get('/details/:tenantId/:empId/:expenseHeaderId', viewTravelExpenseDetails);
+router.get('/:tenantId/:empId/:tripId/:expenseHeaderId', viewTravelExpenseDetails);
 
 //To approve travel expense
-router.patch('/approve/tenantId/:empId/:expenseHeaderId',TravelexpenseHeaderStatusApproved);
+router.patch('/:tenantId/:empId/:expenseHeaderId/approve',TravelexpenseHeaderStatusApproved);
 
 //To reject travel expense
-router.patch('/reject/:empId/:expenseHeaderId', TravelexpenseHeaderStatusRejected);
+router.patch('/:tenantId/:empId/:expenseHeaderId/reject', TravelexpenseHeaderStatusRejected);
 
 // Export the router
 export default router;

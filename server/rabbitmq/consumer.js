@@ -2,6 +2,7 @@ import amqp from 'amqplib';
 import { updateHRMaster, updatePreferences } from './messageProcessor/hrMasterMessage.js';
 import { TravelAndCashUpdate, cancelTravelWithCash, itineraryAddedToTravelRequest, updateCashStatus, updateTravel, updateTravelStatus } from './messageProcessor/travelMessage.js';
 import dotenv from 'dotenv';
+import { expenseReport } from './messageProcessor/expense.js';
 
 dotenv.config();
 
@@ -168,8 +169,23 @@ export default async function startConsumer(receiver){
             console.log('update failed with error code', res.error)
           }
 
-        }
+        }}else if (source == 'expense'){
+          if(action == 'full-update'){
+              console.log('expense report for approval', payload)
+              const res = await expenseReport(payload);
+              console.log(res)
+              if(res.success){
+                //acknowledge message
+                channel.ack(msg)
+                console.log('message processed successfully')
+              }
+              else{
+                //implement retry mechanism
+                console.log('update failed with error code', res.error)
+              }
+          }  
     }}}, { noAck: false });
 }
+
 
 

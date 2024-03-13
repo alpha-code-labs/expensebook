@@ -643,7 +643,7 @@ const approvalSchema = new mongoose.Schema({
           cashAdvanceRejectionReason: String,
         },
       ],    
-    tripData: tripSchema, // used when expense sends expense for approval entire tripData is updated
+    tripSchema: tripSchema, // used when expense sends expense for approval entire tripData is updated
     notificationSentToDashboardFlag: Boolean,
   });
   

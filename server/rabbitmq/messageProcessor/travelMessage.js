@@ -2,6 +2,7 @@ import { Approval } from "../../models/approvalSchema.js";
 
 //travel standalone
 export const updateTravel = async (payload) => {
+  console.log('coming from travel for approval' , payload);
       try {
       const updated = await Approval.updateOne(
         { 'travelRequestData.tenantId': payload.tenantId},
