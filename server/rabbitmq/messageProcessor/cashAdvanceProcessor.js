@@ -1,3 +1,5 @@
+import Trip from "../../models/tripSchema.js";
+
 const createTrip = async (travelRequest) => {
     const { travelRequestData, cashAdvancesData } = travelRequest;
     const { tenantId, tenantName, travelRequestId } = travelRequestData;

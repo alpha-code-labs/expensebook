@@ -139,10 +139,9 @@ export const processTravelRequests = async (tripArray) => {
   
     // Filter out null or undefined results
     const validTripsAdded = tripsAdded.filter(trip => trip);
-   console.log("validTripsAdded for dashboard", validTripsAdded)
+    console.log("validTripsAdded for dashboard", validTripsAdded)
     // Send valid trips to dashboard
-      await sendToOtherMicroservice(validTripsAdded, 'trip-creation', 'dashboard', 'Trip creation successful and sent to dashboard', 'trip', 'online');
-  
+    const isSent = await sendToOtherMicroservice(validTripsAdded, 'trip-creation', 'dashboard', 'Trip creation successful and sent to dashboard', 'trip', 'online');
 
     return {success: true};
   } catch (error) {

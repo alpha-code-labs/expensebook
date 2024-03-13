@@ -820,6 +820,7 @@ const expenseLineSchema = new mongoose.Schema({
               },
             }
           ],
+          expenseSettlement: String,
           expenseViolations: [String],
           expenseRejectionReason: String,
           expenseSubmissionDate: Date,

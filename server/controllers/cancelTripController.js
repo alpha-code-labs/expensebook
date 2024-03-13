@@ -1,6 +1,3 @@
-import { tripLineItemCancelledToCashService } from '../internal/controllers/cashMicroservice.js';
-import { TripLineItemCancelledToExpense } from '../internal/controllers/expenseMicroservice.js';
-import { tripLineItemCancelledToTravelService } from '../internal/controllers/travelMicroservice.js';
 import Trip from '../models/tripSchema.js';
 import { sendToDashboardMicroservice } from '../rabbitmq/dashboardMicroservice.js';
 import { sendToOtherMicroservice } from '../rabbitmq/publisher.js';
@@ -278,16 +275,13 @@ export const cancelTripAtHeaderLevel = async (req, res) => {
     trip.travelRequestData.travelRequestStatus = trip.travelRequestData.travelRequestStatus === 'booked' ? 'paid and cancelled' : 'cancelled';
 
     // Save the updated trip asynchronously
-    await trip.save();
-      
-    const onlineVsBatch = 'online';
-    const needConfirmation = true;
+   const tripCancelled = await trip.save();
 
-    // Send updated trip to the dashboard asynchronously
-    // await sendToDashboardMicroservice(trip, onlineVsBatch, needConfirmation);
- 
+   if(!tripCancelled){
+    return res.status(500).json({ error: 'Internal Server Error - Trip cancellation failed', error });
+   } else {
     const travel = {
-      travelRequestData:trip?.travelRequestData ??{} 
+      travelRequestData:trip?.travelRequestData ?? {},
     }
 
     const cash = {
@@ -301,17 +295,18 @@ export const cancelTripAtHeaderLevel = async (req, res) => {
     if(isCashAdvanceTaken){
     //send to cash microservices
     console.log("rabbitmq cash", cash)
-    await sendToDashboardMicroservice(updatedTrips, 'full-update', 'Batchjob trip status change from upcoming to transit', 'trip', 'batch', 'true');
+    await sendToDashboardMicroservice(cash, 'full-update-cash', 'trip cancelled at header level - update "cashSchema" in dashboard', 'trip', 'batch', 'true');
     await  sendToOtherMicroservice(cash, 'full-update', 'cash', 'to update travelRequestStatus and cashAdvances status in cash microservice- after cancellation of entire trip')
     } else {
     //send to travel microservices
     console.log("rabbitmq travel", travel)
-    await sendToDashboardMicroservice(updatedTrips, 'full-update', 'Batchjob trip status change from upcoming to transit', 'trip', 'batch', 'true');
+    await sendToDashboardMicroservice(travel, 'full-update-travel', 'trip cancelled at header level - update "travelRequestSchema" in dashboard', 'trip', 'batch', 'true');
     await  sendToOtherMicroservice(travel, 'full-update', 'travel', 'to update entire travel request in Travel microservice- after cancellation of entire trip ')
     }
 
-
     return res.status(200).json({ message: 'Trip cancelled successfully.', data: trip });
+   }
+   
   } catch (error) {
     console.error(error);
     const errorMessage = error.message || 'Internal server error.';
@@ -375,36 +370,35 @@ export const cancelTripAtHeaderLevel = async (req, res) => {
   
       if(!tripDetails) {
         return res.status(404).json({error: 'Trip not found'});
-      }
+      } else {
+        const trip = await itineraryLineItem(tripDetails, itineraryIds);
+
+        const travel = {
+          travelRequestData:trip.travelRequestData ?? {},
+        }
   
-      const trip = await itineraryLineItem(tripDetails, itineraryIds);
-
-      const travel = {
-        travelRequestData:trip.travelRequestData ?? {},
+        const cash = {
+          travelRequestData:trip?.travelRequestData ?? {},
+          cashAdvancesData: trip?.cashAdvancesData ?? [],
+        }
+         const isCashAdvanceTaken = trip?.travelRequestData?.isCashAdvanceTaken;
+      
+         if (isCashAdvanceTaken) {
+             console.log('Is cash advance taken:', isCashAdvanceTaken);
+        //send to cash microservice
+        await sendToOtherMicroservice(cash, 'full-update', 'cash', 'to update entire travel and cashAdvances data in cash microservice- after cancellation of trip at itinerary level')
+        await sendToDashboardMicroservice(cash, 'full-update-cash', 'trip cancelled at line level - update "cashSchema" in dashboard', 'trip', 'batch', 'true');
+         } else {
+        //send to other microservices
+        await sendToOtherMicroservice(travel, 'full-update', 'travel', 'to update entire travel request in Travel microservice- after cancellation of trip at itinerary level')
+        await sendToDashboardMicroservice(travel, 'full-update-travel', 'trip cancelled at line item level - update "travelRequestSchema" in dashboard', 'trip', 'batch', 'true');
+         }
+  
+        // send to expense microservice
+         await sendToOtherMicroservice(cash, 'full-update', 'expense', 'to update entire travel and cashAdvances data in expense microservice- after cancellation of trip at itinerary level')
+  
+         return res.status(200).json({ message: 'Trip updated successfully', data: trip });
       }
-
-      const cash = {
-        travelRequestData:trip?.travelRequestData ?? {},
-        cashAdvancesData: trip?.cashAdvancesData ?? [],
-      }
-       const isCashAdvanceTaken = trip.travelRequestData.isCashAdvanceTaken;
-    
-       if (isCashAdvanceTaken) {
-           console.log('Is cash advance taken:', isCashAdvanceTaken);
-      //send to cash microservice
-      // sendToOtherMicroservice(cash, 'full-update', 'cash', 'to update entire travel and cashAdvances data in cash microservice- after cancellation of trip at itinerary level')
-      await sendToDashboardMicroservice(updatedTrips, 'full-update', 'Batchjob trip status change from upcoming to transit', 'trip', 'batch', 'true');
-       } else {
-      //send to other microservices
-      // sendToOtherMicroservice(travel, 'full-update', 'travel', 'to update entire travel request in Travel microservice- after cancellation of trip at itinerary level')
-        await sendToDashboardMicroservice(updatedTrips, 'full-update', 'Batchjob trip status change from upcoming to transit', 'trip', 'batch', 'true');
-      }
-
-        // // send to expense microservice
-      // sendToOtherMicroservice(cash, 'full-update', 'expense', 'to update entire travel and cashAdvances data in expense microservice- after cancellation of trip at itinerary level')
-
-
-       return res.status(200).json({ message: 'Trip updated successfully', data: trip });
     } catch (error) {
       console.error(error);
       return res.status(500).json({error: 'Internal Server Error'});

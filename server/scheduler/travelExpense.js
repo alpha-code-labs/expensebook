@@ -1,139 +1,75 @@
-import Trip from "../models/tripSchema.js";
+import cron from 'node-cron';
+import Trip from '../models/tripSchema.js';
 
-// travel expense approved to next state
-export const travelExpenseApprovedToNextState = async (trips) => {
+
+//Approved to next state.
+const approvedToNextStateBatchJob = async () => {
+    console.log("hi")
     try {
-      const tripPromises = trips.map(async (trip) => {
-        const { tripId, expenseHeaderIds, expenseHeaderStatus } = trip;
-        
-        const updateResult = await Trip.updateMany(
-          {
-            tripId: tripId,
-            'travelExpenseData.expenseHeaderId': { $in: expenseHeaderIds }
-          },
-          {
-            $set: {
-              'travelExpenseData.$[elem].expenseHeaderStatus': expenseHeaderStatus
-            }
-          },
-          {
-            arrayFilters: [{ 'elem.expenseHeaderId': { $in: expenseHeaderIds } }]
-          }
-        );
+        const expensesToUpdate = await Trip.find({
+            'travelExpenseData': {
+              $elemMatch: {
+                'expenseHeaderStatus': 'approved'
+              }
+            },
+          });
+          
+          
   
-        return updateResult;
-      });
-  
-      const results = await Promise.allSettled(tripPromises);
-  
-      const insertedTrips = results
-        .filter((result) => result.status === 'fulfilled')
-        .map((result) => result.value);
-  
-      console.log('Successfully updated trips:', insertedTrips.length);
-  
-      const failedTrips = results.filter((result) => result.status === 'rejected');
-      if (failedTrips.length > 0) {
-        console.error('Failed to update trips:', failedTrips);
-      }
-  
-      return { success: true, message: 'Trips updated successfully' };
-    } catch (error) {
-      return handleErrorResponse('Failed to update trips', 500);
-    }
-};
-  
-  
-export const triggerBatchJobAps = async (trips) => {
-    try {
-      const travelBaseUrl = process.env.TRAVEL_BASE_URL;
-      const extendedUrl = '/approved';
-      const currentTravelUrl = `${travelBaseUrl}${extendedUrl}`;
-  
-      const response = await axios.post(currentTravelUrl, trips);
-  
-      if (response.status >= 200 && response.status < 300) {
-        console.log('Travel updated successfully in travel Microservice');
-        const result = await travelExpenseApprovedToNextState(trips);
-        if (result.success) {
-          return { status: 200, data: { success: true, message: 'Trips updated successfully' } };
-        } else {
-          return handleErrorResponse('Failed to update trips', 500);
-        }
+      if(expensesToUpdate?.length == 0){
+        console.log(" no documents for approved")
+       return {success: true, message: 'Batch job run successfully. Currently no documents found'}
       } else {
-        return handleErrorResponse('Unexpected response', response.status);
-      }
-    } catch (error) {
-      return handleErrorResponse('Failed to update travel in Microservice');
-    }
-};
+        console.log(" the documents for approved",expensesToUpdate )
+        let countModified = 0;
 
+        const success = await Promise.all(expensesToUpdate.map(async (expense) => {
+            let expenseHeaderStatus = 'pending settlement';
+          
+            const firstExpenseData = expense.travelExpenseData[0];
 
-//
-export const travelExpenseA = async (trips) => {
-    try {
-      const tripPromises = trips.map(async (trip) => {
-        const { tripId, expenseHeaderIds, expenseHeaderStatus } = trip;
-        
-        const updateResult = await Trip.updateMany(
-          {
-            tripId: tripId,
-            'travelExpenseData.expenseHeaderId': { $in: expenseHeaderIds }
-          },
-          {
-            $set: {
-              'travelExpenseData.$[elem].expenseHeaderStatus': expenseHeaderStatus
+            // Check if the expenseHeaderStatus is not already 'paid'
+            if (firstExpenseData?.alreadyBookedExpenseLines &&
+                (!firstExpenseData.expenseLines || !firstExpenseData.expenseLines.length)) {
+                    console.log("The is 1st condition");
+              firstExpenseData.expenseHeaderStatus = 'paid';
+              await expense.save();
+              countModified++;
             }
-          },
-          {
-            arrayFilters: [{ 'elem.expenseHeaderId': { $in: expenseHeaderIds } }]
+            
+            
+          
+            const approvedExpenseData = expense.travelExpenseData.find(data => data.expenseHeaderStatus == 'approved');
+            if (approvedExpenseData) {
+                console.log("this 2nd condition")
+              approvedExpenseData.expenseHeaderStatus = expenseHeaderStatus;
+              await expense.save();
+              countModified++;
+            }
+          }));
+          
+          if(success){
+           console.log(`Updated status for ${countModified} expense(s) successfully.`);
+           return {success: true, message : `Updated status for ${countModified} expense(s) successfully.` }
+          } else {
+            return { success: false , message : `Updated status for ${countModified} expense(s)`}
           }
-        );
-  
-        return updateResult;
-      });
-  
-      const results = await Promise.allSettled(tripPromises);
-  
-      const insertedTrips = results
-        .filter((result) => result.status === 'fulfilled')
-        .map((result) => result.value);
-  
-      console.log('Successfully updated trips:', insertedTrips.length);
-  
-      const failedTrips = results.filter((result) => result.status === 'rejected');
-      if (failedTrips.length > 0) {
-        console.error('Failed to update trips:', failedTrips);
+   
+        
       }
-  
-      return { success: true, message: 'Trips updated successfully' };
+     
     } catch (error) {
-      return handleErrorResponse('Failed to update trips', 500);
+      console.error('Error occurred during status change batch job: approved To Next State BatchJob', error);
     }
-};
+  };
   
   
-export const triggerBatchJob = async (trips) => {
-    try {
-      const travelBaseUrl = process.env.TRAVEL_BASE_URL;
-      const extendedUrl = '/approved';
-      const currentTravelUrl = `${travelBaseUrl}${extendedUrl}`;
-  
-      const response = await axios.post(currentTravelUrl, trips);
-  
-      if (response.status >= 200 && response.status < 300) {
-        console.log('Travel updated successfully in travel Microservice');
-        const result = await travelExpenseApprovedToNextState(trips);
-        if (result.success) {
-          return { status: 200, data: { success: true, message: 'Trips updated successfully' } };
-        } else {
-          return handleErrorResponse('Failed to update trips', 500);
-        }
-      } else {
-        return handleErrorResponse('Unexpected response', response.status);
-      }
-    } catch (error) {
-      return handleErrorResponse('Failed to update travel in Microservice');
-    }
-};
+
+// Schedule the cron job to run every day at midnight('0 0 * * *) or [use -(for every 20 seconds */20 * * * * *)]
+export const runApproveToNextState = async () =>{
+    cron.schedule('*/20 * * * * *', () => {
+        console.log('Running approved To Next State BatchJob for travel expense report...');
+        approvedToNextStateBatchJob();
+      });    
+}
 

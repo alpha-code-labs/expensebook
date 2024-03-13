@@ -4,14 +4,13 @@ import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 // import { config } from './config.js';
 // import { applyTenantFilter } from './middleware/tripMiddleware.js';
-import mainInternalRoutes from './internal/routes/mainInternalRoutes.js';
-import oldTripRoutes from './routes/tripsRoutes.js';
 import {startConsumer} from './rabbitmq/consumer.js';
 import tripRoutes from './routes/tripRoutes.js';
 import { processTravelRequests } from './rabbitmq/messageProcessor/travelMessageProcessor.js';
 import { scheduleTripTransitBatchJob } from './scheduler/statusChangeBatchJob.js';
 import Trip from './models/tripSchema.js';
 import { sendToOtherMicroservice } from './rabbitmq/publisher.js';
+import { scheduleToExpenseBatchJob } from './scheduler/sendToExpense.js';
 
 
 // Load environment variables using dotenv
@@ -31,15 +30,14 @@ app.use(cors());
 
 //Routes 
 app.use('/api/fe/trips', tripRoutes);
-app.use('/api/internal', mainInternalRoutes);
-app.use('/api/trips', oldTripRoutes); 
 app.get('/get', (req,res) => res.status(200).json("hi from trips"))
 // app.use('/api/:tenantId/trips/cancel', applyTenantFilter, cancelTripRoutes);
 
 
-// // Start the batch job
+// Start the batch job
 // startBatchJob();
 // scheduleTripTransitBatchJob()
+// scheduleToExpenseBatchJob()
 
 const mongodb = async () => {
   try {
@@ -60,7 +58,9 @@ app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
 
+
 startConsumer('trip');
+
 // const trip = await Trip.findOne({tripId:'658d602bcb8a8aefaacab9ae'})
 // const res = await sendTripsToDashboardQueue(trip, 'online', true)
 // const trip = await Trip.find({tripId:'65df0d66aceac59a438079ad'})

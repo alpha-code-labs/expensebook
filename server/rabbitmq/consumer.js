@@ -5,6 +5,7 @@ import { partialCashUpdate, settleExpenseReport, updateCashStatus } from './mess
 import { processTravelRequests } from './messageProcessor/travelMessageProcessor.js';
 import dotenv from 'dotenv';
 import { processTravelRequestsWithCash } from './messageProcessor/cashAdvanceProcessor.js';
+import { fullUpdateExpense } from './messageProcessor/expense.js';
 
 dotenv.config();
 
@@ -131,6 +132,21 @@ export  async function startConsumer(receiver) {
           } else if (source == 'dashboard'){
           if(action == 'profile-update'){
             const res = await updatePreferences(payload);
+            console.log(res)
+            if(res.success){
+              //acknowledge message
+              channel.ack(msg)
+              console.log('message processed successfully')
+            }
+            else{
+              //implement retry mechanism
+              console.log('update failed with error code', res.error)
+            }
+          }
+          } else if (source == 'expense'){
+            if(action == 'full-update'){
+            console.log('trying to update travelExpense Data')
+            const res = await fullUpdateExpense(payload)
             console.log(res)
             if(res.success){
               //acknowledge message

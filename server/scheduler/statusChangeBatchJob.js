@@ -5,8 +5,6 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-// Define the
-
 // Schedule the cron job to run every day at midnight
 export const statusChangeBatchJob = async () => {
   try {
