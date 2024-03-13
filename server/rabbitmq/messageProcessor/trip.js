@@ -1,4 +1,3 @@
-// import { sendFailedConfirmationToTripMicroservice, sendSuccessConfirmationToTripMicroservice } from '../../index.js';
 import dashboard from '../../models/dashboardSchema.js';
 import pino from 'pino';
 import pinoPretty from 'pino-pretty';
@@ -49,45 +48,7 @@ export const updateTrip = async (payload) => {
   }
 };
 
-//Trip status update function
-// export const updateTripStatus = async (payload) => {
-//   console.log("payload received by message processor ...", payload);
- 
-//   if (!Array.isArray(payload)) {
-//      throw new Error('Invalid input. Payload must be an array.');
-//   }
- 
-//   // Initialize counters for success and failure
-//   let successCount = 0;
-//   let failureCount = 0;
- 
-//   const results = await Promise.all(payload.map(async ({ tripId, tripStatus }) => {
-//      try {
-//        // Assuming 'tripSchema' is a typo and you meant to use the field directly, adjust as necessary
-//        const updatedTrip = await dashboard.findOneAndUpdate(
-//          { 'tripId': tripId }, // Assuming 'tripId' is the correct field name
-//          { $set: { 'tripStatus': tripStatus } }, // Update operation
-//          { new: true } // Return the updated document
-//        );
- 
-//        if (updatedTrip) {
-//          successCount++;
-//          return { success: true, message: `Trip ${tripId} updated successfully` };
-//        } else {
-//          throw new Error(`Failed to update trip ${tripId}`);
-//        }
-//      } catch (error) {
-//        failureCount++;
-//        return { success: false, message: `Error occurred while updating trip ${tripId}: ${error.message}` };
-//      }
-//   }));
- 
-//   // Return a summary of the update operation
-//   return {
-//      success: successCount === payload.length, // True if all updates were successful
-//      message: `Successfully updated ${successCount} trips. Failed to update ${failureCount} trips.`
-//   };
-//  };
+
 export const updateTripStatus = async (payload) => {
   console.log("Payload received by message processor:", payload);
   
@@ -129,7 +90,6 @@ export const updateTripStatus = async (payload) => {
   };
  };
  
-
 
 // Process transit trip message (received from - trip microservice, received -All transit trips (batchjob))
 //Trip microservice --All trip updates --- asynchronous rabbitmq route --- 
@@ -297,52 +257,3 @@ if (failedUpdates.length > 0) {
 }
 }
 
-
-
-
-
-
-
-
-
-
-
-
-// export const processTransitTrip = async (message) => {
-
-//   try {
-
-//     console.log('Received message from RabbitMQ:', message);
-
-//     for(const trip of message.updatedTripsInMemory) {
-      
-//       const { tripId, tripStatus } = trip; 
-
-//       const updated = await Dashboard.findOneAndUpdate(
-//         { tripId },
-//         {
-//           $set: {
-//             tripStatus  
-//           }
-//         }, 
-//         { upsert: true, new: true }
-//       );
-
-//       console.log('Saved to dashboard:', updated);
-
-//     }
-
-//   } catch (error) {
-//     console.error('Error saving to dashboard:', error);
-//   }
-
-// };
-
-// // Dashboard schema
-// const dashboardSchema = new mongoose.Schema({
-//   tripId: String, 
-//   tripStatus: String
-//   // other fields  
-// });
-
-// const Dashboard = mongoose.model('Dashboard', dashboardSchema);

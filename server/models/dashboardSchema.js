@@ -1,9 +1,8 @@
 import mongoose from "mongoose";
-// import { expenseSchema } from './expenseSchema.js';
 import { travelRequestSchema } from "./travelSchema.js";
-import { tripSchema } from "./tripSchema.js";
 import { cashAdvanceSchema } from "./cashSchema.js";
 import { reimbursementSchema } from "./reimbursementSchema.js";
+import { tripSchema } from "./expenseSchema.js";
   
 const dashboardSchema = new mongoose.Schema({
     tenantId: {

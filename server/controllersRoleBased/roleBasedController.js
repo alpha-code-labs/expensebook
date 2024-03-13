@@ -1,5 +1,4 @@
 import { financeLayout } from "../controllers/financeController.js";
-import { cashAdvanceSchema } from "../models/cashSchema.js";
 import dashboard from "../models/dashboardSchema.js";
 import HRMaster from "../models/hrMasterSchema.js";
 
@@ -68,7 +67,7 @@ const getEmployeeRoles = async (tenantId, empId) => {
     const toString = empId.toString();
     const hrDocument = await HRMaster.findOne({
         'tenantId': tenantId,
-        'employees.employeeDetails.employeeId': toString,
+        'employees.employeeDetails.employeeId': empId,
     });
     if (!hrDocument) {
         throw new Error("HR document not found");
@@ -222,13 +221,13 @@ const employeeLayout = async (tenantId, empId) => {
     // console.log("employeeLayout --travelStandAlone", travelStandAlone);
     const travelWithCash = await travelWithCashForEmployee(tenantId, empId);
      console.log("employeeLayout---travelWithCash", travelWithCash);
-     const trip = await getTripForEmployee(tenantId, empId);
+    const trip = await getTripForEmployee(tenantId, empId);
       const {rejectedCashAdvances} = travelWithCash
     const travelRequestCombined = [ ...travelStandAlone.travelRequests, ...travelWithCash.travelRequests]
     const rejectedTravelRequestsCombined = [ ...travelStandAlone.rejectedTravelRequests, ...travelWithCash.rejectedTravelRequests]
-    const employee = { travelRequests :travelRequestCombined,rejectedTravelRequests:rejectedTravelRequestsCombined , rejectedCashAdvances}
+    const employee = { travelRequests :travelRequestCombined,rejectedTravelRequests:rejectedTravelRequestsCombined , rejectedCashAdvances , trip }
     const testing = {travelStandAlone, travelWithCash}
-      return trip;
+      return employee;
   } catch (error) {
       console.error("Error:", error);
       throw new Error({ message: 'Internal server error' });
@@ -336,13 +335,13 @@ const travelStandAloneForEmployee = async (tenantId, empId) => {
         if(travelRequestDocs?.length>0){
             // console.log("travel standAlone From db....",travelRequestDocs)
 
-            const allTravelRequests = travelRequestDocs.filter(({travelRequestSchema:{travelRequestStatus}}) => travelRequestStatus !== 'rejected').map(({ travelRequestSchema: { travelRequestId, travelRequestNumber, tripPurpose, travelRequestStatus } }) => ({
-                travelRequestId, travelRequestNumber, tripPurpose, travelRequestStatus
+            const allTravelRequests = travelRequestDocs.filter(({travelRequestSchema:{travelRequestStatus}}) => travelRequestStatus !== 'rejected').map(({ travelRequestSchema: { travelRequestId, travelRequestNumber, tripPurpose, travelRequestStatus, isCashAdvanceTaken } }) => ({
+                travelRequestId, travelRequestNumber, tripPurpose, travelRequestStatus , isCashAdvanceTaken
             }));
             
     
-            const rejectedRequests = travelRequestDocs.filter(({ travelRequestSchema: { travelRequestStatus } }) => travelRequestStatus === 'rejected').map(({travelRequestSchema:{ travelRequestId, travelRequestNumber, tripPurpose, travelRequestStatus, rejectionReason } }) => ({
-                travelRequestId, travelRequestNumber, tripPurpose, travelRequestStatus, rejectionReason
+            const rejectedRequests = travelRequestDocs.filter(({ travelRequestSchema: { travelRequestStatus } }) => travelRequestStatus === 'rejected').map(({travelRequestSchema:{ travelRequestId, travelRequestNumber, tripPurpose, travelRequestStatus, rejectionReason, isCashAdvanceTaken } }) => ({
+                travelRequestId, travelRequestNumber, tripPurpose, travelRequestStatus, rejectionReason , isCashAdvanceTaken
             }));
     
             // const rejectedItineraryLines = [];
@@ -360,7 +359,7 @@ const travelStandAloneForEmployee = async (tenantId, empId) => {
             let rejectedItineraryLines = [];
 
             travelRequestDocs.filter(({travelRequestSchema:{travelRequestStatus}}) => travelRequestStatus !== 'rejected')
-                .forEach(({travelRequestSchema: { travelRequestId, travelRequestNumber, tripPurpose, travelRequestStatus, itinerary } }) => {
+                .forEach(({travelRequestSchema: { travelRequestId, travelRequestNumber, tripPurpose, travelRequestStatus,isCashAdvanceTaken, itinerary } }) => {
                     Object.entries(itinerary).forEach(([itineraryType,itineraryArray]) =>
                     itineraryArray.forEach(({itineraryId, rejectionReason, status}) => {        
                          if (status === 'rejected') {
@@ -370,6 +369,7 @@ const travelStandAloneForEmployee = async (tenantId, empId) => {
                                 travelRequestNumber,
                                 tripPurpose,
                                 travelRequestStatus,
+                                isCashAdvanceTaken,
                                 itineraryType,
                                 itineraryId,
                                 rejectionReason,
@@ -702,23 +702,26 @@ const travelWithCashForEmployee = async (tenantId, empId) => {
         // Then, map over the filtered documents to transform them into the desired structure
         return filteredDocs.map(travelRequest => {
            const { cashAdvanceSchema } = travelRequest;
-           const { travelRequestId, travelRequestNumber, tripPurpose, travelRequestStatus } = cashAdvanceSchema.travelRequestData;
+           const { travelRequestId, travelRequestNumber, tripPurpose, travelRequestStatus, isCashAdvanceTaken } = cashAdvanceSchema.travelRequestData;
            const cashAdvancesData = cashAdvanceSchema?.cashAdvancesData || [];
        
-           const cashAdvances = cashAdvancesData.map(({ cashAdvanceId, cashAdvanceNumber, amountDetails }) => ({
+           const cashAdvances = cashAdvancesData.map(({ cashAdvanceId, cashAdvanceNumber,cashAdvanceStatus, amountDetails }) => ({
              cashAdvanceId,
              cashAdvanceNumber,
-             amountDetails: amountDetails.map(detail => ({
-               amount: detail.amount,
-               shortName: detail.currency.shortName, 
-               mode: detail.mode
-             })),
+             cashAdvanceStatus,
+             amountDetails
+            //  amountDetails: amountDetails.map(detail => ({
+            //    amount: detail.amount,
+            //    shortName: detail.currency.shortName, 
+            //    mode: detail.mode
+            //  })),
            }));
        
            return {
              travelRequestId,
              travelRequestNumber,
              tripPurpose,
+             isCashAdvanceTaken,
              travelRequestStatus,
              cashAdvances,
            };
@@ -773,17 +776,19 @@ const travelWithCashForEmployee = async (tenantId, empId) => {
         // Then, map over the filtered documents to transform them into the desired structure
         return filteredDocs.map(travelRequest => {
            const { cashAdvanceSchema } = travelRequest;
-           const { travelRequestId, travelRequestNumber, tripPurpose, travelRequestStatus } = cashAdvanceSchema.travelRequestData;
+           const { travelRequestId, travelRequestNumber, tripPurpose, travelRequestStatus, isCashAdvanceTaken } = cashAdvanceSchema.travelRequestData;
            const cashAdvancesData = cashAdvanceSchema?.cashAdvancesData || [];
        
-           const cashAdvances = cashAdvancesData.map(({ cashAdvanceId, cashAdvanceNumber, amountDetails }) => ({
+           const cashAdvances = cashAdvancesData.map(({ cashAdvanceId, cashAdvanceNumber,cashAdvanceStatus, amountDetails }) => ({
              cashAdvanceId,
              cashAdvanceNumber,
-             amountDetails: amountDetails.map(detail => ({
-               amount: detail.amount,
-               shortName: detail.currency.shortName, 
-               mode: detail.mode, 
-             })),
+             cashAdvanceStatus,
+             amountDetails,
+            //  amountDetails: amountDetails.map(detail => ({
+            //    amount: detail.amount,
+            //    shortName: detail.currency.shortName, 
+            //    mode: detail.mode, 
+            //  })),
            }));
        
            return {
@@ -791,6 +796,7 @@ const travelWithCashForEmployee = async (tenantId, empId) => {
              travelRequestNumber,
              tripPurpose,
              travelRequestStatus,
+             isCashAdvanceTaken,
              cashAdvances,
            };
         });
@@ -802,7 +808,7 @@ const travelWithCashForEmployee = async (tenantId, empId) => {
        let rejectedItineraryLines = [];
 
        travelRequestDocs.filter(({cashAdvanceSchema:{travelRequestData:{travelRequestStatus}}}) => travelRequestStatus !== 'rejected')
-           .forEach(({cashAdvanceSchema:{travelRequestData: { travelRequestId, travelRequestNumber, tripPurpose, travelRequestStatus, itinerary }} }) => {
+           .forEach(({cashAdvanceSchema:{travelRequestData: { travelRequestId, travelRequestNumber, tripPurpose, travelRequestStatus,isCashAdvanceTaken, itinerary }} }) => {
                // Iterate over each key in the itinerary object
                Object.entries(itinerary).forEach(([itineraryType, itineraryArray]) => {
                    // Iterate over each item in the array under the current key
@@ -814,6 +820,7 @@ const travelWithCashForEmployee = async (tenantId, empId) => {
                               travelRequestNumber,
                               tripPurpose,
                                travelRequestStatus,
+                               isCashAdvanceTaken,
                                itineraryType, 
                                itineraryId,
                                rejectionReason,
@@ -835,42 +842,45 @@ const filteredDocs = travelRequestDocs.filter(doc =>
     )
    );
    
-//    const rejectedCashAdvances = filteredDocs.flatMap(doc => 
-//     doc.cashAdvanceSchema.cashAdvancesData
-//        .filter(cashAdvance => cashAdvance.cashAdvanceStatus === 'rejected')
-//        .map(({ travelRequestId, cashAdvanceId, cashAdvanceNumber, amountDetails,cashAdvanceStatus, rejectionReason }) => ({
-
-//          travelRequestId,
-//          cashAdvanceId,
-//          cashAdvanceNumber,
-//          cashAdvanceStatus,
-//          amountDetails,
-//          rejectionReason,
-//        }))
-//    );
-
+   const rejectedCashAdvances = filteredDocs.flatMap(doc =>
+    doc.cashAdvanceSchema.cashAdvancesData
+      .filter(cashAdvance => cashAdvance.cashAdvanceStatus === 'rejected')
+      .map(({ travelRequestId, cashAdvanceId, cashAdvanceNumber, amountDetails, cashAdvanceStatus, rejectionReason }) => ({
+        travelRequestId,
+        cashAdvanceId,
+        cashAdvanceNumber,
+        cashAdvanceStatus,
+        rejectionReason,
+        amountDetails,
+        // amountDetails: amountDetails.map(detail => ({
+        //   amount: detail.amount,
+        //   shortName: detail.currency.shortName
+        // }))
+      }))
+  );
+  
    
     //   console.log("Processed rejectedCashAdvances:", rejectedCashAdvances);
-    const rejectedCashAdvances = filteredDocs.flatMap(doc => 
-        doc.cashAdvanceSchema.cashAdvancesData
-           .filter(cashAdvance => cashAdvance.cashAdvanceStatus === 'rejected')
-           .map(({ travelRequestId, cashAdvanceId, cashAdvanceNumber, amountDetails, cashAdvanceStatus, rejectionReason }) => {
-             // Extract amount and shortName from each object inside amountDetails array
-             const extractedAmountDetails = amountDetails.map(detail => ({
-               amount: detail.amount,
-               shortName: detail.currency.shortName, 
-             }));
+    // const rejectedCashAdvances = filteredDocs.flatMap(doc => 
+    //     doc.cashAdvanceSchema.cashAdvancesData
+    //        .filter(cashAdvance => cashAdvance.cashAdvanceStatus === 'rejected')
+    //        .map(({ travelRequestId, cashAdvanceId, cashAdvanceNumber, amountDetails, cashAdvanceStatus, rejectionReason }) => {
+    //          // Extract amount and shortName from each object inside amountDetails array
+    //          const extractedAmountDetails = amountDetails.map(detail => ({
+    //            amount: detail.amount,
+    //            shortName: detail.currency.shortName, 
+    //          }));
     
-             return {
-               travelRequestId,
-               cashAdvanceId,
-               cashAdvanceNumber,
-               cashAdvanceStatus,
-               amountDetails: extractedAmountDetails,
-               rejectionReason,
-             };
-           })
-    );
+    //          return {
+    //            travelRequestId,
+    //            cashAdvanceId,
+    //            cashAdvanceNumber,
+    //            cashAdvanceStatus,
+    //            amountDetails: extractedAmountDetails,
+    //            rejectionReason,
+    //          };
+    //        })
+    // );
     
       const travelRequests = [...allTravelRequests];
       const rejectedTravelRequests = [...rejectedTravelRequestsAll, ...rejectedItineraryLines,];
@@ -882,7 +892,7 @@ const filteredDocs = travelRequestDocs.filter(doc =>
       // Return an object indicating the error occurred
       throw new Error({ error: 'Error in fetching employee Dashboard' });
     }
-  };
+};
   
 
 const getTripForEmployee = async (tenantId, empId) => {
@@ -894,114 +904,138 @@ const getTripForEmployee = async (tenantId, empId) => {
           $or: [
               { 'tripSchema.tripStatus': { $in: ['transit', 'upcoming', 'completed'] } },
               { 'tripSchema.travelExpenseData.expenseHeaderStatus': 'rejected' },
+              {'tripSchema.cashAdvanceData.cashAdvanceStatus': { $nin: ['rejected'] }},
+              {'reimbursementSchema.createdBy.empId': empId }
           ],
-          'tripSchema.cashAdvanceData.cashAdvanceStatus': { $nin: ['rejected'] },
-          'reimbursementSchema.createdBy.empId': empId,
       }).lean().exec();
 
       if (!tripDocs || tripDocs.length === 0) {
           return { message: 'There are no trips found for the user' };
-      }
+      } 
+    //   console.log("tripDocs............", tripDocs)
+    const upcomingTrips = tripDocs
+    .filter(trip => trip.tripSchema.tripStatus === 'upcoming')
+    .map(trip => {
+      console.log("each trip", trip)
+      const { tripSchema} = trip
+        const {travelRequestData, cashAdvancesData, travelExpenseData, expenseAmountStatus, tripStartDate,tripCompletionDate} = tripSchema || {};
+        const { totalCashAmount, totalremainingCash } = expenseAmountStatus ||  {};
+        const {travelRequestId,travelRequestNumber,travelRequestStatus,tripPurpose, isCashAdvanceTaken, itinerary} = travelRequestData || {};
+      
+        return {
+            travelRequestId,
+            travelRequestNumber,
+            tripPurpose,
+            tripStartDate,
+            tripCompletionDate,
+            travelRequestStatus,
+            isCashAdvanceTaken,
+            totalCashAmount,
+            totalremainingCash,
+            cashAdvances: isCashAdvanceTaken ? (cashAdvancesData ? cashAdvancesData.map(({ cashAdvanceId, cashAdvanceNumber, amountDetails, cashAdvanceStatus }) => ({
+                cashAdvanceId,
+                cashAdvanceNumber,
+                amountDetails,
+                cashAdvanceStatus
+            })) : []) : [], 
+            travelExpenses: travelExpenseData,
+            itinerary: Object.fromEntries(
+                    Object.entries(itinerary)
+                        .filter(([category]) => category !== 'formState')
+                        .map(([category, items]) => [
+                            category,
+                            items.map(({ bkd_from, bkd_to, status, itineraryId }) => ({
+                                category,
+                                bkd_from,
+                                bkd_to,
+                                status,
+                                itineraryId
+                            }))
+                        ])
+                )
+        };
+    });
+    console.log("upcomingTrips", upcomingTrips)
 
       const transitTrips = tripDocs
           .filter(trip => trip.tripSchema.tripStatus === 'transit')
           .map(trip => {
-              const { cashAdvancesData, travelExpenseData, itinerary, tripSchema, _id } = trip;
-              const { totalCashAmount, totalremainingCash } = tripSchema.expenseAmountStatus;
-
+            console.log("each trip", trip)
+            const { tripSchema} = trip
+              const {travelRequestData, cashAdvancesData, travelExpenseData, expenseAmountStatus, tripStartDate,tripCompletionDate} = tripSchema || {};
+              const { totalCashAmount, totalremainingCash } = expenseAmountStatus ||  {};
+              const {travelRequestId,travelRequestNumber,travelRequestStatus,tripPurpose, isCashAdvanceTaken, itinerary} = travelRequestData || {};
+        
               return {
-                  _id,
-                  travelRequestId: tripSchema.travelRequestId,
-                  travelRequestNumber: tripSchema.travelRequestNumber,
-                  tripPurpose: tripSchema.tripPurpose,
-                  tripStartDate: tripSchema.tripStartDate,
-                  tripCompletionDate: tripSchema.tripCompletionDate,
-                  travelRequestStatus: tripSchema.travelRequestStatus,
-                  isCashAdvanceTaken: tripSchema?.isCashAdvanceTaken,
-                  totalCashAmount,
-                  totalremainingCash,
-                  cashAdvances: isCashAdvanceTaken ? cashAdvancesData?.map(({ cashAdvanceId, cashAdvanceNumber, amountDetails }) => ({
-                      cashAdvanceId,
-                      cashAdvanceNumber,
-                      amountDetails
-                  })) : 'Raise a Cash Advance',
+                  travelRequestId,
+                  travelRequestNumber,
+                  tripPurpose,
+                  tripStartDate,
+                  tripCompletionDate,
+                  travelRequestStatus,
+                  isCashAdvanceTaken,
+                //   totalCashAmount,
+                //   totalremainingCash,
+                expenseAmountStatus,
+                cashAdvances: isCashAdvanceTaken ? (cashAdvancesData ? cashAdvancesData.map(({ cashAdvanceId, cashAdvanceNumber, amountDetails, cashAdvanceStatus }) => ({
+                    cashAdvanceId,
+                    cashAdvanceNumber,
+                    amountDetails,
+                    cashAdvanceStatus
+                })) : []) : [],              
                   travelExpenses: travelExpenseData?.map(({ expenseHeaderId, expenseHeaderNumber, expenseHeaderStatus }) => ({
                       expenseHeaderId,
                       expenseHeaderNumber,
                       expenseHeaderStatus
                   })),
-                  ItineraryArray: Object.entries(itinerary)
-                      .filter(([category]) => category !== 'formState')
-                      .map(([category, items]) => ({
-                          [category]: items.map(({ bkd_from, bkd_to, status, itineraryId }) => ({
-                              category,
-                              bkd_from,
-                              bkd_to,
-                              status,
-                              itineraryId
-                          }))
-                      }))
+                  itinerary: Object.fromEntries(
+                    Object.entries(itinerary)
+                        .filter(([category]) => category !== 'formState')
+                        .map(([category, items]) => [
+                            category,
+                            items.map(({ bkd_from, bkd_to, status, itineraryId }) => ({
+                                category,
+                                bkd_from,
+                                bkd_to,
+                                status,
+                                itineraryId
+                            }))
+                        ])
+                )
               };
           });
+          console.log("transitTrips", transitTrips)
 
       const completedTrips = tripDocs
-          .filter(trip => trip.tripSchema.tripStatus === 'completed')
+          .filter(trip => trip.tripSchema.tripStatus === 'completed' && trip?.tripSchema?.travelExpenseData && trip?.tripSchema?.travelExpenseData?.length > 0 )
           .flatMap(trip => trip.tripSchema.travelExpenseData.map(({ tripId, expenseHeaderId, expenseHeaderNumber, expenseHeaderStatus }) => ({
               tripId,
-              tripPurpose: trip.tripSchema.tripPurpose,
-              expenseHeaderId,
-              expenseHeaderNumber,
-              expenseHeaderStatus
+              tripPurpose: trip.tripSchema.travelRequestData.tripPurpose || '',
+              expenseHeaderId: expenseHeaderId || '',
+              expenseHeaderNumber: expenseHeaderNumber || '',
+              expenseHeaderStatus:expenseHeaderStatus|| '',
           })));
 
-      const rejectedTrips = tripDocs
+          const rejectedTrips = tripDocs
           .filter(trip => trip.tripSchema.tripStatus === 'rejected')
-          .flatMap(trip => trip.tripSchema.travelExpenseData.map(({ tripId, tripNumber, expenseHeaderId, expenseHeaderNumber, expenseAmountStatus }) => ({
-              tripId,
-              tripPurpose: trip.tripSchema.tripPurpose,
-              tripNumber,
-              expenseHeaderId,
-              expenseHeaderNumber,
-              expenseAmountStatus
-          })));
-
-      const upcomingTrips = tripDocs
-          .filter(trip => trip.tripSchema.tripStatus === 'upcoming')
-          .map(trip => {
-              const { tripSchema, cashAdvancesData, itinerary, _id } = trip;
-              const { totalCashAmount, totalremainingCash } = tripSchema.expenseAmountStatus;
-
-              return {
-                  _id,
-                  travelRequestId: tripSchema.travelRequestId,
-                  travelRequestNumber: tripSchema.travelRequestNumber,
-                  tripPurpose: tripSchema.tripPurpose,
-                  tripStartDate: tripSchema.tripStartDate,
-                  tripCompletionDate: tripSchema.tripCompletionDate,
-                  travelRequestStatus: tripSchema.travelRequestStatus,
-                  isCashAdvanceTaken: tripSchema.isCashAdvanceTaken,
-                  totalCashAmount,
-                  totalremainingCash,
-                  cashAdvances: cashAdvancesData.map(({ cashAdvanceId, cashAdvanceNumber, amountDetails }) => ({
-                      cashAdvanceId,
-                      cashAdvanceNumber,
-                      amountDetails
-                  })),
-                  ItineraryArray: Object.entries(itinerary)
-                      .filter(([category]) => category !== 'formState')
-                      .map(([category, items]) => ({
-                          [category]: items.map(({ bkd_from, bkd_to, status, itineraryId }) => ({
-                              bkd_from,
-                              bkd_to,
-                              status,
-                              itineraryId
-                          }))
-                      }))
-              };
+          .flatMap(trip => {
+              console.log("travelExpenseData", trip.tripSchema.travelExpenseData);
+              return trip.tripSchema.travelExpenseData.map(({ tripId, tripNumber, expenseHeaderId, expenseHeaderNumber, expenseAmountStatus }) => ({
+                  tripId,
+                  tripPurpose: trip.tripSchema.tripPurpose,
+                  tripNumber,
+                  expenseHeaderId,
+                  expenseHeaderNumber,
+                  expenseAmountStatus
+              }));
           });
+      
+
+     
 
       const nonTravelExpenseReports = tripDocs
-          .flatMap(trip => trip.reimbursementSchema.filter(({ createdBy }) => createdBy.empId === empId))
+          .filter(trip => trip.reimbursementSchema && trip.reimbursementSchema.length >0)
+          .flatMap(trip => trip?.reimbursementSchema.filter(({ createdBy }) => createdBy.empId === empId))
           .map(({ expenseHeaderId, createdBy, expenseHeaderNumber, expenseHeaderStatus }) => ({
               expenseHeaderId,
               createdBy,
@@ -1010,9 +1044,9 @@ const getTripForEmployee = async (tenantId, empId) => {
           }));
 
           return {
+            upcomingTrips,
             transitTrips,
             completedTrips,
-            upcomingTrips,
             rejectedTrips,
             nonTravelExpenseReports
         };
@@ -1411,7 +1445,6 @@ const managerLayout = async ({tenantId,empId}) => {
 
       //  res.status.status(200).json({ success: true,
       //  approvals,if
-
 
         return approvals
        } catch(error){

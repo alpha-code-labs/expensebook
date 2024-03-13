@@ -57,45 +57,22 @@ export const processTravelExpense = async (message,correlationId) => {
 }
 
 export const fullUpdateExpense = async (payload) => {
-  const {_doc} = payload
+  const {getExpenseReport} = payload
   const { 
     tenantId,
-    tripStatus,
-    tripCompletionDate,
-    tripStartDate,
-    tripNumber,
-    isSentToExpense,
-    notificationSentToDashboardFlag,
     tripId,
     travelRequestData,
-    cashAdvancesData,
-    travelExpenseData
-  } = _doc;
+  } = getExpenseReport;
+  
     const {travelRequestId} = travelRequestData
     console.log("payload for travelExpenseData", payload )
 
-    const updateFields = {
-      $set: {
-        tenantId,
-        tripStatus,
-        tripCompletionDate: new Date(tripCompletionDate),
-        tripStartDate: new Date(tripStartDate),
-        tripNumber,
-        isSentToExpense,
-        notificationSentToDashboardFlag,
-        tripId,
-        travelRequestData,
-        cashAdvancesData,
-        travelExpenseData,
-      }
-    };
-    
 
     try {
     const updated = await dashboard.findOneAndUpdate(
-      { 'tenantId': tenantId , 'tripSchema.travelRequestData.travelRequestId':travelRequestId},
+      { 'tripSchema.tenantId': tenantId , 'tripSchema.travelRequestData.travelRequestId':travelRequestId, 'tripSchema.tripId': tripId },
       {
-       ...updateFields,
+       $set:{tripSchema :getExpenseReport}
       },
       { upsert: true, new: true }
     );
@@ -106,3 +83,6 @@ export const fullUpdateExpense = async (payload) => {
     return { success: false, error: error}
   }
 }
+
+
+

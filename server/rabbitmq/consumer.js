@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import { fullUpdateExpense } from './messageProcessor/travelExpenseProcessor.js';
 import { updateTrip } from './messageProcessor/trip.js';
 import { fullUpdateCash } from './messageProcessor/cash.js';
+import { deleteReimbursement, updateReimbursement } from './messageProcessor/reimbursement.js';
 
 dotenv.config();
 
@@ -64,7 +65,7 @@ export async function startConsumer(receiver) {
             //implement retry mechanism
             console.log('update failed with error code', res.error)
           }
-        } else if(source == 'travel'){
+          } else if (source == 'travel'){
             console.log('trying to update Travel')
             const res = await fullUpdateTravel(payload)
             console.log(res)
@@ -77,7 +78,7 @@ export async function startConsumer(receiver) {
               //implement retry mechanism
               console.log('update failed with error code', res.error)
             }
-          } else if(source == 'cash'){
+          } else if (source == 'cash'){
             if(action == 'full-update'){
               console.log('trying to update CashAdvanceSchema')
               const res = await fullUpdateCash(payload)
@@ -93,7 +94,7 @@ export async function startConsumer(receiver) {
               }
             }
             
-          }else if (source == 'expense'){
+          } else if (source == 'expense'){
             if(action == 'full-update'){
             console.log('trying to update travelExpense Data')
             const res = await fullUpdateExpense(payload)
@@ -108,6 +109,32 @@ export async function startConsumer(receiver) {
               console.log('update failed with error code', res.error)
             }
           }
+          } else if (source == 'reimbursement'){
+            if (action == 'full-update') {
+              console.log('Trying to update reimbursement Data');
+                const results = await updateReimbursement(payload);
+                  if (results.success) {
+                    // Acknowledge message
+                    channel.ack(msg);
+                    console.log('Message processed successfully');
+                  } else {
+                    // Implement retry mechanism or handle error
+                    console.log('Update failed with error:', results.error);
+                  }
+                } 
+            if( action == 'delete'){    
+              console.log('Trying to update reimbursement Data');
+              const results = await deleteReimbursement(payload);
+                if (results.success) {
+                  // Acknowledge message
+                  channel.ack(msg);
+                  console.log('Message processed successfully');
+                } else {
+                  // Implement retry mechanism or handle error
+                  console.log('Update failed with error:', res.error);
+                }
+
+            }
           } else if (source == 'trip'){
             if (action == 'trip-creation') {
               console.log('Trying to update trip Data');
@@ -128,6 +155,21 @@ export async function startConsumer(receiver) {
               }
 
             }
+          } else if (source == 'approval'){
+             if(action ='expense-approved'){
+              console.log("approve expense report")
+              const result = await updateExpenseReport(payload)
+              if(result.success){
+                //acknowledge message
+                channel.ack(msg)
+                console.log('message processed successfully')
+              }
+              else{
+                //implement retry mechanism
+                console.log('update failed with error code', result.error)
+              }
+
+             }
           }
       }
     }}, { noAck: false });

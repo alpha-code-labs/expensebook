@@ -6,10 +6,9 @@ import dummy from './routes/dummyRoute.js';
 import overview from './routes/overviewRoutes.js';
 import { handleErrors } from './errorHandler/errorHandler.js';
 import amqp from 'amqplib';
-import { updateHRMaster } from './rabbitmq/messageProcessor/hrMaster.js';
 import { startConsumer } from './rabbitmq/consumer.js';
 import { mainRouter} from './routes/mainFrontendRoutes.js';
-import { consumeFromDashboardQueue } from './rabbitmq/consumerNew.js';
+import { consumeFromDashboardQueue } from './rabbitmq/dashboardConsumer.js';
 
 
 dotenv.config();

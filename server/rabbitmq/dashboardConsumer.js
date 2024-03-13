@@ -142,6 +142,8 @@ export const consumeFromDashboardQueue = async () => {
                  success = await updateDashboard(payload);
                } else if (source === 'trip' && headers.action === 'status-update') {
                  success = await updateTripStatus(payload);
+               } else if (source === 'trip' && headers.action === 'full-update'){
+                 success = await fullUpdateTrip(payload);
                }
              }
  

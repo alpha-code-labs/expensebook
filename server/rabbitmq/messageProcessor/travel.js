@@ -1,11 +1,12 @@
 import dashboard from "../../models/dashboardSchema.js";
 
 export const fullUpdateTravel = async (payload) => {
+  console.log("trying to update travel", payload)
     const { tenantId, travelRequestId } = payload;
       try {
       const updated = await dashboard.findOneAndUpdate(
         { "travelRequestSchema.tenantId": tenantId, 
-         "travelRequestSchema.travelRequestId": travelRequestId,
+          "travelRequestSchema.travelRequestId": travelRequestId,
         },
         {
          "travelRequestSchema": payload,
@@ -19,5 +20,6 @@ export const fullUpdateTravel = async (payload) => {
       return { success: false, error: error}
     }
 }
+
 
 
