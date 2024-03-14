@@ -19,8 +19,6 @@ app.use("/api", frontendRoutes);
 app.use("/api/internal/", internalRoutes)
 app.use("/api", PSFirstTimeIntegrationRoute)
 
-
-
 async function connectToMongoDB() {
   try {
     await mongoose.connect(MONGO_URI, {
@@ -35,3 +33,4 @@ async function connectToMongoDB() {
 }
 
 connectToMongoDB();
+

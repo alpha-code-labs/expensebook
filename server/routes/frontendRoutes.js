@@ -37,11 +37,24 @@ import {
     updateBlanketDelegations,
     getBlanketDelegations,
     updateTenantCompanyInfo,
+    getTenantCompanyInfo,
     handleHRData,
     getTenantNonTravelPolicies,
     updateTenantNonTravelPolicies,
     updateTravelCategoriesExpenseAllocation,
     updateTenantState,
+    updateTenantTravelExpenseCategories,
+    getTenantTravelExpenseCategories,
+    updateTenantReimbursementExpenseCategories,
+    getTenantReimbursementExpenseCategories,
+    updateTenantTravelAllocations,
+    getTenantTravelAllocations,
+    updateTenantReimbursementAllocations,
+    getTenantReimbursementAllocations,
+    updateTenantTravelAllocationFlags,
+    getTenantTravelAllocationFlags,
+    getTenantDefaultCurrency,
+    onboardingCompleted,
 } from "../controllers/frontendController.js";
 
 import { upload } from "../middlewares/upload.js";
@@ -62,6 +75,10 @@ router.get('/tenant/:tenantId/flags', getTenantFlags);
 router.get('/tenant/:tenantId/group-headers', getTenantGroupHeaders);
 
 router.post('/tenant/:tenantId/company-info', updateTenantCompanyInfo)
+router.get('/tenant/:tenantId/company-info', getTenantCompanyInfo)
+
+//default currency
+router.get('/tenant/:tenantId/default-currency', getTenantDefaultCurrency)
 
 //allocations
 //router.get('/tenant/:tenantId/travelAllocations', getTenantTravelAllocations);
@@ -69,6 +86,21 @@ router.post('/tenant/:tenantId/travel-allocation', updateTravelAllocation);
 router.post('/tenant/:tenantId/travel-expense-allocation', updateTravelExpenseAllocation);
 router.post('/tenant/:tenantId/travel-categories-expense-allocation', updateTravelCategoriesExpenseAllocation);
 router.post('/tenant/:tenantId/non-travel-expense-allocation', updateNonTravelExpenseAllocation);
+
+//allocation and categories
+router.post('/tenant/:tenantId/travel-allocations', updateTenantTravelAllocations);
+router.get('/tenant/:tenantId/travel-allocations', getTenantTravelAllocations);
+router.post('/tenant/:tenantId/reimbursement-allocations', updateTenantReimbursementAllocations);
+router.get('/tenant/:tenantId/reimbursement-allocations', getTenantReimbursementAllocations);
+router.post('/tenant/:tenantId/travel-expense-categories', updateTenantTravelExpenseCategories);
+router.get('/tenant/:tenantId/travel-expense-categories', getTenantTravelExpenseCategories);
+router.post('/tenant/:tenantId/reimbursement-expense-categories', updateTenantReimbursementExpenseCategories);
+router.get('/tenant/:tenantId/reimbursement-expense-categories', getTenantReimbursementExpenseCategories);
+
+//allocation flags
+router.post('/tenant/:tenantId/travel-allocation-flags', updateTenantTravelAllocationFlags);
+router.get('/tenant/:tenantId/travel-allocation-flags', getTenantTravelAllocationFlags);
+
 //get routes
 router.get('/tenant/:tenantId/travel-allocation', getTenantTravelAllocation);
 router.get('/tenant/:tenantId/travel-expense-allocation', getTenantTravelExpenseAllocation);
@@ -115,8 +147,10 @@ router.get('/tenant/:tenantId/system-related-roles', getTenantSystemRelatedRoles
 router.post('/tenant/:tenantId/blanket-delegations', updateBlanketDelegations)
 router.get('/tenant/:tenantId/blanket-delegations', getBlanketDelegations)
 
-
 //form state
 router.post('/tenant/:tenantId/state', updateTenantState)
+
+//onboarding completed
+router.post('/tenant/:tenantId/onboarding-completed', onboardingCompleted)
 
 export default router;
