@@ -13,6 +13,8 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { postTenantHRData_API, updateFormState_API } from '../utils/api';
 import { transform } from 'typescript';
 
+const WEB_PAGE_URL = import.meta.env.WEB_PAGE_URL
+const LOGIN_PAGE_URL = import.meta.env.LOGIN_PAGE_URL
 
 export default function (){
   const {tenantId} = useParams()
@@ -56,8 +58,20 @@ export default function (){
     //extract excel data when selectedfile changes
     if(selectedFile){
         console.log(excelData)
+         
         let goAhead = true
         setProcessed(false)
+
+        if(excelData.length == 0){
+          setShowPrompt(true)
+          setPrompt('Seems like you uploaded an empty excel file. Without HR data the system will not work. Please make sure the uploaded file has values and try again.')
+          setSelectedFile(null)
+          setFileSelected(false)
+
+          goAhead = false
+          return
+        }
+
         const target = ['employee name', 'employee id', 'email id']
         excelData.forEach(row=>{
             const keys = Object.keys(row).map(key=>key.toLowerCase())
@@ -66,6 +80,8 @@ export default function (){
             if(!isValidExcel(target, keys)){
                 setShowPrompt(true)
                 setPrompt('The File you uploaded is missing some required fileds')
+                setSelectedFile(null)
+                setFileSelected(false)
                 goAhead = false
                 return
             }
@@ -105,7 +121,7 @@ export default function (){
     }
     console.log(res.data)
     //navigate to next section 
-    navigate(`/${tenantId}/expense-allocations/`)
+    navigate(`/${tenantId}/setup-expensebook/`)
   }
 
   const handleSaveAsDraft = async ()=>{
@@ -133,8 +149,8 @@ export default function (){
     }
     console.log(res.data)
 
-    const update_res = await updateFormState_API({tenantId, state: '/upload-hr-data'})
-    window.location.href = 'https://google.com'
+    const update_res = await updateFormState_API({tenantId, state: `/${tenantId}/setup-expense-book`})
+    window.location.href = WEB_PAGE_URL
   }
 
   return (
@@ -181,7 +197,7 @@ export default function (){
                             src={file_icon}
                             />
                             <div className="relative font-medium inline-block overflow-hidden text-ellipsis whitespace-nowrap w-[43px]">
-                            BMS Data
+                             {selectedFile.name}
                             </div>
                         </div>
                         ) : (
@@ -198,32 +214,31 @@ export default function (){
             </div>
         </div>
     
-    <Modal showModal={showPrompt} setShowModal={setShowPrompt} skipable={true} >
-          <div className='p-10'>
-              <p className='text-zinc-800 text-base font-medium font-cabin mt-4'>
-                {prompt}  
-              </p>
-              <div className='inline-flex justify-end w-[100%] mt-10'>
-                  <div className='w-[150px]'>
-                    <Button text='Ok' onClick={()=>{setSelectedFile(null); setFileSelected(null)}} />
-                  </div>
-              </div>
-          </div>
-    </Modal>
+      <Modal showModal={showPrompt} setShowModal={setShowPrompt} skipable={true} >
+            <div className='p-10'>
+                <p className='text-zinc-800 text-base font-medium font-cabin mt-4'>
+                  {prompt}  
+                </p>
+                <div className='inline-flex justify-end w-[100%] mt-10'>
+                    <div className='w-[150px]'>
+                      <Button text='Ok' onClick={()=>{setSelectedFile(null); setFileSelected(null)}} />
+                    </div>
+                </div>
+            </div>
+      </Modal>
 
-    <Modal showModal={showSkipModal} setShowModal={setShowSkipModal} skipable={false} >
-          <div className='p-10'>
-              <p className='text-zinc-800 text-base font-medium font-cabin mt-4'>
-                {prompt}  
-              </p>
-              <div className='inline-flex justify-end w-[100%] mt-10'>
-                  <div className='w-[150px]'>
-                    <Button text='Ok' onClick={()=>{window.location.href = 'https://google.com'}} />
-                  </div>
-              </div>
-          </div>
-    </Modal>
-
+      <Modal showModal={showSkipModal} setShowModal={setShowSkipModal} skipable={false} >
+            <div className='p-10'>
+                <p className='text-zinc-800 text-base font-medium font-cabin mt-4'>
+                  {prompt}  
+                </p>
+                <div className='inline-flex justify-end w-[100%] mt-10'>
+                    <div className='w-[150px]'>
+                      <Button text='Ok' onClick={()=>{window.location.href = WEB_PAGE_URL}} />
+                    </div>
+                </div>
+            </div>
+      </Modal>
   </> 
   );
 };

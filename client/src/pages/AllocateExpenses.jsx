@@ -27,6 +27,7 @@ export default function (props){
           console.log(res.data, '...res.data')
           let orgHeadersData = res.data.orgHeaders
           let tmpOrgHeaders = []
+          
           Object.keys(orgHeadersData).forEach(key => {
             if(orgHeadersData[key].length !== 0){
               tmpOrgHeaders.push(key)

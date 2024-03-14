@@ -10,7 +10,7 @@ export default function Input(props){
     const onBlur = props.onBlur
     const onChange = props.onChange || null
     const inputRef = useRef(null)
-    const [textInput, setTextInput] = useState(value? titleCase(value) : '')
+    const [textInput, setTextInput] = useState(value??'')
     const error = props.error || {set:false, message:''}
     
     const handleChange = (e)=>{

@@ -8,6 +8,10 @@ export default function (props) {
     const navigate = useNavigate();
     const {tenantId} = useParams()
 
+
+
+    
+
     return (
         <div className="flex bg-white w-full h-full overflow-x-hidden font-cabin tracking-tight">
         
@@ -36,7 +40,7 @@ export default function (props) {
 
                 <div className='flex flex-row-reverse mt-10 pr-20'>
                     <div className='w-[200px]'>
-                        <Button text='Next' onClick={()=>navigate('/company-info')} />
+                        <Button text='Next' onClick={()=>navigate(`/${tenantId}/company-info`)} />
                     </div>
                 </div>
 

@@ -43,7 +43,7 @@ export default function (props){
 
         }
 
-        navigate(`/${tenantId}/non-travel-expenses`)
+        navigate(`/${tenantId}/others`)
     }
 
     return(<>
@@ -81,6 +81,13 @@ export default function (props){
                         onClick={() => navigate('local')}
                         text='Local Travel'
                         icon={local_travel_icon}/>
+
+                    <hr className="my-2 border-dashed border-indigo-600"/>
+                    
+                    <CollapsedPolicy 
+                        onClick={() => navigate('reimbursement')}
+                        text='Reimbursement Policies'
+                        icon={non_travel_icon}/>
                 </div>
 
                 <div className="mt-10 flex w-full justify-between">

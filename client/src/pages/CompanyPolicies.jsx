@@ -10,6 +10,11 @@ import NonTravelPolicies from "./policies/NonTravelPolicies";
 import Icon from "../components/common/Icon";
 import { useLocation, useParams } from "react-router-dom";
 import HollowButton from "../components/common/HollowButton";
+import ReimbursementPolicies from "./policies/ReimbursementPolicies";
+import { getTenantDefaultCurrency_API } from "../utils/api";
+import Error from "../components/common/Error";
+
+const ONBOARDING_API = import.meta.env.VITE_PROXY_URL
 
 export default function (props){
   
@@ -23,58 +28,126 @@ export default function (props){
   const [ruleEngineState, setRuleEngineState] = useState()
   const [groupsNotFound, setGroupsNotFound] = useState(false)
 
-
   const [ruleEngineData, setRuleEngineData] = useState({
       international:{
+
         ['Allowed Trip Purpose']: {
+          title:'Allowed Trip Purpose',
+          enabled:true,
           class: ['Business', 'Personal', 'Training', 'Events', 'Others'],
         },
 
-        ['Flights']:{
+        ['Flight']:{
+          enabled:true,
+          title: 'Flights',
           class: ['Economy', 'Premium Economy', 'Business', 'First'],
           limit: '',
+          currency: {}
         },
 
-        ['Trains']:{
+        ['Train']:{
+          enabled:true,
+          title: 'Trains',
           class: ['AC 1st Class', 'AC 2nd Class', 'AC 3rd Class', 'Sleeper Class', 'General'],
           limit: '',
+          currency: {}
         },
         
-        ['Car Rentals']:{
+        ['Cab']:{
+          enabled:true,
+          title:'Cabs',
           class: ['Compact', 'Intermediate', 'Large'],
           limit: '',
+          currency: {}
+        },
+
+        ['Car Rentals']:{
+          enabled:true,
+          title: 'Car Rentals',
+          class: ['Compact', 'Intermediate', 'Large'],
+          limit: '',
+          currency: {}
         },
         
-        ['Hotels']:{
+        ['Hotel']:{
+          enabled:true,
+          title: 'Hotels',
           class: ['3 Star', '4 Star', '5 Star'],
           limit: '',
+          currency: {}
         },
         
         ['Meals']:{
+          enabled:true,
+          fixed:false,
+          title:'Meals',
           limit: '',
+          currency: {}
+        },
+
+        ['Mileage Reimbursement Rates (per Kilometer)']:{
+          fixed:true,
+          enabled:true,
+          title:'Mileage Reimbursement Rates (per Kilometer)',
+          limit: '',
+          currency: {}                                               
+        },
+
+        ['Conference event Amount alowed upto']:{
+          enabled:true,
+          limit: '',
+          currency: {}                                               
+        },
+
+        ['Travel Insurance Amount alowed upto']:{
+          enabled:true,
+          limit: '',
+          currency: {}                                               
+        },
+
+        ['Baggage fee amount alowed upto']:{
+          enabled:true,
+          limit: '',
+          currency: {}                                               
+        },
+
+        ['Tips (amount alowed upto)']:{
+          enabled:true,
+          limit: '',
+          currency: {}                                               
         },
 
         ['Advance Payment']:{
+          enabled:true,
           limit: '',
+          currency: {}
         },
 
         ['Expense Report Submission Deadline']:{
+          enabled:true,
           dayLimit: '',
         },
 
         ['Minimum Days to Book Before Travel']:{
+          enabled:true,
           dayLimit: '',
         },
+
         ['Expense Type Restriction']:{
+          enabled:true,
           class: ['Alcohol', 'Entertainment' ]
         },
+
         ['Policy Exception And Esclation Process']:{
+          enabled:true,
           text:'',
         },
         
         ['Approval Flow']:{
+          enabled:true,
           approval:'',
         },
+
       },
 
       domestic:{
@@ -177,133 +250,55 @@ export default function (props){
       },
   })
 
+  const [nonTravelPolicies, setNonTravelPolicies] = useState({})
+  const [currencySymbol, setCurrencySymbol] = useState('')
+  const [networkStates, setNetworkStates] = useState({isLoading:true, isUploading:false, loadingErrMsg:null})
+
   useEffect(() => {
     (async function () {
-      if (!groups) {
-        console.log('this ran..');
-        if (state != null && state.groups != null && state.groups != []) {
-          setGroups(state.groups);
-          setRuleEngineState(state.groups.map(group => ({ [group]: convertToObject(ruleEngineData) })));
-          setGroupsNotFound(false);
+      try {
+         setNetworkStates(pre=>({...pre, isLoading:true}))
+        //get travel expense categories..., travel allocation flags... and groups
+
+        //const groups_data_response = await axios.get(`http://localhost:8001/api/tenant/${tenantId}/groups`);
+
+        const policies_data_response = await axios.get(`${ONBOARDING_API}/tenant/${tenantId}/policies/travel`);
+        const res = await axios.get(`${ONBOARDING_API}/tenant/${tenantId}/policies/non-travel`);
+        const dc_res = await getTenantDefaultCurrency_API({tenantId})
+        setCurrencySymbol(dc_res.data?.defaultCurrency?.symbol??'')
+        
+        const rls = Object.keys(policies_data_response?.data?.policies??{}).map(key=>(policies_data_response.data.policies[key]))
+        console.log(rls)
+        setRuleEngineState(rls)
+        setNonTravelPolicies(res.data.policies)
+        setNetworkStates(pre=>({...pre, isLoading:false}))
+        return;
+               
+      } catch (e) {
+        if (e.response) {
+          console.error(e.response);
+          setNetworkStates(pre=>({...pre, loadingErrMsg:e.response.message}))
+        } else if (e.request) {
+          console.error('Internal server error');
+          setNetworkStates(pre=>({...pre, loadingErrMsg:e.message}))
         } else {
-          console.log('this ran..');
-          try {
-            const groups_data_response = await axios.get(`http://localhost:8001/api/tenant/${tenantId}/groups`);
-            const policies_data_response = await axios.get(`http://localhost:8001/api/tenant/${tenantId}/policies/travel`);
-
-            
-            const groups = groups_data_response.data.groups
-            const policies = policies_data_response.data.policies
-            console.log(policies, 'policies')
-
-            if(!Array.isArray(policies)){
-              //no policies has been setup yet
-              if (groups.length > 0) {
-                setGroups(groups.map(group => group.groupName));
-                setRuleEngineState(groups.map(group => ({ [group.groupName]: convertToObject(ruleEngineData) })))
-                setGroupsNotFound(false)
-              } else {
-                setGroupsNotFound(true);
-              }
-            }
-
-            else{
-              //policy setup was done previously..
-              //there are two options...
-              // 1) remove the existing policies and let him setup again if groups are changed
-              // 2) check what groups are changed and patch existing policies with that information 
-
-
-              //get group names from policies
-              const latestGroupNames = groups.map(group => group.groupName)
-              const existingGroupNames = policies.map(groupPolicies => Object.keys(groupPolicies)).flat()
-
-              if(latestGroupNames.toString() === existingGroupNames.toString()){
-                //group names are same... content may or may not be same but it doesn't matter
-
-                //set rule engine state to existing policies
-                setRuleEngineState(policies)
-                setGroupsNotFound(false)
-              }
-              else{
-                //groups don't match. Currently going with 1) option
-                if (groups.length > 0) {
-                  setGroups(groups.map(group => group.groupName));
-                  setRuleEngineState(groups.map(group => ({ [group.groupName]: convertToObject(ruleEngineData) })))
-                  setGroupsNotFound(false)
-                } else {
-                  setGroupsNotFound(true);
-                }
-              }
-
-            }
-            
-            console.log('resolved.. ', groups.length);
-          } catch (e) {
-            if (e.response) {
-              console.error(e.response);
-            } else if (e.request) {
-              console.error('Internal server error');
-            } else {
-              console.error('Something went wrong while placing the request', e);
-            }
-
-            setGroupsNotFound(true);
-          }
-
+          setNetworkStates(pre=>({...pre, loadingErrMsg:e.message}))
+          console.error('Something went wrong while placing the request', e);
         }
       }
     })();
   }, []);
   
-  function convertToObject(ruleEngineData){
-    let obj = {}
-    Object.keys(ruleEngineData).forEach((key) => {
-      obj[key] = {}
 
-      Object.keys(ruleEngineData[key]).forEach((key2) => {
-        obj[key][key2] = {}
-        
-        if(ruleEngineData[key][key2]['class'] != undefined){
-          obj[key][key2]['class'] = {}
-          ruleEngineData[key][key2]['class'].forEach((item)=>{
-            obj[key][key2]['class'][item] = {allowed: false, violationMessage:'policy violation'}
-          })
-        }
-
-        if(ruleEngineData[key][key2]['limit']!=undefined){
-          obj[key][key2]['limit'] = {amount:'', currency:'', violationMessage:'policy violation'}
-        }
-
-        if(ruleEngineData[key][key2]['dayLimit']!=undefined){
-          obj[key][key2]['dayLimit'] = {days:'', violationMessage:'policy violation'}
-        }
-
-        if(ruleEngineData[key][key2]['text']!=undefined){
-          obj[key][key2]['text'] = {text:'', violationMessage:'policy violation'}
-        }
-
-        if(ruleEngineData[key][key2]['approval']!=undefined){
-          obj[key][key2]['approval'] = {approvers:[], violationMessage:'policy violation'}
-        }
-
-        if(ruleEngineData[key][key2]['fields']!=undefined){
-          obj[key][key2]['fields'] = ruleEngineData[key][key2]['fields']
-        }
-      
-      })
-    })
-    return obj
-  }
-
+  useEffect(()=>{
+    console.log(currencySymbol, 'currencySymbol')
+  },[currencySymbol])
 
   useEffect(()=>{
     console.log(ruleEngineState)
   },[ruleEngineState])
 
-
   return <>
-
       {groupsNotFound && <> 
       <Icon/>
         <div className="bg-slate-50 min-h-[calc(100vh-107px)] px-[20px] md:px-[50px] lg:px-[104px] pb-10 w-full tracking-tight">
@@ -317,31 +312,46 @@ export default function (props){
         </>
       }
 
-      {!groupsNotFound &&
+      {networkStates.isLoading && <Error message={networkStates.loadingErrMsg}/>}
+      {!networkStates.isLoading &&
       <Routes>
         <Route path='/' 
               element={<Home 
+                currencySymbol={currencySymbol}
                 ruleEngineData={ruleEngineData}
                 ruleEngineState={ruleEngineState} 
                 setRuleEngineState={setRuleEngineState} />} />
 
         <Route path='/international'  
                 element={<InternationalPolicies 
+                  currencySymbol={currencySymbol}
                   ruleEngineData={ruleEngineData}
                   ruleEngineState={ruleEngineState} 
                   setRuleEngineState={setRuleEngineState}/>} />
 
         <Route path='/domestic' 
                 element={<DomesticPolicies 
+                  currencySymbol={currencySymbol}
                   ruleEngineData={ruleEngineData}
                   ruleEngineState={ruleEngineState} 
                   setRuleEngineState={setRuleEngineState} />} />
         
         <Route path='/local' 
                 element={<LocalPolicies 
+                  currencySymbol={currencySymbol}
                   ruleEngineData={ruleEngineData}
                   ruleEngineState={ruleEngineState} 
                   setRuleEngineState={setRuleEngineState} />} />
+
+        <Route path='/reimbursement' 
+                element={<ReimbursementPolicies 
+                  currencySymbol={currencySymbol}
+                  tenantId={tenantId}
+                  travelType={'nonTravel'}
+                  ruleEngineData={ruleEngineData}
+                  ruleEngineState={nonTravelPolicies} 
+                  setRuleEngineState={setNonTravelPolicies} />} />
       </Routes>}
   </>;
+
 }

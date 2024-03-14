@@ -190,6 +190,8 @@ const defaultCategories = [
     {local: expenseCategories}
 ]
 
+const fixedFields = ['Total Amount', 'Class', 'Tax Amount', 'Tip Amount', 'Premium Amount', 'Cost', 'License Cost', 'Subscription Cost']
+
 export default function (props) {
 
     const tenantId = props.tenantId
@@ -265,7 +267,7 @@ export default function (props) {
     
     //###File upload related
     const [showAddHeaderModal, setShowAddHeaderModal] = useState(false)
-    const [updatedOrgHeadeers, setUpdatedOrgHeaders] = useState([])
+    const [updatedOrgHeaders, setUpdatedOrgHeaders] = useState([])
 
     useEffect(()=>{
         if(showAddHeaderModal){
@@ -322,11 +324,11 @@ export default function (props) {
         setExpenseCategoryName(e.target.value)
     }
 
-    const handleRemoveCategory = (e)=>{
-        const res = confirm(`Are you sure you want to ${expenseCategoryName} category?`)
+    const handleRemoveCategory = (expenseCategoryName)=>{
+        const res = confirm(`Are you sure you want to remove ${expenseCategoryName} category?`)
 
         if(res){
-            const allocations_copy = JSON.parse(JSON.stringify)
+            let allocations_copy = JSON.parse(JSON.stringify(allocations))
             allocations_copy[travelType] = allocations[travelType].filter(c=>c.categoryName != expenseCategoryName)
             setAllocations(allocations_copy)
         }
@@ -504,18 +506,32 @@ export default function (props) {
     },[])
 
     useEffect(()=>{
-        if(updatedOrgHeadeers.length>0){
-            setOrgHeaders(updatedOrgHeadeers)
+        if(Object.keys(updatedOrgHeaders).length>0){
+            console.log()
+
+            let orgHeadersData = updatedOrgHeaders
+            let tmpOrgHeaders = []
+            Object.keys(orgHeadersData).forEach(key => {
+                console.log(key, ' key ', orgHeadersData[key], ' orgHeaders values ', orgHeadersData[key].length, ' length')
+                if(orgHeadersData[key].length !== 0){
+                    tmpOrgHeaders.push({headerName:key, headerValues: orgHeadersData[key]})
+                }
+            })
+    
+            console.log(tmpOrgHeaders, '...tmpOrgHeaders')
+            setOrgHeaders(tmpOrgHeaders)
         }
-    },[updatedOrgHeadeers])
+
+        console.log(updatedOrgHeaders, 'updated org headers ...')
+    },[updatedOrgHeaders])
 
     return(<>
         <Icon />
         {
         <div className="bg-slate-50 min-h-[calc(100vh-107px)] px-[20px] md:px-[50px] lg:px-[104px] pb-10 w-full tracking-tight">
-            <div className='px-6 py-10 bg-white rounded shadow'>               
+            <div className='relative px-6 py-10 bg-white rounded shadow'>               
                {/* back button and title */}
-                <div className='flex gap-4'>
+                <div className='flex gap-4 absolute py-10 bg-white z-[50]'>
                     <div className='w-6 h-6 cursor-pointer' onClick={()=>navigate(-1)}>
                         <img src={back_icon} />
                     </div>
@@ -541,6 +557,7 @@ export default function (props) {
                                 handleEditFields={handleEditFields}  
                                 saveChanges={updateTravelAllocations} 
                                 categoryName={category.categoryName}
+                                handleRemoveCategory={handleRemoveCategory}
                                 travelType={travelType} 
                                 allocations={allocations}
                                 setAllocations={setAllocations}
@@ -583,8 +600,8 @@ export default function (props) {
                         <div className='flex flex-col gap-2'>
                             {expenseCategoryFields.length>0 && expenseCategoryFields.map((field, index)=>(
                                 <div key={index} className='flex flex-wrap gap-4 items-center'>
-                                    <Input  showTitle={false} placeholder='eg. Amount' value={field.name} onChange={(e)=>{handleCategoryFieldNameChange(e, index)}} readOnly={false} />
-                                    <select value={field.type} disabled={false} onChange={e=>handleCategoryFieldTypeChange(e,index)} className='min-w-[200px] w-full md:w-fit max-w-[403px] h-[45px] flex-col justify-start items-start gap-2 inline-flex px-6 py-2 text-neutral-700 w-full  h-full text-sm font-normal font-cabin border rounded-md border border-neutral-300 focus-visible:outline-0 focus-visible:border-indigo-600'>
+                                    <Input  showTitle={false} placeholder='eg. Amount' value={field.name} onChange={(e)=>{handleCategoryFieldNameChange(e, index)}} readOnly={fixedFields.includes(field.name)} />
+                                    <select value={field.type} disabled={fixedFields.includes(field.name)} onChange={e=>handleCategoryFieldTypeChange(e,index)} className='min-w-[200px] w-full md:w-fit max-w-[403px] h-[45px] flex-col justify-start items-start gap-2 inline-flex px-6 py-2 text-neutral-700 w-full  h-full text-sm font-normal font-cabin border rounded-md border border-neutral-300 focus-visible:outline-0 focus-visible:border-indigo-600'>
                                         <option value='default'>
                                             Select Type
                                         </option>
@@ -604,7 +621,7 @@ export default function (props) {
                                             True / False
                                         </option>
                                     </select>
-                                    <img src={remove_icon} onClick={()=>removeCategoryField(index)} />
+                                    {fixedFields.includes(field.name) && <img src={remove_icon} onClick={()=>removeCategoryField(index)} />}
                                 </div>
                             ))}
                         </div>
@@ -645,6 +662,7 @@ function Policy({
         categoryName,
         setShowAddHeaderModal,
         handleEditFields,
+        handleRemoveCategory,
         orgHeaders,
         networkStates,
         setNetworkStates,
@@ -680,8 +698,9 @@ function Policy({
                 <div className="flex justify-between items-center">
                     
                     <div className="justify-start items-center gap-8 inline-flex">
-                        <div className="justify-start items-center gap-6 flex">
+                        <div className="justify-start items-center gap-8 flex">
                             <div className="text-neutral-700 text-base font-medium font-cabin tracking-tight">{categoryName}</div>
+                            {!collapse && <div onClick={()=>handleRemoveCategory(categoryName)} className='text-indigo-600 text-sm font-medium font-cabin tracking-tight'>Remove Category</div>}
                         </div>
                     </div>
 

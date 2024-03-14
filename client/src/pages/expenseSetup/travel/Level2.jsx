@@ -54,6 +54,8 @@ const defaultCategories = [
     {local: expenseCategories}
 ]
 
+const fixedFields = ['Total Amount', 'Class', 'Tax Amount', 'Tip Amount', 'Premium Amount', 'Cost', 'License Cost', 'Subscription Cost']
+
 export default function (props) {
 
     const {tenantId} = useParams()
@@ -96,7 +98,7 @@ export default function (props) {
 
     //###File upload related
     const [showAddHeaderModal, setShowAddHeaderModal] = useState(false)
-    const [updatedOrgHeadeers, setUpdatedOrgHeaders] = useState([])
+    const [updatedOrgHeaders, setUpdatedOrgHeaders] = useState([])
 
     useEffect(()=>{
         if(showAddHeaderModal){
@@ -228,11 +230,20 @@ export default function (props) {
 
         const categories_copy = JSON.parse(JSON.stringify(categories))
         const index = categories.findIndex(itm=>Object.keys(itm)[0] == travelType)
-        categories_copy[index][travelType] = [...categories_copy[index][travelType], {categoryName: expenseCategoryName, fields: expenseCategoryFields} ]
-        setCategories(categories_copy)
+
+        // console.log({categoryName:expenseCategoryName, fields:expenseCategoryFields})
+        // console.log({existingCategoryName: existingCategoryName})
+        
+        const categoryIndex = categories[index][travelType].findIndex(item=>item.categoryName == existingCategoryName)
+        
+        if(categoryIndex > -1){
+            //console.log(categories_copy[categoryIndex], 'category....' )
+            categories_copy[index][travelType][categoryIndex].categoryName = expenseCategoryName 
+            categories_copy[index][travelType][categoryIndex].fields =  expenseCategoryFields
+            setCategories(categories_copy)  
+        }
 
         setShowAddExpenseCategoriesModal(false)
-
         setExpenseCategoryFieds([])
         setExistingCategory(false)
         setExistingCategoryName(null)
@@ -280,10 +291,24 @@ export default function (props) {
     },[])
 
     useEffect(()=>{
-        if(updatedOrgHeadeers.length>0){
-            setOrgHeaders(updatedOrgHeadeers)
+        if(Object.keys(updatedOrgHeaders).length>0){
+            console.log()
+
+            let orgHeadersData = updatedOrgHeaders
+            let tmpOrgHeaders = []
+            Object.keys(orgHeadersData).forEach(key => {
+                console.log(key, ' key ', orgHeadersData[key], ' orgHeaders values ', orgHeadersData[key].length, ' length')
+                if(orgHeadersData[key].length !== 0){
+                    tmpOrgHeaders.push({headerName:key, headerValues: orgHeadersData[key]})
+                }
+            })
+    
+            console.log(tmpOrgHeaders, '...tmpOrgHeaders')
+            setOrgHeaders(tmpOrgHeaders)
         }
-    },[updatedOrgHeadeers])
+
+        console.log(updatedOrgHeaders, 'updated org headers ...')
+    },[updatedOrgHeaders])
 
     return(<>
         {networkStates.isLoading && <Error message={networkStates.loadingErrMsg}/>}
@@ -367,8 +392,8 @@ export default function (props) {
                         <div className='slim-scroll flex max-h-[200px] overflow-y-scroll flex-col gap-2'>
                             {expenseCategoryFields.length>0 && expenseCategoryFields.map((field, index)=>(
                                 <div key={`${field.name}-${index}`} className='flex flex-wrap gap-4 items-center'>
-                                    <Input  showTitle={false} placeholder='eg. Amount' value={field.name} onBlur={(e)=>{handleCategoryFieldNameChange(e, index)}} readOnly={false} />
-                                    <select value={field.type} disabled={false} onChange={e=>handleCategoryFieldTypeChange(e, index)} className='min-w-[200px] w-full md:w-fit max-w-[403px] h-[45px] flex-col justify-start items-start gap-2 inline-flex px-6 py-2 text-neutral-700 w-full  h-full text-sm font-normal font-cabin border rounded-md border border-neutral-300 focus-visible:outline-0 focus-visible:border-indigo-600'>
+                                    <Input  showTitle={false} placeholder='eg. Amount' value={field.name} onBlur={(e)=>{handleCategoryFieldNameChange(e, index)}} readOnly={fixedFields.includes(field.name)} />
+                                    <select value={field.type} disabled={fixedFields.includes(field.name)} onChange={e=>handleCategoryFieldTypeChange(e, index)} className='min-w-[200px] w-full md:w-fit max-w-[403px] h-[45px] flex-col justify-start items-start gap-2 inline-flex px-6 py-2 text-neutral-700 w-full  h-full text-sm font-normal font-cabin border rounded-md border border-neutral-300 focus-visible:outline-0 focus-visible:border-indigo-600'>
                                         <option value='default'>
                                             Select Type
                                         </option>
@@ -388,7 +413,7 @@ export default function (props) {
                                             True / False
                                         </option>
                                     </select>
-                                    <img src={remove_icon} onClick={()=>removeCategoryField(index)} />
+                                    {!fixedFields.includes(field.name) && <img src={remove_icon} onClick={()=>removeCategoryField(index)} />}
                                 </div>
                             ))}
                         </div>
@@ -408,11 +433,11 @@ export default function (props) {
                 </div>
                 <div className='absolute top-4 right-4'>
                         <img className='cursor-pointer' src={cross_icon} 
-                                onClick={()=>{
-                                    setExpenseCategoryName(null) 
-                                    setExpenseCategoryFieds([])
-                                    setShowAddExpenseCategoriesModal(false)
-                                }} />
+                            onClick={()=>{
+                                setExpenseCategoryName(null) 
+                                setExpenseCategoryFieds([])
+                                setShowAddExpenseCategoriesModal(false)
+                            }} />
                     </div>
                 </div>
             </div>
@@ -539,35 +564,37 @@ function Policy({
                 <hr className='py-6' />
 
                 <div className='flex flex-col gap-2'>
-                    <p className='font-cabin text-neutral-700 bt-4'>Categories and Captured Fields</p>
-                    {categories.find(type=>Object.keys(type)[0] == travelType)[travelType].length>0 && categories.find(type=>Object.keys(type)[0] == travelType)[travelType].map((category,index)=>(
+                    <details>
+                        <summary className='font-cabin text-neutral-700 bt-4'>Categories and Captured Fields</summary>
+                        {categories.find(type=>Object.keys(type)[0] == travelType)[travelType].length>0 && categories.find(type=>Object.keys(type)[0] == travelType)[travelType].map((category,index)=>(
                             
-                        <div key={`${category.categoryName}-${index}`} className='border border-neutral-300 px-4 py-2 rounded'>                
-                            <div className='mt-2 flex flex-col flex-wrap  gap-4 '>
-                                <div className='flex flex-row items-center gap-2'>
-                                    <p className='text-neutral-600 text-sm font-cabin'>{'Category Name:'}</p>
-                                    <p className='text-neutral-700 text-sm font-cabin'>{category.categoryName}</p>
-                                </div> 
-                                <div className='flex flex-wrap gap-2 divide-x'>
-                                    <p className='text-neutral-600 text-sm font-cabin'>{'Category Fields:'}</p>
-                                    {category.fields?.length>0 && category.fields.map((field, fieldIndex)=>
-                                        <div key={fieldIndex} className='flex gap-4 pl-1 items-center'>
-                                            <p className='text-neutral-400 text-sm font-cabin'>{field.name}</p>
-                                            {/* <img className='w-4 h-4 cursor-pointer' src={close_icon} onClick={()=>removeField(index)} /> */}
-                                        </div>
-                                    )}
-                                </div>
+                            <div key={`${category.categoryName}-${index}`} className='border border-neutral-300 px-4 py-2 rounded'>                
+                                <div className='mt-2 flex flex-col flex-wrap  gap-4 '>
+                                    <div className='flex flex-row items-center gap-2'>
+                                        <p className='text-neutral-600 text-sm font-cabin'>{'Category Name:'}</p>
+                                        <p className='text-neutral-700 text-sm font-cabin'>{category.categoryName}</p>
+                                    </div> 
+                                    <div className='flex flex-wrap gap-2 divide-x'>
+                                        <p className='text-neutral-600 text-sm font-cabin'>{'Category Fields:'}</p>
+                                        {category.fields?.length>0 && category.fields.map((field, fieldIndex)=>
+                                            <div key={fieldIndex} className='flex gap-4 pl-1 items-center'>
+                                                <p className='text-neutral-400 text-sm font-cabin'>{field.name}</p>
+                                                {/* <img className='w-4 h-4 cursor-pointer' src={close_icon} onClick={()=>removeField(index)} /> */}
+                                            </div>
+                                        )}
+                                    </div>
 
-                                <div className='flex flex-row divide-x gap-4'>
-                                    <p className='text-indigo-600 font-cabin text-sm cursor-pointer' onClick={()=>handleEditFields({category: category.categoryName, fields:category.fields})}> Edit Fields</p>
-                                    <p className='text-indigo-600 font-cabin text-sm cursor-pointer' onClick={()=>handleRemoveCategory(category, travelType)}> Remove This Category</p>
+                                    <div className='flex flex-row divide-x gap-4'>
+                                        <p className='text-indigo-600 font-cabin text-sm cursor-pointer' onClick={()=>handleEditFields({category: category.categoryName, fields:category.fields})}> Edit Fields</p>
+                                        <p className='text-indigo-600 font-cabin text-sm cursor-pointer' onClick={()=>handleRemoveCategory(category, travelType)}> Remove This Category</p>
+                                    </div>
+                                    
                                 </div>
-                                
                             </div>
-                        </div>
-                    ))}  
+                        ))} 
+                    </details>
                 </div>
-
+                                    
             <div className='mt-4 flex flex-row-reverse'>
                 <HollowButton title='Save Changes' isLoading={networkStates?.isUploading} onClick={()=>saveChanges()} />
             </div>

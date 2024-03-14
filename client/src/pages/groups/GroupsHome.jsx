@@ -6,6 +6,8 @@ import Modal from '../../components/common/Modal';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios'
+import { getTenantGroups_API } from '../../utils/api';
+import Error from '../../components/common/Error';
 
 export default function (props) {
     const [showSkipModal, setShowSkipModal] = useState(false);
@@ -18,30 +20,25 @@ export default function (props) {
     const [showPreviousGroupsModal, setShowPreviousGroupsModal] = useState(false)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
+    const [networkStates, setNetworkStates] = useState({isLoading:false, isUploading:false, loadingErrMsg:null})
 
     useEffect(()=>{
-        axios.get(`http://localhost:8001/api/tenant/${tenantId}/groups`)
-        .then(res=>{
+        (async function(){
+            setNetworkStates(pre=>({...pre, isLoading:true}))
+            const res = await getTenantGroups_API({tenantId})
+
+            if(res.err){
+                setNetworkStates(pre=>({...pre, loadingErrMsg:res.err??'Something went wrong while fetching data'}))
+                return
+            }
+
             setAlreadyCreatedGroupsData(res.data.groups)
             if(res.data.groups.length>0){
                 setShowPreviousGroupsModal(true)
             }
             console.log(res.data)
-            setLoading(false)
-        })
-        .catch(error=>{
-            //a response is received from server
-            if(error.response){
-                setError(error.response.data.error)
-            }
-            else if(error.request){
-                //no response received
-                setError('Internal Server Error')
-            }
-            else{
-                setError('Sorry, something went wrong')
-            }
-        })
+            setNetworkStates(pre=>({...pre, isLoading:false}))
+        })()
     },[])
     
     const continueWithPreviousSetup = ()=>{
@@ -52,14 +49,8 @@ export default function (props) {
     return(<>
 
         <Icon/>
-        {loading && 
-            <div className="bg-slate-50 min-h-calc(100vh-107px)] px-[20px] md:px-[50px] lg:px-[104px] pb-10 w-full">
-                <div className='px-6 py-10 bg-white rounded shadow w-full text-lg font-cabin'>
-                    {error==''? 'Loading...' : error}
-                </div>
-            </div>}
-        {!loading && <div className="bg-slate-50 min-h-calc(100vh-107px)] px-[20px] md:px-[50px] lg:px-[104px] pb-10 w-full">
-            
+        {networkStates.isLoading && <Error message={networkStates.loadingErrMsg} /> }
+        {!networkStates.isLoading && <div className="bg-slate-50 min-h-calc(100vh-107px)] px-[20px] md:px-[50px] lg:px-[104px] pb-10 w-full">
             <div className='px-6 py-10 bg-white rounded shadow w-full'>
                
                 {/* rest of the section */}
@@ -83,13 +74,12 @@ export default function (props) {
 
             <Modal showModal={showSkipModal} setShowModal={setShowSkipModal} skipable={true}>
                 <div className='p-10 text text-xl font-cabin'>
-                    Your system will be setup without a way to allocate expenses. You can always configure this section later.
+                    Your system will be setup without a way to enforce policies. You can always configure this section later.
 
                     <div className='w-[200px] mt-10'>
-                        <Button text='Sure' />
+                        <Button text='Sure' onClick={()=>navigate(`/${tenantId}/others`)} />
                     </div>
                 </div>
-                
             </Modal>
 
             <Modal showModal={showPreviousGroupsModal} setShowModa={setShowPreviousGroupsModal} skipable={true}>

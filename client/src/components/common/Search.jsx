@@ -8,13 +8,15 @@ export default function Search(props){
     const dropdownRef = useRef(null);
     const inputRef = useRef(null)
     const optionsList = props.options || []
-    const currentOption = props.currentOption || null
+    const currentOption = props.currentOption??''
     const [selectedOption, setSelectedOption] = useState(currentOption) 
-    const [textInput, setTextInput] = useState('')
+    const [textInput, setTextInput] = useState(currentOption)
     const [filteredOptionsList, setFilteredOptionsList] = useState(null)
     const [keyboardFocusIndex, setKeyboardFocusIndex] = useState(-1)
     const allowCustomInput = props.allowCustomInput || false
     const error = props.error || {set:false, message:''}
+
+    console.log(textInput, currentOption, 'from search')
 
     //refs for filtered options
     const dropdownOptionsRef = useRef([]);

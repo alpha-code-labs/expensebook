@@ -12,9 +12,10 @@ import remove_icon from '../../assets/XCircle.svg'
 import UploadFile from '../../components/common/UploadFile';
 import DownloadTemplate from '../../components/DownloadExcelTemplate';
 import file_icon from '../../assets/teenyicons_csv-solid.svg'
-import { updateFormState_API } from '../../utils/api';
+import { getTenantOrgHeaders_API, postTenantOrgHeaders_API, updateEmployeeDetails_API, updateFormState_API } from '../../utils/api';
 import { titleCase } from '../../utils/handyFunctions';
 import close_icon from "../../assets/close.svg"
+import Prompt from '../../components/common/Prompt';
 
 export default function ({showAddHeaderModal, setShowAddHeaderModal, tenantId, setUpdatedOrgHeaders}) {
   
@@ -36,10 +37,13 @@ const modalRef = useRef(null);
 const [excelDataError, setExcelDataError] = useState(null)
 const [headersUpdated, setHeadersUpdated] = useState(false)
 const [showPrompt, setShowPrompt] = useState(false)
-const [prompt, setPrompt] = useState(false)
 const [isUploading, setIsUploading] = useState(false)
+const [prompt, setPrompt] = useState({showPrompt:false, promptMsg:null, success:null})
 
 
+const ONBOARDING_API = import.meta.env.VITE_PROXY_URL 
+
+const api_endpoint =  `${ONBOARDING_API}/tenant`
 
     const handleUpload = async ()=>{
         setExcelDataError(null)
@@ -63,8 +67,12 @@ const [isUploading, setIsUploading] = useState(false)
 
                 async function updateOrgHeaders(){
                     try{            
-                        const existingOrgHeadersData = await axios.get(`http://localhost:8001/api/tenant/${tenantId}/org-headers`)
-
+                        let existingOrgHeadersData //= await axios.get(`${api_endpoint}/${tenantId}/org-headers`)
+                        
+                        const orgHeaders_res = await getTenantOrgHeaders_API({tenantId})
+                        if(!orgHeaders_res.err){
+                            existingOrgHeadersData = orgHeaders_res
+                        }
                         let extraOrgHeaders = addedHeaders.map(header => ({ header:header, values:[...new Set(excelData.map(row => row[header]))] }))
 
                         //append extraOrgHeaders to existingOrgHeadersData
@@ -86,40 +94,25 @@ const [isUploading, setIsUploading] = useState(false)
                         })
 
                         console.log(transformedExcelData, '...transformedExcelData')
-                        
-                        //added headers have values, add values update employee data & org headers in database
-                        await axios
-                        .post(`http://localhost:8001/api/tenant/${tenantId}/employeeDetails`, {employeeDetails:transformedExcelData})
-                        .then(res => {
-                            if(res.status > 199 && res.status<300){
-                                console.log('Employees updated')
-                            }
-                            else{
-                                throw new Error('Unable to update employees details')
-                            }
-                        
-                        })
+                        setIsUploading(true)
+                        const res = updateEmployeeDetails_API({tenantId, orgHeaders:existingOrgHeadersData.data.orgHeaders, employeeDetails:transformedExcelData, addedHeaders:addedHeaders.map(h=>titleCaseToCamelCase(h)) })
+                        if(!res.err){
+                            setPrompt({showPrompt:true, promptMsg:'Data updated successfully', success:true})
+                            console.log('Employees Updated')
+                            setUpdatedOrgHeaders(existingOrgHeadersData.data.orgHeaders)
+                            setIsUploading(false)
+                            setTimeout(()=>setShowAddHeaderModal(false), 2000)
+                        }else{
+                            setIsUploading(false)
+                            setPrompt({showPrompt:true, promptMsg: 'Some error occured. Please try again later', success: false})
+                            //alert('Unable to update data at the moment')
+                            throw new Error('Unable to update employees')
+                        }
 
-                        //update org headers in database
-                        await axios
-                        .post(`http://localhost:8001/api/tenant/${tenantId}/org-headers`, {orgHeaders:existingOrgHeadersData.data.orgHeaders})
-                        .then(res => {
-                            if(res.status > 199 && res.status < 300){
-                                setHeadersUpdated(pre=>!pre)
-                                setShowAddHeaderModal(false)
-                                setIsUploading(false)
-                                setUpdatedOrgHeaders(existingOrgHeadersData.data.orgHeaders)
-                            }
-                            else{
-                                throw new Error('Unable to update org headers')
-                            }
-                        })
-                        
                     }
                     catch(e){
                         console.log(e)
-                        setPrompt('Some Error occured please try again later')
-                        setShowPrompt(true)
+                        setPrompt({showPrompt:true, promptMsg: 'Some error occured. Please try again later', success: false})
                         setIsUploading(false)
                     }
                 }
@@ -130,16 +123,14 @@ const [isUploading, setIsUploading] = useState(false)
                 setExcelDataError('Excel File missing values')
                 setReadyToUpload(false)
                 setShowAddHeaderModal(false)
-                setPrompt('Excel File missing values')
-                setShowPrompt(true)
+                setPrompt({showPrompt:true, promptMsg: 'Excel file missing values', success:false})
             }
 
         }
         else{
             setExcelDataError('Empty Excel File received')
             setReadyToUpload(false)
-            setPrompt('Excel File missing values')
-            setShowPrompt(true)
+            setPrompt({showPrompt:true, promptMsg: 'Excel file missing values', success:false})
             setIsUploading(false)
         }
 
@@ -168,7 +159,7 @@ const [isUploading, setIsUploading] = useState(false)
     useEffect(()=>{
         try{
             axios
-            .get(`http://localhost:8001/api/tenant/${tenantId}/employees`)
+            .get(`${api_endpoint}/${tenantId}/employees`)
             .then(res => {
                 console.log(res.data.map(employee=>employee.employeeDetails), '...res.data')
                 setEmployeeData(res.data.map(employee=>employee.employeeDetails))
@@ -265,11 +256,11 @@ const [isUploading, setIsUploading] = useState(false)
                         </div>
 
                         <UploadFile 
-                        setExcelData={setExcelData}
-                        selectedFile={selectedFile} 
-                        setSelectedFile={setSelectedFile} 
-                        fileSelected={fileSelected} 
-                        setFileSelected={setFileSelected} />
+                            setExcelData={setExcelData}
+                            selectedFile={selectedFile} 
+                            setSelectedFile={setSelectedFile} 
+                            fileSelected={fileSelected} 
+                            setFileSelected={setFileSelected} />
 
                         {fileSelected ? (
                             <div className="flex flex-col items-start justify-start gap-[8px] text-[12px]">
@@ -310,6 +301,8 @@ const [isUploading, setIsUploading] = useState(false)
                 </div>
                 </div>
             </div> }
+
+            <Prompt prompt={prompt} setPrompt={setPrompt}/>
         </>
     );
   }

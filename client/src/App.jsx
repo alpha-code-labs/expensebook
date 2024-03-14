@@ -14,6 +14,9 @@ import NonTravelExpensePolicies from "./pages/NonTravelExpensePolicies";
 import UploadHRInformation from "./pages/UploadHRInformation";
 import Playground from './pages/Playground'
 import OnboardingCompleted from "./pages/OnboardingCompleted";
+import SetupExpenseBook from "./pages/SetupExpenseBook.jsx"
+import Progress from "./components/common/Progress.jsx";
+import Icon from "./components/common/Icon.jsx";
 
 function App() {
   //flags
@@ -22,24 +25,28 @@ function App() {
   return <>
     <Router>
       <Routes>
-      <Route path='/'
+      <Route path='/:tenantId/welcome'
             element={<OnboardingHome/>} />
         <Route path='/:tenantId/company-info'
             element={<CompanyAndHRInformation/>} />
         <Route path='/:tenantId/upload-hr-data'
             element={<UploadHRInformation/>} />
-        <Route path='/:tenantId/expense-allocations/*' element={<AllocateExpenses />}/>
+
+        <Route path='/:tenantId/setup-expensebook/*'
+          element={<SetupExpenseBook />} />
+
+        {/* <Route path='/:tenantId/expense-allocations/*' element={<AllocateExpenses />}/> */}
         <Route path={`/:tenantId/groups/*`} 
             element={<Groups/>} />
         <Route path="/:tenantId/setup-company-policies/*" 
             element={<CompanyPolicies
                 flags={flags}
                 />} />
-        <Route path="/:tenantId/non-travel-expenses/" 
+        <Route path="/:tenantId/non-travel-policies/" 
             element={<NonTravelExpensePoliciesHome
                 flags={flags}
                 />} />
-        <Route path="/:tenantId/non-travel-expenses/setup" 
+        <Route path="/:tenantId/non-travel-policies/setup" 
             element={<NonTravelExpensePolicies
                 flags={flags}
                 />} />
@@ -49,6 +56,8 @@ function App() {
         
       </Routes>
     </Router>
+
+    {/* <Progress/> */}
   </>;
 }
 

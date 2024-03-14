@@ -64,7 +64,12 @@ export default function (props) {
         setNetworkStates(pre=>({...pre, setIsUploading:true}))
 
         const res = await postTenantReimbursementAllocations_API({tenantId, reimbursementAllocations: allocations})
-        const reimbursementExpenseCategories = allocations.map(cat=>({categoryName:cat.categoryName, fields:cat.fields}))
+        const reimbursementExpenseCategories = allocations.map(cat=>{
+            if(cat.hasOwnProperty('class')){
+                return ({categoryName:cat.categoryName, fields:cat.fields, class: cat.class})
+            }
+            else return ({categoryName:cat.categoryName, fields:cat.fields})
+        })
 
         const cat_res = await postReimbursementCategories_API({tenantId, reimbursementExpenseCategories})
 
@@ -73,6 +78,8 @@ export default function (props) {
         if(cat_res.err || res.err) setPrompt({showPrompt: true, success:false, promptMsg: cat_res.err??res.err})
         else setPrompt({showPrompt:true, success:true, promptMsg: 'Changes saved successfully !'})  
     } 
+
+    
 
     const [expenseCategoryName, setExpenseCategoryName] = useState(null)
     const [expenseCategoryFields, setExpenseCategoryFieds] = useState([])
@@ -150,12 +157,11 @@ export default function (props) {
         setExpenseCategoryName(e.target.value)
     }
 
-    const handleRemoveCategory = (e)=>{
-        const res = confirm(`Are you sure you want to ${expenseCategoryName} category?`)
+    const handleRemoveCategory = (expenseCategoryName)=>{
+        const res = confirm(`Are you sure you want to remove ${expenseCategoryName} category?`)
 
         if(res){
-            const allocations_copy = JSON.parse(JSON.stringify(allocations))
-            allocations_copy = allocations.filter(c=>c.categoryName != expenseCategoryName)
+            const allocations_copy = allocations.filter(c=>c.categoryName != expenseCategoryName)
             setAllocations(allocations_copy)
         }
     }
@@ -252,7 +258,6 @@ export default function (props) {
         setShowAddExpenseCategoriesModal(false)
     }
 
-
     const handleSaveAsDraft = async ()=>{
         //everhting should be already updated. Just update the form state
         const res = updateFormState_API({tenantId, state:'/non-travel-expenses/setup'})
@@ -265,8 +270,6 @@ export default function (props) {
         navigate(`/${tenantId}/groups`)
     }
 
-
-    
     //fetch entire allocations object
     useEffect(()=>{
         //axios call
@@ -312,6 +315,7 @@ export default function (props) {
                                 allocations={allocations}
                                 setAllocations={setAllocations}
                                 orgHeaders={orgHeaders} 
+                                handleRemoveCategory={handleRemoveCategory}
                                 setShowAddHeaderModal={setShowAddHeaderModal} />)
                         }
                     )}
@@ -415,6 +419,7 @@ function Policy({
         networkStates,
         setNetworkStates,
         saveChanges, 
+        handleRemoveCategory,
         openAccordion, 
         setOpenAccordion})
         {
@@ -442,8 +447,9 @@ function Policy({
                 <div className="flex justify-between items-center">
                     
                     <div className="justify-start items-center gap-8 inline-flex">
-                        <div className="justify-start items-center gap-6 flex">
+                        <div className="justify-start items-center gap-8 flex">
                             <div className="text-neutral-700 text-base font-medium font-cabin tracking-tight">{categoryName}</div>
+                            {!collapse && <div onClick={()=>handleRemoveCategory(categoryName)} className='text-indigo-600 text-sm font-medium font-cabin tracking-tight'>Remove Category</div>}
                         </div>
                     </div>
 

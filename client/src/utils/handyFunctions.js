@@ -1,4 +1,9 @@
 function titleCase(str){
+
+  try{
+
+    if(!isNaN(str)) return(str)
+
     str = str.toLowerCase().split(' ')
     str = str.map(word=>{
         if(word.length>0 && word){
@@ -8,9 +13,15 @@ function titleCase(str){
    str = str.filter(word=>word!=undefined)
     str= str.map(word=>word.replace(word[0],word[0].toUpperCase()))
     return str.join(' ')
+  }catch(e){
+    console.error(e)
+    //return as it is
+    return(str)
+  }
+    
 }
 
-function formatDate(date=Date.now()) {
+ function formatDate(date=Date.now()) {
     // Get the current timestamp
     const currentTimestamp = date
 
@@ -83,7 +94,6 @@ function formatDate(date=Date.now()) {
 
     return dayWithSuffix + ' ' + month + ' ' + year;
   }
-  
 
   function formatDate3(inputDate) {
     
@@ -104,7 +114,6 @@ function formatDate(date=Date.now()) {
 
     return dayWithSuffix + ' ' + month;
   }
-  
 
   function camelCaseToTitleCase(inputString) {
     // Use a regular expression to split words at capital letters
@@ -119,7 +128,6 @@ function formatDate(date=Date.now()) {
   function titleCaseToCamelCase(inputString) {
     // Split the title case string into words using spaces
     const words = inputString.split(' ');
-  
     // Capitalize the first letter of the first word and convert the rest to lowercase
     const camelCaseString = words[0].toLowerCase() + words.slice(1).map(word => word.charAt(0).toUpperCase() + word.slice(1)).join('');
   

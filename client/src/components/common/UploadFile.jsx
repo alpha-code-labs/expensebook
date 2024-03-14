@@ -59,7 +59,7 @@ export default function (props){
     
         const handleUpload = () => {
             if (fileInputRef.current) {
-            fileInputRef.current.click();
+               fileInputRef.current.click();
             }
         };
 

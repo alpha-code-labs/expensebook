@@ -1,3 +1,4 @@
+import React from 'react'
 import { useEffect, useRef, useState } from 'react'
 import Icon from '../../components/common/Icon'
 import Select from '../../components/common/Select'
@@ -9,6 +10,8 @@ import { titleCase } from '../../utils/handyFunctions'
 import { useNavigate, useLocation, useParams } from 'react-router-dom'
 import axios from 'axios'
 import Checkbox from '../../components/common/Checkbox'
+import { getEmployeeDetails_API, getTenantGroupingLabels_API, getTenantGroups_API } from '../../utils/api'
+import Error from '../../components/common/Error'
 
 //tracking-tight --for font spacing
 
@@ -22,9 +25,8 @@ export default function (props){
     //const employeeData = props.employeeData
     const {state} = useLocation()
     const {tenantId} = useParams()
-    
-    console.log(state, 'state')
 
+    console.log(state, 'state')
     //list of employee after applying filters
     const [groupHeaders, setGroupHeaders] = useState([])
     const [filteredEmployeeList, setFilteredEmployeeList] = useState([])
@@ -38,29 +40,51 @@ export default function (props){
     
     const [filters, setFilters] = useState()
 
+    const [networkStates, setNetworkStates] = useState({isLoading:false, isUploading:false, loadingErrMsg:null})
+    const [groupsExist, setGroupsExist] = useState(false)
 
     //fetch grouping labels and employee data
     useEffect(()=>{
-        (async function(){
-            //fetch labaels
-            await axios.get(`http://localhost:8001/api/tenant/${tenantId}/grouping-labels`).then((res)=>{
-                    const {groupingLabels} = res.data
-                    setGroupHeaders(groupingLabels.map(label=>label.headerName))
-                    setSelectedFilters(groupingLabels.map(label=>[]))
-                    const filters = groupingLabels.map(label=>({title:label.headerName, type:'select', options:label.headerValues}))
+        console.log('This got run')
 
-                    setFilters(filters)
-                })
-            //fetch employee data
-            axios.get(`http://localhost:8001/api/tenant/${tenantId}/employees`).then((res)=>{
-                const employeesData = res.data.map(employee=>employee.employeeDetails)
+        async function fetchDetails(){
+            try{
+                console.log('Trying to fetch data...')
+                //fetch grouping labels and employee data
+                setNetworkStates(pre=>({...pre, isLoading:true}))
+                const label_res = await getTenantGroupingLabels_API({tenantId})
+                const emp_res = await getEmployeeDetails_API({tenantId})
+                const groups_res = await getTenantGroups_API({tenantId})
+                
+                if(groups_res.data.groups.length>0){
+                    setGroupsExist(true)
+                }
+
+                console.log(label_res, 'label res', emp_res )
+    
+                if(emp_res.err || label_res.err){
+                    setLoadingErrMsg(emp_res.err??label_res.err??'Some error ocurred while fetching data')
+                    return
+                }
+    
+                const {groupingLabels} = label_res.data
+                console.log(groupingLabels)
+                setGroupHeaders(groupingLabels.map(label=>label.headerName))
+                setSelectedFilters(groupingLabels.map(label=>[]))
+                const filters = groupingLabels.map(label=>({title:label.headerName, type:'select', options:label.headerValues}))
+                setFilters(filters)
+                
+                const employeesData = emp_res.data.map(employee=>employee.employeeDetails)
                 setEmployeeData(employeesData)
                 setFilteredEmployeeList(JSON.parse(JSON.stringify(employeesData)))
-                setLoading(false)
-            })
-            
+                setNetworkStates(pre=>({...pre, isLoading:false}))
+            }catch(e){
+                console.log(e)
+            }
+        }
 
-        })()
+        fetchDetails()
+
     },[])
 
     //setup filters
@@ -197,20 +221,17 @@ export default function (props){
     
     return(<>
         
-        <Icon/>
-        {loading && <div className="bg-slate-50 min-h-[calc(100vh-107px)] px-[20px] md:px-[50px] lg:px-[104px] pb-10 w-full tracking-tight">
-            <div className='px-6 py-10 bg-white rounded shadow'>
-                loading grouping labels..
-            </div>
-        </div> }
-        {!loading && <div className="bg-slate-50 min-h-[calc(100vh-107px)] px-[20px] md:px-[50px] lg:px-[104px] pb-10 w-full tracking-tight">
+        {networkStates.isLoading && <Error message={networkStates.loadingErrMsg}/>}
+        {!networkStates.isLoading && <>
+        <Icon/>  
+        <div className="bg-slate-50 min-h-[calc(100vh-107px)] px-[20px] md:px-[50px] lg:px-[104px] pb-10 w-full tracking-tight">
             <div className='px-6 py-10 bg-white rounded shadow'>
                 <p className='text-neutral-700 text-lg font-medium font-cabin'>Apply filters to set groups</p>
                 <div ref={filtersDivRef} className='sticky top-5 z-10 bg-white'>
                     <div className='mt-6 w-full flex flex-wrap gap-10'>
-                        {filters.map((filter, index) => {
+                        {Array.isArray(filters) && filters.length>0 && filters.map((filter, index) => {
                             if(filter.type === 'select'){
-                                return ( <div className='min-w-[214px]'>
+                                return ( <div key={filter.title} className='min-w-[214px]'>
                                             <MultiSelect 
                                                 onSelect={(option)=>{handleSelect(option, filter.title)}}
                                                 currentOPtion={selectedFilters?.length>0 ? selectedFilters[index]: null}
@@ -221,7 +242,9 @@ export default function (props){
                                         </div>)
                             }
                             else if(filter.type === 'search'){
-                                return <Search key={index} title={filter.title} options={filter.options}/>
+                                return (<React.Fragment key={filter.title}>
+                                    <Search  title={filter.title} options={filter.options}/>
+                                </React.Fragment>)
                             }
                         })}                    
                     </div>
@@ -256,12 +279,13 @@ export default function (props){
                             <Button text='Create Group' onClick={handleCreateGroup} />
                         </div>
                         <div className='w-fit'>
-                            <Button text='Show Groups' onClick={()=>{navigate(`/${tenantId}/groups/created-groups`)}} />
+                            <Button text='Show Groups' disabled={!groupsExist} onClick={()=>{navigate(`/${tenantId}/groups/created-groups`)}} />
                         </div>
                     </div>
                 </div>
             </div>
-        </div>}
+        </div>
+        </>}
 
         </>)
 }

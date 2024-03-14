@@ -2,7 +2,7 @@ import internatinal_travel_icon from '../../assets/in-flight.svg'
 import domestic_travel_icon from '../../assets/briefcase.svg'
 import local_travel_icon from '../../assets/map-pin.svg'
 import non_travel_icon from '../../assets/paper-money-two.svg'
-import React from 'react'
+
 import back_icon from '../../assets/arrow-left.svg'
 import Icon from '../../components/common/Icon';
 import arrow_down from "../../assets/chevron-down.svg";
@@ -15,20 +15,26 @@ import Input from '../../components/common/Input';
 import HollowButton from '../../components/common/HollowButton';
 import Button from '../../components/common/Button'
 import MultiSelect from '../../components/common/MultiSelect'
-import { updateFormState_API, updateTravelPolicies_API } from '../../utils/api'
+import axios from 'axios'
+import Modal from '../../components/common/Modal'
+import { EmitFlags } from 'typescript'
+import Select from '../../components/common/Select'
+import remove_icon from '../../assets/XCircle.svg'
+import { updateFormState_API, updateNonTravelAllocation_API } from '../../utils/api'
 import Switch from '../../components/common/Switch'
 import Prompt from '../../components/common/Prompt'
 
 export default function (props) {
     const [ruleEngineState, setRuleEngineState] = [props.ruleEngineState, props.setRuleEngineState]
+    const currencySymbol = props.currencySymbol??''
     const tenantId = props.tenantId
     const travelType = props.travelType
     const icon = switchIcon(travelType)
-    const currencySymbol = props.currencySymbol
-    const [showAddExpenseCategoriesModal, setShowAddExpenseCategoriesModal] = useState(false)
 
     const [prompt, setPrompt] = useState({showPrompt:false, promptMsg:null, success:false})
     const [networkStates, setNetworkStates] = useState({isLoading:false, isUploading:false, loadingErrMsg:null})
+
+    const [showAddExpenseCategoriesModal, setShowAddExpenseCategoriesModal] = useState(false)
 
     function switchIcon(travelType){
 
@@ -63,19 +69,25 @@ export default function (props) {
 
     useEffect(()=>{
         const policies = []
+        console.log(ruleEngineState)
         if(ruleEngineState?.length>0){
-            Object.keys(ruleEngineState[0][Object.keys(ruleEngineState[0])[0]][travelType]).map(item=>policies.push(item))
+            Object.keys(ruleEngineState[0][Object.keys(ruleEngineState[0])[0]]).map(item=>policies.push(item))
         }
         setPolicies(policies)
         // console.log(policies)
     },[ruleEngineState] )
 
-    const savePolicies = async ()=>{
+    const savePolicies = async () =>{
         //save policies to backend
+        // const postData = JSON.parse(JSON.stringify(ruleEngineState)).reduce((result, currentObj) => {
+        //     const [key] = Object.keys(currentObj);
+        //     const value = currentObj[key];
+        //     result[key] = value;
+        //     return result;
+        //   }, {})
         setNetworkStates(pre=>({...pre, isUploading:true}))
-
-        const res = await updateTravelPolicies_API({tenantId, policies:ruleEngineState})
-
+        const res = await updateNonTravelAllocation_API({tenantId, policies:ruleEngineState})
+        
         if(res.err){
             setPrompt({showPrompt:true, promptMsg:'Can not update policies at the moment. Please try again later'})
         }
@@ -84,6 +96,7 @@ export default function (props) {
             console.log(res.data)
             updateFormState_API({tenantId, state:'/setup-company-policies'})
         }
+
     }
 
     return(<>
@@ -113,7 +126,7 @@ export default function (props) {
                 <div className='mt-10 flex flex-col gap-4'>  
                     {policies.map((policy,index)=>{
 
-                            if(ruleEngineState[0][Object.keys(ruleEngineState[0])[0]][travelType][policy]){
+                            if(ruleEngineState[0][Object.keys(ruleEngineState[0])[0]][policy]){
                                 return (<Policy currencySymbol={currencySymbol} key={index} savePolicies={savePolicies} title={policy} tripType={travelType} ruleEngineState={ruleEngineState} setRuleEngineState={setRuleEngineState} />)
                             }
                         }
@@ -125,9 +138,10 @@ export default function (props) {
                         }  
                 </div>
 
-            </div>
 
-            <Prompt prompt={prompt} setPrompt={setPrompt} />
+                <Prompt prompt={prompt} setPrompt={setPrompt} />
+
+            </div>
         </div>}
         
         </>
@@ -147,7 +161,7 @@ export default function (props) {
     
     const handleCellState = (groupIndex, valIndex)=>{
         const ruleEngineState_copy = JSON.parse(JSON.stringify(ruleEngineState))
-        ruleEngineState_copy[groupIndex][groups[groupIndex]][tripType][policy]['class'][values[valIndex]].allowed   =   !ruleEngineState_copy[groupIndex][groups[groupIndex]][tripType][policy]['class'][values[valIndex]].allowed
+        ruleEngineState_copy[groupIndex][groups[groupIndex]][policy]['class'][values[valIndex]].allowed   =   !ruleEngineState_copy[groupIndex][groups[groupIndex]][policy]['class'][values[valIndex]].allowed
         setRuleEngineState(ruleEngineState_copy)
     }
 
@@ -160,17 +174,17 @@ export default function (props) {
 
     {values.map((value,valIndex) =>{
     
-        return(<React.Fragment key={valIndex}>
+        return(<>
             {/* rest of the rows */}
             <div className='flex justify-content divide-x'>
                 <div className={`w-[${colWidth}] p-2 text-zinc-500 text-sm font-normal font-cabiin tracking-tight`} >{`${value} :`}</div>
                 {groups.map((group,groupIndex)=><div key={groupIndex} className={`w-[${colWidth}] inline-flex justify-center items-center p-2 text-zinc-500 text-sm font-normal font-cabiin tracking-tight`} >
 
-                    { ruleEngineState[groupIndex][groups[groupIndex]][tripType][policy]['class'][values[valIndex]].allowed ? <CheckIcon onClick={()=>handleCellState(groupIndex,valIndex)}/> : <CrossIcon onClick={()=>handleCellState(groupIndex,valIndex)}/>}
+                    { ruleEngineState[groupIndex][groups[groupIndex]][policy]['class'][values[valIndex]].allowed ? <CheckIcon onClick={()=>handleCellState(groupIndex,valIndex)}/> : <CrossIcon onClick={()=>handleCellState(groupIndex,valIndex)}/>}
                 </div>)}
             </div>
 
-        </React.Fragment>)
+        </>)
     })}
 
    </>)
@@ -202,9 +216,9 @@ export default function (props) {
 
 function AmountTable(props){
     const groups = props.groups || ['Executives', 'Managers', "VC's"]
-    const currencySymbol = props.currencySymbol
     const tripType = props.tripType
     const policy = props.policy
+    const currencySymbol = props.currencySymbol??''
     const ruleEngineState = props.ruleEngineState
     const setRuleEngineState = props.setRuleEngineState
     let types = props.types
@@ -238,7 +252,7 @@ function AmountTable(props){
 
     const handleAmountChange = (index, e)=>{
         const ruleEngineState_copy = JSON.parse(JSON.stringify(ruleEngineState))
-        ruleEngineState_copy[index][groups[index]][tripType][policy][types[0]][unit] = e.target.value
+        ruleEngineState_copy[index][groups[index]][policy][types[0]][unit] = e.target.value
         setRuleEngineState(ruleEngineState_copy)
     }
 
@@ -254,8 +268,8 @@ function AmountTable(props){
                             <input
                                 onChange={(e)=>handleAmountChange(index,e)} 
                                 className=" w-full h-full decoration:none w-[172px] h-[34px] pl-11 py-2 border rounded-md border border-neutral-300 focus-visible:outline-0 focus-visible:border-indigo-600 " 
-                                value={ruleEngineState[index][groups[index]][tripType][policy][types[0]][unit]??''}
-                                placeholder='maximum amount'
+                                value={ruleEngineState[index][groups[index]][policy][types[0]][unit]??''}
+                                placeholder={'maximum amount'}
                                 />
                             <p className="absolute left-6 top-2 text-black text-sm font-normal font-cabin">{symbol}</p>
                         </div>}
@@ -264,7 +278,7 @@ function AmountTable(props){
                             <input
                                 onChange={(e)=>handleAmountChange(index,e)} 
                                 className=" w-full h-full decoration:none w-[172px] h-[34px] px-6 py-2 border rounded-md border border-neutral-300 focus-visible:outline-0 focus-visible:border-indigo-600 " 
-                                value={ruleEngineState[index][groups[index]][tripType][policy][types[0]][unit]??''}
+                                value={ruleEngineState[index][groups[index]][policy][types[0]][unit]??''}
                                 placeholder={placeholder}
                                 /></div>}
                         
@@ -282,7 +296,7 @@ function AmountTable(props){
                         <textarea
                             onChange={(e)=>handleAmountChange(index,e)} 
                             className=" w-full h-full decoration:none w-[289px] h-[135px] p-4 border rounded-md border border-neutral-300 focus-visible:outline-0 focus-visible:border-indigo-600 " 
-                            value={ruleEngineState[index][groups[index]][tripType][policy][types[0]][unit]}
+                            value={ruleEngineState[index][groups[index]][policy][types[0]][unit]}
                             placeholder={placeholder}
                             />
                     </div>    
@@ -293,18 +307,18 @@ function AmountTable(props){
 
             </div>}
             
-            {types[0] == 'permission' && <div className='flex flex-col gap-3 flex-wrap'>
+            {types[0] == 'permission' && <div className='flex flex-col flex-wrap'>
                 {groups.map((group,index)=> 
                 
-                <div key={index} className='div inline-flex w-[337px] gap-3 px-6 items-center justify-center'>
+                <div key={index} className='div flex w-[337px] h-[178px]  gap-3 px-6 items-center justify-center'>
                     <div key={index} className='text inline-flex w-[132px] text-sm tracking-tight text-zinc-500 font-normal font-cabin'>{group}</div>
                     <div>
                         <Switch 
                             label = {'Allow'}
-                            isChecked= {ruleEngineState[index][groups[index]][tripType][policy][types[0]].allowed} 
+                            isChecked= {ruleEngineState[index][groups[index]][policy][types[0]].allowed} 
                             setIsChecked = {(checked)=>{
                                 const ruleEngineState_copy = JSON.parse(JSON.stringify(ruleEngineState))
-                                ruleEngineState_copy[index][groups[index]][tripType][policy][types[0]].allowed = checked
+                                ruleEngineState_copy[index][groups[index]][policy][types[0]].allowed = checked
                                 setRuleEngineState(ruleEngineState_copy)
                             }} 
                             />
@@ -327,7 +341,7 @@ function ApprovalSetup(props){
     const handleSelect = (options, index)=>{
         console.log(options)
         const ruleEngineState_copy = JSON.parse(JSON.stringify(ruleEngineState))
-        ruleEngineState_copy[index][groups[index]][tripType][policy]['approval']['approvers'] = options
+        ruleEngineState_copy[index][groups[index]][policy]['approval']['approvers'] = options
         setRuleEngineState(ruleEngineState_copy)
     }
 
@@ -344,7 +358,7 @@ function ApprovalSetup(props){
                         <MultiSelect 
                             title='Who needs to approve this group?'
                             placeholder='Approval flow'
-                            currentOption={ruleEngineState[index][groups[index]][tripType][policy]['approval']['approvers']}
+                            currentOption={ruleEngineState[index][groups[index]][policy]['approval']['approvers']}
                             options={['L1', 'L2', 'L3', 'Finance']}
                             onSelect={(options)=>handleSelect(options, index)}
                             />
@@ -367,10 +381,10 @@ function Policy(props){
     const ruleEngineState = props.ruleEngineState
     const setRuleEngineState = props.setRuleEngineState
     const savePolicies = props.savePolicies
-    const currencySymbol = props.currencySymbol
 
     const [fieldsPresent, setFieldsPresent] = useState(false)
-    let types = Object.keys(ruleEngineState[0][Object.keys(ruleEngineState[0])[0]][tripType][title])
+    const currencySymbol = props.currencySymbol
+    let types = Object.keys(ruleEngineState[0][Object.keys(ruleEngineState[0])[0]][title])
 
     let indexOfFileds = types.indexOf('fields')
     if(indexOfFileds){
@@ -399,7 +413,7 @@ function Policy(props){
     let fields = []
 
     if(types.includes('class')){
-        values = Object.keys(ruleEngineState[0][Object.keys(ruleEngineState[0])][tripType][title]['class'])
+        values = Object.keys(ruleEngineState[0][Object.keys(ruleEngineState[0])][title]['class'])
     }
 
     
@@ -424,7 +438,7 @@ function Policy(props){
                 </div>
             </div>
 
-            <div className={`transition-max-height transition-all duration-1000 ${collapse? 'max-h-0 h-0 hidden': 'max-h-[10000px]'} `}>
+            <div className={`transition-max-height transition-all duration-1000 ${collapse? 'max-h-0 h-0 hidden': 'max-h-[100000pxpx]'} `}>
             {!approvalSetup && types.includes('class') && types.includes('limit') &&
                 <div>
                     {/* by class, by budget*/}
@@ -437,7 +451,7 @@ function Policy(props){
 
             {/* table */}
             {!approvalSetup && byClass && 
-                <div className={`w-full h-fit bg-white transition-max-height  ${collapse? 'hidden max-height-0': 'max-height-[10000px]' }`} >
+                <div className={`w-full h-fit bg-white transition-max-height  ${collapse? 'hidden max-height-0': 'max-height-[100000pxpx]' }`} >
                     {/* table */}
                     <div className='mt-10'>
                         <ClassTable tripType={tripType} policy={title} groups={groups} values={values} ruleEngineState={ruleEngineState} setRuleEngineState={setRuleEngineState} />
@@ -445,7 +459,7 @@ function Policy(props){
                 </div>}
 
             {!approvalSetup && byBudget && 
-            <div className={`w-full h-fit bg-white transition-opacity transition-max-height delay-1000  ${collapse? 'hidden opacity-0 max-height-0': 'opacity-100 max-height-[10000px]' }`} >
+            <div className={`w-full h-fit bg-white transition-opacity transition-max-height delay-1000  ${collapse? 'hidden opacity-0 max-height-0': 'opacity-100 max-height-[100000px]' }`} >
                 {/* table */}
                 <div className='mt-10'>
                     <AmountTable currencySymbol={currencySymbol} tripType={tripType} types={types} policy={title} groups={groups} ruleEngineState={ruleEngineState} setRuleEngineState={setRuleEngineState} />
@@ -453,7 +467,7 @@ function Policy(props){
             </div>}
 
             {approvalSetup && 
-                <div className={`w-full h-fit bg-white transition-opacity transition-max-height delay-1000  ${collapse? 'hidden opacity-0 max-height-0': 'opacity-100 max-height-[10000px]' }`} >
+                <div className={`w-full h-fit bg-white transition-opacity transition-max-height delay-1000  ${collapse? 'hidden opacity-0 max-height-0': 'opacity-100 max-height-[100000px]' }`} >
                     <div className='mt-10'>
                         <ApprovalSetup tripType={tripType} policy={title} groups={groups} ruleEngineState={ruleEngineState} setRuleEngineState={setRuleEngineState}/>
                     </div>

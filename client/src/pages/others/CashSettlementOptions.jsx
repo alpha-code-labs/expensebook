@@ -6,8 +6,10 @@ import { useEffect, useState } from "react"
 import axios from 'axios'
 import Checkbox from "../../components/common/Checkbox"
 import { updateFormState_API } from "../../utils/api"
+import Error from "../../components/common/Error"
 
 
+const ONBOARDING_API = import.meta.env.VITE_PROXY_URL
 
 export default function (props){
     const navigate = useNavigate()
@@ -59,9 +61,9 @@ export default function (props){
     const saveExpenseSettlementOptions = async () =>{
         
         try{
-            const res = await axios.post(`http://localhost:8001/api/tenant/${tenantId}/advance-settlement-options`, {advanceSettlementOptions:options})
+            const res = await axios.post(`${ONBOARDING_API}/tenant/${tenantId}/advance-settlement-options`, {advanceSettlementOptions:options})
             if(res.status == 200){
-                alert('Expense Settlement Options Updated !')
+                alert('Advance Settlement Options Updated !')
                 updateFormState_API({tenantId, state:'/others/cash-expense-settlement-options'})
                 navigate(`/${tenantId}/others/cash-expense-settlement-options`)
             }
@@ -107,13 +109,11 @@ export default function (props){
 
     return(<>
         
-        <Icon/>
-        {loading && <div className="bg-slate-50 min-h-[calc(100vh-107px)] px-[20px] md:px-[50px] lg:px-[104px] pb-10 w-full tracking-tight">
-            <div className='px-6 py-10 bg-white rounded shadow'>
-                {loadingError? loadingError : 'loading..'}
-            </div>
-        </div>}
-        {!loading && <div className="bg-slate-50 min-h-[calc(100vh-107px)] px-[20px] md:px-[50px] lg:px-[104px] pb-10 w-full tracking-tight">
+        {loading && <Error message={loadingError}/>}
+
+        {!loading && <> 
+            <Icon/>
+        <div className="bg-slate-50 min-h-[calc(100vh-107px)] px-[20px] md:px-[50px] lg:px-[104px] pb-10 w-full tracking-tight">
             <div className='px-6 py-10 bg-white rounded shadow'>
                 <div className="flex justify-between">
                     <div className="gap-2">
@@ -147,6 +147,7 @@ export default function (props){
                 </div>
 
             </div>
-        </div>}
+        </div>
+        </>}
     </>)
 }

@@ -6,6 +6,7 @@ import ObjectSearch from "../../components/common/ObjectSearch"
 import { useEffect, useState } from "react"
 import axios from 'axios'
 import close_icon from "../../assets/close.svg"
+import Error from "../../components/common/Error"
 
 export default function (props){
     const navigate = useNavigate()
@@ -20,11 +21,13 @@ export default function (props){
     const [loading, setLoading] = useState(true)
     const [loadingError, setLoadingError] = useState(null)
 
+    const ONBOARDING_API = import.meta.env.VITE_PROXY_URL
+
     useEffect(()=>{
         async function fetchEmployees(){
             try{
-                const res = await axios.get(`http://localhost:8001/api/tenant/${tenantId}/employees`)
-                const rolesRes = await axios.get(`http://localhost:8001/api/tenant/${tenantId}/system-related-roles`)
+                const res = await axios.get(`${ONBOARDING_API}/tenant/${tenantId}/employees`)
+                const rolesRes = await axios.get(`${ONBOARDING_API}/tenant/${tenantId}/system-related-roles`)
 
                 if(res.status === 200){
                     const employees = res.data.map(empData=>empData.employeeDetails)
@@ -142,13 +145,10 @@ export default function (props){
 
     return(<>
         
+        {loading && <Error message={loadingError}/>}
+        {!loading && <> 
         <Icon/>
-        {loading && <div className="bg-slate-50 min-h-[calc(100vh-107px)] px-[20px] md:px-[50px] lg:px-[104px] pb-10 w-full tracking-tight">
-            <div className='px-6 py-10 bg-white rounded shadow'>
-                {loadingError? loadingError : 'loading..'}
-            </div>
-        </div>}
-        {!loading && <div className="bg-slate-50 min-h-[calc(100vh-107px)] px-[20px] md:px-[50px] lg:px-[104px] pb-10 w-full tracking-tight">
+        <div className="bg-slate-50 min-h-[calc(100vh-107px)] px-[20px] md:px-[50px] lg:px-[104px] pb-10 w-full tracking-tight">
             <div className='px-6 py-10 bg-white rounded shadow'>
                 <div className="flex justify-between">
                     <div className="gap-2">
@@ -261,6 +261,7 @@ export default function (props){
                     </div>
                 </div>
             </div>
-        </div>}
+        </div>
+        </>}
     </>)
 }

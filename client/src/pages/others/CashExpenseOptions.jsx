@@ -5,8 +5,10 @@ import HollowButton from "../../components/common/HollowButton"
 import { useEffect, useState } from "react"
 import axios from 'axios'
 import Checkbox from "../../components/common/Checkbox"
+import Error from "../../components/common/Error"
 
 
+const ONBOARDING_API = import.meta.env.VITE_PROXY_URL
 
 export default function (props){
     const navigate = useNavigate()
@@ -18,7 +20,7 @@ export default function (props){
     useEffect(()=>{
         (async function(){
             try{
-                const res = await axios.get(`http://localhost:8001/api/tenant/${tenantId}/expense-settlement-options`)
+                const res = await axios.get(`${ONBOARDING_API}/tenant/${tenantId}/expense-settlement-options`)
                 const expenseSettlementOptions = res.data.expenseSettlementOptions
 
                 if(Object.keys(expenseSettlementOptions).length > 0){
@@ -58,7 +60,7 @@ export default function (props){
     const saveExpenseSettlementOptions = async () =>{
         
         try{
-            const res = await axios.post(`http://localhost:8001/api/tenant/${tenantId}/expense-settlement-options`, {expenseSettlementOptions:options})
+            const res = await axios.post(`${ONBOARDING_API}/tenant/${tenantId}/expense-settlement-options`, {expenseSettlementOptions:options})
             if(res.status == 200){
                 alert('Expense Settlement Options Updated !')
                 navigate(`/${tenantId}/onboarding-completed`)
@@ -82,11 +84,11 @@ export default function (props){
 
     const handleSaveAsDraft = async ()=>{
         try{
-            const res = await axios.post(`http://localhost:8001/api/tenant/${tenantId}/expense-settlement-options`, {expenseSettlementOptions:options})
+            const res = await axios.post(`${ONBOARDING_API}/tenant/${tenantId}/expense-settlement-options`, {expenseSettlementOptions:options})
             if(res.status == 200){
                 alert('Expense Settlement Options Updated !')
                 updateFormState_API({tenantId, state:'/others/cash-expense-settlement-options'})
-                window.location.href = 'https://google.com'
+                window.location.href = import.meta.env.VITE_WEB_PAGE_URL
             }
         }
         catch(e){
@@ -106,14 +108,10 @@ export default function (props){
 
 
     return(<>
-        
-        <Icon/>
-        {loading && <div className="bg-slate-50 min-h-[calc(100vh-107px)] px-[20px] md:px-[50px] lg:px-[104px] pb-10 w-full tracking-tight">
-            <div className='px-6 py-10 bg-white rounded shadow'>
-                {loadingError? loadingError : 'loading..'}
-            </div>
-        </div>}
-        {!loading && <div className="bg-slate-50 min-h-[calc(100vh-107px)] px-[20px] md:px-[50px] lg:px-[104px] pb-10 w-full tracking-tight">
+        {loading && <Error message={loadingError} />}
+        {!loading && <> 
+            <Icon/>
+        <div className="bg-slate-50 min-h-[calc(100vh-107px)] px-[20px] md:px-[50px] lg:px-[104px] pb-10 w-full tracking-tight">
             <div className='px-6 py-10 bg-white rounded shadow'>
                 <div className="flex justify-between">
                     <div className="gap-2">
@@ -147,6 +145,6 @@ export default function (props){
                 </div>
 
             </div>
-        </div>}
+        </div> </>}
     </>)
 }

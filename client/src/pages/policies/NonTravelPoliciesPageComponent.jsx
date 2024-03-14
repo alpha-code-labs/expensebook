@@ -22,6 +22,7 @@ import close_icon from "../../assets/close.svg"
 import UploadAdditionalHeaders from '../expenseAllocations/UploadAdditionalHeaders'
 import { getTenantOrgHeaders_API, updateFormState_API, updateNonTravelAllocation_API, updateNonTravelPolicies_API } from '../../utils/api'
 
+
 export default function (props) {
     const [ruleEngineState, setRuleEngineState] = [props.ruleEngineState, props.setRuleEngineState]
     const tenantId = props.tenantId
@@ -103,13 +104,9 @@ export default function (props) {
             return
         }
 
-
         alert('Changes Saved !')
         setIsUploading(false)
-
         //update non-travel expense allocations
-
-
     } 
 
     const [expenseCategoryName, setExpenseCategoryName] = useState(null)
@@ -124,6 +121,7 @@ export default function (props) {
     //###File upload related
     const [showAddHeaderModal, setShowAddHeaderModal] = useState(false)
     const [updatedOrgHeadeers, setUpdatedOrgHeaders] = useState([])
+
     useEffect(()=>{
         if(showAddHeaderModal){
             document.body.style.overflow = 'hidden'
@@ -373,6 +371,7 @@ export default function (props) {
         {
         <div className="bg-slate-50 min-h-[calc(100vh-107px)] px-[20px] md:px-[50px] lg:px-[104px] pb-10 w-full tracking-tight">
             <div className='px-6 py-10 bg-white rounded shadow'>               
+               
                {/* back button and title */}
                 <div className='flex gap-4'>
                     <div className='w-6 h-6 cursor-pointer' onClick={()=>navigate(-1)}>
@@ -421,7 +420,7 @@ export default function (props) {
             setUpdatedOrgHeaders={setUpdatedOrgHeaders}
             setShowAddHeaderModal={setShowAddHeaderModal} />}
 
-{showAddExpenseCategoriesModal &&
+    {showAddExpenseCategoriesModal &&
         <div className="fixed  z-[1000]  overflow-hidden flex justify-center items-center inset-0 backdrop-blur-sm w-full h-full left-0 top-0 bg-gray-800/60 scroll-none">
             <div className='z-[10001] max-w-[600px] w-[90%] md:w-[75%] lg:w-[60%] min-h-[200px] scroll-none bg-white rounded-lg shadow-md'>
                 <div className=' relative p-10 text text-neutral-400 text-xs font-cabin'>
@@ -705,7 +704,6 @@ function Policy(props){
         </div>)
       
 }
-
 
 function ExpenseAllocation({orgHeaders, setShowAddHeaderModal, handleAllocationHeaderChange, title}){
     return(<>

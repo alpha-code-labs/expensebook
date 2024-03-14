@@ -7,19 +7,15 @@ import { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Checkbox from '../../components/common/Checkbox';
-import Input from '../../components/common/Input';
-import remove_icon from '../../assets/XCircle.svg'
-import UploadFile from '../../components/common/UploadFile';
-import DownloadTemplate from '../../components/DownloadExcelTemplate';
-import file_icon from '../../assets/teenyicons_csv-solid.svg'
-import { titleCase } from '../../utils/handyFunctions';
-import { set } from 'mongoose';
 import { updateFormState_API } from '../../utils/api';
+import UploadAdditionalHeaders from '../expenseAllocations/UploadAdditionalHeaders';
+import Error from '../../components/common/Error';
 
 export default function (props) {
   
 const [showSkipModal, setShowSkipModal] = useState(false);
 const [showAddHeaderModal, setShowAddHeaderModal] = useState(false)
+const [updatedOrgHeaders, setUpdatedOrgHeaders] = useState([])
 
 const {state} = useLocation()
 const navigate = useNavigate();
@@ -32,99 +28,17 @@ console.log(tenantId, '...tenantId')
 
 const [selectedOrgHeaders, setSelectedOrgHeaders] = useState([])
 const [selectedGroupHeaders, setSelectedGroupHeaders] = useState([])
-
-const [addedHeaders, setAddedHeaders] = useState([''])
-const [readyToUpload, setReadyToUpload] = useState(false)
-const [selectedFile, setSelectedFile] = useState(null);
-const [fileSelected, setFileSelected] = useState(false);
-const [excelData, setExcelData] = useState(null)
-const [employeeData, setEmployeeData] = useState([])
-const [templateColumns, setTemplateColumns] = useState([])
-const [templateData, setTemplateData] = useState([])
-const modalRef = useRef(null);
-const [excelDataError, setExcelDataError] = useState(null)
-const [headersUpdated, setHeadersUpdated] = useState(null)
 const [loading, setLoading] = useState(true)
 
+const ONBOARDING_API = import.meta.env.VITE_PROXY_URL
 
     //see if grouping headers and grouping labels are available. if so set the selectedOrgHeaders to that
-
-    useEffect(() => {
-        setExcelDataError(null)
-        let errorSet = false
-        console.log(excelData, '...excelData')
-        if(excelData){
-            addedHeaders.forEach(header => {
-                excelData.forEach(row => {
-                    if(row[header] === undefined || row[header]==='' || row[header]===null){
-                        setExcelDataError(`Header ${header} is missing values for one or more employees`)
-                        errorSet = true
-                        return
-                    }
-                })
-            })
-
-            if(!errorSet){
-                //added header have values..
-
-                async function updateOrgHeaders(){
-                    try{            
-                        const existingOrgHeadersData = await axios.get(`http://localhost:8001/api/tenant/${tenantId}/org-headers`)
-
-                        let extraOrgHeaders = addedHeaders.map(header => ({ header:header, values:[...new Set(excelData.map(row => row[header]))] }))
-
-                        //append extraOrgHeaders to existingOrgHeadersData
-                        extraOrgHeaders.forEach(extraOrgHeader => {
-                            existingOrgHeadersData.data.orgHeaders[titleCaseToCamelCase(extraOrgHeader.header)] = extraOrgHeader.values
-                        })
-                        
-                        
-                        console.log(existingOrgHeadersData.data.orgHeaders, '...existingOrgHeadersData.data.orgHeaders')
-                        
-                        //transform excel data
-                        let transformedExcelData = []
-                        excelData.forEach(row => {
-                            const transformedRow = {}
-                            Object.keys(row).map(key => {
-                                transformedRow[titleCaseToCamelCase(key)] = row[key]
-                            })
-                            transformedExcelData.push(transformedRow)
-                        })
-
-                        console.log(transformedExcelData, '...transformedExcelData')
-                        
-                        //added headers have values, add values update employee data & org headers in database
-                        await axios
-                        .post(`http://localhost:8001/api/tenant/${tenantId}/employeeDetails`, {employeeDetails:transformedExcelData})
-                        .then(res => {res.status === 200 && setHeadersUpdated(true)})
-
-                        //update org headers in database
-                        await axios
-                        .post(`http://localhost:8001/api/tenant/${tenantId}/org-headers`, {orgHeaders:existingOrgHeadersData.data.orgHeaders})
-                        .then(res => {res.status === 200 && setHeadersUpdated(true)})
-
-                        setHeadersUpdated(true)
-                        
-                    }
-                    catch(e){
-                        console.log(e)
-                    }
-                }
-
-                updateOrgHeaders()
-            }
-
-        }
-        else{
-            setExcelDataError('Empty Excel File received')
-        }
-    }, [excelData])
 
     //fetch available group headers and Org headers
     useEffect(() => {
      
         (async function (){
-            await axios.get(`http://localhost:8001/api/tenant/${tenantId}/org-headers`)
+            await axios.get(`${ONBOARDING_API}/tenant/${tenantId}/org-headers`)
             .then(res => {
                 console.log(res.data, '...res.data')
                 let orgHeadersData = res.data.orgHeaders
@@ -144,10 +58,10 @@ const [loading, setLoading] = useState(true)
                 
             })
             .catch(err => console.log(err))
-
+            
 
             //set groupHeaders 
-            axios.get(`http://localhost:8001/api/tenant/${tenantId}/group-headers`)
+            axios.get(`${ONBOARDING_API}/tenant/${tenantId}/group-headers`)
             .then(res => {
                 console.log(res.data, '...res.data')
                 let groupHeadersData = res.data.groupHeaders
@@ -172,11 +86,8 @@ const [loading, setLoading] = useState(true)
         })()
 
 
-    },[headersUpdated])
+    },[updatedOrgHeaders])
 
-    useEffect(() => {
-        setShowAddHeaderModal(false)
-    }, [headersUpdated])
   
     const handleOrgHeaderSelection = (e,index) => {
         let tmpSelectedOrgHeaders = [...selectedOrgHeaders]
@@ -255,76 +166,16 @@ const [loading, setLoading] = useState(true)
         window.location.href = 'http://google.com'
     }
 
-    //handle header input change when user adds custom header
-    const handleHeaderInputChange = (e, index)=> {
-        let tmpAddedHeaders = [...addedHeaders]
-        tmpAddedHeaders[index] = titleCase(e.target.value)
-        console.log(tmpAddedHeaders, '...tmpAddedHeaders')
-        setAddedHeaders(tmpAddedHeaders)
-    }
-
-    //remove header input when user clicks on remove icon
-    const removeHeaderInput = (index) => {
-        let tmpAddedHeaders = [...addedHeaders]
-        tmpAddedHeaders.splice(index,1)
-        setAddedHeaders(tmpAddedHeaders)
-    }
-
-    const handleOutsideClick = (e)=>{
-        e.preventDefault()
-        e.stopPropagation()
-        setShowAddHeaderModal(false)
-        setReadyToUpload(false)
-        setAddedHeaders([''])
-    }
-
-    useEffect(()=>{
-        try{
-            axios
-            .get(`http://localhost:8001/api/tenant/${tenantId}/employees`)
-            .then(res => {
-                console.log(res.data.map(employee=>employee.employeeDetails), '...res.data')
-                setEmployeeData(res.data.map(employee=>employee.employeeDetails))
-
-                //set template columns
-                let tmpTemplateColumns = []
-                Object.keys(res.data[0].employeeDetails).forEach(key => {
-                    tmpTemplateColumns.push({header:camelCaseToTitleCase(key), key:key, width:20})
-                })
-                tmpTemplateColumns = [...tmpTemplateColumns, ...addedHeaders.map(header => ({header:header, key:titleCaseToCamelCase(header), width:20}))]
-                console.log(addedHeaders, '...addedHeaders')
-                setTemplateColumns(tmpTemplateColumns)
-
-                setTemplateData(employeeData.map(employee => {
-                    let rowData = JSON.parse(JSON.stringify(employee))
-
-                    for(let i=0; i<addedHeaders.length; i++){
-                        rowData = {...rowData, [titleCaseToCamelCase(addedHeaders[i])]:''}
-                    }    
-                    return rowData
-                }))
-            })
-        }
-        catch(e){
-            console.log(e)
-        }
-    },[readyToUpload])
-
     useEffect(() => {
         console.log(selectedOrgHeaders, '...selectedOrgHeaders')
         console.log(selectedGroupHeaders, '...selectedGroupHeaders')
     },[selectedOrgHeaders, selectedGroupHeaders])
 
     return(<>
-
-        <Icon/>
-        {loading && <div className="bg-slate-50 min-h-[calc(100vh-107px)] px-[20px] md:px-[50px] lg:px-[104px] pb-10 w-full tracking-tight">
-            
-            <div className='px-6 py-10 bg-white rounded shadow w-full'>
-                Loading headers...
-            </div>
-        </div> }
-        {!loading && <div className="bg-slate-50 min-h-[calc(100vh-107px)] px-[20px] md:px-[50px] lg:px-[104px] pb-10 w-full tracking-tight">
+        {loading && <Error/> }
+        {!loading && <>
+            <Icon/>
+        <div className="bg-slate-50 min-h-[calc(100vh-107px)] px-[20px] md:px-[50px] lg:px-[104px] pb-10 w-full tracking-tight">
             
             <div className='px-6 py-10 bg-white rounded shadow w-full'>
                
@@ -336,12 +187,15 @@ const [loading, setLoading] = useState(true)
                            {readyToSelect && <div className='cursor-pointer'>
                                 <img src={back_icon} onClick={()=>{setReadyToSelect(false)}} />
                             </div>}
+                            {!readyToSelect && <div className='cursor-pointer'>
+                                <img src={back_icon} onClick={()=>{navigate(-1)}} />
+                            </div> }
                             <p className='text text-xl font-cabin text-neutral-700'>
                                 {!readyToSelect ? `Let's setup your groups` : `setup groups`}
                             </p>
                         </div>
                         <div>
-                            <HollowButton title='Skip' onClick={()=>navigate(`/${tenantId}/setup-company-policies`, {state:{tenantId}})} />
+                            <HollowButton title='Skip' onClick={()=>navigate(`/${tenantId}/others`, {state:{tenantId}})} />
                         </div>
                     </div>
 
@@ -352,8 +206,8 @@ const [loading, setLoading] = useState(true)
                     </p>
 
                     <div className='text text-sm font-cabin'>
-                        {orgHeaders.map(orgHeader => {
-                            return <div className='flex px-6'>
+                        {orgHeaders.map((orgHeader,ind) => {
+                            return <div key={`${orgHeader}-${ind}`} className='flex px-6'>
                                 <div className='text-md text-neutral-600'>{camelCaseToTitleCase(orgHeader)}</div>
                             </div>
                         })}
@@ -406,10 +260,10 @@ const [loading, setLoading] = useState(true)
                         </div>
 
                         <div className='flex justify-between'>
-                            <Button text='Save As Draft' variant='fit' onClick={handleSaveAsDraft} />
+                            <Button text='Save As Draft' variant='fit' disabled={selectedGroupHeaders.length==0 && selectedOrgHeaders.length==0} onClick={handleSaveAsDraft} />
                             <div className='fit'>
                                 <div>
-                                    <Button text='Continue' onClick={()=>setShowSkipModal(true)} />
+                                    <Button text='Continue' disabled={selectedGroupHeaders.length==0 && selectedOrgHeaders.length==0} onClick={()=>setShowSkipModal(true)} />
                                 </div>
                             </div>
                         </div>
@@ -422,7 +276,7 @@ const [loading, setLoading] = useState(true)
             <Modal showModal={showSkipModal} setShowModal={setShowSkipModal} skipable={true}>
                 <div className='p-10'>
                     
-                    { selectedOrgHeaders.length>0 && <>
+                    { (selectedOrgHeaders.length>0 || selectedGroupHeaders.length>0) &&  <>
                         <p className='text-neutral-700 text-base font-cabin '>Selected Options... </p>
                     <div className='flex flex-col gap-4 mt-4'>
                         {[...selectedOrgHeaders, ...selectedGroupHeaders].map(header => {
@@ -436,7 +290,7 @@ const [loading, setLoading] = useState(true)
                     </>
                     }
 
-                    {selectedOrgHeaders.length===0 && <>
+                    {selectedOrgHeaders.length===0 && selectedGroupHeaders.length ==0 && <>
                         
                         <p className='text-neutral-700 text-base font-cabin '>You have not selected any options, do you want to skip this step? </p>
                         <div className='flex justify-between items-center mt-6  '> 
@@ -453,101 +307,16 @@ const [loading, setLoading] = useState(true)
                 </div>
             </Modal>
 
-            {showAddHeaderModal && <div onClick={handleOutsideClick} className="fixed z-[1000] overflow-hidden flex justify-center items-center inset-0 backdrop-blur-sm w-full h-full left-0 top-0 bg-gray-800/60 scroll-none">
-                <div ref={modalRef} onClick={(e)=>e.stopPropagation()} className='z-[1001] max-w-[600px] w-[90%] md:w-[75%] lg:w-[60%] min-h-[200px] scroll-none bg-white rounded-lg shadow-md'>
-                <div className='p-10'>
-                    {/* allow user to add headers*/}
-                    {!readyToUpload && <>
-                        <p className='text-neutral-700 text-base font-cabin '>Add Headers for the values you want to upload </p>
-                        {/* display empty boxes to add headers*/}
-                        <div className='flex flex-wrap gap-2 mt-4'>
-
-                            {addedHeaders.length>0 && addedHeaders.map((header, index) => {
-                                return(
-                                    <div key={index}  className='flex gap-2 items-center'>
-                                        <Input placeholder='Header Name' showTitle={false} onChange={(e)=>handleHeaderInputChange(e, index)} />
-                                        <img src={remove_icon} onClick={()=>removeHeaderInput(index)} />
-                                    </div>)
-                            })}
-                        </div>
-
-                        <div className='flex justify-between items-center mt-6  '>
-                            <div className=''>
-                                <HollowButton title='Add' onClick={()=>{setAddedHeaders(pre=>[...pre, ''])}} />
-                            </div>
-
-                            <div className=''>
-                                <Button text='Done' onClick={()=>{
-                                    let ignore = true
-                                    if(addedHeaders.length>0){
-                                        console.log(addedHeaders, '...addedHeaders')
-                                        addedHeaders.forEach(header => {
-                                            if(header!=='' && header!='null' && header!=undefined){
-                                                setReadyToUpload(true)
-                                                console.log(header, '...addedHeaders')
-                                                ignore=false
-                                                return
-                                            }
-                                        })
-                                    }
-                                    if(ignore){
-                                        setReadyToUpload(false)
-                                      //  setShowAddHeaderModal(false)
-                                    }
-                                }} />
-                            </div>
-                        </div>
-
-                    </>}
-
-                    {/* allow user to upload file*/}
-                    {readyToUpload && <>
-                        <p className='text-neutral-700 text-base font-cabin '>First Download the template excel file, then upload it after filling in the values for the headers you have added</p>
-                        <div className="flex flex-col items-start justify-start gap-[16px] text-sm">
-                        
-                        <div className="flex flex-col items-start justify-start gap-[8px] w-full">
-                            <div className="mt-6 w-full flex flex-wrap gap-8 text-dimgray">
-                                <div className="tracking-tight text-zinc-400 font-cabin">
-                                    Upload the excel file
-                                </div>
-                                <div>
-                                    {<DownloadTemplate linkText='Download HR template' columns={templateColumns} data={templateData} />}
-                                </div>
-                            </div>
-                        </div>
-
-                        <UploadFile 
-                        setExcelData={setExcelData}
-                        selectedFile={selectedFile} 
-                        setSelectedFile={setSelectedFile} 
-                        fileSelected={fileSelected} 
-                        setFileSelected={setFileSelected} />
-
-                        {fileSelected ? (
-                            <div className="flex flex-col items-start justify-start gap-[8px] text-[12px]">
-                            <img
-                            className="relative w-10 h-10 overflow-hidden shrink-0"
-                            alt=""
-                            src={file_icon}
-                            />
-                            <div className="relative font-medium inline-block overflow-hidden text-ellipsis whitespace-nowrap w-[43px]">
-                            BMS Data
-                            </div>
-                        </div>
-                        ) : (
-                        null
-                        )}
-                    </div>
-                        
-                        
-                        </>
-                    }
-                </div>
-                </div>
-            </div>}
+            {showAddHeaderModal && 
+                <UploadAdditionalHeaders 
+                showAddHeaderModal={showAddHeaderModal} 
+                tenantId={tenantId}
+                setUpdatedOrgHeaders={setUpdatedOrgHeaders}
+                setShowAddHeaderModal={setShowAddHeaderModal} />}
             
 
-        </div>}
+        </div>
+        </>}
         
         </>
     );

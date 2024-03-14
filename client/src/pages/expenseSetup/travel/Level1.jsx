@@ -34,19 +34,18 @@ const travel_allocations = {
     expenseAllocation_accountLine: null,
 }
 
-const defaultCategories = expenseCategories
-  
-  console.log(expenseCategories);
-  
+const defaultCategories = expenseCategories  
+console.log(expenseCategories);
 
+const fixedFields = ['Total Amount', 'Class', 'Tax Amount', 'Tip Amount', 'Premium Amount', 'Cost', 'License Cost', 'Subscription Cost']
+  
 export default function (props) {
 
     const {tenantId} = useParams()
-
     const travelType = props.travelType
-    const icon = switchIcon(travelType)
     const [showAddExpenseCategoriesModal, setShowAddExpenseCategoriesModal] = useState(false)
     const [categories, setCategories] = useState(defaultCategories)
+    const [orgSetup, setOrgSetup] = useState(false)
 
     useEffect(()=>{
         if(showAddExpenseCategoriesModal){
@@ -54,55 +53,16 @@ export default function (props) {
         }
         else document.body.style.overflow = 'auto'
     },[showAddExpenseCategoriesModal])
-
-    function switchIcon(travelType){
-
-        switch (travelType){
-            case 'international':
-                return internatinal_travel_icon
-            case 'domestic':
-                return domestic_travel_icon
-            case 'local':
-                return local_travel_icon
-            case 'nonTravel':
-                return non_travel_icon
-        }
-    }
-
-    function switchTitle(travelType){
-            
-            switch (travelType){
-                case 'international':
-                    return 'International Travel'
-                case 'domestic':
-                    return 'Domestic Travel'
-                case 'local':
-                    return 'Local Travel'
-            }
-    }
     
     const navigate = useNavigate()
     const [allocations, setAllocations] = useState({})
 
-
-    const updateTravelAllocations = async()=>{
-        //update travel-allocations
-    } 
-
     const [expenseCategoryName, setExpenseCategoryName] = useState(null)
-    const [expenseCategoryFields, setExpenseCategoryFieds] = useState([])
+    const [expenseCategoryFields, setExpenseCategoryFields] = useState([])
     const [existingCategory, setExistingCategory] = useState(false)
     const [existingCategoryName, setExistingCategoryName] = useState(null)
     const [orgHeaders, setOrgHeaders] = useState([])
-    const [selectedOrgHeaders_cat, setSelectedOrgHeaders_cat] = useState([])
-    const [selectedOrgHeaders_exp, setSelectedOrgHeaders_exp] = useState([])
-    const [accountLine_cat, setAccountLine_cat] = useState(null)
-    const [accountLine_exp, setAccountLine_exp] = useState(null)
-    const [presentFieldLength, setPresentFieldLength] = useState([])
     const [isUploading, setIsUploading] = useState(false)
-    const [openAccordion, setOpenAccordion] = useState('')
-
-
     const [prompt, setPrompt] = useState({showPrompt:false, promptMsg:null, success:false})
     const [networkStates, setNetworkStates] = useState({isLoading:false, isUploading:false, loadingErrMsg:null})
     
@@ -113,7 +73,7 @@ export default function (props) {
 
     //###File upload related
     const [showAddHeaderModal, setShowAddHeaderModal] = useState(false)
-    const [updatedOrgHeadeers, setUpdatedOrgHeaders] = useState([])
+    const [updatedOrgHeaders, setUpdatedOrgHeaders] = useState([])
 
     useEffect(()=>{
         if(showAddHeaderModal){
@@ -143,6 +103,7 @@ export default function (props) {
                 let orgHeadersData = res.data.orgHeaders
                 let tmpOrgHeaders = []
                 Object.keys(orgHeadersData).forEach(key => {
+                    console.log(key, ' key ', orgHeadersData[key], ' orgHeaders values ', orgHeadersData[key].length, ' length')
                     if(orgHeadersData[key].length !== 0){
                         tmpOrgHeaders.push({headerName:key, headerValues: orgHeadersData[key]})
                     }
@@ -166,7 +127,7 @@ export default function (props) {
     },[])
 
     const addCategoryField = ()=>{
-        setExpenseCategoryFieds(prev=>[...prev, {name:'', type:''}])
+        setExpenseCategoryFields(prev=>[...prev, {name:'', type:''}])
     }
 
     const handleCategoryNameChange = (e)=>{
@@ -186,7 +147,7 @@ export default function (props) {
 
         setCategories(pre=>[...pre, {categoryName:expenseCategoryName, fields:expenseCategoryFields}])
         
-        setExpenseCategoryFieds([])
+        setExpenseCategoryFields([])
         setExistingCategoryName(null)
         setExistingCategory(false)
         setExistingCategoryName(null)
@@ -195,31 +156,30 @@ export default function (props) {
 
     const removeCategoryField = (index)=>{
         console.log(index, 'index...')
-        setExpenseCategoryFieds(pre=>pre.filter((_,ind)=> ind !=index ) )
+        setExpenseCategoryFields(pre=>pre.filter((_,ind)=> ind !=index ) )
         // const expenseCategoryFields_copy = JSON.parse(JSON.stringify(expenseCategoryFields))
         // expenseCategoryFields_copy.splice(index,1)
         // console.log(expenseCategoryFields_copy)
-        // setExpenseCategoryFieds(expenseCategoryFields_copy)
+        // setExpenseCategoryFields(expenseCategoryFields_copy)
     }
 
     const handleCategoryFieldNameChange = (e, index)=>{
         let expenseCategoryFields_copy = JSON.parse(JSON.stringify(expenseCategoryFields))
         expenseCategoryFields_copy[index].name = e.target.value
-        setExpenseCategoryFieds(expenseCategoryFields_copy)
+        setExpenseCategoryFields(expenseCategoryFields_copy)
     }
 
     const handleCategoryFieldTypeChange = (e, index)=>{
         let expenseCategoryFields_copy = JSON.parse(JSON.stringify(expenseCategoryFields))
         expenseCategoryFields_copy[index].type = e.target.value
-        setExpenseCategoryFieds(expenseCategoryFields_copy)
+        setExpenseCategoryFields(expenseCategoryFields_copy)
     }
 
     const handleEditFields = ({category, fields})=>{
         setExistingCategory(true)
         setExistingCategoryName(category)
         setExpenseCategoryName(category)
-        setExpenseCategoryFieds(fields)
-        setPresentFieldLength(fields.length)
+        setExpenseCategoryFields(fields)
         console.log('present field length', fields.length)
         setShowAddExpenseCategoriesModal(true)
     }
@@ -240,10 +200,22 @@ export default function (props) {
             return
         }
 
-        setCategories(pre=>([...pre, {categoryName: expenseCategoryName, fields: expenseCategoryFields} ]))
+        console.log({categoryName:expenseCategoryName, fields:expenseCategoryFields})
+        console.log({existingCategoryName: existingCategoryName})
+        const categoryIndex = categories.findIndex(item=>item.categoryName == existingCategoryName)
+        
+        if(categoryIndex > -1){
+            const categories_copy = JSON.parse(JSON.stringify(categories))
+            //console.log(categories_copy[categoryIndex], 'category....' )
+            categories_copy[categoryIndex].categoryName = expenseCategoryName 
+            categories_copy[categoryIndex].fields =  expenseCategoryFields
+            setCategories(categories_copy)  
+        }
+        
+        // setCategories(pre=>([...pre, {categoryName: expenseCategoryName, fields: expenseCategoryFields} ]))
         setShowAddExpenseCategoriesModal(false)
 
-        setExpenseCategoryFieds([])
+        setExpenseCategoryFields([])
         setExistingCategoryName(null)
         setExistingCategory(false)
         setExistingCategoryName(null)
@@ -290,10 +262,24 @@ export default function (props) {
     },[])
 
     useEffect(()=>{
-        if(updatedOrgHeadeers.length>0){
-            setOrgHeaders(updatedOrgHeadeers)
+        if(Object.keys(updatedOrgHeaders).length>0){
+            console.log()
+
+            let orgHeadersData = updatedOrgHeaders
+            let tmpOrgHeaders = []
+            Object.keys(orgHeadersData).forEach(key => {
+                console.log(key, ' key ', orgHeadersData[key], ' orgHeaders values ', orgHeadersData[key].length, ' length')
+                if(orgHeadersData[key].length !== 0){
+                    tmpOrgHeaders.push({headerName:key, headerValues: orgHeadersData[key]})
+                }
+            })
+    
+            console.log(tmpOrgHeaders, '...tmpOrgHeaders')
+            setOrgHeaders(tmpOrgHeaders)
         }
-    },[updatedOrgHeadeers])
+
+        console.log(updatedOrgHeaders, 'updated org headers ...')
+    },[updatedOrgHeaders])
 
     return(<>
         {networkStates.isLoading && <Error message={networkStates.loadingErrMsg} />}
@@ -301,7 +287,7 @@ export default function (props) {
 
         <Icon/>
         <div className="bg-slate-50 min-h-[calc(100vh-107px)] px-[20px] md:px-[50px] lg:px-[104px] pb-10 w-full tracking-tight">
-            <div className='px-6 py-10 bg-white '>               
+            <div className='px-6 py-10 bg-white relative '>               
                {/* back button and title */}
                <div className='flex gap-4'>
                     <div className='w-6 h-6 cursor-pointer' onClick={()=>navigate(-1)}>
@@ -331,24 +317,10 @@ export default function (props) {
                     orgHeaders={orgHeaders} 
                     setShowAddHeaderModal={setShowAddHeaderModal} />
 
-                {/* 
-                <CategoryWrapper 
-                    categories={categories}  
-                    handleEditFields={handleEditFields}
-                    saveChanges={saveCategories} 
-                    setNetworkStates={setNetworkStates}
-                    networkStates={networkStates}  /> */}
-                     
-                    {/* <div className='mt-6'>
-                        <HollowButton title='Add Expense Categories' onClick={()=>{setExistingCategory(false); setShowAddExpenseCategoriesModal(true)}} />
-                    </div>
-                     */}
-
                     <div className='flex justify-between mt-10'>
                         <Button text='Save As Draft' onClick={handleSaveAsDraft} />
                         {/* <Button text='Continue' onClick={handleContinue} /> */}
                     </div>
-
 
                 </div>
 
@@ -374,8 +346,8 @@ export default function (props) {
                         <div className='flex flex-col gap-2 max-h-[200px] overflow-y-scroll'>
                             {expenseCategoryFields.length>0 && expenseCategoryFields.map((field, index)=>(
                                 <div key={field.name} className='flex flex-wrap gap-4 items-center'>
-                                    <Input  showTitle={false} placeholder='eg. Amount' value={field.name} onChange={(e)=>{handleCategoryFieldNameChange(e, index)}} readOnly={false} />
-                                    <select value={field.type} disabled={false} onChange={(e)=>handleCategoryFieldTypeChange(e, index)} className='max-w-[200px] w-full md:w-fit max-w-[403px] h-[45px] flex-col justify-start items-start gap-2 inline-flex px-6 py-2 text-neutral-700 w-full  h-full text-sm font-normal font-cabin border rounded-md border border-neutral-300 focus-visible:outline-0 focus-visible:border-indigo-600'>
+                                    <Input  showTitle={false} placeholder='eg. Amount' value={field.name} onChange={(e)=>{handleCategoryFieldNameChange(e, index)}} readOnly={fixedFields.includes(field.name)} />
+                                    <select value={field.type} disabled={fixedFields.includes(field.name)} onChange={(e)=>handleCategoryFieldTypeChange(e, index)} className='max-w-[200px] w-full md:w-fit max-w-[403px] h-[45px] flex-col justify-start items-start gap-2 inline-flex px-6 py-2 text-neutral-700 w-full  h-full text-sm font-normal font-cabin border rounded-md border border-neutral-300 focus-visible:outline-0 focus-visible:border-indigo-600'>
                                         <option value='default'>
                                             Select Type
                                         </option>
@@ -398,7 +370,7 @@ export default function (props) {
                                             true / false
                                         </option>
                                     </select>
-                                    <img src={remove_icon} onClick={()=>setExpenseCategoryFieds(pre=>pre.filter((_,ind)=>ind!=index))} />
+                                    {!fixedFields.includes(field.name) && <img src={remove_icon} onClick={()=>setExpenseCategoryFields(pre=>pre.filter((_,ind)=>ind!=index))} />}
                                 </div>
                             ))}
                         </div>
@@ -420,7 +392,7 @@ export default function (props) {
                         <img className='cursor-pointer' src={cross_icon} 
                                 onClick={()=>{
                                     setExpenseCategoryName(null) 
-                                    setExpenseCategoryFieds([])
+                                    setExpenseCategoryFields([])
                                     setShowAddExpenseCategoriesModal(false)
                                 }} />
                     </div>
@@ -538,34 +510,36 @@ function Policy({
                 <hr className='py-6' />
 
                 <div className='flex flex-col gap-2'>
-                    <p className='font-cabin text-neutral-700 bt-4'>Categories and Captured Fields</p>
-                    {categories.length>0 && categories.map((category, index)=>(
-                    
-                    <div key={`${category.categoryName}-${index}`} className='border border-neutral-300 px-4 py-2 rounded'>
-                
-                        <div className='mt-2 flex flex-col flex-wrap  gap-4 '>
-                            <div className='flex flex-row items-center gap-2'>
-                                <p className='text-neutral-600 text-sm font-cabin'>{'Category Name:'}</p>
-                                <p className='text-neutral-700 text-sm font-cabin'>{category.categoryName}</p>
-                            </div> 
-                            <div className='flex flex-wrap gap-2 divide-x'>
-                                <p className='text-neutral-600 text-sm font-cabin'>{'Category Fields:'}</p>
-                                {category.fields?.length>0 && category.fields.map((field, fieldIndex)=>
-                                    <div key={fieldIndex} className='flex gap-4 pl-1 items-center'>
-                                        <p className='text-neutral-400 text-sm font-cabin'>{field.name}</p>
-                                        {/* <img className='w-4 h-4 cursor-pointer' src={close_icon} onClick={()=>removeField(index)} /> */}
-                                    </div>
-                                )}
-                            </div>
-
-                            <div className='flex flex-row divide-x gap-4'>
-                                <p className='text-indigo-600 font-cabin text-sm cursor-pointer' onClick={()=>handleEditFields({category: category.categoryName, fields:category.fields})}> Edit Fields</p>
-                                <p className='text-indigo-600 font-cabin text-sm cursor-pointer' onClick={()=>handleRemoveCategory(category)}> Remove This Category</p>
-                            </div>
+                    <details>
+                        <summary className='font-cabin text-neutral-700 bt-4'>Categories and Captured Fields</summary>
+                        {categories.length>0 && categories.map((category, index)=>(
                             
-                        </div> 
+                            <div key={`${category.categoryName}-${index}`} className='border border-neutral-300 px-4 py-2 rounded'>
+                        
+                                <div className='mt-2 flex flex-col flex-wrap  gap-4 '>
+                                    <div className='flex flex-row items-center gap-2'>
+                                        <p className='text-neutral-600 text-sm font-cabin'>{'Category Name:'}</p>
+                                        <p className='text-neutral-700 text-sm font-cabin'>{category.categoryName}</p>
+                                    </div> 
+                                    <div className='flex flex-wrap gap-2 divide-x'>
+                                        <p className='text-neutral-600 text-sm font-cabin'>{'Category Fields:'}</p>
+                                        {category.fields?.length>0 && category.fields.map((field, fieldIndex)=>
+                                            <div key={fieldIndex} className='flex gap-4 pl-1 items-center'>
+                                                <p className='text-neutral-400 text-sm font-cabin'>{field.name}</p>
+                                                {/* <img className='w-4 h-4 cursor-pointer' src={close_icon} onClick={()=>removeField(index)} /> */}
+                                            </div>
+                                        )}
+                                    </div>
 
-                    </div>))}  
+                                    <div className='flex flex-row divide-x gap-4'>
+                                        <p className='text-indigo-600 font-cabin text-sm cursor-pointer' onClick={()=>handleEditFields({category: category.categoryName, fields:category.fields})}> Edit Fields</p>
+                                        <p className='text-indigo-600 font-cabin text-sm cursor-pointer' onClick={()=>handleRemoveCategory(category)}> Remove This Category</p>
+                                    </div>
+                                    
+                                </div> 
+
+                            </div>))}
+                    </details>
                 </div>
 
             <div className='mt-4 flex flex-row-reverse'>
