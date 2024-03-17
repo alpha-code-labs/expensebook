@@ -1,10 +1,10 @@
 import express from 'express';
-import { BookExpenseReport, currencyConverter, getTripDetails, onSaveExpenseLine,onEditExpenseLine, cancelAtLine, onSaveAsDraftExpenseHeader, onSubmitExpenseHeader, cancelAtHeaderLevelForAReport, getRejectionReasons} from '../controller/travelExpenseController.js';
+import { BookExpense, currencyConverter, getTripDetails, onSaveExpenseLine,onEditExpenseLine, cancelAtLine, onSaveAsDraftExpenseReport, onSubmitExpenseHeader, cancelAtHeaderLevelForAReport, getRejectionReasons} from '../controller/travelExpenseController.js';
 
 export const travelExpenseReport = express.Router();
 
 
-travelExpenseReport.get('/:tenantId/:empId/:tripId/book-expense', BookExpenseReport );
+travelExpenseReport.get('/:tenantId/:empId/:tripId/book-expense', BookExpense );
 
 travelExpenseReport.post('/:tenantId/:empId/:tripId/:expenseHeaderId/save', onSaveExpenseLine);
 
@@ -18,7 +18,7 @@ travelExpenseReport.patch('/:tenantId/:empId/:tripId/:expenseHeaderId/cancel-lin
 
 travelExpenseReport.patch('/:tenantId/:empId/:tripId/:expenseHeaderId/cancel', cancelAtHeaderLevelForAReport);
 
-travelExpenseReport.patch('/:tenantId/:empId/:tripId/:expenseHeaderId/draft', onSaveAsDraftExpenseHeader);
+travelExpenseReport.patch('/:tenantId/:empId/:tripId/:expenseHeaderId/draft', onSaveAsDraftExpenseReport);
 
 travelExpenseReport.patch('/:tenantId/:empId/:tripId/:expenseHeaderId/submit', onSubmitExpenseHeader);
 

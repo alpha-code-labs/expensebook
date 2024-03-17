@@ -626,9 +626,16 @@ const expenseLineSchema = new mongoose.Schema({
               status: {
                 type: String,
                 enum: approverStatusEnums,
+                default: 'pending approval'
               },
             }
           ],
+          expenseSettlement:{
+            type:String,
+          },
+          defaultCurrency:{
+            type: Object,
+          },
           allocations:[],
           violations: [String],
           travelType: String,
@@ -647,35 +654,6 @@ expenseSchema.pre('validate', function(next) {
   }
   next(); // Call 'next' to proceed with the save operation
 })
-
-// // Function to generate the incremental number
-// const generateIncrementalNumber = (tenantName, incrementalValue) => {
-//   const formattedTenant = (tenantName || '').toUpperCase().substring(0, 3);
-//   return `ER${formattedTenant}${incrementalValue.toString().padStart(6, '0')}`;
-// };
-
-// Pre-save hook to generate and assign expenseHeaderNumber if it doesn't exist
-// expenseSchema.pre('validate', async function (next) {
-//   if (!this.expenseHeaderNumber) {
-//     // Query to find the maximum incremental value
-//     const maxIncrementalValue = await this.constructor.findOne({}, 'expenseHeaderNumber')
-//       .sort('-expenseHeaderNumber')
-//       .limit(1);
-
-//     // Calculate the next incremental value
-//     const nextIncrementalValue = (maxIncrementalValue && maxIncrementalValue.expenseHeaderNumber)
-//       ? parseInt(maxIncrementalValue.expenseHeaderNumber.substring(9), 10) + 1
-//       : 1;
-
-//     // Generate the new expenseHeaderNumber
-//     this.expenseHeaderNumber = generateIncrementalNumber(this.tenantName, nextIncrementalValue);
-
-//     // Logging the latest generated expenseHeaderNumber
-//     console.log(`Latest generated expenseHeaderNumber: ${this.expenseHeaderNumber}`);
-//   }
-//   next();
-// });
-
   
 const Expense = mongoose.model('travelExpense', expenseSchema);
 

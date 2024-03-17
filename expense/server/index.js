@@ -7,6 +7,7 @@ import { mainFrontendRoutes } from './routes/mainFrontendRoutes.js';
 import { handleErrors } from './errorHandler/errorHandler.js';
 import { startConsumer } from './rabbitmq/consumer.js';
 import { reportingRouter } from './routes/reportingRoutes.js';
+import {runApproveToNextState} from './scheduler/approvedToNextState.js';
 // import logger from './logger/logger.js';
 
 //test
@@ -35,15 +36,10 @@ app.use(cors());
 //Routes
 app.use('/api/fe/expense', mainFrontendRoutes);
 app.use('/api/report', reportingRouter);
-// //Routes Internal
-// app.use('/api/internal', mainInternalRoutes);
-
-// //Routes batchJobs
-// app.use('/expense/trigger', triggerBatchJobRoutes); 
 
 
 /// Start the batch job
-//startBatchJob();
+// runApproveToNextState()
 
 app.get('/test', (req,res) =>{
   res.send('welcome to alpha code labs ')
@@ -75,4 +71,4 @@ app.listen(port, () => {
 });
 
 //RabbitMq
-// startConsumer("expense");
+startConsumer("expense");

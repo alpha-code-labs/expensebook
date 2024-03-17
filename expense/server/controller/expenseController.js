@@ -1,6 +1,6 @@
 import HRCompany from '../models/hrCompanySchema.js';
 import { onSaveAsDraftExpenseHeaderToTrip, onSaveLineItemToTrip } from "../internalControllers/controllers/tripMicroservice.js";
-import { sendTravelExpenseToDashboardQueue } from "../rabbitmq/dashboardMicroservice.js";
+import { sendToDashboardMicroservice, sendTravelExpenseToDashboardQueue } from "../rabbitmq/dashboardMicroservice.js";
 import Expense from '../models/travelExpenseSchema.js';
 
 const generateIncrementalNumber = (tenantId, incrementalValue) => {
@@ -742,8 +742,17 @@ if (hasAlreadyBookedExpense && isMatchingExpenseHeaderId){
         { new: true }
       );
 
-      // Process the updated expenseReport if needed
-      res.status(200).json({ success: true, data: updatedExpenseReport });
+      if(updatedExpenseReport){
+        const payload = updatedExpenseReport;
+        const action = 'full-update'
+        const comments = 'cancel of travelExpenseReport at header level'
+       const success = await sendToDashboardMicroservice(payload, action, comments,'expense','online',true)
+        if (success){
+          res.status(200).json({ success: true, data: updatedExpenseReport })
+        } else{
+          res.status(500).json({success: false, message: 'Error in deleting expense report' })
+          }
+      }
     } else {
       // Use reduce to calculate newPersonalExpenseAmount and newNonPersonalExpenseAmount
 
@@ -807,8 +816,17 @@ if (hasAlreadyBookedExpense && isMatchingExpenseHeaderId){
         { new: true }
       );
 
-      // Process the updated expenseReport if needed
-      res.status(200).json({ success: true, data: newExpenseReport });
+      if(newExpenseReport){
+        const payload = newExpenseReport;
+        const action = 'full-update'
+        const comments = 'cancel of travelExpenseReport at header level'
+       const success = await sendToDashboardMicroservice(payload, action, comments,'expense','batch',true)
+        if (success){
+          res.status(200).json({ success: true, data: newExpenseReport })
+        } else{
+          res.status(500).json({success: false, message: 'Error in deleting expense report' })
+          }
+      }
     }
   } catch (error) {
     console.error('Error canceling at header level:', error);
@@ -867,7 +885,7 @@ export const cancelAtLine = async (req, res) => {
     }
 
     // Replace totalRemainingCash in MongoDB and delete the expense line completely
-    const cancelExpenseAtLineItem = await Expense.findOneAndUpdate(
+    const cancelAtLineItem = await Expense.findOneAndUpdate(
       { 
         'tenantId':tenantId,
         'expenseHeaderId': expenseHeaderId,
@@ -888,16 +906,18 @@ export const cancelAtLine = async (req, res) => {
     );
 
 
-    //  payload for sending to the dashboard queue
-    const payload = { ...cancelExpenseAtLineItem };
-    const needConfirmation = true;
-    const source = 'travel-expense';
-    const onlineVsBatch = 'online';
+    if(cancelAtLineItem){
+      const payload = cancelAtLineItem;
+      const action = 'full-update'
+      const comments = 'cancel of travelExpenseReport at header level'
+     const success = await sendToDashboardMicroservice(payload, action, comments,'expense','online',true)
+      if (success){
+        res.status(200).json({ success: true, message: 'Expense canceled successfully.' });
+      } else{
+        res.status(500).json({success: false, message: 'Error in deleting expense report' })
+        }
+    }
 
-    // Send the payload to the dashboard queue
-    await sendTravelExpenseToDashboardQueue(payload, needConfirmation, onlineVsBatch, source);
-
-    res.json({ success: true, message: 'Expense canceled successfully.' });
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, message: 'Failed to cancel expense at line item level.' });

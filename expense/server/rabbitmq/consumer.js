@@ -1,9 +1,10 @@
 import amqp from 'amqplib';
 import { updateHRMaster, updatePreferences } from './messageProcessor.js/onboardingMessage.js';
-import {  tripCancellationUpdate } from './messageProcessor.js/trip.js';
+import {  tripArrayFullUpdate, tripFullUpdate } from './messageProcessor.js/trip.js';
 import { recoverCashAdvance, settleCashAdvance, settleExpenseReport, settleExpenseReportPaidAndDistributed } from './messageProcessor.js/finance.js';
 import { addALegToTravelRequestData } from '../controller/travelExpenseController.js';
 import dotenv from 'dotenv';
+import { expenseReportApproval } from './messageProcessor.js/approval.js';
 
 dotenv.config();
 
@@ -54,6 +55,7 @@ export async function startConsumer(receiver){
       const source = content?.headers?.source
       const action = content?.headers?.action
   
+      
       if(content.headers.destination == 'expense'){
   
         if(source == 'onboarding'){
@@ -69,23 +71,32 @@ export async function startConsumer(receiver){
             //implement retry mechanism
             console.log('update failed with error code', res.error)
           }
-        }
-        else if(source == 'trip'){
-            if(action == 'full-update')
+        } else if(source == 'trip'){
+            if(action == 'full-update-array')
             console.log('trying to update Travel and cash after cancellation ')
-            const res = await tripCancellationUpdate(payload)
+            const res = await tripArrayFullUpdate(payload)
             console.log(res)
             if(res.success){
               //acknowledge message
               channel.ack(msg)
               console.log('message processed successfully')
-            }
-            else{
+            } else{
               //implement retry mechanism
               console.log('update failed with error code', res.error)
             }
-          }
-        else if(source == 'finance'){
+             if(action == 'full-update')
+            console.log('trying to update Travel and cash after cancellation ')
+            const response = await tripFullUpdate(payload)
+            console.log(res)
+            if(res.success){
+              //acknowledge message
+              channel.ack(msg)
+              console.log('message processed successfully')
+            } else{
+              //implement retry mechanism
+              console.log('update failed with error code', res.error)
+            }
+        } else if(source == 'finance'){
           if(action == 'settle-expense-paid') {
             console.log(" expenseheaderstatus paid")
             const res = await settleExpenseReport(payload);
@@ -171,15 +182,24 @@ export async function startConsumer(receiver){
               console.log('update failed with error code', res.error)
             }
           }  
-        }
-      } 
+        }else if ( source == 'approval'){
+          if(action == 'expense-approval'){
+            const res = await expenseReportApproval(payload);
+            console.log(res)
+            if(res.success){
+              //acknowledge message
+              channel.ack(msg)
+              console.log('message processed successfully')
+            }
+            else{
+              //implement retry mechanism
+              console.log('update failed with error code', res.error)
+            }
+          }
+      } }
     }}, { noAck: false });
-
-    
   }
   
-  
-
 
   export async function startConsume(receiver) {
     const rabbitMQUrl = process.env.rabbitMQUrl;
@@ -240,4 +260,8 @@ export async function startConsumer(receiver){
   
     await setupQueue(); 
   }
-  
+
+
+
+
+

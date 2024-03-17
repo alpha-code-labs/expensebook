@@ -1,5 +1,5 @@
 import express from 'express';
-import { cancelReimbursementReport, draftReimbursementExpenseLine, editReimbursementExpenseLine, getExpenseCategoriesForEmpId, getHighestLimitGroupPolicy,  getReimbursementExpenseReport,  reimbursementCurrencyConverter, saveReimbursementExpenseLine,  submitReimbursementExpenseReport } from '../controller/reimbursementController.js';
+import { cancelReimbursementReport, cancelReimbursementReportLine, draftReimbursementExpenseLine, editReimbursementExpenseLine, getExpenseCategoriesForEmpId, getHighestLimitGroupPolicy,  getReimbursementExpenseReport,  reimbursementCurrencyConverter, saveReimbursementExpenseLine,  submitReimbursementExpenseReport } from '../controller/reimbursementController.js';
 
 export const reimbursementRoutes = express.Router();
 
@@ -31,7 +31,7 @@ reimbursementRoutes.get('/:tenantId/:empId/:expenseHeaderId/report', getReimburs
 reimbursementRoutes.patch('/:tenantId/:empId/:expenseHeaderId/delete', cancelReimbursementReport);
 
 // delete non travel expense report at linelevel
-reimbursementRoutes.patch('/:tenantId/:empId/:expenseHeaderId/delete-line', cancelReimbursementReport);
+reimbursementRoutes.patch('/:tenantId/:empId/:expenseHeaderId/delete-line', cancelReimbursementReportLine);
 
 
 

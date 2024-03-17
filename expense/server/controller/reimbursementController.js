@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import HRCompany from "../models/hrCompanySchema.js";
 import Reimbursement from "../models/reimbursementSchema.js";
+import { sendToOtherMicroservice } from "../rabbitmq/publisher.js";
 
 /**
  * Generates an incremental number for a given tenant ID and incremental value.
@@ -394,6 +395,7 @@ export const editReimbursementExpenseLine = async (req, res) => {
 
     // Find the updated line
     const savedLineItem = expenseLines.find(line => line.lineItemId.toString() === lineItemId);
+    
 
     return res.status(200).json({
       success: true,
@@ -415,6 +417,7 @@ export const editReimbursementExpenseLine = async (req, res) => {
  * @returns {object} - The response object with a success message and the updated expense document if successful.
  * @throws {object} - The response object with an error message if expenseHeaderId is missing or the expense document is not found or unauthorized.
  */
+
 export const draftReimbursementExpenseLine = async (req, res) => {
   try {
     const { tenantId, empId, expenseHeaderId } = req.params;
@@ -436,17 +439,15 @@ export const draftReimbursementExpenseLine = async (req, res) => {
     } else{
 
     const { name } = updatedExpense.createdBy;
-    const payload = { ...updatedExpense };
+    const payload = { reimbursementReport:updatedExpense };
+    console.log("payload", payload)
     const needConfirmation = false;
-    const source = 'non-travel-expense';
+    const source = 'reimbursement';
     const onlineVsBatch = 'online';
+    const action = 'full-update';
+    const comments = 'expense report submitted';
 
-    // await sendTravelExpenseToDashboardQueue(payload, needConfirmation, onlineVsBatch, source);
-         const action = 'full-update';
-         const comments = 'expense report submitted';
-
-   await  sendToOtherMicroservice(payload, action, 'dashboard', comments, source, onlineVsBatch='online')
-   await sendToOtherMicroservice(payload, action, 'trip', comments, source, onlineVsBatch='online')
+   await  sendToOtherMicroservice(payload, action, 'dashboard', comments, source, onlineVsBatch)
    
      // Process the updated expenseReport if needed
      return res.status(200).json({
@@ -467,6 +468,7 @@ export const draftReimbursementExpenseLine = async (req, res) => {
  * @param {object} res - The response object used to send the response back to the client.
  * @returns {object} - If the update is successful, a response object with a success message is returned. If the update fails or the expense report is not found or unauthorized, an error message is returned.
  */
+
 export const submitReimbursementExpenseReport = async (req, res) => {
   try {
     const { tenantId, empId, expenseHeaderId } = req.params;
@@ -488,19 +490,14 @@ export const submitReimbursementExpenseReport = async (req, res) => {
     } else{
 
       const { name } = updatedExpense.createdBy ?? { name: 'user' };
-      const payload = { ...updatedExpense };
+      const payload = { reimbursementReport : updatedExpense };
       const needConfirmation = false;
-      const source = 'non-travel-expense';
+      const source = 'reimbursement';
       const onlineVsBatch = 'online';
+      const action = 'full-update';
+      const comments = 'expense report submitted';
   
-      // await sendTravelExpenseToDashboardQueue(payload, needConfirmation, onlineVsBatch, source);
-           const action = 'full-update';
-           const comments = 'expense report submitted';
-  
-     await  sendToOtherMicroservice(payload, action, 'dashboard', comments, source, onlineVsBatch='online')
-     await sendToOtherMicroservice(payload, action, 'trip', comments, source, onlineVsBatch='online')
-     
-         // await sendTravelExpenseToDashboardQueue(payload, needConfirmation, onlineVsBatch, source);
+     await  sendToOtherMicroservice(payload, action, 'dashboard', comments, source, onlineVsBatch)     
 
     const response = {
       success: true,
@@ -513,6 +510,7 @@ export const submitReimbursementExpenseReport = async (req, res) => {
     return res.status(500).json({ message: 'Failed to submit expense report.' });
   }
 };
+
 
 /**
  * Retrieves an expense report based on the provided parameters.
@@ -565,6 +563,7 @@ export const getReimbursementExpenseReport = async (req, res) => {
  * @param {Object} res - The response object.
  * @returns {Object} The response object.
  */
+
 export const cancelReimbursementReport = async (req, res) => {
   try {
     const { tenantId, empId, expenseHeaderId } = req.params;
@@ -582,10 +581,23 @@ export const cancelReimbursementReport = async (req, res) => {
     });
 
     if (!expenseReport) {
+      console.log('expense report deleted', !expenseReport)
       return res.status(404).json({ success: false, message: 'Expense report not found' });
     }
 
+    console.log('expense report failed to delete', expenseReport)
+
     const { name } = expenseReport.createdBy;
+    const payload = {  tenantId, empId, expenseHeaderId };
+    const needConfirmation = false;
+    const source = 'reimbursement';
+    const onlineVsBatch = 'online';
+
+    // await sendTravelExpenseToDashboardQueue(payload, needConfirmation, onlineVsBatch, source);
+         const action = 'delete';
+         const comments = 'reimbursment expense report deleted';
+
+   await  sendToOtherMicroservice(payload, action, 'dashboard', comments, source, onlineVsBatch)
     return res.status(200).json({ success: true, message: `Expense report deleted successfully ${name}` });
   } catch (error) {
     return res.status(500).json({ success: false, message: 'Internal server error' });
@@ -633,6 +645,14 @@ export const cancelReimbursementReportLine = async (req, res) => {
 
     await expenseReport.save();
 
+    const payload = { reimbursementReport: expenseReport };
+    const needConfirmation = false;
+    const source = 'reimbursement';
+    const onlineVsBatch = 'online';
+         const action = 'full-update';
+         const comments = 'reimbursement expense line deleted';
+
+   await  sendToOtherMicroservice(payload, action, 'dashboard', comments, source, onlineVsBatch)
     return res.status(200).json({
       success: true,
       message: `Expense lines deleted successfully by ${name}`,
