@@ -2317,6 +2317,24 @@ const getTenantDefaultCurrency = async (req, res)=>{
   }
 }
 
+
+const getOnboarderInfo = async(req, res)=>{
+  try{
+    const {tenantId} = req.params
+
+    const tenant = await HRCompany.findOne({tenantId}, {onboarder:1})
+
+    if(!tenant){
+      return res.status(404).json({message: 'Tenant not found'})
+    }
+
+    res.status(200).json({onboarder: tenant?.onboarder??{}})
+    
+  }catch(e){
+    return res.status(500).json({message: 'Internal Server Error'})
+  }
+}
+
 export {  createNewHrCompanyInfo, 
           updateExistingHrCompanyInfo, 
           updateTenantCompanyInfo,
@@ -2372,4 +2390,5 @@ export {  createNewHrCompanyInfo,
           updateTenantTravelAllocationFlags,
           onboardingCompleted,
           getTenantDefaultCurrency,
-          getTenantOrgHeaders, }
+          getTenantOrgHeaders,
+          getOnboarderInfo }

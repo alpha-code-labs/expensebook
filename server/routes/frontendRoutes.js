@@ -55,6 +55,7 @@ import {
     getTenantTravelAllocationFlags,
     getTenantDefaultCurrency,
     onboardingCompleted,
+    getOnboarderInfo,
 } from "../controllers/frontendController.js";
 
 import { upload } from "../middlewares/upload.js";
@@ -152,5 +153,8 @@ router.post('/tenant/:tenantId/state', updateTenantState)
 
 //onboarding completed
 router.post('/tenant/:tenantId/onboarding-completed', onboardingCompleted)
+
+//onboarder
+router.get('/tenant/:tenantId/onboarder', getOnboarderInfo)
 
 export default router;

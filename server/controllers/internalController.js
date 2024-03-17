@@ -53,6 +53,10 @@ const createTenant = async (req, res)=>{
   // Create a new HRCompany document with data from the request body
   const newHRCompany = new HRCompany({
     tenantId: tenantId,
+    onboarder: {
+      name: fullName,
+      email: email,
+    },
     flags:{
       DIY_FLAG: true,
       GROUPING_FLAG: false,
