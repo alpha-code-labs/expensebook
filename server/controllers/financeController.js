@@ -19,7 +19,7 @@ export const financeLayout = async (tenantId, empId) => {
             'travelRequestSchema.tenantId':tenantId,
             'cashAdvanceSchema.cashAdvancesData.cashAdvanceStatus': { $in: ['pending settlement', 'Paid and Cancelled'] },
             'tripSchema.travelExpenseData.expenseHeaderStatus':{$in: ['pending settlement', 'Paid']},
-            'nonTravelExpenseSchema.expenseHeaderStatus':{$in: ['pending settlement']},
+            'reimbursementSchema.expenseHeaderStatus':{$in: ['pending settlement']},
         });
 
         let result;
@@ -51,7 +51,7 @@ if(settlements){
     });
 
     pendingNonTravelExpenseSettlements = settlements.filter(doc => {
-        return doc.nonTravelExpenseSchema.some(
+        return doc.reimbursementSchema.some(
             data =>
                 data.expenseHeaderStatus === 'pending settlement' 
         );

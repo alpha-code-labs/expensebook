@@ -3,6 +3,7 @@ import dashboard from "../../models/dashboardSchema.js"
 
 export const updateReimbursement = async (payload) => {
     try {
+        console.log("update updateReimbursement", payload)
         const { reimbursementReport } = payload;
         const { tenantId,expenseHeaderId, createdBy } = reimbursementReport;
         const { empId } = createdBy;
@@ -33,13 +34,12 @@ export const updateReimbursement = async (payload) => {
 export const deleteReimbursement = async (payload) => {
     try {
         console.log("delete", payload)
-        const { reimbursementReport } = payload;
-        const { tenantId, createdBy } = reimbursementReport;
-        const { empId } = createdBy;
+        // const { reimbursementReport } = payload;
+        const { tenantId,empId, expenseHeaderId } = payload;
 
         console.log("deleteReimbursement....", payload);
     const deleteReimbursementReport = await dashboard.findOneAndDelete({ 
-        'reimbursementSchema.tenantId': tenantId, 'reimbursementSchema.createdBy.empId': empId, expenseHeaderId })
+        'reimbursementSchema.tenantId': tenantId, 'reimbursementSchema.createdBy.empId': empId, 'reimbursementSchema.expenseHeaderId': expenseHeaderId })
 
         if(!deleteReimbursementReport){
             return {success: false, error: "Failed to delete reimbursement expense in dashboard."}
@@ -50,3 +50,6 @@ export const deleteReimbursement = async (payload) => {
     return {success: false, error: error}
 }
 }
+
+
+

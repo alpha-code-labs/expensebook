@@ -131,7 +131,7 @@ export async function startConsumer(receiver) {
                   console.log('Message processed successfully');
                 } else {
                   // Implement retry mechanism or handle error
-                  console.log('Update failed with error:', res.error);
+                  console.log('Update failed with error:', results.error);
                 }
 
             }
@@ -155,22 +155,7 @@ export async function startConsumer(receiver) {
               }
 
             }
-          } else if (source == 'approval'){
-             if(action ='expense-approved'){
-              console.log("approve expense report")
-              const result = await updateExpenseReport(payload)
-              if(result.success){
-                //acknowledge message
-                channel.ack(msg)
-                console.log('message processed successfully')
-              }
-              else{
-                //implement retry mechanism
-                console.log('update failed with error code', result.error)
-              }
-
-             }
-          }
+          } 
       }
     }}, { noAck: false });
 }

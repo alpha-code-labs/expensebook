@@ -12,15 +12,15 @@ export const processTransitTrip = async (message) => {
   
       try {
       const updated = await dashboard.findOneAndUpdate(
-        { 'nonTravelExpenseSchema.expenseHeaderId': expenseHeaderId },
+        { 'reimbursementSchema.expenseHeaderId': expenseHeaderId },
         {
           $set: {
-            'nonTravelExpenseSchema.tenantId': tenantId ?? undefined,
-            'nonTravelExpenseSchema.tenantName': tenantName ?? undefined,
-            'nonTravelExpenseSchema.companyName': companyName ?? undefined,
-            'nonTravelExpenseSchema.expenseHeaderId': expenseHeaderId ?? undefined,
-            'nonTravelExpenseSchema.notificationSentToDashboardFlag': notificationSentToDashboardFlag ?? undefined,
-            'nonTravelExpenseSchema.expenseLines': expenseLines ?? undefined,
+            'reimbursementSchema.tenantId': tenantId ?? undefined,
+            'reimbursementSchema.tenantName': tenantName ?? undefined,
+            'reimbursementSchema.companyName': companyName ?? undefined,
+            'reimbursementSchema.expenseHeaderId': expenseHeaderId ?? undefined,
+            'reimbursementSchema.notificationSentToDashboardFlag': notificationSentToDashboardFlag ?? undefined,
+            'reimbursementSchema.expenseLines': expenseLines ?? undefined,
           },
         },
         { upsert: true, new: true }

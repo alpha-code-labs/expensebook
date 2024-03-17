@@ -2,6 +2,7 @@ import amqp from 'amqplib';
 import { fullUpdateTravel } from './messageProcessor/travel.js';
 import dotenv from 'dotenv';
 import { updateTripStatus } from './messageProcessor/trip.js';
+import { expenseReportApproval, travelStandAloneApproval } from './messageProcessor/approval.js';
 
 dotenv.config();
 
@@ -129,24 +130,35 @@ export const consumeFromDashboardQueue = async () => {
            const payload = content.payload;
            const source = headers.source;
            const isNeedConfirmation = headers.needConfirmation;
+           let action = headers.action;
  
            // Process only messages with type 'new'
            if (headers.type === 'new') {
              console.log("Processing message of type 'new'");
              console.log("Headers:", headers, "Source:", source, "Need Confirmation:", isNeedConfirmation);
- 
+
              // Determine the confirmation status based on the success of the database update
              let success = false;
              if (isNeedConfirmation) {
                if (source === 'travel') {
                  success = await updateDashboard(payload);
-               } else if (source === 'trip' && headers.action === 'status-update') {
+               } else if (source === 'trip'){ 
+                if(headers.action === 'status-update') {
                  success = await updateTripStatus(payload);
-               } else if (source === 'trip' && headers.action === 'full-update'){
+               } if (headers.action === 'full-update'){
                  success = await fullUpdateTrip(payload);
                }
-             }
- 
+               } else if (source === 'approval'){
+               if(action ='expense-approval'){
+              console.log("approve expense report")
+                success = await expenseReportApproval(payload)
+              }
+              if(action== 'travel'){
+                success = await travelStandAloneApproval(payload)
+              }
+              }
+              }
+
              // Prepare confirmation message
              const confirmationMessage = {
                headers: {
