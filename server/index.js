@@ -1,18 +1,22 @@
 import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
-import internalRoutes from './routes/internalRoutes.js'
-import frontendRoutes from './routes/frontendRoutes.js'
-import cors from "cors"
+import internalRoutes from "./routes/internalRoutes.js";
+import frontendRoutes from "./routes/frontendRoutes.js";
+import cors from "cors";
 import { statusUpdateBatchJob } from "./scheduler/updateStatus.js";
-import amqp from 'amqplib';
-import cron from 'node-cron'
+import {createTripBatchJob} from "./scheduler/createTrip.js"
+import amqp from "amqplib";
+import cron from "node-cron";
 import { sendToDashboardQueue } from "./rabbitMQ/publisher.js";
-import pino from 'pino'
-const logger = pino({})
+import updateHRMaster from "./rabbitMQ/messageProcessor/onboarding.js";
+import pino from "pino";
+import startConsumer from "./rabbitMQ/consumer.js";
 
-logger.info('Hello World')
-logger.
+
+const logger = pino({});
+
+logger.info("Hello World");
 
 //later to be done using cron
 //statusUpdateBatchJob();
@@ -23,28 +27,33 @@ const app = express();
 const MONGO_URI = process.env.MONGO_URI;
 const PORT = process.env.PORT;
 
-app.use(express.json())
-app.use(cors())
+app.use(express.json());
+app.use(cors());
 app.use("/travel/internal/api", internalRoutes);
 app.use("/travel/api", frontendRoutes);
-app.post('/test/rabbitmq', async (req, res)=>{
-  const result = await sendToDashboardQueue({message:'Hello from Travel'})
-  console.log(result)
+
+app.get("/test", (req, res)=>{
+  res.status(200).json({message: 'Server running smoothly'})
 })
+
+app.post("/test/rabbitmq", async (req, res) => {
+  const result = await sendToDashboardQueue({ message: "Hello from Travel" });
+  console.log(result);
+});
 
 async function startProducer() {
   try {
-    const connection = await amqp.connect('amqp://ajay:Ajay@1234@192.168.1.4:5672');
-    console.log('this ran')
+    const connection = await amqp.connect(
+      "amqp://ajay318:ajay@318@localhost:15672"
+    );
+    console.log("this ran");
     const channel = await connection.createChannel();
 
-    const exchangeName = 'approvals';
-    const queueName = 'travelApprovals';
-
+    const exchangeName = "approvals";
+    const queueName = "travelApprovals";
 
     // Ensure the exchange exists
-    await channel.assertExchange(exchangeName, 'direct', { durable: true });
-
+    await channel.assertExchange(exchangeName, "direct", { durable: true });
 
     // Ensure the queue exists
     await channel.assertQueue(queueName, { durable: true });
@@ -52,32 +61,30 @@ async function startProducer() {
     // Bind the queue to the exchange with the routing key
     await channel.bindQueue(queueName, exchangeName);
 
-
-    const msg = {message: 'Hello from travel'}
-    channel.publish(exchangeName, '', Buffer.from(JSON.stringify(msg)))
-
+    const msg = { message: "Hello from travel" };
+    channel.publish(exchangeName, "", Buffer.from(JSON.stringify(msg)));
 
     console.log(`Waiting for messages on queue: ${msg} published`);
-    await channel.close()
-    await connection.close()
-
+    await channel.close();
+    await connection.close();
   } catch (error) {
-    console.error('Error setting up publisher:', error);
+    console.error("Error setting up publisher:", error);
   }
 }
 
 async function receiveTravelApprovedMessage() {
   try {
-    const connection = await amqp.connect('amqp://ajay:Ajay@1234@192.168.1.4:5672');
-    console.log('this ran')
+    const connection = await amqp.connect(
+      "amqp://ajay:Ajay@1234@192.168.1.4:5672"
+    );
+    console.log("this ran");
     const channel = await connection.createChannel();
 
-    const exchangeName = 'approvals';
-    const queueName = 'travelApprovals';
-
+    const exchangeName = "approvals";
+    const queueName = "travelApprovals";
 
     // Ensure the exchange exists
-    await channel.assertExchange(exchangeName, 'direct', { durable: true });
+    await channel.assertExchange(exchangeName, "direct", { durable: true });
 
     // Ensure the queue exists
     await channel.assertQueue(queueName, { durable: true });
@@ -85,7 +92,9 @@ async function receiveTravelApprovedMessage() {
     // Bind the queue to the exchange with the specified routing key
     // await channel.bindQueue(queueName, exchangeName, '');
 
-    console.log(`[*] Waiting for messages from ${exchangeName} . To exit press CTRL+C`);
+    console.log(
+      `[*] Waiting for messages from ${exchangeName} . To exit press CTRL+C`
+    );
 
     // Set up the consumer to handle messages
     channel.consume(queueName, (msg) => {
@@ -98,7 +107,7 @@ async function receiveTravelApprovedMessage() {
       }
     });
   } catch (error) {
-    console.error('Error receiving message from RabbitMQ:', error.message);
+    console.error("Error receiving message from RabbitMQ:", error.message);
   }
 }
 
@@ -115,6 +124,9 @@ async function connectToMongoDB() {
   }
 }
 
+
 await connectToMongoDB();
-//startProducer()
-//receiveTravelApprovedMessage()
+startConsumer('travel')
+
+//statusUpdateBatchJob()
+createTripBatchJob()

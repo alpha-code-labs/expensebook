@@ -315,6 +315,22 @@ const updateOnboardingContainer = async (req, res) => {
   }
 }
 
+const closeTravelRequests = async (req, res) => {
+  try{
+    const {travelRequestIds, travelRequestStatus} = req.body
+
+    const filterArray = travelRequestIds.map(id=>({'travelRequestId':id}))
+    const updateResult = await CashAdvance.updateMany({ $or: filterArray }, { $set: { travelRequestStatus} });
+
+    console.log(updateResult)
+
+  }catch(e){
+    console.log(e)
+    res.status(500).json({message:'Internal server error'})
+  }
+}
+
+
 export {
   getTravelRequest,
   updateTravelRequest,
@@ -323,4 +339,5 @@ export {
   updateCashAdvanceFlag,
   getTravelRequests,
   updateOnboardingContainer,
+  closeTravelRequests,
 };

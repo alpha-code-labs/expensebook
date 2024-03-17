@@ -1,66 +1,47 @@
-import TravelRequest from "../models/travelRequest";
+import TravelRequest from "../models/travelRequest.js";
 import cron from 'node-cron';
+import { sendToOtherMicroservice } from "../rabbitMQ/publisher.js";
 
-
-const TRIP_API = 'http://localhost:8001/trip/'
-const trip_endpoint = 'trips/create/multi'
-
-const APPROVAL_API = 'http://localhost:8001/approval'
-const approval_endpoint = ''
 
 //basic status UpdateBatchJob function...
-async function batchJob(){
+async function createTripBatchJob(){
 
     try {   
+          //update  sentToTrip flag to true 
+          const results = await TravelRequest.find({
+              travelRequestStatus : 'booked',
+              sentToTrip : false,
+              isCashAdvanceTaken: false,
+          })
 
-            const results = await TravelRequest.find({
-                travelRequestStatus : 'booked',
-                sentToTrip : false,
-               // isCashAdvanceTaken: false,
-            });
+          const promises = results.map(result=>{
+            result.sentToTrip = true;
+            return result.save()
+          })
 
-            //send results to trip 
-            //const res_trip  = await axios.post(`${TRIP_API}/${trip_endpoint}`, {trips:results})
-            //if(res_trip.status!=200) throw new Error('Unable to send data to trip-ms')
+          const updatedResults =  await Promise.all(promises)
+          
+          //send to trip ms
+          if(updatedResults.length>0)
+            await sendToOtherMicroservice(updatedResults, 'Booked Travel Requests Update from Travel MS', 'trip', 'travel', 'batch', 'trip-creation')
 
-            const approvedTravelRequestIds = []
-            //iterate throught results and check for TR that went for approval
-            results.forEach(result=>{
-              if(result.approvers.length>0){
-                approvedTravelRequestIds.push(result.travelRequestId)
-              }
-            })
-
-            //send results to approval
-            //const res_approval  = await axios.post(`${APPROVAL_API}/${approval_endpoint}`, {travelRequestIds, status:'booked'})
-            //if(res_approval.status!=200) throw new Error('Unable to send data to approval-ms')
-
-            //update  sentToTrip flag to true 
-            const updateResults = await TravelRequest.updateMany({
-                travelRequestStatus : 'booked',
-                sentToTrip : false,
-                isCashAdvanceTaken: false,
-            }, 
-            {$set : {sentToTrip:true}});
-                       
-
-
+          //update  sentToTrip flag to true 
+          console.log(`BJ: SEND booked requests to trip :: match count: ${updatedResults.length}`)
         } catch (e) {
         console.error('error in statusUpdateBatchJob', e);
       }    
 }
 
-
  // Schedule the cron job to run every day at midnight
  cron.schedule('0 0 * * *', () => {
     console.log('Running batch job...');
-    batchJob();
+    createTripBatchJob();
   });
   
   // Function to trigger the batch job on demand
   const triggerBatchJob = () => {
     console.log('Triggering batch job on demand...');
-    batchJob();
+    createTripBatchJob();
   };
   
-  export { triggerBatchJob };
+  export { triggerBatchJob, createTripBatchJob };

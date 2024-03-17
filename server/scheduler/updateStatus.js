@@ -1,26 +1,37 @@
 import TravelRequest from "../models/travelRequest.js";
+import { sendToDashboardQueue } from "../rabbitMQ/publisher.js";
 
 //basic status UpdateBatchJob function...
 export async function statusUpdateBatchJob(){
     try {
-        const results = await TravelRequest.find({travelRequestStatus: 'approved'})
+        //const results = await TravelRequest.find({travelRequestStatus: 'approved'})
         
-        const approvedTravelRequestIds = []
-            //iterate throught results and check for TR that went for approval
-            results.forEach(result=>{
-              if(result.approvers.length>0){
-                approvedTravelRequestIds.push(result.travelRequestId)
+        const travelRequestsToUpdate = await TravelRequest.find({ travelRequestStatus: 'approved' });
+
+        const updatedTravelRequests = travelRequestsToUpdate.map((travelRequest) => {
+          travelRequest.travelRequestStatus = 'pending booking';
+          
+          ['flights', 'trains', 'cabs', 'carRentals', 'buses'].map(itineraryType=>{
+            travelRequest.itinerary[itineraryType].forEach(item=>{
+              if(item.status == 'approved'){
+                item.status = 'pending booking'
               }
             })
+          })
 
-            //send results to approval
-            //const res_approval  = await axios.post(`${APPROVAL_API}/${approval_endpoint}`, {travelRequestIds, status:'pending booking'})
-            //if(res_approval.status!=200) throw new Error('Unable to send data to approval-ms')
-
-        const result = await TravelRequest.updateMany({ travelRequestStatus:'approved' }, {$set: { travelRequestStatus: 'pending booking'} });
-
+          return travelRequest.save();
+        });
+        
+        // Wait for all the updates to complete
+        const res = await Promise.all(updatedTravelRequests);
   
-        console.log(result.modifiedCount, 'modifiedCount', result.matchedCount, 'matchedCount')
+        //send to dashboard
+        if(res.length>0){
+          // console.log(res)
+          await sendToDashboardQueue(res, 'false', 'online')
+        }
+        console.log(res.length, 'modified count')
+
       } catch (e) {
         console.error('error in statusUpdateBatchJob', e);
       }    
