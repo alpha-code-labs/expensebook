@@ -549,7 +549,7 @@ export default function (props) {
                 </div>
 
                 {/* rest of the section */}
-                <div className='mt-10 flex flex-col gap-4'>  
+                <div className='mt-28 flex flex-col gap-4'>  
                     {allocations && allocations[travelType]?.length>0 && allocations[travelType]?.map((category, index)=>{
                             return (
                             <Policy 

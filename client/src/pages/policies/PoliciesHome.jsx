@@ -12,7 +12,6 @@ import Modal from "../../components/common/Modal"
 import { useState, useEffect } from "react"
 import { updateFormState_API } from "../../utils/api"
 
-
 export default function (props){
     const navigate = useNavigate()
     const {tenantId} = useParams()
@@ -54,10 +53,10 @@ export default function (props){
                 <div className="flex justify-between">
                     <div className="gap-2">
                         <p className="text-neutral-700 text-xl font-semibold tracking-tight">
-                            Setting up your Travel Related Policies
+                            Setting up your Policies
                         </p>
                         <p className="text-gray-600 text-sm font-normal font-cabin" >
-                            Use existing policies or add custom policies to your company's travel policy
+                            Use existing policies or add custom policies to your company's policy
                         </p>
                     </div>
                     <div className="">
@@ -100,7 +99,7 @@ export default function (props){
         <Modal skippable={false} showModal={showSkipModal} setShowModa={setShowSkipModal}>
             <div className="p-10">
                 <p className="text-neutral-700 text">
-                    We recommend you go through company policy and expense categories setup, with plicy setup you can track limit violations and with expense categories setup employees will be able to raise non-travel expenses. 
+                    We recommend you go through setting up company policies, with policy setup you can track limit violations. 
                 </p>
                 <div className=' mt-10 flex flex-wrap justify-between'>
                     <div className='w-fit'>
@@ -114,7 +113,6 @@ export default function (props){
         </Modal>
     </>)
 }
-
 
 function CollapsedPolicy(props){
     const icon = props.icon

@@ -580,7 +580,18 @@ async function getEmployeeDetails_API(data){
   }
 }
 
+async function getOnboarderInfo_API(data){
+  try{
+    const {tenantId} = data
+    const res = await axios.get(`${ONBOARDING_API_URL}/tenant/${tenantId}/onboarder`)
+    return {data:res.data, err:null}
+  }catch(e){
+    return handleError(e)
+  }
+}
+
   export {
+    getOnboarderInfo_API,
     getTenantGroups_API,
     updateTenantGroups_API,
     getTenantGroupingLabels_API,
