@@ -1,6 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react'; 
 import upload_icon from '../../assets/upload.svg'
+import { BlobServiceClient } from "@azure/storage-blob";
 
+const az_blob_connection_string = import.meta.env.VITE_AZURE_BLOB_CONNECTION_STRING
+const az_blob_key = import.meta.env.VITE_AZURE_BLOB_KEY
+const az_blob_container = import.meta.env.VITE_AZURE_BLOB_CONTAINER
+const az_blob_sas_url = import.meta.env.VITE_AZURE_BLOB_SAS_URL
+const az_blob_sas_token = import.meta.env.VITE_AZURE_BLOB_SAS_TOKEN
+const blob_endpoint = import.meta.env.VITE_AZURE_BLOB_CONNECTION_URL
 
 export default function (props){
 
@@ -20,19 +27,17 @@ export default function (props){
 
         const handleFileChange = (event) => {
         const file = event.target.files[0];
-        
-        // Check if the selected file is an Excel file (xlsx format)
+
         if (file) {
-           
             setSelectedFile(file);
             setFileSelected(true);          
-
+            //uploadImageToAzure(file);
         } 
         };
     
         const handleUpload = () => {
             if (fileInputRef.current) {
-            fileInputRef.current.click();
+              fileInputRef.current.click();
             }
         };
 

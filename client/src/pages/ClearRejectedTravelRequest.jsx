@@ -1,7 +1,7 @@
 import { useState, useEffect, createContext } from "react";
 import {BrowserRouter as Router, Routes, Route, useParams, useNavigate} from 'react-router-dom'
 import axios from 'axios'
-import BasicDetails from "./basicDetails/basicDetails";
+import BasicDetails from "./basicDetails/BasicDetails";
 import Itinerary from "./itineraryLegacy/Itinerary"
 import Review from "./review/Review"
 import Error from "../components/common/Error";
@@ -19,6 +19,7 @@ export default function () {
     const [isLoading, setIsLoading] = useState(true)
     const [loadingErrMsg, setLoadingErrMsg] = useState(null)
     const [rejectionReason, setRejectionReason] = useState(null)
+    const [travelRequestNumber, setTravelRequestNumber] = useState(null)
 
     const navigate = useNavigate()
 
@@ -30,7 +31,8 @@ export default function () {
                 setLoadingErrMsg(res.err)
                 return;
             }
-            setRejectionReason(res.data.rejectionReason);
+            setRejectionReason(res?.data?.rejectionReason??'Not Provided');
+            setTravelRequestNumber(res?.data?.travelRequestNumber??"...")
             setIsLoading(false)
         })()
     },[])
@@ -53,9 +55,16 @@ export default function () {
                 </div>
 
                 <div className='w-full bg-slate-50 px-6 py-4 rounded-md mt-10'>
+                    <div className='flex items-center flex-wrap gap-6 mb-2'>
+                    <div>
+                        <p className='font-cabin text-xs text-neutral-600'>Travel Request Number</p>
+                        <p className='font-cabin font-semibold tex-lg'>{travelRequestNumber}</p>
+                    </div>
+                    
+                    </div>
                     <p className='text-neutral-700 text-lg font-semibold'>Your travel request has been rejected</p>
                     <div className="mt-4 text-red-500 px-6 py-2 rounded-md bg-red-200">
-                        <p>Rejected because of too many violations</p>
+                        <p>{rejectionReason}</p>
                     </div>
                     <div className='text-sm mt-10'>Please take appropriate action to clear this rejection</div>
                     <div className="flex justify-between mt-6">

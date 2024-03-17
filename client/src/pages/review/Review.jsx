@@ -1,7 +1,7 @@
 import close_icon from '../../assets/close.svg' 
 import Icon from '../../components/common/Icon'
 import { useNavigate } from 'react-router-dom'
-import { formatDate2, formatDate3,  } from "../../utils/handyFunctions"
+import { formatDate2, formatDate3, titleCase,  } from "../../utils/handyFunctions"
 import Button from '../../components/common/Button'
 import { updateTravelRequest_API} from '../../utils/api'
 import { useEffect, useState } from 'react'
@@ -20,6 +20,9 @@ export default function (props){
     const lastPage = props.lastPage
     
     const onBoardingData = props.onBoardingData
+    const travelAllocationFlags = onBoardingData.travelAllocationFlags
+    const cashAdvanceAllowed = onBoardingData.cashAdvanceAllowed
+
     const formData = props.formData
     const setFormData = props.setFormData  
     const [showPopup, setShowPopup] = useState(false)
@@ -134,10 +137,27 @@ export default function (props){
                                 <p className="w-[100px] text-neutral-600">Approvers:</p>
                                 <p className="text-neutral-700">{formData.approvers.length>0 ? formData.approvers.map(approver=>`${approver.name}, `) : 'N/A'}</p>
                             </div>
-                            <div className="flex gap-2 font-cabin text-sm tracking-tight">
-                                <p className="w-[100px] text-neutral-600">Travel Allocations:</p>
-                                <p className="text-neutral-700">{formData.travelAllocationHeaders.length>0 ? formData.travelAllocationHeaders.map(allocation=>`${allocation.headerName}:${allocation.headerValue}(${allocation?.percentage??100}%), `) : 'N/A'}</p>
-                            </div>
+                            {formData?.travelAllocationHeaders.length>0 && 
+                                <div className="flex gap-2 font-cabin text-sm tracking-tight">
+                                    <p className="w-[100px] text-neutral-600">Travel Allocations:</p>
+                                    {(travelAllocationFlags.level1 || travelAllocationFlags.level2)  && <p className="text-neutral-700">{formData.travelAllocationHeaders.length>0 ? formData.travelAllocationHeaders.map(allocation=>`${allocation.headerName}:${allocation.headerValue}(${allocation?.percentage??100}%), `) : 'N/A'}</p>}
+                                    {travelAllocationFlags.level3 && <p className="text-neutral-700">
+                                        {formData.travelAllocationHeaders.length>0 && 
+                                            formData.travelAllocationHeaders.map(cat=>{
+                                                return (<>
+                                                    {`${titleCase(cat.categoryName)} ::`}
+                                                    {cat.allocations.map(allocation=>
+                                                        (<div className='flex'>
+                                                            <div className='flex'>
+                                                                <p className='text-neutral-600'>{allocation.headerName}</p>
+                                                                <p className='text-neutral-700'>{allocation.headerValue}</p>  
+                                                                ,
+                                                            </div>
+                                                        </div>)
+                                                    )}
+                                                </>)
+                                    })}</p>}
+                                </div>}
                         </div>
                     </div>
                 </div>
@@ -145,9 +165,9 @@ export default function (props){
                 <div className="mt-5 flex flex-col gap-4" />
                 <Itinerary itinerary={formData.itinerary} />
 
-                <div className='mt-4'>
+                {false && <div className='mt-4'>
                     <Preferences preferences={formData.preferences} />
-                </div>
+                </div>}
 
             <div className='my-8 w-full flex justify-between'>
                 <Button 
@@ -165,11 +185,19 @@ export default function (props){
                     {!requestSubmitted && <Error/>}
                     {requestSubmitted && <div className='p-10'>
                         <p className='text-2xl text-neutral-700 font-semibold font-cabin'>Travel Request Submitted !</p>
-                        <p className='text-zinc-800 text-base font-medium font-cabin mt-4'>Would you like to raise a cash advance request for this trip?</p>
-                        <div className='flex gap-10 justify-between mt-10'>
-                            <Button text='Yes' onClick={()=>handleCashAdvance(true)} />
-                            <Button text='No' onClick={()=>handleCashAdvance(false)} />
-                        </div>
+                        { cashAdvanceAllowed && <> 
+                            <p className='text-zinc-800 text-base font-medium font-cabin mt-4'>Would you like to raise a cash advance request for this trip?</p>
+                            <div className='flex gap-10 justify-between mt-10'>
+                                <Button text='Yes' onClick={()=>handleCashAdvance(true)} />
+                                <Button text='No' onClick={()=>handleCashAdvance(false)} />
+                            </div>
+                         </>
+                        }
+
+                        {!cashAdvanceAllowed && <div className='flex gap-10 justify-between mt-10'>
+                                <Button text='Ok' onClick={()=>handleCashAdvance(false)} />
+                            </div>}
+
                     </div>}
                 </Modal>
 
@@ -184,5 +212,3 @@ export default function (props){
         </div>
     )
 }
-
-

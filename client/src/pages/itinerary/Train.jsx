@@ -7,6 +7,7 @@ import CloseButton from "../../components/common/closeButton"
 import { generateUniqueIdentifier } from "../../utils/uuid"
 
 export default function({
+    min,
     formData,
     setFormData,
     trainsError,
@@ -20,7 +21,7 @@ export default function({
 
     const handleTimeChange = (e, field, index)=>{
         const formData_copy = JSON.parse(JSON.stringify(formData))
-        if(field == 'departure') formData_copy.itinerary.trains[index].preferredTime = e.target.value
+        if(field == 'departure') formData_copy.itinerary.trains[index].time = e.target.value
         
         setFormData(formData_copy)
       }
@@ -40,7 +41,7 @@ export default function({
 
     const handleAdd = ()=>{
         const formData_copy = JSON.parse(JSON.stringify(formData))
-        formData_copy.itinerary.trains.push({...dummyTrain, formId:generateUniqueIdentifier()})
+        formData_copy.itinerary.trains.push({...dummyTrain, approvers:formData.approvers, formId:generateUniqueIdentifier()})
         setFormData(formData_copy)
     }
 
@@ -48,22 +49,25 @@ return(<>
 
     {formData.itinerary.trains.length>0 && formData.itinerary.trains.map((train,ind)=>
         <div key={train.formId} className="relative mt-4 bt-4 py-4 border-t border-b border-gray-200 rounded-t-xl bg-white">
-            <div className="mt-8 flex gap-8 items-center flex-wrap">
-                <Input 
-                    title='From'  
-                    placeholder='City' 
-                    value={train.from}
-                    error={trainsError?.fromError} 
-                    onBlur={(e)=>updateCity(e, 'from', ind)} />
+            <div className="mt-8 flex gap-8 items-end lg:items-center flex-wrap ">
+                <div className='flex flex-col lg:flex-row lg:gap-8 items-center justify-center gap-2'>
+                    <Input 
+                        title='From'  
+                        placeholder='City' 
+                        value={train.from}
+                        error={trainsError?.fromError} 
+                        onBlur={(e)=>updateCity(e, 'from', ind)} />
 
-                <Input 
-                    title='To' 
-                    placeholder='City' 
-                    value={train.to} 
-                    error={trainsError?.toError}
-                    onBlur={(e)=>updateCity(e, 'to', ind)} />
+                    <Input 
+                        title='To' 
+                        placeholder='City' 
+                        value={train.to} 
+                        error={trainsError?.toError}
+                        onBlur={(e)=>updateCity(e, 'to', ind)} />
+                </div>
 
                 <DateTime 
+                    min={min}
                     error={trainsError?.departureDateError}
                     title='Departure Date'
                     validRange={{min:null, max:null}}
@@ -80,11 +84,10 @@ return(<>
         </div>
         )}
     
-    <div className="mt-10">
+    <div className="mt-10 w-full justify-center flex">
         <AddMore text="Add Train" onClick={handleAdd} />
     </div> 
 
     </>)
-
 
 }

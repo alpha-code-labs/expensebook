@@ -15,6 +15,7 @@ import PopupMessage from '../../components/common/PopupMessage'
 import Error from '../../components/common/Error'
 import { useQuery } from '../../utils/hooks'
 import { TR_backendTransformer } from '../../utils/transformers'
+import { camelCaseToTitleCase } from '../../utils/handyFunctions'
 
 export default function({formData, setFormData, nextPage, lastPage, onBoardingData}){
 
@@ -28,6 +29,12 @@ export default function({formData, setFormData, nextPage, lastPage, onBoardingDa
     
     //onboarding data...
     const travelAllocations = onBoardingData.travelAllocations
+    const travelAllocationFlags= onBoardingData.travelAllocationFlags
+
+    if(!travelAllocationFlags.level3){
+        //no need to show this page
+        navigate(nextPage)
+    }
 
     //popup message
     const [showPopup, setshowPopup] = useState(false)
@@ -227,12 +234,11 @@ export default function({formData, setFormData, nextPage, lastPage, onBoardingDa
                 {/* back link */}
                 <div className='flex items-center gap-4 cursor-pointer'>
                     <img className='w-[24px] h-[24px]' src={leftArrow_icon} onClick={()=>navigate(lastPage)} />
-                    <p className='text-neutral-700 text-md font-semibold font-cabin'>Create travel request</p>
+                    <p className='text-neutral-700 text-md font-semibold font-cabin'>Allocate Travel</p>
                 </div>
 
                 <div>
                     { selectedItineraryObjects?.length>0 && <div>
-                    <p className='text-base font-medium text-neutral-700 font-cabin'>Allocate travel.</p>
                     
                     {selectedItineraryObjects.length>0 && selectedItineraryObjects.map((cat, catInd)=>{
                         const categoryAllocationDetails = travelAllocations[travelType].find(c=>c.categoryName.toLowerCase() == cat.toLowerCase())
@@ -242,24 +248,23 @@ export default function({formData, setFormData, nextPage, lastPage, onBoardingDa
 
                         return(
                             <div key={`${cat}-${catInd}`}  className='mt-8 flex flex-col gap-4'>
-                                <p className='text-lg font-cabin text-neutral-700'>{cat}</p>
+                                <p className='text-lg font-cabin text-neutral-700'>{camelCaseToTitleCase(cat)}</p>
                                 <div className='flex flex-wrap gap-4'>
                                     {allocations.map((header, index)=>{
                                         return(
                                             <>
                                             <Select
-                                                currentOption={selectedTravelAllocationHeaders[index]?.allocations.find(h=>h.headerName == header.headerName)?.headerValue}
+                                                currentOption={selectedTravelAllocationHeaders.find(h=>h.categoryName == cat)?.allocations.find(h=>h.headerName == header.headerName)?.headerValue}
                                                 options={header.headerValues}
                                                 onSelect = {(option)=>{handleAllocationHeaderSelect(cat, header.headerName, option)}}
-                                                placeholder={`Select ${header.headerName}`} 
-                                                title={header.headerName} />
+                                                placeholder={`Select ${camelCaseToTitleCase(header.headerName)}`} 
+                                                title={camelCaseToTitleCase(header.headerName)} />
                                             </>
                                         )
                                     })}
                                 </div>
-
                                 {<hr className='py-2' />}
-                        </div>
+                            </div>
                         )
                     })}
                          

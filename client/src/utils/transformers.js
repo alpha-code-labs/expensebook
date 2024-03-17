@@ -58,7 +58,6 @@ function TR_backendTransformer(data){
     return data
 }
 
-
 //  function TR_frontendTransformer(data) {
 //     const itinerary = data.itinerary
 //     console.log(itinerary)

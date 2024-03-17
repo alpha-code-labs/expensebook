@@ -16,6 +16,7 @@ export default function DateTime(props){
     const date = props.date || getCurrentDate()
     const title = props.title || 'Title'
     const time = props.time || '11:00'
+    const min = props.min??0
     const onTimeChange = props.onTimeChange
     const onDateChange = props.onDateChange
     const [dateValue, setDateValue] = useState(date? date : getCurrentDate());
@@ -25,6 +26,19 @@ export default function DateTime(props){
     const [suffix, setSuffix] = useState(time.split(':')[0]>=12? 'PM' : 'AM')
     const error = props.error || {set:false, message:''}
     const [dateSelected, setDateSelected] = useState(false)
+
+    function getDateXDaysAway(days) {
+        const currentDate = new Date();
+        const futureDate = new Date(currentDate);
+        futureDate.setDate(currentDate.getDate() + days);
+      
+        const year = futureDate.getFullYear();
+        const month = String(futureDate.getMonth() + 1).padStart(2, '0'); // Months are zero-indexed
+        const day = String(futureDate.getDate()).padStart(2, '0');
+      
+        return `${year}-${month}-${day}`;
+      }
+
 
     const handleDateChange= (e)=>{
        setDateValue(e.target.value)
@@ -41,7 +55,7 @@ export default function DateTime(props){
     }
 
     useEffect(()=>{
-        setHours(timeValue.split(':')[0]>=12? time.split(':')[0]-12 : time.split(':')[0])
+        setHours(timeValue.split(':')[0]>=12? timeValue.split(':')[0]-12 : timeValue.split(':')[0])
         setMinutes(timeValue.split(':')[1])
         setSuffix(timeValue.split(':')[0]>=12? 'PM' : 'AM')
     },[timeValue])
@@ -55,7 +69,7 @@ return(<>
             <div className="text-zinc-500 text-xs font-normal font-cabin">{title}</div>
             <div className="justify-start items-center gap-2 inline-flex cursor-pointer">
             <div className="flex relative w-full gap-4 items-center" >
-                <input className='slim absolute left-0 top-0 w-full h-full opacity-0 focus-visible:outline-0 cursor-pointer' onChange={handleDateChange} value={dateValue} type='date'/>
+                <input className='slim absolute left-0 top-0 w-full h-full opacity-0 focus-visible:outline-0 cursor-pointer' onChange={handleDateChange} value={dateValue} min={getDateXDaysAway(Number(min))} type='date'/>
                 <div className="text-gray-700 bg-white whitespace-nowrap text-lg font-medium font-cabin">{formatDate(dateValue)}</div>
                 <div className="h-6 w-6">
                     <img src={chevron_down} alt="open" />

@@ -1,13 +1,17 @@
 function titleCase(str){
-    str = str.toLowerCase().split(' ')
-    str = str.map(word=>{
-        if(word.length>0 && word){
-            return word.trim()
-        }
-    })
-   str = str.filter(word=>word!=undefined)
-    str= str.map(word=>word.replace(word[0],word[0].toUpperCase()))
-    return str.join(' ')
+try{
+  str = str.toLowerCase().split(' ')
+  str = str.map(word=>{
+      if(word.length>0 && word){
+          return word.trim()
+      }
+  })
+ str = str.filter(word=>word!=undefined)
+  str= str.map(word=>word.replace(word[0],word[0].toUpperCase()))
+  return str.join(' ')
+}catch(e){
+  return(str) 
+}
 }
 
 function formatDate(date=Date.now()) {
@@ -84,8 +88,6 @@ function formatDate(date=Date.now()) {
     return dayWithSuffix + ' ' + month + ' ' + year;
   }
   
-
- 
   function formatDate3(inputDate) {
     
     const datePattern = /^\d{4}-\d{2}-\d{2}$/;
@@ -105,7 +107,27 @@ function formatDate(date=Date.now()) {
 
     return dayWithSuffix + ' ' + month;
   }
+
+  function camelCaseToTitleCase(inputString) {
+    // Use a regular expression to split words at capital letters
+    const words = inputString.split(/(?=[A-Z])/);
+  
+    // Capitalize the first letter of each word and join them with spaces
+    const titleCaseString = words.map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+  
+    return titleCaseString;
+  }
+
+  function titleCaseToCamelCase(inputString) {
+    // Split the title case string into words using spaces
+    const words = inputString.split(' ');
+  
+    // Capitalize the first letter of the first word and convert the rest to lowercase
+    const camelCaseString = words[0].toLowerCase() + words.slice(1).map(word => word.charAt(0).toUpperCase() + word.slice(1)).join('');
+  
+    return camelCaseString;
+  }
     
   
 
-export {titleCase, formatDate, formatDate2, formatDate3}
+export {titleCase, formatDate, formatDate2, formatDate3, camelCaseToTitleCase, titleCaseToCamelCase}

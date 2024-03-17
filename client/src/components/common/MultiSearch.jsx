@@ -36,6 +36,7 @@ export default function Search(props){
         setTextInput(inputValue)
 
         const caretIndex = inputRef.current.selectionStart
+        
         console.log(caretIndex, 'caretIndex')
 
         if(keywords[keywords.length-1].length == 0){

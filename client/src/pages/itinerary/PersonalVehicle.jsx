@@ -20,7 +20,7 @@ export default function({
 
     const handleTimeChange = (e, field, index)=>{
         const formData_copy = JSON.parse(JSON.stringify(formData))
-        if(field == 'departure') formData_copy.itinerary.personalVehicles[index].preferredTime = e.target.value
+        if(field == 'departure') formData_copy.itinerary.personalVehicles[index].time = e.target.value
         
         setFormData(formData_copy)
       }
@@ -32,15 +32,13 @@ export default function({
         setFormData(formData_copy)
     }
 
-
     const handleAdd = ()=>{
         const formData_copy = JSON.parse(JSON.stringify(formData))
-        formData_copy.itinerary.personalVehicles.push({...dummyTrain})
+        formData_copy.itinerary.personalVehicles.push({...dummyTrain, approvers:formData.approvers,})
         setFormData(formData_copy)
     }
 
 return(<>
-
     {formData.itinerary.personalVehicles.length>0 && formData.itinerary.personalVehicles.map((personalVehicle,ind)=>
         <div className="mt-8 flex gap-8 items-center flex-wrap">
             <Input 
@@ -69,11 +67,11 @@ return(<>
 
         )}
     
-    <div className="mt-10">
+    <div className="mt-10 w-full flex justify-center">
         <AddMore title="Add Train" onClick={handleAdd} />
     </div> 
 
     </>)
-
-
 }
+
+

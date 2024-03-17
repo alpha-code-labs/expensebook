@@ -11,6 +11,7 @@ import { dummyCabs } from "../../data/dummy"
 
 
 export default function ({
+    min,
     formData,
     setFormData,
     allowedCabClass=[],
@@ -60,7 +61,7 @@ export default function ({
 
     const addCabs = () => {
         const formData_copy = JSON.parse(JSON.stringify(formData))
-        formData_copy.itinerary.carRentals.push(dummyCabs)
+        formData_copy.itinerary.carRentals.push({...dummyCabs, approvers:formData.approvers, formId:generateUniqueIdentifier()})
         setFormData(formData_copy)
     }
 
@@ -77,7 +78,7 @@ export default function ({
                 if(carRental.type=='regular')
                 return( <div key={carRental.formId} className="relative mt-4 bt-4 py-4 border-t border-b border-gray-200 rounded-t-xl bg-white">
                     <div  className="flex flex-wrap gap-8 items-center">
-                        <Date value={carRental.date} onSelect={(date)=>{handleCabDateChange(date, index)}} error={carRentalsError[index]?.dateError} />
+                        <Date min={min} value={carRental.date} onSelect={(date)=>{handleCabDateChange(date, index)}} error={carRentalsError[index]?.dateError} />
                     </div>
 
                     <div className='mt-8'>
@@ -98,7 +99,7 @@ export default function ({
             }
         </div>
 
-        <div className="mt-8">
+        <div className="mt-10 w-full flex justify-center">
             <AddMore text='Add Rental Car' onClick={addCabs} /> 
         </div>
     </>)

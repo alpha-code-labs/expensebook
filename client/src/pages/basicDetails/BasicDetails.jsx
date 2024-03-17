@@ -36,9 +36,10 @@ export default function BasicDetails(props){
     const MANAGER_FLAG =  onBoardingData?.MANAGER_FLAG
     const DELEGATED_FLAG = onBoardingData?.DELEGATED_FLAG
     const listOfAllManagers = onBoardingData?.listOfManagers
-    const travelAllocations = onBoardingData?.travelAllocations 
+    const travelAllocations = onBoardingData?.travelAllocations?.allocation 
     const tripPurposeOptions = onBoardingData?.tripPurposeOptions
     const delegatedFor = onBoardingData?.delegatedFor
+    const employeeGroups = onBoardingData?.employeeGroups??[]
     const travelAllocationFlags = onBoardingData?.travelAllocationFlags??{level1:false, level2:false, level3:false}
 
     console.log(onBoardingData)
@@ -59,15 +60,62 @@ export default function BasicDetails(props){
     //details of current employee
     
     //get this as props
-    const EMPLOYEE_ID  = props.EMPLOYEE_ID || '123'
-    const groups = props.groups || ['group 1']
+    const EMPLOYEE_ID  = props.EMPLOYEE_ID 
+    const groups = props.groups 
 
     //get this from onboarding....
-    const teamMembers = props.teamMembers || [{name: 'Aman Bhagel', empId: '204', designation: 'Sales Executive'}, {name: 'Vikas Rajput', empId: '245', designation:'System Engineer II'}, {name: 'Rahul Suyush Singh', empId: '318', designation:'Sr. Software Engineer'}, {name: 'Vilakshan Vibhut Giri Babaji Maharaj', empId: '158', designation:'Sr. Sales Executive'}]
+    const teamMembers = props.teamMembers
     
     //local states
     const [tripPurposeViolationMessage, setTripPurposeViiolationMessage] = useState(formData.travelViolations.tripPurposeViolationMessage)
     const [errors, setErrors] = useState({tripPurposeError:{set:false, message:'Trip Purpose is required'}, approversError:{set:false, message:'Please select approvers'}})
+
+    async function checkRequiredFields(){
+        return new Promise((resolve, reject)=>{
+            
+            let allowSubmit = true;
+
+            if(formData.tripPurpose==null){
+                setErrors(pre=>{
+                    return {...pre, tripPurposeError:{...pre.tripPurposeError, set:true}}
+                })
+            }
+            else{
+                setErrors(pre=>{
+                    return {...pre, tripPurposeError:{...pre.tripPurposeError, set:false}}
+                })
+            }
+    
+            // if(!formData?.approvers?.length>0){
+            //     setErrors(pre=>{
+            //         return {...pre, approversError:{...pre.approversError, set:true}}
+            //     })
+            // } 
+            // else{
+            //     setErrors(pre=>{
+            //         return {...pre, approversError:{...pre.approversError, set:false}}
+            //     })
+            // }
+            
+            if(formData?.approvers?.length!=onBoardingData?.approvalFlow?.length){
+                setErrors(pre=>{
+                    return {...pre, approversError:{...pre.approversError, message:`Please select ${onBoardingData?.approvalFlow?.length} approver/s`, set:true}}
+                })
+            } 
+            else{
+                setErrors(pre=>{
+                    return {...pre, approversError:{...pre.approversError, set:false}}
+                })
+            }
+
+            if(formData.tripPurpose==null || (formData?.approvers?.length != onBoardingData?.approvalFlow?.length)){
+                allowSubmit = false
+            }
+            else allowSubmit = true
+
+            resolve(allowSubmit)
+        })
+    }
 
     const handleContinueButton = async ()=>{
         setIsLoading(true)
@@ -76,44 +124,9 @@ export default function BasicDetails(props){
         console.log(formData)
         let allowSubmit = false
         //check required fields
-        async function checkRequiredFields(){
-            return new Promise((resolve, reject)=>{
-                
-                if(formData.tripPurpose==null){
-                    setErrors(pre=>{
-                        return {...pre, tripPurposeError:{...pre.tripPurposeError, set:true}}
-                    })
-                }
-                else{
-                    setErrors(pre=>{
-                        return {...pre, tripPurposeError:{...pre.tripPurposeError, set:false}}
-                    })
-                }
-        
-                if(!formData?.approvers?.length>0){
-                    setErrors(pre=>{
-                        return {...pre, approversError:{...pre.approversError, set:true}}
-                    })
-                } 
-                else{
-                    setErrors(pre=>{
-                        return {...pre, approversError:{...pre.approversError, set:false}}
-                    })
-                }    
-
-                if(formData.tripPurpose==null || (APPROVAL_FLAG && formData?.approvers?.length==0)){
-                    allowSubmit = false
-                }
-                else allowSubmit = true
-
-                resolve()
-            })
-        }
-        
-        await checkRequiredFields()
+        allowSubmit = await checkRequiredFields()
 
         setIsLoading(false)
-
 
         if(allowSubmit){
             setIsLoading(true)
@@ -147,95 +160,37 @@ export default function BasicDetails(props){
         console.log(sectionForm)
         console.log(formData)
         setIsLoading(true)
-        let allowSubmit = false
+        let allowSubmit = await checkRequiredFields()
         //check required fields
-        async function checkRequiredFields(){
-            return new Promise((resolve, reject)=>{
-                
-                if(formData.tripPurpose==null){
-                    setErrors(pre=>{
-                        return {...pre, tripPurposeError:{...pre.tripPurposeError, set:true}}
-                    })
+        setIsLoading(false)
+
+        if(allowSubmit){
+            setIsLoading(true)
+            if(!formData.travelRequestId){
+                const res = await postTravelRequest_API({...formData, travelRequestState:'section 0', travelRequestStatus:'draft'})
+                if(res.err){
+                    setLoadingErrMsg(res.err)
+                    return
                 }
-                else{
-                    setErrors(pre=>{
-                        return {...pre, tripPurposeError:{...pre.tripPurposeError, set:false}}
-                    })
-                }
-        
-                if(!formData?.approvers?.length>0){
-                    setErrors(pre=>{
-                        return {...pre, approversError:{...pre.approversError, set:true}}
-                    })
-                } 
-                else{
-                    setErrors(pre=>{
-                        return {...pre, approversError:{...pre.approversError, set:false}}
-                    })
-                }    
 
-                if(formData.tripPurpose==null || (APPROVAL_FLAG && formData?.approvers?.length==0)){
-                    allowSubmit = false
-                }
-                else allowSubmit = true
+                const travelRequestId = res.data.travelRequestId
+                console.log(travelRequestId, 'travel request id')
+                const formData_copy = JSON.parse(JSON.stringify(formData))
+                formData_copy.travelRequestId = travelRequestId
+                setFormData(formData_copy)
 
-                resolve()
-            })
-            }
-            
-            await checkRequiredFields()
-            setIsLoading(false)
-    
-            if(allowSubmit){
-                setIsLoading(true)
-                if(!formData.travelRequestId){
-                    const res = await postTravelRequest_API({...formData, travelRequestState:'section 0', travelRequestStatus:'draft'})
-                    if(res.err){
-                        setLoadingErrMsg(res.err)
-                        return
-                    }
+                setIsLoading(false)
 
-                    const travelRequestId = res.data.travelRequestId
-                    console.log(travelRequestId, 'travel request id')
-                    const formData_copy = JSON.parse(JSON.stringify(formData))
-                    formData_copy.travelRequestId = travelRequestId
-                    setFormData(formData_copy)
-
-                    setIsLoading(false)
-    
-                    if(travelRequestId){
-                        //show popup
-                        setIsLoading(true)
-                        const res = await updateTravelRequest_API({travelRequest:formData, submitted:false})
-                        if(res.err){
-                            setLoadingErrMsg(res.err)
-                            return
-                        }
-                        setIsLoading(false)
-                        setPopupMessage(`Your draft travel request with ID ${travelRequestId} has been saved`)
-                        setshowPopup(true)
-
-                        setTimeout(()=>{
-                            setshowPopup(false)
-                            setPopupMessage(null)
-                            // navigate to dashboard after 5 seconds
-                            //navigate(DASHBOARD_URL)
-                        },5000)
-                    }
-                    else{
-                        //show server error
-                        console.log('server error')
-                    }
-                }
-                else{
+                if(travelRequestId){
+                    //show popup
                     setIsLoading(true)
-                    const res = await updateTravelRequest_API({...formData, travelRequestState:'section 0', travelRequestStatus:'draft', tenantId:formData.tenantId})
+                    const res = await updateTravelRequest_API({travelRequest:formData, submitted:false})
                     if(res.err){
                         setLoadingErrMsg(res.err)
                         return
                     }
-                    
-                    setPopupMessage(`Your travel request with ID ${formData.travelRequestId} has been saved as draft successfull`)
+                    setIsLoading(false)
+                    setPopupMessage(`Your draft travel request with ID ${travelRequestId} has been saved`)
                     setshowPopup(true)
 
                     setTimeout(()=>{
@@ -245,7 +200,30 @@ export default function BasicDetails(props){
                         //navigate(DASHBOARD_URL)
                     },5000)
                 }
-            }        
+                else{
+                    //show server error
+                    console.log('server error')
+                }
+            }
+            else{
+                setIsLoading(true)
+                const res = await updateTravelRequest_API({...formData, travelRequestState:'section 0', travelRequestStatus:'draft', tenantId:formData.tenantId})
+                if(res.err){
+                    setLoadingErrMsg(res.err)
+                    return
+                }
+                
+                setPopupMessage(`Your travel request with ID ${formData.travelRequestId} has been saved as draft successfull`)
+                setshowPopup(true)
+
+                setTimeout(()=>{
+                    setshowPopup(false)
+                    setPopupMessage(null)
+                    // navigate to dashboard after 5 seconds
+                    //navigate(DASHBOARD_URL)
+                },5000)
+            }
+        }        
     }
 
     useEffect(()=>{
@@ -256,7 +234,8 @@ export default function BasicDetails(props){
     const updateTripPurpose = async (option)=>{
 
         let tripPurposeViolationMessage_ = null
-        const res = await policyValidation_API({tenantId:formData.tenantId, type:'international', policy:'trip purpose', value:option, groups:groups})
+        console.log(employeeGroups, 'employeeGroups')
+        const res = await policyValidation_API({tenantId:formData.tenantId, type:formData.travelType, policy:'Allowed Trip Purpose', value:option, groups:employeeGroups})
         if(!res.err){
             tripPurposeViolationMessage_ = res.data.response.violationMessage
             setTripPurposeViiolationMessage(tripPurposeViolationMessage_)
@@ -508,14 +487,20 @@ export default function BasicDetails(props){
 
                     {/* Select approvers */}
 
-                    {APPROVAL_FLAG &&
+                    {APPROVAL_FLAG && 
+                    <div className='relative'>
                     <MultiSearch 
                         title='Who will Approve this?'
                         placeholder="Name's of managers approving this"
                         onSelect = {(option)=>{updateApprovers(option)}}
                         error={errors.approversError}
                         currentOption={formData.approvers && formData.approvers.length>0? formData.approvers : []}
-                        options={listOfAllManagers}/>}
+                        options={listOfAllManagers}/> 
+                        <p className='absolute text-xs text-neutral-600 top-[4px] left-[140px]'> 
+                            {`(Select ${onBoardingData.approvalFlow.map((a,ind)=> `${a} ${ind<onBoardingData.approvalFlow.length-1?',' : ''} ${onBoardingData.approvalFlow.length>1? 'managers' : 'manager'}`)})`} 
+                        </p>
+                    </div>}
+
                 </div>
                 <hr className='my-8' />
                 

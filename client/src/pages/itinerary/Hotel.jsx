@@ -10,6 +10,7 @@ import { generateUniqueIdentifier } from "../../utils/uuid"
 import { dummyHotel } from "../../data/dummy"
 
 export default function ({
+    min,
     formData,
     setFormData,
     allowedHotelClass,
@@ -73,7 +74,7 @@ export default function ({
 
     const addHotel = ()=>{
         const formData_copy = JSON.parse(JSON.stringify(formData))
-        formData_copy.itinerary.hotels.push({...dummyHotel, formId: generateUniqueIdentifier})
+        formData_copy.itinerary.hotels.push({...dummyHotel, approvers:formData.approvers, formId: generateUniqueIdentifier})
         setFormData(formData_copy)
     }
 
@@ -113,11 +114,13 @@ export default function ({
             title='Location'/>
         
         <SlimDate 
+                min={min}
                 title='Check In' 
                 date={hotel.checkIn}
                 error={hotelsError[index]?.checkInDateError} 
                 onChange={(e)=>{handleHotelDateChange(e, index, 'checkIn')}} />
         <SlimDate 
+                min={min}
                 title='Check Out' 
                 date={hotel.checkOut} 
                 error={hotelsError[index]?.checkOutDateError}
@@ -137,7 +140,7 @@ export default function ({
 
     </div>)}
     
-    <div className="mt-8">
+    <div className="mt-10 w-full flex justify-center">
         <AddMore text='Add Hotel' onClick={addHotel} /> 
     </div>
     </>)

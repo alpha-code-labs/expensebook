@@ -32,7 +32,7 @@ export default function TimePicker(props){
     }
 
     useEffect(()=>{
-        setHours(timeValue.split(':')[0]>=12? time.split(':')[0]-12 : time.split(':')[0])
+        setHours(timeValue.split(':')[0]>=12? timeValue.split(':')[0]-12 : timeValue.split(':')[0])
         setMinutes(timeValue.split(':')[1])
         setSuffix(timeValue.split(':')[0]>=12? 'PM' : 'AM')
     },[timeValue])

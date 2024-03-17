@@ -2,24 +2,25 @@ import { useState, useEffect} from "react";
 import {BrowserRouter as Router, useParams} from 'react-router-dom'
 import axios from 'axios'
 import Icon from "../components/common/Icon";
-import { titleCase } from "../utils/handyFunctions";
+import { camelCaseToTitleCase, titleCase } from "../utils/handyFunctions";
 import Button from "../components/common/Button";
 import Error from "../components/common/Error";
 import PopupMessage from "../components/common/PopupMessage";
 import cab_icon from "../assets/cab-purple.svg"
-import airplane_icon from "../assets/Airplane_1.svg"
-import bus_icon from "../assets/bus.png"
-import train_icon from '../assets/train.png'
-import calendar_icon from "../assets/calendar.svg"
+//import airplane_icon from "../assets/Airplane_1.svg"
+//import bus_icon from "../assets/bus.png"
+//import train_icon from '../assets/train.png'
+//import calendar_icon from "../assets/calendar.svg"
 import double_arrow from '../assets/double-arrow.svg'
 import { getRawTravelRequest_API, updateRawTravelRequest_API, cancelTravelRequest_API } from "../utils/api";
+import { material_flight_black_icon, material_train_black_icon, material_bus_black_icon, material_cab_black_icon, material_car_rental_black_icon, material_hotel_black_icon, material_personal_black_icon } from "../assets/icon";
+import { calender_icon, location_icon , clock_icon} from "../assets/icon";
 
 console.log(import.meta.env.VITE_TRAVEL_API_URL)
 
 export default function () {
   //get travel request Id from params
     const {travelRequestId} = useParams()
-    const tenantId = 'tynod76eu'
     const [showPopup, setShowPopup] = useState(false)
     const [message, setMessage] = useState(false)
     const [showConfimationForCancllingTR, setShowConfirmationForCancellingTr] = useState(false)
@@ -33,13 +34,13 @@ export default function () {
         setShowCancelModal(true)
     }
 
-    const handleCancelItem = async (type, itemIndex, formId, isReturn)=>{
+    const handleCancelItem_ = async (type, itemIndex, formId, isReturn)=>{
         const formData_copy = JSON.parse(JSON.stringify(formData))
         console.log('this ran with type, formId, itemIndex', type, formId, itemIndex)
 
         if(type== 'cab'){
             formData_copy.itinerary.cabs = formData.itinerary.cabs.filter((_,index)=>index!=itemIndex);
-            const regularCabsCount = formData_copy.itinerary.cabs.filter(cab=> cab.type == 'regular' && cab.formId == formId).length
+            const regularCabsCount = formData_copy.itinerary.cabs.filter(cab=> cab.type == 'regular').length
             
             const departruePickupCab = formData_copy.itinerary.cabs.filter(cab=> cab.type == 'departure pickup' && cab.formId == formId).length
             if(!departruePickupCab) formData_copy.itinerary.formState[formId].transfers.needsDeparturePickup = false
@@ -115,6 +116,16 @@ export default function () {
         setShowCancelModal(false)
     }
 
+    const handleCancelItem = (type, itineraryId)=>{
+        console.log(type, itineraryId)
+        const confirm = window.confirm(`Are you sure you want to cancel this ${camelCaseToTitleCase(type.slice(0, -1))}`)
+        if(!confirm) return;
+        const formData_copy = JSON.parse(JSON.stringify(formData))
+        formData_copy.itinerary[type] = formData_copy.itinerary[type].filter(item=>item.itineraryId != itineraryId)
+        console.log(formData_copy, 'copy')
+        setFormData(formData_copy)
+    }
+
     const handleTrCancel = async ()=>{    
         //cancel the travel request and redirect the user on dashboard
         setShowConfirmationForCancellingTr(false)
@@ -158,7 +169,7 @@ export default function () {
     const [showCancelModal, setShowCancelModal] = useState(false)
     const [isReturn, setIsReturn] = useState(false)
 
-    //fetch travel request data from backend
+   
     //fetch travel request data from backend
     useEffect(() => {
         (async function(){
@@ -191,7 +202,8 @@ export default function () {
 
   return <>
         {isLoading && <Error message={loadingErrMsg}/>}
-      {!isLoading && 
+
+       {!isLoading && 
         <div className="w-full h-full relative bg-white md:px-24 md:mx-0 sm:px-0 sm:mx-auto py-12 select-none">
         {/* app icon */}
         <div className='w-full flex justify-center  md:justify-start lg:justify-start'>
@@ -224,41 +236,157 @@ export default function () {
         
             <hr/>
             <div className="mt-5 flex flex-col gap-4">
-                {['flights', 'trains', 'buses', 'cabs', 'hotels'].map((itnItem, itnItemIndex) => {
-                        if (formData.itinerary[itnItem].length > 0) {
-                            return (
-                                <div key={itnItemIndex}>
-                                    <p className="text-xl text-neutral-700">
-                                        {`${titleCase(itnItem)} `}
-                                    </p>
-                                    <div className='flex flex-col gap-1'>
-                                        {formData.itinerary[itnItem].map((item, itemIndex) => {
-                                            if (['flights', 'trains', 'buses'].includes(itnItem)) {
-                                                return (
-                                                    <div key={itemIndex}>
-                                                        <FlightCard onClick={()=>handleCancel(itnItem.slice(0, -1), itemIndex, item.formId, item.isReturnTravel)} from={item.from} to={item.to} date={item.date} time={item.time} travelClass={item.travelClass} mode={titleCase(itnItem.slice(0, -1))} />
-                                                    </div>
-                                                );
-                                            } else if (itnItem === 'cabs') {
-                                                return (
-                                                    <div key={itemIndex}>
-                                                        <CabCard onClick={()=>handleCancel(itnItem.slice(0, -1), itemIndex, item.formId)} from={item.pickupAddress} to={item.dropAddress} date={item.date} time={item.time} travelClass={item.travelClass} isTransfer={item.type !== 'regular'} />
-                                                    </div>
-                                                );
-                                            } else if (itnItem === 'hotels') {
-                                                return (
-                                                    <div key={itemIndex}>
-                                                        <HotelCard onClick={()=>handleCancel(itnItem.slice(0, -1), itemIndex, item.formId)} checkIn={item.checkIn} checkOut={item.checkOut} date={item.data} time={item.time} travelClass={item.travelClass} mode='Train' />
-                                                    </div>
-                                                );
-                                            }
-                                        })}
-                                    </div>
-                                </div>
-                            );
-                        }
-                        return null; // Return null if no items in the itinerary
-                    })}
+                {formData.itinerary.flights?.map((flight, index)=>{
+            return(<div key={index}>
+                <div className="flex items-center gap-2">
+                    <p className="text-xl text-neutral-700">
+                        {`${titleCase(flight.from)}`}
+                    </p>
+                    <img src={double_arrow} className="w-6 h-6"/>
+                    <p className="text-xl text-neutral-700">
+                        {`${titleCase(flight.to)} `}
+                    </p>
+                </div>
+
+                <div className='flex flex-col gap-2 mt-2'>
+                {<>
+                    <FlightCard
+                        onClick={()=>handleCancelItem('flights',flight.itineraryId)}
+                        id={index} 
+                        from={flight.from} 
+                        to={flight.to} 
+                        date={flight.date}
+                        returnDate={flight.returnDate}
+                        returnTime={flight.returnTime}
+                        travelClass={flight.travelClass} 
+                        mode={'Flight'}
+                        time={flight.time}/>
+                    {/* {(flight.return?.date??false) && 
+                        <FlightCard 
+                            id={index}
+                            from={flight.to} 
+                            to={flight.from} 
+                            date={flight.returnDate}
+                            travelClass={'N/A'} 
+                            mode={'flight'} 
+                            time={flight.returnTime }/>
+                    } */}
+                </>}
+                </div>
+            </div>) 
+            })}
+
+            {formData.itinerary.trains?.map((train, index)=>{
+            return(<div key={index}>
+
+                <div className='flex flex-col gap-2 mt-2'>
+                {<>
+                    <FlightCard
+                        onClick={()=>handleCancelItem('trains', train.itineraryId)}
+                        id={index} 
+                        from={train.from} 
+                        to={train.to} 
+                        date={train.date}
+                        travelClass={train.travelClass} 
+                        mode={'Train'}
+                        time={train.time}/>
+                </>}
+                </div>
+            </div>) 
+            })}
+
+        {formData.itinerary.buses?.map((bus, index)=>{
+            return(<div key={index}>
+
+                <div className='flex flex-col gap-2 mt-2'>
+                {<>
+                    <FlightCard
+                        onClick={()=>handleCancelItem('buses', bus.itineraryId)}
+                        id={index} 
+                        from={bus.from} 
+                        to={bus.to} 
+                        date={bus.date}
+                        travelClass={bus.travelClass} 
+                        mode={'Train'}
+                        time={bus.time}/>
+                </>}
+                </div>
+            </div>) 
+            })}
+
+        {formData.itinerary.personalVehicles?.map((pv, index)=>{
+            return(<div key={index}>
+
+                <div className='flex flex-col gap-2 mt-2'>
+                {<>
+                    <FlightCard
+                        onClick={()=>handleCancelItem('personalVehicles', pv.itineraryId)}
+                        id={index} 
+                        from={pv.from} 
+                        to={pv.to} 
+                        date={pv.date}
+                        travelClass={pv.travelClass} 
+                        mode={'Train'}
+                        time={pv.time}/>
+                </>}
+                </div>
+            </div>) 
+            })}
+
+            {formData.itinerary.cabs?.map((cab, index)=>{
+            return(<div key={index}>
+                
+                <div className='flex flex-col gap-2 mt-2'>
+                {<>
+                    <CabCard
+                        onClick={()=>handleCancelItem('cabs', cab.itineraryId)}
+                        id={index} 
+                        from={cab.pickupAddress} 
+                        to={cab.dropAddress} 
+                        date={cab.date}
+                        travelClass={cab.travelClass} 
+                        mode={'Cab'}
+                        time={cab.time}/>
+                </>}
+                </div>
+            </div>) 
+            })}
+
+            {formData.itinerary.carRentals?.map((cab, index)=>{
+            return(<div key={index}>
+                
+                <div className='flex flex-col gap-2 mt-2'>
+                {<>
+                    <CabCard
+                        onClick={()=>handleCancelItem('carRentals', cab.itineraryId)}
+                        id={index} 
+                        from={cab.pickupAddress} 
+                        to={cab.dropAddress} 
+                        date={cab.date}
+                        travelClass={cab.travelClass} 
+                        mode={'Cab'}
+                        time={cab.time}/>
+                </>}
+                </div>
+            </div>) 
+            })}
+
+            {formData.itinerary.hotels?.map((hotel, index)=>{
+            return(<div key={index}>
+                
+                <div className='flex flex-col gap-2 mt-2'>
+                {<>
+                    <HotelCard
+                        onClick={()=>handleCancelItem('hotels', hotel.itineraryId)}
+                        id={index} 
+                        checkIn={hotel.checkIn} 
+                        checkOut={hotel.checkOut} 
+                        location={hotel.location}
+                        time={hotel.preferredTime}/>
+                </>}
+                </div>
+            </div>) 
+            })}
             </div>
             
             
@@ -267,7 +395,7 @@ export default function () {
                     <div className="p-10">
                         <p className="text-xl font-cabin">Are you sure you want to cancel?</p>
                         <div className="flex mt-10 justify-between">
-                            <Button variant='fit' text='Yes, cancel it' onClick={()=>handleCancelItem(itemType, formId, itemIndex, isReturn)} />
+                            <Button variant='fit' text='Yes, cancel it' onClick={()=>()=>handleCancelItem(itemType, formId, itemIndex, isReturn)} />
                             <Button variant='fit' text='No' onClick={()=>setShowCancelModal(false)} />
                         </div>
                     </div>
@@ -291,72 +419,69 @@ export default function () {
         <div className="flex mt-10 flex-row-reverse">
             <Button text='Submit' onClick={handleSubmit}/>
         </div>
+
         </div>
-      }
+       }
       <PopupMessage showPopup={showPopup} setShowPopup={setShowPopup} message={message}/>
   </>;
 }
 
-function spitBoardingPlace(modeOfTransit){
-    if(modeOfTransit === 'Flight')
-        return 'Airport'
-    else if(modeOfTransit === 'Train')
-        return 'Railway station'
-    else if(modeOfTransit === 'Bus')
-        return 'Bus station'
-}
 
-function spitImageSource(modeOfTransit){
-    if(modeOfTransit === 'Flight')
-        return airplane_icon
-    else if(modeOfTransit === 'Train')
-        return train_icon
-    else if(modeOfTransit === 'Bus')
-        return bus_icon
-}
-
-function FlightCard({from, to, date, time, travelClass, onClick, mode='Flight'}){
+function FlightCard({from, to, date, returnDate, time, returnTime, travelClass, onClick, mode='Flight'}){
     return(
     <div className="shadow-sm min-h-[76px] bg-slate-50 rounded-md border border-slate-300 w-full px-6 py-4 flex flex-col sm:flex-row gap-4 items-center sm:divide-x">
-    <img src={spitImageSource(mode)} className='w-4 h-4' />
+    <div className="flex flex-col justify-center">
+        <img src={spitImageSource(mode)} className='w-4 h-4 md:w-6 md:h-6' />
+      </div>
     <div className="w-full flex sm:block">
-        <div className='mx-2 text-xs text-neutral-600 flex justify-between flex-col sm:flex-row'>
-            <div className="flex-1">
-                From     
-            </div>
-            <div className="flex-1" >
-                To     
-            </div>
+            <div className="mx-2 text-sm w-full flex gap-1 flex-col lg:flex-row lg:justify-between lg:items-center">
+                <div className='flex items-center gap-1'>
+                    <div className="text-lg semibold">
+                        {titleCase(from)}     
+                    </div>
+                    <img src={double_arrow} className="w-5"/>
+                    <div className="text-lg semibold">
+                        {titleCase(to)}     
+                    </div>
+                </div>
+                <div className="">
+                    <p className="text-xs text-neutral-600 flex justify-between flex-col sm:flex-row">Departure Date</p>
+                    <div className="flex items-center gap-1">
+                        <img src={calender_icon} className='w-4'/>
+                        <p>{isoString(date)}</p>
+                    </div>
+                </div>
 
-            <div className="flex-1">
-                    Date
-            </div>
-            <div className="flex-1">
-                Preffered Time
-            </div>
-            <div className="flex-1">
-                Class/Type
+                <div className="">
+                    <p className="text-xs text-neutral-600 flex justify-between flex-col sm:flex-row">Departure Time</p>
+                    <div className='flex items-center gap-1'>
+                        <img src={clock_icon} className='w-4'/>
+                        <p>{formattedTime(time)??'--:--'}</p>    
+                    </div>
+                </div>
+
+                {returnDate!=null && returnDate != undefined && 
+                <div className="">
+                    <p className="text-xs text-neutral-600 flex justify-between flex-col sm:flex-row">Return Date</p>
+                    <div className="flex items-center gap-1">
+                        <img src={calender_icon} className='w-4'/>
+                        <p>{isoString(returnDate)}</p>
+                    </div>
+                </div>
+                }
+
+                {returnTime!=null && 
+                <div className="">
+                    <p className="text-xs text-neutral-600 flex justify-between flex-col sm:flex-row">Retrun Time</p>
+                    <div className='flex items-center gap-1'>
+                        <img src={clock_icon} className='w-4'/>
+                        <p>{formattedTime(returnTime)??'--:--'}</p>    
+                    </div>
+                </div>
+                }
+
             </div>
         </div>
-
-        <div className="mx-2 text-sm w-full flex justify-between flex-col sm:flex-row">
-            <div className="flex-1">
-                {titleCase(from)}     
-            </div>
-            <div className="flex-1">
-                {titleCase(to)}     
-            </div>
-            <div className="flex-1">
-                {date}
-            </div>
-            <div className="flex-1">
-                {time??'N/A'}
-            </div>
-            <div className="flex-1">
-                {travelClass??'N/A'}
-            </div>
-        </div>
-    </div>
 
     <div className={`flex items-center px-3 pt-[6px] pb-2 py-3 rounded-[12px] text-[14px] font-medium tracking-[0.03em] text-gray-600 cursor-pointer bg-slate-100  hover:bg-red-100  hover:text-red-900 `} onClick={onClick}>
         Cancel      
@@ -429,42 +554,35 @@ function CabCard_({from, to, date, time, travelClass, onClick, mode, isTransfer=
     )
 }
 
-function HotelCard({checkIn, checkOut, hotelClass, onClick, preference='close to airport'}){
+function HotelCard({checkIn, checkOut, location, onClick, preference='close to airport'}){
     return(
     <div className="shadow-sm min-h-[76px] bg-slate-50 rounded-md border border-slate-300 w-full px-6 py-4 flex flex-col sm:flex-row gap-4 items-center sm:divide-x">
-    <p className='font-semibold text-base text-neutral-600'>Hotel</p>
+    <img src={material_hotel_black_icon} className="w-4 h-4 md:w-6 md:h-6"/>
     <div className="w-full flex sm:block">
-        <div className='mx-2 text-xs text-neutral-600 flex justify-between flex-col sm:flex-row'>
-            <div className="flex-1">
-                Check-In  
-            </div>
-            <div className="flex-1" >
-                Checkout
-            </div>
-            <div className="flex-1">
-                Class/Type
-            </div>
-            <div className='flex-1'>
-                Site Preference
-            </div>
-        </div>
-
-        <div className="mx-2 text-sm w-full flex justify-between flex-col sm:flex-row">
-            <div className="flex-1">
-                {checkIn}     
-            </div>
-            <div className="flex-1">
-                {checkOut}     
-            </div>
-            <div className="flex-1">
-                {hotelClass??'N/A'}
-            </div>
-            <div className='flex-1'>
-                {preference??'N/A'}
-            </div>
-        </div>
-
-    </div>
+          <div className="mx-2 text-sm w-full flex justify-between flex-col sm:flex-row">
+          <div className="flex-1">
+                    <p className="text-xs text-neutral-600 flex justify-between flex-col sm:flex-row">CheckIn Date</p>
+                    <div className="flex items-center gap-1">
+                        <img src={calender_icon} className='w-4'/>
+                        <p>{isoString(checkIn)}</p>
+                    </div>
+                </div>
+                <div className="flex-1">
+                    <p className="text-xs text-neutral-600 flex justify-between flex-col sm:flex-row">CheckOut Date</p>
+                    <div className="flex items-center gap-1">
+                        <img src={calender_icon} className='w-4'/>
+                        <p>{isoString(checkOut)}</p>
+                    </div>
+                </div>
+                <div className='flex-1'>
+                    <p className="text-xs text-neutral-600 flex justify-between flex-col sm:flex-row">Location</p>
+                    <div className="flex items-center gap-1">
+                        <img src={location_icon} className='w-4'/>
+                        <p>{location??'not provided'}</p>
+                    </div>
+                </div>
+          </div>
+      </div>
 
     <div className={`flex items-center px-3 pt-[6px] pb-2 py-3 rounded-[12px] text-[14px] font-medium tracking-[0.03em] text-gray-600 cursor-pointer bg-slate-100  hover:bg-red-100  hover:text-red-900 `} onClick={onClick}>
         Cancel      
@@ -477,48 +595,84 @@ function CabCard({from, to, date, time, travelClass, onClick, mode, isTransfer=f
     return(
     <div className="shadow-sm min-h-[76px] bg-slate-50 rounded-md border border-slate-300 w-full px-6 py-4 flex flex-col sm:flex-row gap-4 items-center sm:divide-x">
     <div className='font-semibold text-base text-neutral-600'>
-    <img src={cab_icon} className='w-6 h-6' />
-        <p className="text-xs text-neutral-500">{isTransfer? 'Transfer Cab': 'Cab'}</p>
-    </div>
+      <img src={spitImageSource(mode)} className='w-4 h-4 md:w-6 md:h-6' />
+      </div>
     <div className="w-full flex sm:block">
-        <div className='mx-2 text-xs text-neutral-600 flex justify-between flex-col sm:flex-row'>
-            <div className="flex-1">
-                Pickup     
-            </div>
-            <div className="flex-1" >
-                Drop    
-            </div>
-            <div className="flex-1">
-                    Date
-            </div>
-            <div className="flex-1">
-                Preffered Time
-            </div>
-            {!isTransfer && <div className="flex-1">
-                Class/Type
-            </div>}
-        </div>
-
-        <div className="mx-2 text-sm w-full flex justify-between flex-col sm:flex-row">
-            <div className="flex-1">
-                {from??'not provided'}     
-            </div>
-            <div className="flex-1">
-                {to??'not provided'}     
-            </div>
-            <div className="flex-1">
-                {date??'not provided'}
-            </div>
-            <div className="flex-1">
-                {time??'N/A'}
-            </div>
-           {!isTransfer && <div className="flex-1">
-                {travelClass??'N/A'}
-            </div>}
-        </div>
-    </div>
+          
+          <div className="mx-2 text-sm w-full flex justify-between flex-col sm:flex-row">
+              <div className="flex-1">
+                 <p className="text-xs text-neutral-600 flex justify-between flex-col sm:flex-row">Pickup Location</p>
+                  <div className="flex items-center gap-1">
+                    <img src={location_icon} className="w-4 h-4"/>
+                    <p className="whitespace-wrap">{from??'not provided'}</p>
+                  </div>     
+              </div>
+              <div className="flex-1">
+                  <p className="text-xs text-neutral-600 flex justify-between flex-col sm:flex-row">Drop Location</p>
+                  <div className="flex items-center gap-1">
+                    <img src={location_icon} className="w-4 h-4"/>
+                    <p className="whitespace-wrap">{to??'not provided'}</p>
+                  </div>     
+              </div>
+              <div className="flex-1">
+                  <p className="text-xs text-neutral-600 flex justify-between flex-col sm:flex-row">{mode} Date</p>
+                  <div className="flex items-center gap-1">
+                    <img src={calender_icon} className="w-4 h-4"/>
+                    <p className="whitespace-wrap">{isoString(date)??'not provided'}</p>
+                  </div>
+              </div>
+              <div className="flex-1">
+                  <p className="text-xs text-neutral-600 flex justify-between flex-col sm:flex-row">Prefferred Time</p>
+                  <div className="flex items-center gap-1">
+                    <img src={clock_icon} className="w-4 h-4"/>
+                    <p className="whitespace-wrap">{formattedTime(time)??'not provided'}</p>
+                  </div>
+              </div>
+          </div>
+      </div>
     <div className={`flex items-center px-3 pt-[6px] pb-2 py-3 rounded-[12px] text-[14px] font-medium tracking-[0.03em] text-gray-600 cursor-pointer bg-slate-100  hover:bg-red-100  hover:text-red-900 `} onClick={onClick}>
         Cancel      
     </div>
     </div>)
+}
+
+
+function spitImageSource(modeOfTransit){
+    if(modeOfTransit === 'Flight')
+        return material_flight_black_icon
+    else if(modeOfTransit === 'Train')
+        return material_train_black_icon
+    else if(modeOfTransit === 'Bus')
+        return material_bus_black_icon
+    else if(modeOfTransit === 'Cab')
+        return material_cab_black_icon
+    else if(modeOfTransit === 'Cab Rentals')
+        return material_car_rental_black_icon
+    else if(modeOfTransit === 'Personal Vehicle')
+        return material_personal_black_icon
+}
+
+function isoString(dateString){
+    console.log('receivedDate', dateString)
+    if(dateString==null || dateString == undefined) return ''
+    // Convert string to Date object
+    const dateObject = new Date(dateString);
+    // Convert Date object back to ISO string
+    const isoDateString = dateObject.toDateString();
+    console.log(isoDateString);
+    return isoDateString
+}
+
+function formattedTime(timeValue){
+    try{
+        if(timeValue == null || timeValue == undefined) return timeValue
+        const hours = timeValue.split(':')[0]>=12? timeValue.split(':')[0]-12 : timeValue.split(':')[0]
+        const minutes = timeValue.split(':')[1]
+        const suffix = timeValue.split(':')[0]>=12? 'PM' : 'AM'
+
+        return `${hours}:${minutes} ${suffix}`
+    }
+    catch(e){
+        return timeValue
+    }
 }

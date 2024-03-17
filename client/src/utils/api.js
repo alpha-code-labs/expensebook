@@ -17,7 +17,6 @@ const errorMessages = {
   'else': 'Something went wrong. Please try after sometime'
 }
 
-
 async function postTravelRequest_API(data){
   try{
     const res = await axios.post(`${TRAVEL_API_URL}/travel-request`, TR_backendTransformer(data), {retry, retryDelay})
@@ -122,7 +121,7 @@ async function updateRawTravelRequest_API(data){
 async function policyValidation_API(data){
   try{
     const {type, groups, policy, value, tenantId} = data;
-    const res = await axios.post(`${TRAVEL_API_URL}/validate-policy/${tenantId}/`, {type, groups, policy, value}, {retry, retryDelay})
+    const res = await axios.post(`${TRAVEL_API_URL}/validate-policy/${tenantId}/`, {type, groups:groups??[], policy, value}, {retry, retryDelay})
 
     if(res.status >= 200 && res.status<300){
       return {data: {response: res.data}, err:null}
@@ -290,11 +289,16 @@ async function updateTravelBookings_API(data){
       return {data: {response: res.data}, err:null}
     }
 
+    else{
+      return {data:null, err:res.message}
+    }
+
   }catch(e){
     if(e.response){
       //respose received from server
       if(e.response.status == 400){
-        return {data: null, err:errorMessages[400]}
+        console.log(e.response.data.message, 'e.message');
+        return {data: null, err:e.response.data.message}
       }
       if(e.response.status == 404){
         return {data: null, err:errorMessages[404]}
@@ -326,7 +330,8 @@ async function getTravelBookingOnboardingData_API(data){
     if(e.response){
       //respose received from server
       if(e.response.status == 400){
-        return {data: null, err:errorMessages[400]}
+        console.log(e.response.data.message, 'error response..')
+        return {data: null, err:e.response.data.message}
       }
       if(e.response.status == 404){
         return {data: null, err:errorMessages[404]}
@@ -345,6 +350,48 @@ async function getTravelBookingOnboardingData_API(data){
   } 
 }
 
+async function uploadBill_API(data){
+  try{
+    //const {formData, travelRequestId} = data
+    // const res = await axios.post(`${TRAVEL_API_URL}/upload-bill/${travelRequestId}`, formData, {
+    //   headers: {
+    //     "Content-Type": "multipart/form-data",
+    //   },
+    // } )
+
+    const {fileURL, travelRequestId, category} = data
+    const res = await axios.post(`${TRAVEL_API_URL}/upload-bill/${travelRequestId}`, {category, fileURL});
+    
+    if(res.status >= 200 && res.status<300){
+      return {data: {response: res.data}, err:null}
+    }
+
+
+  }catch(e){
+    if(e.response){
+      //respose received from server
+      if(e.response.status == 400){
+        return {data: null, err:errorMessages[400]}
+      }
+      if(e.response.status == 404){
+        return {data: null, err:errorMessages[404]}
+      }
+      if(e.response.status == 500){
+        return {data: null, err:errorMessages[500]}
+      }
+    }
+
+    if(e.request){
+      //request was sent but no response
+      return {data: null, err:errorMessages.request}
+    }
+
+    else{
+      return {data:null, err:'Some error occured while uploading file'}
+      return {data: null, err:errorMessages.else}      
+    }
+  }
+}
 
 
 export { 
@@ -357,4 +404,5 @@ export {
   policyValidation_API, 
   getOnboardingData_API,
   getTravelBookingOnboardingData_API, 
+  uploadBill_API,
   cancelTravelRequest_API};

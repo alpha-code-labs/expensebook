@@ -8,7 +8,7 @@ import Review from "./review/Review"
 import Error from "../components/common/Error";
 import { TR_frontendTransformer } from "../utils/transformers";
 import { getTravelRequest_API, getOnboardingData_API } from "../utils/api";
-import AllocateTravelObjects from "./allocations/allocateTravelObjects";
+import AllocateTravelObjects from "./allocations/AllocateTravelObjects";
 import SelectTravelType from "./SelectTravelType";
 
 
@@ -19,12 +19,6 @@ export default function () {
     console.log(travelRequestId, 'travelRequestId')
     const [isLoading, setIsLoading] = useState(true)
     const [loadingErrMsg, setLoadingErrMsg] = useState(null)
-
-    //hardcoded for now we will get it from dashboard/token
-    const tenantId = 'tynod76eu' 
-    const EMPLOYEE_ID  = '1001' 
-    const EMPLOYEE_NAME = 'Abhishek Kumar'
-
     const [formData, setFormData] = useState()
     const [onBoardingData, setOnBoardingData] = useState()
 
@@ -72,14 +66,14 @@ export default function () {
           cancellationReason:travelRequestDetails.cancellationReason,
           isCancelled:travelRequestDetails.isCancelled,
           travelRequestStatus:travelRequestDetails.travelRequestStatus,
+          ...travelRequestDetails /* other travel request details */
        }
 
-       const response = await getOnboardingData_API({tenantId, EMPLOYEE_ID, travelType})
+        const response = await getOnboardingData_API({tenantId:travelRequestDetails.tenantId, EMPLOYEE_ID:travelRequestDetails.createdBy.empId, travelType:travelRequestDetails.travelType})
         if(response.err){
           setLoadingErrMsg(response.err)
           return
         }
-
 
         setFormData(currentFormData)
         setOnBoardingData(response.data.onboardingData)
@@ -106,7 +100,7 @@ export default function () {
                                             formData={formData} 
                                             setFormData={setFormData} 
                                             onBoardingData={onBoardingData}
-                                            nextPage={`/modify/${travelRequestId}/allocation`}
+                                            nextPage={onBoardingData?.travelAllocationFlags.level3 ?  `/modify/${travelRequestId}/allocation` : `/modify/${travelRequestId}/section2` }
                                             lastPage={`/modify/${travelRequestId}/section0`} />} />
         <Route path='/allocation' element={<AllocateTravelObjects 
                                             formData={formData} 
@@ -119,7 +113,8 @@ export default function () {
                                             setFormData={setFormData} 
                                             onBoardingData={onBoardingData}
                                             nextPage={`/modify/${travelRequestId}/section2`}
-                                            lastPage={`/modify/${travelRequestId}/allocation`} />} />
+                                            lastPage={onBoardingData?.travelAllocationFlags.level3 ? `/modify/${travelRequestId}/allocation` :  `/modify/${travelRequestId}/section1`}
+                                             />} />
       </Routes>}
   </>;
 }

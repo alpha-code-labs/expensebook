@@ -14,6 +14,7 @@ import { dummyCabs } from "../../data/dummy"
 
 export default function Cabs({
     formData,
+    min,
     setFormData,
     allowedCabClass=[],
     cabsError,
@@ -44,7 +45,7 @@ export default function Cabs({
 
     const handleTimeChange = (e, index) => {
         const formData_copy = JSON.parse(JSON.stringify(formData))
-        formData_copy.itinerary.cabs[index].prefferedTime = e.target.value
+        formData_copy.itinerary.cabs[index].time = e.target.value
         setFormData(formData_copy)
     }
 
@@ -76,7 +77,7 @@ export default function Cabs({
 
     const addCabs = () => {
         const formData_copy = JSON.parse(JSON.stringify(formData))
-        formData_copy.itinerary.cabs.push({...dummyCabs, formId:generateUniqueIdentifier()})
+        formData_copy.itinerary.cabs.push({...dummyCabs, approvers:formData.approvers, formId:generateUniqueIdentifier()})
         setFormData(formData_copy)
     }
 
@@ -101,7 +102,7 @@ export default function Cabs({
                 if(cab.type=='regular')
                 return( <div key={cab.formId} className="relative mt-4 bt-4 py-4 border-t border-b border-gray-200 rounded-t-xl bg-white">
                     <div  className="flex flex-wrap gap-8 items-center">
-                        <Date value={cab.date} onSelect={(date)=>{handleCabDateChange(date, index)}} error={cabsError[index]?.dateError} />
+                        <Date min={min} value={cab.date} onSelect={(date)=>{handleCabDateChange(date, index)}} error={cabsError[index]?.dateError} />
                         {false && allowedCabClass && allowedCabClass.length>0 && 
                         <Select options={allowedCabClass}
                                 title='Cab Class'
@@ -132,7 +133,7 @@ export default function Cabs({
             }
         </div>
 
-        <div className="mt-8">
+        <div className="mt-10 justify-center flex w-full">
             <AddMore text='Add Cab' onClick={addCabs} /> 
         </div>
     </>)

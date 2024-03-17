@@ -5,8 +5,8 @@ import Icon from "../components/common/Icon"
 import Button from "../components/common/Button"
 
 
-export default function({nextPage, formdData, setFormData}){
-    const [travelType, setTravelType] = useState('international')
+export default function({nextPage, formData, setFormData, setOnBoardingData}){
+    const [travelType, setTravelType] = useState(formData.travelType)
     const [isLoading, setIsLoading] = useState(true)
     const navigate = useNavigate()
 
@@ -22,8 +22,10 @@ export default function({nextPage, formdData, setFormData}){
     const handleContinueButton = ()=>{
         //navigate to creating page
         setFormData(pre=>({...pre, travelType:travelType}))
+        
         navigate(nextPage)
     }
+
 
     return(<>
         {isLoading && <Error message={null}/> }

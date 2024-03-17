@@ -7,8 +7,7 @@ import Itinerary from "./itinerary/NewItinerary";
 import Review from "./review/Review"
 import { getOnboardingData_API } from "../utils/api";
 import Error from "../components/common/Error";
-import AllocateTravelObjects from './allocations/allocateTravelObjects'
-import { dummyBus, dummyCabs, dummyFlight, dummyTrain } from "../data/dummy";
+import AllocateTravelObjects from './allocations/AllocateTravelObjects'
 import SelectTravelType from "./SelectTravelType";
 
 export default function () {
@@ -17,132 +16,16 @@ export default function () {
   const travelType = query.get('type')
 
   const TRAVEL_API = import.meta.env.VITE_TRAVEL_API_URL 
-  const EMPLOYEE_ID  = '1001'
-  const tenantId = 'tynod76eu'
-  const EMPLOYEE_NAME = 'Abhishek Kumar'
-  const companyName = 'Amex'
-
-  // const [formData, setFormData] = useState({
-  //   travelRequestId: null,
-  //   approvers: [],
-  //   tenantId: tenantId,
-  //   travelType: travelType,
-  //   tenantName: companyName,
-  //   companyName: companyName,
-  //   travelRequestStatus: 'draft',
-  //   travelRequestState: 'section 0',
-  //   createdBy: {name: EMPLOYEE_NAME, empId: EMPLOYEE_ID},
-  //   createdFor: null,
-  //   travelAllocationHeaders:[],
-  //   tripPurpose:null,
-    
-  //   raisingForDelegator:false,
-  //   nameOfDelegator:null,
-  //   isDelegatorManager:false,
-  //   selectDelegatorTeamMembers:false,
-  //   delegatorsTeamMembers:[],
-
-  //   bookingForSelf:true,
-  //   bookiingForTeam:false,
-  //   teamMembers : [],
-  //   sentToTrip:false,
-  //   itinerary: [{
-  //     from:null,
-  //     to:null,
-  //     departure: {
-  //       from: null,
-  //       to: null,
-  //       date: null,
-  //       time: null,
-  //       violations:{
-  //         class: null,
-  //         amount: null,
-  //       },
-  //       bkd_from: null,
-  //       bkd_to: null,
-  //       bkd_date: null,
-  //       bkd_time: null,
-  //       bkd_violations:{
-  //         class: null,
-  //         amount: null,
-  //       },
-  //       modified: false,
-  //       isCancelled: false,
-  //       cancellationDate: null,
-  //       cancellationReason: null,
-  //       status:'draft',
-  //       bookingDetails:{
-  //         docURL: null,
-  //         docType: null,
-  //         billDetails: {}, 
-  //       },
-  //       travelAllocations:[],
-  //     }, 
-  //     return:{
-  //       from: null,
-  //       to: null,
-  //       date: null,
-  //       time: null,
-  //       violations:{
-  //         class: null,
-  //         amount: null,
-  //       },
-  //       bkd_from: null,
-  //       bkd_to: null,
-  //       bkd_date: null,
-  //       bkd_time: null,
-  //       bkd_violations:{
-  //         class: null,
-  //         amount: null,
-  //       },
-  //       modified: false,
-  //       isCancelled: false,
-  //       cancellationDate: null,
-  //       cancellationReason: null,
-  //       status:'draft',
-  //       bookingDetails:{
-  //         docURL: null,
-  //         docType: null,
-  //         billDetails: {}, 
-  //       },
-  //       travelAllocations:[],
-  //       },
-  //     hotels:[],
-  //     cabs:[],
-  //     modeOfTransit:null,
-  //     travelClass:null,
-  //     needsVisa:false,
-  //     transfers:{
-  //       needsDeparturePickup:false,
-  //       needsDepartureDrop:false,
-  //       needsReturnPickup:false,
-  //       needsReturnDrop:false,
-  //     },
-  //     needsHotel:false,
-  //     needsCab:false,
-  //     modified:false, 
-  //   }],
-
-  //   travelDocuments:[],
-  //   tripType:{oneWayTrip:true, roundTrip:false, multiCityTrip:false},
-  //   preferences:[],
-  //   travelViolations:{
-  //     tripPurpose:null,
-  //     class:null,
-  //     amount:null,
-  //   },
-  //   isCancelled:false,
-  //   cancellationDate:null,
-  //   cancellationReason:null,
-  //   isCashAdvanceTaken:null,
-  //   sentToTrip:false,
-  // })
+  const EMPLOYEE_ID  = '1002'
+  const tenantId = '65cdc0b6832f2c93ee8a3980'
+  const EMPLOYEE_NAME = 'Kanhaiya Verma'
+  const companyName = 'Studio Innovate'
 
   const [formData, setFormData] = useState({
     travelRequestId: null,
     approvers: [],
     tenantId: tenantId,
-    travelType: travelType,
+    travelType: 'international',
     tenantName: companyName,
     companyName: companyName,
     travelRequestStatus: 'draft',
@@ -194,9 +77,10 @@ export default function () {
 const [isLoading, setIsLoading] = useState(true)
 const [loadingErrMsg, setLoadingErrMsg] = useState(null)
 
+
 useEffect(() => {
   (async function(){
-    const response = await getOnboardingData_API({tenantId, EMPLOYEE_ID, travelType})
+    const response = await getOnboardingData_API({tenantId, EMPLOYEE_ID, travelType:formData.travelType})
     if(response.err){
       setLoadingErrMsg(response.err)
     }  
@@ -206,7 +90,8 @@ useEffect(() => {
       setIsLoading(false)
     }
   })()
-},[])
+},[formData.travelType])
+
 
   return <>  
       {isLoading && <Error message={loadingErrMsg} />}
@@ -216,7 +101,8 @@ useEffect(() => {
         <Route path='/' element={<SelectTravelType 
                                     formData={formData} 
                                     setFormData={setFormData}
-                                    onBoardingData={onBoardingData} 
+                                    onBoardingData={onBoardingData}
+                                    setOnBoardingData={setOnBoardingData} 
                                     nextPage={'/create/section0'} />} />
         <Route path='/section0' element={<BasicDetails 
                                             formData={formData} 
@@ -228,7 +114,7 @@ useEffect(() => {
                                             formData={formData} 
                                             setFormData={setFormData} 
                                             onBoardingData={onBoardingData}
-                                            nextPage={'/create/allocations'}
+                                            nextPage={onBoardingData?.travelAllocationFlags.level3 ?  '/create/allocations' : '/create/section2' }
                                             lastPage={'/create/section0'} />} />
         <Route path='/allocations' element={<AllocateTravelObjects 
                                             formData={formData} 
@@ -241,7 +127,7 @@ useEffect(() => {
                                             setFormData={setFormData} 
                                             onBoardingData={onBoardingData}
                                             nextPage={'/create/section2'}
-                                            lastPage={'/create/section1'} />} />
+                                            lastPage={onBoardingData?.travelAllocationFlags.level3 ? '/create/allocations' :  '/create/section1'} />} />
       </Routes>}
   </>;
 }
