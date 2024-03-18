@@ -15,7 +15,7 @@ function App() {
   return <>
     <Router>
       <Routes>
-        <Route path='/create/*' element={<CreateTravelRequest />} />
+        <Route path='/create/:tenantId/:employeeId/*' element={<CreateTravelRequest />} />
         <Route path='/modify/:travelRequestId/*' element={<ModifyTravelRequest />} />
         <Route path='/bookings/:travelRequestId' element={<Bookings/>} />
         <Route path='/cancel/:travelRequestId' element={<CancelTravelRequest/>} />
