@@ -281,7 +281,7 @@ export async function fetchOnboardingData(
         caPermissions.push(res.permission.allowed)
       })
 
-      if(caPermissions.every(item=>!item)){
+      if(caPermissions.length>0 && caPermissions.every(item=>!item)){
         cashAdvanceAllowed = false
       }
 
