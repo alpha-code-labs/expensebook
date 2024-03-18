@@ -12,10 +12,10 @@ router.get('/list/:empId', getExpenseDetails);
 router.get('/:tenantId/:empId/:tripId/:expenseHeaderId', viewTravelExpenseDetails);
 
 //To approve travel expense
-router.patch('/:tenantId/:empId/:expenseHeaderId/approve',TravelexpenseHeaderStatusApproved);
+router.patch('/:tenantId/:empId/:tripId/:expenseHeaderId/approve',TravelexpenseHeaderStatusApproved);
 
 //To reject travel expense
-router.patch('/:tenantId/:empId/:expenseHeaderId/reject', TravelexpenseHeaderStatusRejected);
+router.patch('/:tenantId/:empId/:tripId/:expenseHeaderId/reject', TravelexpenseHeaderStatusRejected);
 
 // Export the router
 export default router;

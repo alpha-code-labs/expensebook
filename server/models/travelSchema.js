@@ -324,29 +324,29 @@ export const travelRequestSchema = new mongoose.Schema({
   },
   travelRequestId: {
     type: mongoose.Types.ObjectId, // tenantId_createdBy_tr_#(tr number) | tentative | not fixed
-    required: true,
+    // required: true,
     // unique: true,
   },
   travelRequestNumber: {
     type: String, // eg. TRAM000001
-    required: true,
+    // required: true,
     // unique: true,
   },
   tripPurpose: {
     type: String,
-    required: true,
+    // required: true,
   },
   travelRequestStatus: { //initialize with status as 'draft'
     type: String,
     enum: travelRequestStatusEnums,
     default: 'draft',
-    required: true,
+    // required: true,
   },
   travelRequestState: { //initialize with state as 'section 0'
     type: String,
     enum: travelRequestStateEnums,
     default: 'section 0',
-    required: true,
+    // required: true,
   },
   createdBy:{
     type: {empId: String, name: String},  //employee Id by whom TR is raised 

@@ -500,7 +500,7 @@ const approvalSchema = new mongoose.Schema({
       travelRequestData: {
       tenantId: {
       type: String,
-      required: true,
+      // required: true,
       },
       tenantName:{
       type: String,
@@ -521,7 +521,7 @@ const approvalSchema = new mongoose.Schema({
       travelRequestStatus: { //initialize with status as 'draft'
       type: String,
       enum: travelRequestStatusEnums,
-      required: true,
+      // required: true,
       },
       travelRequestState: { //initialize with state as 'section 0'
       type: String,
@@ -582,23 +582,23 @@ const approvalSchema = new mongoose.Schema({
         {
           tenantId: {
             type: String,
-            required: true,
+            // required: true,
           },
           travelRequestId: {
             type: mongoose.Types.ObjectId, 
-            required: true,
+            // required: true,
           },
           travelRequestNumber:{
             type: String,
-            required: true,
+            // required: true,
           },
           cashAdvanceId: {
             type: mongoose.Types.ObjectId, 
-            required: true,
+            // required: true,
           },
           cashAdvanceNumber:{
             type: String,
-            required: true,
+            // required: true,
           },
           createdBy: {
               empId: String,
@@ -607,14 +607,14 @@ const approvalSchema = new mongoose.Schema({
           cashAdvanceStatus: {
             type: String,
             enum: cashAdvanceStatusEnum,
-            required: true,
+            // required: true,
             default: 'draft',
           },
           cashAdvanceState: {
             type: String,
             enum: cashAdvanceStateEnums,
             default: 'section 0',
-            required: true,
+            // required: true,
           },
           amountDetails: [
             {
