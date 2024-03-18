@@ -154,8 +154,8 @@ async function policyValidation_API(data){
 
 async function getOnboardingData_API(data){
   try{
-    const {tenantId, EMPLOYEE_ID, travelType} = data
-    const res = await axios.get(`${TRAVEL_API_URL}/initial-data/${tenantId}/${EMPLOYEE_ID}/${travelType}`)
+    const {tenantId, employeeId, travelType} = data
+    const res = await axios.get(`${TRAVEL_API_URL}/initial-data/${tenantId}/${employeeId}/${travelType}`)
     if(res.status >=200 && res.status<300){
       return {data:{onboardingData: res.data}}
     }
