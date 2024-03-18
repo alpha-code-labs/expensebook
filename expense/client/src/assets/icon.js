@@ -41,8 +41,10 @@ export {default as report_icon} from './expense-report.png';
 export {default as app_icon} from './app_icon.svg';
 export {default as app_symbol} from './app_symbol.svg';
 export {default as file_icon} from './file-icon.svg';
-export {default as loading_icon} from './loading.svg';
+export {default as user_icon} from './usericon.png';
+export {default as loading_icon} from './loading2.svg';
 export {default as upload_icon} from './upload.png';
+export {default as validation_symb_icon} from './validation_sym_c.svg';
 
 
 

@@ -4,9 +4,6 @@ import Error from "../components/common/Error";
 import Icon from "../components/common/Icon";
 import {  arrow_left as left_arrow_icon , report_icon} from "../assets/icon";
 import { getRejectionDataForTravelExpenseApi } from "../utils/api";
-import { titleCase } from "../utils/handyFunctions";
-
-
 ///this is perfect nothing to change
 
 const ClearRejectedExpense=()=>{
@@ -14,8 +11,10 @@ const ClearRejectedExpense=()=>{
     const {tenantId,empId,tripId, expenseHeaderId} = useParams()
     
     const [isLoading, setIsLoading] = useState(false)
+    const [loadingErrMsg, setLoadingErrMsg] = useState(null)
     const [data, setData] = useState(null)
-    const [loadingErrorMsg, setLoadingErrorMsg] = useState(null)
+    
+
     //for now i add a variable
     // const [rejectionReason, setRejectionReason] = useState(null)
 
@@ -23,51 +22,39 @@ const ClearRejectedExpense=()=>{
 
  const rejectionReason = " your expense report has rejected due to  Document Constraints"
 
-    useEffect(() => {
+  
+      useEffect(() => {
         const fetchData = async () => {
           try {
             setIsLoading(true);
-            const { data, error } = await getRejectionDataForTravelExpenseApi(tenantId,empId,tripId,expenseHeaderId);
-    
-            if (error) {
-              setLoadingErrorMsg(error.message);
-            } else {
-              setData(data);
-            }
+            const response = await getRejectionDataForTravelExpenseApi(tenantId, empId, tripId,expenseHeaderId);
+            setData(response)
+            console.log('trip data fetched successfully', response)
+            setIsLoading(false);  
           } catch (error) {
-            setLoadingErrorMsg(error.message);
-          } finally {
-            setIsLoading(false);
-          }
+            setLoadingErrMsg(error.message);
+            setTimeout(() => {
+              setIsLoading(false);
+              setLoadingErrMsg(null)
+            }, 4000);
+          } 
         };
-    
+      
+        // Call the fetchData function whenever tenantId, empId, or tripId changes
         fetchData();
-      }, []);
+      }, [tenantId, empId, tripId]);
       console.log(data)
 
     
-    //fetch cash advance details (rejection reason is only required field)
-    // useEffect(()=>{
-    //     (async function(){
-    //         const res = await getExpenseLineItems({travelRequestId, cashAdvanceId})
-    //         if(res.err){
-    //             setLoadingErrorMsg(res.err)
-    //             return;
-    //         }
-    //         console.log(res.data)
-    //         setRejectionReason(res.data.cashAdvance?.cashAdvanceRejectionReason??'Requested amount exceeds allowed cash advance limit');
-    //         setCashAdvance(res.data.cashAdvance)
-    //         setIsLoading(false)
-    //     })()
-    // },[])
+
 
 
     return(
 
         <>
-        {isLoading && <Error message={loadingErrorMsg} />}
+        {isLoading && <Error message={loadingErrMsg} />}
 
-        {!isLoading && <div className="w-full h-full relative bg-white md:px-24 md:mx-0 sm:px-0 sm:mx-auto py-12 select-none">
+        {!isLoading && data && <div className="w-full h-full relative bg-white md:px-24 md:mx-0 sm:px-0 sm:mx-auto py-12 select-none">
             {/* app icon */}
             <div className='w-full flex justify-center  md:justify-start lg:justify-start'>
                 <Icon/>
@@ -83,32 +70,33 @@ const ClearRejectedExpense=()=>{
                 </div>
 
                 <div className='w-full bg-slate-50 px-6 py-4 rounded-md mt-10'>
-                    <p className='text-neutral-700 text-lg font-semibold'>Your Expense Report has been rejected</p>
-                    <p className='text-neutral-500 text-sm tracking-tight mt-2'>
-                        {`Expense Report Number: ${"ExpenNo."} associated with Trip Number: ${"trip NO.hfdskjfh"}`}
+                    <p className='text-neutral-700 text-lg font-medium'>Your Expense Report has been rejected</p>
+                    <p className='text-neutral-500 text-sm tracking-tight my-2'>
+                        Expense Report Number: {<span className="text-medium text-neutral-800">{data?.expenseHeaderNumber}</span>} associated with Trip Number: <span className="text-medium text-neutral-800">{data?.tripNumber}</span>
                     </p>
                    
                     
-                    {data && (
+                
 
-data.map((item,index)=>(    
-<React.Fragment key={index}>
-     <div className="shadow-sm min-h-[76px] bg-slate-50 rounded-md border border-slate-300 w-full px-6 py-4 flex flex-col sm:flex-row gap-4 items-center sm:divide-x">
+ <div className="shadow-sm min-h-[76px] bg-slate-50 rounded-md border border-slate-300 w-full px-6 py-4 flex flex-col sm:flex-row gap-4 items-center sm:divide-x">
  <div className="flex justify-center items-center rounded-full w-9 h-9 bg-gray-900">
  <img src={report_icon}  />
  </div>
  <div className="w-full flex sm:block">
- <p className="w-full text-neutral-600 text-lg">Expense Header Number :  {item?.expenseReportNumber??"not avaliable"}</p>   
+ <p className=" ml-2 w-full text-neutral-600 text-lg">Expense Header Number :  {data?.expenseHeaderNumber}</p>   
  </div>
  </div>
-  </React.Fragment>)))}
+
+
+
+
                     <div className="mt-4 text-red-500 px-6 py-2 rounded-md bg-red-100">
-                        <p>{rejectionReason}</p>
+                        <p>{data?.rejectionReason}</p>
                     </div>
                     <div className='text-sm mt-10'>Please take appropriate action to clear this rejection</div>
                     <div className="flex justify-between mt-6">
-                        <div className="text-neutral-500 px-4 py-2 hover:bg-slate-200 bg-slate-100 hover:text-neutral-400 cursor-pointer" onClick={()=>navigate(`/cancel/travel-expense/${tripId}/${expenseHeaderId}`)}>Cancel</div>
-                        <div className="text-neutral-500 px-4 py-2 hover:bg-slate-200 bg-slate-100 hover:text-neutral-400 cursor-pointer" onClick={()=>navigate(`/modify/travel-expense/${tripId}/${expenseHeaderId}`)}>Modify/Resubmit</div>
+                        <div className="text-neutral-500 px-4 py-2 hover:bg-slate-200 bg-slate-100 hover:text-neutral-400 cursor-pointer" onClick={()=>navigate(`/api/internal/expense/fe/tr-ex-create/${tenantId}/${empId}/${tripId}/cancelFlag?`)}>Cancel</div>
+                        <div className="text-neutral-500 px-4 py-2 hover:bg-slate-200 bg-slate-100 hover:text-neutral-400 cursor-pointer" onClick={()=>navigate(`/api/internal/expense/fe/tr-ex-create/${tenantId}/${empId}/${tripId}/`)}>Modify/Resubmit</div>
                     </div>
                 </div>
             </div>

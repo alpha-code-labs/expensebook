@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { titleCase } from "../../utils/handyFunctions";
 
 export default function Search(props){
@@ -199,7 +199,7 @@ export default function Search(props){
                 >
                     {filteredOptionsList &&
                     filteredOptionsList.map((option, index) => (
-                        <>
+                        <React.Fragment key={index}>
                         <p
                             key={index}
                             tabIndex={index+1}
@@ -212,7 +212,7 @@ export default function Search(props){
                             {titleCase(option)}
                         </p>
                         {index != optionsList.length - 1 && <hr key={option} />}
-                        </>
+                        </React.Fragment>
                     ))}
                 </div>
                 }

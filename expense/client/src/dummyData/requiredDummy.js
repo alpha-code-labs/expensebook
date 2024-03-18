@@ -1,3 +1,57 @@
+// const expenseLineSchema = new mongoose.Schema({
+//   expenseLineId:mongoose.Schema.Types.ObjectId,
+//   travelType: String,
+//   lineItemStatus: {
+//     type: String,
+//     enum: lineItemStatusEnums,
+//   },
+//   expenseAllocation : [{ //Travel expense allocation comes here
+//     headerName: {
+//       type: String,
+//     },
+//     headerValues: [{
+//       type: String,
+//     }],
+//   }],
+//   expenseAllocation_accountLine: String,
+//   alreadySaved: Boolean, // when saving a expense line , make sure this field marked as true
+//   expenseCategory: {
+//     categoryName: String,
+//     fields:[],
+//     travelClass: String,
+//   }, //expense category comes here, ex- flights, cabs for travel ,etc
+//   modeOfPayment: String,
+//   isInMultiCurrency: Boolean, // if currency is part of multiCurrency Table
+//   multiCurrencyDetails: {
+//     type: [{
+//       nonDefaultCurrencyType: String,
+//       originalAmountInNonDefaultCurrency: Number,
+//       conversionRateToDefault: Number,
+//       convertedAmountToDefaultCurrency: Number,
+//     }],
+//     required: function() {
+//       return this.isInMultiCurrency === true;
+//     },
+//   },
+//   isPersonalExpense: Boolean, //if bill has personal expense, can be partially or entire bill.
+//   personalExpenseAmount: {
+//     type: Number,
+//     // This field is required if 'isPersonalExpense' is true
+//     required: function() {
+//       return this.isPersonalExpense === true;
+//     },
+//   },
+//   nonPersonalExpenseAmount: {
+//     type: Number,
+//     // This field is required if 'isPersonalExpense' is true
+//     required: function() {
+//       return this.isPersonalExpense === true;
+//     },
+//   },
+//   billImageUrl: String,
+//   billRejectionReason: String,
+// },{ strict: false });
+
 export const bookAnExpenseData= {
   tripId:'tripidflkjdslfk',
   tripPurpose:'Trip for Investor Meeting',

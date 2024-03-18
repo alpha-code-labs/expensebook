@@ -11,21 +11,26 @@ export default function Select(props) {
   const selectDivRef = useRef(null)
   const optionsList = props.options;
   const onSelect = props.onSelect || null
+  // const currentOption = 'Hello'
   const currentOption = props.currentOption || null
-  const [selectedOption, setSelectedOption] = useState(currentOption)
+  const [selectedOption, setSelectedOption] = useState("");
   const [keyboardFocusIndex, setKeyboardFocusIndex] = useState(-1)
   const violationMessage = props.violationMessage || null
   const error = props.error || null
   const required = props.required || false
   const submitAttempted = props.submitAttempted || false
 
+ 
+
 
     useEffect(()=>{
+     
       if(currentOption != null && currentOption != undefined && currentOption != '' ){
         setHidePlaceholder(true)
       }
       else{setHidePlaceholder(false)}
       setSelectedOption(currentOption)
+    
     },[currentOption])
 
     //refs for filtered options
@@ -118,7 +123,7 @@ const selectDivFocus = (e)=>{
     }
 
     if(onSelect != null){
-        onSelect(option)
+        onSelect(option )
     }
 
     console.log(option)
@@ -172,11 +177,13 @@ const selectDivFocus = (e)=>{
               {violationMessage}
             </div>} */}
             
-            {!showDropdown && !hidePlaceholder && error?.set && <div className="absolute top-[35px] w-full text-xs text-red-600 font-cabin">
-              {error?.message}
+            
+            { error?.set && <div className="absolute top-[35px] w-full text-xs text-red-600 font-cabin">
+              {error?.msg}
             </div>}
-
-
+            {/* {!showDropdown && !hidePlaceholder && error?.set && <div className="absolute top-[35px] w-full text-xs text-red-600 font-cabin">
+              {error?.msg}
+            </div>} */}
             </div>
 
             {/* options */}

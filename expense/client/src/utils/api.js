@@ -1,11 +1,18 @@
 import axios from 'axios';
 //import these id from params and pas here
-
-const BASE_URL = `http://192.168.29.56:8089/api/fe/travel`;
+//const BASE_URL = `http://192.168.1.11:8089`
+const BASE_URL = `http://localhost:8089`
+// const BASE_URL = `http://192.168.1.10:8089`
+// const nontravelbase = `http://192.168.1.4:8089`
+// const BASE_URL = `http://192.168.1.8:8089`
 const retry = 3;
-const retryDelay = 3000;
+const retryDelay = 5000;
 
-
+// level 2 http://localhost:5173/65ddbe4f905e5ef67d8ab969/1002/65ddbfb4905e5ef67d8ab96b/cancel/travel-expense
+// level1 http://localhost:5173/65c5c3bef21cc9ab3038e21f/1003/65e1b40c80f4848c20f6f118/cancel/travel-expense
+// http://localhost:5173/65ddbe4f905e5ef67d8ab969/1003/book/reimbursement   non travel expense 
+// http://localhost:5173/65ddbe4f905e5ef67d8ab969/1003/cancel/reimbursement   non travel expense 
+// http://192.168.1.11:8089/65c5c3bef21cc9ab3038e21f/1003/65e1b40c80f4848c20f6f118/65e3522cbd53887508dd7c0b/clear-rejection/travel-expense
 
 const errorMessages = {
   '404': 'Resource Not Found',
@@ -56,26 +63,26 @@ const axiosRetry = async (requestFunction, ...args) => {
 
 export const getTravelExpenseApi = async (tenantId,empId,tripId) => {
   // const url = `travel/book-expense/:${tenantId}/:${empId}/:${tripId}`;
-  const url = `${BASE_URL}/${tenantId}/${empId}/${tripId}/book-expense`;
+  const url = `${BASE_URL}/api/fe/expense/travel/${tenantId}/${empId}/${tripId}/book-expense`;
 
   try {
     const response = await axiosRetry(axios.get, url);
-    return { data: response.data, error: null };
+    return response.data
+
   } catch (error) {
     handleRequestError(error);
     const errorObject = {
       status: error.response?.status || null,
       message: error.message || 'Unknown error',
     };
-
-    return { data: null, error: errorObject };
+    return { error: errorObject };
   }
 };
 
 
 export const ocrScanApi = async (data) => {
  
-  const url = `${BASE_URL}/ocr-scan`;
+  const url = `${BASE_URL}/api/fe/expense/travel/upload`;
   try {
     const response = await axiosRetry(axios.post, url,data);
     return { data: response.data, error: null };
@@ -134,21 +141,19 @@ export const logoutApi = async (authToken) => {
 
 
 export const getTravelExpenseForModifyApi= async(tenantId,empId,tripId,expenseHeaderId)=>{
-  const url = `${BASE_URL}/:${tripId}/:${expenseHeaderId}/modify`
+  const url = `${BASE_URL}/api/fe/expense/travel/${tenantId}/${empId}/${tripId}/${expenseHeaderId}/rejected`
   
   try {
     const response = await axiosRetry(axios.get, url);
-    return { data: response.data, error: null };
+    return response.data
 
-  }catch(error){
+  } catch(error){
     handleRequestError(error);
     const errorObject = {
       status: error.response?.status || null,
       message: error.message || 'Unknown error',
     };
-    console.log('Post Error : ',errorObject);
-    return {  error: errorObject };
-
+    return { error: errorObject };
   }
 
 }
@@ -156,55 +161,66 @@ export const getTravelExpenseForModifyApi= async(tenantId,empId,tripId,expenseHe
 //verfied by backend
 //save lineItems {} only saving form object 
 //whole got company data and and 
-export const postExpenseLineItems = async(tripId,expenseHeaderId,data)=>{
+export const postTravelExpenseLineItemApi = async(tenantId,empId,tripId,expenseHeaderId,data)=>{
 
   // const url = 'http://localhost:3000/lineItem'
 
-  // this is the real api route
-  const url = `${BASE_URL}/:${tripId}/:${expenseHeaderId}/save-line`
-  try{
-     await axiosRetry(axios.post,url,data)
-     return {error:null};
-    
 
-  }catch(error){
+  const url = `${BASE_URL}/api/fe/expense/travel/${tenantId}/${empId}/${tripId}/${expenseHeaderId}/save`
+  try{
+     const response = await axiosRetry(axios.post,url,data)
+     return response.data
+
+  } catch(error){
     handleRequestError(error);
     const errorObject = {
       status: error.response?.status || null,
       message: error.message || 'Unknown error',
     };
-    console.log('Post Error : ',errorObject);
-    return {  error: errorObject };
-
-
+    return { error: errorObject };
   }
 
 }
+export const updateTravelExpenseLineItemApi = async(tenantId,empId,tripId,expenseHeaderId,data)=>{
+
+  // const url = 'http://localhost:3000/lineItem'
 
 
+  const url = `${BASE_URL}/api/fe/expense/travel/${tenantId}/${empId}/${tripId}/${expenseHeaderId}/edit`
+  try{
+     const response = await axiosRetry(axios.post,url,data)
+     return response.data
 
+  } catch(error){
+    handleRequestError(error);
+    const errorObject = {
+      status: error.response?.status || null,
+      message: error.message || 'Unknown error',
+    };
+    return { error: errorObject };
+  }
 
-
+}
 //verfied by backend
 //onDraft send expense lines array
 ///for submit or save as draft
+
 export const submitOrSaveAsDraftApi = async(
   action,
+  tenantId,
+  empId,
   tripId,
   expenseHeaderId,
-  headerReport)=>{
+  data)=>{
 let url;
     if(action==="submit"){
-      //  url = `http://localhost:3000/expense/submit/${tenantId}/${empId}/${tripId}/${expenseHeaderId}`
-       url = `${BASE_URL}/:${tripId}/:${expenseHeaderId}/submit`
-    }else{
-     url = `${BASE_URL}/:${tripId}/:${expenseHeaderId}/draft`
+       url = `${BASE_URL}/api/fe/expense/travel/${tenantId}/${empId}/${tripId}/${expenseHeaderId}/submit`
+    }else if (action === "draft"){
+       url = `${BASE_URL}/api/fe/expense/travel/${tenantId}/${empId}/${tripId}/${expenseHeaderId}/draft`
     }
-  
-
   try{
-    return await axiosRetry(axios.patch,url,headerReport)
-
+    const response = await axiosRetry(axios.patch,url,data)
+    return response.data
   }catch(error){
     handleRequestError(error);
     const errorObject = {
@@ -212,7 +228,7 @@ let url;
       message: error.message || 'Unknown error',
     };
     console.log('Post Error : ',errorObject);
-    return {  error: errorObject };
+    return { error: errorObject };
   }
 }
 
@@ -227,15 +243,15 @@ let url;
 
 ///check in require data
 
-export const postMultiCurrencyForTravelExpenseApi = async(data)=>{
+export const postMultiCurrencyForTravelExpenseApi = async(tenantId,data)=>{
 
   // const url =   `http://localhost:3000/api/postmulticurrency/travel api Api/${tenantId}`
 
-  const url = `${BASE_URL}/currency-convertor`
+  const url = `${BASE_URL}/api/fe/expense/travel/${tenantId}/currency-converter`
 
   try{
     const response = await axiosRetry(axios.post,url,data)
-     return{data: response.data,error:null};
+     return response.data
   }catch(error){
     handleRequestError(error);
     const errorObject = {
@@ -257,13 +273,14 @@ export const postMultiCurrencyForTravelExpenseApi = async(data)=>{
 //   rejectionReason:""
 // }
 
-export const  getRejectionDataForTravelExpenseApi=async(tripId,expenseHeaderId)=>{
-  const url = `${BASE_URL}/:${tripId}/:${expenseHeaderId}/clear-rejected`
+export const  getRejectionDataForTravelExpenseApi=async(tenantId,empId,tripId,expenseHeaderId)=>{
+  const url = `${BASE_URL}/api/fe/expense/travel/${tenantId}/${empId}/${tripId}/${expenseHeaderId}/rejected`
 
 
   try {
     const response = await axiosRetry(axios.get, url);
-    return { data: response.data, error: null };
+    return response.data
+
   } catch (error) {
     handleRequestError(error);
     const errorObject = {
@@ -285,13 +302,13 @@ export const  getRejectionDataForTravelExpenseApi=async(tripId,expenseHeaderId)=
 //travel expense report data
 // {travelExpenseData:[]} this str has to send
 
-export const cancelTravelExpenseHeaderApi = async(tripId,expenseHeaderId,data)=>{
+export const cancelTravelExpenseHeaderApi = async(tenantId,empId,tripId,expenseHeaderId,data)=>{
 
-  const url = `${BASE_URL}/:${tripId}/:${expenseHeaderId}/cancel-report`
+  const url = `${BASE_URL}/api/fe/expense/travel/${tenantId}/${empId}/${tripId}/${expenseHeaderId}/cancel`
   
   try{
-    await axiosRetry(axios.post,url,data)
-    return {error:null};
+    const response = await axiosRetry(axios.patch,url,data)
+    return response.data
   }catch(error){
     handleRequestError(error);
     const errorObject = {
@@ -309,13 +326,14 @@ export const cancelTravelExpenseHeaderApi = async(tripId,expenseHeaderId,data)=>
 ///here i have to send whole object of lineitem in array [{LI1}] for deduct expense and cashadvance
 // expenseLines:[]
 
-export const cancelTravelExpenseLineItemApi = async(tripId ,expenseHeaderId,data)=>{
+export const cancelTravelExpenseLineItemApi = async(tenantId,empId,tripId ,expenseHeaderId,data)=>{
 
-  const url = `${BASE_URL}/:${tripId}/:${expenseHeaderId}/cancel-line`
+  const url = `${BASE_URL}/api/fe/expense/travel/${tenantId}/${empId}/${tripId}/${expenseHeaderId}/cancel-line`
+  
   
   try{
-    await axiosRetry(axios.post,url,data)
-    return {error:null};
+    const response = await axiosRetry(axios.patch,url,data)
+    return response.data
   }catch(error){
     handleRequestError(error);
     const errorObject = {
@@ -339,7 +357,7 @@ export const travelPolicyViolationApi = async(data)=>{
   try{
 
     const response = await axiosRetry(axios.post,url,data)
-    return{data: response.data,error:null};
+    return response.data
 
   }catch(error){
     handleRequestError(error);
@@ -358,15 +376,17 @@ export const travelPolicyViolationApi = async(data)=>{
 
 ///------------------------------non travel expense------------------------------------------------------------------------
 
-const nontravelbase = `http://192.168.1.10:8089/api/fe/non-travel`
+//const nontravelbase = `http://192.168.80.73:8089`
 
-export const postMultiCurrencyForNonTravelExpenseApi = async(tenantId,data)=>{
+ const nontravelbase = BASE_URL
 
-  const url =   `http://localhost:3000/api/postmulticurrency/non-travel/${tenantId}`
 
+export const postMultiCurrencyForNonTravelExpenseApi = async(tenantId,amount,currencyName)=>{
+
+  const url = `${nontravelbase}/api/fe/expense/non-travel/currency/${tenantId}/${amount}/${currencyName}`
   try{
-    const response = await axiosRetry(axios.post,url,data)
-     return{data: response.data,error:null};
+    const response = await axiosRetry(axios.get,url)
+     return response.data
   }catch(error){
     handleRequestError(error);
     const errorObject = {
@@ -383,10 +403,10 @@ export const postMultiCurrencyForNonTravelExpenseApi = async(tenantId,data)=>{
 
 export const getNonTravelExpenseMiscellaneousDataApi=async(tenantId,empId)=>{
 
-  const url =`${nontravelbase}/${tenantId}/${empId}/expensecategorie`
+  const url =`${nontravelbase}/api/fe/expense/non-travel/${tenantId}/${empId}/expensecategories`
   try {
     const response = await axiosRetry(axios.get, url);
-    return { data: response.data, error: null };
+    return response.data
 
   }catch(error){
     handleRequestError(error);
@@ -400,13 +420,13 @@ export const getNonTravelExpenseMiscellaneousDataApi=async(tenantId,empId)=>{
   }
 }
 
-//for get form value behalf of selected category
 
-export const getCategoryFormElementApi=async(tenantId,empId,data)=>{
-  const url = `http://localhost:3000/category-form-value/${tenantId}/${empId}`
+//for get form value behalf of selected category
+export const getCategoryFormElementApi=async(tenantId,empId,categoryName)=>{
+  const url = `${nontravelbase}/api/fe/expense/non-travel/${tenantId}/${empId}/${categoryName}/policy`
   try{
-    const response = await axiosRetry( axios.post, url,data);
-    return {data: response.data , error:null};
+    const response = await axiosRetry( axios.get, url);
+    return response.data
 
   }catch(error){
     const errorObject={
@@ -418,16 +438,40 @@ export const getCategoryFormElementApi=async(tenantId,empId,data)=>{
   }
 }
 
+
 ///save line item details for non travel expense 
-//on save whole object of expense lines
-export const postNonTravelExpenseLineItems = async(tenantId,empId,data)=>{
+export const postNonTravelExpenseLineItems = async(tenantId,empId,expenseHeaderId,data)=>{
 
   // this is the real api route
-  const url = `http://localhost:3000/api/trip/:${tenantId}/:${empId}`
+  const url = `${nontravelbase}/api/fe/expense/non-travel/${tenantId}/${empId}/${expenseHeaderId}/save`
   
   try{
-     await axiosRetry(axios.post,url,data)
-     return {error:null};
+    const response = await axiosRetry(axios.post,url,data)
+     return response.data
+    
+
+  }catch(error){
+    handleRequestError(error);
+    const errorObject = {
+      status: error.response?.status || null,
+      message: error.message || 'Unknown error',
+    };
+    console.log('Post Error : ',errorObject);
+    return {  error: errorObject };
+
+
+  }
+
+}
+///edit line item details for non travel expense 
+export const editNonTravelExpenseLineItemsApi = async(tenantId,empId,expenseHeaderId,lineItemId,data)=>{
+
+  // this is the real api route
+  const url = `${nontravelbase}/api/fe/expense/non-travel/${tenantId}/${empId}/${expenseHeaderId}/${lineItemId}/edit`
+  
+  try{
+    const response = await axiosRetry(axios.patch,url,data)
+     return response.data
     
 
   }catch(error){
@@ -445,14 +489,15 @@ export const postNonTravelExpenseLineItems = async(tenantId,empId,data)=>{
 }
 
 
-export const saveAsDraftNonTravelExpense = async(tenantId,empId,data)=>{
 
-  const url = `http://localhost:3000/api/nontravelsaveasdraft/:${tenantId}/:${empId}`
+export const saveAsDraftNonTravelExpense = async(tenantId,empId,expenseHeaderId)=>{
+
+  const url = `${nontravelbase}/api/fe/expense/non-travel/${tenantId}/${empId}/${expenseHeaderId}/draft`
   
   try{
-     await axiosRetry(axios.post,url,data)
-     return {error:null};
-    
+
+     const response = await axiosRetry(axios.post,url)
+     return response.data
 
   }catch(error){
     handleRequestError(error);
@@ -467,14 +512,36 @@ export const saveAsDraftNonTravelExpense = async(tenantId,empId,data)=>{
 }
 
 
-export const submitNonTravelExpenseApi = async(tenantId,empId,data)=>{
+export const submitNonTravelExpenseApi = async(tenantId,empId,expenseHeaderId)=>{
 
-  const url = `http://localhost:3000/api/nontravel-submit/:${tenantId}/:${empId}`
+  const url = `${nontravelbase}/api/fe/expense/non-travel/${tenantId}/${empId}/${expenseHeaderId}/submit`
   
   try{
-     await axiosRetry(axios.post,url,data)
-     return {error:null};
-     
+     const response =await axiosRetry(axios.post,url)
+     return response.data
+
+  }catch(error){
+    handleRequestError(error);
+    const errorObject = {
+      status: error.response?.status || null,
+      message: error.message || 'Unknown error',
+    };
+    console.log('Post Error : ',errorObject);
+    return {  error: errorObject };
+  }
+
+}
+
+
+
+
+export const getNonTravelExpenseLineItemsApi = async(tenantId,empId,expenseHeaderId)=>{
+
+  const url = `${nontravelbase}/api/fe/expense/non-travel/${tenantId}/${empId}/${expenseHeaderId}/report`
+  
+  try{
+     const response =await axiosRetry(axios.get,url)
+     return response.data
 
   }catch(error){
     handleRequestError(error);
@@ -493,11 +560,11 @@ export const submitNonTravelExpenseApi = async(tenantId,empId,data)=>{
 
 export const cancelNonTravelExpenseHeaderApi = async(tenantId,empId,expenseHeaderId)=>{
 
-  const url = `http://localhost:3000/api/nontravel-cancel/:${tenantId}/:${empId}/:${expenseHeaderId}`
+  const url = `${nontravelbase}/api/fe/expense/non-travel/${tenantId}/${empId}/${expenseHeaderId}/delete`
   
   try{
-    await axiosRetry(axios.patch,url)
-    return {error:null};
+    const response =await axiosRetry(axios.patch,url)
+    return response.data
   }catch(error){
     handleRequestError(error);
     const errorObject = {
@@ -511,15 +578,15 @@ export const cancelNonTravelExpenseHeaderApi = async(tenantId,empId,expenseHeade
 }
 
 
-////cancel non travel expense  array of lineItemId
+//cancel non travel expense  array of lineItemId
 
 export const cancelNonTravelExpenseLineItemApi = async(tenantId,empId,expenseHeaderId,data)=>{
 
-  const url = `http://localhost:3000/api/nontravel-cancel/:${tenantId}/:${empId}/:${expenseHeaderId}`
+  const url = `${nontravelbase}/api/fe/expense/non-travel/${tenantId}/${empId}/${expenseHeaderId}/delete-line`
   
   try{
-    await axiosRetry(axios.post,url,data)
-    return {error:null};
+    const response =await axiosRetry(axios.patch,url,data)
+    return response.data
   }catch(error){
     handleRequestError(error);
     const errorObject = {
@@ -535,13 +602,11 @@ export const cancelNonTravelExpenseLineItemApi = async(tenantId,empId,expenseHea
 
 
 ////  get policy violation for reimbursement on click
-
 export const reimbursementPolicyViolationApi = async(data)=>{
 
   // const url =   `http://localhost:3000/api/policyViolation/reimbursement api Api/${tenantId}`
 
-  const url = `${BASE_URL}/currency-convertor`
-
+  const url =`${BASE_URL}/currency-convertor`
   try{
 
     const response = await axiosRetry(axios.post,url,data)

@@ -45,10 +45,10 @@
 
 
 import React, { useState, useRef } from "react";
-import { titleCase } from "../../utils/handyFunctions";
+
 
 const Input = ({ title, placeholder, onChange ,error,initialValue,type,inputRef}) => {
-  // const inputRef = useRef(null); //this doo for google search
+
   const [inputValue, setInputValue] = useState("");
   const showError = error?.set && !inputValue.trim();
 
@@ -67,16 +67,16 @@ const Input = ({ title, placeholder, onChange ,error,initialValue,type,inputRef}
               onChange && onChange(e.target.value);
             }}
             type={type}
-            className="w-full h-full decoration:none px-6 py-2 rounded-md border placeholder:text-zinc-400 border-neutral-300 focus-visible:outline-0 focus-visible:border-indigo-600 "
+            className="w-full h-full placeholder:normal-case capitalize decoration:none px-6 py-2 rounded-md border placeholder:text-zinc-400 border-neutral-300 focus-visible:outline-0 focus-visible:border-indigo-600 "
             value={initialValue || inputValue}
             placeholder={placeholder}
           />
         </div>
-        {showError && (
+        {error?.set && (
         <div className="absolute  top-[48px] w-full text-xs text-red-500 font-cabin">
-          {error.message}
+          {error?.msg}
         </div>
-      )}
+      )} 
       </div>
       
     </div>

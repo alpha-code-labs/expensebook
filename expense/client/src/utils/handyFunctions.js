@@ -125,6 +125,7 @@ function formatDate(date=Date.now()) {
       case "pending settlement":
       case "pending approval": 
       case "pending": 
+      case "draft": 
         return 'bg-yellow-100 text-yellow-200';
       default:
         return " ";  

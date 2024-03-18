@@ -2,15 +2,13 @@ import {BrowserRouter as Router, Routes, Route} from 'react-router-dom';
 import React, {useEffect, useState} from "react";
 import { urlRedirection } from './utils/handyFunctions.js';
 import './App.css';
-import dummyTravelWithCashAdvanceData from './dummyData/travelWithCash';
 import CreateExpense from './pages/CreateExpense';
 import Crud from './pages/Crud.jsx';
 import ClearRejectedExpense from './pages/ClearRejectedExpense.jsx';
 import CreateNonTraveExpense from './pages/CreateNonTraveExpense.jsx';
-import CreateExpenseLevel2 from './pages/CreateExpenseLevel2.jsx';
-import GetAirport from './pages/GoogleMapsSearch.jsx';
-import { logoutApi } from './utils/api.js';
 
+import { logoutApi } from './utils/api.js';
+import Page_2 from './pages/Page_2.jsx';
 
 function App() {
 
@@ -18,7 +16,7 @@ function App() {
 
   const handleLogout = async () => {
     logoutApi(authToken)
-    urlRedirection('http://localhost:8080/user-login/:companyName')
+    urlRedirection('http://localhost:8080/user-login/')
     console.log('User logged out due to inactivity.');
   };
 
@@ -65,15 +63,12 @@ function App() {
     <Router>
       <Routes>
         {/* ///if there is cancel then flag will there --/:cancelFlag? */}
-       <Route path='api/internal/expense/fe/tr-ex-create/:tenantId/:empId/:tripId' element={<CreateExpense/>}/>
-       <Route path='tr-ex-create/:tenantId/:empId/:tripId/2' element={<CreateExpenseLevel2/>}/>
-       <Route path='tr-ex-create/:tenantId/:empId/:tripId/:cancelFlag?' element={<CreateExpense/>}/> 
-       <Route path='/clear-rejected' element={<ClearRejectedExpense/>}/>    
-       <Route path='/' element={<Crud/>}/>    
-       <Route path='/:tenantId/:empId/non-travel-expense' element={<CreateNonTraveExpense/>}/>
-       <Route path='/non-travel-expense/:cancelFlag?' element={<CreateNonTraveExpense/>}/>
-       <Route path='/' element={<GetAirport/>}/>
-       
+       <Route path='/:tenantId/:empId/:tripId/book/travel-expense' element={<CreateExpense/>}/>
+       <Route path='/:tenantId/:empId/:tripId/:cancel/travel-expense' element={<CreateExpense/>}/> 
+       <Route path='/:tenantId/:empId/:tripId/:expenseHeaderId/clear-rejection/travel-expense' element={<ClearRejectedExpense/>}/>    
+       <Route path='/' element={<Page_2/>}/>    
+       <Route path='/:tenantId/:empId/book/reimbursement' element={<CreateNonTraveExpense/>}/>
+       <Route path='/:tenantId/:empId/:expenseHeaderId/:cancel/reimbursement' element={<CreateNonTraveExpense/>}/>
       </Routes>
     </Router>
     </>
