@@ -63,7 +63,8 @@ startConsumer('trip');
 
 // const trip = await Trip.findOne({tripId:'658d602bcb8a8aefaacab9ae'})
 // const res = await sendTripsToDashboardQueue(trip, 'online', true)
-// const trip = await Trip.find({tripId:'65df0d66aceac59a438079ad'})
+// const trip = await Trip.updateOne({tripId:'65df0d66aceac59a438079ad'})
+// console.log("trip ...", trip)
 // const res = await sendToOtherMicroservice(trip, 'trip-creation', 'dashboard', 'Trip creation successful and sent to dashboard', 'trip', 'online');
 
 const exampleTripArray = [

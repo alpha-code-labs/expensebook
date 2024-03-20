@@ -6,6 +6,7 @@ import { processTravelRequests } from './messageProcessor/travelMessageProcessor
 import dotenv from 'dotenv';
 import { processTravelRequestsWithCash } from './messageProcessor/cashAdvanceProcessor.js';
 import { fullUpdateExpense } from './messageProcessor/expense.js';
+import { expenseReportApproval } from './messageProcessor/approval.js';
 
 dotenv.config();
 
@@ -158,6 +159,20 @@ export  async function startConsumer(receiver) {
               console.log('update failed with error code', res.error)
             }
           }
+          } else if ( source == 'approval'){
+            if(action == 'expense-approval'){
+              const res = await expenseReportApproval(payload);
+              console.log(res)
+              if(res.success){
+                //acknowledge message
+                channel.ack(msg)
+                console.log('message processed successfully')
+              }
+              else{
+                //implement retry mechanism
+                console.log('update failed with error code', res.error)
+              }
+            }
           }
       }}
     },{ noAck: false }
