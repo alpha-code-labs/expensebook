@@ -12,7 +12,7 @@ export const processTransitTrip = async (message) => {
   
       try {
       const updated = await dashboard.findOneAndUpdate(
-        { 'reimbursementSchema.expenseHeaderId': expenseHeaderId },
+        { tenantId,'reimbursementSchema.expenseHeaderId': expenseHeaderId },
         {
           $set: {
             'reimbursementSchema.tenantId': tenantId ?? undefined,

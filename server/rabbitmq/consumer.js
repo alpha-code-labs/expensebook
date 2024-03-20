@@ -4,7 +4,7 @@ import { fullUpdateTravel } from './messageProcessor/travel.js';
 import dotenv from 'dotenv';
 import { fullUpdateExpense } from './messageProcessor/travelExpenseProcessor.js';
 import { updateTrip } from './messageProcessor/trip.js';
-import { fullUpdateCash } from './messageProcessor/cash.js';
+import { fullUpdateCash, fullUpdateCashBatchJob } from './messageProcessor/cash.js';
 import { deleteReimbursement, updateReimbursement } from './messageProcessor/reimbursement.js';
 
 dotenv.config();
@@ -93,7 +93,20 @@ export async function startConsumer(receiver) {
                 console.log('update failed with error code', res.error)
               }
             }
-            
+            if(action == 'full-update-batchjob'){
+              console.log('trying to update CashAdvanceSchema')
+              const res = await fullUpdateCashBatchJob(payload)
+              console.log( " what i return",res)
+              if(res.success){
+                //acknowledge message
+                channel.ack(msg)
+                console.log('message processed successfully')
+              }
+              else{
+                //implement retry mechanism
+                console.log('update failed with error code', res.error)
+              }
+            }
           } else if (source == 'expense'){
             if(action == 'full-update'){
             console.log('trying to update travelExpense Data')
@@ -137,9 +150,10 @@ export async function startConsumer(receiver) {
             }
           } else if (source == 'trip'){
             if (action == 'trip-creation') {
-              console.log('Trying to update trip Data');
+              console.log('Trying to update trip Data ...............');
               if(Array.isArray(payload)){
                 const results = await updateTrip(payload);
+                console.log("results is iterable bbb", results)
                 for (const res of results) {
                   if (res.success) {
                     // Acknowledge message
@@ -159,6 +173,8 @@ export async function startConsumer(receiver) {
       }
     }}, { noAck: false });
 }
+
+
 
 
 

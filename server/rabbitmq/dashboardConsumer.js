@@ -2,7 +2,8 @@ import amqp from 'amqplib';
 import { fullUpdateTravel } from './messageProcessor/travel.js';
 import dotenv from 'dotenv';
 import { updateTripStatus } from './messageProcessor/trip.js';
-import { expenseReportApproval, travelStandAloneApproval } from './messageProcessor/approval.js';
+import { expenseReportApproval, travelStandAloneApproval, travelWithCashApproval, travelWithCashTravelApproval } from './messageProcessor/approval.js';
+import { fullUpdateCash } from './messageProcessor/cash.js';
 
 dotenv.config();
 
@@ -134,14 +135,14 @@ export const consumeFromDashboardQueue = async () => {
  
            // Process only messages with type 'new'
            if (headers.type === 'new') {
-             console.log("Processing message of type 'new'");
+             console.log("Processing message of type 'new'", payload);
              console.log("Headers:", headers, "Source:", source, "Need Confirmation:", isNeedConfirmation);
 
              // Determine the confirmation status based on the success of the database update
              let success = false;
              if (isNeedConfirmation) {
                if (source === 'travel') {
-                 success = await updateDashboard(payload);
+                 success = await fullUpdateTravel(payload);
                } else if (source === 'trip'){ 
                 if(headers.action === 'status-update') {
                  success = await updateTripStatus(payload);
@@ -149,15 +150,28 @@ export const consumeFromDashboardQueue = async () => {
                  success = await fullUpdateTrip(payload);
                }
                } else if (source === 'approval'){
-               if(action ='expense-approval'){
+                if(action == 'approve-reject-tr'){
+                  console.log("approval standalone")
+                  success = await travelStandAloneApproval(payload)
+                }
+                if(action == 'approve-reject-tr-ca'){
+                  console.log("approval - travel with cash")
+                  success = await travelWithCashTravelApproval(payload)
+                }
+                if(action == 'approve-reject-ca'){
+                  console.log("approval - cash with travel with cash")
+                  success = await travelWithCashApproval(payload)
+                }
+               if(action == 'expense-approval'){
               console.log("approve expense report")
                 success = await expenseReportApproval(payload)
               }
-              if(action== 'travel'){
-                success = await travelStandAloneApproval(payload)
-              }
-              }
-              }
+              } else if(source == 'cash'){
+                if(action == 'full-update'){
+                  console.log("from cash to dashboard sync - after travel admin booked")
+                  success = await fullUpdateCash(payload)
+                }
+              }}
 
              // Prepare confirmation message
              const confirmationMessage = {

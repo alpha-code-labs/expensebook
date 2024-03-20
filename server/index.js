@@ -9,7 +9,7 @@ import amqp from 'amqplib';
 import { startConsumer } from './rabbitmq/consumer.js';
 import { mainRouter} from './routes/mainFrontendRoutes.js';
 import { consumeFromDashboardQueue } from './rabbitmq/dashboardConsumer.js';
-
+// import dashboard from "../models/dashboardSchema.js";
 
 dotenv.config();
 
@@ -57,7 +57,10 @@ connectToMongoDB();
 //     return error;
 //   }
 // };
-
+// const res = await dashboard.updateOne({'travelRequestId':'65f999fc8ce974b02b0e14fb'},{$set:{'travelRequestSchema.assignedTo.empId': null, 'travelRequestSchema.assignedTo.name': null}})
+// if(res.success){
+//   console.log("success", success , res)
+// }
 // connectToRabbit();
 
 // const mongodb = async () => {

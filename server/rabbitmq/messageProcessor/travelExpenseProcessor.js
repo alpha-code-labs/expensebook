@@ -70,7 +70,7 @@ export const fullUpdateExpense = async (payload) => {
 
     try {
     const updated = await dashboard.findOneAndUpdate(
-      { 'tripSchema.tenantId': tenantId , 'tripSchema.travelRequestData.travelRequestId':travelRequestId, 'tripSchema.tripId': tripId },
+      { tenantId,'tripSchema.tenantId': tenantId , 'tripSchema.travelRequestData.travelRequestId':travelRequestId, 'tripSchema.tripId': tripId },
       {
        $set:{tripSchema :getExpenseReport}
       },

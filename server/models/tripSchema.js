@@ -391,6 +391,10 @@ const expenseLineSchema = new mongoose.Schema({
     type: Date,
     required: true,
   },
+  createdBy:{
+    type: {empId: String, name: String},
+    required: true
+    },
   tripCompletionDate: {
     type: Date,
     required: true,
@@ -517,7 +521,6 @@ const expenseLineSchema = new mongoose.Schema({
           },
           cashAdvanceId: {
             type: mongoose.Types.ObjectId, 
-            unique: true,
             required: true,
           },
           cashAdvanceNumber:{

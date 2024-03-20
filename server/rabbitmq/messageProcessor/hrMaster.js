@@ -2,6 +2,7 @@ import HRMaster from "../../models/hrMasterSchema.js";
 
 export const updateHRMaster = async (payload) => {
       try {
+        console.log("hr data", payload)
       const updated = await HRMaster.findOneAndUpdate(
         { 'tenantId': payload.tenantId},
         {

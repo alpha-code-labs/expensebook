@@ -15,7 +15,7 @@ export const updateTravelToDashboardSync = async (message,correlationId) => {
 
       try {
       const updated = await dashboard.findOneAndUpdate(
-        { 'travelRequestSchema.travelRequestId': travelRequestId },
+        { tenantId,'travelRequestSchema.travelRequestId': travelRequestId },
         {
           $set: {
             'travelRequestSchema':travelApprovalDoc,

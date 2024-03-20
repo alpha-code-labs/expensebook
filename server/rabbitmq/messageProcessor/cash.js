@@ -58,29 +58,72 @@ export const updateCashToDashboardSync = async (message,correlationId) => {
 
 
 export const fullUpdateCash = async (payload) => {
-    console.log('full update cashAdvanceSchema', payload)
-    const{ travelRequestData, cashAdvancesData} = payload
-    const { tenantId, travelRequestId } = travelRequestData;
-      try {
-      const updated = await dashboard.findOneAndUpdate(
-        {"cashAdvanceSchema.travelRequestData.tenantId": tenantId, 
-         "cashAdvanceSchema.travelRequestData.travelRequestId": travelRequestId,
+  console.log('full update cashAdvanceSchema', payload)
+  const{ travelRequestData, cashAdvancesData} = payload
+  const { tenantId, travelRequestId } = travelRequestData;
+console.log("whattt", tenantId, travelRequestId)
+  // Check if the tenantId is present
+  if (!tenantId) {
+    console.error('TenantId is missing');
+    return { success: false, error: 'TenantId is missing' };
+  }
+
+  try {
+    const updated = await dashboard.updateOne(
+      { 
+        "tenantId": tenantId,
+        "travelRequestId": travelRequestId,
+      },
+      {
+        "cashAdvanceSchema.travelRequestData": travelRequestData,
+        "cashAdvanceSchema.cashAdvancesData": cashAdvancesData,
+      },
+      { upsert: true, new: true }
+    );
+    console.log('Saved to dashboard: using async queue', updated);
+    return { success: true, error: null };
+  } catch (error) {
+    console.error('Failed to update dashboard: using rabbitmq m2m', error);
+    return { success: false, error: error };
+  }
+}
+
+export const fullUpdateCashBatchJob = async (payloadArray) => {
+  try {
+    const updatePromises = payloadArray.map(async (payload) => {
+      const { travelRequestData, cashAdvancesData } = payload;
+      const { tenantId, travelRequestId } = travelRequestData;
+
+      // Check if the tenantId is present
+      if (!tenantId) {
+        console.error('TenantId is missing');
+        return { success: false, error: 'TenantId is missing' };
+      }
+
+      const updated = await dashboard.updateOne(
+        { 
+          "tenantId": tenantId,
+          "travelRequestId": travelRequestId,
         },
         {
-         "cashAdvanceSchema.travelRequestData": travelRequestData,
-         "cashAdvanceSchema.cashAdvancesData": cashAdvancesData,
+          "cashAdvanceSchema.travelRequestData": travelRequestData,
+          "cashAdvanceSchema.cashAdvancesData": cashAdvancesData,
         },
         { upsert: true, new: true }
       );
-      if(updated){
-        console.log('Saved to dashboard: cashAdvanceSchema using async queue', updated);
-        return { success: true, error: null}
-      }else{
-        return { success: false, error: 'document not found in cashAdvanceSchema'}
-      }
-    } catch (error) {
-      console.error('Failed to update dashboard: cashAdvanceSchema using synchronous queue', error);
-      return { success: false, error: error}
-    }
-}
+      console.log('Saved to dashboard: using async queue', updated);
+      return { success: true, error: null };
+    });
 
+    // Wait for all updates to complete
+    const results = await Promise.all(updatePromises);
+    const isSuccess = results.every(result => result.success);
+    if(isSuccess){
+      return { success: true, error: null}
+    } else {
+      return {success: true, error: null}}
+  } catch (error) {
+    console.error('Failed to update dashboard: using rabbitmq m2m', error);
+    return { success: false, error: error };
+  }
+}

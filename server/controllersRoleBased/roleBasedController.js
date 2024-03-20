@@ -158,45 +158,82 @@ export const roleBasedLayout = async (req, res) => {
   }
 };
 
-const getDashboardViews = async (tenantId, empId) => {
-    // console.log("getDashboardViews", "tenantId", tenantId, "empId", empId);
+// const getDashboardViews = async (tenantId, empId) => {
+//     // console.log("getDashboardViews", "tenantId", tenantId, "empId", empId);
 
-    const employeeRoles = await getEmployeeRoles(tenantId, empId);
-    // console.log("employeeRoles", employeeRoles);
+//     const employeeRoles = await getEmployeeRoles(tenantId, empId);
+//     // console.log("employeeRoles", employeeRoles);
 
-    const layoutFunctions = {
-        employee: async () => employeeLayout(tenantId, empId),
-        employeeManager: async () => managerLayout(tenantId, empId),
-        finance: async () => financeLayout(tenantId, empId),
-        businessAdmin: async () => businessAdminLayout(tenantId, empId),
-        superAdmin: async () => superAdminLayout(tenantId, empId)
-    };
-    // console.log("Layout functions retrieved:", layoutFunctions);
+//     const layoutFunctions = {
+//         employee: async () => employeeLayout(tenantId, empId),
+//         employeeManager: async () => managerLayout(tenantId, empId),
+//         finance: async () => financeLayout(tenantId, empId),
+//         businessAdmin: async () => businessAdminLayout(tenantId, empId),
+//         superAdmin: async () => superAdminLayout(tenantId, empId)
+//     };
+//     // console.log("Layout functions retrieved:", layoutFunctions);
 
-    const applicableRoles = Object.keys(employeeRoles).filter(role => employeeRoles[role]);
+//     const applicableRoles = Object.keys(employeeRoles).filter(role => employeeRoles[role]);
 
-    // console.log("Applicable roles:", applicableRoles);
+//     // console.log("Applicable roles:", applicableRoles);
 
-    const dashboardViews = await Promise.all(applicableRoles.map(async role => {
-        // console.log("Processing role:", role);
+//     const dashboardViews = await Promise.all(applicableRoles.map(async role => {
+//         // console.log("Processing role:", role);
 
-        try {
-            const data = await layoutFunctions[role]();
-            // console.log("Successfully retrieved data for role:", role, "Data:", data);
-            return { [role]: data };
-        } catch (error) {
-            console.error("Error fetching data for role", role, "Error:", error);
-            return { [role]: null }; // Handle the error case as needed
-        }
-    }));
+//         try {
+//             const data = await layoutFunctions[role]();
+//             // console.log("Successfully retrieved data for role:", role, "Data:", data);
+//             return { [role]: data };
+//         } catch (error) {
+//             console.error("Error fetching data for role", role, "Error:", error);
+//             return { [role]: null }; // Handle the error case as needed
+//         }
+//     }));
 
-    // console.log("dashboardViews for employee....", dashboardViews);
-    return dashboardViews.reduce((acc, curr) => ({ ...acc, ...curr }), {});
-};
+//     // console.log("dashboardViews for employee....", dashboardViews);
+//     return dashboardViews.reduce((acc, curr) => ({ ...acc, ...curr }), {});
+// };
 
 
 
 //----------------------------------------------------------------------------employeeRole 
+const getDashboardViews = async (tenantId, empId) => {
+    try {
+        const employeeRoles = await getEmployeeRoles(tenantId, empId);
+        const layoutFunctions = {
+            employee: async () => employeeLayout(tenantId, empId),
+            employeeManager: async () => managerLayout(tenantId, empId),
+            // employee: async () => {},
+            // employeeManager: async () => {},
+            finance: async () => financeLayout(tenantId, empId),
+            businessAdmin: async () => businessAdminLayout(tenantId, empId),
+            superAdmin: async () => superAdminLayout(tenantId, empId)
+
+        };
+
+        const applicableRoles = Object.keys(employeeRoles).filter(role => employeeRoles[role]);
+
+        const dashboardViews = await Promise.all(applicableRoles.map(async role => {
+            try {
+                const data = await layoutFunctions[role]();
+                return { [role]: data };
+            } catch (error) {
+                console.error("Error fetching data for role", role, "Error:", error);
+                return { [role]: null }; // Handle the error case as needed
+            }
+        }));
+
+        const formattedDashboardViews = dashboardViews.reduce((acc, curr) => ({ ...acc, ...curr }), {});
+
+        return {
+            dashboardViews: formattedDashboardViews,
+            employeeRoles
+        };
+    } catch (error) {
+        console.error("Error fetching dashboard views:", error);
+        throw error; // Propagate the error to the caller
+    }
+};
 
 const WorkemployeeLayout = async (tenantId, empId) => {
     console.log("Entering employeeLayout function...", tenantId, empId);
@@ -1686,6 +1723,7 @@ const approvalsForManager = async (tenantId, empId) => {
                         {
                             'travelRequestSchema.tenantId': tenantId,
                             'travelRequestSchema.approvers.empId': empId,
+                            'travelRequestSchema.travelRequestStatus': 'pending approval',
                             'travelRequestSchema.approvers.status': 'pending approval'
                         },
                         {
@@ -1729,7 +1767,8 @@ const approvalsForManager = async (tenantId, empId) => {
             return { message: 'There are no approvals found for the user' };
         } else {
             
-            const travelRequests = approvalDoc.filter(approval =>
+            const travel = await ( async() => {
+                const filteredApprovals = approvalDoc.filter(approval =>
                     approval.travelRequestSchema?.approvers &&
                     approval.travelRequestSchema.approvers.length > 0 &&
                     approval.travelRequestSchema.approvers.some(approver =>
@@ -1737,10 +1776,12 @@ const approvalsForManager = async (tenantId, empId) => {
                         approver.status === 'pending approval'
                     )
                 )
-                .map(approval => {
+                return filteredApprovals.map(approval => {
                     const { travelRequestId, approvers, tripPurpose, travelRequestNumber, travelRequestStatus, isCashAdvanceTaken } = approval.travelRequestSchema;
                     return {travelRequestId, approvers,tripPurpose, travelRequestNumber, travelRequestStatus, isCashAdvanceTaken}
-                });
+                }).filter(Boolean);
+            })()
+
 
             const travelWithCash = await (async () => {
                 const filteredApprovals = approvalDoc.filter(approval => 
@@ -1754,8 +1795,8 @@ const approvalsForManager = async (tenantId, empId) => {
                     return filteredApprovals.map(approval => {
                         const { travelRequestData, cashAdvancesData } = approval.cashAdvanceSchema;
                         const isValidCashStatus = cashAdvancesData.some(cashAdvance => cashAdvance.cashAdvanceStatus === 'pending approval');
-                        const { travelRequestId, approvers, travelRequestNumber,tripPurpose, travelRequestStatus } = travelRequestData;
-                        const travelRequest = { travelRequestId,travelRequestNumber, tripPurpose, travelRequestNumber, travelRequestStatus, approvers };
+                        const { travelRequestId, approvers, travelRequestNumber,tripPurpose, travelRequestStatus, isCashAdvanceTaken } = travelRequestData;
+                        const travelRequest = { travelRequestId,travelRequestNumber, tripPurpose, travelRequestNumber, travelRequestStatus, approvers,isCashAdvanceTaken };
 
                         if (isValidCashStatus) {
                             const cashAdvanceDetails = cashAdvancesData?.map(cashAdvance => ({
@@ -1765,9 +1806,9 @@ const approvalsForManager = async (tenantId, empId) => {
                                 amountDetails: cashAdvance.amountDetails,
                             }));
 
-                            return {travelRequest, cashAdvance: cashAdvanceDetails };
+                            return { ...travelRequest, cashAdvance: cashAdvanceDetails };
                         } else{
-                            return {travelRequest, cashAdvance: []};
+                            return { ...travelRequest, cashAdvance: []};
                         }
                     }).filter(Boolean);
                 })();
@@ -1800,9 +1841,9 @@ const approvalsForManager = async (tenantId, empId) => {
                             cashAdvanceId: cashAdvance.cashAdvanceId,
                             amountDetails: cashAdvance.amountDetails,
                         }));
-                        return {travelRequest, cashAdvance: cashAdvanceDetails };
+                        return { ...travelRequest, cashAdvance: cashAdvanceDetails };
                     } else {
-                        return {travelRequest, cashAdvance: []};
+                        return { ...travelRequest, cashAdvance: []};
                     }
                     return null;
                 }).filter(Boolean);
@@ -1853,8 +1894,8 @@ const approvalsForManager = async (tenantId, empId) => {
                     return approval.tripSchema.travelExpenseData.map(expense => {
                         console.log("Processing expense:", expense);
                         const { tripId } = approval.tripSchema;
-                        const { expenseHeaderNumber, expenseHeaderStatus, travelExpenseNumber, travelExpenseStatus, approvers } = expense;
-                        return { tripId, expenseHeaderNumber, expenseHeaderStatus, travelExpenseNumber, travelExpenseStatus, approvers };
+                        const { expenseHeaderNumber, expenseHeaderStatus, approvers } = expense;
+                        return { tripId, expenseHeaderNumber, expenseHeaderStatus, approvers };
                     });
                 });
         
@@ -1867,10 +1908,19 @@ const approvalsForManager = async (tenantId, empId) => {
             }
         })();
         
+        const uniqueTravelWithCash = [...travel, ...travelWithCash]
+        const filteredTravelWithCash = Object.values(uniqueTravelWithCash.reduce((uniqueItems, currentItem) => {
+            const existingItem = uniqueItems[currentItem.travelRequestId];
+            if (!existingItem || (currentItem.cashAdvance && currentItem.cashAdvance.length)) {
+                uniqueItems[currentItem.travelRequestId] = currentItem;
+            }
+            return uniqueItems;
+        }, {}));
+
+        
         const responseData = {
                 // travelAndCash: [...travelRequests, ...travelWithCash,cashAdvanceRaisedLater, addAleg],
-                travelAndCash: [...travelRequests, ...travelWithCash, ...cashAdvanceRaisedLater, ],
-
+                travelAndCash: [ ...filteredTravelWithCash, ...cashAdvanceRaisedLater, ],
                 travelExpenseReports: travelExpenseReports,
         };
 
@@ -1884,108 +1934,142 @@ const approvalsForManager = async (tenantId, empId) => {
 };
 
 //---------------------------------------------------------------------Travel admin
-// const businessAdminLayout = async ({ tenantId, empId}) => {
-//     try {
-//         const bookingDoc = await dashboard.find({
-//             tenantId,
-//             $or: [
-//                 { 'travelRequestSchema.travelRequestStatus': 'pending booking' },
-//                 { 'cashAdvanceSchema.travelRequestData.travelRequestStatus': 'pending booking' },
-//                 { $and:[
-//                         {'tripSchema.travelRequestData.isAddALeg': true},
-//                         {'tripSchema.travelRequestData.travelRequestStatus': 'booked'} 
-//                     ]  
-//                 },
-//                 { 'tripSchema.travelRequestData.tripStatus': 'paid and cancelled' },
-//             ],
-//         })
-//         .lean()
-//         .exec();
+const businessAdminLayout = async (tenantId, empId) => {
+    try {
+console.log("verified bussiness admin layout", tenantId, empId);
 
-//         if (!bookingDoc || bookingDoc.length === 0) return { error: 'Error in fetching data for business admin' };
+            const bookingDoc = await dashboard.find({
+                $or: [
+                    { 'travelRequestSchema.tenantId': tenantId,
+                    'travelRequestSchema.travelRequestStatus': 'pending booking',
+                   },
+                    { 'cashAdvanceSchema.travelRequestData.tenantId': tenantId,
+                    'cashAdvanceSchema.travelRequestData.travelRequestStatus': 'pending booking' 
+                   },
+                   {
+                    'tripSchema.travelRequestData.tenantId': tenantId,
+                    'tripSchema.travelRequestData.isAddALeg': true,
+                    'tripSchema.travelRequestData.travelRequestStatus': 'booked'
+                  },
+                    {
+                    'tripSchema.travelRequestData.tenantId': tenantId,
+                     'tripSchema.travelRequestData.tripStatus': {$nin:['paid and cancelled']}
+                 },
+                ],
+            })
+            .lean()
+            .exec();
+    
+            if (!bookingDoc || bookingDoc.length === 0) return { error: 'Error in fetching data for business admin' };
+            // console.log("booking from database .......................", bookingDoc)
 
-//         const pendingBooking = [];
-//         const paidAndCancelledTrips = [];
-//         const pendingItineraryLines = [];
+            const travel = await (async () => {
+                // console.log("booking", bookingDoc)
+                const filteredBooking = bookingDoc.filter(booking =>
+                    booking?.travelRequestSchema?.travelRequestStatus === 'pending booking'
+                );
+            
+                console.log("filteredBooking for travel", filteredBooking)
+                return filteredBooking.map(booking => {
+                    const { travelRequestId, tripPurpose, travelRequestNumber, travelRequestStatus, isCashAdvanceTaken, assignedTo } = booking.travelRequestSchema;
+                    return { travelRequestId, tripPurpose, travelRequestNumber, travelRequestStatus, isCashAdvanceTaken, assignedTo };
+                }).filter(Boolean);
+            })();
+            
+            console.log("travel booking .......", travel)
+            const travelWithCash = await (async () => {
+                const filteredBooking = bookingDoc.filter(booking => 
+                    booking?.cashAdvanceSchema?.travelRequestData?.travelRequestStatus === 'pending booking'
+                );                
+                            
+                return filteredBooking.map(booking => {
+                    const { travelRequestData } = booking?.cashAdvanceSchema;
+                    const { travelRequestId, travelRequestNumber, tripPurpose, travelRequestStatus , isCashAdvanceTaken, assignedTo} = travelRequestData;
+                    return { travelRequestId, travelRequestNumber, tripPurpose, travelRequestStatus, isCashAdvanceTaken , assignedTo};
+                }).filter(Boolean);
+            })();
 
-//         bookingDoc.forEach((booking) => {
-//             const { travelRequestSchema, cashAdvanceSchema, tripSchema } = booking;
+            console.log("travel booking .......", travelWithCash)
 
-//             if (travelRequestSchema.travelRequestStatus === 'pending booking' || travelRequestSchema.isAddALeg === true) {
-//                 const { travelRequestId, travelRequestNumber, tripPurpose, travelRequestStatus, isAddALeg } = travelRequestSchema;
-//                 pendingBooking.push({ travelRequestId, travelRequestNumber, tripPurpose, travelRequestStatus, isAddALeg });
-//             }
+        
+            const trips = await (async () => {
+                const filteredBooking = bookingDoc.filter(booking => 
+                    booking?.tripSchema?.travelRequestData?.travelRequestStatus === 'booked' && 
+                    booking?.tripSchema?.travelRequestData?.isAddALeg == true
+                );
+            
+                return filteredBooking.flatMap(booking => {
+                    const { tripId, tripNumber, tripStatus, travelRequestData } = booking.tripSchema;
+                    const { itinerary, assignedTo } = travelRequestData;
+            
+                    return Object.entries(itinerary).flatMap(([category, items]) => {
+                        return items.filter(item => item.status === 'pending booking').map(item => ({
+                            tripId,
+                            tripNumber,
+                            tripStatus,
+                            travelRequestId: travelRequestData.travelRequestId,
+                            travelRequestNumber: travelRequestData.travelRequestNumber,
+                            tripPurpose: travelRequestData.tripPurpose,
+                            assignedTo,
+                            travelRequestStatus: travelRequestData.travelRequestStatus,
+                            itineraryKey: category,
+                            itineraryId: item.itineraryId,
+                            status: item.status
+                        }));
+                    });
+                });
+            })();
+            
+            const tripsPaidAndCancelled = await (async () => {
+                const filteredBooking = bookingDoc.filter(booking => 
+                    booking?.tripSchema?.travelRequestData?.tripStatus !== 'cancelled' &&
+                    booking?.tripSchema?.travelRequestData?.travelRequestStatus === 'booked'
+                );
+            
+                return filteredBooking.flatMap(booking => {
+                    const { tripId, tripNumber, tripStatus, travelRequestData } = booking.tripSchema;
+                    const { itinerary } = travelRequestData;
+            
+                    return Object.entries(itinerary).flatMap(([category, items]) => {
+                        return items.filter(item => item.status === 'paid and cancelled').map(item => ({
+                            tripId,
+                            tripNumber,
+                            tripStatus,
+                            travelRequestId: travelRequestData.travelRequestId,
+                            travelRequestNumber: travelRequestData.travelRequestNumber,
+                            tripPurpose: travelRequestData.tripPurpose,
+                            travelRequestStatus: travelRequestData.travelRequestStatus,
+                            itineraryKey: category,
+                            itineraryId: item.itineraryId,
+                            status: item.status
+                        }));
+                    });
+                });
+            })();
+            
+            const pendingBooking = [ ...travel, ...travelWithCash];
+            const paidAndCancelledTrips = [...tripsPaidAndCancelled];
+            const pendingItineraryLines = [...trips];
 
-//             const { travelRequestData } = cashAdvanceSchema;
-//             const extractedProperties = Object.keys(travelRequestData)
-//                 .filter(key => ['travelRequestId', 'travelRequestNumber', 'tripPurpose', 'travelRequestStatus'].includes(key))
-//                 .reduce((acc, key) => {
-//                     acc[key] = travelRequestData[key];
-//                     return acc;
-//                 }, {});
+            const responseData = {pendingBooking, paidAndCancelledTrips, pendingItineraryLines };
+    
+            return responseData
 
-//             if (Object.keys(extractedProperties).length > 0) {
-//                 pendingBooking.push(extractedProperties);
-//             }
+    } catch (error) {
+      console.error("Error in fetching employee Dashboard:", error);
+      // Return an object indicating the error occurred
+     throw new Error({ error:'Error in fetching data for business admin' });
+    }
+};
 
-//             if (tripSchema.travelRequestData.tripStatus === 'paid and cancelled') {
-//                 const { tripId, tripNumber, tripStatus } = tripSchema.travelRequestData;
-//                 paidAndCancelledTrips.push({ tripId, tripNumber, tripStatus });
-//             }
 
-//             const { travelRequestData: tripData } = tripSchema;
-//             const isAddALeg = tripData.isAddALeg;
+const superAdminLayout = async (tenantId, empId) => {
+try{
 
-//             const filteredItineraries = Object.entries(tripData.itinerary).reduce((acc, [key, value]) => {
-//                 const filteredArray = value.filter(item => item.status === 'pending booking' || item.status === 'paid and cancelled');
-//                 if (filteredArray.length > 0) {
-//                     acc.push({ itineryKEYName: key, itineraryStatus: 'pending booking' ||  'paid and cancelled'});
-//                 }
-//                 return acc;
-//             }, []);
 
-//             if (isAddALeg && filteredItineraries.length > 0) {
-//                 Object.entries(tripData.itinerary).forEach(([category, items]) => {
-//                     items.forEach((itineraryItem) => {
-//                         if (itineraryItem.status === 'pending booking') {
-//                             const { itineraryId, status } = itineraryItem;
-//                             const { travelRequestId, travelRequestNumber, tripPurpose, travelRequestStatus } = booking;
-//                             pendingItineraryLines.push({
-//                                 itineraryId,
-//                                 status,
-//                                 travelRequestId,
-//                                 travelRequestNumber,
-//                                 tripPurpose,
-//                                 travelRequestStatus,
-//                             });
-//                         }
-//                         if (itineraryItem.status === 'paid and cancelled') {
-//                             const { itineraryId, status } = itineraryItem;
-//                             const { travelRequestId, travelRequestNumber,  travelRequestStatus } = booking;
-//                             paidAndCancelledTrips.push({travelRequestId, travelRequestNumber,  travelRequestStatus})
-//                             const itinerary = []
-//                             itinerary.push({
-//                                 itineraryId,
-//                                 status,
-//                             });
-//                             paidAndCancelledTrips.push({itinerary})
-//                         }
-//                     });
-//                 });
-//             }
-//         });
+}catch(error){
 
-//         return responseData = { pendingBooking, paidAndCancelledTrips, pendingItineraryLines };
-//     } catch (error) {
-//       console.error("Error in fetching employee Dashboard:", error);
-//       // Return an object indicating the error occurred
-//      throw new Error({ error:'Error in fetching data for business admin' });
-//     }
-// };
-
-const businessAdminLayout = async ( tenantId, empId) => {
-    return []
 }
-
+}
 
 

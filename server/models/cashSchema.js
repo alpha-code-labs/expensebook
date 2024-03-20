@@ -91,9 +91,18 @@ export const cashAdvanceSchema = new mongoose.Schema({
           },
         },
       ],
-      assignedTo:{empId:String, name:String},
-      paidBy:{empId:String, name:String},
-      recoveredBy:{empId:String, name:String},
+      assignedTo:{
+        empId:{type:String, default:null},
+        name:{type:String, default:null},
+      },
+      paidBy:{
+        empId:{type: String, default: null},
+        name: {type:String, default: null},
+      },
+      recoveredBy:{
+        empId:{type: String, default: null},
+       name:{type: String, default: null},
+      },
       cashAdvanceRequestDate: Date,
       cashAdvanceApprovalDate: Date,
       cashAdvanceSettlementDate: Date,
@@ -105,8 +114,6 @@ export const cashAdvanceSchema = new mongoose.Schema({
 
 
 // const CashAdvance = mongoose.model('CashAdvance', cashAdvanceSchema);
-
-
 // export default CashAdvance
 
 

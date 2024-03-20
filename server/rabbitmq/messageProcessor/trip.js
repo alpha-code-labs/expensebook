@@ -13,17 +13,21 @@ const logger = pino({
  */
 export const updateTrip = async (payload) => {
   try {
+    console.log("trip creation process", payload);
     if (!Array.isArray(payload)) {
       throw new Error('Invalid input. Payload must be an array.');
     }
 
     const promises = payload.map(async (item) => {
-      console.log("each trip ...... ", item)
-      const { tenantId, tripId } = item;
+     
+      console.log("each trip ...... ", item);
+   const { tenantId, travelRequestData: { travelRequestId } } = item;
+
       
+      console.log( "database query","tenantId", tenantId )
       // Use $set to replace the entire tripSchema object with the new item
       const updatedTrip = await dashboard.findOneAndUpdate(
-        { 'tripSchema.tenantId': tenantId, 'tripSchema.tripId': tripId },
+        { tenantId, travelRequestId,  },
         { $set: { tripSchema: item } },
         { upsert: true, new: true }
       );
@@ -38,6 +42,7 @@ export const updateTrip = async (payload) => {
 
     const results = await Promise.all(promises);
 
+    console.log("waht i get i results",results);
     // Return the results array containing success messages
     return results;
   } catch (error) {
@@ -200,7 +205,7 @@ export const updateTripToDashboardSync = async (message,correlationId) => {
 
     try {
     const updated = await dashboard.findOneAndUpdate(
-      { 'tripSchema.tripId': tripId },
+      { tenantId,'tripSchema.tripId': tripId },
       {
         $set: {
           'tripSchema.tenantId': tenantId ?? undefined,

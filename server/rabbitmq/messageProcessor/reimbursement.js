@@ -10,7 +10,7 @@ export const updateReimbursement = async (payload) => {
         console.log("updateReimbursement ....", payload);
 
         const reimbursement = await dashboard.findOneAndUpdate(
-            { 'reimbursementSchema.tenantId': tenantId, 'reimbursementSchema.createdBy.empId': empId , 'reimbursementSchema.expenseHeaderId': expenseHeaderId},
+            { tenantId,'reimbursementSchema.tenantId': tenantId, 'reimbursementSchema.createdBy.empId': empId , 'reimbursementSchema.expenseHeaderId': expenseHeaderId},
             { $set: { reimbursementSchema: reimbursementReport } },
             { upsert: true, new: true }
         );
