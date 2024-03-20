@@ -469,7 +469,6 @@ const itinerarySchema = {
   ],
 };
   
-  
 
 //approval schema
 const approvalSchema = new mongoose.Schema({
@@ -487,7 +486,8 @@ const approvalSchema = new mongoose.Schema({
     },
     travelRequestId:{
       type: mongoose.Schema.Types.ObjectId,
-      // required:true
+      required:true,
+      unique:true,
     },
     approvalNumber:{
       type: String,
@@ -687,7 +687,7 @@ approvalSchema.pre('save ', async function (next) {
   }
 });
   
-export const Approval = mongoose.model('Approval', approvalSchema);
+export const Approval = mongoose.model('ApprovalTesting', approvalSchema);
   
 
 

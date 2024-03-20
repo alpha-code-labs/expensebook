@@ -3,15 +3,18 @@ import { Approval } from "../../models/approvalSchema.js";
 //travel standalone
 export const updateTravel = async (payload) => {
   console.log('coming from travel for approval' , payload);
+  const {tenantId , travelRequestId} = payload
+  console.log("Travel request", tenantId , travelRequestId)
       try {
       const updated = await Approval.updateOne(
-        { 'travelRequestData.tenantId': payload.tenantId},
+        { tenantId, travelRequestId},
         {
           $set: {
             'tenantId':payload.tenantId,
             'tenantName':payload.tenantName,
             'companyName':payload.companyName,
             'approvalType':'travel',
+            'travelRequestId':travelRequestId,
             'travelRequestData': payload,
             }  
         },
@@ -94,18 +97,20 @@ export const cancelTravelWithCash = async (payload) => {
 //travel and cash full update
 export const TravelAndCashUpdate = async (payload) => {
   try {
+    console.log("from cash microservice .....", payload)
+
+const { travelRequestData , cashAdvancesData} = payload;
+const { tenantId, travelRequestId} = travelRequestData
   const updated = await Approval.updateOne(
-    { 'tenantId': payload.tenantId,
-      'travelRequestId':payload.travelRequestId},
+    { 'tenantId': tenantId,
+      'travelRequestId':travelRequestId},
     {
       $set: {
-        'travelRequestData': payload.travelRequestData ,
-        'cashAdvancesData':payload?.cashAdvancesData ?? [],
-        'tenantId':payload.travelRequestData.tenantId,
-        'tenantName':payload.travelRequestData.tenantName,
-        'companyName':payload.travelRequestData.companyName,
-        'travelRequestId':payload.travelRequestData.travelRequestId,
+        'tenantId':tenantId,
+        'travelRequestId':travelRequestId,
         'approvalType':'travel',
+        'travelRequestData': travelRequestData ,
+        'cashAdvancesData': cashAdvancesData ?? [],
         }  
     },
     { upsert: true, new: true }

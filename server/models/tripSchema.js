@@ -517,12 +517,12 @@ const expenseLineSchema = new mongoose.Schema({
           },
           cashAdvanceId: {
             type: mongoose.Types.ObjectId, 
-            unique: true,
-            required: true,
+            // unique: true,
+            // required: true,
           },
           cashAdvanceNumber:{
             type: String,
-            required: true,
+            // required: true,
           },
           createdBy: {
               empId: String,
@@ -531,14 +531,14 @@ const expenseLineSchema = new mongoose.Schema({
           cashAdvanceStatus: {
             type: String,
             enum: cashAdvanceStatusEnum,
-            required: true,
+            // required: true,
             default: 'draft',
           },
           cashAdvanceState: {
             type: String,
             enum: cashAdvanceStateEnums,
             default: 'section 0',
-            required: true,
+            // required: true,
           },
           amountDetails: [
             {
@@ -571,7 +571,7 @@ const expenseLineSchema = new mongoose.Schema({
         {
           tenantId: {
             type: String,
-            required: true,
+            // required: true,
           },
           tenantName: {
             type: String,
@@ -594,7 +594,7 @@ const expenseLineSchema = new mongoose.Schema({
           },
           expenseHeaderId: { 
             type: mongoose.Schema.Types.ObjectId,
-            required: true,
+            // required: true,
           },
           expenseHeaderType: { 
             type: String,
