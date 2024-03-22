@@ -246,8 +246,8 @@ const itinerarySchema = {
       location: String,
       locationPreference: String,
       class: String,
-      checkIn: String,
-      checkOut: String,
+      checkIn: Date,
+      checkOut: Date,
       checkInTime: String,
       checkOutTime: String,
       violations: {
@@ -267,8 +267,8 @@ const itinerarySchema = {
       bkd_location: String,
       bkd_locationPreference: String,
       bkd_class: String,
-      bkd_checkIn: String,
-      bkd_checkOut: String,
+      bkd_checkIn: Date,
+      bkd_checkOut: Date,
       bkd_checkInTime: String,
       bkd_checkOutTime: String,
       bkd_violations: {
@@ -306,7 +306,7 @@ const itinerarySchema = {
     {
       itineraryId: mongoose.Schema.ObjectId,
       formId: String,
-      date: String,
+      date: Date,
       class: String,
       time: String,
       pickupAddress: String,
@@ -359,7 +359,7 @@ const itinerarySchema = {
     {
       itineraryId: mongoose.Schema.ObjectId,
       formId: String,
-      date: String,
+      date: Date,
       class: String,
       time: String,
       pickupAddress: String,
@@ -412,7 +412,7 @@ const itinerarySchema = {
     {
       itineraryId: mongoose.Schema.ObjectId,
       formId: String,
-      date: String,
+      date: Date,
       time: String,
       from: String,
       to: String,
@@ -610,8 +610,14 @@ const expenseLineSchema = new mongoose.Schema({
       default: 0,
     },
   },
-    isSentToExpense: Boolean, 
-    notificationSentToDashboardFlag: Boolean,
+    isSentToExpense:{
+      type: Boolean,
+      default:null,
+    }, 
+    notificationSentToDashboardFlag:{
+      type: Boolean,
+      default:null,
+    },
     travelRequestData: {
       tenantId: {
       type: String,
@@ -881,6 +887,6 @@ tripSchema.pre('validate', async function (next) {
   next();
 });
   
-const Trip = mongoose.model('tripsTesting', tripSchema);
+const Trip = mongoose.model('tripsFriday', tripSchema);
 
 export default Trip;

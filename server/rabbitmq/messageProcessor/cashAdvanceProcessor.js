@@ -2,18 +2,17 @@ import mongoose from "mongoose";
 import Trip from "../../models/tripSchema.js";
 import { sendToOtherMicroservice } from "../publisher.js";
 
-const formatTenantId = (tenantId) => {
-  return tenantId.toUpperCase(); 
-};
 
-const generateIncrementalNumber = (tenantId, incrementalValue) => {
+
+
+const generateIncrementalNumber = (tenantName, incrementalValue) => {
   try {
   if (typeof tenantId !== 'string' || typeof incrementalValue !== 'number') {
       throw new Error('Invalid input parameters');
   }
-  const formattedTenant = formatTenantId(tenantId);
+  const formattedTenant = (tenantName || '').toUpperCase().substring(0, 3);
   // return `ER${formattedTenant}${incrementalValue.toString().padStart(6, '0')}`;
-  const paddedIncrementalValue = incrementalValue !== null && incrementalValue !== undefined ? incrementalValue.toString().padStart(6, '0') : '';
+  const paddedIncrementalValue = incrementalValue !== null && incrementalValue !== undefined ? incrementalValue.toString().padStart(3, '0') : '';
   return `TRIP${formattedTenant}${paddedIncrementalValue}`;
 } catch (error) {
   console.error(error);
@@ -28,7 +27,37 @@ const createTrip = async (travelRequest) => {
     const itinerary = travelRequestData?.itinerary ?? {};
   
     // Extract all booking dates
-    const bookingDates = Object.values(itinerary).flatMap(bookings => bookings.map(booking => new Date(booking.bkd_date)));
+    // const bookingDates = Object.values(itinerary)
+    // .flatMap(bookings => {
+    //   bookings.map(booking => new Date(booking.bkd_date??bkd_checkIn??))
+    // } );
+
+    const bookingDates = [];
+
+    Object.keys(itinerary)
+    .filter(key=> itinerary[key].length > 0)
+    .forEach(key=>{
+      itinerary[key].forEach(item=>{
+        console.log(item)
+        if(item.status == 'booked'){
+          if(key == 'hotels'){
+            bookingDates.push(new Date(item.bkd_checkIn));
+            bookingDates.push(new Date(item.bkd_checkOut));
+          }
+          else{
+            bookingDates.push(new Date(item.bkd_date));
+          }
+        }
+      })
+    })
+    console.log('booking dates...', bookingDates, )
+
+//     const bookingDatesTest = Object.values(itinerary)
+//   .flatMap(bookings => bookings.filter(item => item.status === 'booked')
+//     .flatMap(item => key === 'hotels' ? [new Date(item.bkd_checkIn), new Date(item.bkd_checkOut)] : [new Date(item.bkd_date)]));
+
+// console.log("bookingDatesTest",bookingDatesTest);
+
   
     // Find earliest and latest date and time
     const earliestDateTime = new Date(Math.min(...bookingDates));
@@ -43,10 +72,10 @@ const createTrip = async (travelRequest) => {
   let nextIncrementalValue = 0;
 
   if ( maxIncrementalValue && maxIncrementalValue.tripNumber) {
-    nextIncrementalValue = parseInt(maxIncrementalValue.tripNumber.substring(9), 10) + 1;
+    nextIncrementalValue = parseInt(maxIncrementalValue.tripNumber.substring(3), 10) + 1;
   }
 
-    tripNumber = generateIncrementalNumber(tenantId, nextIncrementalValue);
+    tripNumber = generateIncrementalNumber(tenantName, nextIncrementalValue);
   
     return {
       tenantId,

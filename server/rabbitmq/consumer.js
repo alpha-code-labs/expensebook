@@ -12,34 +12,70 @@ dotenv.config();
 
 
 //start consuming messages..
-export  async function startConsumer(receiver) {
-  const rabbitMQUrl = process.env.rabbitMQUrl ;
-    const connectToRabbitMQ = async () => {
-      try {
-        console.log("Connecting to RabbitMQ...");
-        const connection = await amqp.connect(rabbitMQUrl);
-        const channel = await connection.createChannel();
-        console.log("Connected to RabbitMQ.");
-        return channel;
-      } catch (error) {
-        console.log("Error connecting to RabbitMQ:", error);
-        return error;
-      }
-    };
-  
-    const channel = await connectToRabbitMQ()
-    const exchangeName = "amqp.dashboard"
-    const queue = `q.${receiver}`
-    const routingKey = `rk.${receiver}`
+export async function startConsumer(receiver) {
+  const rabbitMQUrl = process.env.rabbitMQUrl;
+  let retryCount = 0;
 
-    console.log(`Asserting exchange: ${exchangeName}`);
-    await channel.assertExchange(exchangeName, "direct", { durable: true });
+  const connectToRabbitMQ = async () => {
+    try {
+      console.log("Connecting to RabbitMQ...");
+      const connection = await amqp.connect(rabbitMQUrl);
+      const channel = await connection.createChannel();
+      console.log("Connected to RabbitMQ.");
+      // Add error event listener to the connection
+      connection.on("error", handleConnectionError);
+      return channel; // Return the created channel
+    } catch (error) {
+      retryCount++;
+      if (retryCount === 1) {
+        console.error("Error connecting to RabbitMQ:", error);
+      }
+      if (retryCount === 3) {
+        console.error("Failed after 3 times trying");
+      } else {
+        // Retry connection after 1 minute for the first two attempts, then after 3 minutes
+        const retryDelay = retryCount <= 2 ? 1 : 3;
+        console.log(`Retrying in ${retryDelay} minute(s)...`);
+        setTimeout(connectToRabbitMQ, retryDelay * 60 * 1000);
+      }
+      return null; // Return null if connection fails
+    }
+  };
+
+  const handleConnectionError = (err) => {
+    console.error("RabbitMQ connection error:", err);
+    // Retry connection after 3 minutes if the first attempt fails
+    retryCount++;
+    if (retryCount === 3) {
+      console.error("Failed after 3 times trying");
+    } else {
+      const retryDelay = retryCount <= 2 ? 1 : 3;
+      console.log(`Retrying in ${retryDelay} minute(s)...`);
+      setTimeout(connectToRabbitMQ, retryDelay * 60 * 1000);
+    }
+  };
+
+  // Start initial connection attempt
+  const channel = await connectToRabbitMQ();
+  if (!channel) {
+    console.error("Failed to establish connection to RabbitMQ.");
+    return; // Exit function if connection failed
+  }
+
+  const exchangeName = 'amqp.dashboard';
+  const queue = `q.${receiver}`;
+  const routingKey = `rk.${receiver}`;
   
-    console.log(`Asserting queue: ${queue}`);
-    await channel.assertQueue(queue, { durable: true });
+  console.log(`Asserting exchange: ${exchangeName}`);
+  await channel.assertExchange(exchangeName, 'direct', { durable: true });
   
-    console.log(`Binding queue ${queue} to exchange ${exchangeName}`);
-    await channel.bindQueue(queue, exchangeName, routingKey);
+  console.log(`Asserting queue: ${queue}`);
+  await channel.assertQueue(queue, { durable: true });
+   
+  
+  console.log(`Binding queue ${queue} to exchange ${exchangeName}`);
+  await channel.bindQueue(queue, exchangeName, routingKey);
+  
   
     console.log("listening for new messages...");
     // Listen for response
@@ -49,6 +85,7 @@ export  async function startConsumer(receiver) {
 
         console.log(
             `coming from ${content?.headers?.source} meant for ${content?.headers?.destination}`
+            , content.payload
           );
 
         //console.log('payload', content?.payload)

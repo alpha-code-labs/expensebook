@@ -129,7 +129,7 @@ export const updateSentToExpenseFlag = async (tripsToUpdate) => {
     const updateResult = await Trip.updateMany(
       {
         _id: { $in: tripsToUpdate.map(trip => trip._id) },
-        isSentToExpense: false,
+        isSentToExpense: {$in:[false, null , undefined]},
       },
       {
         $set: {
@@ -155,7 +155,8 @@ export const updateSentToExpenseFlag = async (tripsToUpdate) => {
 export const expenseBatchJob = async () => {
   try {
     console.log('You are Connected to Mongodb');
-    const tripsToProcess = await Trip.find({ isSentToExpense: false });
+    const tripsToProcess = await Trip.find({
+     isSentToExpense:{$in:[true , undefined]} });
     console.log('Fetched trips for expense processing:', tripsToProcess);
 
     if (tripsToProcess.length === 0) {
@@ -169,23 +170,25 @@ export const expenseBatchJob = async () => {
     const sendToExpenseBatch = await sendToOtherMicroservice(tripsToProcess, 'full-update-array', 'expense', 'batchjob to update expense with trip details', 'trip', onlineVsBatch);
     console.log('Trips sent to expense microservice:', sendToExpenseBatch);
 
-    // Check if all trips were sent successfully
-    if (sendToExpenseBatch) {
-      // Perform bulk update only if there are trips to update
-      if (tripsToProcess.length > 0) {
-        console.log(`Updating isSentToExpense flag for ${tripsToProcess.length} trips...`);
-        await updateSentToExpenseFlag(tripsToProcess);
-        console.log(`Updated isSentToExpense flag for ${tripsToProcess.length} trips`);
-      } else {
-        console.log('No trips require update');
-      }
+    return { success: true, message: 'Expense batch job completed successfully' };
 
-      console.log('Expense batch job completed successfully.');
-      return { success: true, message: 'Expense batch job completed successfully' };
-    } else {
-      console.error('Error sending trips to expense microservice: Send to expense failed');
-      return { success: false, message: 'Error occurred in sending trips to expense microservice' };
-    }
+    // Check if all trips were sent successfully
+    // if (sendToExpenseBatch) {
+    //   // Perform bulk update only if there are trips to update
+    //   if (tripsToProcess.length > 0) {
+    //     console.log(`Updating isSentToExpense flag for ${tripsToProcess.length} trips...`);
+    //     await updateSentToExpenseFlag(tripsToProcess);
+    //     console.log(`Updated isSentToExpense flag for ${tripsToProcess.length} trips`);
+    //   } else {
+    //     console.log('No trips require update');
+    //   }
+
+    //   console.log('Expense batch job completed successfully.');
+    //   return { success: true, message: 'Expense batch job completed successfully' };
+    // } else {
+    //   console.error('Error sending trips to expense microservice: Send to expense failed');
+    //   return { success: false, message: 'Error occurred in sending trips to expense microservice' };
+    // }
   } catch (error) {
     console.error('Error in expenseBatchJob:', error);
     return { success: false, message: 'Error occurred in expense batch job.' };
