@@ -586,8 +586,8 @@ console.log("")
   }
 
   // Date extraction , check in and checkout date 
-//   const dateRegex = /(?:DATE|INVOICE DATE|Invoice Date|Date|invoicedate|invoice Date|Invoice Date|check\s*in\s*Date|check\s*out\s*Date|check\s*in|check\s*out):\s*([\d/]+)/i;
-  const dateRegex = /\b(?:billdate|invoicedate|date|invoice\s*date)\s*[\-:\s]*\b/i;
+  const dateRegex = /(?:DATE|INVOICE DATE|Invoice Date|Date|invoicedate|invoice Date|Invoice Date|check\s*in\s*Date|check\s*out\s*Date|check\s*in|check\s*out|billdate|invoicedate|date|invoice\s*date)\s*[\-:\s]*([\d/]+)/i;
+  // const dateRegex = /\b(?:billdate|invoicedate|date|invoice\s*date)\s*[\-:\s]*\b/i;
   const dateFormatPattern = /\b\d{4}[-/:\s]\d{2}[-/:\s]\d{2}\b/g;
   const checkInRegex = /\bcheck\s*[\-:\s]*in\s*[\-:\s]*\b/i;
   const checkOutRegex = /\bcheck\s*[\-:\s]*out\s*[\-:\s]*\b/i;
@@ -644,24 +644,24 @@ export const extractAirportPairs = (data) => {
     console.log("Matches found:", matches);
     const [fullMatch, from, to] = regexPattern.exec(matches[0]);
 
-    return {
-      from: indianAirports[from],
-      to: indianAirports[to]
-    };
+    // return {
+    //   from: indianAirports[from],
+    //   to: indianAirports[to]
+    // };
     
-    // const airportPairs = matches.map(match => {
-    //   const [fullMatch, from, to] = regexPattern.exec(match);
+    const airportPairs = matches.map(match => {
+      const [fullMatch, from, to] = regexPattern.exec(match);
       
-    //   console.log(`Travelling ${from} / ${indianAirports[from]}, ${to} / ${indianAirports[to]}`);
+      console.log(`Travelling ${from} / ${indianAirports[from]}, ${to} / ${indianAirports[to]}`);
       
-    //   return {
-    //     from: indianAirports[from],
-    //     to: indianAirports[to]
-    //   };
-    // });
+      return {
+        from: indianAirports[from],
+        to: indianAirports[to]
+      };
+    });
     
-    // console.log("Airport pairs:", airportPairs);
-    // return airportPairs;
+    console.log("Airport pairs:", airportPairs);
+    return airportPairs;
   } else {
     console.log("No matches found.");
     return {from: undefined, to:undefined};

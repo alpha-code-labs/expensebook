@@ -5,19 +5,21 @@ import { calculateHaversineDistance } from "../utils/haversine.js";
 import { sendToOtherMicroservice } from "../rabbitmq/publisher.js";
 import { sendToDashboardMicroservice } from "../rabbitmq/dashboardMicroservice.js";
 
-const formatTenantId = (tenantId) => {
-    return tenantId.toUpperCase(); 
+const formatTenantId = (tenantName) => {
+    return tenantName.toUpperCase(); 
 };
 
 // to generate and add expense report number
-const generateIncrementalNumber = (tenantId, incrementalValue) => {
+const generateIncrementalNumber = (tenantName, incrementalValue) => {
     try {
-    if (typeof tenantId !== 'string' || typeof incrementalValue !== 'number') {
+    if (typeof tenantName !== 'string' || typeof incrementalValue !== 'number') {
         throw new Error('Invalid input parameters');
     }
-    const formattedTenant = formatTenantId(tenantId);
+    const formattedTenant = formatTenantId(tenantName).substring(0,2);
+    console.log("formattedTenant .................................", formattedTenant)
     // return `ER${formattedTenant}${incrementalValue.toString().padStart(6, '0')}`;
     const paddedIncrementalValue = incrementalValue !== null && incrementalValue !== undefined ? incrementalValue.toString().padStart(6, '0') : '';
+    console.log("paddedIncrementalValue.............", paddedIncrementalValue)
     return `ER${formattedTenant}${paddedIncrementalValue}`;
 } catch (error) {
     console.error(error);
@@ -55,7 +57,7 @@ const getExpenseRelatedHrData = async (tenantId,res = {}) => {
         return { defaultCurrency, travelAllocationFlags, travelExpenseCategories, travelAllocations, expenseSettlementOptions};
     } catch (error) {
         console.error('Error in getExpenseRelatedHrData:', error);
-        logger.error('Error in getExpenseRelatedHrData:', error);
+        // logger.error('Error in getExpenseRelatedHrData:', error);
         return { error: 'Server error' };
     }
 };
@@ -88,6 +90,7 @@ export const calculateTotalCashAdvances = async (cashAdvanceData) => {
             throw new Error("Cash advance not taken");
         }
     }
+    console.log("totalCashAdvances .... for expense report", totalCashAdvances)
     return totalCashAdvances;
 };
 
@@ -136,10 +139,10 @@ const maxIncrementalValue = await Expense.findOne({}, 'travelExpenseData.expense
 let nextIncrementalValue = 0;
 
 if (maxIncrementalValue && maxIncrementalValue.travelExpenseData && maxIncrementalValue.travelExpenseData.expenseHeaderNumber) {
-    nextIncrementalValue = parseInt(maxIncrementalValue.travelExpenseData.expenseHeaderNumber.substring(9), 10) + 1;
+    nextIncrementalValue = parseInt(maxIncrementalValue.travelExpenseData.expenseHeaderNumber.substring(6), 10) + 1;
 }
 
-let expenseHeaderNumber = generateIncrementalNumber(tenantId, nextIncrementalValue);
+let expenseHeaderNumber = generateIncrementalNumber(tenantName, nextIncrementalValue);
 let newExpenseHeaderId = new mongoose.Types.ObjectId();
 flagToOpen = newExpenseHeaderId;
 console.log("flagToOpen-- newExpenseHeaderId",newExpenseHeaderId,"new expenseHeaderNumber---", expenseHeaderNumber)
@@ -197,7 +200,7 @@ export const BookExpense = async (req, res) => {
     try {
       // Destructuring the parameters from the request object
       const { tenantId, empId, tripId } = req.params;
-      // console.log('Params:', tenantId, empId, tripId);
+      console.log('Params:', tenantId, empId, tripId);
 
       const bookExpenseParams = ['tenantId', 'empId', 'tripId']
       const missingExpenseFields = bookExpenseParams.filter(field => !req.params[field])
@@ -209,6 +212,7 @@ export const BookExpense = async (req, res) => {
       tenantId,
       tripId,
       $or: [
+        {'createdBy.empId': empId},
         { 'travelRequestData.createdBy.empId': empId },
         { 'travelRequestData.createdFor.empId': empId },
       ],
@@ -267,10 +271,10 @@ export const BookExpense = async (req, res) => {
         let nextIncrementalValue = 0;
 
         if (maxIncrementalValue && maxIncrementalValue.travelExpenseData && maxIncrementalValue.travelExpenseData.expenseHeaderNumber) {
-          nextIncrementalValue = parseInt(maxIncrementalValue.travelExpenseData.expenseHeaderNumber.substring(9), 10) + 1;
+          nextIncrementalValue = parseInt(maxIncrementalValue.travelExpenseData.expenseHeaderNumber.substring(6), 10) + 1;
         }
 
-        expenseHeaderNumber = generateIncrementalNumber(tenantId, nextIncrementalValue);
+        expenseHeaderNumber = generateIncrementalNumber(tenantName, nextIncrementalValue);
 
         // Updating the expense header number in the travelExpenseData
         expenseReport.travelExpenseData.expenseHeaderNumber = expenseHeaderNumber;
@@ -321,18 +325,20 @@ const currentTotalAlreadyBookedExpense = currentTotalExpenseAmount;
         if (isCashAdvanceTaken) {
           // console.log("i am isCashAdvanceTaken", isCashAdvanceTaken)
           const cashAdvanceResult = await calculateTotalCashAdvances(cashAdvanceData, res);
+          console.log("cashAdvanceResult",cashAdvanceResult)
 
           currentTotalcashAdvance += cashAdvanceResult.totalPaid.reduce((total, item) => total + item.amount, 0);
           currentTotalcashAdvance = parseFloat(currentTotalcashAdvance) + 0.00;
           currentRemainingCash = currentTotalcashAdvance;
-          // console.log("cashAdvanceResult - currentTotalcashAdvance", currentTotalcashAdvance)
+          console.log("cashAdvanceResult - currentTotalcashAdvance", currentTotalcashAdvance)
         }
 
         // Updating the expenseAmountStatus in the existing document
         expenseReport.expenseAmountStatus.totalCashAmount = isCashAdvanceTaken ? currentTotalcashAdvance : 0 ;
         expenseReport.expenseAmountStatus.totalAlreadyBookedExpenseAmount = currentTotalAlreadyBookedExpense;
         expenseReport.expenseAmountStatus.totalExpenseAmount = currentTotalExpenseAmount;
-        expenseReport.expenseAmountStatus.totalRemainingCash = isCashAdvanceTaken ? currentRemainingCash : 0;
+        // expenseReport.expenseAmountStatus.totalRemainingCash = isCashAdvanceTaken ? currentRemainingCash : 0;
+        expenseReport.expenseAmountStatus.totalRemainingCash = isCashAdvanceTaken ? currentTotalcashAdvance : 0;
 
         //create a expenseHeaderId
         const newExpenseHeaderId = new mongoose.Types.ObjectId();
@@ -389,106 +395,101 @@ const currentTotalAlreadyBookedExpense = currentTotalExpenseAmount;
 
 
 // travel Policy Validation 
-export const travelPolicyValidation = async (tenantId, empId, travelType, travelClass, categoryName, totalAmount, res) => {
-    try {
-        // Find the matching document in HRCompany based on tenantId and tenantName
-        const companyDetails = await HRMaster.findOne({ tenantId });
 
-        if (!companyDetails) {
-            return res.status(404).json({ message: 'Company details not found' });
-        }
+export const travelPolicyValidation = async (tenantId, empId, travelType, categoryName, totalAmount, travelClass) => {
+  try {
+      console.log("Starting travel policy validation...", totalAmount);
 
-        const { employees } = companyDetails;
+      // Find the matching document in HRCompany based on tenantId and relevant employee data
+      const companyDetails = await HRMaster.findOne(
+          { tenantId },
+          { 'employees': { $elemMatch: { 'employeeDetails.employeeId': empId } }, 'policies': 1 }
+      );
 
-        // Find the employee in the employees array based on empId
-        const employee = employees.find(emp => emp.employeeDetails.employeeId === empId);
+      if (!companyDetails) {
+          console.log("Company details not found.");
+          return { success: false, message: 'Company details not found' };
+      }
 
-        if (!employee) {
-            return res.status(404).json({ message: 'Employee not found' });
-        }
+      const { employees, policies } = companyDetails;
 
-        // Get the groups associated with the employee
-        const employeeGroups = employee.group;
+      if (!employees || employees.length === 0) {
+          console.log("Employee not found.");
+          return { success: false, message: 'Employee not found' };
+      }
 
-        // Initialize a response object
-        const response = {
-            greenFlag: 'No violation',
-            yellowFlag: [],
-        };
+      const employee = employees[0];
 
-        // Flag to track if at least one group has limit.amount <= totalAmount
-        let hasAllowedLimit = false;
+      // Get the groups associated with the employee
+      const employeeGroups = employee.group;
 
-        // Loop through each group
-        for (const group of employeeGroups) {
-            // Access policies for the group from companyDetails
-            const groupPolicies = companyDetails.policies.travelPolicies[0][group];
+      if (!employeeGroups?.length) {
+          console.log("No groups associated with the employee.");
+          return { success: false, message: 'No groups associated with the employee' };
+      }
 
-            if (!groupPolicies) {
-                return res.status(404).json({ message: 'Group policies not found' });
+
+      // Check each group's policies
+      const groupResults = employeeGroups.map(group => {
+          console.log(`Checking policies for group: ${group}`);
+
+          const groupPolicies = policies.travelPolicies[0][group];
+
+          if (!groupPolicies) {
+              console.log(`Group policies not found for group: ${group}`);
+              return { success: false, message: 'Group policies not found' };
+          }
+
+          const getPolicyTest = groupPolicies[travelType]?.[categoryName]?.class?.[travelClass];
+          console.log("policyDetails test ...", getPolicyTest);
+
+          const getLimitAllowed = groupPolicies[travelType]?.[categoryName]?.limit;
+          console.log("limit", getLimitAllowed);
+          const limitAmount = getLimitAllowed?.amount;
+          const currencyName = getLimitAllowed?.currency.shortName;
+          let violationMessage = getLimitAllowed?.violationMessage;
+
+          
+          // Convert totalAmount from string to number
+          const totalAmountNumber = Number(totalAmount);
+
+          console.log("totalAmountNumber", totalAmountNumber)
+
+          // Convert limitAmount from string to number
+          const limitAmountNumber = Number(limitAmount);
+          console.log("limitAmountNumber", limitAmountNumber)
+
+          // Compare totalAmountNumber and limitAmountNumber
+          const totalAmountAllowed = !limitAmountNumber || totalAmountNumber <= limitAmountNumber;
+
+          console.log("what i got here", totalAmountAllowed)
+          if (totalAmountAllowed) {
+              console.log("Total amount is under limit:", totalAmountAllowed);
+              if (!violationMessage || violationMessage.length === 0) {
+                violationMessage = 'Total amount is under the policy limit';
             }
+              return { success: true, greenFlag: totalAmountAllowed, currencyName, amountAllowed: limitAmountNumber, violationMessage };
+          } else {
+              console.log("Total amount is beyond policy limit for group:", violationMessage);
+              if (!violationMessage || violationMessage.length === 0) {
+                  violationMessage = 'Total amount is beyond policy limit';
+              }
+              return { success: true, greenFlag: totalAmountAllowed, currencyName, amountAllowed: limitAmountNumber, violationMessage };
+          }
+      });
 
-            // Check if travelType, categoryName, travelClass, and totalAmount are all allowed
-            const typeAllowed = groupPolicies[travelType].allowed;
-            const travelModeAllowed = groupPolicies[categoryName].allowed;
-            const travelClassAllowed = groupPolicies[categoryName].class[travelClass].allowed;
-            const limitAmount = groupPolicies[categoryName].limit.amount;
-            const totalAmountAllowed = !limitAmount || totalAmount <= limitAmount;
-
-            // Check if all conditions are true
-            if (typeAllowed && travelModeAllowed && travelClassAllowed && totalAmountAllowed) {
-                response.greenFlag = 'At least one group allows all travel policies.';
-                hasAllowedLimit = true;
-                break; // Exit loop if at least one group allows
-            }
-
-            // Handle violations
-            const travelModeViolationMessage = groupPolicies[categoryName].violationMessage;
-            const travelClassViolationMessage = groupPolicies[categoryName].class[travelClass].violationMessage;
-            const limitViolationMessage = groupPolicies[categoryName].limit.violationMessage;
-
-            if (!travelModeAllowed) {
-                response.yellowFlag.push({
-                    group,
-                    travelModeViolationMessage,
-                });
-                continue; // Skip to the next group
-            }
-
-            if (!travelClassAllowed) {
-                response.yellowFlag.push({
-                    group,
-                    travelClassViolationMessage,
-                });
-                continue; // Skip to the next group
-            }
-
-            if (!totalAmountAllowed) {
-                response.yellowFlag.push({
-                    group,
-                    limitViolationMessage,
-                });
-                continue; // Skip to the next group
-            }
-        }
-
-        // If at least one group has limit.amount <= totalAmount, discard all yellowFlags
-        if (hasAllowedLimit) {
-            response.yellowFlag = [];
-        }
-
-        // Respond based on the evaluation
-        return res.status(200).json({ message: 'Travel policies evaluation result.', response });
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json({ message: 'Internal Server Error' });
-    }
+      // Return the groupResults array
+      return groupResults;
+  } catch (error) {
+      console.error("Error during travel policy validation:", error);
+      return { success: false, message: 'Internal Server Error' };
+  }
 };
 
 
-const extractTotalAmount = (expenseLine, totalAmountNames) => {
+const extractTotalAmount = (expenseLine, fixedFields) => {
   const keyFound = Object.entries(expenseLine)
-      .find(([key]) => totalAmountNames.some(name => name.trim().toUpperCase() === key.trim().toUpperCase()));
+      .find(([key]) => fixedFields.some(name => name.trim().toUpperCase() === key.trim().toUpperCase()));
 
   return keyFound ? keyFound[1] : '';
 };
@@ -502,7 +503,7 @@ export const onSaveExpenseLine = async (req, res) => {
       empId,
       expenseHeaderId
     } = req.params;
-    // console.log("req.params on save", req.params)
+    console.log("req.params on save", req.params)
     let {
       travelType,
       isCashAdvanceTaken,
@@ -516,7 +517,9 @@ export const onSaveExpenseLine = async (req, res) => {
     // Destructuring for better readability
     let {
       isPersonalExpense,
-      isMultiCurrency
+      isMultiCurrency,
+      'Category Name':categoryName,
+      Class:travelClass,
     } = expenseLine;
 
     const isLineUpdate = expenseLine?.expenseLineId
@@ -528,9 +531,10 @@ export const onSaveExpenseLine = async (req, res) => {
         message: `Missing required fields: ${missingFields.join(", ")}`
       });
     }
+    const fixedFields = ['Total Amount', 'Total Amount','Date', 'Tax Amount', 'Tip Amount', 'Premium Amount', 'Cost', 'Total Cost', 'License Cost', 'Subscription Cost', 'Total Fare', 'Premium Cost']
 
     // Extract total amount
-    let totalAmount = extractTotalAmount(expenseLine, ['Total Fare', 'Total Amount', 'Subscription cost', 'Cost', 'Premium Cost']);
+    let totalAmount = extractTotalAmount(expenseLine, fixedFields);
 
     // Convert amounts to numbers
     let {
@@ -539,8 +543,16 @@ export const onSaveExpenseLine = async (req, res) => {
       totalRemainingCash
     } = expenseAmountStatus;
     const totalAmountField = Number(totalAmount);
+    
+    console.log("expenseLine ........", expenseLine)
+    console.log("its available ", categoryName ,"travelType", travelType,"totalAmount", totalAmount, "travelClass", travelClass )
 
 
+   const policyValidation = await travelPolicyValidation(tenantId, empId, travelType, categoryName, totalAmount, travelClass)
+   //policy voilation added to expense Line
+   expenseLine.policyValidation = policyValidation;
+
+    console.log("policyValidation results for line item ........", policyValidation)
     // Handle personal expenses and multicurrency
     if (isPersonalExpense) {
       console.log("is personal expoense", isPersonalExpense)
@@ -620,7 +632,6 @@ export const onSaveExpenseLine = async (req, res) => {
     }
 
     const options = { new: true}
-
 
     if (isLineUpdate) {
       console.log("edit expense Line", isLineUpdate)
@@ -707,10 +718,12 @@ export const onEditExpenseLine = async (req, res) => {
           message: `Missing required fields: ${missingFields.join(", ")}`
         });
       }
-  
+
+      const fixedFields = ['Total Amount', 'Date',  'Tax Amount', 'Tip Amount', 'Premium Amount', 'Cost', 'Total Cost', 'License Cost', 'Subscription Cost', 'Total Fare', 'Premium Cost']
+
       // Extract total amount
-      let totalAmount = extractTotalAmount(expenseLine, ['Total Fare', 'Total Amount', 'Subscription cost', 'Cost', 'Premium Cost']);
-      let totalAmountEdited = extractTotalAmount(expenseLineEdited, ['Total Fare', 'Total Amount', 'Subscription cost', 'Cost', 'Premium Cost']);
+      let totalAmount = extractTotalAmount(expenseLine, fixedFields);
+      let totalAmountEdited = extractTotalAmount(expenseLineEdited, fixedFields);
       console.log("totalAmount -- ", totalAmount, "totalAmountEdited", totalAmountEdited)
  
     const isLineUpdate = expenseLine?.expenseLineId.toString() === expenseLineEdited?.expenseLineId.toString()
@@ -720,13 +733,23 @@ export const onEditExpenseLine = async (req, res) => {
     if(!isLineUpdate){
       res.status(404).json({ error:'Invalid request sent'});
     } else {
-      let {isPersonalExpense, isMultiCurrency } = expenseLine;
+      let {
+        isPersonalExpense,
+        isMultiCurrency,
+        'Category Name':categoryName,
+        Class:travelClass,
+      } = expenseLine;
         // Convert amounts to numbers
    let {
     totalExpenseAmount,
     totalPersonalExpenseAmount,
     totalRemainingCash
   } = expenseAmountStatus;
+
+  const policyValidation = await travelPolicyValidation(tenantId, empId, travelType, categoryName, totalAmountNew, travelClass)
+  //policy voilation added to expense Line
+  expenseLineEdited.policyValidation = policyValidation;
+
     // Handle personal expenses and multicurrency
     if (isPersonalExpense) {
       console.log("is personal expoense", isPersonalExpense)
@@ -951,8 +974,10 @@ export const onEditExpenseLine = async (req, res) => {
 //     }
 
 //     // Extract total amount
-//     const totalAmountOld = extractTotalAmount(expenseLine, ['Total Fare', 'Total Amount', 'Subscription cost', 'Cost', 'Premium Cost']);
-//     const totalAmountNew = extractTotalAmount(expenseLineEdited, ['Total Fare', 'Total Amount', 'Subscription cost', 'Cost', 'Premium Cost']);
+// const fixedFields = ['Total Amount', 'Date', 'Class', 'Tax Amount', 'Tip Amount', 'Premium Amount', 'Cost', 'Total Cost', 'License Cost', 'Subscription Cost', 'Total Fare', 'Premium Cost']
+
+//     const totalAmountOld = extractTotalAmount(expenseLine, fixedFields);
+//     const totalAmountNew = extractTotalAmount(expenseLineEdited, fixedFields);
 //     console.log("totalAmount -- ", totalAmountOld, "totalAmountNew", totalAmountNew);
 
 //     const isLineUpdate = expenseLine?.expenseLineId.toString() === expenseLineEdited?.expenseLineId.toString();
@@ -1192,9 +1217,9 @@ export const oldonSaveExpenseLine = async (req, res) => {
       console.log("isPersonalExpense", isPersonalExpense)
     
       let {totalExpenseAmount, totalPersonalExpenseAmount,totalRemainingCash} = expenseAmountStatus
-      const totalAmountNames = ['Total Fare', 'Total Amount', 'Subscription cost', 'Cost', 'Premium Cost'];
+      const fixedFields = ['Total Amount', 'Date',  'Tax Amount', 'Tip Amount', 'Premium Amount', 'Cost', 'Total Cost', 'License Cost', 'Subscription Cost', 'Total Fare', 'Premium Cost']
 
-      let totalAmount = extractTotalAmount(expenseLine, totalAmountNames);
+      let totalAmount = extractTotalAmount(expenseLine, fixedFields);
 
       console.log("totalAmount received", totalAmount)
 
@@ -1474,7 +1499,6 @@ export const oldonSaveExpenseLine = async (req, res) => {
       return res.status(500).json({ error: 'An error occurred while saving the expense line items.' });
     }
 };
-
 
 
 // if (isLineUpdate) {
@@ -1919,9 +1943,17 @@ export const cancelAtHeaderLevelForAReport = async (req, res) => {
 } else {
 // Iterate through expense lines to update totals and remove object
   expenseLines.forEach((expenseLine) => {
-  const { isPersonalExpense, isMultiCurrency } = expenseLine;
+
+  let {
+    isPersonalExpense,
+    isMultiCurrency,
+    'Category Name':categoryName,
+    Class:travelClass,
+  } = expenseLine;
 // Extract total amount
- let totalAmount = extractTotalAmount(expenseLine, ['Total Fare', 'Total Amount', 'Subscription cost', 'Cost', 'Premium Cost']);
+const fixedFields = ['Total Amount', 'Date',  'Tax Amount', 'Tip Amount', 'Premium Amount', 'Cost', 'Total Cost', 'License Cost', 'Subscription Cost', 'Total Fare', 'Premium Cost']
+
+ let totalAmount = extractTotalAmount(expenseLine, fixedFields);
       
       if (isPersonalExpense) {
           if (isMultiCurrency) {
@@ -2000,7 +2032,9 @@ export const cancelAtLine = async (req, res) => {
       const {expenseLineId , isPersonalExpense, isMultiCurrency} = expenseLine
      console.log(" expenseLine for cancel lineitem", expenseLineId , isPersonalExpense, isMultiCurrency)
 
-      let totalAmount = extractTotalAmount(expenseLine, ['Total Fare', 'Total Amount', 'Subscription cost', 'Cost', 'Premium Cost']);
+     const fixedFields = ['Total Amount', 'Date',  'Tax Amount', 'Tip Amount', 'Premium Amount', 'Cost', 'Total Cost', 'License Cost', 'Subscription Cost', 'Total Fare', 'Premium Cost']
+
+      let totalAmount = extractTotalAmount(expenseLine, fixedFields);
 
       console.log("totalAmount -- ", totalAmount)
 
