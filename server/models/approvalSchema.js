@@ -687,7 +687,7 @@ approvalSchema.pre('save ', async function (next) {
   }
 });
   
-export const Approval = mongoose.model('ApprovalTesting', approvalSchema);
+export const Approval = mongoose.model('ApprovalFriday', approvalSchema);
   
 
 
