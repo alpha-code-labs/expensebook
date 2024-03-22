@@ -138,7 +138,7 @@ const generateIncrementalNumber = (tenantName, incrementalValue) => {
 
 
 
-const Reimbursement = mongoose.model('Reimbursement', expenseReimbursementSchema);
+const Reimbursement = mongoose.model('ReimbursementFriday', expenseReimbursementSchema);
 
 
 export default Reimbursement

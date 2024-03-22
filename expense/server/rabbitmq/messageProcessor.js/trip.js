@@ -67,18 +67,27 @@ export const tripArrayFullUpdate = async (payload) => {
   try {
     // Iterate over each object in the payload array asynchronously
     const updatePromises = payload.map(async (item) => {
-      const { travelRequestData, cashAdvancesData } = item;
+      const { tenantId, tripId , tripNumber, tripStartDate, tripCompletionDate, tripStatus, createdBy, tenantName, travelRequestData, cashAdvancesData } = item;
+      const {travelRequestId} = travelRequestData
 
       // Update the database for each item in the payload
       const updated = await Expense.findOneAndUpdate(
         {
-          'tenantId': item.travelRequestData.tenantId,
-          'travelRequestData.travelRequestId': item.travelRequestData.travelRequestId,
+          'tenantId': tenantId,
+          'travelRequestData.travelRequestId':travelRequestId,
         },
         {
           $set: {
+            "tenantId": tenantId,
+            "tenantName":tenantName,
+            "tripId": tripId,
+            "tripNumber": tripNumber,
+            "tripStartDate": tripStartDate,
+            "tripCompletionDate":tripCompletionDate,
+            "tripStatus": tripStatus,
+            "createdBy": createdBy,
             'travelRequestData': travelRequestData,
-            'cashAdvancesData': cashAdvancesData
+            'cashAdvancesData': cashAdvancesData,
           }
         },
         { upsert: true, new: true } // Create new document if not found, return updated document

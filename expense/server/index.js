@@ -8,6 +8,7 @@ import { handleErrors } from './errorHandler/errorHandler.js';
 import { startConsumer } from './rabbitmq/consumer.js';
 import { reportingRouter } from './routes/reportingRoutes.js';
 import {runApproveToNextState} from './scheduler/approvedToNextState.js';
+import { travelPolicyValidation } from './controller/travelExpenseController.js';
 // import logger from './logger/logger.js';
 
 //test
@@ -71,4 +72,29 @@ app.listen(port, () => {
 });
 
 //RabbitMq
+
 // startConsumer("expense");
+
+startConsumer("expense");
+
+// (async () => {
+//   try {
+//       const tenantId = '65f7d5442f8fdd7d542eed07';
+//       const empId = '1017';
+//       const travelType = 'domestic';
+//       const categoryName = 'Travel Insurance';
+//       const travelClass = 'Business';
+//       const totalAmount = 80;
+//       console.log("policy validation testing .....");
+
+//       const result = await travelPolicyValidation(tenantId, empId, travelType, categoryName, totalAmount, travelClass);
+//       if (result) {
+//           console.log("policy validation testing output", result);
+//           return result;
+//       }
+//   } catch (error) {
+//       console.error(error);
+//   }
+// })();
+
+
