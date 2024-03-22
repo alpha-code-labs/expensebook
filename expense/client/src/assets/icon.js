@@ -45,6 +45,7 @@ export {default as user_icon} from './usericon.png';
 export {default as loading_icon} from './loading2.svg';
 export {default as upload_icon} from './upload.png';
 export {default as validation_symb_icon} from './validation_sym_c.svg';
+export {default as plus_icon} from './plus.svg';
 
 
 

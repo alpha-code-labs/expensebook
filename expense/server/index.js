@@ -71,4 +71,4 @@ app.listen(port, () => {
 });
 
 //RabbitMq
-startConsumer("expense");
+// startConsumer("expense");

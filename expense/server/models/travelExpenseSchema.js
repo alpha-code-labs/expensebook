@@ -655,7 +655,7 @@ expenseSchema.pre('validate', function(next) {
   next(); // Call 'next' to proceed with the save operation
 })
   
-const Expense = mongoose.model('travelExpense', expenseSchema);
+const Expense = mongoose.model('travelExpenseFriday', expenseSchema);
 
 export default Expense;
 

@@ -1,6 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
-/* eslint-disable react/display-name */
-/* eslint-disable react/prop-types */
+/* eslint-disable react/display-name                   */
+/* eslint-disable react/prop-types                     */
+
 import { useState, useEffect, useRef } from "react";
 
 export default function (props){
@@ -9,7 +10,7 @@ export default function (props){
     const [showPopup, setshowPopup] = [props.showPopup, props.setshowPopup]
     const { message , skipable} = props
 
-   // const skipable = props.skipable || true
+  // const skipable = props.skipable || true
     console.log(skipable, showPopup, 'skipable')
     
     useEffect(()=>{

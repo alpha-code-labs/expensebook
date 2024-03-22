@@ -2,6 +2,7 @@ import axios from 'axios';
 //import these id from params and pas here
 //const BASE_URL = `http://192.168.1.11:8089`
 const BASE_URL = `http://localhost:8089`
+// const BASE_URL = `http://192.168.1.11:8089`
 // const BASE_URL = `http://192.168.1.10:8089`
 // const nontravelbase = `http://192.168.1.4:8089`
 // const BASE_URL = `http://192.168.1.8:8089`
@@ -117,7 +118,6 @@ export const nonTravelOcrApi = async (data) => {
 
 //verfied by backend
 //when user will get for modify
-
 export const logoutApi = async (authToken) => {
   try {
     const response = await axiosRetry(axios.post ,'/logout', {}, {

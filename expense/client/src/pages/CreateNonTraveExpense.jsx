@@ -940,6 +940,7 @@ if(allowForm){
  <React.Fragment key={index}>
 
   <EditFormComponent
+  index={index}
   setCurrencyTableData={setCurrencyTableData}
   active={active}
   isUploading={isUploading}
@@ -966,8 +967,8 @@ if(allowForm){
 
   </div>
   <div className='w-full lg:w-1/2 border h-full' key={index}>  
-     <div className=' h-[700px]'>
-     <EditComponent  lineItem={lineItem} handleEdit={handleEdit} isUploading={isUploading} active={active} handleDelete={handleDelete}/>
+     <div className=' h-[710px]'>
+     <EditComponent index={index} lineItem={lineItem} handleEdit={handleEdit} isUploading={isUploading} active={active} handleDelete={handleDelete}/>
      </div> 
   </div>
   </div> 
@@ -988,7 +989,7 @@ if(allowForm){
 
 {openLineItemForm &&
 <div className='flex flex-col lg:flex-row border '>
-  <div className='w-full lg:w-1/2 border  flex justify-center items-center px-4 py-4'>
+  <div className='w-full lg:w-1/2 border  flex justify-center items-center '>
   
   <div className=' border-[5px] min-w-[100%] h-fit min-h-[700px] flex justify-center items-center'>
     {selectedFile ? 
@@ -1254,18 +1255,22 @@ if(allowForm){
 export default CreateNonTraveExpense
 
 
-function EditComponent({ lineItem, handleEdit ,handleDelete,isUploading,active}) {
-  const excludedKeys = ['expenseLineId','Currency', 'Document', 'expenseLineAllocation', 'multiCurrencyDetails', 'lineItemStatus','lineItemId', '_id'];
+function EditComponent({index, lineItem, handleEdit ,handleDelete,isUploading,active}) {
+  const excludedKeys = ['Category Name','expenseLineId','Currency', 'Document', 'expenseLineAllocation', 'multiCurrencyDetails', 'lineItemStatus','lineItemId', '_id'];
   const includedKeys =['Total Fair','Total Fare','Total Amount',  'Subscription Cost', 'Cost', 'Premium Cost'];
   
   return (
     <>
-    <div className='flex flex-col justify-between  h-[700px] overflow-y-auto scrollbar-hide'>
+    <div className='flex flex-col justify-between  h-[710px] overflow-y-auto scrollbar-hide'>
+    <div className="w-full flex justify-between items-center h-12  px-4 border-dashed border-b-[1px] border-slate-500 py-4">
+      <p className="text-zinc-600 text-medium font-semibold font-cabin">Sr. {index + 1} </p>
+      <p className="text-zinc-600 text-medium font-semibold font-cabin capitalize">   Category -{lineItem?.['Category Name']}</p>
+    </div>  
     <div className=''>
-     <div className="py-4 px-4">
+     <div className=" px-4 py-2">
      {lineItem?.expenseLineAllocation &&
         lineItem?.expenseLineAllocation?.map((allocation, index) => (
-          <div key={index} className="min-w-[200px] min-h-[52px] py-1">
+          <div key={index} className="min-w-[200px] min-h-[52px] ">
             <div className="text-zinc-600 text-sm font-cabin capitalize">{allocation.headerName}</div>
             <div className="w-full h-12 bg-white items-center flex border border-neutral-300 rounded-md">
               <div>
@@ -1278,11 +1283,12 @@ function EditComponent({ lineItem, handleEdit ,handleDelete,isUploading,active})
           </div> 
         ))}
      </div>
-      <div className="w-full border flex flex-wrap items-start justify-between py-4 px-4 gap-y-4">
+      <div className="w-full border-dashed border-slate-500 border-b-[1px] flex flex-wrap items-start justify-between py-4 px-4 gap-y-4">
          {/* Mapping lineItemAllocation */}
         
       
-       
+    
+   
 {Object.entries(lineItem).map(([key, value]) => (
   !excludedKeys.includes(key) && (
     <React.Fragment key={key}>
@@ -1349,7 +1355,7 @@ function EditComponent({ lineItem, handleEdit ,handleDelete,isUploading,active})
 
 
 
-function  EditFormComponent ({setCurrencyTableData,active,isUploading,handleUpdateLineItem ,currencyTableData ,errorMsg,setErrorMsg, lineItem, categoryElement, handleSave,expenseLineAllocation,handleConverter ,defaultCurrency}) {
+function  EditFormComponent ({index,setCurrencyTableData,active,isUploading,handleUpdateLineItem ,currencyTableData ,errorMsg,setErrorMsg, lineItem, categoryElement, handleSave,expenseLineAllocation,handleConverter ,defaultCurrency}) {
   const [selectedFile  , setSelectedFile]=useState(null)
   const [fileSelected ,setFileSelected]= useState(false)
   const [selectedAllocations , setSelectedAllocations]=useState([])
@@ -1419,11 +1425,30 @@ const [formData, setFormData] = useState(lineItem);
       }));
     }
   };
+  console.log('selected allocation from update',selectedAllocations)
   const onAllocationSelection = (option, headerName) => {
     // Create a new allocation object
-    const newAllocation = { headerName: headerName, headerValue: option || "" };
-    setSelectedAllocations((prevAllocations) => [...prevAllocations, newAllocation]);
+    const updatedExpenseAllocation = selectedAllocations.map(item => {
+      if (item.headerName === headerName) {
+        return {
+          ...item,
+          headerValue: option
+        };
+      }
+      return item;
+    });
+    setFormData(({
+          ...formData,
+          expenseLineAllocation: updatedExpenseAllocation,
+        }))
+    setSelectedAllocations(updatedExpenseAllocation);
   };
+  // const onAllocationSelection = (option, headerName) => {
+  //   // Create a new allocation object
+   
+  //   const newAllocation = { headerName: headerName, headerValue: option || "" };
+  //   setSelectedAllocations((prevAllocations) => [...prevAllocations, newAllocation]);
+  // };
 
   // const onAllocationSelection = (option, headerName ) => {
   //   // Check if an allocation with the same headerName already exists
@@ -1460,17 +1485,27 @@ const [formData, setFormData] = useState(lineItem);
     });
   },[currencyTableData])
 
-  useEffect(()=>{
-    if(selectedAllocations.length > 0 ) {
-    setFormData(({
-      ...formData,
-      expenseLineAllocation: [...selectedAllocations],
-    }))}
+  // useEffect(()=>{
+  //   if(selectedAllocations.length > 0 ) {
+  //   setFormData(({
+  //     ...formData,
+  //     expenseLineAllocation: selectedAllocations,
+  //   }))
+  // }
 
-  },[selectedAllocations])
+  // },[selectedAllocations])
+  // useEffect(()=>{
+  //   if(selectedAllocations.length > 0 ) {
+  //   setFormData(({
+  //     ...formData,
+  //     expenseLineAllocation: selectedAllocations,
+  //   }))
+  // }
+
+  // },[selectedAllocations])
 
 
-const lineItemData= {...formData,...selectedAllocations}
+const lineItemData= {...formData}
   // const handleUpdateLineItem = () => {
   //   console.log('Selected Allocations:', selectedAllocations);
   //   console.log('Updated FormData:', formData);
@@ -1492,6 +1527,7 @@ const lineItemData= {...formData,...selectedAllocations}
     const foundDateKey = dateForms.find(key => Object.keys(lineItem).includes(key));
     const dateValue = foundDateKey ? lineItem[foundDateKey] : undefined;
     setDate({[foundDateKey]:dateValue})
+    setSelectedAllocations(lineItem?.expenseLineAllocation)
 
     
     // setTotalAmount(lineItem?.['Total Amount'] || lineItem?.['Total Fair'])
@@ -1500,13 +1536,16 @@ const lineItemData= {...formData,...selectedAllocations}
   return (
    <>
  <div className='flex flex-col lg:flex-row border '>
-  <div className='w-full lg:w-1/2 border  flex justify-center items-center px-4 py-4'>
+  <div className='w-full lg:w-1/2 border  flex justify-center items-center  '>
    <DocumentPreview selectedFile={selectedFile} initialFile={initialFile}/>
   </div>
-  <div className='w-full lg:w-1/2 border lg:h-[700px] overflow-y-auto scrollbar-hide'>     
-
-<div  className="w-full border flex flex-wrap items-start justify-between py-4 px-2">
-
+  <div className='w-full lg:w-1/2 border lg:h-[710px] overflow-y-auto scrollbar-hide'>     
+  <div className="w-full flex justify-between items-center h-12  px-4 border-dashed border-b-[1px] border-slate-500 py-4">
+      <p className="text-zinc-600 text-medium font-semibold font-cabin">Sr. {index +1} </p>
+      <p className="text-zinc-600 text-medium font-semibold font-cabin capitalize">   Category -{lineItem?.['Category Name']}</p>
+    </div> 
+<div  className="w-full border-dashed border-b-[1px] border-slate-500 flex flex-wrap items-start justify-between py-4 px-4">
+ 
   {expenseLineAllocation?.length>0 && expenseLineAllocation?.map((allItem , allIndex )=>(
    
       <div className='w-full px-2 flex justify-center py-2' key={allIndex}>
@@ -1526,7 +1565,6 @@ const lineItemData= {...formData,...selectedAllocations}
   ))} 
       {categoryElement && categoryElement.map((field) => (
         <div key={field.name} >
-       
           <Input
             title={field.name}
             placeholder={titleCase(`Enter ${field.name}`)}
@@ -1654,7 +1692,7 @@ const lineItemData= {...formData,...selectedAllocations}
 
 
     </div>
-      <div className="w-full px-2 py-4">
+      <div className="w-full px-4 py-2">
         <Button loading={isUploading}  active={active.saveLineItem} text="Update" onClick={()=>handleUpdateLineItem(lineItem, lineItemData,totalAmount,date)} />
       </div>
     </div>

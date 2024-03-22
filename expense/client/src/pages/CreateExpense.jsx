@@ -43,7 +43,7 @@ const currencyDropdown = [
   {"countryCode": "IN","fullName": "Indian Rupee","shortName": "INR","symbol": "₹"}
 ];
 const totalAmountNames = ['Total Fare','Total Amount',  'Subscription cost', 'Cost', 'Premium Cost'];
-const dateForms = ['Invoice Date', 'Date', 'Visited Date', 'Booking Date'];
+const dateForms = ['Invoice Date', 'Date', 'Visited Date', 'Booking Date',"Bill Date"];
 
 
 
@@ -54,20 +54,22 @@ export default function () {
 
  
 //if ocr data will be there
-  const ocrValues = {
-   'Invoice Date' : "2024-12-12",
-   'Flight number':" UA89765",
-   'Class of Service': 'Executive',
-   'Departure' :"Sandila",
-   'Arrival': 'Lucknow', 
-   'Airlines name': "Indira gandhi",
-   'Travelers Name' : "Arti Yadav", 
-  'Booking Reference Number': "", 
-  'Total Amount' : "5000", 
-  'Tax Amount':""
-  }
+const ocrValues = {
+  'Bill Date' : "2024-12-12",
+  
+  'Bill Number': 'RUFH76',
+  'Vendor Name' :"Pizza Hut",
+  'Description': 'for Client Meetup ', 
+  'Quantity': "5",
+  'Unit Cost' : "300", 
+ 'Tax Amount': "200", 
+ 'Total Amount':"1500"
+ 
+ }
 
-
+  const [ocrFileSelected , setOcrFileSelected]=useState(false)
+  const [ocrSelectedFile , setOcrSelectedFile]=useState(null)
+  const [ocrField , setOcrField]=useState(ocrValues)
 
   const [errorMsg,setErrorMsg] = useState({
     currencyFlag:{set:false,msg:""},
@@ -104,7 +106,7 @@ export default function () {
   const DASHBOARD_URL=`http://localhost:3000/${tenantId}/${empId}`
   const [showPopup, setShowPopup] = useState(false)
   const [message, setMessage] = useState(null)
-  
+  // const [ocrField , setOcrField]=useState(null)
   const [travelRequestStatus, setTravelRequestStatus] = useState('pending approval')
   const [isUploading , setIsUploading]=useState(false)
 
@@ -350,8 +352,6 @@ export default function () {
           headerValue: "" // Add "headerValue" and set it to an empty string
         }));
         setSelectedAllocations( initialExpenseAllocation)
-       
-
       }
     }
     //   if(['level3'].includes(travelAllocationFlag)){
@@ -414,7 +414,7 @@ export default function () {
         console.log('categoryFieds',categoryFields1)
         setCategoryFieldBySelect(categoryFields1)
         
-        const initialFormValues =selectedCategory &&  Object.fromEntries(categoryFields1.map((field)=>[field.name , ocrValues?.[field.name] || '']))
+        const initialFormValues =selectedCategory &&  Object.fromEntries(categoryFields1.map((field)=>[field.name , ocrField?.[field.name] || '']))
         console.log('initial value',{...initialFormValues})
         setLineItemDetails({...initialFormValues})
         //level1 for set values
@@ -1132,9 +1132,6 @@ const handleModifyLineItem = () => {
   console.log('save line item', dataWithCompanyDetails)
 };
 
-const [ocrFileSelected , setOcrFileSelected]=useState(false)
-const [ocrSelectedFile , setOcrSelectedFile]=useState(null)
-const [ocrField , setOcrField]=useState(null)
 
 
 
@@ -1148,38 +1145,37 @@ const handleOcrScan = async () => {
 
   console.log('ocrfile from handle',ocrData)
 
-  try {
-    setIsUploading(prevState =>({...prevState, scan: true}));
-
-    // Assuming ocrScanApi is an asynchronous function
-    const response = await ocrScanApi(ocrData);
-
-    // if (response.error) {
-    //   setLoadingErrMsg(response.error.message);
-    //   setCurrencyTableData(null);
-    // } else {
-    //   setLoadingErrMsg(null);
-    //   setOcrField(response.data);
-
-    //   if (!currencyTableData.currencyFlag) {
-    //     setErrorMsg((prevErrors) => ({
-    //       ...prevErrors,
-    //       currencyFlag: { set: true, msg: 'OCR failed, Please try again' },
-    //     }));
-    //     console.log('Currency is not found in onboarding');
-    //   }
-    // }
-    setIsUploading(prevState =>({...prevState, scan: false}));
-  } catch (error) {
-    setIsUploading(prevState =>({...prevState, scan: false}));
-    setLoadingErrMsg(error.message);
-    setMessage(error.message);
-    setShowPopup(true);
-
+     setIsUploading(prevState =>({...prevState, scan: true}));
+    
     setTimeout(() => {
-      setShowPopup(false);
-    }, 3000);
-  } 
+      setFormVisible(true) ;setOpenModal(null); setShowPopup(false);setIsUploading(prevState =>({...prevState, scan: false}));
+    }, 5000);
+  // try {
+  //   setIsUploading(prevState =>({...prevState, scan: true}));
+
+  //  // Assuming ocrScanApi is an asynchronous function
+  //   const response = await ocrScanApi(ocrData); important 
+
+   
+
+    
+
+  //   setIsUploading(prevState =>({...prevState, scan: false}));
+    
+  //   setTimeout(() => {
+  //     setFormVisible(true) ;setOpenModal(null); setShowPopup(false);
+  //   }, 3000);
+    
+  // } catch (error) {
+  //   setIsUploading(prevState =>({...prevState, scan: false}));
+  //   setLoadingErrMsg(error.message);
+  //   setMessage(error.message);
+  //   setShowPopup(true);
+
+  //   setTimeout(() => {
+  //     setShowPopup(false);
+  //   }, 3000);
+  // } 
 };
 
 /////////-------------------google search start---------------------
@@ -1354,19 +1350,19 @@ console.log('categoryfields by selected', categoryFieldBySelect)
        <React.Fragment key={index} >
         <div className="mb-4">
           <div
-            className="flex w-full justify-between items-center bg-gray-200 py-2 px-4 cursor-pointer"
+            className="flex w-full justify-between items-center bg-indigo-50 py-2 px-6 border-[1px] rounded-xl border-indigo-600 cursor-pointer"
             onClick={() => handleItemClick(index)}
           >
            
            
-<div className="max-w-full overflow-hidden whitespace-nowrap">
-  <p className="overflow-hidden text-ellipsis">
+<div className="max-w-full overflow-hidden whitespace-nowrap text-indigo-600 ">
+  <p className="overflow-hidden text-ellipsis ">
     {`Header Report Number : ${item?.expenseHeaderNumber ?? 'N/a'}`}
   </p>
 </div>
 
-            <div className="flex gap-4 items-center  ">
-              <div className={`${getStatusClass(item?.expenseHeaderStatus)} rounded-xl px-4 py-1 text-sm capitalize font-medium font-cabin`}><p>{item?.expenseHeaderStatus}</p></div>
+            <div className="flex gap-4 items-center  text-indigo-600">
+              <div className={`${getStatusClass(item?.expenseHeaderStatus)} rounded-xl px-4 py-2 text-sm capitalize font-medium font-cabin`}><p>{item?.expenseHeaderStatus}</p></div>
             <div >{activeIndex === index ? '▲' : '▼'}</div>
             </div>
           
@@ -1551,8 +1547,8 @@ handleDeleteLineItem={handleDeleteLineItem}/>
 </div>
 <div className="border w-full lg:w-1/2 lg:h-[710px] overflow-y-auto scrollbar-hide">
 <div className="w-full flex items-center justify-start h-[52px] border-b-[1px] px-4 ">
-      <p className="text-zinc-600 text-medium font-semibold font-cabin capitalize">   Category -{selectedCategory}</p>
-    </div>
+  <p className="text-zinc-600 text-medium font-semibold font-cabin capitalize">   Category -{selectedCategory}</p>
+</div>
     <>
     
 <div className=" w-full flex-wrap flex flex-col justify-center items-center p-2">
@@ -1820,7 +1816,7 @@ handleDeleteLineItem={handleDeleteLineItem}/>
                         )}
                         </div>
 
-                         <Button loading={isUploading.scan} active={isUploading.scan} variant='fit' text='Scan' onClick={handleOcrScan} disabled={selectedCategory== null ? true : false}/>
+                         <Button loading={isUploading?.scan} active={isUploading?.scan} variant='fit' text='Scan' onClick={handleOcrScan} disabled={selectedCategory== null ? true : false}/>
                       </div>:
                       <>
                        <p className="text-xl font-cabin">Upload the document for scan the fields.</p>
@@ -1849,9 +1845,6 @@ handleDeleteLineItem={handleDeleteLineItem}/>
         <div>
 
         </div>
-        
-        
-        
         </div>
       }
 
@@ -2185,7 +2178,7 @@ function EditView({expenseHeaderStatus,isUploading,active,flagToOpen,expenseHead
   <DocumentPreview initialFile={lineItem.Document}/>
 </div>
 <div className="border w-full lg:w-1/2 flex justify-between flex-col h-[710px] overflow-y-auto scrollbar-hide">
-    <div className="w-full flex-row  border ">
+    <div className="w-full flex-row  border  ">
      
      <div className="w-full flex justify-between items-center h-12  px-4 ">
       <p className="text-zinc-600 text-medium font-semibold font-cabin">Sr. {index+1} </p>
@@ -2211,7 +2204,7 @@ function EditView({expenseHeaderStatus,isUploading,active,flagToOpen,expenseHead
     <div key={index} className="w-full  border flex flex-wrap items-start gap-y-8  justify-between py-4 px-4">
         {Object.entries(lineItem).map(([key, value]) => (
 
-     !excludedKeys.includes(key) && value !=="" && value !== null && value !== 0 &&(
+     !excludedKeys.includes(key)  && value !== null && value !== 0 &&(
 
   <React.Fragment key={key}>
    {key !== 'convertedAmountDetails'&& 
