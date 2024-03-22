@@ -199,7 +199,7 @@ const CashAdvance = () => {
                 {/* <div key={index} className=" absolute flex flex-row top-5 w-[907] h-14 mt-5 border-b border-black"> */}
 
                 <div className="bg-white flex flex-row font-cabin items-start justify-center border-b-[1px] border-solid border-gray-100">
-<div className="w-[140px] h-14 py-5 px-3  shrink-0 text-gray-A300">
+<div className="w-[140px] h-14 py-5 px-3  shrink-0 text-neutral-800">
   <div className="text-[14px] tracking-[0.03em] leading-normal truncate font-medium">
   {details.trip}
   </div>
@@ -208,23 +208,23 @@ const CashAdvance = () => {
 
 
   <div className="w-[140px] h-14 py-5 px-3">
-  <div className="text-[14px] w-[130px] truncate tracking-[0.03em] leading-normal text-gray-A300 font-medium">
+  <div className="text-[14px] w-[130px] truncate tracking-[0.03em] leading-normal text-neutral-800 font-medium">
      {details.createdFor[0].name}
   </div>
     
   </div>
   <div className="flex flex-row gap-1 w-[240px] h-14 py-5 px-3">
   <img src={calender} alt="calendar" className="w-[16px]" />
-<div className=" tracking-[0.03em] leading-normal text-gray-A300 text-[14px] font-medium">
+<div className=" tracking-[0.03em] leading-normal text-neutral-800 text-[14px] font-medium">
 20-Sep-2023 to 22-Sep-2023
 </div>
 
 </div>
   <div className="w-[95px] h-14 py-5 px-3 ">
-    <div className="tracking-[0.03em] leading-normal text-gray-A300 font-medium">{details.amount}</div>
+    <div className="tracking-[0.03em] leading-normal text-neutral-800 font-medium">{details.amount}</div>
   </div>
   <div className="w-[100px] h-14 py-5 px-2 flex ">               
-                <div className="tracking-[0.03em] w-[80px] leading-normal text-gray-A300 font-medium text[14px]">
+                <div className="tracking-[0.03em] w-[80px] leading-normal text-neutral-800 font-medium text[14px]">
                 { details.mode.length > 0 ? (titleCase(details.mode )) : "----" } 
                 </div>
               </div>

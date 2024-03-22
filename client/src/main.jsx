@@ -1,13 +1,19 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
+import {BrowserRouter} from 'react-router-dom';
+import { DataProvider } from './api/DataProvider';
 import App from './App.jsx'
 import './index.css'
-import { Dashboard } from './api/dashboardContext.jsx'
+
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <Dashboard>
+    
+    <DataProvider>
+   
     <App />
-    </Dashboard>
+    
+    </DataProvider>
+   
   </React.StrictMode>,
 )

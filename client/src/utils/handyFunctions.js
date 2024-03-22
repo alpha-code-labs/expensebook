@@ -8,9 +8,10 @@ function titleCase(str){
    str = str.filter(word=>word!=undefined)
     str= str.map(word=>word.replace(word[0],word[0].toUpperCase()))
     return str.join(' ')
-}
+  }
 
-function formatDate(date=Date.now()) {
+  
+function formatDate(date=Date.now()){
     // Get the current timestamp
     const currentTimestamp = date
 
@@ -105,29 +106,91 @@ function formatDate(date=Date.now()) {
     return finalFormattedDate;
   }
   
-
-  function formatDate3(inputDate){
-
-  }
-  
-  
   function getStatusClass(status){
     switch(status){
       case "approved":
+        case "completed":
+        case "booked":
         return 'bg-green-100 text-green-200';
       case "rejected":
       case "cancelled":  
+      case "paid and cancelled":  
         return 'bg-red-100 text-red-900';
       case "pending settlement":
       case "pending approval": 
+      case "pending booking": 
       case "pending": 
+      case "transit":
+      case "draft":
         return 'bg-yellow-100 text-yellow-200';
       default:
         return " ";  
 
     }
   }  
+
+  function formatAmount(number) {
+    return number.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+  function formatDate3(inputDate) {
+    
+    const datePattern = /^\d{4}-\d{2}-\d{2}$/;
+    if(!datePattern.test(inputDate)){
+      return
+    }
+
+    const monthNames = [
+      "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+    ];
+  
+    let [year, month, day] = inputDate.split('-')
+    if(day<10) day=day%10
+    const dayWithSuffix = addOrdinalIndicator(day);
+    month = monthNames[month-1]
+
+    return dayWithSuffix + ' ' + month;
+  }
+
+  function getCashAdvanceButtonText(departureDateStr) {
+    // Convert the departure date to a JavaScript Date object
+    const departureDate = new Date(departureDateStr);
+  
+    // Get today's date
+    const today = new Date();
+  
+    // Calculate the difference in days between today and the departure date
+    const daysUntilDeparture = Math.floor((today - departureDate  ) / (1000 * 60 * 60 * 24));
+  
+    // Determine the button text based on conditions
+    if (daysUntilDeparture <= 10) {
+      return 'Raise Priority Cash Advance';
+    } else {
+      return 'Raise Cash Advance';
+    }
+  }
+
+  function urlRedirection(url){
+    window.location.href=(url)
+  }
+
+
+  function filterTravelRequests(travelRequests) {
+    let map = new Map();
+
+    travelRequests.forEach(request => {
+        const { travelRequestId, isCashAdvanceTaken } = request;
+        if (isCashAdvanceTaken || !map.has(travelRequestId)) {
+            map.set(travelRequestId, request);
+        }
+    });
+
+    return Array.from(map.values());
+}
+
+ 
   
 
-export {titleCase, formatDate, formatDate2 ,getStatusClass}  
+export {titleCase, formatDate, filterTravelRequests,formatDate2 ,getStatusClass ,addOrdinalIndicator ,formatDate3 ,getCashAdvanceButtonText,urlRedirection,formatAmount}  
 

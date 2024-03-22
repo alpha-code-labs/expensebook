@@ -205,26 +205,26 @@ const searchByName = TrExpense.filter((expense) => {
         <>
           <div className="flex flex-col items-center justify-start " key={index}>
             <div className="bg-white w-[890px] flex flex-row font-cabin items-start justify-center border-b-[1px] border-solid border-gray-100 ">
-              <div className="w-[120px] h-14 py-5 px-3 shrink-0 text-gray-A300 flex items-start">
+              <div className="w-[120px] h-14 py-5 px-3 shrink-0 text-neutral-800 flex items-start">
                 <div className="text-[14px] tracking-[0.03em] leading-normal truncate font-medium">
                   {tr.createdFor[0].name}
                 </div>
               </div>
               <div className="w-[140px] h-14 py-5 ">
-                <div className="text-[14px] w-[130px] truncate tracking-[0.03em] leading-normal text-gray-A300 font-medium px-2">
+                <div className="text-[14px] w-[130px] truncate tracking-[0.03em] leading-normal text-neutral-800 font-medium px-2">
                   {tr.trip}
                 </div>
               </div>
               <div className="flex flex-row gap-1 w-[240px] py-5 h-14 ">
                 <img src={calender} alt="calendar" className="w-[16px]" />
-                <div className="tracking-[0.03em]  leading-normal text-gray-A300 text-[14px] font-medium">
+                <div className="tracking-[0.03em]  leading-normal text-neutral-800 text-[14px] font-medium">
                   {tr.date}
                 </div>
               </div>
 
 
 <div className="w-[120px] h-14 py-5 px-3">
-  <div className="tracking-[0.03em] leading-normal text-gray-A300 font-medium flex flex-1 flex-row justify-center items-center" style={{ whiteSpace: 'nowrap' }}>
+  <div className="tracking-[0.03em] leading-normal text-neutral-800 font-medium flex flex-1 flex-row justify-center items-center" style={{ whiteSpace: 'nowrap' }}>
     <div className="">{tr.from}</div>
     <img className="w-4 h-4 overflow-hidden shrink-0" alt="" src={double_arrow} />
     <div className="">{tr.to}</div>
@@ -232,7 +232,7 @@ const searchByName = TrExpense.filter((expense) => {
 </div>
 
               <div className={`w-[100px] h-14 py-5 px-2 flex `}>
-                <div className="tracking-[0.03em] w-[80px] leading-normal text-gray-A300 font-medium text[14px]">
+                <div className="tracking-[0.03em] w-[80px] leading-normal text-neutral-800 font-medium text[14px]">
                 {tr.mode.length>0 ? (titleCase(tr.mode )) : "---"} 
                 </div>
               </div>

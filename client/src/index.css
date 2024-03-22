@@ -22,14 +22,17 @@ body {
 ::-webkit-scrollbar-track {
   background: #f1f1f1;
 }
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
 
 /* Handle */
 ::-webkit-scrollbar-thumb {
-  background: #888;
+  background: #d9dadb;
   border-radius: 5px;
 }
 
 /* Handle on hover */
 ::-webkit-scrollbar-thumb:hover {
-  background: #555;
+  background: #f1f1f1;
 }

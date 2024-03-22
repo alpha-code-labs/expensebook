@@ -73,12 +73,12 @@ const NonTravelExpense = ({filterExpenseDataByStatus ,getStatusClass ,expenseSta
                  <>
                 <div className="flex flex-col items-center justify-center" key={index}>
                 <div className="bg-white flex flex-row items-start justify-center border-b-[1px] border-solid border-gray-100">
-                  <div className="relative w-[140px] h-14  shrink-0 text-gray-A300">
+                  <div className="relative w-[140px] h-14  shrink-0 text-neutral-800">
                     <div className="absolute top-[calc(50%_-_9px)] w-[150px] left-[calc(50%_-_42px)] tracking-[0.03em] font-medium truncate">
                       {expenseDetails.purpose}
                     </div>
                   </div>
-                  <div className="relative w-[140px] h-[56px]  shrink-0 text-gray-A300">
+                  <div className="relative w-[140px] h-[56px]  shrink-0 text-neutral-800">
                     <div className="absolute top-[calc(50%_-_7px)] left-[calc(50%_-_15px)]">
                       {expenseDetails.createdFor[0].name}
                     </div>
@@ -135,7 +135,7 @@ const NonTravelExpense = ({filterExpenseDataByStatus ,getStatusClass ,expenseSta
     placeholder="Search by Employee"
   />
 </div>
-<div className="flex  flex-row items-center justify-start gap-[8px] text-left text-gray-A300">
+<div className="flex  flex-row items-center justify-start gap-[8px] text-left text-neutral-800">
               <div className="relative font-medium">Select Month</div>
               <div className="relative w-[133px] h-8 text-sm text-black">
                 <div className="absolute top-[-5px] left-[0px] rounded-md bg-white box-border w-[93px] h-8">
@@ -153,7 +153,7 @@ const NonTravelExpense = ({filterExpenseDataByStatus ,getStatusClass ,expenseSta
               </div>
             </div>
 
-            <div className="flex flex-row items-center justify-start gap-[8px] text-left text-gray-A300">
+            <div className="flex flex-row items-center justify-start gap-[8px] text-left text-neutral-800">
               <div className="relative font-medium">Select Month</div>
               <div className="relative w-[133px] h-8 text-sm text-black">
                 <div className="absolute top-[-5px] left-[0px] rounded-md bg-white box-border w-[93px] h-8">
@@ -260,12 +260,12 @@ export default NonTravelExpense
 //                  <>
 //                 <div className="flex flex-col items-center justify-center" key={index}>
 //                 <div className="bg-white flex flex-row items-start justify-center border-b-[1px] border-solid border-gray-100">
-//                   <div className="relative w-[140px] h-14  shrink-0 text-gray-A300">
+//                   <div className="relative w-[140px] h-14  shrink-0 text-neutral-800">
 //                     <div className="absolute top-[calc(50%_-_9px)] w-[150px] left-[calc(50%_-_42px)] tracking-[0.03em] font-medium truncate">
 //                       {expenseDetails.purpose}
 //                     </div>
 //                   </div>
-//                   <div className="relative w-[140px] h-[56px]  shrink-0 text-gray-A300">
+//                   <div className="relative w-[140px] h-[56px]  shrink-0 text-neutral-800">
 //                     <div className="absolute top-[calc(50%_-_7px)] left-[calc(50%_-_15px)]">
 //                       {expenseDetails.createdFor[0].name}
 //                     </div>

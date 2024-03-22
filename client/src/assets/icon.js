@@ -11,14 +11,23 @@ export {default as cancel_round} from './cancel-dot.svg';
 export {default as cancel} from './x.svg';
 export {default as airplane} from './Airplane.svg';
 export {default as airplane_1} from './Airplane_1.svg';
+export {default as airplane_icon1} from './Airplane_1 copy.svg';
 export {default as double_arrow} from './double-arrow.svg';
 export {default as calender} from './calender.svg';
 export {default as location} from './location.svg';
 export {default as cab} from './cab.svg';
+export {default as bus} from './bus.png';
 export {default as briefcase} from './briefcase.svg';
 export {default as receipt} from './receipt.svg';
+export {default as receipt_icon1} from './receipt copy.svg';
+export {default as setting_icon} from './icons8-settings.svg';
+export {default as setting_icon1} from './icons8-settings copy.svg';
 export {default as money} from './money.svg';
+export {default as money1} from './money copy.svg';
 export {default as house_simple} from './house-simple.svg';
+export {default as logout_icon} from './SignOut.png';
+export {default as house_simple_1} from './house-simple copy.svg';
+export {default as train} from './train.png';
 export {default as intransit_trip} from './intransit-trip.svg';
 export {default as upcoming_trip} from './upcoming-trip.svg';
 export {default as all_trips} from './all-trips.svg';
@@ -31,5 +40,21 @@ export {default as validation_sym} from './validation-sym.svg';
 export {default as three_dot} from './three-dot.png';
 export {default as down_left_arrow} from './down-left-arrow.svg';
 export {default as modify} from './modify.svg'
+export {default as check_tick} from './check-tick.svg'
+export {default as app_icon} from './app_icon.svg';
+export {default as app_symbol} from './app_symbol.svg';
+export {default as spinner_icon} from './spinner.gif';
+export {default as profile_bg} from './profile-bg.png';
+export {default as cab_purple} from './cab-purple.svg';
+export {default as mail_icon} from './mail.svg';
+export {default as location_pin} from './location-pin.svg';
+
+export {default as loading} from './loading.svg';
+export {default as businessAdmin_icon} from './business-admin.png';
+export {default as businessAdmin1_icon} from './businessAdmin1.png';
+export {default as company_icon} from './icons8-company-100.png';
+export {default as approval_icon} from './icons8-pass-fail-100.png';
+export {default as approval_w_icon} from './icons8-pass-fail-100 (1).png';
+export {default as briefcaseMap} from './breifcase4.png'
 
 

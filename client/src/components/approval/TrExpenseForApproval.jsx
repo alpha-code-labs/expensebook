@@ -19,7 +19,7 @@ const TrExpenseForApproval = ({trId ,travelName ,from , to,departureDate, return
       <div className='pl-2 md:pl-0'>
       <img src={calender} alt="calendar" className="w-[16px]"/>
       </div>
-      <div className=" tracking-[0.03em] leading-normal text-gray-A300 text-[12px]  w-[100px]">
+      <div className=" tracking-[0.03em] leading-normal text-neutral-800 text-[12px]  w-[100px]">
       
         {departureDate}
       </div>
@@ -28,13 +28,13 @@ const TrExpenseForApproval = ({trId ,travelName ,from , to,departureDate, return
     <div className="flex w-[200px] lg:w-[120px] md:w-auto md:min-w-[100px] h-auto md:h-[52px] items-center justify-start    py-0 md:py-3 px-2 order-1 gap-2">
     {/* <div className="flex w-auto lg:w-[120px] min-w-[100px]    lg:min-w-[100px]  h-auto md:h-[52px] items-center justify-start    py-0 md:py-3 px-2 order-1 gap-2"> */}
      
-     <div className=" text-[16px] md:text-[12px] text-left font-medium tracking-[0.03em] leading-normal text-gray-A300 font-cabin  md:w-[150px] w-[200px] md:truncate  truncate ">
+     <div className=" text-[16px] md:text-[12px] text-left font-medium tracking-[0.03em] leading-normal text-neutral-800 font-cabin  md:w-[150px] w-[200px] md:truncate  truncate ">
       {employeeName}
      </div>
     </div> 
 {/* Trip Title */}
     <div className="flex h-[52px]  items-center justify-start md:w-[190px]  xl:w-[200px] lg:[100px] py-0 md:py-3 px-2 order-1 gap-2">
-      <div className=" md:text-[14px] w-auto    xl:w-auto lg:w-[100px] md:w-[170px] md:min-w-[180px] text-[16px] text-left font-medium tracking-[0.03em] leading-normal text-gray-A300 font-cabin lg:truncate md:truncate  ">
+      <div className=" md:text-[14px] w-auto    xl:w-auto lg:w-[100px] md:w-[170px] md:min-w-[180px] text-[16px] text-left font-medium tracking-[0.03em] leading-normal text-neutral-800 font-cabin lg:truncate md:truncate  ">
        {travelName}
       </div>
     </div> 
@@ -44,7 +44,7 @@ const TrExpenseForApproval = ({trId ,travelName ,from , to,departureDate, return
       <div className='pl-2 md:pl-0'>
       <img src={calender} alt="calendar" className="w-[16px]"/>
       </div>
-      <div className=" tracking-[0.03em] leading-normal text-gray-A300 text-[12px]">
+      <div className=" tracking-[0.03em] leading-normal text-neutral-800 text-[12px]">
       
         {departureDate} to {returnDate}
       </div>
@@ -52,7 +52,7 @@ const TrExpenseForApproval = ({trId ,travelName ,from , to,departureDate, return
 
 {/* Origin and Destination */}
     <div className="flex w-auto flex-col justify-center items-start lg:items-center min-w-[130px] h-auto md:h-[52px]  py-0 md:py-3 px-2 order-2 md:order-3">
-      <div className="flex w-[130px] xl:w-auto xl:min-w-[130px] text-xs text-gray-A300 font-medium truncate">
+      <div className="flex w-[130px] xl:w-auto xl:min-w-[130px] text-xs text-neutral-800 font-medium truncate">
         <div>{to}</div>
         <img src={double_arrow} alt="double arrow"/>
         <div>{from}</div>
@@ -114,13 +114,13 @@ export default TrExpenseForApproval
 // {/* Trip Id */}
 //     <div className="flex w-auto lg:w-[80px] h-auto md:h-[52px] items-center justify-start min-w-[60px]   py-0 md:py-3 px-2 order-1 gap-2">
      
-//      <div className=" text-[16px] md:text-[12px] text-left font-medium tracking-[0.03em] leading-normal text-gray-A300 font-cabin lg:truncate">
+//      <div className=" text-[16px] md:text-[12px] text-left font-medium tracking-[0.03em] leading-normal text-neutral-800 font-cabin lg:truncate">
 //       #{travelDetails.trId}
 //      </div>
 //     </div> 
 // {/* Trip Title */}
 //     <div className="flex h-[52px]  items-center justify-start [210px]  xl:w-[200px] lg:[100px] py-0 md:py-3 px-2 order-1 gap-2">
-//       <div className=" md:text-[14px] w-auto    xl:w-auto lg:w-[100px] md:w-[200px] text-[16px] text-left font-medium tracking-[0.03em] leading-normal text-gray-A300 font-cabin lg:truncate md:truncate  ">
+//       <div className=" md:text-[14px] w-auto    xl:w-auto lg:w-[100px] md:w-[200px] text-[16px] text-left font-medium tracking-[0.03em] leading-normal text-neutral-800 font-cabin lg:truncate md:truncate  ">
 //        {travelDetails.travelName}
 //       </div>
 //     </div> 
@@ -130,7 +130,7 @@ export default TrExpenseForApproval
 //       <div className='pl-2 md:pl-0'>
 //       <img src={calender} alt="calendar" className="w-[16px]"/>
 //       </div>
-//       <div className=" tracking-[0.03em] leading-normal text-gray-A300 text-[12px]">
+//       <div className=" tracking-[0.03em] leading-normal text-neutral-800 text-[12px]">
       
 //         {travelDetails.departureDate} to {travelDetails.returnDate}
 //       </div>
@@ -138,7 +138,7 @@ export default TrExpenseForApproval
 
 // {/* Origin and Destination */}
 //     <div className="flex w-auto flex-col justify-center items-start lg:items-center min-w-[130px] h-auto md:h-[52px]  py-0 md:py-3 px-2 order-2 lg:order-3">
-//       <div className="flex w-[130px] xl:w-auto xl:min-w-[130px] text-xs text-gray-A300 font-medium truncate">
+//       <div className="flex w-[130px] xl:w-auto xl:min-w-[130px] text-xs text-neutral-800 font-medium truncate">
 //         <div>{travelDetails.to}</div>
 //         <img src={double_arrow} alt="double arrow"/>
 //         <div>{travelDetails.from}</div>

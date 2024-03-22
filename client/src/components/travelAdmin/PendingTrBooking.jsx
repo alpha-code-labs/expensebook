@@ -1,115 +1,133 @@
-import React from 'react';
-import { getStatusClass ,titleCase } from '../../utils/handyFunctions';
-import {  calender, double_arrow } from '../../assets/icon'
-const PendingTrBooking = ({trId ,travelName ,from , to,departureDate, returnDate,status,employeeName}) => {
-  return (
-    <div>
-{/* <div className='h-[360px] overflow-y-auto overflow-x-hidden mt-6'>
-            {tripArray.map((travelDetails ,index)=>( */}
-              <>
-            {/* <div className="box w-auto max-w-[896px] h-auto  mx-2 sm:mx-4 mb-2  font-cabin"> */}
+import React ,{useEffect, useState}from 'react';
+import { getStatusClass , urlRedirection } from '../../utils/handyFunctions';
+import {  calender, cancel, double_arrow, loading } from '../../assets/icon'
+import { useNavigate, useParams } from 'react-router-dom';
+
+import axios from 'axios'
+import { assignBusinessAdmin_API } from '../../utils/api';
+
+
+
+const PendingTrBooking = ({department,trId,tripPurpose ,travelName,travelRequestId,travelRequestNumber,travelRequestStatus  ,employeeRole,isCashAdvanceTaken,assignedTo ,handleTravel}) => {
+const [isUploading, setIsUploading]=useState(
+  {set:false, id:null}
+)
+  const {tenantId}= useParams()
+  console.log('admin111',employeeRole)
+  const assignTo = {
+    empId: employeeRole?.empId,
+    name: employeeRole?.name,
+  };
+ 
+ const assignTo1={
+          empId:null,
+          name: null
+         }
+
+  const [isChecked, setIsChecked] = useState(false);
+  const [assignedEmployeeName, setAssignedEmployeeName] = useState(null);
+
+  useEffect(()=>{
+    if(assignedTo?.empId===employeeRole?.empId){
+      setIsChecked(true);
+      setAssignedEmployeeName(assignedTo?.name)
+    }
+  },[])
+
+  const handleCheckboxChange = async (assignedTo) => {   
+    const data = {
+      isCashAdvanceTaken,
+      assignedTo
+    }
    
-  {/* <div className='w-auto max-w-[932px]  rounded-md'> */}
-    <div className="flex  flex-row   w-auto max-w-[900px] items-center  bg-white-100 h-auto max-h-[200px] lg:h-[52px] md:justify-around justify-between    border-b-[1px] mx-4 m-2   border-b-gray">    
-    {/* <div className='flex  flex-row w-auto  gap-2'> */}
-    <div className='flex  flex-col md:flex-row gap-0 lg:gap-2'>
+    // if (isChecked) {
+    //   setIsChecked(false);
+    //   setAssignedEmployeeName(null);
+    // }
+
     
-    <div className="flex w-auto  h-auto md:h-[52px] items-center justify-start    py-0 md:py-3 px-2  gap-2">
-    {/* <div className="flex w-[200px] lg:w-[120px] md:w-auto md:min-w-[100px] h-auto md:h-[52px] items-center justify-start    py-0 md:py-3 px-2  gap-2"> */}
-    {/* <div className="flex w-auto lg:w-[120px] min-w-[100px]    lg:min-w-[100px]  h-auto md:h-[52px] items-center justify-start    py-0 md:py-3 px-2 order-1 gap-2"> */}
-     
-     {/* <div className=" text-[16px] md:text-[12px] text-left font-medium tracking-[0.03em] leading-normal text-gray-A300 font-cabin  md:w-[150px] w-[200px] md:truncate  truncate ">
-      {employeeName}
-     </div> */}
-     <input type='checkbox'/>
-    </div> 
-
-    {/* date  */}
-    <div className="flex gap-1 max-w-[120px]  h-auto md:h-[52px]    w-auto   items-center justify-start py-0 pt-3  md:py-3 px-2 ">
-      <div className=''>
-      <img src={calender} alt="calendar" className="w-[16px]"/>
-      </div>
-      <div className=" tracking-[0.03em] leading-normal text-gray-A300 text-[12px]  w-[100px]">
+    console.log('assignTo',assignTo)
+    
+   
       
-        {departureDate}
-      </div>
-    </div>
-
-    <div className="flex w-[200px] lg:w-[120px] md:w-auto md:min-w-[100px] h-[52px] items-center justify-start    py-0 md:py-3 px-2 order-1 gap-2">
-    {/* <div className="flex w-auto lg:w-[120px] min-w-[100px]    lg:min-w-[100px]  h-auto md:h-[52px] items-center justify-start    py-0 md:py-3 px-2 order-1 gap-2"> */}
-     
-     <div className=" text-[16px] md:text-[12px] text-left font-medium tracking-[0.03em] leading-normal text-gray-A300 font-cabin  md:w-[150px] w-[200px] md:truncate   ">
-      {employeeName}
-     </div>
-    </div> 
-{/* Trip Title */}
-    {/* <div className="flex h-[52px]  items-center justify-start md:w-[190px]  xl:w-[200px] lg:[100px] py-0 md:py-3 px-2 order-1 gap-2">
-      <div className=" md:text-[14px] w-auto    xl:w-auto lg:w-[100px] md:w-[170px] md:min-w-[180px] text-[16px] text-left font-medium tracking-[0.03em] leading-normal text-gray-A300 font-cabin lg:truncate md:truncate  ">
-       {travelName}
-      </div>
-    </div>  */}
-
-{/* Date */}
-    <div className="flex   h-[52px] w-auto min-w-[140px] max-w-[240px]  items-center justify-start py-0 md:py-3 gap-1 px-0 lg:px-2 order-3 lg:order-2">
-    {/* <div className="flex   h-[52px] min-w-[120px] w-auto xl:w-[150px]  xl:min-w-[210px]  items-center justify-start py-0 md:py-3 gap-1 px-0 lg:px-2 order-3 lg:order-2"> */}
-      <div className='pl-2 md:pl-0'>
-      <img src={calender} alt="calendar" className="w-[16px]"/>
-      </div>
-      <div className=" tracking-[0.03em] leading-normal text-gray-A300 text-[12px]">
+      try {
+        setIsUploading(prevState => ({...prevState, set:true, id:travelRequestId}))
+       
+        const response = await assignBusinessAdmin_API(tenantId,travelRequestId,data) 
+        setIsChecked(true);
+        setAssignedEmployeeName(employeeRole?.name);
+        console.log('admin response',response)
+        setIsUploading(prevState => ({...prevState, set:false, id:null}))
+        if (isChecked) {
+          setIsChecked(false);
+          setAssignedEmployeeName(null);
+        }
+    
+      } catch (error) { 
+        console.error('Error fetching data:', error.message);
+        setIsUploading(prevState => ({...prevState, set:false, id:null}))
+      }
       
-        {departureDate} to {returnDate}
-      </div>
-    </div>
+    
+  };
 
-{/* Origin and Destination */}
-    <div className="flex w-auto flex-col justify-center md:items-center lg:items-center min-w-[130px] h-auto md:h-[52px]  py-0 md:py-3 px-2 order-2 md:order-3">
-      <div className="flex w-[130px] xl:w-auto xl:min-w-[130px] text-xs text-gray-A300 font-medium truncate">
-        <div>{to}</div>
-        <img src={double_arrow} alt="double arrow"/>
-        <div>{from}</div>
-      </div>
-    </div>
-    </div>
- <div className='flex   items-end md:items-center justify-around    flex-col-reverse md:flex-row gap-2'>
- {/* Status */}
 
- {/* <div className="flex  h-[52px] px-2 py-3 items-center justify-center  w-[100px]">
   
-  <div className={`flex text-center px-2 justify-center  pt-[6px] w-[100px] pb-2 py-3 rounded-[12px] text-[14px]  truncate font-medium tracking-[0.03em] ${
-     getStatusClass(status)
-    }`}
-  >
-    {titleCase(status)}
+  return (
+    <div className="flex flex-row items-center justify-center px-2  h-auto  lg:min-h-[56px] rounded-xl border-[1px] border-b-gray">
+    <div className="flex flex-1 h-[52px] items-center ">
+   
+     <div className="rounded-[32px]  h-[52px] flex flex-row items-center justify-center  cursor-pointer">
+  {isChecked ? (
+    <>
+    <div className='flex items-center justify-center flex-row bg-indigo-500 px-2 py-1  rounded-sm'>
+      <p className='text-sm font-cabin text-white-100'>
+    {assignedEmployeeName}
+    </p>
+    {(isUploading?.set && isUploading?.id == travelRequestId) ? 
+    <img src={loading} className='w-5 h-5 animate-spin'/> : 
+    <img onClick={()=>handleCheckboxChange(assignTo1)} src={cancel} alt='cancel' className='w-5 h-5' />}
+   
+    </div>
+    </>
+  ) : (
+    assignedTo?.empId===employeeRole?.employeeDetails?.empId || assignedTo?.empId===null ? <div className="font-bold text-[14px]  min-w-[72px] truncate w-auto max-w-[140px]   lg:truncate   h-[17px] text-purple-500 text-center">
     
-  </div>
-
-</div> */}
- {/* View Details */}
-<div className="rounded-[32px] box-border w-[140px]  h-[52px] flex flex-row items-center justify-center  cursor-pointer ">
-      <div className="font-bold text-[14px]  min-w-[72px] truncate w-auto max-w-[140px]   lg:truncate   h-[17px] text-purple-500 text-center">
-        View Details
-        </div>
+    <input type="checkbox" onClick={()=>handleCheckboxChange(assignTo)} checked={isChecked} />
+    </div> :  assignedTo?.name  
+  )}
 </div>
 
+    </div> 
 
-
+<div className='flex-1 '>
+      <p className='font-cabin font-normal  text-xs text-neutral-400'>Travel Request No.</p>
+       <p className='lg:text-[14px] text-[16px] text-left font-medium tracking-[0.03em] text-neutral-800 font-cabin lg:truncate '>{travelRequestNumber}</p>
+</div>
   
+      <div className="flex-1  ">
+      <div>
+        <p className='font-cabin font-normal text-xs text-neutral-400'>Trip Purpose</p>
+        <p className='lg:text-[14px] text-[16px] text-left font-medium  tracking-[0.03em] text-neutral-800 font-cabin lg:truncate '> {tripPurpose}</p>
+      </div>
+    </div> 
+{/* Trip Title  */}
+<div className='flex-1 '>
+      <p className='font-cabin font-normal  text-xs text-neutral-400'>Allocation</p>
+       <p className='lg:text-[14px] text-[16px] text-left font-medium tracking-[0.03em] text-neutral-800 font-cabin lg:truncate '>{department ? department : "-"}</p>
+</div>
+ {/* Status */}
 
-
- </div>
-    
-   
-{/* </div> */}
+ 
+ {/* View Details */}
+<div className=" flex-1 cursor-pointer ">
+  <div onClick={()=>handleTravel(travelRequestId,isCashAdvanceTaken,"booking-view-tr")} className="font-bold text-[14px]  min-w-[72px] truncate w-auto max-w-[140px]   lg:truncate   h-[17px] text-purple-500 text-center">
+        View Details
   </div>
-  {/* </div> */}
-
-      {/* </div> */}
-              </>
-          {/* //   ))}
-           </div> */}
-      
-    </div>
+</div>      
+  </div>
   )
 }
 
 export default PendingTrBooking
+

@@ -27,7 +27,7 @@ export const Alltrips = ({ travelName, from, to, departureDate, returnDate ,stat
     {/* Trip Title */}
 
     <div className="flex h-[52px] items-center justify-start py-3 px-8  w-[211px]">
-      <div className=" flex items-start text-[14px] font-medium tracking-[0.03em] leading-normal text-gray-A300">
+      <div className=" flex items-start text-[14px] font-medium tracking-[0.03em] leading-normal text-neutral-800">
         {travelName}
       </div>
     </div>
@@ -36,7 +36,7 @@ export const Alltrips = ({ travelName, from, to, departureDate, returnDate ,stat
     
     <div className="flex h-[52px] w-[222px]  items-center justify-start py-3 gap-1 ">
       <img src={calender} alt="calendar" className="w-[16px]" />
-      <div className=" tracking-[0.03em] leading-normal text-gray-A300 text-[14px]">
+      <div className=" tracking-[0.03em] leading-normal text-neutral-800 text-[14px]">
         {departureDate} to {returnDate}
       </div>
     </div>
@@ -44,7 +44,7 @@ export const Alltrips = ({ travelName, from, to, departureDate, returnDate ,stat
     {/* Origin and Destination */}
 
     <div className="flex flex-col justify-start items-start w-[161px] px-3">
-      <div className="flex  text-xs text-gray-A300 font-medium">
+      <div className="flex  text-xs text-neutral-800 font-medium">
         <div>{from}</div>
         <img src={double_arrow} alt="double arrow" />
         <div>{to}</div>
