@@ -5,7 +5,7 @@ export const travelStandAloneApproval = async(payload) =>{
    try{
     const {tenantId, travelRequestId, approvers,travelRequestStatus, rejectionReason} = payload || {};
 
-    console.log("Payload for travelStandAloneApproval", payload);
+    // console.log("Payload for travelStandAloneApproval", payload);
     const travelStandAlone = await dashboard.updateOne({
         tenantId,
         travelRequestId},
@@ -17,17 +17,19 @@ export const travelStandAloneApproval = async(payload) =>{
             }
         }, 
     )
-     console.log("update on travel request", travelStandAlone)
+
+    //  console.log("update on travel request", travelStandAlone)
     if(travelStandAlone.modifiedCount == 0){
         return {success: false, message:"failed to update travel "}
     }else{
-       console.log("Updated tr...",travelStandAlone)
+    //    console.log("Updated tr...",travelStandAlone)
         return {success: true, message:"travel Approval was updated successfully"}
     }
 } catch (error){
     return {success: false, message:"failed to update travel ", error}
 }
 }
+
 
 export const travelWithCashTravelApproval = async(payload) =>{
     try{
@@ -87,6 +89,7 @@ export const travelWithCashApproval = async(payload) =>{
      return {success: false, message:"failed to update travel ", error}
  }
  }
+
 
 export const expenseReportApproval = async (payload) => {
     const { tenantId, expenseHeaderId, expenseHeaderStatus, expenseRejectionReason, approvers } = payload;

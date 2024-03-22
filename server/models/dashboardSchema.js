@@ -28,6 +28,6 @@ const dashboardSchema = new mongoose.Schema({
     reimbursementSchema:reimbursementSchema, 
   }); 
 
-const dashboard = mongoose.model('dashboardTesting', dashboardSchema);
+const dashboard = mongoose.model('dashboardFriday', dashboardSchema);
 
 export default dashboard 
