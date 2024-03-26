@@ -4,6 +4,7 @@ import { urlRedirection } from './utils/handyFunctions.js';
 import './App.css';
 import CreateExpense from './pages/CreateExpense';
 import Crud from './pages/Crud.jsx';
+
 import ClearRejectedExpense from './pages/ClearRejectedExpense.jsx';
 import CreateNonTraveExpense from './pages/CreateNonTraveExpense.jsx';
 
@@ -11,7 +12,7 @@ import { logoutApi } from './utils/api.js';
 import Page_2 from './pages/Page_2.jsx';
 
 function App() {
-
+  
   const [authToken, setAuthToken] = useState("authtoken this is from app"); // Assuming you have a way to manage authentication
 
   const handleLogout = async () => {

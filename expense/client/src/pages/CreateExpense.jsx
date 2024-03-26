@@ -23,6 +23,8 @@ import Search from "../components/common/Search.jsx";
 import GoogleMapsSearch from "./GoogleMapsSearch.jsx";
 import { classDropdown } from "../utils/data.js";
 import Toggle from "../components/common/Toggle.jsx";
+import AddMore from "../components/common/AddMore.jsx";
+import { BlobServiceClient } from "@azure/storage-blob";
 
 const currencyDropdown = [
   { fullName: "Argentine Peso", shortName: "ARS", symbol: "$", countryCode: "AR" },
@@ -50,15 +52,41 @@ const dateForms = ['Invoice Date', 'Date', 'Visited Date', 'Booking Date',"Bill 
 
 export default function () {
   
+  const az_blob_container = import.meta.env.VITE_AZURE_BLOB_CONTAINER
+   const blob_endpoint = import.meta.env.VITE_AZURE_BLOB_CONNECTION_URL
+   
 
+   let firstTime = true;
+
+  //  async function setDocURL(){
+  //      if(firstTime) {firstTime = false; return;}
+  //      setUploading(true)
+  //      const res = await uploadFileToAzure(selectedFile)
+  //      setUploading(false)
+
+  //      if(res.success){
+  //          //upload file to azure and store the url in bookingDetails
+  //          const formData_copy = JSON.parse(JSON.stringify(formData));
+  //          formData_copy.itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex].bookingDetails.docURL = `https://blobstorage318.blob.core.windows.net/images/images/${selectedFile.name}`;
+  //          setFormData(formData_copy)
+  //          setPreview(`https://blobstorage318.blob.core.windows.net/images/images/${selectedFile.name}`)
+  //          presentURL = `https://blobstorage318.blob.core.windows.net/images/images/${selectedFile.name}`;
+  //      }
+  //      else{
+  //          alert('Something went wrong while uploading file. Please try again after some time.')
+  //          console.error(res, selectedFile)
+  //          setSelectedFile(null);
+  //          setFileSelected(false);
+  //          setPreview(null);
+  //      }
+  //  }
 
  
 //if ocr data will be there
 const ocrValues = {
-  'Bill Date' : "2024-12-12",
-  
+  'Bill Date' : "",
   'Bill Number': 'RUFH76',
-  'Vendor Name' :"Pizza Hut",
+  'Vendor Name' :"Panjabi Angithi",
   'Description': 'for Client Meetup ', 
   'Quantity': "5",
   'Unit Cost' : "300", 
@@ -1148,7 +1176,7 @@ const handleOcrScan = async () => {
      setIsUploading(prevState =>({...prevState, scan: true}));
     
     setTimeout(() => {
-      setFormVisible(true) ;setOpenModal(null); setShowPopup(false);setIsUploading(prevState =>({...prevState, scan: false}));
+      setFormVisible(true) ;setOpenModal(null); setShowPopup(false);setIsUploading(false);
     }, 5000);
   // try {
   //   setIsUploading(prevState =>({...prevState, scan: true}));
@@ -1238,8 +1266,30 @@ useEffect(() => {
   loadGoogleMapsScript();
 }, [selectedCategory,openLineItemForm]);
 
+//BLOB Storage
 
+console.log('blob storage', az_blob_container,blob_endpoint)
 
+async function uploadFileToAzure(file) {
+  try{
+      const blobServiceClient = new BlobServiceClient(blob_endpoint);
+      const containerClient = blobServiceClient.getContainerClient(az_blob_container);
+      const blobClient = containerClient.getBlobClient(file.name);
+      const blockBlobClient = blobClient.getBlockBlobClient();
+    
+      const result = await blockBlobClient.uploadBrowserData(file, {
+          blobHTTPHeaders: {blobContentType: file.type},
+          blockSize: 4 * 1024 * 1024,
+          concurrency: 20,
+          onProgress: ev => console.log(ev)
+      });
+      console.log(`Upload of file '${file.name}' completed`);
+      return {success:true}
+  }catch(e){
+      console.error(e)
+      return {success:false}   
+  }
+}
 ////---------------------------google search end--------------------------
 
 console.log('categoryfields by selected', categoryFieldBySelect)
@@ -1339,7 +1389,8 @@ console.log('categoryfields by selected', categoryFieldBySelect)
             <div className="form mt-5">
 
             <div className="w-fit">
-            <Button disabled={(formVisible === true || (travelAllocationFlag=== 'level2' || travelAllocationFlag=== 'level3'? !selectedTravelType : !travelType) ? true : false )} onClick={()=>handleOpenModal('category')} text={"Add Line Item"}/>
+            {/* <Button disabled={(formVisible === true || (travelAllocationFlag=== 'level2' || travelAllocationFlag=== 'level3'? !selectedTravelType : !travelType) ? true : false )} onClick={()=>handleOpenModal('category')} text={"Add Line Item"}/> */}
+            <AddMore text={'Add Line Item'} disabled={(formVisible === true || (travelAllocationFlag=== 'level2' || travelAllocationFlag=== 'level3'? !selectedTravelType : !travelType) ? true : false )} onClick={()=>handleOpenModal('category')} text={"Add Line Item"}/>
             </div>
   
   <div className=" w-full flex flex-row mt-5">         
@@ -1464,13 +1515,6 @@ console.log('categoryfields by selected', categoryFieldBySelect)
 {/* ///alreadybooked travel details */}
 
 {/* ///saved lineItem */}
-
-
-
-
-
-
-
 {/* get lineitem data from backend start*/}
 
 {item.expenseLines.map((lineItem, index) => (
@@ -1543,7 +1587,7 @@ handleDeleteLineItem={handleDeleteLineItem}/>
 <div className=" w-full flex flex-col  lg:flex-row">
 
 <div className="border w-full lg:w-1/2">
- <DocumentPreview selectedFile={selectedFile}/>
+ <DocumentPreview selectedFile={ocrSelectedFile ||selectedFile}/>
 </div>
 <div className="border w-full lg:w-1/2 lg:h-[710px] overflow-y-auto scrollbar-hide">
 <div className="w-full flex items-center justify-start h-[52px] border-b-[1px] px-4 ">
@@ -1658,7 +1702,6 @@ handleDeleteLineItem={handleDeleteLineItem}/>
        error={errorMsg.currencyFlag} 
        />
 </div>  
-
 {/* ////-------- */}
 <div className='absolute top-6 left-[210px] w-fit'>
 {selectDropdown == null || selectDropdown.shortName !== defaultCurrency?.shortName   &&
@@ -1710,7 +1753,7 @@ handleDeleteLineItem={handleDeleteLineItem}/>
 <div className="w-full mt-4 flex items-center justify-center border-[1px] border-gray-50 ">
 <Upload  
   selectedFile={selectedFile}
-  setSelectedFile={setSelectedFile}
+  setSelectedFile={ setSelectedFile}
   fileSelected={fileSelected}
   setFileSelected={setFileSelected}
   />
@@ -1797,7 +1840,8 @@ handleDeleteLineItem={handleDeleteLineItem}/>
                           <img
                             src={URL.createObjectURL(ocrSelectedFile)}
                             alt="Preview"
-                            className=' w-full'
+                            width="100%"
+                            height="100%"
                             
                           />
                           
@@ -2169,7 +2213,7 @@ function CabCard({amount,from, to, date, time, travelClass, onClick, mode, isTra
 
 function EditView({expenseHeaderStatus,isUploading,active,flagToOpen,expenseHeaderId,lineItem, index ,newExpenseReport ,handleEdit, handleDeleteLineItem}){
   console.log('lineItems for edit view', lineItem)
-  const excludedKeys=["lineItemStatus","expenseLineId","alreadySaved","isPersonalExpense","isMultiCurrency","expenseLineAllocation","billImageUrl","_id",'travelType','Category Name','Currency','allocations' ,'isPersonalExpense' ,'policyViolation','billImageUrl']
+  const excludedKeys=["policyValidation" , "lineItemStatus","expenseLineId","alreadySaved","isPersonalExpense","isMultiCurrency","expenseLineAllocation","billImageUrl","_id",'travelType','Category Name','Currency','allocations' ,'isPersonalExpense' ,'policyViolation','billImageUrl']
   const includedKeys =['Total Fair','Total Fare','Total Amount',  'Subscription Cost', 'Cost', 'Premium Cost','personalExpenseAmount'];
   return(
     <>
@@ -2178,9 +2222,9 @@ function EditView({expenseHeaderStatus,isUploading,active,flagToOpen,expenseHead
   <DocumentPreview initialFile={lineItem.Document}/>
 </div>
 <div className="border w-full lg:w-1/2 flex justify-between flex-col h-[710px] overflow-y-auto scrollbar-hide">
-    <div className="w-full flex-row  border  ">
+    <div className="w-full flex-row   ">
      
-     <div className="w-full flex justify-between items-center h-12  px-4 ">
+     <div className="w-full flex justify-between items-center h-12  px-4 border-b-[1px]">
       <p className="text-zinc-600 text-medium font-semibold font-cabin">Sr. {index+1} </p>
       <p className="text-zinc-600 text-medium font-semibold font-cabin capitalize">   Category -{lineItem?.['Category Name']}</p>
     </div>   
@@ -2201,7 +2245,7 @@ function EditView({expenseHeaderStatus,isUploading,active,flagToOpen,expenseHead
         )): ""}
     </div>
 
-    <div key={index} className="w-full  border flex flex-wrap items-start gap-y-8  justify-between py-4 px-4">
+    <div key={index} className="w-full  flex flex-wrap items-start gap-y-8  justify-between py-4 px-4">
         {Object.entries(lineItem).map(([key, value]) => (
 
      !excludedKeys.includes(key)  && value !== null && value !== 0 &&(
