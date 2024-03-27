@@ -1,71 +1,119 @@
-import User from '../models/login_logout'
-import axios from 'axios'
-import bcrypt from 'bcrypt'
-const ONBOARDING_API = 'http://localhost:8001/api/internal/create-tenant'
+import TenanatModel from '../models/employee_login.js'; 
+import express from 'express';  
+import { Router } from 'express'; 
+import mongoose from 'mongoose';  
+import axios from 'axios'; 
+import bcrypt from 'bcrypt';
 
-const saltRounds = 5
+//try for free user signup
+const ONBOARDING_API = 'http://192.168.1.7:8001/api/internal/create-tenant';
+const saltRounds = 5;
+const router = Router();
+router.use(express.json());
 
-export default async function handleSignUp(req, res){
-    try{
-        const {companyName, fullName, email, password, mobileNumber, confirmPassword, companyHQ} = req.body        
 
-        if(!companyName || !fullName || !email || !password || !confirmPassword || !companyHQ || !mobileNumber){
-            return res.status(400).json({message: 'Missing required fields'})
-        }
-        const keys = Object.keys(req.body)
-
-        for(let i=0; i<keys.length; i++){
-            const key = keys[i]
-            if(req.body[key] == '' || req.body[key] == undefined || req.body[key] == null){
-                return res.status(400).json({message: `${key} is missing value`})
-            }
-        }
-
-        //validate email
-        if(!validateEmail(email)) return res.status(400).json({message: 'Invalid email id'})
-
-        //validate mobile number
-        if(NaN(mobileNumber)) return res.status(400).json({message: 'Invalid mobile number'})
-
-        //validate password
-        if(password != confirmPassword) return res.status(400).json({message: 'Passwords do not match'})
-
-        //check if email already in use
-        const existingUser  =  await User.findOne({email})
-
-        if(existingUser) return res.status(400).json({message: 'Email already in use'})
-
-        //send data to onboarding ms to form a tenant
-        const onboarding_res = await axios.post(ONBOARDING_API, {...req.body, email:email.toLowerCase()})
-
-        if(!onboarding_res.status(201)) return res.status(500).json({message:'Could not create tenant at the moment. Please try again later'})
-
-        const tenantId = onboarding_res.data.tenantId
-
-        //create a combination of this 
-        const hashedPassword = bcrypt.hash(password, saltRounds)
-        const newUser = new User({
-            tenantId,
-            email,
-            fullName,
-            password: hashedPassword,
-            otp:null,
-            otpSentTime:null,
-        })
-
-        await newUser.save()
-
-        return res.status(200).json({message: 'user created'})
-
-    }catch(e){
-
+router.post('/signup', async (req, res) => {
+  try {
+    if (!req.body) {
+      return res.status(400).json({ message: 'Request body is missing' });
     }
-}
+    const { companyName, fullName, email, password, mobileNumber, confirmPassword, companyHQ } = req.body;
+
+    if (!companyName || !fullName || !email || !password || !confirmPassword || !companyHQ || !mobileNumber) {
+      return res.status(400).json({ message: 'Missing required fields' });
+    }
+
+    // Validate individual fields
+    const keys = Object.keys(req.body);
+
+    for (let i = 0; i < keys.length; i++) {
+      const key = keys[i];
+      if (!req.body[key]) {
+        return res.status(400).json({ message: `${key} is missing value` });
+      }
+    }
+
+    // Validate email
+    if (!validateEmail(email)) return res.status(400).json({ message: 'Invalid email id' });
+
+    // Validate mobile number
+    if (isNaN(mobileNumber)) return res.status(400).json({ message: 'Invalid mobile number' });
+
+    // Validate password
+    if (password !== confirmPassword) return res.status(400).json({ message: 'Passwords do not match' });
+
+// Check if email already in use within the same tenant
+const existingEmail = await TenanatModel.findOne({
+    'employees.email': email,
+  });
+  
+  if (existingEmail) return res.status(400).json({ message: 'Email already in use' });
+    
+  
+
+    // Send data to onboarding ms to form a tenant
+    const onboarding_res = await axios.post(ONBOARDING_API, { ...req.body, email: email.toLowerCase() });
+
+    if (onboarding_res.status !== 201) {
+        return res.status(500).json({ message: 'Could not create tenant at the moment. Please try again later' });
+    }
+
+    const tenantId = onboarding_res.data.tenantId;
+    const otpSentTime = new Date();
+    // const tenantId = "tenant22";
+    const otp = 555555;
+
+    // Create a hashed password
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+    // Create a new tenant instance
+    const newTenant = new TenanatModel({
+      tenantId,
+      companyName,
+      companyHQ,
+      onboardingFlag:false,
+      employees: [
+        {
+          employeeDetails: {
+            empId: 'empId001', // You might want to generate a unique employeeId
+            name: fullName,
+          },
+          email,
+          password: hashedPassword,
+          temporaryPasswordFlag:false,
+          verified: false,
+          superAdmin:true,
+          "employeeRoles": {
+            "employee": true,
+            "employeeManager": false,
+            "finance": false,
+            "travelAdmin": false,
+            "superAdmin": true
+          },
+          otp,
+          otpSentTime,
+        },
+      ],
+    });
+
+    // Save the tenant to the database
+    await newTenant.save();
+
+    // Return a success response
+    return res.status(200).json({ message: 'Tenant created successfully' });
+  } catch (error) {
+    console.error('Error during signup:', error);
+    return res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
 
 const validateEmail = (email) => {
-    return String(email)
-      .toLowerCase()
-      .match(
-        /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
-      );
-  };
+  return String(email)
+    .toLowerCase()
+    .match(
+      /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+    );
+};
+
+export default router;
+
