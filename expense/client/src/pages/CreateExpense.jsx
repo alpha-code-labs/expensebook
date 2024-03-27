@@ -11,7 +11,7 @@ import { getStatusClass, titleCase, urlRedirection } from "../utils/handyFunctio
 import Button from "../components/common/Button";
 import Error from "../components/common/Error";
 import PopupMessage from "../components/common/PopupMessage";
-import { cab_purple as cab_icon, airplane_1 as airplane_icon ,house_simple , chevron_down,  cancel, modify, check_tick, file_icon, validation_sym, validation_symb_icon, upcoming_trip, briefcase, money, user_icon} from "../assets/icon";
+import { cab_purple as cab_icon, airplane_1 as airplane_icon ,house_simple , chevron_down,  cancel, modify, check_tick, file_icon, validation_sym, validation_symb_icon, upcoming_trip, briefcase, money, user_icon, arrow_left} from "../assets/icon";
 import { tripDummyData, tripDummyDataLevel2 } from "../dummyData/tripDummyData.js";
 import { hrDummyData } from "../dummyData/requiredDummy";
 import Select from "../components/common/Select"; 
@@ -51,9 +51,12 @@ const dateForms = ['Invoice Date', 'Date', 'Visited Date', 'Booking Date',"Bill 
 
 
 export default function () {
+  const {cancel , tenantId,empId,tripId} = useParams() ///these has to send to backend get api
   
   const az_blob_container = import.meta.env.VITE_AZURE_BLOB_CONTAINER
    const blob_endpoint = import.meta.env.VITE_AZURE_BLOB_CONNECTION_URL
+   const dashboard_url = import.meta.env.VITE_DASHBOARD_URL
+   const DASHBOARD_URL=`${dashboard_url}/${tenantId}/${empId}`
    
 
    let firstTime = true;
@@ -84,14 +87,14 @@ export default function () {
  
 //if ocr data will be there
 const ocrValues = {
-  'Bill Date' : "",
-  'Bill Number': 'RUFH76',
-  'Vendor Name' :"Panjabi Angithi",
-  'Description': 'for Client Meetup ', 
-  'Quantity': "5",
-  'Unit Cost' : "300", 
- 'Tax Amount': "200", 
- 'Total Amount':"1500"
+  'Bill Date' : "2024-01-19",
+  'Bill Number': '5497579396',
+  'Vendor Name' :"Uncle Jack's",
+  'Description': '', 
+  'Quantity': "1",
+  'Unit Cost' : "209", 
+ 'Tax Amount': "5.99", 
+ 'Total Amount':"136"
  
  }
 
@@ -109,7 +112,7 @@ const ocrValues = {
   })
 
   const [formVisible , setFormVisible]=useState(false) // for line item form visible
-  const {cancel , tenantId,empId,tripId} = useParams() ///these has to send to backend get api
+  
   
 
   // Get the last object
@@ -131,7 +134,7 @@ const ocrValues = {
   const [flagExpenseHeaderStatus,setFlagExpenseHeaderStatus]=useState(null)
 
 
-  const DASHBOARD_URL=`http://localhost:3000/${tenantId}/${empId}`
+  
   const [showPopup, setShowPopup] = useState(false)
   const [message, setMessage] = useState(null)
   // const [ocrField , setOcrField]=useState(null)
@@ -769,20 +772,17 @@ console.log('selected Currency',selectDropdown)
           setIsUploading(true)
          
            setActive(prevState => ({ ...prevState, deleteHeader: true }))
-        
-         
          const response = await cancelTravelExpenseHeaderApi(tenantId,empId,tripId,expenseHeaderId,data)
-         window.location.reload()
+        
          setIsLoading(false)
          setShowPopup(true)
          setMessage(response.message)
          setIsUploading(false)
         setActive(prevState => ({ ...prevState, deleteHeader: false }))
-        
          setTimeout(()=>{
            setShowPopup(false)
            setMessage(null)
-           // urlRedirection(DASHBOARD_URL)
+           urlRedirection(`${dashboard_url}/${tenantId}/${empId}/overview`)
          },5000)
        }catch(error){
          setIsUploading(false)
@@ -792,7 +792,7 @@ console.log('selected Currency',selectDropdown)
          setTimeout(()=>{
            setShowPopup(false)
            setMessage(null)
-         },3000)
+         },5000)
          console.error('Error confirming trip:', error.message);
        }  
  
@@ -843,8 +843,13 @@ const handleSubmitOrDraft=async(action)=>{
         setTimeout(()=>{
           setShowPopup(false)
           setMessage(null)
-          window.location.reload()
-          // urlRedirection(DASHBOARD_URL)
+         
+          if(action === "submit"){
+          urlRedirection(`${dashboard_url}/${tenantId}/${empId}/overview`)}
+          else{
+            window.location.reload()
+          }
+         
         },5000)
        
   
@@ -1299,7 +1304,13 @@ console.log('categoryfields by selected', categoryFieldBySelect)
       {!isLoading && 
         <div className="w-full h-full  relative bg-white-100  py-12 select-none">
         {/* app icon */}
-        <div className='w-full flex justify-center pl-10  md:justify-start lg:justify-start'>
+        {/* <div className='w-full flex justify-center pl-10  md:justify-start lg:justify-start'>
+            <Icon/>
+        </div> */}
+         <div className='w-full flex justify-center pl-10  md:justify-start lg:justify-start '>
+        <div className="flex items-center cursor-pointer " onClick={()=>(urlRedirection(`${DASHBOARD_URL}/overview`))}>
+        <img src={arrow_left} className="w-6 h-6"/>
+       </div>
             <Icon/>
         </div>
 
@@ -1746,6 +1757,16 @@ handleDeleteLineItem={handleDeleteLineItem}/>
  } 
 </div>
 
+<div className='flex w-fit mb-4'>
+  <Select 
+  //currentOption={defaultCurrency}
+   title="Paid Through"
+   name="mode of payment"
+   placeholder="Select MOD"
+   options={['Credit Card',"Cash",'Debit Card','NEFT']}
+   onSelect={(value)=>handleInputChange( ['Mode of Payment'],value)}/>
+</div>
+
 
 {/* ------////-------- */}
 
@@ -1814,6 +1835,7 @@ handleDeleteLineItem={handleDeleteLineItem}/>
                 </div>
                 </div>
             }
+
             {openModal==='upload' && <div className="fixed overflow-hidden max-h-4/5 flex justify-center items-center inset-0 backdrop-blur-sm w-full h-full left-0 top-0 bg-gray-800/60 scroll-none " >
                 <div className='z-10  md:w-3/5 w-full mx-8  min-h-4/5 max-h-4/5 scroll-none bg-white-100  rounded-lg shadow-md'>
                 <div onClick={()=>{setOpenModal(null);setOcrSelectedFile(null);setOcrFileSelected(false);setSelectedCategory(null)}} className=' w-10 h-10 flex justify-center items-center float-right  mr-5 mt-5 hover:bg-red-300 rounded-full'>
@@ -2224,7 +2246,7 @@ function EditView({expenseHeaderStatus,isUploading,active,flagToOpen,expenseHead
 <div className="border w-full lg:w-1/2 flex justify-between flex-col h-[710px] overflow-y-auto scrollbar-hide">
     <div className="w-full flex-row   ">
      
-     <div className="w-full flex justify-between items-center h-12  px-4 border-b-[1px]">
+     <div className="w-full flex justify-between items-center h-12  px-4 border-dashed border-b-[1px]">
       <p className="text-zinc-600 text-medium font-semibold font-cabin">Sr. {index+1} </p>
       <p className="text-zinc-600 text-medium font-semibold font-cabin capitalize">   Category -{lineItem?.['Category Name']}</p>
     </div>   
@@ -2315,7 +2337,7 @@ function EditView({expenseHeaderStatus,isUploading,active,flagToOpen,expenseHead
    
     
     </div>
-    <div className='p-4'>
+    <div className='p-2 border-dashed border-t-[1px]'>
     {  !['paid', 'paid and distribute'].includes(expenseHeaderStatus) &&<div className="w-full flex sm:justify-start justify-center gap-4" >
             <Button text="Edit"   onClick={()=>handleEdit(lineItem?.expenseLineId,lineItem?.['Category Name'],lineItem.travelType)} />
             <Button  loading={isUploading} active={(active?.delete?.id === lineItem?.expenseLineId ? active?.delete?.visible : false)}  text="Delete" onClick={()=>(handleDeleteLineItem(lineItem))} />
@@ -5732,7 +5754,7 @@ function DocumentPreview({selectedFile , initialFile}){
     {selectedFile ? 
     (
         <div className="w-full  flex flex-col justify-center">
-          <p>Selected File: {selectedFile.name}</p>
+          {/* <p>Selected File: {selectedFile.name}</p> */}
           {/* <p>Size: {selectedFile.size} bytes</p>
           <p>Last Modified: {selectedFile.lastModifiedDate.toString()}</p> */}
           {selectedFile.type.startsWith('image/') ? (

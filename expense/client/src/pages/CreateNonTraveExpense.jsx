@@ -6,13 +6,14 @@ import Button from '../components/common/Button';
 import PopupMessage from '../components/common/PopupMessage';
 import Icon from '../components/common/Icon';
 import Input from '../components/common/Input';
-import { briefcase, cancel, cancel_round, chevron_down, file_icon, money, receipt, user_icon, validation_sym, validation_symb_icon } from '../assets/icon';
+import { arrow_left, briefcase, cancel, cancel_round, chevron_down, file_icon, money, receipt, user_icon, validation_sym, validation_symb_icon } from '../assets/icon';
 import {nonTravelExpenseData} from '../dummyData/nonTravelExpens';
 import { titleCase, urlRedirection } from '../utils/handyFunctions';
 import Upload from '../components/common/Upload';
 import Select from '../components/common/Select';
 import ActionButton from '../components/common/ActionButton';
 import Modal from '../components/common/Modal';
+import AddMore from "../components/common/AddMore.jsx";
 
 ///Cuurency on Save you have to save object of currency
 const currencyDropdown = [
@@ -28,14 +29,14 @@ const currencyDropdown = [
   {"countryCode": "IN","fullName": "Indian Rupee","shortName": "INR","symbol": "₹"}
 ];
 const totalAmountNames = ['Total Fare','Total Amount',  'Subscription cost', 'Cost', 'Premium Cost'];
-const dateForms = ['Invoice Date', 'Date', 'Visited Date', 'Booking Date','Bill Date'];
+const dateForms = ['Invoice Date', 'Date', 'Visited Date', 'Booking Date','Bill Date','Check-In Date'];
 
 const CreateNonTraveExpense = () => {
   
   const {tenantId,empId,expenseHeaderId,cancel} =useParams()
+  const dashboard_url = import.meta.env.VITE_DASHBOARD_URL
 
-
-  const DASHBOARD_URL=`http://localhost:8080/${tenantId}/${empId}`
+  const DASHBOARD_URL=`${dashboard_url}/${tenantId}/${empId}`
   
 
  
@@ -72,21 +73,6 @@ const CreateNonTraveExpense = () => {
   
 
 
-///this is get category list from dummy data
-  //  useEffect(()=>{
-  //   const getCategoryList = categories &&  categories.expenseCategories
-  //   console.log('getCategoryList',getCategoryList)
-  //   setCategoryList(getCategoryList)
-  //  },[])
-
-
-  //with dummy data
-  // useEffect(()=>{
-  //   const categoriesData = reimbursementAfterCategory
-  //   const expenseLineAllocation = categoriesData?.reimbursementAllocation
-  //   setExpenseLineAllocation(expenseLineAllocation)
-  // },[])
-
  
 
     const formData = [
@@ -102,14 +88,16 @@ const CreateNonTraveExpense = () => {
 
     ///now this is dummy after data will set by ocr
     const ocrValue = {
-      //  'Bill Date' :'2023-12-12',
-      //  'Bill Number' : 'sdfsd',
-      //  'Vendor Name': 'Hello Vendor',
-      //  'Description' : 'Hello Description',
-      //  'Quantity' : '23', 
-      //  'Unit Cost' : '23',
-      //  'Tax Amount' : '45',
-      // 'Total Amount': '2500'     
+        'Hotel Name' :'Seven Hills Inn',
+        'Check-In Date' : '2019-03-26',
+        'Check-Out Date': '2019-03-27',
+        'City' : 'Behind Mango Market, Tiruchanoor Road, Thanapalli Cross, Chittoor Highway, Tirupati',
+        'Room Rates' : '761', 
+        'Guest Name' : ' Sumesh', 
+        'Booking Reference No.' : '', 
+        'Tax Amount' : '',
+        'Total Amount' : '761',
+          
     }
 
     const [expenseHeaderId1 , setExpenseHeaderId1]=useState(null); //from miscellaneous data
@@ -433,6 +421,8 @@ useEffect(()=>{
       const sample = JSON.parse(JSON.stringify(formDataValues))
       console.log(sample, 'before chaning input')
 
+     
+
       setFormDataValues(prevState=>({...prevState, [name]: value}))
       // setFormDataValues((prevState) => ({ ...prevState, [name]: value || "" }));
       console.log('onChange lineitem',formDataValues)
@@ -466,6 +456,8 @@ useEffect(()=>{
       
       
     };
+
+    console.log('form data update ',formDataValues)
     // const handleInputChange = (name, value) => {
     //   console.log(`Updating ${name} with value:`, value);
     //   setFormDataValues((prevState) => ({ ...prevState, [name]: value || "" }));
@@ -558,7 +550,7 @@ console.log('categoryname;',miscellaneousData?.categoryName)
 
 
 /// Save Line Item
-      console.log('date for save',date)
+     
       const handleSaveLineItem = async () => {
         console.log('lineitem on save',formDataValues)
         const expenseHeaderId= miscellaneousData?.expenseHeaderId
@@ -600,7 +592,7 @@ console.log("All Errors Filled:", !anyErrorSet);
           setErrorMsg((prevErrors) => ({ ...prevErrors, currencyFlag: { set: false, msg: "" } }));
         }  
 
-      if(!['Travel Insurance'].includes(formDataValues?.['Category Name']) && (!date[firstKey] || date[firstKey]=== "")){
+      if(!['Travel Insurance','Hotel'].includes(formDataValues?.['Category Name']) && (!date[firstKey] || date[firstKey]=== "")){
         setErrorMsg((prevErrors) => ({ ...prevErrors, dateErr: { set: true, msg: `Enter the ${firstKey}` } }));
         allowForm = false;
         console.log('date  is empty1' , date[firstKey])
@@ -812,69 +804,113 @@ if(allowForm){
       const [ocrFileSelected , setOcrFileSelected]=useState(false)
       const [ocrSelectedFile , setOcrSelectedFile]=useState(null)
       const [ocrField , setOcrField]=useState(null)
-      
       const handleOcrScan = async () => {
         // console.log('ocrfile from handle', ocrSelectedFile);
       
-        const formData = new FormData();
-          formData.append('file', ocrSelectedFile);
+        const ocrData = new FormData();
+          ocrData.append('categoryName', selectedCategory);
+          ocrData.append('file', ocrSelectedFile);
       
-        console.log('ocrfile from handle',formData)
+        console.log('ocrfile from handle',ocrData)
       
-        try {
-
-          setIsUploading(true);
+           setIsUploading(prevState =>({...prevState, scan: true}));
           
-          // Assuming ocrScanApi is an asynchronous function
-          const response = await nonTravelOcrApi(formData);
-      
-          if (response.error) {
-            loadingErrorMsg(response.error.message);
-            setCurrencyTableData(null);
-          } else {
-            loadingErrorMsg(null);
-            setOcrField(response.data);
-      
-            if (!currencyTableData.currencyFlag) {
-              setErrorMsg((prevErrors) => ({
-                ...prevErrors,
-                currencyFlag: { set: true, msg: 'OCR failed, Please try again' },
-              }));
-              console.log('Currency is not found in onboarding');
-            }
-          }
-        } catch (error) {
-          loadingErrorMsg(error.message);
-          setMessage(error.message);
-          setShowPopup(true);
-      
           setTimeout(() => {
-            setShowPopup(false);
-          }, 3000);
-        } finally {
-          setIsUploading(false);
-        }
+            setOpenLineItemForm(true) ;setOpenModal(null); setShowPopup(false);setIsUploading(false);
+          }, 5000);
+        // try {
+        //   setIsUploading(prevState =>({...prevState, scan: true}));
+      
+        //  // Assuming ocrScanApi is an asynchronous function
+        //   const response = await ocrScanApi(ocrData); important 
+      
+         
+      
+          
+      
+        //   setIsUploading(prevState =>({...prevState, scan: false}));
+          
+        //   setTimeout(() => {
+        //     setFormVisible(true) ;setOpenModal(null); setShowPopup(false);
+        //   }, 3000);
+          
+        // } catch (error) {
+        //   setIsUploading(prevState =>({...prevState, scan: false}));
+        //   setLoadingErrMsg(error.message);
+        //   setMessage(error.message);
+        //   setShowPopup(true);
+      
+        //   setTimeout(() => {
+        //     setShowPopup(false);
+        //   }, 3000);
+        // } 
       };
+      
+      // const handleOcrScan = async () => {
+      //   // console.log('ocrfile from handle', ocrSelectedFile);
+      
+      //   const formData = new FormData();
+      //     formData.append('file', ocrSelectedFile);
+      
+      //   console.log('ocrfile from handle',formData)
+      
+      //   try {
+
+      //     setIsUploading(true);
+          
+      //     // Assuming ocrScanApi is an asynchronous function
+      //     const response = await nonTravelOcrApi(formData);
+      
+      //     if (response.error) {
+      //       loadingErrorMsg(response.error.message);
+      //       setCurrencyTableData(null);
+      //     } else {
+      //       loadingErrorMsg(null);
+      //       setOcrField(response.data);
+      
+      //       if (!currencyTableData.currencyFlag) {
+      //         setErrorMsg((prevErrors) => ({
+      //           ...prevErrors,
+      //           currencyFlag: { set: true, msg: 'OCR failed, Please try again' },
+      //         }));
+      //         console.log('Currency is not found in onboarding');
+      //       }
+      //     }
+      //   } catch (error) {
+      //     loadingErrorMsg(error.message);
+      //     setMessage(error.message);
+      //     setShowPopup(true);
+      
+      //     setTimeout(() => {
+      //       setShowPopup(false);
+      //     }, 3000);
+      //   } finally {
+      //     setIsUploading(false);
+      //   }
+      // };
 
   return (
     <div>
         {isLoading && <Error message={loadingErrorMsg}/>}
         {!isLoading  && 
         <div className=" w-full h-full relative bg-white-100 md:px-24 md:mx-0 sm:px-0 sm:mx-auto py-12 ">
-        {/* app icon */}
-        <div className='w-full flex justify-center  md:justify-start lg:justify-start'>
+        
+         <div className='w-full flex justify-center pl-10  md:justify-start lg:justify-start '>
+        <div className="flex items-center cursor-pointer " onClick={()=>(urlRedirection(`${DASHBOARD_URL}/overview`))}>
+        <img src={arrow_left} className="w-6 h-6"/>
+       </div>
             <Icon/>
         </div>
 
         {/* Rest of the section */}
         <div className="w-full h-full mt-10 p-10 font-cabin tracking-tight">
-        <p className='inline-flex'> 
+        <div className='inline-flex p-2 gap-2 border-[1px] w-full rounded-md border-indigo-600 bg-indigo-50'> 
         <img src={validation_sym} width={16} height={16} alt='validation'/> 
-        <span className='text-red-500'> if category is not there contact admin.</span>
-        </p>           
-        <div className="flex flex-row justify-between">
+        <span className='text-indigo-600'> If require category are unavailable, please contact the administrator.</span>
+        </div>           
+        <div className="flex flex-col lg:flex-row justify-between  items-center lg:items-end my-5 gap-2">
         {/* {categoryList?.length >=0  &&miscellaneousData?.categoryName ==  undefined&& */}
-         <div className='my-5  inline-flex gap-4'>
+         <div className='  inline-flex gap-4'>
          <div className="h-[48px] w-[200px]">
        <Select
            title="Category"
@@ -928,7 +964,7 @@ if(allowForm){
            
      <hr/>
      {categoryElement.length>0 && <div className="w-fit my-5" >
-           <Button text={"Add Line Item"} onClick={()=>handleOpenModal('form')}/>
+           <AddMore text={"Add Line Item"} onClick={()=>handleOpenModal('form')}/>
      </div>}
     
 
@@ -990,14 +1026,12 @@ if(allowForm){
 {openLineItemForm &&
 <div className='flex flex-col lg:flex-row border '>
   <div className='w-full lg:w-1/2 border  flex justify-center items-center '>
-  
-  <div className=' border-[5px] min-w-[100%] h-fit min-h-[700px] flex justify-center items-center'>
+  {/* <div className=' border-[5px] min-w-[100%] h-fit min-h-[713px] flex justify-center items-center'>
     {selectedFile ? 
     (
         <div className="w-full  flex flex-col justify-center">
           <p>Selected File: {selectedFile.name}</p>
-          {/* <p>Size: {selectedFile.size} bytes</p>
-          <p>Last Modified: {selectedFile.lastModifiedDate.toString()}</p> */}
+          
           {selectedFile.type.startsWith('image/') ? (
             
             <img
@@ -1022,12 +1056,13 @@ if(allowForm){
         <img src={file_icon} className='w-40 h-40'/>
       </div>
       }
-    </div>
+    </div> */}
+  <DocumentPreview selectedFile={ocrSelectedFile ||selectedFile}/>
   </div>
   <div className='w-full lg:w-1/2 border lg:h-[715px] overflow-y-auto scrollbar-hide'>
   {openLineItemForm &&
   <> 
-  <div className="w-full flex items-center justify-start h-[52px] border px-4 mt-4">
+  <div className="w-full flex items-center justify-start h-[52px] border px-4 ">
       <p className="text-zinc-600 text-medium font-semibold font-cabin capitalize">   Category -{selectedCategory}</p>
     </div>
           
@@ -1122,7 +1157,7 @@ if(allowForm){
 <div className='flex w-fit mb-4'>
   <Select 
   //currentOption={defaultCurrency}
-   title="mode of payment"
+   title="Mode of Payment"
    name="mode of payment"
    placeholder="Select MOD"
    options={['Credit Card',"Cash",'Debit Card','NEFT']}
@@ -1172,7 +1207,7 @@ if(allowForm){
                 </div>
             }
 
-{openModal==='upload' && <div className="fixed overflow-hidden max-h-4/5 flex justify-center items-center inset-0 backdrop-blur-sm w-full h-full left-0 top-0 bg-gray-800/60 " >
+{/* {openModal==='upload' && <div className="fixed overflow-hidden max-h-4/5 flex justify-center items-center inset-0 backdrop-blur-sm w-full h-full left-0 top-0 bg-gray-800/60 " >
                 <div className='z-10 max-w-5/5 w-2/5 min-h-4/5 max-h-4/5  bg-white-100  rounded-lg shadow-md'>
                   <div onClick={()=>{setOpenModal(null);setOcrSelectedFile(null);setOcrFileSelected(false)}} className=' w-10 h-10 flex mr-5 mt-5 justify-center items-center float-right   hover:bg-red-300 rounded-full'>
                       <img src={cancel} className='w-8 h-8'/>
@@ -1188,8 +1223,7 @@ if(allowForm){
                         <div className="w-full  flex flex-col justify-center items-center h-[500px]  overflow-x-auto">
                         <p>Document Name: {ocrSelectedFile.name}</p>
                         <Button  text='reupload' onClick={()=>{setOcrFileSelected(false);setOcrSelectedFile(null)}}/>
-                        {/* <p>Size: {selectedFile.size} bytes</p>
-                        <p>Last Modified: {selectedFile.lastModifiedDate.toString()}</p> */}
+                    
                         {ocrSelectedFile.type.startsWith('image/') ? (
                           
                           <img
@@ -1227,6 +1261,74 @@ if(allowForm){
                                   </div>
                                   </> }
 
+                        </div>
+
+                    </div>
+                </div>
+                </div>
+            } */}
+
+{openModal==='upload' && <div className="fixed overflow-hidden max-h-4/5 flex justify-center items-center inset-0 backdrop-blur-sm w-full h-full left-0 top-0 bg-gray-800/60 scroll-none " >
+                <div className='z-10  md:w-3/5 w-full mx-8  min-h-4/5 max-h-4/5 scroll-none bg-white-100  rounded-lg shadow-md'>
+                <div onClick={()=>{setOpenModal(null);setOcrSelectedFile(null);setOcrFileSelected(false);setSelectedCategory(null)}} className=' w-10 h-10 flex justify-center items-center float-right  mr-5 mt-5 hover:bg-red-300 rounded-full'>
+                      <img src={cancel} className='w-8 h-8'/>
+                      </div>
+                    <div className="p-10">
+                    
+                      <div className="flex flex-col justify-center items-center">
+                       
+
+                       
+                        {ocrFileSelected ? 
+                        
+                        <div className="w-full  flex flex-col justify-center gap-4   ">
+                        <p>Document Name: {ocrSelectedFile.name}</p>
+                        <div className={` w-fit`}>
+                        <Button disabled={isUploading}  text='reupload' onClick={()=>{setOcrFileSelected(false);setOcrSelectedFile(null)}}/>
+                        </div>
+                        {/* <p>Size: {selectedFile.size} bytes</p>
+                        <p>Last Modified: {selectedFile.lastModifiedDate.toString()}</p> */}
+                        <div className="w-full  px-4 h-[500px]">
+                        {ocrSelectedFile.type.startsWith('image/') ? (
+                          
+                          <img
+                            src={URL.createObjectURL(ocrSelectedFile)}
+                            alt="Preview"
+                            width="100%"
+                            height="100%"
+                            
+                          />
+                          
+                        ) : ocrSelectedFile.type === 'application/pdf' ? (
+                          <embed
+                            src={URL.createObjectURL(ocrSelectedFile)}
+                            type="application/pdf"
+                            width="100%"
+                            height="100%"
+                            onScroll={false}
+                          />
+                        ) : (
+
+                          <p>Preview not available for this file type.</p>
+
+                        )}
+                        </div>
+
+                         <Button loading={isUploading?.scan} active={isUploading?.scan} variant='fit' text='Scan' onClick={handleOcrScan} disabled={selectedCategory== null ? true : false}/>
+                      </div>:
+                      <>
+                       <p className="text-xl font-cabin">Upload the document for scan the fields.</p>
+                                  <div className="w-fit">
+                                   <Upload
+                                   selectedFile={ocrSelectedFile}
+                                   setSelectedFile={setOcrSelectedFile}
+                                   fileSelected={ocrFileSelected}
+                                   setFileSelected={setOcrFileSelected}/>
+                                  </div>
+                                  </> }
+                        
+                           
+                        
                         </div>
 
                     </div>
@@ -1715,7 +1817,7 @@ function DocumentPreview({selectedFile , initialFile}){
     {selectedFile ? 
     (
         <div className="w-full  flex flex-col justify-center">
-          <p>Selected File: {selectedFile.name}</p>
+          {/* <p>Selected File: {selectedFile.name}</p> */}
           {/* <p>Size: {selectedFile.size} bytes</p>
           <p>Last Modified: {selectedFile.lastModifiedDate.toString()}</p> */}
           {selectedFile.type.startsWith('image/') ? (
@@ -1827,6 +1929,7 @@ const  HeaderComponent =({headerDetails ,miscellaneousData , expenseDataByGet}) 
       <p className=" text-neutral-600 text-xs line-clamp-1">Status</p>
      
       <p className="text-purple-500 text-medium font-medium capitalize">{(miscellaneousData1?.expenseHeaderStatus || expenseDataByGet?.expenseHeaderStatus) ?? 'not available'}</p>
+      
       </div>
       
       </div> 
