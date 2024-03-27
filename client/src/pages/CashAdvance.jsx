@@ -10,10 +10,10 @@ import Error from '../components/common/Error';
 // import CashAdvance from '../components/settlement/CashAdvance';
 
 const CashAdvance = ({isLoading ,fetchData,loadingErrMsg}) => {  
-  const {tenantId , empId}=useParams()
+  const {tenantId,empId,page}= useParams();
   useEffect(()=>{
 
-    fetchData(tenantId,empId)
+    fetchData(tenantId,empId,page)
 
   },[])
   const { employeeData } = useData();
@@ -292,7 +292,7 @@ const CashAdvance = ({isLoading ,fetchData,loadingErrMsg}) => {
         </div>
         </div> */}
         
-          <div className="w-full  bg-white-100 max-w-[932px] h-auto lg:h-[581px] rounded-lg border-[1px] border-gray-200 shrink-0 font-cabin mt-3 sm:mt-[60px] ">          
+          <div className="w-full  bg-white-100 max-w-[932px] h-auto lg:h-[581px] rounded-lg border-[1px] border-slate-300 shrink-0 font-cabin mt-3 sm:mt-[60px] ">          
            <>
            <div className="w-auto h-6 flex flex-row gap-3 ml-8 mt-7 items-center">
       <img className="w-6 h-6" src={money} alt="receipt" />

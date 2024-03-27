@@ -169,7 +169,7 @@ const {travelAdminData}=useData()
 
 <>
 <div className='border-x border-b-gray max-w-[900px] mx-4 m-2'>
-<div className="flex  flex-row   w-auto max-w-[900px] items-center  bg-white-100 h-auto max-h-[200px] lg:h-[52px] md:justify-between justify-between    border-b-[1px]    border-b-gray">    
+<div className="flex  flex-row   w-auto max-w-[900px] items-center  bg-white-100 h-auto max-h-[200px] lg:h-[52px] md:justify-between justify-between    border-b-[1px]    border-b-gray hover:border-indigo-600 ">    
 {/* <div className='flex  flex-row w-auto  gap-2'> */}
 <div className='flex  flex-col md:flex-row sm:gap-0 md:gap-4 lg:gap-4 xl:gap-6'>
 

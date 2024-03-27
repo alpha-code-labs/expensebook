@@ -1,9 +1,10 @@
 import React, { useState,useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import { useData } from '../api/DataProvider';
 
 import { getStatusClass ,titleCase, urlRedirection} from '../utils/handyFunctions';
 import { Alltrips } from '../components/trips/Alltrips';
-import { receipt} from '../assets/icon';
+import { airplane_1, receipt} from '../assets/icon';
 import RejectedExpense from '../components/expense/RejectedExpense';
 import CompletedTrips from '../components/expense/CompletedTrips'
 import AllExpense from '../components/expense/AllExpense';
@@ -12,7 +13,15 @@ import {handleNonTravelExpense, handleTravelExpense,handleTrip} from '../utils/a
 
 
 
-const Expense = () => { 
+const Expense = ({fetchData}) => { 
+  const {tenantId,empId,page}= useParams();
+
+  useEffect(()=>{
+
+    fetchData(tenantId,empId,page)
+    
+  },[])
+
 //   const { employeeData } = useData();
 //   const [expesneData,setExpenseData]=useState(null);
 //   const [completedTrip,setCompletedTrip]=useState(null);
@@ -154,7 +163,7 @@ const Expense = () => {
 
  
   <div className='flex flex-col w-full items-center'>
-  <div className=" flex flex-row  items-center justify-start gap-2 sm:gap-4 font-cabin mb-2">
+  <div className=" flex flex-col sm:flex-row  items-center justify-start gap-2 sm:gap-4 font-cabin mb-2">
 
 <div
   className={`cursor-pointer   py-1 px-2 w-auto min-w-[100px] rounded-xl  truncate${
@@ -185,7 +194,7 @@ Rejected Expenses
 
 </div>
  
-<div className="  w-full  max-w-[932px] h-auto lg:h-[581px] rounded-lg border-[1px] bg-white-100 border-gray-200 shrink-0 font-cabin mt-3 sm:mt-6 shadow-[0px_12px_3px_rgba(0,_0,_0,_0),_0px_8px_3px_rgba(0,_0,_0,_0.01),_0px_4px_3px_rgba(0,_0,_0,_0.03),_0px_2px_2px_rgba(0,_0,_0,_0.05),_0px_0px_1px_rgba(0,_0,_0,_0.06)]">
+<div className="  w-full  max-w-[932px] h-auto lg:h-[581px] rounded-lg  bg-white-100 border-[1px] border-slate-300 shrink-0 font-cabin mt-3 sm:mt-6 shadow-[0px_12px_3px_rgba(0,_0,_0,_0),_0px_8px_3px_rgba(0,_0,_0,_0.01),_0px_4px_3px_rgba(0,_0,_0,_0.03),_0px_2px_2px_rgba(0,_0,_0,_0.05),_0px_0px_1px_rgba(0,_0,_0,_0.06)]">
            {activeScreen=== 'Travel & Non Travel Expenses' && 
            <>
            <div className='flex flex-row justify-between items-end px-8'>
@@ -209,14 +218,14 @@ Rejected Expenses
            {activeScreen=== 'Completed Trips' && 
            <>
     <div className="w-auto h-6 flex flex-row gap-3 ml-8 mt-7 items-center">
-      <img className="w-6 h-6" src={receipt} alt="receipt" />
+      <img className="w-6 h-5" src={airplane_1} alt="receipt" />
       <div className="text-base tracking-[0.02em] font-bold w-auto">Completed Trips</div>
     </div>
     {/* <div className={`mx-8 py-1 w-auto font-medium text-sm text-red-700 mt-10`}>
       *Please submit your expenses before 90 days
     </div> */}
     
-    <div className="box-border mx-4  w-auto max-w-[932px]  h-px border-t-[1px]  border-b-gray "/>
+    <div className="box-border mx-4  mt-[46px] w-auto max-w-[932px]  h-px border-t-[1px]  border-b-gray "/>
    
     <div className='h-[420px]   overflow-auto mt-6 w-auto'>
          

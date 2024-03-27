@@ -9,14 +9,14 @@ const AllExpense = ( {handleTravelExpense,handleNonTravelExpense}) => {
   return (
    <>
    <div className='flex flex-col px-2 py-3 gap-2'>
-   {/* <h2>Travel Expense</h2>
-    <div className=' w-full h-[200px] overflow-y-auto border-[1px] border-gray-100 rounded-lg p-2 shadow-lg'>
+   <h2>Travel Expense</h2>
+    <div className=' w-full h-[200px] overflow-y-auto border-[1px] border-slate-300 rounded-lg p-2 shadow-lg'>
       <TravelExpense  travelExpense={travelExpense} handleTravelExpense={handleTravelExpense}/>
-    </div> */}
-    {/* <h2>Non Travel Expense</h2>
-    <div className='  w-full h-[200px] overflow-y-auto border-[1px] border-gray-100 rounded-lg p-2 shadow-lg'>
+    </div> 
+     <h2>Non Travel Expense</h2>
+    <div className='  w-full h-[200px] overflow-y-auto border-[1px] border-slate-300 rounded-lg p-2 shadow-lg'>
       <NonTravelExpense  nonTravelExpense={nonTravelExpenses} handleNonTravelExpense={handleNonTravelExpense}/>
-    </div> */}
+    </div>
   
   
   </div>

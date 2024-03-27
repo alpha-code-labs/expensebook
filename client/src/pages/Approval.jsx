@@ -2,7 +2,7 @@ import React, { useState,useEffect } from 'react';
 
 import { useData } from '../api/DataProvider';
 import { getStatusClass ,titleCase, urlRedirection} from '../utils/handyFunctions';
-import { receipt, chevron_down, calender, double_arrow , three_dot ,validation_sym, down_left_arrow} from '../assets/icon';
+import { receipt, chevron_down, calender, double_arrow , three_dot ,validation_sym, down_left_arrow, airplane_1} from '../assets/icon';
 import ApprovalTravelExpense from '../components/approvals/ApprovalTravelExpense';
 import { handleApproval } from '../utils/actionHandler';
 import { useParams } from 'react-router-dom';
@@ -13,7 +13,7 @@ import { useParams } from 'react-router-dom';
 const Approval = ({fetchData}) => { 
 
   const { employeeData  } = useData();
-  const {tenantId , empId} = useParams();
+  const {tenantId , empId,page} = useParams();
 
    const [approvalData , setApprovalData]=useState([]); // data for the table in Approval page.
    const [ trApprovalData,setTrApprovalData]= useState([])
@@ -22,9 +22,10 @@ const Approval = ({fetchData}) => {
    
    useEffect(()=>{
  
-     fetchData(tenantId,empId)
+     fetchData(tenantId,empId,page)
  
    },[])
+   
 useEffect(()=>{
   const data = employeeData && employeeData?.dashboardViews?.employeeManager
   // setApprovalData(data)
@@ -78,13 +79,13 @@ console.log('Expense approval data',expApprovalData)
             {/* </div> */}
           </div>
 
-          <div className="w-full  max-w-[932px] h-auto lg:h-[581px] bg-white-100 rounded-lg border-[1px] border-gray-200 shrink-0 font-cabin mt-3 sm:mt-6 ">
+          <div className="w-full  max-w-[932px] h-auto lg:h-[581px] bg-white-100 rounded-lg border-[1px] border-slate-300 shrink-0 font-cabin mt-3 sm:mt-6 ">
            {activeScreen=== 'Travel & Cash Adv. Requests' && 
            <>
   {/* <div className='flex flex-row justify-between items-end px-8'> */}
   <div className="w-full  h-6 flex flex-row gap-3 mt-7 items-center px-8">
-    <img className="w-6 h-6" src={receipt} alt="receipt" />
-    <div className="text-base tracking-[0.02em] font-bold">Travel Requests</div>
+    <img className="w-6 h-5" src={airplane_1} alt="travel" />
+    <div className="text-base tracking-[0.02em] font-bold">Travel Requests & Cash Advances</div>
   </div>
 
 
@@ -98,7 +99,7 @@ console.log('Expense approval data',expApprovalData)
             {trApprovalData && filterTravelApprovalData?.map((item ,index)=>(
               <React.Fragment key={index}>
             <div key={index} className="box w-full max-w-[896px]  h-auto  mx-2 sm:mx-4 mb-2  font-cabin">
-            <div className="w-full   h-auto  lg:min-h-[56px] rounded-xl border-[1px] border-b-gray">
+            <div className="w-full   h-auto  lg:min-h-[56px] rounded-xl border-[1px] border-b-gray hover:border-indigo-600 ">
             <div className='w-full max-w-[932px]  rounded-md'>
     <div className={`w-auto max-w-[900px] bg-white-100 h-auto max-h-[180px] lg:h-[52px] flex flex-col lg:flex-row items-start lg:items-center justify:start lg:justify-center ${item?.isCashAdvanceTaken ?'border-b-[1px]  border-b-gray' :""} m-2`}>    
     <div className='flex flex-auto flex-row w-full justify-between gap-2'>

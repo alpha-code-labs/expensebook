@@ -1,8 +1,8 @@
 import React from 'react';
 import Button from './Button';
-import { logoutApi } from '../../utils/api';
+import { LOGIN_PAGE_URL, logoutApi } from '../../utils/api';
 import { handleLoginPageUrl } from '../../utils/actionHandler';
-import { alert_circle, company_icon, logout_icon } from '../../assets/icon';
+import { alert_circle, company_icon, logout_icon, user_icon } from '../../assets/icon';
 
 const Navbar = ({ employeeRole,employeeInfo }) => {
   // Assuming `employeeRole` is an object with relevant details
@@ -26,12 +26,16 @@ const Navbar = ({ employeeRole,employeeInfo }) => {
         
       </div>
 
-      <div className=" justify-center items-center cursor-pointer flex flex-row gap-4">
+      <div className=" justify-center items-center cursor-pointer flex flex-row gap-2">
+        <div className='bg-white-100 rounded-full'>
+          <img src={user_icon} className='w-8 h-8'/>
+        </div>
+       
       <div className="font-semibold  ">
         <p className=' text-sm text-white-100'>{employeeInfo?.employeeDetails?.name}</p>
         <p className=' text-xs text-indigo-100'>{employeeInfo?.email}</p>
       </div>
-      <div className='bg-white-100 p-2 shadow-sm shadow-neutral-600 rounded-md' onClick={() => window.location.href = 'http://192.168.1.10:5176/user-login'}>
+      <div className='bg-white-100 p-2 shadow-sm shadow-neutral-600 rounded-md' onClick={() => window.location.href = `${LOGIN_PAGE_URL}`}>
         <img src={logout_icon} className='w-5 h-5'/>
       </div>
 

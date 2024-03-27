@@ -13,11 +13,11 @@ import { filterTravelRequests } from '../utils/handyFunctions';
 const BookingAdmin = ({fetchData}) => {  
 
   const { employeeData,employeeRoles  } = useData();
-  const {tenantId , empId }=useParams()
+  const {tenantId , empId ,page}=useParams()
 
   useEffect(()=>{
 
-    fetchData(tenantId,empId)
+    fetchData(tenantId,empId,page)
 
   },[])
 
@@ -95,7 +95,7 @@ if(travelBookingData){
             {/* </div> */}
           </div>
 
-          <div className="w-full  bg-white-100  max-w-[932px] h-auto lg:h-[581px] rounded-lg border-[1px] border-gray-200 shrink-0 font-cabin mt-3 sm:mt-6 shadow-[0px_12px_3px_rgba(0,_0,_0,_0),_0px_8px_3px_rgba(0,_0,_0,_0.01),_0px_4px_3px_rgba(0,_0,_0,_0.03),_0px_2px_2px_rgba(0,_0,_0,_0.05),_0px_0px_1px_rgba(0,_0,_0,_0.06)]">
+          <div className="w-full  bg-white-100  max-w-[932px] h-auto lg:h-[581px] rounded-lg border-[1px] border-slate-300 shrink-0 font-cabin mt-3 sm:mt-6 shadow-[0px_12px_3px_rgba(0,_0,_0,_0),_0px_8px_3px_rgba(0,_0,_0,_0.01),_0px_4px_3px_rgba(0,_0,_0,_0.03),_0px_2px_2px_rgba(0,_0,_0,_0.05),_0px_0px_1px_rgba(0,_0,_0,_0.06)]">
            {activeScreen=== 'Pending Bookings' && 
            <>
   {/* <div className='flex flex-row justify-between items-end px-8'> */}

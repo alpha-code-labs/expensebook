@@ -20,12 +20,12 @@ const Overview = ({fetchData ,isLoading,setIsLoading,loadingErrMsg, setLoadingEr
   const { setEmployeeData , employeeData } = useData(); 
   const [upcomingTrip , setUpcomingTrip]=useState(null)
   const [tripsData,setTripsData]=useState(null);
-  const {tenantId,empId}= useParams();
+  const {tenantId,empId,page}= useParams();
 
   useEffect(()=>{
 
-    fetchData(tenantId,empId)
-
+    fetchData(tenantId,empId,page)
+    
   },[])
 
 
@@ -53,10 +53,8 @@ useEffect(()=>{
   },[tripsData])
 
     const [dropdownStates, setDropdownStates] = useState({});    
-    const [activeTab , setActiveTab]=useState('Trip');
-    const handleTabChange =(tab)=>{
-      setActiveTab(tab)
-    }
+  
+    
     const initialTripTab=upcomingTrip1?.map(item=> 'Trip') || []
     // const initialTripTab=tripsData?.transitTrips.map(item=> 'Trip')
     console.log('initial transit trip',initialTripTab)
@@ -87,7 +85,7 @@ useEffect(()=>{
      {isLoading && <Error message={loadingErrMsg}/>}
  
     {!isLoading &&
-     <div className='w-auto min-h-screen pt-12 mx-0 lg:mx-20   flex flex-col gap-4'> 
+     <div className='w-auto min-h-screen pt-12 px-0 lg:px-20 bg-white-100   flex flex-col gap-4'> 
      <div className=''> 
    <IntransitTrip 
       handleCashAdvance={handleCashAdvance} 
@@ -95,7 +93,7 @@ useEffect(()=>{
       dropdownStates={dropdownStates} 
       // upComingTrip={upcomingTrip1} 
        initialTransitTabs={initialTripTab}
-       upComingTrip={tripsData &&tripsData?.transitTrips} 
+       transitTripData={tripsData &&tripsData?.transitTrips} 
       handleDropdownToggle={handleDropdownToggle} 
       handleOpenOverlay={handleOpenOverlay}/> 
      </div>

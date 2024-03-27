@@ -67,7 +67,7 @@ const expenseData = [
  <div className='h-full '>
      {expenseData?.map((item ,index)=>(
                <React.Fragment key={index}>
-             <div  className="box w-auto  max-w-[896px]  h-auto  mx-2 sm:mx-4 mb-2  font-cabin border border-b-gray rounded-xl">
+             <div  className="box w-auto  max-w-[896px]  h-auto  mx-2 sm:mx-4 mb-2  font-cabin border border-b-gray rounded-xl hover:border-indigo-600 ">
    
              <div className='w-auto  max-w-[932px]  rounded-md'>
      <div className="w-auto  max-w-[900px] bg-white-100 h-auto max-h-[200px] lg:h-[52px] flex flex-col lg:flex-row items-start lg:items-center justify:start lg:justify-center border-b-[1px] m-2 border-b-gray">    

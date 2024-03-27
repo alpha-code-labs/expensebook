@@ -111,6 +111,7 @@ function formatDate(date=Date.now()){
       case "approved":
         case "completed":
         case "booked":
+        case "paid":
         return 'bg-green-100 text-green-200';
       case "rejected":
       case "cancelled":  

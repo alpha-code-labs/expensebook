@@ -27,7 +27,7 @@ const RejectedTravel = ({rejectedCashAdvance}) => {
 <div className='h-auto flex flex-col gap-2'>
 {rejectedCashAdvance?.map((item,index)=>(
 <React.Fragment key={index}>
-<div className='flex flex-row items-center h-[52px]  gap-2 text-gray-200 py-8  rounded-xl   border-[1px]  border-b-gray'>
+<div className='flex flex-row items-center h-[52px]  gap-2 text-gray-200 py-8  rounded-xl hover:border-indigo-600   border-[1px]  border-b-gray'>
 
 
 

@@ -20,16 +20,14 @@ const TravelCard = ({travelExpense,handleTravelExpense})=>{
 
   return (
     
- <div className='h-full'>
+ <div className=''>
      {travelExpense && travelExpense.map((item ,index)=>(
 <React.Fragment  key={index}>
-             <div key={index} className="box w-auto  max-w-[896px]  h-auto  mx-2 sm:mx-4 mb-2  font-cabin border border-b-gray rounded-xl">
+             <div key={index} className="box w-full  h-auto   mb-2  font-cabin border border-b-gray bg-slate-50 rounded-md">
 
-   <div className='h-auto'>
   
- 
-     <React.Fragment key={index}>
-        <div className='flex flex-row items-center  px-4 gap-2 text-gray-200 '>
+     
+   <div className='flex flex-row items-center gap-2 text-gray-200 '>
    <div className='w-auto  mi min-w-[20px] flex justify-center items-center px-3 py-3 '>
    <img className='w-6 h-[20px] translate-y-[-2px]' src={down_left_arrow}/>
       
@@ -60,9 +58,9 @@ const TravelCard = ({travelExpense,handleTravelExpense})=>{
        </div>
     </div>
    </div>
-     </React.Fragment>
+   
     
-   </div> 
+  
        </div>
 </React.Fragment>
              ))}

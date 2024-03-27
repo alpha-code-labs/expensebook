@@ -22,7 +22,7 @@ const NonTravelExpense = ({handleNonTravelExpense}) => {
     <div className='h-full'>
     {nonTravelExpenses.map((item ,index)=>(
 <React.Fragment key={index}>
-            <div  className="box w-auto  max-w-[896px]  h-auto  mx-2 sm:mx-4 mb-2  font-cabin border border-b-gray rounded-xl">
+            <div  className="box w-auto  max-w-[896px]  h-auto  mx-2 sm:mx-4 mb-2  font-cabin border border-b-gray rounded-xl hover:border-indigo-600 ">
   
             <div className='w-auto  max-w-[932px]  rounded-md'>
     <div className="w-auto  max-w-[900px] bg-white-100 h-auto max-h-[200px] lg:h-[52px] flex flex-col lg:flex-row items-start lg:items-center justify:start lg:justify-center  m-2 ">    
@@ -34,7 +34,7 @@ const NonTravelExpense = ({handleNonTravelExpense}) => {
    <div className="flex h-[52px] items-center justify-start w-auto lg:w-fit py-0 md:py-3 px-2 order-1 min-w-fit">
    <div >
    <p className='font-cabin font-normal  text-xs text-neutral-400'>Expense Header No.</p>
-    <p className='lg:text-[14px] text-[16px] text-left font-medium tracking-[0.03em] text-neutral-800 font-cabin lg:truncate '>{item.expenseHeaderNumber}</p>
+    <p className='lg:text-[14px] text-[16px] text-left font-medium tracking-[0.03em] text-neutral-800 font-cabin lg:truncate '>{item?.expenseHeaderNumber}</p>
    </div>
  </div> 
 {/* Trip Title */}

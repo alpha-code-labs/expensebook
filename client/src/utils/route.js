@@ -1,9 +1,11 @@
 const tenantId = localStorage.getItem('tenantId');
 const empId = localStorage.getItem('empId');
 const travelBaseUrl = 'http://192.168.1.12:5174';
-
-
 const loginBaseUrl = 'http://localhost:8080/api';
+const cashAdvanceBaseUrl = 'http://192.168.1.12:5175';
+const expenseBaseUrl = 'http://localhost:5175';
+const approvalBaseUrl = 'http://192.168.1.6:5175';
+
 
 export const loginPageRoutes = {
 
@@ -48,7 +50,7 @@ export const travelRoutes = {
 
 
 
-const cashAdvanceBaseUrl = 'http://192.168.1.12:5175';
+
 
 export const cashAdvanceRoutes={
   create:{
@@ -84,7 +86,7 @@ booking_tr_with_ca:{
 ///travel expense routes
 
 
-const expenseBaseUrl = 'http://192.168.1.10:5175';
+
 
 export const expenseRoutes={  
   create:{
@@ -108,21 +110,21 @@ export const expenseRoutes={
 
 
 //non-travel routes
-const nonTravelBaseUrlExpense = 'http://localhost:5173';
+
 
 
 export const nonExpenseRoutes={  
   create:{
     path:'/non-tr-ex-create/:tenantId/:empId',
-    getUrl:()=>`${nonTravelBaseUrlExpense}/${tenantId}/${empId}/book/reimbursement`
+    getUrl:()=>`${expenseBaseUrl}/${tenantId}/${empId}/book/reimbursement`
   },
   modify:{
     path:'/non-tr-ex-modify/:tenantId/:empId/:cashAdvanceId',
-    getUrl:(expenseHeaderId,)=>`${nonTravelBaseUrlExpense}/non-tr-ex-modify/${tenantId}/${empId}/${expenseHeaderId}`
+    getUrl:(expenseHeaderId,)=>`${expenseBaseUrl}/non-tr-ex-modify/${tenantId}/${empId}/${expenseHeaderId}`
   },
   cancel:{
     path:'/non-tr-ex-cancel/:tenantId/:empId/:expenseHeaderId',
-    getUrl:(expenseHeaderId,)=>`${nonTravelBaseUrlExpense}/${tenantId}/${empId}/${expenseHeaderId}/cancel/reimbursement`
+    getUrl:(expenseHeaderId,)=>`${expenseBaseUrl}/${tenantId}/${empId}/${expenseHeaderId}/cancel/reimbursement`
   },
   // clearRejected:{
   //   path:'/non-tr-ex-clear-rejected/:tenantId/:empId/:expenseHeaderId',
@@ -132,7 +134,7 @@ export const nonExpenseRoutes={
 
 
 //travel request view for approval
-const approvalBaseUrl = 'http://192.168.1.6:5175';
+
 
 
 export const approvalViewRoutes={

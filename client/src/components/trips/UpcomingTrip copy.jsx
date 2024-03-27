@@ -27,9 +27,7 @@ const getIconForItinerary = (itineraryType) => {
 };
 
 
-const UpcomingTrip = ({initialTransitTabs,handleCashAdvance,handleTrip,upComingTrip,content ,handleOpenOverlay}) => {
-  
-
+const TransitTrip = ({initialTransitTabs,handleCashAdvance,handleTrip,transitTripData,content ,handleOpenOverlay}) => {
   console.log('intransit trip11',initialTransitTabs)
 
   
@@ -43,7 +41,6 @@ const handleDropdownToggle = (index) => {
     [index]: !prevStates[index],
   }));
 };
-  
   // Open modal
   const handleModal = ()=>{
     setIsModalOpen(!isModalOpen);
@@ -75,7 +72,7 @@ const handleDropdownToggle = (index) => {
   
 
   return (
-  <div className="w-auto  p-2   h-[360px]  rounded-lg bg-white-300 shadow-slate-300 shadow-lg overflow-hidden">
+  <div className="w-[490px]   h-[360px]  rounded-lg   overflow-hidden">
    
   <div className=" flex flex-row items-center justify-start gap-2 overflow-hidden pl-4 py-1">
                <img
@@ -89,37 +86,32 @@ const handleDropdownToggle = (index) => {
     {/* <div className=" flex flex-row self-stretch border mt-20 border-slate-100  items-center justify-center  text-sm">
       <img src={intransit_trip} alt="NoTrip" className='A  animate-pulse' />
       <div className=" top-[140px] w-[191px] flex flex-col justify-center items-start gap-4 text-gray-400">
-        <div className="flex flex-col items-start justify-center">
-        
+        <div className="flex flex-col items-start justify-center"> 
         </div>
-     
-        
       </div>
     </div> */}
   
-  <div className=" w-auto flex flex-row   overflow-x-auto  no-scrollbar scroll-smooth gap-2 overflow-hidden ">
-      {upComingTrip && upComingTrip?.map((item, index) => (
-        <React.Fragment key={index}>
-<div style={{
-          backgroundImage: `url(${briefcaseMap})`
-        }} className=" bg-[length:650px_360px]   bg-center  max-w-[650px] border border-slate-300  h-[310px] shadow-slate-300 shadow-lg   rounded-lg ">
-
-{/* <img src={briefcaseBox} className='absolute top-[-20px] h-[370px] w-[650px] z-20'/> */}
-
-<div className=' flex flex-row justify-between  pr-4'>
-        <div className='flex  flex-row items-center justify-start text-center p-4'>
-            <div className={`py-1 px-2 rounded-xl   ${activeTabs?.[index]=== "Trip" ? ' font-medium bg-purple-500  text-white-100 text-xs rounded-xl':""}`} onClick={() => handleTabChange(index, "Trip")}>
-              Trip
+<div className=" w-auto flex flex-row    overflow-x-auto  no-scrollbar scroll-smooth  overflow-hidden ">
+{transitTripData?.length>0 ? (
+transitTripData && transitTripData?.map((item, index) => (
+   <React.Fragment key={index}>
+<div className={`h-[320px] px-4 py-1 bg-[length:489px_322px]  shadow-slate-300 shadow-lg rounded-lg `} style={{backgroundImage: `url(${briefcaseMap})`, width: '500px',}}>
+{/* <img src={briefcaseMap} className='absolute h-[370px] w-full border border-red-500 z-20'></img> */}
+<div className='  mt-14 h-[250px]     flex flex-col rounded-lg bg-white-100   ' >
+<div className=' flex flex-row justify-between w-full  pt-[3px] px-2'>
+        <div className='flex gap-2 flex-row items-center justify-start text-center'>
+            <div className={`py-[2px] px-2 rounded-xl cursor-pointer hover:bg-purple-300 hover:text-white-100  ${activeTabs?.[index]=== "Trip" ? ' font-medium bg-purple-100  text-indigo-600 text-xs rounded-xl':"bg-white-100 font-medium  text-xs  "}`} onClick={() => handleTabChange(index, "Trip")}>
+              <p>Trip</p>
             </div>
-            <div className={`py-1 px-2 rounded-xl    ${activeTabs?.[index]=== "Cash Advance" ? 'font-medium bg-purple-500 text-white-100 text-xs ': ""}`} onClick={()=> handleTabChange(index,"Cash Advance" )}>
-              Cash Advance
+            <div className={`py-1 px-2 rounded-xl  cursor-pointer hover:bg-purple-300 hover:text-white-100  ${activeTabs?.[index]=== "Cash Advance" ? 'font-medium bg-purple-100  text-indigo-600 text-xs ': "bg-white-100 font-medium  text-xs"}`} onClick={()=> handleTabChange(index,"Cash Advance" )}>
+            <p>Cash Advance</p> 
             </div>  
-            <div className={`py-1 px-2 rounded-xl    ${activeTabs?.[index]=== "Expense" ? 'font-medium bg-purple-500 text-white-100 text-xs ': ""}`} onClick={()=> handleTabChange(index,"Expense" )}>
-             Expense
+            <div className={`py-1 px-2 rounded-xl cursor-pointer hover:bg-purple-300 hover:text-white-100    ${activeTabs?.[index]=== "Expense" ? 'font-medium bg-purple-100  text-indigo-600 text-xs ': "bg-white-100  font-medium   text-xs" }`} onClick={()=> handleTabChange(index,"Expense" )}>
+             <p>Expense</p>
             </div>  
         </div>
 
- <div  className=' relative flex justify-end flex-none w-[40px]  cursor-pointer  items-center lg:items-center '>
+ <div  className=' relative flex justify-end flex-none w-[40px]  cursor-pointer  items-center lg:items-center'>
               <img src={three_dot}  
               width={16} 
               height={16}
@@ -162,96 +154,125 @@ const handleDropdownToggle = (index) => {
         
           {/* ///intransit Trip data */}
        
-      
-        {activeTabs?.[index] === 'Trip' && 
+{activeTabs?.[index] === 'Trip' && 
         <>
-        <div className=' px-4 w-auto min-w-[458px]   flex flex-col h-auto min-h-[210px] gap-4'>
-        <div className='px-5 w-auto   max-w-[650px] flex flex-col h-auto min-h-[210px] gap-4'>
-        <div className='flex flex-row justify-between items-center'>
-        <div>
-          <p>{item.tripPurpose}</p>
+        <div className='w-full items-center  flex flex-col h-[173px] mt-1  '>
+        <div className=' w-auto flex flex-col h-[210px] '>
+        <div className='flex flex-row justify-between items-center  font-cabin '>
+        <div className='px-2 w-full font-medium text-lg text-neutral-700  rounded-t-md'>
+          {item?.tripPurpose}
         </div>
              
 </div>
-<div>
- 
-  
-<div className='h-[160px] w-[600px] overflow-y-auto '>
- <div className=" flex flex-col p-2">
+<div className='h-[150px] w-[450px] overflow-y-auto rounded-b-md py-1 px-2'>
+ <div className=" flex flex-col py-1">
       {Object.keys(item?.itinerary).map(key => (
         <React.Fragment key={key}>
           {key !== 'formState' && item?.itinerary[key].length > 0 && (
             <div className='w-full'>
-              <div className='flex gap-2 font-cabin items-center text-neutral-600 py-2'>
+              <div className='flex gap-2 font-cabin items-center text-neutral-600 py-1'>
               <img src={getIconForItinerary(key)} className='w-4 h-4' />
               <h2 className="text-md font-semibold  text-center">{key.charAt(0).toUpperCase() + key.slice(1)}</h2>
               </div>
               <div className="">
                 {item?.itinerary[key]?.map(item => (
                   <React.Fragment key={item._id} >
-                    <div className="bg-white p-4 rounded shadow w-full">
+                    <div className="bg-white p-3 rounded shadow w-full border border-slate-300 bg-slate-50">
               {['flights','trains','buses'].includes(key)  && (
-                   <div className='flex flex-row items-center '>
-                    <div className='flex-1 inline-flex items-center  gap-1 '>
+
+                   <div className='flex flex-col items-start gap-2   '>
+                    <div className='flex  w-full  items-center  justify-between '>
+                      <div className='inline-flex gap-1'>
                       <img src={calender} alt='icon' className='w-4 h-4'/>
-                      <span className='text-sm font-cabin'>{formatDate(item.bkd_date)}</span>
-                    </div>
-                    <div className='flex-1 inline-flex items-center gap-2'>
-                    <p className='font-cabin text-sm'>{item.bkd_from}</p>
-                    <img src={double_arrow} className='w-5 h-5' alt='icon'/>
-                    <p className='font-cabin text-sm'>{item.bkd_to}</p>
-                    </div>
-                    
-                    <div className='flex-1 inline-flex  items-center  justify-center '>
-                      <div className={`px-2 py-1 rounded-sm    ${getStatusClass(item.status)}`}>
-                      <span className='text-sm text-center capitalize font-cabin '>{item.status}</span>
+                      <span className='text-sm font-cabin text-neutral-600'>{formatDate(item.bkd_date)}</span>
                       </div>
+                      <div className={` text-center rounded-sm  ${getStatusClass(item.status)}`}>
+                      <p className='px-2 py-1 text-sm text-center capitalize font-cabin '>{item?.status}</p>
+                      </div>
+                    
+
                     </div>
+
+                    <div className='flex-1 w-full   inline-flex items-center  justify-between   '>
+                <div className='w-2/5  font-cabin items-start  text-sm text-neutral-600'>
+                  <div className=' text-neutral-600 text-xs'>Pickup Address</div>
+                  <div className='text-neutral-800'>{item?.bkd_from}</div>
+                </div>
+                <img src={double_arrow} className=' w-5 h-5' alt='icon'/>
+                <div className='w-2/5 items-start  font-cabin text-sm text-neutral-600'>
+                <div className=' text-neutral-600 text-xs'>Dropoff Address</div>
+                <div className='text-neutral-800'> {item?.bkd_to}</div></div>
+                </div>
+                    
+                    
     
                   </div>
                 )}
                     {/* Add more details as needed */}
                 {key === 'cabs' && (
           
-                   <div className='flex flex-row items-center '>
-                   <div className='flex-1 inline-flex items-center  gap-1 '>
-                     <img src={calender} alt='icon' className='w-4 h-4'/>
-                     <span className='text-sm font-cabin'>{formatDate(item.bkd_date)}</span>
-                   </div>
-                   <div className='flex-1 inline-flex items-center gap-2'>
-                   <p className='font-cabin text-sm'>{item.bkd_pickupAddress}</p>
-                   <img src={double_arrow} className='w-5 h-5' alt='icon'/>
-                   <p className='font-cabin text-sm'>{item.bkd_dropAddress}</p>
-                   </div>
-                   
-                   <div className='flex-1 inline-flex  items-center  justify-center '>
-                     <div className={`px-2 py-1 rounded-sm    ${getStatusClass(item.status)}`}>
-                     <span className='text-sm text-center capitalize font-cabin '>{item.status}</span>
-                     </div>
-                   </div>
-   
-                 </div>
+                <div className='flex flex-col items-start gap-2'>
+                <div className='flex  w-full  items-center  justify-between'>
+                  <div className='inline-flex gap-1'>
+                  <img src={calender} alt='icon' className='w-4 h-4'/>
+                  <span className='text-sm font-cabin text-neutral-600'>{formatDate(item?.bkd_date)}</span>
+                  </div>
+                  <div className={` text-center rounded-sm  ${getStatusClass(item?.status)}`}>
+                  <p className='px-2 py-1 text-sm text-center capitalize font-cabin '>{item?.status}</p>
+                  </div>
+                
+
+                </div>
+
+                <div className='flex-1 w-full   inline-flex items-center justify-between   '>
+                <div className='w-2/5  font-cabin  text-sm text-neutral-600'>
+                  <div className=' text-neutral-600 text-xs'>Pickup Address</div>
+                  <div className='text-neutral-800'>{item?.bkd_pickupAddress}</div>
+                  </div>
+                <img src={double_arrow} className=' w-5 h-5' alt='icon'/>
+                <div className='w-2/5  font-cabin text-sm text-neutral-600'>
+                <div className=' text-neutral-600 text-xs'>Dropoff Address</div>
+                <div className='text-neutral-800'> {item?.bkd_dropAddress}</div></div>
+                </div>
+                
+                
+
+              </div>
                 )}
                    {key === 'hotels' && (
-                       <div className='flex flex-row items-center  gap-x-2 '>
-                       <div className='flex-1 mr-4 inline-flex items-center  '>
+                       <div className='flex flex-col items-start'>
                         
-                         <span className='text-sm font-cabin'>{item?.bkd_location}</span>
+                        <div className='flex items-center  justify-between w-full'>
+
+                      <div className='flex w-full'>
+                        <div className='justify-between flex '>
+                       <img src={calender} alt='icon' className='w-4 h-4 mr-1'/>
+                       <p className='text-sm font-cabin text-neutral-600'>{formatDate(item?.bkd_checkIn)}</p>
                        </div>
-                       <div className='flex-1 inline-flex items-center justify-center gap-1'>
-                       <img src={calender} alt='icon' className='w-4 h-4'/>
-                       <p className='font-cabin text-sm'>{formatDate(item?.bkd_checkIn)}</p>
+                       <div className='text-center px-2 '> to </div>
+                       <div className='flex justify-between '>
+                       <img src={calender} alt='icon' className='w-4 h-4 mr-1'/>
+                       <p className='text-sm font-cabin text-neutral-600'>{formatDate(item?.bkd_checkOut)}</p>
                        </div>
-                       <div className='flex-1 inline-flex items-center justify-center gap-1'>
-                       <img src={calender} alt='icon' className='w-4 h-4'/>
-                       <p className='font-cabin text-sm'>{formatDate(item?.bkd_checkOut)}</p>
+                       </div>
+                      
+
+                        
+                         <div className={`px-2 py-1 rounded-sm    ${getStatusClass(item?.status)}`}>
+                         <p className='text-sm text-center capitalize font-cabin '>{item?.status}</p>
+                         </div>
+                     
+                        </div>
+
+                       <div className='flex-1  flex-col items-center font-cabin  '>
+                        <div className='text-neutral-600  text-xs '> Location</div>
+                        
+                         <span className='text-sm font-cabin text-neutral-800'>{item?.bkd_location}</span>
                        </div>
                        
-                       <div className='flex-1 inline-flex  items-center  justify-center '>
-                         <div className={`px-2 py-1 rounded-sm    ${getStatusClass(item?.status)}`}>
-                         <span className='text-sm text-center capitalize font-cabin '>{item?.status}</span>
-                         </div>
-                       </div>
+                       
+                       
+                       
        
                      </div>
                     )}    
@@ -267,24 +288,10 @@ const handleDropdownToggle = (index) => {
 </div>
 
 
-  </div>
-  <div className='flex flex-row gap-2 '>
-  <div onClick={()=>{handleCashAdvance(item?.travelRequestId,"", 'ca-create')}} className=" mt-2 rounded-[32px] w-fit box-border h-[33px] flex flex-row items-center justify-center py-4 px-2  cursor-pointer border-[1px] border-solid border-purple-500">
-      <div className="font-semibold text-[12px] w-fit h-[17px] text-purple-500">{getCashAdvanceButtonText(item?.tripStartDate)}</div>
-</div>
-  <div onClick={()=>{handleTravelExpense(item?.tripId,"", "trip-ex-create")}} className=" mt-2 rounded-[32px] w-fit  h-[33px] flex flex-row items-center justify-center py-4 px-2  cursor-pointer border-[1px]  border-purple-500">
-      <div className="font-semibold text-[12px] w-fit h-[17px] text-purple-500">Book Expense</div>
-</div>
-  </div>
- 
-
 </div>
 
-
-   
-
-
-   </div>
+</div>
+  
   
 
 
@@ -301,36 +308,55 @@ const handleDropdownToggle = (index) => {
         </>
           }
 
-          {activeTabs?.[index]=== 'Cash Advance' && 
-           ( 
-            <div className='h-[210px] w-[650px] overflow-y-auto overflow-x-auto '>
-             <div className='mx-4 w-auto  gap-4 flex flex-col '> 
-            <CashCard handleCashAdvance={handleCashAdvance} cashAdvances={item?.cashAdvances}/>
-            </div>
-            </div>
-            )}
-          {activeTabs?.[index] ==="Expense" && 
-         <>
-        <div className=' h-[240px] w-[650px] overflow-y-auto rounded-lg p-2'>
-         <TravelCard    
-         travelExpense={item.travelExpenses}  
-         handleTravelExpense={handleTravelExpense} 
-         /> 
-         </div>
-          {/* <div className='px-5 w-auto max-w-[458px] flex flex-col h-auto min-h-[210px] gap-4'>Expense</div> */}
-         </>
-          } 
+{activeTabs?.[index]=== 'Cash Advance' && 
+  ( 
+  <div className='h-[175px] flex flex-col  justify-center  mt-1 px-3  overflow-y-auto overflow-x-auto'>
+    {/* <div className=' w-[450px] flex flex-col justify-center items-center h-[280px] gap-y-2'>  */}
+  <CashCard handleCashAdvance={handleCashAdvance} cashAdvances={item?.cashAdvances}/>
+  {/* </div> */}
+  </div>
+  )}
+{activeTabs?.[index] ==="Expense" && 
+<>
+<div className=' h-[190px]  px-3 w-[458px] overflow-y-auto rounded-lg my-2'>
+<TravelCard    
+// travelExpense={travelExpense}  
+travelExpense={item?.travelExpenses}  
+handleTravelExpense={handleTravelExpense} 
+/> 
+</div>
+{/* <div className='px-5 w-auto max-w-[458px] flex flex-col h-auto min-h-[210px] gap-4'>Expense</div> */}
+</>
+} 
+
+<div className='flex flex-row gap-2 px-2 pb-1'>
+  <div onClick={()=>{handleCashAdvance(item?.travelRequestId,"", 'ca-create')}} className="bg-white-100 mt-2 rounded-[32px] w-fit box-border h-[33px] flex flex-row items-center justify-center py-4 px-2  cursor-pointer border-[1px] border-solid border-purple-500">
+    <div className="font-semibold text-[12px] w-fit h-[17px] text-purple-500">{getCashAdvanceButtonText(item?.tripStartDate)}</div>
+</div>
+<div onClick={()=>{handleTravelExpense(item?.tripId,"", "trip-ex-create")}} className="bg-white-100 mt-2 rounded-[32px] w-fit  h-[33px] flex flex-row items-center justify-center py-4 px-2  cursor-pointer border-[1px]  border-purple-500">
+    <div className="font-semibold text-[12px] w-fit h-[17px] text-purple-500">Book Expense</div>
+</div>
+</div>
+          </div>
+          {/* </div> */}
 
           
       
 </div>
         </React.Fragment>
-      ))}
+      ))) : (
+      <div className="rounded-md w-[487px] h-[310px] flex flex-col gap-4 self-stretch border  border-slate-300  items-center justify-center  text-sm">
+      <img src={intransit_trip} alt="NoTrip" className='A animate-pulse'/>
+      <h2 className='text-lg font-cabin text-neutral-600'>We are awaiting your first Trip</h2>
+      
     </div>
-  </div>)
+      )}
+</div>
+  </div>
+  )
 };
 
 
 
-export default UpcomingTrip
+export default TransitTrip
 

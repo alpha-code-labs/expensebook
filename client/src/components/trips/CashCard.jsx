@@ -8,41 +8,15 @@ const CashCard = ({handleCashAdvance,cashAdvances}) => {
 
 const travelRequestId="tr-67676kjsdf"
   return (
-    <> 
+    <div className='mt-28'> 
     {cashAdvances?.map((item,index)=>(<React.Fragment key={index}>
-<div className='border-[1px] flex flex-row  border-b-gray  rounded-md p-3 h-auto w-full font-cabin'>
-
-      
-
-
-
+<div className='border-[1px] flex flex-row border-slate-300 bg-slate-50 rounded-md mb-2 p-3 h-auto w-full font-cabin'>
   <div className='flex-1 flex flex-col gap-4'>
       <div className=''>
         <p className='font-cabin font-normal text-xs text-neutral-400'>Cash-Advance No.</p>
         <p className='lg:text-[14px] text-[16px] text-left font-medium  tracking-[0.03em] text-neutral-800 font-cabin lg:truncate '> {item?.cashAdvanceNumber}</p>
       </div>
-  {/* <div className=' '>
- 
-    
-      {item?.amountDetails.map((currencyItem,index)=>(
-      <React.Fragment key={index}>
-        <div className=' flex flex-row gap-4 text-[14px] text-neutral-800 font-medium capitalize'>
-      <div className='flex  flex-col'>  
-      <p className='font-cabin font-normal text-xs text-neutral-400'>Amount Details</p>
-      <div className=' flex flex-row gap-1 '>
-       
-        <p>{currencyItem?.currency?.shortName}</p>
-        <p> {formatAmount(currencyItem?.amount)}</p>
-      </div>
-      </div>  
-      <div className='flex  flex-col'>
-      <p className='font-cabin font-normal text-xs text-neutral-400'>Mode</p>
-      <p className=' translate-y-[-1px] '> {currencyItem?.mode ?? "-"}</p>
-      </div>
-      </div>
-      </React.Fragment>
-    ))}
-  </div> */}
+
   <div className=' '>
   <div className='flex flex-row gap-4 text-[14px] text-neutral-800 font-medium capitalize'>
     <div className='flex flex-col'>
@@ -76,7 +50,7 @@ const travelRequestId="tr-67676kjsdf"
        <div onClick={()=>{handleCashAdvance(travelRequestId,item.cashAdvanceId, 'ca-cancel')}}  className='flex items-center  justify-center w-6 h-6 bg-[#FFC2C6] rounded-full cursor-pointer' >
          <img src={cancel} alt='cancel' width={20} height={20} />
        </div>
-       <div onClick={()=>{handleCashAdvance(travelRequestId,item.cashAdvanceId, 'ca-modify')}} className='flex cursor-pointer items-center justify-center w-6 h-6 bg-purple-50 rounded-full '>
+       <div onClick={()=>{handleCashAdvance(travelRequestId,item.cashAdvanceId, 'ca-modify')}} className='flex cursor-pointer items-center justify-center w-6 h-6 bg-purple-200 rounded-full '>
          <img src={modify} alt='modify' width={12} height={12} />
        </div>
      </div>
@@ -90,7 +64,7 @@ const travelRequestId="tr-67676kjsdf"
     
     </React.Fragment>))}
    
-    </>
+    </div>
   )
 }
 

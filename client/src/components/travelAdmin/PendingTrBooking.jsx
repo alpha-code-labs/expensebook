@@ -74,7 +74,7 @@ const [isUploading, setIsUploading]=useState(
 
   
   return (
-    <div className="flex flex-row items-center justify-center px-2  h-auto  lg:min-h-[56px] rounded-xl border-[1px] border-b-gray">
+    <div className="flex flex-row items-center justify-center px-2  h-auto  lg:min-h-[56px] rounded-xl border-[1px] border-b-gray hover:border-indigo-600 ">
     <div className="flex flex-1 h-[52px] items-center ">
    
      <div className="rounded-[32px]  h-[52px] flex flex-row items-center justify-center  cursor-pointer">

@@ -2,7 +2,9 @@ import axios from 'axios';
 import { urlRedirection } from './handyFunctions';
 import { handleLoginPageUrl } from './actionHandler';
 
-const BASE_URL = `http://192.168.1.11:8088`;
+const BASE_URL = `http://localhost:8088`;
+export const LOGIN_PAGE_URL =`http://localhost:5173/user-login`
+// const BASE_URL = `http://192.168.1.11:8088`;
 const retry = 2;
 const retryDelay = 3000;
 
@@ -86,7 +88,7 @@ export const getEmployeeData_API = async (tenantId,empId) => {
     return { data: null, error: errorObject };
   }
 };
-const LOGINBASEURL ='http://192.168.1.10:9001'
+const LOGINBASEURL ='http://localhost:9001'
 
 export const getEmployeeRoles_API = async (tenantId,empId) => {
   const url = `${LOGINBASEURL}/api/internal/${tenantId}/${empId}/roles`;
@@ -122,9 +124,6 @@ export const assignBusinessAdmin_API = async (tenantId,travelRequestId,data) => 
     return { data: null, error: errorObject };
   }
 };
-
-
-
 
 
 export const getTravelPreference_API = async (tenantId,empId) => {

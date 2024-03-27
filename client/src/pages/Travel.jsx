@@ -15,10 +15,10 @@ const Travel = ({fetchData,isLoading,setIsLoading}) => {
   // const tenantId = localStorage.getItem('tenantId');
   // const empId = localStorage.getItem('empId');
 
-  const {tenantId , empId }=useParams()
+  const {tenantId,empId,page}= useParams();
   useEffect(()=>{
 
-    fetchData(tenantId,empId)
+    fetchData(tenantId,empId,page)
 
   },[])
  
@@ -142,12 +142,12 @@ if(travelData){
         
        
        
-          <div className="w-full   bg-white-100  max-w-[932px] h-auto lg:h-[581px] rounded-lg border-[1px] border-gray-200 shrink-0 font-cabin mt-3 sm:mt-6 shadow-[0px_12px_3px_rgba(0,_0,_0,_0),_0px_8px_3px_rgba(0,_0,_0,_0.01),_0px_4px_3px_rgba(0,_0,_0,_0.03),_0px_2px_2px_rgba(0,_0,_0,_0.05),_0px_0px_1px_rgba(0,_0,_0,_0.06)]">
+          <div className="w-full   bg-white-100  max-w-[932px] h-auto lg:h-[581px] rounded-lg border-[1px] border-slate-300 shrink-0 font-cabin mt-3 sm:mt-6 shadow-[0px_12px_3px_rgba(0,_0,_0,_0),_0px_8px_3px_rgba(0,_0,_0,_0.01),_0px_4px_3px_rgba(0,_0,_0,_0.03),_0px_2px_2px_rgba(0,_0,_0,_0.05),_0px_0px_1px_rgba(0,_0,_0,_0.06)]">
            {activeScreen=== 'All Travel Requests' && 
            <>
   <div className='flex flex-row justify-between items-end px-8'>
-  <div className="w-full lg:w-[200px] h-6 flex flex-row gap-3 mt-7 items-center">
-    <img className="w-6 h-6" src={airplane_1} alt="receipt" />
+  <div className="w-full lg:w-[200px] h-6 flex flex-row gap-3 mt-7 items-center ">
+    <img className="w-6 h-5" src={airplane_1} alt="receipt" />
     <div className="text-base tracking-[0.02em] font-bold">All Travel Requests</div>
   </div>
 
@@ -162,7 +162,7 @@ if(travelData){
             {filteredData && filteredData?.map((travelDetails ,index)=>(
               <React.Fragment key={index}>
             <div className="box w-auto max-w-[896px] h-auto  mx-2 sm:mx-4 mb-2  font-cabin">
-            <div className={`w-auto min-w-[400px] lg:w-[896px] h-auto lg:min-h-[56px] rounded-xl border-b-gray border-[1px]`}>
+            <div className={`w-auto min-w-[400px] lg:w-[896px] h-auto lg:min-h-[56px] rounded-xl border-b-gray hover:border-indigo-600  border-[1px]`}>
             <div className='w-auto max-w-[932px]  rounded-md'>
     <div className={`w-auto max-w-[900px]   h-auto max-h-[180px] lg:h-[52px] flex flex-col lg:flex-row items-start ${travelDetails.isCashAdvanceTaken && 'border-b-[1px]   border-b-gray '} m-2 lg:items-center justify:start lg:justify-center `}>    
     <div className='flex flex-auto flex-row w-full justify-between gap-2'>
@@ -322,7 +322,7 @@ if(travelData){
            {activeScreen=== 'Rejected Travel Requests' && 
            <>
            <div className="w-auto h-6 flex flex-row gap-3 ml-8 mt-7 items-center">
-      <img className="w-6 h-6" src={receipt} alt="receipt" />
+      <img className="w-6 h-5" src={airplane_1} alt="receipt" />
       <div className="text-base tracking-[0.02em] font-bold w-auto">Rejected Travel Requests</div>
     </div>
     <div className="box-border mx-4 mt-[46px] w-auto max-w-[932px]  h-px border-t-[1px] border-b-gray "/>
