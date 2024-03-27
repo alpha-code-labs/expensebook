@@ -35,5 +35,7 @@ export {default as cab_purple} from './cab-purple.svg';
 export {default as train} from './train.png';
 export {default as bus} from './bus.png';
 export {default as check_tick} from './check-tick.svg';
-
+export {default as spinner_icon} from './spinning-loading.gif'
+export {default as check_circle} from './check_circle.svg'
+export {default as round_circle} from './round_circle.svg'
 

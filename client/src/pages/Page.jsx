@@ -1,7 +1,7 @@
 // Page.js
 
 import React, { useEffect, useState } from 'react';
-import { tripFetchApi } from '../utils/tripApi';
+import { getTripDataApi as tripFetchApi  } from '../utils/tripApi';
 
 const Page = () => {
   const [tripData, setTripData] = useState(null);

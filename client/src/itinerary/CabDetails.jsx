@@ -1,41 +1,23 @@
 import React,{ useState } from "react";
 import { tripCancellationApi } from "../utils/tripApi";
-import {double_arrow, cab_purple } from '../assets/icon'
+import {double_arrow, cab_purple, check_tick, check_circle, round_circle } from '../assets/icon'
 import Modal from "../components/Modal";
+import { formatDate } from "../utils/handyFunctions";
 
 
-
-const CabDetails = ({ allCabs , travelRequest , actionBtnText , routeData ,handleOpenOverlay})=>{
+const CabDetails = ({selectedItineraryIds , handleSelect, cabsItinerary , travelRequest , actionBtnText , routeData ,handleOpenOverlay})=>{
   
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [selectedItineraryId,setSelectedItineraryId]= useState(null)
-  
-    const handleOpenModal = (itineraryId) => {
-      setSelectedItineraryId(itineraryId)
-      setIsModalOpen(true);
-    };
-  
-    const handleCloseModal = () => {
-      setIsModalOpen(false);
-    };
-
-
-  
-    const handleCancel = () => {
-      // Handle the cancellation logic
-      console.log('Cancelled');
-    };
+   
   
   
     return (
   
   
       <>
-   {travelRequest.itinerary.map((journey, journeyIndex) => (
-  <React.Fragment key={journeyIndex}>
-  <p>From: {journey.journey.from} | To: {journey.journey.to}</p>
+ 
+ 
   {/* <div className='Prefrence flex items-center w-full h-[40px] justify-end' /> */}
-  {allCabs(journey).map((cab, cabIndex) => (
+  {cabsItinerary.map((cab, cabIndex) => (
                   <React.Fragment key={cabIndex}>
   
       
@@ -47,19 +29,22 @@ const CabDetails = ({ allCabs , travelRequest , actionBtnText , routeData ,handl
     <div className='flex flex-row py-3 px-2 divide-x'>
     <div className='flex items-center flex-grow divide-x '>
      <div className='flex items-start justify-start  flex-col shrink w-auto md:w-[200px] mr-4'>
-       <div className='flex items-center justify-center mb-2'>
+       {/* <div className='flex items-center justify-center mb-2'>
        <div className='pl-2'>
          <img src={cab_purple} alt="calendar" width={16} height={16} />
        </div>
        <span className="ml-2 tracking-[0.03em] font-cabin leading-normal text-gray-800 text-xs md:text-sm">
         Class : {cab.class}
        </span>
-       </div>
+       </div> */}
        <div className='ml-4 max-w-[200px] w-auto'>
         <span className='text-xs font-cabin'>
-        <div className='ml-4 max-w-[200px] w-auto'>
+        <div className='inline-flex gap-1 ml-4 max-w-[200px] w-auto'>
+        <div className='pl-2'>
+         <img src={cab_purple} alt="calendar" width={16} height={16} />
+       </div>
     <span className='text-xs font-cabin '>
-      {cab.date}, {cab.prefferedTime}
+      {formatDate(cab.bkd_date)}, {cab.bkd_preferredTime}
       {/* {hotelDetails.locationPreference !== undefined && hotelDetails.locationPreference !== '' ? hotelDetails.locationPreference : '-'} */}
     </span>
   </div>
@@ -80,7 +65,7 @@ const CabDetails = ({ allCabs , travelRequest , actionBtnText , routeData ,handl
          <div className='flex flex-col text-lg font-cabin w-3/7  items-center text-center shrink '>
            <span className='text-xs'>Pick-Up</span>
            <span className=' '>
-            {cab.pickupAddress}
+            {cab.bkd_pickupAddress}
             
            </span> 
          </div>
@@ -94,8 +79,8 @@ const CabDetails = ({ allCabs , travelRequest , actionBtnText , routeData ,handl
            <span className='text-xs'>Drop-Off</span>
            <span className=''>
   
-            {cab.dropAddress}
-            </span> 
+            {cab.bkd_dropAddress}
+          </span> 
   
          </div>
        </div>
@@ -103,27 +88,13 @@ const CabDetails = ({ allCabs , travelRequest , actionBtnText , routeData ,handl
     
     
     </div>
+    <div className="flex items-center justify-center m-4 pl-5">
+    {new Date(cab.bkd_date) >= new Date() && (
+      <div onClick={()=>handleSelect(cab.itineraryId)}>{selectedItineraryIds.includes(cab.itineraryId) ? <img src={check_circle} width={20} height={20} className="cursor-pointer"/>:<img src={round_circle} width={20} height={20} className="cursor-pointer"/>}</div>
     
-    
-    <div className='flex justify-end items-center px-8'>
-    <div className={`flex items-center px-3 pt-[6px] pb-2 py-3 rounded-[12px] text-[14px] font-medium tracking-[0.03em] text-gray-600 cursor-pointer bg-slate-100  hover:bg-red-100  hover:text-red-900 `}
-    onClick={()=>handleOpenModal(cab.itineraryId)}
-    >
-      {actionBtnText}
-      
+    )}
     </div>
-    <Modal
-    handleOpenOverlay={handleOpenOverlay}
-          handleOperation={tripCancellationApi}
-          isOpen={isModalOpen}
-          onClose={handleCloseModal}
-          itineraryId={selectedItineraryId}
-          routeData={routeData}
-          content="Are you sure ! you want to cancel the cab cancel ?"
-          onCancel={handleCancel}
-          
-        />
-    </div>
+   
     
     </div>  
    
@@ -136,8 +107,8 @@ const CabDetails = ({ allCabs , travelRequest , actionBtnText , routeData ,handl
     
     ))}
     
-  </React.Fragment>
-   ))}
+ 
+  
   
     
   

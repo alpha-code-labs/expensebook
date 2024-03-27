@@ -1,4 +1,5 @@
 function titleCase(str){
+  try{
     str = str.toLowerCase().split(' ')
     str = str.map(word=>{
         if(word.length>0 && word){
@@ -8,6 +9,12 @@ function titleCase(str){
    str = str.filter(word=>word!=undefined)
     str= str.map(word=>word.replace(word[0],word[0].toUpperCase()))
     return str.join(' ')
+
+  }catch(e){
+    console.log(e)
+    return str
+  }
+    
 }
 
 function formatDate(date=Date.now()) {
@@ -63,6 +70,10 @@ function formatDate(date=Date.now()) {
   
     // Use the regular expression to test the input date string
     return customFormatPattern.test(dateString);
+  }
+
+  function urlRedirection(url){
+    window.location.href=(url)
   }
   
   function formatDate2(inputDate) {
@@ -129,5 +140,5 @@ function formatDate(date=Date.now()) {
   }  
   
 
-export {titleCase, formatDate, formatDate2 ,getStatusClass}  
+export {titleCase, formatDate, formatDate2 ,getStatusClass,urlRedirection}  
 

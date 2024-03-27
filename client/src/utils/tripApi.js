@@ -1,8 +1,14 @@
 import axios from 'axios';
+import { urlRedirection } from './handyFunctions';
+const tenantId='tenantId'
+const empId='empId'
 
-const BASE_URL = 'http://localhost:8080/';
+export const DASHBOARD_URL= `http://192.168.176.73:8082/${tenantId}/${empId}`
 
-const retry = 3;
+const BASE_URL = `http://192.168.134.73:8082`
+//http://192.168.1.5:8082/api/trips/cancel/details/TNTABG/TRIPABG000002/empL001
+
+const retry = 1;
 const retryDelay = 3000;
 
 const errorMessages = {
@@ -45,33 +51,95 @@ const axiosRetry = async (requestFunction, ...args) => {
   }
 };
 
+/**
+ * The `tripFetchApi` function is an asynchronous function that fetches trip data from an API using the
+ * provided tripId, tenantId, and empId.
+/**/
 
-export const tripFetchApi = async (tripId, tenantId, empId) => {
-  const url = `${BASE_URL}/api/get/${tenantId}/${empId}/${tripId}`;
 
+
+export const logoutApi = async (authToken) => {
   try {
-    const response = await axiosRetry(axios.get, url);
-    return { data: response.data, error: null };
-  } catch (error) {
-    const errorObject = {
-      status: error.response ? error.response.status : null,
-      message: error.message,
-    };
+    const response = await axiosRetry(axios.post ,'/logout', {}, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`,
+      },
+    });
+    const data = response.data;
+    return { data: data,message:data.message, error: null };
 
+  } catch (error) {
+    handleRequestError(error);
+    const errorObject = {
+      status: error.response?.status || null,
+      message: error.message || 'Unknown error',
+    };
     return { data: null, error: errorObject };
   }
 };
 
 
-
-export const tripCancellationApi = async (tenantId, empId, tripId, itineraryId) => {
-  const baseURL = `${BASE_URL}/api/${tenantId}/${empId}/${tripId}`;
-  const url = itineraryId ? `${baseURL}/cancel/${itineraryId}` : `${baseURL}/cancel`;
-
+export const getTripDataApi= async (tenantId, empId, tripId) => {
+  const url = `${BASE_URL}/api/fe/trips/${tenantId}/${empId}/${tripId}/details`;
   try {
-    const requestData = itineraryId ? {} : { itineraryId }; // Send itineraryId only if it's present
+    const response = await axiosRetry(axios.get,url);
+    return response
+  } catch (error) {
+    handleRequestError(error);
+    throw new Error(`Error canceling trip: ${error.message}`);
+  }
+};
+/**
+ * The `tripCancellationApi` function is an asynchronous function that cancels a trip by making a POST
+ * request to a specific API endpoint.
+ */
 
-    return await axiosRetry(axios.post, url, requestData);
+//header level
+
+export const tripCancellationApi = async (tenantId, empId, tripId) => {
+
+  const url = `${BASE_URL}/api/fe/trips/${tenantId}/${empId}/${tripId}/cancel`;
+  
+  try {
+
+    const response= await axiosRetry(axios.patch, url);
+
+    return response.data
+  } catch (error) {
+    handleRequestError(error);
+    throw new Error(`Error canceling trip: ${error.message}`);
+  }
+};
+
+///for cancelling itinerary data is itinerary array[]
+export const tripItineraryCancellationApi = async ( tenantId, empId,tripId, data) => {
+ 
+  const url = `${BASE_URL}/api/fe/trips/${tenantId}/${empId}/${tripId}/cancel-line`;
+  try {
+    
+    const response = await axiosRetry(axios.patch, url, data);
+    return response.data
+
+  } catch (error) {
+    handleRequestError(error);
+  const errorObject = {
+    status: error.response?.status || null,
+    message: error.message || 'Unknown error',
+  };
+  console.log('itinerary ids Error : ',errorObject);
+  return {  error: errorObject };
+  }
+};
+
+//-----------------------------------------trip recovery---------------------------------------------
+//header
+export const tripRecoveryApi = async (tenantId,empId,tripId) => {
+   const url= `${BASE_URL}/api/fe/trips/${tenantId}/${empId}/${tripId}/recover`;
+ 
+  try {
+    const response = await axiosRetry(axios.patch, url,);
+    return response.data;
   } catch (error) {
     handleRequestError(error);
     throw new Error(`Error canceling trip: ${error.message}`);
@@ -79,16 +147,22 @@ export const tripCancellationApi = async (tenantId, empId, tripId, itineraryId) 
 };
 
 
-export const tripRecovery = async (tenantId, empId, tripId, itineraryId) => {
-  const baseURL = `${BASE_URL}/api/${tenantId}/${empId}/${tripId}`;
-  const url = itineraryId ? `${baseURL}/recover/${itineraryId}` : `${baseURL}/recover`;
 
+export const tripLineItemsRecoveryApi = async ( tenantId,empId,tripId,itineraryIds ) => {
+ 
+  const url = `${BASE_URL}/api/fe/trips/${tenantId}/${empId}/${tripId}/recover-line`;
   try {
-    const requestData = itineraryId ? {} : { itineraryId }; // Send itineraryId only if it's present
+    
+    const response = await axiosRetry(axios.patch, url, itineraryIds);
+    return response.data;
 
-    return await axiosRetry(axios.post, url, requestData);
   } catch (error) {
     handleRequestError(error);
-    throw new Error(`Error canceling trip: ${error.message}`);
+  const errorObject = {
+    status: error.response?.status || null,
+    message: error.message || 'Unknown error',
+  };
+  console.log('itinerary ids Error : ',errorObject);
+  return {  error: errorObject };
   }
 };
