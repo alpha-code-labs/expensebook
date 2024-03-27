@@ -10,6 +10,10 @@ function titleCase(str){
     return str.join(' ')
 }
 
+function urlRedirection(url){
+  window.location.href=(url)
+}
+
 function formatDate(date=Date.now()) {
     // Get the current timestamp
     const currentTimestamp = date
@@ -127,4 +131,4 @@ function formatDate(date=Date.now()) {
   }
   
 
-export {titleCase, formatDate, formatDate2, formatDate3, camelCaseToTitleCase, titleCaseToCamelCase}
+export {titleCase, formatDate, formatDate2, formatDate3, camelCaseToTitleCase, titleCaseToCamelCase,urlRedirection}

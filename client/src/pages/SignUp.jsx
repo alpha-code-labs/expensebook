@@ -1,24 +1,34 @@
 import { useState, useEffect, useRef } from 'react';
-import chevronDownIcon from '../assets/chevron-down.svg'
-import leftFrame from '../assets/leftFrame.svg'
+
+import chevronDownIcon from '../assets/chevron-down.svg';
+import leftFrame from '../assets/leftFrame.svg';
 import Icon from '../components/common/Icon';
+import { verify_shield } from '../assets/icon';
 import Search from '../components/common/Search';
 import Select from '../components/common/Select';
 import Input from '../components/common/Input';
 import Button from '../components/common/Button';
 import Modal from '../components/common/Modal';
 import { useNavigate } from 'react-router-dom';
+import { postOtpValidation_API, postSignupData_API } from '../utils/api';
+import PopupMessage from '../components/common/PopupMessage';
+import Error from '../components/common/Error';
 
+//signup  with  set password first time
 //inputs: company name, full name of user, mobile number, company HQ, email Id, password and confirm Password
 
 export default function CompanyAndHRInformation(){
   const [companyList, setCompanyList] = useState([])
   const [businessCategoriesList, setBusinessCategoriesList] = useState(['Mining', 'Construction', 'Manufacturing', 'Transportation', 'Information', 'Finance and Insurance', 'Real State and Rental Leasing', 'Accomodation and Food', 'Educational', 'Health Care', 'Others'])
   const [locationsList, setLocationsList] = useState(['Bangalore', 'Mumbai', 'Delhi', 'Chennai', 'Hyderabad', 'Kolkata'])
-  const [formData, setFormData] = useState({companyName:'', fullName:'', email:'', password:'', confirmPassword:'', companyHQ:'', mobileNumber:''})
-
-  const [prompt, setPrompt] = useState(null);
+  const [formData, setFormData] = useState({companyName:'', fullName:'', email:'sandeepnair@gmail.com', password:'1234', confirmPassword:'1234', companyHQ:'', mobileNumber:'7270813318'})
+  const [isLoading,setIsLoading]=useState(false)
+  const [isUploading,setIsUploading]=useState({signup:false,otpValidation:false})
+  const [loadingErrorMsg, setLoadingErrorMsg]=useState(false)
+  const [showPopup , setShowPopup]=useState(false)
+  const [message,setMessage]=useState(null)
   const [showPrompt, setShowPrompt] = useState(false)
+  
 
   const navigate = useNavigate()
 
@@ -26,7 +36,7 @@ export default function CompanyAndHRInformation(){
     console.log(formData, '...formData')
   },[formData])
 
-  const [errors, setErrors] = useState({companyNameError:{set:false, message:null}, fullNameError:{set:false, message:null}, emailError:{set:false, message:null}, passwordError:{set:false, message:null}, confirmPasswordError:{set:false, message:null}, companyHQError:{set:false, message:null}, mobileNumberError:{set:false, message:null}})
+  const [errors, setErrors] = useState({digitErrors: [false, false, false, false, false, false],},{companyNameError:{set:false, message:null}, fullNameError:{set:false, message:null}, emailError:{set:false, message:null}, passwordError:{set:false, message:null}, confirmPasswordError:{set:false, message:null}, companyHQError:{set:false, message:null}, mobileNumberError:{set:false, message:null}})
 
   const handleSubmit = () => {
 
@@ -79,26 +89,114 @@ export default function CompanyAndHRInformation(){
         allowSubmit=false
       }else{setErrors(pre=>({...pre, confirmPasswordError:{set:false, message:''}}))}
 
-      if(formData.companyHQ == ''){
+      if(!formData.companyHQ){
         setErrors(pre=>({...pre, companyHQError:{set:true, message:'Please select company location'}}))
         allowSubmit=false
+       
       }else{setErrors(pre=>({...pre, companyHQError:{set:false, message:''}}))}
 
       resolve()
     })
-  })().then(()=>{
+  })().then(async()=>{
    
     if(allowSubmit){
+      
+        setIsUploading(prevState => ({ ...prevState, signup: true }));
+        const {error,data} = await postSignupData_API({ formData });
 
+        if (error) {
+          // Handle API error here
+         
+          console.error('API Error:', error);
+          setMessage(error.message || "An unexpected error occurred.");
+          setIsUploading(prevState => ({ ...prevState, signup: false }));
+          setShowPopup(true)
+          setTimeout(()=>{
+            setMessage(null)
+            setShowPopup(false)
+            navigate("/user-login")
+
+          },3000)
+        } else {
+          // Check the result and perform necessary actions
+          console.log('API Response:', data.message);
+          setIsUploading(prevState => ({ ...prevState, signup: false }));
+          setMessage(data.message);
+          setShowPopup(true)
+          setTimeout(()=>{
+            setMessage(null)
+            setShowPopup(false)
+          },3000)
+          // For example, you can redirect to another page after successful signup
+          // navigate('/success-page');
+        }
     }
     
   })
 
   };
+  console.log(errors.companyHQError)
 
 
+  const [otpDigits, setOtpDigits] = useState(['', '', '', '', '', '']);
+
+  const handleDigitChange = (index, newValue) => {
+    const newOtpDigits = [...otpDigits];
+    newOtpDigits[index] = newValue;
+    setOtpDigits(newOtpDigits);
+  };
+
+  const handleOtpSubmit = async() => {
+    // Check for errors in the OTP input
+    const newErrors = {
+      digitErrors: otpDigits.map((digit) => digit === ''),
+    };
+  
+    // Check if there are any errors
+    if (newErrors.digitErrors.some((error) => error)) {
+      // If there are errors, update the state with the new error information
+      setErrors(newErrors);
+    } else {
+      const otpCode = otpDigits.join('');
+    console.log(otpCode);
+      const validationData = {email:formData.email,otp:otpCode}
+        setIsUploading(prevState => ({ ...prevState, otpValidation: true }));
+        const {error,data} = await postOtpValidation_API(validationData);
+
+        if (error) {
+          // Handle API error here
+         
+          console.error('API Error:', error);
+          setMessage(error.message || "An unexpected error occurred.");
+          setIsUploading(prevState => ({ ...prevState, otpValidation: false }));
+          setShowPopup(true)
+          setTimeout(()=>{
+            setMessage(null)
+            setShowPopup(false)
+
+          },3000)
+        } else {
+          // Check the result and perform necessary actions
+          console.log('API Response:', data.message);
+
+          setIsUploading(prevState => ({ ...prevState, otpValidation: false }));
+          setMessage(data.message);
+          setShowPopup(true)
+          setTimeout(()=>{
+            setMessage(null)
+            setShowPopup(false)
+          },3000)
+          // For example, you can redirect to another page after successful signup
+          // navigate('/success-page');
+        }
+    
+
+    }
+  };
+  
   return (
     <>
+    {isLoading && <Error/>}
     <div className='fixed bg-white py-4 px-4 w-full z-10 top-0'>
         <Icon/>
     </div>
@@ -109,7 +207,7 @@ export default function CompanyAndHRInformation(){
       <img src={leftFrame} className='w-fit' />
     </div> */}
     
-    <div className='mx-auto mt-10 w-full p-4 mx-auto overflow-x-hidden flex  items-center'>
+    <div className='mx-auto mt-10 w-full p-4 overflow-x-hidden flex  items-center'>
       <div className="md:p-0 lg:pt-10 flex flex-col items-start justify-start gap-[24px]">
         
         <div className="flex flex-col items-start justify-start gap-[24px] w-full">
@@ -129,14 +227,14 @@ export default function CompanyAndHRInformation(){
                     placeholder='company name'
                     value={formData.companyName}
                     error={errors.companyNameError} 
-                    onBlur={(e)=> setFormData(pre=>({...pre, companyName:e.target.value})) } />
+                    onBlur={(e)=> setFormData(pre=>({...pre, companyName:e.target.value.trim()})) } />
 
                 <Input
                     title='Full Name' 
                     placeholder='full name'
                     value={formData.fullName}
                     error={errors.fullNameError} 
-                    onBlur={(e)=> setFormData(pre=>({...pre, fullName:e.target.value})) } />
+                    onBlur={(e)=> setFormData(pre=>({...pre, fullName:e.target.value.trim()})) } />
 
             </div>
 
@@ -146,7 +244,7 @@ export default function CompanyAndHRInformation(){
                     placeholder='mobile number'
                     value={formData.mobileNumber}
                     error={errors.mobileNumberError} 
-                    onBlur={(e)=> setFormData(pre=>({...pre, mobileNumber:e.target.value})) } />
+                    onBlur={(e)=> setFormData(pre=>({...pre, mobileNumber:e.target.value.trim()})) } />
 
                 <Input
                     title='Email Id' 
@@ -154,7 +252,7 @@ export default function CompanyAndHRInformation(){
                     value={formData.email}
                     titleCase={false}
                     error={errors.emailError} 
-                    onBlur={(e)=> setFormData(pre=>({...pre, email:e.target.value})) } />
+                    onBlur={(e)=> setFormData(pre=>({...pre, email:e.target.value.trim()})) } />
             </div>
 
             <div className='flex gap-2 flex-col md:flex-row w-full'>
@@ -165,7 +263,7 @@ export default function CompanyAndHRInformation(){
                     type='password'
                     titleCase={false}
                     error={errors.passwordError} 
-                    onBlur={(e)=> setFormData(pre=>({...pre, password:e.target.value})) } />
+                    onBlur={(e)=> setFormData(pre=>({...pre, password:e.target.value.trim()})) } />
 
                 <Input
                     title='Confirm Password' 
@@ -174,21 +272,22 @@ export default function CompanyAndHRInformation(){
                     type='password'
                     titleCase={false}
                     error={errors.confirmPasswordError} 
-                    onBlur={(e)=> setFormData(pre=>({...pre, confirmPassword:e.target.value})) } />
+                    onBlur={(e)=> setFormData(pre=>({...pre, confirmPassword:e.target.value.trim()})) } />
             </div>
-
+<div className='w-full'>
             <Search 
             title='Company HQ Location' 
             allowCustomInput={true} 
             options={locationsList} 
             currentOption = {formData.companyHQ}
-            placeholder='City'
-            error={errors.companyNameError}
+            placeholder='Select the City'
+            error={errors.companyHQError}
             onSelect={(option)=> setFormData(pre=>({...pre, companyHQ:option}))} />
+</div>
             </div>
 
             <div className='mt-10 mb-10 w-full max-w-[403px] flex items-center flex-row-reverse'>
-                <Button text='Sign Up' onClick={()=>{handleSubmit()}} />
+                <Button uploading={isUploading.signup} disabled={isUploading.signup} text='Sign Up' onClick={()=>{handleSubmit()}} />
             </div>
 
           </form>
@@ -196,23 +295,44 @@ export default function CompanyAndHRInformation(){
       </div>
     </div>
   </div> 
-    <Modal showModal={showPrompt} setShowModal={setShowPrompt} skipable={true} >
-          <div className='p-10'>
-              <p className='text-zinc-800 text-base font-medium font-cabin mt-4'>
-                {prompt}  
-              </p>
-              <div className='inline-flex justify-end w-[100%] mt-10'>
-                  <div className='w-[150px]'>
-                    <Button text='Ok' />
-                  </div>
-              </div>
-          </div>
+
+
+    <Modal showModal={showPrompt} setShowModal={setShowPrompt}  >
+    {/* <div className="flex min-h-screen items-center justify-center bg-blue-500"> */}
+      <div className="flex flex-col items-center justify-center bg-white p-8 rounded-lg shadow-md">
+        <header className="h-16 w-16 bg-indigo-500  text-2xl rounded-full flex items-center justify-center">
+          <img src={verify_shield} height={20} width={20}/>
+        </header>
+        <h4 className="text-lg font-semibold text-gray-700 mt-4">Enter OTP Code</h4>
+        <form action="#" className="flex flex-col items-center">
+      <div className="flex flex-row items-center justify-between mx-auto w-full max-w-xs gap-2 mt-5">
+        {otpDigits.map((value, index) => (
+          <DigitInput 
+          key={index} 
+          value={value}
+          onChange={(newValue) => handleDigitChange(index, newValue)} 
+          error={errors.digitErrors[index]}/>
+        ))}
+      </div>
+
+      <div className="mt-6 w-full text-white text-base border-none py-3 rounded-md " disabled>
+        <Button uploading={isUploading.otpValidation} disabled={isUploading.otpValidation} variant="full" text="Submit" onClick={handleOtpSubmit} />
+      </div>
+      <div className="flex flex-row items-center justify-center text-center text-sm font-medium space-x-1 text-gray-500">
+        <p>Didn't receive code?</p> <a className="flex flex-row items-center text-indigo-600" href="http://" target="_blank" rel="noopener noreferrer">
+          Resend
+        </a>
+      </div>
+    </form>
+      </div>
+   
     </Modal>
+    <PopupMessage showPopup={showPopup} setShowPopup={setShowPopup} message={message}/>
 
   </>
   );
 
-};
+}
 
 
 const validateEmail = (email) => {
@@ -223,3 +343,27 @@ const validateEmail = (email) => {
       );
   };
 
+
+
+  function DigitInput({ value, onChange ,error  }) {
+    const borderStyle = error ? "border border-red-500" : "border border-gray-200";
+    const handleInputChange = (e) => {
+      // Ensure that only numeric values are entered
+      const newValue = e.target.value.replace(/[^0-9]/g, '');
+  
+      // Call the provided onChange function with the sanitized value
+      onChange(newValue);
+    };
+  
+    return (
+      <div className="w-16 h-12">
+        <input
+          type="text"
+          maxLength="1"
+          value={value}
+          onChange={handleInputChange}
+          className={`w-full h-full flex flex-col items-center justify-center text-center px-2 outline-none rounded-xl ${borderStyle} text-lg bg-white focus:bg-gray-50 focus:ring-1 ring-indigo-600`}
+        />
+      </div>
+    );
+  }

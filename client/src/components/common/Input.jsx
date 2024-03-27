@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { titleCase } from "../../utils/handyFunctions";
 import visibility_on_icon from '../../assets/visibility_on.svg'
 import visibility_off_icon from '../../assets/visibility_off.svg'
+import { mail_Icon } from "../../assets/icon";
 
 
 export default function Input(props){
@@ -51,10 +52,11 @@ export default function Input(props){
                         onChange={handleChange} 
                         onBlur={handleBlur}
                         type={visibility? 'text' : type}
-                        className=" w-full h-full decoration:none px-6 py-2 border rounded-md border border-neutral-300 focus-visible:outline-0 focus-visible:border-indigo-600 " 
+                        className=" w-full h-full decoration:none px-6 py-2  rounded-md border border-neutral-300 focus-visible:outline-0 focus-visible:border-indigo-600 " 
                         value={textInput} 
                         placeholder={placeholder}/>
                     {type == 'password' && <img src={visibility? visibility_on_icon : visibility_off_icon} className="absolute w-6 right-2 bg-white cursor-pointer" onClick={()=>setVisibility(pre=>!pre)} />}
+                    {type == 'email' && <img src={mail_Icon} className="absolute w-5 right-2 bg-white cursor-pointer" onClick={()=>setVisibility(pre=>!pre)} />}
                 </div>
 
                 <div className="absolute text-xs text-red-600 left-0 px-6 top-[44px]">
