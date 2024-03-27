@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
-import chevron_down from "../../assets/chevronDown.svg";
-
+import {titleCase} from '../../utils/handyFunctions'
+import {  chevron_down } from "../../assets/icon";
 
 export default function Select(props) {
   const placeholder = props.placeholder || "Placeholder Text";
@@ -144,10 +144,11 @@ const selectDivFocus = (e)=>{
 
   return (
     <>
-      <div className="min-w-[300px] w-full max-w-[133px] h-[32px] flex-col justify-start items-start gap-2 inline-flex border border-neutral-300">
+      <div className="min-w-[200px] w-full max-w-[403px] h-[73px] flex-col justify-start items-start gap-2 inline-flex">
         {/* title*/}
+        <div className="text-zinc-600 text-sm font-cabin">{title}</div>
         <div className="self-stretch h-12 justify-start items-start gap-4 inline-flex">
-          <div className={`grow relative shrink basis-0 self-stretch px-6 py-2 bg-white rounded-md border border-neutral-300 justify-between items-center flex`} >
+          <div className={`grow relative shrink basis-0 self-stretch px-6 py-2 bg-white-100 rounded-md border border-neutral-300 justify-between items-center flex`} >
             <div
               tabIndex={0}
               onKeyDown={selectKeyDown}
@@ -161,15 +162,15 @@ const selectDivFocus = (e)=>{
                   {placeholder}
                 </div>
               )}
-              {hidePlaceholder && <div className='text-neutral-700 text-sm font-normal font-cabin'>{selectedOption}</div>}
+              {hidePlaceholder && <div className='text-neutral-700 text-sm font-normal font-cabin'>{selectedOption ?? ""}</div>}
               <div className={`w-6 h-6 relative transition ${showDropdown && 'rotate-180'}`}>
                 <img src={chevron_down} />
               </div>
 
               
-            {!showDropdown && hidePlaceholder && violationMessage && <div className="absolute top-[35px] w-full text-xs text-yellow-600 font-cabin">
+            {/* {!showDropdown && hidePlaceholder && violationMessage && <div className="absolute top-[35px] w-full text-xs text-yellow-600 font-cabin">
               {violationMessage}
-            </div>}
+            </div>} */}
             
             {!showDropdown && !hidePlaceholder && error?.set && <div className="absolute top-[35px] w-full text-xs text-red-600 font-cabin">
               {error?.message}
@@ -181,9 +182,9 @@ const selectDivFocus = (e)=>{
             {/* options */}
             {showDropdown && (
               <div
-                key='dropdown'  
+                key='dropdown'
                 ref={dropdownRef}
-                className="absolute z-10 w-[calc(100%-10px)] h-fit max-h-[230px] overflow-y-scroll scroll rounded-b left-[5px] top-11 bg-white transition-all border-b  border-l border-r border-neutral-300 shadow-sm"
+                className="absolute z-10 w-[calc(100%-10px)] h-fit max-h-[230px] overflow-y-scroll scroll rounded-b left-[5px] top-11 bg-white-100 transition-all border-b  border-l border-r border-neutral-300 shadow-sm"
               >
                 {optionsList &&
                   optionsList.map((option, index) => (
@@ -195,7 +196,7 @@ const selectDivFocus = (e)=>{
                         onClick={()=>{ handleOptionSelect(option, index) }}
                         className="text-xs focus-visible:outline-0 focus-visible:bg-gray-100 font-medium font-cabin text-neutral-700 px-4 py-3 cursor-pointer transition-color hover:bg-gray-100"
                       >
-                        {option}
+                        {titleCase(option || " ")}
                       </p>
                       {index != optionsList.length - 1 && <hr key={`${option}-${index}`} />}
                     </div>
