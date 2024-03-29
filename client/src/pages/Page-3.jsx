@@ -9,16 +9,16 @@ import Error from "../components/common/Error";
 import PopupMessage from "../components/common/PopupMessage";
 import CashAdvanceDetails from "../itinerary/CashAdvanceDetails";
 import { double_arrow, calender, cab_purple as cab_icon, airplane_1 as airplane_icon, bus, validation_sym, violation_ySym_icon, user_icon, arrow_left, clock_icon, location_icon, material_hotel_icon, material_flight_icon, material_train_icon, material_bus_icon, material_cab_icon, material_carRental_icon, material_personalVehicle_icon} from "../assets/icon";
-import {travelTestingData} from '../dummyData/travelWithCash';
 import Select from "../components/common/Select";
 import ActionButton from "../components/common/ActionButton";
-import {  DASHBOARD_URL, approveCashAdvanceApi, approveLineItemApi, approveTravelRequestApi, getTravelDataforApprovalApi, rejectCashAdvanceApi, rejectLineItemApi, rejectTravelRequestApi } from "../utils/api";
+import { approveCashAdvanceApi, approveLineItemApi, approveTravelRequestApi, getTravelDataforApprovalApi, rejectCashAdvanceApi, rejectLineItemApi, rejectTravelRequestApi } from "../utils/api";
 import Modal from "../components/common/Modal";
 
 
 
 export default function () {
     const navigate = useNavigate()
+    const DASHBOARD_PAGE_URL = import.meta.env.VITE_DASHBOARD_PAGE_URL
    
     const {travelRequestId ,empId,tenantId} = useParams()
     const {isUploading , setIsUploading}= useState(false)
@@ -232,7 +232,7 @@ totalViolations = totalTravelViolations +  totalCashViolations || 0;
         <div className="w-full h-full relative bg-white-100 lg:px-24 md:mx-0 sm:px-0 sm:mx-auto py-12 select-none">
        
         <div className='w-full flex gap-2 justify-start lg:justify-start px-8 md:px-0 '>
-        <div className="flex items-center cursor-pointer " onClick={()=>(urlRedirection(`${DASHBOARD_URL}/${tenantId}/${empId}/overview`))}>
+        <div className="flex items-center cursor-pointer " onClick={()=>(urlRedirection(`${DASHBOARD_PAGE_URL}/${tenantId}/${empId}/overview`))}>
         <img src={arrow_left} className="w-6 h-6"/>
        </div>
             <Icon/>

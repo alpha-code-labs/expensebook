@@ -10,17 +10,18 @@ import { logoutApi } from './utils/api';
 
 
 function App() {
+  const LOGIN_PAGE_URL = import.meta.env.VITE_LOGIN_PAGE_URL
   const [authToken, setAuthToken] = useState("authtoken this is from app"); // Assuming you have a way to manage authentication
 
-  // const handleLogout = async () => {
-  //   logoutApi(authToken)
-  //   urlRedirection('http://localhost:8080/user-login/:companyName')
-  //   console.log('User logged out due to inactivity.');
-  // };
+  const handleLogout = async () => {
+    logoutApi(authToken)
+    urlRedirection(LOGIN_PAGE_URL)
+    console.log('User logged out due to inactivity.');
+  };
 
   useEffect(() => {
-    // const inactivityTimeout = 60 * 60 * 1000; // 60 minutes
-    const inactivityTimeout = 6000; 
+    const inactivityTimeout = 60 * 60 * 1000; // 60 minutes
+    //const inactivityTimeout = 6000; 
     let timer;
 
     const resetTimer = () => {
@@ -30,7 +31,7 @@ function App() {
 
     const startTimer = () => {
       timer = setTimeout(() => {
-        // handleLogout();
+        handleLogout();
       }, inactivityTimeout);
     };
 
