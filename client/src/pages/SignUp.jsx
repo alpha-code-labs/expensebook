@@ -126,6 +126,7 @@ export default function CompanyAndHRInformation(){
           setTimeout(()=>{
             setMessage(null)
             setShowPopup(false)
+            navigate("/user-login")
           },3000)
           // For example, you can redirect to another page after successful signup
           // navigate('/success-page');
@@ -213,7 +214,7 @@ export default function CompanyAndHRInformation(){
         <div className="flex flex-col items-start justify-start gap-[24px] w-full">
           <div className="flex flex-col items-start justify-start gap-[8px]">
             <div className="text-neutral-800 text-xl tracking-tight font-semibold font-cabin">
-              Sign Up !
+            Create your account now to get started!
             </div>
           </div>
         </div>

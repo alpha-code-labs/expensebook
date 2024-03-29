@@ -1,5 +1,5 @@
 import express from 'express';
-import TenanatModel from '../models/employee_login.js';
+import TenantModel from '../models/employee_login.js';
 
 const router = express.Router();
 
@@ -7,7 +7,7 @@ const router = express.Router();
 router.get('/companyNames', async (req, res) => {
   try {
     // Fetch all tenants from the database
-    const tenants = await TenanatModel.find({}, 'companyName');
+    const tenants = await TenantModel.find({}, 'companyName');
 
     // Extract company names from the result
     const companyNames = tenants.map((tenant) => tenant.companyName);

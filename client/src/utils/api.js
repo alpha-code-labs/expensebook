@@ -4,6 +4,7 @@ import { urlRedirection } from './handyFunctions';
 const Login_API_URL = `http://localhost:9001`;
 export const DASHBOARD_BASE = `http://localhost:5174`
 export const ONBOARDING_BASE = `http://localhost:5174`
+const BASEHOST = 'http://localhost:9001'
 const retry = 3;
 const retryDelay = 3000;
 
@@ -69,7 +70,7 @@ const axiosRetry = async (requestFunction, ...args) => {
 };
 
 
-const BASEHOST = 'http://localhost:9001'
+
 
 //okay
 export const getCompanyList_API = async () => {

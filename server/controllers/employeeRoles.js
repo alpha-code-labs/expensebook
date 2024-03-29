@@ -1,5 +1,5 @@
 import express from 'express';
-import TenanatModel from '../models/employee_login.js';
+import TenantModel from '../models/employee_login.js';
 
 const router = express.Router();
 
@@ -9,7 +9,7 @@ router.get('/internal/:tenantId/:employeeId/roles', async (req, res) => {
     try {
       const tenantId = req.params.tenantId;
       const employeeId = req.params.employeeId;
-      const tenant = await TenanatModel.findOne({ tenantId });
+      const tenant = await TenantModel.findOne({ tenantId });
       
       if (!tenant) {
         return res.status(404).json({ error: "Tenant not found" });

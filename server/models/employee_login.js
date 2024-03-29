@@ -41,7 +41,7 @@ const tenantSchema = new Schema({
   onboardingFlag:Boolean
 });
 
-const TenanatModel = mongoose.model('Tenanat', tenantSchema);
+const TenanatModel = mongoose.model('Tenant', tenantSchema);
 
 export default TenanatModel;
 

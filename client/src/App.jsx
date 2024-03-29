@@ -16,7 +16,7 @@ function App() {
      <BrowserRouter>
         <Routes>
           <Route path='/sign-up/' element={<SignUp />} /> 
-          <Route path='/user-login/:companyName' element={<UserLogin />} /> 
+          <Route path='/verify/:companyName' element={<UserLogin />} /> 
           <Route path='/user-login' element={<Login/>}/>
           <Route path='/update-password' element={<UpdatePassword/>} />
         </Routes>

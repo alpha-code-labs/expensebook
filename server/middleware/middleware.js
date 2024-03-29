@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import TenanatModel from "../models/employee_login.js";
+import TenantModel from "../models/employee_login.js";
 import { Router } from "express";
 
 
@@ -15,7 +15,7 @@ router.post('/middleware', async (req, res) => {
       if (err) {
         return res.json({ status: false, message: "Invalid token" });
       } else {
-        const user = await TenanatModel.findOne({
+        const user = await TenantModel.findOne({
           'tenantId': decoded.tenantId,
           'employees.employeeDetails.empId': decoded.empId
         });

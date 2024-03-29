@@ -6,7 +6,7 @@ import axios from 'axios';
 import bcrypt from 'bcrypt';
 
 //try for free user signup
-const ONBOARDING_API = 'http://192.168.1.7:8001/api/internal/create-tenant';
+const ONBOARDING_API = process.env.ONBOARDING_API;
 const saltRounds = 5;
 const router = Router();
 router.use(express.json());

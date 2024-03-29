@@ -271,7 +271,7 @@ export default function CompanyAndHRInformation(){
         <div className="flex flex-col items-start justify-start gap-[24px] w-full">
           <div className="flex flex-col items-start justify-start gap-[8px]">
             <div className="text-neutral-800 text-xl tracking-tight font-semibold font-cabin">
-              {isForgotPassword ? 'Forgot Password !' : 'Log In !'}
+              {isForgotPassword ? 'Forgot Password !' : 'Please login to your account!'}
             </div>
           </div>
         </div>
@@ -331,7 +331,7 @@ export default function CompanyAndHRInformation(){
             </div>
 
             <div className='mt-10 mb-10 w-full px-6  flex-grow flex items-center flex-row-reverse'>
-                <Button variant='full'  uploading={isUploading.logFog} disabled={isUploading.logFog} text={isForgotPassword ? 'Submit' :'Please Login'} onClick={()=>(isForgotPassword ? handleForgotPassword(): handleLogin()) } />
+                <Button variant='full'  uploading={isUploading.logFog} disabled={isUploading.logFog} text={isForgotPassword ? 'Submit' :'Login'} onClick={()=>(isForgotPassword ? handleForgotPassword(): handleLogin()) } />
             </div>
 
           </form>

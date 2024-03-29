@@ -55,7 +55,7 @@ async function connectToMongoDB() {
 }
 
 await connectToMongoDB();
-
+// await startConsumer('login');
 
 // import  express from "express";
 // import mongoose from "mongoose";
