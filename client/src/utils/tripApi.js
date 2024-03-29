@@ -1,12 +1,7 @@
 import axios from 'axios';
-import { urlRedirection } from './handyFunctions';
-const tenantId='tenantId'
-const empId='empId'
 
-export const DASHBOARD_URL= `http://192.168.176.73:8082/${tenantId}/${empId}`
 
-const BASE_URL = `http://192.168.134.73:8082`
-//http://192.168.1.5:8082/api/trips/cancel/details/TNTABG/TRIPABG000002/empL001
+const TRIP_BACKEND_API_URL = import.meta.env.VITE_TRIP_BACKEND_API_URL
 
 const retry = 1;
 const retryDelay = 3000;
@@ -81,7 +76,7 @@ export const logoutApi = async (authToken) => {
 
 
 export const getTripDataApi= async (tenantId, empId, tripId) => {
-  const url = `${BASE_URL}/api/fe/trips/${tenantId}/${empId}/${tripId}/details`;
+  const url = `${TRIP_BACKEND_API_URL}/api/fe/trips/${tenantId}/${empId}/${tripId}/details`;
   try {
     const response = await axiosRetry(axios.get,url);
     return response
@@ -99,7 +94,7 @@ export const getTripDataApi= async (tenantId, empId, tripId) => {
 
 export const tripCancellationApi = async (tenantId, empId, tripId) => {
 
-  const url = `${BASE_URL}/api/fe/trips/${tenantId}/${empId}/${tripId}/cancel`;
+  const url = `${TRIP_BACKEND_API_URL}/api/fe/trips/${tenantId}/${empId}/${tripId}/cancel`;
   
   try {
 
@@ -115,7 +110,7 @@ export const tripCancellationApi = async (tenantId, empId, tripId) => {
 ///for cancelling itinerary data is itinerary array[]
 export const tripItineraryCancellationApi = async ( tenantId, empId,tripId, data) => {
  
-  const url = `${BASE_URL}/api/fe/trips/${tenantId}/${empId}/${tripId}/cancel-line`;
+  const url = `${TRIP_BACKEND_API_URL}/api/fe/trips/${tenantId}/${empId}/${tripId}/cancel-line`;
   try {
     
     const response = await axiosRetry(axios.patch, url, data);
@@ -135,7 +130,7 @@ export const tripItineraryCancellationApi = async ( tenantId, empId,tripId, data
 //-----------------------------------------trip recovery---------------------------------------------
 //header
 export const tripRecoveryApi = async (tenantId,empId,tripId) => {
-   const url= `${BASE_URL}/api/fe/trips/${tenantId}/${empId}/${tripId}/recover`;
+   const url= `${TRIP_BACKEND_API_URL}/api/fe/trips/${tenantId}/${empId}/${tripId}/recover`;
  
   try {
     const response = await axiosRetry(axios.patch, url,);
@@ -150,7 +145,7 @@ export const tripRecoveryApi = async (tenantId,empId,tripId) => {
 
 export const tripLineItemsRecoveryApi = async ( tenantId,empId,tripId,itineraryIds ) => {
  
-  const url = `${BASE_URL}/api/fe/trips/${tenantId}/${empId}/${tripId}/recover-line`;
+  const url = `${TRIP_BACKEND_API_URL}/api/fe/trips/${tenantId}/${empId}/${tripId}/recover-line`;
   try {
     
     const response = await axiosRetry(axios.patch, url, itineraryIds);

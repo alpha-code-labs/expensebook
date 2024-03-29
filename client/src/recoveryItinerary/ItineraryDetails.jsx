@@ -1,7 +1,6 @@
-import React,{useState} from "react";
-import Modal from "../components/Modal";
+
 import { cancel, check_circle, double_arrow, receipt, round_circle } from '../assets/icon';
-import { tripRecoveryApi } from "../utils/tripApi";
+
 import { formatDate } from "../utils/handyFunctions";
 
 

@@ -3,21 +3,18 @@ import React ,{useState,useEffect}from "react";
 import './App.css'
 import CancelTrip from './pages/CancelTrip'
 import TripRecovery from './pages/TravelRecovery'
-import Page from './pages/Page'
-import {getTripDataApi } from './utils/tripApi'
-
 import dummyForRecovery from './dummyData/dummyForRecovery'
 import { transformTripData } from './utils/transformer';
 import { logoutApi } from './utils/tripApi';
 import { urlRedirection } from './utils/handyFunctions';
 
 function App() { 
-
+ const LOGIN_PAGE_URL =import.meta.env.VITE_LOGIN_PAGE_URL
   const [authToken, setAuthToken] = useState("authtoken this is from app"); // Assuming you have a way to manage authentication
 
   const handleLogout = async () => {
     logoutApi(authToken)
-    urlRedirection('http://localhost:8080/user-login/:companyName')
+    urlRedirection(LOGIN_PAGE_URL)
     console.log('User logged out due to inactivity.');
   };
 
@@ -74,7 +71,6 @@ function App() {
     <Router>
       <Routes>
         <Route path='/api/:tenantId/:empId/:tripId/trips' element={<CancelTrip />}/>
-        <Route path='/hello' element={<Page />} />
         <Route path='/api/:tenantId/:empId/recovery/:tripId' element={<TripRecovery transformedRecoveryData={transformedRecoveryData}/>} />
       </Routes>
     </Router>
