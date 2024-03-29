@@ -14,7 +14,7 @@ import Approval from './pages/Approval';
 import BookingAdmin from './pages/BookingAdmin';
 import { useData } from './api/DataProvider';
 import Expense from './pages/Expense';
-import { employeeRole } from './utils/employeeRole';
+
 import Settlement from './pages/Settlement';
 import { getEmployeeData_API, getEmployeeRoles_API, logoutApi } from './utils/api';
 import { handleLoginPageUrl } from './utils/actionHandler';
@@ -129,13 +129,13 @@ function App() {
         <BrowserRouter>
         <section>
           <div>
-             <Navbar employeeInfo={employeeRoles?.employeeInfo} employeeRole={employeeRole} tenantId={tenantId} empId={empId}  />
+             <Navbar employeeInfo={employeeRoles?.employeeInfo}  tenantId={tenantId} empId={empId}  />
           </div>
         </section>
         <section>
         <div className='grid grid-cols-12'>
         <div className='col-span-1   md:col-span-3  xl:col-span-2  bg-indigo-50  min-h-screen  '>
-             <Sidebar fetchData={fetchData} employeeRole={employeeRole} tenantId={tenantId} empId={empId}  />
+             <Sidebar fetchData={fetchData}  tenantId={tenantId} empId={empId}  />
         </div>
         <div className='col-span-11  md:col-span-9  xl:col-span-10 min-h-screen '>
         <div className=''>
@@ -321,13 +321,13 @@ export default App;
 //         <BrowserRouter>
 //         <section>
 //           <div>
-//              <Navbar employeeInfo={employeeRoles?.employeeInfo} employeeRole={employeeRole} tenantId={tenantId} empId={empId}  />
+//              <Navbar employeeInfo={employeeRoles?.employeeInfo}  tenantId={tenantId} empId={empId}  />
 //           </div>
 //         </section>
 //         <section>
 //         <div className='grid grid-cols-12'>
 //         <div className='col-span-3 bg-black h-screen md:col-span-2'>
-//              <Sidebar fetchData={fetchData} employeeRole={employeeRole} tenantId={tenantId} empId={empId}  />
+//              <Sidebar fetchData={fetchData}  tenantId={tenantId} empId={empId}  />
 //         </div>
 //         <div className='col-span-9  h-screen pl-2 md:col-span-10'>
 //         <div className=''>
@@ -511,8 +511,8 @@ export default App;
 //     { <div className='bg-slate-100'>
      
 //         <BrowserRouter>
-//           <Navbar employeeInfo={employeeRoles?.employeeInfo} employeeRole={employeeRole} tenantId={tenantId} empId={empId}  />
-//           <Sidebar fetchData={fetchData} employeeRole={employeeRole} tenantId={tenantId} empId={empId}  />
+//           <Navbar employeeInfo={employeeRoles?.employeeInfo}  tenantId={tenantId} empId={empId}  />
+//           <Sidebar fetchData={fetchData}  tenantId={tenantId} empId={empId}  />
 //           <div className=''>
 //           <Routes>
 //             <Route

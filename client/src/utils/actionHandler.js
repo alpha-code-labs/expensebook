@@ -53,6 +53,7 @@ export const handleCashAdvance = ( travelRequestId, cashAdvanceId, action) => {
 
 //travel expense
 export const handleTravelExpense=(tripId,expenseHeaderId,action)=>{
+  console.log('route data', tripId,expenseHeaderId,action)
     let url ;
     if (action==="trip-ex-create"){
       url=expenseRoutes.create.getUrl(tripId)

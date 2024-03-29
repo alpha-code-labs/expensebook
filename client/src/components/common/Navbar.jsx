@@ -1,13 +1,14 @@
 import React from 'react';
 import Button from './Button';
-import { LOGIN_PAGE_URL, logoutApi } from '../../utils/api';
+// import { LOGIN_PAGE_URL, logoutApi } from '../../utils/api';
 import { handleLoginPageUrl } from '../../utils/actionHandler';
 import { alert_circle, company_icon, logout_icon, user_icon } from '../../assets/icon';
 
 const Navbar = ({ employeeRole,employeeInfo }) => {
-  // Assuming `employeeRole` is an object with relevant details
-  const { employeeDetails, companyDetails } = employeeRole;
-  console.log('employee info11',employeeInfo)
+  
+ 
+const LOGIN_PAGE_URL = import.meta.env.VITE_LOGIN_PAGE_URL
+  console.log('employee info from navbar',employeeInfo)
 
   const authToken = "helloworld whel" 
   

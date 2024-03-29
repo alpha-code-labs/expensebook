@@ -3,12 +3,11 @@ import { calender, cancel,modify, validation_sym } from '../../assets/icon'
 import { titleCase,getStatusClass, urlRedirection, formatAmount } from '../../utils/handyFunctions'
 
 
-const CashCard = ({handleCashAdvance,cashAdvances}) => {
+const CashCard = ({travelRequestId,trip,handleCashAdvance,cashAdvances}) => {
  
 
-const travelRequestId="tr-67676kjsdf"
   return (
-    <div className='mt-28'> 
+    <div className=' h-[200px] mt-1'> 
     {cashAdvances?.map((item,index)=>(<React.Fragment key={index}>
 <div className='border-[1px] flex flex-row border-slate-300 bg-slate-50 rounded-md mb-2 p-3 h-auto w-full font-cabin'>
   <div className='flex-1 flex flex-col gap-4'>
@@ -47,10 +46,10 @@ const travelRequestId="tr-67676kjsdf"
      </div>
 
      <div className='flex flex-1 justify-center items-end gap-4 pt-3 px-3'>
-       <div onClick={()=>{handleCashAdvance(travelRequestId,item.cashAdvanceId, 'ca-cancel')}}  className='flex items-center  justify-center w-6 h-6 bg-[#FFC2C6] rounded-full cursor-pointer' >
+       <div onClick={()=>{handleCashAdvance(travelRequestId,item?.cashAdvanceId, 'ca-cancel')}}  className='flex items-center  justify-center w-6 h-6 bg-[#FFC2C6] rounded-full cursor-pointer' >
          <img src={cancel} alt='cancel' width={20} height={20} />
        </div>
-       <div onClick={()=>{handleCashAdvance(travelRequestId,item.cashAdvanceId, 'ca-modify')}} className='flex cursor-pointer items-center justify-center w-6 h-6 bg-purple-200 rounded-full '>
+       <div onClick={()=>{handleCashAdvance(travelRequestId,item?.cashAdvanceId, 'ca-modify')}} className='flex cursor-pointer items-center justify-center w-6 h-6 bg-purple-200 rounded-full '>
          <img src={modify} alt='modify' width={12} height={12} />
        </div>
      </div>

@@ -299,9 +299,10 @@ upComingTrip && upComingTrip?.map((item, index) => (
 
 {activeTabs?.[index]=== 'Cash Advance' && 
   ( 
+    
   <div className='h-[175px] flex flex-col  justify-center  mt-1 px-3  overflow-y-auto overflow-x-auto'>
     {/* <div className=' w-[450px] flex flex-col justify-center items-center h-[280px] gap-y-2'>  */}
-  <CashCard handleCashAdvance={handleCashAdvance} cashAdvances={item?.cashAdvances}/>
+  <CashCard travelRequestId={item?.travelRequestId} tripId={item?.tripId} handleCashAdvance={handleCashAdvance} cashAdvances={item?.cashAdvances}/>
   {/* </div> */}
   </div>
   )}

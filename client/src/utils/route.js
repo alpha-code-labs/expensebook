@@ -1,10 +1,12 @@
 const tenantId = localStorage.getItem('tenantId');
 const empId = localStorage.getItem('empId');
-const travelBaseUrl = 'http://192.168.1.12:5174';
-const loginBaseUrl = 'http://localhost:8080/api';
-const cashAdvanceBaseUrl = 'http://192.168.1.12:5175';
-const expenseBaseUrl = 'http://localhost:5175';
-const approvalBaseUrl = 'http://192.168.1.6:5175';
+
+
+const travelBaseUrl      = import.meta.env.VITE_TRAVEL_PAGE_URL;
+const loginBaseUrl       = import.meta.env.VITE_LOGIN_PAGE_URL;
+const cashAdvanceBaseUrl = import.meta.env.VITE_CASHADVANCE_PAGE_URL;
+const expenseBaseUrl     = import.meta.env.VITE_EXPENSE_PAGE_URL;
+const approvalBaseUrl    = import.meta.env.VITE_APPROVAL_PAGE_URL;
 
 
 export const loginPageRoutes = {
@@ -17,8 +19,6 @@ export const loginPageRoutes = {
 }
 
 
-
-//http://192.168.1.7/create/:tenantId/:employeeId
 
 export const travelRoutes = {
   create: {
@@ -95,7 +95,7 @@ export const expenseRoutes={
   },
   modify:{
     path:'tr-ex-modify/:tenantId/:empId/:tripId/:cashAdvanceId',
-    getUrl:(tripId,expenseHeaderId,)=>`${expenseBaseUrl}/tr-ex-modify/${tenantId}/${empId}/${tripId}/${expenseHeaderId}`
+    getUrl:(tripId,expenseHeaderId,)=>`${expenseBaseUrl}/${tenantId}/${empId}/${tripId}/book/travel-expense`
   },
   cancel:{
     path:'/tr-ex-cancel/:tenantId/:empId/:tripId/:expenseHeaderId',

@@ -1,10 +1,8 @@
 import axios from 'axios';
-import { urlRedirection } from './handyFunctions';
-import { handleLoginPageUrl } from './actionHandler';
 
-const BASE_URL = `http://localhost:8088`;
-export const LOGIN_PAGE_URL =`http://localhost:5173/user-login`
-// const BASE_URL = `http://192.168.1.11:8088`;
+
+const DASHBOARD_BACKEND_API_URL = import.meta.env.DASHBOARD_BACKEND_API_URL;
+
 const retry = 2;
 const retryDelay = 3000;
 
@@ -73,7 +71,7 @@ export const logoutApi = async (authToken) => {
 
 
 export const getEmployeeData_API = async (tenantId,empId) => {
-  const url = `${BASE_URL}/api/fe/dashboard/role/${tenantId}/${empId}`;
+  const url = `${DASHBOARD_BACKEND_API_URL}/api/fe/dashboard/role/${tenantId}/${empId}`;
 
   try {
     const response = await axiosRetry(axios.get, url);
@@ -109,7 +107,7 @@ export const getEmployeeRoles_API = async (tenantId,empId) => {
 
 
 export const assignBusinessAdmin_API = async (tenantId,travelRequestId,data) => {
-  const url = `${BASE_URL}/api/fe/dashboard/travel-admin/${tenantId}/${travelRequestId}`;
+  const url = `${DASHBOARD_BACKEND_API_URL}/api/fe/dashboard/travel-admin/${tenantId}/${travelRequestId}`;
 
   try {
     const response = await axiosRetry(axios.patch, url,data );
@@ -127,7 +125,7 @@ export const assignBusinessAdmin_API = async (tenantId,travelRequestId,data) => 
 
 
 export const getTravelPreference_API = async (tenantId,empId) => {
-  const url = `${BASE_URL}/api/fe/dashboard/role/${tenantId}/${empId}`;
+  const url = `${DASHBOARD_BACKEND_API_URL}/api/fe/dashboard/role/${tenantId}/${empId}`;
 
   try {
     const response = await axiosRetry(axios.get, url);
@@ -146,7 +144,7 @@ export const getTravelPreference_API = async (tenantId,empId) => {
 
 export const postTravelPreference_API = async(data)=>{
 
-  const url = `${BASE_URL}/api/${tenantId}/${empId}`;
+  const url = `${DASHBOARD_BACKEND_API_URL}/api/${tenantId}/${empId}`;
 
   // this is the real api route
   

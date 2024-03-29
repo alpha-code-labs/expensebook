@@ -95,7 +95,7 @@ const handleDropdownToggle = (index) => {
 {transitTripData?.length>0 ? (
 transitTripData && transitTripData?.map((item, index) => (
    <React.Fragment key={index}>
-<div className={`h-[320px] px-4 py-1 bg-[length:489px_322px]  shadow-slate-300 shadow-lg rounded-lg `} style={{backgroundImage: `url(${briefcaseMap})`, width: '500px',}}>
+<div className={`h-[320px] px-4 py-1 bg-[length:490px_322px]  rounded-lg `} style={{backgroundImage: `url(${briefcaseMap})`, width: '500px',}}>
 {/* <img src={briefcaseMap} className='absolute h-[370px] w-full border border-red-500 z-20'></img> */}
 <div className='  mt-14 h-[250px]     flex flex-col rounded-lg bg-white-100   ' >
 <div className=' flex flex-row justify-between w-full  pt-[3px] px-2'>
@@ -312,7 +312,7 @@ transitTripData && transitTripData?.map((item, index) => (
   ( 
   <div className='h-[175px] flex flex-col  justify-center  mt-1 px-3  overflow-y-auto overflow-x-auto'>
     {/* <div className=' w-[450px] flex flex-col justify-center items-center h-[280px] gap-y-2'>  */}
-  <CashCard handleCashAdvance={handleCashAdvance} cashAdvances={item?.cashAdvances}/>
+  <CashCard travelRequestId={item?.travelRequestId} handleCashAdvance={handleCashAdvance} cashAdvances={item?.cashAdvances}/>
   {/* </div> */}
   </div>
   )}
@@ -321,6 +321,7 @@ transitTripData && transitTripData?.map((item, index) => (
 <div className=' h-[190px]  px-3 w-[458px] overflow-y-auto rounded-lg my-2'>
 <TravelCard    
 // travelExpense={travelExpense}  
+tripId={item?.tripId}
 travelExpense={item?.travelExpenses}  
 handleTravelExpense={handleTravelExpense} 
 /> 

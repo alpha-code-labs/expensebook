@@ -1,13 +1,11 @@
 import React ,{ useState,useEffect}from 'react';
 import { useData } from '../api/DataProvider';
-import { getEmployeeData_API } from '../utils/api';
-import Modal from '../components/Modal';
 import { intransit_trip, arrow_left, down_arrow, chevron_down, cancel_round, cancel} from '../assets/icon';
 import NotifyModal from '../components/NotifyModal';
 import UpcomingTrip from '../components/trips/UpcomingTrip';
 import  IntransitTrip from '../components/trips/UpcomingTrip copy';
 // import InTransitTrip from '../components/trips/InTransitTrip';
-import { transitTrip1, upcomingTrip1,  } from '../dummyData/overviewDummy';
+
 import { handleTrip ,handleTravelExpense, handleCashAdvance,} from '../utils/actionHandler';
 import { useParams } from 'react-router-dom';
 import Error from '../components/common/Error';
@@ -55,7 +53,7 @@ useEffect(()=>{
     const [dropdownStates, setDropdownStates] = useState({});    
   
     
-    const initialTripTab=upcomingTrip1?.map(item=> 'Trip') || []
+    const initialTripTab=['Trip','Trip','Trip']
     // const initialTripTab=tripsData?.transitTrips.map(item=> 'Trip')
     console.log('initial transit trip',initialTripTab)
 
