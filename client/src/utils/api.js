@@ -1,10 +1,7 @@
 import axios from 'axios';
-import { urlRedirection } from './handyFunctions';
-//import these id from params and pas here
-const Login_API_URL = `http://localhost:9001`;
-export const DASHBOARD_BASE = `http://localhost:5174`
-export const ONBOARDING_BASE = `http://localhost:5174`
-const BASEHOST = 'http://localhost:9001'
+
+
+const LOGIN_BACKEND_API_URL = import.meta.env.VITE_LOGIN_LOGOUT_BACKEND_API_URL
 const retry = 3;
 const retryDelay = 3000;
 
@@ -15,6 +12,8 @@ const errorMessages = {
   'request': 'Network Error',
   'else': 'Something went wrong. Please try again later'
 };
+
+
 
 //const handleRequestError = (e) => {
 //   if (e.response) {
@@ -74,7 +73,7 @@ const axiosRetry = async (requestFunction, ...args) => {
 
 //okay
 export const getCompanyList_API = async () => {
-  const url = `${BASEHOST}/api/companyNames`;
+  const url = `${LOGIN_BACKEND_API_URL}/api/companyNames`;
 
   try {
     const response = await axiosRetry(axios.get, url);
@@ -91,7 +90,7 @@ export const getCompanyList_API = async () => {
 };
 
 export const postLogin_API = async (data) => {
-  const url = `${BASEHOST}/api/login`;
+  const url = `${LOGIN_BACKEND_API_URL}/api/login`;
 
   try {
     const response = await axiosRetry(axios.post, url, data);
@@ -120,8 +119,8 @@ export const postLogin_API = async (data) => {
 
 export const postForgotPassword_API = async(data)=>{
 
-  // const url = `${Login_API_URL}/api/set-password`
-  const url = `${BASEHOST}/api/forgot-password`
+  // const url = `${LOGIN_BACKEND_API_URL}/api/set-password`
+  const url = `${LOGIN_BACKEND_API_URL}/api/forgot-password`
 
   try {
     const response = await axiosRetry(axios.post,url,data);
@@ -143,7 +142,7 @@ export const postForgotPassword_API = async(data)=>{
 
 export const postSignupData_API = async(data)=>{
 
-  const url = `${BASEHOST}/api/signup`
+  const url = `${LOGIN_BACKEND_API_URL}/api/signup`
   try{
     const {formData} = data
      const response = await axiosRetry(axios.post,url,formData)
@@ -169,7 +168,7 @@ export const postSignupData_API = async(data)=>{
 ///employee otp validation
 export const postOtpValidation_API = async(data)=>{
 
-  const url = `${Login_API_URL}/api/verify`
+  const url = `${LOGIN_BACKEND_API_URL}/api/verify`
   try{
      const res = await axiosRetry(axios.post,url,data)
      if(res.status >= 200 && res.status<300){
@@ -196,7 +195,7 @@ export const postOtpValidation_API = async(data)=>{
 ///employee set-password
 export const postSetPassword_API = async(data)=>{
 
-  const url = `${BASEHOST}/api/set-password`
+  const url = `${LOGIN_BACKEND_API_URL}/api/set-password`
   try {
     const response = await axiosRetry(axios.post,url,data);
     return {data:response.data, error:null}
@@ -215,7 +214,7 @@ export const postSetPassword_API = async(data)=>{
   }
 
 }
-///employee set-password
+
 
 
 

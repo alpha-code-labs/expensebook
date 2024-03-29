@@ -1,11 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
-
-import chevronDownIcon from '../assets/chevron-down.svg';
-import leftFrame from '../assets/leftFrame.svg';
 import Icon from '../components/common/Icon';
 import { verify_shield } from '../assets/icon';
 import Search from '../components/common/Search';
-import Select from '../components/common/Select';
 import Input from '../components/common/Input';
 import Button from '../components/common/Button';
 import Modal from '../components/common/Modal';
@@ -18,8 +14,6 @@ import Error from '../components/common/Error';
 //inputs: company name, full name of user, mobile number, company HQ, email Id, password and confirm Password
 
 export default function CompanyAndHRInformation(){
-  const [companyList, setCompanyList] = useState([])
-  const [businessCategoriesList, setBusinessCategoriesList] = useState(['Mining', 'Construction', 'Manufacturing', 'Transportation', 'Information', 'Finance and Insurance', 'Real State and Rental Leasing', 'Accomodation and Food', 'Educational', 'Health Care', 'Others'])
   const [locationsList, setLocationsList] = useState(['Bangalore', 'Mumbai', 'Delhi', 'Chennai', 'Hyderabad', 'Kolkata'])
   const [formData, setFormData] = useState({companyName:'', fullName:'', email:'sandeepnair@gmail.com', password:'1234', confirmPassword:'1234', companyHQ:'', mobileNumber:'7270813318'})
   const [isLoading,setIsLoading]=useState(false)

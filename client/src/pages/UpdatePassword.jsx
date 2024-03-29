@@ -1,15 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
-import chevronDownIcon from '../assets/chevron-down.svg'
-import leftFrame from '../assets/leftFrame.svg'
 import Icon from '../components/common/Icon';
-import { verify_shield } from '../assets/icon';
-import Search from '../components/common/Search';
-import Select from '../components/common/Select';
 import Input from '../components/common/Input';
 import Button from '../components/common/Button';
-import Modal from '../components/common/Modal';
 import { useNavigate, useParams } from 'react-router-dom';
-import { postSetPassword_API, postSignupData_API } from '../utils/api';
+import { postSetPassword_API} from '../utils/api';
 import PopupMessage from '../components/common/PopupMessage';
 // update password after forgot password
 //inputs: company name, full name of user, mobile number, company HQ, email Id, password and confirm Password

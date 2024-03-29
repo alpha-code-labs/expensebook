@@ -1,34 +1,28 @@
 import { useState, useEffect, useRef } from 'react';
-import chevronDownIcon from '../assets/chevron-down.svg'
-import leftFrame from '../assets/leftFrame.svg'
 import Icon from '../components/common/Icon';
 import { verify_shield } from '../assets/icon';
 import Search from '../components/common/Search';
 import Error from '../components/common/Error';
 import PopupMessage from '../components/common/PopupMessage'
 import { useCookies } from 'react-cookie';
-import Select from '../components/common/Select';
 import Input from '../components/common/Input';
 import Button from '../components/common/Button';
 import Modal from '../components/common/Modal';
 import { useNavigate } from 'react-router-dom';
-import UpdatePassword from '../pages/UpdatePassword'; //only for pass email id
-
-
-import { DASHBOARD_BASE, ONBOARDING_BASE, getCompanyList_API, postForgotPassword_API, postLogin_API} from '../utils/api';
+import {  getCompanyList_API, postForgotPassword_API, postLogin_API} from '../utils/api';
 import { urlRedirection } from '../utils/handyFunctions';
 
 //inputs: company name, full name of user, mobile number, company HQ, email Id, password and confirm Password
 
 export default function CompanyAndHRInformation(){
+
+  const DASHBOARD_PAGE_URL  = import.meta.env.VITE_DASHBOARD_PAGE_URL
+  const ONBOARDING_PAGE_URL = import.meta.env.VITE_ONBOARDING_PAGE_URL
   const navigate= useNavigate()
   const [companyList, setCompanyList] = useState([])
-  const [businessCategoriesList, setBusinessCategoriesList] = useState(['Mining', 'Construction', 'Manufacturing', 'Transportation', 'Information', 'Finance and Insurance', 'Real State and Rental Leasing', 'Accomodation and Food', 'Educational', 'Health Care', 'Others'])
-  const [locationsList, setLocationsList] = useState(['alpha code labs', 'Mumbai', 'Delhi', 'Chennai', 'Hyderabad', 'Kolkata'])
   const [formData, setFormData] = useState({companyName:'',  email:'', password:'', })
   const [isLoading,setIsLoading]=useState(false)
   const [loadingErrorMsg, setLoadingErrorMsg]=useState(false)
-  const [openModal,setOpenModal]=useState(false);
   const [showPopup ,setShowPopup]=useState(false);
   const [message,setMessage]=useState(null)  ///this is for modal message
   const [errors, setErrors] = useState({companyNameError:{set:false, message:null},  emailError:{set:false, message:null}, passwordError:{set:false, message:null}, confirmPasswordError:{set:false, message:null}})
@@ -38,8 +32,6 @@ export default function CompanyAndHRInformation(){
 
   const [showPrompt, setShowPrompt] = useState(false)
   const [cookies] = useCookies(['authToken']);
-  const [tenantId, setTenantId] = useState(null);
-  const [empId, setEmpId] = useState(null);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
 
 
@@ -162,9 +154,9 @@ export default function CompanyAndHRInformation(){
               console.log(formData.email)
             }else{
               if(onboardingFlag){ 
-                urlRedirection(`${DASHBOARD_BASE}/${data.tenantId}/${data.empId}/overview`); 
+                urlRedirection(`${DASHBOARD_PAGE_URL}/${data.tenantId}/${data.empId}/overview`); 
               }else{
-                urlRedirection( `${ONBOARDING_BASE}/${data.tenantId}/welcome`);  
+                urlRedirection( `${ONBOARDING_PAGE_URL}/${data.tenantId}/welcome`);  
                 // urlRedirection( `http://localhost:5173/onboarding?authToken=${data.data}`);  
               }
             }
