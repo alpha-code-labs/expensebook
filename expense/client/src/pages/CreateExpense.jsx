@@ -11,7 +11,7 @@ import { getStatusClass, titleCase, urlRedirection } from "../utils/handyFunctio
 import Button from "../components/common/Button";
 import Error from "../components/common/Error";
 import PopupMessage from "../components/common/PopupMessage";
-import { cab_purple as cab_icon, airplane_1 as airplane_icon ,house_simple , chevron_down,  cancel, modify, check_tick, file_icon, validation_sym, validation_symb_icon, upcoming_trip, briefcase, money, user_icon, arrow_left} from "../assets/icon";
+import { cab_purple as cab_icon, airplane_1 as airplane_icon ,house_simple , chevron_down,  cancel_icon, modify, check_tick, file_icon, validation_sym, validation_symb_icon, upcoming_trip, briefcase, money, user_icon, arrow_left} from "../assets/icon";
 import { tripDummyData, tripDummyDataLevel2 } from "../dummyData/tripDummyData.js";
 import { hrDummyData } from "../dummyData/requiredDummy";
 import Select from "../components/common/Select"; 
@@ -57,8 +57,6 @@ export default function () {
    const blob_endpoint = import.meta.env.VITE_AZURE_BLOB_CONNECTION_URL
    const dashboard_url = import.meta.env.VITE_DASHBOARD_URL
    const DASHBOARD_URL=`${dashboard_url}/${tenantId}/${empId}`
-   
-
    let firstTime = true;
 
   //  async function setDocURL(){
@@ -1813,7 +1811,7 @@ handleDeleteLineItem={handleDeleteLineItem}/>
             {openModal =='category' && <div className="fixed overflow-hidden max-h-4/5 flex justify-center items-center inset-0 backdrop-blur-sm w-full h-full left-0 top-0 bg-gray-800/60 " >
                 <div className='z-20  min-h-4/5 max-h-4/5 scroll-none bg-white-100  rounded-lg shadow-md'>
                 <div onClick={()=>{setOpenModal(null);}} className=' w-10 h-10 flex translate-y-[-15px] translate-x-[-10px] mt-5 justify-center items-center float-right   hover:bg-red-300 rounded-full'>
-                      <img src={cancel} className='w-8 h-8'/>
+                      <img src={cancel_icon} className='w-8 h-8'/>
                   </div>
                     <div className="p-10">
                       <div className="flex flex-col justify-center items-center">
@@ -1839,7 +1837,7 @@ handleDeleteLineItem={handleDeleteLineItem}/>
             {openModal==='upload' && <div className="fixed overflow-hidden max-h-4/5 flex justify-center items-center inset-0 backdrop-blur-sm w-full h-full left-0 top-0 bg-gray-800/60 scroll-none " >
                 <div className='z-10  md:w-3/5 w-full mx-8  min-h-4/5 max-h-4/5 scroll-none bg-white-100  rounded-lg shadow-md'>
                 <div onClick={()=>{setOpenModal(null);setOcrSelectedFile(null);setOcrFileSelected(false);setSelectedCategory(null)}} className=' w-10 h-10 flex justify-center items-center float-right  mr-5 mt-5 hover:bg-red-300 rounded-full'>
-                      <img src={cancel} className='w-8 h-8'/>
+                      <img src={cancel_icon} className='w-8 h-8'/>
                       </div>
                     <div className="p-10">
                     

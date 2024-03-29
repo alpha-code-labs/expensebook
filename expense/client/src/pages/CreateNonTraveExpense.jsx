@@ -6,7 +6,7 @@ import Button from '../components/common/Button';
 import PopupMessage from '../components/common/PopupMessage';
 import Icon from '../components/common/Icon';
 import Input from '../components/common/Input';
-import { arrow_left, briefcase, cancel, cancel_round, chevron_down, file_icon, money, receipt, user_icon, validation_sym, validation_symb_icon } from '../assets/icon';
+import { arrow_left, briefcase, cancel_icon, cancel_round, chevron_down, file_icon, money, receipt, user_icon, validation_sym, validation_symb_icon } from '../assets/icon';
 import {nonTravelExpenseData} from '../dummyData/nonTravelExpens';
 import { titleCase, urlRedirection } from '../utils/handyFunctions';
 import Upload from '../components/common/Upload';
@@ -35,7 +35,6 @@ const CreateNonTraveExpense = () => {
   
   const {tenantId,empId,expenseHeaderId,cancel} =useParams()
   const dashboard_url = import.meta.env.VITE_DASHBOARD_URL
-
   const DASHBOARD_URL=`${dashboard_url}/${tenantId}/${empId}`
   
 
@@ -770,15 +769,18 @@ if(allowForm){
        setShowPopup(true)
        setMessage(response?.message )
        setIsLoading(false)
-       setTimeout(() => {setShowPopup(false);setMessage(null)},8000);
-      //  window.location.reload()
-      
-      } catch (error) {
+       setTimeout(() => {setShowPopup(false);setMessage(null)
+        if(action === "submit" ||action === "delete" ){
+          urlRedirection(`${DASHBOARD_URL}/overview`)}
+          else{
+            window.location.reload()
+          }}
+       ,5000);
+         } catch (error) {
         setLoadingErrorMsg(`Please retry again : ${error.message}`); 
         setTimeout(() => {setIsLoading(false);setLoadingErrorMsg(null)},2000);
       }
       setAction(null)
-
       }
 
       const handleOpenModal=(id)=>{
@@ -1190,7 +1192,7 @@ if(allowForm){
            {openModal==='form' && <div className="fixed overflow-hidden max-h-4/5 flex justify-center items-center inset-0 backdrop-blur-sm w-full h-full left-0 top-0 bg-gray-800/60 " >
                 <div className='z-10 max-w-4/5  md:mx-0 mx-4   sm:w-2/5 w-full min-h-4/5 max-h-4/5  bg-white-100  rounded-lg shadow-md'>
                 <div onClick={()=>setOpenModal(null)} className=' w-10 h-10 flex mr-5 mt-5 justify-center items-center float-right   hover:bg-red-300 rounded-full'>
-                      <img src={cancel} className='w-8 h-8'/>
+                      <img src={cancel_icon} className='w-8 h-8'/>
                   </div>
                     <div className="p-10">
                         <p className="text-xl  text-center font-cabin">Seletct option for Enter Expense Line</p>
@@ -1271,7 +1273,7 @@ if(allowForm){
 {openModal==='upload' && <div className="fixed overflow-hidden max-h-4/5 flex justify-center items-center inset-0 backdrop-blur-sm w-full h-full left-0 top-0 bg-gray-800/60 scroll-none " >
                 <div className='z-10  md:w-3/5 w-full mx-8  min-h-4/5 max-h-4/5 scroll-none bg-white-100  rounded-lg shadow-md'>
                 <div onClick={()=>{setOpenModal(null);setOcrSelectedFile(null);setOcrFileSelected(false);setSelectedCategory(null)}} className=' w-10 h-10 flex justify-center items-center float-right  mr-5 mt-5 hover:bg-red-300 rounded-full'>
-                      <img src={cancel} className='w-8 h-8'/>
+                      <img src={cancel_icon} className='w-8 h-8'/>
                       </div>
                     <div className="p-10">
                     
@@ -1925,10 +1927,10 @@ const  HeaderComponent =({headerDetails ,miscellaneousData , expenseDataByGet}) 
       <p className="text-purple-500 text-medium font-medium">{(miscellaneousData1?.expenseHeaderNumber || expenseDataByGet?.expenseHeaderNumber) ?? 'not available'}</p>
       </div>
 
-      <div className=' flex-1 font-cabin  px-2 '>
+      <div className=' flex-1 font-cabin  px-2  '>
       <p className=" text-neutral-600 text-xs line-clamp-1">Status</p>
      
-      <p className="text-purple-500 text-medium font-medium capitalize">{(miscellaneousData1?.expenseHeaderStatus || expenseDataByGet?.expenseHeaderStatus) ?? 'not available'}</p>
+      <p className="text-purple-500 pl-3  text-medium font-medium capitalize">{(miscellaneousData1?.expenseHeaderStatus || expenseDataByGet?.expenseHeaderStatus) ?? ` ${' - '}`}</p>
       
       </div>
       

@@ -8,7 +8,7 @@ export {default as logo_with_text} from './logowithtext.svg';
 export {default as arrow_left} from './arrow-left.svg';
 export {default as chevron_down} from './chevron-down.svg';
 export {default as cancel_round} from './cancel-dot.svg';
-export {default as cancel} from './x.svg';
+export {default as cancel_icon} from './x.svg';
 export {default as airplane} from './Airplane.svg';
 export {default as airplane_1} from './Airplane_1.svg';
 export {default as double_arrow} from './double-arrow.svg';

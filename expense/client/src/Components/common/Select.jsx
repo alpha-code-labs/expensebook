@@ -201,9 +201,9 @@ const selectDivFocus = (e)=>{
                         onKeyDown={handleDropdownKeyDown}
                         ref={el => dropdownOptionsRef.current[index] = el} 
                         onClick={()=>{ handleOptionSelect(option, index) }}
-                        className="text-xs focus-visible:outline-0 focus-visible:bg-gray-100 font-medium font-cabin text-neutral-700 px-4 py-3 cursor-pointer transition-color hover:bg-gray-100"
+                        className={`text-xs ${'capitalize'} focus-visible:outline-0 focus-visible:bg-gray-100 font-medium font-cabin text-neutral-700 px-4 py-3 cursor-pointer transition-color hover:bg-gray-100`}
                       >
-                        {titleCase(option || " ")}
+                        {(option || " ")}
                       </p>
                       {index != optionsList.length - 1 && <hr key={`${option}-${index}`} />}
                     </div>
