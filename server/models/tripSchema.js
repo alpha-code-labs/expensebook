@@ -887,6 +887,9 @@ tripSchema.pre('validate', async function (next) {
   next();
 });
   
-const Trip = mongoose.model('tripsFriday', tripSchema);
+const Trip = mongoose.model('tripsMonday', tripSchema);
 
 export default Trip;
+
+
+

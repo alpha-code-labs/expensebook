@@ -36,8 +36,9 @@ app.get('/get', (req,res) => res.status(200).json("hi from trips"))
 
 // Start the batch job
 // startBatchJob();
-// scheduleTripTransitBatchJob()
 // scheduleToExpenseBatchJob()
+// scheduleTripTransitBatchJob()
+
 
 const mongodb = async () => {
   try {

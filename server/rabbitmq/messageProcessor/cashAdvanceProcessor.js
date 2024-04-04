@@ -4,15 +4,26 @@ import { sendToOtherMicroservice } from "../publisher.js";
 
 
 
+const formatTenantId = (tenantName) => {
+  return tenantName.toUpperCase(); 
+};
 
+// to generate and add expense report number
 const generateIncrementalNumber = (tenantName, incrementalValue) => {
   try {
-  if (typeof tenantId !== 'string' || typeof incrementalValue !== 'number') {
+  if (typeof tenantName !== 'string' || typeof incrementalValue !== 'number') {
       throw new Error('Invalid input parameters');
   }
-  const formattedTenant = (tenantName || '').toUpperCase().substring(0, 3);
+  const formattedTenant = formatTenantId(tenantName).substring(0,2);
+  console.log("formattedTenant .................................", formattedTenant)
   // return `ER${formattedTenant}${incrementalValue.toString().padStart(6, '0')}`;
-  const paddedIncrementalValue = incrementalValue !== null && incrementalValue !== undefined ? incrementalValue.toString().padStart(3, '0') : '';
+  // const paddedIncrementalValue = incrementalValue !== null && incrementalValue !== undefined ? incrementalValue.toString().padStart(6, '0') : '';
+  const paddedIncrementalValue = (incrementalValue !== null && incrementalValue !== undefined && incrementalValue !== 0) ?
+    (parseInt(incrementalValue, 10) + 1).toString().padStart(6, '0') :
+    '000001';
+
+  // const paddedIncrementalValue = (incrementalValue !== null && incrementalValue !== undefined && incrementalValue !== 0) ? incrementalValue.toString().padStart(6, '0') : '000001';
+  console.log("paddedIncrementalValue.............", paddedIncrementalValue)
   return `TRIP${formattedTenant}${paddedIncrementalValue}`;
 } catch (error) {
   console.error(error);
@@ -57,7 +68,6 @@ const createTrip = async (travelRequest) => {
 //     .flatMap(item => key === 'hotels' ? [new Date(item.bkd_checkIn), new Date(item.bkd_checkOut)] : [new Date(item.bkd_date)]));
 
 // console.log("bookingDatesTest",bookingDatesTest);
-
   
     // Find earliest and latest date and time
     const earliestDateTime = new Date(Math.min(...bookingDates));
@@ -65,17 +75,30 @@ const createTrip = async (travelRequest) => {
     const tripId = new mongoose.Types.ObjectId();
 
     let tripNumber;
-    const maxIncrementalValue = await Trip.findOne({}, 'tripNumber')
+    const maxIncrementalValue = await Trip.findOne({tenantId}, 'tripNumber')
     .sort({ 'tripNumber': -1 })
     .limit(1);
 
+    console.log("maxIncrementalValue ......", maxIncrementalValue)
+
   let nextIncrementalValue = 0;
 
-  if ( maxIncrementalValue && maxIncrementalValue.tripNumber) {
-    nextIncrementalValue = parseInt(maxIncrementalValue.tripNumber.substring(3), 10) + 1;
-  }
+  // if ( maxIncrementalValue && maxIncrementalValue.tripNumber) {
+  //   nextIncrementalValue = parseInt(maxIncrementalValue.tripNumber.substring(3), 10) + 1;
+  // }
+
+  if (maxIncrementalValue && maxIncrementalValue.tripNumber) {
+    const numericPart = parseInt(maxIncrementalValue.tripNumber.substring(6));
+    if (!isNaN(numericPart)) {
+        nextIncrementalValue = numericPart + 1;
+    } else {
+        console.error('Numeric part of tripNumber is NaN');
+    }
+}
+
 
     tripNumber = generateIncrementalNumber(tenantName, nextIncrementalValue);
+    console.log("tripNumber .......", tripNumber)
   
     return {
       tenantId,
@@ -174,8 +197,6 @@ const createTrip = async (travelRequest) => {
       // payload, action, destination, comments,
         await sendToOtherMicroservice(tripsCreated, 'trip-creation', 'dashboard', 'Trip creation successful and sent to dashboard', 'trip', 'online');
         return {success: true, error: null}; 
-    
-  
     }catch(e){
       return {success:false, error: e};
     }

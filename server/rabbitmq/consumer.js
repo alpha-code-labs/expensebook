@@ -1,4 +1,3 @@
-
 import amqp from 'amqplib';
 import { updateHRMaster, updatePreferences } from './messageProcessor/hrMessage.js';
 import { partialCashUpdate, settleExpenseReport, updateCashStatus } from './messageProcessor/cashMessage.js';
@@ -9,7 +8,6 @@ import { fullUpdateExpense } from './messageProcessor/expense.js';
 import { expenseReportApproval } from './messageProcessor/approval.js';
 
 dotenv.config();
-
 
 //start consuming messages..
 export async function startConsumer(receiver) {
@@ -84,8 +82,8 @@ export async function startConsumer(receiver) {
         const content = JSON.parse(msg.content.toString());
 
         console.log(
-            `coming from ${content?.headers?.source} meant for ${content?.headers?.destination}`
-            , content.payload
+            `Rabbitmq consumer -coming from ${content?.headers?.source} meant for ${content?.headers?.destination}`
+            , content
           );
 
         //console.log('payload', content?.payload)
@@ -118,10 +116,11 @@ export async function startConsumer(receiver) {
             }
           } else if (source == 'cash'){
             if(action =='trip-creation'){
+              console.log("trip creation batchjob", payload)
               const res = await processTravelRequestsWithCash(payload)
               if(res.success){
-                channel.ack(msg)
                 console.log('trip creation successful')
+                channel.ack(msg)
               } else{
                 console.log('error in trip creation rabbitmq')
               }
