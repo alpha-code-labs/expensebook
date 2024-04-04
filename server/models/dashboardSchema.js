@@ -17,17 +17,29 @@ const dashboardSchema = new mongoose.Schema({
       type: String,
       // required: true,
     },
+    // travelRequestId: {
+    //   type: mongoose.Schema.Types.ObjectId, 
+    //   unique: true,
+    //   required: true,
+    // },
     travelRequestId: {
-      type: mongoose.Schema.Types.ObjectId, 
-      unique: true,
-      required: true,
+      type: mongoose.Schema.Types.ObjectId,
+      unique: function() {
+        return !this.reimbursementSchema; // Ensure uniqueness only if reimbursementSchema is not present
+      },
+      required: function() {
+        return !this.reimbursementSchema; // Make required only if reimbursementSchema is not present
+      },
+    },
+    reimbursementSchema: {
+      type: reimbursementSchema,
+      required: false, // Make reimbursementSchema optional
     },
     travelRequestSchema:travelRequestSchema,
     cashAdvanceSchema: cashAdvanceSchema,
     tripSchema: tripSchema, // trip Schema has travel,cash,travel expenses included.
-    reimbursementSchema:reimbursementSchema, 
   }); 
 
-const dashboard = mongoose.model('dashboardFriday', dashboardSchema);
+const dashboard = mongoose.model('dashboardMonday', dashboardSchema);
 
 export default dashboard 
