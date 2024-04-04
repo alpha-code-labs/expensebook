@@ -435,7 +435,6 @@ export const travelRequestSchema = new mongoose.Schema({
   },
   travelRequestId: {
     type: mongoose.Schema.Types.ObjectId, // tenantId_createdBy_tr_#(tr number) | tentative | not fixed
-    unique: true,
     required: true,
   },
   travelRequestNumber: {
