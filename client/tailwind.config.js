@@ -1,53 +1,66 @@
 /** @type {import('tailwindcss').Config} */
-export const content = ["./src/**/*.{js,jsx,ts,tsx}"];
-export const theme = {
-  extend: {
-    colors: {
-      white: "#fff",
-      gray: {
-        "100": "#fdfcfc",
-        "200": "#7c7c7c",
-        "300": "rgba(132, 132, 132, 0.15)",
+export default {
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
+
+
+  // for main text ---text-gray-800
+  // for main text ---text-gray-600
+  // for background ---bg-slate-100
+  // for border    ---border-gray-100
+  //py-3 px-2 or py-3 py-4
+
+  theme: {
+    extend: {
+      colors :{
+        white : {
+          100:'#FFF',
+          200:'#FDFCFC',
+          300:'#FDFDFD'
+
+        },
+
+        purple:{
+          50:'#EAE7FD',
+          500: '#4C36F1',
+          300:'#7F70F5'
+        },
+        gray:{
+          100:"#848484",
+        },
+        //border
+        "b-gray":'#E3E4E8',
+        green:{
+          100:'#C2FFD2',
+          200:'#0E862D'
+        },
+        yellow:{
+          100:'#FFFCE1',
+          200:'#E19829'
+        },
+        red:{
+          100:'#FFC2C6',
+          200:'#BC2D2D'
+        }
+        
+        
+
       },
-      "eb-primary-blue-50": "#eae7fd",
-      "eb-primary-blue-500": "#4c36f1",
-      "ebgrey-400": "#9193a1",
-      "eb-primary-blue-300": "#7f70f5",
-      lightcoral: {
-        "100": "#ff9494",
-        "200": "#e57981",
+      fontFamily:{
+        cabin:"Cabin",
+        inter: "Inter"
       },
-      black: "#000",
-      gainsboro: {
-        "100": "#e6e6e6",
-        "200": "#d8d8d8",
+      fontSize: {
+        base: "16px",
+        sm: "14px",
+        xs: "12px",
+        xl: "20px",
       },
-      "ebgrey-100": "#e3e4e8",
-      "ebgrey-200": "#c8c9d0",
-      darkslategray: "#333",
-      darkseagreen: "#70ae80",
-      "ebgrey-500": "#32333b",
-      dimgray: "#707070",
-      "ebgrey-600": "#5e606e",
-      blueviolet: "#4c38e4",
-      "ebgrey-50": "#f1f1f3",
-    },
-    spacing: {},
-    fontFamily: {
-      cabin: "Cabin",
-    },
-    borderRadius: {
-      "81xl": "100px",
-      "29xl": "48px",
+
     },
   },
-  fontSize: {
-    xs: "12px",
-    base: "16px",
-    sm: "14px",
-    inherit: "inherit",
-  },
-};
-export const corePlugins = {
-  preflight: false,
-};
+  plugins: [],
+}
+
