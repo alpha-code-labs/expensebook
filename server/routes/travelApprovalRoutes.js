@@ -7,7 +7,7 @@ import {  approveAddALeg, getTravelRequestDetails, getTravelRequestDetailsForApp
 const travel = express.Router();
 
 //------Approval Flow for Travel Requests without cash advance ---
-
+travel.get('/test', (req,res) => { return res.status(200).json({"success":true, "message":"Approval Docker image is running successfully"})})
 //1) standalone tr -- row 5 --
 travel.get("/tr-list/:tenantId/:empId", getTravelRequestsStandalone); // working
 
