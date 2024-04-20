@@ -6,7 +6,7 @@ const expenseHeaderStatusEnums = [
   'paid',
   'pending settlement',
   'cancelled',
-  'null'
+   null
 ];
 
 const lineItemStatusEnums = [
@@ -88,7 +88,7 @@ createdBy:{
 expenseHeaderStatus: { 
   type: String,
   enum: expenseHeaderStatusEnums,
-  default: 'null'
+  default: null
 },
 travelAllocationFlags:{ //Comes from HRMaster -Based on this expense booking screen changes
   level1:Boolean,
@@ -137,9 +137,7 @@ const generateIncrementalNumber = (tenantName, incrementalValue) => {
 // });
 
 
-
-const Reimbursement = mongoose.model('ReimbursementFriday', expenseReimbursementSchema);
-
+const Reimbursement = mongoose.model('ReimbursementMonday', expenseReimbursementSchema);
 
 export default Reimbursement
 
