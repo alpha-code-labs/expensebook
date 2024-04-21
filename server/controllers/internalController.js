@@ -55,7 +55,7 @@ const createTenant = async (req, res)=>{
     tenantId: tenantId,
     onboarder: {
       name: fullName,
-      email: email,
+      emailId: email,
     },
     flags:{
       DIY_FLAG: true,

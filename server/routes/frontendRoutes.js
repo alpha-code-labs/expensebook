@@ -1,5 +1,7 @@
 import express from "express";
 import {
+    updateProgress,
+    getProgress,
     createNewHrCompanyInfo,
     updateExistingHrCompanyInfo,
     handleUpload,
@@ -156,5 +158,9 @@ router.post('/tenant/:tenantId/onboarding-completed', onboardingCompleted)
 
 //onboarder
 router.get('/tenant/:tenantId/onboarder', getOnboarderInfo)
+
+//progress
+router.get('/tenant/:tenantId/progress', getProgress)
+router.post('/tenant/:tenantId/progress', updateProgress)
 
 export default router;

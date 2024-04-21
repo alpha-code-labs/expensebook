@@ -331,7 +331,7 @@ const updateTenantEmployeeDetails = async (req, res) => {
     try {
         // Get the tenantId from params
         const { tenantId } = req.params;
-        const { employeeDetails, addedHeaders } = req.body;
+        const { employeeDetails, addedHeaders, orgHeaders } = req.body;
         if(!employeeDetails || !addedHeaders || !Array.isArray(employeeDetails) || !Array.isArray(addedHeaders) || employeeDetails.length === 0 || addedHeaders.length == 0 || addedHeaders.some(h=>(h==undefined || h==null) || !orgHeaders) ) {
           return res.status(400).json({message: 'Bad request. Missing required fields or received fields one or more fields that doesn\t have values' })
         }
@@ -660,16 +660,27 @@ const updateTenantGroupingLabels = async (req, res) => {
     console.log(groupingLabels, 'grouping labels')
 
     //get HRCompany document by its tenantId
-    const hrCompany = await HRCompany.findOne({ tenantId: tenantId }, {tenantId:1});
-    console.log(hrCompany)
+    const hrCompany = await HRCompany.findOne({ tenantId: tenantId });
+    
 
     if(!hrCompany){
       //tenant record not found
       res.status(404).json({ error: 'Tenant record not found' })
     }
 
-    //update the travelAllocationHeaders
-    const updatedHRCompany = await HRCompany.findOneAndUpdate({ tenantId: tenantId }, {$set: {groupingLabels}}, { new: true });
+    //remove existing groups
+    hrCompany.groups = [];
+
+    //clear all group data from employee list
+    hrCompany.employees.forEach(employee=>{
+      employee.group = []
+    })
+
+    //update grouping labels
+    hrCompany.groupingLabels = groupingLabels;
+
+    const updatedHRCompany = await hrCompany.save();
+
     res.status(200).json(updatedHRCompany.groupingLabels); // Respond with the updated HRCompany data
 
   } catch (error) {
@@ -865,7 +876,8 @@ const updateTenantGroups = async (req, res) => {
         else{
            tmpPolicies = ['international', 'domestic', 'local'].map((travelType, index)=>({
             [travelType]: travelExpenseCategories[index][travelType].map(category=>{
-              if(category.hasOwnProperty('class')){
+              if(category.hasOwnProperty('class') && category.class != null && category.class !=undefined){
+                console.log('category name', category.categoryName)
                 return({
                   [category.categoryName] : {
                     class:category.class.map(c=>({[c] : {allowed:true, violationMessage: ''}})).reduce((result, currentObj) => {
@@ -1007,7 +1019,7 @@ const updateTenantPolicies = async (req, res) => {
     //send updates to other microservices
     //const update_res = await sendUpdatedReplica({travelExpenseAllocation: allocationHeaders})
     //modify later to return success message only if update_res returns 1
-    res.status(200).json({message:'Policies update'}); // Respond with success message
+    res.status(200).json({message:'Policies Updated!'}); // Respond with success message
 
   } catch (error) {
       console.log(error)
@@ -1067,10 +1079,10 @@ const updateTenantNonTravelPolicies = async (req, res) => {
     //const update_res = await sendUpdatedReplica({travelExpenseAllocation: allocationHeaders})
     //modify later to return success message only if update_res returns 1
 
-    res.status(200).json({message:'Policies update'}); // Respond with success message
+    res.status(200).json({message:'Policies Updated!'}); // Respond with success message
 
     //update account lines and expense categories
-    updateAccountLinesAndExpenseCategories(tenantId)
+    //updateAccountLinesAndExpenseCategories(tenantId)
 
 
   } catch (error) {
@@ -2225,22 +2237,26 @@ const onboardingCompleted = async (req, res) => {
     //check if tenant exists
 
     //check current status of onboarding
-    const tenant_ = await HRCompany.findOne({tenantId}, {onboardingCompleted:1})
-    if(!tenant_){
+    const tenant = await HRCompany.findOne({tenantId})
+    const onboarder = tenant.onboarder;
+
+    if(!tenant){
       return res.status(404).json({message: 'Tenant not found'})
     }
 
-    if(tenant_.onboardingCompleted){
-      return res.status(405).json({message: 'Onboarding already marked as completed'})
+    if(tenant.onboardingCompleted){
+      return res.status(405).json({message: 'You are onboarded'})
     }
 
-    const tenant = await HRCompany.findOneAndUpdate({tenantId}, {$set: {onboardingCompleted: true}})
+    tenant.onboardingCompleted = true;
 
     //send message to all employees
     const employees = tenant.employees
 
     //extract email ids and names of all employees and attach a secret code
-    let employeeData = employees.map(emp=>(
+    let employeeData = employees
+    .filter(emp=>emp.employeeDetails.emailId != onboarder.emailId)
+    .map(emp=>(
         { 
           employeeDetails: {
             empId: emp.employeeDetails.employeeId,
@@ -2261,13 +2277,13 @@ const onboardingCompleted = async (req, res) => {
        })
       }
 
-      await mailer();
+      //await mailer();
     }catch(e){
       return res.status(500).json({message: 'Some error occured while sending emails'})
     }
 
     //send update to other microservices
-    const response = await sendToDashboardQueue(tenant, true, 'online')
+    //const response = await sendToDashboardQueue(tenant, true, 'online')
     await sendToOtherMicroservice(tenant, 'This is to update hrMaster data in dashboard', 'dashboard', 'onboarding', 'online')
     await sendToOtherMicroservice(tenant, 'This is to update hrMaster data in travel', 'travel', 'onboarding', 'online')
     await sendToOtherMicroservice(tenant, 'This is to update hrMaster data in cash', 'cash', 'onboarding', 'online')
@@ -2291,6 +2307,8 @@ const onboardingCompleted = async (req, res) => {
       'online',
       'otp-update',
       )
+
+      await tenant.save();
 
     //send this data to login logout service
     return res.status(200).json({message: 'email sent to employees'})
@@ -2317,7 +2335,6 @@ const getTenantDefaultCurrency = async (req, res)=>{
   }
 }
 
-
 const getOnboarderInfo = async(req, res)=>{
   try{
     const {tenantId} = req.params
@@ -2335,7 +2352,47 @@ const getOnboarderInfo = async(req, res)=>{
   }
 }
 
-export {  createNewHrCompanyInfo, 
+const getProgress = async(req, res)=>{
+  try{
+    const {tenantId} = req.params
+
+    const tenant = await HRCompany.findOne({tenantId}, {progress:1})
+
+    if(!tenant){
+      return res.status(404).json({message: 'Tenant not found'})
+    }
+
+    res.status(200).json({progress: tenant.progress})
+    
+  }catch(e){
+    return res.status(500).json({message: 'Internal Server Error'})
+  }
+}
+
+const updateProgress = async (req, res) => {
+  try{
+    const {tenantId} = req.params
+    const {progress} = req.body
+
+    if(!tenantId || !progress) return res.status(400).json({message: 'Bad request. Missing required fields'})
+
+    //check tenant
+    const tenant = await HRCompany.findOne({tenantId}, {tenantId:1, progress:1})
+    if(!tenant) return res.status(404).json({message: 'Tenant not found'})
+
+    tenant.progress = progress;
+    await tenant.save();
+
+    return res.status(200).json({message: 'progress updated'})
+  }catch(e){
+    console.log(e)
+    return res.status(500).json({message: 'Internal Server Error'})
+  }
+}
+
+export {  getProgress,
+          updateProgress,
+          createNewHrCompanyInfo, 
           updateExistingHrCompanyInfo, 
           updateTenantCompanyInfo,
           getTenantCompanyInfo,

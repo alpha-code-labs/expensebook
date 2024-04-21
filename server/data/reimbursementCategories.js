@@ -57,7 +57,7 @@ const reimbursementExpenseCategories = [
       { name: 'DropOff Location', type: 'text' },
       { name: 'Total Amount', type: 'amount' },
       { name: 'Tax Amount', type: 'amount' },
-      { name: 'Payment Method', type: 'text' },
+      
       { name: 'Receipt No.', type: 'text' },
       { name: 'Ride Distance', type: 'text' }
     ],
@@ -74,7 +74,7 @@ const reimbursementExpenseCategories = [
       { name: 'DropOff Location', type: 'text' },
       { name: 'Total Amount', type: 'amount' },
       { name: 'Tax Amount', type: 'amount' },
-      { name: 'Payment Method', type: 'text' },
+      
       { name: 'Receipt No.', type: 'text' },
       { name: 'Ride Distance', type: 'text' }
     ],
@@ -94,7 +94,6 @@ const reimbursementExpenseCategories = [
       {name: 'Total Amount', type: 'amount'},
       { name: 'Guest Name', type: 'text' },
       { name: 'Booking Reference No.', type: 'text' },
-      { name: 'Payment Method', type: 'text' }
     ],
     modeOfTranfer:false,
     class: ['Motel', '3 star', '4 star', '5 star'],
@@ -265,7 +264,7 @@ const reimbursementExpenseCategories = [
   {
     categoryName: 'Repairs and Maintenance',
     fields: [
-      { name: 'Description of repair/maintenance work', type: 'text' },
+      { name: 'Description of work', type: 'text' },
       { name: 'Service provider', type: 'text' },
       { name: 'Cost', type: 'amount' }
     ],
@@ -319,14 +318,14 @@ const reimbursementExpenseCategories = [
     modeOfTranfer:false,
   },
   {
-    categoryName: 'Client entertainment',
+    categoryName: 'Client Entertainment',
     fields: [
       { name: 'Total Amount', type: 'text' }
     ],
     modeOfTranfer:false,
   },
   {
-    categoryName: 'Client gift',
+    categoryName: 'Client Gift',
     fields: [
       { name: 'Total Amount', type: 'text' }
     ],

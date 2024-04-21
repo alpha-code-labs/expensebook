@@ -57,6 +57,7 @@ const ExchangeValueSchema = new mongoose.Schema({
 // HR & Company Structure schema
 const hrCompanySchema = new mongoose.Schema({
   tenantId: mongoose.Types.ObjectId,
+  tenantName: String,
   onboarder: {
     name: String,
     emailId: String,
@@ -68,7 +69,7 @@ const hrCompanySchema = new mongoose.Schema({
     ORG_HEADERS_FLAG: Boolean,
     POLICY_SETUP_FLAG: Boolean,
   },
-
+  progress:{},
   onboardingCompleted: Boolean,
   state: String,
   companyDetails: companyDetailsSchema,
