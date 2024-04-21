@@ -116,13 +116,19 @@ function titleCase(str){
   }
 
   function camelCaseToTitleCase(inputString) {
-    // Use a regular expression to split words at capital letters
-    const words = inputString.split(/(?=[A-Z])/);
-  
-    // Capitalize the first letter of each word and join them with spaces
-    const titleCaseString = words.map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
-  
-    return titleCaseString;
+    try{
+      if(inputString == null || inputString == undefined || !isNaN(inputString)) return inputString;
+      // Use a regular expression to split words at capital letters
+      const words = inputString.split(/(?=[A-Z])/);
+    
+      // Capitalize the first letter of each word and join them with spaces
+      const titleCaseString = words.map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+    
+      return titleCaseString;
+    }catch(e){
+      console.error(e);
+      return inputString;
+    }
   }
 
   function titleCaseToCamelCase(inputString) {

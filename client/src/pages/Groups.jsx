@@ -7,7 +7,7 @@ import CreatedGroups from "./groups/CreatedGroups";
 import GroupsHome from "./groups/GroupsHome";
 import SelectGroupHeaders from "./groups/SelectGroupHeaders";
 
-export default function (props){
+export default function ({progress, setProgress}){
   
   const {state} = useLocation();
   console.log(state, '...state')
@@ -21,14 +21,18 @@ export default function (props){
 
      {tenantId &&
       <Routes>
-        <Route path={'/'} element={<GroupsHome setGroupData={setGroupData} />} />
-        <Route path={`/select-grouping-headers`} element={<SelectGroupHeaders />} />
+        <Route path={'/'} element={<GroupsHome setGroupData={setGroupData} progress={progress} setProgress={setProgress} />} />
+        <Route path={`/select-grouping-headers`} element={<SelectGroupHeaders progress={progress} setProgress={setProgress} />} />
         <Route path='/create-groups' 
             element={<CreateGroup 
+                progress={progress} 
+                setProgress={setProgress}
                 groupData={groupData} 
                 setGroupData={setGroupData} />} />
         <Route path="/created-groups" 
             element={<CreatedGroups 
+                progress={progress} 
+                setProgress={setProgress}
                 groupData={groupData}
                 setGroupData={setGroupData} />} />
 

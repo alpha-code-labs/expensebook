@@ -157,9 +157,6 @@ async function getTenantCompanyInfo_API(data){
 }
 }
 
-
-
-
 async function getTenantGroups_API(data){
   try{
     const {tenantId} = data
@@ -554,6 +551,9 @@ async function onboardingCompleted_API(data){
       return {data:res.data, err:null}
     }
   }catch(e){
+    if(e.response){
+      return {data:null, err: e.response.data.message??'Something went wrong. Your data has been saved. Please try this step later.'}
+    }
     return handleError(e)
   }
 }
@@ -590,7 +590,30 @@ async function getOnboarderInfo_API(data){
   }
 }
 
+async function postProgress_API(data){
+  try{
+    const {tenantId, progress} = data
+    const res = await axios.post(`${ONBOARDING_API_URL}/tenant/${tenantId}/progress`, {progress})
+    return {data:res.data, err:null}
+  }catch(e){
+    return handleError(e)
+  }
+}
+
+async function getProgress_API(data){
+  try{
+    const {tenantId} = data
+    const res = await axios.get(`${ONBOARDING_API_URL}/tenant/${tenantId}/progress`)
+    return {data:res.data, err:null}
+  }catch(e){
+    return handleError(e)
+  }
+}
+
+
   export {
+    postProgress_API,
+    getProgress_API,
     getOnboarderInfo_API,
     getTenantGroups_API,
     updateTenantGroups_API,

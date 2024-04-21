@@ -10,17 +10,17 @@ import { titleCase } from '../../utils/handyFunctions'
 import { useNavigate, useLocation, useParams } from 'react-router-dom'
 import axios from 'axios'
 import Checkbox from '../../components/common/Checkbox'
-import { getEmployeeDetails_API, getTenantGroupingLabels_API, getTenantGroups_API } from '../../utils/api'
+import { getEmployeeDetails_API, getTenantGroupingLabels_API, getTenantGroups_API, updateTenantGroups_API } from '../../utils/api'
 import Error from '../../components/common/Error'
+import MainSectionLayout from '../MainSectionLayout'
+import { postProgress_API } from '../../utils/api'
 
 //tracking-tight --for font spacing
 
 
-export default function (props){
+export default function ({progress, setProgress, groupData, setGroupData}){
 
     const navigate = useNavigate()
-    const setGroupData = props.setGroupData
-    const groupData = props.groupData
     //const groupHeaders = props.groupHeaders
     //const employeeData = props.employeeData
     const {state} = useLocation()
@@ -138,6 +138,8 @@ export default function (props){
 
     const handleCreateGroup = async ()=>{
         
+        let current_groups_data = [];
+
        await (function(){
             return new Promise((resolve, reject)=>{
                 if(filteredEmployeeList.length === 0){
@@ -164,13 +166,59 @@ export default function (props){
                     const groupData_copy = JSON.parse(JSON.stringify(groupData))
                     groupData_copy.push({groupName, employees:filteredEmployeeList, filters:selectedFilters, canDelegate})
                     setGroupData(groupData_copy)
+                    current_groups_data = groupData_copy;
                 }
 
                 resolve()
             })
         })()
 
-        navigate(`/${tenantId}/groups/created-groups`, {state:{groupData}})
+
+
+
+        //Post grups data to backend
+        setNetworkStates({isLoading:false, isUploading:true, loadingErrMsg:null})
+        const res = await updateTenantGroups_API({tenantId, groups: current_groups_data.map(g=>({groupName:g.groupName, filters:g.filters}))})
+
+        const progress_copy = JSON.parse(JSON.stringify(progress));
+
+        progress_copy.sections['section 4'].subsections.forEach(subsection=>{
+            if(subsection.name == 'Create Groups') subsection.completed = true;
+        });
+
+        progress_copy.sections['section 4'].subsections.forEach(subsection=>{
+            if(subsection.name == 'Create Groups') subsection.completed = true;
+        });
+
+        const markCompleted = !progress_copy.sections['section 4'].subsections.some(subsection=>!subsection.completed)
+
+        let totalCoveredSubsections = 0;
+        progress_copy.sections['section 4'].subsections.forEach(subsection=>{
+            if(subsection.completed) totalCoveredSubsections++;
+        })
+
+        progress_copy.sections['section 4'].coveredSubsections = totalCoveredSubsections; 
+
+        if(markCompleted){
+            progress_copy.sections['section 4'].state = 'done';
+            progress_copy.maxReach = 'section 5';
+        }else{
+            progress_copy.sections['section 4'].state = 'attempted';
+        }
+
+        const progress_res = await postProgress_API({tenantId, progress: progress_copy})
+
+        if(res.err || progress_res.err){
+            setPrompt({showPrompt:true, promptMsg:res.err??progress_res.err, success:false})
+            return
+        }
+        else{
+            console.log(res.data)
+            setProgress(progress_copy)
+            navigate(`/${tenantId}/groups/created-groups`, {state:{groupData}})
+        }
+    
+        
     }
 
     const handleCanSelectChange = (e, index)=>{
@@ -220,12 +268,10 @@ export default function (props){
 
     
     return(<>
-        
+    <MainSectionLayout>
         {networkStates.isLoading && <Error message={networkStates.loadingErrMsg}/>}
         {!networkStates.isLoading && <>
-        <Icon/>  
-        <div className="bg-slate-50 min-h-[calc(100vh-107px)] px-[20px] md:px-[50px] lg:px-[104px] pb-10 w-full tracking-tight">
-            <div className='px-6 py-10 bg-white rounded shadow'>
+            <div className='px-6 py-10 bg-white'>
                 <p className='text-neutral-700 text-lg font-medium font-cabin'>Apply filters to set groups</p>
                 <div ref={filtersDivRef} className='sticky top-5 z-10 bg-white'>
                     <div className='mt-6 w-full flex flex-wrap gap-10'>
@@ -284,9 +330,8 @@ export default function (props){
                     </div>
                 </div>
             </div>
-        </div>
         </>}
-
+    </MainSectionLayout>
         </>)
 }
 

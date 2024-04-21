@@ -20,12 +20,16 @@ import Select from '../../../components/common/Select'
 import remove_icon from '../../../assets/XCircle.svg'
 import close_icon from "../../../assets/close.svg"
 import UploadAdditionalHeaders from '../../expenseAllocations/UploadAdditionalHeaders'
-import { getTenantOrgHeaders_API, getTenantTravelAllocations_API, getTravelCategories_API, postTenantTravelAllocations_API, postTravelCategories_API, updateFormState_API,  } from '../../../utils/api'
+import { getTenantOrgHeaders_API, getTenantTravelAllocations_API, getTravelCategories_API, postProgress_API, postTenantTravelAllocations_API, postTravelCategories_API, updateFormState_API,  } from '../../../utils/api'
 import expenseAllocations from '../../expenseAllocations/expenseAllocations'
 import { camelCaseToTitleCase } from '../../../utils/handyFunctions'
 import Prompt from '../../../components/common/Prompt'
 import Error from '../../../components/common/Error'
 import { expenseCategories } from '../../../data/expenseCategories'
+import tooltip_icon from '../../../assets/tooltip.jpeg'
+import LeftProgressBar from '../../../components/common/LeftProgressBar'
+import Layout from '../../Layout'
+import MainSectionLayout from '../../MainSectionLayout'
 
 const travel_allocations = {
     allocation: [],
@@ -37,12 +41,11 @@ const travel_allocations = {
 const defaultCategories = expenseCategories  
 console.log(expenseCategories);
 
-const fixedFields = ['Total Amount', 'Class', 'Tax Amount', 'Tip Amount', 'Premium Amount', 'Cost', 'License Cost', 'Subscription Cost']
+const fixedFields = ['Total Amount', 'Date', 'Class', 'Tax Amount', 'Tip Amount', 'Premium Amount', 'Cost', 'Total Cost', 'License Cost', 'Subscription Cost', 'Total Fare', 'Premium Cost']
   
-export default function (props) {
+export default function ({progress, setProgress, travelType}) {
 
     const {tenantId} = useParams()
-    const travelType = props.travelType
     const [showAddExpenseCategoriesModal, setShowAddExpenseCategoriesModal] = useState(false)
     const [categories, setCategories] = useState(defaultCategories)
     const [orgSetup, setOrgSetup] = useState(false)
@@ -244,12 +247,47 @@ export default function (props) {
         setNetworkStates(pre=>({...pre, isUploading:true}))
         const cat_res = await postTravelCategories_API({tenantId, travelExpenseCategories: categories})
         const all_res = await postTenantTravelAllocations_API({tenantId, travelAllocations:allocations})
+        const res = updateFormState_API({tenantId, state: '/setup-expense-book/travel/level1'})
+        const progress_copy = JSON.parse(JSON.stringify(progress));
 
-        if(cat_res.err || all_res.err){
+        progress_copy.sections['section 3'].subsections.forEach(subsection=>{
+            if(subsection.name == 'Travel Allocations') subsection.completed = true;
+        });
+
+        progress_copy.sections['section 3'].subsections.forEach(subsection=>{
+            if(subsection.name == 'Travel Allocations') subsection.completed = true;
+        });
+
+        const markCompleted = !progress_copy.sections['section 3'].subsections.some(subsection=>!subsection.completed)
+
+        let totalCoveredSubsections = 0;
+        progress_copy.sections['section 3'].subsections.forEach(subsection=>{
+            if(subsection.completed) totalCoveredSubsections++;
+        })
+
+        progress_copy.sections['section 3'].coveredSubsections = totalCoveredSubsections; 
+
+        if(markCompleted){
+            progress_copy.sections['section 3'].state = 'done';
+            progress_copy.maxReach = 'section 4';
+        }else{
+            progress_copy.sections['section 3'].state = 'attempted';
+        }
+
+        const progress_res = await postProgress_API({tenantId, progress: progress_copy})
+
+        setProgress(progress_copy);
+
+        setNetworkStates(pre=>({...pre, isUploading:false}))
+
+        if(cat_res.err || all_res.err || progress_res.err ){
             setPrompt({showPrompt:true, promptMsg:'Can not update data at the moment. Please try again later'})
         }
         else{
             setPrompt({showPrompt:true, promptMsg:'Changes Saved Successfully'})
+            setTimeout(()=>{
+                navigate(`/${tenantId}/setup-expensebook`)
+            }, 3000)
         }
     }
 
@@ -282,50 +320,50 @@ export default function (props) {
     },[updatedOrgHeaders])
 
     return(<>
+    
+    <MainSectionLayout>
         {networkStates.isLoading && <Error message={networkStates.loadingErrMsg} />}
         {!networkStates.isLoading && <>
-
-        <Icon/>
-        <div className="bg-slate-50 min-h-[calc(100vh-107px)] px-[20px] md:px-[50px] lg:px-[104px] pb-10 w-full tracking-tight">
-            <div className='px-6 py-10 bg-white relative '>               
-               {/* back button and title */}
-               <div className='flex gap-4'>
-                    <div className='w-6 h-6 cursor-pointer' onClick={()=>navigate(-1)}>
-                        <img src={back_icon} />
-                    </div>
-
-                    <div className='flex gap-2'>
-                        <p className='text-neutral-700 text-base font-medium font-cabin tracking-tight'>
-                            Setup Expense Book
-                        </p>
-                    </div>
-
+        
+        <div className='px-6 py-10 bg-white relative'>               
+        {/* back button and title */}
+        <div className='flex gap-4'>
+                <div className='w-6 h-6 cursor-pointer' onClick={()=>navigate(-1)}>
+                    <img src={back_icon} />
                 </div>
-                
-                {/* rest of the section */}
-                <div className='mt-10 flex flex-col gap-4'>  
-                  
-                <Policy 
-                    categories={categories}
-                    setCategories={setCategories}
-                    handleEditFields={handleEditFields}  
-                    saveChanges={saveChanges} 
-                    categoryName={'Travel'}
-                    travelType={travelType} 
-                    allocations={allocations}
-                    setAllocations={setAllocations}
-                    orgHeaders={orgHeaders} 
-                    setShowAddHeaderModal={setShowAddHeaderModal} />
 
-                    <div className='flex justify-between mt-10'>
-                        <Button text='Save As Draft' onClick={handleSaveAsDraft} />
-                        {/* <Button text='Continue' onClick={handleContinue} /> */}
-                    </div>
-
+                <div className='flex gap-2'>
+                    <p className='text-neutral-700 text-base font-medium font-cabin tracking-tight'>
+                        Setup Expense Book
+                    </p>
                 </div>
 
             </div>
+            
+            {/* rest of the section */}
+            <div className='mt-10 flex flex-col gap-4'>  
+            
+            <Policy 
+                categories={categories}
+                setCategories={setCategories}
+                handleEditFields={handleEditFields}  
+                saveChanges={saveChanges} 
+                categoryName={'Travel'}
+                travelType={travelType} 
+                allocations={allocations}
+                setAllocations={setAllocations}
+                orgHeaders={orgHeaders} 
+                setShowAddHeaderModal={setShowAddHeaderModal} />
+
+                <div className='flex justify-between mt-10'>
+                    {/* <Button text='Save As Draft' onClick={handleSaveAsDraft} /> */}
+                    <Button isLoading={networkStates?.isUploading} text='Save Changes' onClick={saveChanges} /> 
+                </div>
+
+            </div>
+
         </div>
+    
         
         {showAddHeaderModal && 
         <UploadAdditionalHeaders 
@@ -403,7 +441,8 @@ export default function (props) {
         <Prompt prompt={prompt} setPrompt={setPrompt} />
 
         </>}
-  
+    </MainSectionLayout>
+
   </>)
 
 }
@@ -473,10 +512,16 @@ function Policy({
 
             <div>
                 {/* by class, by budget*/}
-                <div className="w-fit h-6 justify-start items-center gap-4 inline-flex mt-5">
-                    <div onClick={()=>{setCat(true); setExp(false)}} className={`${ cat? 'text-zinc-100 bg-indigo-600 px-2 py-1 rounded-xl' : 'text-zinc-500' } text-xs font-medium font-cabin cursor-pointer`}>Allocation</div>
-                    <div onClick={()=>{setCat(false); setExp(true)}} className={`${ exp? 'text-zinc-100 bg-indigo-600 px-2 py-1 rounded-xl' : 'text-zinc-500' } text-xs font-medium font-cabin cursor-pointer `}>Expense Allocation</div>
-                </div> 
+                <div className='relative'>
+                    <div className="w-fit h-6 justify-start gap-2 items-center inline-flex mt-5">
+                        <div onClick={()=>{setCat(true); setExp(false)}} className={`${ cat? 'text-zinc-100 bg-indigo-600 ' : 'text-zinc-500 bg-indigo-100' } px-2 py-1 rounded-sm text-sm font-medium font-cabin cursor-pointer`}>Travel Allocations</div>
+                        <div onClick={()=>{setCat(false); setExp(true)}} className={`${ exp? 'text-zinc-100 bg-indigo-600 ' : 'text-zinc-500 bg-indigo-100' } px-2 py-1 rounded-sm text-sm font-medium font-cabin cursor-pointer `}>Travel Expense Allocations</div>
+                    </div> 
+                    <div className='absolute top-[21px] left-[290px] inline-flex items-center gap-1' >
+                        <img src={tooltip_icon} className='w-4 h-4' />
+                        <p className='text-sm text-neutral-500 font-cabin'>You can allocate travel and travel expenses seprately</p>
+                    </div>
+                </div>
                 <hr className='mt-2'/>
             </div>
             
@@ -486,20 +531,36 @@ function Policy({
                 
                 { cat && 
                     <div className='mt-4 '>
-                        <Input
-                            value={allocations.allocation_accountLine}
-                            onChange={(e)=>handleAccountLineChange('cat', e.target.value)} 
-                            title='Category Account Line' />
+                        <div className='relative'>
+                            <Input
+                                value={allocations.allocation_accountLine}
+                                onChange={(e)=>handleAccountLineChange('cat', e.target.value)} 
+                                placeholder={'eg. 54148888'}
+                                title='Category Account Line' />
+
+                            <div className='absolute top-[42px] left-[211px] flex items-center justify-center gap-1'>
+                                <img src={tooltip_icon} className='w-4 h-4' />
+                                <p className='text-sm text-neutral-500 font-cabin'>Optional</p>
+                            </div>
+                        </div>
                         <ExpenseAllocation type='cat' orgHeaders={orgHeaders} setShowAddHeaderModal={setShowAddHeaderModal} allocations={allocations} setAllocations={setAllocations} categoryName={categoryName} />
                     </div>
                 }
 
                 { exp && 
                     <div className='mt-4 '>
+                        <div className='relative'>
                         <Input
                             value={allocations.expenseAllocation_accountLine} 
                             onChange={(e)=>handleAccountLineChange('exp', e.target.value)} 
+                            placeholder={'eg. 54148888'}
                             title='Expense Account Line' />
+
+                            <div className='absolute top-[42px] left-[211px] flex items-center justify-center gap-1'>
+                                <img src={tooltip_icon} className='w-4 h-4' />
+                                <p className='text-sm text-neutral-500 font-cabin'>Optional</p>
+                            </div>
+                        </div>
                         
                         <ExpenseAllocation type="exp" orgHeaders={orgHeaders} setShowAddHeaderModal={setShowAddHeaderModal} allocations={allocations} setAllocations={setAllocations} categoryName={categoryName} />
                     </div>
@@ -542,9 +603,9 @@ function Policy({
                     </details>
                 </div>
 
-            <div className='mt-4 flex flex-row-reverse'>
+            {/* <div className='mt-4 flex flex-row-reverse'>
                 <HollowButton title='Save Changes' isLoading={networkStates?.isUploading} onClick={()=>saveChanges()} />
-            </div>
+            </div> */}
 
             </div>
         </div>)
@@ -585,13 +646,13 @@ function ExpenseAllocation({orgHeaders, type, setShowAddHeaderModal, allocations
         {orgHeaders.length>0 && 
         <div className='mt-10'>
             <p className='text-base text-neutral-800'>{`Allocate ${type=='exp'? 'Expenses for' : ''} this category`}</p>
-            <p className='text-sm text-neutral-600'>We have identified following entities on which you might be allocating </p>
-            <div className='flex flex-col gap-1 mt-2'>
+            <p className='text-sm text-neutral-700'>{`We have identified following entities on which you might be allocating travel ${type=='exp'? 'expenses' : ''}. This is coming from your HR Data.`} </p>
+            <div className='flex flex-col gap-1 mt-4'>
                 {orgHeaders.map((header, headerIndex) => 
                 <div key={headerIndex} className='flex items-center justify-between'>
                     <p className='text-sm flex-1 text-neutral-700'>{camelCaseToTitleCase(header.headerName)}</p>
                     <div className='flex-1 inline-flex'>
-                        <Checkbox checked={type == 'exp'? allocations.expenseAllocation.find(h=>h.headerName == header.headerName) : allocations.allocation.find(h=>h.headerName == header.headerName)} onChange={(e)=>handleAllocationHeaderChange(e, headerIndex)} />
+                        <Checkbox checked={type == 'exp'? allocations?.expenseAllocation?.find(h=>h.headerName == header.headerName) : allocations.allocation.find(h=>h.headerName == header.headerName)} onChange={(e)=>handleAllocationHeaderChange(e, headerIndex)} />
                     </div>
                 </div>)}
             </div>

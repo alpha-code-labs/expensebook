@@ -7,21 +7,25 @@ import axios from 'axios'
 import Checkbox from "../../components/common/Checkbox"
 import { updateFormState_API } from "../../utils/api"
 import Error from "../../components/common/Error"
+import Prompt from "../../components/common/Prompt"
+import MainSectionLayout from "../MainSectionLayout"
+import { postProgress_API } from "../../utils/api"
 
 
 const ONBOARDING_API = import.meta.env.VITE_PROXY_URL
 
-export default function (props){
+export default function ({progress, setProgress}){
     const navigate = useNavigate()
     const {tenantId} = useParams()
     const [options, setOptions] = useState({Cash:false, Cheque:false, ['Salary Account']:false, ['Prepaid Card']:false, ['NEFT Bank Transfer']:false})
     const [loading, setLoading] = useState(true)
     const [loadingError, setLoadingError] = useState(null)
+    const [prompt, setPrompt] = useState({showPrompt:false, promptMsg:false})
 
     useEffect(()=>{
         (async function(){
             try{
-                const res = await axios.get(`http://localhost:8001/api/tenant/${tenantId}/advance-settlement-options`)
+                const res = await axios.get(`${ONBOARDING_API}/tenant/${tenantId}/advance-settlement-options`)
                 const advanceSettlementOptions = res.data.advanceSettlementOptions
 
                 if(Object.keys(advanceSettlementOptions).length > 0){
@@ -62,10 +66,45 @@ export default function (props){
         
         try{
             const res = await axios.post(`${ONBOARDING_API}/tenant/${tenantId}/advance-settlement-options`, {advanceSettlementOptions:options})
+            let currentSubSection = 'Cash Advance Settlement Optioins'
+
+            const progress_copy = JSON.parse(JSON.stringify(progress));
+
+            progress_copy.sections['section 6'].subsections.forEach(subsection=>{
+                if(subsection.name == currentSubSection) subsection.completed = true;
+            });
+
+            progress_copy.sections['section 6'].subsections.forEach(subsection=>{
+                if(subsection.name == currentSubSection) subsection.completed = true;
+            });
+
+            const markCompleted = !progress_copy.sections['section 6'].subsections.some(subsection=>!subsection.completed)
+
+            let totalCoveredSubsections = 0;
+            progress_copy.sections['section 6'].subsections.forEach(subsection=>{
+                if(subsection.completed) totalCoveredSubsections++;
+            })
+
+            progress_copy.sections['section 6'].coveredSubsections = totalCoveredSubsections; 
+
+            if(markCompleted){
+                progress_copy.sections['section 6'].state = 'done';
+                progress_copy.maxReach = 'section 6';
+            }else{
+                progress_copy.sections['section 6'].state = 'attempted';
+            }
+
+            const progress_res = await postProgress_API({tenantId, progress: progress_copy})
+
             if(res.status == 200){
-                alert('Advance Settlement Options Updated !')
+                setPrompt({showPrompt:true, promptMsg: 'Advance Settlement Options Updated !'})
                 updateFormState_API({tenantId, state:'/others/cash-expense-settlement-options'})
-                navigate(`/${tenantId}/others/cash-expense-settlement-options`)
+
+                setTimeout(()=>{
+                    setProgress(progress_copy)
+                    navigate(`/${tenantId}/others/cash-expense-settlement-options`)
+                }, 3000)
+                
             }
         }
         catch(e){
@@ -85,11 +124,13 @@ export default function (props){
 
     const handleSaveAsDraft = async ()=>{
         try{
-            const res = await axios.post(`http://localhost:8001/api/tenant/${tenantId}/advance-settlement-options`, {advanceSettlementOptions:options})
+            const res = await axios.post(`${ONBOARDING_API}/tenant/${tenantId}/advance-settlement-options`, {advanceSettlementOptions:options})
             if(res.status == 200){
-                alert('Expense Settlement Options Updated !')
                 updateFormState_API({tenantId, state:'/others/cash-expense-settlement-options'})
-                window.location.href = 'https://google.com'
+                setPrompt({showPrompt:true, promptMsg: "Cash Advance Settlement Options Updated !" })
+                setTimeout(()=>{
+                    window.location.href = import.meta.env.VITE_WEB_PAGE_URL
+                }, 2700)
             }
         }
         catch(e){
@@ -108,20 +149,18 @@ export default function (props){
     }
 
     return(<>
-        
+    <MainSectionLayout>
         {loading && <Error message={loadingError}/>}
 
-        {!loading && <> 
-            <Icon/>
-        <div className="bg-slate-50 min-h-[calc(100vh-107px)] px-[20px] md:px-[50px] lg:px-[104px] pb-10 w-full tracking-tight">
-            <div className='px-6 py-10 bg-white rounded shadow'>
+        {!loading &&
+            <div className='px-6 py-10 bg-white'>
                 <div className="flex justify-between">
                     <div className="gap-2">
                         <p className="text-neutral-700 text-xl font-semibold tracking-tight">
-                            Advance Settlement options
+                            Cash Advance Settlement options
                         </p>
                         <p className="text-gray-600 text-sm font-normal font-cabin" >
-                            Here you can select modes by which your organization pays out cash advance
+                            Here you can set modes by which your organization pays out cash advance
                         </p>
                     </div>
                     <div className="">
@@ -142,12 +181,13 @@ export default function (props){
                 </div>
 
                 <div className="mt-10 w-full flex justify-between">
-                    <Button variant='fit' text='Save As draft' onClick={handleSaveAsDraft} />
+                    {/* <Button variant='fit' text='Save As draft' onClick={handleSaveAsDraft} /> */}
                     <Button variant='fit' text='Save Advance Settlement Options' onClick={()=>saveExpenseSettlementOptions()} />
                 </div>
 
+                <Prompt prompt={prompt} setPrompt={setPrompt} timeout={2700}/>
             </div>
-        </div>
-        </>}
+        }
+    </MainSectionLayout>
     </>)
 }

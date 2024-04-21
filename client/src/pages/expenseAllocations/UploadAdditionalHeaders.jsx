@@ -212,7 +212,7 @@ const api_endpoint =  `${ONBOARDING_API}/tenant`
 
                         <div className='flex justify-between items-center mt-6  '>
                             <div className=''>
-                                <HollowButton title='Add' onClick={()=>{setAddedHeaders(pre=>[...pre, ''])}} />
+                                <HollowButton sizeMax={true} title='+' onClick={()=>{setAddedHeaders(pre=>[...pre, ''])}} />
                             </div>
 
                             <div className=''>

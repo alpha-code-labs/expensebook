@@ -1,25 +1,21 @@
 import axios from 'axios';
 import DownloadTemplate from '../components/DownloadExcelTemplate';
 import { useState, useEffect, useRef } from 'react';
-import chevronDownIcon from '../assets/chevron-down.svg'
-import leftFrame from '../assets/leftFrame.svg'
+import leftFrame from '../assets/newLeftFrame.svg'
 import Icon from '../components/common/Icon';
 import Search from '../components/common/Search';
 import Select from '../components/common/Select';
 import Input from '../components/common/Input';
-import file_icon from '../assets/teenyicons_csv-solid.svg'
 import Button from '../components/common/Button';
-import Modal from '../components/common/Modal';
-import { set } from 'mongoose';
-import UploadFile from '../components/common/UploadFile';
 import { useNavigate, useParams} from 'react-router-dom';
-import { getTenantCompanyInfo_API, postTenantCompanyInfo_API } from '../utils/api';
+import { getTenantCompanyInfo_API, postProgress_API, postTenantCompanyInfo_API } from '../utils/api';
 import {currenciesList} from '../data/currenciesList';
+import Error from '../components/common/Error';
 
 
 const WEB_PAGE_URL = import.meta.env.VITE_WEB_PAGE_URL
 
-export default function CompanyAndHRInformation(){
+export default function CompanyAndHRInformation({progress, setProgress}){
   const {tenantId} = useParams()
   const [companyList, setCompanyList] = useState([])
   const [businessCategoriesList, setBusinessCategoriesList] = useState([])
@@ -83,7 +79,7 @@ export default function CompanyAndHRInformation(){
     console.log(formData, '...formData')
   },[formData])
 
-  const [errors,setErrors] = useState({companyNameError:false, businessCategoryError:false, teamSizeError:false, companyHQError:false, defaultCurrencyError:false, companyEmailError:false})
+  const [errors, setErrors] = useState({companyNameError:false, businessCategoryError:false, teamSizeError:false, companyHQError:false, defaultCurrencyError:false, companyEmailError:false})
   const [filename, setFileName] = useState(null)
 
   const handleSubmit = async () => {
@@ -136,10 +132,22 @@ export default function CompanyAndHRInformation(){
     console.log('trying to submit....', formData)
       setIsLoading(true)
       const res = await postTenantCompanyInfo_API({tenantId, companyInfo:{...formData}})
-      if(res.err){
-        setLoadingErr(res.err)
+      const progress_copy = JSON.parse(JSON.stringify(progress));
+      progress_copy.sections['section 1'].state = 'done';
+      progress_copy.sections['section 1'].coveredSubsectins = 1;
+      progress_copy.activeSection = 'section 2';
+      progress_copy.maxReach = 'section 2';
+      
+      console.log(progress_copy, 'progress..copy')
+      
+      const progress_res = await postProgress_API({tenantId, progress:progress_copy})
+
+      if(res.err || progress_res.err){
+        setLoadingErr(res.err??progress_res.err)
         return
       }
+
+      setProgress(progress_copy)
       navigate(`/${tenantId}/upload-hr-data`, {state:{tenantId}})
     }
   
@@ -215,6 +223,9 @@ export default function CompanyAndHRInformation(){
   useEffect(()=>{
     (async function(){
       const res = await getTenantCompanyInfo_API({tenantId})
+      if(res.err){
+        setLoadingErr(res.err);
+      }
       if(!res.err){
         const companyInfo = res.data.companyDetails
         console.log(companyInfo)
@@ -230,87 +241,84 @@ export default function CompanyAndHRInformation(){
   }, [errors])
 
   return (<>
-    {isLoading && 'Loading..'}
+    {isLoading && <Error message={loadingErr} />}
     {!isLoading && 
-      <div className="flex bg-white w-full h-full overflow-x-hidden font-cabin tracking-tight">
-    
-    <div className='fixed left-0 top-0 h-[100vh] w-[40vw] flex flex-col justify-center items-center [background:linear-gradient(187.95deg,_rgba(76,_54,_241,_0),_rgba(76,_54,_241,_0.03)_9.19%,_rgba(76,_54,_241,_0.06)_17.67%,_rgba(76,_54,_241,_0.1)_25.54%,_rgba(76,_54,_241,_0.14)_32.86%,_rgba(76,_54,_241,_0.19)_39.72%,_rgba(76,_54,_241,_0.25)_46.19%,_rgba(76,_54,_241,_0.31)_52.36%,_rgba(76,_54,_241,_0.38)_58.3%,_rgba(76,_54,_241,_0.46)_64.08%,_rgba(76,_54,_241,_0.53)_69.79%,_rgba(76,_54,_241,_0.62)_75.51%,_rgba(76,_54,_241,_0.71)_81.31%,_rgba(76,_54,_241,_0.8)_87.28%,_rgba(76,_54,_241,_0.9)_93.48%,_#4c36f1)]'>
-      <img src={leftFrame} />
-    </div>
 
-    <div className='absolute left-0 w-[100%] md:left-[50%] md:w-[50%] top-0 overflow-x-hidden flex justify-center items-center'>
-      <div className="mx-auto pt-10 flex flex-col items-start justify-start gap-[24px]">
-        
-        <div className=" min-w-[403px] flex flex-col items-start justify-start gap-[24px] w-full">
-          <div className="flex flex-col items-start justify-start gap-[8px]">
-            <div className="relative text-neutral-800 text-2xl tracking-tight font-semibold font-cabin">
-              Tell us a bit about your company
+    <div className="container mx-auto ml-[230px] w-[calc(100%-230px)] min-h-[calc(100vh-107px)]  tracking-tight">    
+      <div className='px-6 py-10  bg-white  w-[calc(100%)]'>
+        <div className="mx-auto pt-10 flex flex-col items-center justify-center gap-[24px]">
+          
+          <div className=" min-w-[403px] flex flex-col items-start justify-start gap-[24px] w-full">
+            <div className="flex flex-col items-start justify-start gap-[8px]">
+              <div className="relative text-neutral-800 text-2xl tracking-tight font-semibold font-cabin">
+                Tell us a bit about your company
+              </div>
+              <div className="relative text-sm tracking-tight text-zinc-400 font-cabin font-normal">
+                Enter the company details.
+              </div>
             </div>
-            <div className="relative text-sm tracking-tight text-zinc-400 font-cabin font-normal">
-              Enter the company details.
+
+            <div className="flex w-full flex-col items-start justify-start gap-[24px] text-sm">
+              <div className='flex flex-col gap-4 lg:flex-row lg:gap-1'>
+                <Input 
+                    title='Company Name' 
+                    placeholder='company name' 
+                    // options={companyList}
+                    value = {formData?.companyName} 
+                    // allowCustomInput={true}
+                    error={{set:errors.companyNameError, message:'Please enter company name'}} 
+                    onBlur={(e)=>{handleCompanySearch(e.target.value)}} />
+
+                <Input 
+                    title='Company Email' 
+                    placeholder='company email' 
+                    value = {formData?.companyEmail} 
+                    // allowCustomInput={true}
+                    error={{set:errors.companyEmailError, message:'Please provide valid email'}} 
+                    onBlur={(e)=>{handleCompanyEmail(e.target.value)}} />
+              </div>
+              <Select 
+                  titleCase={false}
+                  title='Business Category' 
+                  placeholder='Select business category'
+                  currentOption = {formData?.businessCategory} 
+                  options={businessCategoriesList}
+                  error={{set:errors.businessCategoryError, message:'Please select business category'}} 
+                  onSelect={(option)=>{handleBusinessCategory(option)}} />
+              <Select 
+                  title='Team Size' 
+                  options={['1-10', '10-50', '50-100', '100-500', '>500']} 
+                  placeholder='Select team size' 
+                  currentOption = {formData?.teamSize}
+                  error={{set:errors.teamSizeError, message:'Please select team size'}}
+                  onSelect={(option)=>handlTeamSize(option)} />
+              <Search 
+                title='Company HQ Location' 
+                allowCustomInput={true} 
+                options={locationsList} 
+                placeholder='City'
+                currentOption = {formData?.companyHQ}
+                error={{set:errors.companyHQError, message:'Please enter company headquarter location'}}
+                onSelect={(option)=>{handleHqLocation(option)}} />
+
+              <Select title='Select Currency' 
+                  drop='up'
+                  titleCase={false}
+                  onSelect={handleCurrencySelection}
+                  currentOption = {`${formData?.defaultCurrency?.fullName}-${formData?.defaultCurrency?.shortName}`}
+                  error={{set:errors.defaultCurrencyError, message:'Please select company\'s default currency'}} 
+                  options={currenciesList.map(currency=>`${currency.fullName}-${currency.shortName}`).sort()} />
+          
             </div>
-          </div>
 
-          <div className="flex w-full flex-col items-start justify-start gap-[24px] text-sm">
-            <div className='flex flex-col gap-4 lg:flex-row lg:gap-1'>
-              <Input 
-                  title='Company Name' 
-                  placeholder='company name' 
-                  // options={companyList}
-                  value = {formData?.companyName} 
-                  // allowCustomInput={true}
-                  error={{set:errors.companyNameError, message:'Please enter company name'}} 
-                  onBlur={(e)=>{handleCompanySearch(e.target.value)}} />
-
-              <Input 
-                  title='Company Email' 
-                  placeholder='company email' 
-                  value = {formData?.companyEmail} 
-                  // allowCustomInput={true}
-                  error={{set:errors.companyEmailError, message:'Please provide valid email'}} 
-                  onBlur={(e)=>{handleCompanyEmail(e.target.value)}} />
             </div>
-            <Select 
-                title='Business Category' 
-                placeholder='Select business category'
-                currentOption = {formData?.businessCategory} 
-                options={businessCategoriesList}
-                error={{set:errors.businessCategoryError, message:'Please select business category'}} 
-                onSelect={(option)=>{handleBusinessCategory(option)}} />
-            <Select 
-                title='Team Size' 
-                options={['1-10', '10-50', '50-100', '100-500', '>500']} 
-                placeholder='Select team size' 
-                currentOption = {formData?.teamSize}
-                error={{set:errors.teamSizeError, message:'Please select team size'}}
-                onSelect={(option)=>handlTeamSize(option)} />
-            <Search 
-              title='Company HQ Location' 
-              allowCustomInput={true} 
-              options={locationsList} 
-              placeholder='City'
-              currentOption = {formData?.companyHQ}
-              error={{set:errors.companyHQError, message:'Please enter company headquarter location'}}
-              onSelect={(option)=>{handleHqLocation(option)}} />
 
-            <Select title='Select Currency' 
-                drop='up'
-                titleCase={false}
-                onSelect={handleCurrencySelection}
-                currentOption = {`${formData?.defaultCurrency?.fullName}-${formData?.defaultCurrency?.shortName}`}
-                error={{set:errors.defaultCurrencyError, message:'Please select company\'s default currency'}} 
-                options={currenciesList.map(currency=>`${currency.fullName}-${currency.shortName}`).sort()} />
-        
-          </div>
+            <div className='mb-10 w-full flex gap-8 items-center flex-wrap'>
+              {/* <Button variant='fit' text='Save as Draft' onClick={()=>{handleSaveAsDraft();}} /> */}
+              <Button variant='fit' text='Save and Continue' onClick={()=>{handleSubmit();}} />
+            </div>
 
-          </div>
-
-          <div className='mb-10 w-full flex gap-8 items-center flex-wrap'>
-            <Button variant='fit' text='Save as Draft' onClick={()=>{handleSaveAsDraft();}} />
-            <Button variant='fit' text='Save and Continue' onClick={()=>{handleSubmit();}} />
-          </div>
-
-      </div>
+        </div>
     </div>
   </div>} 
   </>

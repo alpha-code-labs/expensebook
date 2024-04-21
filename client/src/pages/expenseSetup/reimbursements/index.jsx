@@ -7,7 +7,7 @@ import ReimbursementAllocationsPage from "./ReimbursementAllocationsPage";
 
 const defaultCategories = expenseCategories
 
-export default function (props){
+export default function ({progress, setProgress}){
   
   const {state} = useLocation();
   const {tenantId} = useParams()
@@ -261,6 +261,6 @@ export default function (props){
         setRuleEngineState={setRuleEngineState}
         travelType='nonTravel' /> */}
 
-    <ReimbursementAllocationsPage tenantId = {tenantId} />
+    <ReimbursementAllocationsPage tenantId = {tenantId} progress={progress} setProgress={setProgress} />
   </>;
 }

@@ -26,6 +26,7 @@ import { camelCaseToTitleCase } from '../../../utils/handyFunctions'
 import Prompt from '../../../components/common/Prompt'
 import Error from '../../../components/common/Error'
 import { expenseCategories } from '../../../data/expenseCategories'
+import MainSectionLayout from '../../MainSectionLayout'
 
 const travel_allocations = {
     international:{
@@ -54,7 +55,7 @@ const defaultCategories = [
     {local: expenseCategories}
 ]
 
-const fixedFields = ['Total Amount', 'Class', 'Tax Amount', 'Tip Amount', 'Premium Amount', 'Cost', 'License Cost', 'Subscription Cost']
+const fixedFields = ['Total Amount', 'Date', 'Class', 'Tax Amount', 'Tip Amount', 'Premium Amount', 'Cost', 'Total Cost', 'License Cost', 'Subscription Cost', 'Total Fare', 'Premium Cost']
 
 export default function (props) {
 
@@ -74,7 +75,7 @@ export default function (props) {
     } 
 
     const [expenseCategoryName, setExpenseCategoryName] = useState(null)
-    const [expenseCategoryFields, setExpenseCategoryFieds] = useState([])
+    const [expenseCategoryFields, setExpenseCategoryFields] = useState([])
     const [existingCategory, setExistingCategory] = useState(false)
     const [travelType, setTravelType] = useState(null)
     const [existingCategoryName, setExistingCategoryName] = useState(null)
@@ -152,7 +153,7 @@ export default function (props) {
     },[])
 
     const addCategoryField = ()=>{
-        setExpenseCategoryFieds(prev=>[...prev, {name:'', type:''}])
+        setExpenseCategoryFields(prev=>[...prev, {name:'', type:''}])
     }
 
     const handleCategoryNameChange = (e)=>{
@@ -175,7 +176,7 @@ export default function (props) {
         categories_copy[index][travelType] = [...categories_copy[index][travelType], {categoryName: expenseCategoryName, fields: expenseCategoryFields} ]
         setCategories(categories_copy)
  
-        setExpenseCategoryFieds([])
+        setExpenseCategoryFields([])
         setExistingCategoryName(null)
         setExistingCategory(false)
         setExistingCategoryName(null)
@@ -186,26 +187,26 @@ export default function (props) {
         const expenseCategoryFields_copy = JSON.parse(JSON.stringify(expenseCategoryFields))
         expenseCategoryFields_copy.splice(index,1)
         console.log(expenseCategoryFields_copy)
-        setExpenseCategoryFieds(expenseCategoryFields_copy)
+        setExpenseCategoryFields(expenseCategoryFields_copy)
     }
 
     const handleCategoryFieldNameChange = (e, index)=>{
         let expenseCategoryFields_copy = JSON.parse(JSON.stringify(expenseCategoryFields))
         expenseCategoryFields_copy[index].name = e.target.value
-        setExpenseCategoryFieds(expenseCategoryFields_copy)
+        setExpenseCategoryFields(expenseCategoryFields_copy)
     }
 
     const handleCategoryFieldTypeChange = (e, index)=>{
         let expenseCategoryFields_copy = JSON.parse(JSON.stringify(expenseCategoryFields))
         expenseCategoryFields_copy[index].type = e.target.value
-        setExpenseCategoryFieds(expenseCategoryFields_copy)
+        setExpenseCategoryFields(expenseCategoryFields_copy)
     }
 
     const handleEditFields = ({category, fields, travelType})=>{
         setExistingCategory(true)
         setExistingCategoryName(category)
         setExpenseCategoryName(category)
-        setExpenseCategoryFieds(fields)
+        setExpenseCategoryFields(fields)
         setTravelType(travelType)
         setPresentFieldLength(fields.length)
         console.log('present field length', fields.length)
@@ -237,14 +238,16 @@ export default function (props) {
         const categoryIndex = categories[index][travelType].findIndex(item=>item.categoryName == existingCategoryName)
         
         if(categoryIndex > -1){
-            //console.log(categories_copy[categoryIndex], 'category....' )
+            console.log(categories_copy[categoryIndex], 'category....' )
             categories_copy[index][travelType][categoryIndex].categoryName = expenseCategoryName 
             categories_copy[index][travelType][categoryIndex].fields =  expenseCategoryFields
+
+            console.log(categories_copy)
             setCategories(categories_copy)  
         }
 
         setShowAddExpenseCategoriesModal(false)
-        setExpenseCategoryFieds([])
+        setExpenseCategoryFields([])
         setExistingCategory(false)
         setExistingCategoryName(null)
     }
@@ -311,67 +314,68 @@ export default function (props) {
     },[updatedOrgHeaders])
 
     return(<>
+
+    <MainSectionLayout>
         {networkStates.isLoading && <Error message={networkStates.loadingErrMsg}/>}
 
         {!networkStates.isLoading && <>
-        <Icon/>
         {
-        <div className="bg-slate-50 min-h-[calc(100vh-107px)] px-[20px] md:px-[50px] lg:px-[104px] pb-10 w-full tracking-tight">
-            <div className='px-6 py-10 bg-white'>               
-               {/* back button and title */}
+        
+        <div className='px-6 py-10 bg-white'>               
+            {/* back button and title */}
 
-                <div className='flex gap-4'>
-                    <div className='w-6 h-6 cursor-pointer' onClick={()=>navigate(-1)}>
-                        <img src={back_icon} />
-                    </div>
-
-                    <div className='flex gap-2'>
-                        <p className='text-neutral-700 text-base font-medium font-cabin tracking-tight'>
-                            Setup Expense Book
-                        </p>
-                    </div>
+            <div className='flex gap-4'>
+                <div className='w-6 h-6 cursor-pointer' onClick={()=>navigate(-1)}>
+                    <img src={back_icon} />
                 </div>
 
-                {/* rest of the section */}
-                <div className='mt-10 flex flex-col gap-4'>  
-                  
-                {Object.keys(allocations).map(travelType=>{
-                    console.log(travelType)
-                   return (
-                   <Policy 
-                    travelType={travelType}
-                    categories={categories}
-                    setCategories={setCategories}
-                    handleEditFields={handleEditFields}  
-                    saveChanges={saveChanges} 
-                    categoryName={travelType} 
-                    allocations={allocations}
-                    setAllocations={setAllocations}
-                    orgHeaders={orgHeaders} 
-                    setShowAddHeaderModal={setShowAddHeaderModal} />)
-                })}
-{/* 
-                <CategoryWrapper 
-                    categories={categories}  
-                    handleEditFields={handleEditFields}
-                    saveChanges={saveCategories} 
-                    setNetworkStates={setNetworkStates}
-                    networkStates={networkStates}  /> */}
-                     
-                    {/* <div className='mt-6'>
-                        <HollowButton title='Add Expense Categories' onClick={()=>{setExistingCategory(false); setShowAddExpenseCategoriesModal(true)}} />
-                    </div>
-                     */}
-
-                    <div className='flex justify-between mt-10'>
-                        <Button text='Save As Draft' onClick={handleSaveAsDraft} />
-                        {/* <Button text='Continue' onClick={handleContinue} /> */}
-                    </div>
-
-
+                <div className='flex gap-2'>
+                    <p className='text-neutral-700 text-base font-medium font-cabin tracking-tight'>
+                        Setup Expense Book
+                    </p>
                 </div>
             </div>
-        </div>}
+
+            {/* rest of the section */}
+            <div className='mt-10 flex flex-col gap-4'>  
+                
+            {Object.keys(allocations).map(travelType=>{
+                console.log(travelType)
+                return (
+                <Policy 
+                travelType={travelType}
+                categories={categories}
+                setCategories={setCategories}
+                handleEditFields={handleEditFields}  
+                saveChanges={saveChanges} 
+                categoryName={travelType} 
+                allocations={allocations}
+                setAllocations={setAllocations}
+                orgHeaders={orgHeaders} 
+                setShowAddHeaderModal={setShowAddHeaderModal} />)
+            })}
+{/* 
+            <CategoryWrapper 
+                categories={categories}  
+                handleEditFields={handleEditFields}
+                saveChanges={saveCategories} 
+                setNetworkStates={setNetworkStates}
+                networkStates={networkStates}  /> */}
+                    
+                {/* <div className='mt-6'>
+                    <HollowButton title='Add Expense Categories' onClick={()=>{setExistingCategory(false); setShowAddExpenseCategoriesModal(true)}} />
+                </div>
+                    */}
+
+                <div className='flex justify-between mt-10'>
+                    <Button text='Save As Draft' onClick={handleSaveAsDraft} />
+                    {/* <Button text='Continue' onClick={handleContinue} /> */}
+                </div>
+
+
+            </div>
+        </div>
+        }
         
         {showAddHeaderModal && 
             <UploadAdditionalHeaders 
@@ -435,7 +439,7 @@ export default function (props) {
                         <img className='cursor-pointer' src={cross_icon} 
                             onClick={()=>{
                                 setExpenseCategoryName(null) 
-                                setExpenseCategoryFieds([])
+                                setExpenseCategoryFields([])
                                 setShowAddExpenseCategoriesModal(false)
                             }} />
                     </div>
@@ -446,6 +450,7 @@ export default function (props) {
         <Prompt prompt={prompt} setPrompt={setPrompt} />
         
         </>}
+    </MainSectionLayout>
     </>);
 }
 
@@ -585,7 +590,7 @@ function Policy({
                                     </div>
 
                                     <div className='flex flex-row divide-x gap-4'>
-                                        <p className='text-indigo-600 font-cabin text-sm cursor-pointer' onClick={()=>handleEditFields({category: category.categoryName, fields:category.fields})}> Edit Fields</p>
+                                        <p className='text-indigo-600 font-cabin text-sm cursor-pointer' onClick={()=>handleEditFields({category: category.categoryName, fields:category.fields, travelType})}> Edit Fields</p>
                                         <p className='text-indigo-600 font-cabin text-sm cursor-pointer' onClick={()=>handleRemoveCategory(category, travelType)}> Remove This Category</p>
                                     </div>
                                     

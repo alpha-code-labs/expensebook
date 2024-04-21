@@ -16,7 +16,7 @@ import Error from "../components/common/Error";
 
 const ONBOARDING_API = import.meta.env.VITE_PROXY_URL
 
-export default function (props){
+export default function ({progress, setProgress}){
   
   const {state} = useLocation();
   const {tenantId} = useParams()
@@ -317,6 +317,8 @@ export default function (props){
       <Routes>
         <Route path='/' 
               element={<Home 
+                progress={progress}
+                setProgress={setProgress}
                 currencySymbol={currencySymbol}
                 ruleEngineData={ruleEngineData}
                 ruleEngineState={ruleEngineState} 
@@ -324,6 +326,8 @@ export default function (props){
 
         <Route path='/international'  
                 element={<InternationalPolicies 
+                  progress={progress}
+                  setProgress={setProgress}
                   currencySymbol={currencySymbol}
                   ruleEngineData={ruleEngineData}
                   ruleEngineState={ruleEngineState} 
@@ -331,6 +335,8 @@ export default function (props){
 
         <Route path='/domestic' 
                 element={<DomesticPolicies 
+                  progress={progress}
+                  setProgress={setProgress}
                   currencySymbol={currencySymbol}
                   ruleEngineData={ruleEngineData}
                   ruleEngineState={ruleEngineState} 
@@ -338,6 +344,8 @@ export default function (props){
         
         <Route path='/local' 
                 element={<LocalPolicies 
+                  progress={progress}
+                  setProgress={setProgress}
                   currencySymbol={currencySymbol}
                   ruleEngineData={ruleEngineData}
                   ruleEngineState={ruleEngineState} 
@@ -345,6 +353,8 @@ export default function (props){
 
         <Route path='/reimbursement' 
                 element={<ReimbursementPolicies 
+                  progress={progress}
+                  setProgress={setProgress}
                   currencySymbol={currencySymbol}
                   tenantId={tenantId}
                   travelType={'nonTravel'}

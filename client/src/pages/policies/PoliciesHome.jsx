@@ -11,8 +11,9 @@ import Checkbox from "../../components/common/Checkbox"
 import Modal from "../../components/common/Modal"
 import { useState, useEffect } from "react"
 import { updateFormState_API } from "../../utils/api"
+import MainSectionLayout from "../MainSectionLayout"
 
-export default function (props){
+export default function ({progress, setProgress}){
     const navigate = useNavigate()
     const {tenantId} = useParams()
     const [showSkipModal, setShowSkipModal] = useState(false)
@@ -42,14 +43,14 @@ export default function (props){
 
         }
 
+
+        setProgress(pre=>({...pre, activeSection: 'section 6', maxReach:'section 6'}))
         navigate(`/${tenantId}/others`)
     }
 
     return(<>
-        
-        <Icon/>
-        <div className="bg-slate-50 min-h-[calc(100vh-107px)] px-[20px] md:px-[50px] lg:px-[104px] pb-10 w-full tracking-tight">
-            <div className='px-6 py-10 bg-white rounded shadow'>
+        <MainSectionLayout>
+            <div className='px-6 py-10 bg-white'>
                 <div className="flex justify-between">
                     <div className="gap-2">
                         <p className="text-neutral-700 text-xl font-semibold tracking-tight">
@@ -90,27 +91,27 @@ export default function (props){
                 </div>
 
                 <div className="mt-10 flex w-full justify-between">
-                    <Button variant='fit' text='Save As Draft' onClick={handleSaveAsDraft} />
+                    {/* <Button variant='fit' text='Save As Draft' onClick={handleSaveAsDraft} /> */}
                     <Button variant='fit' text='Continue' onClick={handleContinue} />
                 </div>
             </div>
-        </div>
-
-        <Modal skippable={false} showModal={showSkipModal} setShowModa={setShowSkipModal}>
-            <div className="p-10">
-                <p className="text-neutral-700 text">
-                    We recommend you go through setting up company policies, with policy setup you can track limit violations. 
-                </p>
-                <div className=' mt-10 flex flex-wrap justify-between'>
-                    <div className='w-fit'>
-                        <Button text='Ok' onClick={()=>setShowSkipModal(false)} />
-                    </div>
-                    <div className='w-fit'>
-                        <HollowButton title='Skip For Now' showIcon={false} onClick={()=>navigate(`/${tenantId}/others`)} />
+        
+            <Modal skippable={false} showModal={showSkipModal} setShowModa={setShowSkipModal}>
+                <div className="p-10">
+                    <p className="text-neutral-700 text">
+                        We recommend you go through setting up company policies, with policy setup you can track limit violations. 
+                    </p>
+                    <div className=' mt-10 flex flex-wrap justify-between'>
+                        <div className='w-fit'>
+                            <Button text='Ok' onClick={()=>setShowSkipModal(false)} />
+                        </div>
+                        <div className='w-fit'>
+                            <HollowButton title='Skip For Now' showIcon={false} onClick={()=>navigate(`/${tenantId}/others`)} />
+                        </div>
                     </div>
                 </div>
-            </div>
-        </Modal>
+            </Modal>
+        </MainSectionLayout>
     </>)
 }
 

@@ -13,6 +13,7 @@ import { useState, useEffect } from "react"
 import back_icon from "../../../assets/arrow-left.svg"
 import { getTenantTravelAllocations_API } from "../../../utils/api"
 import Error from "../../../components/common/Error"
+import MainSectionLayout from "../../MainSectionLayout"
 
 export default function (props){
     const location = useLocation()
@@ -58,14 +59,12 @@ export default function (props){
     }
 
     return(<>
+    <MainSectionLayout>
         {isLoading && <Error message={loadingErrMsg} />}
-        {!isLoading && <>
-        <Icon/>
-        <div className="bg-slate-50 min-h-[calc(100vh-107px)] px-[20px] md:px-[50px] lg:px-[104px] pb-10 w-full tracking-tight">
-            
-            <div className='px-6 py-10 bg-white rounded shadow'>
-                 {/* back button and title */}
-                 <div className='flex gap-4'>
+        {!isLoading && <>    
+            <div className='px-6 py-10 bg-white'>
+                    {/* back button and title */}
+                    <div className='flex gap-4'>
                     <div className='w-6 h-6 cursor-pointer' onClick={()=>navigate(-1)}>
                         <img src={back_icon} />
                     </div>
@@ -100,24 +99,24 @@ export default function (props){
                 </div> */}
 
             </div>
-        </div>
-
-        <Modal skippable={false} showModal={showSkipModal} setShowModa={setShowSkipModal}>
-            <div className="p-10">
-                <p className="text-neutral-700 text">
-                    If you skip this section you won't be able to track your expenses.
-                </p>
-                <div className=' mt-10 flex flex-wrap justify-between'>
-                    <div className='w-fit'>
-                        <Button text='Ok' onClick={()=>setShowSkipModal(false)} />
-                    </div>
-                    <div className='w-fit'>
-                        <HollowButton title='Skip For Now' showIcon={false} onClick={()=>navigate(`/${tenantId}/others`)} />
+            
+            <Modal skippable={false} showModal={showSkipModal} setShowModa={setShowSkipModal}>
+                <div className="p-10">
+                    <p className="text-neutral-700 text">
+                        If you skip this section you won't be able to track your expenses.
+                    </p>
+                    <div className=' mt-10 flex flex-wrap justify-between'>
+                        <div className='w-fit'>
+                            <Button text='Ok' onClick={()=>setShowSkipModal(false)} />
+                        </div>
+                        <div className='w-fit'>
+                            <HollowButton title='Skip For Now' showIcon={false} onClick={()=>navigate(`/${tenantId}/others`)} />
+                        </div>
                     </div>
                 </div>
-            </div>
-        </Modal>
+            </Modal>
         </>}
+    </MainSectionLayout>
     </>)
 }
 

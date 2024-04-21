@@ -20,19 +20,20 @@ import Modal from '../../components/common/Modal'
 import { EmitFlags } from 'typescript'
 import Select from '../../components/common/Select'
 import remove_icon from '../../assets/XCircle.svg'
-import { updateFormState_API, updateNonTravelAllocation_API } from '../../utils/api'
+import { updateFormState_API, updateNonTravelAllocation_API, updateNonTravelPolicies_API } from '../../utils/api'
 import Switch from '../../components/common/Switch'
 import Prompt from '../../components/common/Prompt'
+import MainSectionLayout from '../MainSectionLayout'
+import travel from '../expenseSetup/travel'
+import { postProgress_API } from '../../utils/api'
 
-export default function (props) {
-    const [ruleEngineState, setRuleEngineState] = [props.ruleEngineState, props.setRuleEngineState]
-    const currencySymbol = props.currencySymbol??''
-    const tenantId = props.tenantId
-    const travelType = props.travelType
+export default function ({tenantId, travelType, ruleEngineState, setRuleEngineState, currencySymbol, progress, setProgress}) {
     const icon = switchIcon(travelType)
 
     const [prompt, setPrompt] = useState({showPrompt:false, promptMsg:null, success:false})
     const [networkStates, setNetworkStates] = useState({isLoading:false, isUploading:false, loadingErrMsg:null})
+    const [activeTabIndex, setActiveTabIndex] = useState(-1)
+    const [expandedTab, setExpandedTab] = useState(-1);
 
     const [showAddExpenseCategoriesModal, setShowAddExpenseCategoriesModal] = useState(false)
 
@@ -60,7 +61,7 @@ export default function (props) {
                 case 'local':
                     return 'Local Travel Policies'
                 case 'nonTravel':
-                    return 'Non Travel Policies'
+                    return 'Reimbursement Policies'
             }
     }
     
@@ -85,25 +86,61 @@ export default function (props) {
         //     result[key] = value;
         //     return result;
         //   }, {})
+
+        let currentSubSection = 'Reimbrusement Policies'
+
         setNetworkStates(pre=>({...pre, isUploading:true}))
-        const res = await updateNonTravelAllocation_API({tenantId, policies:ruleEngineState})
+        const res = await updateNonTravelPolicies_API({tenantId, policies:ruleEngineState})
+        setNetworkStates(pre=>({...pre, isUploading:false}))
         
-        if(res.err){
+        const progress_copy = JSON.parse(JSON.stringify(progress));
+
+        progress_copy.sections['section 5'].subsections.forEach(subsection=>{
+            if(subsection.name == currentSubSection) subsection.completed = true;
+        });
+
+        progress_copy.sections['section 5'].subsections.forEach(subsection=>{
+            if(subsection.name == currentSubSection) subsection.completed = true;
+        });
+
+        const markCompleted = !progress_copy.sections['section 5'].subsections.some(subsection=>!subsection.completed)
+
+        let totalCoveredSubsections = 0;
+        progress_copy.sections['section 5'].subsections.forEach(subsection=>{
+            if(subsection.completed) totalCoveredSubsections++;
+        })
+
+        progress_copy.sections['section 5'].coveredSubsections = totalCoveredSubsections; 
+
+        if(markCompleted){
+            progress_copy.sections['section 5'].state = 'done';
+            progress_copy.maxReach = 'section 5';
+        }else{
+            progress_copy.sections['section 5'].state = 'attempted';
+        }
+
+        const progress_res = await postProgress_API({tenantId, progress: progress_copy})
+
+
+
+        if(res.err || progress_res.err){
             setPrompt({showPrompt:true, promptMsg:'Can not update policies at the moment. Please try again later'})
         }
         else{
             setPrompt({showPrompt:true, promptMsg:'Policies Updated!'})
             console.log(res.data)
             updateFormState_API({tenantId, state:'/setup-company-policies'})
+            setProgress(progress_copy)
+            navigate(`/${tenantId}/setup-company-policies`);
         }
 
     }
 
-    return(<>
-        <Icon />
+    return(
+        <MainSectionLayout>
         {
-        <div className="bg-slate-50 min-h-[calc(100vh-107px)] px-[20px] md:px-[50px] lg:px-[104px] pb-10 w-full tracking-tight">
-            <div className='px-6 py-10 bg-white rounded shadow'>               
+        
+            <div className='px-6 py-10 bg-white'>               
                {/* back button and title */}
                 <div className='flex gap-4'>
                     <div className='w-6 h-6 cursor-pointer' onClick={()=>navigate(-1)}>
@@ -127,24 +164,41 @@ export default function (props) {
                     {policies.map((policy,index)=>{
 
                             if(ruleEngineState[0][Object.keys(ruleEngineState[0])[0]][policy]){
-                                return (<Policy currencySymbol={currencySymbol} key={index} savePolicies={savePolicies} title={policy} tripType={travelType} ruleEngineState={ruleEngineState} setRuleEngineState={setRuleEngineState} />)
+                                return (
+                                <Policy
+                                    networkStates={networkStates}
+                                    currencySymbol={currencySymbol} 
+                                    key={index} 
+                                    savePolicies={savePolicies} 
+                                    title={policy} 
+                                    tripType={travelType} 
+                                    ruleEngineState={ruleEngineState} 
+                                    setRuleEngineState={setRuleEngineState}
+                                    tabIndex={index}
+                                    activeTabIndex={activeTabIndex}
+                                    setActiveTabIndex={setActiveTabIndex}
+                                    expandedTab={expandedTab}
+                                    setExpandedTab={setExpandedTab} />)
                             }
                         }
                     )}
-                        { travelType==='nonTravel' && 
+                        {/* { travelType==='nonTravel' && 
                             <div className='mt-6'>
                                 <HollowButton title='Add Expense Categories' onClick={()=>{setExistingCategory(false); setShowAddExpenseCategoriesModal(true)}} />
                             </div>
-                        }  
+                        }   */}
+                    <div>
+                        <Button variant='fit' text='Save and Continue' onClick={savePolicies} />
+                    </div>
                 </div>
 
 
-                <Prompt prompt={prompt} setPrompt={setPrompt} />
+                <Prompt prompt={prompt} setPrompt={setPrompt} timeout={300} bgClear={true} toastLike = {true} />
 
             </div>
-        </div>}
-        
-        </>
+        }
+        </MainSectionLayout>
+    
     );
   }
 
@@ -381,6 +435,12 @@ function Policy(props){
     const ruleEngineState = props.ruleEngineState
     const setRuleEngineState = props.setRuleEngineState
     const savePolicies = props.savePolicies
+    const networkStates = props.networkStates
+    const activeTabIndex = props.activeTabIndex
+    const setActiveTabIndex = props.setActiveTabIndex
+    const tabIndex = props.tabIndex
+    const expandedTab = props.expandedTab
+    const setExpandedTab = props.setExpandedTab
 
     const [fieldsPresent, setFieldsPresent] = useState(false)
     const currencySymbol = props.currencySymbol
@@ -412,6 +472,24 @@ function Policy(props){
     let values = []
     let fields = []
 
+    const handleExpandedTab = ()=>{
+        if(collapse){
+            setExpandedTab(tabIndex)
+        }
+        else{
+            setExpandedTab(-1)
+        }
+    }
+
+    useEffect(()=>{
+        if(expandedTab != tabIndex){
+            setCollapse(true)
+        }else{
+            setCollapse(false)
+        }
+    }, [expandedTab])
+
+
     if(types.includes('class')){
         values = Object.keys(ruleEngineState[0][Object.keys(ruleEngineState[0])][title]['class'])
     }
@@ -420,7 +498,7 @@ function Policy(props){
 
     return (
         <div className={`w-full p-6 transition-max-height duration-1000 ${collapse? 'max-h-[75px]' : 'max-h-[100000px]'} bg-white rounded-xl border border-neutral-200`}>
-            <div onClick={()=>setCollapse(pre=>!pre)} className="w-full relative bg-white cursor-pointer">
+            <div onClick={handleExpandedTab} className="w-full relative bg-white cursor-pointer">
                 <div className="flex justify-between items-center">
                     
                     <div className="justify-start items-center gap-8 inline-flex">
@@ -474,7 +552,10 @@ function Policy(props){
                 </div> }
         
             <div className='mt-4 float-right'>
-                <HollowButton title='Save Policies' onClick={()=>savePolicies()} />
+                {/* <HollowButton 
+                    isLoading={networkStates.isUploading && activeTabIndex == tabIndex} 
+                    title='Save Policies' 
+                    onClick={()=>{setActiveTabIndex(tabIndex); savePolicies()}} /> */}
             </div>
 
             </div>

@@ -10,13 +10,17 @@ import Modal from '../components/common/Modal';
 import { set } from 'mongoose';
 import UploadFile from '../components/common/UploadFile';
 import { useNavigate, useParams } from 'react-router-dom';
-import { postTenantHRData_API, updateFormState_API } from '../utils/api';
-import { transform } from 'typescript';
+import { postProgress_API, postTenantHRData_API, updateFormState_API } from '../utils/api';
+import { motion } from 'framer-motion';
+import check_icon from '../assets/check.svg'
+import LeftProgressBar from '../components/common/LeftProgressBar';
+import MainSectionLayout from './MainSectionLayout';
 
 const WEB_PAGE_URL = import.meta.env.WEB_PAGE_URL
 const LOGIN_PAGE_URL = import.meta.env.LOGIN_PAGE_URL
 
-export default function (){
+export default function ({progress, setProgress}){
+
   const {tenantId} = useParams()
   const [formData, setFormData] = useState({companyName:'', businessCategory:'', teamSize:'', companyHQ:'',  filename:''},)
 
@@ -119,9 +123,23 @@ export default function (){
       setSelectedFile(null)
       return
     }
+
+    //upload successful
     console.log(res.data)
-    //navigate to next section 
-    navigate(`/${tenantId}/setup-expensebook/`)
+    const progress_copy = JSON.parse(JSON.stringify(progress));
+
+    progress_copy.sections['section 2'].state = 'done';
+    progress_copy.sections['section 2'].coveredSubSections = 1;
+    progress_copy.activeSection = 'section 3';
+    progress_copy.maxReach = 'section 3';
+  
+    const progress_res = await postProgress_API({tenantId, progress:progress_copy})
+
+    if(!progress_res.err){
+      setProgress(progress_copy);
+      //navigate to next section 
+      navigate(`/${tenantId}/setup-expensebook/`)
+    }
   }
 
   const handleSaveAsDraft = async ()=>{
@@ -155,11 +173,26 @@ export default function (){
 
   return (
     <>
-        <Icon/>
-        <div className="bg-slate-50 min-h-[calc(100vh-107px)] px-[20px] md:px-[50px] lg:px-[104px] pb-10 w-full tracking-tight">    
-            <div className='px-6 py-10  bg-white rounded shadow w-full'>
+        <MainSectionLayout>    
+            <div className='px-6 py-10  bg-white  w-[calc(100%)]'>
                 {!readyToProceed && <div>
-                    <p className='text-lg'>Please upload your company HR data. Download the attached file and upload</p>
+                    <p className='text-lg text-neutral-800'>Upload HR data.</p>
+                    <p className='mt-1 text-normal text-neutral-600'>Below is a sample filled excel file. You can take a look to know what kind of information we are requesting from you. If you want to know further why we are asking to provide you a certain field please click here to see the full list.</p>
+                    <TemplateGridView/>
+                    <DownloadTemplate columns = {templateColumns} data={templateData}/>
+
+                    <p className='mt-10 font-cabin text-lg text-neutral-800'>
+                      Instructions for filling the excel file:
+                    </p>
+                    
+                    <ul className='mt-2 list-disc font-cabin text-md text-neutral-600'>
+                      <li className='ml-6'>Fields marked with * are mandatory to fill.</li>
+                      <li className='ml-6'>In the L1 Manager, L2 Manager & L3 Manager columns put the employee Id for the manager.</li>
+                      <li className='ml-6'>If your organization does not have some headers eg. Cost Center etc. then you can leave them blank, please do not delete the columns</li>
+                    </ul>
+
+                    
+                    
                     <div className='flex justify-between mt-16'>
                         <Button variant='fit' text='Yes, I want to proceed' onClick={()=>setReadyToProceed(true)} />
                         <Button 
@@ -176,7 +209,7 @@ export default function (){
                         <div className="font-medium font-cabin text-sm text-neutral-700">HR Details</div>
                         <div className="flex flex-row items-start justify-start gap-[16px] text-dimgray">
                             <div className="tracking-tight text-zinc-400 font-cabin">
-                            Upload your company HR details in CSV format
+                            Upload your company HR details in CSV or Excel format
                             </div>
                             {<DownloadTemplate columns = {templateColumns} data = {templateData} />}
                         </div>
@@ -207,12 +240,12 @@ export default function (){
                 </div>
                 
                 <div className='px-6 mt-20 w-full flex justify-between items-center flex-wrap'>
-                    <Button variant='fit' disabled={!processed} text='Save as Draft' onClick={()=>{handleSaveAsDraft();}} />
+                    {/* <Button variant='fit' disabled={!processed} text='Save as Draft' onClick={()=>{handleSaveAsDraft();}} /> */}
                     <Button variant='fit' disabled={!processed} text='Save and Continue' onClick={()=>{handleSubmit();}} />
                 </div>
                 </>}
             </div>
-        </div>
+        </MainSectionLayout>
     
       <Modal showModal={showPrompt} setShowModal={setShowPrompt} skipable={true} >
             <div className='p-10'>
@@ -241,6 +274,7 @@ export default function (){
       </Modal>
   </> 
   );
+
 };
 
 function camelCaseToTitleCase(inputString) {
@@ -261,4 +295,53 @@ function titleCaseToCamelCase(inputString) {
   const camelCaseString = words[0].toLowerCase() + words.slice(1).map(word => word.charAt(0).toUpperCase() + word.slice(1)).join('');
 
   return camelCaseString;
+}
+
+function TemplateGridView(){
+
+  const colsNames = ['Employee Name', 'Employee Id', 'Designation', 'Grade', 'Department', 'Business Unit', 'Legal Entity', 'Cost Center', 'Profit Center', 'Respo. Center', 'Division']
+  const cols = [
+    {name: 'Employee Name', mandatory:true, data:['Sumesh Nair', 'Kanhaiya Verma', 'Jasraj Singh', 'Rahul Rawal']},
+    {name: 'Employee Id', mandatory:true, data:['1001', '1004', '1003', '1002']},
+    {name: 'Email Id', mandatory:true, data:['sumesh.nai@alphacodelabs.com', 'k.verma@alphacodelabs.com', 'j.sing@alphacodelabs.com', 'rahul.rawal@alphacodelabs.com']},
+    {name: 'Designation', mandatory:false,  data:['Project Manager', 'Design Lead', 'Intern', 'Full Stack Engineer']},
+    {name: 'Grade', mandatory:false, data:['', '', '', '']},
+    {name: 'Department', mandatory:false, data:['Software Development', 'Software Development', 'Software Development', 'Software Development']},
+    {name: 'Business Unit', mandatory:false, data:['ACL', 'ACL', 'ACL', 'ACL']},
+    {name: 'Legal Entity', mandatory:false, data:['Studio Innovate.', 'Studio Innovate', 'Studio Innovate', 'Studio Innovate']},
+    {name: 'Cost Center', mandatory:false, data:['', '', '', '']},
+    {name: 'Profit Center', mandatory:false, data:['', '', '', '']},
+    {name: 'Responsibility Center', mandatory:false, data:['', '', '', '']},
+    {name: 'Division', mandatory:false, data:['', '', '', '']},
+    {name: 'Project', mandatory:false, data:['', '', '', '']},
+    {name: 'Geographical Location', mandatory:false, data:['', '', '', '']},
+    {name: 'Grade', mandatory:false, data:['', '', '', '']},
+    {name: 'L1 Manager', mandatory:false, data:['', '', '', '']},
+    {name: 'L2 Manager', mandatory:false, data:['', '', '', '']},
+    {name: 'L3 Manager', mandatory:false, data:['', '', '', '']},
+    {name: 'Joining Date', mandatory:false, data:['', '', '', '']},
+    {name: 'Mobile Number', mandatory:false, data:['', '', '', '']},
+    {name: 'Phone Number', mandatory:false, data:['', '', '', '']},
+  ]
+
+  return(<>
+    <div className='mt-10 rounded-t'>
+        <div className='flex font-cabin text-xs divide-x overflow-x-scroll no-scroll border-l border-r rounded-t'>
+          {cols.map(col=>(
+            <div className='flex flex-col gap-2 rounded-t'>
+              <div className='font-mono px-2 bg-indigo-400 whitespace-nowrap h-[30px] flex items-center text-gray-50 border-b border-neutral-200'>
+                {col.name}
+                  {col.mandatory && <span className='text-red-900 text-lg'>*</span>}                
+                </div>
+              
+              {col.data.map(cell=>(<div className='whitespace-nowrap bg-indigo-100 font-mono h-[22px] px-2 flex items-center text-neutral-700 border-b border-neutral-200'>
+                {cell}
+              </div>))}
+            </div>
+          ))}
+        </div>
+
+
+    </div>
+  </>)
 }

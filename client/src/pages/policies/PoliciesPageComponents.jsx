@@ -18,17 +18,20 @@ import MultiSelect from '../../components/common/MultiSelect'
 import { updateFormState_API, updateTravelPolicies_API } from '../../utils/api'
 import Switch from '../../components/common/Switch'
 import Prompt from '../../components/common/Prompt'
+import { motion } from 'framer-motion'
+import MainSectionLayout from '../MainSectionLayout'
+import { postProgress_API } from '../../utils/api'
 
-export default function (props) {
-    const [ruleEngineState, setRuleEngineState] = [props.ruleEngineState, props.setRuleEngineState]
-    const tenantId = props.tenantId
-    const travelType = props.travelType
+const redirectionTimeout = import.meta.env.VITE_REDIRECT_TIMEOUT??3000
+const promptTimeout = import.meta.env.VITE_PROMPT_TIMEOUT??2700
+
+export default function ({tenantId, travelType, ruleEngineState, setRuleEngineState, currencySymbol, progress, setProgress}) {
     const icon = switchIcon(travelType)
-    const currencySymbol = props.currencySymbol
     const [showAddExpenseCategoriesModal, setShowAddExpenseCategoriesModal] = useState(false)
-
     const [prompt, setPrompt] = useState({showPrompt:false, promptMsg:null, success:false})
     const [networkStates, setNetworkStates] = useState({isLoading:false, isUploading:false, loadingErrMsg:null})
+    const [activeTabIndex, setActiveTabIndex] = useState(-2)
+    const [expandedTab, setExpandedTab] = useState(-1);
 
     function switchIcon(travelType){
 
@@ -71,27 +74,58 @@ export default function (props) {
     },[ruleEngineState] )
 
     const savePolicies = async ()=>{
+        console.log('save policies clicked....')
         //save policies to backend
         setNetworkStates(pre=>({...pre, isUploading:true}))
-
         const res = await updateTravelPolicies_API({tenantId, policies:ruleEngineState})
 
-        if(res.err){
+        let currentSubSection ;
+
+        if(travelType == 'international') currentSubSection = 'International Policies';
+        if(travelType == 'domestic') currentSubSection = 'Domestic Policies';
+        if(travelType == 'local') currentSubSection = 'Local Policies';
+        
+        const progress_copy = JSON.parse(JSON.stringify(progress));
+
+        progress_copy.sections['section 5'].subsections.forEach(subsection=>{
+            if(subsection.name == currentSubSection) subsection.completed = true;
+        });
+
+        progress_copy.sections['section 5'].subsections.forEach(subsection=>{
+            if(subsection.name == currentSubSection) subsection.completed = true;
+        });
+
+        const markCompleted = !progress_copy.sections['section 5'].subsections.some(subsection=>!subsection.completed)
+
+        let totalCoveredSubsections = 0;
+        progress_copy.sections['section 5'].subsections.forEach(subsection=>{
+            if(subsection.completed) totalCoveredSubsections++;
+        })
+
+        progress_copy.sections['section 5'].coveredSubsections = totalCoveredSubsections; 
+
+        const progress_res = await postProgress_API({tenantId, progress: progress_copy})
+
+        setNetworkStates(pre=>({...pre, isUploading:false}))
+
+        if(res.err || progress_res.err){
             setPrompt({showPrompt:true, promptMsg:'Can not update policies at the moment. Please try again later'})
         }
         else{
-            setPrompt({showPrompt:true, promptMsg:'Policies Updated!'})
+            setPrompt({showPrompt:true, promptMsg:'Policies Updated!', })
             console.log(res.data)
             updateFormState_API({tenantId, state:'/setup-company-policies'})
+            setProgress(progress_copy);
+            
+            // navigate(``)
         }
     }
 
     return(<>
-        <Icon />
-        {
-        <div className="bg-slate-50 min-h-[calc(100vh-107px)] px-[20px] md:px-[50px] lg:px-[104px] pb-10 w-full tracking-tight">
-            <div className='px-6 py-10 bg-white rounded shadow'>               
-               {/* back button and title */}
+        <MainSectionLayout>
+        
+            <div className='px-6 py-10 bg-white'>               
+                {/* back button and title */}
                 <div className='flex gap-4'>
                     <div className='w-6 h-6 cursor-pointer' onClick={()=>navigate(-1)}>
                         <img src={back_icon} />
@@ -114,10 +148,30 @@ export default function (props) {
                     {policies.map((policy,index)=>{
 
                             if(ruleEngineState[0][Object.keys(ruleEngineState[0])[0]][travelType][policy]){
-                                return (<Policy currencySymbol={currencySymbol} key={index} savePolicies={savePolicies} title={policy} tripType={travelType} ruleEngineState={ruleEngineState} setRuleEngineState={setRuleEngineState} />)
+                                return (
+                                <Policy 
+                                    currencySymbol={currencySymbol} 
+                                    key={index} 
+                                    savePolicies={savePolicies} 
+                                    title={policy} 
+                                    tripType={travelType} 
+                                    ruleEngineState={ruleEngineState} 
+                                    setRuleEngineState={setRuleEngineState}
+                                    networkStates={networkStates}
+                                    activeTabIndex={activeTabIndex}
+                                    setActiveTabIndex={setActiveTabIndex}
+                                    expandedTab={expandedTab}
+                                    setExpandedTab={setExpandedTab}
+                                    tabIndex={index}
+                                        />)
                             }
                         }
                     )}
+
+                    <div>
+                        <Button variant='fit' text='Save and Continue' onClick={savePolicies} />
+                    </div>
+
                         { travelType==='nonTravel' && 
                             <div className='mt-6'>
                                 <HollowButton title='Add Expense Categories' onClick={()=>{setExistingCategory(false); setShowAddExpenseCategoriesModal(true)}} />
@@ -127,9 +181,9 @@ export default function (props) {
 
             </div>
 
-            <Prompt prompt={prompt} setPrompt={setPrompt} />
-        </div>}
-        
+            <Prompt prompt={prompt} setPrompt={setPrompt} timeout={300} bgClear={true} toastLike = {true} />
+    
+        </MainSectionLayout>
         </>
     );
   }
@@ -368,6 +422,12 @@ function Policy(props){
     const setRuleEngineState = props.setRuleEngineState
     const savePolicies = props.savePolicies
     const currencySymbol = props.currencySymbol
+    const networkStates = props.networkStates
+    const tabIndex = props.tabIndex
+    const activeTabIndex = props.activeTabIndex
+    const setActiveTabIndex = props.setActiveTabIndex
+    const expandedTab = props.expandedTab
+    const setExpandedTab = props.setExpandedTab
 
     const [fieldsPresent, setFieldsPresent] = useState(false)
     let types = Object.keys(ruleEngineState[0][Object.keys(ruleEngineState[0])[0]][tripType][title])
@@ -402,11 +462,34 @@ function Policy(props){
         values = Object.keys(ruleEngineState[0][Object.keys(ruleEngineState[0])][tripType][title]['class'])
     }
 
-    
+    const handleExpandedTab = ()=>{
+        if(collapse){
+            setExpandedTab(tabIndex)
+        }
+        else{
+            setExpandedTab(-1)
+        }
+    }
+
+
+    useEffect(()=>{
+        if(expandedTab != tabIndex){
+            setCollapse(true)
+        }else{
+            setCollapse(false)
+        }
+    }, [expandedTab])
 
     return (
-        <div className={`w-full p-6 transition-max-height duration-1000 ${collapse? 'max-h-[75px]' : 'max-h-[100000px]'} bg-white rounded-xl border border-neutral-200`}>
-            <div onClick={()=>setCollapse(pre=>!pre)} className="w-full relative bg-white cursor-pointer">
+        <motion.div 
+            animate={{
+                maxHeight: collapse? '75px' : '100000px'
+            }}
+            transition={{
+                ease : 'linear',
+            }}
+            className={`w-full p-6  ${collapse? 'max-h-[75px] z-[20]' : 'max-h-[100000px] z-[50]'} bg-white rounded-xl border border-neutral-200`}>
+            <div onClick={handleExpandedTab} className="w-full relative bg-white cursor-pointer">
                 <div className="flex justify-between items-center">
                     
                     <div className="justify-start items-center gap-8 inline-flex">
@@ -424,7 +507,14 @@ function Policy(props){
                 </div>
             </div>
 
-            <div className={`transition-max-height transition-all duration-1000 ${collapse? 'max-h-0 h-0 hidden': 'max-h-[10000px]'} `}>
+            <motion.div 
+                animate={{
+                    maxHeight: collapse? '0px' : '100000px'
+                }}
+                transition={{
+                    ease : 'linear',
+                }}
+                className={`${collapse? 'max-h-0 h-0 hidden': 'max-h-[10000px]'} `}>
             {!approvalSetup && types.includes('class') && types.includes('limit') &&
                 <div>
                     {/* by class, by budget*/}
@@ -460,10 +550,13 @@ function Policy(props){
                 </div> }
         
             <div className='mt-4 float-right'>
-                <HollowButton title='Save Policies' onClick={()=>savePolicies()} />
+                {/* <HollowButton 
+                    isLoading={networkStates.isUploading && activeTabIndex == tabIndex}
+                    title='Save Policies' 
+                    onClick={()=>{setActiveTabIndex(tabIndex); savePolicies()}} /> */}
             </div>
 
-            </div>
-        </div>)
+            </motion.div>
+        </motion.div>)
       
 }

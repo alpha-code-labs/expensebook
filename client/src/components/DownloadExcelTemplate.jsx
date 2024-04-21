@@ -38,12 +38,15 @@ export default function DownloadTemplate(props) {
 
   return (
     <a
-      className="curosr-pointer text-indigo-600 text-sm font-normal font-cabin underline"
+      className="cursor-pointer text-indigo-600 text-sm font-normal font-cabin underline"
       onClick={handleDownload}
     >
       {linkText}
     </a>
   );
 }
+
+
+
 
 

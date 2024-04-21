@@ -319,14 +319,14 @@ const reimbursementExpenseCategories = [
     modeOfTranfer:false,
   },
   {
-    categoryName: 'Client entertainment',
+    categoryName: 'Client Entertainment',
     fields: [
       { name: 'Total Amount', type: 'text' }
     ],
     modeOfTranfer:false,
   },
   {
-    categoryName: 'Client gift',
+    categoryName: 'Client Gift',
     fields: [
       { name: 'Total Amount', type: 'text' }
     ],

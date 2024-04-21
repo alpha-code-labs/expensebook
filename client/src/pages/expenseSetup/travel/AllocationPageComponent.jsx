@@ -23,6 +23,7 @@ import UploadAdditionalHeaders from '../../expenseAllocations/UploadAdditionalHe
 import { getTenantOrgHeaders_API, getTenantTravelAllocations_API, postTenantTravelAllocations_API, postTravelCategories_API, updateFormState_API, updateNonTravelAllocation_API, updateNonTravelPolicies_API } from '../../../utils/api'
 import Prompt from '../../../components/common/Prompt'
 import { expenseCategories } from '../../../data/expenseCategories'
+import MainSectionLayout from '../../MainSectionLayout'
 
 const travel_allocations__ = {
 	international:[
@@ -190,7 +191,7 @@ const defaultCategories = [
     {local: expenseCategories}
 ]
 
-const fixedFields = ['Total Amount', 'Class', 'Tax Amount', 'Tip Amount', 'Premium Amount', 'Cost', 'License Cost', 'Subscription Cost']
+const fixedFields = ['Total Amount', 'Date', 'Class', 'Tax Amount', 'Tip Amount', 'Premium Amount', 'Cost', 'Total Cost', 'License Cost', 'Subscription Cost', 'Total Fare', 'Premium Cost']
 
 export default function (props) {
 
@@ -526,10 +527,10 @@ export default function (props) {
     },[updatedOrgHeaders])
 
     return(<>
-        <Icon />
+    <MainSectionLayout>
         {
-        <div className="bg-slate-50 min-h-[calc(100vh-107px)] px-[20px] md:px-[50px] lg:px-[104px] pb-10 w-full tracking-tight">
-            <div className='relative px-6 py-10 bg-white rounded shadow'>               
+        
+            <div className='relative px-6 py-10 bg-white'>               
                {/* back button and title */}
                 <div className='flex gap-4 absolute py-10 bg-white z-[50]'>
                     <div className='w-6 h-6 cursor-pointer' onClick={()=>navigate(-1)}>
@@ -579,7 +580,7 @@ export default function (props) {
                 </div>
         
             </div>
-        </div>}
+        }
         
         {showAddHeaderModal && 
         <UploadAdditionalHeaders 
@@ -588,8 +589,8 @@ export default function (props) {
             setUpdatedOrgHeaders={setUpdatedOrgHeaders}
             setShowAddHeaderModal={setShowAddHeaderModal} />}
 
-    {showAddExpenseCategoriesModal &&
-        <div className="fixed  z-[1000]  overflow-hidden flex justify-center items-center inset-0 backdrop-blur-sm w-full h-full left-0 top-0 bg-gray-800/60 scroll-none">
+        {showAddExpenseCategoriesModal &&
+            <div className="fixed  z-[1000]  overflow-hidden flex justify-center items-center inset-0 backdrop-blur-sm w-full h-full left-0 top-0 bg-gray-800/60 scroll-none">
             <div className='z-[10001] max-w-[600px] w-[90%] md:w-[75%] lg:w-[60%] min-h-[200px] scroll-none bg-white rounded-lg shadow-md'>
                 <div className=' relative p-10 text text-neutral-400 text-xs font-cabin'>
                     {existingCategory? 'Edit Expense Category' : 'Add Expense Category'}
@@ -649,8 +650,8 @@ export default function (props) {
                     </div>
                 </div>
             </div>
-        </div>}
-
+            </div>}
+    </MainSectionLayout>
         </>
     );
   }

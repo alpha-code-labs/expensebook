@@ -7,8 +7,12 @@ import { useEffect, useState } from "react"
 import axios from 'axios'
 import close_icon from "../../assets/close.svg"
 import Error from "../../components/common/Error"
+import Prompt from "../../components/common/Prompt"
+import MainSectionLayout from "../MainSectionLayout"
+import { postProgress_API } from "../../utils/api"
 
-export default function (props){
+
+export default function ({progress, setProgress}){
     const navigate = useNavigate()
     const [employees, setEmployees] = useState([])
     const {tenantId} = useParams()
@@ -20,6 +24,7 @@ export default function (props){
     const [systemRelatedRoles, setSystemRelatedRoles] = useState({finance:[], businessAdmin:[], superAdmin:[]})
     const [loading, setLoading] = useState(true)
     const [loadingError, setLoadingError] = useState(null)
+    const [prompt, setPrompt] = useState({showPrompt:false, promptMsg:null})
 
     const ONBOARDING_API = import.meta.env.VITE_PROXY_URL
 
@@ -115,10 +120,45 @@ export default function (props){
         console.log(systemRelatedRoles)
 
         try{
-            const res = await axios.post(`http://localhost:8001/api/tenant/${tenantId}/system-related-roles`, {systemRelatedRoles})
+            const res = await axios.post(`${ONBOARDING_API}/tenant/${tenantId}/system-related-roles`, {systemRelatedRoles})
+            let currentSubSection = 'Roles Setup'
+
+            const progress_copy = JSON.parse(JSON.stringify(progress));
+
+            progress_copy.sections['section 6'].subsections.forEach(subsection=>{
+                if(subsection.name == currentSubSection) subsection.completed = true;
+            });
+
+            progress_copy.sections['section 6'].subsections.forEach(subsection=>{
+                if(subsection.name == currentSubSection) subsection.completed = true;
+            });
+
+            const markCompleted = !progress_copy.sections['section 6'].subsections.some(subsection=>!subsection.completed)
+
+            let totalCoveredSubsections = 0;
+            progress_copy.sections['section 6'].subsections.forEach(subsection=>{
+                if(subsection.completed) totalCoveredSubsections++;
+            })
+
+            progress_copy.sections['section 6'].coveredSubsections = totalCoveredSubsections; 
+
+            if(markCompleted){
+                progress_copy.sections['section 6'].state = 'done';
+                progress_copy.maxReach = 'section 6';
+            }else{
+                progress_copy.sections['section 6'].state = 'attempted';
+            }
+
+            const progress_res = await postProgress_API({tenantId, progress: progress_copy})
+
             if(res.status === 200){
-                alert('System roles updated!')
-                navigate(`/${tenantId}/others/cash-advance-settlement-options`)
+                //alert('System roles updated!')
+                setPrompt({showPrompt:true, promptMsg: 'System roles updated!'})
+
+                setTimeout(()=>{
+                    setProgress(progress_copy)
+                    navigate(`/${tenantId}/others/cash-advance-settlement-options`)
+                },3000)
             }
         }catch(error){
             console.log(error)
@@ -144,12 +184,10 @@ export default function (props){
     }, [systemRelatedRoles])
 
     return(<>
-        
+    <MainSectionLayout>
         {loading && <Error message={loadingError}/>}
         {!loading && <> 
-        <Icon/>
-        <div className="bg-slate-50 min-h-[calc(100vh-107px)] px-[20px] md:px-[50px] lg:px-[104px] pb-10 w-full tracking-tight">
-            <div className='px-6 py-10 bg-white rounded shadow'>
+            <div className='px-6 py-10 bg-white'>
                 <div className="flex justify-between">
                     <div className="gap-2">
                         <p className="text-neutral-700 text-xl font-semibold tracking-tight">
@@ -258,10 +296,12 @@ export default function (props){
                             </div>
                         </div>
                         </>}
+
+                        <Prompt prompt={prompt} setPrompt={setPrompt} timeout={2700}/>
                     </div>
                 </div>
             </div>
-        </div>
         </>}
+    </MainSectionLayout>
     </>)
 }

@@ -23,6 +23,9 @@ import UploadAdditionalHeaders from '../../expenseAllocations/UploadAdditionalHe
 import { getTenantOrgHeaders_API, getTenantReimbursementAllocations_API, postTenantReimbursementAllocations_API, postReimbursementCategories_API, updateFormState_API} from '../../../utils/api'
 import Prompt from '../../../components/common/Prompt'
 import { expenseCategories } from '../../../data/expenseCategories'
+import { camelCaseToTitleCase } from '../../../utils/handyFunctions'
+import MainSectionLayout from '../../MainSectionLayout'
+import { postProgress_API } from '../../../utils/api'
 
 const reimbursement_allocations = expenseCategories.map(category=>{
     if(category.hasOwnProperty('class')){
@@ -50,9 +53,10 @@ const reimbursement_allocations = expenseCategories.map(category=>{
 })
 
 
-export default function (props) {
+const fixedFields = ['Total Amount', 'Date', 'Class', 'Tax Amount', 'Tip Amount', 'Premium Amount', 'Cost', 'Total Cost', 'License Cost', 'Subscription Cost', 'Total Fare', 'Premium Cost']
 
-    const tenantId = props.tenantId
+export default function ({tenantId, progress, setProgress}) {
+
     const [showAddExpenseCategoriesModal, setShowAddExpenseCategoriesModal] = useState(false)
     
     const navigate = useNavigate()
@@ -76,7 +80,7 @@ export default function (props) {
         setNetworkStates(pre=>({...pre, setIsUploading:false}))
 
         if(cat_res.err || res.err) setPrompt({showPrompt: true, success:false, promptMsg: cat_res.err??res.err})
-        else setPrompt({showPrompt:true, success:true, promptMsg: 'Changes saved successfully !'})  
+        else setPrompt({showPrompt:true, success:true, promptMsg: 'Changes saved successfully!'})  
     } 
 
     
@@ -266,6 +270,36 @@ export default function (props) {
 
     const handleContinue = async ()=>{
         const res = updateFormState_API({tenantId, state: '/groups'})
+        const progress_copy = JSON.parse(JSON.stringify(progress));
+
+        progress_copy.sections['section 3'].subsections.forEach(subsection=>{
+            if(subsection.name == 'Travel Allocations') subsection.completed = true;
+        });
+
+        progress_copy.sections['section 3'].subsections.forEach(subsection=>{
+            if(subsection.name == 'Reimbursement Allocations') subsection.completed = true;
+        });
+
+        const markCompleted = !progress_copy.sections['section 3'].subsections.some(subsection=>!subsection.completed)
+
+        let totalCoveredSubsections = 0;
+        progress_copy.sections['section 3'].subsections.forEach(subsection=>{
+            if(subsection.completed) totalCoveredSubsections++;
+        })
+
+        progress_copy.sections['section 3'].coveredSubsections = totalCoveredSubsections; 
+        progress_copy.activeSection = 'section 4';
+
+        if(markCompleted){
+            progress_copy.sections['section 3'].state = 'done';
+            progress_copy.maxReach = 'section 4';
+        }else{
+            progress_copy.sections['section 3'].state = 'attempted';
+        }
+
+        const progress_res = await postProgress_API({tenantId, progress: progress_copy})
+
+        setProgress(progress_copy);
         //naviage to others section
         navigate(`/${tenantId}/groups`)
     }
@@ -285,126 +319,125 @@ export default function (props) {
     },[updatedOrgHeadeers])
 
     return(<>
-        <Icon />
-        {
-        <div className="bg-slate-50 min-h-[calc(100vh-107px)] px-[20px] md:px-[50px] lg:px-[104px] pb-10 w-full tracking-tight">
-            <div className='px-6 py-10 bg-white rounded shadow'>               
-               {/* back button and title */}
-                <div className='flex gap-4'>
-                    <div className='w-6 h-6 cursor-pointer' onClick={()=>navigate(-1)}>
-                        <img src={back_icon} />
-                    </div>
+        <MainSectionLayout>
+            {
+                <div className='px-6 py-10 bg-white'>               
+                {/* back button and title */}
+                    <div className='flex gap-4'>
+                        <div className='w-6 h-6 cursor-pointer' onClick={()=>navigate(-1)}>
+                            <img src={back_icon} />
+                        </div>
 
-                    <div className='flex gap-2'>
-                        <p className='text-neutral-700 text-base font-medium font-cabin tracking-tight'>
-                            Reimbursement's Allocation
-                        </p>
+                        <div className='flex gap-2'>
+                            <p className='text-neutral-700 text-base font-medium font-cabin tracking-tight'>
+                                Reimbursement's Allocation
+                            </p>
 
-                    </div>
-                </div>
-
-                {/* rest of the section */}
-                <div className='mt-10 flex flex-col gap-4'>  
-                    {allocations && allocations?.length>0 && allocations.map((category, index)=>{
-                            return (
-                            <Policy 
-                                key={index} 
-                                handleEditFields={handleEditFields}  
-                                saveChanges={updateReimursementAllocations} 
-                                categoryName={category.categoryName} 
-                                allocations={allocations}
-                                setAllocations={setAllocations}
-                                orgHeaders={orgHeaders} 
-                                handleRemoveCategory={handleRemoveCategory}
-                                setShowAddHeaderModal={setShowAddHeaderModal} />)
-                        }
-                    )}
-                     
-                    <div className='mt-6'>
-                        <HollowButton title='Add Expense Categories' onClick={()=>{setExistingCategory(false); setShowAddExpenseCategoriesModal(true)}} />
-                    </div>
-                    
-                    <div className='flex justify-between mt-10'>
-                        <Button text='Save As Draft' onClick={handleSaveAsDraft} />
-                        <Button text='Continue' onClick={handleContinue} />
-                    </div>
-
-                    <Prompt prompt={prompt} setPrompt={setPrompt} />
-                </div>
-        
-            </div>
-        </div>}
-        
-        {showAddHeaderModal && 
-        <UploadAdditionalHeaders 
-            showAddHeaderModal={showAddHeaderModal} 
-            tenantId={tenantId}
-            setUpdatedOrgHeaders={setUpdatedOrgHeaders}
-            setShowAddHeaderModal={setShowAddHeaderModal} />}
-
-    {showAddExpenseCategoriesModal &&
-        <div className="fixed  z-[1000]  overflow-hidden flex justify-center items-center inset-0 backdrop-blur-sm w-full h-full left-0 top-0 bg-gray-800/60 scroll-none">
-            <div className='z-[10001] max-w-[600px] w-[90%] md:w-[75%] lg:w-[60%] min-h-[200px] scroll-none bg-white rounded-lg shadow-md'>
-                <div className=' relative p-10 text text-neutral-400 text-xs font-cabin'>
-                    {existingCategory? 'Edit Expense Category' : 'Add Expense Category'}
-
-                    <div className='mt-4'>
-                        <Input title='Category Name' value={expenseCategoryName} placeholder='eg. Utilities' onChange={handleCategoryNameChange} />
-                        <hr className='my-2'/>
-                        <div className='flex flex-col gap-2'>
-                            {expenseCategoryFields.length>0 && expenseCategoryFields.map((field, index)=>(
-                                <div key={index} className='flex flex-wrap gap-4 items-center'>
-                                    <Input  showTitle={false} placeholder='eg. Amount' value={field.name} onChange={(e)=>{handleCategoryFieldNameChange(e, index)}} readOnly={false} />
-                                    <select value={field.type} disabled={false} onChange={e=>handleCategoryFieldTypeChange(e,index)} className='min-w-[200px] w-full md:w-fit max-w-[403px] h-[45px] flex-col justify-start items-start gap-2 inline-flex px-6 py-2 text-neutral-700 w-full  h-full text-sm font-normal font-cabin border rounded-md border border-neutral-300 focus-visible:outline-0 focus-visible:border-indigo-600'>
-                                        <option value='default'>
-                                            Select Type
-                                        </option>
-                                        <option value='text'>
-                                            Text
-                                        </option>
-                                        <option value='amount'>
-                                            Amount
-                                        </option>
-                                        <option value='number'>
-                                            Number
-                                        </option>
-                                        <option value='days'>
-                                            days
-                                        </option>
-                                        <option value='true/false'>
-                                            True / False
-                                        </option>
-                                    </select>
-                                    <img src={remove_icon} onClick={()=>removeCategoryField(index)} />
-                                </div>
-                            ))}
                         </div>
                     </div>
 
-
-                <div className='flex flex-wrap mt-10 items-center justify-between'>
-                    <div className='w-[200px] '>
-                            <HollowButton title='Add Fields' onClick={()=>addCategoryField()} />
+                    {/* rest of the section */}
+                    <div className='mt-10 flex flex-col gap-4'>  
+                        {allocations && allocations?.length>0 && allocations.map((category, index)=>{
+                                return (
+                                <Policy 
+                                    key={index} 
+                                    handleEditFields={handleEditFields}  
+                                    saveChanges={updateReimursementAllocations} 
+                                    categoryName={category.categoryName} 
+                                    allocations={allocations}
+                                    setAllocations={setAllocations}
+                                    orgHeaders={orgHeaders} 
+                                    handleRemoveCategory={handleRemoveCategory}
+                                    setShowAddHeaderModal={setShowAddHeaderModal} />)
+                            }
+                        )}
+                        
+                        <div className='mt-6'>
+                            <HollowButton title='Add Expense Categories' onClick={()=>{setExistingCategory(false); setShowAddExpenseCategoriesModal(true)}} />
                         </div>
-                        {!existingCategory && <div className='w-fit '>
-                            <Button text='Add Category' onClick={handleAddCategory} />
-                        </div>}
-                        {existingCategory && <div className='w-fit '>
-                            <Button text='Save Changes' onClick={handleEditCategory} />
-                        </div> }
+                        
+                        <div className='flex justify-between mt-10'>
+                            {/* <Button text='Save As Draft' onClick={handleSaveAsDraft} /> */}
+                            <Button text='Continue' onClick={handleContinue} />
+                        </div>
+
+                        <Prompt prompt={prompt} setPrompt={setPrompt} />
+                    </div>
+            
                 </div>
-                <div className='absolute top-4 right-4'>
-                        <img className='cursor-pointer' src={cross_icon} 
-                                onClick={()=>{
-                                    setExpenseCategoryName(null) 
-                                    setExpenseCategoryFieds([])
-                                    setShowAddExpenseCategoriesModal(false)
-                                }} />
+            }
+            
+            {showAddHeaderModal && 
+            <UploadAdditionalHeaders 
+                showAddHeaderModal={showAddHeaderModal} 
+                tenantId={tenantId}
+                setUpdatedOrgHeaders={setUpdatedOrgHeaders}
+                setShowAddHeaderModal={setShowAddHeaderModal} />}
+
+            {showAddExpenseCategoriesModal &&
+                <div className="fixed  z-[1000]  overflow-hidden flex justify-center items-center inset-0 backdrop-blur-sm w-full h-full left-0 top-0 bg-gray-800/60 scroll-none">
+                <div className='z-[10001] max-w-[600px] w-[90%] md:w-[75%] lg:w-[60%] min-h-[200px] scroll-none bg-white rounded-lg shadow-md'>
+                    <div className=' relative p-10 text text-neutral-400 text-xs font-cabin'>
+                        {existingCategory? 'Edit Expense Category' : 'Add Expense Category'}
+
+                        <div className='mt-4'>
+                            <Input title='Category Name' value={expenseCategoryName} placeholder='eg. Utilities' onChange={handleCategoryNameChange} />
+                            <hr className='my-2'/>
+                            <div className='flex flex-col gap-2'>
+                                {expenseCategoryFields.length>0 && expenseCategoryFields.map((field, index)=>(
+                                    <div key={index} className='flex flex-wrap gap-4 items-center'>
+                                        <Input  showTitle={false} placeholder='eg. Amount' value={field.name} onChange={(e)=>{handleCategoryFieldNameChange(e, index)}} readOnly={fixedFields.includes(field.name)} />
+                                        <select value={field.type} disabled={fixedFields.includes(field.name)} onChange={e=>handleCategoryFieldTypeChange(e,index)} className='min-w-[200px] w-full md:w-fit max-w-[403px] h-[45px] flex-col justify-start items-start gap-2 inline-flex px-6 py-2 text-neutral-700 w-full  h-full text-sm font-normal font-cabin border rounded-md border border-neutral-300 focus-visible:outline-0 focus-visible:border-indigo-600'>
+                                            <option value='default'>
+                                                Select Type
+                                            </option>
+                                            <option value='text'>
+                                                Text
+                                            </option>
+                                            <option value='amount'>
+                                                Amount
+                                            </option>
+                                            <option value='number'>
+                                                Number
+                                            </option>
+                                            <option value='days'>
+                                                days
+                                            </option>
+                                            <option value='true/false'>
+                                                True / False
+                                            </option>
+                                        </select>
+                                        {!fixedFields.includes(field.name) && <img src={remove_icon} onClick={()=>removeCategoryField(index)} />}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+
+                    <div className='flex flex-wrap mt-10 items-center justify-between'>
+                        <div className='w-[200px] '>
+                                <HollowButton title='Add Fields' onClick={()=>addCategoryField()} />
+                            </div>
+                            {!existingCategory && <div className='w-fit '>
+                                <Button text='Add Category' onClick={handleAddCategory} />
+                            </div>}
+                            {existingCategory && <div className='w-fit '>
+                                <Button text='Save Changes' onClick={handleEditCategory} />
+                            </div> }
+                    </div>
+                    <div className='absolute top-4 right-4'>
+                            <img className='cursor-pointer' src={cross_icon} 
+                                    onClick={()=>{
+                                        setExpenseCategoryName(null) 
+                                        setExpenseCategoryFieds([])
+                                        setShowAddExpenseCategoriesModal(false)
+                                    }} />
+                        </div>
                     </div>
                 </div>
-            </div>
-        </div>}
-
+                </div>}
+        </MainSectionLayout>
         </>
     );
   }
@@ -488,7 +521,8 @@ function Policy({
                 <div className='mt-4 '>
                     <Input
                         value={expenseAllcationAccountLine}
-                        onBlur={(e)=>handleAccountLineChange(e.target.value)} 
+                        onBlur={(e)=>handleAccountLineChange(e.target.value)}
+                        placeholder={'eg. 814578226'} 
                         title='Expense Account Line' />
                 </div>
                 
@@ -530,7 +564,7 @@ function ExpenseAllocation({orgHeaders, setShowAddHeaderModal, allocations, setA
             <div className='flex flex-col gap-1 mt-2'>
                 {orgHeaders.map((header, headerIndex) => 
                 <div key={headerIndex} className='flex items-center justify-between'>
-                    <p className='text-sm flex-1 text-neutral-700'>{header.headerName}</p>
+                    <p className='text-sm flex-1 text-neutral-700'>{camelCaseToTitleCase(header.headerName)}</p>
                     <div className='flex-1 inline-flex'>
                         <Checkbox checked={ allocations.find(c=>c.categoryName == categoryName).expenseAllocation.find(h=>h.headerName == header.headerName)} onChange={(e)=>handleAllocationHeaderChange(e, headerIndex)} />
                     </div>

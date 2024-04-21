@@ -1,15 +1,18 @@
-import leftFrame from '../assets/leftFrame.svg'
+import leftFrame from '../assets/newLeftFrame.svg'
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Button from '../components/common/Button';
 import { getOnboarderInfo_API } from '../utils/api';
 import { useEffect } from 'react'
+import Error from '../components/common/Error';
+import { camelCaseToTitleCase } from '../utils/handyFunctions';
 
 
 export default function (props) {
     const [showSkipModal, setShowSkipModal] = useState(false);
     const [onboarderName, setOnboarderName] = useState(null);
     const [isLoading, setIsLoading] = useState(null)
+    const [loadingErrMsg, setLoadingErrMsg] = useState(null);
     const navigate = useNavigate();
     const {tenantId} = useParams()
 
@@ -25,14 +28,15 @@ export default function (props) {
                 const firstName = onboarder.name.split(' ')[0];
                 setOnboarderName(firstName??'')
             }
-            setIsLoading(false)
+            setIsLoading(false);
+            setLoadingErrMsg(false);
           }
         })()
       },[])
 
     return (
         <>
-            {isLoading && <p>Loading...</p>}
+            {isLoading && <Error message={loadingErrMsg}/>}
             {!isLoading && 
             <div className="flex bg-white w-full h-full overflow-x-hidden font-cabin tracking-tight">
         
@@ -42,26 +46,30 @@ export default function (props) {
         
                 <div className='absolute left-0 w-[100%] md:left-[50%] md:w-[50%] top-0 overflow-x-hidden flex justify-center items-center'>
                     <div class="pr-8 py-8 w-full">
-                    <h1 class="text-3xl font-bold mb-4">{`${onboarderName}, Welcome to Expensebook.AI!`}</h1>
+                    <h1 class="text-3xl font-bold mb-4">{`${camelCaseToTitleCase(onboarderName)}, Welcome to Expensebook.AI!`}</h1>
 
-                    <p class="text-gray-600 mb-6">🎉 Congratulations on taking the first step toward effortless expense management! 🎉</p>
+                    <p class="text-gray-600 mb-6">Congratulations on taking the first step toward effortless expense management!</p>
 
                     <p class="text-gray-800 mb-6">We're thrilled to have you on board. In the next few minutes, we'll guide you through a seamless onboarding experience to set up your Expensebook account.</p>
 
                     <div class="mb-6">
                         <strong class="block mb-2 font-cabin">What to expect:</strong>
                         <ul class="list-disc pl-5">
-                            <li>Personalized Setup: We'll tailor the onboarding process to suit your business needs.</li>
+                            <li>Personalized Setup: We'll tailor the onboarding process to suit your business and company needs.</li>
                             <li>Quick and Easy: Our user-friendly interface makes setup a breeze.</li>
-                            <li>Expert Assistance: Anytime you need help, our support team is just a click away.</li>
+                            <li>Flexibility as per your needs: Customise expensebook as per your companies needs.</li>
                         </ul>
                     </div>
 
-                    <p class="text-gray-800 mb-6">Let's get started on making expense management a breeze for you and your team!</p>
+                    <p class="text-gray-800 mb-6">Let's get started!</p>
 
-                    <div className='flex flex-row-reverse mt-10 pr-20'>
+                    <div className='flex flex-row-reverse mt-20 pr-20'>
                         <div className='w-[200px]'>
-                            <Button text='Next' onClick={()=>navigate(`/${tenantId}/company-info`)} />
+                            <div onClick={()=>navigate(`/${tenantId}/company-info`)} className={` w-fit bg-indigo-600 hover:bg-indigo-500  text-white cursor-pointer h-12 px-8 py-4 rounded-[32px] justify-center items-center gap-2 inline-flex`}>
+                                <div className="w-full h-5 text-center text-white text-base font-medium font-cabin flex gap-1 items-center">
+                                    Next
+                                </div>
+                            </div>
                         </div>
                     </div>
 

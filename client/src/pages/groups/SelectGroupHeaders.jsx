@@ -10,8 +10,10 @@ import Checkbox from '../../components/common/Checkbox';
 import { updateFormState_API } from '../../utils/api';
 import UploadAdditionalHeaders from '../expenseAllocations/UploadAdditionalHeaders';
 import Error from '../../components/common/Error';
+import MainSectionLayout from '../MainSectionLayout';
+import { postProgress_API } from '../../utils/api';
 
-export default function (props) {
+export default function ({progress, setProgress}) {
   
 const [showSkipModal, setShowSkipModal] = useState(false);
 const [showAddHeaderModal, setShowAddHeaderModal] = useState(false)
@@ -117,41 +119,74 @@ const ONBOARDING_API = import.meta.env.VITE_PROXY_URL
         //save travel allocation headers...
         console.log(selectedOrgHeaders, selectedGroupHeaders, '...selectedGroupHeaders')
         //get org headers
-        const orgHeadersData = await axios.get(`http://localhost:8001/api/tenant/${tenantId}/org-headers`)
+        const orgHeadersData = await axios.get(`${ONBOARDING_API}/tenant/${tenantId}/org-headers`)
         console.log(orgHeadersData, '...orgHeadersData')
         let selectedOrgHeadersData = selectedOrgHeaders.map(orgHeader => ({headerName:orgHeader, headerValues:orgHeadersData.data.orgHeaders[orgHeader]}))
         
-        const groupHeadersData = await axios.get(`http://localhost:8001/api/tenant/${tenantId}/group-headers`)
+        const groupHeadersData = await axios.get(`${ONBOARDING_API}/tenant/${tenantId}/group-headers`)
         console.log(groupHeadersData, '...groupHeadersData')
         let selectedGroupHeadersData = selectedGroupHeaders.map(groupHeader => ({headerName:groupHeader, headerValues:groupHeadersData.data.groupHeaders[groupHeader]}))
 
 
         axios
-        .post(`http://localhost:8001/api/tenant/${tenantId}/grouping-labels`, {groupingLabels:[...selectedOrgHeadersData, ...selectedGroupHeadersData]})
+        .post(`${ONBOARDING_API}/tenant/${tenantId}/grouping-labels`, {groupingLabels:[...selectedOrgHeadersData, ...selectedGroupHeadersData]})
         .then(res => {
             console.log(res.data, '...res.data')
-            navigate(`/${tenantId}/groups/create-groups`, {state:{tenantId}})
+            
         })
         
-        const update_res = await updateFormState_API({tenantId, state:'groups/select-grouping-headers'})
-     
+        const groupingLabels_res = await axios.post(`${ONBOARDING_API}/tenant/${tenantId}/grouping-labels`, {groupingLabels:[...selectedOrgHeadersData, ...selectedGroupHeadersData]})
+        
+        const progress_copy = JSON.parse(JSON.stringify(progress));
+
+        progress_copy.sections['section 4'].subsections.forEach(subsection=>{
+            if(subsection.name == 'Select Filters') subsection.completed = true;
+        });
+
+        progress_copy.sections['section 4'].subsections.forEach(subsection=>{
+            if(subsection.name == 'Select Filters') subsection.completed = true;
+        });
+
+        const markCompleted = !progress_copy.sections['section 4'].subsections.some(subsection=>!subsection.completed)
+
+        let totalCoveredSubsections = 0;
+        progress_copy.sections['section 4'].subsections.forEach(subsection=>{
+            if(subsection.completed) totalCoveredSubsections++;
+        })
+
+        progress_copy.sections['section 4'].coveredSubsections = totalCoveredSubsections; 
+
+        if(markCompleted){
+            progress_copy.sections['section 4'].state = 'done';
+            progress_copy.maxReach = 'section 5';
+        }else{
+            progress_copy.sections['section 4'].state = 'attempted';
+        }
+
+        const progress_res = await postProgress_API({tenantId, progress: progress_copy})
+
+        setProgress(progress_copy);
+
+        navigate(`/${tenantId}/groups/create-groups`, {state:{tenantId}})
+
+        
     }
 
     const handleSaveAsDraft = async () => {
         //save travel allocation headers...
         console.log(selectedOrgHeaders, selectedGroupHeaders, '...selectedGroupHeaders')
         //get org headers
-        const orgHeadersData = await axios.get(`http://localhost:8001/api/tenant/${tenantId}/org-headers`)
+        const orgHeadersData = await axios.get(`${ONBOARDING_API}/tenant/${tenantId}/org-headers`)
         console.log(orgHeadersData, '...orgHeadersData')
         let selectedOrgHeadersData = selectedOrgHeaders.map(orgHeader => ({headerName:orgHeader, headerValues:orgHeadersData.data.orgHeaders[orgHeader]}))
         
-        const groupHeadersData = await axios.get(`http://localhost:8001/api/tenant/${tenantId}/group-headers`)
+        const groupHeadersData = await axios.get(`${ONBOARDING_API}/tenant/${tenantId}/group-headers`)
         console.log(groupHeadersData, '...groupHeadersData')
         let selectedGroupHeadersData = selectedGroupHeaders.map(groupHeader => ({headerName:groupHeader, headerValues:groupHeadersData.data.groupHeaders[groupHeader]}))
 
 
         axios
-        .post(`http://localhost:8001/api/tenant/${tenantId}/grouping-labels`, {groupingLabels:[...selectedOrgHeadersData, ...selectedGroupHeadersData]})
+        .post(`${ONBOARDING_API}/tenant/${tenantId}/grouping-labels`, {groupingLabels:[...selectedOrgHeadersData, ...selectedGroupHeadersData]})
         .then(res => {
             console.log(res.data, '...res.data')
            // navigate(`/${tenantId}/groups/create-groups`, {state:{tenantId}})
@@ -172,12 +207,11 @@ const ONBOARDING_API = import.meta.env.VITE_PROXY_URL
     },[selectedOrgHeaders, selectedGroupHeaders])
 
     return(<>
+    <MainSectionLayout>
         {loading && <Error/> }
         {!loading && <>
-            <Icon/>
-        <div className="bg-slate-50 min-h-[calc(100vh-107px)] px-[20px] md:px-[50px] lg:px-[104px] pb-10 w-full tracking-tight">
-            
-            <div className='px-6 py-10 bg-white rounded shadow w-full'>
+        
+            <div className='px-6 py-10 bg-white'>
                
                 {/* rest of the section */}
                 <div className='w-full flex flex-col gap-4'>  
@@ -191,7 +225,7 @@ const ONBOARDING_API = import.meta.env.VITE_PROXY_URL
                                 <img src={back_icon} onClick={()=>{navigate(-1)}} />
                             </div> }
                             <p className='text text-xl font-cabin text-neutral-700'>
-                                {!readyToSelect ? `Let's setup your groups` : `setup groups`}
+                                {!readyToSelect ? `Let's setup your groups` : `Setup Groups`}
                             </p>
                         </div>
                         <div>
@@ -260,7 +294,7 @@ const ONBOARDING_API = import.meta.env.VITE_PROXY_URL
                         </div>
 
                         <div className='flex justify-between'>
-                            <Button text='Save As Draft' variant='fit' disabled={selectedGroupHeaders.length==0 && selectedOrgHeaders.length==0} onClick={handleSaveAsDraft} />
+                            {/* <Button text='Save As Draft' variant='fit' disabled={selectedGroupHeaders.length==0 && selectedOrgHeaders.length==0} onClick={handleSaveAsDraft} /> */}
                             <div className='fit'>
                                 <div>
                                     <Button text='Continue' disabled={selectedGroupHeaders.length==0 && selectedOrgHeaders.length==0} onClick={()=>setShowSkipModal(true)} />
@@ -277,7 +311,7 @@ const ONBOARDING_API = import.meta.env.VITE_PROXY_URL
                 <div className='p-10'>
                     
                     { (selectedOrgHeaders.length>0 || selectedGroupHeaders.length>0) &&  <>
-                        <p className='text-neutral-700 text-base font-cabin '>Selected Options... </p>
+                        <p className='text-neutral-700 text-base font-cabin '>Selected Options: </p>
                     <div className='flex flex-col gap-4 mt-4'>
                         {[...selectedOrgHeaders, ...selectedGroupHeaders].map(header => {
                             return <div className='text text-sm font-cabin text-neutral-700'>{camelCaseToTitleCase(header)}</div>
@@ -314,10 +348,8 @@ const ONBOARDING_API = import.meta.env.VITE_PROXY_URL
                 setUpdatedOrgHeaders={setUpdatedOrgHeaders}
                 setShowAddHeaderModal={setShowAddHeaderModal} />}
             
-
-        </div>
         </>}
-        
+    </MainSectionLayout>
         </>
     );
   }

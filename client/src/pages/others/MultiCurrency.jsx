@@ -11,8 +11,10 @@ import {currenciesList} from "../../data/currenciesList"
 import { getTenantDefaultCurrency_API, getTenantMulticurrencyTable_API, postTenantMulticurrencyTable_API } from "../../utils/api"
 import Prompt from "../../components/common/Prompt"
 import Error from "../../components/common/Error"
+import MainSectionLayout from "../MainSectionLayout"
+import { postProgress_API } from "../../utils/api"
 
-export default function (props){
+export default function ({progress, setProgress}){
     const navigate = useNavigate()
     const {tenantId} = useParams()
     const [tenantDefaultCurrency, setTenantDefaultCurrency] =  useState({fullName:'', shortName:'', symbol:'', countryCode:''})
@@ -20,6 +22,8 @@ export default function (props){
     const [prompt, setPrompt] = useState({showPrompt:false, promptMsg:null, success:null})
     const [networkStates, setNetworkStates] = useState({isLoading:false, isUploading:false, loadingErrMsg:null})
     const [selectedCurrency, setSelectedCurrency] = useState(null)
+    const [activeButton, setActiveButton] = useState(null)
+
     const handleCurrencySelection = (option)=>{
         setSelectedCurrency(option)
     }
@@ -61,6 +65,7 @@ export default function (props){
     }
 
     const handleSaveChanges = async ()=>{
+        setActiveButton('Save and Continue')
         //upload non empty values to database
         const filteredEntries = currencyTable.filter(entry=>entry.exchangeValue.value!='')
         const exchangeValue = filteredEntries.map(entry=>entry.exchangeValue)
@@ -74,9 +79,49 @@ export default function (props){
         try{
             setNetworkStates({isLoading:false, isUploading:true, loadingErrMsg:null})
             const res = await postTenantMulticurrencyTable_API({tenantId, multiCurrencyTable:{defaultCurrency:tenantDefaultCurrency, exchangeValue} })
+
+            let currentSubSection = 'Currency Table'
+
+            const progress_copy = JSON.parse(JSON.stringify(progress));
+
+            progress_copy.sections['section 6'].subsections.forEach(subsection=>{
+                if(subsection.name == currentSubSection) subsection.completed = true;
+            });
+
+            progress_copy.sections['section 6'].subsections.forEach(subsection=>{
+                if(subsection.name == currentSubSection) subsection.completed = true;
+            });
+
+            const markCompleted = !progress_copy.sections['section 6'].subsections.some(subsection=>!subsection.completed)
+
+            let totalCoveredSubsections = 0;
+            progress_copy.sections['section 6'].subsections.forEach(subsection=>{
+                if(subsection.completed) totalCoveredSubsections++;
+            })
+
+            progress_copy.sections['section 6'].coveredSubsections = totalCoveredSubsections; 
+
+            if(markCompleted){
+                progress_copy.sections['section 6'].state = 'done';
+                progress_copy.maxReach = 'section 6';
+            }else{
+                progress_copy.sections['section 6'].state = 'attempted';
+            }
+
+            const progress_res = await postProgress_API({tenantId, progress: progress_copy})
+
+            if(res.err || progress_res.err){
+                setNetworkStates({isLoading:false, isUploading:false, loadingErrMsg:res.err})
+                setPrompt({showPrompt:true, promptMsg: res.err??progress_res.err})
+            }
             if(!res.err){
+                setNetworkStates({isLoading:false, isUploading:false, loadingErrMsg:res.err})
                 setPrompt({showPrompt:true, promptMsg: 'Multicurrency table updated'})
-                setTimeout(()=>navigate(`/${tenantId}/others/roles`), 3000)
+
+                setTimeout(()=>{
+                    setProgress(progress_copy);
+                    navigate(`/${tenantId}/others/roles`);
+                }, 3000)
             }
 
         }catch(e){
@@ -85,6 +130,7 @@ export default function (props){
     }
 
     const handleSaveAsDraft = async ()=>{
+        setActiveButton('Save as Draft')
       //upload non empty values to database
       const filteredEntries = currencyTable.filter(entry=>entry.exchangeValue.value!='')
       const exchangeValue = filteredEntries.map(entry=>entry.exchangeValue)
@@ -93,11 +139,17 @@ export default function (props){
       if(exchangeValue.length!=0){
           // alert('No values provided')
         try{
+            setNetworkStates({isLoading:false, isUploading:true, loadingErrMsg:null})
             const res = await postTenantMulticurrencyTable_API({tenantId, multiCurrencyTable:{defaultCurrency:tenantDefaultCurrency, exchangeValue} })
+            
             if(!res.err){
                 // alert('Multicurrency table updated')
                 // navigate(`/${tenantId}/others/blanket-delegations`)
+                setNetworkStates({isLoading:false, isUploading: false, loadingErrMsg:null})
                 setPrompt({showPrompt:true, promptMsg:'Multicurrency table updated. Redirecting...'})
+                setTimeout(()=>{
+                    window.location.href = import.meta.env.VITE_WEB_PAGE_URL
+                }, 2700)
             }
 
         }catch(e){
@@ -156,11 +208,10 @@ export default function (props){
 
 
     return(<>
+    <MainSectionLayout>
         {networkStates.isLoading && <Error message={networkStates.loadingErrMsg}/>}
         {!networkStates.isLoading && <>
-         <Icon/>
-        <div className="bg-slate-50 min-h-[calc(100vh-107px)] px-[20px] md:px-[50px] overflow-y-auto lg:px-[104px] pb-10 w-full tracking-tight">
-            <div className='px-6 py-10 bg-white rounded shadow'>
+            <div className='px-6 py-10 bg-white'>
                 <div className="flex justify-between">
                     <div className="gap-2">
                         <p className="text-neutral-700 text-xl font-semibold tracking-tight">
@@ -227,13 +278,13 @@ export default function (props){
                 </div>
 
                 <div className="flex w-full justify-between mt-10">
-                   <Button variant='fit' text='Save as Draft' onClick={handleSaveAsDraft} isLoading={networkStates.isUploading} />
-                    <Button variant='fit' text='Save and Continue' onClick={handleSaveChanges} isLoading={networkStates.isUploading} />
+                   <Button variant='fit' text='Save as Draft' onClick={handleSaveAsDraft} isLoading={networkStates.isUploading && activeButton == 'Save as Draft'} />
+                    <Button variant='fit' text='Save and Continue' onClick={handleSaveChanges} isLoading={networkStates.isUploading && activeButton == 'Save and Continue'} />
                 </div>
                 
-                <Prompt prompt={prompt} setPrompt={setPrompt} />
+                <Prompt prompt={prompt} setPrompt={setPrompt} timeout={3000} />
             </div>
-        </div> 
         </>}
+    </MainSectionLayout>
     </>)
 }

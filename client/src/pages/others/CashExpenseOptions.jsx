@@ -6,16 +6,19 @@ import { useEffect, useState } from "react"
 import axios from 'axios'
 import Checkbox from "../../components/common/Checkbox"
 import Error from "../../components/common/Error"
-
+import Prompt from "../../components/common/Prompt"
+import MainSectionLayout from "../MainSectionLayout"
+import { postProgress_API } from "../../utils/api"
 
 const ONBOARDING_API = import.meta.env.VITE_PROXY_URL
 
-export default function (props){
+export default function ({progress, setProgress}){
     const navigate = useNavigate()
     const {tenantId} = useParams()
     const [options, setOptions] = useState({Cash:false, Cheque:false, ['Salary Account']:false, ['Prepaid Card']:false, ['NEFT Bank Transfer']:false})
     const [loading, setLoading] = useState(true)
     const [loadingError, setLoadingError] = useState(null)
+    const [prompt, setPrompt] = useState({showPrompt: false, promptMsg: null})
 
     useEffect(()=>{
         (async function(){
@@ -61,9 +64,43 @@ export default function (props){
         
         try{
             const res = await axios.post(`${ONBOARDING_API}/tenant/${tenantId}/expense-settlement-options`, {expenseSettlementOptions:options})
+            let currentSubSection = 'Expense Settlement Options';
+
+            const progress_copy = JSON.parse(JSON.stringify(progress));
+
+            progress_copy.sections['section 6'].subsections.forEach(subsection=>{
+                if(subsection.name == currentSubSection) subsection.completed = true;
+            });
+
+            progress_copy.sections['section 6'].subsections.forEach(subsection=>{
+                if(subsection.name == currentSubSection) subsection.completed = true;
+            });
+
+            const markCompleted = !progress_copy.sections['section 6'].subsections.some(subsection=>!subsection.completed)
+
+            let totalCoveredSubsections = 0;
+            progress_copy.sections['section 6'].subsections.forEach(subsection=>{
+                if(subsection.completed) totalCoveredSubsections++;
+            })
+
+            progress_copy.sections['section 6'].coveredSubsections = totalCoveredSubsections; 
+
+            if(markCompleted){
+                progress_copy.sections['section 6'].state = 'done';
+                progress_copy.maxReach = 'section 7';
+                progress_copy.activeSection = 'section 7';
+            }else{
+                progress_copy.sections['section 6'].state = 'attempted';
+            }
+
+            const progress_res = await postProgress_API({tenantId, progress: progress_copy})
+
             if(res.status == 200){
-                alert('Expense Settlement Options Updated !')
-                navigate(`/${tenantId}/onboarding-completed`)
+                setPrompt({showPrompt:true, promptMsg: "Expense Settlement Options Updated !" })
+                setTimeout(()=>{
+                    setProgress(progress_copy)
+                    navigate(`/${tenantId}/onboarding-completed`)
+                }, 2700)
             }
         }
         catch(e){
@@ -86,9 +123,11 @@ export default function (props){
         try{
             const res = await axios.post(`${ONBOARDING_API}/tenant/${tenantId}/expense-settlement-options`, {expenseSettlementOptions:options})
             if(res.status == 200){
-                alert('Expense Settlement Options Updated !')
                 updateFormState_API({tenantId, state:'/others/cash-expense-settlement-options'})
-                window.location.href = import.meta.env.VITE_WEB_PAGE_URL
+                setPrompt({showPrompt:true, promptMsg: "Expense Settlement Options Updated !" })
+                setTimeout(()=>{
+                    window.location.href = import.meta.env.VITE_WEB_PAGE_URL
+                }, 2700)
             }
         }
         catch(e){
@@ -108,11 +147,10 @@ export default function (props){
 
 
     return(<>
+    <MainSectionLayout>
         {loading && <Error message={loadingError} />}
-        {!loading && <> 
-            <Icon/>
-        <div className="bg-slate-50 min-h-[calc(100vh-107px)] px-[20px] md:px-[50px] lg:px-[104px] pb-10 w-full tracking-tight">
-            <div className='px-6 py-10 bg-white rounded shadow'>
+        {!loading &&
+            <div className='px-6 py-10 bg-white'>
                 <div className="flex justify-between">
                     <div className="gap-2">
                         <p className="text-neutral-700 text-xl font-semibold tracking-tight">
@@ -140,11 +178,13 @@ export default function (props){
                 </div>
 
                 <div className="mt-10 w-full flex justify-between">
-                    <Button variant='fit' text='Save As draft' onClick={handleSaveAsDraft} />
+                    {/* <Button variant='fit' text='Save As draft' onClick={handleSaveAsDraft} /> */}
                     <Button variant='fit' text='Save Expense Settlement Options' onClick={()=>saveExpenseSettlementOptions()} />
                 </div>
-
+            
+                <Prompt prompt={prompt} setPrompt={setPrompt} />
             </div>
-        </div> </>}
+         }
+    </MainSectionLayout>
     </>)
 }

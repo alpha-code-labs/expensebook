@@ -11,6 +11,7 @@ import Checkbox from "../../components/common/Checkbox"
 import Modal from "../../components/common/Modal"
 import { useState, useEffect } from "react"
 import { updateFormState_API } from "../../utils/api"
+import LeftProgressBar from "../../components/common/LeftProgressBar"
 
 
 export default function (props){
@@ -41,9 +42,8 @@ export default function (props){
 
     return(<>
         
-        <Icon/>
-        <div className="bg-slate-50 min-h-[calc(100vh-107px)] px-[20px] md:px-[50px] lg:px-[104px] pb-10 w-full tracking-tight">
-            <div className='px-6 py-10 bg-white rounded shadow'>
+        <div className="mt-[63px] ml-[230px] md:px-[10px] lg:px-[100px] w-[calc(100%-230px)] min-h-[calc(100vh-107px)] tracking-tight">
+            <div className='px-6 py-10 bg-white'>
                 <div className="flex justify-between">
                     <div className="gap-2">
                         <p className="text-neutral-700 text-xl font-semibold tracking-tight">
@@ -83,15 +83,16 @@ export default function (props){
         <Modal skippable={false} showModal={showSkipModal} setShowModa={setShowSkipModal}>
             <div className="p-10">
                 <p className="text-neutral-700 text">
-                    If you skip this section you will not be able to track your expenses. 
+                    You can always set it up later. 
                 </p>
                 <div className=' mt-10 flex flex-wrap justify-between'>
                     <div className='w-fit'>
-                        <Button text='Ok' onClick={()=>setShowSkipModal(false)} />
+                        {/* <Button text='Ok' onClick={()=>setShowSkipModal(false)} /> */}
+                        <Button text='Ok' onClick={()=>navigate(`/${tenantId}/groups`)} />
                     </div>
-                    <div className='w-fit'>
+                    {/* <div className='w-fit'>
                         <HollowButton title='Skip For Now' showIcon={false} onClick={()=>navigate(`/${tenantId}/groups`)} />
-                    </div>
+                    </div> */}
                 </div>
             </div>
         </Modal>
