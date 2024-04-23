@@ -3,7 +3,8 @@ import amqp from 'amqplib'
 import dotenv from 'dotenv'
 import cancelTravelRequest from "./messageProcessor/trip.js";
 import {approveRejectLegItem, approveRejectTravelRequest} from "./messageProcessor/approval.js";
-import { updatePreferences } from "./messageProcessor/dashboard.js";
+import { updatePreferences, addALeg, updateBookingAdmin, updateFinanceAdmin } from "./messageProcessor/dashboard.js";
+
 
 dotenv.config()
 
@@ -120,6 +121,28 @@ export default async function startConsumer(receiver) {
                         console.log("update failed with error code", res.error);
                     }
                 }
+
+                if(action == 'update-booking-admin'){
+                    const res = await updateBookingAdmin(payload)
+                    if(res.success){
+                        console.log('message consumed successfully')
+                        channel.ack(msg)
+                    }
+                    else{
+                        console.log("update failed with error code", res.error);
+                    }
+                  }
+
+                  if(action == 'update-finance-admin'){
+                    const res = await updateFinanceAdmin(payload)
+                    if(res.success){
+                        console.log('message consumed successfully')
+                        channel.ack(msg)
+                    }
+                    else{
+                        console.log("update failed with error code", res.error);
+                    }
+                  }
             }
             
           },

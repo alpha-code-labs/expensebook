@@ -1,5 +1,5 @@
 import TravelRequest from "../models/travelRequest.js";
-import { sendToDashboardQueue } from "../rabbitMQ/publisher.js";
+import { sendToDashboardQueue, sendToOtherMicroservice } from "../rabbitMQ/publisher.js";
 
 //basic status UpdateBatchJob function...
 export async function statusUpdateBatchJob(){
@@ -29,6 +29,7 @@ export async function statusUpdateBatchJob(){
         if(res.length>0){
           // console.log(res)
           await sendToDashboardQueue(res, 'false', 'online')
+          sendToOtherMicroservice(res, 'Batch Job To Update all approved')
         }
         console.log(res.length, 'modified count')
 

@@ -221,8 +221,8 @@ const itinerarySchema = {
       location: String,
       locationPreference: String,
       class: String,
-      checkIn: String,
-      checkOut: String,
+      checkIn: Date,
+      checkOut: Date,
       checkInTime: String,
       checkOutTime: String,
       violations: {
@@ -242,8 +242,8 @@ const itinerarySchema = {
       bkd_location: String,
       bkd_locationPreference: String,
       bkd_class: String,
-      bkd_checkIn: String,
-      bkd_checkOut: String,
+      bkd_checkIn: Date,
+      bkd_checkOut: Date,
       bkd_checkInTime: String,
       bkd_checkOutTime: String,
       bkd_violations: {
@@ -281,7 +281,7 @@ const itinerarySchema = {
     {
       itineraryId: mongoose.Schema.ObjectId,
       formId: String,
-      date: String,
+      date: Date,
       class: String,
       time: String,
       pickupAddress: String,
@@ -334,7 +334,7 @@ const itinerarySchema = {
     {
       itineraryId: mongoose.Schema.ObjectId,
       formId: String,
-      date: String,
+      date: Date,
       class: String,
       time: String,
       pickupAddress: String,
@@ -387,7 +387,7 @@ const itinerarySchema = {
     {
       itineraryId: mongoose.Schema.ObjectId,
       formId: String,
-      date: String,
+      date: Date,
       time: String,
       from: String,
       to: String,
@@ -515,7 +515,7 @@ export const travelRequestSchema = new mongoose.Schema({
   travelBookingDate: Date,
   travelCompletionDate: Date,
   cancellationDate: Date,
-  travelRequestRejectionReason: String,
+  rejectionReason: String,
   isCancelled: Boolean,
   cancellationReason: String,
   isCashAdvanceTaken: Boolean,

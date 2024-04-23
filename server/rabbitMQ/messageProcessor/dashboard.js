@@ -44,3 +44,38 @@ export async function updatePreferences(payload /* */){
     }
 }
 
+
+export async function updateBookingAdmin(payload){
+    try{
+        const {travelRequestId, assignedTo} = payload;
+        
+        const res = await CashAdvance.updateOne({'travelRequestData.travelRequestId' : travelRequestId}, {$set: { 'travelRequestData.assignedTo' : assignedTo  }}) 
+        
+        if(res.matchedCount == 0) {
+            return {success: false, error: 'Travel Request not found'}
+        }
+
+        return {success: true, error: null}
+
+    }catch(e){
+        return {success: false, error:e}
+    }
+}
+
+export async function updateFinanceAdmin(payload){
+    try{
+        const {travelRequestId, assignedTo} = payload;
+        
+        const res = await CashAdvance.updateOne({'travelRequestData.travelRequestId' : travelRequestId}, {$set: { 'cashAdvancesData.assignedTo' : assignedTo }}) 
+        
+        if(res.matchedCount == 0) {
+            return {success: false, error: 'Travel Request not found'}
+        }
+
+        return {success: true, error: null}
+
+    }catch(e){
+        return {success: false, error:e}
+    }
+}
+

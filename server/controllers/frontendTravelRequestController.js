@@ -107,7 +107,7 @@ const createTravelRequest = async (req, res) => {
     //to do: validate tenantId, employeeId, some other as well
     const count = await TravelRequest.countDocuments({tenantId});
     const travelRequestId = new mongoose.Types.ObjectId()
-    const travelRequestNumber = createTravelRequestId(companyName, count) 
+    const travelRequestNumber = createTravelRequestId(companyName, count+1) 
     //fileds which will not be received in request
     const travelRequestDate = new Date().toISOString();
   
@@ -147,10 +147,10 @@ const createTravelRequest = async (req, res) => {
     });
 
     //update Travel Request container with newly created travel request
-    await newTravelRequest.save();
+    const savedNewTravelRequest = await newTravelRequest.save();
 
      //send data to rabbitmq
-     await sendToOtherMicroservice({...newTravelRequest}, 'To update newly created travel request in dashboard', 'dashboard')
+     await sendToOtherMicroservice(savedNewTravelRequest, 'To update newly created travel request in dashboard', 'dashboard')
 
     return res.status(201).json({ message: "Travel Request Created", travelRequestId});
   } catch (e) {
@@ -606,10 +606,12 @@ const updateTravelBookings = async (req, res)=>{
 
       //everything looks fine change status of each itinerary item to booked 
       itineraryTypes.forEach(itemType=>{
-        itinerary[itemType].forEach(item=>item.status = 'booked')
+        itinerary[itemType].forEach(item=>{
+          if(item.status == 'pending booking'){
+            item.status = 'booked'
+          }
+        })
       })
-
-      
 
       //change main travelRequest status to booked
       travelRequest.travelRequestStatus = 'booked'
@@ -670,7 +672,6 @@ const getBookingsInitialData = async (req, res)=>{
     // if(Object.keys(policies).length> 0){
     //   policies = Object.keys(policies).map(key=> policies[key])
     // }
-    
 
     const getPolicy = (group, policy, travelType)=>{
       let result = null
