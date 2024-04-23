@@ -42,15 +42,16 @@ export default function DateTime(props){
 
     const handleDateChange= (e)=>{
        setDateValue(e.target.value)
-       console.log(e.target.value)
+       console.log(e.target.value, 'date clicked...')
        setDateSelected(true)
        onDateChange(e)
     }
 
     const handleTimeChange= (e)=>{
+
         setTimeValue(e.target.value)
 
-        console.log(e.target.value)
+        console.log(e.target.value, 'time clicked...')
         onTimeChange(e)
     }
 
@@ -69,7 +70,7 @@ return(<>
             <div className="text-zinc-500 text-xs font-normal font-cabin">{title}</div>
             <div className="justify-start items-center gap-2 inline-flex cursor-pointer">
             <div className="flex relative w-full gap-4 items-center" >
-                <input className='slim absolute left-0 top-0 w-full h-full opacity-0 focus-visible:outline-0 cursor-pointer' onChange={handleDateChange} value={dateValue} min={getDateXDaysAway(Number(min))} type='date'/>
+                <input className='slim absolute left-0 top-0 w-full h-full opacity-0 focus-visible:outline-0 cursor-pointer' onChange={handleDateChange} value={dateValue}  type='date'/>
                 <div className="text-gray-700 bg-white whitespace-nowrap text-lg font-medium font-cabin">{formatDate(dateValue)}</div>
                 <div className="h-6 w-6">
                     <img src={chevron_down} alt="open" />

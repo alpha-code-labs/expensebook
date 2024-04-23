@@ -31,14 +31,14 @@ export default function({nextPage, formData, setFormData, setOnBoardingData}){
         {isLoading && <Error message={null}/> }
 
         {!isLoading && <>
-        <div className="w-full h-full relative bg-white md:px-24 md:mx-0 sm:px-0 sm:mx-auto py-12 select-none">
+        <div className="w-full h-full relative bg-white md:px-6 md:mx-0 sm:px-0 sm:mx-auto py-6 select-none">
         {/* app icon */}
         <div className='w-full flex justify-center  md:justify-start lg:justify-start'>
             <Icon/>
         </div>
 
         {/* Rest of the section */}
-        <div className="w-full h-full mt-10 p-10">
+        <div className="w-full h-full">
 
             <fieldset className='mt-4'>
                     <legend className='font-cabin mt-4 text-neutral-700 text-lg'>Select type of travel?</legend>

@@ -555,7 +555,6 @@ export default function BasicDetails(props){
                                     <EmpIdCol employees={teamMembers} />
                                     <NameCol employees={teamMembers}/>
                                     <DesignationCol employees={teamMembers}/>
-
                                 </>
                             }
 

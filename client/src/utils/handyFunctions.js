@@ -129,5 +129,6 @@ function formatDate(date=Date.now()) {
   }
     
   
+  
 
 export {titleCase, formatDate, formatDate2, formatDate3, camelCaseToTitleCase, titleCaseToCamelCase}

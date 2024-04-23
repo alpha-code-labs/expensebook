@@ -9,6 +9,7 @@ import Bookings from './pages/Bookings'
 import SelectTravelType from './pages/SelectTravelType';
 import NewItinerary from './pages/itinerary/NewItinerary';
 import React, { useState, useRef, useEffect } from 'react';
+import ModifiedItinerary from './pages/ModifiedItinerary'
 
 
 function App() {
@@ -20,7 +21,7 @@ function App() {
         <Route path='/bookings/:travelRequestId' element={<Bookings/>} />
         <Route path='/cancel/:travelRequestId' element={<CancelTravelRequest/>} />
         <Route path='/rejected/:travelRequestId' element={<ClearRejectedTravelRequest />} />
-        <Route path='/playground' element={<Crud />} />
+        <Route path='/playground' element={<ModifiedItinerary />} />
       </Routes>
     </Router>
   </>;

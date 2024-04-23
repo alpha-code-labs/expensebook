@@ -24,6 +24,9 @@ export default function (props){
     const cashAdvanceAllowed = onBoardingData.cashAdvanceAllowed
 
     const formData = props.formData
+    const tenantId = formData.tenantId 
+    const employeeId = formData.createdBy.empId 
+    
     const setFormData = props.setFormData  
     const [showPopup, setShowPopup] = useState(false)
     const [loadingErrMsg, setLoadingErrMsg] = useState(false)
@@ -48,9 +51,13 @@ export default function (props){
             setShowPopup(false)
         }    
         else{
-            //redirect to desktop
-            //navigate(DASHBOARD_URL)
-            setShowPopup(false)
+
+            //post message to close iframe
+            window.parent.postMessage('closeIframe', DASHBOARD_URL);
+           
+            // //redirect to desktop
+            // window.location.href = `${DASHBOARD_URL}/${tenantId}/${employeeId}/overview`
+            // setShowPopup(false)
         }
 
     }
@@ -72,7 +79,7 @@ export default function (props){
                 setRequestDrafted(true)
                 setTimeout(()=>{
                     //navigate to dashboard
-                    //navigate(DASHBOARD_URL)
+                    window.location.href = `${DASHBOARD_URL}/${tenantId}/${employeeId}/overview`
                     setShowSaveAsDraftPopup(false)   
                    }, 5000)
             }
@@ -137,7 +144,7 @@ export default function (props){
                                 <p className="w-[100px] text-neutral-600">Approvers:</p>
                                 <p className="text-neutral-700">{formData.approvers.length>0 ? formData.approvers.map(approver=>`${approver.name}, `) : 'N/A'}</p>
                             </div>
-                            {formData?.travelAllocationHeaders.length>0 && 
+                            {/* {formData?.travelAllocationHeaders.length>0 && 
                                 <div className="flex gap-2 font-cabin text-sm tracking-tight">
                                     <p className="w-[100px] text-neutral-600">Travel Allocations:</p>
                                     {(travelAllocationFlags.level1 || travelAllocationFlags.level2)  && <p className="text-neutral-700">{formData.travelAllocationHeaders.length>0 ? formData.travelAllocationHeaders.map(allocation=>`${allocation.headerName}:${allocation.headerValue}(${allocation?.percentage??100}%), `) : 'N/A'}</p>}
@@ -157,7 +164,7 @@ export default function (props){
                                                     )}
                                                 </>)
                                     })}</p>}
-                                </div>}
+                                </div>} */}
                         </div>
                     </div>
                 </div>

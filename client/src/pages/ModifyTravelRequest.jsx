@@ -34,6 +34,7 @@ export default function () {
         const travelRequestDetails = travel_res.data
         const travelType = travelRequestDetails.travelType
 
+
         const currentFormData = {
           travelRequestId: travelRequestDetails.travelRequestId,
           approvers: travelRequestDetails.approvers,
@@ -69,7 +70,7 @@ export default function () {
           ...travelRequestDetails /* other travel request details */
        }
 
-        const response = await getOnboardingData_API({tenantId:travelRequestDetails.tenantId, EMPLOYEE_ID:travelRequestDetails.createdBy.empId, travelType:travelRequestDetails.travelType})
+        const response = await getOnboardingData_API({tenantId:travelRequestDetails.tenantId, employeeId:travelRequestDetails.createdBy.empId, travelType:travelRequestDetails.travelType})
         if(response.err){
           setLoadingErrMsg(response.err)
           return

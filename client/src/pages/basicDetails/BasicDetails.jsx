@@ -14,9 +14,9 @@ import CloseButton from '../../components/common/closeButton'
 import PopupMessage from '../../components/common/PopupMessage'
 import Error from '../../components/common/Error'
 import { useQuery } from '../../utils/hooks'
+import { camelCaseToTitleCase } from '../../utils/handyFunctions'
 
 export default function BasicDetails(props){
-
     const query = useQuery()
     const travelType = props.formData.travelType
     const navigate = useNavigate()
@@ -56,6 +56,7 @@ export default function BasicDetails(props){
 
     //next page
     const nextPage = props.nextPage
+    console.log(nextPage, props.lastPage,  'nextPage - lastPage')
 
     //details of current employee
     
@@ -97,7 +98,7 @@ export default function BasicDetails(props){
             //     })
             // }
             
-            if(formData?.approvers?.length!=onBoardingData?.approvalFlow?.length){
+            if(onBoardingData.approvalFlow != null && formData?.approvers?.length!=onBoardingData?.approvalFlow?.length){
                 setErrors(pre=>{
                     return {...pre, approversError:{...pre.approversError, message:`Please select ${onBoardingData?.approvalFlow?.length} approver/s`, set:true}}
                 })
@@ -108,7 +109,7 @@ export default function BasicDetails(props){
                 })
             }
 
-            if(formData.tripPurpose==null || (formData?.approvers?.length != onBoardingData?.approvalFlow?.length)){
+            if(formData.tripPurpose==null || (onBoardingData.approvalFlow != null && formData?.approvers?.length != onBoardingData?.approvalFlow?.length)){
                 allowSubmit = false
             }
             else allowSubmit = true
@@ -124,7 +125,11 @@ export default function BasicDetails(props){
         console.log(formData)
         let allowSubmit = false
         //check required fields
+        console.log('checking required fields');
+
         allowSubmit = await checkRequiredFields()
+
+        console.log('submission allowed :', allowSubmit)
 
         setIsLoading(false)
 
@@ -437,14 +442,14 @@ export default function BasicDetails(props){
     return(<>
             {isLoading && <Error message={loadingErrMsg}/> }
             {!isLoading && <>
-            <div className="w-full h-full relative bg-white md:px-24 md:mx-0 sm:px-0 sm:mx-auto py-12 select-none">
+            <div className="w-full h-full relative bg-white md:px-6 md:mx-6 sm:px-6 sm:mx-auto py-6 select-none">
             {/* app icon */}
             <div className='w-full flex justify-center  md:justify-start lg:justify-start'>
                 <Icon/>
             </div>
 
             {/* Rest of the section */}
-            <div className="w-full h-full mt-10 p-10">
+            <div className="w-full h-full ">
                 {/* back link */}
                 <div className='flex items-center gap-4 cursor-pointer'>
                     <img className='w-[24px] h-[24px]' src={leftArrow_icon} onClick={()=>navigate(props.lastPage)} />
@@ -518,7 +523,7 @@ export default function BasicDetails(props){
                                     options={travelAllocations[index].headerValues}
                                     onSelect = {(option)=>{handleAllocationHeaderSelect(travelAllocations[index].headerName, option)}}
                                     placeholder={`Select ${travelAllocations[index].headerName}`} 
-                                    title={travelAllocations[index].headerName} />
+                                    title={camelCaseToTitleCase(travelAllocations[index].headerName)} />
                                 </>
                             )
                         })}

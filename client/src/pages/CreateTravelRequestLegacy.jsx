@@ -2,13 +2,12 @@ import { useState, useEffect, createContext, useMemo } from "react";
 import {BrowserRouter as Router, Routes, Route, useParams} from 'react-router-dom'
 import BasicDetails from "./basicDetails/BasicDetails";
 //import Itinerary from "./itinerary/Itinerary"
-import Itinerary from "./itinerary/NewItinerary";
+import Itinerary from "./itinerary/itineraryLegacy";
 import Review from "./review/Review"
 import { getOnboardingData_API } from "../utils/api";
 import Error from "../components/common/Error";
 import AllocateTravelObjects from './allocations/AllocateTravelObjects'
 import SelectTravelType from "./SelectTravelType";
-import ModifiedItinerary from "./ModifiedItinerary";
 import { generateUniqueIdentifier } from "../utils/uuid";
 
 export default function () {
@@ -71,27 +70,6 @@ export default function () {
     sentToTrip:false,
   })
 
-  const [currentFormState, setCurrentFormState] = useState({
-    isReturnTravel: false,
-    itinerary: [
-    {
-        formId: generateUniqueIdentifier(),
-        mode : 'flight',
-        from : '',
-        to : '',
-        date: new Date().toISOString,
-        returnDate: undefined,
-        hotelNights: '',
-        pickUpNeeded: false,
-        dropNeeded: false,
-        fullDayCabs: 0,
-        fullDayCabDates: [],
-        dateError:{set:false, message:null},
-        returnDateError:{set:false, message:null},
-        fromError: {set:false, message:null},
-        toError: {set:false, message:null},
-    }
-]});
 
   const [onBoardingData, setOnBoardingData] = useState()
 
@@ -138,21 +116,12 @@ useEffect(() => {
                                             onBoardingData={onBoardingData}
                                             lastPage={`/create/${tenantId}/${employeeId}/`}
                                             nextPage={`/create/${tenantId}/${employeeId}/section1`} />} />
-        {/* <Route path='/section1' element={<Itinerary 
-                                            formData={formData} 
-                                            setFormData={setFormData} 
-                                            onBoardingData={onBoardingData}
-                                            nextPage={onBoardingData?.travelAllocationFlags.level3 ?  `/create/${tenantId}/${employeeId}/allocations` : `/create/${tenantId}/${employeeId}/section2` }
-                                            lastPage={`/create/${tenantId}/${employeeId}/section0`} />} /> */}
-        <Route path='/section1' element={<ModifiedItinerary
-                                            currentFormState={currentFormState}
-                                            setCurrentFormState={setCurrentFormState}
+        <Route path='/section1' element={<Itinerary 
                                             formData={formData} 
                                             setFormData={setFormData} 
                                             onBoardingData={onBoardingData}
                                             nextPage={onBoardingData?.travelAllocationFlags.level3 ?  `/create/${tenantId}/${employeeId}/allocations` : `/create/${tenantId}/${employeeId}/section2` }
                                             lastPage={`/create/${tenantId}/${employeeId}/section0`} />} />
-
         <Route path='/allocations' element={<AllocateTravelObjects 
                                             formData={formData} 
                                             setFormData={setFormData} 

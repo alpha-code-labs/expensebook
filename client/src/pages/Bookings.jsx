@@ -13,7 +13,7 @@ import Tesseract from "tesseract.js";
 import { extractDateFromText, extractTotalAmountFromText2, extractVendorName } from "../utils/regex";
 import SlimDate from "../components/common/SlimDate";
 import TimePicker from "../components/common/TimePicker";
-import {getRawTravelRequest_API, updateRawTravelRequest_API, getTravelBookingOnboardingData_API, updateTravelBookings_API, uploadBill_API } from "../utils/api";
+import {getRawTravelRequest_API, getTravelBookingOnboardingData_API, updateTravelBookings_API, uploadBill_API } from "../utils/api";
 import { cab_icon, bus_icon, train_icon, biderectional_arrows_icon as double_arrow, calender_icon, clock_icon, airplane_icon, location_icon } from "../assets/icon";
 import CloseButton from "../components/common/closeButton";
 import Error from "../components/common/Error";
@@ -28,6 +28,7 @@ const blob_endpoint = import.meta.env.VITE_AZURE_BLOB_CONNECTION_URL
 
 
 console.log(import.meta.env.VITE_TRAVEL_API_URL)
+const DASHBOARD_URL = import.meta.env.VITE_DASHBOARD_URL
 
 const expenseCategories = {
     'flight' : [{name:'Vendor Name', id:'vendorName', toSet:'bookingDetails', type:'text'}, 

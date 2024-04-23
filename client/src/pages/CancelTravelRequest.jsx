@@ -14,7 +14,7 @@ import cab_icon from "../assets/cab-purple.svg"
 import double_arrow from '../assets/double-arrow.svg'
 import { getRawTravelRequest_API, updateRawTravelRequest_API, cancelTravelRequest_API } from "../utils/api";
 import { material_flight_black_icon, material_train_black_icon, material_bus_black_icon, material_cab_black_icon, material_car_rental_black_icon, material_hotel_black_icon, material_personal_black_icon } from "../assets/icon";
-import { calender_icon, location_icon , clock_icon} from "../assets/icon";
+import { left_arrow_icon, calender_icon, location_icon , clock_icon} from "../assets/icon";
 
 console.log(import.meta.env.VITE_TRAVEL_API_URL)
 
@@ -23,6 +23,9 @@ export default function () {
     const {travelRequestId} = useParams()
     const [showPopup, setShowPopup] = useState(false)
     const [message, setMessage] = useState(false)
+    const [tenantId, setTenantId] = useState(undefined)
+    const [employeeId, setEmployeeId] = useState(undefined)
+
     const [showConfimationForCancllingTR, setShowConfirmationForCancellingTr] = useState(false)
 
     const handleCancel = (type, formId, itemIndex, isReturn)=>{
@@ -139,7 +142,7 @@ export default function () {
         setTimeout(()=>{
             setShowPopup(false)
             //redirect to dashaboard
-            //window.location.href = DASHBOARD_URL
+            window.location.href = window.location.href = `${DASHBOARD_URL}/${tenantId}/${employeeId}/overview`
         },5000)
     }
 
@@ -160,7 +163,7 @@ export default function () {
         setTimeOut(()=>{
             setShowPopup(false)
             //redirect to dashboard
-            //window.location.href = DASHBOARD_URL
+            window.location.href = `${DASHBOARD_URL}/${tenantId}/${employeeId}/overview`
         },5000)
     }
 
@@ -179,6 +182,10 @@ export default function () {
             return
           }
           const travelRequestDetails = travel_res.data
+
+          setTenantId(travelRequestDetails.tenantId)
+          setEmployeeId(travelRequestDetails.createdBy.empId)
+
           console.log('form state got reset reset')
           setFormData({...travelRequestDetails})
           setIsLoading(false)
@@ -212,6 +219,13 @@ export default function () {
 
         {/* Rest of the section */}
         <div className="w-full h-full mt-10 p-10 font-cabin tracking-tight">
+            
+            {/* back link */}
+            <div className='flex items-center gap-4 cursor-pointer'>
+                <img className='w-[24px] h-[24px]' src={left_arrow_icon} onClick={()=>window.location.href = `${DASHBOARD_URL}/${tenantId}/${employeeId}/overview`} />
+                <p className='text-neutral-700 text-md font-semibold font-cabin'>Create travel request</p>
+            </div>
+
             <div className='flex justify-between'>
                 <p className="text-2xl text-neutral-600 mb-5">{`${formData.tripPurpose} Trip`}</p>
 

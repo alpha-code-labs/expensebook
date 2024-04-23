@@ -86,7 +86,7 @@ const dummyItinerary = {
 export default function({formData, setFormData, nextPage, lastPage, onBoardingData}){
 
     const [networkState, setNetworkState] = useState({isLoading:false, loadingErrMsg:null, isUploading:null})
-    const [errors, setErrors] = useState({flightsError:[], cabsError:[], carRentalsError:[], hotelsError:[], busessError:[], trainsError:[], modeOfTransitError:null, travelClassError:null})
+    const [errors, setErrors] = useState({flightsError:[], cabsError:[], carRentalsError:[], hotelsError:[], busesError:[], trainsError:[], modeOfTransitError:null, travelClassError:null})
     const [activeTab, setActiveTab] = useState('flight')
     const navigate = useNavigate()
     

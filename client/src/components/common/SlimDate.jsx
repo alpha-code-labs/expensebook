@@ -15,9 +15,10 @@ function getCurrentDate(){
 export default function SlimDate(props){
     const title = props.title || "Title";
     const min = props?.min??0
-    const date = props.date 
+    let date = props.date 
+    date = (date != undefined && date != null && !isNaN(new Date(date))) ? new Date(date).toISOString().split('T')[0] : getCurrentDate();
     const onChange = props.onChange
-    const [value, setValue] = useState(date || getCurrentDate());
+    const [value, setValue] = useState(date);
     const error = props.error || {set:false, message:''}
 
     function getDateXDaysAway(days) {

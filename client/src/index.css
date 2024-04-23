@@ -37,8 +37,8 @@
     color: black;
     padding-left: 0;
     cursor: pointer;
-    width: 100%;
-    height: 100%;
+    width: 18px;
+    height: 18px;
     background-image: url('./assets/calendar.svg');
 }
 
@@ -60,4 +60,9 @@
   width: 22px;
   height: 22px;
   background-image: url('./assets/calendar.svg');
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
 }
