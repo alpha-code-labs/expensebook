@@ -30,6 +30,7 @@ export {default as material_personal_white_icon} from './material-icons/outline_
 export {default as material_hotel_black_icon} from './material-icons/outline_hotel_black_48dp.png'
 export {default as material_hotel_white_icon} from './material-icons/outline_hotel_white_48dp.png'
 export {default as material_arrow_forward_white_icon} from './material-icons/outline_arrow_forward_white_48dp.png'
+export {default as minus_icon} from './minus.svg'
 //export {default as alert_circle_icon} from './alert-circle.svg';
 
 
