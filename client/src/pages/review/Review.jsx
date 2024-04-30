@@ -18,6 +18,8 @@ export default function (props){
     //next and last pages
     const nextPage = props.nextPage
     const lastPage = props.lastPage
+    const currentFormState = props.currentFormState;
+    console.log(currentFormState, 'current form state from review...')
     
     const onBoardingData = props.onBoardingData
     const travelAllocationFlags = onBoardingData.travelAllocationFlags
@@ -70,7 +72,7 @@ export default function (props){
             console.log('sending call')
             setShowSaveAsDraftPopup(true)
             setRequestDrafted(false)
-            const res = await updateTravelRequest_API({travelRequest:{...formData,  isCashAdvanceTaken:false}, submitted:false})
+            const res = await updateTravelRequest_API({travelRequest:{...formData, formData:currentFormState,  isCashAdvanceTaken:false}, submitted:false})
             if(res.err){
                 setLoadingErrMsg(res.err)
                 return
@@ -95,7 +97,7 @@ export default function (props){
             console.log('sending call')
             setShowPopup(true)
             setRequestSubmitted(false)
-            const res = await updateTravelRequest_API({travelRequest:{...formData,  isCashAdvanceTaken:false}, submitted:true})
+            const res = await updateTravelRequest_API({travelRequest:{...formData, formData:currentFormState,  isCashAdvanceTaken:false}, submitted:true})
             
             if(res.err){
                 setLoadingErrMsg(res.err)
