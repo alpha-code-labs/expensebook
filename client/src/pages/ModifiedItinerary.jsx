@@ -12,6 +12,7 @@ import Button from "../components/common/Button";
 import { useNavigate } from "react-router-dom";
 import NewItinerary from "./itinerary/NewItinerary";
 import {motion} from 'framer-motion';
+import { minus_icon } from "../assets/icon";
 
 export default function ModifiedItinerary({formData, setFormData, nextPage, lastPage, currentFormState, setCurrentFormState}){
 
@@ -28,10 +29,11 @@ export default function ModifiedItinerary({formData, setFormData, nextPage, last
     useEffect(() => {
         datesDropdownParentRef.current = datesDropdownParentRef.current.slice(0, currentFormState.itinerary.length);
         datesDropdownRef.current = datesDropdownRef.current.slice(0, currentFormState.itinerary.length);
-
     }, [currentFormState.itinerary.length]);
 
-
+    useEffect(()=>{
+        console.log(currentFormState, 'current form state...')
+    },[currentFormState])
 
     //handle outside clicks for mode dropdown
     // useEffect(() => {
@@ -136,13 +138,12 @@ export default function ModifiedItinerary({formData, setFormData, nextPage, last
         //get last itinerary leg
         const lastItem = newFormState.itinerary[newFormState.itinerary.length-1]
 
-
         newFormState.itinerary.push({
             formId: newFormState.itinerary.length+1 + generateUniqueIdentifier(),
             mode : lastItem.mode,
             from : lastItem.to,
             to : '',
-            date: lastItem.date??new Date().toISOString(),
+            date: lastItem.returnDate??lastItem.date??new Date().toISOString(),
             returnDate: undefined,
             hotelNights: 0,
             pickUpNeeded: lastItem.dropNeeded??false,
@@ -155,7 +156,57 @@ export default function ModifiedItinerary({formData, setFormData, nextPage, last
             toError: {set:false, message:null},
         })
 
+        lastItem.returnDate = undefined;
+
         setCurrentFormState(newFormState)
+    }
+
+    const adjustMultiCityChanges = (formState)=>{
+        const newFormState = JSON.parse(JSON.stringify(formState));
+        
+        newFormState.itinerary.forEach((item,ind)=>{
+            if(ind == newFormState.itinerary.length-1){
+                item.dropNeeded = false;
+                item.hotelNights = 0;
+                item.fullDayCabs = 0;
+                item.fullDayCabDates = [];
+                item.returnDate = undefined;
+            }else{
+                if(item.date != undefined && newFormState.itinerary[ind+1].date!=undefined){
+                    const dateDiff = dateDiffInDays(item.date, newFormState.itinerary[ind+1].date);
+                    if(dateDiff > 0){
+                        item.hotelNights = dateDiff;
+                        item.fullDayCabs = dateDiff;
+                        item.fullDayCabDates = getAllDates(item.data, newFormState.itinerary[ind+1].date);
+                        newFormState.itinerary[ind+1].from = item.to??newFormState.itinerary[ind+1].from??'';
+                    }else{
+                        item.hotelNights = 0;
+                        item.fullDayCabs = 0;
+                        item.fullDayCabDates = [];   
+                        newFormState.itinerary[ind+1].from = item.to??newFormState.itinerary[ind+1].from??'';
+                    }
+                }else{
+                    item.hotelNights = 0;
+                    item.fullDayCabs = 0;
+                    item.fullDayCabDates = []; 
+                    newFormState.itinerary[ind+1].from = item.to??newFormState.itinerary[ind+1].from??'';  
+                }
+            }
+        })
+
+        if(newFormState.itinerary.length < 2 ){
+            setOneWayTrip(true)
+            setRoundTrip(false)
+            setMultiCityTrip(false)
+            newFormState.isReturnTravel = false;
+        }
+        setCurrentFormState(newFormState);
+    }
+
+    const removeCity = (index)=>{   
+        const newFormState = JSON.parse(JSON.stringify(currentFormState));
+        newFormState.itinerary = newFormState.itinerary.filter((_,ind)=> ind != index);
+        adjustMultiCityChanges(newFormState);
     }
 
     const updateDepartureDate = (formId, newDate)=>{
@@ -351,6 +402,7 @@ export default function ModifiedItinerary({formData, setFormData, nextPage, last
                 newFormState.itinerary[0].fullDayCabs = 0;
                 newFormState.itinerary[0].fullDayCabDates = 0;
                 setCurrentFormState(newFormState)
+
                 addAnotherCity();
                 return
             }
@@ -407,6 +459,8 @@ export default function ModifiedItinerary({formData, setFormData, nextPage, last
             personalVehicles:[],
         };
 
+        let count = 0;
+
         if(oneWayTrip){
             const item = currentFormState.itinerary[0];
             const mode = item.mode;
@@ -415,29 +469,36 @@ export default function ModifiedItinerary({formData, setFormData, nextPage, last
             const to = item.to;
             console.log(getMode(mode))
 
+            if(item.pickUpNeeded){
+                itinerary.cabs.push({...dummyCabs,
+                    sequence:++count,
+                    formId:item.formId,
+                    pickupAddress: 'predefined',
+                    dropAddress : getPlatform(mode),
+                    date,
+                    type:'pickup',
+                })
+            }
+
             itinerary[getMode(mode)].push({
                 ...getDummy(mode), 
+                sequence:++count,
                 approvers:formData.approvers, 
                 from,
                 date,
                 to,
                 formId:item.formId})
             
-            if(item.pickUpNeeded){
-                itinerary.cabs.push({...dummyCabs,
-                    formId:item.formId,
-                    pickupAddress: 'predefined',
-                    dropAddress : getPlatform(mode),
-                    date,
-                })
-            }
+            
 
             if(item.dropNeeded){
                 itinerary.cabs.push({...dummyCabs,
                     formId:item.formId,
+                    sequence:++count,
                     pickupAddress: getPlatform(mode),
                     dropAddress : 'Hotel',
                     date,
+                    type:'drop',
                 })
             }
 
@@ -453,44 +514,42 @@ export default function ModifiedItinerary({formData, setFormData, nextPage, last
 
             console.log(getMode(mode))
 
+            if(item.pickUpNeeded){
+                itinerary.cabs.push({...dummyCabs,
+                    approvers:formData.approvers,
+                    formId:item.formId,
+                    sequence:++count,
+                    pickupAddress: 'predefined',
+                    dropAddress : `${from} ${getPlatform(mode)}`,
+                    date,
+                    type:'pickup',
+                })
+            }
+
             itinerary[getMode(mode)].push({
                 ...getDummy(mode), 
+                sequence:++count,
                 approvers:formData.approvers, 
                 from,
                 date,
                 to,
                 formId:item.formId})
 
-            itinerary[getMode(mode)].push({
-                ...getDummy(mode), 
-                approvers:formData.approvers, 
-                from:to,
-                date:returnDate,
-                to:from,
-                formId:item.formId})
-            
-            if(item.pickUpNeeded){
-                itinerary.cabs.push({...dummyCabs,
-                    approvers:formData.approvers,
-                    formId:item.formId,
-                    pickupAddress: 'predefined',
-                    dropAddress : `${from} ${getPlatform(mode)}`,
-                    date,
-                })
-            }
-
             if(item.dropNeeded){
                 itinerary.cabs.push({...dummyCabs,
+                    sequence:++count,
                     approvers:formData.approvers,
                     formId:item.formId,
                     pickupAddress: `${to} ${getPlatform(mode)}`,
                     dropAddress : `Hotel in ${to}`,
                     date:returnDate,
+                    type:'drop',
                 })
             }
 
             if(item.hotelNights > 0){
                 itinerary.hotels.push({...dummyHotel,
+                    sequence:++count,
                     approvers:formData.approvers,
                     formId: item.formId,
                     location: item.to,
@@ -498,6 +557,16 @@ export default function ModifiedItinerary({formData, setFormData, nextPage, last
                     checkOut: item.returnDate,  
                 })
             }
+            
+
+            itinerary[getMode(mode)].push({
+                ...getDummy(mode), 
+                sequence:++count,
+                approvers:formData.approvers, 
+                from:to,
+                date:returnDate,
+                to:from,
+                formId:item.formId})
 
         }
         if(multiCityTrip){
@@ -508,17 +577,12 @@ export default function ModifiedItinerary({formData, setFormData, nextPage, last
                 const to = item.to;
                 console.log(getMode(mode))
 
-                itinerary[getMode(mode)].push({
-                    ...getDummy(mode), 
-                    approvers:formData.approvers, 
-                    from,
-                    date,
-                    to,
-                    formId:item.formId})
+
 
                     if(ind == 0){
                         if(item.pickUpNeeded){
                             itinerary.cabs.push({...dummyCabs,
+                                sequence:++count,
                                 approvers:formData.approvers,
                                 formId:item.formId,
                                 pickupAddress: 'predefined',
@@ -531,39 +595,55 @@ export default function ModifiedItinerary({formData, setFormData, nextPage, last
                         if(ind+1 == currentFormState.itinerary.length){
                             if(item.pickUpNeeded){
                                 itinerary.cabs.push({...dummyCabs,
+                                    sequence:++count,
                                     approvers:formData.approvers,
                                     formId:item.formId,
                                     pickupAddress: `Hotel in ${from}`,
                                     dropAddress : `${from} ${getPlatform(mode)}`,
                                     date,
+                                    type:'pickup',
                                 })
                             }
                         }
                         else{
                             if(item.pickUpNeeded){
                                 itinerary.cabs.push({...dummyCabs,
+                                    sequence:++count,
                                     approvers:formData.approvers,
                                     formId:item.formId,
                                     pickupAddress: `Hotel in ${from}`,
                                     dropAddress : `${from} ${getPlatform(mode)}`,
                                     date,
+                                    type:'pickup',
                                 })
                             }
                         }
                     }
+
+                    itinerary[getMode(mode)].push({
+                        ...getDummy(mode), 
+                        sequence: ++count,
+                        approvers:formData.approvers, 
+                        from,
+                        date,
+                        to,
+                        formId:item.formId})
                     
                     if(item.dropNeeded){
                         itinerary.cabs.push({...dummyCabs,
+                            sequence:++count,
                             approvers:formData.approvers,
                             formId:item.formId,
                             pickupAddress: `${to} ${getPlatform(mode)}`,
                             dropAddress : `Hotel in ${to}`,
                             date,
+                            type:'drop',
                         })
                     }
-        
+
                     if(item.hotelNights > 0){
                         itinerary.hotels.push({...dummyHotel,
+                            sequence:++count,
                             approvers:formData.approvers,
                             formId: item.formId,
                             location: item.to,
@@ -572,12 +652,12 @@ export default function ModifiedItinerary({formData, setFormData, nextPage, last
                             checkOut: currentFormState.itinerary[ind+1].date,  
                         })
                     }
-                
+        
             })
         }
 
 
-        setFormData(pre=>({...pre, itinerary}))
+        setFormData(pre=>({...pre, tripType:{oneWayTrip, roundTrip, multiCityTrip}, itinerary}))
         
         //redirect to next page
         navigate(nextPage);
@@ -585,24 +665,6 @@ export default function ModifiedItinerary({formData, setFormData, nextPage, last
         console.log(itinerary)
     }
 
-    const handleFullDayCabDates = (formId, date)=>{
-        const newFormState = JSON.parse(JSON.stringify(currentFormState));
-        const item = newFormState.itinerary.find(itm=>itm.formId == formId);
-        
-        console.log(date, 'incoming date');
-
-        if(item.fullDayCabDates.includes(date)){
-            console.log('date is already present')
-            item.fullDayCabDates = item.fullDayCabDates.filter(d=>d != date);
-        }else{
-            console.log('date not present')
-            item.fullDayCabDates.push(date);
-        }
-        
-        item.fullDayCabs = item.fullDayCabDates.length;
-
-        setCurrentFormState(newFormState)
-    }
 
     let firstTime = true;
 
@@ -612,34 +674,22 @@ export default function ModifiedItinerary({formData, setFormData, nextPage, last
 
     const [fullDayCabDropdown, setFullDayCabDropdown] = useState({visible:false, x:null, y:null, dates:[]})
 
-    const handleFullDayDropdown = (e, startDate, endDate, itemIndex)=>{
-
-        const parentRef = datesDropdownParentRef.current[itemIndex];
-        const targetRef = datesDropdownRef.current[itemIndex];
-
-        console.log(parentRef, 'parent ref')
-
-        const x = e.pageX;
-        const y = e.pageY;
-        const dates = getAllDates(startDate, endDate)
-        setFullDayCabDropdown(pre=>({visible:!pre.visible, x, y, dates}))
-
-        const handleClick = (event) => {
-            event.stopPropagation()
-            if (parentRef.current && targetRef.current && !target.current.contains(event.target) && !parentRef.current.contains(event.target)) {
-                setFullDayCabDropdown(pre=>({...pre, visible:false}))
-                console.log('removing dropdown because of outside click')
-                document.removeEventListener("click", handleClick)
-            }
-          };
-
-        document.addEventListener("click", handleClick)
-    
-    }
+    const list = { hidden: { opacity: 0 }, visible: {opacity: 1} }
+    const itm = { hidden: { y: -10, opacity: 0 }, visible:{y:0, opacity:1} }
 
     return(<>
         
-        <div className="p-10 border border-sm rounded-xl w-[90%] mx-auto mt-10">
+        <motion.div
+             initial={{
+                marginTop:'-100px'
+            }}
+            animate={{
+                marginTop:'40px'
+            }}
+            transition={{
+                ease : 'linear',
+            }} 
+            className="p-10 border border-sm rounded-xl w-[90%] mx-auto mt-10">
 
         {<div className="w-fit h-6 justify-start items-center gap-4 inline-flex mt-5">
             <div onClick={()=>{selectTripType('oneWay')}} className={`${ oneWayTrip? 'text-zinc-100 bg-indigo-600 px-2 py-1 rounded-xl' : 'text-zinc-500' } text-xs font-medium font-cabin cursor-pointer`}>One Way </div>
@@ -649,48 +699,60 @@ export default function ModifiedItinerary({formData, setFormData, nextPage, last
 
         <hr className="my-2" />
 
-        {currentFormState.itinerary.map((item, itemIndex)=>(<div className="gap-4 items-center flex">
+        <motion.div variants={list} initial={'hidden'} animate={'visible'} className="overflow-x-scroll no-scroll flex flex-col gap-4">
+        {currentFormState.itinerary.map((item, itemIndex)=>(<motion.div variants={itm} className="gap-4 items-center flex">
 
-            <div key={item.formId} className="flex items-end gap-2 overflow-x-scroll no-scroll">
+            <div key={item.formId} className="flex items-end gap-2">
+                {multiCityTrip && <div className="h-[45px] w-4 flex items-center">
+                    {itemIndex!=0 && <div onClick={()=>removeCity(itemIndex)} className="group relative rounded-full p-1 flex items-center justify-center font-lg text-neutral-700 border border-md w-4 h-4 hover:cursor-pointer hover:scale-105 hover:z-[100]">
+                        <img src={minus_icon} className="w-4 h-4" />
+                        <motion.div initial={{widht: '0px', height:'0px'}} animate={{widht:'auto', height:'auto'}} className="absolute -top-8 left-2 rounded-md px-2 py-1 bg-gray-800 text-gray-200 text-xs z-[10] font-cabin hidden scale-0 group-hover:block group-hover:origin-bottom-left group-hover:scale-100">Remove</motion.div>
+                    </div>}
+                    {itemIndex==0 && <div className="w-4 h-4 p-1" />}
+                </div>}
                 <Mode onChange={(mode)=>updateMode(item.formId, mode)} />
 
                 <Input 
+                    showLocationSymbol={true}
                     value={item.from}
                     onChange={(e)=>updateDepartureCity(item.formId, e.target.value)}
                     title={'Leaving from?'}
                     placeholder={'City'} />
 
                 <SlimDate 
+                    format='date-month'
+                    showLocationSymbol={true}
                     date={item.date}
                     error = {item.dateError}
                     title={'On?'} 
                     onChange={(e)=>updateDepartureDate(item.formId, e.target.value)}/>
 
                 <Input 
+                    showLocationSymbol={true}
                     value={item.to}
                     onChange={(e)=>updateArrivalCity(item.formId, e.target.value)}
                     title={'Where to?'}
                     placeholder={'City'} />
 
-                {roundTrip && <SlimDate value={item.returnDate} error = {item.returnDateError} onChange={(e)=>updateArrivalDate(item.formId, e.target.value)} title={'Returning on?'}/>}
+                {roundTrip && <SlimDate format='date-month' value={item.returnDate} error = {item.returnDateError} onChange={(e)=>updateArrivalDate(item.formId, e.target.value)} title={'Returning on?'}/>}
 
                 {<>
                     {(currentFormState.itinerary.length != itemIndex+1 || roundTrip) && <div className="h-[73px] font-cabin text-zinc-600 flex flex-col gap-2 text-sm">
                         <p className="whitespace-nowrap">Hotel</p>
-                        <p className="h-[45px] py-2 whitespace-nowrap">{`${item.hotelNights} nights`}</p>
+                        <p className="h-[45px] py-2 whitespace-nowrap  flex items-center">{`${item.hotelNights} nights`}</p>
                     </div>}
 
                     <div className="h-[73px] font-cabin text-zinc-600 flex flex-col gap-2 text-sm">
                         <p className="whitespace-nowrap">Pick-up</p>
-                        <div className="h-[45px] px-6 py-2 whitespace-nowrap">
-                            <input type="checkbox" id={item.formId} name={`pickup_${item.formId}`} value={`pickup_${item.formId}`} checked={item.pickUpNeeded} onClick={()=>{updateNeedPickup(item.formId, !item.pickUpNeeded)} } />
+                        <div className="h-[45px] px-4  whitespace-nowrap items-center flex">
+                            <input className="w-4 h-4 rounded-sm hover:cursor-pointer" type="checkbox" id={item.formId} name={`pickup_${item.formId}`} value={`pickup_${item.formId}`} checked={item.pickUpNeeded} onClick={()=>{updateNeedPickup(item.formId, !item.pickUpNeeded)}} readOnly />
                         </div>
                     </div>
 
                     {(currentFormState.itinerary.length != itemIndex+1 || roundTrip) && <div className="h-[73px] font-cabin text-zinc-600 flex flex-col gap-2 text-sm">
                         <p className="whitespace-nowrap">Drop-off</p>
-                        <p className="h-[45px] px-6 py-2 whitespace-nowrap">
-                            <input type="checkbox" id={item.formId} name={`dropoff_${item.formId}`} value={`dropoff_${item.formId}`} checked={item.dropNeeded} onClick={()=>updateNeedDropoff(item.formId, !item.dropNeeded)} />
+                        <p className="h-[45px] px-6 whitespace-nowrap flex items-center">
+                            <input className="w-4 h-4 hover:cursor-pointer" type="checkbox" id={item.formId} name={`dropoff_${item.formId}`} value={`dropoff_${item.formId}`} checked={item.dropNeeded} onClick={()=>updateNeedDropoff(item.formId, !item.dropNeeded)} readOnly />
                         </p>
                     </div>}
 
@@ -704,18 +766,18 @@ export default function ModifiedItinerary({formData, setFormData, nextPage, last
 
             </div>
 
-        </div>))}
+        </motion.div>))}
+        </motion.div>
 
         {multiCityTrip && <p className="w-fit text-indigo-600 hover:text-indigo-500 hover:cursor-pointer" onClick={addAnotherCity}>Add More +</p>}
 
-        </div>
+        </motion.div>
 
         <div className="mt-6 ml-[15%]">
             <Button text='Continue' variant='fit' onClick={handleContinue} />
         </div>
     </>);
 }
-
 
 function FullDayCabs({currentFormState, setCurrentFormState, itemIndex, roundTrip}){
 
@@ -733,14 +795,30 @@ function FullDayCabs({currentFormState, setCurrentFormState, itemIndex, roundTri
             setFullDayCabDropdown(pre=>({...pre, visible:false}))
           }
         };
-        document.addEventListener("click", handleClick)
+
+        const handleScroll = (event)=>{
+            console.log('scrolling...')
+            event.stopPropagation()
+            if (dropdownRef.current && dropdownParentRef.current && !dropdownParentRef.current.contains(event.target) && !dropdownRef.current.contains(event.target)) {
+                console.log('scrolled outside')
+                setFullDayCabDropdown(pre=>({...pre, visible:false}))
+              }
+        }
+
+        if(fullDayCabDropdown.visible){
+            console.log('adding event listeners..')
+            document.addEventListener("click", handleClick)
+            document.addEventListener("scroll", handleScroll);
+        }
+        
   
         return () => {
-          console.log('removing dropdown')
+          console.log('removing fullDayCabs dropdown listeners')
           document.removeEventListener("click", handleClick)
+          document.removeEventListener("scroll", handleScroll)
         }
   
-      }, []);
+      }, [fullDayCabDropdown.visible]);
 
 
     const handleFullDayCabDates = (formId, date)=>{
@@ -763,8 +841,11 @@ function FullDayCabs({currentFormState, setCurrentFormState, itemIndex, roundTri
     }
 
     const handleFullDayDropdown = (e, startDate, endDate, itemIndex)=>{
-        const x = e.pageX;
-        const y = e.pageY;
+        console.log(dropdownParentRef.current.getBoundingClientRect())
+        const parentBounderies =  dropdownParentRef.current.getBoundingClientRect();
+        const x = parentBounderies.x;
+        const y = parentBounderies.y;
+
         const dates = getAllDates(startDate, endDate)
         setFullDayCabDropdown(pre=>({visible:!pre.visible, x, y, dates}))
 
@@ -787,15 +868,16 @@ function FullDayCabs({currentFormState, setCurrentFormState, itemIndex, roundTri
         }}
         className="h-[73px] font-cabin text-zinc-600 flex flex-col gap-2 text-sm">
             <p className="whitespace-nowrap">Full Day Cabs</p>
-            <p ref={dropdownParentRef} className="h-[45px] py-2 whitespace-nowrap px-2 border border-m border-neutral-100 rounded-md cursor-pointer" onClick={(e)=>handleFullDayDropdown(e, item.date, roundTrip? item.returnDate : currentFormState.itinerary[itemIndex+1].date, itemIndex)}>{item.fullDayCabs}</p>
-            {fullDayCabDropdown.visible && <div ref={dropdownRef} style={{left:`calc(${fullDayCabDropdown.x}px - 55px)`, top:`${fullDayCabDropdown.y+16}px`}} className={`dropdown fixed w-[110px] bg-white rounded z-[101] shadow-xl cursor-pointer`}>
-                <p className="py-2 font-cabin text-neutral-600 px-2">Select Dates:</p>
-                <motion.ul  variants={list} initial='hidden' animate='visible' className="flex flex-col divide-y gap-2 px-2 overflow-y-scroll no-scroll h-[140px]">
-                    {fullDayCabDropdown.dates.map(d=>(<div className="flex justify-between items-center" onClick={()=>handleFullDayCabDates(item.formId, d)}>
-                        <motion.li variants={itm} className="font-cabin pt-2 text-neutral-600  divided-y ">
+            <p ref={dropdownParentRef} className="h-[45px] w-[100px] py-2 whitespace-nowrap px-6 border border-m border-neutral-100 rounded-md cursor-pointer flex items-center" onClick={(e)=>handleFullDayDropdown(e, item.date, roundTrip? item.returnDate : currentFormState.itinerary[itemIndex+1].date, itemIndex)}>{`${item.fullDayCabs} days`}</p>
+            {fullDayCabDropdown.visible && <div ref={dropdownRef} style={{left:`${fullDayCabDropdown.x}px`, top:`${fullDayCabDropdown.y + 47}px`}} className={`dropdown fixed w-[100px] bg-white rounded z-[101] shadow-xl cursor-pointerp py-2`}>
+                <p className="py-2 font-cabin text-neutral-500 px-2  rounded-t">Select Dates:</p>
+                <hr className="bg-indigo-600"/>
+                <motion.ul  variants={list} initial='hidden' animate='visible' className="flex flex-col divide-y overflow-y-scroll no-scroll h-[140px]">
+                    {fullDayCabDropdown.dates.map(d=>(<div className="py-2 px-2 cursor-pointer font-cabin text-neutral-600 hover:shadow-inner hover:text-neutral-400" onClick={()=>handleFullDayCabDates(item.formId, d)}>
+                        <motion.li variants={itm} className="divided-y flex justify-between">
                             {formatDate3(d)}
+                            <input className="cursor-pointer" type="checkbox" checked={item.fullDayCabDates.length>0 ? item.fullDayCabDates.includes(d) : false} readOnly />
                         </motion.li>
-                            <input type="checkbox" checked={item.fullDayCabDates.length>0 ? item.fullDayCabDates.includes(d) : false} readOnly/>
                         </div>))}
 
                 </motion.ul>
