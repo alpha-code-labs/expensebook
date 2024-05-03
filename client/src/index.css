@@ -1,0 +1,39 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400&display=swap");
+@import url('https://fonts.googleapis.com/css2?family=Assistant&display=swap');
+@import url("https://db.onlinewebfonts.com/c/46e885a2daa7fa6107c52c32b02cc08c?family=Extatica-Regular");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities{
+
+  .gradient-text {
+      @apply  text-transparent  bg-clip-text bg-gradient-to-r from-blue-200 to-sky-blue
+  }
+}
+
+@keyframes moveRightToLeft {
+  0% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(-100%);
+    
+  }
+}
+
+
+.animate-moveRightToLeft {
+  animation: moveRightToLeft 20s linear infinite;
+} 
+
+
+
+
+*{
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  scroll-behavior: smooth;
+}
