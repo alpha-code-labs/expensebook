@@ -179,7 +179,10 @@ function formatDate(date=Date.now()){
 
   function filterTravelRequests(travelRequests) {
     let map = new Map();
-
+    
+  if (!travelRequests){
+    return [];
+  }
     travelRequests.forEach(request => {
         const { travelRequestId, isCashAdvanceTaken } = request;
         if (isCashAdvanceTaken || !map.has(travelRequestId)) {

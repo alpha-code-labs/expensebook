@@ -20,6 +20,7 @@ import { getEmployeeData_API, getEmployeeRoles_API, logoutApi } from './utils/ap
 import { handleLoginPageUrl } from './utils/actionHandler';
 import Profile from './pages/Profile';
 import Error from './components/common/Error';
+import TravelMS from './pages/TravelMS';
 
 
 function App() {
@@ -173,7 +174,12 @@ function App() {
               path="/:tenantId/:empId/profile"
               element={<Profile setAuthToken={setAuthToken} />}
             />
+            {/* <Route
+              path="/create/:tenantId/:empId"
+              element={<TravelMS setAuthToken={setAuthToken} />}
+            /> */}
           </Routes>
+          
           </div>
         </div>
        

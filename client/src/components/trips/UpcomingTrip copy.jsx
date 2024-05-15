@@ -97,7 +97,7 @@ transitTripData && transitTripData?.map((item, index) => (
    <React.Fragment key={index}>
 <div className={`h-[320px] px-4 py-1 bg-[length:490px_322px]  rounded-lg `} style={{backgroundImage: `url(${briefcaseMap})`, width: '500px',}}>
 {/* <img src={briefcaseMap} className='absolute h-[370px] w-full border border-red-500 z-20'></img> */}
-<div className='  mt-14 h-[250px]     flex flex-col rounded-lg bg-white-100   ' >
+<div className='  mt-14  h-[250px]      flex flex-col rounded-lg bg-white-100' >
 <div className=' flex flex-row justify-between w-full  pt-[3px] px-2'>
         <div className='flex gap-2 flex-row items-center justify-start text-center'>
             <div className={`py-[2px] px-2 rounded-xl cursor-pointer hover:bg-purple-300 hover:text-white-100  ${activeTabs?.[index]=== "Trip" ? ' font-medium bg-purple-100  text-indigo-600 text-xs rounded-xl':"bg-white-100 font-medium  text-xs  "}`} onClick={() => handleTabChange(index, "Trip")}>
@@ -161,8 +161,7 @@ transitTripData && transitTripData?.map((item, index) => (
         <div className='flex flex-row justify-between items-center  font-cabin '>
         <div className='px-2 w-full font-medium text-lg text-neutral-700  rounded-t-md'>
           {item?.tripPurpose}
-        </div>
-             
+        </div>     
 </div>
 <div className='h-[150px] w-[450px] overflow-y-auto rounded-b-md py-1 px-2'>
  <div className=" flex flex-col py-1">
@@ -346,10 +345,9 @@ handleTravelExpense={handleTravelExpense}
 </div>
         </React.Fragment>
       ))) : (
-      <div className="rounded-md w-[487px] h-[310px] flex flex-col gap-4 self-stretch border  border-slate-300  items-center justify-center  text-sm">
+    <div className="rounded-md w-[487px] h-[310px] flex flex-col gap-4 self-stretch border  border-slate-300  items-center justify-center  text-sm">
       <img src={intransit_trip} alt="NoTrip" className='A animate-pulse'/>
-      <h2 className='text-lg font-cabin text-neutral-600'>We are awaiting your first Trip</h2>
-      
+      <h2 className='text-lg font-cabin text-neutral-600'>We are awaiting your first Trip.</h2>
     </div>
       )}
 </div>

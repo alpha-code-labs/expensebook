@@ -84,7 +84,7 @@ const Sidebar = ({ fetchData }) => {
 
     const sidebarItems = [
         { label: 'Overview', icon: house_simple, icon1: house_simple_1, url: '', count: '' },
-        { label: 'Travel', icon: airplane_1, icon1: airplane_icon1, url: '', count: countData?.rejectedCashAdvances },
+        { label: 'Travel', icon: airplane_1, icon1: airplane_icon1, url: '', count: countData?.rejectedTravelRequests },
         { label: 'Cash-Advance', icon: money, icon1: money1, url: '', count: countData?.rejectedCashAdvances },
         { label: 'Expense', icon: receipt, icon1: receipt_icon1, url: '', count: "" },
     ];
@@ -127,9 +127,12 @@ const Sidebar = ({ fetchData }) => {
                             {item?.label}
                         </div>
                         {item?.count > 0 &&
-                            <div className={`${activeIndex === index ? 'text-purple-500 bg-white-100 font-semibold' : "text-white-100 "} w-6 h-6 flex font-inter rounded-full bg-indigo-600   float-right items-center justify-center text-xs  font-medium `}>
-                                <p > {item?.count}</p>
-                            </div>}
+                            <div className={`${activeIndex === index ? 'text-purple-500 bg-white-100 font-semibold' : "text-white-100 "} w-6 h-6 flex font-inter rounded-full bg-indigo-600  items-center justify-center float-right  text-xs  font-medium `}>
+                                <p className=''> {item?.count}</p>
+                        </div>}
+                            
+
+
                     </div>
                 </Link>
             ))}

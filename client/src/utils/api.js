@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 
-const DASHBOARD_BACKEND_API_URL = import.meta.env.DASHBOARD_BACKEND_API_URL;
+const DASHBOARD_BACKEND_API_URL = import.meta.env.VITE_DASHBOARD_BACKEND_API_URL;
 
 const retry = 2;
 const retryDelay = 3000;
@@ -86,7 +86,7 @@ export const getEmployeeData_API = async (tenantId,empId) => {
     return { data: null, error: errorObject };
   }
 };
-const LOGINBASEURL ='http://localhost:9001'
+const LOGINBASEURL = import.meta.env.VITE_LOGIN_LOGOUT_BACKEND_URL
 
 export const getEmployeeRoles_API = async (tenantId,empId) => {
   const url = `${LOGINBASEURL}/api/internal/${tenantId}/${empId}/roles`;
@@ -142,7 +142,7 @@ export const getTravelPreference_API = async (tenantId,empId) => {
 };
 
 
-export const postTravelPreference_API = async(data)=>{
+export const postTravelPreference_API = async(tenantId,empId,data)=>{
 
   const url = `${DASHBOARD_BACKEND_API_URL}/api/${tenantId}/${empId}`;
 
@@ -190,7 +190,7 @@ export const postTravelPreference_API = async(data)=>{
 
 
 export const submitLeg = async (tenantId, tripId, empId, legDetails) => {
-  const url = `${BASE_API_URL}/api/dashboard/overview/addleg/${tenantId}/${tripId}/${empId}`;
+  const url = `${DASHBOARD_BACKEND_API_URL}/api/dashboard/overview/addleg/${tenantId}/${tripId}/${empId}`;
   
   try {
     const response = await axios.post(url, legDetails);

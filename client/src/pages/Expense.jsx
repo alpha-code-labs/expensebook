@@ -14,44 +14,28 @@ import {handleNonTravelExpense, handleTravelExpense,handleTrip} from '../utils/a
 
 
 const Expense = ({fetchData}) => { 
+
   const {tenantId,empId,page}= useParams();
+  
 
   useEffect(()=>{
-
     fetchData(tenantId,empId,page)
-    
   },[])
 
-//   const { employeeData } = useData();
-//   const [expesneData,setExpenseData]=useState(null);
-//   const [completedTrip,setCompletedTrip]=useState(null);
-// ///this is for backend data when we will get
-//   useEffect(()=>{
-//     const completedTrips = employeeData?.completedTrips
-//     setCompletedTrip()
-    
-    
-    
-//     setTravelData(allTravelArray)
-//   },[employeeData])
-  
-  
-  // const [DropdownOpen, setDropdownOpen] = useState(false);
-  // const [dropdownStates, setDropdownStates] = useState({});
+  const { employeeData } = useData();
+  const [reimbursementExpenseData , setReimbursementExpenseData]=useState([]);
+  const [completedTrip,setCompletedTrip]=useState(null);
+///this is for backend data when we will get
 
-  // const handleDropdownToggle = () => {
-  //   setDropdownOpen(!DropdownOpen);
-  // };
+  useEffect(()=>{
+    const reimbursementExpenses = employeeData?.trip?.nonTravelExpenseReports
+    console.log('reimbursement data',reimbursementExpenses)
+    setCompletedTrip()
+    
+  },[employeeData])
   
-
   
-
-  // const handleDropdownToggle = (index) => {
-  //   setDropdownStates((prevStates) => ({
-  //     ...prevStates,
-  //     [index]: !prevStates[index],
-  //   }));
-  // };
+ 
 
  
  
@@ -60,97 +44,95 @@ const Expense = ({fetchData}) => {
   const handleScreenChange = (screen) => {
     setActiveScreen(screen);
   };
+
+
   
     const tripArray = [
-      // {
-      //   tripId: 'TR0001',
-      //   travelName: 'Training Workshop in Las Vegas Las Vegas',
-      //   from: 'Denver',
-      //   to: 'Las Vegas',
-      //   departureDate: '05-Feb-2024',
-      //   returnDate: '10-Feb-2024',
-      //   status: 'pending settlement',
-      //   cashAdvance: [
-      //     {
-      //       caId: '#CA0004',
-      //       details: [
-      //         {
-      //           amount: '180.75',
-      //           currencyType: 'USD',
-      //         },
-      //         {
-      //           amount: '20000.75',
-      //           currencyType: 'INR',
-      //         },
-      //         // {
-      //         //   amount: '20000.00',
-      //         //   currencyType: 'INR',
-      //         // },
-      //       ],
-      //       date: '05-Feb-2024',
-      //       violation: 'amt is within the limit',
-      //       status: 'rejected',
-      //     },
-      //     {
-      //       caId: '#CA0005',
-      //       details: [
+      {
+        tripId: 'TR0001',
+        travelName: 'Training Workshop in Las Vegas Las Vegas',
+        from: 'Denver',
+        to: 'Las Vegas',
+        departureDate: '05-Feb-2024',
+        returnDate: '10-Feb-2024',
+        status: 'pending settlement',
+        cashAdvance: [
+          {
+            caId: '#CA0004',
+            details: [
+              {
+                amount: '180.75',
+                currencyType: 'USD',
+              },
+              {
+                amount: '20000.75',
+                currencyType: 'INR',
+              },
+              // {
+              //   amount: '20000.00',
+              //   currencyType: 'INR',
+              // },
+            ],
+            date: '05-Feb-2024',
+            violation: 'amt is within the limit',
+            status: 'rejected',
+          },
+          {
+            caId: '#CA0005',
+            details: [
             
-      //         {
-      //           amount: '180.25',
-      //           currencyType: 'GBP',
-      //         },
-      //         {
-      //           amount: '1500.00',
-      //           currencyType: 'JPY',
-      //         },
-      //       ],
-      //       date: '10-Feb-2024',
-      //       violation: '',
-      //       status: 'pending settlement',
-      //     },
-      //   ],
-      // },
-      // {
-      //   tripId: 'TR0002',
-      //   travelName: 'Conference in Paris',
-      //   from: 'New York',
-      //   to: 'Paris',
-      //   departureDate: '15-Mar-2024',
-      //   returnDate: '20-Mar-2024',
-      //   status: 'approved',
-      //   cashAdvance: [
-      //     {
-      //       caId: '#CA0006',
-      //       details: [
-      //         {
-      //           amount: '300.00',
-      //           currencyType: 'USD',
-      //         },
-      //         {
-      //           amount: '350.75',
-      //           currencyType: 'EUR',
-      //         },
-      //         {
-      //           amount: '3000.00',
-      //           currencyType: 'EUR',
-      //         },
-      //       ],
-      //       date: '10-Mar-2024',
-      //       violation: 'amt is within the limit',
-      //       status: 'rejected',
-      //     },
-      //   ],
-      // },
+              {
+                amount: '180.25',
+                currencyType: 'GBP',
+              },
+              {
+                amount: '1500.00',
+                currencyType: 'JPY',
+              },
+            ],
+            date: '10-Feb-2024',
+            violation: '',
+            status: 'pending settlement',
+          },
+        ],
+      },
+      {
+        tripId: 'TR0002',
+        travelName: 'Conference in Paris',
+        from: 'New York',
+        to: 'Paris',
+        departureDate: '15-Mar-2024',
+        returnDate: '20-Mar-2024',
+        status: 'approved',
+        cashAdvance: [
+          {
+            caId: '#CA0006',
+            details: [
+              {
+                amount: '300.00',
+                currencyType: 'USD',
+              },
+              {
+                amount: '350.75',
+                currencyType: 'EUR',
+              },
+              {
+                amount: '3000.00',
+                currencyType: 'EUR',
+              },
+            ],
+            date: '10-Mar-2024',
+            violation: 'amt is within the limit',
+            status: 'rejected',
+          },
+        ],
+      },
    
     ];
 
 
 
-    // const rejectedRequests = tripArray.filter((trip) => {
-    //   return trip.cashAdvance.some((ca) => ca.status === 'rejected');
-    // });
-    
-    //expense action handler
+ 
 
 
     
@@ -158,7 +140,7 @@ const Expense = ({fetchData}) => {
     <>
       {/* <div className="bg-white-100 lg:flex"> */}
       
-<div className="w-auto min-h-screen flex flex-col px-2 lg:px-10  pt-[50px] bg-slate-100  ">
+<div className="w-auto min-h-screen flex flex-col px-2 lg:px-20  pt-[50px] bg-slate-100  ">
           
 
  
@@ -194,29 +176,28 @@ Rejected Expenses
 
 </div>
  
-<div className="  w-full  max-w-[932px] h-auto lg:h-[581px] rounded-lg  bg-white-100 border-[1px] border-slate-300 shrink-0 font-cabin mt-3 sm:mt-6 shadow-[0px_12px_3px_rgba(0,_0,_0,_0),_0px_8px_3px_rgba(0,_0,_0,_0.01),_0px_4px_3px_rgba(0,_0,_0,_0.03),_0px_2px_2px_rgba(0,_0,_0,_0.05),_0px_0px_1px_rgba(0,_0,_0,_0.06)]">
+<div className="  w-full h-auto lg:h-[581px] rounded-lg  bg-white-100 border-[1px] border-slate-300 shrink-0 font-cabin mt-3 sm:mt-6 ">
            {activeScreen=== 'Travel & Non Travel Expenses' && 
            <>
            <div className='flex flex-row justify-between items-end px-8'>
   <div className=" h-6 flex flex-row gap-3 mt-7 items-center ">
     <img className="w-6 h-6" src={receipt} alt="receipt" />
-    <div className="text-base tracking-[0.02em] font-bold">Travel & Non Travel Expense</div>
+    <div className="text-base tracking-[0.02em] font-bold">Travel & Non Travel Expenses</div>
   </div>
-  <div className='lg:ml-4  cursor-pointer px-4'>
+  <div className='lg:ml-4 cursor-pointer px-4'>
     <div className='float-right inline-flex h-8 w-auto  items-center justify-center bg-indigo-600 text-white-100 flex-shrink rounded-lg'>
       <div className='text-center p-4 font-medium text-xs font-cabin' onClick={()=>handleNonTravelExpense("","non-tr-ex-create")}>Book an Expense</div>
     </div>
   </div>
-
-
 </div>                       
-<div className="box-border mx-4 mt-[46px] w-auto max-w-[932px]   border-t-[1px]  border-b-gray "/>
-<div className='h-auto '>
-           <AllExpense tripArray={tripArray} handleTravelExpense={handleTravelExpense} handleNonTravelExpense={handleNonTravelExpense}/>
-</div></>}
+<div className="box-border mx-4 mt-[46px] w-auto border-[1px] border-b-gray"/>
+<div className='h-auto'>
+  <AllExpense tripArray={tripArray} handleTravelExpense={handleTravelExpense} handleNonTravelExpense={handleNonTravelExpense}/>
+</div>
+</>}
 
-           {activeScreen=== 'Completed Trips' && 
-           <>
+{activeScreen === 'Completed Trips'  && 
+  <>
     <div className="w-auto h-6 flex flex-row gap-3 ml-8 mt-7 items-center">
       <img className="w-6 h-5" src={airplane_1} alt="receipt" />
       <div className="text-base tracking-[0.02em] font-bold w-auto">Completed Trips</div>
@@ -225,13 +206,11 @@ Rejected Expenses
       *Please submit your expenses before 90 days
     </div> */}
     
-    <div className="box-border mx-4  mt-[46px] w-auto max-w-[932px]  h-px border-t-[1px]  border-b-gray "/>
-   
-    <div className='h-[420px]   overflow-auto mt-6 w-auto'>
+    <div className="box-border mx-4 mt-[46px] w-auto  border-[1px]  border-b-gray "/>
+    <div className='h-[420px] overflow-auto mt-6 w-auto'>
          
-   
     <CompletedTrips tripArray={tripArray} handleTravelExpense={handleTravelExpense} handleTrip={handleTrip}/>
-           </div>   
+      </div>   
            </>
            }
            {activeScreen=== 'Rejected Expenses' && 
@@ -240,7 +219,7 @@ Rejected Expenses
       <img className="w-6 h-6" src={receipt} alt="receipt" />
       <div className="text-base tracking-[0.02em] font-bold w-auto">Rejected Expenses</div>
     </div>
-    <div className="box-border mx-4 mt-[46px]  w-auto max-w-[932px]  h-px border-t-[1px]  border-b-gray "/>
+    <div className="box-border mx-4  mt-[46px] w-auto    border-[1px]  border-b-gray "/>
     <div className='h-[420px]'>
            <RejectedExpense handleTravelExpense={handleTravelExpense} handleNonTravelExpense={handleNonTravelExpense}/>
     </div>

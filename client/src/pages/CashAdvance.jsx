@@ -282,7 +282,7 @@ const CashAdvance = ({isLoading ,fetchData,loadingErrMsg}) => {
  
  {!isLoading && 
       
-      <div className="w-auto min-h-screen  flex flex-col items-center px-2 lg:px-10  pt-[50px] bg-slate-100   ">
+      <div className="w-auto min-h-screen  flex flex-col items-center px-2 lg:px-20  pt-[50px] bg-slate-100   ">
         {/* <div className='relative w-fit mb-2 border border-indigo-600 px-2 py-2'>
        {cashAdvanceData?.rejectedCashAdvances?.length > 0 &&  <div className=' absolute right-0  top-[-8px] w-fit p-[6px] bg-green-200 border border-white-100 rounded-full '/>}
         <div className={`cursor-pointer py-1 px-2 w-fit min-w-[100px]  font-medium rounded-xl bg-purple-500 text-xs text-gray-900 truncate`}
@@ -292,14 +292,14 @@ const CashAdvance = ({isLoading ,fetchData,loadingErrMsg}) => {
         </div>
         </div> */}
         
-          <div className="w-full  bg-white-100 max-w-[932px] h-auto lg:h-[581px] rounded-lg border-[1px] border-slate-300 shrink-0 font-cabin mt-3 sm:mt-[60px] ">          
+          <div className="w-full  bg-white-100  h-auto lg:h-[581px] rounded-lg border-[1px] border-slate-300 shrink-0 font-cabin mt-3 sm:mt-[60px] ">          
            <>
            <div className="w-auto h-6 flex flex-row gap-3 ml-8 mt-7 items-center">
       <img className="w-6 h-6" src={money} alt="receipt" />
       <div className="text-base tracking-[0.02em] font-bold w-auto">Rejected Cash Advances</div>
     </div>
-    <div className="box-border mx-4 mt-[46px] w-auto max-w-[932px]  h-px border-t-[1px]  border-b-gray "/>
-    <div className='h-[420px] overflow-auto mt-6 w-auto'>  
+    <div className="box-border mx-4  mt-[46px] w-auto    border-[1px]  border-b-gray "/>
+    <div className='h-[420px] overflow-auto mt-6 w-auto flex flex-col items-center'>  
            <RejectedCA rejectedCashAdvance={cashAdvanceData?.rejectedCashAdvances}/>
            </div>
           </>          
