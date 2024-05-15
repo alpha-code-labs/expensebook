@@ -19,6 +19,8 @@ import Modal from "../components/common/Modal";
 export default function () {
     const navigate = useNavigate()
     const DASHBOARD_PAGE_URL = import.meta.env.VITE_DASHBOARD_PAGE_URL
+    const REDIRECTION_URL = import.meta.env.VITE_REDIRECTION_URL
+    
    
     const {travelRequestId ,empId,tenantId} = useParams()
     const {isUploading , setIsUploading}= useState(false)
@@ -45,7 +47,7 @@ export default function () {
             //handle approval
             console.log(itnId,action)
             approveLineItemApi("tenant123","emp123","trip123","iti123")
-            window.location.href= "http://localhost:8080/"
+            window.location.href= REDIRECTION_URL
         }
         if(action == 'rejected'){
             //handle rejection
@@ -53,7 +55,7 @@ export default function () {
             rejectLineItemApi("tenant123","emp123","trip123","iti123",{
                 reason:"test"
             })
-            window.location.href= "http://localhost:8080/"
+            window.location.href= REDIRECTION_URL
         }
     }
 
@@ -299,15 +301,10 @@ totalViolations = totalTravelViolations +  totalCashViolations || 0;
                                     <div className='flex flex-col gap-1'>
                                         {travelData.itinerary[itnItem].map((item, itemIndex) => {
                                             if (['flights', 'trains', 'buses'].includes(itnItem)) {
-                                              
-
-                                
                                                 return (
                                                     <div key={itemIndex}>
-                                                        <FlightCard
-                                                           
+                                                        <FlightCard 
                                                             violations={item?.violations}
-                                                          
                                                             handleAction={handleAction}
                                                             from={item.from} 
                                                             to={item.to} 
@@ -334,10 +331,8 @@ totalViolations = totalTravelViolations +  totalCashViolations || 0;
                                             } else if (itnItem === 'hotels') {
                                                 return (
                                                     <div key={itemIndex}>
-                                                        <HotelCard 
-                                                       
+                                                        <HotelCard    
                                                         violations={item?.violations}
-                                                
                                                         handleAction={handleAction}
                                                         itnId={item.itineraryId}
                                                         handleLineItemAction={handleLineItemAction}
