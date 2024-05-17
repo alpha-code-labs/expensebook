@@ -9,13 +9,14 @@ import { useNavigate } from 'react-router-dom';
 import { postOtpValidation_API, postSignupData_API } from '../utils/api';
 import PopupMessage from '../components/common/PopupMessage';
 import Error from '../components/common/Error';
+import Select from '../components/common/Select';
 
 //signup  with  set password first time
 //inputs: company name, full name of user, mobile number, company HQ, email Id, password and confirm Password
 
 export default function CompanyAndHRInformation(){
   const [locationsList, setLocationsList] = useState(['Bangalore', 'Mumbai', 'Delhi', 'Chennai', 'Hyderabad', 'Kolkata'])
-  const [formData, setFormData] = useState({companyName:'', fullName:'', email:'sandeepnair@gmail.com', password:'1234', confirmPassword:'1234', companyHQ:'', mobileNumber:'7270813318'})
+  const [formData, setFormData] = useState({companyName:'', fullName:'', email:'', password:'', confirmPassword:'', companyHQ:'', mobileNumber:''})
   const [isLoading,setIsLoading]=useState(false)
   const [isUploading,setIsUploading]=useState({signup:false,otpValidation:false})
   const [loadingErrorMsg, setLoadingErrorMsg]=useState(false)
@@ -108,7 +109,7 @@ export default function CompanyAndHRInformation(){
           setTimeout(()=>{
             setMessage(null)
             setShowPopup(false)
-            navigate("/user-login")
+           // navigate("/user-login")
 
           },3000)
         } else {
@@ -218,6 +219,7 @@ export default function CompanyAndHRInformation(){
 
             <div className='flex gap-2 flex-col md:flex-row w-full'>
                 <Input
+                   textCase='titleCase'
                     title='Company Name' 
                     placeholder='company name'
                     value={formData.companyName}
@@ -225,6 +227,7 @@ export default function CompanyAndHRInformation(){
                     onBlur={(e)=> setFormData(pre=>({...pre, companyName:e.target.value.trim()})) } />
 
                 <Input
+                    textCase='titleCase'
                     title='Full Name' 
                     placeholder='full name'
                     value={formData.fullName}
@@ -233,13 +236,17 @@ export default function CompanyAndHRInformation(){
 
             </div>
 
-            <div className='flex gap-2 flex-col md:flex-row w-full'>
+            {/* <div className='flex gap-2 flex-col w-full'> */}
+            <div className='w-full flex flex-row'>
+              {/* <Select/> */}
                 <Input
+                    type = 'contact'
                     title='Mobile Number' 
                     placeholder='mobile number'
                     value={formData.mobileNumber}
                     error={errors.mobileNumberError} 
                     onBlur={(e)=> setFormData(pre=>({...pre, mobileNumber:e.target.value.trim()})) } />
+            </div>        
 
                 <Input
                     title='Email Id' 
@@ -248,7 +255,7 @@ export default function CompanyAndHRInformation(){
                     titleCase={false}
                     error={errors.emailError} 
                     onBlur={(e)=> setFormData(pre=>({...pre, email:e.target.value.trim()})) } />
-            </div>
+            {/* </div> */}
 
             <div className='flex gap-2 flex-col md:flex-row w-full'>
                 <Input

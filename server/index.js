@@ -4,9 +4,9 @@ import dotenv from "dotenv";
 import cors from "cors";
 import pino from 'pino';
 import signup from './controllers/signup.js';
-import otp from './controllers/otp.js'
-import password from './controllers/update_password.js'
-import companyName from './controllers/companyName.js'
+import otp from './controllers/otp.js';
+import password from './controllers/update_password.js';
+import companyName from './controllers/companyName.js';
 import login from './controllers/login.js';
 import forgotPassword from './controllers/forgotPassword.js';
 import middleware from './middleware/middleware.js';
@@ -23,7 +23,7 @@ dotenv.config();
 const app = express();
 
 const MONGO_URI = process.env.MONGO_URI;
-const PORT = process.env.PORT;
+const PORT = process.env.PORT||9004
 
 app.use(cors()); // Use cors middleware to handle CORS
 
@@ -55,7 +55,7 @@ async function connectToMongoDB() {
 }
 
 await connectToMongoDB();
-// await startConsumer('login');
+//await startConsumer('login');
 
 // import  express from "express";
 // import mongoose from "mongoose";

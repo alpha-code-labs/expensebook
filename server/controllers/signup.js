@@ -5,8 +5,11 @@ import mongoose from 'mongoose';
 import axios from 'axios'; 
 import bcrypt from 'bcrypt';
 
+
+console.log(process.env, '...env')
+
 //try for free user signup
-const ONBOARDING_API = process.env.ONBOARDING_API;
+const ONBOARDING_API = process.env.ONBOARDING_API??'http://192.168.1.11:8001/api/internal/create-tenant';
 const saltRounds = 5;
 const router = Router();
 router.use(express.json());
@@ -50,7 +53,7 @@ const existingEmail = await TenanatModel.findOne({
   if (existingEmail) return res.status(400).json({ message: 'Email already in use' });
     
   
-
+    console.log(ONBOARDING_API, 'onbaording api...')
     // Send data to onboarding ms to form a tenant
     const onboarding_res = await axios.post(ONBOARDING_API, { ...req.body, email: email.toLowerCase() });
 
@@ -59,6 +62,7 @@ const existingEmail = await TenanatModel.findOne({
     }
 
     const tenantId = onboarding_res.data.tenantId;
+    console.log(tenantId)
     const otpSentTime = new Date();
     // const tenantId = "tenant22";
     const otp = 555555;

@@ -175,7 +175,7 @@ let allowSubmit =true
         <div className="flex flex-col items-start justify-start gap-[24px] w-full">
           <div className="flex flex-col items-start justify-start gap-[8px]">
             <div className="text-neutral-800 text-xl tracking-tight font-semibold font-cabin">
-              Kindly verify the otp  sent to your email address
+             {verifyFlag ? 'Kindly set the password for credential.':'Kindly verify the otp  sent to your email address'}
             </div>
           </div>
         </div>
