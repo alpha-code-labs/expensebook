@@ -19,6 +19,7 @@ export default function Select(props) {
   const required = props.required || false
   const submitAttempted = props.submitAttempted || false
 
+  const [dropUp, setDropUp] = useState(false);
 
     useEffect(()=>{
       if(currentOption != null && currentOption != undefined && currentOption != '' ){
@@ -135,12 +136,15 @@ const selectDivFocus = (e)=>{
         flag = true;
       }
     };
+
     document.addEventListener("click", handleClick);
+
+
+
     return () => {
       document.removeEventListener("click", handleClick);
     };
   }, [showDropdown]);
-
 
   return (
     <>
@@ -184,7 +188,7 @@ const selectDivFocus = (e)=>{
               <div
                 key='dropdown'
                 ref={dropdownRef}
-                className="absolute z-10 w-[calc(100%-10px)] h-fit max-h-[230px] overflow-y-scroll scroll rounded-b left-[5px] top-11 bg-white transition-all border-b  border-l border-r border-neutral-300 shadow-sm"
+                className={`absolute z-10 w-[calc(100%-10px)] h-fit max-h-[230px] overflow-y-scroll scroll ${dropUp ? 'border-t rounded-t bottom-11' : 'rounded-b top-11 border-b'}  left-[5px]  bg-white transition-all border-l border-r border-neutral-300 shadow-sm`}
               >
                 {optionsList &&
                   optionsList.map((option, index) => (
