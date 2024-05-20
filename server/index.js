@@ -24,9 +24,9 @@ logger.info("Hello World");
 dotenv.config();
 const app = express();
 
-const MONGO_URI = process.env.MONGO_URI;
-const PORT = process.env.PORT;
+const MONGO_URI = process.env.NODE_ENV == 'production' ? process.env.COSMOS_URI : process.env.MONGO_URI;
 
+const PORT = process.env.PORT;
 app.use(express.json());
 app.use(cors());
 app.use("/travel/internal/api", internalRoutes);
