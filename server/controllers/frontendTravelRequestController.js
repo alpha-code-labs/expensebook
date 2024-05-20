@@ -332,7 +332,6 @@ const updateTravelRequest = async (req, res) =>{
     //find TR
     const travelRequestData = await TravelRequest.findOne({travelRequestId})
     if(!travelRequestData) return res.status(404).json({message: 'Can not find the requested resource'})
-    
     lastTravelRequestStatus = travelRequestData.travelRequestStatus 
     //update travel request
     Object.keys(travelRequest).map(key=>travelRequestData[key] = travelRequest[key])
@@ -395,13 +394,10 @@ const updateTravelRequest = async (req, res) =>{
 
     if(submitted){
       //update all itinerary items to appropriate state
-      console.log(travelRequestData, 'after submit' )
       console.log('itinerary is present')
         const items = ['flights', 'trains', 'buses', 'cabs', 'hotels', 'carRentals', 'personalVehicles']
         items.forEach(item=>{
-          console.log('trying to change status 1')
           travelRequestData.itinerary[item].forEach(subItem=>{
-              console.log('trying to change status 2')
               subItem.status = needApproval? 'pending approval' : 'pending booking'
           })
         })
@@ -446,6 +442,8 @@ const updateTravelRequest = async (req, res) =>{
         //update travel request to pending booking 
         travelRequestData.travelRequestStatus = 'pending booking'
         const result = await travelRequestData.save()
+
+        // console.log(travelRequestData, 'after saving')
 
         if(!result){
           return res.status(400).json({
