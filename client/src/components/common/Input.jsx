@@ -13,6 +13,8 @@ export default function Input(props){
     const [textInput, setTextInput] = useState(value? titleCase(value) : '')
     const error = props.error || {set:false, message:''}
     const [inputEntered, setInputEntered] = useState(false)
+
+    console.log(error, 'error from input component')
     
     const handleChange = (e)=>{
         e.preventDefault()
@@ -26,7 +28,8 @@ export default function Input(props){
     }
 
     const handleBlur= (e)=>{
-        setTextInput(pre=>titleCase(pre))
+        setTextInput(pre=>titleCase(e.target.value));
+        if(e.target.value == '' || e.target.value == undefined) setInputEntered(false)
         if(onBlur??false){
             onBlur(e)
         }
@@ -45,7 +48,7 @@ export default function Input(props){
                         ref={inputRef}
                         onChange={handleChange} 
                         onBlur={handleBlur}
-                        className={`w-full h-full decoration:none ${showLocationSymbol? 'pr-6 pl-12' : 'px-6'} py-2 border rounded-md border border-neutral-300 focus-visible:outline-0 focus-visible:border-indigo-600 `}
+                        className={`w-full h-full decoration:none ${showLocationSymbol? 'pr-6 pl-12' : 'px-6'} py-2 border rounded-md border ${error.set && !inputEntered? 'border-red-600' : 'border-neutral-300' }  focus-visible:outline-0 focus-visible:border-indigo-600 `}
                         value={textInput} 
                         placeholder={placeholder}>
                             
