@@ -12,6 +12,10 @@ dist
 dist-ssr
 *.local
 .env
+.env.development
+.env.production
+nginx
+onboarding-client.yaml
 
 # Editor directories and files
 .vscode/*

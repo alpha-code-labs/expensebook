@@ -101,9 +101,9 @@
   .triangle-right {
     width: 0;
     height: 0;
-    border-top: 22px solid transparent;
-    border-left: 20px solid #818cf8;
-    border-bottom: 22px solid transparent;
+    border-top: 10px solid transparent;
+    border-left: 10px solid #818cf8;
+    border-bottom: 10px solid transparent;
   }
   
 
