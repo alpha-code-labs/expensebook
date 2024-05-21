@@ -2,10 +2,11 @@ import { useState, useEffect, createContext } from "react";
 import {BrowserRouter as Router, Routes, Route, useParams} from 'react-router-dom'
 import axios from 'axios'
 import { useLocation} from "react-router-dom";
-import ExpenseAllocations from "./expenseAllocations/expenseAllocations";
+import ExpenseAllocations from "./expenseAllocations/ExpenseAllocations";
 import TravelAllocations from "./expenseAllocations/TravelAllocations";
-import TravelRelatedExpenses from "./expenseAllocations/travelRelatedExpenses";
+import TravelRelatedExpenses from "./expenseAllocations/TravelRelatedExpenses";
 import TravelCategoriesExpenseAllocation from "./expenseAllocations/TravelCategoriesExpenseAllocation";
+
 
 export default function (props){
   
@@ -20,8 +21,8 @@ export default function (props){
   useEffect(() => {
     (async function(){
       try{
-        const res = await axios.get(`http://localhost:8001/api/tenant/${tenantId}/org-headers`)
-        const flags_res = await axios.get(`http://localhost:8001/api/tenant/${tenantId}/flags`)
+        const res = await axios.get(`import.meta.VITE_PROXY_URL/tenant/${tenantId}/org-headers`)
+        const flags_res = await axios.get(`import.meta.VITE_PROXY_URL/tenant/${tenantId}/flags`)
 
         if(res.status === 200){
           console.log(res.data, '...res.data')

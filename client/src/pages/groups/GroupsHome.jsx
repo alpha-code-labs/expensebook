@@ -9,12 +9,14 @@ import axios from 'axios'
 import { getTenantGroups_API } from '../../utils/api';
 import Error from '../../components/common/Error';
 import MainSectionLayout from '../MainSectionLayout';
+import EmptyHRData from '../../components/common/EmptyHRData';
 
 export default function (props) {
     const [showSkipModal, setShowSkipModal] = useState(false);
     const navigate = useNavigate();
     const {tenantId} = useParams();
     const setGroupData = props.setGroupData
+    const progress = props.progress
     
 
     const [alreadyCreatedGroupsData, setAlreadyCreatedGroupsData] = useState([])
@@ -50,18 +52,14 @@ export default function (props) {
     return(<>
 
         <MainSectionLayout>
-            {networkStates.isLoading && <Error message={networkStates.loadingErrMsg} /> }
-            {!networkStates.isLoading && <>
+            {(networkStates.isLoading || progress == null || progress == undefined) && <Error message={networkStates.loadingErrMsg} /> }
+            {!networkStates.isLoading && progress!= null && progress != undefined && <>
             
+                {progress?.sections['section 2']?.coveredSubsections > 0 && <>
                 <div className='px-6 py-10 bg-white'>
-                
                     {/* rest of the section */}
                     <div className='mt-10 w-full flex flex-col gap-4 text text-xl font-cabin text-neutral-700 '>  
-                        
-
-                        Do you have groups in your organization on which your company policies can be setup
-
-                        
+                        Do you have groups in your organization on which your company policies can be setup 
                         <div className='inline-flex w-full justify-between mt-10'>
                             <div className='w-[250px]'>
                                 <Button text='Continue' onClick={()=>navigate(`/${tenantId}/groups/select-grouping-headers`, {state:{tenantId}})} />
@@ -71,7 +69,6 @@ export default function (props) {
                             </div>
                         </div>
                     </div>
-
                 </div>
 
                 <Modal showModal={showSkipModal} setShowModal={setShowSkipModal} skipable={true}>
@@ -98,10 +95,17 @@ export default function (props) {
                         </div>
                     </div>
                 </Modal>
-                
+                </>}
+
+                {progress?.sections['section 2']?.coveredSubsections < 1 && 
+                    <EmptyHRData 
+                        message='To configure employee groups, please upload HR data first'
+                        buttonTitle = 'Take me to upload section'
+                        onclick = {()=>{navigate(`/${tenantId}/upload-hr-data`)}}
+                        />}
                 </>
             }
-        </MainSectionLayout>
+          </MainSectionLayout>
         </>
     );
   }

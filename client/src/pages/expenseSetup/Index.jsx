@@ -11,7 +11,6 @@ import Checkbox from "../../components/common/Checkbox"
 import Modal from "../../components/common/Modal"
 import { useState, useEffect } from "react"
 import { updateFormState_API } from "../../utils/api"
-import LeftProgressBar from "../../components/common/LeftProgressBar"
 
 
 export default function (props){
@@ -72,8 +71,8 @@ export default function (props){
 
                 </div>
 
-                <div className="mt-10 flex justify-between">
-                <Button variant='fit' text='Save as Draft' onClick={handleSaveAsDraft} />
+                <div className="mt-10 flex justify-end">
+                    {/* <Button variant='fit' text='Save as Draft' onClick={handleSaveAsDraft} /> */}
                     <Button variant='fit' text='Continue' onClick={handleContinue} />
                 </div>
 

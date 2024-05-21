@@ -1,23 +1,24 @@
-import Button from "../../components/common/Button"
-import Icon from "../../components/common/Icon"
-import { useNavigate, useParams } from "react-router-dom"
-import HollowButton from "../../components/common/HollowButton"
-import internatinal_travel_icon from '../../assets/in-flight.svg'
-import domestic_travel_icon from '../../assets/briefcase.svg'
-import local_travel_icon from '../../assets/map-pin.svg'
-import non_travel_icon from '../../assets/paper-money-two.svg'
-import arrow_down from "../../assets/chevron-down.svg";
-import Checkbox from "../../components/common/Checkbox"
-import Modal from "../../components/common/Modal"
+import Button from "../../../components/common/Button"
+import { useNavigate, useParams, useLocation, Route} from "react-router-dom"
+import HollowButton from "../../../components/common/HollowButton"
+import internatinal_travel_icon from '../../../assets/in-flight.svg'
+import domestic_travel_icon from '../../../assets/briefcase.svg'
+import local_travel_icon from '../../../assets/map-pin.svg'
+import arrow_down from "../../../assets/chevron-down.svg";
+import Modal from "../../../components/common/Modal"
 import { useState, useEffect } from "react"
-import { updateFormState_API } from "../../utils/api"
-import MainSectionLayout from "../MainSectionLayout"
-import EmptyHRData from "../../components/common/EmptyHRData"
+import back_icon from "../../../assets/arrow-left.svg"
+import Error from "../../../components/common/Error"
+import MainSectionLayout from "../../MainSectionLayout"
+import Prompt from "../../../components/common/Prompt"
 
 export default function ({progress, setProgress}){
+    const location = useLocation()
     const navigate = useNavigate()
     const {tenantId} = useParams()
     const [showSkipModal, setShowSkipModal] = useState(false)
+    const [isLoading, setIsLoading] = useState(true)
+    const [loadingErrMsg, setLoadingErrMsg] = useState(null)
 
     useEffect(()=>{
         if(showSkipModal){
@@ -28,50 +29,32 @@ export default function ({progress, setProgress}){
         }
     },[showSkipModal])
 
-    const handleSaveAsDraft = async ()=>{
-        const update_res = await updateFormState_API({tenantId, state:'/setup-company-policies'})
-        if(update_res.err){
-
-        }
-
-        //navigate
-        window.location.href = 'https://google.com'
-    }
-    
-    const handleContinue = async ()=>{
-        const update_res = await updateFormState_API({tenantId, state:'/non-travel-expenses'})
-        if(update_res.err){
-
-        }
 
 
-        setProgress(pre=>({...pre, activeSection: 'section 6', maxReach:'section 6'}))
-        navigate(`/${tenantId}/others`)
-    }
+
+    const [promt, setPrompt] = useState({showPrompt:false, promptMsg:null})
+
+
 
     return(<>
-        <MainSectionLayout>
-        {(progress == null || progress == undefined) && <Error message={null}/> }
-            {(progress!=null && progress!=undefined) && <>
-
-            {progress?.sections['section 2']?.coveredSubsections > 0 && <>
+    <MainSectionLayout>
+        {<>   
+            
             <div className='px-6 py-10 bg-white'>
-                <div className="flex justify-between">
-                    <div className="gap-2">
-                        <p className="text-neutral-700 text-xl font-semibold tracking-tight">
-                            Setting up your Policies
-                        </p>
-                        <p className="text-gray-600 text-sm font-normal font-cabin" >
-                            Use existing policies or add custom policies to your company's policy
-                        </p>
+                    {/* back button and title */}
+                <div className='flex gap-4 sticky top-20'>
+                    <div className='w-6 h-6 cursor-pointer' onClick={()=>navigate(-1)}>
+                        <img src={back_icon} />
                     </div>
-                    <div className="">
-                        <HollowButton title='Skip' showIcon={false} onClick={()=>setShowSkipModal(true)} />
+
+                    <div className='flex gap-2'>
+                        <p className='text-neutral-700 text-base font-medium font-cabin tracking-tight'>
+                            Setup Expense Book
+                        </p>
                     </div>
                 </div>
 
                 <div className="mt-10 flex flex-col gap-4">
-
                     <CollapsedPolicy 
                         onClick={() => navigate('international')}
                         text='International Travel'
@@ -86,25 +69,21 @@ export default function ({progress, setProgress}){
                         onClick={() => navigate('local')}
                         text='Local Travel'
                         icon={local_travel_icon}/>
-
-                    <hr className="my-2 border-dashed border-indigo-600"/>
-                    
-                    <CollapsedPolicy 
-                        onClick={() => navigate('reimbursement')}
-                        text='Reimbursement Policies'
-                        icon={non_travel_icon}/>
                 </div>
 
-                <div className="mt-10 flex w-full justify-end">
-                    {/* <Button variant='fit' text='Save As Draft' onClick={handleSaveAsDraft} /> */}
+                <Prompt prompt={prompt} setPrompt={setPrompt}/>
+
+                {/* <div className='flex mt-10'>
+                    <Button variant='fit' text='Save As Draft' onClick={handleSaveAsDraft} />
                     <Button variant='fit' text='Continue' onClick={handleContinue} />
-                </div>
+                </div> */}
+
             </div>
-        
+            
             <Modal skippable={false} showModal={showSkipModal} setShowModa={setShowSkipModal}>
                 <div className="p-10">
                     <p className="text-neutral-700 text">
-                        We recommend you go through setting up company policies, with policy setup you can track limit violations. 
+                        If you skip this section you won't be able to track your expenses.
                     </p>
                     <div className=' mt-10 flex flex-wrap justify-between'>
                         <div className='w-fit'>
@@ -116,18 +95,11 @@ export default function ({progress, setProgress}){
                     </div>
                 </div>
             </Modal>
-            </>}
-
-            {progress?.sections['section 2']?.coveredSubsections < 1 && 
-            <EmptyHRData 
-                message='To configure company policies, please upload HR data first'
-                buttonTitle = 'Take me to upload section'
-                onclick = {()=>{navigate(`/${tenantId}/upload-hr-data`)}}
-                />}
-            </>}
-        </MainSectionLayout>
+        </>}
+    </MainSectionLayout>
     </>)
 }
+
 
 function CollapsedPolicy(props){
     const icon = props.icon

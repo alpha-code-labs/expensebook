@@ -99,11 +99,13 @@ export default function ({progress, setProgress}){
                 if(subsection.completed) totalCoveredSubsections++;
             })
 
-            progress_copy.sections['section 6'].coveredSubsections = totalCoveredSubsections; 
+            progress_copy.sections['section 6'].coveredSubsections = progress_copy.sections['section 6'].subsections.filter(subsect=>subsect.completed).length //totalCoveredSubsections; 
 
             if(markCompleted){
                 progress_copy.sections['section 6'].state = 'done';
-                progress_copy.maxReach = 'section 6';
+                if(progress.maxReach==undefined || progress.maxReach==null || progress.maxReach.split(' ')[1] < 7){
+                    progress_copy.maxReach = 'section 7';
+                  }
             }else{
                 progress_copy.sections['section 6'].state = 'attempted';
             }
@@ -277,8 +279,8 @@ export default function ({progress, setProgress}){
                     </div>
                 </div>
 
-                <div className="flex w-full justify-between mt-10">
-                   <Button variant='fit' text='Save as Draft' onClick={handleSaveAsDraft} isLoading={networkStates.isUploading && activeButton == 'Save as Draft'} />
+                <div className="flex w-full justify-end mt-10">
+                   {/* <Button variant='fit' text='Save as Draft' onClick={handleSaveAsDraft} isLoading={networkStates.isUploading && activeButton == 'Save as Draft'} /> */}
                     <Button variant='fit' text='Save and Continue' onClick={handleSaveChanges} isLoading={networkStates.isUploading && activeButton == 'Save and Continue'} />
                 </div>
                 

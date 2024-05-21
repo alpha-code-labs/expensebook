@@ -55,7 +55,7 @@ export default function (props){
 
     const handleContinue = async ()=>{
         //save flags to backend
-        const res = postTravelAllocationFlags_API({tenantId, travelAllocationFlags:flags})
+        const res = await postTravelAllocationFlags_API({tenantId, travelAllocationFlags:flags})
         //rdirect to next page
 
         if(flags.level1) navigate('level1', {flags})

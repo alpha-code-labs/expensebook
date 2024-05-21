@@ -193,12 +193,10 @@ const defaultCategories = [
 
 const fixedFields = ['Total Amount', 'Date', 'Class', 'Tax Amount', 'Tip Amount', 'Premium Amount', 'Cost', 'Total Cost', 'License Cost', 'Subscription Cost', 'Total Fare', 'Premium Cost']
 
-export default function (props) {
-
-    const tenantId = props.tenantId
-    const travelType = props.travelType
+export default function ({allocations, setAllocations, tenantId, travelType, orgHeaders, setOrgHeaders}) {
     const icon = switchIcon(travelType)
     const [showAddExpenseCategoriesModal, setShowAddExpenseCategoriesModal] = useState(false)
+    const [expandedTab, setExpandedTab] = useState(-1);
 
     function switchIcon(travelType){
 
@@ -224,10 +222,8 @@ export default function (props) {
                 return 'Local Travel'
         }
     }
-    
-    const navigate = useNavigate()
-    const [allocations, setAllocations] = useState({})
 
+    const navigate = useNavigate()
 
     const updateTravelAllocations = async()=>{
         //update travelAllocations and travelExpenseCategories
@@ -237,7 +233,7 @@ export default function (props) {
         const travelExpenseCategories = Object.keys(allocations).map(traveltype=>{
             return ({[traveltype]: allocations[traveltype].map(cat=>{
                 if(cat.hasOwnProperty('class')) return({categoryName:cat.categoryName, fields:cat.fields, class:cat.class})
-                else return({categoryName:cat.categoryName, fields:cat.fields, class:cat.class})
+                else return({categoryName: cat.categoryName, fields: cat.fields, class: cat.class})
             })
         })      
         })
@@ -253,7 +249,6 @@ export default function (props) {
     const [expenseCategoryFields, setExpenseCategoryFieds] = useState([])
     const [existingCategory, setExistingCategory] = useState(false)
     const [existingCategoryName, setExistingCategoryName] = useState(null)
-    const [orgHeaders, setOrgHeaders] = useState([])
     const [selectedOrgHeaders_cat, setSelectedOrgHeaders_cat] = useState([])
     const [selectedOrgHeaders_exp, setSelectedOrgHeaders_exp] = useState([])
     const [accountLine_cat, setAccountLine_cat] = useState(null)
@@ -271,49 +266,14 @@ export default function (props) {
     const [updatedOrgHeaders, setUpdatedOrgHeaders] = useState([])
 
     useEffect(()=>{
-        if(showAddHeaderModal){
+        if(showAddHeaderModal || showAddExpenseCategoriesModal){
             document.body.style.overflow = 'hidden'
         }
         else{
             document.body.style.overflow = 'visible'
         }
-    },[showAddHeaderModal])
+    },[showAddHeaderModal, showAddExpenseCategoriesModal])
     //##File upload related --- end
-
-    useEffect(()=>{
-        (async function(){
-            setNetworkStates(pre=>({...pre, isLoading:true}))
-            const res = await getTenantOrgHeaders_API({tenantId})
-            const t_res = await getTenantTravelAllocations_API({tenantId})
-            
-            if(res.err || t_res.err){
-                console.log(res.err)
-                const errorMsg = res.err
-                setNetworkStates(pre=>({...pre, loadingErrMsg:errorMsg??t_res.err}))
-                //handle error
-            }
-            else{
-                console.log(res.data, '...res.data')
-                let orgHeadersData = res.data.orgHeaders
-                let tmpOrgHeaders = []
-                Object.keys(orgHeadersData).forEach(key => {
-                    if(orgHeadersData[key].length !== 0){
-                        tmpOrgHeaders.push({headerName:key, headerValues: orgHeadersData[key]})
-                    }
-                })
-        
-                console.log(tmpOrgHeaders, '...tmpOrgHeaders')
-                setOrgHeaders(tmpOrgHeaders)
-
-                if(Object.keys(t_res.data.travelAllocations).length == 0)
-                    setAllocations(travel_allocations)
-                else setAllocations(t_res.data.travelAllocations)
-                
-                setNetworkStates(pre=>({...pre, isLoading:false}))
-            }
-
-        })()
-    },[])
 
 
     const addCategoryField = ()=>{
@@ -498,14 +458,6 @@ export default function (props) {
         navigate(`/${tenantId}/others`)
     }
 
-    //fetch entire allocations object
-    useEffect(()=>{
-        //axios call
-        //for now dummy data
-        console.log(travel_allocations[travelType], travelType)
-        setAllocations(travel_allocations)
-    },[])
-
     useEffect(()=>{
         if(Object.keys(updatedOrgHeaders).length>0){
             console.log()
@@ -598,7 +550,7 @@ export default function (props) {
                     <div className='mt-4'>
                         <Input title='Category Name' value={expenseCategoryName} placeholder='eg. Utilities' onChange={handleCategoryNameChange} />
                         <hr className='my-2'/>
-                        <div className='flex flex-col gap-2'>
+                        <div className='flex flex-col gap-2 max-h-[200px] overflow-y-scroll'>
                             {expenseCategoryFields.length>0 && expenseCategoryFields.map((field, index)=>(
                                 <div key={index} className='flex flex-wrap gap-4 items-center'>
                                     <Input  showTitle={false} placeholder='eg. Amount' value={field.name} onChange={(e)=>{handleCategoryFieldNameChange(e, index)}} readOnly={fixedFields.includes(field.name)} />
@@ -622,7 +574,7 @@ export default function (props) {
                                             True / False
                                         </option>
                                     </select>
-                                    {fixedFields.includes(field.name) && <img src={remove_icon} onClick={()=>removeCategoryField(index)} />}
+                                    {!fixedFields.includes(field.name) && <img src={remove_icon} onClick={()=>removeCategoryField(index)} />}
                                 </div>
                             ))}
                         </div>
@@ -795,12 +747,11 @@ function ExpenseAllocation({orgHeaders, type, setShowAddHeaderModal, allocations
             if(e.target.checked){
                 allocations_copy[travelType][ind].allocation.push(orgHeaders[headerIndex])
             }else{
-                allocations_copy[travelType][ind].allocation = allocations_copy[travelType][ind].expenseAllocation.filter(itm=>itm.headerName != orgHeaders[headerIndex].headerName)
+                allocations_copy[travelType][ind].allocation = allocations_copy[travelType][ind].allocation.filter(itm=>itm.headerName != orgHeaders[headerIndex].headerName)
             }
         }
-
-        setAllocations(allocations_copy)
-        
+        console.log(allocations_copy)
+        setAllocations(allocations_copy)   
     }
 
     return(<>

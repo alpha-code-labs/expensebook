@@ -32,9 +32,9 @@ export default function (props){
       try {
         //get travel expense categories..., travel allocation flags... and groups
 
-        //const groups_data_response = await axios.get(`http://localhost:8001/api/tenant/${tenantId}/groups`);
+        //const groups_data_response = await axios.get(`import.meta.VITE_PROXY_URL/tenant/${tenantId}/groups`);
 
-        const policies_data_response = await axios.get(`http://localhost:8001/api/tenant/${tenantId}/policies/non-travel`);
+        const policies_data_response = await axios.get(`import.meta.VITE_PROXY_URL/tenant/${tenantId}/policies/non-travel`);
         if(!policies_data_response.err){
           const rls = Object.keys(policies_data_response?.data?.policies??{}).map(key=>(policies_data_response.data.policies[key]))
           console.log(rls)

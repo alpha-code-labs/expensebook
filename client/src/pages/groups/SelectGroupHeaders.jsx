@@ -158,7 +158,9 @@ const ONBOARDING_API = import.meta.env.VITE_PROXY_URL
 
         if(markCompleted){
             progress_copy.sections['section 4'].state = 'done';
-            progress_copy.maxReach = 'section 5';
+            if(progress.maxReach==undefined || progress.maxReach==null || progress.maxReach.split(' ')[1] < 5){
+                progress_copy.maxReach = 'section 5';
+              }
         }else{
             progress_copy.sections['section 4'].state = 'attempted';
         }

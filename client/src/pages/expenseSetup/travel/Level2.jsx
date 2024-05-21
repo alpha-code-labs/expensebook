@@ -20,8 +20,8 @@ import Select from '../../../components/common/Select'
 import remove_icon from '../../../assets/XCircle.svg'
 import close_icon from "../../../assets/close.svg"
 import UploadAdditionalHeaders from '../../expenseAllocations/UploadAdditionalHeaders'
-import { getTenantOrgHeaders_API, getTenantTravelAllocations_API, getTravelCategories_API, postTenantTravelAllocations_API, postTravelCategories_API, updateFormState_API,  } from '../../../utils/api'
-import expenseAllocations from '../../expenseAllocations/expenseAllocations'
+import { getTenantOrgHeaders_API, getTenantTravelAllocations_API, getTravelCategories_API, postProgress_API, postTenantTravelAllocations_API, postTravelCategories_API, updateFormState_API,  } from '../../../utils/api'
+import expenseAllocations from '../../expenseAllocations/ExpenseAllocations'
 import { camelCaseToTitleCase } from '../../../utils/handyFunctions'
 import Prompt from '../../../components/common/Prompt'
 import Error from '../../../components/common/Error'
@@ -57,7 +57,7 @@ const defaultCategories = [
 
 const fixedFields = ['Total Amount', 'Date', 'Class', 'Tax Amount', 'Tip Amount', 'Premium Amount', 'Cost', 'Total Cost', 'License Cost', 'Subscription Cost', 'Total Fare', 'Premium Cost']
 
-export default function (props) {
+export default function ({progress, setProgress}) {
 
     const {tenantId} = useParams()
 
@@ -93,8 +93,18 @@ export default function (props) {
     const [networkStates, setNetworkStates] = useState({isLoading:false, isUploading:false, loadingErrMsg:null})
     
     useEffect(()=>{
-        console.log(allocations)
+        if(progress.activeSection != 'section 3'){
+            setProgress(pre=>({...pre, activeSection:'section 3'}))
+        }
     }, [allocations])
+
+    useEffect(()=>{
+        if(showAddExpenseCategoriesModal){
+            document.body.style.overflow = 'hidden';
+        }else{
+            document.body.style.overflow = 'auto';
+        }
+    },[showAddExpenseCategoriesModal])
     
 
     //###File upload related
@@ -261,9 +271,51 @@ export default function (props) {
     }
 
     const handleContinue = async ()=>{
-        const res = await updateFormState_API({tenantId, state: '/setup-expense-book/travel/level1'})
-        //naviage to others section
-        navigate(`/${tenantId}/others`)
+
+        await saveChanges();
+
+        setNetworkStates(pre=>({...pre, isUploading:true}))
+        const progress_copy = JSON.parse(JSON.stringify(progress))
+
+        progress_copy.sections['section 3'].subsections.forEach(subsection=>{
+            if(subsection.name == 'Travel Allocations') subsection.completed = true;
+        });
+
+        progress_copy.sections['section 3'].subsections.forEach(subsection=>{
+            if(subsection.name == 'Travel Allocations') subsection.completed = true;
+        });
+
+        const markCompleted = !progress_copy.sections['section 3'].subsections.some(subsection=>!subsection.completed)
+
+        let totalCoveredSubsections = 0;
+        progress_copy.sections['section 3'].subsections.forEach(subsection=>{
+            if(subsection.completed) totalCoveredSubsections++;
+        })
+
+        progress_copy.sections['section 3'].coveredSubsections = totalCoveredSubsections; 
+
+        if(markCompleted){
+            progress_copy.sections['section 3'].state = 'done';
+            if(progress.maxReach==undefined || progress.maxReach==null || progress.maxReach.split(' ')[1] < 4){
+                progress_copy.maxReach = 'section 4';
+              }
+        }else{
+            progress_copy.sections['section 3'].state = 'attempted';
+        }
+
+        const progress_res = await postProgress_API({tenantId, progress: progress_copy})
+        setNetworkStates(pre=>({...pre, isUploading:false}))
+       
+        if(progress_res.err ){
+            setPrompt({showPrompt:true, promptMsg:'Can not update data at the moment. Please try again later'})
+        }
+        else{
+            setPrompt({showPrompt:true, promptMsg:'Changes Saved Successfully'})
+            setProgress(progress_copy);
+            setTimeout(()=>{
+                navigate(`/${tenantId}/setup-expensebook`)
+            }, 3000)
+        }
     }
 
     const saveCategories = async ()=>{
@@ -272,10 +324,8 @@ export default function (props) {
 
     const saveChanges = async ()=>{
         //update categories
-        setNetworkStates(pre=>({...pre, isUploading:true}))
         const cat_res = await postTravelCategories_API({tenantId, travelExpenseCategories: categories})
         const all_res = await postTenantTravelAllocations_API({tenantId, travelAllocations:allocations})
-
 
         if(cat_res.err || all_res.err){
             setPrompt({showPrompt:true, promptMsg:'Can not update data at the moment. Please try again later'})
@@ -343,6 +393,8 @@ export default function (props) {
                 console.log(travelType)
                 return (
                 <Policy 
+                openAccordion={openAccordion}
+                setOpenAccordion={setOpenAccordion}
                 travelType={travelType}
                 categories={categories}
                 setCategories={setCategories}
@@ -368,8 +420,8 @@ export default function (props) {
                     */}
 
                 <div className='flex justify-between mt-10'>
-                    <Button text='Save As Draft' onClick={handleSaveAsDraft} />
-                    {/* <Button text='Continue' onClick={handleContinue} /> */}
+                    {/* <Button text='Save As Draft' onClick={handleSaveAsDraft} /> */}
+                    <Button isLoading={networkStates.isUploading} text='Save and Continue' onClick={handleContinue} />
                 </div>
 
 
@@ -506,9 +558,26 @@ function Policy({
         setCategories(categories_copy)
     }
 
+    const handleAccordion = ()=>{
+        if(collapse){
+            console.log('settingt to', travelType)
+            setOpenAccordion(travelType)
+        }else{
+            setOpenAccordion('');
+        }
+    }
+
+    useEffect(()=>{
+        if(openAccordion != travelType){
+            setCollapse(true)
+        }else{
+            setCollapse(false)
+        }
+    }, [openAccordion])
+
     return (
         <div className={`w-full p-6 transition-max-height duration-1000 ${collapse? 'max-h-[75px]' : 'max-h-[100000px]'} bg-white rounded-xl border border-neutral-200 font-cabin`}>
-            <div className="w-full relative bg-white cursor-pointer">
+            <div className="w-full relative bg-white cursor-pointer" onClick={handleAccordion} >
                 <div className="flex justify-between items-center">
                     
                     <div className="justify-start items-center gap-8 inline-flex">
@@ -517,7 +586,7 @@ function Policy({
                         </div>
                     </div>
 
-                    <div className="justify-start gap-12 items-start gap-2 inline-flex" onClick={()=>setCollapse(pre=>!pre)}>
+                    <div className="justify-start gap-12 items-start gap-2 inline-flex" >
                         <div className={`w-6 h-6 transition ${collapse? '' : 'rotate-180' }`}>
                             <img src={arrow_down} />
                         </div>
@@ -601,7 +670,7 @@ function Policy({
                 </div>
                                     
             <div className='mt-4 flex flex-row-reverse'>
-                <HollowButton title='Save Changes' isLoading={networkStates?.isUploading} onClick={()=>saveChanges()} />
+                {/* <HollowButton title='Save Changes' isLoading={networkStates?.isUploading} onClick={()=>saveChanges()} /> */}
             </div>
 
             </div>
@@ -612,27 +681,35 @@ function Policy({
 function ExpenseAllocation({orgHeaders, type, setShowAddHeaderModal, allocations, setAllocations, travelType}){
 
     const handleAllocationHeaderChange = (e, headerIndex)=>{
-        
+        console.log(e.target.checked)
+
         if(type == 'cat'){
             const currentAllocations = allocations[travelType]?.allocation
+            const allocations_copy = JSON.parse(JSON.stringify(allocations))
             if(e.target.checked){
                 currentAllocations.push(orgHeaders[headerIndex])
-                const allocations_copy = JSON.parse(JSON.stringify(allocations))
                 allocations_copy[travelType].allocation = currentAllocations
-
-                setAllocations(allocations_copy)
             }
+            else{
+                allocations_copy[travelType].allocation = currentAllocations.filter(h=>h.headerName != orgHeaders[headerIndex].headerName)
+            }
+
+            setAllocations(allocations_copy)
         }
 
         if(type == 'exp'){
             const currentAllocations = allocations[travelType]?.expenseAllocation
+            const allocations_copy = JSON.parse(JSON.stringify(allocations))
+
             if(e.target.checked){
                 currentAllocations.push(orgHeaders[headerIndex])
-                const allocations_copy = JSON.parse(JSON.stringify(allocations))
                 allocations_copy[travelType].expenseAllocation = currentAllocations
-                
-                setAllocations(allocations_copy)
             }
+            else{
+                allocations_copy[travelType].allocation = currentAllocations.filter(h=>h.headerName != orgHeaders[headerIndex].headerName)
+            }
+
+            setAllocations(allocations_copy)
         }
     }
 

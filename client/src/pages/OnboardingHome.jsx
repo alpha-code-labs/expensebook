@@ -15,6 +15,7 @@ export default function (props) {
     const [loadingErrMsg, setLoadingErrMsg] = useState(null);
     const navigate = useNavigate();
     const {tenantId} = useParams()
+    const progress = props.progress;
 
 
     useEffect(()=>{
@@ -34,10 +35,11 @@ export default function (props) {
         })()
       },[])
 
+
     return (
         <>
-            {isLoading && <Error message={loadingErrMsg}/>}
-            {!isLoading && 
+            {(isLoading || progress == null || progress == undefined) && <Error message={loadingErrMsg}/>}
+            {!isLoading && progress != null && progress != undefined && 
             <div className="flex bg-white w-full h-full overflow-x-hidden font-cabin tracking-tight">
         
                 <div className='fixed left-0 top-0 h-[100vh] w-[40vw] flex flex-col justify-center items-center [background:linear-gradient(187.95deg,_rgba(76,_54,_241,_0),_rgba(76,_54,_241,_0.03)_9.19%,_rgba(76,_54,_241,_0.06)_17.67%,_rgba(76,_54,_241,_0.1)_25.54%,_rgba(76,_54,_241,_0.14)_32.86%,_rgba(76,_54,_241,_0.19)_39.72%,_rgba(76,_54,_241,_0.25)_46.19%,_rgba(76,_54,_241,_0.31)_52.36%,_rgba(76,_54,_241,_0.38)_58.3%,_rgba(76,_54,_241,_0.46)_64.08%,_rgba(76,_54,_241,_0.53)_69.79%,_rgba(76,_54,_241,_0.62)_75.51%,_rgba(76,_54,_241,_0.71)_81.31%,_rgba(76,_54,_241,_0.8)_87.28%,_rgba(76,_54,_241,_0.9)_93.48%,_#4c36f1)]'>

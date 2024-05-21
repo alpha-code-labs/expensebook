@@ -4,7 +4,6 @@ import { useNavigate, useParams } from "react-router-dom"
 import { useLocation } from "react-router-dom"
 import axios from 'axios'
 import { useState, useEffect } from "react"
-import { updateFor } from "typescript"
 import { getTenantGroups_API, updateFormState_API, updateTenantGroups_API } from "../../utils/api"
 import Prompt from "../../components/common/Prompt"
 import MainSectionLayout from "../MainSectionLayout"
@@ -88,7 +87,9 @@ export default function CreatedGroups({progress, setProgress, groupData, setGrou
 
         if(markCompleted){
             progress_copy.sections['section 4'].state = 'done';
-            progress_copy.maxReach = 'section 5';
+            if(progress.maxReach==undefined || progress.maxReach==null || progress.maxReach.split(' ')[1] < 5){
+                progress_copy.maxReach = 'section 5';
+              }
         }else{
             progress_copy.sections['section 4'].state = 'attempted';
         }

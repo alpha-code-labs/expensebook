@@ -1,151 +1,72 @@
-import Button from "../../../components/common/Button"
-import Icon from "../../../components/common/Icon"
-import { useNavigate, useParams, useLocation} from "react-router-dom"
-import HollowButton from "../../../components/common/HollowButton"
-import internatinal_travel_icon from '../../../assets/in-flight.svg'
-import domestic_travel_icon from '../../../assets/briefcase.svg'
-import local_travel_icon from '../../../assets/map-pin.svg'
-import non_travel_icon from '../../../assets/paper-money-two.svg'
-import arrow_down from "../../../assets/chevron-down.svg";
-import Checkbox from "../../../components/common/Checkbox"
-import Modal from "../../../components/common/Modal"
+import { useNavigate, useParams, useLocation, Route, Routes} from "react-router-dom"
 import { useState, useEffect } from "react"
 import back_icon from "../../../assets/arrow-left.svg"
-import { getTenantTravelAllocations_API } from "../../../utils/api"
 import Error from "../../../components/common/Error"
-import MainSectionLayout from "../../MainSectionLayout"
+import { getTenantTravelAllocations_API, getTenantOrgHeaders_API } from "../../../utils/api"
+import Level3Home from "./Level3Home"
+import International from "./International"
+import Domestic from "./Domestic"
+import Local from "./Local"
 
-export default function (props){
-    const location = useLocation()
-   
-
-    const navigate = useNavigate()
+export default function ({progress, setProgress}){
     const {tenantId} = useParams()
-    const [showSkipModal, setShowSkipModal] = useState(false)
     const [isLoading, setIsLoading] = useState(true)
     const [loadingErrMsg, setLoadingErrMsg] = useState(null)
+    const [networkStates, setNetworkStates] = useState({isLoading: false, isUploading: false, loadingErrMsg:null})
+
+
+    const [allocations, setAllocations] = useState({});
+    const [orgHeaders, setOrgHeaders] = useState({})
 
     useEffect(()=>{
-        if(showSkipModal){
-            document.body.style.overflow = 'hidden'
-        }
-        else{
-            document.body.style.overflow = 'visible'
-        }
-    },[showSkipModal])
+        console.log(allocations, 'allocations level3')
+    }, [allocations])
 
 
     useEffect(()=>{
         (async function(){
-            setIsLoading(true)
-            const res = await getTenantTravelAllocations_API({tenantId})
-            if(res.err){
-                //setLoadingErrMsg(res.err)
-                setIsLoading(false)
-                return
+            setNetworkStates(pre=>({...pre, isLoading:true}))
+            const res = await getTenantOrgHeaders_API({tenantId})
+            const t_res = await getTenantTravelAllocations_API({tenantId})
+            
+            if(res.err || t_res.err){
+                console.log(res.err)
+                const errorMsg = res.err
+                setNetworkStates(pre=>({...pre, loadingErrMsg:errorMsg??t_res.err}))
+                //handle error
+            }
+            else{
+                console.log(res.data, '...res.data')
+                let orgHeadersData = res.data.orgHeaders
+                let tmpOrgHeaders = []
+                Object.keys(orgHeadersData).forEach(key => {
+                    if(orgHeadersData[key].length !== 0){
+                        tmpOrgHeaders.push({headerName:key, headerValues: orgHeadersData[key]})
+                    }
+                })
+        
+                console.log(tmpOrgHeaders, '...tmpOrgHeaders')
+                setOrgHeaders(tmpOrgHeaders)
+
+                if(Object.keys(t_res.data.travelAllocations).length == 0)
+                    setAllocations(travel_allocations)
+                else setAllocations(t_res.data.travelAllocations)
+                
+                setNetworkStates(pre=>({...pre, isLoading:false}))
             }
 
-            setIsLoading(false)
         })()
-    }, [])
+    },[])
 
-    const handleSaveAsDraft = async ()=>{
-        //update expense categories and allocations
-
-    }
-
-    const handleContinue = ()=>{
-
-    }
 
     return(<>
-    <MainSectionLayout>
-        {isLoading && <Error message={loadingErrMsg} />}
-        {!isLoading && <>    
-            <div className='px-6 py-10 bg-white'>
-                    {/* back button and title */}
-                    <div className='flex gap-4'>
-                    <div className='w-6 h-6 cursor-pointer' onClick={()=>navigate(-1)}>
-                        <img src={back_icon} />
-                    </div>
-
-                    <div className='flex gap-2'>
-                        <p className='text-neutral-700 text-base font-medium font-cabin tracking-tight'>
-                            Setup Expense Book
-                        </p>
-                    </div>
-                </div>
-
-                <div className="mt-10 flex flex-col gap-4">
-                    <CollapsedPolicy 
-                        onClick={() => navigate('international')}
-                        text='International Travel'
-                        icon={internatinal_travel_icon}/>
-
-                    <CollapsedPolicy 
-                        onClick={() => navigate('domestic')}
-                        text='Domestic Travel'
-                        icon={domestic_travel_icon}/>
-
-                    <CollapsedPolicy 
-                        onClick={() => navigate('local')}
-                        text='Local Travel'
-                        icon={local_travel_icon}/>
-                </div>
-
-                {/* <div className='flex mt-10'>
-                    <Button variant='fit' text='Save As Draft' onClick={handleSaveAsDraft} />
-                    <Button variant='fit' text='Continue' onClick={handleContinue} />
-                </div> */}
-
-            </div>
-            
-            <Modal skippable={false} showModal={showSkipModal} setShowModa={setShowSkipModal}>
-                <div className="p-10">
-                    <p className="text-neutral-700 text">
-                        If you skip this section you won't be able to track your expenses.
-                    </p>
-                    <div className=' mt-10 flex flex-wrap justify-between'>
-                        <div className='w-fit'>
-                            <Button text='Ok' onClick={()=>setShowSkipModal(false)} />
-                        </div>
-                        <div className='w-fit'>
-                            <HollowButton title='Skip For Now' showIcon={false} onClick={()=>navigate(`/${tenantId}/others`)} />
-                        </div>
-                    </div>
-                </div>
-            </Modal>
-        </>}
-    </MainSectionLayout>
-    </>)
-}
-
-
-function CollapsedPolicy(props){
-    const icon = props.icon
-    const text = props.text || 'Enter text'
-    const onClick = props.onClick || (() => {})
-
-    return(
-        <>
-            <div onClick={onClick} className="w-full h-[72px] p-6 relative bg-white cursor-pointer rounded-xl border border-neutral-200">
-                <div className="flex justify-between items-center">
-                    <div className="justify-start items-center gap-8 inline-flex">
-                        <div className="justify-start items-center gap-6 flex">
-                            <div className="w-6 h-6 relative">
-                                <img src={icon} />
-                            </div>
-                            <div className="text-neutral-700 text-base font-medium font-['Cabin']">{text}</div>
-                        </div>
-                    </div>
-
-                    <div className="justify-start gap-12 items-start gap-2 inline-flex">
-                        <div className="w-6 h-6 -rotate-90">
-                            <img src={arrow_down} />
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </>
-    )
+        {networkStates.isLoading && <Error message={networkStates.loadingErrMsg} />}
+        {!networkStates.isLoading && 
+        <Routes>
+            <Route path="/" element={<Level3Home progress={progress} setProgress={setProgress} />} />
+            <Route path="/international" element={<International orgHeaders={orgHeaders} setOrgHeaders={setOrgHeaders} allocations={allocations} setAllocations={setAllocations} progress={progress} setProgress={setProgress} />} />
+            <Route path="/domestic" element={<Domestic orgHeaders={orgHeaders} setOrgHeaders={setOrgHeaders} allocations={allocations} setAllocations={setAllocations} progress={progress} setProgress={setProgress} />} />
+            <Route path="/local" element={<Local orgHeaders={orgHeaders} setOrgHeaders={setOrgHeaders} allocations={allocations} setAllocations={setAllocations} progress={progress} setProgress={setProgress} />} />
+        </Routes>}
+        </>)
 }

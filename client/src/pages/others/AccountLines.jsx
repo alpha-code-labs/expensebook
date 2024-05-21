@@ -20,7 +20,7 @@ export default function (props){
         //get tenant expense data
         (async function(){
             try{
-                const acc_lines_response = await axios.get(`http://localhost:8001/api/tenant/${tenantId}/account-lines`)
+                const acc_lines_response = await axios.get(`import.meta.VITE_PROXY_URL/tenant/${tenantId}/account-lines`)
 
                 const accountLines = acc_lines_response.data.accountLines
 
@@ -73,7 +73,7 @@ export default function (props){
         //do some validation
 
         try{
-            const res = await axios.post(`http://localhost:8001/api/tenant/${tenantId}/account-lines`, {accountLines})
+            const res = await axios.post(`import.meta.VITE_PROXY_URL/tenant/${tenantId}/account-lines`, {accountLines})
             if(res.status == 200){
                 alert('Account Lines Updated !')
                 navigate(`/${tenantId}/others/roles`)
@@ -99,7 +99,7 @@ export default function (props){
     const handleSaveAsDraft = async ()=>{
        
         try{
-            const res = await axios.post(`http://localhost:8001/api/tenant/${tenantId}/account-lines`, {accountLines})
+            const res = await axios.post(`import.meta.VITE_PROXY_URL/tenant/${tenantId}/account-lines`, {accountLines})
             if(res.status == 200){
                 alert('Account Lines Updated !')
             }

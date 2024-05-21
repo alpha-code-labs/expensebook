@@ -7,6 +7,7 @@ import Error from "../components/common/Error"
 import React from 'react'
 import useWindowSize from 'react-use/lib/useWindowSize'
 import Confetti from 'react-confetti'
+import MainSectionLayout from "./MainSectionLayout"
 
 
 export default function (props){
@@ -43,7 +44,8 @@ export default function (props){
 
     const { width, height } = useWindowSize()
 
-    return(<>
+    return(
+    <MainSectionLayout>
         {isLoading && <Error message={loadingErrMsg}/>}
 
         {!isLoading && <div>  
@@ -51,7 +53,6 @@ export default function (props){
                 width={width}
                 height={height}
             />
-            <Icon/>
             <div className="bg-slate-50 min-h-[calc(100vh-107px)] px-[20px] md:px-[50px] lg:px-[104px] pb-10 w-full tracking-tight">
                 <div className='px-6 py-10 bg-white rounded shadow'>
                     <p className="text-3xl text-center font-cabin">Onboarding Completed!</p>
@@ -59,5 +60,6 @@ export default function (props){
                 </div>
             </div>
         </div>}
-    </>)
+    </MainSectionLayout>
+    )
 }

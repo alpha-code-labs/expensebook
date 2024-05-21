@@ -21,7 +21,7 @@ import remove_icon from '../../../assets/XCircle.svg'
 import close_icon from "../../../assets/close.svg"
 import UploadAdditionalHeaders from '../../expenseAllocations/UploadAdditionalHeaders'
 import { getTenantOrgHeaders_API, getTenantTravelAllocations_API, getTravelCategories_API, postProgress_API, postTenantTravelAllocations_API, postTravelCategories_API, updateFormState_API,  } from '../../../utils/api'
-import expenseAllocations from '../../expenseAllocations/expenseAllocations'
+import expenseAllocations from '../../expenseAllocations/ExpenseAllocations'
 import { camelCaseToTitleCase } from '../../../utils/handyFunctions'
 import Prompt from '../../../components/common/Prompt'
 import Error from '../../../components/common/Error'
@@ -269,14 +269,16 @@ export default function ({progress, setProgress, travelType}) {
 
         if(markCompleted){
             progress_copy.sections['section 3'].state = 'done';
-            progress_copy.maxReach = 'section 4';
+            if(progress.maxReach==undefined || progress.maxReach==null || progress.maxReach.split(' ')[1] < 4){
+                progress_copy.maxReach = 'section 4';
+              }
         }else{
             progress_copy.sections['section 3'].state = 'attempted';
         }
 
         const progress_res = await postProgress_API({tenantId, progress: progress_copy})
 
-        setProgress(progress_copy);
+        
 
         setNetworkStates(pre=>({...pre, isUploading:false}))
 
@@ -285,6 +287,7 @@ export default function ({progress, setProgress, travelType}) {
         }
         else{
             setPrompt({showPrompt:true, promptMsg:'Changes Saved Successfully'})
+            setProgress(progress_copy);
             setTimeout(()=>{
                 navigate(`/${tenantId}/setup-expensebook`)
             }, 3000)

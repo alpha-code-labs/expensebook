@@ -18,13 +18,13 @@ export default function ({progress, setProgress}){
     const navigate = useNavigate()
     const {tenantId} = useParams()
     const [options, setOptions] = useState({Cash:false, Cheque:false, ['Salary Account']:false, ['Prepaid Card']:false, ['NEFT Bank Transfer']:false})
-    const [loading, setLoading] = useState(true)
-    const [loadingError, setLoadingError] = useState(null)
+    const [networkStates, setNetworkStates] = useState({isLoading:false, isUploading:false, loadingErrMsg:null})
     const [prompt, setPrompt] = useState({showPrompt:false, promptMsg:false})
 
     useEffect(()=>{
         (async function(){
             try{
+                setNetworkStates(pre=>({...pre, isLoading:true, loadingErrMsg:null}))
                 const res = await axios.get(`${ONBOARDING_API}/tenant/${tenantId}/advance-settlement-options`)
                 const advanceSettlementOptions = res.data.advanceSettlementOptions
 
@@ -33,24 +33,23 @@ export default function ({progress, setProgress}){
                 }
                 
                 if(res.status == 200){
-                    setLoading(false)
-                    setLoadingError(null)    
+                    setNetworkStates(pre=>({...pre, isLoading:false, loadingErrMsg:null}))    
                 }
 
             }catch(e){
                 if(e.response){
                     if(e.response.status == 404){
-                        setLoadingError('Requested resource not found')
+                        setNetworkStates(pre=>({...pre, loadingErrMsg:'Requested resource not found'}))
                     }
                     else{
-                        setLoadingError('Something went wrong, please try again later')
+                        setNetworkStates(pre=>({...pre, loadingErrMsg:'Something went wrong, please try again later'}))
                     }
                 }
                 else if(e.request){
-                    setLoadingError('Internal server error')
+                    setNetworkStates(pre=>({...pre, loadingErrMsg:'Internal server error'}))
                 }
                 else{
-                    setLoadingError('Something went wrong, can not place this request at the moment')
+                    setNetworkStates(pre=>({...pre, loadingErrMsg:'Something went wrong, can not place this request at the moment'}))
                 }
 
                 console.log(e)
@@ -65,6 +64,7 @@ export default function ({progress, setProgress}){
     const saveExpenseSettlementOptions = async () =>{
         
         try{
+            setNetworkStates(pre=>({...pre, isUploading:true}))
             const res = await axios.post(`${ONBOARDING_API}/tenant/${tenantId}/advance-settlement-options`, {advanceSettlementOptions:options})
             let currentSubSection = 'Cash Advance Settlement Optioins'
 
@@ -89,12 +89,16 @@ export default function ({progress, setProgress}){
 
             if(markCompleted){
                 progress_copy.sections['section 6'].state = 'done';
-                progress_copy.maxReach = 'section 6';
+                if(progress.maxReach==undefined || progress.maxReach==null || progress.maxReach.split(' ')[1] < 7){
+                    progress_copy.maxReach = 'section 7';
+                  }
             }else{
                 progress_copy.sections['section 6'].state = 'attempted';
             }
 
             const progress_res = await postProgress_API({tenantId, progress: progress_copy})
+
+            setNetworkStates(pre=>({...pre, isUploading:false}))
 
             if(res.status == 200){
                 setPrompt({showPrompt:true, promptMsg: 'Advance Settlement Options Updated !'})
@@ -150,9 +154,9 @@ export default function ({progress, setProgress}){
 
     return(<>
     <MainSectionLayout>
-        {loading && <Error message={loadingError}/>}
+        {networkStates.isLoading && <Error message={networkStates.loadingErrMsg}/>}
 
-        {!loading &&
+        {!networkStates.isLoading &&
             <div className='px-6 py-10 bg-white'>
                 <div className="flex justify-between">
                     <div className="gap-2">
@@ -180,9 +184,9 @@ export default function ({progress, setProgress}){
                     })}    
                 </div>
 
-                <div className="mt-10 w-full flex justify-between">
+                <div className="mt-10 w-full flex justify-end">
                     {/* <Button variant='fit' text='Save As draft' onClick={handleSaveAsDraft} /> */}
-                    <Button variant='fit' text='Save Advance Settlement Options' onClick={()=>saveExpenseSettlementOptions()} />
+                    <Button isLoading={networkStates.isUploading} variant='fit' text='Save Advance Settlement Options' onClick={()=>saveExpenseSettlementOptions()} />
                 </div>
 
                 <Prompt prompt={prompt} setPrompt={setPrompt} timeout={2700}/>

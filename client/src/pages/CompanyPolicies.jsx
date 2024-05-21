@@ -260,7 +260,7 @@ export default function ({progress, setProgress}){
          setNetworkStates(pre=>({...pre, isLoading:true}))
         //get travel expense categories..., travel allocation flags... and groups
 
-        //const groups_data_response = await axios.get(`http://localhost:8001/api/tenant/${tenantId}/groups`);
+        //const groups_data_response = await axios.get(`import.meta.VITE_PROXY_URL/tenant/${tenantId}/groups`);
 
         const policies_data_response = await axios.get(`${ONBOARDING_API}/tenant/${tenantId}/policies/travel`);
         const res = await axios.get(`${ONBOARDING_API}/tenant/${tenantId}/policies/non-travel`);
@@ -298,9 +298,15 @@ export default function ({progress, setProgress}){
     console.log(ruleEngineState)
   },[ruleEngineState])
 
+
+  useEffect(()=>{
+    if(progress!= undefined && progress?.activeSection != 'section 5'){
+      setProgress(pre=>({...pre, activeSection:'section 5'}))
+    }
+  },[progress])
+
   return <>
       {groupsNotFound && <> 
-      <Icon/>
         <div className="bg-slate-50 min-h-[calc(100vh-107px)] px-[20px] md:px-[50px] lg:px-[104px] pb-10 w-full tracking-tight">
             <div className='px-6 py-10 bg-white rounded shadow'>
               <div className="text text-xl font-cabin">No groups are found to setup company policies. Click <a className="underline text-indigo-600" href={`/${tenantId}/groups`}>here</a> to setup groups</div>

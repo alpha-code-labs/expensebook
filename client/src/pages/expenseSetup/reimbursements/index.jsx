@@ -143,8 +143,8 @@ export default function ({progress, setProgress}){
         } else {
           console.log('this ran..');
           try {
-            const groups_data_response = await axios.get(`http://localhost:8001/api/tenant/${tenantId}/groups`);
-            const policies_data_response = await axios.get(`http://localhost:8001/api/tenant/${tenantId}/policies/non-travel`);
+            const groups_data_response = await axios.get(`import.meta.VITE_PROXY_URL/tenant/${tenantId}/groups`);
+            const policies_data_response = await axios.get(`import.meta.VITE_PROXY_URL/tenant/${tenantId}/policies/non-travel`);
 
             const groups = groups_data_response.data.groups
             const policies = policies_data_response.data.policies

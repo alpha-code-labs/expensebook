@@ -73,7 +73,7 @@ const [prompt, setPrompt] = useState(false)
 
                 async function updateOrgHeaders(){
                     try{            
-                        const existingOrgHeadersData = await axios.get(`http://localhost:8001/api/tenant/${tenantId}/org-headers`)
+                        const existingOrgHeadersData = await axios.get(`import.meta.VITE_PROXY_URL/tenant/${tenantId}/org-headers`)
 
                         let extraOrgHeaders = addedHeaders.map(header => ({ header:header, values:[...new Set(excelData.map(row => row[header]))] }))
 
@@ -99,12 +99,12 @@ const [prompt, setPrompt] = useState(false)
                         
                         //added headers have values, add values update employee data & org headers in database
                         await axios
-                        .post(`http://localhost:8001/api/tenant/${tenantId}/employeeDetails`, {employeeDetails:transformedExcelData})
+                        .post(`import.meta.VITE_PROXY_URL/tenant/${tenantId}/employeeDetails`, {employeeDetails:transformedExcelData})
                         .then(res => {res.status === 200})
 
                         //update org headers in database
                         await axios
-                        .post(`http://localhost:8001/api/tenant/${tenantId}/org-headers`, {orgHeaders:existingOrgHeadersData.data.orgHeaders})
+                        .post(`import.meta.VITE_PROXY_URL/tenant/${tenantId}/org-headers`, {orgHeaders:existingOrgHeadersData.data.orgHeaders})
                         .then(res => {
                             if(res.status === 200){
                                 setHeadersUpdated(pre=>!pre)
@@ -140,8 +140,8 @@ const [prompt, setPrompt] = useState(false)
     useEffect(() => {
         (async function(){
             try{
-            const res = await axios.get(`http://localhost:8001/api/tenant/${tenantId}/org-headers`)
-            const flags_res = await axios.get(`http://localhost:8001/api/tenant/${tenantId}/flags`)
+            const res = await axios.get(`import.meta.VITE_PROXY_URL/tenant/${tenantId}/org-headers`)
+            const flags_res = await axios.get(`import.meta.VITE_PROXY_URL/tenant/${tenantId}/flags`)
             const flags = flags_res.data.flags
                 
             if(res.status === 200 && flags_res.status === 200){
@@ -188,10 +188,10 @@ const [prompt, setPrompt] = useState(false)
     const handleSaveAsDraft = async ()=>{
         //if travel allocations headers were selected thatn update them
         if(selectedOrgHeaders.length>0){
-            const orgHeadersData = await axios.get(`http://localhost:8001/api/tenant/${tenantId}/org-headers`)
+            const orgHeadersData = await axios.get(`import.meta.VITE_PROXY_URL/tenant/${tenantId}/org-headers`)
             console.log(orgHeadersData, '...orgHeadersData')
             let allocationHeaders = selectedOrgHeaders.map(orgHeader => ({headerName:orgHeader, headerValues:orgHeadersData.data.orgHeaders[orgHeader]}))
-            const res = await axios.post(`http://localhost:8001/api/tenant/${tenantId}/${type == 'travel'? 'travel-allocation' : 'travel-expense-allocation'}`, {allocationHeaders})
+            const res = await axios.post(`import.meta.VITE_PROXY_URL/tenant/${tenantId}/${type == 'travel'? 'travel-allocation' : 'travel-expense-allocation'}`, {allocationHeaders})
 
             if(res.status>199 && res.status<300){
                 //update form state
@@ -212,11 +212,11 @@ const [prompt, setPrompt] = useState(false)
         //save travel allocation headers...
         console.log(selectedOrgHeaders, '...selectedOrgHeaders')
         //get org headers
-        const orgHeadersData = await axios.get(`http://localhost:8001/api/tenant/${tenantId}/org-headers`)
+        const orgHeadersData = await axios.get(`import.meta.VITE_PROXY_URL/tenant/${tenantId}/org-headers`)
         console.log(orgHeadersData, '...orgHeadersData')
         let allocationHeaders = selectedOrgHeaders.map(orgHeader => ({headerName:orgHeader, headerValues:orgHeadersData.data.orgHeaders[orgHeader]}))
         axios
-        .post(`http://localhost:8001/api/tenant/${tenantId}/${type == 'travel'? 'travel-allocation' : 'travel-expense-allocation'}`, {allocationHeaders})
+        .post(`import.meta.VITE_PROXY_URL/tenant/${tenantId}/${type == 'travel'? 'travel-allocation' : 'travel-expense-allocation'}`, {allocationHeaders})
         .then(res => {
             console.log(res.data, '...res.data')
             navigate(next, {state:{tenantId}})
@@ -251,7 +251,7 @@ const [prompt, setPrompt] = useState(false)
     useEffect(()=>{
         try{
             axios
-            .get(`http://localhost:8001/api/tenant/${tenantId}/employees`)
+            .get(`import.meta.VITE_PROXY_URL/tenant/${tenantId}/employees`)
             .then(res => {
                 console.log(res.data.map(employee=>employee.employeeDetails), '...res.data')
                 setEmployeeData(res.data.map(employee=>employee.employeeDetails))

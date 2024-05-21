@@ -7,7 +7,6 @@ import Icon from '../components/common/Icon';
 import file_icon from '../assets/teenyicons_csv-solid.svg'
 import Button from '../components/common/Button';
 import Modal from '../components/common/Modal';
-import { set } from 'mongoose';
 import UploadFile from '../components/common/UploadFile';
 import { useNavigate, useParams } from 'react-router-dom';
 import { postProgress_API, postTenantHRData_API, updateFormState_API } from '../utils/api';
@@ -15,6 +14,7 @@ import { motion } from 'framer-motion';
 import check_icon from '../assets/check.svg'
 import LeftProgressBar from '../components/common/LeftProgressBar';
 import MainSectionLayout from './MainSectionLayout';
+import Prompt from '../components/common/Prompt';
 
 const WEB_PAGE_URL = import.meta.env.WEB_PAGE_URL
 const LOGIN_PAGE_URL = import.meta.env.LOGIN_PAGE_URL
@@ -31,9 +31,13 @@ export default function ({progress, setProgress}){
 
   const [diyFlag, setDiyFlag] = useState(true); //initialize this with the actual value
   const [prompt, setPrompt] = useState(null);
+  const [prompt_, setPrompt_] = useState({showPrompt:false, promptMsg:null});
+
   const [showPrompt, setShowPrompt] = useState(false)
   const [showSkipModal, setShowSkipModal] = useState(false)
   const [processed, setProcessed] = useState(false)
+  const [isUploading, setIsUploading] = useState(false)
+
   const templateColumns = [
     {header: 'Employee Name', key: 'employeeName', width: 20},
     {header: 'Employee Id', key: 'employeeId', width: 20},
@@ -101,21 +105,25 @@ export default function ({progress, setProgress}){
   const navigate = useNavigate()
 
   const handleSubmit = async () => {
-    setProcessed(false)
+
     console.log(excelData)
     //transform excel data
-    let transformedExcelData = []
+    let transformedExcelData = [];
+
     excelData.forEach(row => {
         const transformedRow = {}
         Object.keys(row).map(key => {
             transformedRow[titleCaseToCamelCase(key)] = row[key]
         })
+
         transformedExcelData.push(transformedRow)
     })
 
     console.log(transformedExcelData)
 
+    setIsUploading(true);
     const res = await postTenantHRData_API({tenantId, hrData:transformedExcelData})
+
     if(res.err){
       setShowPrompt(true)
       setPrompt('Unable to upload file please try again later')
@@ -131,14 +139,24 @@ export default function ({progress, setProgress}){
     progress_copy.sections['section 2'].state = 'done';
     progress_copy.sections['section 2'].coveredSubSections = 1;
     progress_copy.activeSection = 'section 3';
-    progress_copy.maxReach = 'section 3';
+
+    if(progress.maxReach==undefined || progress.maxReach==null || progress.maxReach.split(' ')[1] < 3){
+      progress_copy.maxReach = 'section 3';
+    }
   
     const progress_res = await postProgress_API({tenantId, progress:progress_copy})
 
+    setIsUploading(false);
+
     if(!progress_res.err){
-      setProgress(progress_copy);
-      //navigate to next section 
-      navigate(`/${tenantId}/setup-expensebook/`)
+
+      setPrompt_({showPrompt:true, promptMsg: 'Data uploaded successfully'})
+
+      setTimeout(()=>{
+        setProgress(progress_copy);
+        //navigate to next section 
+        navigate(`/${tenantId}/setup-expensebook/`)
+      }, 3000)
     }
   }
 
@@ -171,10 +189,16 @@ export default function ({progress, setProgress}){
     window.location.href = WEB_PAGE_URL
   }
 
+  useEffect(()=>{
+    if(progress!= undefined && progress?.activeSection != 'section 2'){
+      setProgress(pre=>({...pre, activeSection:'section 2'}))
+    }
+  },[progress])
+
   return (
     <>
         <MainSectionLayout>    
-            <div className='px-6 py-10  bg-white  w-[calc(100%)]'>
+            <div className='px-6 py-10  bg-white  w-full'>
                 {!readyToProceed && <div>
                     <p className='text-lg text-neutral-800'>Upload HR data.</p>
                     <p className='mt-1 text-normal text-neutral-600'>Below is a sample filled excel file. You can take a look to know what kind of information we are requesting from you. If you want to know further why we are asking to provide you a certain field please click here to see the full list.</p>
@@ -241,10 +265,11 @@ export default function ({progress, setProgress}){
                 
                 <div className='px-6 mt-20 w-full flex justify-between items-center flex-wrap'>
                     {/* <Button variant='fit' disabled={!processed} text='Save as Draft' onClick={()=>{handleSaveAsDraft();}} /> */}
-                    <Button variant='fit' disabled={!processed} text='Save and Continue' onClick={()=>{handleSubmit();}} />
+                    <Button variant='fit' isLoading={isUploading} disabled={!processed} text='Save and Continue' onClick={()=>{handleSubmit();}} />
                 </div>
                 </>}
             </div>
+            <Prompt prompt={prompt_} setPrompt={setPrompt_}/>
         </MainSectionLayout>
     
       <Modal showModal={showPrompt} setShowModal={setShowPrompt} skipable={true} >
@@ -271,6 +296,12 @@ export default function ({progress, setProgress}){
                     </div>
                 </div>
             </div>
+      </Modal>
+
+      <Modal showModal={false}>
+        <div className='w-[80%] h-[80%] bg-gray-200'>
+            <p>Sumary for the uploaded file</p>
+        </div>
       </Modal>
   </> 
   );
@@ -334,7 +365,7 @@ function TemplateGridView(){
                   {col.mandatory && <span className='text-red-900 text-lg'>*</span>}                
                 </div>
               
-              {col.data.map(cell=>(<div className='whitespace-nowrap bg-indigo-100 font-mono h-[22px] px-2 flex items-center text-neutral-700 border-b border-neutral-200'>
+              {col.data.map((cell,ind)=>(<div key={ind} className='whitespace-nowrap bg-indigo-100 font-mono h-[22px] px-2 flex items-center text-neutral-700 border-b border-neutral-200'>
                 {cell}
               </div>))}
             </div>

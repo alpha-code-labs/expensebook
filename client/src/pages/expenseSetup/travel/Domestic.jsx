@@ -1,11 +1,11 @@
 import { useNavigate, useParams } from "react-router-dom"
 import AllocationPageComponent from "./AllocationPageComponent"
 
-export default function(){
+export default function({allocations, setAllocations, orgHeaders, setOrgHeaders}){
 
     const {tenantId} = useParams()
 
     return(<>
-        <AllocationPageComponent tenantId={tenantId} travelType={'domestic'} />
+        <AllocationPageComponent orgHeaders={orgHeaders} setOrgHeaders={setOrgHeaders} allocations={allocations} setAllocations={setAllocations} tenantId={tenantId} travelType={'domestic'} />
     </>)
 }

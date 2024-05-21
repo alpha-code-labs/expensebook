@@ -25,9 +25,9 @@ export default function (props){
         //get tenant expense data
         (async function(){
             try{
-                const res = await axios.get(`http://localhost:8001/api/tenant/${tenantId}/blanket-delegations`)
-                const groups_res = await axios.get(`http://localhost:8001/api/tenant/${tenantId}/groups`)
-                const employees_res = await axios.get(`http://localhost:8001/api/tenant/${tenantId}/employees`)
+                const res = await axios.get(`import.meta.VITE_PROXY_URL/tenant/${tenantId}/blanket-delegations`)
+                const groups_res = await axios.get(`import.meta.VITE_PROXY_URL/tenant/${tenantId}/groups`)
+                const employees_res = await axios.get(`import.meta.VITE_PROXY_URL/tenant/${tenantId}/employees`)
 
                 const blanketDelegations = res.data.blanketDelegations
 
@@ -81,7 +81,7 @@ export default function (props){
         //do some validation
 
         try{
-            const res = await axios.post(`http://localhost:8001/api/tenant/${tenantId}/blanket-delegations`, {blanketDelegations})
+            const res = await axios.post(`import.meta.VITE_PROXY_URL/tenant/${tenantId}/blanket-delegations`, {blanketDelegations})
             if(res.status == 200){
                 alert('Blanket Delegations Updated !')
                 navigate(`/${tenantId}/others/account-lines`)

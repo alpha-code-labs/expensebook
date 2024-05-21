@@ -17,6 +17,12 @@ export default function ({progress, setProgress}){
 
   const [groupData, setGroupData] = useState([])
 
+  useEffect(()=>{
+    if(progress!= undefined && progress?.activeSection != 'section 4'){
+      setProgress(pre=>({...pre, activeSection: 'section 4'}))
+    }
+  },[progress])
+
   return <>
 
      {tenantId &&

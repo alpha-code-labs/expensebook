@@ -131,7 +131,7 @@ export default function CompanyAndHRInformation(){
       if (selectedFile) {
         data.append('file', selectedFile);
         axios.
-        post('http://localhost:8001/api/upload-hrInfo', data)
+        post('import.meta.VITE_PROXY_URL/upload-hrInfo', data)
         .then((response) => {
           console.log('File uploaded successfully:', response.data);
       
@@ -140,7 +140,7 @@ export default function CompanyAndHRInformation(){
           // Make a POST request using Axios
           console.log('trying to submit....', formData)
             axios
-            .post('http://localhost:8001/api/hrCompanyInfo/new', {...formData, filename:response.data.fileName})
+            .post('import.meta.VITE_PROXY_URL/hrCompanyInfo/new', {...formData, filename:response.data.fileName})
             .then((response) => {
               console.log('HR master created:', response.data);
               //move to the next section
@@ -168,7 +168,7 @@ export default function CompanyAndHRInformation(){
       console.log('trying to submit....', data)
 
       axios
-      .post('http://localhost:8001/api/hrCompanyInfo/new', {companyName:formData.companyName, businessCategory:formData.businessCategory, teamSize:formData.teamSize, companyHQ:formData.companyHQ })
+      .post('import.meta.VITE_PROXY_URL/hrCompanyInfo/new', {companyName:formData.companyName, businessCategory:formData.businessCategory, teamSize:formData.teamSize, companyHQ:formData.companyHQ })
       .then((response) => {
         console.log('File uploaded successfully:', response.data);
       })

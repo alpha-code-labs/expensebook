@@ -17,7 +17,6 @@ import Button from '../../components/common/Button'
 import MultiSelect from '../../components/common/MultiSelect'
 import axios from 'axios'
 import Modal from '../../components/common/Modal'
-import { EmitFlags } from 'typescript'
 import Select from '../../components/common/Select'
 import remove_icon from '../../assets/XCircle.svg'
 import { updateFormState_API, updateNonTravelAllocation_API, updateNonTravelPolicies_API } from '../../utils/api'
@@ -87,11 +86,11 @@ export default function ({tenantId, travelType, ruleEngineState, setRuleEngineSt
         //     return result;
         //   }, {})
 
-        let currentSubSection = 'Reimbrusement Policies'
+        let currentSubSection = 'Reimbursement Policies'
 
         setNetworkStates(pre=>({...pre, isUploading:true}))
         const res = await updateNonTravelPolicies_API({tenantId, policies:ruleEngineState})
-        setNetworkStates(pre=>({...pre, isUploading:false}))
+        
         
         const progress_copy = JSON.parse(JSON.stringify(progress));
 
@@ -121,17 +120,22 @@ export default function ({tenantId, travelType, ruleEngineState, setRuleEngineSt
 
         const progress_res = await postProgress_API({tenantId, progress: progress_copy})
 
+        setNetworkStates(pre=>({...pre, isUploading:false}))
 
 
         if(res.err || progress_res.err){
             setPrompt({showPrompt:true, promptMsg:'Can not update policies at the moment. Please try again later'})
         }
         else{
-            setPrompt({showPrompt:true, promptMsg:'Policies Updated!'})
+            setPrompt({showPrompt:true, promptMsg:'Reimbursement Policies Updated!'})
             console.log(res.data)
             updateFormState_API({tenantId, state:'/setup-company-policies'})
-            setProgress(progress_copy)
-            navigate(`/${tenantId}/setup-company-policies`);
+            
+            setTimeout(() => {
+                setProgress(progress_copy)
+                navigate(`/${tenantId}/setup-company-policies`);    
+            }, 3000);
+            
         }
 
     }
@@ -188,12 +192,12 @@ export default function ({tenantId, travelType, ruleEngineState, setRuleEngineSt
                             </div>
                         }   */}
                     <div>
-                        <Button variant='fit' text='Save and Continue' onClick={savePolicies} />
+                        <Button isLoading={networkStates.isUploading} variant='fit' text='Save and Continue' onClick={savePolicies} />
                     </div>
                 </div>
 
 
-                <Prompt prompt={prompt} setPrompt={setPrompt} timeout={300} bgClear={true} toastLike = {true} />
+                <Prompt prompt={prompt} setPrompt={setPrompt} timeout={3000} />
 
             </div>
         }

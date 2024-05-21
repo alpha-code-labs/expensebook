@@ -21,6 +21,7 @@ import Prompt from '../../components/common/Prompt'
 import { motion } from 'framer-motion'
 import MainSectionLayout from '../MainSectionLayout'
 import { postProgress_API } from '../../utils/api'
+import { camelCaseToTitleCase, titleCaseToCamelCase } from '../../utils/handyFunctions'
 
 const redirectionTimeout = import.meta.env.VITE_REDIRECT_TIMEOUT??3000
 const promptTimeout = import.meta.env.VITE_PROMPT_TIMEOUT??2700
@@ -112,12 +113,16 @@ export default function ({tenantId, travelType, ruleEngineState, setRuleEngineSt
             setPrompt({showPrompt:true, promptMsg:'Can not update policies at the moment. Please try again later'})
         }
         else{
-            setPrompt({showPrompt:true, promptMsg:'Policies Updated!', })
+            setPrompt({showPrompt:true, promptMsg:`${camelCaseToTitleCase(travelType)} Policies Updated!`})
             console.log(res.data)
             updateFormState_API({tenantId, state:'/setup-company-policies'})
-            setProgress(progress_copy);
             
-            // navigate(``)
+            
+            setTimeout(() => {
+                setProgress(progress_copy);    
+                navigate(`/${tenantId}/setup-company-policies`)
+            }, 3000);
+            
         }
     }
 
@@ -169,7 +174,7 @@ export default function ({tenantId, travelType, ruleEngineState, setRuleEngineSt
                     )}
 
                     <div>
-                        <Button variant='fit' text='Save and Continue' onClick={savePolicies} />
+                        <Button isLoading={networkStates.isUploading} variant='fit' text='Save and Continue' onClick={savePolicies} />
                     </div>
 
                         { travelType==='nonTravel' && 
@@ -181,7 +186,7 @@ export default function ({tenantId, travelType, ruleEngineState, setRuleEngineSt
 
             </div>
 
-            <Prompt prompt={prompt} setPrompt={setPrompt} timeout={300} bgClear={true} toastLike = {true} />
+            <Prompt prompt={prompt} setPrompt={setPrompt} timeout={3000} />
     
         </MainSectionLayout>
         </>
@@ -508,6 +513,9 @@ function Policy(props){
             </div>
 
             <motion.div 
+                initial={{
+                    maxHeight: collapse? '0px' : '100000px'
+                }}
                 animate={{
                     maxHeight: collapse? '0px' : '100000px'
                 }}

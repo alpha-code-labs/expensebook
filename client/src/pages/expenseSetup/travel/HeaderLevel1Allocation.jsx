@@ -188,7 +188,7 @@ export default function (props) {
             setRuleEngineState(ruleEngineState_copy)
             setShowAddExpenseCategoriesModal(false)
 
-            const res = await axios.post(`http://localhost:8001/api/tenant/${tenantId}/policies`, {policies:ruleEngineState_copy})
+            const res = await axios.post(`import.meta.VITE_PROXY_URL/tenant/${tenantId}/policies`, {policies:ruleEngineState_copy})
 
             alert('category added')
         }
@@ -284,7 +284,7 @@ export default function (props) {
             setRuleEngineState(ruleEngineState_copy)
             setShowAddExpenseCategoriesModal(false)
 
-            // const res = await axios.post(`http://localhost:8001/api/tenant/${tenantId}/policies/non-travel`, {policies:ruleEngineState_copy})
+            // const res = await axios.post(`import.meta.VITE_PROXY_URL/tenant/${tenantId}/policies/non-travel`, {policies:ruleEngineState_copy})
             const res = await updateNonTravelPolicies_API({tenantId, policies:ruleEngineState_copy})
 
             alert(`${existingCategory? 'category updated!' : 'category added'}`)

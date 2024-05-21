@@ -18,6 +18,7 @@ export default function ({progress, setProgress}){
     const [options, setOptions] = useState({Cash:false, Cheque:false, ['Salary Account']:false, ['Prepaid Card']:false, ['NEFT Bank Transfer']:false})
     const [loading, setLoading] = useState(true)
     const [loadingError, setLoadingError] = useState(null)
+    const [isUploading, setIsUploading] = useState(false);
     const [prompt, setPrompt] = useState({showPrompt: false, promptMsg: null})
 
     useEffect(()=>{
@@ -63,6 +64,7 @@ export default function ({progress, setProgress}){
     const saveExpenseSettlementOptions = async () =>{
         
         try{
+            setIsUploading(true)
             const res = await axios.post(`${ONBOARDING_API}/tenant/${tenantId}/expense-settlement-options`, {expenseSettlementOptions:options})
             let currentSubSection = 'Expense Settlement Options';
 
@@ -87,13 +89,17 @@ export default function ({progress, setProgress}){
 
             if(markCompleted){
                 progress_copy.sections['section 6'].state = 'done';
-                progress_copy.maxReach = 'section 7';
+                if(progress.maxReach==undefined || progress.maxReach==null || progress.maxReach.split(' ')[1] < 7){
+                    progress_copy.maxReach = 'section 7';
+                  }
                 progress_copy.activeSection = 'section 7';
             }else{
                 progress_copy.sections['section 6'].state = 'attempted';
             }
 
             const progress_res = await postProgress_API({tenantId, progress: progress_copy})
+            
+            setIsUploading(false)
 
             if(res.status == 200){
                 setPrompt({showPrompt:true, promptMsg: "Expense Settlement Options Updated !" })
@@ -177,9 +183,9 @@ export default function ({progress, setProgress}){
                     })}    
                 </div>
 
-                <div className="mt-10 w-full flex justify-between">
+                <div className="mt-10 w-full flex justify-end">
                     {/* <Button variant='fit' text='Save As draft' onClick={handleSaveAsDraft} /> */}
-                    <Button variant='fit' text='Save Expense Settlement Options' onClick={()=>saveExpenseSettlementOptions()} />
+                    <Button isLoading={isUploading} variant='fit' text='Save Expense Settlement Options' onClick={()=>saveExpenseSettlementOptions()} />
                 </div>
             
                 <Prompt prompt={prompt} setPrompt={setPrompt} />

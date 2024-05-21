@@ -292,7 +292,9 @@ export default function ({tenantId, progress, setProgress}) {
 
         if(markCompleted){
             progress_copy.sections['section 3'].state = 'done';
-            progress_copy.maxReach = 'section 4';
+            if(progress.maxReach!=undefined || progress.maxReach!=null || progress.maxReach.split(' ')[1] < 4){
+                progress_copy.maxReach = 'section 4';
+              }
         }else{
             progress_copy.sections['section 3'].state = 'attempted';
         }
