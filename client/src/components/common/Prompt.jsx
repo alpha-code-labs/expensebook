@@ -15,6 +15,10 @@ export default function({prompt, setPrompt, timeout=3000 /* in milliseconds */, 
             }
             else document.body.style.overflow = 'auto'
         }
+
+        return(()=>{
+            document.body.style.overflow = 'auto';
+        })
     },[prompt.showPrompt])
 
     useEffect(()=>{
@@ -25,7 +29,7 @@ export default function({prompt, setPrompt, timeout=3000 /* in milliseconds */, 
                 console.log('this ran.. after 3 seconds')
                 toggleOpen(false)
                 setPrompt(pre=>({...pre, showPrompt:false}))
-            }, timeout+1200)
+            }, timeout)
         }
     },[prompt.showPrompt])
 
