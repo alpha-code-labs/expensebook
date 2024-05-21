@@ -137,7 +137,7 @@ export default function ({progress, setProgress}){
     const progress_copy = JSON.parse(JSON.stringify(progress));
 
     progress_copy.sections['section 2'].state = 'done';
-    progress_copy.sections['section 2'].coveredSubSections = 1;
+    progress_copy.sections['section 2'].coveredSubsections = 1;
     progress_copy.activeSection = 'section 3';
 
     if(progress.maxReach==undefined || progress.maxReach==null || progress.maxReach.split(' ')[1] < 3){
