@@ -2,20 +2,25 @@ import { useEffect, useState } from 'react';
 import check_icon from '../../assets/check.svg';
 import { motion } from 'framer-motion';
 import { camelCaseToTitleCase } from '../../utils/handyFunctions';
-import { useNavigate } from 'react-router-dom';
-
+import { useNavigate, useLocation } from 'react-router-dom';
 
 //states -> done, not attempted, attempted, skipped
 
 export default function({
+    tenantId,
     progress,
     setProgress,
 }){
 
-    const navigate = useNavigate();
-    const tenantId = '65f7d5442f8fdd7d542eed07';
-    const baseURL = `http://localhost:5173`
 
+
+    const isActiveSubsection = (subsection)=>{
+        return useLocation().pathname.includes(subsection.navigationUri);
+    }
+
+    
+    const navigate = useNavigate();
+    
     const sections = [1,2,3,4,5]
 
     const handleActiveSection = (section)=>{
@@ -27,9 +32,11 @@ export default function({
         }
     }
 
+    console.log(progress, 'progress from LeftPRogres')
+
     return(
         <>  
-            {progress == undefined || progress == null && <div className='fixed bg-white pl-2 pt-8 pr-2 top-[63px] left-navigation w-[230px] h-[100%]  z-[1000] flex flex-col'>
+            {progress == undefined || progress == null && <div className='fixed bg-white pl-2 pt-8 pr-4 top-[63px] left-navigation w-[230px] h-[100%]  z-[1000] flex flex-col'>
                 {sections.map((itm, ind)=>(<>
                     <div className='relative h-[60px] flex items-center rounded-md bg-gray-200'>
 
@@ -51,68 +58,78 @@ export default function({
             {progress != undefined && progress!= null && <div className='fixed bg-white pl-2 pt-8 pr-2 top-[63px] left-navigation w-[230px] z-[1000] h-[90%] flex flex-col overflow-y-scroll overflow-x-hidden dropdown-scroll mb-4 pb-4'>
                 
                {Object.keys(progress?.sections??{}).map((section, sectionIndex)=>(<>
-                    <div className='relative rounded-md'>
+                    <div key={sectionIndex} className={`relative rounded-md `}>
+                        <div className={`relative rounded-md ${progress.activeSection == section && 'ring-offset-2 ring-2 ring-green-600'}`}>
+                            <div 
+                                onClick={()=>handleActiveSection(section)}
+                                className={`relative h-[60px] bg-indigo-400 flex items-center cursor-pointer  ${progress.activeSection == section && progress.sections[section].totalSubsections > 1? 'rounded-t-md' : 'rounded-md'}`}>
+                                <div className='px-2'>
+                                    <p className='  flex items-center text-gray-100 w-full text-lg font-cabin'>{camelCaseToTitleCase(section)}</p>
+                                    {progress.sections[section]?.title != undefined && <p className='flex items-center text-gray-200 w-full text-xs'>{progress.sections[section].title}</p>}
+                                </div>
+                                
+                                {section == progress.activeSection && <div className='absolute triangle-right -right-[9px]' />}
+                                
+                                {progress.sections[section].state == 'skipped' && <div className='absolute right-[18px]'> 
+                                    <p className='font-mono text-gray-100 text-xs'>skipped</p>
+                                </div>}
 
-                        <div 
-                            onClick={()=>handleActiveSection(section)}
-                            className={`relative h-[60px] bg-indigo-400 flex items-center cursor-pointer ${progress.activeSection == section && 'outline outline-2 outline-gray-100'} ${progress.activeSection == section && progress.sections[section].totalSubsections > 1? 'rounded-t-md' : 'rounded-md'}`}>
-                            <div className='px-2'>
-                                <p className='  flex items-center text-gray-100 w-full text-lg font-cabin'>{camelCaseToTitleCase(section)}</p>
-                                {progress.sections[section]?.title != undefined && <p className='flex items-center text-gray-200 w-full text-xs'>{progress.sections[section].title}</p>}
+                                {progress.sections[section]?.state != undefined && progress.sections[section].state != 'done' && progress.sections[section].state != 'skipped' &&  progress.sections[section].totalSubsections != 0 &&
+                                    <div className='absolute right-[18px] w-7 h-7 bg-blue-100 rounded-full text-gray-700 text-xs items-center flex justify-center gap-[1px]'> 
+                                        <p className='text-neutral-700'>{progress.sections[section].coveredSubsections}</p>
+                                        <p>/</p>
+                                        <p>{progress.sections[section].totalSubsections}</p>
+                                    </div>
+                                }
+
+                                {progress.sections[section]?.state == 'done' && 
+                                    <div className='absolute right-[18px] w-7 h-7 bg-green-100 rounded-full p-1 flex items-center justify-center'>
+                                        <img src={check_icon} />
+                                    </div>
+                                }
+
                             </div>
                             
-                            {section == progress.activeSection && <div className='absolute triangle-right -right-[9px]' />}
-                            
-                            {progress.sections[section].state == 'skipped' && <div className='absolute right-[18px]'> 
-                                <p className='font-mono text-gray-100 text-xs'>skipped</p>
-                            </div>}
+                            { section == progress.activeSection && progress.sections[section].totalSubsections > 1 && <div className='pt-2 bg-indigo-300 h-fit w-full rounded-b-md flex flex-col items-start pl-6'>
 
-                            {progress.sections[section]?.state != undefined && progress.sections[section].state != 'done' && progress.sections[section].state != 'skipped' &&  progress.sections[section].totalSubsections != 0 &&
-                                <div className='absolute right-[18px] w-7 h-7 bg-blue-100 rounded-full text-gray-700 text-xs items-center flex justify-center gap-[1px]'> 
-                                    <p className='text-neutral-700'>{progress.sections[section].coveredSubsections}</p>
-                                    <p>/</p>
-                                    <p>{progress.sections[section].totalSubsections}</p>
-                                </div>
-                            }
+                                {
+                                progress.sections[section].subsections.map((subsection, subsectionIndex)=>(
+                                    <>
+                                        <div className='flex items-center justify-center gap-2'>
+                                            <div className='rounded-full h-4 w-4 bg-blue-100 text-neutral-500 text-sm flex items-center justify-center p-[4px]'>{subsectionIndex+1}</div>
+                                            <p className={`${isActiveSubsection(subsection) ? 'text-blue-700 underline underline-offset-4' : 'text-gray-500' }  text-sm font-cabin w-[130px]`}>{subsection.name}</p>
+                                            {subsection.completed && <div className='w-4 h-4 flex-1'>
+                                                <img src={check_icon} />
+                                            </div>}
+                                        </div>
 
-                            {progress.sections[section]?.state == 'done' && 
-                                <div className='absolute right-[18px] w-7 h-7 bg-green-100 rounded-full p-1 flex items-center justify-center'>
-                                    <img src={check_icon} />
+                                        <hr className='py-1 dashed bg-indigo-200'/>
+                                    </>
+                                ))
+                                }
+
                                 </div>
                             }
 
                         </div>
                         
-                        { section == progress.activeSection && progress.sections[section].totalSubsections > 1 && <div className='pt-2 bg-indigo-300 h-fit w-full rounded-b-md flex flex-col items-start pl-6'>
-
-                             {
-                              progress.sections[section].subsections.map((subsection, subsectionIndex)=>(
-                                <>
-                                    <div className='flex items-center justify-center gap-2'>
-                                        <div className='rounded-full h-4 w-4 bg-blue-100 text-neutral-500 text-sm flex items-center justify-center p-[4px]'>{subsectionIndex+1}</div>
-                                        <p className='text-gray-500 text-sm font-cabin w-[130px]'>{subsection.name}</p>
-                                        {subsection.completed && <div className='w-4 h-4 flex-1'>
-                                            <img src={check_icon} />
-                                        </div>}
-                                    </div>
-
-                                    <hr className='py-1 dashed bg-indigo-200'/>
-                                </>
-                            ))
+                        {sectionIndex != Object.keys(progress.sections).length-1 && progress?.maxReach != null && progress.maxReach.split(' ')[1] > section.split(' ')[1] && 
+                            <div className='h-6 w-2 ml-8 py-[2px] flex justify-center'>
+                                <motion.div initial={{height:'0px'}} animate={{height:'20px'}} className='w-2 bg-indigo-600'>
+                                
+                                </motion.div>
+                            </div>
                             }
-
+                        {sectionIndex != Object.keys(progress.sections).length-1 && (progress.maxReach == null || progress.maxReach.split(' ')[1] <= section.split(' ')[1]) && 
+                            <div className='h-6 w-2 ml-8 py-1 flex justify-center'>
+                                <motion.div initial={{height:'0px'}} animate={{height:'20px'}} className='w-2 bg-gray-100'></motion.div>
                             </div>
                         }
-                        
-                        {sectionIndex != Object.keys(progress.sections).length-1 && progress?.maxReach != null && progress.maxReach.split(' ')[1] > section.split(' ')[1] && <motion.div initial={{height:'0px'}} animate={{height:'24px'}} className='ml-8 w-2 h-6 bg-indigo-600'></motion.div>}
-                        {sectionIndex != Object.keys(progress.sections).length-1 && (progress.maxReach == null || progress.maxReach.split(' ')[1] <= section.split(' ')[1]) && <motion.div initial={{height:'0px'}} animate={{height:'24px'}} className='ml-8 w-2 h-6 bg-gray-100'></motion.div>}
                     </div>
                </>))}
 
             </div>}
-        </>
-
-        
+        </>   
     )
 }
 
