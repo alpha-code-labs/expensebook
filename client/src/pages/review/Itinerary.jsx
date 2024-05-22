@@ -13,14 +13,6 @@ import {
 import { material_flight_black_icon, material_train_black_icon, material_bus_black_icon, material_cab_black_icon, material_car_rental_black_icon, material_hotel_black_icon, material_personal_black_icon } from "../../assets/icon";
 import { titleCase } from "../../utils/handyFunctions";
 
-
-
-function getSortedItinerary(itinerary){
-
-}
-
-
-
 export default function ({ itinerary }) {
     const combinedItinerary = [
         ...itinerary.flights?.map((flight, index)=>{
