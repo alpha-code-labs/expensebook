@@ -1,13 +1,9 @@
 import {BrowserRouter as Router, Routes, Route} from 'react-router-dom'
-import axios from 'axios'
-import "./App.css";
 import CreateTravelRequest from './pages/CreateTravelRequest';
 import ModifyTravelRequest from './pages/ModifyTravelRequest';
 import CancelTravelRequest from './pages/CancelTravelRequest'
 import ClearRejectedTravelRequest from './pages/ClearRejectedTravelRequest';
 import Bookings from './pages/Bookings'
-import SelectTravelType from './pages/SelectTravelType';
-import NewItinerary from './pages/itinerary/NewItinerary';
 import React, { useState, useRef, useEffect } from 'react';
 import ModifiedItinerary from './pages/ModifiedItinerary'
 
