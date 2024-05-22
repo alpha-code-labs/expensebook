@@ -7,7 +7,6 @@ const travelRequestStatusEnums = [
   "rejected",
   "pending booking",
   "booked",
-  "transit",
   "cancelled",
   "recovered",
   "paid and cancelled",
@@ -31,6 +30,7 @@ const itineraryStatusEnums = [
   "booked",
   "cancelled",
   "paid and cancelled",
+  "recovered",
   "intransit",
   "upcoming",
 ];
