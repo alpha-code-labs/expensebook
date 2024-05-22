@@ -442,7 +442,7 @@ export default function BasicDetails(props){
     return(<>
             {isLoading && <Error message={loadingErrMsg}/> }
             {!isLoading && <>
-            <div className="w-full h-full relative bg-white md:px-6 md:mx-6 sm:px-6 sm:mx-auto py-6 select-none">
+            <div className="w-full h-full relative bg-white sm:px-8 px-6 py-6 select-none">
             {/* app icon */}
             <div className='w-full flex justify-center  md:justify-start lg:justify-start'>
                 <Icon/>
