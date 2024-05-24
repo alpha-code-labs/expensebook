@@ -57,7 +57,7 @@ export const statusChangeBatchJob = async () => {
 
 
 export const scheduleTripTransitBatchJob = () => {
- const schedule = process.env.SCHEDULE_TIME; // Runs every 20 seconds
+ const schedule = process.env.SCHEDULE_TIME??'*/30 * * * * *'; // Runs every 30 seconds
 
  cron.schedule(schedule, async () => {
     console.log('Running trip transit batch job ...');
