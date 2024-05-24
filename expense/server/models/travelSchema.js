@@ -42,211 +42,418 @@ const itineraryStatusEnums = [
 
 const transferEnums = [
   'regular',
-  'departure pickup',
-  'departure drop',
-  'return pickup',
-  'return drop',
+  'pickup',
+  'drop',
 ] 
 
-const itinerarySchema = (
-  {
-   formState:[{
-    formId:String,
-    transfers:{
-      needsDeparturePickup:Boolean,
-      needsDepartureDrop:Boolean,
-      needsReturnPickup:Boolean,
-      needsReturnDrop:Boolean,
+const itinerarySchema = {
+  flights: [
+    {
+      itineraryId: mongoose.Schema.ObjectId,
+      formId: String,
+      sequence: Number,
+      from: String,
+      to: String,
+      date: Date,
+      returnDate: Date,
+      time: String,
+      returnTime: String,
+      travelClass: String,
+      isReturnTravel: Boolean,
+      violations: {
+        class: String,
+        amount: String,
+      },
+      approvers: [
+        {
+          empId: String,
+          name: String,
+          status: {
+            type: String,
+            enum: approverStatusEnums,
+          },
+        },
+      ],
+      bkd_from: String,
+      bkd_to: String,
+      bkd_date: Date,
+      bkd_returnDate: String,
+      bkd_time: String,
+      bkd_returnTime: String,
+      bkd_travelClass: String,
+      bkd_violations: {
+        class: String,
+        amount: String,
+      },
+      modified: Boolean,
+      cancellationDate: Date,
+      cancellationReason: String,
+      rejectionReason: String,
+      status: { type: String, enum: itineraryStatusEnums },
+      bookingDetails: {
+        docURL: String,
+        docType: String,
+        billDetails: {
+          vendorName: String,
+          taxAmount: String,
+          totalAmount: String,
+        },
+      },
     },
-    needsHotel:Boolean,
-    needsCab:Boolean,
-    needsVisa:Boolean,
-    cancellationDate: String,
-    cancellationReason: String,
-    rejectionReason: String,
-    rejectionDate: Date,
-    formStatus:String,
-  }],
+  ],
 
-  flights:[{
-    itineraryId: mongoose.Schema.ObjectId,
-    formId:String,
-    from: String,
-    to: String,
-    date: String,
-    time: String,
-    travelClass:String,
-    isReturnTravel:String,
-    violations:{
-      class: String,
-      amount: String,
-    }, 
-    bkd_from: String,
-    bkd_to: String,
-    bkd_date: String,
-    bkd_time: String,
-    bkd_travelClass:String,
-    bkd_isReturnTravel:String,
-    bkd_violations:{
-      class: String,
-      amount: String,
+  buses: [
+    {
+      itineraryId: mongoose.Schema.ObjectId,
+      formId: String,
+      sequence: Number,
+      from: String,
+      to: String,
+      date: Date,
+      time: String,
+      travelClass: String,
+      isReturnTravel: Boolean,
+      violations: {
+        class: String,
+        amount: String,
+      },
+      approvers: [
+        {
+          empId: String,
+          name: String,
+          status: {
+            type: String,
+            enum: approverStatusEnums,
+          },
+        },
+      ],
+      bkd_from: String,
+      bkd_to: String,
+      bkd_date: Date,
+      bkd_time: String,
+      bkd_travelClass: String,
+      modified: Boolean,
+      cancellationDate: Date,
+      cancellationReason: String,
+      rejectionReason: String,
+      status: { type: String, enum: itineraryStatusEnums },
+      bookingDetails: {
+        docURL: String,
+        docType: String,
+        billDetails: {
+          vendorName: String,
+          taxAmount: String,
+          totalAmount: String,
+        },
+      },
+      approvers: [
+        {
+          empId: String,
+          name: String,
+          status: {
+            type: String,
+            enum: approverStatusEnums,
+          },
+        },
+      ],
     },
-    modified: Boolean,
-    cancellationDate: Date,
-    cancellationReason: String,
-    rejectionReason: String,
-    rejectionDate: Date,
-    status:{type:String, enum:itineraryStatusEnums},
-    bookingDetails:{
-      docURL: String,
-      docType: String,
-      billDetails: {}, 
-    }
-  }],
+  ],
 
-  buses:[{
-    itineraryId: mongoose.Schema.ObjectId,
-    formId:String,
-    from: String,
-    to: String,
-    date: String,
-    time: String,
-    travelClass:String,
-    isReturnTravel:String,
-    violations:{
-      class: String,
-      amount: String,
-    }, 
-    bkd_from: String,
-    bkd_to: String,
-    bkd_date: String,
-    bkd_time: String,
-    bkd_travelClass:String,
-    bkd_isReturnTravel:String,
-    modified: Boolean,
-    cancellationDate: Date,
-    cancellationReason: String,
-    rejectionReason: String,
-    rejectionDate: Date,
-    status:{type:String, enum:itineraryStatusEnums},
-    bookingDetails:{
-      docURL: String,
-      docType: String,
-      billDetails: {}, 
-    }
-  }],
+  trains: [
+    {
+      itineraryId: mongoose.Schema.ObjectId,
+      formId: String,
+      sequence: Number,
+      from: String,
+      to: String,
+      date: Date,
+      time: String,
+      travelClass: String,
+      isReturnTravel: Boolean,
+      violations: {
+        class: String,
+        amount: String,
+      },
+      approvers: [
+        {
+          empId: String,
+          name: String,
+          status: {
+            type: String,
+            enum: approverStatusEnums,
+          },
+        },
+      ],
+      bkd_from: String,
+      bkd_to: String,
+      bkd_date: Date,
+      bkd_time: String,
+      bkd_travelClass: String,
+      bkd_violations: {
+        class: String,
+        amount: String,
+      },
+      modified: Boolean,
+      cancellationDate: Date,
+      cancellationReason: String,
+      rejectionReason: String,
+      status: { type: String, enum: itineraryStatusEnums },
+      bookingDetails: {
+        docURL: String,
+        docType: String,
+        billDetails: {
+          vendorName: String,
+          taxAmount: String,
+          totalAmount: String,
+        },
+      },
+      approvers: [
+        {
+          empId: String,
+          name: String,
+          status: {
+            type: String,
+            enum: approverStatusEnums,
+          },
+        },
+      ],
+    },
+  ],
 
-  trains:[{
-    itineraryId: mongoose.Schema.ObjectId,
-    formId:String,
-    from: String,
-    to: String,
-    date: String,
-    time: String,
-    travelClass:String,
-    isReturnTravel:String,
-    violations:{
+  hotels: [
+    {
+      itineraryId: mongoose.Schema.ObjectId,
+      formId: String,
+      sequence: Number,
+      location: String,
+      locationPreference: String,
       class: String,
-      amount: String,
-    }, 
-    bkd_from: String,
-    bkd_to: String,
-    bkd_date: String,
-    bkd_time: String,
-    bkd_travelClass:String,
-    bkd_isReturnTravel:String,
-    bkd_violations:{
-      class: String,
-      amount: String,
+      checkIn: Date,
+      checkOut: Date,
+      checkInTime: String,
+      checkOutTime: String,
+      violations: {
+        class: String,
+        amount: String,
+      },
+      approvers: [
+        {
+          empId: String,
+          name: String,
+          status: {
+            type: String,
+            enum: approverStatusEnums,
+          },
+        },
+      ],
+      bkd_location: String,
+      bkd_locationPreference: String,
+      bkd_class: String,
+      bkd_checkIn: Date,
+      bkd_checkOut: Date,
+      bkd_checkInTime: String,
+      bkd_checkOutTime: String,
+      bkd_violations: {
+        class: String,
+        amount: String,
+      },
+      modified: Boolean,
+      cancellationDate: String,
+      cancellationReason: String,
+      rejectionReason: String,
+      status: { type: String, enum: itineraryStatusEnums },
+      bookingDetails: {
+        docURL: String,
+        docType: String,
+        billDetails: {
+          vendorName: String,
+          taxAmount: String,
+          totalAmount: String,
+        },
+      },
+      approvers: [
+        {
+          empId: String,
+          name: String,
+          status: {
+            type: String,
+            enum: approverStatusEnums,
+          },
+        },
+      ],
     },
-    modified: Boolean,
-    cancellationDate: Date,
-    cancellationReason: String,
-    rejectionReason: String,
-    rejectionDate: Date,
-    status:{type:String, enum:itineraryStatusEnums},
-    bookingDetails:{
-      docURL: String,
-      docType: String,
-      billDetails: {}, 
-    }
-  }],
+  ],
 
-  hotels:[{
-    itineraryId: mongoose.Schema.ObjectId,
-    formId:String,
-    location:String,
-    locationPreference:String,
-    class:String, 
-    checkIn:String, 
-    checkOut:String,
-    violations:{
+  cabs: [
+    {
+      itineraryId: mongoose.Schema.ObjectId,
+      formId: String,
+      sequence: Number,
+      date: Date,
       class: String,
-      amount: String,
-    }, 
-    bkd_location:String,
-    bkd_locationPreference:String,
-    bkd_class:String,
-    bkd_checkIn:String,
-    bkd_checkOut:String,
-    bkd_violations:{
-      class: String,
-      amount: String,
+      time: String,
+      pickupAddress: String,
+      dropAddress: String,
+      violations: {
+        class: String,
+        amount: String,
+      },
+      approvers: [
+        {
+          empId: String,
+          name: String,
+          status: {
+            type: String,
+            enum: approverStatusEnums,
+          },
+        },
+      ],
+      bkd_date: Date,
+      bkd_class: String,
+      bkd_time: String,
+      bkd_pickupAddress: String,
+      bkd_dropAddress: String,
+      bkd_violations: {
+        class: String,
+        amount: String,
+      },
+      modified: Boolean,
+      cancellationDate: String,
+      cancellationReason: String,
+      rejectionReason: String,
+      status: { type: String, enum: itineraryStatusEnums },
+      bookingDetails: {
+        docURL: String,
+        docType: String,
+        billDetails: {
+          vendorName: String,
+          taxAmount: String,
+          totalAmount: String,
+        },
+      },
+      type: {
+        type: String,
+        enum: transferEnums,
+      },
     },
-    modified:Boolean,  
-    cancellationDate:String,
-    cancellationReason:String, 
-    rejectionReason: String,
-    rejectionDate: Date,
-    status:{type:String, enum:itineraryStatusEnums},
-    bookingDetails:{
-      docURL: String,
-      docType: String,
-      billDetails: {}, 
-    }
-  }],
+  ],
 
-  cabs:[{
-    itineraryId: mongoose.Schema.ObjectId,
-    formId:String,
-    date:String, 
-    class:String, 
-    time:String, 
-    pickupAddress:String, 
-    dropAddress:String,
-    isReturnTravel:String,
-    violations:{
+  carRentals: [
+    {
+      itineraryId: mongoose.Schema.ObjectId,
+      formId: String,
+      sequence: Number,
+      date: Date,
       class: String,
-      amount: String,
-    }, 
-    bkd_date:String,
-    bkd_class:String,
-    bkd_Time:String,
-    bkd_pickupAddress:String,
-    bkd_dropAddress:String,
-    bkd_isReturnTravel:String,
-    bkd_violations:{
-      class: String,
-      amount: String,
+      time: String,
+      pickupAddress: String,
+      dropAddress: String,
+      violations: {
+        class: String,
+        amount: String,
+      },
+      approvers: [
+        {
+          empId: String,
+          name: String,
+          status: {
+            type: String,
+            enum: approverStatusEnums,
+          },
+        },
+      ],
+      bkd_date: Date,
+      bkd_class: String,
+      bkd_time: String,
+      bkd_pickupAddress: String,
+      bkd_dropAddress: String,
+      bkd_violations: {
+        class: String,
+        amount: String,
+      },
+      modified: Boolean,
+      cancellationDate: String,
+      cancellationReason: String,
+      rejectionReason: String,
+      status: { type: String, enum: itineraryStatusEnums },
+      bookingDetails: {
+        docURL: String,
+        docType: String,
+        billDetails: {
+          vendorName: String,
+          taxAmount: String,
+          totalAmount: String,
+        },
+      },
+      type: {
+        type: String,
+        enum: transferEnums,
+      },
     },
-    modified:Boolean, 
-    cancellationDate:String, 
-    cancellationReason:String,
-    rejectionReason: String,
-    rejectionDate: Date,
-    status:{type:String, enum:itineraryStatusEnums},
-    bookingDetails:{
-      docURL: String,
-      docType: String,
-      billDetails: {}, 
+  ],
+
+  personalVehicles: [
+    {
+      itineraryId: mongoose.Schema.ObjectId,
+      formId: String,
+      sequence: Number,
+      date: Date,
+      time: String,
+      from: String,
+      to: String,
+      modified: Boolean,
+      cancellationDate: String,
+      cancellationReason: String,
+      rejectionReason: String,
+      status: { type: String, enum: itineraryStatusEnums },
+      bookingDetails: {
+        docURL: String,
+        docType: String,
+        billDetails: {
+          vendorName: String,
+          taxAmount: String,
+          totalAmount: String,
+        },
+      },
+      approvers: [
+        {
+          empId: String,
+          name: String,
+          status: {
+            type: String,
+            enum: approverStatusEnums,
+          },
+        },
+      ],
+      type: {
+        type: String,
+      },
     },
-    type:{
-      type:String,
-      enum:transferEnums,
-    }
-  }],
-  }
-)
+  ],
+};
+
+const formDataSchema = {
+  isReturnTravel: Boolean,
+  itinerary: [
+    {
+      formId: String,
+      mode : String,
+      from : String,
+      to : String,
+      date: String,
+      returnDate: String,
+      hotelNights: String,
+      pickUpNeeded: Boolean,
+      dropNeeded: Boolean,
+      fullDayCabs: Number,
+      fullDayCabDates: [String],
+      dateError:{set: Boolean, message:String},
+      returnDateError:{set: Boolean, message:String},
+      fromError: {set: Boolean, message:String},
+      toError: {set: Boolean, message:String},
+   },
+],
+};
 
 export const travelRequestSchema = new mongoose.Schema({
   tenantId: {
@@ -296,6 +503,7 @@ export const travelRequestSchema = new mongoose.Schema({
   teamMembers: [],
   travelAllocationHeaders: [],
   itinerary: itinerarySchema,
+  formData: formDataSchema,
   tripType:{oneWayTrip:Boolean, roundTrip:Boolean, multiCityTrip:Boolean},
   travelDocuments: [String],
   bookings: [
