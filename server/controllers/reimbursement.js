@@ -1,12 +1,9 @@
 import reporting from "../models/reportingSchema.js";
 import hrmaster from '../models/hrCompanySchema.js';
+import Joi from 'joi';
+import { getMonthRange, getQuarterRange, getWeekRange, getYear } from "../helpers/dateHelpers.js";
 
-/**
- * Retrieves expense categories for a given employee ID.
- * @param {Object} req - The request object.
- * @param {Object} res - The response object.
- * @returns {Object} The response object with the employee's name, company name, default currency, and reimbursement expense categories.
- */
+
 export const getExpenseCategoriesForEmpId = async (req, res) => {
     try {
       const { tenantId, empId } = req.params;
@@ -61,48 +58,168 @@ export const getExpenseCategoriesForEmpId = async (req, res) => {
     }
   };
 
+const reimbursementExpenseReportSchema = Joi.object({
+    tenantId: Joi.string().required(),
+    empId: Joi.string().required(),
+    filterBy: Joi.string().valid('date', 'week', 'month', 'quarter', 'year'),
+    date: Joi.date().when('filterBy', {
+      is: Joi.exist(),
+      then: Joi.required(),
+    }),
+    fromDate: Joi.date(),
+    toDate: Joi.date().when('fromDate', {
+      is: Joi.exist(),
+      then: Joi.required(),
+    }),
+  }).with('fromDate', 'toDate').without('filterBy', [ 'fromDate', 'toDate']);
 
-/**
- * Retrieves an expense report based on the provided parameters.
- * @param {Object} req - The request object.
- * @param {Object} res - The response object.
- * @returns {Object} - The response object.
- */
+
+//to filter reimbursement expense reports based on 'date', 'week', 'month', 'quarter', 'year' and date.
 export const getReimbursementExpenseReport = async (req, res) => {
-    try {
-      const { tenantId, empId, expenseHeaderId } = req.params;
-  
-      if (!expenseHeaderId || !empId || !tenantId) {
-        return res.status(404).json({ message: 'Error: Required parameters are missing.' });
+  try {
+    const { error, value } = reimbursementExpenseReportSchema.validate({
+      ...req.params,
+      ...req.body,
+    });
+
+    if (error) {
+      return res.status(400).json({ message: error.details[0].message });
+    }
+
+    const { tenantId, empId, filterBy, date, fromDate, toDate  } = value;
+
+    let filterCriteria = {
+      tenantId,
+      'reimbursementSchema.createdBy.empId': empId,
+    };
+
+    if (filterBy && ( date ) && !fromDate && !toDate) {
+      if(date){
+      const parsedDate = new Date(date);
+
+      switch (filterBy) {
+        case 'date':
+          filterCriteria['reimbursementSchema.expenseSubmissionDate'] = {
+            $gte: parsedDate,
+            $lt: new Date(parsedDate.setDate(parsedDate.getDate() + 1)),
+          };
+          break;
+
+        case 'week':
+          const { startOfWeek, endOfWeek } = getWeekRange(parsedDate);
+          filterCriteria['reimbursementSchema.expenseSubmissionDate'] = {
+            $gte: startOfWeek,
+            $lt: new Date(endOfWeek.setDate(endOfWeek.getDate() + 1)),
+          };
+          break;
+
+        case 'month':
+          const { startOfMonth, endOfMonth } = getMonthRange(parsedDate);
+          filterCriteria['reimbursementSchema.expenseSubmissionDate'] = {
+            $gte: startOfMonth,
+            $lt: new Date(endOfMonth.setDate(endOfMonth.getDate() + 1)),
+          };
+          break;
+
+        case 'quarter':
+          const { startOfQuarter, endOfQuarter } = getQuarterRange(parsedDate);
+          filterCriteria['reimbursementSchema.expenseSubmissionDate'] = {
+            $gte: startOfQuarter,
+            $lt: new Date(endOfQuarter.setDate(endOfQuarter.getDate() + 1)),
+          };
+          break;
+
+        case 'year':
+          const { startOfYear, endOfYear } = getYear(parsedDate);
+          filterCriteria['reimbursementSchema.expenseSubmissionDate'] = {
+            $gte: startOfYear,
+            $lt: new Date(endOfYear.setDate(endOfYear.getDate() + 1)),
+          };
+          break;
+
+        default:
+          break;
       }
-  
-      const expenseReport = await reporting.findOne({
-        tenantId,
-        expenseHeaderId,
-        'createdBy.empId': empId,
-      });
-  
-      if (!expenseReport) {
-        return res.status(404).json({
-          success: false,
-          message: 'reimbursement report not found for the given IDs.',
-        });
-      }
-  
-      const { name } = expenseReport.createdBy;
-  
-      return res.status(200).json({
-        success: true,
-        expenseReport,
-        message: `reimbursement report is retrieved for ${name}.`,
-      });
-    } catch (error) {
-      console.error(error);
-  
-      return res.status(500).json({
+    }
+  }  else if (fromDate && toDate) {
+    filterCriteria['reimbursementSchema.expenseSubmissionDate'] = {
+      $gte: new Date(fromDate),
+      $lte: new Date(toDate),
+    };
+  }
+  const expenseReports = await reporting.find(filterCriteria);
+
+  if (expenseReports.length === 0) {
+    return res.status(404).json({
+      success: false,
+      message: 'No reimbursement reports found for the specified date range',
+    });
+  }
+
+  return res.status(200).json({
+    success: true,
+    expenseReports,
+    message: `Reimbursement reports retrieved for the specified date range.`,
+  });
+} catch (error) {
+console.error(error);
+return res.status(500).json({
+  success: false,
+  message: 'Failed to retrieve reimbursement reports.',
+});
+}
+};
+
+
+export const testgetReimbursementExpenseReport = async (req, res) => {
+  try {
+    const { error, value } = reimbursementExpenseReportSchema.validate({
+      ...req.params,
+      ...req.body,
+    });
+
+    if (error) {
+      return res.status(400).json({ message: error.details[0].message });
+    }
+
+    const { tenantId, empId, fromDate, toDate } = value;
+
+    let filterCriteria = {
+      tenantId,
+      'reimbursementSchema.createdBy.empId': empId,
+      'reimbursementSchema.expenseSubmissionDate': {
+        $gte: new Date(fromDate),
+        $lte: new Date(toDate),
+      },
+    };
+
+    const expenseReports = await reporting.find(filterCriteria);
+
+    if (expenseReports.length === 0) {
+      return res.status(404).json({
         success: false,
-        message: 'Failed to retrieve reimbursement report.',
+        message: 'No reimbursement reports found for the specified date range',
       });
     }
-  };
+
+    return res.status(200).json({
+      success: true,
+      expenseReports,
+      message: `Reimbursement reports retrieved for the specified date range.`,
+    });
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve reimbursement reports.',
+    });
+  }
+};
+
   
+
+
+
+
+

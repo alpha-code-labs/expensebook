@@ -4,7 +4,7 @@ import { getTrips } from '../roleBasedReporting/reportingController.js';
 
 const router = express.Router();
 
-router.post('/time', filterTrips);
+router.post('/trips', filterTrips);
 
 router.get('/trips/:tenantId/:empId', getTrips)
 

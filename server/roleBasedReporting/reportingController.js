@@ -18,22 +18,27 @@ const getEmployeeRoles = async (tenantId, empId) => {
     return employee.employeeRoles;
 };
 
+
+const roleBasedLayoutSchema = Joi.object({
+  tenantId: Joi.string().required(),
+  empId: Joi.string().required(),
+})
+
+
 export const roleBasedLayout = async (req, res) => {
     try {
-      const { tenantId, empId } = req.params;
-  
-      // Input validation
-      if (!tenantId || !empId) {
-        return res.status(400).json({ error: "Invalid input parameters" });
+      const {error, value} = roleBasedLayoutSchema.validate(req.params);
+
+      if(error){
+        return res.status(400).json({ error: error.details[0].message})
       }
+      const { tenantId, empId } = value;
   
       const reportingViews = await getReportingViews(tenantId, empId);
   
-      // Send response
       return res.status(200).json(reportingViews);
     } catch (error) {
       console.error("Error:", error);
-      // Handle the error, but do not send another response
       return;
     }
 };
@@ -46,12 +51,12 @@ const getReportingViews = async (tenantId, empId) => {
             employee: async () => employeeLayout(tenantId, empId),
             // employeeManager: async () => managerLayout(tenantId, empId),
             // employee: async () => {},
-            employeeManager: async () => {},
+            employeeManager: async () => ({}),
             // finance: async () => financeLayout(tenantId, empId),
             // businessAdmin: async () => businessAdminLayout(tenantId, empId),
             // superAdmin: async () => superAdminLayout(tenantId, empId)
-            finance: async() => {message:"Finance Layout "},
-            superAdmin: async () => { message:"SuperAdmin Layout"},
+            finance: async() => ({ message:"Finance Layout "}),
+            superAdmin: async () => ({ message:"SuperAdmin Layout"}),
         };
 
         const applicableRoles = Object.keys(employeeRoles).filter(role => employeeRoles[role]);
@@ -104,7 +109,7 @@ const employeeLayout = async (tenantId, empId) => {
 const getLastMonthTrips = async (tenantId, empId) => {
     try {
       const today = new Date();
-      const lastMonth = new Date(today.getFullYear(), today.getMonth() - 1, today.getDate());
+      const lastMonth = new Date(today.getFullYear(), today.getMonth() -1, today.getDate());
       console.log("today date", today , "last month", lastMonth)
 
       const tripDocs = await reporting.find({
@@ -347,7 +352,8 @@ const tripStatusSchema = Joi.object({
   // tripCompletionDate: Joi.date().required()
   tripCompletionDate: Joi.date().optional(),
   startDate: Joi.date().optional(),
-  endDate: Joi.date().optional()
+  endDate: Joi.date().optional(),
+  travelType: Joi.string().valid('domestic', 'international','local').optional()
 });
 
 
@@ -358,7 +364,7 @@ const paramsSchema = Joi.object({
 });
 
 
-//get trips by tripCompletionDate or multiple tripStatus
+//get trips by tripCompletionDate or multiple tripStatus or travelType
 export const getTrips = async (req, res) => {
   try {
     // Validate the request body using Joi
@@ -374,7 +380,7 @@ export const getTrips = async (req, res) => {
     }
 
     const { tenantId, empId } = paramsValue;
-    const { tripStatuses, tripCompletionDate, startDate, endDate} = bodyValue;
+    const { tripStatuses, tripCompletionDate, startDate, endDate, travelType} = bodyValue;
 
       const query = {
         'tripSchema.tenantId': tenantId,
@@ -387,10 +393,13 @@ export const getTrips = async (req, res) => {
         query['tripSchema.tripCompletionDate'] = tripCompletionDate;
       }
 
-
       // Add startDate and endDate filters if both are present
        if (startDate && endDate) {
         query['tripSchema.tripCompletionDate'] = { $gte: startDate, $lte: endDate };
+      }
+
+      if(travelType){
+        query['tripSchema.travelRequestData.travelType'] = travelType
       }
   
       const tripDocs = await reporting.find(query).lean().exec();

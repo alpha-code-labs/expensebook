@@ -83,7 +83,7 @@ export async function startConsumer(receiver) {
      const source = content?.headers?.source
      const action = content?.headers?.action
   
-      if(content.headers.destination == 'dashboard'){
+      if(content.headers.destination == 'reporting'){
   
         if(source == 'onboarding'){
           console.log('trying to update HR Master')

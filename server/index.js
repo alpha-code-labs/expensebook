@@ -4,6 +4,7 @@ import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import tripRoutes from './routes/tripRoutes.js';
 import { mainRouter } from './routes/mainFrontendRoutes.js';
+import { handleErrors } from './errorHandler/errorHandler.js';
 
 dotenv.config();
 const app = express();
