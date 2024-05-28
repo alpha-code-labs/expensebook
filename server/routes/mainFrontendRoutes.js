@@ -7,7 +7,7 @@ export const mainRouter = express.Router();
 
 mainRouter.use("/role", roleBasedRouter);
 
-mainRouter.use("/filter", router)
+mainRouter.use("/trips", router)
 
 mainRouter.use("/reim", reimbursementRoutes)
 

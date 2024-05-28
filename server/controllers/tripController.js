@@ -81,6 +81,8 @@ import Joi from 'joi';
 // };
 
 const tripFilterSchema = Joi.object({
+  tenantId: Joi.string().required(),
+  empId: Joi.string().required(),
   filterBy: Joi.string().valid('date', 'week', 'month', 'quarter', 'year'),
   date: Joi.date().when('filterBy',{
     is: Joi.exist(),
@@ -96,15 +98,19 @@ const tripFilterSchema = Joi.object({
   'transit','completed','paid and cancelled','cancelled','recovered').optional(),
 });
 
+
 export const filterTrips = async (req, res) => {
   try {
-    const { error, value } = tripFilterSchema.validate(req.body);
+    const { error, value } = tripFilterSchema.validate({
+      ...req.params, 
+      ...req.body
+    });
 
     if (error) {
       return res.status(400).json({ message: error.details[0].message });
     }
 
-    const { filterBy, date, fromDate, toDate, travelType, tripStatus } = value;
+    const { tenantId, empId, filterBy, date, fromDate, toDate, travelType, tripStatus } = value;
 
     let filterCriteria = {    
       tenantId: tenantId,
@@ -167,11 +173,11 @@ export const filterTrips = async (req, res) => {
     }
 
     if (travelType) {
-      filterCriteria['tripSchema.travelRequestSchema.travelType'] = { travelType};
+      filterCriteria['tripSchema.travelRequestData.travelType'] = travelType;
     }
 
     if(tripStatus){
-      filterCriteria['tripSchema.tripStatus']= {tripStatus};
+      filterCriteria['tripSchema.tripStatus']= tripStatus;
     }
 
     console.log('filterCriteria', filterCriteria);
@@ -191,8 +197,6 @@ export const filterTrips = async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
-
-
 
 
 export const getExpenseRelatedHrData = async (req, res) => {
