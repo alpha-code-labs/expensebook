@@ -1,7 +1,9 @@
 import reporting from '../models/reportingSchema.js';
 import hrmaster from '../models/hrCompanySchema.js';
 import Joi from 'joi';
+import { approverStatusEnums, cashAdvanceStatusEnum, expenseHeaderStatusEnums, tripStatusEnum } from '../models/expenseSchema.js';
 
+const getEnums = {approverStatusEnums, cashAdvanceStatusEnum,tripStatusEnum,expenseHeaderStatusEnums}
 const getEmployeeRoles = async (tenantId, empId) => {
     const toString = empId.toString();
     const hrDocument = await hrmaster.findOne({
@@ -83,28 +85,116 @@ const getReportingViews = async (tenantId, empId) => {
     }
 };
 
+
 const employeeLayout = async (tenantId, empId) => {
-    // console.log("Entering employeeLayout function...", tenantId, empId);
   try {
-    //   const travelStandAlone = await travelStandAloneForEmployee(tenantId, empId);
-    // // console.log("employeeLayout --travelStandAlone", travelStandAlone);
-    // const travelWithCash = await travelWithCashForEmployee(tenantId, empId);
-    //  console.log("employeeLayout---travelWithCash", travelWithCash);
-    // const trip = await getTripForEmployee(tenantId, empId);
+    const hrDetails = await hrDetailsService(tenantId, empId);
+    // console.log("reporting hr", hrDetails)
+    const approvers = await findListOfApprovers(tenantId, empId);
+    console.log("list of approvers", approvers)
     const monthlyTrips = await getLastMonthTrips(tenantId, empId);
-    console.log("reporting trip", monthlyTrips)
-    //   const {rejectedCashAdvances} = travelWithCash
-    // const travelRequestCombined = [ ...travelStandAlone.travelRequests, ...travelWithCash.travelRequests]
-    // const rejectedTravelRequestsCombined = [ ...travelStandAlone.rejectedTravelRequests, ...travelWithCash.rejectedTravelRequests]
-    // const employee = { travelRequests :travelRequestCombined,rejectedTravelRequests:rejectedTravelRequestsCombined , rejectedCashAdvances , ...trip }
-    // const testing = {travelStandAlone, travelWithCash}
-      return monthlyTrips;
+    // console.log("reporting trip", monthlyTrips)
+    const reimbursement = await getLastMonthReimbursement(tenantId, empId)
+     return { trips:monthlyTrips,reimbursement:reimbursement, hrDetails:hrDetails, approvers};
   } catch (error) {
       console.error("Error:", error);
       throw new Error({ message: 'Internal server error' });
   }
 };
 
+
+const hrDetailsService = async (tenantId, empId) =>{
+  try {
+  
+    const employeeDocument = await hrmaster.findOne({
+      tenantId,
+      'employees.employeeDetails.employeeId': empId
+    });
+
+    if (!employeeDocument) {
+      return res.status(404).json({
+        success: false,
+        message: 'Employee not found for the given IDs',
+      });
+    }
+
+    const { employeeName, employeeId } = employeeDocument?.employees[0]?.employeeDetails;
+
+    if (!employeeId) {
+      return res.status(404).json({
+        success: false,
+        message: 'Employee not found for the provided ID',
+      });
+    }
+
+    const {
+      companyDetails: { defaultCurrency, companyName } = {},
+      reimbursementExpenseCategories,
+    } = employeeDocument || {};
+
+    let {
+      flags:{policyFlag} = {}, // the name need to be cross-checked with HRMaster later --
+      travelAllocationFlags = {}, // 3 types
+      travelAllocations = {},
+      travelExpenseCategories = {},
+      expenseSettlementOptions = {},
+  } =  employeeDocument || {};
+
+       // const { travelExpenseCategories = [],  } = companyDetails 
+        const expenseCategoryNames = travelExpenseCategories.map(category => category.categoryName);
+
+    const reimbursementExpenseCategory = Array.isArray(reimbursementExpenseCategories)
+      ? reimbursementExpenseCategories.map(category => category?.categoryName)
+      : [];
+
+
+    const reimbursementData = {  defaultCurrency,
+      employeeName,
+      companyName,
+      reimbursementExpenseCategory,expenseHeaderStatusEnums}
+
+    const isLevel3 = travelAllocationFlags?.level3
+  let travelData
+ if(isLevel3){
+   travelData = {defaultCurrency, travelAllocationFlags, travelExpenseCategories, expenseCategoryNames,travelAllocations, expenseSettlementOptions,approverStatusEnums, cashAdvanceStatusEnum,tripStatusEnum}
+  return { travelData: travelData, reimbursementData:reimbursementData, getEnums}
+ }
+ travelData = {defaultCurrency, travelAllocationFlags, travelExpenseCategories, expenseCategoryNames,travelAllocations, expenseSettlementOptions}
+console.log("hr data", travelData, reimbursementData)
+    return { travelData: travelData, reimbursementData:reimbursementData,getEnums };
+  } catch (error) {
+    console.error("Error in fetching employee Reporting:", error);
+    throw new Error('Error in fetching employee Reporting');
+  }
+};
+
+
+export const findListOfApprovers = async (tenantId, empId) => {
+  try {
+    const tripDocs = await reporting.find({
+      'tripSchema.tenantId': tenantId,
+      'tripSchema.createdBy.empId': empId,
+    }).lean().exec();
+
+    // Create a Set to store unique approvers
+    const uniqueApprovers = new Set();
+
+    // Iterate over the tripDocs and extract unique approvers
+    tripDocs.forEach((trip) => {
+      trip.tripSchema.travelRequestData.approvers.forEach((approver) => {
+        uniqueApprovers.add(JSON.stringify({ empId: approver.empId, name: approver.name }));
+      });
+    });
+
+    // Convert the Set back to an array and parse the JSON strings
+    const approversArray = Array.from(uniqueApprovers).map(JSON.parse);
+
+    return (approversArray);
+  } catch (error) {
+    console.error(error);
+    throw new Error({ error: 'Internal server error' });
+  }
+};
 
 const getLastMonthTrips = async (tenantId, empId) => {
     try {
@@ -182,6 +272,31 @@ const getLastMonthTrips = async (tenantId, empId) => {
       console.error("Error in fetching employee Reporting:", error);
       throw new Error('Error in fetching employee Reporting');
     }
+};
+
+
+const getLastMonthReimbursement = async (tenantId, empId) => {
+  try {
+    const today = new Date();
+    const lastMonth = new Date(today.getFullYear(), today.getMonth() -1, today.getDate());
+    console.log("today date", today , "last month", lastMonth)
+
+    const docs = await reporting.find({
+      'reimbursementSchema.tenantId': tenantId,
+      'reimbursementSchema.createdBy.empId': empId,
+      'reimbursementSchema.expenseSubmissionDate': { $gte: lastMonth, $lte: today },
+    }).lean().exec();
+
+    if(!docs){
+      return { message: 'There are no reimbursement found for the user' };
+    } else {
+      const extractDocs = docs.map(doc => doc.reimbursementSchema)
+      return {reimbursementEnums:expenseHeaderStatusEnums, reimbursement: extractDocs, };
+    }
+  } catch (error) {
+    console.error("Error in fetching employee Reporting:", error);
+    throw new Error('Error in fetching employee Reporting');
+  }
 };
 
 
@@ -336,7 +451,6 @@ const getTripForEmployee = async (tenantId, empId) => {
   }
 };
 
-
 const tripStatusSchema = Joi.object({
   tripStatuses: Joi.array().items(
     Joi.string().valid(
@@ -355,7 +469,6 @@ const tripStatusSchema = Joi.object({
   endDate: Joi.date().optional(),
   travelType: Joi.string().valid('domestic', 'international','local').optional()
 });
-
 
 // Define the schema for validating request parameters
 const paramsSchema = Joi.object({

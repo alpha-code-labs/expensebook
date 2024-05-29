@@ -43,7 +43,7 @@ const transferEnums = [
 'drop',
 ] 
 
-const approverStatusEnums = [
+export const approverStatusEnums = [
   'pending approval',
   'approved',
   'rejected',
@@ -467,7 +467,7 @@ const cashAdvanceStateEnums = [
   'section 3',
 ];
 
-const cashAdvanceStatusEnum = [
+export const cashAdvanceStatusEnum = [
 'draft',
 'pending approval',
 'approved',
@@ -481,7 +481,7 @@ const cashAdvanceStatusEnum = [
 
 
 //-----------trip---------
-const tripStatusEnum = [
+export const tripStatusEnum = [
   'upcoming',
   'modification',
   'transit',
@@ -495,7 +495,7 @@ const tripStatusEnum = [
 const expenseHeaderTypeEnums = ['travel'];
 
 // Define constant enums for expenseStatus and expenseHeaderType
-const expenseHeaderStatusEnums = [
+export const expenseHeaderStatusEnums = [
   "new",
   'draft',
   'pending approval', 
