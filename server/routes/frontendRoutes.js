@@ -1,8 +1,22 @@
 import express from 'express';
 import CashAdvance from '../models/cashSchema.js';
-import {createCashAdvance, getCashAdvances, getCashAdvance, updateCashAdvance, getInitialData_cash, validateCashAdvancePolicy, cancelCashAdvance} from '../controllers/cashAdvanceController.js';
-import { cancelTravelRequest, getTravelRequest, updateTravelRequest } from '../controllers/travelRequestController.js';
+import {
+  createCashAdvance, 
+  getCashAdvances, 
+  getCashAdvance, 
+  updateCashAdvance, 
+  getInitialData_cash, 
+  validateCashAdvancePolicy,
+  cancelCashAdvance} from '../controllers/cashAdvanceController.js';
+import { 
+    cancelTravelRequest, 
+    getTravelRequest, 
+    updateTravelBookings,
+    getBookingsInitialData,
+    validateTravelPolicy,
+    updateTravelRequest } from '../controllers/travelRequestController.js';
 import { getOnboardingAndProfileData } from '../controllers/travelRequestController.js';
+import { uploadMiddleware, handleFileUpload} from '../services/ocr.js';
 
 const router = express.Router();
 
@@ -28,11 +42,17 @@ router.get('/travel-requests/:travelRequestId', getTravelRequest)
 //cancel
 router.patch('/travel-requests/:travelRequestId/cancel', cancelTravelRequest)
 
-router.get("/initial-data/:tenantId/:employeeId", getOnboardingAndProfileData);
+router.get("/initial-data/:tenantId/:employeeId/:travelType", getOnboardingAndProfileData);
 
-router.get("/initial-data-cash/:tenantId/:employeeId", getInitialData_cash)
+router.get("/initial-data-cash/:tenantId/:employeeId/:travelType", getInitialData_cash)
 
 //policy validation
 router.post("/validate-cash-policy/:tenantId", validateCashAdvancePolicy)
+router.post("/validate-travel-policy/:tenantId", validateTravelPolicy)
+
+//bookings
+router.patch("/travel-requests/:travelRequestId/bookings", updateTravelBookings)
+router.get('/bookings-initial-data/:tenantId/:employeeId/:travelType', getBookingsInitialData)
+router.post("/upload-bill/:travelRequestId", uploadMiddleware, handleFileUpload )
 
 export default router;
