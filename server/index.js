@@ -5,11 +5,16 @@ import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import {config} from './config.js';
 import frontendRoutes from './routes/frontendRoutes.js'
+import startConsumer from './rabbitMQ/consumer.js';
+
+import { batchJob, batchJobApprovedToNextCash } from './scheduler/approvedToNextStateStatusChange.js';
+import { batchJobApprovedToNextTravel } from './scheduler/travel_approvedToNextState.js';
+import { batchJobCreateTrip } from './scheduler/createTrip.js';
 
 dotenv.config();
 const app = express();
 
-const MONGO_URI = process.env.MONGO_URI;
+const MONGO_URI = process.env.NODE_ENV == 'production' ? process.env.COSMOS_URI : process.env.MONGO_URI;
 const PORT = process.env.PORT;
 
 app.use(express.json())
@@ -30,4 +35,9 @@ async function connectToMongoDB() {
   }
 }
 
-connectToMongoDB();
+await connectToMongoDB();
+await startConsumer('cash')
+
+batchJobApprovedToNextCash();
+batchJobApprovedToNextTravel();
+batchJobCreateTrip();
