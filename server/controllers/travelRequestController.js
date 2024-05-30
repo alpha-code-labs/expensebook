@@ -1,23 +1,19 @@
 import CashAdvance from "../models/cashSchema.js";
-import { sendToDashboardQueue } from "../rabbitMQ/publisher.js";
+import { sendToDashboardQueue, sendToOtherMicroservice } from "../rabbitMQ/publisher.js";
 import {fetchOnboardingData} from "../services/onboardingService.js";
 import policyValidation from "../utils/policyValidation.js";
 import axios from 'axios'
+import HRMaster from "../models/hrMaster.js";
 
-
-const TRAVEL_API_URL = 'http://localhost:8001/travel/internal/api'
-const APPROVAL_API_URL = 'http://localhost:8001/approval/api'
-const FINANCE_API_URL = 'http://localhost:8001/finance/api'
-const TRIP_API_URL = 'http://localhost:8001/trip/api'
 
 const getOnboardingAndProfileData = async (req, res) => {
   try {
-    const { tenantId, employeeId } = req.params;
+    const { tenantId, employeeId, travelType } = req.params;
 
     if (!tenantId || !employeeId) {
       return res.status(400).json({ message: "Bad request" });
     }
-    const onboardingData = await fetchOnboardingData(tenantId, employeeId);
+    const onboardingData = await fetchOnboardingData(tenantId, employeeId, travelType);
     //const profileData = await fetchProfileData(tenantId, employeeId);
 
     res.status(200).json(onboardingData /** , profileData */);
@@ -37,7 +33,7 @@ const getTravelRequest = async (req, res) => {
     }
 
     const travelRequest_res = await CashAdvance.findOne(
-      { travelRequestId },
+      { 'travelRequestData.travelRequestId':travelRequestId },
       { travelRequestData: 1, cashAdvancesData:1}
     );
       
@@ -72,581 +68,18 @@ const validateTravelPolicy = async (req, res) => {
   }
 };
 
-const updateTravelRequest__ = async (req, res) => {
-  try {
-    const requiredFields = [
-      "travelRequestStatus",
-      "travelRequestState",
-      "createdFor",
-      "tripPurpose",
-      "travelAllocationHeaders",
-      "itinerary",
-      "travelDocuments",
-      "approvers",
-      "preferences",
-      "teamMembers",
-      "travelViolations",
-      "cashAdvances",
-    ];
-
-    // Check if one of the required fields are present in the request body
-    const fieldsPresent = requiredFields.some((field) => field in req.body);
-
-    if (!fieldsPresent) {
-      return res.status(400).json({ message: "No valid fields provided to update" });
-    }
-
-    const {
-      tenantId,
-      travelRequestState,
-      travelRequestStatus
-    } = req.body;
-
-    if(!tenantId || tenantId==null || tenantId == "") {
-      return res.status(400).json({ message: "tenant Id is missing" });
-    }
-
-    //validate tenant Id
-
-
-    //validate status
-    const status = [
-    'draft', 
-    'pending approval', 
-    'approved', 
-    'rejected', 
-    'pending booking', 
-    'booked',
-    'transit', 
-    'canceled',
-    'closed',  
-    ];
-
-    if (travelRequestStatus && travelRequestStatus !="" && !status.includes(travelRequestStatus)) {
-      return res.status(400).json({ message: "Invalid status ", travelRequestStatus });
-    }
-
-    //validate state
-    const state = ["section 0", "section 1", "section 2", "section 3", "section 4", "section 5"];
-    
-    if (travelRequestState && travelRequestState !="" && !state.includes(travelRequestState)) {
-      return res.status(400).json({ message: "Invalid state ", travelRequestState });
-    }
-
-    //other validation methods are also needed,
-
-    const expectedFields = [
-      "createdFor",
-      "teamMembers",
-      "tripPurpose",
-      "travelRequestStatus",
-      "travelRequestState",
-      "travelAllocationHeaders",
-      "itinerary",
-      "travelDocuments",
-      "approvers",
-      "preferences",
-      "bookings",
-      "travelViolations",
-      "isModified",
-      "isCancelled",
-      "cancellationDate",
-      "cancellationReason",
-      "sentToTrip",
-      "cashAdvances"
-    ];
-    
-    // Initialize an array to store the updated fields that are present in the request
-    const present = [];
-    
-    // Check which fields are present in the request
-    for (const field of expectedFields) {
-      if (req.body.hasOwnProperty(field)) {
-        present.push(field);
-      }
-    }
-    
-    const updatedFields = {};
-    present.forEach((field) => {updatedFields[field] = req.body[field]});
-    console.log(updatedFields);
-
-    const { travelRequestId } = req.params;
-    //validate travelRequestId
-    const ca_res = await CashAdvance.findOne({'travelRequestData.travelRequestId': travelRequestId}, {travelRequestId:1, travelRequestData:1, cashAdvancesData:1})
-    let travelRequest = ca_res.travelRequestData
-    let cashAdvances = ca_res.cashAdvancesData
-
-    if(!travelRequest){
-      return res.status(404).json({message: 'Travel Request not found'})
-    }
-    
-    //update travelRequest and cashAdvances
-    Object.keys(updatedFields).forEach(fieldKey=>{
-      if(fieldKey == 'cashAdvances'){
-        if(req.body.cashAdvances != null){
-          cashAdvances = req.body.cashAdvances
-        }
-        else{
-          travelRequest[fieldKey] = req.body[fieldKey]
-        }
-      }  
-    })
-
-    if(travelRequest.approvers.length>0){
-      travelRequest.travelRequestStatus = 'pending approval'
-    }
-    else{
-      travelRequest.travelRequestStatus = 'pending booking'
-    }
-
-    const latestCA = await CashAdvance.findOneAndUpdate({'travelRequestData.travelRequestId': travelRequestId}, {$set:{travelRequestData:travelRequest, cashAdvances:cashAdvances }})
-    
-    //update other containers
-    if(travelRequest.approvers.length>0){
-      //send to approval and travel
-      //const approval_res = await axios.post(`${APPROVAL_API_URL}/cash-advance/`, updatedData)
-      //if(approval_res.status!=200) throw new Error('Error occured while replicating details in approval-ms')
-
-      const travel_res = await axios.post(`${TRAVEL_API_URL}/travel-requests/${travelRequestId}`, travelRequest)
-      if(travel_res.status!=200) throw new Error('Error occured while replicating details in travel-ms')
-      return res.status(200).json({message: 'Travel Request updated and sent for approval.'})
-    }
-    else{
-      //send to travel
-      const travel_res = await axios.post(`${TRAVEL_API_URL}/travel-requests/${travelRequestId}`, travelRequest)
-      if(travel_res.status!=200) throw new Error('Error occured while replicating details in travel-ms')
-      return res.status(200).json({message:'Travel Requested updated and sent for booking'})     
-    }
-    
-  } catch (e) {
-    console.error(e);
-    return res.status(500).json({ message: "Internal server error" });
-  }
-};
-
-const updateTravelRequest_ = async (req, res) => {
-  try {
-    const requiredFields = [
-      "tripPurpose",
-      "travelRequestDate",
-      "createdFor",
-      "teamMembers",
-      "travelRequestStatus",
-      "travelRequestState",
-      "travelAllocationHeaders",
-      "itinerary",
-      "tripType",
-      "travelDocuments",
-      "approvers",
-      "preferences",
-      "travelViolations",
-      "travelBookingDate",
-      "travelCompletionDate",
-      "travelRequestRejectionReason",
-      "isCancelled",
-      "cancellationDate",
-      "cancellationReason",
-      "sentToTrip",
-      "isCashAdvanceTaken",
-      "submitted",
-    ];
-
-    // Check if one of the required fields are present in the request body
-    const fieldsPresent = requiredFields.some((field) => field in req.body);
-
-    if (!fieldsPresent) {
-      return res.status(400).json({ message: "You haven't provided any valid fields to update" });
-    }
-
-    const {
-      tenantId,
-      travelRequestStatus,
-      travelRequestState,
-    } = req.body;
-
-    if(!tenantId || tenantId==null || tenantId == "") {
-      return res.status(400).json({ message: "tenant Id is missing" });
-    }
-
-    //validate tenant Id
-
-    //other validation methods are also needed,
-
-    const expectedFields = [
-      "tripPurpose",
-      "travelRequestDate",
-      "createdFor",
-      "teamMembers",
-      "travelRequestStatus",
-      "travelRequestState",
-      "travelAllocationHeaders",
-      "itinerary",
-      "tripType",
-      "travelDocuments",
-      "approvers",
-      "preferences",
-      "travelViolations",
-      "travelBookingDate",
-      "travelCompletionDate",
-      "travelRequestRejectionReason",
-      "isCancelled",
-      "cancellationDate",
-      "cancellationReason",
-      "sentToTrip",
-      "isCashAdvanceTaken",
-    ];
-    
-    // Initialize an array to store the updated fields that are present in the request
-    const present = [];
-    
-    // Check which fields are present in the request
-    for (const field of expectedFields) {
-      if (req.body.hasOwnProperty(field)) {
-        present.push(field);
-      }
-    }
-    
-    const updatedFields = {};
-    present.forEach((field) => {updatedFields[field] = req.body[field]});
-    console.log(updatedFields);
-
-    const { travelRequestId } = req.params;
-    //validate travelRequestId
-    const travelRequestExists = await CashAdvance.findOne({'travelRequestData.travelRequestId': travelRequestId}, {travelRequestData:1, cashAdvancesData:1})
-    
-    if(!travelRequestExists){
-      return res.status(404).json({message: 'Travel Request not found'})
-    }
-
-    const lastStatus = travelRequestExists.travelRequestData.travelRequestStatus
-    const lastApprovers = travelRequestExists.travelRequestData.approvers
-
-
-    //case travelRequest status is draft
-    if(travelRequestStatus == 'draft'){
-      if(req.body?.submitted == null || req.body?.submitted == undefined){ 
-        return res.status(400).json({ message: "Field or value for field is missing: 'submitted' " })
-      }
-      
-      //check for approvers
-      if(req.body.hasOwnProperty("approvers") && req.body.approvers.length>0){
-        // might need to 
-        //check with t&e how many approvers should be there
-        //and wether he is selecting correct approvers
-
-        //update status of each itinerary item to pending approval
-        if(updatedFields.hasOwnProperty('itinerary')){
-          updatedFields.itinerary.flights.forEach(flight=>{
-            if(flight.date??false) flight.status = req.body.submitted? 'pending approval' : 'draft'
-          })
-          updatedFields.itinerary.trains.forEach(train=>{
-            if(train.date??false) train.status = req.body.submitted? 'pending approval' : 'draft'
-          })
-          updatedFields.itinerary.buses.forEach(bus=>{
-            if(bus.date??false) bus.status = req.body.submitted? 'pending approval' : 'draft'
-          })
-          updatedFields.itinerary.cabs.forEach(cab=>{
-            if(cab.date??false) cab.status = req.body.submitted? 'pending approval' : 'draft'
-          })
-          updatedFields.itinerary.hotels.forEach(hotel=>{
-            if(hotel.checkIn??false) hotel.status = req.body.submitted? 'pending approval' : 'draft'
-          })
-        }
-
-        //update data in backend with status 'pending approval'
-        //await TravelRequest.findOneAndUpdate({'travelRequestData.travelRequestId': travelRequestId}, {$set: {...updatedFields, travelRequestStatus: req.body.submitted? 'pending approval' : 'draft'}});
-        await CashAdvance.findOneAndUpdate({'travelRequestData.travelRequestId': travelRequestId}, 
-            {$set: 
-              { travelRequestData: 
-                {...updatedFields, travelRequestStatus: req.body.submitted? 'pending approval' : 'draft'
-              }, 
-              'cashAdvances.$[].cashAdvanceStatus': req.body.submitted? 'pending approval' : 'draft' }})
-
-        res.status(200).json({message:  req.body.submitted ? `Travel Request submitted for approval` : 'Travel Request saved as draft'})
-        // send data to approval microservice
-      }
-
-      else{
-        //update data in backend with status 'pending booking'
-        //update status of each itinerary item to pending booking
-        if(updatedFields.hasOwnProperty('itinerary')){
-            updatedFields.itinerary.flights.forEach(flight=>{
-              if(flight.date??false) flight.status = req.body.submitted? 'pending booking' : 'draft'
-            })
-            updatedFields.itinerary.trains.forEach(train=>{
-              if(train.date??false) train.status = req.body.submitted? 'pending booking' : 'draft'
-            })
-            updatedFields.itinerary.buses.forEach(bus=>{
-              if(bus.date??false) bus.status = req.body.submitted? 'pending booking' : 'draft'
-            })
-            updatedFields.itinerary.cabs.forEach(cab=>{
-              if((cab.date??false) || (cab.type!='regular')) cab.status = req.body.submitted? 'pending booking' : 'draft'
-            })
-            updatedFields.itinerary.hotels.forEach(hotel=>{
-              if(hotel.checkIn??false) hotel.status = req.body.submitted? 'pending booking' : 'draft'
-            }) 
-        }
-        //await TravelRequest.findOneAndUpdate({'travelRequestData.travelRequestId': travelRequestId}, {$set: {...updatedFields, travelRequestStatus: req.body.submitted? 'pending booking' : 'draft'}});
-        await CashAdvance.findOneAndUpdate({'travelRequestData.travelRequestId': travelRequestId}, 
-          {$set: 
-            { travelRequestData: 
-              {...updatedFields, travelRequestStatus: req.body.submitted? 'pending booking' : 'draft'
-            }, 
-            'cashAdvances.$[].cashAdvanceStatus': req.body.submitted? 'awaiting pending settlement' : 'draft' }})
-
-        res.status(200).json({message: 'Travel Request submitted for booking'})
-        // send data to approval microservice
-      } 
-    }
-
-    //travel request status is pending booking
-    else if(travelRequestStatus == 'pending booking'){
-      //check if any new itinerary item is added. if so treat it as a draft status request
-      //and send for approval if required
-      let itemAdded = false
-      let status = ''
-
-      if(updatedFields.hasOwnProperty('itinerary')){
-          updatedFields.itinerary.flights.forEach(flight=>{
-            if((flight.date??false) && flight.status == 'draft'){
-              flight.status = lastApprovers.length>0? 'pending approval' : 'pending booking'
-              itemAdded = true
-            }
-          })
-          updatedFields.itinerary.trains.forEach(train=>{
-            if((train.date??false) && train.status == 'draft'){
-              train.status = lastApprovers.length>0? 'pending approval' : 'pending booking'
-              itemAdded = true
-            }
-          })
-          updatedFields.itinerary.buses.forEach(bus=>{
-            if((bus.date??false) && bus.status == 'draft'){
-              bus.status = lastApprovers.length>0? 'pending approval' : 'pending booking'
-              itemAdded = true
-            }
-          })
-          updatedFields.itinerary.cabs.forEach(cab=>{
-            if(((cab.date??false) || (cab.type!='regular')) && cab.status == 'draft'){
-              cab.status = lastApprovers.length>0? 'pending approval' : 'pending booking'
-              itemAdded = true
-            }
-          })
-          updatedFields.itinerary.hotels.forEach(hotel=>{
-            if((hotel.checkIn??false) && hotel.status == 'draft'){
-              hotel.status = lastApprovers.length>0? 'pending approval' : 'pending booking'
-              itemAdded = true
-            }
-          })
-      }
-
-      if(updatedFields.hasOwnProperty('approvers')){
-        if(updatedFields.approvers.length>0){
-          if(JSON.stringify(lastApprovers) != JSON.stringify(updatedFields.approvers)){
-            status = 'pending approval'
-          }
-
-          if(itemAdded) status = 'pending approval'
-
-          else status = 'pending booking'
-        }
-        else status = 'pending booking'
-      }
-
-      else status = 'pending booking'
-
-      console.log(status, 'status -pending booking route line-470')
-
-
-      if(status == 'pending booking'){
-        //update only travel request status keep cash advance status same
-        await CashAdvance.findOneAndUpdate({'travelRequestData.travelRequestId': travelRequestId}, 
-          {$set: 
-            { travelRequestData: 
-              {...updatedFields, travelRequestStatus: status
-            },
-            }})
-
-          res.status(200).json({message: 'Travel Request submitted for booking'})
-      }
-
-      if(status == 'pending approval'){
-
-        //update travel request to 
-        await CashAdvance.updateOne({'travelRequestData.travelRequestId': travelRequestId}, {$set: { travelRequestData: {...updatedFields, travelRequestStatus: 'pending approval'}}})
-
-        const updatedCashAdvance = await CashAdvance.findAndUpdateOne({'travelRequestData.travelRequestId': travelRequestId},
-          {
-            $set: { 'cashAdvances.$[element].cashAdvanceStatus': 'pending approval' }
-          },
-          { arrayFilters: [{ 'element.cashAdvanceStatus': 'awaiting pending settlement' }]},
-          {new:true}
-        );
-        
-        // send data to approval microservice
-        //fetch updated record
-        if(updatedCashAdvance){
-          //axios.post(APPROVAL_ENDPOINT, )
-          console.log(updatedCashAdvance)
-        }
-        
-
-        res.status(200).json({message: 'Travel Request submitted for approval'})
-      }    
-    }
-
-    //travel request status is pending approval
-    else if(travelRequestStatus == 'pending approval'){
-      //check if any new itinerary item is added. if so treat it as a draft status request
-      //and send for approval if required
-      let itemAdded = false
-      let status = ''
-
-      if(updatedFields.hasOwnProperty('itinerary')){
-        
-          updatedFields.itinerary.flights.forEach(flight=>{
-            if((flight.date??false) && flight.status == draft){
-              flight.status = lastApprovers.length>0? 'pending approval' : 'pending booking'
-              itemAdded = true
-            }
-          })
-          updatedFields.itinerary.trains.forEach(train=>{
-            if((train.date??false) && train.status == draft){
-              train.status = lastApprovers.length>0? 'pending approval' : 'pending booking'
-              itemAdded = true
-            }
-          })
-          updatedFields.itinerary.buses.forEach(bus=>{
-            if((bus.date??false) && bus.status == draft){
-              bus.status = lastApprovers.length>0? 'pending approval' : 'pending booking'
-              itemAdded = true
-            }
-          })
-          updatedFields.itinerary.cabs.forEach(cab=>{
-            if((cab.date??false) && cab.status == draft){
-              cab.status = lastApprovers.length>0? 'pending approval' : 'pending booking'
-              itemAdded = true
-            }
-          })
-          updatedFields.itinerary.hotels.forEach(hotel=>{
-            if((hotel.checkIn??false) && hotel.status == 'draft'){
-              hotel.status = lastApprovers.length>0? 'pending approval' : 'pending booking'
-              itemAdded = true
-            }
-          })
-      }
-
-      if(updatedFields.hasOwnProperty('approvers')){
-        if(updatedFields.approvers.length>0){
-          if(JSON.stringify(lastApprovers) != JSON.stringify(updatedFields.approvers)){
-            status = 'pending approval'
-          }
-
-          if(itemAdded) status = 'pending approval'
-
-          else status = 'pending booking'
-        }
-      }
-      else status = 'pending booking'
-
-      await TravelRequest.findOneAndUpdate({'travelRequestData.travelRequestId': travelRequestId}, {$set: {...updatedFields, travelRequestStatus:status}});
-      res.status(200).json({message: 'Travel Request submitted for booking'})
-
-      if(status == 'pending approval'){
-        // send data to approval microservice
-      }
-      
-    }
-
-    //travel request status is cancelled
-    else if(travelRequestStatus == 'cancelled'){
-      return res.status(400).json({message: 'This Travel Request has been cancelled. Please raise a fresh Travel Request'})
-    }
-
-    else if(travelRequestStatus == 'booked'){
-      return res.status(400).json({message: 'Travel Request is already booked. Please go to trip modification if you want to modify this trip'})
-    }
-
-    else if(travelRequestStatus == 'rejected'){
-      {
-        if(!req.body?.submitted??true){ 
-          return res.status(400).json({ message: "Field or value for field is missing: 'submitted' " })
-        }
-  
-        //check for approvers
-        if(req.body.hasOwnProperty("approvers") && req.body.approvers.length>0){
-          // might need to 
-          //check with t&e how many approvers should be there
-          //and wether he is selecting correct approvers
-  
-          //update status of each itinerary item to pending approval
-          if(updatedFields.hasOwnProperty('itinerary')){
-              updatedFields.itinerary.forEach(item=>{
-                if(item?.departure?.date??false) item.departure.status = 'pending approval'
-                if(item?.return?.date??false) item.return.status = 'pending approval'
-                if(item?.boardingTransfer?.date??false) item.boardingTransfer.status = 'pending approval'
-                if(item?.hotelTransfer?.date??false) item.hotelTransfer.status = 'pending approval'
-                item.cabs.forEach(cab=>{
-                  if(cab.date??false) cab.status = 'pending approval'
-                })
-                item.hotels.forEach(hotel=>{
-                  if(hotel.checkIn??false) hote.status = 'pending approval'
-                })
-              }) 
-          }
-  
-          //update data in backend with status 'pending approval'
-          await TravelRequest.findOneAndUpdate({'travelRequestData.travelRequestId': travelRequestId}, {$set: {...updatedFields, travelRequestStatus:'pending approval'}});
-          res.status(200).json({message: 'Travel Request submitted for approval'})
-          // send data to approval microservice
-        }
-  
-        else{
-          //update data in backend with status 'pending booking'
-          //update status of each itinerary item to pending booking
-          if(updatedFields.hasOwnProperty('itinerary')){
-            updatedFields.itinerary.forEach(item=>{
-              if(item?.departure?.date??false) item.departure.status = 'pending booking'
-              if(item?.return?.date??false) item.return.status = 'pending booking'
-              if(item?.boardingTransfer?.date??false) item.boardingTransfer.status = 'pending booking'
-              if(item?.hotelTransfer?.date??false) item.hotelTransfer.status = 'pending booking'
-              item.cabs.forEach(cab=>{
-                if(cab.date??false) cab.status = 'pending booking'
-              })
-              item.hotels.forEach(hotel=>{
-                if(hotel.checkIn??false) hotel.status = 'pending booking'
-              })
-            }) 
-          }
-          await TravelRequest.findOneAndUpdate({'travelRequestData.travelRequestId': travelRequestId}, {$set: {...updatedFields, travelRequestStatus:'pending booking'}});
-          res.status(200).json({message: 'Travel Request submitted for booking'})
-          // send data to approval microservice
-        } 
-  
-      }
-    }
-
-    else {
-      return res.status(400).json({message: 'Unrecognized status'})
-    }
-
-  } catch (e) {
-    console.log(e);
-    return res.status(500).json({ message: "Internal server error" });
-  }
-};
-
 const cancelTravelRequest = async (req, res)=>{
   try {
     const { travelRequestId } = req.params;
 
     //find TR
-    const cashAdvance = await CashAdvance.find({'travelRequestData.travelRequestId' : travelRequestId})
+    const cashAdvance = await CashAdvance.findOne({'travelRequestData.travelRequestId' : travelRequestId})
     if(!cashAdvance) return res.status(404).json({message: 'Can not find requested resource'})
 
     const travelRequest = cashAdvance.travelRequestData
     const cashAdvances = cashAdvance.cashAdvancesData
 
-    const sendToApproval = travelRequest.approvers.length>0 && travelRequest.status != 'draft'
+    const sendToApproval = travelRequest.approvers.length>0 && travelRequest.travelRequestStatus != 'draft'
 
     //update all itinerary item statu to cancelled
     if(travelRequest.hasOwnProperty('itinerary')){
@@ -663,29 +96,28 @@ const cancelTravelRequest = async (req, res)=>{
 
     //update  status to cancelled
     travelRequest.travelRequestStatus = 'cancelled'
+    travelRequest.cancellationDate = new Date().toISOString();
+    travelRequest.isCancelled = true;
 
     //update save in backend
     cashAdvance.travelRequestData = travelRequest
     cashAdvance.cashAdvancesData = cashAdvances
-    const result = cashAdvance.save()
+    const result = await cashAdvance.save()
+
     if(!result) return res.status(400).json({message: 'Can not update database at the momnet. Please try again later'})
     //send data to dashboard
-    await sendToDashboardQueue(cashAdvance, true, 'online')
+    const confirmation = await sendToDashboardQueue(cashAdvance, true, 'online')
+
+    console.log(`Confirmation received from dasshbaord: ${confirmation}`)
 
     if(sendToApproval){
-      //replicate data in approval microservice
-        // const approval_res = axios.post(APPROVAL_ENDPOINT, result)
-        // if(approval_res.status(200)){
-        //   return res.status(200).json({message: `Travel Request Sent for booking`});
-        // }
-        // else{
-        //   return res.status(400).json({message: 'Unable to replicate data in approval microservice'})
-        // }
+        const payload = {
+            tenantId:result.travelRequestData.tenantId,
+            travelRequestId:result.travelRequestData.travelRequestId,
+        }
 
-        //just for now
-        res.status(200).json({
-          message: `Travel Request cancelled`,
-        });
+        sendToOtherMicroservice(payload, 'cancellation-update', 'approval', 'To update status of TravelRequest and corresponding cash advances to cancelled')
+        res.status(200).json({message: `Travel Request cancelled`});
     }else return res.status(200).json({message: 'Travel Request Cancelled'})
 
   } catch (e) {
@@ -698,10 +130,12 @@ const updateTravelRequest = async (req, res) =>{
   try{
     const {travelRequestId} = req.params
     const {travelRequest, submitted} = req.body
+
     console.log(submitted)
 
     let sendToApproval = false
     let needApproval = false
+
     let lastTravelRequestStatus = null
     //find ca
     const cashAdvance = await CashAdvance.findOne({'travelRequestData.travelRequestId': travelRequestId})
@@ -732,8 +166,13 @@ const updateTravelRequest = async (req, res) =>{
 
       //update travelRequest in cashAdvance
       cashAdvance.travelRequestData = travelRequest
-      //update all cash advances status to draft
-      cashAdvance.cashAdvancesData.forEach(advance=> advance.cashAdvanceStatus = 'draft')
+
+      //update all cash advances status to draft if
+      cashAdvance.cashAdvancesData.forEach(advance=> {
+        if(['pending approval', 'approved', 'awaiting pending settlement'].includes(advance.cashAdvanceStatus)){
+          advance.cashAdvanceStatus = 'draft'
+        }
+      })
       //save the structre
       const result = await cashAdvance.save()
 
@@ -757,11 +196,12 @@ const updateTravelRequest = async (req, res) =>{
           // }
 
           //just for now
-          return res.status(200).json({message: `Travel Request Sent for booking`})
+          sendToOtherMicroservice(result, 'full-update', 'approval', 'To update entire travelRequestData in approval microservice', 'cash', 'online')
+          return res.status(200).json({message: `Travel Request saved as draft`})
       }
       //send res
       else{
-        return res.status(200).json({message: `Travel Request Sent for booking`});
+        return res.status(200).json({message: `Travel Request saved as draft`});
       }      
     }
 
@@ -777,6 +217,10 @@ const updateTravelRequest = async (req, res) =>{
           })
         })
       }
+
+      //update cashAdvance
+      cashAdvance.travelRequestData = travelRequest;
+
 
       if(needApproval){
         //update travel request to pending approval
@@ -796,7 +240,7 @@ const updateTravelRequest = async (req, res) =>{
           });  
         }
 
-        if(sendToApproval){
+        if(sendToApproval){ 
           //replicate data in approval microservice
           // const approval_res = axios.post(APPROVAL_ENDPOINT, result)
           // if(approval_res.status(200)){
@@ -810,7 +254,7 @@ const updateTravelRequest = async (req, res) =>{
 
           //send data to dashboard
           await sendToDashboardQueue(cashAdvance, false, 'online')
-
+          sendToOtherMicroservice(cashAdvance, 'full-update', 'approval', 'To update cash Advance Data in approval microservice')
           return res.status(200).json({message: `Travel Request Sent for approval`})
         }
 
@@ -834,7 +278,6 @@ const updateTravelRequest = async (req, res) =>{
           });  
         }
 
-
         if(sendToApproval){
           //replicate data in approval microservice
           // const approval_res = axios.post(APPROVAL_ENDPOINT, result)
@@ -849,12 +292,12 @@ const updateTravelRequest = async (req, res) =>{
           await sendToDashboardQueue(cashAdvance, false, 'online')
 
           //just for now
+          sendToOtherMicroservice(cashAdvance, 'full-update', 'approval', 'To update cash Advance Data in approval microservice')
           return res.status(200).json({message: `Travel Request Sent for booking`})
         }
 
         //send res
         else{
-
           //send data to dashboard
           await sendToDashboardQueue(cashAdvance, false, 'online')
 
@@ -872,10 +315,244 @@ const updateTravelRequest = async (req, res) =>{
   }
 }
 
+const closeTravelRequests = async (req, res) => {
+  try{
+    const {travelRequestIds, travelRequestStatus} = req.body
+
+    const filterArray = travelRequestIds.map(id=>({'travelRequestData.travelRequestId':id}))
+    const updateResult = await CashAdvance.updateMany({ $or: filterArray }, { $set: { 'travelRequestData.travelRequestStatus': traveRequestStatus} });
+
+    console.log(updateResult)
+
+  }catch(e){
+    console.log(e)
+    res.status(500).json({message:'Internal server error'})
+  }
+}
+
+const updateTravelBookings = async (req, res)=>{
+  try{
+    const { travelRequestId } = req.params;
+    let { itinerary, submitted } = req.body;
+
+    if(!req.body.hasOwnProperty('submitted') || !req.body.hasOwnProperty('itinerary') ){
+      return res.status(400).json({message: 'missing required fields'})
+    } 
+    //further checks
+
+    //find tr
+    const cashAdvance = await CashAdvance.findOne({'travelRequestData.travelRequestId' : travelRequestId})
+    if(!cashAdvance) return res.status(404).json({message: 'Requested resource not found'})
+
+    const travelRequest = cashAdvance.travelRequestData;
+    
+    if(submitted){
+      console.log('booking request submitted by user')
+      //change all individual line statuses to booked, change main status to booked
+      const message = {message: 'Booking Values not uploaded correctly'}
+
+      const itineraryTypes = ['flights', 'cabs', 'carRentals', 'hotels', 'trains', 'buses'] 
+
+      
+
+      for (const itemType of itineraryTypes) {
+        for (const item of itinerary[itemType]) {
+          if (itemType === 'flights' || itemType === 'trains' || itemType === 'buses') {
+            if (item.bkd_from == null || item.bkd_from == 'undefined') {
+              return res.status(400).json(message);
+            }
+            if (item.bkd_to == null || item.bkd_to == 'undefined') {
+              return res.status(400).json(message);
+            }
+          }
+      
+          if (itemType === 'cabs' || itemType === 'carRentals') {
+            if (item.bkd_pickupAddress == null || item.bkd_pickupAddress == 'undefined') {
+              return res.status(400).json(message);
+            }
+            if (item.bkd_dropAddress == null || item.bkd_dropAddress == 'undefined') {
+              return res.status(400).json(message);
+            }
+          }
+      
+          if (itemType === 'hotels') {
+            if (item.bkd_location == null || item.bkd_location == 'undefined') {
+              return res.status(400).json(message);
+            }
+          }
+        }
+      }
+      
+      // Continue with the rest of your code if needed
+      
+
+      //everything looks fine change status of each itinerary item to booked 
+      itineraryTypes.forEach(itemType=>{
+        itinerary[itemType].forEach(item=>{
+          if(item.status == 'pending booking'){
+            item.status = 'booked'
+          }
+        })
+      })
+
+      
+
+      //change main travelRequest status to booked
+      travelRequest.travelRequestStatus = 'booked'
+      travelRequest.itinerary = itinerary
+
+      //change sent to trip flas as no
+      travelRequest.sentToTrip = false;
+
+      cashAdvance.travelRequestData = travelRequest;
+
+      cashAdvance.cashAdvancesData.forEach(advance=>{
+        if(advance.cashAdvanceStatus == 'awaiting pending settlement'){
+          advance.cashAdvanceStatus = 'pending settlement'
+        }
+      })
+
+      console.log('Updated everything')
+
+      //send data to rabbitmq.. 
+      const sentToDashboard = await sendToDashboardQueue(cashAdvance, 'to update travel request contents after booking', 'full-update','online')
+      if(!sentToDashboard) {
+        return res.status(400).json({message: 'Can not perform requested operation at the moment'})
+      }
+
+      console.log('Saving Request')
+      await cashAdvance.save()
+
+      console.log('Sending response')
+  
+      return res.status(200).json({message: 'Travel Request marked as Booked'})
+    }
+
+    if(!submitted){
+      //simply save the provided itinerary in request
+      travelRequest.itinerary = itinerary
+      await cashAdvance.save()
+      return res.status(200).json({message: 'Itinerary updated'})
+    }
+
+  }catch(e){
+    console.log(e)
+    return res.status(500).json({message:'Internal Server Error'})
+  }
+}
+
+const getBookingsInitialData = async (req, res)=>{
+  try{
+    const {tenantId, employeeId, travelType} = req.params
+    
+    if(!tenantId || !employeeId || !travelType || tenantId == undefined || employeeId == undefined || travelType == undefined) return res.status(400).json({message: 'Request missing required fields'})
+    //get tenant data, 
+  
+    /*--------------------------------------------
+     |  later on optimize to get only relevan data |
+      --------------------------------------------*/
+  
+    const tenantData = await HRMaster.findOne({tenantId})
+    if(!tenantData) return res.status(404).json({message:'Can not find tenant'})
+    //get employee details
+    const employeeData = tenantData.employees.find(employee=>employee.employeeDetails.employeeId == employeeId)
+    const employeeGroups = employeeData?.group
+    console.log(employeeGroups, 'employee groups')
+  
+    let policies = tenantData.policies.travelPolicies??[]
+    console.log(policies)
+    // if(Object.keys(policies).length> 0){
+    //   policies = Object.keys(policies).map(key=> policies[key])
+    // }
+    
+    const getPolicy = (group, policy, travelType)=>{
+      let result = null
+      policies.forEach(groupPolicy=>{
+        if(groupPolicy[group]!=null && groupPolicy[group]!=undefined){
+            result = groupPolicy[group][travelType][policy] 
+            return
+        }
+      })
+  
+      return result
+    }
+    
+    const dummyGroups =  employeeGroups //['Engineers', 'All']
+    const checkPolicies = ['Flight', 'Train', 'Cab Rental', 'Cab', 'Hotel']
+    let allowed = {}
+    //for now fetch data for group 'Engineers'
+    const maxAllowedLimit = null
+    async function extractor(checkPolicies, groups, travelType){
+      try{
+        checkPolicies.forEach(item=>{
+          const groupPolicies = []
+            groups.forEach(group=>{
+                groupPolicies.push(getPolicy(group, item, travelType))
+            })
+  
+            console.log(groupPolicies)
+            
+            let _class = {}
+            let _limit = 0
+            
+            Object.keys(groupPolicies[0]?.class??[]).forEach(cl=>{
+                _class = {..._class, [cl]:false}
+            })
+            
+            groupPolicies.forEach(pl=>{
+                Object.keys(pl?.class??[]).forEach(cl=>{
+                    if(pl.class[cl].allowed) _class[cl] = true
+                })
+                if(Number(pl?.limit?.amount)>_limit) _limit = Number(pl.limit.amount) 
+            })
+  
+            allowed = {...allowed, [item]: {class:_class, limit:_limit}}
+      })
+      }catch(e){
+        console.log(e)
+      }
+    }
+    
+    extractor(checkPolicies, dummyGroups, 'international')
+  
+    const travelClassOptions={
+      'flight':Object.keys(policies[0][Object.keys(policies[0])[0]][travelType]?.['Flight']?.class??['Economy', 'Premium Economy', 'Business', 'First']),
+      'train': Object.keys(policies[0][Object.keys(policies[0])[0]][travelType]?.['Train']?.class??['First AC', 'Second AC', 'Third AC', 'Chair Car', 'Sleeper']),
+      'bus': ['Sleeper', 'Semi-Sleeper', 'Regular'],
+      'cab': Object.keys(policies[0][Object.keys(policies[0])[0]][travelType]?.['Cab']??['Regular', 'Executive'])
+    }
+    const hotelClassOptions = Object.keys(policies[0][Object.keys(policies[0])[0]][travelType]?.['Hotel']?.class??['Motel', '3 Star', '4 Star', '5 Star'])
+    const cabClassOptions = Object.keys(policies[0][Object.keys(policies[0])[0]][travelType]?.['Cab Rental']?.class??['Regular', 'Executive'])
+    let minDaysBeforeBooking = 9999
+    const allowInternationalSubmissionWithViolations = policies[0]?.[dummyGroups[0]]?.['international']?.['Allow International Travel Submission/booking with violations']?.permission?.allowed??true
+    
+    dummyGroups.forEach(group=>{
+      policies.forEach(groupPolicy=>{
+        if(groupPolicy[group]!=null && groupPolicy[group]!=undefined){
+            const result = groupPolicy[group]?.[travelType]?.['Minimum Days to Book Before Travel']?.dayLimit?.days??999 
+            if(result<minDaysBeforeBooking) minDaysBeforeBooking = result 
+        }
+      })
+    })
+  
+    if(minDaysBeforeBooking == 9999) minDaysBeforeBooking=0
+  
+    return res.status(200).json({policies:allowed, minDaysBeforeBooking, allowInternationalSubmissionWithViolations, travelClassOptions, hotelClassOptions, cabClassOptions})
+  
+  }catch(e){
+    console.log(e)
+    res.status(500).json({message:'internal server error'})
+  }
+}
+
+
 export {
   getOnboardingAndProfileData,
   getTravelRequest,
   validateTravelPolicy,
   updateTravelRequest,
   cancelTravelRequest,
+  closeTravelRequests,
+  updateTravelBookings,
+  getBookingsInitialData,
 };
