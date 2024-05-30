@@ -37,34 +37,16 @@ const itineraryStatusEnums = [
 
 const transferEnums = [
   "regular",
-  "departure pickup",
-  "departure drop",
-  "return pickup",
-  "return drop",
+  "pickup",
+  "drop",
 ];
 
 const itinerarySchema = {
-  formState: [
-    {
-      formId: String,
-      transfers: {
-        needsDeparturePickup: Boolean,
-        needsDepartureDrop: Boolean,
-        needsReturnPickup: Boolean,
-        needsReturnDrop: Boolean,
-      },
-      needsHotel: Boolean,
-      needsCab: Boolean,
-      needsVisa: Boolean,
-      modeOfTransit: String,
-      travelClass: String,
-    },
-  ],
-
   flights: [
     {
       itineraryId: mongoose.Schema.ObjectId,
       formId: String,
+      sequence: Number,
       from: String,
       to: String,
       date: Date,
@@ -89,7 +71,7 @@ const itinerarySchema = {
       ],
       bkd_from: String,
       bkd_to: String,
-      bkd_date: String,
+      bkd_date: Date,
       bkd_returnDate: String,
       bkd_time: String,
       bkd_returnTime: String,
@@ -119,6 +101,7 @@ const itinerarySchema = {
     {
       itineraryId: mongoose.Schema.ObjectId,
       formId: String,
+      sequence: Number,
       from: String,
       to: String,
       date: Date,
@@ -141,7 +124,7 @@ const itinerarySchema = {
       ],
       bkd_from: String,
       bkd_to: String,
-      bkd_date: String,
+      bkd_date: Date,
       bkd_time: String,
       bkd_travelClass: String,
       modified: Boolean,
@@ -175,6 +158,7 @@ const itinerarySchema = {
     {
       itineraryId: mongoose.Schema.ObjectId,
       formId: String,
+      sequence: Number,
       from: String,
       to: String,
       date: Date,
@@ -197,7 +181,7 @@ const itinerarySchema = {
       ],
       bkd_from: String,
       bkd_to: String,
-      bkd_date: String,
+      bkd_date: Date,
       bkd_time: String,
       bkd_travelClass: String,
       bkd_violations: {
@@ -235,11 +219,12 @@ const itinerarySchema = {
     {
       itineraryId: mongoose.Schema.ObjectId,
       formId: String,
+      sequence: Number,
       location: String,
       locationPreference: String,
       class: String,
-      checkIn: String,
-      checkOut: String,
+      checkIn: Date,
+      checkOut: Date,
       checkInTime: String,
       checkOutTime: String,
       violations: {
@@ -259,8 +244,8 @@ const itinerarySchema = {
       bkd_location: String,
       bkd_locationPreference: String,
       bkd_class: String,
-      bkd_checkIn: String,
-      bkd_checkOut: String,
+      bkd_checkIn: Date,
+      bkd_checkOut: Date,
       bkd_checkInTime: String,
       bkd_checkOutTime: String,
       bkd_violations: {
@@ -298,7 +283,8 @@ const itinerarySchema = {
     {
       itineraryId: mongoose.Schema.ObjectId,
       formId: String,
-      date: String,
+      sequence: Number,
+      date: Date,
       class: String,
       time: String,
       pickupAddress: String,
@@ -317,7 +303,7 @@ const itinerarySchema = {
           },
         },
       ],
-      bkd_date: String,
+      bkd_date: Date,
       bkd_class: String,
       bkd_time: String,
       bkd_pickupAddress: String,
@@ -351,7 +337,8 @@ const itinerarySchema = {
     {
       itineraryId: mongoose.Schema.ObjectId,
       formId: String,
-      date: String,
+      sequence: Number,
+      date: Date,
       class: String,
       time: String,
       pickupAddress: String,
@@ -370,7 +357,7 @@ const itinerarySchema = {
           },
         },
       ],
-      bkd_date: String,
+      bkd_date: Date,
       bkd_class: String,
       bkd_time: String,
       bkd_pickupAddress: String,
@@ -404,7 +391,8 @@ const itinerarySchema = {
     {
       itineraryId: mongoose.Schema.ObjectId,
       formId: String,
-      date: String,
+      sequence: Number,
+      date: Date,
       time: String,
       from: String,
       to: String,
@@ -437,6 +425,29 @@ const itinerarySchema = {
       },
     },
   ],
+};
+
+const formDataSchema = {
+  isReturnTravel: Boolean,
+  itinerary: [
+    {
+      formId: String,
+      mode : String,
+      from : String,
+      to : String,
+      date: String,
+      returnDate: String,
+      hotelNights: String,
+      pickUpNeeded: Boolean,
+      dropNeeded: Boolean,
+      fullDayCabs: Number,
+      fullDayCabDates: [String],
+      dateError:{set: Boolean, message:String},
+      returnDateError:{set: Boolean, message:String},
+      fromError: {set: Boolean, message:String},
+      toError: {set: Boolean, message:String},
+   },
+],
 };
 
 export const travelRequestSchema = new mongoose.Schema({
@@ -499,6 +510,7 @@ export const travelRequestSchema = new mongoose.Schema({
     //}
   ],
   itinerary: itinerarySchema,
+  formData: formDataSchema,
   tripType: { oneWayTrip: Boolean, roundTrip: Boolean, multiCityTrip: Boolean },
   travelDocuments: [String],
   bookings: [
@@ -532,10 +544,9 @@ export const travelRequestSchema = new mongoose.Schema({
   travelBookingDate: Date,
   travelCompletionDate: Date,
   cancellationDate: Date,
-  travelRequestRejectionReason: String,
+  rejectionReason: String,
   isCancelled: Boolean,
   cancellationReason: String,
-  rejectionReason: String,
   isCashAdvanceTaken: Boolean,
   isAddALeg: Boolean,
   sentToTrip: Boolean,
@@ -547,6 +558,7 @@ travelRequestSchema.pre("save", async function (next) {
   const itineraryItemTypes = [
     "flights",
     "cabs",
+    "trains",
     "buses",
     "hotels",
     "carRentals",
@@ -585,3 +597,10 @@ travelRequestSchema.pre("validate", function (next) {
     next();
   }
 });
+
+const TravelRequest = mongoose.model(
+  "travel_request_container",
+  travelRequestSchema
+);
+
+export default TravelRequest;
