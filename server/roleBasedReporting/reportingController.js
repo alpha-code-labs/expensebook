@@ -211,9 +211,9 @@ const getLastMonthTrips = async (tenantId, empId) => {
     //console.log("trip in last month", tripDocs)
       const trips = tripDocs.map(trip => {
         const { tripSchema } = trip;
-        const { travelRequestData, cashAdvancesData, travelExpenseData, expenseAmountStatus, tripId, tripNumber, tripStartDate, tripCompletionDate } = tripSchema || {};
+        const { travelRequestData, cashAdvancesData, travelExpenseData, expenseAmountStatus, tripId, tripNumber, tripStartDate, tripCompletionDate ,tripStatus} = tripSchema || {};
         const { totalCashAmount, totalremainingCash } = expenseAmountStatus || {};
-        const { travelRequestId, travelRequestNumber, travelRequestStatus, tripPurpose, isCashAdvanceTaken, itinerary } = travelRequestData || {};
+        const { travelRequestId, travelRequestNumber, travelRequestStatus, tripPurpose,createdBy, isCashAdvanceTaken,travelType,approvers, itinerary } = travelRequestData || {};
   
         const itineraryToSend = Object.fromEntries(
           Object.entries(itinerary)
@@ -245,23 +245,31 @@ const getLastMonthTrips = async (tenantId, empId) => {
           tripId, tripNumber,
           travelRequestId,
           travelRequestNumber,
+          createdBy,
           tripPurpose,
           tripStartDate,
+          tripStatus,
           tripCompletionDate,
           travelRequestStatus,
           isCashAdvanceTaken,
           expenseAmountStatus,
-          cashAdvances: isCashAdvanceTaken ? (cashAdvancesData ? cashAdvancesData.map(({ cashAdvanceId, cashAdvanceNumber, amountDetails, cashAdvanceStatus }) => ({
+          travelType,
+          approvers,
+          cashAdvances: isCashAdvanceTaken ? (cashAdvancesData ? cashAdvancesData.map(({ cashAdvanceId, cashAdvanceNumber, amountDetails, cashAdvanceStatus , approvers}) => ({
             cashAdvanceId,
             cashAdvanceNumber,
             amountDetails,
-            cashAdvanceStatus
+            cashAdvanceStatus,
+            approvers
           })) : []) : [],
-          travelExpenses: travelExpenseData?.map(({ expenseHeaderId, expenseHeaderNumber, expenseHeaderStatus }) => ({
-            expenseHeaderId,
-            expenseHeaderNumber,
-            expenseHeaderStatus
-          })),
+          // travelExpenses: travelExpenseData?.map(({ expenseHeaderId, expenseHeaderNumber, expenseHeaderStatus, approvers ,expenseLines,travelType}) => ({
+          //   expenseHeaderId,
+          //   expenseHeaderNumber,
+          //   expenseHeaderStatus,
+          //   approvers, expenseLines,
+          // travelType
+          // })),
+          travelExpenses:travelExpenseData,
           itinerary: itineraryToSend,
         };
       });
