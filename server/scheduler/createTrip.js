@@ -1,63 +1,69 @@
 import CashAdvance from "../models/cashSchema.js";
 import cron from 'node-cron';
+import { sendToDashboardQueue, sendToOtherMicroservice } from "../rabbitMQ/publisher.js";
+import dotenv from 'dotenv'
 
+dotenv.config();
 
-const TRIP_API = 'http://localhost:8001/trip/'
-const trip_endpoint = 'trips/create/multi'
-
-const APPROVAL_API = 'http://localhost:8001/approval'
-const approval_endpoint = ''
+const scheduleTime = process.env.SCHEDULE_TIME??'* * * * *';
 
 //basic status UpdateBatchJob function...
-async function batchJob(){
+async function createTrip(){
     try {   
-            const updatedCashAdvances_approval = []
-            const updatedCashAdvances_trip_expense = []
-
+            
             const results = await CashAdvance.find({
                 'travelRequestData.travelRequestStatus' : 'booked',
                 'travelRequestData.sentToTrip' : false,
             });
-            
-            //send results to trip 
-            //const res_trip  = await axios.post(`${TRIP_API}/${trip_endpoint}`, {trips:results})
-            //if(res_trip.status!=200) throw new Error('Unable to update cash advance status in trip-ms')
 
-            const approvedTravelRequestIds = []
-            //iterate throught results and check for TR that went for approval
-            results.forEach(result=>{
-              if(result.approvers.length>0){
-                approvedTravelRequestIds.push(result.travelRequestData.travelRequestId)
-              }
+
+            results.map(result=>{
+              const travelRequest = result.travelRequestData
+              const cashAdvances = result.cashAdvancesData
+
+              travelRequest.sentToTrip = true
+
+              cashAdvances.forEach(cashAdvance=>{
+                if(cashAdvance.cashAdvanceStatus == 'awaiting pending settlement'){
+                  cashAdvance.cashAdvanceStatus = 'pending settlement'
+                }
+              })
+
+              return result.save()
             })
 
-            //send results to approval
-            //const res_approval  = await axios.post(`${APPROVAL_API}/${approval_endpoint}`, {travelRequestIds, status:'booked'})
-            //if(res_approval.status!=200) throw new Error('Unable to send data to approval-ms')
+            const updatedResults = await Promise.all(results)
+
+            if(updatedResults.length == 0) {
+              console.log(`BJ: SEND booked requests to trip and dashboard :: match count: ${updatedResults.length}`)
+              return;
+            }
+
+            //send to trip
+            await sendToOtherMicroservice(updatedResults, 'trip-creation', 'trip', 'full update for all newly booked travel requests from cash', 'cash','batch')
+            //send to dashboard
+            await sendToOtherMicroservice(updatedResults, 'full-update-batchjob', 'dashboard', 'To update cashadvance data after running trip creation batch job', 'cash', 'batch')
 
             //update  sentToTrip flag to true 
-            const updateResults = await CashAdvance.updateMany({
-                'travelRequestData.travelRequestStatus' : 'booked',
-                'travelRequestData.sentToTrip' : false,
-                'travelRequestData.isCashAdvanceTaken': true,
-            }, 
-            {$set : {'travelRequestData.sentToTrip':true}});
+            console.log(`BJ: SEND booked requests to trip and dashboard :: match count: ${updatedResults.length}`)
 
         } catch (e) {
         console.error('error in statusUpdateBatchJob', e);
       }    
 }
 
-// Schedule the cron job to run every day at midnight
-cron.schedule('0 0 * * *', () => {
-    console.log('Running batch job...');
-    batchJob();
+const batchJobCreateTrip = ()=>{
+  // Schedule the cron job to run every day at midnight
+  cron.schedule(scheduleTime, () => {
+    console.log('Running batch job for booked requests');
+    createTrip();
   });
-  
+}
+   
   // Function to trigger the batch job on demand
-  const triggerBatchJob = () => {
+  const triggerBatchJobCreateTrip = () => {
     console.log('Triggering batch job on demand...');
-    batchJob();
+    createTrip();
   };
   
-  export { triggerBatchJob };
+  export { triggerBatchJobCreateTrip, batchJobCreateTrip};
