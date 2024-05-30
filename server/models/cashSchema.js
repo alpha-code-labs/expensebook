@@ -10,7 +10,8 @@ const cashAdvanceStatusEnum = [
   'pending settlement',
   'paid',
   'cancelled',
-  'paid and cancelled'
+  'paid and cancelled',
+  'recovered',
 ];
 
 const cashAdvanceStateEnums = [
@@ -32,7 +33,7 @@ const cashAdvanceSchema = new mongoose.Schema({
       required: true,
     },
   cashAdvancesData: [
-    {
+    {   
       tenantId: {
         type: String,
         required: true,
@@ -41,6 +42,8 @@ const cashAdvanceSchema = new mongoose.Schema({
         type: String,
         required: true,
       },
+      totalConvertedAmount : Number,
+      defaultCurrency: {},
       travelRequestNumber:{
         type: String,
         required: true,
@@ -74,6 +77,8 @@ const cashAdvanceSchema = new mongoose.Schema({
       amountDetails: [
         {
           amount: Number,
+          convertedAmount: Number,
+          exchangeRate: Number,
           currency: {},
           mode: String,
         },
@@ -97,7 +102,10 @@ const cashAdvanceSchema = new mongoose.Schema({
       cashAdvanceViolations: String,
       cashAdvanceRejectionReason: String,
     },
-  ]
+  ],
+  totalAdvanceRequested: Number,
+  totalAdvanceGranted: Number,
+  totalAdvanceRecovered: Number,
 });
 
 const CashAdvance = mongoose.model('CashAdvance', cashAdvanceSchema);
