@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { loading_icon } from '../../../assets/index';
+import { loading_icon } from '../../assets/index';
 
 export default function Button(props) {
 

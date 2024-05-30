@@ -4,11 +4,13 @@ import { formatLargeNumber } from '../../utils/handyFunctions';
 
 
 const processData = (data) => {
+
   const processed = data.map(trip => ({
     tripNumber: trip.tripNumber,
     totalExpense: trip.expenseAmountStatus.totalExpenseAmount + trip.expenseAmountStatus.totalAlreadyBookedExpenseAmount,
     totalExpenseAmount: trip.expenseAmountStatus.totalExpenseAmount,
     totalAlreadyBookedExpenseAmount: trip.expenseAmountStatus.totalAlreadyBookedExpenseAmount,
+  
   }))
   .sort((a, b) => b.totalExpense - a.totalExpense)
   .slice(0, 4);
@@ -40,7 +42,7 @@ const CustomTooltip = ({ active, payload, label }) => {
 };
 
 
-const BarChartComponent = ({data}) => {
+const ReimbursementChart = ({data}) => {
   const processedData = processData(data);
 
   return (
@@ -68,6 +70,6 @@ const BarChartComponent = ({data}) => {
   );
 };
 
-export default BarChartComponent;
+export default ReimbursementChart;
 
 

@@ -153,5 +153,75 @@ function titleCase(str){
         return camelCaseString;
       }
 
+      const formatDateToYYYYMMDD = (dateString) => {
+        const date = new Date(dateString); 
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero-based
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      };
 
-    export {titleCase, formatDateMonth, formatDate,formatFullDate, formatDate2, formatDate3, camelCaseToTitleCase, titleCaseToCamelCase}
+      const convertJsonToCsv = (json) => {
+        const keys = Object.keys(json[0]);
+        const csvRows = [keys.join(','), ...json.map(row => keys.map(key => row[key]).join(','))];
+        return csvRows.join('\n');
+      };
+
+      const handleCSVDownload = (jsonData) => {
+        const csvData = convertJsonToCsv(jsonData);
+        const blob = new Blob([csvData], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.setAttribute('hidden', '');
+        a.setAttribute('href', url);
+        a.setAttribute('download', 'employees.csv');
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      };
+
+      const convertJsonToPdf = (json) => {
+        const keys = Object.keys(json[0]);
+        const pdfContent = `
+          <html>
+          <head>
+            <style>
+              table { width: 100%; border-collapse: collapse; }
+              th, td { border: 1px solid black; padding: 8px; text-align: left; }
+            </style>
+          </head>
+          <body>
+            <table>
+              <thead>
+                <tr>${keys.map(key => `<th>${key}</th>`).join('')}</tr>
+              </thead>
+              <tbody>
+                ${json.map(row => `<tr>${keys.map(key => `<td>${row[key]}</td>`).join('')}</tr>`).join('')}
+              </tbody>
+            </table>
+          </body>
+          </html>
+        `;
+      
+        const pdfWindow = window.open('', '', 'width=800,height=600');
+        pdfWindow.document.write(pdfContent);
+        pdfWindow.document.close();
+        pdfWindow.print();
+      };
+
+//convert large count to sym i.e. K,Million, Trillon
+      const formatLargeNumber = (tickItem) => {
+        if (Math.abs(tickItem) >= 1e12) {
+          return `${(tickItem / 1e12)}T`;
+        } else if (Math.abs(tickItem) >= 1e9) {
+          return `${(tickItem / 1e9)}B`;
+        } else if (Math.abs(tickItem) >= 1e6) {
+          return `${(tickItem / 1e6)}M`;
+        } else if (Math.abs(tickItem) >= 1e3) {
+          return `${(tickItem / 1e3)}k`;
+        } else {
+          return tickItem.toString();
+        }
+      };
+      
+    export {titleCase, formatDateMonth, formatDate,formatFullDate, formatDate2, formatDate3, camelCaseToTitleCase,formatDateToYYYYMMDD, titleCaseToCamelCase ,convertJsonToCsv,handleCSVDownload,formatLargeNumber}

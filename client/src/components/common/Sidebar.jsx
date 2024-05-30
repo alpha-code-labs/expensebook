@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { cancel_icon, down_arrow_icon } from '../../../assets';
+import { cancel_icon, down_arrow_icon } from '../../assets';
 
 const Sidebar = ({ handleReportTab, reportTab }) => {
     const reportTypes = [

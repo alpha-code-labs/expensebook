@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import {  chevron_down_icon } from "../../../assets/index";
+import {  chevron_down_icon } from "../../assets/index";
 
 
 export default function Select(props) {

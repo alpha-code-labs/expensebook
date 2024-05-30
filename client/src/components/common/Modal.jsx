@@ -4,7 +4,7 @@
 import { useState, useEffect, useRef, Children } from "react";
 import Button from "./Button";
 import Input from "./Input";
-import { cancel_icon } from "../../../assets";
+import { cancel_icon } from "../../assets";
 
 export default function (props){
     const modalRef = useRef(null)
