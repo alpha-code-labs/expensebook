@@ -4,7 +4,7 @@ export async function approveRejectTravelRequest(payload){
     try{
         const {travelRequestId, travelRequestStatus, rejectionReason, approvers} = payload
         
-        const cashAdvance = CashAdvance.findOne({'travelRequestData.travelRequestId' : travelRequestId}) 
+        const cashAdvance = await CashAdvance.findOne({'travelRequestData.travelRequestId' : travelRequestId}) 
         if(!cashAdvance) return {success:false, error: 'Travel Request not found'}
 
 
@@ -12,15 +12,15 @@ export async function approveRejectTravelRequest(payload){
         cashAdvance.travelRequestData.rejectionReason = rejectionReason??''
         cashAdvance.travelRequestData.approvers = approvers
 
-        if(travelRequestStatus == 'approved'){
-            Object.keys(cashAdvance.travelRequestData.itinerary).forEach(key=>{
-                cashAdvance.travelRequestData.itinerary[key].forEach(item=>{
-                    if(item.status = 'pending approval'){
-                        item.status = 'approved'
-                    }
-                })
+        Object.keys(cashAdvance.travelRequestData.itinerary).forEach(key=>{
+            cashAdvance.travelRequestData.itinerary[key].forEach(item=>{
+                if(item.status == 'pending approval'){
+                    item.status = travelRequestStatus
+                    item.approvers = approvers
+                }
             })
-        }
+        })
+
 
         const result = await cashAdvance.save()
 
@@ -33,15 +33,15 @@ export async function approveRejectTravelRequest(payload){
 
 export async function approveRejectCashAdvance(payload){
     try{
-        const {travelRequestId, cashAdvanceId, cashAdvanceStatus, rejectionReason, approvers} = payload
+        const {travelRequestId, cashAdvanceId, cashAdvanceStatus, cashAdvanceRejectionReason, approvers} = payload
         
-        const cashAdvance = CashAdvance.findOne({'travelRequestData.travelRequestId' : travelRequestId}) 
+        const cashAdvance = await CashAdvance.findOne({'travelRequestData.travelRequestId' : travelRequestId}) 
         if(!cashAdvance) return {success:false, error: 'Travel Request not found'}
 
-        cashAdvance.cashAdvanceData.forEach(ca=>{
+        cashAdvance.cashAdvancesData.forEach(ca=>{
             if(ca.cashAdvanceId == cashAdvanceId){
                 ca.cashAdvanceStatus = cashAdvanceStatus
-                ca.rejectionReason  = rejectionReason
+                ca.cashAdvanceRejectionReason  = cashAdvanceRejectionReason
                 ca.approvers = approvers
             }
         })
@@ -59,7 +59,7 @@ export async function approveRejectLegItem(payload){
     try{
         const {travelRequestId, itineraryId, status, approvers} = payload
         
-        const cashAdvance = CashAdvance.findOne({'travelRequestData.travelRequestId': travelRequestId})
+        const cashAdvance = await CashAdvance.findOne({'travelRequestData.travelRequestId': travelRequestId})
         if(!cashAdvance) return {success:false, error: 'Travel Request not found'}
         
         let match = false

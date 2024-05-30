@@ -13,25 +13,28 @@ import {
   settleCashAdvance,
 } from "./messageProcessor/finance.js";
 import { sendToDashboardQueue } from "./publisher.js";
-import { addALeg } from "./messageProcessor/dashboard.js";
+import { addALeg, updateBookingAdmin, updateFinanceAdmin } from "./messageProcessor/dashboard.js";
 
 dotenv.config();
 
 //start consuming messages..
 export default async function startConsumer(receiver) {
-  const rabbitMQUrl = process.env.RBMQ_URL;
-  const connectToRabbitMQ = async () => {
-    try {
-      console.log("Connecting to RabbitMQ...");
-      const connection = await amqp.connect(rabbitMQUrl);
-      const channel = await connection.createConfirmChannel();
-      console.log("Connected to RabbitMQ.");
-      return channel;
-    } catch (error) {
-      console.log("Error connecting to RabbitMQ:", error);
-      throw error;
-    }
-  };
+  try{
+    const rabbitMQUrl = process.env.NODE_ENV == 'production' ? process.env.RBMQ_PROD_URL : process.env.RBMQ_URL;
+
+    const connectToRabbitMQ = async () => {
+      try {
+        console.log("Connecting to RabbitMQ...");
+        console.log("on ", rabbitMQUrl)
+        const connection = await amqp.connect(rabbitMQUrl);
+        const channel = await connection.createConfirmChannel();
+        console.log("Connected to RabbitMQ.");
+        return channel;
+      } catch (error) {
+        console.log("Error connecting to RabbitMQ:", error);
+        throw error;
+      }
+    };
 
   const channel = await connectToRabbitMQ();
   const exchangeName = "amqp.dashboard";
@@ -74,7 +77,7 @@ export default async function startConsumer(receiver) {
           console.log("update failed with error code", res.error);
         }
       } else if (source == "trip") {
-        if ((action = "full-update")) {
+        if ((action == "full-update")) {
           const res = await cancelTravelRequest(payload);
           console.log(res);
           if (res.success) {
@@ -158,8 +161,33 @@ export default async function startConsumer(receiver) {
                 console.log("update failed with error code", res.error);
             }
         }
+        if(action == 'update-booking-admin'){
+          const res = await updateBookingAdmin(payload)
+          if(res.success){
+              console.log('message consumed successfully')
+              channel.ack(msg)
+          }
+          else{
+              console.log("update failed with error code", res.error);
+          }
+        }
+        if(action == 'update-finance-admin'){
+          const res = await updateFinanceAdmin(payload)
+          if(res.success){
+              console.log('message consumed successfully')
+              channel.ack(msg)
+          }
+          else{
+              console.log("update failed with error code", res.error);
+          }
+        }
       }
     },
     { noAck: false }
   );
+  }catch(e){
+    console.log(e)
+  }
 }
+
+
