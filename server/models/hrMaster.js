@@ -34,6 +34,7 @@ const employeeSchema = new mongoose.Schema({
     businessAdmin: Boolean,  //change it to travel admin
     superAdmin: Boolean,
   },
+  onboarder: Boolean,
   canDelegate: Boolean,
 })
 
@@ -56,6 +57,11 @@ const ExchangeValueSchema = new mongoose.Schema({
 // HR & Company Structure schema
 const hrCompanySchema = new mongoose.Schema({
   tenantId: mongoose.Types.ObjectId,
+  tenantName: String,
+  onboarder: {
+    name: String,
+    emailId: String,
+  },
   
   flags:{
     DIY_FLAG: Boolean,
