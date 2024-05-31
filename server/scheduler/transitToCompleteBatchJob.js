@@ -1,11 +1,14 @@
 import cron from 'node-cron';
-import { Trip } from '../models/tripSchema.js';
-import { sendNotificationToDashboard, sendNotificationToEmployee } from './notificationService.js';
-import { calculateDateDifferenceInDays } from './dateUtils.js';
-import { sendTripsToDashboardQueue } from '../rabbitmq/dashboardMicroservice.js';
+import  Trip  from '../models/tripSchema.js';
+// import { sendNotificationToDashboard, sendNotificationToEmployee } from './notificationService.js';
+import { calculateDateDifferenceInDays } from '../utils/dateUtils.js';
+import { sendToDashboardMicroservice } from '../rabbitmq/dashboardMicroservice.js';
+import dotenv from 'dotenv'
+
+dotenv.config();
 
 // Define the schedule time for the batch job (e.g., daily at midnight)
-const scheduleTime = '0 0 * * *';
+const scheduleTime = process.env.SCHEDULE_TIME??'* * * * *';
 
 
 const updateTransitTrips = async (transitTrips) => {
@@ -63,9 +66,9 @@ const processCompletionIfApplicable = async (trip, todayDate, lastLineItemDate) 
     await saveDataInTripContainer(trip);
 
     // Check if expenses have been submitted
-    if (!trip.expensesSubmitted) {
-      await sendNotificationToEmployee(trip);
-    }
+    // if (!trip.expensesSubmitted) {
+    //   await sendNotificationToEmployee(trip);
+    // }
   }
 };
 
@@ -108,7 +111,7 @@ const updateDocumentsForCompletion = async (trip) => {
    const data = 'batch';
    const needConfirmation = false;
    // Send updated trip to the dashboard synchronously
-   await sendTripsToDashboardQueue(trip, data,needConfirmation );
+   await sendToDashboardMicroservice(trip, data,needConfirmation );
 };
 
 
@@ -125,7 +128,7 @@ const processClosureIfApplicable = async (trip) => {
     const data = 'batch';
     const needConfirmation = false;
     // Send updated trip to the dashboard synchronously
-   await sendTripsToDashboardQueue(trip, data,needConfirmation );
+   await sendToDashboardMicroservice(trip, data,needConfirmation );
   }
 };
 
@@ -220,7 +223,7 @@ const getCompletedStandaloneTravelRequests = async () => {
 };
 
 // Define the batch job
-const transitBatchJob = cron.schedule(scheduleTime, async () => {
+const transitBatchJob = ()=>{ cron.schedule(scheduleTime, async () => {
   try {
     // Find all trips with status "transit"
     const transitTrips = await Trip.find({ tripStatus: 'transit' });
@@ -242,12 +245,11 @@ const transitBatchJob = cron.schedule(scheduleTime, async () => {
     console.error('Status change Transit to complete batch job error:', error);
   }
 });
+}
 
-// Start the batch job immediately (useful for testing)
-transitBatchJob.start();
 
 // Export the batch job for use in other modules
-export default transitBatchJob;
+export {transitBatchJob};
 
 
 

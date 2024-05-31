@@ -1,6 +1,9 @@
 import cron from 'node-cron';
 import Trip from '../models/tripSchema.js';
 import { sendToOtherMicroservice } from '../rabbitmq/publisher.js';
+import dotenv from 'dotenv'
+
+dotenv.config();
 
 
 // export const updateSentToExpenseFlag = async (tenantId, tripId, isSentToExpense) => {
@@ -156,7 +159,7 @@ export const expenseBatchJob = async () => {
   try {
     console.log('You are Connected to Mongodb');
     const tripsToProcess = await Trip.find({
-     isSentToExpense:{$in:[true , undefined]} });
+     isSentToExpense: false });
     console.log('Fetched trips for expense processing:', tripsToProcess);
 
     if (tripsToProcess.length === 0) {
@@ -169,6 +172,8 @@ export const expenseBatchJob = async () => {
     const onlineVsBatch = 'batch';
     const sendToExpenseBatch = await sendToOtherMicroservice(tripsToProcess, 'full-update-array', 'expense', 'batchjob to update expense with trip details', 'trip', onlineVsBatch);
     console.log('Trips sent to expense microservice:', sendToExpenseBatch);
+
+    updateSentToExpenseFlag(tripsToProcess);
 
     return { success: true, message: 'Expense batch job completed successfully' };
 
@@ -237,7 +242,7 @@ export const expenseBatchJob = async () => {
 
 
 export const scheduleToExpenseBatchJob = () => {
-const schedule = process.env.SCHEDULE_TIME;
+const schedule = process.env.SCHEDULE_TIME??'* * * * *';
 cron.schedule(schedule, async () => {
   console.log('Running expense batch job ...');
   try {

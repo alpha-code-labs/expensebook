@@ -1,12 +1,12 @@
 import cron from 'node-cron';
-import { config } from 'dotenv';
+import dotenv from 'dotenv'
 import Trip  from '../models/tripSchema.js';
 
 // Load environment variables from .env file
-config();
+dotenv.config();
 
 // Get the schedule time from the environment variable
-const scheduleTime = process.env.SCHEDULE_TIME;
+const scheduleTime = process.env.SCHEDULE_TIME??'* * * * *';
 
 // Schedule the cash batch job to run daily at the specified time
 const cashBatchJob = cron.schedule(scheduleTime, async () => {
@@ -58,9 +58,6 @@ export async function runCashBatchJob() {
     console.error('Error in cash batch job:', error);
   }
 }
-
-// Start the cash batch job immediately (useful for testing)
-runCashBatchJob();
 
 export default cashBatchJob;
 
