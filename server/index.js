@@ -11,6 +11,7 @@ import { scheduleTripTransitBatchJob } from './scheduler/statusChangeBatchJob.js
 import Trip from './models/tripSchema.js';
 import { sendToOtherMicroservice } from './rabbitmq/publisher.js';
 import { scheduleToExpenseBatchJob } from './scheduler/sendToExpense.js';
+import {transitBatchJob} from './scheduler/transitToCompleteBatchJob.js';
 
 
 // Load environment variables using dotenv
@@ -36,8 +37,10 @@ app.get('/get', (req,res) => res.status(200).json("hi from trips"))
 
 // Start the batch job
 // startBatchJob();
-// scheduleToExpenseBatchJob()
-// scheduleTripTransitBatchJob()
+scheduleToExpenseBatchJob()
+scheduleTripTransitBatchJob()
+transitBatchJob()
+
 
 
 const mongodb = async () => {
