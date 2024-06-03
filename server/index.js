@@ -10,7 +10,7 @@ import cors from "cors"
 dotenv.config();
 const app = express();
 
-const MONGO_URI = process.env.MONGO_URI;
+const MONGO_URI = process.env.NODE_ENV == 'production' ? process.env.COSMOS_URI : process.env.MONGO_URI;
 const PORT = process.env.PORT;
 
 app.use(express.json())
