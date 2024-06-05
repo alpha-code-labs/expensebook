@@ -1,0 +1,26 @@
+location: centralindia
+name: travel-server
+properties:
+  configuration:
+    activeRevisionsMode: Single
+    ingress:
+      allowInsecure: true
+      external: true
+      targetPort: 15672
+      transport: http
+      additionalPortMappings:
+        - external: true
+          exposedPort: 5672
+          targetPort: 5672
+  managedEnvironmentId: /subscriptions/0d9f4960-b392-4b50-8be6-8f66ac609882/resourceGroups/expense-book-test/providers/Microsoft.App/managedEnvironments/expense-book-test-environment
+  template:
+    containers:
+    - image: docker.io/rabbitmq:3.12.14-management-alpine
+      name: rabbitmq
+      resources:
+        cpu: 1
+        memory: 2Gi
+    scale:
+      maxReplicas: 1
+      minReplicas: 1
+type: Microsoft.App/containerApps

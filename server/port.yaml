@@ -1,0 +1,9 @@
+ingress:
+      allowInsecure: true
+      external: true
+      targetPort: 15672
+      transport: http
+      additionalPortMappings:
+        - external: true
+          exposedPort: 5672
+          targetPort: 5672
