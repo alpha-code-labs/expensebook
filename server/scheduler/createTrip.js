@@ -1,7 +1,12 @@
 import TravelRequest from "../models/travelRequest.js";
 import cron from 'node-cron';
 import { sendToOtherMicroservice } from "../rabbitMQ/publisher.js";
+import dotenv from 'dotenv'
 
+dotenv.config();
+
+
+const scheduleTime = process.env.SCHEDULE_TIME??'* * * * *';
 
 //basic status UpdateBatchJob function...
 async function createTripBatchJob(){
@@ -33,7 +38,7 @@ async function createTripBatchJob(){
 }
 
  // Schedule the cron job to run every day at midnight
- cron.schedule('0 0 * * *', () => {
+ cron.schedule(scheduleTime, () => {
     console.log('Running batch job...');
     createTripBatchJob();
   });
