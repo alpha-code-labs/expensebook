@@ -3,12 +3,17 @@ import Error from "../components/common/Error"
 import {useNavigate } from "react-router-dom"
 import Icon from "../components/common/Icon"
 import Button from "../components/common/Button"
+import { left_arrow_icon } from "../assets/icon"
 
+const DASHBOARD_URL = import.meta.env.VITE_DASHBOARD_URL
 
-export default function({nextPage, formdData, setFormData}){
+export default function({nextPage, formData, setFormData}){
     const [travelType, setTravelType] = useState('international')
     const [isLoading, setIsLoading] = useState(true)
     const navigate = useNavigate()
+
+    const tenantId = formData.tenantId;
+    const employeeId = formData.createdBy.empId;
 
     useEffect(()=>{
         setIsLoading(false)
@@ -37,6 +42,12 @@ export default function({nextPage, formdData, setFormData}){
 
         {/* Rest of the section */}
         <div className="w-full h-full mt-10 p-10">
+
+            {/* back link */}
+            <div className='flex items-center gap-4 cursor-pointer'>
+                <img className='w-[24px] h-[24px]' src={left_arrow_icon} onClick={()=>window.location.href = `${DASHBOARD_URL}/${tenantId}/${employeeId}/overview`} />
+                <p className='text-neutral-700 text-md font-semibold font-cabin'>Travel Type</p>
+            </div>
 
             <fieldset className='mt-4'>
                     <legend className='font-cabin mt-4 text-neutral-700 text-lg'>Select type of travel?</legend>

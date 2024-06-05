@@ -23,7 +23,10 @@ export default function (props){
     const cashAdvanceAllowed = onBoardingData.cashAdvanceAllowed
 
     const formData = props.formData
-    const setFormData = props.setFormData  
+
+    const tenantId = props.formData.tenantId
+    const employeeId = props.formData.createdBy.empId
+
     const [showPopup, setShowPopup] = useState(false)
     const [loadingErrMsg, setLoadingErrMsg] = useState(false)
 
@@ -38,22 +41,6 @@ export default function (props){
         navigate(lastPage)
     }
 
-    const handleCashAdvance = async (needed)=>{
-        //send data to backend
-        if(needed){
-            //redirect to create cash advance page
-            //navigate(`${CASH_URL}/create/advance/${formData.travelRequestId}`)
-            window.location.href = `${CASH_URL}/create/advance/${formData.travelRequestId}`
-            setShowPopup(false)
-        }    
-        else{
-            //redirect to desktop
-            //navigate(DASHBOARD_URL)
-            setShowPopup(false)
-        }
-
-    }
-
     const [requestDrafted, setRequestDrafted] = useState(false)
     const [showSaveAsDraftPopup, setShowSaveAsDraftPopup] = useState(false)
 
@@ -62,7 +49,7 @@ export default function (props){
             console.log('sending call')
             setShowSaveAsDraftPopup(true)
             setRequestDrafted(false)
-            const res = await updateTravelRequest_API({travelRequest:{...formData,  isCashAdvanceTaken:false}, submitted:false})
+            const res = await updateTravelRequest_API({travelRequest:{...formData}, submitted:false})
             if(res.err){
                 setLoadingErrMsg(res.err)
                 return
@@ -70,8 +57,8 @@ export default function (props){
             else{
                 setRequestDrafted(true)
                 setTimeout(()=>{
-                    //navigate to dashboard
-                    //navigate(DASHBOARD_URL)
+                    //send message to close iframe
+                    window.parent.postMessage('closeIframe', DASHBOARD_URL);
                     setShowSaveAsDraftPopup(false)   
                    }, 5000)
             }
@@ -87,7 +74,7 @@ export default function (props){
             console.log('sending call')
             setShowPopup(true)
             setRequestSubmitted(false)
-            const res = await updateTravelRequest_API({travelRequest:{...formData,  isCashAdvanceTaken:false}, submitted:true})
+            const res = await updateTravelRequest_API({travelRequest:{...formData}, submitted:true})
             
             if(res.err){
                 setLoadingErrMsg(res.err)
@@ -95,6 +82,7 @@ export default function (props){
             }
             else{
                 setRequestSubmitted(true)
+                window.parent.postMessage('closeIframe', DASHBOARD_URL);
             }
 
             console.log(res)        
@@ -136,10 +124,10 @@ export default function (props){
                                 <p className="w-[100px] text-neutral-600">Approvers:</p>
                                 <p className="text-neutral-700">{formData.approvers.length>0 ? formData.approvers.map(approver=>`${approver.name}, `) : 'N/A'}</p>
                             </div>
-                            <div className="flex gap-2 font-cabin text-sm tracking-tight">
+                            {/* <div className="flex gap-2 font-cabin text-sm tracking-tight">
                                 <p className="w-[100px] text-neutral-600">Travel Allocations:</p>
                                 <p className="text-neutral-700">{formData.travelAllocationHeaders.length>0 ? formData.travelAllocationHeaders.map(allocation=>`${allocation.headerName}:${allocation.headerValue}(${allocation?.percentage??100}%), `) : 'N/A'}</p>
-                            </div>
+                            </div> */}
                         </div>
                     </div>
                 </div>
@@ -167,18 +155,10 @@ export default function (props){
                     {!requestSubmitted && <Error/>}
                     {requestSubmitted && <div className='p-10'>
                         <p className='text-2xl text-neutral-700 font-semibold font-cabin'>Travel Request Submitted !</p>
-                        { cashAdvanceAllowed && <> 
-                            <p className='text-zinc-800 text-base font-medium font-cabin mt-4'>Would you like to raise a cash advance request for this trip?</p>
-                            <div className='flex gap-10 justify-between mt-10'>
-                                <Button text='Yes' onClick={()=>handleCashAdvance(true)} />
-                                <Button text='No' onClick={()=>handleCashAdvance(false)} />
-                            </div>
-                         </>
-                        }
 
-                        {!cashAdvanceAllowed && <div className='flex gap-10 justify-between mt-10'>
-                                <Button text='Ok' onClick={()=>handleCashAdvance(false)} />
-                            </div>}
+                        <div className='flex gap-10 justify-between mt-10'>
+                                <Button text='Ok' onClick={()=> window.location.href = `${DASHBOARD_URL}/${tenantId}/${employeeId}/overview`} />
+                            </div>
 
                     </div>}
                 </Modal>
@@ -194,5 +174,3 @@ export default function (props){
         </div>
     )
 }
-
-

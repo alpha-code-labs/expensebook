@@ -12,120 +12,140 @@ import {
 
 import { material_flight_black_icon, material_train_black_icon, material_bus_black_icon, material_cab_black_icon, material_car_rental_black_icon, material_hotel_black_icon, material_personal_black_icon } from "../../assets/icon";
 import { titleCase } from "../../utils/handyFunctions";
+import { useEffect, useMemo, useState } from "react";
 
 export default function ({ itinerary }) {
     
-    console.log(itinerary)
+
+    const a = useMemo(()=>{
+        console.log('Rendering again in review')
+        
+        const combinedItinerary = [
+            ...itinerary.flights?.map((flight, index)=>{
+                return({
+                    sequence:flight.sequence,
+                    element: <div key={flight.sequence}>
+        
+                    <div className='flex flex-col gap-2 mt-2'>
+                    {<>
+                        <FlightCard
+                            id={index} 
+                            from={flight.from} 
+                            to={flight.to} 
+                            date={flight.date}
+                            returnDate={flight.returnDate}
+                            returnTime={flight.returnTime}
+                            travelClass={flight.travelClass} 
+                            mode={'Flight'}
+                            time={flight.time}/>
+                        {/* {(flight.return?.date??false) && 
+                            <FlightCard 
+                                id={index}
+                                from={flight.to} 
+                                to={flight.from} 
+                                date={flight.returnDate}
+                                travelClass={'N/A'} 
+                                mode={'flight'} 
+                                time={flight.returnTime }/>
+                        } */}
+                     </>}
+                    </div>
+                </div>
+                }) 
+             }),   
+        
+             ...itinerary.trains?.map((train, index)=>{
+                return({
+                    sequence: train.sequence,
+                    element: <div key={index}>
+        
+                    <div className='flex flex-col gap-2 mt-2'>
+                    {<>
+                        <FlightCard
+                            id={train.sequence} 
+                            from={train.from} 
+                            to={train.to} 
+                            date={train.date}
+                            travelClass={train.travelClass} 
+                            mode={'Train'}
+                            time={train.time}/>
+                     </>}
+                    </div>
+                </div>
+                }) 
+             }),
+        
+             ...itinerary.buses?.map((bus, index)=>{
+                return({
+                    sequence:bus.sequence,
+                    element: <div key={bus.sequence}>
+        
+                    <div className='flex flex-col gap-2 mt-2'>
+                    {<>
+                        <FlightCard
+                            id={index} 
+                            from={bus.from} 
+                            to={bus.to} 
+                            date={bus.date}
+                            travelClass={bus.travelClass} 
+                            mode={'Bus'}
+                            time={bus.time}/>
+                     </>}
+                    </div>
+                </div>
+                }) 
+             }),
+        
+             ...itinerary.cabs?.map((cab, index)=>{
+                return({
+                    sequence: cab.sequence,
+                    element: <div key={cab.sequence}>
+                 
+                    <div className='flex flex-col gap-2 mt-2'>
+                    {<>
+                        <CabCard
+                            id={index} 
+                            from={cab.pickupAddress} 
+                            to={cab.dropAddress} 
+                            date={cab.date}
+                            travelClass={cab.travelClass} 
+                            mode={'Cab'}
+                            time={cab.time}/>
+                     </>}
+                    </div>
+                </div>
+                }) 
+             }),
+        
+             ...itinerary.hotels?.map((hotel, index)=>{
+                return({
+                    sequence: hotel.sequence,
+                    element: <div key={hotel.sequence}>
+                 
+                    <div className='flex flex-col gap-2 mt-2'>
+                    {<>
+                        <HotelCard
+                            id={index} 
+                            checkIn={hotel.checkIn} 
+                            checkOut={hotel.checkOut} 
+                            location={hotel.location}
+                            time={hotel.preferredTime}/>
+                     </>}
+                    </div>
+                </div>
+                }) 
+             })
+        ]
+
+        return combinedItinerary.sort((a,b)=>a.sequence-b.sequence).map(itm=>itm.element);
+
+    }, [itinerary])
+
+    // const a  = combinedItinerary.sort((a,b)=>a.sequence-b.sequence).map(itm=>itm.element)
+
     return(<>
 
-        {itinerary.flights?.map((flight, index)=>{
-           return(<div key={index}>
-            <div className="flex items-center gap-2">
-                <p className="text-xl text-neutral-700">
-                    {`${titleCase(flight.from)}`}
-                </p>
-                <img src={double_arrow} className="w-6 h-6"/>
-                <p className="text-xl text-neutral-700">
-                    {`${titleCase(flight.to)} `}
-                </p>
-            </div>
-
-            <div className='flex flex-col gap-2 mt-2'>
-            {<>
-                <FlightCard
-                    id={index} 
-                    from={flight.from} 
-                    to={flight.to} 
-                    date={flight.date}
-                    returnDate={flight.returnDate}
-                    returnTime={flight.returnTime}
-                    travelClass={flight.travelClass} 
-                    mode={'Flight'}
-                    time={flight.time}/>
-                {/* {(flight.return?.date??false) && 
-                    <FlightCard 
-                        id={index}
-                        from={flight.to} 
-                        to={flight.from} 
-                        date={flight.returnDate}
-                        travelClass={'N/A'} 
-                        mode={'flight'} 
-                        time={flight.returnTime }/>
-                } */}
-             </>}
-            </div>
-        </div>) 
-        })}
-
-{itinerary.trains?.map((train, index)=>{
-           return(<div key={index}>
-
-            <div className='flex flex-col gap-2 mt-2'>
-            {<>
-                <FlightCard
-                    id={index} 
-                    from={train.from} 
-                    to={train.to} 
-                    date={train.date}
-                    travelClass={train.travelClass} 
-                    mode={'Train'}
-                    time={train.time}/>
-             </>}
-            </div>
-        </div>) 
-        })}
-
-        {itinerary.cabs?.map((cab, index)=>{
-           return(<div key={index}>
-            
-            <div className='flex flex-col gap-2 mt-2'>
-            {<>
-                <CabCard
-                    id={index} 
-                    from={cab.pickupAddress} 
-                    to={cab.dropAddress} 
-                    date={cab.date}
-                    travelClass={cab.travelClass} 
-                    mode={'Cab'}
-                    time={cab.time}/>
-             </>}
-            </div>
-        </div>) 
-        })}
-
-        {itinerary.carRentals?.map((cab, index)=>{
-           return(<div key={index}>
-            
-            <div className='flex flex-col gap-2 mt-2'>
-            {<>
-                <CabCard
-                    id={index} 
-                    from={cab.pickupAddress} 
-                    to={cab.dropAddress} 
-                    date={cab.date}
-                    travelClass={cab.travelClass} 
-                    mode={'Cab'}
-                    time={cab.time}/>
-             </>}
-            </div>
-        </div>) 
-        })}
-
-        {itinerary.hotels?.map((hotel, index)=>{
-           return(<div key={index}>
-            
-            <div className='flex flex-col gap-2 mt-2'>
-            {<>
-                <HotelCard
-                    id={index} 
-                    checkIn={hotel.checkIn} 
-                    checkOut={hotel.checkOut} 
-                    location={hotel.location}
-                    time={hotel.preferredTime}/>
-             </>}
-            </div>
-        </div>) 
-        })}
+        {a}
 
     </>)
 }
@@ -138,7 +158,7 @@ function FlightCard({from, to, date, returnDate, time, returnTime, travelClass, 
       </div>
       <div className="w-full flex sm:block">
             <div className="mx-2 text-sm w-full flex gap-1 flex-col lg:flex-row lg:justify-between lg:items-center">
-                <div className='flex items-center gap-1'>
+                <div className='flex items-center gap-1 flex-1'>
                     <div className="text-lg semibold">
                         {titleCase(from)}     
                     </div>
@@ -147,7 +167,7 @@ function FlightCard({from, to, date, returnDate, time, returnTime, travelClass, 
                         {titleCase(to)}     
                     </div>
                 </div>
-                <div className="">
+                <div className="flex-1" >
                     <p className="text-xs text-neutral-600 flex justify-between flex-col sm:flex-row">Departure Date</p>
                     <div className="flex items-center gap-1">
                         <img src={calender_icon} className='w-4'/>
@@ -155,7 +175,7 @@ function FlightCard({from, to, date, returnDate, time, returnTime, travelClass, 
                     </div>
                 </div>
                 {returnDate!=null && returnDate != undefined && 
-                <div className="">
+                <div className="flex-1">
                     <p className="text-xs text-neutral-600 flex justify-between flex-col sm:flex-row">Return Date</p>
                     <div className="flex items-center gap-1">
                         <img src={calender_icon} className='w-4'/>
@@ -165,7 +185,7 @@ function FlightCard({from, to, date, returnDate, time, returnTime, travelClass, 
                 }
 
                 {returnTime!=null && 
-                <div className="">
+                <div className="flex-1">
                     <p className="text-xs text-neutral-600 flex justify-between flex-col sm:flex-row">Retrun Time</p>
                     <div className='flex items-center gap-1'>
                         <img src={clock_icon} className='w-4'/>

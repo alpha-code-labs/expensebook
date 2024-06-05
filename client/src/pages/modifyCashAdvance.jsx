@@ -2,40 +2,27 @@ import Icon from '../components/common/Icon'
 import leftArrow_icon from '../assets/arrow-left.svg'
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { CircleFlag } from 'react-circle-flags'
+import CurrencyInput from "../components/CurrencyIntput";
 
 import axios from 'axios'
 import AddMore from '../components/common/AddMore';
 import Button from '../components/common/Button'
 import PopupMessage from '../components/common/PopupMessage';
-import CloseButton from '../components/common/closeButton'
-import { cashPolicyValidation_API } from '../utils/api';
+import { cashPolicyValidation_API, getOnboardingDataForCash_API } from '../utils/api';
 
 const CASH_API_URL = import.meta.env.VITE_TRAVEL_API_URL
-
-const currencyOptions = [
-  'USD $',
-  'EUR €',
-  'GBP £',
-  'JPY ¥',
-  'AUD $',
-  'CAD $',
-  'CHF Fr',
-  'CNY ¥',
-  'INR ₹',
-  'SGD $',
-];
+const DASHBOARD_URL = import.meta.env.VITE_DASHBOARD_URL
 
 export default function(){
 
   const navigate = useNavigate()
   const {travelRequestId, cashAdvanceId} = useParams()
 
-  const tenantId = 'tynod76eu'
-  const employeeId = '1001'
+  const [tenantId, setTenantId] = useState(null)
+  const [employeeId, setEmployeeId] = useState('')
 
   const handleBackButton = ()=>{
-
+    window.location.href = `${DASHBOARD_URL}/${tenantId}/${employeeId}/overview`
   }
 
   const [cashAdvance, setCashAdvance] = useState(null)
@@ -46,7 +33,8 @@ export default function(){
   const [paymentOptions, setPaymentOptions] = useState([])
   const [multiCurrencyTable, setMultiCurrencyTable] = useState([])
   const [defaultCurrency, setDefaultCurrency] = useState({fullName:'Indian Rupees', shortName:'INR', symbol:'₹', countryCode:'IN'})
-  const [violationMessage, setViolationMessage] = useState(null)
+  const [violationMessage, setViolationMessage] = useState(cashAdvance?.cashAdvanceViolations??undefined)
+
 
   useEffect(()=>{
     console.log(multiCurrencyTable)
@@ -58,30 +46,35 @@ export default function(){
     (async function(){
       try{
         const res = await axios.get(`${CASH_API_URL}/cash-advances/${travelRequestId}/${cashAdvanceId}`)
-        const onboardingData_res = await axios.get(`${CASH_API_URL}/initial-data-cash/${tenantId}/${employeeId}`)
-        
-
+        //const onboardingData_res = await axios.get(`${CASH_API_URL}/initial-data-cash/${tenantId}/${employeeId}`)
         if(res.status === 200){
           const cashAdvance = res.data.cashAdvance 
           console.log(cashAdvance)
           setCashAdvance(cashAdvance)
+          setViolationMessage(cashAdvance?.cashAdvanceViolations??undefined)
 
-          if(onboardingData_res.status == 200){
-            const onboardingData = onboardingData_res.data
+          const tenantId = cashAdvance.tenantId
+          setTenantId(tenantId)
+          const employeeId = cashAdvance.createdBy.empId
+          setEmployeeId(employeeId)
+          const travelType = cashAdvance?.travelType??'international'
+          const onboardingData_res = await getOnboardingDataForCash_API({tenantId, EMPLOYEE_ID:employeeId, travelType})        
+
+          if(!onboardingData_res.err){
+            const onboardingData = onboardingData_res.data.onboardingData
             console.log(onboardingData)
             setPaymentOptions(onboardingData.cashAdvanceOptions)
             setMultiCurrencyTable(onboardingData.multiCurrencyTable)
             setLoading(false)
           }
         }
+        
       }catch(e){
         console.log(e)
       }
     })()
     
   },[])
-
-
 
   const [filteredCurrencyOptions, setFilteredCurrencyOptions] = useState(multiCurrencyTable.exchangeValue)
   const [searchParam, setSearchParam] = useState('')
@@ -123,10 +116,11 @@ export default function(){
       console.log(totalAmountInDefaultCurrency)
     }
     
-    const res = await cashPolicyValidation_API({tenantId, groups:['group 1'], type:'international', amount:totalAmountInDefaultCurrency})
+    const res = await cashPolicyValidation_API({tenantId, employeeId:cashAdvance.createdBy.empId, type:'international', amount:totalAmountInDefaultCurrency})
     console.log(res.data)
     if(res.err) return
     setViolationMessage(res.data.response.violationMessage)
+    return res.data.response.violationMessage
   }
 
   const handleAmountChange = async (value, id) =>{
@@ -134,7 +128,6 @@ export default function(){
     cashAdvance_copy.amountDetails[id].amount = value
     cashAdvance_copy.cashAdvanceViolations = await amountValidator(cashAdvance_copy) 
     setCashAdvance(cashAdvance_copy)
-
   }
 
   const handleCurrencyChange = async (value, id)=>{
@@ -164,9 +157,38 @@ export default function(){
 
 
 
-  const handleSaveAsDraft = ()=>{
-    setPopupMessage("Your cash advance has been saved in draft")
-    setShowPopup(true)
+  const handleSaveAsDraft = async ()=>{
+    let allowSubmit = false
+    
+    async function validate(){
+      return(new Promise((resolve, reject)=>{
+
+        allowSubmit=true
+        resolve()
+      }))
+    }
+
+    await validate()
+
+    
+    //send data to backend 
+    try{
+      console.log('this ran')
+      const res = await axios.post(`${CASH_API_URL}/cash-advances/${travelRequestId}/${cashAdvance.cashAdvanceId}`, {cashAdvance, draft:true})
+      console.log(res.data)
+
+      if(res.status == 200){
+        setPopupMessage("Your cash advance has been saved in draft")
+        setShowPopup(true)
+
+        //redirect to desktop after 5 seconds
+        setTimeout(()=>{
+          setShowPopup(false)
+          window.location.href = `${DASHBOARD_URL}/${tenantId}/${employeeId}/overview`
+        }, 5000)
+      }
+
+    }catch(e){console.log(e)}
   }
 
   const handleSubmit = async ()=>{
@@ -197,7 +219,7 @@ export default function(){
         //redirect to desktop after 5 seconds
         setTimeout(()=>{
           setShowPopup(false)
-          //navigate(DESKTOP_URL)
+          window.location.href = `${DASHBOARD_URL}/${tenantId}/${employeeId}/overview`
         }, 5000)
       }
 
@@ -211,6 +233,7 @@ export default function(){
         case 'draft' : return 'Draft'
         case 'cancelled': return 'Cancelled'
         case 'rejected': return 'Rejected'
+        case 'pending approval': return 'Qued for Approval'
     }
   }
 
@@ -229,18 +252,25 @@ export default function(){
                 {/* back link */}
                 <div className='flex items-center gap-4 cursor-pointer' onClick={handleBackButton}>
                     <img className='w-[24px] h-[24px]' src={leftArrow_icon} />
-                    <p className='text-neutral-700 text-md font-semibold font-cabin'>Create Cash Advance</p>
+                    <p className='text-neutral-700 text-md font-semibold font-cabin'>Edit Cash Advance</p>
                 </div>
                 
                 <div className='mt-10 flex flex-col gap-4'>
                   <div className='flex items-center flex-wrap gap-6 mb-2'>
-                  <p className='font-cabin font-semibold tex-lg'>{cashAdvance?.travelRequestNumber}</p>
-                  <p className='font-cabin text-sm tracking-tight text-yellow-600'>{violationMessage}</p>
+                  <div>
+                    <p className='font-cabin text-xs text-neutral-600'>Travel Request Number</p>
+                    <p className='font-cabin font-semibold tex-lg'>{cashAdvance?.travelRequestNumber}</p>
                   </div>
+                  <p className='font-cabin text-sm tracking-tight text-yellow-600'>{violationMessage}</p>
+                </div>
                 </div>
 
+
                 <div className='mt-10 flex flex-col gap-4'>
-                <div className='flex'>{`status: ${spitUnderstandableStatus(cashAdvance.cashAdvanceStatus)}`}</div>
+                <div className='flex font-cabin gap-1'>
+                  <p className='text-sm text-neutral-700'>Status :</p>
+                  <p className='text-sm text-neutral-600'>{spitUnderstandableStatus(cashAdvance.cashAdvanceStatus)}</p>
+                </div>
                 {cashAdvance.amountDetails?.map((amountLine, index)=>
                   <CurrencyInput id={index} amount={amountLine.amount} currency={amountLine.currency} mode={amountLine.mode} onModeChange= {handleModeChange} currencyOptions={filteredCurrencyOptions} onAmountChange={handleAmountChange} onCurrencyChange={handleCurrencyChange} setSearchParam={setSearchParam} removeItem={removeItem} />)
                 }
@@ -262,73 +292,3 @@ export default function(){
       );
 };
 
-
-const CurrencyInput = ({id, amount, currency, mode, onModeChange, currencyOptions, onAmountChange, onCurrencyChange, setSearchParam, removeItem })=>{
-
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const dropdownRef = useRef(null)
-  const dropdownTriggerRef = useRef(null)
-
-  //close dropdown on outside click
-
-
-//for closing the dropdown on outside click
-useEffect(() => {
-  const handleClick = (event) => {
-    if (dropdownRef.current && dropdownTriggerRef && !dropdownTriggerRef.current.contains(event.target) && !dropdownRef.current.contains(event.target)) {
-        setIsDropdownOpen(false)
-        console.log('this ran')
-    }
-  };
-  document.addEventListener("click", handleClick)
-
-  return () => {
-    console.log('removing dropdown')
-    document.removeEventListener("click", handleClick)
-  }
-
-}, []);
-
-
-  return (<>
-      <div className="px-4 py-3 rounded-xl bg-gray-200 border border-gray-400 flex gap-8">
-        <div className='relative flex items-center gap-4'>
-            <div className='relative'>
-            <div 
-              ref={dropdownTriggerRef}
-              onClick={(e)=>{e.stopPropagation; console.log('state-', isDropdownOpen); setIsDropdownOpen(pre=>!pre)}}
-              className='flex items-center gap-6 cursor-pointer p-2 rounded-md hover:bg-gray-100'>
-              <div className='w-6 h-6'>
-                  <CircleFlag countryCode={currency?.countryCode.toLowerCase()??'in'} />
-              </div>
-              <p className="symbol">{currency?.shortName}</p>
-            </div>
-            {isDropdownOpen && 
-              <div ref={dropdownRef} className='z-[100] pt-4 flex flex-col items-center justify-center w-[150px] -left-[7%] top-[40px] absolute shadow-sm border-sm border-gray-400'>
-                    <div className='relative bg-white border border-gray-200'>
-                        <div className='absolute top-1 left-0 px-1'>
-                          <input type='text' className='px-2 py-1 rounded-md w-[140px] text-xs border border-gray-400 bg-gray-100 focus-visible:bg-white focus-visible:outline-0 focus-visible:border-indigo-600'  onChange={(e)=>setSearchParam(e.target.value)} />
-                        </div>
-                        
-                        <div className='mt-8 h-[200px] w-[150px] p-4 overflow-y-scroll scroll flex flex-col divide-y font-cabin text-sm gap-1 text-neutral-700'>
-                            {currencyOptions.length>0 && currencyOptions.map(option=><div className='hover:bg-indigo-600 hover:text-gray-100' onClick={(e)=>{onCurrencyChange(option.currency,id); setIsDropdownOpen(false)}}>{option.currency.fullName}-({option.currency.shortName})</div>)}
-                        </div>
-                    </div>
-                </div>}
-            </div>
-            <div className='flex items-center gap-2 text-neutral-700 font-cabin font-normal text-sm'>
-                
-                <input value={amount}  placeholder='amount' onChange={(e)=>onAmountChange(e.target.value, id)} className="border border-gray-200 w-[120px] h-10 rounded-md p-4 border-neutral-300 focus-visible:outline-0 focus-visible:border-indigo-600" />
-                <select placeholder='mode' value={mode} onChange={(e)=>onModeChange(e.target.value, id)} className="font-cabin border border-gray-200 w-[120px] h-10 rounded-md border-neutral-300 focus-visible:outline-0 focus-visible:border-indigo-600" >
-                  <option>Cheque</option>
-                  <option>Cash</option>
-                  <option>Bank Transfer</option>
-                </select>
-            </div>
-            <div className=''>
-              <CloseButton onClick={()=>removeItem(id)} />
-            </div>
-        </div>
-    </div>
-  </>)
-}

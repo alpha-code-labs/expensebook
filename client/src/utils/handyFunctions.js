@@ -83,8 +83,6 @@ function formatDate(date=Date.now()) {
 
     return dayWithSuffix + ' ' + month + ' ' + year;
   }
-  
-
  
   function formatDate3(inputDate) {
     
@@ -105,7 +103,53 @@ function formatDate(date=Date.now()) {
 
     return dayWithSuffix + ' ' + month;
   }
+
+  function camelCaseToTitleCase(inputString) {
+    // Use a regular expression to split words at capital letters
+    const words = inputString.split(/(?=[A-Z])/);
+  
+    // Capitalize the first letter of each word and join them with spaces
+    const titleCaseString = words.map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+  
+    return titleCaseString;
+  }
+
+  function titleCaseToCamelCase(inputString) {
+    // Split the title case string into words using spaces
+    const words = inputString.split(' ');
+  
+    // Capitalize the first letter of the first word and convert the rest to lowercase
+    const camelCaseString = words[0].toLowerCase() + words.slice(1).map(word => word.charAt(0).toUpperCase() + word.slice(1)).join('');
+  
+    return camelCaseString;
+  }
+
+  function formatDateMonth(date=Date.now()) {
+    // Get the current timestamp
+    const currentTimestamp = date
     
+    // Create a Date object from the timestamp
+    const currentDate = new Date(currentTimestamp);
+    
+    // Define an array of month names for conversion
+    const monthNames = [
+      "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+    ];
+  
+    // Get the day, month, and year
+    const day = currentDate.getDate();
+    const month = monthNames[currentDate.getMonth()];
+    const year = currentDate.getFullYear();
+  
+    // Add the appropriate ordinal indicator to the day
+    const dayWithOrdinal = addOrdinalIndicator(day);
+  
+    // Format the date as "24 Aug"
+    const formattedDate = `${day} ${month}`;
+  
+    return formattedDate;
+  }
   
 
-export {titleCase, formatDate, formatDate2, formatDate3}
+export {titleCase, formatDate, formatDate2, formatDate3, camelCaseToTitleCase, titleCaseToCamelCase, formatDateMonth}

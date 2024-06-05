@@ -2,15 +2,21 @@ import Icon from '../components/common/Icon'
 import leftArrow_icon from '../assets/arrow-left.svg'
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { CircleFlag } from 'react-circle-flags'
 import axios from 'axios'
 import AddMore from '../components/common/AddMore';
 import Button from '../components/common/Button'
 import PopupMessage from '../components/common/PopupMessage';
 import CloseButton from '../components/common/closeButton'
-import { cashPolicyValidation_API } from '../utils/api';
+import { cashPolicyValidation_API, getCashAdvance_API, getOnboardingDataForCash_API } from '../utils/api';
+import CurrencyInput from "../components/CurrencyIntput"
+
+import Error from '../components/common/Error';
 
 const CASH_API_URL = import.meta.env.VITE_TRAVEL_API_URL
+const DASHBOARD_URL = import.meta.env.VITE_DASHBOARD_URL
+
+
+console.log('from cash advance...')
 
 const currencyOptions = [
   'USD $',
@@ -31,11 +37,12 @@ export default function(){
   const {travelRequestId} = useParams()
 
   const handleBackButton = ()=>{
-    //navigate(TRAVEL_URL)
+    window.location.href = `${DASHBOARD_URL}/${tenantId}/${employeeId}/overview`
   }
 
   const [cashAdvance, setCashAdvance] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [loadingErrMsg, setLoadingErrMsg] = useState(null)
   const [currencyDropdown, setCurrencyDropdown] = useState(false)
   const [showPopup, setShowPopup] = useState(false)
   const [popupMessage, setPopupMessage] = useState('')
@@ -43,17 +50,8 @@ export default function(){
   const [multiCurrencyTable, setMultiCurrencyTable] = useState([])
   const [defaultCurrency, setDefaultCurrency] = useState({fullName:'Indian Rupees', shortName:'INR', symbol:'₹', countryCode:'IN'})
   const [violationMessage, setViolationMessage] = useState(null)
-
-  const tenantId = 'tynod76eu'
-  const employeeId = 1001
-
-//   const debounce = (func, delay) => { 
-//     let timer 
-//     return function(...args) { 
-//             clearTimeout(timer) 
-//                 timer = setTimeout(() => func.apply(this, args), delay) 
-//     } 
-// } 
+  const [tenantId, setTenantId] = useState('');
+  const [employeeId, setEmployeeId] = useState('');
 
   useEffect(()=>{
     console.log(multiCurrencyTable)
@@ -65,35 +63,61 @@ export default function(){
     (async function(){
       try{
         const res = await axios.post(`${CASH_API_URL}/cash-advances/${travelRequestId}`)
-        const onboardingData_res = await axios.get(`${CASH_API_URL}/initial-data-cash/${tenantId}/${employeeId}`)
-          
-        if(onboardingData_res.status == 200){
-          const onboardingData = onboardingData_res.data
-          setPaymentOptions(onboardingData.cashAdvanceOptions)
-          console.log(onboardingData.cashAdvanceOptions)
-          setMultiCurrencyTable(onboardingData.multiCurrencyTable)
-        }
-
+        
         console.log(res)
         if(res.status > 199 && res.status < 300){
           console.log(res.data, '...res.data')
           const cashAdvanceId = res.data.cashAdvanceId
 
-          const ca_res = await axios.get(`${CASH_API_URL}/cash-advances/${travelRequestId}/${cashAdvanceId}`)
+          //const ca_res = await axios.get(`${CASH_API_URL}/cash-advances/${travelRequestId}/${cashAdvanceId}`)
+          const ca_res = await getCashAdvance_API({travelRequestId, cashAdvanceId})
+          if(ca_res.err){
+            setLoadingErrMsg(ca_res.err)
+            return;
+          }
+
           const cashAdvance = ca_res.data.cashAdvance 
 
           console.log(cashAdvance)
 
           setCashAdvance(cashAdvance)
           setLoading(false)
+
+          const tenantId = cashAdvance.tenantId
+          const employeeId = cashAdvance.createdBy.empId
+          setTenantId(tenantId);
+          setEmployeeId(employeeId);
+          const travelType = cashAdvance?.travelType??'international'
+          //const onboardingData_res = await axios.get(`${CASH_API_URL}/initial-data-cash/${tenantId}/${employeeId}`)
+
+          const onboardingData_res = await getOnboardingDataForCash_API({tenantId, EMPLOYEE_ID:employeeId, travelType})
+          if(onboardingData_res.err){
+            setLoadingErrMsg(onboardingData_res.err)
+            return;
+          }
+          if(!onboardingData_res.err){
+            const onboardingData = onboardingData_res.data.onboardingData
+            console.log(onboardingData)
+            setPaymentOptions(onboardingData.cashAdvanceOptions)
+            console.log(onboardingData.cashAdvanceOptions)
+            setMultiCurrencyTable(onboardingData.multiCurrencyTable)
+          }
+
         }
+
+        else{
+          setLoadingErrMsg(res.message)
+        }
+
+
       }catch(e){
-        console.log(e)
+        setLoadingErrMsg(e.response.data.error??'Some error occured. Please try again later.')
+        console.log(e.response.data.error)
       }
     })()
   },[])
 
-  const [filteredCurrencyOptions, setFilteredCurrencyOptions] = useState(multiCurrencyTable.exchangeValue)
+  const [filteredCurrencyOptions, setFilteredCurrencyOptions] = useState([])
   const [searchParam, setSearchParam] = useState('')
   
   useEffect(()=>{
@@ -133,7 +157,7 @@ export default function(){
       console.log(totalAmountInDefaultCurrency)
     }
     
-    const res = await cashPolicyValidation_API({tenantId, groups:['group 1'], type:'international', amount:totalAmountInDefaultCurrency})
+    const res = await cashPolicyValidation_API({tenantId:cashAdvance.tenantId, employeeId:cashAdvance.createdBy.empId, type:'international', amount:totalAmountInDefaultCurrency})
     console.log(res.data)
     if(res.err) return
     setViolationMessage(res.data.response.violationMessage)
@@ -144,7 +168,8 @@ export default function(){
 
   const handleAmountChange = async (value, id) =>{
     const cashAdvance_copy = JSON.parse(JSON.stringify(cashAdvance))
-    cashAdvance_copy.amountDetails[id].amount = value
+    console.log(id)
+    cashAdvance_copy.amountDetails[id] = {...cashAdvance.amountDetails[id], amount:value}
     cashAdvance_copy.cashAdvanceViolations = await amountValidator(cashAdvance_copy) 
     setCashAdvance(cashAdvance_copy)
 
@@ -152,14 +177,15 @@ export default function(){
 
   const handleCurrencyChange = async (value, id)=>{
     const cashAdvance_copy = JSON.parse(JSON.stringify(cashAdvance))
-    cashAdvance_copy.amountDetails[id].currency = value
+    cashAdvance_copy.amountDetails[id] = {...cashAdvance.amountDetails[id], currency:value}
+    console.log(cashAdvance_copy)
     cashAdvance_copy.cashAdvanceViolations = await amountValidator(cashAdvance_copy) 
     setCashAdvance(cashAdvance_copy) 
   }
 
   const handleModeChange = (value, id)=>{
     const cashAdvance_copy = JSON.parse(JSON.stringify(cashAdvance))
-    cashAdvance_copy.amountDetails[id].mode = value
+    cashAdvance_copy.amountDetails[id] = {...cashAdvance.amountDetails[id], mode:value}
     setCashAdvance(cashAdvance_copy) 
   }
 
@@ -175,9 +201,28 @@ export default function(){
     setCashAdvance(cashAdvance_copy)
   }
 
-  const handleSaveAsDraft = ()=>{
-    setPopupMessage("Your cash advance has been saved in draft")
-    setShowPopup(true)
+  const handleSaveAsDraft = async ()=>{
+       //send data to backend 
+       try{
+        console.log('this ran')
+        console.log(cashAdvance)
+        const res = await axios.post(`${CASH_API_URL}/cash-advances/${travelRequestId}/${cashAdvance.cashAdvanceId}`, {cashAdvance, draft:true})
+        console.log(res.data)
+  
+        if(res.status == 200){
+          setPopupMessage("Your cash advance has been saved in draft")
+          setShowPopup(true)
+  
+          //redirect to desktop after 5 seconds
+          setTimeout(()=>{
+            setShowPopup(false)
+            window.location.href = `${DASHBOARD_URL}/${tenantId}/${employeeId}/overview`
+          }, 5000)
+        }
+  
+      }catch(e){
+        console.log(e)
+      }
   }
 
   const handleSubmit = async ()=>{
@@ -198,6 +243,7 @@ export default function(){
     //send data to backend 
     try{
       console.log('this ran')
+      console.log(cashAdvance)
       const res = await axios.post(`${CASH_API_URL}/cash-advances/${travelRequestId}/${cashAdvance.cashAdvanceId}`, {cashAdvance})
       console.log(res.data)
 
@@ -208,24 +254,25 @@ export default function(){
         //redirect to desktop after 5 seconds
         setTimeout(()=>{
           setShowPopup(false)
-          //navigate(DESKTOP_URL)
+          //window.location.href = `${DASHBOARD_URL}/${tenantId}/${employeeId}/overview`
+          
+          window.parent.postMessage('closeIframe', DASHBOARD_URL);
         }, 5000)
       }
 
     }catch(e){console.log(e)}
   }
 
-
-  return (
-    <div className="w-full h-full relative bg-white md:px-24 md:mx-0 sm:px-0 sm:mx-auto py-12 select-none">
+  return (<>
+    {loading && <Error message={loadingErrMsg}/>}
+    {!loading && <div className="w-full h-full relative bg-white md:px-24 md:mx-0 sm:px-0 sm:mx-auto py-12 select-none">
             {/* app icon */}
             <div className='w-full flex justify-center  md:justify-start lg:justify-start'>
                 <Icon/>
             </div>
 
             {/* Rest of the section */}
-              {loading && <div className='w-full h-full mt-10 p-10'>Loading...</div>}
-              {!loading && <div className='w-full h-full mt-10 p-10'>   
+              {<div className='w-full h-full mt-10 p-10'>   
                 {/* back link */}
                 <div className='flex items-center gap-4 cursor-pointer' onClick={handleBackButton}>
                     <img className='w-[24px] h-[24px]' src={leftArrow_icon} />
@@ -234,13 +281,16 @@ export default function(){
 
                 <div className='mt-10 flex flex-col gap-4'>
                   <div className='flex items-center flex-wrap gap-6 mb-2'>
-                  <p className='font-cabin font-semibold tex-lg'>{cashAdvance?.travelRequestNumber}</p>
+                  <div>
+                    <p className='font-cabin text-xs text-neutral-600'>Travel Request Number</p>
+                    <p className='font-cabin font-semibold tex-lg'>{cashAdvance?.travelRequestNumber}</p>
+                  </div>
                   <p className='font-cabin text-sm tracking-tight text-yellow-600'>{violationMessage}</p>
                 </div>
 
                 {cashAdvance.amountDetails?.map((amountLine, index)=>
                   <div key={index}>
-                    <CurrencyInput id={index} amount={amountLine.amount} currency={amountLine.currency} mode={amountLine.mode} onModeChange= {handleModeChange} currencyOptions={filteredCurrencyOptions} cashAdvanceOptions={paymentOptions} onAmountChange={handleAmountChange} onCurrencyChange={handleCurrencyChange} setSearchParam={setSearchParam} removeItem={removeItem} />
+                    <CurrencyInput id={index} amount={amountLine.amount} currency={amountLine.currency} mode={amountLine.mode} onModeChange= {handleModeChange} currencyOptions={filteredCurrencyOptions} cashAdvanceOptions={paymentOptions??[]} onAmountChange={handleAmountChange} onCurrencyChange={handleCurrencyChange} setSearchParam={setSearchParam} removeItem={removeItem} />
                   </div>)
                 }
                 </div>
@@ -256,75 +306,8 @@ export default function(){
               </div>}
               
               <PopupMessage showPopup={showPopup} setshowPopup={setShowPopup} message={popupMessage} />
-      </div>
-      );
+      </div>}
+  </>);
 };
 
 
-const CurrencyInput = ({id, amount, currency, mode, onModeChange, currencyOptions, cashAdvanceOptions, onAmountChange, onCurrencyChange, setSearchParam, removeItem })=>{
-
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const dropdownRef = useRef(null)
-  const dropdownTriggerRef = useRef(null)
-
-  //close dropdown on outside click
-
-
-//for closing the dropdown on outside click
-useEffect(() => {
-  const handleClick = (event) => {
-    if (dropdownRef.current && dropdownTriggerRef && !dropdownTriggerRef.current.contains(event.target) && !dropdownRef.current.contains(event.target)) {
-        setIsDropdownOpen(false)
-        console.log('this ran')
-    }
-  };
-  document.addEventListener("click", handleClick)
-
-  return () => {
-    console.log('removing dropdown')
-    document.removeEventListener("click", handleClick)
-  }
-
-}, []);
-
-
-  return (<>
-      <div className="px-4 py-3 rounded-xl bg-gray-200 border border-gray-400 flex gap-8">
-        <div className='relative flex items-center gap-4'>
-            <div className='relative'>
-            <div 
-              ref={dropdownTriggerRef}
-              onClick={(e)=>{e.stopPropagation; console.log('state-', isDropdownOpen); setIsDropdownOpen(pre=>!pre)}}
-              className='flex items-center gap-6 cursor-pointer p-2 rounded-md hover:bg-gray-100'>
-              <div className='w-6 h-6'>
-                  <CircleFlag countryCode={currency?.countryCode.toLowerCase()??'in'} />
-              </div>
-              <p className="symbol">{currency?.shortName}</p>
-            </div>
-            {isDropdownOpen && 
-              <div ref={dropdownRef} className='z-[100] pt-4 flex flex-col items-center justify-center w-[150px] -left-[7%] top-[40px] absolute shadow-sm border-sm border-gray-400'>
-                    <div className='relative bg-white border border-gray-200'>
-                        <div className='absolute top-1 left-0 px-1'>
-                          <input type='text' className='px-2 py-1 rounded-md w-[140px] text-xs border border-gray-400 bg-gray-100 focus-visible:bg-white focus-visible:outline-0 focus-visible:border-indigo-600'  onChange={(e)=>setSearchParam(e.target.value)} />
-                        </div>
-                        
-                        <div className='mt-8 h-[200px] w-[150px] p-4 overflow-y-scroll scroll flex flex-col divide-y font-cabin text-sm gap-1 text-neutral-700'>
-                            {currencyOptions.length>0 && currencyOptions.map(option=><div className='hover:bg-indigo-600 hover:text-gray-100' onClick={(e)=>{onCurrencyChange(option.currency,id); setIsDropdownOpen(false)}}>{option.currency.fullName}-({option.currency.shortName})</div>)}
-                        </div>
-                    </div>
-                </div>}
-            </div>
-            <div className='flex items-center gap-2 text-neutral-700 font-cabin font-normal text-sm'>
-                
-                <input value={amount}  placeholder='amount' onChange={(e)=>onAmountChange(e.target.value, id)} className="border border-gray-200 w-[120px] h-10 rounded-md p-4 border-neutral-300 focus-visible:outline-0 focus-visible:border-indigo-600" />
-                <select placeholder='mode' value={mode} onChange={(e)=>onModeChange(e.target.value, id)} className="font-cabin border border-gray-200 w-[120px] h-10 rounded-md border-neutral-300 focus-visible:outline-0 focus-visible:border-indigo-600" >
-                  {cashAdvanceOptions.length>0 ? cashAdvanceOptions.map(caoption=><option>{caoption}</option>) : <option>Default</option>}
-                </select>
-            </div>
-            <div className=''>
-              <CloseButton onClick={()=>removeItem(id)} />
-            </div>
-        </div>
-    </div>
-  </>)
-}

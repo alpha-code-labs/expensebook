@@ -14,6 +14,7 @@ import CloseButton from '../../components/common/closeButton'
 import PopupMessage from '../../components/common/PopupMessage'
 import Error from '../../components/common/Error'
 import { useQuery } from '../../utils/hooks'
+import { camelCaseToTitleCase } from '../../utils/handyFunctions'
 
 export default function BasicDetails(props){
 
@@ -229,11 +230,15 @@ export default function BasicDetails(props){
                 }
                 else{
                     setIsLoading(true)
-                    const res = await updateTravelRequest_API({...formData, travelRequestState:'section 0', travelRequestStatus:'draft', tenantId:formData.tenantId})
+                    //const res = await updateTravelRequest_API({...formData, travelRequestState:'section 0', travelRequestStatus:'draft', tenantId:formData.tenantId})
+                    
+                    const res = await updateTravelRequest_API({travelRequest:{...formData}, submitted:false})
                     if(res.err){
                         setLoadingErrMsg(res.err)
                         return
                     }
+                    
+                    setIsLoading(false)
                     
                     setPopupMessage(`Your travel request with ID ${formData.travelRequestId} has been saved as draft successfull`)
                     setshowPopup(true)
@@ -256,7 +261,7 @@ export default function BasicDetails(props){
     const updateTripPurpose = async (option)=>{
 
         let tripPurposeViolationMessage_ = null
-        const res = await policyValidation_API({tenantId:formData.tenantId, type:'international', policy:'trip purpose', value:option, groups:groups})
+        const res = await policyValidation_API({tenantId:formData.tenantId, type:formdata.travelType, policy:'Allowed Trip Purpose', value: option, groups: onBoardingData.employeeGroups})
         if(!res.err){
             tripPurposeViolationMessage_ = res.data.response.violationMessage
             setTripPurposeViiolationMessage(tripPurposeViolationMessage_)
@@ -533,7 +538,7 @@ export default function BasicDetails(props){
                                     options={travelAllocations[index].headerValues}
                                     onSelect = {(option)=>{handleAllocationHeaderSelect(travelAllocations[index].headerName, option)}}
                                     placeholder={`Select ${travelAllocations[index].headerName}`} 
-                                    title={travelAllocations[index].headerName} />
+                                    title={camelCaseToTitleCase(travelAllocations[index].headerName)} />
                                 </>
                             )
                         })}

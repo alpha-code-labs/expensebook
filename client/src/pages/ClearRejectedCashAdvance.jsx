@@ -1,9 +1,5 @@
 import { useState, useEffect, createContext } from "react";
 import {BrowserRouter as Router, Routes, Route, useParams, useNavigate} from 'react-router-dom'
-import axios from 'axios'
-import BasicDetails from "./basicDetails/basicDetails";
-import Itinerary from "./itinerary/Itinerary"
-import Review from "./review/Review"
 import Error from "../components/common/Error";
 import { getTravelRequest_API } from "../utils/api";
 import Icon from "../components/common/Icon";

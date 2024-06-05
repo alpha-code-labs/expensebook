@@ -8,11 +8,14 @@ export {default as location_icon} from './location.svg';
 export {default as biderectional_arrows_icon} from './double-arrow.svg';
 export {default as spinner_gif_icon} from './spinning-loading.gif'
 export {default as close_icon} from './x.svg'
+export {default as close_gray_icon} from './close.svg'
 export {default as upload_icon} from './upload.svg'
 export {default as seat_icon} from './seat.svg'
 export {default as scanner_icon} from './scanner.svg'
 export {default as left_arrow_icon} from './arrow-left.svg'
 export {default as clock_icon} from './clock.svg'
+export {default as add_icon} from './add.svg'
+export {default as minus_icon} from './minus.svg'
 
 
 export {default as material_flight_black_icon} from './material-icons/outline_flight_takeoff_black_48dp.png'

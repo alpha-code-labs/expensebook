@@ -1,246 +1,277 @@
 import { useState, useEffect, createContext } from "react";
 import {BrowserRouter as Router, Routes, Route, useParams} from 'react-router-dom'
 import axios from 'axios'
-import BasicDetails from "./basicDetails/basicDetails";
-import Itinerary from "./itinerary/Itinerary"
+import BasicDetails from "./basicDetails/BasicDetails";
 import Review from "./review/Review"
 import Error from "../components/common/Error";
 import { TR_frontendTransformer } from "../utils/transformers";
+import { getTravelRequest_API, getOnboardingData_API } from "../utils/api";
+import AllocateTravelObjects from "./allocations/AllocateTravelObjects";
+import SelectTravelType from "./SelectTravelType";
+import ModifiedItinerary from "./ModifiedItinerary";
+import { generateUniqueIdentifier } from "../utils/uuid";
 
-const dummyItinerary = [{
-  from:null,
-  to:null,
-  departure: {
-    from: null,
-    to: null,
-    date: null,
-    time: null,
-    bkd_from: null,
-    bkd_to: null,
-    bkd_date: null,
-    bkd_time: null,
-    modified: false,
-    isCancelled: false,
-    cancellationDate: null,
-    cancellationReason: null,
-    status:'draft',
-    bookingDetails:{
-      docURL: null,
-      docType: null,
-      billDetails: {}, 
-    }
-  }, 
-  return:{
-    from: null,
-    to: null,
-    date: null,
-    time: null,
-    bkd_from: null,
-    bkd_to: null,
-    bkd_date: null,
-    bkd_time: null,
-    modified: false,
-    isCancelled: false,
-    cancellationDate: null,
-    cancellationReason: null,
-    status:'draft',
-    bookingDetails:{
-      docURL: null,
-      docType: null,
-      billDetails: {}, 
-    }
-    },
-  hotels:[
-    {
-      location:null,
-      class:null, 
-      checkIn:null, 
-      checkOut:null,
-      violations:{
-        class: null,
-        amount: null,
-      }, 
-      bkd_location:null,
-      bkd_class:null,
-      bkd_checkIn:null,
-      bkd_checkOut:null,
-      bkd_violations:{
-        class: null,
-        amount: null,
-      },
-      modified:false, 
-      isCancelled:false, 
-      cancellationDate:null,
-      cancellationReason:null, 
-      status:'draft',
-      bookingDetails:{
-        docURL: null,
-        docType: null,
-        billDetails: {}, 
-      }
-    }
-  ],
-  cabs:[
-    {
-      date:null, 
-      class:null, 
-      preferredTime:null, 
-      pickupAddress:null, 
-      dropAddress:null, 
-      violations:{
-        class: null,
-        amount: null,
-      }, 
-      bkd_date:null,
-      bkd_class:null,
-      bkd_preferredTime:null,
-      bkd_pickupAddress:null,
-      bkd_dropAddress:null,
-  
-      modified:false, 
-      isCancelled:false, 
-      cancellationDate:null, 
-      cancellationReason:null, 
-      status:'draft',
-      bookingDetails:{
-        docURL: null,
-        docType: null,
-        billDetails: {}, 
-      },
-      type:null
-    }
-  ],
-  modeOfTransit:null,
-  travelClass:null,
-  needsVisa:false,
-  transfers:{
-    needsDeparturePickup:false,
-    needsDepartureDrop:false,
-    needsReturnPickup:false,
-    needsReturnDrop:false,
-  },
-  needsHotel:false,
-  needsCab:false,
-  modified:false, 
-  isCancelled:false, 
-  cancellationDate:null, 
-  cancellationReason:null,
-  status:'draft',
-}]
 
 export default function () {
   //get travel request Id from params
     const {travelRequestId} = useParams()
-    console.log(travelRequestId, 'travelRequestId')
     const [isLoading, setIsLoading] = useState(true)
     const [loadingErrMsg, setLoadingErrMsg] = useState(null)
+    const [formData, setFormData] = useState()
+    const [onBoardingData, setOnBoardingData] = useState()
+
+    const [currentFormState, setCurrentFormState] = useState({
+      isReturnTravel: false,
+      itinerary: [
+      {
+          formId: generateUniqueIdentifier(),
+          mode : 'flight',
+          from : '',
+          to : '',
+          date: new Date().toISOString,
+          returnDate: undefined,
+          hotelNights: '',
+          pickUpNeeded: false,
+          dropNeeded: false,
+          fullDayCabs: 0,
+          fullDayCabDates: [],
+          dateError:{set:false, message:null},
+          returnDateError:{set:false, message:null},
+          fromError: {set:false, message:null},
+          toError: {set:false, message:null},
+      }
+  ]});
 
     //fetch travel request data from backend
-    useEffect(()=>{
-        axios
-        .get(`${TRAVEL_API}/travel-requests/${travelRequestId}`)
-        .then((response) => {
-            console.log(response.data)
-            const travelRequestDetails = TR_frontendTransformer(response.data.travelRequest)
-            console.log(travelRequestDetails)
-           //set form data...
-
-           const currentFomData = {
-              travelRequestId: travelRequestDetails.travelRequestId,
-              travelRequestNumber: travelRequestDetails.travelRequestNumber,
-              approvers: travelRequestDetails.approvers,
-              tenantId: travelRequestDetails.tenantId,
-              tenantName:travelRequestDetails.tenantName,
-              companyName:travelRequestDetails.companyName,
-              status: travelRequestDetails.status,
-              state: travelRequestDetails.state,
-              createdBy: travelRequestDetails.createdBy,
-              createdFor: travelRequestDetails.createdFor,
-              travelAllocationHeaders:travelRequestDetails.travelAllocationHeaders,
-              tripPurpose:travelRequestDetails.tripPurpose,
-
-              raisingForDelegator: travelRequestDetails.createdFor === null ? false : true,
-              nameOfDelegator: travelRequestDetails?.createdFor?.name || null,
-              isDelegatorManager: false,
-              selectDelegatorTeamMembers:false,
-              delegatorsTeamMembers:[],
-
-              bookingForSelf:true,
-              bookiingForTeam:false,
-              teamMembers : travelRequestDetails.teamMembers,
-              travelDocuments: travelRequestDetails.travelDocuments,
-              itinerary: travelRequestDetails.itinerary,
-              tripType: travelRequestDetails.tripType,
-              preferences:travelRequestDetails.preferences,
-              travelViolations:travelRequestDetails.travelViolations,
-              cancellationDate:travelRequestDetails.cancellationDate,
-              cancellationReason:travelRequestDetails.cancellationReason,
-              isCancelled:travelRequestDetails.isCancelled,
-              travelRequestStatus:travelRequestDetails.travelRequestStatus,
-           }
+    useEffect(() => {
+      (async function(){
+         
+        const travel_res = await getTravelRequest_API({travelRequestId})
+        if(travel_res.err){
+          setLoadingErrMsg(travel_res.err)
+          return
+        }
+        const travelRequestDetails = travel_res.data.travelRequest
+        const travelType = travelRequestDetails.travelType
 
 
-                  axios
-            .get(`${TRAVEL_API}/initial-data/${tenantId}/${EMPLOYEE_ID}`)
-            .then((response) => {
-              console.log(response.data)
-              setOnBoardingData(response.data)
-              setIsLoading(false)
-            })
-            .catch(err=>{ 
-              console.error(err)
-              setLoadingErrMsg(err.response.message)
-              //handle possible scenarios
-            })
+        const currentFormData = {
+          travelRequestId: travelRequestDetails.travelRequestId,
+          approvers: travelRequestDetails.approvers,
+          tenantId: travelRequestDetails.tenantId,
+          travelType: travelRequestDetails?.travelType,
+          tenantName:travelRequestDetails.tenantName,
+          companyName:travelRequestDetails.companyName,
+          status: travelRequestDetails.status,
+          state: travelRequestDetails.state,
+          createdBy: travelRequestDetails.createdBy,
+          createdFor: travelRequestDetails.createdFor,
+          travelAllocationHeaders:travelRequestDetails.travelAllocationHeaders,
+          tripPurpose:travelRequestDetails.tripPurpose,
 
-           setFormData(currentFomData)
-           
+          raisingForDelegator: travelRequestDetails.createdFor === null ? false : true,
+          nameOfDelegator: travelRequestDetails?.createdFor?.name || null,
+          isDelegatorManager: false,
+          selectDelegatorTeamMembers:false,
+          delegatorsTeamMembers:[],
 
-        })
-        .catch(err=>{ 
-            console.error(err)
-            setLoadingErrMsg(err.response.message)
-            //handle possible scenarios
-        })
+          bookingForSelf:true,
+          bookiingForTeam:false,
+          teamMembers : travelRequestDetails.teamMembers,
+          travelDocuments: travelRequestDetails.travelDocuments,
+          itinerary: travelRequestDetails.itinerary,
+          tripType: travelRequestDetails.tripType,
+          preferences:travelRequestDetails.preferences,
+          travelViolations:travelRequestDetails.travelViolations,
+          cancellationDate:travelRequestDetails.cancellationDate,
+          cancellationReason:travelRequestDetails.cancellationReason,
+          isCancelled:travelRequestDetails.isCancelled,
+          travelRequestStatus:travelRequestDetails.travelRequestStatus,
+          ...travelRequestDetails /* other travel request details */
+       }
+       
+       if(travelRequestDetails.formData != null && travelRequestDetails.formData.itinerary!=undefined){
+        setCurrentFormState(travelRequestDetails.formData);
+       }
+
+        const response = await getOnboardingData_API({tenantId:travelRequestDetails.tenantId, employeeId:travelRequestDetails.createdBy.empId, travelType:travelRequestDetails.travelType})
+        
+        if(response.err){
+          setLoadingErrMsg(response.err)
+          return
+        }
+
+        setFormData(currentFormData)
+        setOnBoardingData(response.data.onboardingData)
+        setIsLoading(false)
+      })()
     },[])
 
-  const TRAVEL_API = import.meta.env.VITE_TRAVEL_API_URL 
-  //hardcoded for now we will get it from dashboard/token
-  const tenantId = 'tynod76eu' 
-  const EMPLOYEE_ID  = '1001' 
-  const EMPLOYEE_NAME = 'Abhishek Kumar'
-
-
-  const [formData, setFormData] = useState()
-  const [onBoardingData, setOnBoardingData] = useState()
-
-  //flags
-
+    useEffect(()=>{
+      console.log('formData got updated')
+    }, [formData])
+    
   return <>
         {isLoading && <Error message={loadingErrMsg} />}
       {!isLoading && <Routes>
-        <Route path='/' element={<BasicDetails 
+        <Route path='/' element={<SelectTravelType 
                                     formData={formData} 
-                                    setFormData={setFormData} 
-                                    onBoardingData={onBoardingData}
-                                    nextPage={`/modify/travel/${travelRequestId}/section1`} />} />
+                                    setFormData={setFormData}
+                                    onBoardingData={onBoardingData} 
+                                    nextPage={`/modify/travel/${travelRequestId}/section0`} />} />
         <Route path='/section0' element={<BasicDetails 
                                             formData={formData} 
                                             setFormData={setFormData} 
                                             onBoardingData={onBoardingData}
+                                            lastPage={`/modify/travel/${travelRequestId}/`}
                                             nextPage={`/modify/travel/${travelRequestId}/section1`} />} />
-        <Route path='/section1' element={<Itinerary 
+        <Route path='/section1' element={<ModifiedItinerary
+                                            currentFormState={currentFormState}
+                                            setCurrentFormState={setCurrentFormState}
                                             formData={formData} 
                                             setFormData={setFormData} 
                                             onBoardingData={onBoardingData}
-                                            nextPage={`/modify/travel/${travelRequestId}/section2`}
+                                            nextPage={onBoardingData?.travelAllocationFlags.level3 ?  `/modify/travel/${travelRequestId}/allocation` : `/modify/travel/${travelRequestId}/section2` }
                                             lastPage={`/modify/travel/${travelRequestId}/section0`} />} />
-        <Route path='/section2' element={<Review 
+        <Route path='/allocation' element={<AllocateTravelObjects 
                                             formData={formData} 
                                             setFormData={setFormData} 
                                             onBoardingData={onBoardingData}
                                             nextPage={`/modify/travel/${travelRequestId}/section2`}
                                             lastPage={`/modify/travel/${travelRequestId}/section1`} />} />
+        <Route path='/section2' element={<Review 
+                                            formData={formData} 
+                                            setFormData={setFormData} 
+                                            currentFormState={currentFormState}
+                                            onBoardingData={onBoardingData}
+                                            nextPage={`/modify/travel/${travelRequestId}/section2`}
+                                            lastPage={onBoardingData?.travelAllocationFlags.level3 ? `/modify/travel/${travelRequestId}/allocation` :  `/modify/travel/${travelRequestId}/section1`}
+                                             />} />
       </Routes>}
   </>;
 }
+
+
+// import { useState, useEffect, createContext } from "react";
+// import {BrowserRouter as Router, Routes, Route, useParams} from 'react-router-dom'
+// import axios from 'axios'
+// import BasicDetails from "./basicDetails/BasicDetails";
+// import Itinerary from "./itinerary/Itinerary"
+// //import Itinerary from "./itinerary/NewItinerary";
+// import Review from "./review/Review"
+// import Error from "../components/common/Error";
+// import { TR_frontendTransformer } from "../utils/transformers";
+// import { getTravelRequest_API, getOnboardingData_API } from "../utils/api";
+// import AllocateTravelObjects from "./allocations/AllocateTravelObjects";
+// import SelectTravelType from "./SelectTravelType";
+
+// export default function () {
+//   //get travel request Id from params
+//     const {travelRequestId} = useParams()
+//     console.log(travelRequestId, 'travelRequestId')
+//     const [isLoading, setIsLoading] = useState(true)
+//     const [loadingErrMsg, setLoadingErrMsg] = useState(null)
+
+//     // //hardcoded for now we will get it from dashboard/token
+//     // const tenantId = '9j4ro3how' 
+//     // const EMPLOYEE_ID  = '1002' 
+//     // const EMPLOYEE_NAME = 'Abhishek Kumar'
+
+//     const [formData, setFormData] = useState()
+//     const [onBoardingData, setOnBoardingData] = useState()
+
+//     //fetch travel request data from backend
+//     useEffect(() => {
+//       (async function(){
+         
+//         const travel_res = await getTravelRequest_API({travelRequestId})
+//         if(travel_res.err){
+//           setLoadingErrMsg(travel_res.err)
+//           return
+//         }
+//         const travelRequestDetails = travel_res.data.travelRequest
+      
+//         const currentFormData = {
+//           travelRequestId: travelRequestDetails.travelRequestId,
+//           travelRequestNumber: travelRequestDetails.travelRequestNumber,
+//           approvers: travelRequestDetails.approvers,
+//           tenantId: travelRequestDetails.tenantId,
+//           travelType: travelRequestDetails?.travelType,
+//           tenantName:travelRequestDetails.tenantName,
+//           companyName:travelRequestDetails.companyName,
+//           state: travelRequestDetails.state,
+//           createdBy: travelRequestDetails.createdBy,
+//           createdFor: travelRequestDetails.createdFor,
+//           travelAllocationHeaders:travelRequestDetails.travelAllocationHeaders,
+//           tripPurpose:travelRequestDetails.tripPurpose,
+
+//           raisingForDelegator: travelRequestDetails.createdFor === null ? false : true,
+//           nameOfDelegator: travelRequestDetails?.createdFor?.name || null,
+//           isDelegatorManager: false,
+//           selectDelegatorTeamMembers:false,
+//           delegatorsTeamMembers:[],
+
+//           bookingForSelf:true,
+//           bookiingForTeam:false,
+//           teamMembers : travelRequestDetails.teamMembers,
+//           travelDocuments: travelRequestDetails.travelDocuments,
+//           itinerary: travelRequestDetails.itinerary,
+//           tripType: travelRequestDetails.tripType,
+//           preferences:travelRequestDetails.preferences,
+//           travelViolations:travelRequestDetails.travelViolations,
+//           cancellationDate:travelRequestDetails.cancellationDate,
+//           cancellationReason:travelRequestDetails.cancellationReason,
+//           isCancelled:travelRequestDetails.isCancelled,
+//           travelRequestStatus:travelRequestDetails.travelRequestStatus,
+//           ...travelRequestDetails
+//        }
+
+//        const response = await getOnboardingData_API({tenantId:travelRequestDetails.tenantId, EMPLOYEE_ID:travelRequestDetails.createdBy?.empId, travelType:travelRequestDetails.travelType})
+//         if(response.err){
+//           setLoadingErrMsg(response.err)
+//           return
+//         }
+
+//         setFormData(currentFormData)
+//         setOnBoardingData(response.data.onboardingData)
+//         console.log(response.data.onboardingData)
+//         setIsLoading(false)
+//       })()
+//     },[])
+    
+//   return <>
+//         {isLoading && <Error message={loadingErrMsg} />}
+//       {!isLoading && <Routes>
+//         <Route path='/' element={<SelectTravelType 
+//                                     formData={formData} 
+//                                     setFormData={setFormData}
+//                                     onBoardingData={onBoardingData} 
+//                                     nextPage={`/modify/travel/${travelRequestId}/section0`} />} />
+//         <Route path='/section0' element={<BasicDetails 
+//                                             formData={formData} 
+//                                             setFormData={setFormData} 
+//                                             onBoardingData={onBoardingData}
+//                                             lastPage={`/modify/travel/${travelRequestId}/`}
+//                                             nextPage={`/modify/travel/${travelRequestId}/section1`} />} />
+//         <Route path='/section1' element={<Itinerary 
+//                                             formData={formData} 
+//                                             setFormData={setFormData} 
+//                                             onBoardingData={onBoardingData}
+//                                             nextPage={onBoardingData?.travelAllocationFlags.level3 ?  `/modify/travel/${travelRequestId}/allocation` : `/modify/travel/${travelRequestId}/section2` }
+//                                             lastPage={`/modify/travel/${travelRequestId}/section0`} />} />
+//         <Route path='/allocation' element={<AllocateTravelObjects 
+//                                             formData={formData} 
+//                                             setFormData={setFormData} 
+//                                             onBoardingData={onBoardingData}
+//                                             nextPage={`/modify/travel/${travelRequestId}/section2`}
+//                                             lastPage={`/modify/travel/${travelRequestId}/section1`} />} />
+//         <Route path='/section2' element={ <Review 
+//                                             formData={formData} 
+//                                             setFormData={setFormData} 
+//                                             onBoardingData={onBoardingData}
+//                                             nextPage={`/modify/travel/${travelRequestId}/section2`}
+//                                             lastPage={onBoardingData?.travelAllocationFlags.level3 ? `/modify/travel/${travelRequestId}/allocation` :  `/modify/travel/${travelRequestId}/section1`}
+//                                              />} />
+//       </Routes>}
+//   </>;
+// }

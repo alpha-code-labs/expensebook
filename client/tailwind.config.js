@@ -9,7 +9,12 @@ export default {
       fontFamily: {
         'cabin': ['Cabin', 'sans-serif'],
       },
+      transitionProperty: {
+        'height': 'height'
+      },
     },
   },
   plugins: [],
 }
+
+
