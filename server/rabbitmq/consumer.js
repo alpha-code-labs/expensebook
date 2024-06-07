@@ -107,6 +107,7 @@ export async function startConsumer(receiver) {
           } else  if ( source == 'travel'){
             if(action =='trip-creation'){
               const res = await processTravelRequests(payload)
+              console.log(res, 'at 110')
               if(res.success){
                 channel.ack(msg)
                 console.log('trip creation successful')
@@ -115,7 +116,7 @@ export async function startConsumer(receiver) {
               }
             }
           } else if (source == 'cash'){
-            if(action =='trip-creation'){
+            if(action == 'trip-creation'){
               console.log("trip creation batchjob", payload)
               const res = await processTravelRequestsWithCash(payload)
               if(res.success){

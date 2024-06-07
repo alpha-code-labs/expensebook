@@ -137,17 +137,18 @@ export const processTravelRequests = async (tripArray) => {
 
     // Wait for all trip promises to resolve
     const tripsAdded = await Promise.all(tripPromises);
+
   
     // Filter out null or undefined results
     const validTripsAdded = tripsAdded.filter(trip => trip);
     console.log("validTripsAdded for dashboard", validTripsAdded)
     // Send valid trips to dashboard
-    const isSent = await sendToOtherMicroservice(validTripsAdded, 'trip-creation', 'dashboard', 'Trip creation successful and sent to dashboard', 'trip', 'online');
- if(isSent){
-  return {success: true};
- }
+    await sendToOtherMicroservice(validTripsAdded, 'trip-creation', 'dashboard', 'Trip creation successful and sent to dashboard', 'trip', 'online');
+    return {success: true};
+    
   } catch (error) {
     console.error('Error processing trips:', error);
+    return {succes: false, error}
     throw error;
   }
 };
