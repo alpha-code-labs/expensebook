@@ -1,6 +1,11 @@
 import mongoose from 'mongoose';
 
 //---------------travel---------
+const approverStatusEnums = [
+  'pending approval',
+  'approved',
+  'rejected',
+];
 
 const travelRequestStatusEnums = [
   'draft', 
@@ -471,11 +476,7 @@ const cashAdvanceStatusEnum = [
   'recovered'
 ];
   
-const approverStatusEnums = [
-    'pending approval',
-    'approved',
-    'rejected',
-];
+
 
 //-----------trip---------
 const tripStatusEnum = [
