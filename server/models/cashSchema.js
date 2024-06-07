@@ -14,6 +14,7 @@ const cashAdvanceStatusEnum = [
 'awaiting pending settlement',
 'pending settlement',
 'paid',
+'recovered',
 ];
 
   
