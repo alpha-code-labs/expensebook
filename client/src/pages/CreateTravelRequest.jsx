@@ -67,6 +67,28 @@ export default function () {
     isCashAdvanceTaken:null,
   })
 
+  const [currentFormState, setCurrentFormState] = useState({
+    isReturnTravel: false,
+    itinerary: [
+    {
+        formId: generateUniqueIdentifier(),
+        mode : 'flight',
+        from : '',
+        to : '',
+        date: new Date().toISOString,
+        returnDate: undefined,
+        hotelNights: '',
+        pickUpNeeded: false,
+        dropNeeded: false,
+        fullDayCabs: 0,
+        fullDayCabDates: [],
+        dateError:{set:false, message:null},
+        returnDateError:{set:false, message:null},
+        fromError: {set:false, message:null},
+        toError: {set:false, message:null},
+    }
+]});
+
   const [onBoardingData, setOnBoardingData] = useState()
 
   //flags
