@@ -660,26 +660,20 @@ const updateTenantGroupingLabels = async (req, res) => {
     console.log(groupingLabels, 'grouping labels')
 
     //get HRCompany document by its tenantId
-    const hrCompany = await HRCompany.findOne({ tenantId: tenantId });
+    const updatedHRCompany = await HRCompany.findOneAndUpdate( 
+      { tenantId: tenantId },
+      { $set: { groupingLabels: groupingLabels, groups: [], "employees.$[].group": [] } },
+      { new: true }
+    );
+
+    console.log(updatedHRCompany);
     
 
-    if(!hrCompany){
+    if(!updatedHRCompany){
       //tenant record not found
       res.status(404).json({ error: 'Tenant record not found' })
     }
 
-    //remove existing groups
-    hrCompany.groups = [];
-
-    //clear all group data from employee list
-    hrCompany.employees.forEach(employee=>{
-      employee.group = []
-    })
-
-    //update grouping labels
-    hrCompany.groupingLabels = groupingLabels;
-
-    const updatedHRCompany = await hrCompany.save();
 
     res.status(200).json(updatedHRCompany.groupingLabels); // Respond with the updated HRCompany data
 
