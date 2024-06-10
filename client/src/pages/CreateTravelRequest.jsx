@@ -17,9 +17,6 @@ export default function () {
   const {tenantId, employeeId} = useParams();
 
   console.log(tenantId, employeeId, 'tId, employeeId')
-  const EMPLOYEE_NAME = 'Kanhaiya Verma'
-  const companyName = 'Studio Innovate'
-
   const [employeeName, setEmployeeName] = useState('')
 
   const [formData, setFormData] = useState({
@@ -27,8 +24,8 @@ export default function () {
     approvers: [],
     tenantId: tenantId,
     travelType: 'international',
-    tenantName: companyName,
-    companyName: companyName,
+    tenantName: '',
+    companyName: '',
     travelRequestStatus: 'draft',
     travelRequestState: 'section 0',
     createdBy: {name: employeeName, empId: employeeId},
@@ -70,28 +67,6 @@ export default function () {
     isCashAdvanceTaken:null,
   })
 
-  const [currentFormState, setCurrentFormState] = useState({
-    isReturnTravel: false,
-    itinerary: [
-    {
-        formId: generateUniqueIdentifier(),
-        mode : 'flight',
-        from : '',
-        to : '',
-        date: new Date().toISOString,
-        returnDate: undefined,
-        hotelNights: '',
-        pickUpNeeded: false,
-        dropNeeded: false,
-        fullDayCabs: 0,
-        fullDayCabDates: [],
-        dateError:{set:false, message:null},
-        returnDateError:{set:false, message:null},
-        fromError: {set:false, message:null},
-        toError: {set:false, message:null},
-    }
-]});
-
   const [onBoardingData, setOnBoardingData] = useState()
 
   //flags
@@ -108,9 +83,10 @@ useEffect(() => {
     }  
     else{
       setOnBoardingData(response.data.onboardingData)
+      const companyName = response.data.onboardingData.companyName;
       if(response?.data?.onboardingData?.employeeData?.employeeDetails?.employeeName!= null || response?.data?.onboardingData?.employeeDetails?.employeeName!=undefined){
         console.log('setting name to ', response?.data?.onboardingData?.employeeData?.employeeDetails?.employeeName )
-        setFormData(pre=>({...pre, createdBy:{...pre.createdBy, name:response?.data?.onboardingData?.employeeData?.employeeDetails?.employeeName}}))
+        setFormData(pre=>({...pre, companyName, tenantName: companyName, createdBy:{...pre.createdBy, name:response?.data?.onboardingData?.employeeData?.employeeDetails?.employeeName}}))
       }
       
       console.log(response.data.onboardingData)
