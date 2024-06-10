@@ -4,184 +4,6 @@ import HRMaster from "../models/hrMaster.js";
 const ONBOARDING_MICROSERVICE_URL = "";
 const DASHBOARD_MICROSERVICE_URL = "";
 
-const onBoardingDataDummy = {
-  MANAGER_FLAG:true,
-  APPROVAL_FLAG:true,
-  ALLOCATION_HEADER:true,
-  DELEGATED_FLAG:true,
-  managersList:[
-    {name: 'Preeti Arora', empId: '005', designation: 'Manager', department: 'Sales'},
-    {name: 'Abhas Kamboj', empId: '045', designation: 'Manager', department: 'Recruitment'},
-    {name: 'Sandeep Nair', empId: '061', designation: 'Manager', department: 'Engineering'},
-    {name: 'Sumesh', empId: '114', designation: 'Executive', department: 'Software'},
-    {name: 'Prabhat', empId: '181', designation: 'Executive', department: 'Sales'},
-],
-  teamMembers:[],
-  tripPurposeOptions:['Meeting with client', 'Sales Trip', 'Business Trip'],
-  delegatedFor:[
-    {name: 'Ajay Singh', empId:'121', designation: 'Executive', department: 'Software', group:'', EmpRole:'', teamMembers:[]}, 
-    {name: 'Abhijay Singh', empId:'124', designation: 'Manager', department: 'Recruitment', group:'', EmpRole:'', teamMembers:[{name: 'Rajat Rathor', empId: '201', designation: 'Executive'}, {name: 'Ashish Pundir', empId: '205', designation: 'Program Planner'}, {name: 'Ankit Pundir', empId:'209', designation:'Manager'}]}, 
-    {name: 'Akshay Kumar', empId:'127', designation: 'Executive', department: 'Software', group:'', EmpRole:'', teamMembers:[]}, 
-    {name:'Anandhu Ashok K.', empId:'129', designation: 'Executive', department: 'Software', group:'', EmpRole:'', teamMembers:[]}, 
-    {name:'kanhaiya', empId:'', group:'135', designation: 'Executive', department: 'Software', EmpRole:'', teamMembers:[]}
-],
-  travelAllocationHeaderOptions:['Sales', 'Marketing', 'Engineering', 'Research'],
-  modeOfTransitOptions:['Flight', 'Train', 'Bus', 'Cab'],
-  travelClassOptions:{'flight':['Business', 'Economy', 'Premium Economy', 'Private'],
-  'train': ['Sleeper', 'Chair Car', 'First AC', 'Second AC', 'Third AC'],
-  'bus': ['Sleeper', 'Semi-Sleeper', 'Regular'],
-  'cab': ['Sedan', 'Mini']
- },
-  hotelClassOptions:['4 Star',  '3 Start', '2 Star'],
-  cabClassOptions: ['Sedan', 'Mini'],
-}
-
-const dummyTravelAllocations = {
-  //if level3
-international:[
-{
-  categoryName: 'Flight',
-  allocation: 
-          [ 
-              {headerName: 'Designation' , headerValues:['Manager', 'Executive', 'Engineers']},
-              {headerName: 'Cost Center' , headerValues:['CC-1', 'CC-2', 'CC-3']},
-              {headerName: 'Profit Center' , headerValues:['PC-1', 'PC-2', 'PC-']} 
-          ],
-  expenseAllocation: 
-          [ 
-              {headerName: 'Designation' , headerValues:['Manager', 'Executive', 'Engineers']},
-              {headerName: 'Cost Center' , headerValues:['CC-1', 'CC-2', 'CC-3']},
-              {headerName: 'Profit Center' , headerValues:['PC-1', 'PC-2', 'PC-']} 
-          ], 
-  allocation_accountLine: '1478599941',
-  expenseAllocation_accountLine: '4785544778'
-},
-{
-  categoryName: 'Hotel',
-  allocation: 
-          [ 
-              {headerName: 'Designation' , headerValues:['Manager', 'Executive', 'Engineers']},
-              {headerName: 'Cost Center' , headerValues:['CC-1', 'CC-2', 'CC-3']},
-              {headerName: 'Profit Center' , headerValues:['PC-1', 'PC-2', 'PC-']} 
-          ],
-  expenseAllocation: 
-          [ 
-              {headerName: 'Designation' , headerValues:['Manager', 'Executive', 'Engineers']},
-              {headerName: 'Cost Center' , headerValues:['CC-1', 'CC-2', 'CC-3']},
-              {headerName: 'Profit Center' , headerValues:['PC-1', 'PC-2', 'PC-']} 
-          ], 
-  allocation_accountLine: '1478599941',
-  expenseAllocation_accountLine: '4785544778'
-},
-      {
-  categoryName: 'Train',
-  allocation: 
-          [ 
-              {headerName: 'Designation' , headerValues:['Manager', 'Executive', 'Engineers']},
-              {headerName: 'Cost Center' , headerValues:['CC-1', 'CC-2', 'CC-3']},
-              {headerName: 'Profit Center' , headerValues:['PC-1', 'PC-2', 'PC-']} 
-          ],
-  expenseAllocation: 
-          [ 
-              {headerName: 'Designation' , headerValues:['Manager', 'Executive', 'Engineers']},
-              {headerName: 'Cost Center' , headerValues:['CC-1', 'CC-2', 'CC-3']},
-              {headerName: 'Profit Center' , headerValues:['PC-1', 'PC-2', 'PC-']} 
-          ], 
-  allocation_accountLine: '1478599941',
-  expenseAllocation_accountLine: '4785544778'
-},
-      {
-  categoryName: 'Bus',
-  allocation: 
-          [ 
-              {headerName: 'Designation' , headerValues:['Manager', 'Executive', 'Engineers']},
-              {headerName: 'Cost Center' , headerValues:['CC-1', 'CC-2', 'CC-3']},
-              {headerName: 'Profit Center' , headerValues:['PC-1', 'PC-2', 'PC-']} 
-          ],
-  expenseAllocation: 
-          [ 
-              {headerName: 'Designation' , headerValues:['Manager', 'Executive', 'Engineers']},
-              {headerName: 'Cost Center' , headerValues:['CC-1', 'CC-2', 'CC-3']},
-              {headerName: 'Profit Center' , headerValues:['PC-1', 'PC-2', 'PC-']} 
-          ], 
-  allocation_accountLine: '1478599941',
-  expenseAllocation_accountLine: '4785544778'
-},
-      {
-  categoryName: 'Cab',
-  allocation: 
-          [ 
-              {headerName: 'Designation' , headerValues:['Manager', 'Executive', 'Engineers']},
-              {headerName: 'Cost Center' , headerValues:['CC-1', 'CC-2', 'CC-3']},
-              {headerName: 'Profit Center' , headerValues:['PC-1', 'PC-2', 'PC-']} 
-          ],
-  expenseAllocation: 
-          [ 
-              {headerName: 'Designation' , headerValues:['Manager', 'Executive', 'Engineers']},
-              {headerName: 'Cost Center' , headerValues:['CC-1', 'CC-2', 'CC-3']},
-              {headerName: 'Profit Center' , headerValues:['PC-1', 'PC-2', 'PC-']} 
-          ], 
-  allocation_accountLine: '1478599941',
-  expenseAllocation_accountLine: '4785544778'
-},
-      {
-  categoryName: 'Car Rentals',
-  allocation: 
-          [ 
-              {headerName: 'Designation' , headerValues:['Manager', 'Executive', 'Engineers']},
-              {headerName: 'Cost Center' , headerValues:['CC-1', 'CC-2', 'CC-3']},
-              {headerName: 'Profit Center' , headerValues:['PC-1', 'PC-2', 'PC-']} 
-          ],
-  expenseAllocation: 
-          [ 
-              {headerName: 'Designation' , headerValues:['Manager', 'Executive', 'Engineers']},
-              {headerName: 'Cost Center' , headerValues:['CC-1', 'CC-2', 'CC-3']},
-              {headerName: 'Profit Center' , headerValues:['PC-1', 'PC-2', 'PC-']} 
-          ], 
-  allocation_accountLine: '1478599941',
-  expenseAllocation_accountLine: '4785544778'
-},
-],
-  domestic:[
-{
-  categoryName: 'Flight',
-  allocation: 
-          [ 
-              {headerName: 'Designation' , headerValues:['Manager', 'Executive', 'Engineers']},
-              {headerName: 'Cost Center' , headerValues:['CC-1', 'CC-2', 'CC-3']},
-              {headerName: 'Profit Center' , headerValues:['PC-1', 'PC-2', 'PC-']} 
-          ],
-  expenseAllocation: 
-          [ 
-              {headerName: 'Designation' , headerValues:['Manager', 'Executive', 'Engineers']},
-              {headerName: 'Cost Center' , headerValues:['CC-1', 'CC-2', 'CC-3']},
-              {headerName: 'Profit Center' , headerValues:['PC-1', 'PC-2', 'PC-']} 
-          ], 
-  allocation_accountLine: '1478599941',
-  expenseAllocation_accountLine: '4785544778'
-},
-],
-  local:[
-{
-  categoryName: 'Flight',
-  allocation: 
-          [ 
-              {headerName: 'Designation' , headerValues:['Manager', 'Executive', 'Engineers']},
-              {headerName: 'Cost Center' , headerValues:['CC-1', 'CC-2', 'CC-3']},
-              {headerName: 'Profit Center' , headerValues:['PC-1', 'PC-2', 'PC-']} 
-          ],
-  expenseAllocation: 
-          [ 
-              {headerName: 'Designation' , headerValues:['Manager', 'Executive', 'Engineers']},
-              {headerName: 'Cost Center' , headerValues:['CC-1', 'CC-2', 'CC-3']},
-              {headerName: 'Profit Center' , headerValues:['PC-1', 'PC-2', 'PC-']} 
-          ], 
-  allocation_accountLine: '1478599941',
-  expenseAllocation_accountLine: '4785544778'
-},
-]
-}
-
 export async function fetchOnboardingData(
   tenantId,
   employeeId, /* for whom travel request is created*/
@@ -194,6 +16,7 @@ export async function fetchOnboardingData(
 
     if(tenantData.length===0) throw new Error('Tenant do not exists or can not fetch tenant details at the moment')
     tenantData = tenantData[0]
+    const companyName = tenantData.companyDetails.companyName ?? '';
  
     let employeeData = tenantData.employees.filter(emp=>emp.employeeDetails.employeeId === employeeId)
     if(employeeData.length===0) throw new Error('can not fetch tenant details for given employeeId at the moment')
@@ -204,27 +27,8 @@ export async function fetchOnboardingData(
     const flags = tenantData.flags
     const tenantPolicies = tenantData?.policies.travelPolicies??[]
     const travelAllocationFlags = tenantData?.travelAllocationFlags //{level1:false, level2:false, level3:true}
-    const travelAllocations = tenantData?.travelAllocations //dummyTravelAllocations
+    const travelAllocations = tenantData?.travelAllocations 
     
-    // const travelAllocations = [
-    //   {
-    //     headerName: "circles",
-    //     headerValues: [
-    //       "North India",
-    //       "South India",
-    //       "Central India"
-    //     ],
-    //   },
-    //   {
-    //     headerName: "department",
-    //     headerValues: [
-    //       "HR",
-    //       "Finance",
-    //       "Engineering",
-    //       "Marketing"
-    //     ],
-    //   }
-    // ]
    //tenantData.travelAllocation
     const MANAGER_FLAG = employeeRoles.employeeManager
     const listOfManagers = tenantData.employees.filter(employee=>employee.employeeRoles.employeeManager).map(emp=> emp.employeeDetails)
@@ -318,6 +122,7 @@ export async function fetchOnboardingData(
   const tripPurposeOptions = ['Business', 'Training', 'Events', 'Personal', 'Others']  //Object.keys(tenantPolicies[0][Object.keys(tenantPolicies[0])[0]][travelType]['Allowed Trip Purpose'].class)
      
     return({
+        companyName,
         employeeData, 
         employeeGroups, 
         employeeRoles, 
