@@ -11,9 +11,11 @@ import { cash_icon, overview_icon, exp_c_icon, exp_icon, travel_icon, travel_c_i
 
 
 
+
 const Tab = createBottomTabNavigator();
 
 const Sidebar = () => {
+
 
   const sidebarItems = [
     { label: 'Overview', icon: overview_icon, activeIcon: overview_c_icon, screen: Overview },
@@ -29,6 +31,7 @@ const Sidebar = () => {
   return (
 
    <>
+
  <Tab.Navigator
   initialRouteName='Overview'
       screenOptions={{
@@ -45,7 +48,7 @@ const Sidebar = () => {
       {sidebarItems.map((item, index) => (
         <Tab.Screen
         
-         key={index} name={item.label} component={item.screen} options={{
+            key={index} name={item.label} component={item.screen} options={{
             tabBarIcon: ({ focused, color, size }) => (
               <Image
                className={` ${focused ? 'w-6 h-6' : 'w-6 h-6' }`}
@@ -57,6 +60,9 @@ const Sidebar = () => {
           }}/>
       ))}
     </Tab.Navigator>
+  
+
+    
    
     </>
     

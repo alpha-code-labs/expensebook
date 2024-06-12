@@ -1,26 +1,37 @@
 import { useState, useRef, useEffect } from "react";
-import { chevron_down_icon } from "../../../../assets/icon";
-import { titleCase } from "../../../utils/handyFunctions";
+import { chevron_down_icon } from "../../../assets/icon";
+import { titleCase } from "../../utils/handyFunctions";
 import { View, Text, Image, TouchableOpacity, TouchableWithoutFeedback, ScrollView, Pressable } from "react-native";
 
 export default function Select(props) {
   const placeholder = props.placeholder || "Placeholder Text";
   const title = props.title || "Title";
-  const [hidePlaceholder, setHidePlaceholder] = useState(false);
-  const [showDropdown, setShowDropdown] = useState(false);
-  const dropdownRef = useRef(null);
-  const selectDivRef = useRef(null)
   const optionsList = props.options;
   const onSelect = props.onSelect || null
   const currentOption = props.currentOption || null
-  const [selectedOption, setSelectedOption] = useState(currentOption)
-  const [keyboardFocusIndex, setKeyboardFocusIndex] = useState(-1)
   const violationMessage = props.violationMessage || null
   const error = props.error || null
   const required = props.required || false
   const submitAttempted = props.submitAttempted || false
+  const focusOut = props.focusOut??false //
+
+  const [selectedOption, setSelectedOption] = useState(currentOption)
+  const [keyboardFocusIndex, setKeyboardFocusIndex] = useState(-1)
+  const [hidePlaceholder, setHidePlaceholder] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+
+  const dropdownRef = useRef(null);
+  const selectDivRef = useRef(null)
 
     console.log('select component')
+
+
+    useEffect(()=>{
+        if(showDropdown){
+            console.log(focusOut)
+            handleClickOutside()
+        }
+    },[focusOut])
 
     useEffect(()=>{
       if(currentOption != null && currentOption != undefined && currentOption != '' ){
@@ -139,9 +150,8 @@ const selectDivFocus = (e)=>{
   return (
     <>
 
-    <TouchableWithoutFeedback className={`bg-blue-100 ${showDropdown? 'w-full h-full' : '' } `} onPress={handleClickOutside}>
-    <View style={{ elevation: showDropdown ? 5 : 0 }} className={`w-[302px] ${showDropdown ? 'z-[100]' : ''} h-[73px] flex-col justify-start items-start gap-2 flex`}>
-
+    {/* <Pressable style={{position:'absolute-fill'}} className={`bg-blue-100/90 ${showDropdown? 'w-full h-full' : '' } `} onPress={handleClickOutside}> */}
+        <View style={`${showDropdown? {elevation:5}:{elevation:0}}`} className={`w-full max-w-[302px] ${showDropdown? 'z-[100]':''} h-[73px] flex-col justify-start items-start gap-2 flex`}>
             {/* title*/}
             <Text style={{fontFamily:'Cabin'}} className="text-zinc-600 text-sm font-Cabin">{title}</Text>
            
@@ -155,19 +165,17 @@ const selectDivFocus = (e)=>{
                     className="w-full h-6 relative cursor-pointer focus-visible:outline-0"
                     onPress={handleSelectClick}
                     >
-                    <View className={"w-full h-6 relative justify-between flex flex-row cursor-pointer focus-visible:outline-0"}>
+                    <View className="w-full h-6 relative justify-between flex flex-row cursor-pointer focus-visible:outline-0">
                     {!hidePlaceholder && (
                         <Text style={{fontFamily:'Cabin'}} className="text-zinc-400  h-6 text-sm font-normal font-Cabin">
                             {placeholder}
                         </Text>
                     )}
-                    
                     {hidePlaceholder && <View className='text-neutral-700 h-6 text-sm font-normal font-Cabin'>
-                        <Text style={{fontFamily:'Cabin'}} className='font-Cabin h-6 text-neutral-700 text-sm font-normal'>{selectedOption}</Text>
+                        <Text style={{fontFamily:'Cabin'}} className='font-Cabin h-6 text-neutral-700 text-sm font-normal'>{titleCase(selectedOption ?? "")}</Text>
                         </View>}
 
-                        <View className={`w-6 h-6 relative transition-all ${showDropdown ? 'rotate-180' : ''}`}>
-
+                    <View className={`w-6 h-6 relative  transition-all  ${showDropdown && 'rotate-180'}`}>
                         <Image source={chevron_down_icon} className='w-6 h-6' alt='chevron-down' />
                     </View>
 
@@ -181,10 +189,9 @@ const selectDivFocus = (e)=>{
                     {!showDropdown && !hidePlaceholder && error?.set && <View className="absolute top-[35px] w-full">
                         <Text style={{fontFamily:'Cabin'}} className='text-xs text-red-600 font-Cabin'>{error?.message}</Text>
                     </View>}
-                    </Pressable>
+
                     </View>
-                      </View>
-                   
+                    </Pressable>
 
                     {/* options */}
                     {showDropdown && (
@@ -217,11 +224,10 @@ const selectDivFocus = (e)=>{
                     )}
                 </View>
             </View>
-        
-    </TouchableWithoutFeedback>
+        </View>
+    {/* </Pressable> */}
         
 
     </>
   );
 }
-

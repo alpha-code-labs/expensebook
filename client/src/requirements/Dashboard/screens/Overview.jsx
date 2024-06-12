@@ -1,4 +1,4 @@
-import React ,{useEffect, useState}from 'react';
+import React ,{useEffect, useLayoutEffect, useState}from 'react';
 import { View,Text ,Image, Pressable, ScrollView ,ListItem ,List, FlatList} from 'react-native';
 import { bell_icon, breifcase_icon, down_right_icon, list_icon, logout_icon, profile_icon, travel_c_icon } from '../../../../assets/icon';
 import { transitTrip1, upcomingTrip1 } from '../../../dummyData/dashboard/trips';
@@ -22,32 +22,35 @@ const Overview = () => {
 
   },[])
 
-  const textStyle = {
-    fontSize: 20,
-    padding: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
-  };
+useLayoutEffect(()=>{
+  navigation.setOptions({
+    headerRight:()=>(
+      <View className=' flex flex-row gap-4 items-center  justify-end  p-4 '>
+      <Pressable onPress={()=>console.log('logout')}>
+        <View className='bg-white p-2  shadow-xl shadow-neutral-800 rounded-md '>
+        <Image source={logout_icon} alt='logout-icon ' className='w-6 h-6'/>
+        </View>
+      </Pressable>
+    <Pressable>
+    <View className='bg-white p-2  shadow-xl shadow-neutral-800 rounded-md'>
+        <Image source={bell_icon} alt='bell-icon' className='w-6 h-6'/>
+    </View>
+    </Pressable>
+    <Pressable onPress={() => navigation.navigate('Profile')}>
+    <View className='bg-white p-2  shadow-xl shadow-neutral-800 rounded-md'>
+        <Image source={profile_icon} alt='bell-icon' className='w-6 h-6'/>
+    </View>
+    </Pressable>
+  </View>
+    )
+  })
+})
+
+ 
 
   return (
-    <View className=''>
-        <View className=' flex flex-row gap-4 items-center  justify-end  p-4 '>
-            <Pressable onPress={()=>console.log('logout')}>
-              <View className='bg-white p-2  shadow-xl shadow-neutral-800 rounded-md '>
-              <Image source={logout_icon} alt='logout-icon ' className='w-6 h-6'/>
-              </View>
-              </Pressable>
-          <Pressable>
-          <View className='bg-white p-2  shadow-xl shadow-neutral-800 rounded-md'>
-              <Image source={bell_icon} alt='bell-icon' className='w-6 h-6'/>
-          </View>
-          </Pressable>
-          <Pressable onPress={() => navigation.navigate('Profile')}>
-          <View className='bg-white p-2  shadow-xl shadow-neutral-800 rounded-md'>
-              <Image source={profile_icon} alt='bell-icon' className='w-6 h-6'/>
-          </View>
-          </Pressable>
-        </View>
+    <View className='mt-8'>
+        
       <ScrollView
       vertical
       pagingEnabled

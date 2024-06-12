@@ -180,10 +180,10 @@ const handleSelectedItinerary=()=>{
 
     <View className=' flex flex-row  justify-evenly py-2 bg-white w-full rounded-b-3xl'>
       <View >
-      <CancelButton onPress={handleSelectedItinerary} variant='fit' text='Cancel Selected' text_color='text-red-200' />
+      <CancelButton onPress={handleSelectedItinerary} variant='fit' text='Cancel Selected' bg_color='border-red-200' text_color='text-red-200 ' />
       </View>
       <View> 
-      <CancelButton variant='fit' text='Cancel Trip' bg_color='bg-red-200' onPress={handleModalVisible} />
+      <CancelButton variant='fit' text='Cancel Trip' bg_color='bg-red-200 border-red-200 ' onPress={handleModalVisible} />
       </View>
       </View>    
    

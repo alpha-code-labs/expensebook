@@ -11,6 +11,9 @@ import Sidebar from './src/requirements/Dashboard/common/Sidebar.jsx';
 import Index from './src/requirements/Dashboard/common/Index.jsx';
 import CreateTravelRequest from './src/requirements/Travel/CreateTravelRequest.jsx';
 import Profile from './src/requirements/Dashboard/components/Overview/Profile.jsx';
+import HeaderButton from './src/components/common/HeaderButton.jsx';
+import TravelApproval from './src/requirements/Approval/TravelApproval.jsx';
+import TravelExpenseApproval from './src/requirements/Approval/TravelExpenseApproval.jsx';
 
 
 
@@ -31,7 +34,7 @@ const App = () => {
  
     return (
       <NavigationContainer>
-        <Stack.Navigator initialRouteName='Profile'>
+        <Stack.Navigator initialRouteName='Travel-Expense'>
           <Stack.Screen name='dashboard' component={Index} options={{ headerShown: false }}/>
           <Stack.Screen 
             name='createTravel'
@@ -40,7 +43,10 @@ const App = () => {
             {(props) => <CreateTravelRequest  {...props} />}
           </Stack.Screen>
           <Stack.Screen name='Cancel-Trip' component={CancelTrip} options={{ headerShown: false }}/>
-          <Stack.Screen name="Profile" component={Profile} />
+          <Stack.Screen name="Profile" component={Profile}/>
+          <Stack.Screen name="Travel" component={TravelApproval}/>
+          <Stack.Screen name="Travel-Expense" component={TravelExpenseApproval}/>
+          
         </Stack.Navigator>
 
       </NavigationContainer>

@@ -93,48 +93,41 @@ export const getEmployeeData_API = async (tenantId,empId) => {
 
 
 
-export const getTravelPreference_API = async (tenantId,empId) => {
-  const url = `http://localhost:9001/api/${tenantId}/${empId}`;
+export const getPreferenceDataApi = async () => {
+  const url = `http://localhost:9001/api/preference`;
 
   try {
     const response = await axiosRetry(axios.get, url);
     return { data: response.data, error: null };
   } catch (error) {
-    handleRequestError(error);
+    const errorMessage = handleRequestError(error);  // Get the error message from handleRequestError
     const errorObject = {
       status: error.response?.status || null,
-      message: error.message || 'Unknown error',
+      message: errorMessage || 'Unknown error', // Use the error message obtained from handleRequestError
     };
-
+      console.log(errorObject)
     return { data: null, error: errorObject };
   }
 };
 
 
-export const postTravelPreference_API = async(tenantId,empId ,data)=>{
-
+export const postTravelPreference_API = async (data) => {
+  const { tenantId, empId, formData } = data;
   const url = `http://localhost:9001/api/${tenantId}/${empId}`;
 
-  // this is the real api route
-  
-  try{
-
-     await axiosRetry(axios.update,url,data)
-     return {error:null };
-     
-  }catch(error){
-    handleRequestError(error);
+  try {
+    const response = await axiosRetry(axios.post, url, formData);
+    return { error: null, message: response.data.message }; // Assuming the response contains a message
+  } catch (error) {
+    const errorMessage = handleRequestError(error);
     const errorObject = {
       status: error.response?.status || null,
-      message: error.message || 'Unknown error',
+      message: errorMessage || 'Unknown error',
     };
-    console.log('Post Error : ',errorObject);
-    return {  error: errorObject };
-
-
+    console.log('Post Error: ', errorObject);
+    return { error: errorObject};
   }
-
-}
+};
 
 
 

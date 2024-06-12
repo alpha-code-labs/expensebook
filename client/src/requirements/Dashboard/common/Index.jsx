@@ -3,7 +3,9 @@ import Sidebar from './Sidebar'
 
 const Index = () => {
   return (
+
     <Sidebar/>
+  
   )
 }
 

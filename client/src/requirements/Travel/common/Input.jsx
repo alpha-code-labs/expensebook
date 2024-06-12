@@ -50,6 +50,8 @@ export default function Input(props){
             <View className="relative w-[302px] h-12 bg-white items-center flex">
                 <View className="text-neutral-700 w-full  h-full text-sm font-normal">
                     <TextInput
+                        // multiline={true}
+                        // numberOfLines={4}
                         ref={inputRef}
                         onChangeText={handleChange} 
                         //onBlur={handleBlur}

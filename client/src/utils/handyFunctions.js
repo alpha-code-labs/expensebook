@@ -1,5 +1,5 @@
 function titleCase(str){
-  return(str)
+  
   try{
     str = str.toLowerCase().split(' ')
     str = str.map(word=>{
