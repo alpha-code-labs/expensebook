@@ -30,7 +30,7 @@ export default function Button(props){
     return(<>
     <div
         onClick={handleClick} 
-        className={`${variant=='fit'? 'w-fit':'w-full' } ${disabled ? 'hover:bg-indigo-400 hover:text-gray-400 bg-indigo-400 text-gray-400 cursor-not-allowed': 'bg-indigo-600 hover:bg-indigo-500  text-white cursor-pointer' } h-12 px-8 py-4 rounded-[32px] justify-center items-center gap-2 inline-flex`}>
+        className={`${variant=='fit'? 'w-fit':'w-full' } ${disabled ? 'hover:bg-indigo-400 hover:text-gray-400 bg-indigo-400 text-gray-400 cursor-not-allowed': 'bg-indigo-600 hover:bg-indigo-500  text-white cursor-pointer' } h-12 md:px-8 px-6 py-4 rounded-[32px] justify-center items-center gap-2 inline-flex`}>
         <div className="w-full h-5 text-center text-white text-base font-medium font-cabin flex gap-1 items-center">
             {(isLoading && <img src={loader_icon_2} className='w-4 h-4'/>)} {text}
         </div>

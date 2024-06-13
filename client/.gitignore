@@ -27,3 +27,4 @@ onboarding-client.yaml
 *.njsproj
 *.sln
 *.sw?
+..VSCodeCounter
