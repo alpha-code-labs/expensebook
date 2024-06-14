@@ -272,7 +272,7 @@ export default function CompanyAndHRInformation({progress, setProgress}){
 
           <div className="w-full pt-10 flex flex-col items-center justify-center gap-[24px]">
             
-            <div className=" min-w-[403px] flex flex-col items-center justify-start gap-[24px] w-full">
+            <div className="px-4 md:px-0 md:min-w-[403px] flex flex-col items-center justify-start gap-[24px] w-full">
               <div className="flex flex-col items-start justify-start gap-[8px]">
                 <div className="relative text-neutral-800 text-2xl tracking-tight font-semibold font-cabin">
                   Tell us a bit about your company
@@ -283,7 +283,7 @@ export default function CompanyAndHRInformation({progress, setProgress}){
               </div>
 
               <div className="flex w-full flex-col items-center justify-start gap-[24px] text-sm">
-                <div className='flex flex-col gap-4 lg:flex-row lg:gap-1'>
+                <div className='flex w-full flex-col gap-4 lg:flex-row lg:gap-1'>
                   <Input 
                       title='Company Name' 
                       placeholder='company name' 

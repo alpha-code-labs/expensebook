@@ -11,6 +11,7 @@ import Checkbox from "../../components/common/Checkbox"
 import Modal from "../../components/common/Modal"
 import { useState, useEffect } from "react"
 import { updateFormState_API } from "../../utils/api"
+import MainSectionLayout from "../MainSectionLayout"
 
 
 export default function (props){
@@ -40,8 +41,7 @@ export default function (props){
     }
 
     return(<>
-        
-        <div className="mt-[63px] ml-[230px] md:px-[10px] lg:px-[100px] w-[calc(100%-230px)] min-h-[calc(100vh-107px)] tracking-tight">
+        <MainSectionLayout>
             <div className='px-6 py-10 bg-white'>
                 <div className="flex justify-between">
                     <div className="gap-2">
@@ -77,7 +77,7 @@ export default function (props){
                 </div>
 
             </div>
-        </div>
+        </MainSectionLayout>
 
         <Modal skippable={false} showModal={showSkipModal} setShowModa={setShowSkipModal}>
             <div className="p-10">

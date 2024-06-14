@@ -55,17 +55,17 @@ export default function({
                 ))}
             </div> }
 
-            {progress != undefined && progress!= null && <div className='fixed bg-white pl-2 pt-8 pr-2 top-[63px] left-navigation w-[230px] z-[1000] h-[90%] flex flex-col overflow-y-scroll overflow-x-hidden dropdown-scroll mb-4 pb-4'>
+            {progress != undefined && progress!= null && <div className='fixed bg-white pl-2 pt-8 pr-2 top-[63px] left-navigation w-[100px] md:w-[230px] z-[1000] h-[90%] flex flex-col overflow-y-scroll overflow-x-hidden dropdown-scroll mb-4 pb-4'>
                 
                {Object.keys(progress?.sections??{}).map((section, sectionIndex)=>(<>
                     <div key={sectionIndex} className={`relative rounded-md `}>
                         <div className={`relative rounded-md ${progress.activeSection == section && 'ring-offset-2 ring-2 ring-green-600'}`}>
                             <div 
                                 onClick={()=>handleActiveSection(section)}
-                                className={`relative h-[60px] bg-indigo-400 flex items-center cursor-pointer  ${progress.activeSection == section && progress.sections[section].totalSubsections > 1? 'rounded-t-md' : 'rounded-md'}`}>
+                                className={`relative w-full h-[60px] bg-indigo-400 flex-row flex-row-reverse justify-center md:flex md:justify-end items-center cursor-pointer  ${progress.activeSection == section && progress.sections[section].totalSubsections > 1? 'rounded-t-md' : 'rounded-md'}`}>
                                 <div className='px-2'>
-                                    <p className='  flex items-center text-gray-100 w-full text-lg font-cabin'>{camelCaseToTitleCase(section)}</p>
-                                    {progress.sections[section]?.title != undefined && <p className='flex items-center text-gray-200 w-full text-xs'>{progress.sections[section].title}</p>}
+                                    <p className='  flex items-center text-gray-100 w-full text-sm sm:text-md md:text-lg lg:text-xl font-cabin'>{camelCaseToTitleCase(section)}</p>
+                                    {progress.sections[section]?.title != undefined && <p className='md:not-sr-only sr-only flex items-center text-gray-200 w-full text-xs'>{progress.sections[section].title}</p>}
                                 </div>
                                 
                                 {section == progress.activeSection && <div className='absolute triangle-right -right-[9px]' />}
@@ -75,7 +75,7 @@ export default function({
                                 </div>}
 
                                 {progress.sections[section]?.state != undefined && progress.sections[section].state != 'done' && progress.sections[section].state != 'skipped' &&  progress.sections[section].totalSubsections != 0 &&
-                                    <div className='absolute right-[18px] w-7 h-7 bg-blue-100 rounded-full text-gray-700 text-xs items-center flex justify-center gap-[1px]'> 
+                                    <div className='absolute right-[29px] md:right-[18px] w-7 h-7 bg-blue-100 rounded-full text-gray-700 text-xs items-center flex justify-center gap-[1px]'> 
                                         <p className='text-neutral-700'>{progress.sections[section].coveredSubsections}</p>
                                         <p>/</p>
                                         <p>{progress.sections[section].totalSubsections}</p>
@@ -83,14 +83,14 @@ export default function({
                                 }
 
                                 {progress.sections[section]?.state == 'done' && 
-                                    <div className='absolute right-[18px] w-7 h-7 bg-green-100 rounded-full p-1 flex items-center justify-center'>
+                                    <div className='absolute right-[29px] md:right-[18px] w-7 h-7 bg-green-100 rounded-full p-1 flex items-center justify-center'>
                                         <img src={check_icon} />
                                     </div>
                                 }
 
                             </div>
                             
-                            { section == progress.activeSection && progress.sections[section].totalSubsections > 1 && <div className='pt-2 bg-indigo-300 h-fit w-full rounded-b-md flex flex-col items-start pl-6'>
+                            { section == progress.activeSection && progress.sections[section].totalSubsections > 1 && <div className='md:pt-2 md:not-sr-only sr-only bg-indigo-300 h-fit w-full rounded-b-md flex flex-col items-start md:pl-6'>
 
                                 {
                                 progress.sections[section].subsections.map((subsection, subsectionIndex)=>(
@@ -114,14 +114,14 @@ export default function({
                         </div>
                         
                         {sectionIndex != Object.keys(progress.sections).length-1 && progress?.maxReach != null && progress.maxReach.split(' ')[1] > section.split(' ')[1] && 
-                            <div className='h-6 w-2 ml-8 py-[2px] flex justify-center'>
+                            <div className='h-6 w-2 ml-[40px]  md:ml-8 py-[2px] flex justify-center'>
                                 <motion.div initial={{height:'0px'}} animate={{height:'20px'}} className='w-2 bg-indigo-600'>
                                 
                                 </motion.div>
                             </div>
                             }
                         {sectionIndex != Object.keys(progress.sections).length-1 && (progress.maxReach == null || progress.maxReach.split(' ')[1] <= section.split(' ')[1]) && 
-                            <div className='h-6 w-2 ml-8 py-1 flex justify-center'>
+                            <div className='h-6 w-2 ml-[40px]  md:ml-8 py-1 flex justify-center'>
                                 <motion.div initial={{height:'0px'}} animate={{height:'20px'}} className='w-2 bg-gray-100'></motion.div>
                             </div>
                         }
