@@ -14,7 +14,6 @@ import Error from '../components/common/Error';
 
 const Overview = ({fetchData ,isLoading,setIsLoading,loadingErrMsg, setLoadingErrMsg}) => {
 
-
   const { setEmployeeData , employeeData } = useData(); 
   const [upcomingTrip , setUpcomingTrip]=useState(null);
   const [transitTrip, setTransitTrip]=useState([]);
@@ -22,16 +21,13 @@ const Overview = ({fetchData ,isLoading,setIsLoading,loadingErrMsg, setLoadingEr
   const {tenantId,empId,page}= useParams();
 
   useEffect(()=>{
-
     fetchData(tenantId,empId,page)
-    
   },[])
 
 
-
 useEffect(()=>{
-  
-  setTripsData(employeeData && employeeData?.dashboardViews?.employee?.trips)
+  console.log('data11',employeeData?.dashboardViews?.employee?.trips)
+  setTripsData(employeeData && employeeData?.dashboardViews?.employee?.trip)
 },[employeeData])
 
 
@@ -75,7 +71,7 @@ useEffect(()=>{
       handleTrip={handleTrip} 
       dropdownStates={dropdownStates} 
        initialTransitTabs={initialTripTab}
-       transitTripData={tripsData?.transitTrips} 
+       transitTripData={tripsData &&tripsData?.transitTrips} 
       handleDropdownToggle={handleDropdownToggle} 
       handleOpenOverlay={handleOpenOverlay}/> 
      </div>

@@ -11,6 +11,7 @@ import { useParams } from 'react-router-dom';
 import TravelMS from './TravelMS';
 
 const travelBaseUrl  = import.meta.env.VITE_TRAVEL_PAGE_URL;
+const cashBaseUrl = import.meta.env.VITE_CASH_PAGE_URL;
 
 const Travel = ({fetchData,isLoading,setIsLoading}) => {  
   const [visible, setVisible]=useState(false)
@@ -21,7 +22,7 @@ const Travel = ({fetchData,isLoading,setIsLoading}) => {
     const handleMessage = event => {
       console.log(event)
       // Check if the message is coming from the iframe
-      if (event.origin === travelBaseUrl) {
+      if (event.origin === travelBaseUrl || cashBaseUrl) {
         // Check the message content or identifier
         if (event.data === 'closeIframe') {
           setVisible(false)
