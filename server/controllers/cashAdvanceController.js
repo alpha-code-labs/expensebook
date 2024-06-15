@@ -237,13 +237,16 @@ const updateCashAdvance = async (req, res) => {
           if(!currencyRates_res) throw new Error('Can not query multicurrency table');
 
           const multiCurrencyTable = currencyRates_res.multiCurrencyTable;
+          const defaultCurrency = multiCurrencyTable.defaultCurrency;
+          
           let totalConvertedAmount = 0;
 
           updatedCashAdvance.amountDetails.forEach(item=>{
-            const exchangeValueItem = 
-            multiCurrencyTable.exchangeValue.find(er=> er.currency.shortName  ==  item.currency.shortName);
 
+            const exchangeValueItem = 
+            multiCurrencyTable.exchangeValue.find(er=> er.currency.shortName  ==  item.currency.shortName)?? item.currency.shortName == defaultCurrency.shortName ? {value: 1} : false ;
             if(!exchangeValueItem) throw new Error('Can not find requested currencies conversion rate');
+
             const conversionRate = exchangeValueItem.value;
             item.exchangeRate = conversionRate;
             item.convertedAmount = Math.round(item?.amount*conversionRate*100)/100 ?? 0;
@@ -329,7 +332,7 @@ const updateCashAdvance = async (req, res) => {
         //const trip_res = await axios.post(`${TRIP_API_URL}/cash-advance/`, updatedData)
         //if(trip_res.status!=200) throw new Error('Error occured while replicating details in Finance-ms')
       
-        sendToOtherMicroservice(updatedCashAdvance, 'full-update', 'trip', 'To update raised cash advance in trip-ms', 'cash' )
+        sendToOtherMicroservice(updatedCashAdvance, 'partial-cash-update', 'trip', 'To update raised cash advance in trip-ms', 'cash' )
         return res.status(200).json({message: 'Cash advance submitted for settlement'})
       }
 
