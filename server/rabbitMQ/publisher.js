@@ -186,9 +186,11 @@ export async function sendToOtherMicroservice(payload, comments, destination, so
             });
           
           console.log('Message sent to RabbitMQ:', messageToSend);
+          return true;
 
         } catch (error) {
           console.log('Error sending message to RabbitMQ:', error);
+          return false;
           throw error;
         } finally {
           // Close the channel after a short delay
