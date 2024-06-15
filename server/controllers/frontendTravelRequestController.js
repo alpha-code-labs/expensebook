@@ -621,10 +621,11 @@ const updateTravelBookings = async (req, res)=>{
       console.log('Updated everything')
 
       //send data to rabbitmq.. 
+      const sentToDashboard = await sendToOtherMicroservice(travelRequest, 'Booked Travel Requests Update from Travel MS', 'dashboard', 'travel', 'onbline', 'full-update')
       // const sentToDashboard = await sendToDashboardQueue(travelRequest, 'to update travel request contents after booking', 'full-update','online')
-      // if(!sentToDashboard) {
-      //   return res.status(400).json({message: 'Can not perform requested operation at the moment'})
-      // }
+      if(!sentToDashboard) {
+        return res.status(400).json({message: 'Can not perform requested operation at the moment'})
+      }
 
       console.log('Saving Request')
       await travelRequest.save()
