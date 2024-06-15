@@ -104,10 +104,10 @@ const createCashAdvance = async (req, res) => {
 
     //check for errors
     if(tr_res.status === 404){
-      return res.status(404).json({message: 'Travel request not found'})
+      return res.status(404).json({message: 'Travel request not found'});
     }
     else if(!tr_res.status === 200){
-      return res.status(500).json({message: 'Server error occured while fetching travel request'})
+      return res.status(500).json({message: 'Server error occured while fetching travel request'});
     }
 
     //everything looks good
@@ -130,17 +130,15 @@ const createCashAdvance = async (req, res) => {
     const cashAdvanceNumber = `CA0001`
     const cashAdvanceId = new mongoose.Types.ObjectId
 
+     //default currency fetched from onboarding data
+     const defaultCurrency_res = await HRMaster.findOne({tenantId}, {companyDetails:1})
+      
+     //set it to something fixed. No other better Idea for now (maybe use locale)
+     let defaultCurrency = {fullName:'Indian Rupees', shortName:'INR', symbol:'₹', countryCode:'IN'}
 
-    //default currency fetched from onboarding data
-    const multiCurrency_res = await HRMaster.findOne({tenantId}, {multiCurrencyTable:1})
-
-    //set it to something fixed. No other better Idea for now (maybe use locale)
-    let defaultCurrency = {fullName:'Indian Rupees', shortName:'INR', symbol:'₹', countryCode:'IN'};
-    
-    if(multiCurrency_res && Object.keys(multiCurrency_res?.companyDetails?.defaultCurrency??{}).length>0){
-      defaultCurrency = multiCurrency_res.multiCurrencyTable.defaultCurrency
-      exchangeRates = multiCurrency_res.multiCurrencyTable.exchangeRates
-    }
+     if(defaultCurrency_res && Object.keys(defaultCurrency_res?.companyDetails?.defaultCurrency??{}).length>0){
+       defaultCurrency = defaultCurrency_res.companyDetails.defaultCurrency
+     }
     
     const cashAdvanceData = {
       travelRequestData: {...travelRequestData, isCashAdvanceTaken: true},
@@ -240,7 +238,6 @@ const updateCashAdvance = async (req, res) => {
           const defaultCurrency = multiCurrencyTable.defaultCurrency;
           
           let totalConvertedAmount = 0;
-
           updatedCashAdvance.amountDetails.forEach(item=>{
 
             const exchangeValueItem = 
