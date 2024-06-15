@@ -358,9 +358,9 @@ export default function ({progress, setProgress, travelType}) {
                 orgHeaders={orgHeaders} 
                 setShowAddHeaderModal={setShowAddHeaderModal} />
 
-                <div className='flex justify-between mt-10'>
+                <div className='flex flex-row-reverse w-full mt-10'>
                     {/* <Button text='Save As Draft' onClick={handleSaveAsDraft} /> */}
-                    <Button isLoading={networkStates?.isUploading} text='Save Changes' onClick={saveChanges} /> 
+                    <Button isLoading={networkStates?.isUploading} text='Save and Continue' onClick={saveChanges} /> 
                 </div>
 
             </div>

@@ -127,8 +127,8 @@ export default function (props){
 
                 </fieldset>
 
-                <div className='mt-10 flex justify-between'>
-                    <Button variant='fit' text='Save as Draft' onClick={handleSaveAsDraft}  />
+                <div className='mt-10 flex flex-row-reverse justify-between'>
+                    {/* <Button variant='fit' text='Save as Draft' onClick={handleSaveAsDraft}  /> */}
                     <Button variant='fit' text='Next' onClick={handleContinue}  />
                 </div>
 

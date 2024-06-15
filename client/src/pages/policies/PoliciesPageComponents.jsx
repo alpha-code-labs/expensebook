@@ -173,7 +173,7 @@ export default function ({tenantId, travelType, ruleEngineState, setRuleEngineSt
                         }
                     )}
 
-                    <div>
+                    <div className='flex flex-row-reverse'>
                         <Button isLoading={networkStates.isUploading} variant='fit' text='Save and Continue' onClick={savePolicies} />
                     </div>
 

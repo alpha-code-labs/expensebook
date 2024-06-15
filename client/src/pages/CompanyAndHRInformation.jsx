@@ -270,9 +270,9 @@ export default function CompanyAndHRInformation({progress, setProgress}){
     {isLoading && <Error message={loadingErr} />}
     {!isLoading && 
 
-          <div className="w-full pt-10 flex flex-col items-center justify-center gap-[24px]">
+          <div className="px-4 md:px-0 w-full pt-10 flex flex-col items-center justify-center gap-[24px]">
             
-            <div className="px-4 md:px-0 md:min-w-[403px] flex flex-col items-center justify-start gap-[24px] w-full">
+            <div className="md:px-0 md:min-w-[403px] flex flex-col items-center justify-start gap-[24px] w-full">
               <div className="flex flex-col items-start justify-start gap-[8px]">
                 <div className="relative text-neutral-800 text-2xl tracking-tight font-semibold font-cabin">
                   Tell us a bit about your company
@@ -282,8 +282,8 @@ export default function CompanyAndHRInformation({progress, setProgress}){
                 </div>
               </div>
 
-              <div className="flex w-full flex-col items-center justify-start gap-[24px] text-sm">
-                <div className='flex w-full flex-col gap-4 lg:flex-row lg:gap-1'>
+              <div className="flex w-full flex-col items-start md:items-center justify-start gap-[24px] text-sm">
+                <div className='flex w-full sm:w-[403px] md:w-fit flex-col gap-4 lg:flex-row lg:gap-1'>
                   <Input 
                       title='Company Name' 
                       placeholder='company name' 
@@ -337,7 +337,7 @@ export default function CompanyAndHRInformation({progress, setProgress}){
 
               </div>
 
-              <div className='mb-10 w-full flex gap-8 items-center justify-end flex-wrap'>
+              <div className='mb-10 w-full flex gap-8 items-center justify-end flex-wrap '>
                 {/* <Button variant='fit' text='Save as Draft' onClick={()=>{handleSaveAsDraft();}} /> */}
                 <Button isLoading={isUploading} variant='fit' text='Save and Continue' onClick={()=>{handleSubmit();}} />
               </div>

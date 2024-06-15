@@ -136,7 +136,7 @@ const Layout = ({ children, progress, setProgress, companyName, onboarder}) => {
             setProgress(res.data.progress)
             console.log('executed')
             if(location.pathname.split('/')[2] != undefined && location.pathname.split('/')[2] == 'welcome'){
-              navigate(`/${tenantId}${res.data.progress.sections[res.data.progress.activeSection].subsections[0].navigationUri}`)
+             // navigate(`/${tenantId}${res.data.progress.sections[res.data.progress.activeSection].subsections[0].navigationUri}`)
             }
         }
         setIsLoading(false);
