@@ -172,15 +172,15 @@ if(travelData){
           <div className="w-full  bg-white-100    h-auto lg:h-[581px]  rounded-lg border-[1px] border-slate-300 shrink-0 font-cabin mt-3 sm:mt-6 ">
 {activeScreen=== 'All Travel Requests' && 
 <>
-  <div className='flex flex-row justify-between items-end px-8'>
+  <div className='flex flex-row justify-between items-end sm:px-8 px-4'>
   <div className="w-full lg:w-[200px] h-6 flex flex-row gap-3 mt-7 items-center ">
     <img className="w-6 h-5" src={airplane_1} alt="receipt" />
-    <div className="text-base tracking-[0.02em] font-bold">All Travel Requests</div>
+    <div className="text-base tracking-[0.02em] font-bold truncate">All Travel Requests</div>
   </div>
 
   <div className='lg:ml-4 mt-4 lg:mt-0'>
     <div className='inline-flex h-8 w-auto  items-center justify-center bg-indigo-600 text-white-100 flex-shrink rounded-lg cursor-pointer'>
-    <div className='text-center p-4 font-medium text-xs font-cabin' onClick={handleVisible}>Create Travel Request</div>
+    <div className='text-center p-4 font-medium text-xs font-cabin truncate' onClick={handleVisible}>Create Travel Request</div>
     {/* onClick={()=>(handleTravelCreation(tenantId,empId,))} */}
     
   </div>

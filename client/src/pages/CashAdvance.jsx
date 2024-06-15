@@ -294,7 +294,7 @@ const CashAdvance = ({isLoading ,fetchData,loadingErrMsg}) => {
         
           <div className="w-full  bg-white-100  h-auto lg:h-[581px] rounded-lg border-[1px] border-slate-300 shrink-0 font-cabin mt-3 sm:mt-[60px] ">          
            <>
-           <div className="w-auto h-6 flex flex-row gap-3 ml-8 mt-7 items-center">
+           <div className="w-auto h-6 flex flex-row gap-3 sm:px-8 px-4 mt-7 items-center ">
       <img className="w-6 h-6" src={money} alt="receipt" />
       <div className="text-base tracking-[0.02em] font-bold w-auto">Rejected Cash Advances</div>
     </div>

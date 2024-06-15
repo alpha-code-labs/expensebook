@@ -179,10 +179,10 @@ Rejected Expenses
 <div className="  w-full h-auto lg:h-[581px] rounded-lg  bg-white-100 border-[1px] border-slate-300 shrink-0 font-cabin mt-3 sm:mt-6 ">
            {activeScreen=== 'Travel & Non Travel Expenses' && 
            <>
-           <div className='flex flex-row justify-between items-end px-8'>
-  <div className=" h-6 flex flex-row gap-3 mt-7 items-center ">
+           <div className='flex flex-row justify-between items-end sm:px-8 px-4'>
+  <div className=" h-6 flex flex-row gap-3 mt-7 items-center">
     <img className="w-6 h-6" src={receipt} alt="receipt" />
-    <div className="text-base tracking-[0.02em] font-bold">Travel & Non Travel Expenses</div>
+    <div className="text-base tracking-[0.02em] font-bold truncate">Travel & Non Travel Expenses</div>
   </div>
   <div className='lg:ml-4 cursor-pointer px-4'>
     <div className='float-right inline-flex h-8 w-auto  items-center justify-center bg-indigo-600 text-white-100 flex-shrink rounded-lg'>

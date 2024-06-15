@@ -19,7 +19,6 @@ export default {
           200:'#FDFCFC',
           300:'#FDFDFD'
         },
-        
         purple:{
           50:'#EAE7FD',
           500: '#4C36F1',
@@ -43,7 +42,6 @@ export default {
           
 
         },
-        //border
         "b-gray":'#E3E4E8',
         green:{
           100:'#C2FFD2',
@@ -57,9 +55,6 @@ export default {
           100:'#FFFCE1',
           200:'#E19829'
         }
-        
-        
-
       },
       fontFamily:{
         cabin:"Cabin",
@@ -72,7 +67,6 @@ export default {
         xs: "12px",
         inherit: "inherit",
       },
-
     },
   },
   plugins: [],

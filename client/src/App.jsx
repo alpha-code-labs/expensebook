@@ -84,42 +84,42 @@ function App() {
     console.log('User logged out due to inactivity.');
   };
 
-  useEffect(() => {
-    const inactivityTimeout = 60 * 60 * 1000; 
-    // const inactivityTimeout = 6000; 
+  // useEffect(() => {
+  //   const inactivityTimeout = 60 * 60 * 1000; 
+  //   // const inactivityTimeout = 6000; 
 
-    let timer;
-    const resetTimer = () => {
-      clearTimeout(timer);
-      startTimer();
-    };
+  //   let timer;
+  //   const resetTimer = () => {
+  //     clearTimeout(timer);
+  //     startTimer();
+  //   };
 
-    const startTimer = () => {
-      timer = setTimeout(() => {
-        handleLogout();
-      }, inactivityTimeout);
-    };
+  //   const startTimer = () => {
+  //     timer = setTimeout(() => {
+  //       handleLogout();
+  //     }, inactivityTimeout);
+  //   };
 
-    const handleUserActivity = () => {
-      resetTimer();
-    };
+  //   const handleUserActivity = () => {
+  //     resetTimer();
+  //   };
 
-    // Attach event listeners for user activity
-    document.addEventListener('mousemove', handleUserActivity);
-    document.addEventListener('keypress', handleUserActivity);
-    document.addEventListener('click', handleUserActivity);
+  //   // Attach event listeners for user activity
+  //   document.addEventListener('mousemove', handleUserActivity);
+  //   document.addEventListener('keypress', handleUserActivity);
+  //   document.addEventListener('click', handleUserActivity);
 
-    // Start the initial timer
-    startTimer();
+  //   // Start the initial timer
+  //   startTimer();
 
-    // Clean up event listeners on component unmount
-    return () => {
-      document.removeEventListener('mousemove', handleUserActivity);
-      document.removeEventListener('keypress', handleUserActivity);
-      document.removeEventListener('click', handleUserActivity);
-      clearTimeout(timer);
-    };
-  }, [authToken]);
+  //   // Clean up event listeners on component unmount
+  //   return () => {
+  //     document.removeEventListener('mousemove', handleUserActivity);
+  //     document.removeEventListener('keypress', handleUserActivity);
+  //     document.removeEventListener('click', handleUserActivity);
+  //     clearTimeout(timer);
+  //   };
+  // }, [authToken]);
   
 
 

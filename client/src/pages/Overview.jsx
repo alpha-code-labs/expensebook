@@ -30,12 +30,12 @@ const Overview = ({fetchData ,isLoading,setIsLoading,loadingErrMsg, setLoadingEr
 
 
 useEffect(()=>{
-  console.log('data11',employeeData?.dashboardViews?.employee?.trips)
-  setTripsData(employeeData && employeeData?.dashboardViews?.employee?.trip)
+  
+  setTripsData(employeeData && employeeData?.dashboardViews?.employee?.trips)
 },[employeeData])
 
 
-  console.log('tripsData',tripsData)
+  console.log('tripsData',tripsData?.transitTrips)
   
     const [dropdownStates, setDropdownStates] = useState({});      
     const initialTripTab=['Trip','Trip','Trip']
@@ -75,7 +75,7 @@ useEffect(()=>{
       handleTrip={handleTrip} 
       dropdownStates={dropdownStates} 
        initialTransitTabs={initialTripTab}
-       transitTripData={tripsData &&tripsData?.transitTrips} 
+       transitTripData={tripsData?.transitTrips} 
       handleDropdownToggle={handleDropdownToggle} 
       handleOpenOverlay={handleOpenOverlay}/> 
      </div>

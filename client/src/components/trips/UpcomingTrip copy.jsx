@@ -1,7 +1,7 @@
 import React ,{Fragment, useState}from 'react';
 import { tripArray } from '../../utils/dummyData';
 import Modal from '../Modal';
-import {  bus, cab_purple, train ,three_dot, airplane_1,intransit_trip, briefcase,calender, double_arrow, cab, location, arrow_left, down_arrow, chevron_down, house_simple,  the_food_bill, briefcaseMap} from '../../assets/icon';
+import {  bus, cab_purple, train ,three_dot, airplane_1,intransit_trip, briefcase,calender, double_arrow, house_simple,  briefcaseMap} from '../../assets/icon';
 import AddLeg from '../addLeg/LegForm';
 import { formatDate, getCashAdvanceButtonText ,getStatusClass,urlRedirection} from '../../utils/handyFunctions';
 
@@ -27,8 +27,9 @@ const getIconForItinerary = (itineraryType) => {
 };
 
 
-const TransitTrip = ({initialTransitTabs,handleCashAdvance,handleTrip,transitTripData,content ,handleOpenOverlay}) => {
+const TransitTrip = ({initialTransitTabs,handleCashAdvance,handleTrip,transitTripData,handleOpenOverlay}) => {
   console.log('intransit trip11',initialTransitTabs)
+  console.log('transit trip data', transitTripData)
 
   
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -91,11 +92,11 @@ const handleDropdownToggle = (index) => {
       </div>
     </div> */}
   
-<div className=" w-auto flex flex-row    overflow-x-auto  no-scrollbar scroll-smooth  overflow-hidden ">
+<div className=" w-auto flex flex-row  gap-2  overflow-x-auto  no-scrollbar scroll-smooth  overflow-hidden ">
 {transitTripData?.length>0 ? (
 transitTripData && transitTripData?.map((item, index) => (
    <React.Fragment key={index}>
-<div className={`h-[320px] px-4 py-1 bg-[length:490px_322px]  rounded-lg `} style={{backgroundImage: `url(${briefcaseMap})`, width: '500px',}}>
+<div className={`h-[320px] px-4 py-1 bg-[length:482px_322px]  rounded-lg `} style={{backgroundImage: `url(${briefcaseMap})`, width: '500px',}}>
 {/* <img src={briefcaseMap} className='absolute h-[370px] w-full border border-red-500 z-20'></img> */}
 <div className='  mt-14  h-[250px]      flex flex-col rounded-lg bg-white-100' >
 <div className=' flex flex-row justify-between w-full  pt-[3px] px-2'>
@@ -309,15 +310,17 @@ transitTripData && transitTripData?.map((item, index) => (
 
 {activeTabs?.[index]=== 'Cash Advance' && 
   ( 
-  <div className='h-[175px] flex flex-col  justify-center  mt-1 px-3  overflow-y-auto overflow-x-auto'>
+   
+  <div className='h-[175px] w-[450px] flex flex-col  justify-center  mt-1 px-3  overflow-y-auto overflow-x-auto'>
     {/* <div className=' w-[450px] flex flex-col justify-center items-center h-[280px] gap-y-2'>  */}
   <CashCard travelRequestId={item?.travelRequestId} handleCashAdvance={handleCashAdvance} cashAdvances={item?.cashAdvances}/>
   {/* </div> */}
   </div>
+
   )}
 {activeTabs?.[index] ==="Expense" && 
 <>
-<div className=' h-[190px]  px-3 w-[458px] overflow-y-auto rounded-lg my-2'>
+<div className=' h-[190px]  px-3 w-[450px] overflow-y-auto rounded-lg my-2'>
 <TravelCard    
 // travelExpense={travelExpense}  
 tripId={item?.tripId}

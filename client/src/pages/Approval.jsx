@@ -77,11 +77,11 @@ console.log('Expense approval data',expApprovalData)
             {/* </div> */}
           </div>
 
-          <div className="w-full px-4 h-auto lg:h-[581px] bg-white-100 rounded-lg border-[1px] border-slate-300 shrink-0 font-cabin mt-3 sm:mt-6">
+          <div className="w-full  h-auto lg:h-[581px] bg-white-100 rounded-lg border-[1px] border-slate-300 shrink-0 font-cabin mt-3 sm:mt-6">
            {activeScreen === 'Travel & Cash Adv. Requests' && 
            <>
   {/* <div className='flex flex-row justify-between items-end px-8'> */}
-  <div className="w-full   h-6 flex flex-row gap-3 mt-7 items-center px-8">
+  <div className="w-full   h-6 flex flex-row gap-3 mt-7 items-center sm:px-8 px-4">
     <img className="w-6 h-5" src={airplane_1} alt="travel" />
     <div className="text-base tracking-[0.02em] font-bold">Travel Requests & Cash Advances</div>
   </div>
