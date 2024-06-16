@@ -48,7 +48,7 @@ const Navbar = () => {
             </div>
             <div className='max-lg:w-full max-lg:px-4 max-lg:py-4 bg-blue-50 '>
                 <div className='w-fit'>
-                <Button   label={'Start Trial'} onClick={()=>{location.href = signupUrl}}/>
+                <Button  label={'Start Trial'}/>
                 </div> 
             </div>
 
