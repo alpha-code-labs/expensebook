@@ -35,7 +35,7 @@ const [loading, setLoading] = useState(true)
 const ONBOARDING_API = import.meta.env.VITE_PROXY_URL
 
     //see if grouping headers and grouping labels are available. if so set the selectedOrgHeaders to that
-
+    // {target: {checked: true}}
     //fetch available group headers and Org headers
     useEffect(() => {
      
@@ -90,16 +90,23 @@ const ONBOARDING_API = import.meta.env.VITE_PROXY_URL
 
     },[updatedOrgHeaders])
 
+    const selectAllRef = useRef(null);
+    const [allSelected, setAllSelected] = useState(false);
   
     const handleOrgHeaderSelection = (e,index) => {
+        console.log(e, e.target.checked, index, 'what is clicked in org headers')
+
+
         let tmpSelectedOrgHeaders = [...selectedOrgHeaders]
         if(e.target.checked){
+            console.log('target is checked ')
             tmpSelectedOrgHeaders.push(orgHeaders[index])
         }
         else{
             let orgHeaderIndex = tmpSelectedOrgHeaders.indexOf(orgHeaders[index])
             tmpSelectedOrgHeaders.splice(orgHeaderIndex,1)
         }
+
         setSelectedOrgHeaders(tmpSelectedOrgHeaders)    
     }
 
@@ -112,8 +119,19 @@ const ONBOARDING_API = import.meta.env.VITE_PROXY_URL
             let groupHeaderIndex = tmpSelectedGroupHeaders.indexOf(groupHeaders[index])
             tmpSelectedGroupHeaders.splice(groupHeaderIndex,1)
         }
+
         setSelectedGroupHeaders(tmpSelectedGroupHeaders)    
     }
+
+    useEffect(()=>{
+        if(selectedGroupHeaders.length == groupHeaders.length && selectedOrgHeaders.length == orgHeaders.length){
+            console.log('everything got selected', selectAllRef.current);
+            if(selectAllRef.current != null){
+                selectAllRef.current.checked = true;
+            }
+        }
+
+    }, [selectedGroupHeaders, selectedOrgHeaders])
 
     const saveGroupHeaders = async () => {
         //save travel allocation headers...
@@ -203,9 +221,28 @@ const ONBOARDING_API = import.meta.env.VITE_PROXY_URL
         window.location.href = 'http://google.com'
     }
 
+    const handleSelectAll = (e)=>{
+        let tmpGroupHeaders = [];
+        let tmpOrgHeaders= [];
+
+        if(e.target.checked){
+            orgHeaders.forEach((header) => tmpOrgHeaders.push(header))
+            groupHeaders.forEach((header) => tmpGroupHeaders.push(header));
+        }
+
+        setSelectedGroupHeaders(tmpGroupHeaders);
+        setSelectedOrgHeaders(tmpOrgHeaders);
+    }
+
+
     useEffect(() => {
         console.log(selectedOrgHeaders, '...selectedOrgHeaders')
         console.log(selectedGroupHeaders, '...selectedGroupHeaders')
+
+        if(selectedGroupHeaders.length == groupHeaders.length && selectedOrgHeaders.length == orgHeaders.length){
+            setAllSelected(true);
+        }else{ setAllSelected(false); }
+
     },[selectedOrgHeaders, selectedGroupHeaders])
 
     return(<>
@@ -272,16 +309,19 @@ const ONBOARDING_API = import.meta.env.VITE_PROXY_URL
 
                     {readyToSelect &&                     
                         <>
-                        <p className='text text-base font-cabin text-neutral-700'>
-                            Please select the relevant elements to form groups
-                        </p>
+                        <div className='flex justify-between pr-6'>
+                            <p className='text text-base font-cabin text-neutral-700'>
+                                Please select the relevant elements to form groups
+                            </p>
+                            <Checkbox checked={allSelected??false} ref={selectAllRef} onClick={handleSelectAll} />
+                        </div>
 
                          <div classsName='shadow bg-white border border-grey-200'>
                             {orgHeaders.map((orgHeader,index) => {
                                 return <div className='flex justify-between items-center px-6 py-4 border-b border-grey-200'>
                                     <div className='text text-md font-cabin text-neutral-700'>{camelCaseToTitleCase(orgHeader)}</div>
                                     <div className='text text-base font-cabin text-neutral-700'>
-                                        <Checkbox id={index} onClick={(e, id)=>handleOrgHeaderSelection(e,id)} />
+                                        <Checkbox checked={selectedOrgHeaders.includes(orgHeader)} id={index} onClick={(e, id)=>handleOrgHeaderSelection(e,id)} />
                                     </div>
                                 </div>
                             })}
@@ -289,7 +329,7 @@ const ONBOARDING_API = import.meta.env.VITE_PROXY_URL
                                 return <div className='flex justify-between items-center px-6 py-4 border-b border-grey-200'>
                                     <div className='text text-md font-cabin text-neutral-700'>{camelCaseToTitleCase(groupHeader)}</div>
                                     <div className='text text-base font-cabin text-neutral-700'>
-                                        <Checkbox id={index} onClick={(e, id)=>handleGroupHeaderSelection(e,id)} />
+                                        <Checkbox checked={selectedGroupHeaders.includes(groupHeader)}  id={index} onClick={(e, id)=>handleGroupHeaderSelection(e,id)} />
                                     </div>
                                 </div>
                             })}    
