@@ -47,7 +47,7 @@ const Navbar = () => {
             </div>
             <div className='max-lg:w-full max-lg:px-4 max-lg:py-4 bg-blue-50 '>
                 <div className='w-fit'>
-                <Button  label={'Start Trial'}/>
+                <Button  label={'Start Trial'} onClick={()=>{location.href = 'https://login-client.victoriousplant-d49987f1.centralindia.azurecontainerapps.io/sign-up'}} />
                 </div> 
             </div>
 
