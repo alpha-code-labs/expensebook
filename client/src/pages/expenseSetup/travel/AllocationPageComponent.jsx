@@ -453,9 +453,9 @@ export default function ({allocations, setAllocations, tenantId, travelType, org
     }
 
     const handleContinue = async ()=>{
-        const res = updateFormState_API({tenantId, state: '/others'})
+        const res_ = await updateTravelAllocations();
         //naviage to others section
-        navigate(`/${tenantId}/others`)
+        navigate(`/${tenantId}/setup-expensebook/travel/level3`)
     }
 
     useEffect(()=>{
@@ -525,7 +525,7 @@ export default function ({allocations, setAllocations, tenantId, travelType, org
                     
                     <div className='flex flex-row-reverse justify-between mt-10'>
                         {/* <Button text='Save As Draft' onClick={handleSaveAsDraft} /> */}
-                        <Button text='Continue' onClick={handleContinue} />
+                        <Button text='Save and Continue' onClick={handleContinue} />
                     </div>
 
                     <Prompt prompt={prompt} setPrompt={setPrompt} />
