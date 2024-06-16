@@ -2287,6 +2287,8 @@ const onboardingCompleted = async (req, res) => {
     await sendToOtherMicroservice(tenant, 'This is to update hrMaster data in finance', 'finance', 'onboarding', 'online')
     await sendToOtherMicroservice(tenant, 'This is to update hrMaster data in system configuration', 'system-config', 'onboarding', 'online')
     await sendToOtherMicroservice(tenant, 'This is to update hrMaster data in login logout microservice', 'login', 'onboarding', 'online')
+    await sendToOtherMicroservice(tenant, 'This is to update hrMaster data in login logout microservice', 'finance', 'onboarding', 'online')
+    await sendToOtherMicroservice(tenant, 'This is to update hrMaster data in login logout microservice', 'reporting', 'onboarding', 'online')
 
 
     //send additional data to logoin microservice
