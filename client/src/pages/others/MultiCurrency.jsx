@@ -5,7 +5,6 @@ import HollowButton from "../../components/common/HollowButton"
 import { CircleFlag } from 'react-circle-flags'
 import Select from "../../components/common/Select"
 import { useEffect, useState } from "react"
-import axios from "axios"
 import { updateFormState_API } from "../../utils/api"
 import {currenciesList} from "../../data/currenciesList"
 import { getTenantDefaultCurrency_API, getTenantMulticurrencyTable_API, postTenantMulticurrencyTable_API } from "../../utils/api"
@@ -13,6 +12,7 @@ import Prompt from "../../components/common/Prompt"
 import Error from "../../components/common/Error"
 import MainSectionLayout from "../MainSectionLayout"
 import { postProgress_API } from "../../utils/api"
+import remove_icon from "../../assets/close.svg"
 
 export default function ({progress, setProgress}){
     const navigate = useNavigate()
@@ -164,6 +164,37 @@ export default function ({progress, setProgress}){
       setTimeout(()=>{window.location.href = import.meta.env.VITE_WEB_PAGE_URL??'google.com'}, 3000)
     }
 
+    const removeCurrency = async (index)=>{
+       
+        try{
+            console.log('currency table copy', currencyTable)
+            const currencyTable_copy = JSON.parse(JSON.stringify(currencyTable));
+            currencyTable_copy.splice(index, 1);
+
+            console.log(currencyTable_copy, 'currency table copy')
+
+            const filteredEntries = currencyTable_copy.filter(entry=>entry.exchangeValue.value!='')
+            const exchangeValue = filteredEntries.map(entry=>entry.exchangeValue)
+
+        
+            setNetworkStates({isLoading:false, isUploading:true, loadingErrMsg:null})
+            const res = await postTenantMulticurrencyTable_API({tenantId, multiCurrencyTable:{defaultCurrency:tenantDefaultCurrency, exchangeValue} })
+
+            if(res.err){
+                setNetworkStates({isLoading:false, isUploading:false, loadingErrMsg:res.err})
+                setPrompt({showPrompt:true, promptMsg: 'Something went wrong while removing currency from table'})
+            }
+            if(!res.err){
+                setNetworkStates({isLoading:false, isUploading:false, loadingErrMsg:res.err})
+                setPrompt({showPrompt:true, promptMsg: 'Currency Removed'})
+                setCurrencyTable(currencyTable_copy)
+            }
+
+        }catch(e){
+            console.log(e)
+        }
+    }
+
     useEffect(()=>{
         console.log(currencyTable)
     },[currencyTable])
@@ -237,24 +268,29 @@ export default function ({progress, setProgress}){
 
                 <div className='mt-10 flex flex-wrap gap-20'>
                     {currencyTable.length>0 && currencyTable.map((entry,index)=>(
-                        <div className="flex gap-6 h-12 w-[230px] items-center">
-                            <div className='flex items-center gap-4'>
-                                <div className='w-6 h-6'>
-                                    <CircleFlag countryCode={entry.exchangeValue.currency.countryCode.toLowerCase()} />
-                                </div>
-                                <p className="text-neutral-700 font-cabin font-normal text-sm">{`1 ${entry.exchangeValue.currency.shortName}  =`}</p>
-                            </div>
-
-                            <div className="px-4 py-3 rounded-xl border border-gray-400 flex gap-8">
+                        <div className="w-fit flex gap-6 items-center">
+                            <div className="flex gap-6 h-12 w-[230px] items-center">
                                 <div className='flex items-center gap-4'>
                                     <div className='w-6 h-6'>
-                                        <CircleFlag countryCode={entry?.currency?.countryCode.toLowerCase()} />
+                                        <CircleFlag countryCode={entry.exchangeValue.currency.countryCode.toLowerCase()} />
                                     </div>
-                                    <div className='flex gap-2 text-neutral-700 font-cabin font-normal text-sm'>
-                                        <p className="symbol">{entry.currency.symbol}</p>
-                                        <input value={entry.exchangeValue.value} onChange={(e)=>handleValueChange(e,index)} className="border border-gray-200 w-8 border-neutral-300 focus-visible:outline-0 focus-visible:border-indigo-600" />
+                                    <p className="text-neutral-700 whitespace-nowrap font-cabin font-normal text-sm">{`1 ${entry.exchangeValue.currency.shortName}  `}</p>
+                                </div>
+
+                                <div className="px-4 py-3 rounded-xl border border-gray-400 flex gap-8">
+                                    <div className='flex items-center gap-4'>
+                                        <div className='w-6 h-6'>
+                                            <CircleFlag countryCode={entry?.currency?.countryCode.toLowerCase()} />
+                                        </div>
+                                        <div className='flex gap-2 text-neutral-700 font-cabin font-normal text-sm'>
+                                            <p className="symbol">{entry.currency.symbol}</p>
+                                            <input value={entry.exchangeValue.value} onChange={(e)=>handleValueChange(e,index)} className="border border-gray-200 rounded-md pl-1 w-12 border-neutral-300 focus-visible:outline-0 focus-visible:border-indigo-600" />
+                                        </div>
                                     </div>
                                 </div>
+                            </div>
+                            <div className="w-6 bg-gray-100 rounded-full p-1">
+                                <img src={remove_icon} className='w-4 hover:scale-125 cursor-pointer' onClick={()=>removeCurrency(index)} />
                             </div>
                         </div>
                     ))}

@@ -64,35 +64,39 @@ export default function (props){
         };
 
         const handleDrop = (event) => {
+            console.log('file dropped ...')
             event.preventDefault();
-            const droppedFile = event.dataTransfer.files[0];
+            const file = event.dataTransfer.files[0];
             // Check if the dropped file is an Excel file (xlsx format)
-            if (droppedFile && droppedFile.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') {
-        
-            // Check if the uploaded Excel file contains data 
-            const reader = new FileReader();
-            reader.onload = (e) => {
+            if (file && file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') {
+              // Check if the uploaded Excel file contains data 
+              const reader = new FileReader();
+              reader.onload = (e) => {
                 const data = new Uint8Array(e.target.result);
                 const workbook = XLSX.read(data, { type: 'array' });
                 const sheetName = workbook.SheetNames[0];
                 const sheet = workbook.Sheets[sheetName];
         
+                //check if sheet has values... develop this logic
                 if (sheet && sheet['A1'] && sheet['A1'].v) {
-                // Sheet has values, you can proceed with processing
-                setSelectedFile(droppedFile);
-                setFileSelected(true);
+                  // Sheet has values, you can proceed with processing
+                  setSelectedFile(file);
+                  setFileSelected(true);
+                  const excelData = XLSX.utils.sheet_to_json(sheet);
+                  setExcelData(excelData)
                 } else {
-                // Sheet is empty or not valid
-                setSelectedFile(null);
-                console.error('Uploaded Excel sheet is empty or not valid.');
+                  // Sheet is empty or not valid
+                  setSelectedFile(null);
+                  console.error('Uploaded Excel sheet is empty or not valid.');
+                  alert('Uploaded Excel sheet is empty or not valid.')
                 }
-            };
-            reader.readAsArrayBuffer(droppedFile);
+              };
+              reader.readAsArrayBuffer(file);
             } else {
-            setSelectedFile(null);
-            setFileSelected(false);
-            console.error('Please drop a valid Excel file (.xlsx).');
-            alert('Please drop a valid Excel file')
+              setSelectedFile(null);
+              setFileSelected(false);
+              console.error('Please drop a valid Excel file (.xlsx).');
+              alert('Please drop a valid Excel file')
             }
         };
     

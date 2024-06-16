@@ -16,8 +16,8 @@ import LeftProgressBar from '../components/common/LeftProgressBar';
 import MainSectionLayout from './MainSectionLayout';
 import Prompt from '../components/common/Prompt';
 
-const WEB_PAGE_URL = import.meta.env.WEB_PAGE_URL
-const LOGIN_PAGE_URL = import.meta.env.LOGIN_PAGE_URL
+const WEB_PAGE_URL = import.meta.env.VITE_WEB_PAGE_URL;
+const LOGIN_PAGE_URL = import.meta.env.VITE_LOGIN_PAGE_URL
 
 export default function ({progress, setProgress}){
 
@@ -70,7 +70,7 @@ export default function ({progress, setProgress}){
         let goAhead = true
         setProcessed(false)
 
-        if(excelData.length == 0){
+        if(excelData == null || excelData == undefined || excelData.length == 0){
           setShowPrompt(true)
           setPrompt('Seems like you uploaded an empty excel file. Without HR data the system will not work. Please make sure the uploaded file has values and try again.')
           setSelectedFile(null)
@@ -287,7 +287,7 @@ export default function ({progress, setProgress}){
 
       <Modal showModal={showSkipModal} setShowModal={setShowSkipModal} skipable={false} >
             <div className='p-10'>
-                <p className='text-zinc-800 text-base font-medium font-cabin mt-4'>
+                <p className='text-zinc-800 text-xl font-medium font-cabin mt-4'>
                   {prompt}  
                 </p>
                 <div className='inline-flex justify-end w-[100%] mt-10'>

@@ -6,8 +6,6 @@ export default function({prompt, setPrompt, timeout=3000 /* in milliseconds */, 
 
     const [isOpen, toggleOpen] = useCycle(false, true);
 
-    console.log(toastLike, 'toastLike')
-
     useEffect(()=>{
         if(!toastLike){
             if(prompt.showPrompt){
@@ -34,7 +32,7 @@ export default function({prompt, setPrompt, timeout=3000 /* in milliseconds */, 
     },[prompt.showPrompt])
 
     return(<>
-        {!toastLike && prompt.showPrompt && <div className= {`fixed left-0 top-0 flex items-center ${bgClear? '' : 'bg-black/60'} w-[100%] h-[100%] z-[1000] overflow-hidden`} >
+        {!toastLike && prompt.showPrompt && <div className= {`fixed left-0 top-0 flex items-center ${bgClear? '' : 'bg-black/60'} w-[100%] h-[100%] z-[1001] overflow-hidden`} >
                 <div className={`transition-all transform(scale(.9)) mx-auto z-[10001] max-w-[600px] min-h-[100px] scroll-none bg-white rounded-lg shadow-md`}>
                     <div className='px-6 py-6 font-cabin font-normal text-lg text-neutral-700'>
                         {prompt.promptMsg}

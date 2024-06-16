@@ -58,6 +58,14 @@ const fixedFields = ['Total Amount', 'Date', 'Class', 'Tax Amount', 'Tip Amount'
 export default function ({tenantId, progress, setProgress}) {
 
     const [showAddExpenseCategoriesModal, setShowAddExpenseCategoriesModal] = useState(false)
+
+    useEffect(()=>{
+        if(showAddExpenseCategoriesModal){
+            document.body.style.overflow = 'hidden';
+        }else{
+            document.body.style.overflow = 'auto';
+        }
+    },[showAddExpenseCategoriesModal])
     
     const navigate = useNavigate()
     const [allocations, setAllocations] = useState({})
@@ -172,16 +180,26 @@ export default function ({tenantId, progress, setProgress}) {
 
     const handleAddCategory = async ()=>{
         if(expenseCategoryName==null || expenseCategoryName==''){
-            alert('Please provide expense category name e.g Office Supplies')
+            setPrompt({showPrompt:true, success:false, promptMsg: 'Please provide expense category name e.g Office Supplies'})
             return
         }
         if(expenseCategoryFields.length==0){
-            alert('Please add atleast one field to continue')
+            setPrompt({showPrompt:true, success:false, promptMsg: 'Please add atleast one field to continue'})
             return
         }
 
+        for(let i=0; i<expenseCategoryFields.length; i++){
+            for(let j=i+1; j<expenseCategoryFields.length; j++){
+                console.log(expenseCategoryFields[i], '  ', expenseCategoryFields[j], 'fields');
+                if(JSON.stringify(expenseCategoryFields[i]) == JSON.stringify(expenseCategoryFields[j])){
+                    setPrompt({showPrompt:true, success:false, promptMsg: 'Added field name is already present'});
+                    return;
+                }
+            }
+        }
+
         //update existing category
-        const allocations_copy = JSON.parse(JSON.stringify)
+        const allocations_copy = JSON.parse(JSON.stringify(allocations))
 
         allocations_copy.push({
             categoryName: expenseCategoryName,
@@ -196,6 +214,7 @@ export default function ({tenantId, progress, setProgress}) {
         setExistingCategoryName(null)
         setExistingCategory(false)
         setExistingCategoryName(null)
+        setShowAddExpenseCategoriesModal(false)
 
     }
 
@@ -234,17 +253,26 @@ export default function ({tenantId, progress, setProgress}) {
         if(!existingCategory) return
 
         if(expenseCategoryName==null || expenseCategoryName==''){
-            alert('Please provide expense category name e.g Office Supplies')
+            setPrompt({showPrompt:true, success:false, promptMsg: 'Please provide expense category name e.g Office Supplies'})
             return
         }
         if(expenseCategoryFields.length==0){
-            alert('Please add atleast one field to continue')
+            setPrompt({showPrompt:true, success:false, promptMsg: 'Please add atleast one field to continue'})
             return
         }
 
         if(expenseCategoryFields.some(category=> category.name == '' || category.name == undefined || category.type == '' || category.type == undefined)){
-            alert('Please provide filed name and field type')
+            setPrompt({showPrompt:true, success:false, promptMsg: 'Please provide filed name and field type'})
             return
+        }
+
+        for(let i=0; i<expenseCategoryFields.length; i++){
+            for(let j=i+1; j<expenseCategoryFields.length; j++){
+                if(JSON.stringify(expenseCategoryFields[i]) == JSON.stringify(expenseCategoryFields[j])){
+                    setPrompt({showPrompt:true, success:false, promptMsg: 'Added field name is already present'});
+                    return;
+                }
+            }
         }
 
         const allocations_copy = JSON.parse(JSON.stringify(allocations))
@@ -389,8 +417,8 @@ export default function ({tenantId, progress, setProgress}) {
                             <div className='flex flex-col gap-2'>
                                 {expenseCategoryFields.length>0 && expenseCategoryFields.map((field, index)=>(
                                     <div key={index} className='flex flex-wrap gap-4 items-center'>
-                                        <Input  showTitle={false} placeholder='eg. Amount' value={field.name} onChange={(e)=>{handleCategoryFieldNameChange(e, index)}} readOnly={fixedFields.includes(field.name)} />
-                                        <select value={field.type} disabled={fixedFields.includes(field.name)} onChange={e=>handleCategoryFieldTypeChange(e,index)} className='min-w-[200px] w-full md:w-fit max-w-[403px] h-[45px] flex-col justify-start items-start gap-2 inline-flex px-6 py-2 text-neutral-700 w-full  h-full text-sm font-normal font-cabin border rounded-md border border-neutral-300 focus-visible:outline-0 focus-visible:border-indigo-600'>
+                                        <Input  showTitle={false} placeholder='eg. Amount' value={field.name} onChange={(e)=>{handleCategoryFieldNameChange(e, index)}} readOnly={fixedFields.includes(field.name) && !existingCategory} />
+                                        <select value={field.type} disabled={fixedFields.includes(field.name) && !existingCategory} onChange={e=>handleCategoryFieldTypeChange(e,index)} className='min-w-[200px] w-full md:w-fit max-w-[403px] h-[45px] flex-col justify-start items-start gap-2 inline-flex px-6 py-2 text-neutral-700 w-full  h-full text-sm font-normal font-cabin border rounded-md border border-neutral-300 focus-visible:outline-0 focus-visible:border-indigo-600'>
                                             <option value='default'>
                                                 Select Type
                                             </option>

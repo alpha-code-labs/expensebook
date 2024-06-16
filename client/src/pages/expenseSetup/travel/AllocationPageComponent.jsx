@@ -519,14 +519,14 @@ export default function ({allocations, setAllocations, tenantId, travelType, org
                         }
                     )}
                      
-                    <div className='mt-6'>
-                        <HollowButton title='Add Expense Categories' onClick={()=>{setExistingCategory(false); setShowAddExpenseCategoriesModal(true)}} />
-                    </div>
+                {/* <div className='mt-6'>
+                    <HollowButton title='Add Expense Categories' onClick={()=>{setExistingCategory(false); setShowAddExpenseCategoriesModal(true)}} />
+                </div> */}
                     
-                    {/* <div className='flex justify-between mt-10'>
-                        <Button text='Save As Draft' onClick={handleSaveAsDraft} />
+                    <div className='flex flex-row-reverse justify-between mt-10'>
+                        {/* <Button text='Save As Draft' onClick={handleSaveAsDraft} /> */}
                         <Button text='Continue' onClick={handleContinue} />
-                    </div> */}
+                    </div>
 
                     <Prompt prompt={prompt} setPrompt={setPrompt} />
                 </div>

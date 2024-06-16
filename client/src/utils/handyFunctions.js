@@ -132,12 +132,20 @@ function titleCase(str){
   }
 
   function titleCaseToCamelCase(inputString) {
-    // Split the title case string into words using spaces
-    const words = inputString.split(' ');
-    // Capitalize the first letter of the first word and convert the rest to lowercase
-    const camelCaseString = words[0].toLowerCase() + words.slice(1).map(word => word.charAt(0).toUpperCase() + word.slice(1)).join('');
-  
-    return camelCaseString;
+    try{
+      // Split the title case string into words using spaces
+      const words = inputString.split(' ');
+      // Capitalize the first letter of the first word and convert the rest to lowercase
+      if(words[0] == null || words[0] == undefined || !isNaN(words[0])) return inputString;
+
+      const camelCaseString = words[0].toLowerCase() + words.slice(1).map(word => word.charAt(0).toUpperCase() + word.slice(1)).join('');
+    
+      return camelCaseString;
+
+    }catch(e){
+      return inputString;
+    }
+    
   }
   
 

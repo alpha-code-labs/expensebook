@@ -16,6 +16,7 @@ export default function (props){
 
     const [isLoading, setIsLoading] = useState(true);
     const [loadingErrMsg, setLoadingErrMsg] = useState(null);
+    const loginURL = import.meta.env.VITE_LOGIN_CLIENT
 
     useEffect(()=>{
         //send onboarding completed message to backend
@@ -33,7 +34,7 @@ export default function (props){
                     setIsLoading(false)
 
                     setTimeout(()=>{
-                        window.location.href = 'http://192.168.1.7:5177/user-login/Alpha Code Labs'
+                        window.location.href = `${loginURL}/verify/${tenantId}`   //'http://192.168.1.7:5177/verify/tenantId'
                     }, 3000)
                 }
             }catch(e){

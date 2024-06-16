@@ -168,6 +168,12 @@ export default function ({progress, setProgress, travelType}) {
 
     const handleCategoryFieldNameChange = (e, index)=>{
         let expenseCategoryFields_copy = JSON.parse(JSON.stringify(expenseCategoryFields))
+        
+        if(expenseCategoryFields.includes(e.target.value)){
+            alert('field already presetn');
+            return;
+        }
+
         expenseCategoryFields_copy[index].name = e.target.value
         setExpenseCategoryFields(expenseCategoryFields_copy)
     }
@@ -207,6 +213,8 @@ export default function ({progress, setProgress, travelType}) {
         console.log({existingCategoryName: existingCategoryName})
         const categoryIndex = categories.findIndex(item=>item.categoryName == existingCategoryName)
         
+       
+
         if(categoryIndex > -1){
             const categories_copy = JSON.parse(JSON.stringify(categories))
             //console.log(categories_copy[categoryIndex], 'category....' )
@@ -387,7 +395,7 @@ export default function ({progress, setProgress, travelType}) {
                         <div className='flex flex-col gap-2 max-h-[200px] overflow-y-scroll'>
                             {expenseCategoryFields.length>0 && expenseCategoryFields.map((field, index)=>(
                                 <div key={field.name} className='flex flex-wrap gap-4 items-center'>
-                                    <Input  showTitle={false} placeholder='eg. Amount' value={field.name} onChange={(e)=>{handleCategoryFieldNameChange(e, index)}} readOnly={fixedFields.includes(field.name)} />
+                                    <Input  showTitle={false} placeholder='eg. Amount' value={field.name} onBlur={(e)=>{handleCategoryFieldNameChange(e, index)}} readOnly={fixedFields.includes(field.name)} />
                                     <select value={field.type} disabled={fixedFields.includes(field.name)} onChange={(e)=>handleCategoryFieldTypeChange(e, index)} className='max-w-[200px] w-full md:w-fit max-w-[403px] h-[45px] flex-col justify-start items-start gap-2 inline-flex px-6 py-2 text-neutral-700 w-full  h-full text-sm font-normal font-cabin border rounded-md border border-neutral-300 focus-visible:outline-0 focus-visible:border-indigo-600'>
                                         <option value='default'>
                                             Select Type
@@ -411,7 +419,7 @@ export default function ({progress, setProgress, travelType}) {
                                             true / false
                                         </option>
                                     </select>
-                                    {!fixedFields.includes(field.name) && <img src={remove_icon} onClick={()=>setExpenseCategoryFields(pre=>pre.filter((_,ind)=>ind!=index))} />}
+                                    {!fixedFields.includes(field.name) && <img src={remove_icon} className='hover:scale-125 cursor-pointer' onClick={()=>setExpenseCategoryFields(pre=>pre.filter((_,ind)=>ind!=index))} />}
                                 </div>
                             ))}
                         </div>

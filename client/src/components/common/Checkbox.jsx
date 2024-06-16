@@ -1,5 +1,6 @@
-import { useState } from "react"
-export default function Checkbox(props){
+import { forwardRef, useState } from "react"
+
+export default forwardRef(function Checkbox(props, ref){
     
     const onClick = props.onClick || null
     const checked = props.checked
@@ -8,6 +9,7 @@ export default function Checkbox(props){
     const [isChecked, setIsChecked] = useState(false)
 
     const handleOnChange = (e) => {
+        console.log('running handle change')
         setIsChecked(e.target.checked)
         if(onChange){
             onChange(e)
@@ -22,6 +24,7 @@ export default function Checkbox(props){
 
     return(<>
         <input 
+            ref={ref}
             type='checkbox'
             onClick={(e)=>handleClick(e, id)} 
             onChange={handleOnChange}
@@ -29,4 +32,4 @@ export default function Checkbox(props){
             id={id}
             className='w-[18px] h-[18px] cursor-pointer font-thin accent-indigo-600 relative rounded border border-neutral-400' />
     </>)
-}
+})

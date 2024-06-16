@@ -67,6 +67,8 @@ export default function ({progress, setProgress}){
     },[])
 
     const handleFinanceEmployeeSelection = (option)=>{
+        if(systemRelatedRoles.finance.find(x=> JSON.stringify(x) == JSON.stringify(option))) return;
+
         const systemRelatedRoles_copy = JSON.parse(JSON.stringify(systemRelatedRoles))
         systemRelatedRoles_copy.finance.push(option)
         console.log(systemRelatedRoles_copy)
@@ -85,6 +87,8 @@ export default function ({progress, setProgress}){
     }
 
     const handleBusinessAdminEmployeeSelection = (option)=>{
+        if(systemRelatedRoles.businessAdmin.find(x=> JSON.stringify(x) == JSON.stringify(option))) return;
+
         const systemRelatedRoles_copy = JSON.parse(JSON.stringify(systemRelatedRoles))
         systemRelatedRoles_copy.businessAdmin.push(option)
         console.log(systemRelatedRoles_copy)
@@ -94,7 +98,6 @@ export default function ({progress, setProgress}){
 
     const removeBusinessAdminEmployee = (index)=>{
         const systemRelatedRoles_copy = JSON.parse(JSON.stringify(systemRelatedRoles))
-       
         systemRelatedRoles_copy.businessAdmin.splice(index, 1)
 
         console.log(systemRelatedRoles_copy)
@@ -103,6 +106,8 @@ export default function ({progress, setProgress}){
     }
 
     const handleSystemAdminEmployeeSelection = (option)=>{
+        if(systemRelatedRoles.superAdmin.find(x=> JSON.stringify(x) == JSON.stringify(option))) return;
+
         const systemRelatedRoles_copy = JSON.parse(JSON.stringify(systemRelatedRoles))
         systemRelatedRoles_copy.superAdmin.push(option)
         console.log(systemRelatedRoles_copy)

@@ -9,15 +9,13 @@ export default function Button(props){
     const variant = props.variant?? 'fit'
     let disabled = props.disabled?? false
     const isLoading = props.isLoading?? false
-    console.log(isLoading, 'isLoading')
-    console.log(disabled)
 
     const handleClick = (e)=>{
         if(!disabled && !isLoading){
             onClick(e)
         }
         else{
-            console.log('disabled')
+            // console.log('disabled')
         }
     }
 

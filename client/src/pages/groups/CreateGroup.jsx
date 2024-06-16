@@ -14,9 +14,13 @@ import { getEmployeeDetails_API, getTenantGroupingLabels_API, getTenantGroups_AP
 import Error from '../../components/common/Error'
 import MainSectionLayout from '../MainSectionLayout'
 import { postProgress_API } from '../../utils/api'
+import Prompt from "../../components/common/Prompt"
 
 //tracking-tight --for font spacing
 
+
+const redirectionTimeout = import.meta.env.VITE_REDIRECT_TIMEOUT??3000
+const promptTimeout = import.meta.env.VITE_PROMPT_TIMEOUT??2700
 
 export default function ({progress, setProgress, groupData, setGroupData}){
 
@@ -37,6 +41,7 @@ export default function ({progress, setProgress, groupData, setGroupData}){
     const [canDelegateForAll, setCanDelegateForAll] = useState(false)
     const [groupEmployeeList, setGroupEmployeeList] = useState([])
     const [loading, setLoading] = useState(true)
+    const [prompt, setPrompt] = useState({showPrompt:false, promptMsg:null, success:null})
     
     const [filters, setFilters] = useState()
 
@@ -143,25 +148,41 @@ export default function ({progress, setProgress, groupData, setGroupData}){
        await (function(){
             return new Promise((resolve, reject)=>{
                 if(filteredEmployeeList.length === 0){
-                    alert('No employees found for the selected filters')
+                    setPrompt({showPrompt:true, promptMsg:'No employees found for the selected filters', success:false})
                     return
                 }
                 else if(filteredEmployeeList.length === employeeData.length){
                     //create default group if no name is given
-                    if(groupName === ''){
+                    console.log(current_groups_data, 'current group data');
+
+                    if(groupName === '' && !groupData.some(g=>g.groupName == 'All')){
                         setGroupName('All')
+                    }else{
+                        setPrompt({showPrompt:true, promptMsg:'Company wide group "All"  is already present', success:false})
+                        return;
                     }
                     setGroupEmployeeList(employeeData)
         
                     const groupData_copy = JSON.parse(JSON.stringify(groupData))
                     groupData_copy.push({groupName:'All', employees:employeeData, canDelegate, filters:selectedFilters})
                     setGroupData(groupData_copy)
+                    current_groups_data = groupData_copy;
                 }
                 else{
-                    if(groupName === ''){
-                        alert('Please enter a group name')
-                        return
+                    
+                    if(groupData.some(g=> JSON.stringify(g.filters) == JSON.stringify(selectedFilters))){
+                        const groupName = groupData.find(g=> JSON.stringify(g.filters) == JSON.stringify(selectedFilters)).groupName;
+                        setPrompt({showPrompt:true, promptMsg:`Group with selected filters already present by the name  "${groupName}"`, success:false})
+                        return;
                     }
+                    else if(groupName === ''){
+                        setPrompt({showPrompt:true, promptMsg:'Please enter a group name', success:false})
+                        return
+                    }else if(groupData.some(g=>g.groupName == groupName)){
+                        setPrompt({showPrompt:true, promptMsg:'Group name already assigned', success:false})
+                        return;
+                    }
+
                     setGroupEmployeeList(filteredEmployeeList)
                     const groupData_copy = JSON.parse(JSON.stringify(groupData))
                     groupData_copy.push({groupName, employees:filteredEmployeeList, filters:selectedFilters, canDelegate})
@@ -172,8 +193,6 @@ export default function ({progress, setProgress, groupData, setGroupData}){
                 resolve()
             })
         })()
-
-
 
 
         //Post grups data to backend
@@ -301,10 +320,10 @@ export default function ({progress, setProgress, groupData, setGroupData}){
                 
             
                     <div className={`-mt-2 sticky top-[${currentFiltersDivHeight}px] bg-white top-0 w-full max-h-[300px] px-auto border border-neutral-200 flex flex-col items-center rounded-xl justify-center`}>
-                            <div className='relative w-3/4 mx-1/4 flex flex-col justify-between gap-4 overflow-y-scroll scroll'>
+                            <div className='relative w-3/4 mx-1/4 flex flex-col justify-between gap-4 overflow-scroll scroll'>
                                 <>
-                                    <div className='sticky top-0 pt-2 bg-white border-b z-[100]'>
-                                        <div className='bg-white w-full flex flex-row justify-between'>
+                                    <div className='sticky w-fit top-0 pt-2 bg-white border-b z-[100]'>
+                                        <div className='bg-white flex flex-row justify-between gap-2'>
                                             {['employeeName', ...groupHeaders].map((header,index)=>
                                                 <TableItem key={index} text={camelCaseToTitleCase(header)} header='true' canDelegateForAll={canDelegateForAll} setCanDelegateForAll={setCanDelegateForAll} />
                                             )}    
@@ -332,6 +351,8 @@ export default function ({progress, setProgress, groupData, setGroupData}){
                     </div>
                 </div>
             </div>
+
+            <Prompt prompt={prompt} setPrompt={setPrompt} timeout={promptTimeout}/>
         </>}
     </MainSectionLayout>
         </>)
@@ -346,7 +367,7 @@ function TableItem(props){
     const setCanDelegateForAll = props.setCanDelegateForAll 
 
     return(
-            <div className="w-[134px] shrink whitespace-nowrap text-ellipsis overflow-hidden  py-2 h-8 justify-start items-center inline-flex">
+            <div className="w-[134px] whitespace-nowrap text-ellipsis py-2 h-8 justify-start items-start inline-flex">
                 <div className='flex items-center gap-2'>
                     {// header && text=='Can Delegate' && <Checkbox checked={canDelegateForAll} onChange={(e)=>setCanDelegateForAll(e.target.checked)} />
                     }
@@ -370,7 +391,7 @@ function Table(props){
     return(
         <>
             {employees.map((employee, index)=>(
-                <div key={index} className='w-full flex flex-row justify-between'>
+                <div key={index} className='w-fit flex flex-row gap-2'>
                    {headers.map((header,ind)=>{
 
                     // if(header === 'canDelegate')

@@ -1,4 +1,5 @@
 import Button from "../../components/common/Button"
+import React from "react"
 import Icon from "../../components/common/Icon"
 import { useNavigate, useParams } from "react-router-dom"
 import { useLocation } from "react-router-dom"
@@ -51,9 +52,18 @@ export default function CreatedGroups({progress, setProgress, groupData, setGrou
 
     },[])
 
-    const handleRemove = (index)=>{
+    const handleRemove = async (index)=>{
         const groupData_copy = JSON.parse(JSON.stringify(groupData))
         groupData_copy.splice(index,1)
+       
+
+        setNetworkStates({isLoading:false, isUploading:true, loadingErrMsg:null})
+        const res = await updateTenantGroups_API({tenantId, groups: groupData_copy.map(g=>({groupName:g.groupName, filters:g.filters}))})
+        if(res.err){
+            setPrompt({showPrompt:true, promptMsg:'Can not remove group at the moment please try again', success:false})
+            return;
+        }
+
         setGroupData(groupData_copy)
     }
 
@@ -153,21 +163,21 @@ export default function CreatedGroups({progress, setProgress, groupData, setGrou
 
                     {
                         groupData.map((group, index) => {
-                        return(<>
+                        return(<React.Fragment key={group.groupName}>
                                 <div className="flex gap-20">
                                     <p className='text-sm flex-1 font-cabin text-neutral-700 tracking-tight'>{group.groupName}</p>
                                     <p className='text-sm flex-1 font-cabin text-neutral-700 tracking-tight'>{}</p>
                                     <div className="flex-1 flex gap-6">
-                                        <p 
-                                            onClick={()=>handleEdit(index)}
-                                            className="text-neutral-700 hover:text-neutral-400 cursor-pointer text-xs font-medium font-cabin">Edit</p>
+                                    {/* <p 
+                                        onClick={()=>handleEdit(index)}
+                                        className="text-neutral-700 hover:text-neutral-400 cursor-pointer text-xs font-medium font-cabin">Edit</p> */}
                                         <p 
                                             onClick={()=>handleRemove(index)}
                                             className="text-red-500 hover:text-red-700 cursor-pointer text-xs font-medium font-cabin">Remove</p>
                                     </div>
                                 </div>
                                 <hr></hr>
-                        </>)  
+                        </React.Fragment>)  
                         })
                     }
 
