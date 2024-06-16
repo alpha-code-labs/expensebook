@@ -17,9 +17,9 @@ export default function (props){
                             This section outlines additional setup requirements for our system
                         </p>
                     </div>
-                    <div className="">
+                    {/* <div className="">
                         <HollowButton title='Skip' onClick={`/${tenantId}/onboarding-completed`} showIcon={false} />
-                    </div>
+                    </div> */}
                 </div>
 
                 <div className="w-[200px]  mt-10">

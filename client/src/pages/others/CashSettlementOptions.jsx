@@ -168,7 +168,7 @@ export default function ({progress, setProgress}){
                         </p>
                     </div>
                     <div className="">
-                        <HollowButton title='Skip' onClick={()=>navigate(`/${tenantId}/others/cash-expense-settlement-options`)} showIcon={false} />
+                        <HollowButton title='Skip' onClick={()=>navigate(`/${tenantId}/onboarding-completed`)} showIcon={false} />
                     </div>
                 </div>
                 <hr className="mt-8" />

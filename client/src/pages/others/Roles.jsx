@@ -120,6 +120,25 @@ export default function ({progress, setProgress}){
         setSystemRelatedRoles(systemRelatedRoles_copy)  
     }
 
+    const [travelAdminSelectd, setTravelAdminSelected] = useState(false);
+    const [financeAdminSelectd, setFinanceAdminSelected] = useState(false);
+    const [superAdminSelected, setSuperAdminSelected] = useState(false);
+
+    useEffect(()=>{
+        if(systemRelatedRoles.businessAdmin.length > 0){
+            setTravelAdminSelected(true);
+        }else setTravelAdminSelected(false);
+        
+        if(systemRelatedRoles.finance.length > 0){
+            setFinanceAdminSelected(true);
+        }else setFinanceAdminSelected(false);
+
+        if(systemRelatedRoles.superAdmin.length > 0){
+            setSuperAdminSelected(true);
+        }else setSuperAdminSelected(false);
+
+    },[systemRelatedRoles])
+
     const handleSaveChanges = async ()=>{
         console.log(systemRelatedRoles)
 
@@ -204,9 +223,9 @@ export default function ({progress, setProgress}){
                                 This section will help you setup some important roles
                             </p>
                         </div>
-                        <div className="">
+                        {/* <div className="">
                             <HollowButton title='Skip' onClick={()=>navigate(`/${tenantId}/others/cash-advance-settlement-options`)} showIcon={false} />
-                        </div>
+                        </div> */}
                     </div>
                     <hr className='mt-8'/>
                     <div className="mt-10">
@@ -234,7 +253,7 @@ export default function ({progress, setProgress}){
                             <div className='mt-10 w-full flex flex-row-reverse'>
                                 <div className="w-fit">
                                 <div className="w-fit">
-                                    <Button text='Next' onClick={()=>{setShowFinanceSetion(false); setShowTravelAdminSection(true); setShowSystemAdminSection(false)}} />
+                                    <Button disabled={!financeAdminSelectd} text='Next' onClick={()=>{setShowFinanceSetion(false); setShowTravelAdminSection(true); setShowSystemAdminSection(false)}} />
                                 </div>
                                 </div>
                             </div>
@@ -267,7 +286,7 @@ export default function ({progress, setProgress}){
                                 </div>
 
                                 <div className="w-fit">
-                                    <Button text='Next' onClick={()=>{setShowFinanceSetion(false); setShowTravelAdminSection(false); setShowSystemAdminSection(true)}} />
+                                    <Button disabled={!travelAdminSelectd} text='Next' onClick={()=>{setShowFinanceSetion(false); setShowTravelAdminSection(false); setShowSystemAdminSection(true)}} />
                                 </div>
                             </div>
                             </>}
@@ -299,7 +318,7 @@ export default function ({progress, setProgress}){
                                 </div>
 
                                 <div className="w-fit">
-                                    <Button isLoading={networkStates.isUploading} text='Save Changes' onClick={()=>{handleSaveChanges()}} />
+                                    <Button disabled={!superAdminSelected} isLoading={networkStates.isUploading} text='Save and Continue' onClick={()=>{handleSaveChanges()}} />
                                 </div>
                             </div>
                             </>}
