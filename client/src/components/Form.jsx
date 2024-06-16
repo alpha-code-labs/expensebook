@@ -4,6 +4,7 @@ import { dot_icon } from '../assets/icon'
 import Button from './Button'
 import Input from './Input'
 import Modal from './Modal'
+import { signupUrl } from '../data/contentData'
 
 const Form = () => {
     const [form , setForm]= useState({"name": "", "email":""});
@@ -14,19 +15,25 @@ const Form = () => {
     const handleOpenModal= ()=>{
       setIsOpenModal(!isOpenModal);
     }
-  
     const handleSubmit = () => {
-      handleOpenModal()
+      const errors = {
+        name: form.name.trim() === '',
+        email: form.email.trim() === '' || !validateEmail(form.email),
+      };
+      
       setError({
-        name: form.name.trim() === '', // Trim to handle whitespace
-        email: !validateEmail(form.email) || form.email.trim() === '',
+        name: errors.name,
+        email: errors.email,
       });
-  
-      if (form.name.trim() !== '' && form.email.trim() !== '' && !error.email) {
-        // Both name and email are not empty, and email is valid
+    
+      if (!errors.name && !errors.email) {
         console.log(form);
+        window.location.href = signupUrl;
       }
     };
+    
+ 
+  
   return (
     <div className='sm:pt-10 pt-8'>
       <div className='flex sm:flex-row flex-col justify-center items-center gap-4'>

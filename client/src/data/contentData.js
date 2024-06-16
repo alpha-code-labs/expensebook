@@ -1,5 +1,7 @@
 import { features1, features2, features3, features4, features5, features6, features7, features8, features9, finance_icon, org_icon, sso_icon,hrms_icon, prfile1_icon, prfile2_icon, prfile3_icon, support1_icon, support2_icon } from "../assets/icon"
 
+
+const signupUrl= 'https://login-client.victoriousplant-d49987f1.centralindia.azurecontainerapps.io/sign-up'
 const navbarElement = [
     { name: 'Blogs' , url:'/blogs'},
     {name: 'Features', url:'/features'},
@@ -360,4 +362,4 @@ const blogPageData = {
  
 
 
- export {blogPageData,blogsData,trustedByData,navbarElement,applicationUsers,features,integrantions,userReviews,pricingData,addOnes}  
+ export {signupUrl,blogPageData,blogsData,trustedByData,navbarElement,applicationUsers,features,integrantions,userReviews,pricingData,addOnes}  
