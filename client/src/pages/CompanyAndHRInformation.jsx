@@ -329,7 +329,8 @@ export default function CompanyAndHRInformation({progress, setProgress}){
                     drop='up'
                     titleCase={false}
                     onSelect={handleCurrencySelection}
-                    currentOption = {`${formData?.defaultCurrency?.fullName}-${formData?.defaultCurrency?.shortName}`}
+                    placeholder='Select Currency'
+                    currentOption = {formData?.defaultCurrency?.fullName != undefined ? `${formData?.defaultCurrency?.fullName}-${formData?.defaultCurrency?.shortName}` : 'Select Currency' }
                     error={{set:errors.defaultCurrencyError, message:'Please select company\'s default currency'}} 
                     options={currenciesList.map(currency=>`${currency.fullName}-${currency.shortName}`).sort()} />
             
