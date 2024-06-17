@@ -730,7 +730,6 @@ const expenseLineSchema = new mongoose.Schema({
           },
           cashAdvanceId: {
             type: mongoose.Types.ObjectId, 
-            unique: true,
             required: true,
           },
           cashAdvanceNumber:{

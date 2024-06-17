@@ -86,7 +86,7 @@ export async function startConsumer(receiver) {
             , content
           );
 
-        //console.log('payload', content?.payload)
+        console.log('payload', content?.payload)
         const payload = content?.payload;
         const source = content?.headers?.source;
         const action = content?.headers?.action;
