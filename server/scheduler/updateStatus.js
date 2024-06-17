@@ -37,7 +37,7 @@ async function statusUpdateBatchJob(){
           sendToOtherMicroservice(res, 'Batch Job To Update all approved')
         }
 
-        console.log(`BJ: UPDATE travel-request status after approvig to pending booking :: match count: ${updatedResults.length}`)
+        console.log(`BJ: UPDATE travel-request status after approvig to pending booking :: match count: ${updatedTravelRequests.length}`)
        
 
       } catch (e) {
