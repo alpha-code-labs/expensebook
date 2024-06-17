@@ -31,11 +31,18 @@ async function statusUpdateBatchJob(){
         const res = await Promise.all(updatedTravelRequests);
   
         //send to dashboard
-        if(res.length>0){
-          // console.log(res)
-          await sendToDashboardQueue(res, 'false', 'online')
-          sendToOtherMicroservice(res, 'Batch Job To Update all approved')
-        }
+
+        if(res.length > 0){
+          //send to dashboard
+          const payload=res;
+          const comments='To update travelRequest data after running travel status update batch job from approved to Next state';
+          const destination='dashboard';
+          const source = 'travel'; 
+          const onlineVsBatch = 'batch';
+          const action = 'full-update';
+
+          await sendToOtherMicroservice(payload, comments, destination, source, 'batch', 'full-update-batchjob');
+      }
 
         console.log(`BJ: UPDATE travel-request status after approvig to pending booking :: match count: ${updatedTravelRequests.length}`)
        

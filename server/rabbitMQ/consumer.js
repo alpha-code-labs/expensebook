@@ -49,7 +49,7 @@ export default async function startConsumer(receiver) {
             console.log(
               `coming from ${content?.headers?.source} meant for ${content?.headers?.destination}`
             );
-            //console.log('payload', content?.payload)
+            console.log('content', content)
             const payload = content?.payload;
             const source = content?.headers?.source;
             const action = content?.headers?.action
