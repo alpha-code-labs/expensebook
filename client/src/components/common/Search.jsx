@@ -12,6 +12,7 @@ export default function Search(props){
     const dropdownRef = useRef(null);
     const inputRef = useRef(null)
     const optionsList = props.options || []
+    const focusHandle = props.focusHandle || (() => {});
     const currentOption = props.currentOption || null
     const [selectedOption, setSelectedOption] = useState(currentOption) 
     const [textInput, setTextInput] = useState('')
@@ -49,7 +50,11 @@ export default function Search(props){
     }
 
     const inputFocus = ()=>{
-        if(textInput.length > startShowingOptions && optionsList.length>0){
+        focusHandle()
+        if(optionsList.length===1){
+            setShowDropdown(true)
+        }
+        else if(textInput.length > startShowingOptions && optionsList.length>0){
             const filteredOptions = optionsList.filter(option=> option.toLowerCase().startsWith(textInput.toLowerCase()) )
             setFilteredOptionsList(filteredOptions)
             if(filteredOptions.length > 0){

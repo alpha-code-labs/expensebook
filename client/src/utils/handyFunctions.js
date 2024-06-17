@@ -129,6 +129,24 @@ function formatDate(date=Date.now()) {
   
     return camelCaseString;
   }
+
+
+  //password validation
+  const validatePassword = (password) => {
+    const minLength = 8;
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasDigit = /\d/.test(password);
+    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+
+   return (
+    password.length >= minLength
+    && hasUpperCase
+    && hasLowerCase
+    && hasDigit
+    && hasSpecialChar
+   );
+};
   
 
-export {titleCase, formatDate, formatDate2, formatDate3, camelCaseToTitleCase, titleCaseToCamelCase,urlRedirection}
+export {validatePassword, titleCase, formatDate, formatDate2, formatDate3, camelCaseToTitleCase, titleCaseToCamelCase,urlRedirection}

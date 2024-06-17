@@ -1,4 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
+/* eslint-disable react/display-name */
+/* eslint-disable react/prop-types */
+import React,{ useState, useEffect, useRef } from 'react';
 
 import chevronDownIcon from '../assets/chevron-down.svg'
 import leftFrame from '../assets/leftFrame.svg'
@@ -7,20 +9,20 @@ import Input from '../components/common/Input';
 import Button from '../components/common/Button';
 import Modal from '../components/common/Modal';
 import { useNavigate, useParams } from 'react-router-dom';
-import { postLogin_API, postOtpValidation_API, postSetPassword_API, postSignupData_API } from '../utils/api';
+import {  postOtpValidation_API, postSetPassword_API } from '../utils/api';
 import PopupMessage from '../components/common/PopupMessage';
-import { urlRedirection } from '../utils/handyFunctions';
+import { urlRedirection, validatePassword } from '../utils/handyFunctions';
 //after done onboarding user get email and otp
-//inputs: company name, full name of user, mobile number, company HQ, email Id, password and confirm Password
+
 
 export default function CompanyAndHRInformation(){
-  const navigate = useNavigate()
-  const {companyName}=useParams()
-  const [formData, setFormData] = useState({email:'',otp:''})
+  const inputRefs = useRef([]);
 
-  // const [formData, setFormData] = useState({companyName:'', email:'',otp:''})
-  const [isLoading,setIsLoading]=useState(false)
-  const [loadingErrorMsg, setLoadingErrorMsg]=useState(false)
+  const navigate = useNavigate()
+  const {tenantId}=useParams()
+  const [formData, setFormData] = useState({email:'',otp:'',tenantId})
+
+
   const [verifyFlag,setVerifyFlag]=useState(false)
   const [message , setMessage]=useState(null);
   const [isUploading, setIsUploading]= useState(false)
@@ -54,6 +56,7 @@ const handleVerifyOtp = async () => {
     setErrors((pre) => ({ ...pre, otpError: { set: false, message: '' } }));
   }
 
+
   // Move the resolve() inside the validation block
   if (allowSubmit) {
     setIsUploading(true)
@@ -81,7 +84,9 @@ const handleVerifyOtp = async () => {
         setMessage(null);
         setShowPopup(false);
       }, 3000);
+      if(!data.alreadyVerified){
       setVerifyFlag(true);
+      }
     }
   }
 };
@@ -96,7 +101,14 @@ let allowSubmit =true
   if(formData.password == ''){
         setErrors(pre=>({...pre, passwordError:{set:true, message:'Please enter a password'}}))
         allowSubmit=false
-      }else{setErrors(pre=>({...pre, passwordError:{set:false, message:''}}))}
+      }else if(!validatePassword(formData.password)){
+        setErrors(pre=>({...pre,passwordError: {
+         set: true,
+         message: 'Password must be at least 8 characters long and include uppercase, lowercase, special character.'
+     }}))
+     allowSubmit=false
+       }
+      else{setErrors(pre=>({...pre, passwordError:{set:false, message:''}}))}
 
       if(formData.confirmPassword == ''){
         setErrors(pre=>({...pre, confirmPasswordError:{set:true, message:'Please confirm your password'}}))
@@ -133,7 +145,6 @@ let allowSubmit =true
               },3000)
               }else{
                 const temporaryPasswordFlag = data.temporaryPasswordFlag
-                const onboardingFlag = data.onboardingFlag
                 document.cookie = `authToken=${data.data}; path=/;`;
                 console.log('API Response:', data.message);
                 sessionStorage.setItem('email', formData.email);
@@ -155,6 +166,31 @@ let allowSubmit =true
         }
       } 
 }  
+
+const handleOTPChange = (e, index) => {
+  const newOtp = [...formData.otp];
+  newOtp[index] = e.target.value;
+  setFormData((prev) => ({ ...prev, otp: newOtp.join('') }));
+
+  if (e.target.value && index < inputRefs.current.length - 1) {
+    inputRefs.current[index + 1].focus();
+  }
+};
+
+const handlePaste = (e) => {
+  const pasteData = e.clipboardData.getData('Text');
+  if (pasteData.length === 6 && /^[0-9]+$/.test(pasteData)) {
+    const newOtp = pasteData.split('');
+    setFormData((prev) => ({ ...prev, otp: newOtp.join('') }));
+    newOtp.forEach((char, index) => {
+      if (inputRefs.current[index]) {
+        inputRefs.current[index].value = char;
+      }
+    });
+    inputRefs.current[5].focus();
+  }
+  e.preventDefault();
+};
 
  
   return (
@@ -184,17 +220,12 @@ let allowSubmit =true
             <div className="flex min-w-[390px] shrink w-full flex-col items-start justify-start gap-[24px] text-sm">
 
             <div className='flex w-full'>
-            <div className="text-neutral-800 text-xl tracking-tight font-semibold font-cabin">
+            {/* <div className="text-neutral-800 text-xl tracking-tight font-semibold font-cabin">
               {companyName}
-            </div>
+            </div> */}
             </div>
             <div className='flex w-full'>
-                {/* <Input
-                    title='Mobile Number' 
-                    placeholder='mobile number'
-                    value={formData.mobileNumber}
-                    error={errors.mobileNumberError} 
-                    onBlur={(e)=> setFormData(pre=>({...pre, mobileNumber:e.target.value})) } /> */}
+
 
                 <Input
                     title='Email Id' 
@@ -235,15 +266,15 @@ let allowSubmit =true
             <h4 className="text-lg font-semibold text-gray-700 mt-4">Enter OTP Code</h4>
             <div className="flex flex-row items-center justify-between mx-auto w-full max-w-xs gap-2 mt-5">
             {[...Array(6)].map((_, index) => (
-              <>
+              
               <DigitInput value={formData.otp[index] || ''} 
-              onChange={(e) => {
-              const newOtp = [...formData.otp];
-              newOtp[index] = e.target.value;
-              setFormData((prev) => ({ ...prev, otp: newOtp.join('') }));
-            }
-            }/>
-              </>
+              key={index}
+              onPaste={index === 0 ? handlePaste : null}
+              onChange={(e) => handleOTPChange(e, index)}
+              ref={(el) => (inputRefs.current[index] = el)}
+              
+            />
+             
               ))}
             </div>
             <div className="text-xs text-red-600 mt-2 ">
@@ -280,7 +311,6 @@ let allowSubmit =true
   <PopupMessage showPopup={showPopup} setShowPopup={setShowPopup} message={message}/>
   </>
   );
-
 }
 
 
@@ -294,17 +324,19 @@ const validateEmail = (email) => {
 
 
 
-function DigitInput({value,onChange,error}){
-  return(
-   <>
+  const DigitInput = React.forwardRef(({ value, onChange ,onPaste}, ref) => {
+    return (
+      <div className="w-16 h-12">
+        <input
+          onPaste={onPaste}
+          ref={ref}
+          value={value}
+          onChange={onChange}
+          type="text"
+          maxLength="1"
+          className="w-full h-full flex flex-col items-center justify-center text-center px-2 outline-none rounded-xl border border-gray-200 text-lg bg-white focus:bg-gray-50 focus:ring-1 ring-indigo-600"
+        />
+      </div>
+    );
+  });
   
-    <div className="w-16 h-12 ">
-                <input value={value} onChange={onChange}  type="text" maxLength="1"   className="w-full h-full flex flex-col items-center justify-center text-center px-2 outline-none rounded-xl border border-gray-200 text-lg bg-white focus:bg-gray-50 focus:ring-1 ring-indigo-600"  name="" id=""/>
-    </div>
-    
-    
-  </>  
-
-
-  )
-}

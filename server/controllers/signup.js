@@ -4,16 +4,18 @@ import { Router } from 'express';
 import mongoose from 'mongoose';  
 import axios from 'axios'; 
 import bcrypt from 'bcrypt';
+import dotenv from "dotenv";
 
 
-console.log(process.env, '...env')
+dotenv.config();
+
 
 //try for free user signup
-const ONBOARDING_API = process.env.ONBOARDING_API??'http://192.168.1.11:8001/api/internal/create-tenant';
+const ONBOARDING_API = process.env.ONBOARDING_API
 const saltRounds = 5;
 const router = Router();
 router.use(express.json());
-
+console.log('hello expense',process.env.ONBOARDING_API)
 
 router.post('/signup', async (req, res) => {
   try {
