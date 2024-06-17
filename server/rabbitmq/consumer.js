@@ -115,7 +115,7 @@ export async function startConsumer(receiver) {
             }
             if(action=='full-update-batchjob'){
             console.log('trying to update Travel BatchJob - Booking')
-             const res = await fullUpdateTravelBatchJob(payloadArray)
+             const res = await fullUpdateTravelBatchJob(payload)
             console.log(res)
             if(res.success){
               //acknowledge message

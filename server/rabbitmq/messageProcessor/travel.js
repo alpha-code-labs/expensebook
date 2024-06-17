@@ -62,8 +62,7 @@ export const fullUpdateTravelBatchJob = async (payloadArray) => {
   try {
     console.log("batchjob travel", payloadArray)
     const updatePromises = payloadArray.map(async (payload) => {
-      const { travelRequestData } = payload;
-      const { tenantId, travelRequestId } = travelRequestData;
+      const { tenantId, travelRequestId } = payload;
 
       // Check if the tenantId is present
       if (!tenantId) {
@@ -77,7 +76,7 @@ export const fullUpdateTravelBatchJob = async (payloadArray) => {
           "travelRequestId": travelRequestId,
         },
         {
-          "travelRequestSchema.travelRequestData": travelRequestData,
+          "travelRequestSchema": payload,
         },
         { upsert: true, new: true }
       );
