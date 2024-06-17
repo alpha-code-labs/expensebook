@@ -1,4 +1,4 @@
-import HRMaster from "../../models/hrMasterSchema.js";
+import HRMaster from "../../models/hrCompanySchema.js";
 
 export const updateHRMaster = async (payload) => {
       try {

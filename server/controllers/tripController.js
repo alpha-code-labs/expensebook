@@ -115,6 +115,7 @@ export const filterTrips = async (req, res) => {
     });
 
     if (error) {
+      console.log("what is the error", error)
       return res.status(400).json({ message: error.details[0].message });
     }
 
@@ -206,9 +207,6 @@ export const filterTrips = async (req, res) => {
           }
         }
   
-
-    console.log('filterCriteria', travelAllocationHeaders);
-
     const trips = await reporting.find(filterCriteria);
 
     if (trips.length === 0) {

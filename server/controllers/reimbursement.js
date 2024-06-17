@@ -71,6 +71,7 @@ const reimbursementExpenseReportSchema = Joi.object({
       is: Joi.exist(),
       then: Joi.required(),
     }),
+    expenseSubmissionDate: Joi.date(), // validation
   }).with('fromDate', 'toDate').without('filterBy', [ 'fromDate', 'toDate']);
 
 
@@ -86,7 +87,7 @@ export const getReimbursementExpenseReport = async (req, res) => {
       return res.status(400).json({ message: error.details[0].message });
     }
 
-    const { tenantId, empId, filterBy, date, fromDate, toDate  } = value;
+    const { tenantId, empId, filterBy, date, fromDate, toDate , expenseSubmissionDate } = value;
 
     let filterCriteria = {
       tenantId,
@@ -147,6 +148,10 @@ export const getReimbursementExpenseReport = async (req, res) => {
       $lte: new Date(toDate),
     };
   }
+
+  if(expenseSubmissionDate){
+    filterCriteria['reimbursementSchema.expenseSubmissionDate']= expenseSubmissionDate;
+  }
   const expenseReports = await reporting.find(filterCriteria);
 
   if (expenseReports.length === 0) {
@@ -155,10 +160,10 @@ export const getReimbursementExpenseReport = async (req, res) => {
       message: 'No reimbursement reports found for the specified date range',
     });
   }
-
+   const reimReports = expenseReports.map((reports)=> reports.reimbursementSchema)
   return res.status(200).json({
     success: true,
-    expenseReports,
+    reimbursementReports: reimReports,
     message: `Reimbursement reports retrieved for the specified date range.`,
   });
 } catch (error) {
