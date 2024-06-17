@@ -3,18 +3,26 @@ import NonTravelExpense from './AllExpense/NonTravelExpense';
 
 import { travelExpense } from '../../dummyData/travelExpense';
 import { nonTravelExpenses } from '../../dummyData/nonTravelExpense';
+import {  airplane_1, receipt } from '../../assets/icon';
 
 const AllExpense = ( {handleTravelExpense,handleNonTravelExpense}) => {
     
   return (
    <>
-   <div className='flex flex-col px-2 py-3 gap-2'>
-   <h2>Travel Expense</h2>
-    <div className=' w-full h-[200px] overflow-y-auto border-[1px] border-slate-300 rounded-lg p-2 shadow-lg'>
+   <div className='flex flex-col px-4 py-3 gap-2'>
+    <div className='flex flex-row justify-start gap-2 items-center'>
+      <img src={airplane_1} className='w-4 h-4'/>
+    <p className='text-base tracking-[0.02em] font-medium'>Travel Expenses</p>
+    </div>
+      
+    <div className=' w-full h-[200px] overflow-y-auto border-[1px] border-slate-300 rounded-lg p-2 '>
       <TravelExpense  travelExpense={travelExpense} handleTravelExpense={handleTravelExpense}/>
     </div> 
-     <h2>Non Travel Expense</h2>
-    <div className='  w-full h-[200px] overflow-y-auto border-[1px] border-slate-300 rounded-lg p-2 shadow-lg'>
+    <div className='flex flex-row justify-start gap-2 items-center'>
+      <img src={receipt} className='w-4 h-4'/>
+    <p className='text-base tracking-[0.02em] font-medium'>Reimbursement Expenses</p>
+    </div>
+    <div className='w-full  h-[200px] overflow-y-auto border-[1px] border-slate-300  rounded-lg py-2 flex flex-col items-center'>
       <NonTravelExpense  nonTravelExpense={nonTravelExpenses} handleNonTravelExpense={handleNonTravelExpense}/>
     </div>
   

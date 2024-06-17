@@ -153,7 +153,7 @@ export const approvalViewRoutes={
 
 
 //travel request view for approval
-const tripBaseUrl = 'http://localhost:8080';
+const tripBaseUrl = import.meta.env.VITE_TRIP_BASE_URL;
 
 
 export const tripRoutes={

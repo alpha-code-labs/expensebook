@@ -55,8 +55,8 @@ export {default as businessAdmin1_icon} from './businessAdmin1.png';
 export {default as company_icon} from './icons8-company-100.png';
 export {default as approval_icon} from './icons8-pass-fail-100.png';
 export {default as approval_w_icon} from './icons8-pass-fail-100 (1).png';
-export {default as briefcaseMap} from './suitcase/briefcase-5121.png'
+export {default as briefcaseMap} from './suitcase/breifcase03.jpg';
 
-export {default as user_icon} from './userprofile.png'
+export {default as user_icon} from './userprofile.png';
 
 

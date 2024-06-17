@@ -21,7 +21,7 @@ const RejectedTravel = ({rejectedCashAdvance}) => {
 
   return (   
       <>
-    <div className="box w-auto max-w-[896px] h-auto  mx-2 sm:mx-4 mb-2  font-cabin">
+    <div className="box w-full max-w-[896px] h-auto  mx-2 sm:mx-4 mb-2  font-cabin">
     <div className="">
      
 <div className='h-auto flex flex-col gap-2'>

@@ -1,16 +1,19 @@
-# Use an official Node.js runtime as a parent image
+# Use the official Node.js 14 image.
 FROM node:20-alpine
 
+# Create and change to the working directory.
 WORKDIR /app
-
-# ENV MONGODB_URI=mongodb://expensebook-db:rhdARwKJZIMTZYy89jr5OKsTl42xY2KcaGizbsrmHkd11tTuRaUeySXTAzNv0tTUQn6VzDpP3f0zACDbo8SCDQ%3D%3D@expensebook-db.mongo.cosmos.azure.com:10255/?ssl=true&retrywrites=false&maxIdleTimeMS=120000&appName=@expensebook-db@
-
+# Copy package.json and package-lock.json to the working directory.
 COPY package*.json ./
 
-RUN npm i
+# Install dependencies.
+RUN npm install
 
+# Copy the rest of your application code.
 COPY . .
 
-EXPOSE 8088
+# Expose the port the app runs on
+EXPOSE 8080
 
-CMD [ "npm", "start" ]
+# Run the application
+CMD ["node", "index.js"]

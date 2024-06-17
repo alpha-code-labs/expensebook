@@ -45,7 +45,7 @@ console.log('Expense approval data',expApprovalData)
   return (
     <>
       {/* <div className="bg-white-100 lg:flex"> */}
-      <div className="w-auto min-h-screen px-2 lg:px-10 flex flex-col  items-center  bg-slate-100  ">
+      <div className="w-auto min-h-screen px-2 lg:px-20 flex flex-col  items-center  bg-slate-100  ">
          
           <div className=" flex flex-row items-center justify-start gap-2 sm:gap-4 font-cabin mb-2 mt-[50px]">
 
@@ -73,17 +73,15 @@ console.log('Expense approval data',expApprovalData)
                 Travel Expense Report
                 </div>
                 </div>
-                
-
               {/* </div> */}
             {/* </div> */}
           </div>
 
-          <div className="w-full  max-w-[932px] h-auto lg:h-[581px] bg-white-100 rounded-lg border-[1px] border-slate-300 shrink-0 font-cabin mt-3 sm:mt-6 ">
-           {activeScreen=== 'Travel & Cash Adv. Requests' && 
+          <div className="w-full  h-auto lg:h-[581px] bg-white-100 rounded-lg border-[1px] border-slate-300 shrink-0 font-cabin mt-3 sm:mt-6">
+           {activeScreen === 'Travel & Cash Adv. Requests' && 
            <>
   {/* <div className='flex flex-row justify-between items-end px-8'> */}
-  <div className="w-full  h-6 flex flex-row gap-3 mt-7 items-center px-8">
+  <div className="w-full   h-6 flex flex-row gap-3 mt-7 items-center sm:px-8 px-4">
     <img className="w-6 h-5" src={airplane_1} alt="travel" />
     <div className="text-base tracking-[0.02em] font-bold">Travel Requests & Cash Advances</div>
   </div>
@@ -92,9 +90,9 @@ console.log('Expense approval data',expApprovalData)
 
 
                      
-         <div className="box-border  mt-[46px] w-auto max-w-[932px]  h-px border-t-[1px]   border-slate-300 "/>
+         <div className="box-border  mt-[46px] w-full  h-px border-t-[1px]   border-slate-300 "/>
            {/* //data div */}
-         <div className='h-[400px] overflow-auto mt-6 w-auto '>
+         <div className='h-[400px] overflow-auto mt-6 w-auto flex flex-col items-center   '>
          {/* <div className='h-[400px] overflow-auto mt-6 w-auto'> */}
             {trApprovalData && filterTravelApprovalData?.map((item ,index)=>(
               <React.Fragment key={index}>
@@ -252,9 +250,9 @@ console.log('Expense approval data',expApprovalData)
     <img src={validation_sym} alt='three dot' className='w-[20px] h-[20px] ' />
     ) :""}
     </div> */}
-<div className='flex w-auto sm:w-[170px] min-w-[120px] justify-center items-center px-0 sm:py-2 sm:px-3 font-cabin gap-2'>
+<div className='flex w-auto sm:w-[170px]  min-w-[120px] justify-start items-center px-0 sm:py-2 sm:px-3 font-cabin gap-2'>
   <div className=' '>
-  <p className='font-cabin font-normal text-xs text-neutral-400'>Amount Details</p>
+  <p className='font-cabin font-normal text-xs   text-neutral-400'>Amount Details</p>
     
       {item?.amountDetails?.map((currencyItem,index)=>(
       <React.Fragment key={index}>
@@ -264,7 +262,7 @@ console.log('Expense approval data',expApprovalData)
         <p> {currencyItem?.amount},</p>
       </div>
       
-        <p className=' translate-y-[-1px] '> {currencyItem.mode}</p>
+        <p className=' translate-y-[-1px] min-w-full '> {currencyItem?.mode ??' -'}</p>
      
       </div>
       </React.Fragment>
