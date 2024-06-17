@@ -23,24 +23,24 @@ const travelRequestStateEnums = [
 const approverStatusEnums = ["pending approval", "approved", "rejected"];
 
 const itineraryStatusEnums = [
-  "draft",
-  "pending approval",
-  "approved",
-  "rejected",
-  "pending booking",
-  "booked",
-  "cancelled",
-  "paid and cancelled",
-  "intransit",
-  "upcoming",
-];
+  'draft', 
+  'pending approval', 
+  'approved', 
+  'rejected', 
+  'pending booking', 
+  'booked',
+  'cancelled',
+  'paid and cancelled',
+  'intransit',
+  'upcoming', 
+  'paid and cancelled',
+  'recovered',
+  ];
 
 const transferEnums = [
   "regular",
-  "departure pickup",
-  "departure drop",
-  "return pickup",
-  "return drop",
+  "pickup",
+  "drop",
 ];
 
 const itinerarySchema = {
@@ -48,6 +48,7 @@ const itinerarySchema = {
     {
       itineraryId: mongoose.Schema.ObjectId,
       formId: String,
+      sequence: Number,
       from: String,
       to: String,
       date: Date,
@@ -102,6 +103,7 @@ const itinerarySchema = {
     {
       itineraryId: mongoose.Schema.ObjectId,
       formId: String,
+      sequence: Number,
       from: String,
       to: String,
       date: Date,
@@ -158,6 +160,7 @@ const itinerarySchema = {
     {
       itineraryId: mongoose.Schema.ObjectId,
       formId: String,
+      sequence: Number,
       from: String,
       to: String,
       date: Date,
@@ -218,6 +221,7 @@ const itinerarySchema = {
     {
       itineraryId: mongoose.Schema.ObjectId,
       formId: String,
+      sequence: Number,
       location: String,
       locationPreference: String,
       class: String,
@@ -281,6 +285,7 @@ const itinerarySchema = {
     {
       itineraryId: mongoose.Schema.ObjectId,
       formId: String,
+      sequence: Number,
       date: Date,
       class: String,
       time: String,
@@ -334,6 +339,7 @@ const itinerarySchema = {
     {
       itineraryId: mongoose.Schema.ObjectId,
       formId: String,
+      sequence: Number,
       date: Date,
       class: String,
       time: String,
@@ -387,7 +393,8 @@ const itinerarySchema = {
     {
       itineraryId: mongoose.Schema.ObjectId,
       formId: String,
-      date: String,
+      sequence: Number,
+      date: Date,
       time: String,
       from: String,
       to: String,
@@ -420,6 +427,29 @@ const itinerarySchema = {
       },
     },
   ],
+};
+
+const formDataSchema = {
+  isReturnTravel: Boolean,
+  itinerary: [
+    {
+      formId: String,
+      mode : String,
+      from : String,
+      to : String,
+      date: String,
+      returnDate: String,
+      hotelNights: String,
+      pickUpNeeded: Boolean,
+      dropNeeded: Boolean,
+      fullDayCabs: Number,
+      fullDayCabDates: [String],
+      dateError:{set: Boolean, message:String},
+      returnDateError:{set: Boolean, message:String},
+      fromError: {set: Boolean, message:String},
+      toError: {set: Boolean, message:String},
+   },
+],
 };
 
 export const travelRequestSchema = new mongoose.Schema({
@@ -482,6 +512,7 @@ export const travelRequestSchema = new mongoose.Schema({
     //}
   ],
   itinerary: itinerarySchema,
+  formData: formDataSchema,
   tripType: { oneWayTrip: Boolean, roundTrip: Boolean, multiCityTrip: Boolean },
   travelDocuments: [String],
   bookings: [

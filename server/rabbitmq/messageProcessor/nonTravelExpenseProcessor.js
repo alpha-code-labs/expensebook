@@ -36,4 +36,6 @@ export const processTransitTrip = async (message) => {
   
     }
   }
-  }
+}
+
+

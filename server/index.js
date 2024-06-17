@@ -9,6 +9,7 @@ import amqp from 'amqplib';
 import { startConsumer } from './rabbitmq/consumer.js';
 import { mainRouter} from './routes/mainFrontendRoutes.js';
 import { consumeFromDashboardQueue } from './rabbitmq/dashboardConsumer.js';
+import { scheduleToFinanceBatchJob } from './schedulars/finance.js';
 // import dashboard from "../models/dashboardSchema.js";
 
 dotenv.config();
@@ -18,7 +19,7 @@ console.log(`Running in ${environment} environment`);
 const rabbitMQUrl = process.env.rabbitMQUrl;
 
 
-const mongoURI = process.env.mongoURI;
+const mongoURI = process.env.MONGODB_URI;
 
 const app = express();
 
@@ -90,8 +91,11 @@ app.listen(port, () => {
 // start consuming messages..
 startConsumer('dashboard');
 
-// consumeFromDashboardQueue();
+//BatchJobs
+// scheduleToFinanceBatchJob()
+
 consumeFromDashboardQueue();
+// consumeFromDashboardQueue();
 
 //-----------------------------------------------------------------------------------------------------
 // const consumeAsyncMessages = async (channel, callback) => {

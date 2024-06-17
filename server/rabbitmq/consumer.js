@@ -142,7 +142,7 @@ export async function startConsumer(receiver) {
             }
           } else if (source == 'expense'){
             if(action == 'full-update'){
-            console.log('trying to update travelExpense Data')
+            console.log('trying to update travelExpense Data', payload)
             const res = await fullUpdateExpense(payload)
             console.log(res)
             if(res.success){

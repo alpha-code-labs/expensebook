@@ -65,7 +65,6 @@ export const saveEmployeePreferencesController = async (req, res) => {
       sendToOtherMicroservice(payload, action, 'expense', comments, source='dashboard', onlineVsBatch='online')
       sendToOtherMicroservice(payload, action, 'finance', comments, source='dashboard', onlineVsBatch='online')
 
-  
       // Send a standardized success response
       res.status(200).json({ success: true, message: 'Employee preferences saved successfully.' });
     } catch (error) {
@@ -76,4 +75,7 @@ export const saveEmployeePreferencesController = async (req, res) => {
 };
   
   
+
+
+
 
