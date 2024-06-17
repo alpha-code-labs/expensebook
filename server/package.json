@@ -11,6 +11,7 @@
   "author": "Ajay",
   "license": "ISC",
   "dependencies": {
+    "@azure/communication-email": "^1.0.0",
     "amqplib": "^0.10.3",
     "axios": "^1.6.4",
     "bcrypt": "^5.1.1",

@@ -5,6 +5,7 @@ import Button from '../components/common/Button';
 import { useNavigate, useParams } from 'react-router-dom';
 import { postSetPassword_API} from '../utils/api';
 import PopupMessage from '../components/common/PopupMessage';
+import { validatePassword } from '../utils/handyFunctions';
 // update password after forgot password
 //inputs: company name, full name of user, mobile number, company HQ, email Id, password and confirm Password
 
@@ -16,7 +17,7 @@ export default function UpdatePassword(){
   const [isUploading , setIsUploading]= useState({update:false})
 
   const [prompt, setPrompt] = useState(null);
-  const [showPrompt, setShowPrompt] = useState(false)
+  const [showPrompt, setShowPrompt] = useState(false);
 
 
   const navigate = useNavigate()
@@ -32,6 +33,7 @@ useEffect(()=>{
   console.log('storedEmail',storedEmail)
 
 },[])
+
 console.log('email from update',formData.email)
 
 const handleUpdate = async () => {
@@ -44,7 +46,14 @@ const handleUpdate = async () => {
       passwordError: { set: true, message: 'Please enter a password' },
     }));
     allowSubmit = false;
-  } else {
+  }else if(!validatePassword(formData.password)){
+    setErrors(pre=>({...pre,passwordError: {
+     set: true,
+     message: 'Password must be at least 8 characters long and include uppercase, lowercase, special character.'
+ }}))
+ allowSubmit=false
+   } 
+  else {
     setErrors((pre) => ({ ...pre, passwordError: { set: false, message: '' } }));
   }
 
@@ -172,7 +181,6 @@ const handleUpdate = async () => {
           error={errors.confirmPasswordError} 
           onBlur={(e)=> setFormData(pre=>({...pre, confirmPassword:e.target.value})) } />
   </div> 
-
             </div>
 
             <div className='mt-10 mb-10 w-full max-w-[403px] flex items-center flex-row-reverse'>

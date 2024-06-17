@@ -2,6 +2,7 @@ import axios from 'axios';
 
 
 const LOGIN_BACKEND_API_URL = import.meta.env.VITE_LOGIN_LOGOUT_BACKEND_API_URL
+const CITYLIST_BACKEND_API_URL = import.meta.env.VITE_CITYLIST_API
 const retry = 3;
 const retryDelay = 3000;
 
@@ -12,24 +13,6 @@ const errorMessages = {
   'request': 'Network Error',
   'else': 'Something went wrong. Please try again later'
 };
-
-
-
-//const handleRequestError = (e) => {
-//   if (e.response) {
-//     // Response received from the server
-//     const status = e.response.status;
-//     if (status === 400 || status === 404 || status === 500) {
-//       throw new Error(errorMessages[status]);
-//     }
-//   } else if (e.request) {
-//     // Request was sent, but no response received
-//     throw new Error(errorMessages.request);
-//   } else {
-//     // Something else went wrong
-//     throw new Error(errorMessages[e.response?.status] || errorMessages.request || errorMessages.else);
-//   }
-// };
 
 const handleRequestError = (e) => {
   if (e.response) {
@@ -89,6 +72,14 @@ export const getCompanyList_API = async () => {
   }
 };
 
+
+
+
+
+
+
+
+
 export const postLogin_API = async (data) => {
   const url = `${LOGIN_BACKEND_API_URL}/api/login`;
 
@@ -106,8 +97,8 @@ export const postLogin_API = async (data) => {
     return { data: response.data, error: null };
   } catch (error) {
     if (error.response?.status === 401) {
-      const backendErrorMessage = error.response.data.message || 'Internal he Server Error';
-      console.log('Backend Error: ', backendErrorMessage);
+      const backendErrorMessage = error.response.data.message || 'Internal Server Error';
+     // console.log('Backend Error: ', backendErrorMessage);
       return { error: { status: 401, message: backendErrorMessage } };
     }
     // For other errors, use the general error handling
@@ -130,7 +121,12 @@ export const postForgotPassword_API = async(data)=>{
     // Handle 500 errors separately
     if (error.response?.status === 500) {
       const backendErrorMessage = error.response.data.message || 'Internal he Server Error';
-      console.log('Backend Error: ', backendErrorMessage);
+      
+      return { error: { status: 500, message: backendErrorMessage } };
+    }
+    if (error.response?.status === 403) {
+      const backendErrorMessage = error.response.data.message || 'Internal he Server Error';
+      
       return { error: { status: 500, message: backendErrorMessage } };
     }
     // For other errors, use the general error handling
@@ -154,7 +150,7 @@ export const postSignupData_API = async(data)=>{
     // Handle 500 errors separately
     if (error.response?.status > 200) {
       const backendErrorMessage = error.response.data.message || 'Internal he Server Error';
-      console.log('Backend Error: ', backendErrorMessage);
+      //console.log('Backend Error: ', backendErrorMessage);
       return { error: { status: 500, message: backendErrorMessage } };
     }
     // For other errors, use the general error handling
@@ -179,15 +175,13 @@ export const postOtpValidation_API = async(data)=>{
       // Handle 500 errors separately
       if (error.response?.status === 400) {
         const backendErrorMessage = error.response.data.message || 'Internal he Server Error';
-        console.log('Backend Error: ', backendErrorMessage);
+       // console.log('Backend Error: ', backendErrorMessage);
         return { error: { status: 400, message: backendErrorMessage } };
       }
       // For other errors, use the general error handling
       const errorObject = handleRequestError(error);
       return { error: errorObject };
     }
-  
-
 }
 
 
@@ -204,9 +198,14 @@ export const postSetPassword_API = async(data)=>{
   }catch (error) {
     // Handle 500 errors separately
     if (error.response?.status === 400) {
-      const backendErrorMessage = error.response.data.message || 'Internal he Server Error';
-      console.log('Backend Error: ', backendErrorMessage);
+      const backendErrorMessage = error.response.data.message || 'Internal Server Error';
+      //console.log('Backend Error: ', backendErrorMessage);
       return { error: { status: 400, message: backendErrorMessage } };
+    }
+    if (error.response?.status === 401) {
+      const backendErrorMessage = error.response.data.message || 'Internal Server Error';
+      //console.log('Backend Error: ', backendErrorMessage);
+      return { error: { status: 401, message: backendErrorMessage } };
     }
     // For other errors, use the general error handling
     const errorObject = handleRequestError(error);
@@ -214,6 +213,38 @@ export const postSetPassword_API = async(data)=>{
   }
 
 }
+
+
+
+
+
+///city list
+
+export const getCityList_API = async(data)=>{
+
+  const url = `${CITYLIST_BACKEND_API_URL}`
+  try{
+
+     const response = await axiosRetry(axios.post,url,data)
+     if(response.status >= 200 && response.status<300){
+                  return {data: response.data, error:null}
+              }
+  }catch (error) {
+    // Handle 500 errors separately
+    if (error.response?.status > 200) {
+      const backendErrorMessage = error.response.data.message || 'Internal he Server Error';
+     // console.log('Backend Error: ', backendErrorMessage);
+      return { error: { status: 500, message: backendErrorMessage } };
+    }
+    // For other errors, use the general error handling
+    const errorObject = handleRequestError(error);
+    return { error: errorObject };
+  }
+}
+
+
+
+
 
 
 

@@ -12,52 +12,7 @@ export  async function updateHRMaster(payload){
     }
 }
 
-// export async function updateEmployee(payload) {
-//   try {
-//     console.log('payload for login ', payload);
-//     // Extract the data from the request body
-//     const employees = payload.employeeData;
-//     const tenantId = payload.tenantId;
 
-//     // Map employees to set temporaryPasswordFlag, verified, etc.
-//     const updatedEmployees = employees.map(employee => ({
-//       ...employee,
-//       password: "",
-//       temporaryPasswordFlag: false,
-//       verified: false,
-//     }));
-
-//     // Find the tenant by tenantId
-//     const existingTenant = await TenanatModel.findOne({ tenantId });
-
-//     if (!existingTenant) {
-//       return { success: false, error: 'No tenant found for provided id.' };
-//     }
-
-//     // Filter out employees whose emails already exist in the database
-//     const nonExistingEmployees = updatedEmployees.filter(updatedEmployee => {
-//       return !existingTenant.employees.some(existingEmployee =>
-//         existingEmployee.email === updatedEmployee.email
-//       );
-//     });
-
-//     // Update the tenant with employees whose emails do not exist in the database
-//     const updatedTenant = await TenanatModel.findOneAndUpdate(
-//       { tenantId },
-//       { $push: { employees: { $each: nonExistingEmployees } }, onboardingFlag: true },
-//       { new: true }
-//     );
-
-//     if (!updatedTenant) {
-//       return { success: false, error: 'Failed to update tenant.' };
-//     }
-
-//     return { success: true, error: null };
-//   } catch (error) {
-//     console.error(error);
-//     return { success: false, error: 'Something went wrong' };
-//   }
-// }
 
  export async function updateEmployee(payload){
 

@@ -155,6 +155,7 @@ export default function Input(props){
                 <div className="relative text-neutral-700 w-full  h-full text-sm font-normal font-cabin flex items-center justify-between">
                     <input
                         ref={inputRef}
+                     
                         onChange={handleChange} 
                         onBlur={handleBlur}
                         type={visibility? 'text' : type}

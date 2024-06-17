@@ -19,7 +19,7 @@ export default function CompanyAndHRInformation(){
   const DASHBOARD_PAGE_URL  = import.meta.env.VITE_DASHBOARD_PAGE_URL
   const ONBOARDING_PAGE_URL = import.meta.env.VITE_ONBOARDING_PAGE_URL
   const navigate= useNavigate()
-  const [companyList, setCompanyList] = useState([])
+  const [companyList, setCompanyList] = useState(["tesla"])
   const [formData, setFormData] = useState({companyName:'',  email:'', password:'', })
   const [isLoading,setIsLoading]=useState(false)
   const [loadingErrorMsg, setLoadingErrorMsg]=useState(false)
@@ -209,7 +209,7 @@ export default function CompanyAndHRInformation(){
           if (error) {
             // Handle API error here
            
-            console.error('API Error:', error);
+            // console.error('API Error:', error);
             setMessage(error.message || "An unexpected error occurred.");
             setIsUploading(prevState => ({ ...prevState, logFog: false }));
             setShowPopup(true)
@@ -286,14 +286,16 @@ export default function CompanyAndHRInformation(){
             <div className='flex gap-2  w-full'>
               
 
-                <Input
-                    title='Email Id' 
-                    placeholder='email id'
-                    type='email'
-                    value={formData.email}
-                    titleCase={false}
-                    error={errors.emailError} 
-                    onBlur={(e)=> setFormData(pre=>({...pre, email:e.target.value})) } />
+            <Input
+      title='Email Id' 
+      placeholder='email id'
+      type='email'
+      value={formData.email}
+      titleCase={false}
+      error={errors.emailError} 
+      
+      onBlur={(e) => setFormData(prev => ({ ...prev, email: e.target.value.trim().toLowerCase() }))}
+    />
             </div>
 {isForgotPassword ? null :
             <div className='flex gap-2 flex-col md:flex-row w-full'>
@@ -304,6 +306,7 @@ export default function CompanyAndHRInformation(){
                     type='password'
                     titleCase={false}
                     error={errors.passwordError} 
+                   
                     onBlur={(e)=> setFormData(pre=>({...pre, password:e.target.value})) } />
 
                 {/* <Input

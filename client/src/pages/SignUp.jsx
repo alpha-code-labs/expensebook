@@ -1,21 +1,23 @@
 import { useState, useEffect, useRef } from 'react';
 import Icon from '../components/common/Icon';
+import axios from 'axios';
 import { verify_shield } from '../assets/icon';
 import Search from '../components/common/Search';
 import Input from '../components/common/Input';
 import Button from '../components/common/Button';
 import Modal from '../components/common/Modal';
 import { useNavigate } from 'react-router-dom';
-import { postOtpValidation_API, postSignupData_API } from '../utils/api';
+import { getCityList_API, postOtpValidation_API, postSignupData_API } from '../utils/api';
 import PopupMessage from '../components/common/PopupMessage';
 import Error from '../components/common/Error';
-import Select from '../components/common/Select';
+import { validatePassword } from '../utils/handyFunctions';
+
 
 //signup  with  set password first time
 //inputs: company name, full name of user, mobile number, company HQ, email Id, password and confirm Password
 
 export default function CompanyAndHRInformation(){
-  const [locationsList, setLocationsList] = useState(['Bangalore', 'Mumbai', 'Delhi', 'Chennai', 'Hyderabad', 'Kolkata'])
+  const [locationsList, setLocationsList] = useState([])
   const [formData, setFormData] = useState({companyName:'', fullName:'', email:'', password:'', confirmPassword:'', companyHQ:'', mobileNumber:''})
   const [isLoading,setIsLoading]=useState(false)
   const [isUploading,setIsUploading]=useState({signup:false,otpValidation:false})
@@ -27,9 +29,44 @@ export default function CompanyAndHRInformation(){
 
   const navigate = useNavigate()
 
-  useEffect(()=>{
-    console.log(formData, '...formData')
-  },[formData])
+
+  const handleGetCities=async()=>{
+
+      const {error,data} = await getCityList_API({ "country":"india" });
+      
+      if (error) {
+        // Handle API error here
+      
+       setIsLoading(false)
+        console.error('API Error:', error);
+        setMessage(error.message || "An unexpected error occurred.");
+     
+        setShowPopup(true)
+        setTimeout(()=>{
+          setMessage(null)
+          setShowPopup(false)
+        
+
+        },3000)
+      } else {
+        setIsLoading(false)
+        // Check the result and perform necessary actions
+        const nestedArray = data?.data
+        const cityList = nestedArray.flat()
+        console.log('city API Response:',cityList);
+        setLocationsList(cityList)
+        
+      }
+  
+  }
+  // useEffect(()=>{
+  //   handleGetCities()
+  // },[]) 
+
+
+
+  
+
 
   const [errors, setErrors] = useState({digitErrors: [false, false, false, false, false, false],},{companyNameError:{set:false, message:null}, fullNameError:{set:false, message:null}, emailError:{set:false, message:null}, passwordError:{set:false, message:null}, confirmPasswordError:{set:false, message:null}, companyHQError:{set:false, message:null}, mobileNumberError:{set:false, message:null}})
 
@@ -73,7 +110,14 @@ export default function CompanyAndHRInformation(){
       if(formData.password == ''){
         setErrors(pre=>({...pre, passwordError:{set:true, message:'Please enter a password'}}))
         allowSubmit=false
-      }else{setErrors(pre=>({...pre, passwordError:{set:false, message:''}}))}
+      } else if(!validatePassword(formData.password)){
+       setErrors(pre=>({...pre,passwordError: {
+        set: true,
+        message: 'Password must be at least 8 characters long and include uppercase, lowercase, special character.'
+    }}))
+    allowSubmit=false
+      }
+      else{setErrors(pre=>({...pre, passwordError:{set:false, message:''}}))}
 
       if(formData.confirmPassword == ''){
         setErrors(pre=>({...pre, confirmPasswordError:{set:true, message:'Please confirm your password'}}))
@@ -131,7 +175,7 @@ export default function CompanyAndHRInformation(){
   })
 
   };
-  console.log(errors.companyHQError)
+  
 
 
   const [otpDigits, setOtpDigits] = useState(['', '', '', '', '', '']);
@@ -189,10 +233,14 @@ export default function CompanyAndHRInformation(){
 
     }
   };
+
+ 
   
   return (
     <>
-    {isLoading && <Error/>}
+    {isLoading && <Error message={loadingErrorMsg}/>}
+    {!isLoading && 
+    <>
     <div className='fixed bg-white py-4 px-4 w-full z-10 top-0'>
         <Icon/>
     </div>
@@ -203,7 +251,7 @@ export default function CompanyAndHRInformation(){
       <img src={leftFrame} className='w-fit' />
     </div> */}
     
-    <div className='mx-auto mt-10 w-full p-4 overflow-x-hidden flex  items-center'>
+    <div className='mx-auto mt-10 w-full p-4 overflow-hidden flex  items-center'>
       <div className="md:p-0 lg:pt-10 flex flex-col items-start justify-start gap-[24px]">
         
         <div className="flex flex-col items-start justify-start gap-[24px] w-full">
@@ -224,7 +272,7 @@ export default function CompanyAndHRInformation(){
                     placeholder='company name'
                     value={formData.companyName}
                     error={errors.companyNameError} 
-                    onBlur={(e)=> setFormData(pre=>({...pre, companyName:e.target.value.trim()})) } />
+                    onBlur={(e)=> setFormData(pre=>({...pre, companyName:e.target.value.trim().toLowerCase()}))}/>
 
                 <Input
                     textCase='titleCase'
@@ -254,10 +302,10 @@ export default function CompanyAndHRInformation(){
                     value={formData.email}
                     titleCase={false}
                     error={errors.emailError} 
-                    onBlur={(e)=> setFormData(pre=>({...pre, email:e.target.value.trim()})) } />
+                    onBlur={(e)=> setFormData(pre=>({...pre, email:e.target.value.trim().toLowerCase()})) } />
             {/* </div> */}
 
-            <div className='flex gap-2 flex-col md:flex-row w-full'>
+            {/* <div className='flex gap-2 flex-col md:flex-row w-full'> */}
                 <Input
                     title='Password' 
                     placeholder='password'
@@ -275,21 +323,22 @@ export default function CompanyAndHRInformation(){
                     titleCase={false}
                     error={errors.confirmPasswordError} 
                     onBlur={(e)=> setFormData(pre=>({...pre, confirmPassword:e.target.value.trim()})) } />
+            {/* </div> */}
+            <div className='w-full '> 
+                <Search 
+                title='Company HQ Location' 
+                focusHandle={handleGetCities}
+                allowCustomInput={true} 
+                options={locationsList} 
+                currentOption = {formData.companyHQ} 
+                placeholder='Select the City' 
+                error={errors.companyHQError} 
+                onSelect={(option)=> setFormData(pre=>({...pre, companyHQ:option}))} />
             </div>
-<div className='w-full'>
-            <Search 
-            title='Company HQ Location' 
-            allowCustomInput={true} 
-            options={locationsList} 
-            currentOption = {formData.companyHQ}
-            placeholder='Select the City'
-            error={errors.companyHQError}
-            onSelect={(option)=> setFormData(pre=>({...pre, companyHQ:option}))} />
-</div>
             </div>
 
             <div className='mt-10 mb-10 w-full max-w-[403px] flex items-center flex-row-reverse'>
-                <Button uploading={isUploading.signup} disabled={isUploading.signup} text='Sign Up' onClick={()=>{handleSubmit()}} />
+                <Button uploading={isUploading.signup} disabled={isUploading.signup} text='Sign Up' onClick={()=>handleSubmit()} />
             </div>
 
           </form>
@@ -330,6 +379,8 @@ export default function CompanyAndHRInformation(){
    
     </Modal>
     <PopupMessage showPopup={showPopup} setShowPopup={setShowPopup} message={message}/>
+    </>
+    }
 
   </>
   );
