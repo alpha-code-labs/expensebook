@@ -9,11 +9,6 @@ export default defineConfig({
     assetsDir: 'assets',
     emptyOutDir: true,
   },
-  resolve: {
-      alias: {
-          '@': path.resolve(__dirname, './src'),
-      },
-  },
   server: {
       proxy: {
           '/api': {
