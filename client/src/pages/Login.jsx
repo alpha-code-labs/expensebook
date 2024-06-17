@@ -247,7 +247,7 @@ export default function CompanyAndHRInformation(){
       {isLoading && <Error message={loadingErrorMsg}/>}
     {!isLoading &&
     <>
-    <div className='fixed bg-white py-4 px-4 w-full z-10 top-0'>
+    <div className='fixed bg-white py-4 px-4 w-fit   z-10 top-0'>
         <Icon/>
     </div>
 
@@ -257,7 +257,7 @@ export default function CompanyAndHRInformation(){
       <img src={leftFrame} className='w-fit' />
     </div> */}
     
-    <div className='mx-auto mt-10 w-full p-4 overflow-x-hidden  flex  items-center'>
+    <div className='mx-auto border border-neutral-400 rounded-md  mt-[20%] w-full p-4 overflow-x-hidden  flex  items-center'>
       <div className="md:p-0 lg:pt-10 flex flex-col items-start justify-start gap-[24px]">
         
         <div className="flex flex-col items-start justify-start gap-[24px] w-full">

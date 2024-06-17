@@ -241,9 +241,7 @@ export default function CompanyAndHRInformation(){
     {isLoading && <Error message={loadingErrorMsg}/>}
     {!isLoading && 
     <>
-    <div className='fixed bg-white py-4 px-4 w-full z-10 top-0'>
-        <Icon/>
-    </div>
+   
 
     <div className='mx-auto w-fit'>
     
@@ -251,7 +249,10 @@ export default function CompanyAndHRInformation(){
       <img src={leftFrame} className='w-fit' />
     </div> */}
     
-    <div className='mx-auto mt-10 w-full p-4 overflow-hidden flex  items-center'>
+    <div className='mx-auto w-full p-4 lg:mt-[4%] mt-[20%] border border-neutral-400 rounded-md  flex  items-center'>
+    <div className='fixed bg-white py-4 px-4 w-fit z-10 top-0 left-0'>
+        <Icon/>
+    </div>
       <div className="md:p-0 lg:pt-10 flex flex-col items-start justify-start gap-[24px]">
         
         <div className="flex flex-col items-start justify-start gap-[24px] w-full">
@@ -337,7 +338,7 @@ export default function CompanyAndHRInformation(){
             </div>
             </div>
 
-            <div className='mt-10 mb-10 w-full max-w-[403px] flex items-center flex-row-reverse'>
+            <div  className='mt-10  w-full max-w-[403px] flex items-center flex-row-reverse'>
                 <Button uploading={isUploading.signup} disabled={isUploading.signup} text='Sign Up' onClick={()=>handleSubmit()} />
             </div>
 

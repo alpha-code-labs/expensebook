@@ -205,7 +205,7 @@ const handlePaste = (e) => {
       <img src={leftFrame} className='w-fit' />
     </div> */}
 
-    <div className='mx-auto mt-10  w-full min- p-4 overflow-x-hidden flex  items-center'>
+    <div className='mx-auto border border-neutral-400 rounded-md  mt-[20%]   w-full min- p-4 overflow-x-hidden flex  items-center'>
       <div className="md:p-0  lg:pt-10 flex flex-col items-start justify-start gap-[24px]">
         
         <div className="flex flex-col items-start justify-start gap-[24px] w-full">

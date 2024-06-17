@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import {BrowserRouter, Routes, Route} from 'react-router-dom';
 import SignUp from './pages/SignUp';
-import UserLogin from './pages/UserLogin';
+import VerifyUser from './pages/VerifyUser';
 import Login from './pages/Login';
 import UpdatePassword from './pages/UpdatePassword';
 
@@ -14,7 +14,7 @@ function App() {
      <BrowserRouter>
         <Routes>
           <Route path='/sign-up/' element={<SignUp />} /> 
-          <Route path='/verify/:tenantId' element={<UserLogin />} /> 
+          <Route path='/verify/:tenantId' element={<VerifyUser  />} /> 
           <Route path='/user-login' element={<Login/>}/>
           <Route path='/update-password' element={<UpdatePassword/>} />
         </Routes>
