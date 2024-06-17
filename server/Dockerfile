@@ -13,7 +13,7 @@ RUN npm install
 COPY . .
 
 # Expose the port the app runs on
-EXPOSE 8080
+EXPOSE 8088
 
 # Run the application
-CMD ["node", "index.js"]
+CMD ["node", "index.js"] 
