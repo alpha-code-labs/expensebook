@@ -70,6 +70,7 @@ import { generateIncrementalNumber } from "./cashAdvanceProcessor.js";
 // };
 
 const createTrip = async (travelRequest) => {
+  console.log("travelRequest for creating trip createTrip", travelRequest)
   const { tenantId, tenantName, travelRequestId, createdBy } = travelRequest;
 
   const itinerary = travelRequest?.itinerary ?? {};
@@ -147,7 +148,7 @@ const updateOrCreateTrip = async (trip) => {
       tripCompletionDate,
       tripStatus,
       createdBy,
-      travelRequest,
+      travelRequestData:travelRequest,
     };
 
     // Conditionally update the cashAdvancesData field based on isCashAdvanceTaken
@@ -193,7 +194,7 @@ export const processTravelRequests = async (tripArray) => {
       } catch (error) {
         console.error('Error creating trip:', error);
         throw error;
-      }
+      }``
     }));
 
     // Process each trip in parallel
@@ -207,6 +208,7 @@ export const processTravelRequests = async (tripArray) => {
     }
     ));
 
+    console.log(" standalone tr - trip created and sent to dashboard", tripsCreated)
     await sendToOtherMicroservice(tripsCreated, 'trip-creation', 'dashboard', 'Trip creation successful and sent to dashboard', 'trip', 'online');
     return {success: true, error: null}; 
   } catch(e){

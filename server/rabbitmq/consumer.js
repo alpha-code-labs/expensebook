@@ -105,7 +105,7 @@ export async function startConsumer(receiver) {
               console.log("update failed with error code", res.error);
             }
           } else  if ( source == 'travel'){
-            if(action =='trip-creation'){
+            if(action =='trip-creation' ){
               const res = await processTravelRequests(payload)
               console.log(res, 'at 110')
               if(res.success){
