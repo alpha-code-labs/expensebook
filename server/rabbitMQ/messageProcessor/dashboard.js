@@ -13,7 +13,7 @@ export async function addALeg(payload /* */){
         travelRequest.itinerary[itineraryType] = [...travelRequest.itinerary[itineraryType], ...itineraryDetails]
         travelRequest.isAddALeg = true
 
-        const result = cashAdvance.save()
+        const result = travelRequest.save()
 
         return {success:true, error:null}
     }catch(e){
@@ -49,7 +49,7 @@ export async function updateBookingAdmin(payload){
     try{
         const {travelRequestId, assignedTo} = payload;
         
-        const res = await CashAdvance.updateOne({'travelRequestData.travelRequestId' : travelRequestId}, {$set: { 'travelRequestData.assignedTo' : assignedTo  }}) 
+        const res = await TravelRequest.updateOne({travelRequestId}, {$set: { assignedTo  }}) 
         
         if(res.matchedCount == 0) {
             return {success: false, error: 'Travel Request not found'}
@@ -66,7 +66,7 @@ export async function updateFinanceAdmin(payload){
     try{
         const {travelRequestId, assignedTo} = payload;
         
-        const res = await CashAdvance.updateOne({'travelRequestData.travelRequestId' : travelRequestId}, {$set: { 'cashAdvancesData.assignedTo' : assignedTo }}) 
+        const res = await TravelRequest.updateOne({travelRequestId}, {$set: { 'assignedTo' : assignedTo }}) 
         
         if(res.matchedCount == 0) {
             return {success: false, error: 'Travel Request not found'}
