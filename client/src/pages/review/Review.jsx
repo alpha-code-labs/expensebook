@@ -49,7 +49,8 @@ export default function (props){
         if(needed){
             //redirect to create cash advance page
             //navigate(`${CASH_URL}/create/advance/${formData.travelRequestId}`)
-            window.location.href = `${CASH_URL}/create/advance/${formData.travelRequestId}`
+            //window.location.href = `${CASH_URL}/create/advance/${formData.travelRequestId}`
+            window.parent.postMessage(`raiseAdvance ${tenantId} ${formData.travelRequestId}`, DASHBOARD_URL);
             setShowPopup(false)
         }    
         else{

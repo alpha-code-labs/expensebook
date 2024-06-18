@@ -449,7 +449,7 @@ export default function BasicDetails(props){
             </div>
 
             {/* Rest of the section */}
-            <div className="w-full h-full ">
+            <div className="w-full h-full px-6">
                 {/* back link */}
                 <div className='flex items-center gap-4 cursor-pointer'>
                     <img className='w-[24px] h-[24px]' src={leftArrow_icon} onClick={()=>navigate(props.lastPage)} />
