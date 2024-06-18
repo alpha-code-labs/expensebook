@@ -42,7 +42,7 @@ export const assignedToTravelAdmin = async (req, res) => {
         const { isCashAdvanceTaken, assignedTo } = req.body;
         console.log("params", req.params, "req.body", req.body);
 
-        if(isCashAdvanceTaken != null || isCashAdvanceTaken != undefined){
+        if(isCashAdvanceTaken == undefined || isCashAdvanceTaken == null){
             throw new Error("missing fields - isCashAdvanceTaken")
         }
 

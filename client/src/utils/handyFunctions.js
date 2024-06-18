@@ -131,7 +131,7 @@ function formatDate(date=Date.now()){
   }  
 
   function formatAmount(number) {
-    return number.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    return number?.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
   function formatDate3(inputDate) {

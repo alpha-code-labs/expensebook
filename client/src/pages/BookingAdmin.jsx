@@ -66,7 +66,7 @@ if(travelBookingData){
   return (
     <>
       {/* <div className="bg-white-100 lg:flex"> */}
-      <div className="w-auto min-h-screen  flex flex-col lg:w-auto items-center px-2 lg:px-20    pt-[50px] bg-slate-100 ">
+      <div className="px-10 relative w-auto h-dvh   flex flex-col items-center  pt-[50px] bg-slate-100">
          
           <div className="  flex flex-row items-center justify-start gap-2 sm:gap-4 font-cabin mb-2">
 <div className='relative'>
@@ -95,7 +95,7 @@ if(travelBookingData){
             {/* </div> */}
           </div>
 
-          <div className="w-full  bg-white-100  h-auto lg:h-[581px] rounded-lg border-[1px] border-slate-300 shrink-0 font-cabin mt-3 sm:mt-6 shadow-[0px_12px_3px_rgba(0,_0,_0,_0),_0px_8px_3px_rgba(0,_0,_0,_0.01),_0px_4px_3px_rgba(0,_0,_0,_0.03),_0px_2px_2px_rgba(0,_0,_0,_0.05),_0px_0px_1px_rgba(0,_0,_0,_0.06)]">
+          <div className="w-full  bg-white-100 h-[80%] rounded-lg  border-[1px] border-indigo-500 shrink-0 font-cabin mt-3 sm:mt-6 ">
            {activeScreen=== 'Pending Bookings' && 
            <>
   {/* <div className='flex flex-row justify-between items-end px-8'> */}
@@ -109,8 +109,8 @@ if(travelBookingData){
 
                      
 <div className="box-border mx-4  mt-[46px]  w-auto    border-[1px]  border-b-gray "/>
-           {/* //data div */}
-         <div className='h-[380px]  items-center  justify-center overflow-y-auto overflow-x-hidden  mt-6 w-auto max-w-[930px] px-4'>
+          
+         <div className='overflow-y-auto overflow-x-hidden  mt-6  w-dvh px-10'>
            
             {filteredData && filteredData?.map((travelDetails ,index)=>(
               <div key={index} className=' pb-2'>
@@ -119,14 +119,17 @@ if(travelBookingData){
              ))}
            </div>
            </>}
+
+
+
            {activeScreen=== 'Cancelled Trips' && 
            <>
    <div className="w-auto h-6 flex flex-row gap-3 ml-8 mt-7 items-center">
       <img className="w-6 h-6" src={receipt} alt="receipt" />
       <div className="text-base tracking-[0.02em] font-bold w-auto">Cancelled Trips</div>
     </div>
-    <div className="box-border mx-4  mt-[46px] w-auto    border-[1px]  border-b-gray "/>
-    <div className=' h-auto w-full flex flex-col items-center max-h-[420px] overflow-auto  '>
+    <div className="box-border mx-4  mt-[46px]  w-auto    border-[1px]  border-b-gray "/>
+    <div className='overflow-y-auto overflow-x-hidden  mt-6  w-dvh px-10'>
            {/* {tripArray.map((travelDetails, index)=> */}
            <CancelledTrRequest  handleTrip={handleTrip}/>
            </div>

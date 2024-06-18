@@ -66,7 +66,7 @@ export const cashAdvanceRoutes={
     getUrl:(travelRequestId,cashAdvanceId,)=>`${cashAdvanceBaseUrl}/cancel/advance/${travelRequestId}/${cashAdvanceId}`
   },
   clearRejected:{
-    path:'/ca-clear-rejected/:tenantId/:empId/:travelRequestId/:cashAdvanceId',
+    path:'/rejected/advance/:travelRequestId/:cashAdvanceId',
     getUrl:(empId , tenantId,travelRequestId,cashAdvanceId,)=>`${cashAdvanceBaseUrl}/ca-clear-rejected/${tenantId}/${empId}/${travelRequestId}/${cashAdvanceId}`
   },
   modify_tr_with_ca:{ path: '/modify-tr-ca/:tenantId/:empId/:travelRequestId',
