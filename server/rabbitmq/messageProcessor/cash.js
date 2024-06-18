@@ -56,7 +56,6 @@ export const updateCashToDashboardSync = async (message,correlationId) => {
   }
 }
 
-
 export const fullUpdateCash = async (payload) => {
   console.log('full update cashAdvanceSchema', payload)
   const{ travelRequestData, cashAdvancesData} = payload
@@ -129,3 +128,9 @@ export const fullUpdateCashBatchJob = async (payloadArray) => {
     return { success: false, error: error };
   }
 }
+
+
+
+
+
+

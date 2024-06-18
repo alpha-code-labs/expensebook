@@ -374,7 +374,9 @@ const travelStandAloneForEmployee = async (tenantId, empId) => {
         if(travelRequestDocs?.length>0){
             // console.log("travel standAlone From db....",travelRequestDocs)
 
-            const allTravelRequests = travelRequestDocs.filter(({travelRequestSchema:{travelRequestStatus}}) => travelRequestStatus !== 'rejected').map(({ travelRequestSchema: { travelRequestId, travelRequestNumber, tripPurpose, travelRequestStatus, isCashAdvanceTaken } }) => ({
+            const allTravelRequests = travelRequestDocs
+            .filter(({travelRequestSchema:{travelRequestStatus}}) => travelRequestStatus !== 'rejected' && travelRequestStatus !== 'booked')
+            .map(({ travelRequestSchema: { travelRequestId, travelRequestNumber, tripPurpose, travelRequestStatus, isCashAdvanceTaken } }) => ({
                 travelRequestId, travelRequestNumber, tripPurpose, travelRequestStatus , isCashAdvanceTaken
             }));
             
@@ -430,6 +432,7 @@ const travelStandAloneForEmployee = async (tenantId, empId) => {
             return {
                 travelRequests: allTravelRequests,
                 rejectedTravelRequests,
+                message
             };
 
         } else{
@@ -2144,7 +2147,6 @@ try{
 
 
 }catch(error){
-
 }
 }
 
