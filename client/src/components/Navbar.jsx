@@ -1,7 +1,8 @@
 import React, { useState,useRef, useEffect } from 'react'
 import {logo_icon, menu_icon, x_icon} from '../assets/icon'
 import Button from './Button'
-import { navbarElement } from '../data/contentData'
+import { navbarElement, signupUrl } from '../data/contentData'
+
 
 const Navbar = () => {
     const [open , setOpen]=useState(false)
@@ -47,7 +48,7 @@ const Navbar = () => {
             </div>
             <div className='max-lg:w-full max-lg:px-4 max-lg:py-4 bg-blue-50 '>
                 <div className='w-fit'>
-                <Button  label={'Start Trial'} onClick={()=>{location.href = 'https://login-client.victoriousplant-d49987f1.centralindia.azurecontainerapps.io/sign-up'}} />
+                <Button  label={'Start Trial'}/>
                 </div> 
             </div>
 
