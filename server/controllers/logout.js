@@ -3,7 +3,7 @@ router.post('/logout',authenticateToken, async (req, res) => {
     try {
       // Assuming you send the token in the request header
       const authToken = req.header('Authorization').replace('Bearer ', '');
-  
+      
       // Remove the token from the authTokens array
       user.authTokens = user.authTokens.filter((token) => token !== authToken);
       await user.save();
