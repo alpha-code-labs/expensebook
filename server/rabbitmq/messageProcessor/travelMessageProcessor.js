@@ -197,36 +197,22 @@ export const processTravelRequests = async (tripArray) => {
     }));
 
     // Process each trip in parallel
-    const tripPromises = resultData.map(async (trip) => {
+    const tripsCreated = await Promise.all(resultData.map(async (trip) => {
       try {
-        const tripsAdded = await updateOrCreateTrip(trip);
-        return tripsAdded; // Return the result of updateOrCreateTrip
+        return await updateOrCreateTrip(trip);
       } catch (error) {
         console.error('Error updating/creating trip:', error);
-        throw error;
+        throw error
       }
-    });
+    }
+    ));
 
-    // Wait for all trip promises to resolve
-    const tripsAdded = await Promise.all(tripPromises);
-
-  
-    // Filter out null or undefined results
-    const validTripsAdded = tripsAdded.filter(trip => trip);
-    console.log("validTripsAdded for dashboard", validTripsAdded)
-    // Send valid trips to dashboard
-    await sendToOtherMicroservice(validTripsAdded, 'trip-creation', 'dashboard', 'Trip creation successful and sent to dashboard', 'trip', 'online');
-    return {success: true};
-    
-  } catch (error) {
-    console.error('Error processing trips:', error);
-    return {succes: false, error}
-    throw error;
+    await sendToOtherMicroservice(tripsCreated, 'trip-creation', 'dashboard', 'Trip creation successful and sent to dashboard', 'trip', 'online');
+    return {success: true, error: null}; 
+  } catch(e){
+    return {success:false, error: e};
   }
 };
-
-
-
 
 
 
