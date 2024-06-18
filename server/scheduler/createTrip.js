@@ -27,8 +27,16 @@ async function createTripBatchJob(){
           const updatedResults =  await Promise.all(promises)
           
           //send to trip ms
-          if(updatedResults.length>0)
-            await sendToOtherMicroservice(updatedResults, 'Booked Travel Requests Update from Travel MS', 'trip', 'travel', 'batch', 'trip-creation')
+          if(updatedResults.length>0){
+            // await sendToOtherMicroservice(updatedResults, 'Booked Travel Requests Update from Travel MS', 'trip', 'travel', 'batch', 'trip-creation')
+            const payload=updatedResults;
+            const comments='Booked Travel Requests Update from Travel MS';
+            const destination='trip';
+            const source = 'travel'; 
+            const onlineVsBatch = 'batch';
+            const action = 'trip-creation';
+            await sendToOtherMicroservice(payload, comments, destination, source, 'batch', 'full-update-batchjob');
+          }
 
           //update  sentToTrip flag to true 
           console.log(`BJ: SEND booked requests to trip :: match count: ${updatedResults.length}`)
