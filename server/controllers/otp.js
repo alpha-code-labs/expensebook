@@ -33,6 +33,7 @@ router.post('/verify', async (req, res) => {
     if (!employee) {
       return res.status(400).json({ message: 'Email is not registered for the given tenant' });
     }
+    console.log('Employee found:', employee);
 
     // Check if the employee is already verified
     if (employee.verified) {

@@ -28,7 +28,7 @@ const PORT = process.env.PORT||9004
 app.use(cors()); // Use cors middleware to handle CORS
 
 app.get('/ping', async (req, res)=>{
-    res.json(200).json({message: 'It\'s Chilling in here'})
+    res.status(200).json({message: 'It\'s Chilling in here'})
 })
 
 app.use("/api", signup);

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import Icon from '../components/common/Icon';
-import { verify_shield } from '../assets/icon';
+import { forgetPassword_icon, login_icon, verify_shield } from '../assets/icon';
 import Search from '../components/common/Search';
 import Error from '../components/common/Error';
 import PopupMessage from '../components/common/PopupMessage'
@@ -247,18 +247,21 @@ export default function CompanyAndHRInformation(){
       {isLoading && <Error message={loadingErrorMsg}/>}
     {!isLoading &&
     <>
-    <div className='fixed bg-white py-4 px-4 w-full z-10 top-0'>
+    <div className=' min-h-screen flex flex-col md:flex-row'>
+    <div className='static md:fixed bg-white py-4 px-4 w-fit z-10 top-0 left-0'>
         <Icon/>
     </div>
-
-    <div className='mx-auto w-fit'>
+  <div className='w-full md:w-1/2 flex items-center justify-center mt-6 md:mt-0'>
+      <img src={isForgotPassword ? forgetPassword_icon : login_icon} className=' bg-cover h-full w-[70%] '/>
+    </div>
+    <div className='w-full md:w-1/2 border-l border-slate-300'>
     
     {/* <div className='fixed sr-only lg:not-sr-only left-0 top-0 h-[100vh] w-[40vw] flex flex-col justify-center items-center [background:linear-gradient(187.95deg,_rgba(76,_54,_241,_0),_rgba(76,_54,_241,_0.03)_9.19%,_rgba(76,_54,_241,_0.06)_17.67%,_rgba(76,_54,_241,_0.1)_25.54%,_rgba(76,_54,_241,_0.14)_32.86%,_rgba(76,_54,_241,_0.19)_39.72%,_rgba(76,_54,_241,_0.25)_46.19%,_rgba(76,_54,_241,_0.31)_52.36%,_rgba(76,_54,_241,_0.38)_58.3%,_rgba(76,_54,_241,_0.46)_64.08%,_rgba(76,_54,_241,_0.53)_69.79%,_rgba(76,_54,_241,_0.62)_75.51%,_rgba(76,_54,_241,_0.71)_81.31%,_rgba(76,_54,_241,_0.8)_87.28%,_rgba(76,_54,_241,_0.9)_93.48%,_#4c36f1)]'>
       <img src={leftFrame} className='w-fit' />
     </div> */}
     
-    <div className='mx-auto mt-10 w-full p-4 overflow-x-hidden  flex  items-center'>
-      <div className="md:p-0 lg:pt-10 flex flex-col items-start justify-start gap-[24px]">
+    <div className='justify-center rounded-md  mt-[20%] w-full overflow-x-hidden  flex  items-center'>
+      <div className=" flex flex-col items-start justify-start gap-[24px]">
         
         <div className="flex flex-col items-start justify-start gap-[24px] w-full">
           <div className="flex flex-col items-start justify-start gap-[8px]">
@@ -268,7 +271,7 @@ export default function CompanyAndHRInformation(){
           </div>
         </div>
 
-          <form className='border-neutral-400 min-w-[400px] p-4 rounded-lg border'>
+          <form className='p-4 pt-6 border-neutral-400 w-full md:min-w-[400px] rounded-lg border'>
             <div className="flex w-full flex-col items-start justify-start gap-[24px] text-sm">
 
             <div className='flex gap-2 w-full'>
@@ -374,7 +377,7 @@ export default function CompanyAndHRInformation(){
               </div>
           </div> */}
     </Modal>
-
+    </div>
   </>}
   </div>
   );
