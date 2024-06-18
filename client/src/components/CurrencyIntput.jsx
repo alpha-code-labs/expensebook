@@ -58,7 +58,6 @@ const CurrencyInput = ({id, amount, currency, mode, onModeChange, currencyOption
                   </div>}
               </div>
               <div className='flex items-center gap-2 text-neutral-700 font-cabin font-normal text-sm'>
-                  
                   <input value={amount}  placeholder='amount' onChange={(e)=>onAmountChange(e.target.value, id)} className="border border-gray-200 w-[70px] sm:w-[110px]  h-10 rounded-md p-4 border-neutral-300 focus-visible:outline-0 focus-visible:border-indigo-600" />
                   <select placeholder='mode' value={mode??undefined} onChange={(e)=>onModeChange(e.target.value, id)} className="font-cabin border border-gray-200 w-[80px] sm:w-[110px] h-10 rounded-md border-neutral-300 focus-visible:outline-0 focus-visible:border-indigo-600" >
                     {cashAdvanceOptions != undefined && cashAdvanceOptions.length>0 ? cashAdvanceOptions.map((caoption,index)=><option key={index}>{caoption}</option>) : <option>Default</option>}

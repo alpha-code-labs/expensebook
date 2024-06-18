@@ -216,7 +216,8 @@ export default function(){
           //redirect to desktop after 5 seconds
           setTimeout(()=>{
             setShowPopup(false)
-            window.location.href = `${DASHBOARD_URL}/${tenantId}/${employeeId}/overview`
+            //window.location.href = `${DASHBOARD_URL}/${tenantId}/${employeeId}/overview`
+            window.parent.postMessage('closeIframe', DASHBOARD_URL);
           }, 5000)
         }
   

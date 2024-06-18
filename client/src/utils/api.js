@@ -2,7 +2,10 @@ import axios from "axios";
 import policies from '../../src/assets/policies.json'
 import { TR_backendTransformer, TR_frontendTransformer } from "./transformers";
 
-const TRAVEL_API_URL = import.meta.env.VITE_TRAVEL_API_URL
+const TRAVEL_API_URL = import.meta.env.VITE_TRAVEL_API_URL;
+console.log(import.meta.env, 'env file')
+console.log(TRAVEL_API_URL, 'travel api url')
+
 const retry =  3
 const retryDelay = 3000
 
@@ -182,7 +185,6 @@ async function policyValidation_API(data){
 }
 
 //for cash advance
-
 async function getCashAdvance_API(data){
   try{
     const {travelRequestId, cashAdvanceId} = data

@@ -100,7 +100,7 @@ export default function(){
 
   async function amountValidator(cashAdvance){
     const exchangeValue = (currency)=>{
-      if(currency.shortName == multiCurrencyTable.defaultCurrency.shortName) return 1
+      if(currency?.shortName == multiCurrencyTable?.defaultCurrency?.shortName) return 1
       const foundCurrency = multiCurrencyTable.exchangeValue.find(exchangeCurrency=> exchangeCurrency.currency.shortName == currency.shortName)
       console.log(foundCurrency)
       return foundCurrency?.value??0
