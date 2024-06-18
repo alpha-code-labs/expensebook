@@ -111,7 +111,7 @@ let url
 }
 
   try{
-    const response= await axiosRetry(axios.patch,url,{rejectionReason})
+    const response= await axiosRetry(axios.patch,url,rejectionReason)
 
     return(response.data.message)
   }catch(error){
