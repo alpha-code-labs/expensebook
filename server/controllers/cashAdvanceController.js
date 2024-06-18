@@ -9,7 +9,7 @@ import dotenv from 'dotenv'
 
 dotenv.config();
 
-const TRAVEL_API_URL = process.env.TRAVEL_API_URL??'https://travel-server.internal.victoriousplant-d49987f1.centralindia.azurecontainerapps.io/travel/internal/api';
+const TRAVEL_API_URL = process.env.TRAVEL_API_URL??'https://travel-server.victoriousplant-d49987f1.centralindia.azurecontainerapps.io/travel/internal/api';
 
  //'http://localhost:8021/travel/internal/api'  
 
