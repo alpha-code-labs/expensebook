@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import Trip from "../../models/tripSchema.js";
 import { sendToOtherMicroservice } from "../publisher.js";
 import { generateIncrementalNumber } from "./cashAdvanceProcessor.js";
