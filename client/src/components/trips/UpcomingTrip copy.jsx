@@ -1,4 +1,4 @@
-import React ,{Fragment, useState}from 'react';
+import React ,{Fragment, useState,useRef}from 'react';
 import { tripArray } from '../../utils/dummyData';
 import Modal from '../Modal';
 import {  bus, cab_purple, train ,three_dot, airplane_1,intransit_trip, briefcase,calender, double_arrow, house_simple,  briefcaseMap} from '../../assets/icon';
@@ -8,6 +8,7 @@ import { formatDate, getCashAdvanceButtonText ,getStatusClass,urlRedirection} fr
 import CashCard from './CashCard';
 import TravelCard from './ExpenseCard';
 import { handleTravelExpense } from '../../utils/actionHandler';
+import IconOption from '../common/IconOption';
 
 const getIconForItinerary = (itineraryType) => {
   switch (itineraryType) {
@@ -30,7 +31,7 @@ const getIconForItinerary = (itineraryType) => {
 const TransitTrip = ({initialTransitTabs,handleCashAdvance,handleTrip,transitTripData,handleOpenOverlay}) => {
   console.log('intransit trip11',initialTransitTabs)
   console.log('transit trip data', transitTripData)
-
+const cardModalRef= useRef(null  )
   
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -57,7 +58,12 @@ const handleDropdownToggle = (index) => {
 
 
 
- 
+ const handleClickOutside = (e) =>{
+  // if(!cardModalRef.current.contains(e.target)){
+  //   setDropdownStates({})
+  // }
+  // setDropdownStates(null)
+ };
   
   const [activeTabs, setActiveTabs] = useState([...initialTransitTabs]);
   
@@ -92,7 +98,7 @@ const handleDropdownToggle = (index) => {
       </div>
     </div> */}
   
-<div className=" w-auto flex flex-row  gap-2  overflow-x-auto  no-scrollbar scroll-smooth  overflow-hidden ">
+<div onClick={handleClickOutside} className=" w-auto flex flex-row  gap-2  overflow-x-auto  no-scrollbar scroll-smooth  overflow-hidden ">
 {transitTripData?.length>0 ? (
 transitTripData && transitTripData?.map((item, index) => (
    <React.Fragment key={index}>
@@ -112,14 +118,14 @@ transitTripData && transitTripData?.map((item, index) => (
             </div>  
         </div>
 
- <div  className=' relative flex justify-end flex-none w-[40px]  cursor-pointer  items-center lg:items-center'>
+ {/* <div   className=' relative flex justify-end flex-none w-[40px]  cursor-pointer  items-center lg:items-center'>
               <img src={three_dot}  
-              width={16} 
-              height={16}
-              onClick={() => handleDropdownToggle(item.tripStatus)}
+                width={16} 
+                height={16}
+                onClick={() => handleDropdownToggle(item.tripStatus)}
               />
               {dropdownStates?.[item.tripStatus] && (
-        <div className="absolute top-3 right-3 z-10 bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700 bg-white-100">
+        <div ref={cardModalRef} className="absolute top-3 right-3 z-10 bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700 bg-white-100">
           <ul className="py-2 text-sm text-gray-700 dark:text-gray-200">
             <li>
               <a
@@ -130,7 +136,6 @@ transitTripData && transitTripData?.map((item, index) => (
                 Cancel
               </a>
             </li>
-
             <li onClick={()=>handleModal()}>
               <a
                 href="#"
@@ -150,7 +155,46 @@ transitTripData && transitTripData?.map((item, index) => (
           </ul>
         </div>
       )}
-    </div>
+    </div> */}
+    
+<IconOption
+        buttonText={
+          <img src={three_dot}  
+                className='w-4 h-4 translate-y-1'
+                onClick={() => handleDropdownToggle(item.tripStatus)}
+          />
+        }
+      >
+        <ul className="text-sm text-neutral-700 dark:text-gray-200 w-auto ">
+            <li className='min-w-[100px]'>
+              <a
+                href="#/cancel/trip"
+                className="block px-4 py-2 hover:bg-indigo-50 rounded-md  "
+                onClick={()=>{handleTrip(item.tripId,"trip-cancelletion-view");setDropdownStates({})}}
+              >
+                Cancel
+              </a>
+            </li>
+            <li onClick={()=>handleModal()} className="hover:bg-indigo-50 rounded-md px-4 py-2 w-full">
+              <a
+                href="#/itinerary/new"
+                
+              >
+                <p className=''>Add Leg</p>
+              </a>
+              
+        
+            </li>
+            <Modal 
+              isOpen={isModalOpen} 
+              onClose={()=>handleModal()}       
+              content={<AddLeg handleOpenOverlay={handleOpenOverlay} onClose={()=>handleModal()} />}
+              onCancel={handleCancel} 
+            />
+          </ul>
+         
+      </IconOption>
+
 </div>
         
           {/* ///intransit Trip data */}
@@ -177,7 +221,7 @@ transitTripData && transitTripData?.map((item, index) => (
               <div className="">
                 {item?.itinerary[key]?.map(item => (
                   <React.Fragment key={item._id} >
-                    <div className="bg-white p-3 rounded shadow w-full border border-slate-300 bg-slate-50">
+                    <div className="bg-white  p-3 rounded shadow w-full border border-slate-300 bg-slate-50">
               {['flights','trains','buses'].includes(key)  && (
 
                    <div className='flex flex-col items-start gap-2   '>
@@ -193,10 +237,10 @@ transitTripData && transitTripData?.map((item, index) => (
 
                     </div>
 
-                    <div className='flex-1 w-full   inline-flex items-center  justify-between   '>
-                <div className='w-2/5  font-cabin items-start  text-sm text-neutral-600'>
+                    <div className='flex-1 w-full capitalize    inline-flex items-center  justify-between   '>
+                <div className='w-2/5   font-cabin items-start  text-sm text-neutral-600'>
                   <div className=' text-neutral-600 text-xs'>Pickup Address</div>
-                  <div className='text-neutral-800'>{item?.bkd_from}</div>
+                  <div className='text-neutral-800 '>{item?.bkd_from}</div>
                 </div>
                 <img src={double_arrow} className=' w-5 h-5' alt='icon'/>
                 <div className='w-2/5 items-start  font-cabin text-sm text-neutral-600'>
@@ -220,11 +264,9 @@ transitTripData && transitTripData?.map((item, index) => (
                   <div className={` text-center rounded-sm  ${getStatusClass(item?.status)}`}>
                   <p className='px-2 py-1 text-sm text-center capitalize font-cabin '>{item?.status}</p>
                   </div>
-                
-
                 </div>
 
-                <div className='flex-1 w-full   inline-flex items-center justify-between   '>
+                <div className='flex-1 w-full   inline-flex items-center justify-between'>
                 <div className='w-2/5  font-cabin  text-sm text-neutral-600'>
                   <div className=' text-neutral-600 text-xs'>Pickup Address</div>
                   <div className='text-neutral-800'>{item?.bkd_pickupAddress}</div>
@@ -240,7 +282,7 @@ transitTripData && transitTripData?.map((item, index) => (
               </div>
                 )}
                    {key === 'hotels' && (
-                       <div className='flex flex-col items-start'>
+                       <div className='flex flex-col items-start capitalize'>
                         
                         <div className='flex items-center  justify-between w-full'>
 
@@ -271,8 +313,7 @@ transitTripData && transitTripData?.map((item, index) => (
                        </div>
                        
                        
-                       
-                       
+                  
        
                      </div>
                     )}    

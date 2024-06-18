@@ -2,6 +2,7 @@
 import React, { useState ,useEffect} from 'react';
 import { useData } from '../../api/DataProvider';
 import { validation_sym } from '../../assets/icon';
+import { urlRedirection } from '../../utils/handyFunctions';
 
 
 
@@ -10,6 +11,11 @@ const RejectedTravel = ({travelRequestNumber,isCashAdvanceTaken, rejectionReason
   const travelId = 'tr797'
   const tenantId = 'tenant_alphacode_123';
   const empId = 'empId_alpha_2322';
+
+  const handleClearRejectedTravelRequest = (tenantId, empId, travelRequestId) => {
+    const clearRejectedUrl = cashAdvanceRoutes.clearRejected.getUrl(tenantId, empId, travelRequestId);
+    urlRedirection(clearRejectedUrl);
+  };
 
   return (
     <>

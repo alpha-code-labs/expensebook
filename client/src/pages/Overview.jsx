@@ -15,8 +15,6 @@ import Error from '../components/common/Error';
 const Overview = ({fetchData ,isLoading,setIsLoading,loadingErrMsg, setLoadingErrMsg}) => {
 
   const { setEmployeeData , employeeData } = useData(); 
-  const [upcomingTrip , setUpcomingTrip]=useState(null);
-  const [transitTrip, setTransitTrip]=useState([]);
   const [tripsData,setTripsData]=useState(null);
   const {tenantId,empId,page}= useParams();
 
@@ -27,7 +25,7 @@ const Overview = ({fetchData ,isLoading,setIsLoading,loadingErrMsg, setLoadingEr
 
 useEffect(()=>{
   console.log('data11',employeeData?.dashboardViews?.employee?.trips)
-  setTripsData(employeeData && employeeData?.dashboardViews?.employee?.trip)
+  setTripsData(employeeData && employeeData?.dashboardViews?.employee?.trips)
 },[employeeData])
 
 
@@ -65,7 +63,7 @@ useEffect(()=>{
  
     {!isLoading &&
      <div className='w-auto min-h-screen pt-12 px-0 lg:px-20 bg-white-100   flex flex-col gap-4'> 
-     <div className=''> 
+     <div className=' overflow-x-auto'> 
    <IntransitTrip 
       handleCashAdvance={handleCashAdvance} 
       handleTrip={handleTrip} 
@@ -90,7 +88,7 @@ useEffect(()=>{
    {showConfirmationOverlay && (
      <NotifyModal/>
    )}
-   </div> }
+   </div>}
  
 </>
   )}
