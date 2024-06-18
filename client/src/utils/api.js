@@ -74,12 +74,6 @@ export const getCompanyList_API = async () => {
 
 
 
-
-
-
-
-
-
 export const postLogin_API = async (data) => {
   const url = `${LOGIN_BACKEND_API_URL}/api/login`;
 
