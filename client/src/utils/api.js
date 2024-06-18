@@ -1,4 +1,5 @@
 import axios from 'axios';
+import dotenv from 'dotenv';
 
 const retry = 3;
 const retryDelay = 3000;
@@ -47,12 +48,10 @@ const axiosRetry = async (requestFunction, ...args) => {
 
 //----------------------------------------------------------------------------------------
 
-
-
+console.log("env", import.meta.env);
+console.log("backend url accessible", import.meta.env.VITE_APPROVAL_BACKEND_API_URL )
 
 const APPROVAL_BACKEND_API_URL = import.meta.env.VITE_APPROVAL_BACKEND_API_URL
-
-
 
 
 export const getTravelDataforApprovalApi= async (tenantId,empId,travelRequestId)=>{

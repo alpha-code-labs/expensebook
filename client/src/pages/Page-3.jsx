@@ -64,6 +64,7 @@ export default function () {
       useEffect(() => {
         const fetchData = async () => {
           try {
+            console.log("page 3 my Params:", tenantId, empId, travelRequestId);
             const response = await getTravelDataforApprovalApi(tenantId, empId, travelRequestId);
             setData(response.data);  
             setIsLoading(false);
