@@ -35,7 +35,7 @@ async function createTripBatchJob(){
             const source = 'travel'; 
             const onlineVsBatch = 'batch';
             const action = 'trip-creation';
-            await sendToOtherMicroservice(payload, comments, destination, source, 'batch', 'full-update-batchjob');
+            await sendToOtherMicroservice(payload, comments, destination, source, 'batch', 'trip-creation');
           }
 
           //update  sentToTrip flag to true 
