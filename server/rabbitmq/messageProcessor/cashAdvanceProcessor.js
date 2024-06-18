@@ -4,12 +4,12 @@ import { sendToOtherMicroservice } from "../publisher.js";
 
 
 
-const formatTenantId = (tenantName) => {
+export const formatTenantId = (tenantName) => {
   return tenantName.toUpperCase(); 
 };
 
 // to generate and add expense report number
-const generateIncrementalNumber = (tenantName, incrementalValue) => {
+export const generateIncrementalNumber = (tenantName, incrementalValue) => {
   try {
   if (typeof tenantName !== 'string' || typeof incrementalValue !== 'number') {
       throw new Error('Invalid input parameters');
