@@ -233,12 +233,6 @@ const hrCompanySchema = new mongoose.Schema({
 
 // model from the schema
 const HRMaster = mongoose.model('HrdataDemo', hrCompanySchema)
-<<<<<<< HEAD
-=======
 
-export default HRMaster
-
-
-
->>>>>>> 88c893be66aab7ea6fbc9f208c17fe763788e6dc
+export default HRMaster;
 

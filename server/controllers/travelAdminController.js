@@ -42,7 +42,7 @@ export const assignedToTravelAdmin = async (req, res) => {
         const { isCashAdvanceTaken, assignedTo } = req.body;
         console.log("params", req.params, "req.body", req.body);
 
-        if(!isCashAdvanceTaken){
+        if(isCashAdvanceTaken == undefined || isCashAdvanceTaken == null){
             throw new Error("missing fields - isCashAdvanceTaken")
         }
 
@@ -53,8 +53,12 @@ export const assignedToTravelAdmin = async (req, res) => {
             updateField = 'travelRequestSchema.assignedTo';
         }
 
+        console.log('field to be updated', updateField);
+        
         // Retrieve the existing document
         const existingDocument = await dashboard.findOne({ tenantId, travelRequestId });
+
+        console.log(JSON.stringify(existingDocument), 'existing document')
 
         // Check if the existing value of assignedTo is the same as the new one
         if (existingDocument && existingDocument[updateField] && JSON.stringify(existingDocument[updateField]) === JSON.stringify(assignedTo)) {
@@ -99,7 +103,6 @@ export const assignedToTravelAdmin = async (req, res) => {
         return res.status(500).json({ success: false, message: error.message || "Failed to assign travel admin" });
     }
 }
-
 
 
 

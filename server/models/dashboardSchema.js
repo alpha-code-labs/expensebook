@@ -17,11 +17,6 @@ const dashboardSchema = new mongoose.Schema({
       type: String,
       // required: true,
     },
-    // travelRequestId: {
-    //   type: mongoose.Schema.Types.ObjectId, 
-    //   unique: true,
-    //   required: true,
-    // },
     travelRequestId: {
       type: mongoose.Schema.Types.ObjectId,
       unique: function() {
@@ -43,3 +38,9 @@ const dashboardSchema = new mongoose.Schema({
 const dashboard = mongoose.model('dashboardMonday', dashboardSchema);
 
 export default dashboard 
+
+
+
+
+
+

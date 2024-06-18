@@ -205,7 +205,7 @@ export const consumeFromDashboardQueue = async () => {
  };
 
 
-   
+
   const updateDashboard = async (payload) => {
     return true; // Return true for successful update, false otherwise
 };

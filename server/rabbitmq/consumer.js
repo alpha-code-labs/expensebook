@@ -1,6 +1,6 @@
 import amqp from 'amqplib';
 import { updateHRMaster } from './messageProcessor/hrMaster.js';
-import { fullUpdateTravel } from './messageProcessor/travel.js';
+import { fullUpdateTravel, fullUpdateTravelBatchJob } from './messageProcessor/travel.js';
 import dotenv from 'dotenv';
 import { fullUpdateExpense } from './messageProcessor/travelExpenseProcessor.js';
 import { updateTrip } from './messageProcessor/trip.js';
@@ -99,6 +99,7 @@ export async function startConsumer(receiver) {
             console.log('update failed with error code', res.error)
           }
           } else if (source == 'travel'){
+            if(action == 'full-update'){
             console.log('trying to update Travel')
             const res = await fullUpdateTravel(payload)
             console.log(res)
@@ -110,6 +111,21 @@ export async function startConsumer(receiver) {
             else{
               //implement retry mechanism
               console.log('update failed with error code', res.error)
+            }
+            }
+            if(action=='full-update-batchjob'){
+            console.log('trying to update Travel BatchJob - Booking')
+             const res = await fullUpdateTravelBatchJob(payload)
+            console.log(res)
+            if(res.success){
+              //acknowledge message
+              channel.ack(msg)
+              console.log('message processed successfully')
+            }
+            else{
+              //implement retry mechanism
+              console.log('update failed with error code', res.error)
+            }
             }
           } else if (source == 'cash'){
             if(action == 'full-update'){
@@ -142,7 +158,7 @@ export async function startConsumer(receiver) {
             }
           } else if (source == 'expense'){
             if(action == 'full-update'){
-            console.log('trying to update travelExpense Data')
+            console.log('trying to update travelExpense Data', payload)
             const res = await fullUpdateExpense(payload)
             console.log(res)
             if(res.success){
