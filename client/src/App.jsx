@@ -65,7 +65,7 @@ function App() {
     
     <Router>
       <Routes>
-       <Route path='/expense/:tenantId/:empId/:tripId/:expenseHeaderId/travel-expense' element={<ExpenseApproval/>}/>
+       <Route path='/:tenantId/:empId/:tripId/:expenseHeaderId/travel-expense-approval' element={<ExpenseApproval/>}/>
        <Route path='/:tenantId/:empId/:travelRequestId/travel-approval' element={<Page3/>}/>
 
       </Routes>
