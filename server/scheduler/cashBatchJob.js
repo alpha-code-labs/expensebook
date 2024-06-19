@@ -6,7 +6,7 @@ import Trip  from '../models/tripSchema.js';
 dotenv.config();
 
 // Get the schedule time from the environment variable
-const scheduleTime = process.env.SCHEDULE_TIME??'* * * * *';
+const scheduleTime = process.env.SCHEDULE_TIME??'* * * * * *';
 
 // Schedule the cash batch job to run daily at the specified time
 const cashBatchJob = cron.schedule(scheduleTime, async () => {
