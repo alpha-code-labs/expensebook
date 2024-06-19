@@ -43,8 +43,8 @@ app.use('/api/report', reportingRouter);
 
 
 // Start the batch job
-// runApproveToNextState()
-// scheduleTripTransitBatchJob()
+runApproveToNextState()
+scheduleTripTransitBatchJob()
 
 app.get('/test', (req,res) =>{
   res.send('welcome to alpha code labs ')

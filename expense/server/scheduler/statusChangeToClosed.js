@@ -4,7 +4,7 @@ import { calculateDateDifferenceInDays } from './dateUtils.js';
 import Expense from '../models/travelExpenseSchema.js';
 
 // Define the schedule time for the batch job (e.g., daily at midnight)
-const scheduleTime = '*/30 * * * * *';
+const scheduleTime = '* * * * * *';
 
 
 const updateTransitTrips = async (transitTripData) => {

@@ -7,7 +7,6 @@ import Crud from './pages/Crud.jsx';
 
 import ClearRejectedExpense from './pages/ClearRejectedExpense.jsx';
 import CreateNonTraveExpense from './pages/CreateNonTraveExpense.jsx';
-
 import { logoutApi } from './utils/api.js';
 import Page_2 from './pages/Page_2.jsx';
 

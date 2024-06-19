@@ -5,12 +5,23 @@ import { defineConfig } from "vite";
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "./src"),
-    },
+  build: {
+    outDir: 'build',
+    assetsDir: 'assets',
+    emptyOutDir: true,
   },
-  define: {
-    "process.env": {},
+  resolve: {
+      alias: {
+          '@': path.resolve(__dirname, './src'),
+      },
+  },
+  server: {
+      proxy: {
+          '/api': {
+              target: 'https://expense-server.victoriousplant-d49987f1.centralindia.azurecontainerapps.io',
+              changeOrigin: true,
+          },
+      },
   },
 });
+
