@@ -8,7 +8,7 @@ import { useCookies } from 'react-cookie';
 import Input from '../components/common/Input';
 import Button from '../components/common/Button';
 import Modal from '../components/common/Modal';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {  getCompanyList_API, postForgotPassword_API, postLogin_API} from '../utils/api';
 import { urlRedirection } from '../utils/handyFunctions';
 
@@ -323,14 +323,19 @@ export default function CompanyAndHRInformation(){
             </div>
             }
 
-            <div className="text-sm font-cabin" onClick={clickForgotPassword}>
-            <p  className="font-semibold text-indigo-600 hover:text-indigo-500">{isForgotPassword ?  `Login `:`Forgot password?`}</p>
-          </div>
+            
             </div>
 
-            <div className='mt-10 mb-10 w-full px-6  flex-grow flex items-center flex-row-reverse'>
-                <Button variant='full'  uploading={isUploading.logFog} disabled={isUploading.logFog} text={isForgotPassword ? 'Submit' :'Login'} onClick={()=>(isForgotPassword ? handleForgotPassword(): handleLogin()) } />
+            <div className='mt-10 mb-5 w-full px-6 flex-grow flex flex-col gap-2 items-center'>
+                <Button variant='full'  uploading={isUploading.logFog} disabled={isUploading.logFog} text={isForgotPassword ? 'Submit' :'Sign in'} onClick={()=>(isForgotPassword ? handleForgotPassword(): handleLogin()) } />
+            <div className="cursor-pointer text-sm font-cabin" onClick={clickForgotPassword}>
+                  <p  className="font-semibold text-indigo-600 hover:text-indigo-500">{isForgotPassword ?  `Sign in `:`Forgot password?`}</p>
             </div>
+            </div>
+<div className='border-b mb-4 border-neutral-400'/>
+            <Link to='/sign-up'  className="text-sm font-cabin text-center" onClick={clickForgotPassword}>
+                  <p  className=" ">Don't have ExpenseBook account?<span className='pl-2 font-semibold text-indigo-600 hover:text-indigo-500'>Sign up now</span></p>
+            </Link>
 
           </form>
 
