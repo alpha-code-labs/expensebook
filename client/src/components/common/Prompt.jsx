@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react"
 import { motion, useCycle } from 'framer-motion';
 
-
 export default function({prompt, setPrompt, timeout=3000 /* in milliseconds */, bgClear=false, toastLike=false}){
 
     const [isOpen, toggleOpen] = useCycle(false, true);

@@ -9,15 +9,37 @@ import non_travel_icon from '../../assets/paper-money-two.svg'
 import arrow_down from "../../assets/chevron-down.svg";
 import Checkbox from "../../components/common/Checkbox"
 import Modal from "../../components/common/Modal"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { updateFormState_API } from "../../utils/api"
 import MainSectionLayout from "../MainSectionLayout"
+import checkIcon from '../../assets/check.svg'
+import CollapsedPolicy from "../../components/common/CollapsedPolicy"
 
 
-export default function (props){
+export default function ({progress, setProgress}){
+    console.log(progress, 'progress from expense setup')
     const navigate = useNavigate()
     const {tenantId} = useParams()
     const [showSkipModal, setShowSkipModal] = useState(false)
+    const [travelAllocationsCompleted, setTravelAllocationsCompleted] = useState(false);
+    const [reimbursementAllocationsCompleted, setReimbursementAllocationsCompleted] = useState(false);
+
+    useEffect(()=>{
+        const tSubsection = progress?.sections['section 3']?.subsections.find(section=> section.name == 'Travel Allocations');
+        const rSubsection = progress?.sections['section 3']?.subsections.find(section=> section.name == 'Reimbursement Allocations');
+
+        console.log('tSubsection', tSubsection, rSubsection)
+
+        if(tSubsection && tSubsection.completed){
+            setTravelAllocationsCompleted(true);
+        }else setTravelAllocationsCompleted(false);
+
+        if(rSubsection && rSubsection.completed){
+            setReimbursementAllocationsCompleted(true);
+        }else setReimbursementAllocationsCompleted(false);
+
+
+    },[]);
 
     useEffect(()=>{
         if(showSkipModal){
@@ -53,18 +75,20 @@ export default function (props){
                         </p>
                     </div>
                     <div className="">
-                        <HollowButton title='Skip' showIcon={false} onClick={()=>setShowSkipModal(true)} />
+                        {<HollowButton title='Skip' showIcon={false} onClick={()=>setShowSkipModal(true)} />}
                     </div>
                 </div>
 
                 <div className="mt-10 flex flex-col gap-4">
 
                     <CollapsedPolicy 
+                        completed={travelAllocationsCompleted}
                         onClick={() => navigate('travel')}
                         text='Travel'
                         icon={internatinal_travel_icon}/>
 
                     <CollapsedPolicy 
+                        completed={reimbursementAllocationsCompleted}
                         onClick={() => navigate('reimbursements')}
                         text='Employee Expense Reimursements'
                         icon={non_travel_icon}/>
@@ -73,7 +97,7 @@ export default function (props){
 
                 <div className="mt-10 flex justify-end">
                     {/* <Button variant='fit' text='Save as Draft' onClick={handleSaveAsDraft} /> */}
-                    <Button variant='fit' text='Continue' onClick={handleContinue} />
+                    <Button variant='fit' text='Continue' onHover={'To continue please setup travel allocations'} disabled={!travelAllocationsCompleted} onClick={handleContinue} />
                 </div>
 
             </div>
@@ -99,31 +123,37 @@ export default function (props){
     </>)
 }
 
-function CollapsedPolicy(props){
-    const icon = props.icon
-    const text = props.text || 'Enter text'
-    const onClick = props.onClick || (() => {})
+// function CollapsedPolicy(props){
+//     const completed = props.completed??false;
+//     const icon = props.icon
+//     const text = props.text || 'Enter text'
+//     const onClick = props.onClick || (() => {})
 
-    return(
-        <>
-            <div onClick={onClick} className="w-full h-[72px] p-6 relative bg-white cursor-pointer rounded-xl border border-neutral-200">
-                <div className="flex justify-between items-center">
-                    <div className="justify-start items-center gap-8 inline-flex">
-                        <div className="justify-start items-center gap-6 flex">
-                            <div className="w-6 h-6 relative">
-                                <img src={icon} />
-                            </div>
-                            <div className="text-neutral-700 text-base font-medium font-['Cabin']">{text}</div>
-                        </div>
-                    </div>
+//     return(
+//         <>
+//             <div onClick={onClick} className="w-full h-[72px] p-6 relative bg-white cursor-pointer rounded-xl border border-neutral-200">
+//                 <div className="flex justify-between items-center">
+//                     <div className="justify-start items-center gap-8 inline-flex">
+//                         <div className="justify-start items-center gap-6 flex">
+//                             <div className="w-6 h-6 relative">
+//                                 <img src={icon} />
+//                             </div>
+//                             <div className="text-neutral-700 text-base font-medium font-['Cabin']">{text}</div>
+//                         </div>
+//                     </div>
 
-                    <div className="justify-start gap-12 items-start gap-2 inline-flex">
-                        <div className="w-6 h-6 -rotate-90">
-                            <img src={arrow_down} />
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </>
-    )
-}
+
+//                     <div className="justify-start gap-[40px] items-start inline-flex">
+//                         {completed && <div className="p-1 rounded-full bg-[#bfebae]">
+//                                 <img src={checkIcon} className="w-5 h-5"/>
+//                             </div>}
+
+//                         <div className="w-6 h-6 -rotate-90">
+//                             <img src={arrow_down} />
+//                         </div>
+//                     </div>
+//                 </div>
+//             </div>
+//         </>
+//     )
+// }

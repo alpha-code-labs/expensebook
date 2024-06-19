@@ -446,7 +446,7 @@ export default function ({tenantId, progress, setProgress}) {
 
 
                     <div className='flex flex-wrap mt-10 items-center justify-between'>
-                        <div className='w-[200px] '>
+                        <div className='w-fit'>
                                 <HollowButton title='Add Fields' onClick={()=>addCategoryField()} />
                             </div>
                             {!existingCategory && <div className='w-fit '>

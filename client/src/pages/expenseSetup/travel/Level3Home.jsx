@@ -11,6 +11,7 @@ import back_icon from "../../../assets/arrow-left.svg"
 import Error from "../../../components/common/Error"
 import MainSectionLayout from "../../MainSectionLayout"
 import Prompt from "../../../components/common/Prompt"
+import { postProgress_API } from "../../../utils/api"
 
 export default function ({progress, setProgress}){
     const location = useLocation()
@@ -32,7 +33,60 @@ export default function ({progress, setProgress}){
 
 
 
-    const [promt, setPrompt] = useState({showPrompt:false, promptMsg:null})
+    const [prompt, setPrompt] = useState({showPrompt:false, promptMsg:null})
+    const [isUploading, setIsUploading] = useState(false);
+    const [networkStates, setNetworkStates] = useState({isLoading:false, isUploading:false, errMsg:null})
+
+    const handleContinue = async ()=>{
+        try{
+             //update categories
+        setNetworkStates(pre=>({...pre, isUploading:true}))
+        const progress_copy = JSON.parse(JSON.stringify(progress));
+
+        progress_copy.sections['section 3'].subsections.forEach(subsection=>{
+            if(subsection.name == 'Travel Allocations') subsection.completed = true;
+        });
+
+        progress_copy.sections['section 3'].subsections.forEach(subsection=>{
+            if(subsection.name == 'Travel Allocations') subsection.completed = true;
+        });
+
+        const markCompleted = !progress_copy.sections['section 3'].subsections.some(subsection=>!subsection.completed)
+
+        let totalCoveredSubsections = 0;
+        progress_copy.sections['section 3'].subsections.forEach(subsection=>{
+            if(subsection.completed) totalCoveredSubsections++;
+        })
+
+        progress_copy.sections['section 3'].coveredSubsections = totalCoveredSubsections; 
+
+        if(markCompleted){
+            progress_copy.sections['section 3'].state = 'done';
+            if(progress.maxReach==undefined || progress.maxReach==null || progress.maxReach.split(' ')[1] < 4){
+                progress_copy.maxReach = 'section 4';
+              }
+        }else{
+            progress_copy.sections['section 3'].state = 'attempted';
+        }
+
+        const progress_res = await postProgress_API({tenantId, progress: progress_copy})
+
+        setNetworkStates(pre=>({...pre, isUploading:false}))
+
+        if(progress_res.err ){
+            setPrompt({showPrompt:true, promptMsg:'Can not update data at the moment. Please try again later'})
+        }
+        else{
+            setPrompt({showPrompt:true, promptMsg:'Travel Allocation setup saved successfully'})
+            setProgress(progress_copy);
+            setTimeout(()=>{
+                navigate(`/${tenantId}/setup-expensebook`)
+            }, 3000)
+        }
+        }catch(e){
+            console.error('some error occured..', e)
+        }
+    }
 
 
 
@@ -73,10 +127,10 @@ export default function ({progress, setProgress}){
 
                 <Prompt prompt={prompt} setPrompt={setPrompt}/>
 
-                {/* <div className='flex mt-10'>
-                    <Button variant='fit' text='Save As Draft' onClick={handleSaveAsDraft} />
-                    <Button variant='fit' text='Continue' onClick={handleContinue} />
-                </div> */}
+                <div className='flex mt-10 flex-row-reverse'>
+                    {/* <Button variant='fit' text='Save As Draft' onClick={handleSaveAsDraft} /> */}
+                    <Button variant='fit' text='Continue' isLoading={networkStates.isUploading} onClick={handleContinue} />
+                </div>
 
             </div>
             
@@ -95,6 +149,8 @@ export default function ({progress, setProgress}){
                     </div>
                 </div>
             </Modal>
+
+            <Prompt prompt={prompt} setPrompt={setPrompt}/>
         </>}
     </MainSectionLayout>
     </>)

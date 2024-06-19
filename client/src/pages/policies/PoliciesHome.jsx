@@ -13,11 +13,42 @@ import { useState, useEffect } from "react"
 import { updateFormState_API } from "../../utils/api"
 import MainSectionLayout from "../MainSectionLayout"
 import EmptyHRData from "../../components/common/EmptyHRData"
+import checkIcon from '../../assets/check.svg'
 
 export default function ({progress, setProgress}){
     const navigate = useNavigate()
     const {tenantId} = useParams()
     const [showSkipModal, setShowSkipModal] = useState(false)
+
+    const [internationalCompleted, setInternationalCompleted] = useState(false);
+    const [domesticCompleted, setDomesticCompleted] = useState(false);
+    const [localCompleted, setLocalCompleted] = useState(false);
+    const [rembursementCompleted, setReimbursementCompleted] = useState(false);
+
+    useEffect(()=>{
+        const ip = progress?.sections['section 5']?.subsections.find(section=> section.name == 'International Policies');
+        const dp = progress?.sections['section 5']?.subsections.find(section=> section.name == 'Domestic Policies');
+        const lp = progress?.sections['section 5']?.subsections.find(section=> section.name == 'Local Policies');
+        const rp = progress?.sections['section 5']?.subsections.find(section=> section.name == 'Reimbursement Policies');
+
+        if(ip && ip.completed){
+            setInternationalCompleted(true);
+        }else setInternationalCompleted(false);
+
+        if(dp && dp.completed){
+            setDomesticCompleted(true);
+        }else setDomesticCompleted(false);
+
+        if(lp && lp.completed){
+            setLocalCompleted(true);
+        }else setLocalCompleted(false);
+
+        if(rp && rp.completed){
+            setReimbursementCompleted(true);
+        }else setReimbursementCompleted(false);
+
+    },[]);
+
 
     useEffect(()=>{
         if(showSkipModal){
@@ -73,16 +104,19 @@ export default function ({progress, setProgress}){
                 <div className="mt-10 flex flex-col gap-4">
 
                     <CollapsedPolicy 
+                        completed={internationalCompleted}
                         onClick={() => navigate('international')}
                         text='International Travel'
                         icon={internatinal_travel_icon}/>
 
                     <CollapsedPolicy 
+                        completed={domesticCompleted}
                         onClick={() => navigate('domestic')}
                         text='Domestic Travel'
                         icon={domestic_travel_icon}/>
 
                     <CollapsedPolicy 
+                        completed={localCompleted}
                         onClick={() => navigate('local')}
                         text='Local Travel'
                         icon={local_travel_icon}/>
@@ -90,6 +124,7 @@ export default function ({progress, setProgress}){
                     <hr className="my-2 border-dashed border-indigo-600"/>
                     
                     <CollapsedPolicy 
+                        completed={rembursementCompleted}
                         onClick={() => navigate('reimbursement')}
                         text='Reimbursement Policies'
                         icon={non_travel_icon}/>
@@ -133,11 +168,12 @@ function CollapsedPolicy(props){
     const icon = props.icon
     const text = props.text || 'Enter text'
     const onClick = props.onClick || (() => {})
+    const completed = props.completed??false;
 
     return(
         <>
-            <div onClick={onClick} className="w-full h-[72px] p-6 relative bg-white cursor-pointer rounded-xl border border-neutral-200">
-                <div className="flex justify-between items-center">
+            <div onClick={onClick} className="w-full h-[72px] p-3 sm:p-6 relative bg-white cursor-pointer rounded-xl border border-neutral-200 inline-flex items-center">
+                <div className="flex justify-between items-center w-full">
                     <div className="justify-start items-center gap-8 inline-flex">
                         <div className="justify-start items-center gap-6 flex">
                             <div className="w-6 h-6 relative">
@@ -147,7 +183,10 @@ function CollapsedPolicy(props){
                         </div>
                     </div>
 
-                    <div className="justify-start gap-12 items-start gap-2 inline-flex">
+                    <div className="justify-start gap-4 sm:gap-[40px] items-start inline-flex">
+                        {completed && <div className="p-1 rounded-full bg-[#bfebae]">
+                            <img src={checkIcon} className="w-4 h-4 sm:w-5 sm:h-5"/>
+                        </div>}
                         <div className="w-6 h-6 -rotate-90">
                             <img src={arrow_down} />
                         </div>
