@@ -1,23 +1,37 @@
-import travelExpense from "../models/travelExpense.js" ;
+import Finance from "../models/Finance.js";
  
 export const getTravelExpenseData = async(req , res)=>{
     try {
-        const singletravelExpenseData = await travelExpense.find({actionedUpon:"No"});
-        res.status(200).json(singletravelExpenseData)
+      const {tenantId} = req.params
+        const singletravelExpenseData = await Finance.find({
+          tenantId,
+          'tripSchema.travelExpenseData.actionedUpon':false
+        });
+
+        if (!singletravelExpenseData) {
+          return res.status(201).json({ success: true, message: `All are settled` });
+      } else {
+          return res.status(200).json(singleReimbursement);
+      }
     } catch (error) {
         res.status(500).json(error);
     }
 };
 
+
 export const settlementTravelExpenseData = async(req , res)=>{
-        // console.log("LINE AT 15" , req.body);
-        const id = req.body._id;
-        // console.log("LINE AT 15" , id);
-    
         try {
-        const singletravelExpenseDataUpdate = await travelExpense.findByIdAndUpdate(
-            id,
-               {$set: {settlementFlag: true}} , // Update only the cashAdvanceStatus field
+        const { tenantId, travelRequestId, expenseHeaderId} = req.params;
+        const{ settledBy} = req.body
+
+        // console.log("LINE AT 15" , id);
+         const singletravelExpenseDataUpdate = await Finance.findByIdAndUpdate({
+            'tripSchema.travelExpenseData.expenseHeaderId': expenseHeaderId,
+          },{
+            $set: {          
+                'tripSchema.travelExpenseData.actionedUpon':true,
+                'tripSchema.travelExpenseData.settlementFlag':true
+            }},
                { new: true } 
           );
       

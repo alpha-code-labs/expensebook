@@ -1,4 +1,5 @@
 import Finance from "../models/Finance.js";
+
 export const financeController = async(req , res)=>{
     // console.log("LINE AT 6" , req.body.dummyData);
     // res.status(200).send("ok");
@@ -16,4 +17,7 @@ export const financeController = async(req , res)=>{
         res.status(500).json(error);
     }
 };
+
+
+
 
