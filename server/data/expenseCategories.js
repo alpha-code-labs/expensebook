@@ -85,6 +85,7 @@ const expenseCategories = [
   {
     categoryName: 'Hotel',
     fields: [
+      { name: 'Bill Date', type: 'date' },
       { name: 'Hotel Name', type: 'text' },
       { name: 'Check-In Date', type: 'date' },
       { name: 'Check-Out Date', type: 'date' },

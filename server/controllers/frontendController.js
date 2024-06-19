@@ -2263,18 +2263,15 @@ const onboardingCompleted = async (req, res) => {
       ))
       
     //send email to all employees along with a secret code of 6 digits
-    try{
-      async function mailer(){
-          //send emails to employees
-          employeeData.forEach(emp=>{
-          sendMail({name:emp.employeeDetails.name ,email: emp.email ,code: emp.otp})
-       })
-      }
+    // try{
+    //     const emailPromises = employeeData.map(emp => 
+    //       sendMail({ name: emp.employeeDetails.name, email: emp.email, code: emp.otp })
+    //     );
 
-      //await mailer();
-    }catch(e){
-      return res.status(500).json({message: 'Some error occured while sending emails'})
-    }
+    //    await Promise.all(emailPromises);
+    //   }catch(e){
+    //     return res.status(500).json({message: 'Some error occured while sending emails'}) 
+    // }
 
     //send update to other microservices
     //const response = await sendToDashboardQueue(tenant, true, 'online')
