@@ -6,7 +6,7 @@ import dotenv from 'dotenv'
 dotenv.config();
 
 
-const scheduleTime = process.env.SCHEDULE_TIME??'* * * * *';
+const scheduleTime = process.env.SCHEDULE_TIME??'* * * * * *';
 
 //basic status UpdateBatchJob function...
 async function createTripBatchJob(){
