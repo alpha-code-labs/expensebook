@@ -45,6 +45,8 @@
 // export {sendMail}
 
 import { EmailClient } from '@azure/communication-email'; 
+import dotenv from 'dotenv';
+dotenv.config();
 
 const connectionString = process.env.EMAIL_API
 const client = new EmailClient(connectionString);
