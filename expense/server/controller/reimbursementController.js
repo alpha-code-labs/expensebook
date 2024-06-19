@@ -12,17 +12,17 @@ import { sendToOtherMicroservice } from "../rabbitmq/publisher.js";
  */
 
 
-const formatTenant = (tenantName) => {
-  return tenantName.toUpperCase(); 
+const formatTenant = (companyName) => {
+  return companyName.toUpperCase(); 
 };
 
 // to generate and add expense report number
-const generateIncrementalNumber = (tenantName, incrementalValue) => {
-  if (typeof tenantName !== 'string' || typeof incrementalValue !== 'number') {
+const generateIncrementalNumber = (companyName, incrementalValue) => {
+  if (typeof companyName !== 'string' || typeof incrementalValue !== 'number') {
     throw new Error('Invalid input parameters');
   }
-  console.log("tenantName",tenantName, "incrementalValue", incrementalValue)
-  const formattedTenant = formatTenant(tenantName).substring(0, 2);
+  console.log("companyName",companyName, "incrementalValue", incrementalValue)
+  const formattedTenant = formatTenant(companyName).substring(0, 2);
   const paddedIncrementalValue = (incrementalValue !== null && incrementalValue !== undefined && incrementalValue !== 0) ?
     (incrementalValue + 1).toString().padStart(6, '0') :
     '000001';
@@ -194,14 +194,19 @@ export const getHighestLimitGroupPolicy = async (req, res) => {
       if(!expenseHeaderId){
         console.log("expenseHeaderId from req body",expenseHeaderId)
         const maxIncrementalValue = await Reimbursement.findOne({ tenantId })
-        .sort({expenseHeaderNumber: -1 })
+        .sort({ expenseHeaderNumber: -1 })
         .limit(1)
         .select('expenseHeaderNumber');
-
-const nextIncrementalValue = maxIncrementalValue?.expenseHeaderNumber ? parseInt(maxIncrementalValue.expenseHeaderNumber.substring(6), 10) : 0;
-
-    console.log("nextIncrementalValue", nextIncrementalValue);
     
+    let nextIncrementalValue = 0;
+    
+    if (maxIncrementalValue && maxIncrementalValue.expenseHeaderNumber) {
+        const numericPart = maxIncrementalValue.expenseHeaderNumber.match(/\d+$/);
+        if (numericPart) {
+            nextIncrementalValue = parseInt(numericPart[0], 10) + 1;
+        }
+    }
+
       expenseHeaderNumber = generateIncrementalNumber(companyName, nextIncrementalValue);
 
       // Create a new expense headerId
