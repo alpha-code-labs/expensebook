@@ -134,21 +134,21 @@ const allExpenseReports = async (expenseReport) => {
       //         if (expenseHeaderStatus === 'paid' || expenseHeaderStatus === 'paid and distributed') 
 if (areAllExpenseReportsPaid) {
   // console.log("i am in areAllExpenseReportsPaid ", areAllExpenseReportsPaid)
-const maxIncrementalValue = await Expense.findOne({tenantId}, 'travelExpenseData.expenseHeaderNumber')
-    .sort({ 'travelExpenseData.expenseHeaderNumber': -1 })
-    .limit(1)
-    .select('expenseHeaderNumber');
+// const maxIncrementalValue = await Expense.findOne({tenantId}, 'travelExpenseData.expenseHeaderNumber')
+//     .sort({ 'travelExpenseData.expenseHeaderNumber': -1 })
+//     .limit(1)
+//     .select('expenseHeaderNumber');
 
-    console.log("maxIncrementalValue from database", maxIncrementalValue)
+//     console.log("maxIncrementalValue from database", maxIncrementalValue)
 
     let nextIncrementalValue = 0;
 
-if (maxIncrementalValue && maxIncrementalValue.travelExpenseData && maxIncrementalValue.travelExpenseData.expenseHeaderNumber) {
-    const numericPart = maxIncrementalValue.travelExpenseData.expenseHeaderNumber.match(/\d+$/);
-    if (numericPart) {
-        nextIncrementalValue = parseInt(numericPart[0], 10) + 1;
-    }
-}
+// if (maxIncrementalValue && maxIncrementalValue.travelExpenseData && maxIncrementalValue.travelExpenseData.expenseHeaderNumber) {
+//     const numericPart = maxIncrementalValue.travelExpenseData.expenseHeaderNumber.match(/\d+$/);
+//     if (numericPart) {
+//         nextIncrementalValue = parseInt(numericPart[0], 10) + 1;
+//     }
+// }
 console.log("Numeric Part:", numericPart);
 
 console.log("nextIncrementalValue ..", nextIncrementalValue)
@@ -275,15 +275,15 @@ export const BookExpense = async (req, res) => {
           companyDetails: additionalDetails,
         });
       } else {
-        const maxIncrementalValue = await Expense.findOne({}, 'travelExpenseData.expenseHeaderNumber')
-          .sort({ 'travelExpenseData.expenseHeaderNumber': -1 })
-          .limit(1);
+        // const maxIncrementalValue = await Expense.findOne({}, 'travelExpenseData.expenseHeaderNumber')
+        //   .sort({ 'travelExpenseData.expenseHeaderNumber': -1 })
+        //   .limit(1);
 
         let nextIncrementalValue = 0;
 
-        if (maxIncrementalValue && maxIncrementalValue.travelExpenseData && maxIncrementalValue.travelExpenseData.expenseHeaderNumber) {
-          nextIncrementalValue = parseInt(maxIncrementalValue.travelExpenseData.expenseHeaderNumber.substring(3), 10) + 1;
-        }
+        // if (maxIncrementalValue && maxIncrementalValue.travelExpenseData && maxIncrementalValue.travelExpenseData.expenseHeaderNumber) {
+        //   nextIncrementalValue = parseInt(maxIncrementalValue.travelExpenseData.expenseHeaderNumber.substring(3), 10) + 1;
+        // }
 
         expenseHeaderNumber = generateIncrementalNumber(tenantName, nextIncrementalValue);
 
