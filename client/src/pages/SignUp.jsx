@@ -6,7 +6,7 @@ import Search from '../components/common/Search';
 import Input from '../components/common/Input';
 import Button from '../components/common/Button';
 import Modal from '../components/common/Modal';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { getCityList_API, postOtpValidation_API, postSignupData_API } from '../utils/api';
 import PopupMessage from '../components/common/PopupMessage';
 import Error from '../components/common/Error';
@@ -340,9 +340,13 @@ export default function CompanyAndHRInformation(){
             </div>
             </div>
 
-            <div  className='mt-10 mb-10 w-full px-6  flex-grow flex items-center flex-row-reverse'>
+            <div  className='flex flex-col mt-10 mb-5 w-full px-6  flex-grow gap-2 items-center '>
                 <Button variant='full' uploading={isUploading.signup} disabled={isUploading.signup} text='Sign Up' onClick={()=>handleSubmit()} />
+          <div className="text-sm font-cabin" >
+           <Link to='/sign-in'><p  className="font-semibold text-indigo-600 hover:text-indigo-500 cursor-pointer">Already have an account?</p></Link> 
+          </div>
             </div>
+            
 
           </form>
 

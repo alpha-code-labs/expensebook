@@ -13,9 +13,9 @@ function App() {
     <div className='min-w-[100%] min-h-[100%]'>
      <BrowserRouter>
         <Routes>
-          <Route path='/sign-up/' element={<SignUp />} /> 
-          <Route path='/verify/:tenantId' element={<VerifyUser  />} /> 
-          <Route path='/user-login' element={<Login/>}/>
+          <Route path='/sign-up' element={<SignUp />} /> 
+          <Route path='/verify-user/:tenantId' element={<VerifyUser  />} /> 
+          <Route path='/sign-in' element={<Login/>}/>
           <Route path='/update-password' element={<UpdatePassword/>} />
         </Routes>
      </BrowserRouter>
