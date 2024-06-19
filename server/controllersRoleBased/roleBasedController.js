@@ -1968,8 +1968,8 @@ const approvalsForManager = async (tenantId, empId) => {
                         console.log("Processing expense:", expense);
                         const { tripId, tripNumber, tripStatus } = approval.tripSchema;
                         const { tripPurpose} = approval.tripSchema.travelRequestData
-                        const { expenseHeaderNumber, expenseHeaderStatus, approvers } = expense;
-                        return { tripId,tripNumber,tripPurpose,tripStatus, expenseHeaderNumber, expenseHeaderStatus, approvers };
+                        const { expenseHeaderNumber,expenseHeaderId, expenseHeaderStatus, approvers } = expense;
+                        return { tripId,tripNumber,tripPurpose,tripStatus, expenseHeaderNumber,expenseHeaderId, expenseHeaderStatus, approvers };
                     });
                 });
         
