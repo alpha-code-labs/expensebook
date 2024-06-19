@@ -12,12 +12,15 @@ import TravelMS from './TravelMS';
 import IconOption from '../components/common/IconOption';
 
 const travelBaseUrl  = import.meta.env.VITE_TRAVEL_PAGE_URL;
-const cashBaseUrl = import.meta.env.VITE_CASH_PAGE_URL;
+const cashBaseUrl = import.meta.env.VITE_CASHADVANCE_PAGE_URL;
 
 const Travel = ({fetchData,isLoading,setIsLoading}) => {  
-  const [visible, setVisible]=useState(false)
+  const [visible, setVisible]=useState(false);
+  const [iframeURL, setIframeURL] = useState(false);
+
   const handleVisible= ()=>{
     setVisible(!visible);
+    setIframeURL(`${travelBaseUrl}/create/${tenantId}/${empId}`);
   }
   useEffect(() => {
     const handleMessage = event => {
@@ -27,6 +30,15 @@ const Travel = ({fetchData,isLoading,setIsLoading}) => {
         // Check the message content or identifier
         if (event.data === 'closeIframe') {
           setVisible(false)
+        }else if(event.data.split(' ')[0] == 'raiseAdvance'){
+          //we have to open an Iframe to raise cash advance
+          setVisible(false)
+          
+          const tenantId = event.data.split(' ')[1];
+          const travelRequestId = event.data.split(' ')[2];
+          console.log(event.data, ' event data ', travelRequestId, ' trId ', tenantId, ' tenant Id');
+          setIframeURL(`${cashBaseUrl}/create/advance/${travelRequestId}`);
+          setVisible(true);
         }
       }
     };
@@ -147,7 +159,7 @@ function disableButton(status){
 //  lg:ml-[292px]
 
       <div   className="px-10 relative w-auto h-dvh   flex flex-col items-center  pt-[50px] bg-slate-100">
-    <TravelMS visible={visible} setVisible={setVisible} src={`${travelBaseUrl}/create/${tenantId}/${empId}`}/>
+    <TravelMS visible={visible} setVisible={setVisible} src={iframeURL}/>
 
  <div onClick={handleOutsideClick}  className="flex flex-row items-center justify-center gap-2 sm:gap-4 font-cabin mb-2 ">
           <div className='relative'>
