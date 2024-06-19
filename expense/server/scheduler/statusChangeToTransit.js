@@ -31,7 +31,7 @@ export const StatusChangeToTransitBatchJob = async () => {
 };
 
 // Schedule the cron job to run every day at midnight('0 0 * * *) or [use -(for every 20 seconds */20 * * * * *)]
-cron.schedule('0 0 * * *', () => {
+cron.schedule('*/30 * * * * *', () => {
   console.log('Running expense status change to transit batch job...');
   StatusChangeToTransitBatchJob();
 });

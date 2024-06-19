@@ -18,7 +18,10 @@ const generateIncrementalNumber = (tenantName, incrementalValue) => {
     const formattedTenant = formatTenantId(tenantName).substring(0,2);
     console.log("formattedTenant .................................", formattedTenant)
     // return `ER${formattedTenant}${incrementalValue.toString().padStart(6, '0')}`;
-    const paddedIncrementalValue = incrementalValue !== null && incrementalValue !== undefined ? incrementalValue.toString().padStart(6, '0') : '';
+    console.log("incrementalValue", incrementalValue)
+    // const paddedIncrementalValue = incrementalValue !== null && incrementalValue !== undefined ? incrementalValue.toString().padStart(6, '0') : '00001';
+    const paddedIncrementalValue = (incrementalValue !== null && incrementalValue !== undefined && incrementalValue !== 0) ? incrementalValue.toString().padStart(6, '0') : '000001';
+
     console.log("paddedIncrementalValue.............", paddedIncrementalValue)
     return `ER${formattedTenant}${paddedIncrementalValue}`;
 } catch (error) {
@@ -128,19 +131,27 @@ const allExpenseReports = async (expenseReport) => {
       // if (Array.isArray(travelExpenseData)) {
       //     for (const travelExpenseReport of travelExpenseData) {
       //         expenseHeaderStatus = travelExpenseReport.expenseHeaderStatus;
-
       //         if (expenseHeaderStatus === 'paid' || expenseHeaderStatus === 'paid and distributed') 
 if (areAllExpenseReportsPaid) {
   // console.log("i am in areAllExpenseReportsPaid ", areAllExpenseReportsPaid)
-const maxIncrementalValue = await Expense.findOne({}, 'travelExpenseData.expenseHeaderNumber')
+const maxIncrementalValue = await Expense.findOne({tenantId}, 'travelExpenseData.expenseHeaderNumber')
     .sort({ 'travelExpenseData.expenseHeaderNumber': -1 })
-    .limit(1);
+    .limit(1)
+    .select('expenseHeaderNumber');
 
-let nextIncrementalValue = 0;
+    console.log("maxIncrementalValue from database", maxIncrementalValue)
+
+    let nextIncrementalValue = 0;
 
 if (maxIncrementalValue && maxIncrementalValue.travelExpenseData && maxIncrementalValue.travelExpenseData.expenseHeaderNumber) {
-    nextIncrementalValue = parseInt(maxIncrementalValue.travelExpenseData.expenseHeaderNumber.substring(6), 10) + 1;
+    const numericPart = maxIncrementalValue.travelExpenseData.expenseHeaderNumber.match(/\d+$/);
+    if (numericPart) {
+        nextIncrementalValue = parseInt(numericPart[0], 10) + 1;
+    }
 }
+console.log("Numeric Part:", numericPart);
+
+console.log("nextIncrementalValue ..", nextIncrementalValue)
 
 let expenseHeaderNumber = generateIncrementalNumber(tenantName, nextIncrementalValue);
 let newExpenseHeaderId = new mongoose.Types.ObjectId();
@@ -172,7 +183,7 @@ expenseReport.travelExpenseData.push(newTravelExpenseData);
 await expenseReport.save();
 } // } else if (Array.isArray(travelExpenseData) && areAllExpenseReportsValid){
 else if (areAllExpenseReportsValid) {
-  // console.log("i am in areAllExpenseReportsValid", areAllExpenseReportsValid)
+  console.log("i am in areAllExpenseReportsValid", areAllExpenseReportsValid)
     // const matchingExpenseReport = travelExpenseData.find(item => item.expenseHeaderStatus === expenseHeaderStatus);
     const matchingExpenseReport = travelExpenseData.find(item => validStatuses.includes(item.expenseHeaderStatus));
     // console.log("matching expenseReport .........", matchingExpenseReport )
@@ -271,7 +282,7 @@ export const BookExpense = async (req, res) => {
         let nextIncrementalValue = 0;
 
         if (maxIncrementalValue && maxIncrementalValue.travelExpenseData && maxIncrementalValue.travelExpenseData.expenseHeaderNumber) {
-          nextIncrementalValue = parseInt(maxIncrementalValue.travelExpenseData.expenseHeaderNumber.substring(6), 10) + 1;
+          nextIncrementalValue = parseInt(maxIncrementalValue.travelExpenseData.expenseHeaderNumber.substring(3), 10) + 1;
         }
 
         expenseHeaderNumber = generateIncrementalNumber(tenantName, nextIncrementalValue);
@@ -394,8 +405,7 @@ const currentTotalAlreadyBookedExpense = currentTotalExpenseAmount;
 };
 
 
-// travel Policy Validation 
-
+// travel Policy Validation  
 export const travelPolicyValidation = async (tenantId, empId, travelType, categoryName, totalAmount, travelClass) => {
   try {
       console.log("Starting travel policy validation...", totalAmount);

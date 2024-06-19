@@ -7,7 +7,7 @@ export const reimbursementRoutes = express.Router();
 reimbursementRoutes.get( '/:tenantId/:empId/expensecategories', getExpenseCategoriesForEmpId);
 
 //get expense category values and policy limit
-reimbursementRoutes.get( '/:tenantId/:empId/:expenseCategory/policy', getHighestLimitGroupPolicy);
+reimbursementRoutes.put( '/:tenantId/:empId/:expenseCategory/policy', getHighestLimitGroupPolicy);
 
 // non travel currency converter
 reimbursementRoutes.get('/currency/:tenantId/:amount/:currencyName', reimbursementCurrencyConverter);

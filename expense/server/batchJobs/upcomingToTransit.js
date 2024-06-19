@@ -1,4 +1,5 @@
 import cron from 'node-cron';
+import Expense from '../models/travelExpenseSchema.js';
 
 //To update status from upcoming to transit on the day of travel.
 //important!! - A batch job is run to update status from upcoming to transit on the day of travel and 
@@ -10,14 +11,12 @@ export const StatusChangeToTransitBatchJob = async () => {
     // Update documents in the Expense collection
     const result = await Expense.updateMany(
       {
-        'tripData.tripStatus': 'upcoming',
-        'tripData.tripStartDate': { $lte: todayDate },
+        'tripStatus': 'upcoming',
+        'tripStartDate': { $lte: todayDate },
       },
       {
         $set: {
-            'tripData.tripStatus': 'transit',
-            'tripData.travelRequestData.travelRequestStatus': 'transit',
-            'tripData.cashAdvancesData.travelRequestData.travelRequestStatus': 'transit',
+            'tripStatus': 'transit',
         }
       }
     );
@@ -34,6 +33,17 @@ cron.schedule('0 0 * * *', () => {
   console.log('Running expense status change to transit batch job...');
   StatusChangeToTransitBatchJob();
 });
+
+export const scheduleTripTransitBatchJob = () => {
+  const schedule = process.env.SCHEDULE_TIME; // Runs every 20 seconds
+ 
+  cron.schedule(schedule, async () => {
+     console.log('Running trip transit batch job ...');
+     await StatusChangeToTransitBatchJob();
+  });
+ 
+  console.log(`Scheduled trip transit batch job to run every 20 seconds.`);
+ };
 
 // Function to trigger the batch job on demand 
 const triggerTransitBatchJob = () => {

@@ -10,11 +10,26 @@ import { sendToOtherMicroservice } from "../rabbitmq/publisher.js";
  * @param {number} incrementalValue - The incremental value used to generate the number.
  * @returns {string} - The generated incremental number.
  */
-const generateIncrementalNumber = (tenantId, incrementalValue) => {
-  const formattedTenant = (tenantId || '').toUpperCase().substring(0, 3);
-  const paddedIncrementalValue = String(incrementalValue).padStart(6, '0');
-  return `REIM${formattedTenant}${paddedIncrementalValue}`;
+
+
+const formatTenant = (tenantName) => {
+  return tenantName.toUpperCase(); 
 };
+
+// to generate and add expense report number
+const generateIncrementalNumber = (tenantName, incrementalValue) => {
+  if (typeof tenantName !== 'string' || typeof incrementalValue !== 'number') {
+    throw new Error('Invalid input parameters');
+  }
+  console.log("tenantName",tenantName, "incrementalValue", incrementalValue)
+  const formattedTenant = formatTenant(tenantName).substring(0, 2);
+  const paddedIncrementalValue = (incrementalValue !== null && incrementalValue !== undefined && incrementalValue !== 0) ?
+    (incrementalValue + 1).toString().padStart(6, '0') :
+    '000001';
+
+  return `RE${formattedTenant}${paddedIncrementalValue}`;
+}
+
 
 /**
  * Retrieves expense categories for a given employee ID.
@@ -77,17 +92,20 @@ export const getExpenseCategoriesForEmpId = async (req, res) => {
 };
 
 
+
 // 2) group limit, policies, expense header number
 export const getHighestLimitGroupPolicy = async (req, res) => {
     try {
-      const { tenantId, empId, expenseCategory} = req.params;
+      const { tenantId, empId, expenseCategory } = req.params;
+       let{expenseHeaderId} = req.body;
+       let expenseHeaderNumber;
 
-      // Check if the required parameters are provided
+       console.log("expenseHeaderId from req.body",expenseHeaderId)
+
       if (!expenseCategory || !empId || !tenantId) {
         return res.status(404).json({ message: 'error params are missing' });
       }
 
-      // Find the employee document based on the provided tenantId and empId
       const employeeDocument = await HRCompany.findOne({
         tenantId,
         'employees.employeeDetails.employeeId': empId,
@@ -159,30 +177,35 @@ export const getHighestLimitGroupPolicy = async (req, res) => {
       const { categoryName, fields, expenseAllocation } = selectedExpenseCategory;
       const { defaultCurrency = '' } = companyDetails;
 
-      let expenseHeaderNumber = null;
-      let expenseHeaderId;
-
       // Find the updated expense header
       const updatedExpense = await Reimbursement.findOne(
         {
           tenantId,
           'createdBy.empId': empId,
-          expenseHeaderStatus: { $in: ['null', 'draft'] },
+          expenseHeaderStatus: { $in: [null, 'draft'] },
         },
       );
 
       if (updatedExpense) {
+        console.log('Updated expense', updatedExpense);
         ({ expenseHeaderNumber, expenseHeaderId } = updatedExpense);
-      } else {
-        const maxIncrementalValue = await Reimbursement.findOne({}, 'expenseReimbursementSchema?.expenseHeaderNumber')
-          .sort({ 'expenseReimbursementSchema?.expenseHeaderNumber': -1 })
-          .limit(1);
+      }
+    
+      if(!expenseHeaderId){
+        console.log("expenseHeaderId from req body",expenseHeaderId)
+        const maxIncrementalValue = await Reimbursement.findOne({ tenantId })
+        .sort({expenseHeaderNumber: -1 })
+        .limit(1)
+        .select('expenseHeaderNumber');
 
-        const nextIncrementalValue = (maxIncrementalValue ? parseInt(maxIncrementalValue.expenseReimbursementSchema?.expenseHeaderNumber.substring(6), 10) : 0) + 1;
-        expenseHeaderNumber = generateIncrementalNumber(tenantId, nextIncrementalValue);
+const nextIncrementalValue = maxIncrementalValue?.expenseHeaderNumber ? parseInt(maxIncrementalValue.expenseHeaderNumber.substring(6), 10) : 0;
 
-        // Create a new expense headerId
-        expenseHeaderId = new mongoose.Types.ObjectId()
+    console.log("nextIncrementalValue", nextIncrementalValue);
+    
+      expenseHeaderNumber = generateIncrementalNumber(companyName, nextIncrementalValue);
+
+      // Create a new expense headerId
+      expenseHeaderId = new mongoose.Types.ObjectId()
       }
 
       const message = `${employeeName} is part of ${groupName}. Highest limit found: ${highestLimit}`;
@@ -217,6 +240,133 @@ export const getHighestLimitGroupPolicy = async (req, res) => {
     }
 };
 
+
+
+// export const getHighestLimitGroupPolicy = async (req, res) => {
+//   try {
+//       const { tenantId, empId, expenseCategory } = req.params;
+//       let { expenseHeaderId } = req.body;
+
+//       console.log("expenseHeaderId", expenseHeaderId);
+
+//       if (!expenseCategory || !empId || !tenantId) {
+//           return res.status(404).json({ message: 'Required params are missing' });
+//       }
+
+//       const employeeDocument = await HRCompany.findOne({
+//           tenantId,
+//           'employees.employeeDetails.employeeId': empId,
+//       });
+
+//       if (!employeeDocument) {
+//           return res.status(404).json({
+//               success: false,
+//               message: 'Employee not found for the given IDs',
+//           });
+//       }
+
+//       const { companyDetails: { companyName }, employees: [employee], policies: { nonTravelPolicies } } = employeeDocument;
+//       const groups = employee.group || [];
+
+//       let highestGroup = { limit: -Infinity, group: null };
+
+//       const getHighestLimitGroupPolicy = (nonTravelPolicies, groups, expenseCategory) => {
+//           groups.forEach(groupName => {
+//               const groupPolicy = nonTravelPolicies.find(policy => Object.keys(policy)[0] == groupName);
+//               if (groupPolicy) {
+//                   const currentLimit = +groupPolicy[groupName]?.[expenseCategory]?.limit?.amount;
+//                   if (currentLimit > highestGroup.limit) {
+//                       highestGroup = { limit: currentLimit, group: groupName };
+//                   }
+//               } else {
+//                   console.error(`No policy found for group: ${groupName}`);
+//               }
+//           });
+//           return highestGroup;
+//       };
+
+//       let { limit: highestLimit, group: groupName } = getHighestLimitGroupPolicy(nonTravelPolicies, groups, expenseCategory) || {};
+
+//       const { reimbursementExpenseCategories = [], companyDetails = {}, reimbursementAllocations = [], multiCurrencyTable = [] } = employeeDocument;
+//       const employeeName = employee.employeeDetails.employeeName;
+//       const currencyTable = multiCurrencyTable?.exchangeValue.map(item => item.currency);
+//       const selectedExpenseCategory = reimbursementExpenseCategories?.find(category => category.categoryName == expenseCategory);
+//       const selectedReimbursementAllocations = reimbursementAllocations?.find(allocation => allocation.categoryName == expenseCategory);
+//       let newExpenseAllocation, newExpenseAllocation_accountLine;
+//       if (selectedReimbursementAllocations) {
+//           ({ expenseAllocation: newExpenseAllocation, expenseAllocation_accountLine: newExpenseAllocation_accountLine } = selectedReimbursementAllocations);
+//       }
+
+//       if (!selectedExpenseCategory) {
+//           return res.status(404).json({
+//               success: false,
+//               message: 'Expense category not found for the employee',
+//           });
+//       }
+
+//       const { categoryName, fields, expenseAllocation } = selectedExpenseCategory;
+//       const { defaultCurrency = '' } = companyDetails;
+//       let expenseHeaderNumber;
+
+//       if (expenseHeaderId == null || expenseHeaderId == undefined) {
+//           const maxIncrementalValue = await Reimbursement.findOne({ tenantId }, 'expenseReimbursementSchema?.expenseHeaderNumber')
+//               .sort({ 'expenseReimbursementSchema?.expenseHeaderNumber': -1 })
+//               .limit(1);
+
+//           console.log("maxIncrementalValue from db", maxIncrementalValue);
+
+//           const nextIncrementalValue = (maxIncrementalValue ? parseInt(maxIncrementalValue.expenseReimbursementSchema?.expenseHeaderNumber.substring(6), 10) : 0);
+//           expenseHeaderNumber = generateIncrementalNumber(companyName, nextIncrementalValue);
+
+//           expenseHeaderId = new mongoose.Types.ObjectId();
+
+//           const updatedExpense = await Reimbursement.findOneAndUpdate(
+//               {
+//                   tenantId,
+//                   'createdBy.empId': empId,
+//                   expenseHeaderStatus: { $in: ['null', 'draft'] },
+//               },
+//               {
+//                   expenseHeaderId: expenseHeaderId,
+//                   expenseHeaderNumber: expenseHeaderNumber
+//               },
+//               { new: true, upsert: true },
+//           );
+
+//           if (updatedExpense) {
+//               ({ expenseHeaderNumber, expenseHeaderId } = updatedExpense);
+//           }
+
+//           console.log("updatedExpense", updatedExpense);
+
+//           const message = `${employeeName} is part of ${groupName}. Highest limit found: ${highestLimit}`;
+//           const group = { limit: highestLimit, group: groupName, message };
+
+//           return res.status(200).json({
+//               success: true,
+//               tenantId,
+//               expenseHeaderId,
+//               expenseHeaderNumber,
+//               companyName,
+//               createdBy: { empId, name: employeeName },
+//               defaultCurrency: defaultCurrency || '',
+//               currencyTable: currencyTable || '',
+//               newExpenseAllocation,
+//               newExpenseAllocation_accountLine,
+//               group,
+//               categoryName,
+//               fields,
+//           });
+//       }
+//   } catch (error) {
+//       console.error('Error fetching highest limit group policy:', error);
+//       return res.status(500).json({
+//           success: false,
+//           message: 'Internal Server Error',
+//           error: error.message || 'Something went wrong',
+//       });
+//   }
+// };
 
 //3) currency converter for non travel expense 
 export const reimbursementCurrencyConverter = async (req, res) => {
@@ -290,6 +440,7 @@ export const saveReimbursementExpenseLine = async (req, res) => {
       if (!expenseHeaderId || ! empId || !tenantId) {
         return res.status(404).json({ message: 'error params are missing' });
       }
+
       const {
         employeeName,
         companyName,
@@ -299,11 +450,14 @@ export const saveReimbursementExpenseLine = async (req, res) => {
         lineItem,
       } = req.body;
   
-      console.log("req body", req.body)
+       console.log("req body", req.body)
+       console.log("lineItem ......", lineItem)
+       console.log("Type of 'Booking Reference No':", typeof lineItem['Booking Reference No']);
 
-      if (!expenseHeaderId) {
-        return res.status(404).json({ message: 'error expenseHeaderId is missing' });
+      if (!expenseHeaderNumber ) {
+        return res.status(404).json({ message: 'error expenseHeaderNumber is missing' });
       }
+
        const {name} = createdBy
       const expenseLineData ={}
       const expenseLineId = new mongoose.Types.ObjectId().toString();
@@ -325,9 +479,9 @@ export const saveReimbursementExpenseLine = async (req, res) => {
               companyName: companyName ?? '',
               expenseHeaderId,
               expenseHeaderNumber,
+              createdBy,
               expenseHeaderType: 'reimbursement',
               defaultCurrency,
-              createdBy,
           },
           $push: {
             expenseLines: [expenseLineData],
