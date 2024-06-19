@@ -19,4 +19,3 @@ export default function ({message=null}){
         </div>)
 }
 
-

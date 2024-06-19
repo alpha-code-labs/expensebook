@@ -247,7 +247,6 @@ export const tripDummyData = {
         },
         "totalExpenseAmount": 107226,
         "totalAlreadyBookedExpense": 107226,
-       
         "totalCashAmount": "0",
         "remainingCash": "0",      
         "expenseLines":[         

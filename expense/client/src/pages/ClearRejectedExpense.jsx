@@ -86,10 +86,6 @@ const ClearRejectedExpense=()=>{
  <p className=" ml-2 w-full text-neutral-600 text-lg">Expense Header Number :  {data?.expenseHeaderNumber}</p>   
  </div>
  </div>
-
-
-
-
                     <div className="mt-4 text-red-500 px-6 py-2 rounded-md bg-red-100">
                         <p>{data?.rejectionReason}</p>
                     </div>
@@ -100,7 +96,6 @@ const ClearRejectedExpense=()=>{
                     </div>
                 </div>
             </div>
-
             </div>
         }
       </>

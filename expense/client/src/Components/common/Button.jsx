@@ -41,7 +41,12 @@ export default function Button(props) {
         } h-12 px-8 py-4 bg-indigo-600 rounded-[32px] justify-center items-center gap-2 inline-flex`}
       >
         {loading && active ? (
-          <img src={loading_icon} className="animate-spin w-8 h-8" />
+          <div className='flex gap-1 text-center items-center'>
+          <img src={loading_icon} className="animate-spin w-5 h-5" />
+          <div className="w-full h-5 text-center text-white-100 text-base font-medium font-cabin">
+            {text}
+          </div>
+          </div>
         ) : (
           <div className="w-full h-5 text-center text-white-100 text-base font-medium font-cabin">
             {text}
