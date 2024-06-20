@@ -1,7 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 /* eslint-disable react/display-name */
 import { useState, useEffect} from "react";
-import {BrowserRouter as Router, useParams} from 'react-router-dom'
+import {BrowserRouter as Router, useParams} from 'react-router-dom';
 import axios from 'axios'
 import Icon from "../components/common/Icon";
 import { titleCase } from "../utils/handyFunctions";
@@ -25,8 +25,7 @@ const rejectionReasonOptions = [
 
 export default function () {
   //get travel request Id from params
-    const {travelRequestId} = useParams()
-    const tenantId = 'tynod76eu'
+   
     const [showPopup, setShowPopup] = useState(false)
     const [message, setMessage] = useState(false)
     const [showConfimationForCancllingTR, setShowConfirmationForCancellingTr] = useState(false)

@@ -67,7 +67,7 @@ function App() {
        <Route path='/:tenantId/:empId/:tripId/book/travel-expense' element={<CreateExpense/>}/>
        <Route path='/:tenantId/:empId/:tripId/:cancel/travel-expense' element={<CreateExpense/>}/> 
        <Route path='/:tenantId/:empId/:tripId/:expenseHeaderId/clear-rejection/travel-expense' element={<ClearRejectedExpense/>}/>    
-       <Route path='/' element={<Page_2/>}/>    
+       {/* <Route path='/' element={<Page_2/>}/>     */}
        <Route path='/:tenantId/:empId/book/reimbursement' element={<CreateNonTraveExpense/>}/>
        <Route path='/:tenantId/:empId/:expenseHeaderId/:cancel/reimbursement' element={<CreateNonTraveExpense/>}/>
       </Routes>
