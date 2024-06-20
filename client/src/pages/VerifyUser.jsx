@@ -160,7 +160,7 @@ let allowSubmit =true
                   navigate(`/update-password`);
                   console.log(formData.email)
                 }else{
-                  navigate(`/user-login`)
+                  navigate(`/sign-in`)
                 }
               }
            

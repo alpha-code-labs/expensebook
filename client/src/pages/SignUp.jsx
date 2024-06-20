@@ -165,7 +165,7 @@ export default function CompanyAndHRInformation(){
           setTimeout(()=>{
             setMessage(null)
             setShowPopup(false)
-            navigate("/user-login")
+            navigate("/sign-in")
           },3000)
           // For example, you can redirect to another page after successful signup
           // navigate('/success-page');

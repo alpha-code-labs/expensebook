@@ -103,7 +103,7 @@ const handleUpdate = async () => {
       },5000)
       
       // For example, you can redirect to another page after successful update
-       navigate('/user-login');
+       navigate('/sign-in');
     }
 }
 };
