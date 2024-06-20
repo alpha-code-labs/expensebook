@@ -147,6 +147,7 @@ const expenseCategories = [
   {
     categoryName: 'Travel Insurance',
     fields: [
+      { name: 'Invoice Date', type: 'date' },
       { name: 'Policy Type', type: 'text' },
       { name: 'Insurance Provider', type: 'text' },
       { name: 'Total Amount', type: 'amount' }
