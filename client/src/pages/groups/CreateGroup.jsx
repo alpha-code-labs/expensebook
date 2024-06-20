@@ -352,7 +352,7 @@ export default function ({progress, setProgress, groupData, setGroupData}){
                 </div>
             </div>
 
-            <Prompt prompt={prompt} setPrompt={setPrompt} timeout={promptTimeout}/>
+            <Prompt prompt={prompt} setPrompt={setPrompt} timeout={promptTimeout+2000}/>
         </>}
     </MainSectionLayout>
         </>)

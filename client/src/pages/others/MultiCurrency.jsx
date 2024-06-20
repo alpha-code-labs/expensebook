@@ -118,7 +118,7 @@ export default function ({progress, setProgress}){
             }
             if(!res.err){
                 setNetworkStates({isLoading:false, isUploading:false, loadingErrMsg:res.err})
-                setPrompt({showPrompt:true, promptMsg: 'Multicurrency table updated', sucesss: true})
+                setPrompt({showPrompt:true, promptMsg: 'Multicurrency table updated', sucess: true})
 
                 setTimeout(()=>{
                     setProgress(progress_copy);
