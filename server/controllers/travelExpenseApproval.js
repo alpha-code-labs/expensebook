@@ -309,8 +309,8 @@ export const TravelexpenseHeaderStatusApproved = async (req, res) => {
      const action = 'expense-approval';
      const comments = 'expense report approved'
      // Assuming sendToOtherMicroservice and sendToDashboardMicroservice are defined elsewhere
-     await sendToOtherMicroservice(payload, action, 'trip', comments, 'approval', 'online');
-     await sendToOtherMicroservice(payload, action, 'expense', comments, 'approval', 'online');
+     await sendToOtherMicroservice(payload, action, 'trip', comments,  'online', 'approval',);
+     await sendToOtherMicroservice(payload, action, 'expense', comments, 'online', 'approval',);
      await sendToDashboardMicroservice(payload, action, comments,'approval', 'online', true);
  
      return res.status(200).json({ message: `expense Report approved for ${name}` });
@@ -392,8 +392,8 @@ export const TravelexpenseHeaderStatusApproved = async (req, res) => {
      const action = 'expense-approval';
      const comments = 'expense report approved'
      // Assuming sendToOtherMicroservice and sendToDashboardMicroservice are defined elsewhere
-     await sendToOtherMicroservice(payload, action, 'trip', comments, 'approval', 'online');
-     await sendToOtherMicroservice(payload, action, 'expense', comments, 'approval', 'online');
+     await sendToOtherMicroservice(payload, action, 'trip', comments, 'online', 'approval');
+     await sendToOtherMicroservice(payload, action, 'expense', comments, 'online', 'approval');
      await sendToDashboardMicroservice(payload, action, comments,'approval', 'online', true);
  
      return res.status(200).json({ message: `expense Report rejected for ${name}` });
