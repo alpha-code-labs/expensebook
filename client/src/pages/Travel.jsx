@@ -674,23 +674,40 @@ import TravelMS from './TravelMS';
 import IconOption from '../components/common/IconOption';
 
 const travelBaseUrl  = import.meta.env.VITE_TRAVEL_PAGE_URL;
-const cashBaseUrl = import.meta.env.VITE_CASH_PAGE_URL;
+const cashBaseUrl = import.meta.env.VITE_CASHADVANCE_PAGE_URL;
 
 const Travel = ({fetchData,isLoading,setIsLoading}) => {  
 
 
   const [visible, setVisible]=useState(false)
+  const [iframeURL, setIframeURL] = useState(null); 
+
   const handleVisible= ()=>{
     setVisible(!visible);
+    setIframeURL(`${travelBaseUrl}/create/${tenantId}/${empId}`);
   }
   useEffect(() => {
     const handleMessage = event => {
       console.log(event)
       // Check if the message is coming from the iframe
-      if (event.origin === travelBaseUrl || cashBaseUrl) {
+      if (event.origin === travelBaseUrl || event.origin === cashBaseUrl) {
         // Check the message content or identifier
         if (event.data === 'closeIframe') {
           setVisible(false)
+        }
+         // Check the message content or identifier
+         if (event.data === 'closeIframe') {
+          setVisible(false)
+          window.location.href = window.location.href;
+        }else if(event.data.split(' ')[0] == 'raiseAdvance'){
+          //we have to open an Iframe to raise cash advance
+          setVisible(false)
+          
+          const tenantId = event.data.split(' ')[1];
+          const travelRequestId = event.data.split(' ')[2];
+          console.log(event.data, ' event data ', travelRequestId, ' trId ', tenantId, ' tenant Id');
+          setIframeURL(`${cashBaseUrl}/create/advance/${travelRequestId}`);
+          setVisible(true);
         }
       }
     };
@@ -811,7 +828,7 @@ function disableButton(status){
 //  lg:ml-[292px]
 
       <div   className="relative w-auto min-h-screen  flex flex-col items-center px-2 lg:px-10 xl:px-20  pt-[50px] bg-slate-100">
-<TravelMS visible={visible} setVisible={setVisible} src={`${travelBaseUrl}/create/${tenantId}/${empId}`}/>
+  <TravelMS visible={visible} setVisible={setVisible} src={iframeURL}/>
 
  <div onClick={handleOutsideClick}  className="flex flex-row items-center justify-center gap-2 sm:gap-4 font-cabin mb-2 ">
           <div className='relative'>
