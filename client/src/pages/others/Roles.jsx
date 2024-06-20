@@ -186,7 +186,7 @@ export default function ({progress, setProgress}){
 
             if(res.status === 200){
                 //alert('System roles updated!')
-                setPrompt({showPrompt:true, promptMsg: 'System roles updated!'})
+                setPrompt({showPrompt:true, promptMsg: 'System roles updated!', success: true})
 
                 setTimeout(()=>{
                     setProgress(progress_copy)

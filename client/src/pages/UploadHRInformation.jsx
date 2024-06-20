@@ -17,7 +17,6 @@ import MainSectionLayout from './MainSectionLayout';
 import Prompt from '../components/common/Prompt';
 
 const WEB_PAGE_URL = import.meta.env.VITE_WEB_PAGE_URL;
-const LOGIN_PAGE_URL = import.meta.env.VITE_LOGIN_PAGE_URL
 
 export default function ({progress, setProgress}){
 
@@ -150,7 +149,7 @@ export default function ({progress, setProgress}){
 
     if(!progress_res.err){
 
-      setPrompt_({showPrompt:true, promptMsg: 'Data uploaded successfully'})
+      setPrompt_({showPrompt:true, promptMsg: 'Data uploaded successfully', success:true})
 
       setTimeout(()=>{
         setProgress(progress_copy);

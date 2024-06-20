@@ -124,10 +124,10 @@ export default function ({tenantId, travelType, ruleEngineState, setRuleEngineSt
 
 
         if(res.err || progress_res.err){
-            setPrompt({showPrompt:true, promptMsg:'Can not update policies at the moment. Please try again later'})
+            setPrompt({showPrompt:true, promptMsg:'Can not update policies at the moment. Please try again later', success: false})
         }
         else{
-            setPrompt({showPrompt:true, promptMsg:'Reimbursement Policies Updated!'})
+            setPrompt({showPrompt:true, promptMsg:'Reimbursement Policies Updated!', success: true})
             console.log(res.data)
             updateFormState_API({tenantId, state:'/setup-company-policies'})
             

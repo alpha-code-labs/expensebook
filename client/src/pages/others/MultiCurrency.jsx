@@ -19,7 +19,7 @@ export default function ({progress, setProgress}){
     const {tenantId} = useParams()
     const [tenantDefaultCurrency, setTenantDefaultCurrency] =  useState({fullName:'', shortName:'', symbol:'', countryCode:''})
     const [currencyTable, setCurrencyTable] = useState([])
-    const [prompt, setPrompt] = useState({showPrompt:false, promptMsg:null, success:null})
+    const [prompt, setPrompt] = useState({showPrompt:false, promptMsg:null, sucesss:null})
     const [networkStates, setNetworkStates] = useState({isLoading:false, isUploading:false, loadingErrMsg:null})
     const [selectedCurrency, setSelectedCurrency] = useState(null)
     const [activeButton, setActiveButton] = useState(null)
@@ -114,11 +114,11 @@ export default function ({progress, setProgress}){
 
             if(res.err || progress_res.err){
                 setNetworkStates({isLoading:false, isUploading:false, loadingErrMsg:res.err})
-                setPrompt({showPrompt:true, promptMsg: res.err??progress_res.err})
+                setPrompt({showPrompt:true, promptMsg: res.err??progress_res.err, sucess: false})
             }
             if(!res.err){
                 setNetworkStates({isLoading:false, isUploading:false, loadingErrMsg:res.err})
-                setPrompt({showPrompt:true, promptMsg: 'Multicurrency table updated'})
+                setPrompt({showPrompt:true, promptMsg: 'Multicurrency table updated', sucesss: true})
 
                 setTimeout(()=>{
                     setProgress(progress_copy);
@@ -148,7 +148,7 @@ export default function ({progress, setProgress}){
                 // alert('Multicurrency table updated')
                 // navigate(`/${tenantId}/others/blanket-delegations`)
                 setNetworkStates({isLoading:false, isUploading: false, loadingErrMsg:null})
-                setPrompt({showPrompt:true, promptMsg:'Multicurrency table updated. Redirecting...'})
+                setPrompt({showPrompt:true, promptMsg:'Multicurrency table updated.', success: true})
                 setTimeout(()=>{
                     window.location.href = import.meta.env.VITE_WEB_PAGE_URL
                 }, 2700)
@@ -182,11 +182,11 @@ export default function ({progress, setProgress}){
 
             if(res.err){
                 setNetworkStates({isLoading:false, isUploading:false, loadingErrMsg:res.err})
-                setPrompt({showPrompt:true, promptMsg: 'Something went wrong while removing currency from table'})
+                setPrompt({showPrompt:true, promptMsg: 'Something went wrong while removing currency from table', sucess: true})
             }
             if(!res.err){
                 setNetworkStates({isLoading:false, isUploading:false, loadingErrMsg:res.err})
-                setPrompt({showPrompt:true, promptMsg: 'Currency Removed'})
+                setPrompt({showPrompt:true, promptMsg: 'Currency Removed', sucess: true})
                 setCurrencyTable(currencyTable_copy)
             }
 

@@ -101,7 +101,7 @@ export default function ({progress, setProgress}){
             setNetworkStates(pre=>({...pre, isUploading:false}))
 
             if(res.status == 200){
-                setPrompt({showPrompt:true, promptMsg: 'Advance Settlement Options Updated !'})
+                setPrompt({showPrompt:true, promptMsg: 'Advance Settlement Options Updated !', success: true })
                 updateFormState_API({tenantId, state:'/others/cash-expense-settlement-options'})
 
                 setTimeout(()=>{
@@ -131,7 +131,7 @@ export default function ({progress, setProgress}){
             const res = await axios.post(`${ONBOARDING_API}/tenant/${tenantId}/advance-settlement-options`, {advanceSettlementOptions:options})
             if(res.status == 200){
                 updateFormState_API({tenantId, state:'/others/cash-expense-settlement-options'})
-                setPrompt({showPrompt:true, promptMsg: "Cash Advance Settlement Options Updated !" })
+                setPrompt({showPrompt:true, promptMsg: "Cash Advance Settlement Options Updated !", success: true})
                 setTimeout(()=>{
                     window.location.href = import.meta.env.VITE_WEB_PAGE_URL
                 }, 2700)

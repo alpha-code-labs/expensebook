@@ -30,7 +30,7 @@ export default function CompanyAndHRInformation({progress, setProgress}){
   const [loadingErr, setLoadingErr] = useState(null)
   const [isUploading, setIsUploading] = useState(false);
 
-  const [prompt, setPrompt] = useState({showPrompt:false, promptMsg:null});
+  const [prompt, setPrompt] = useState({showPrompt:false, promptMsg:null, success:null});
 
   const navigate = useNavigate()
 
@@ -38,8 +38,7 @@ export default function CompanyAndHRInformation({progress, setProgress}){
     //make axios call to get the list of companies
     //for now
     setCompanyList(['BMS', 'Google', 'Amazon', 'Microsoft', 'Apple', 'Facebook'])
-    setBusinessCategoriesList(['IT', 'Finance', 'Manufacturing', 'Retail', 'Others'])
-
+    setBusinessCategoriesList(['IT', 'Finance', 'Manufacturing', 'Retail', 'Others']);
   },[])
 
   const handleCompanySearch = (option)=>{
@@ -156,11 +155,11 @@ export default function CompanyAndHRInformation({progress, setProgress}){
 
       if(res.err || progress_res.err){
         setLoadingErr(res.err??progress_res.err)
-        setPrompt({showPrompt:true, promptMsg:res.err??progress_res.err??'Something went wrong. Please try again later'})
+        setPrompt({showPrompt:true, promptMsg:res.err??progress_res.err??'Something went wrong. Please try again later', success:false})
         return
       }
 
-        setPrompt({showPrompt:true, promptMsg: 'Company Details Updated!'})
+        setPrompt({showPrompt:true, promptMsg: 'Company Details Updated!', success:true})
       
       setTimeout(() => {
         setProgress(progress_copy)
@@ -344,7 +343,7 @@ export default function CompanyAndHRInformation({progress, setProgress}){
               </div>
 
           </div>} 
-          <Prompt prompt={prompt} setPrompt={setPrompt} />
+          <Prompt prompt={prompt} setPrompt={setPrompt}/>
   </MainSectionLayout>
   </>
   );

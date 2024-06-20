@@ -34,8 +34,8 @@ export default function (props){
                     setIsLoading(false)
 
                     setTimeout(()=>{
-                        window.location.href = `${loginURL}/verify/${tenantId}`   //'http://192.168.1.7:5177/verify/tenantId'
-                    }, 3000)
+                        window.location.href = `${loginURL}/verify-user/${tenantId}`   //'http://192.168.1.7:5177/verify/tenantId'
+                    }, 5000)
                 }
             }catch(e){
                 console.log(e)

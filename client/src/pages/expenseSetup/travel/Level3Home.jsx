@@ -74,10 +74,10 @@ export default function ({progress, setProgress}){
         setNetworkStates(pre=>({...pre, isUploading:false}))
 
         if(progress_res.err ){
-            setPrompt({showPrompt:true, promptMsg:'Can not update data at the moment. Please try again later'})
+            setPrompt({showPrompt:true, promptMsg:'Can not update data at the moment. Please try again later', success: false})
         }
         else{
-            setPrompt({showPrompt:true, promptMsg:'Travel Allocation setup saved successfully'})
+            setPrompt({showPrompt:true, promptMsg:'Travel Allocation setup saved successfully', success: true})
             setProgress(progress_copy);
             setTimeout(()=>{
                 navigate(`/${tenantId}/setup-expensebook`)

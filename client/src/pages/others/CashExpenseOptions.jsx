@@ -102,7 +102,7 @@ export default function ({progress, setProgress}){
             setIsUploading(false)
 
             if(res.status == 200){
-                setPrompt({showPrompt:true, promptMsg: "Expense Settlement Options Updated !" })
+                setPrompt({showPrompt:true, promptMsg: "Expense Settlement Options Updated !", success: true })
                 setTimeout(()=>{
                     setProgress(progress_copy)
                     navigate(`/${tenantId}/onboarding-completed`)
@@ -130,7 +130,7 @@ export default function ({progress, setProgress}){
             const res = await axios.post(`${ONBOARDING_API}/tenant/${tenantId}/expense-settlement-options`, {expenseSettlementOptions:options})
             if(res.status == 200){
                 updateFormState_API({tenantId, state:'/others/cash-expense-settlement-options'})
-                setPrompt({showPrompt:true, promptMsg: "Expense Settlement Options Updated !" })
+                setPrompt({showPrompt:true, promptMsg: "Expense Settlement Options Updated !", success: true })
                 setTimeout(()=>{
                     window.location.href = import.meta.env.VITE_WEB_PAGE_URL
                 }, 2700)

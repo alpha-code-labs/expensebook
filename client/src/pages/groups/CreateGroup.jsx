@@ -148,7 +148,7 @@ export default function ({progress, setProgress, groupData, setGroupData}){
        await (function(){
             return new Promise((resolve, reject)=>{
                 if(filteredEmployeeList.length === 0){
-                    setPrompt({showPrompt:true, promptMsg:'No employees found for the selected filters', success:false})
+                    setPrompt({showPrompt:true, promptMsg:'No employees found for the selected filters', success:false, informational: true})
                     return
                 }
                 else if(filteredEmployeeList.length === employeeData.length){
@@ -158,7 +158,7 @@ export default function ({progress, setProgress, groupData, setGroupData}){
                     if(groupName === '' && !groupData.some(g=>g.groupName == 'All')){
                         setGroupName('All')
                     }else{
-                        setPrompt({showPrompt:true, promptMsg:'Company wide group "All"  is already present', success:false})
+                        setPrompt({showPrompt:true, promptMsg:'Company wide group "All"  is already present', success:false, informational: true})
                         return;
                     }
                     setGroupEmployeeList(employeeData)
@@ -172,14 +172,14 @@ export default function ({progress, setProgress, groupData, setGroupData}){
                     
                     if(groupData.some(g=> JSON.stringify(g.filters) == JSON.stringify(selectedFilters))){
                         const groupName = groupData.find(g=> JSON.stringify(g.filters) == JSON.stringify(selectedFilters)).groupName;
-                        setPrompt({showPrompt:true, promptMsg:`Group with selected filters already present by the name  "${groupName}"`, success:false})
+                        setPrompt({showPrompt:true, promptMsg:`Group with selected filters already present by the name  "${groupName}"`, success:false, informational:true})
                         return;
                     }
                     else if(groupName === ''){
-                        setPrompt({showPrompt:true, promptMsg:'Please enter a group name', success:false})
+                        setPrompt({showPrompt:true, promptMsg:'Please enter a group name', success:false,  informational: true})
                         return
                     }else if(groupData.some(g=>g.groupName == groupName)){
-                        setPrompt({showPrompt:true, promptMsg:'Group name already assigned', success:false})
+                        setPrompt({showPrompt:true, promptMsg:'Group name already assigned', success:false, informational: true})
                         return;
                     }
 

@@ -294,7 +294,7 @@ export default function ({progress, setProgress, travelType}) {
             setPrompt({showPrompt:true, promptMsg:'Can not update data at the moment. Please try again later'})
         }
         else{
-            setPrompt({showPrompt:true, promptMsg:'Changes Saved Successfully'})
+            setPrompt({showPrompt:true, promptMsg:'Changes Saved Successfully', success: true})
             setProgress(progress_copy);
             setTimeout(()=>{
                 navigate(`/${tenantId}/setup-expensebook`)

@@ -307,10 +307,10 @@ export default function ({progress, setProgress}) {
         setNetworkStates(pre=>({...pre, isUploading:false}))
        
         if(progress_res.err ){
-            setPrompt({showPrompt:true, promptMsg:'Can not update data at the moment. Please try again later'})
+            setPrompt({showPrompt:true, promptMsg:'Can not update data at the moment. Please try again later', success: true})
         }
         else{
-            setPrompt({showPrompt:true, promptMsg:'Changes Saved Successfully'})
+            setPrompt({showPrompt:true, promptMsg:'Changes Saved Successfully', success:true})
             setProgress(progress_copy);
             setTimeout(()=>{
                 navigate(`/${tenantId}/setup-expensebook`)
@@ -328,10 +328,10 @@ export default function ({progress, setProgress}) {
         const all_res = await postTenantTravelAllocations_API({tenantId, travelAllocations:allocations})
 
         if(cat_res.err || all_res.err){
-            setPrompt({showPrompt:true, promptMsg:'Can not update data at the moment. Please try again later'})
+            setPrompt({showPrompt:true, promptMsg:'Can not update data at the moment. Please try again later', succes: false})
         }
         else{
-            setPrompt({showPrompt:true, promptMsg:'Changes Saved Successfully'})
+            setPrompt({showPrompt:true, promptMsg:'Changes Saved Successfully', succes: true});
         }
     }
 
