@@ -112,18 +112,18 @@ function formatDate(date=Date.now()){
         case "completed":
         case "booked":
         case "paid":
-        return 'bg-green-100 text-green-200';
+        return 'border border-green-200 bg-green-100 text-green-200 rounded-md';
       case "rejected":
       case "cancelled":  
       case "paid and cancelled":  
-        return 'bg-red-100 text-red-900';
+        return 'border border-red-900 bg-red-100 text-red-900 rounded-md';
       case "pending settlement":
       case "pending approval": 
       case "pending booking": 
       case "pending": 
       case "transit":
       case "draft":
-        return 'bg-yellow-100 text-yellow-200';
+        return 'border border-yellow-200 bg-yellow-100 text-yellow-200 rounded-md';
       default:
         return " ";  
 
@@ -166,9 +166,9 @@ function formatDate(date=Date.now()){
   
     // Determine the button text based on conditions
     if (daysUntilDeparture <= 10) {
-      return 'Raise Priority Cash Advance';
+      return 'Priority Cash Advance';
     } else {
-      return 'Raise Cash Advance';
+      return 'Cash Advance';
     }
   }
 

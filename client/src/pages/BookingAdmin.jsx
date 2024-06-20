@@ -66,7 +66,7 @@ if(travelBookingData){
   return (
     <>
       {/* <div className="bg-white-100 lg:flex"> */}
-      <div className="px-10 relative w-auto h-dvh   flex flex-col items-center  pt-[50px] bg-slate-100">
+      <div className="px-2 lg:px-10 xl:px-20 relative w-auto h-dvh  flex flex-col items-center  pt-[50px] bg-slate-100">
          
           <div className="  flex flex-row items-center justify-start gap-2 sm:gap-4 font-cabin mb-2">
 <div className='relative'>
@@ -95,7 +95,8 @@ if(travelBookingData){
             {/* </div> */}
           </div>
 
-          <div className="w-full  bg-white-100 h-[80%] rounded-lg  border-[1px] border-indigo-500 shrink-0 font-cabin mt-3 sm:mt-6 ">
+          <div className="w-full bg-white-100 h-[80%] rounded-lg  border-[1px] border-indigo-500 shrink-0 font-cabin mt-3 sm:mt-6 ">
+          
            {activeScreen=== 'Pending Bookings' && 
            <>
   {/* <div className='flex flex-row justify-between items-end px-8'> */}

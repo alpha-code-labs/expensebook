@@ -140,7 +140,7 @@ const Expense = ({fetchData}) => {
     <>
       {/* <div className="bg-white-100 lg:flex"> */}
       
-<div className="w-auto min-h-screen flex flex-col px-2 lg:px-20  pt-[50px] bg-slate-100  ">
+<div className="w-auto min-h-screen flex flex-col px-2 lg:px-10 xl:px-20  pt-[50px] bg-slate-100  ">
           
 
  

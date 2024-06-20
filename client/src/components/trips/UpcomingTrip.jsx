@@ -7,6 +7,7 @@ import { formatDate, formatDate2, getCashAdvanceButtonText ,getStatusClass,urlRe
 import Dropdown from '../Dropdown';
 import NotifyModal from '../NotifyModal';
 import CashCard from './CashCard';
+import IconOption from '../common/IconOption';
 
 
 
@@ -32,6 +33,10 @@ const UpcomingTrip = ({handleCashAdvance,handleTrip,upComingTrip,handleDropdownT
       return newTabs;
     });
   };
+
+  const handleModal = ()=>{
+    setIsModalOpen(!isModalOpen);
+  }
   // setActiveTabs(upComingTrip.map(_=>'Trip'));
   
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -72,7 +77,7 @@ const UpcomingTrip = ({handleCashAdvance,handleTrip,upComingTrip,handleDropdownT
  
 
   return (
-<div className="w-auto  h-[360px]  rounded-lg  overflow-hidden">
+<div className="w-auto    h-[360px]  rounded-lg  overflow-hidden">
    
    <div className=" flex flex-row items-center justify-start gap-2 overflow-hidden pl-4 py-1">
                 <img
@@ -82,11 +87,11 @@ const UpcomingTrip = ({handleCashAdvance,handleTrip,upComingTrip,handleDropdownT
                 />
                 <b className=" tracking-[0.02em] font-cabin text-[16px] font-semibold">Upcoming Trips</b>
    </div>
-   <div className=" w-auto flex flex-row   overflow-x-auto  no-scrollbar scroll-smooth  overflow-hidden ">
+   <div className="  gap-2  flex flex-row   overflow-x-auto  no-scrollbar scroll-smooth  overflow-hidden ">
 {upComingTrip?.length>0 ? (
 upComingTrip && upComingTrip?.map((item, index) => (
    <React.Fragment key={index}>
-<div className={`h-[320px] px-4 py-1 bg-[length:500px_320px] rounded-lg `} style={{backgroundImage: `url(${briefcaseMap})`, width: '500px',}}>
+<div className={`gap-4 h-[320px]  px-4 py-1 bg-[length:500px_322px] rounded-lg `} style={{backgroundImage: `url(${briefcaseMap})`, width: '500px',}}>
 {/* <img src={briefcaseMap} className='absolute h-[370px] w-full border border-red-500 z-20'></img> */}
 <div className='  mt-14  h-[250px] flex flex-col rounded-[12px] bg-white-100   ' >
 <div className=' flex flex-row justify-between w-full  pt-[3px] px-2'>
@@ -100,7 +105,7 @@ upComingTrip && upComingTrip?.map((item, index) => (
            
         </div>
 
- <div  className=' relative flex justify-end flex-none w-[40px]  cursor-pointer  items-center lg:items-center'>
+ {/* <div className='relative flex justify-end flex-none w-[40px]  cursor-pointer  items-center lg:items-center'>
               <img src={three_dot}  
               width={16} 
               height={16}
@@ -138,7 +143,44 @@ upComingTrip && upComingTrip?.map((item, index) => (
           </ul>
         </div>
       )}
-    </div>
+    </div> */}
+    <IconOption
+        buttonText={
+          <img src={three_dot}  
+                className='w-4 h-4 translate-y-1'
+                onClick={() => handleDropdownToggle(item.tripStatus)}
+          />
+        }
+      >
+        <ul className="text-sm text-neutral-700 dark:text-gray-200 w-auto ">
+            <li className='min-w-[100px]'>
+              <a
+                href="#/cancel/trip"
+                className="block px-4 py-2 hover:bg-indigo-50 rounded-md  "
+                onClick={()=>{handleTrip(item.tripId,"trip-cancelletion-view")}}
+              >
+                Cancel
+              </a>
+            </li>
+            <li onClick={()=>handleModal()} className="hover:bg-indigo-50 rounded-md px-4 py-2 w-full">
+              <a
+                href="#/itinerary/new"
+                
+              >
+                <p className=''>Add Leg</p>
+              </a>
+              
+        
+            </li>
+            <Modal 
+              isOpen={isModalOpen} 
+              onClose={()=>handleModal()}       
+              content={<AddLeg handleOpenOverlay={handleOpenOverlay} onClose={()=>handleModal()} />}
+              onCancel={handleCancel} 
+            />
+          </ul>
+         
+      </IconOption>
 </div>
         
           {/* ///intransit Trip data */}
@@ -153,7 +195,7 @@ upComingTrip && upComingTrip?.map((item, index) => (
         </div>
              
 </div>
-<div className='h-[150px] w-[450px]  overflow-y-auto rounded-b-md py-1 px-2 '>
+<div className='h-[150px] w-[470px]  overflow-y-auto rounded-b-md py-1 px-2 '>
  <div className=" flex flex-col py-1">
       {Object.keys(item?.itinerary).map(key => (
         <React.Fragment key={key}>

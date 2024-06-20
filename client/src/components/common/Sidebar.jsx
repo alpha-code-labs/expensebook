@@ -123,20 +123,19 @@ const Sidebar = ({ fetchData }) => {
                     to={`${tenantId}/${empId}/${item.label.toLowerCase().replace(' ', '-')}`}
                     key={index}
                     onClick={() => handleItemClick(index)}
-                    className={`w-full   ${activeIndex === index ? 'bg-purple-500 text-white-100' : ""} overflow-hidden flex flex-col items-center sm:items-start justify-start py-3 px-4 box-border cursor-pointer`}
+                    className={`w-full   ${activeIndex === index ? 'bg-purple-500 text-white-100' : ""} overflow-hidden flex flex-col items-center sm:items-start justify-start   box-border cursor-pointer`}
                 >
-                    <div className="flex sm:flex-row flex-col items-center justify-start gap-2 ">
+                    <div className="flex sm:flex-row flex-col items-center justify-between px-3 py-3 gap-2 md:gap-0">
+                        <div className='flex gap-2'>
                         <img src={activeIndex === index ? item.icon1 : item.icon} className='min-w-4 min-h-4 h-4 w-4' />
-                        <div className={` ${activeIndex === index ? 'text-white-100' : 'text-indigo-800'} relative hidden lg:block tracking-[0.02em] w-auto md:w-[150px] font-inter  font-medium`} >
+                        <div className={` ${activeIndex === index ? 'text-white-100' : 'text-indigo-800'} relative hidden lg:block tracking-[0.02em] w-auto md:w-[140px] font-inter  font-medium`} >
                             {item?.label}
                         </div>
+                        </div>
                         {item?.count > 0 &&
-                            <div className={`${activeIndex === index ? 'text-purple-500 bg-white-100 font-semibold' : "text-white-100 "} w-6 h-6 flex font-inter rounded-full bg-indigo-600  items-center justify-center float-right  text-xs  font-medium `}>
+                            <div className={`${activeIndex === index ? 'text-purple-500 bg-white-100 font-semibold' : "text-white-100 "} w-6 h-6 flex font-inter rounded-full bg-indigo-600 items-center justify-center float-right text-xs font-medium `}>
                                 <p className=''> {item?.count}</p>
-                        </div>}
-                            
-
-
+                        </div>} 
                     </div>
                 </Link>
             ))}

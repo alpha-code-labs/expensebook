@@ -15,10 +15,10 @@ const RejectedTravel = ({ rejectedCashAdvance }) => {
   const tenantId = "tenantId-647543hghjg";
 
   return (
-    <div className="box w-full max-w-[896px] h-full mx-2 sm:mx-4 mb-2 font-cabin">
+    <div className="box w-full h-full  mb-2 font-cabin">
     
         {rejectedCashAdvance?.length > 0 ? (
-          <div className='h-auto flex flex-col gap-2'>
+          <div className='h-auto  w-auto flex flex-col gap-2'>
             {rejectedCashAdvance.map((item, index) => (
               <React.Fragment key={index}>
                 <div className='flex flex-row items-center h-[52px] gap-2 text-gray-200 py-8 rounded-xl hover:border-indigo-600 border-[1px] border-b-gray'>

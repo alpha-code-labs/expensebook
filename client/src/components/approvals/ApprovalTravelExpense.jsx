@@ -4,7 +4,7 @@ import { getStatusClass, titleCase, urlRedirection } from '../../utils/handyFunc
 
 import { useData } from '../../api/DataProvider';
 
-const ApprovalTravelExpense = ({expenseApprovalData,handleApproval}) => {
+const ApprovalTravelExpense = ({expenseApprovalData,handleApproval ,handleVisible}) => {
   
   
   
@@ -17,10 +17,10 @@ const ApprovalTravelExpense = ({expenseApprovalData,handleApproval}) => {
  <div className='h-full '>
      {expenseApprovalData?.map((item ,index)=>(
                <>
-             <div className="box w-auto  max-w-[896px]  h-auto  mx-2 sm:mx-4 mb-2  font-cabin border border-b-gray rounded-xl hover:border-indigo-600">
+             <div className="box w-full   font-cabin border border-b-gray rounded-xl hover:border-indigo-600">
    
-             <div className='w-auto  max-w-[932px]  rounded-md'>
-     <div className="w-auto  max-w-[900px] bg-white-100 h-auto max-h-[200px] lg:h-[52px] flex flex-col lg:flex-row items-start lg:items-center justify:start lg:justify-center border-b-[1px] m-2 border-b-gray">    
+             <div className='w-full  rounded-md'>
+     <div className="w-[900px] bg-white-100 h-auto max-h-[200px] lg:h-[52px] flex flex-col lg:flex-row items-start lg:items-center justify:start lg:justify-center border-b-[1px] m-2 border-b-gray">    
      <div className='flex  flex-row w-full  gap-2'>
      <div className='flex flex-col md:flex-row '>
 
@@ -81,7 +81,7 @@ const ApprovalTravelExpense = ({expenseApprovalData,handleApproval}) => {
   </div> 
    
 
-<div onClick={()=>handleApproval("",item.expenseHeaderId,"approval-view-tr-expense")} className="flex-1 flex items-center justify-end py-2 px-3 cursor-pointer">
+<div onClick={()=>handleVisible("",item?.tripId,item?.expenseHeaderId,"approval-view-tr-expense")} className="flex-1 flex items-center justify-end py-2 px-3 cursor-pointer">
          <b className="text-purple-500 text-[14px] tracking-[0.02em] w-[98px] font-bold">
            View Details
            

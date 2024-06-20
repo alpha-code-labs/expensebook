@@ -79,7 +79,7 @@ const handleDropdownToggle = (index) => {
   
 
   return (
-  <div className="w-[490px]   h-[360px]  rounded-lg   overflow-hidden">
+  <div className="w-[500px]   h-[360px]  rounded-lg   overflow-hidden">
    
   <div className=" flex flex-row items-center justify-start gap-2 overflow-hidden pl-4 py-1">
                <img
@@ -102,7 +102,7 @@ const handleDropdownToggle = (index) => {
 {transitTripData?.length>0 ? (
 transitTripData && transitTripData?.map((item, index) => (
    <React.Fragment key={index}>
-<div className={`h-[320px] px-4 py-1 bg-[length:482px_322px]  rounded-lg `} style={{backgroundImage: `url(${briefcaseMap})`, width: '500px',}}>
+<div className={`h-[320px] px-4 py-1 bg-[length:500px_322px]  rounded-lg `} style={{backgroundImage: `url(${briefcaseMap})`, width: '500px',}}>
 {/* <img src={briefcaseMap} className='absolute h-[370px] w-full border border-red-500 z-20'></img> */}
 <div className='  mt-14  h-[250px]      flex flex-col rounded-lg bg-white-100' >
 <div className=' flex flex-row justify-between w-full  pt-[3px] px-2'>
@@ -208,7 +208,7 @@ transitTripData && transitTripData?.map((item, index) => (
           {item?.tripPurpose}
         </div>     
 </div>
-<div className='h-[150px] w-[450px] overflow-y-auto rounded-b-md py-1 px-2'>
+<div className='h-[150px] w-[470px] overflow-y-auto rounded-b-md py-1 px-2'>
  <div className=" flex flex-col py-1">
       {Object.keys(item?.itinerary).map(key => (
         <React.Fragment key={key}>

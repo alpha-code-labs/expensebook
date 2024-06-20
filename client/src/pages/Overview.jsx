@@ -3,7 +3,7 @@ import { useData } from '../api/DataProvider';
 import { intransit_trip, arrow_left, down_arrow, chevron_down, cancel_round, cancel, upcoming_trip} from '../assets/icon';
 import NotifyModal from '../components/NotifyModal';
 import UpcomingTrip from '../components/trips/UpcomingTrip';
-import  IntransitTrip from '../components/trips/UpcomingTrip copy';
+import  IntransitTrip from '../components/trips/IntransitTrip';
 // import InTransitTrip from '../components/trips/InTransitTrip';
 
 import { handleTrip ,handleTravelExpense, handleCashAdvance,} from '../utils/actionHandler';
@@ -62,14 +62,14 @@ useEffect(()=>{
      {isLoading && <Error message={loadingErrMsg}/>}
  
     {!isLoading &&
-     <div className='w-auto min-h-screen pt-12 px-0 lg:px-20 bg-white-100   flex flex-col gap-4'> 
+     <div className='w-auto min-h-screen pt-12 px-0 lg:px-20 bg-white-100 flex flex-col gap-4'> 
      <div className=' overflow-x-auto'> 
    <IntransitTrip 
       handleCashAdvance={handleCashAdvance} 
       handleTrip={handleTrip} 
       dropdownStates={dropdownStates} 
-       initialTransitTabs={initialTripTab}
-       transitTripData={tripsData &&tripsData?.transitTrips} 
+      initialTransitTabs={initialTripTab}
+      transitTripData={tripsData &&tripsData?.transitTrips} 
       handleDropdownToggle={handleDropdownToggle} 
       handleOpenOverlay={handleOpenOverlay}/> 
      </div>
