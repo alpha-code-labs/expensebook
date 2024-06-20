@@ -248,7 +248,7 @@ export default function CompanyAndHRInformation(){
     {!isLoading &&
     <>
     <div className=' min-h-screen flex flex-col md:flex-row'>
-    <div className='static md:fixed bg-white py-4 px-4 w-fit z-10 top-0 left-0'>
+    <div className='static md:fixed bg-white py-4 px-4 w-fit  top-0 left-0'>
         <Icon/>
     </div>
   <div className='w-full md:w-1/2 flex items-center justify-center mt-6 md:mt-0'>
