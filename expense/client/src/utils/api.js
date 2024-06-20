@@ -387,7 +387,14 @@ export const getNonTravelExpenseMiscellaneousDataApi=async(tenantId,empId)=>{
 export const getCategoryFormElementApi=async(tenantId,empId,categoryName, expenseHeaderId)=>{
   const url = `${EXPENSE_BACKEND_API_URL}/api/fe/expense/non-travel/${tenantId}/${empId}/${categoryName}/policy`
   try{
-    const response = await axiosRetry( axios.put, url,{expenseHeaderId});
+    let response
+    console.log('from response',expenseHeaderId)
+    if(expenseHeaderId){
+       response = await axiosRetry( axios.put, url,{expenseHeaderId});
+    }else{
+       response = await axiosRetry( axios.put, url);
+    }
+    
     return response.data
 
   }catch(error){

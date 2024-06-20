@@ -33,6 +33,7 @@ const totalAmountNames = ['Total Fare','Total Amount',  'Subscription cost', 'Co
 const dateForms = ['Invoice Date', 'Date', 'Visited Date', 'Booking Date','Bill Date','Check-In Date'];
 
 const CreateNonTraveExpense = () => {
+  const [reimbursementHeaderId, setReimbursementHeaderId]=useState('')
   
   const {tenantId,empId,expenseHeaderId,cancel} =useParams()
   const dashboard_url = import.meta.env.VITE_DASHBOARD_URL
@@ -236,7 +237,7 @@ const [defaultCurrency , setDefaultCurrency]=useState(null)
   //Handle Delete
 
   const handleDelete=async(lineItemId)=>{
-    const expenseHeaderIds = expenseHeaderId || expenseHeaderId1 || expenseHeaderIdBySession
+    const expenseHeaderIds = expenseHeaderId || expenseHeaderId1 || reimbursementHeaderId
     const lineItemIds = {lineItemIds :[lineItemId]}
 
     try {
@@ -261,8 +262,8 @@ const [defaultCurrency , setDefaultCurrency]=useState(null)
     }
   }
 
-  let expenseHeaderIdBySession = sessionStorage.getItem("expenseHeaderId");
-  console.log('expenseHeaderId by session',expenseHeaderIdBySession)
+  //let expenseHeaderIdBySession = sessionStorage.getItem("expenseHeaderId");
+  //console.log('expenseHeaderId by session',expenseHeaderIdBySession)
 //Handle Generate    
 const [miscellaneousData , setMiscellaneousData]=useState(null)
     const handleGenerateExpense = async (category) => {
@@ -276,8 +277,8 @@ const [miscellaneousData , setMiscellaneousData]=useState(null)
       try {
         setIsUploading(true)
         setActive(true)
-        if(expenseHeaderIdBySession !== "undefined"){
-          expenseHeaderId =expenseHeaderIdBySession
+        if(reimbursementHeaderId){
+          expenseHeaderId =reimbursementHeaderId
           api = await getCategoryFormElementApi(tenantId,empId,category,expenseHeaderId )
   
         }
@@ -303,7 +304,8 @@ const [miscellaneousData , setMiscellaneousData]=useState(null)
         
         setGroupLimit(response?.group)
         console.log('group limit 1',response?.group)
-        sessionStorage.setItem("expenseHeaderId", response?.expenseHeaderId);
+        // sessionStorage.setItem("expenseHeaderId", response?.expenseHeaderId);
+        setReimbursementHeaderId(response?.expenseHeaderId)
         setIsUploading(false);
         setActive(false)
         
@@ -357,33 +359,39 @@ const [miscellaneousData , setMiscellaneousData]=useState(null)
 
      /// Get Line Items
      const [expenseDataByGet , setExpenseDataByGet]= useState(null)
-     useEffect(() => {
-      const expenseHeaderIds = expenseHeaderId || expenseHeaderId1 || expenseHeaderIdBySession
-      console.log('expense header id1',expenseHeaderIds)
+
+  useEffect(() => {
+    const expenseHeaderIds = expenseHeaderId || expenseHeaderId1 || reimbursementHeaderId
+    console.log('expense header id1',expenseHeaderIds)
+  
+    const fetchData = async () => {
+      try {
+        const response = await getNonTravelExpenseLineItemsApi(tenantId, empId,expenseHeaderIds);
+        setExpenseDataByGet(response?.expenseReport)
+        setLineItemsData(response?.expenseReport?.expenseLines)
+        setIsLoading(false);
+        if(response.expenseReport===null){
+        setDefaultCurrency(response?.expenseReport?.defaultCurrency)
+      }
+        console.log(response.data)
+        console.log('expense line items fetched successfully.',response);
+      } catch (error) {
+        console.log('Error in fetching expense data for approval:', error.message);
+        setLoadingErrorMsg(error.message);
+        setTimeout(() => {setLoadingErrorMsg(null);setIsLoading(false)},5000);
+      }
+    };
+
+    fetchData(); 
+
+  }, [expenseHeaderId || expenseHeaderId1 || reimbursementHeaderId])
+
+  
+  console.log('line items data ',lineItemsData)
+  console.log('data by report ', expenseDataByGet)
+
+
     
-      const fetchData = async () => {
-        try {
-          const response = await getNonTravelExpenseLineItemsApi(tenantId, empId,expenseHeaderIds);
-          setExpenseDataByGet(response?.expenseReport)
-          setLineItemsData(response?.expenseReport?.expenseLines)
-          setIsLoading(false);
-          if(response.expenseReport===null){
-          setDefaultCurrency(response?.expenseReport?.defaultCurrency)
-        }
-          console.log(response.data)
-          console.log('expense line items fetched successfully.',response);
-        } catch (error) {
-          console.log('Error in fetching expense data for approval:', error.message);
-          setLoadingErrorMsg(error.message);
-          setTimeout(() => {setLoadingErrorMsg(null);setIsLoading(false)},5000);
-        }
-      };
-  
-      fetchData(); 
-  
-    }, [expenseHeaderId ||expenseHeaderId1]);
-    console.log('line items data ',lineItemsData)
-    console.log('data by report ', expenseDataByGet)
    
 
 
@@ -592,13 +600,13 @@ console.log('categoryname;',miscellaneousData?.categoryName)
 /// Save Line Item
      
       const handleSaveLineItem = async () => {
-        console.log('lineitem on save',formDataValues)
+        console.log('lineitem on save',formDataValues )
         const expenseHeaderId= miscellaneousData?.expenseHeaderId
         const expenseHeaderNumber = miscellaneousData?.expenseHeaderNumber
         const companyName = miscellaneousData?. companyName
         const createdBy  = miscellaneousData?.createdBy
         const defaultCurrency = miscellaneousData?.defaultCurrency
-        console.log('nearby save' ,formDataValues)
+        console.log('nearby save' ,formDataValues ,expenseHeaderNumber)
 
         let  allowForm = true
 
@@ -609,12 +617,13 @@ console.log('categoryname;',miscellaneousData?.categoryName)
     Object.keys(newErrorMsg).forEach(key => {
       newErrorMsg[key] = { set: false, msg: "" };
     });
-    for (const allocation of selectedAllocations) {
-      if (allocation.headerValue.trim() === '') {
-        newErrorMsg[allocation.headerName] = { set: true, msg: "Select the Allocation" };
-      }
+
+    // for (const allocation of selectedAllocations) {
+    //   if (allocation.headerValue.trim() === '') {
+    //     newErrorMsg[allocation.headerName] = { set: true, msg: "Select the Allocation" };
+    //   }
       
-    }
+    // }
 
     setErrorMsg(newErrorMsg);
     const anyErrorSet = Object.values(newErrorMsg).some(error => error.set);
@@ -652,7 +661,7 @@ console.log("All Errors Filled:", !anyErrorSet);
         const updatedFormData = {
           companyName,
           createdBy,
-          expenseHeaderNumber:expenseHeaderNumber,
+          expenseHeaderNumber,
           defaultCurrency,
           lineItem :{
             group:groupLimit,
@@ -831,7 +840,7 @@ if(allowForm){
        setIsLoading(false)
        setTimeout(() => {setShowPopup(false);setMessage(null)
         if(action === "submit" ||action === "delete" ){
-          sessionStorage.removeItem("expenseHeaderId")
+          // sessionStorage.removeItem("expenseHeaderId")
           urlRedirection(`${DASHBOARD_URL}/expense`)}
 
           else{
@@ -1128,7 +1137,7 @@ if(allowForm){
     </div>
           
 <div  className="w-full  flex flex-wrap items-start justify-between  px-2">
-  {expenseLineAllocation.length>0 && expenseLineAllocation.map((allItem , allIndex )=>(
+  {expenseLineAllocation?.length>0 && expenseLineAllocation?.map((allItem , allIndex )=>(
     <div className='w-full px-2 flex justify-center py-2' key={allIndex}>
     <Select
     error={errorMsg[allItem?.headerName]}
