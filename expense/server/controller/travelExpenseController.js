@@ -406,7 +406,8 @@ const currentTotalAlreadyBookedExpense = currentTotalExpenseAmount;
 
 
 // travel Policy Validation  
-export const travelPolicyValidation = async (tenantId, empId, travelType, categoryName, totalAmount, travelClass) => {
+// export const travelPolicyValidation = async (tenantId, empId, travelType, categoryName, totalAmount, travelClass) => {
+export const travelPolicyValidation = async (tenantId, empId, travelType, categoryName, totalAmount) => {
   try {
       console.log("Starting travel policy validation...", totalAmount);
 
@@ -450,15 +451,15 @@ export const travelPolicyValidation = async (tenantId, empId, travelType, catego
               return { success: false, message: 'Group policies not found' };
           }
 
-          const getPolicyTest = groupPolicies[travelType]?.[categoryName]?.class?.[travelClass];
-          console.log("policyDetails test ...", getPolicyTest);
+          // travel class need to be tested as 
+          // const getPolicyTest = groupPolicies[travelType]?.[categoryName]?.class?.[travelClass];
+          // console.log("policyDetails test ...", getPolicyTest);
 
           const getLimitAllowed = groupPolicies[travelType]?.[categoryName]?.limit;
           console.log("limit", getLimitAllowed);
           const limitAmount = getLimitAllowed?.amount;
           const currencyName = getLimitAllowed?.currency.shortName;
           let violationMessage = getLimitAllowed?.violationMessage;
-
           
           // Convert totalAmount from string to number
           const totalAmountNumber = Number(totalAmount);
@@ -504,6 +505,7 @@ const extractTotalAmount = (expenseLine, fixedFields) => {
   return keyFound ? keyFound[1] : '';
 };
 
+
 //On save expense Line
 export const onSaveExpenseLine = async (req, res) => {
   try {
@@ -521,7 +523,6 @@ export const onSaveExpenseLine = async (req, res) => {
       defaultCurrency,
       expenseLine,
       allocations
-      
     } = req.body;
     console.log("req.body for save line", req.body)
     // Destructuring for better readability
@@ -541,7 +542,7 @@ export const onSaveExpenseLine = async (req, res) => {
         message: `Missing required fields: ${missingFields.join(", ")}`
       });
     }
-    const fixedFields = ['Total Amount', 'Total Amount','Date', 'Tax Amount', 'Tip Amount', 'Premium Amount', 'Cost', 'Total Cost', 'License Cost', 'Subscription Cost', 'Total Fare', 'Premium Cost']
+    const fixedFields = ['Total Amount', 'Total Fare', 'Premium Amount', 'Total Cost', 'License Cost', 'Subscription Cost',  'Premium Cost','Cost', 'Tip Amount', ]
 
     // Extract total amount
     let totalAmount = extractTotalAmount(expenseLine, fixedFields);
@@ -555,10 +556,11 @@ export const onSaveExpenseLine = async (req, res) => {
     const totalAmountField = Number(totalAmount);
     
     console.log("expenseLine ........", expenseLine)
-    console.log("its available ", categoryName ,"travelType", travelType,"totalAmount", totalAmount, "travelClass", travelClass )
+    console.log("its available ", categoryName ,"travelType", travelType,"totalAmount", totalAmount )
 
 
-   const policyValidation = await travelPolicyValidation(tenantId, empId, travelType, categoryName, totalAmount, travelClass)
+   const policyValidation = await travelPolicyValidation(tenantId, empId, travelType, categoryName, totalAmount)
+
    //policy voilation added to expense Line
    expenseLine.policyValidation = policyValidation;
 
@@ -729,7 +731,7 @@ export const onEditExpenseLine = async (req, res) => {
         });
       }
 
-      const fixedFields = ['Total Amount', 'Date',  'Tax Amount', 'Tip Amount', 'Premium Amount', 'Cost', 'Total Cost', 'License Cost', 'Subscription Cost', 'Total Fare', 'Premium Cost']
+      const fixedFields = ['Total Amount', 'Premium Amount', 'Total Cost', 'License Cost', 'Subscription Cost', 'Total Fare', 'Premium Cost','Cost' ,'Tip Amount']
 
       // Extract total amount
       let totalAmount = extractTotalAmount(expenseLine, fixedFields);
