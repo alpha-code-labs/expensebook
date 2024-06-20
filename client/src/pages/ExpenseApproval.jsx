@@ -229,7 +229,7 @@ const [actionData , setActionData]= useState({})
   return <>
       {isLoading && <Error message={loadingErrMsg}/>}
       {!isLoading && 
-        <div className="w-full h-full relative bg-white-100 sm:px-[120px] px-6   py-12 select-none">
+        <div className="w-full h-full relative bg-white-100 sm:px-[120px] px-6   py-12 select-none custom-scrollbar">
         {/* app icon */}
         <div className='w-full flex justify-center  md:justify-start lg:justify-start'>
             <Icon/>
@@ -344,14 +344,7 @@ const [actionData , setActionData]= useState({})
       <p className="text-purple-500 text-medium font-medium">{expenseAmtDetails?.totalCashAmount?.toFixed(2)??"not available"}</p>
       </div>
     
-      {/* <div className='flex-1 font-cabin  px-2 '>
-      <p className=" text-neutral-600 text-xs line-clamp-1   ">Remaining  CashAdvance</p>
-      <p className="text-purple-500 text-medium font-medium">{expenseAmountStatus?.totalRemainingCash?.toFixed(2)??"not available"}</p>
-      </div>
-      <div className=' flex-1 font-cabin  px-2 '>
-      <p className=" text-neutral-600 text-xs line-clamp-1">Default Currency</p>
-      <p className="text-purple-500 text-medium font-medium">{defaultCurrency?.shortName ?? "not available"}</p>
-      </div> */}
+      
       </div>  
   </div>
 

@@ -232,12 +232,15 @@ totalViolations = totalTravelViolations +  totalCashViolations || 0;
   return <>
       {isLoading && <Error message={loadingErrorMsg}/>}
       {!isLoading && 
-        <div className="w-full h-full relative bg-white-100 lg:px-24 md:mx-0 sm:px-0 sm:mx-auto py-12 select-none">
+        <div className="w-full h-full relative bg-white-100 lg:px-24 md:mx-0 sm:px-0 sm:mx-auto py-12 select-none custom-scrollbar">
        
         <div className='w-full flex gap-2 justify-start lg:justify-start px-8 md:px-0 '>
-        <div className="flex items-center cursor-pointer " onClick={()=>(urlRedirection(`${DASHBOARD_PAGE_URL}/${tenantId}/${empId}/approval`))}>
+        {/* <div className="flex items-center cursor-pointer " onClick={()=>(urlRedirection(`${DASHBOARD_PAGE_URL}/${tenantId}/${empId}/approval`))}>
         <img src={arrow_left} className="w-6 h-6"/>
-       </div>
+      
+      
+      
+       </div> */}
             <Icon/>
         </div>
 
