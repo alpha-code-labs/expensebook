@@ -6,6 +6,7 @@ export default {
   ],
   theme: {
     extend: {
+      scrollbar: ['rounded'],
       backgroundSize: {
         'auto': 'auto',
         'cover': 'cover',

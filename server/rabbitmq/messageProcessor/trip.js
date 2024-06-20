@@ -55,7 +55,7 @@ export const updateTrip = async (payload) => {
 
 
 export const updateTripStatus = async (payload) => {
-  console.log("Payload received by message processor:", payload);
+  console.log("Payload received for status update - trip :", payload);
   
   if (!Array.isArray(payload)) {
       throw new Error('Invalid input. Payload must be an array.');

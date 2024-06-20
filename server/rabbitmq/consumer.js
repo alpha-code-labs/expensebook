@@ -199,7 +199,7 @@ export async function startConsumer(receiver) {
             }
           } else if (source == 'trip'){
             if (action == 'trip-creation') {
-              console.log('Trying to update trip Data ...............');
+              console.log('Trying to update trip Data ...............', payload);
               if(Array.isArray(payload)){
                 const results = await updateTrip(payload);
                 console.log("results is iterable bbb", results)
