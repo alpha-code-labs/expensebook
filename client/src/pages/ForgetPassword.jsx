@@ -152,7 +152,7 @@ export default function CompanyAndHRInformation(){
     <>
      {/* {isLoading && <Error/>} */}
         {loadingErrorMsg && <h2>{loadingErrorMsg}</h2>}
-    <div className='fixed bg-white py-4 px-4 w-full z-10 top-0'>
+    <div className='fixed bg-white py-4 px-4 w-full  top-0'>
         <Icon/>
     </div>
 

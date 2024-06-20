@@ -153,20 +153,21 @@ export default function CompanyAndHRInformation(){
           setTimeout(()=>{
             setMessage(null)
             setShowPopup(false)
-           // navigate("/user-login")
+           // navigate("/sign-in")
 
           },3000)
         } else {
           // Check the result and perform necessary actions
           console.log('API Response:', data.message);
           setIsUploading(prevState => ({ ...prevState, signup: false }));
-          setMessage(data.message);
-          setShowPopup(true)
-          setTimeout(()=>{
-            setMessage(null)
-            setShowPopup(false)
-            navigate("/user-login")
-          },3000)
+          navigate("/sign-in")
+          // setMessage(data.message);
+          // setShowPopup(true)
+          // setTimeout(()=>{
+          //   setMessage(null)
+          //   setShowPopup(false)
+          //   navigate("/sign-in")
+          // },3000)
           // For example, you can redirect to another page after successful signup
           // navigate('/success-page');
         }
@@ -244,7 +245,7 @@ export default function CompanyAndHRInformation(){
    
 
     <div className='flex flex-col md:flex-row min-h-screen'>
-    <div className='static md:fixed bg-white py-4 px-4 w-fit z-10 top-0 left-0'>
+    <div className='static md:fixed bg-white py-4 px-4 w-fit  top-0 left-0'>
         <Icon/>
     </div>
    
