@@ -1,5 +1,5 @@
-import { Schema, model } from "mongoose"; 
-//const travelRequestSchema = require('./travelRequest.js').travelRequestSchema;
+import mongoose from 'mongoose';
+import { travelRequestSchema } from './travelRequest.js';
 
 
 const cashAdvanceStatusEnum = [
@@ -30,88 +30,129 @@ const approverStatusEnums = [
 ];
 
 
-const cashAdvanceSchema = new Schema({
-  settlementFlag: {type:Boolean} , 
-  travelRequestData:  {
-      type: String, //travelRequestSchema,
+export const cashAdvanceSchema = new mongoose.Schema({
+  travelRequestData:{
+    type: travelRequestSchema,
+    required: true,
+  },
+  cashAdvancesData: [
+  {
+    tenantId: {
+      type: String,
       required: true,
     },
-  cashAdvancesData: [
-    {
-      tenantId: {
-        type: String,
-        required: true,
-      },
-      travelRequestId: {
-        type: String,
-        required: true,
-      },
-      travelRequestNumber:{
-        type: String,
-        required: true,
-      },
-      cashAdvanceId: {
-        type: String,
-        unique: true,
-        required: true,
-      },
-      cashAdvanceNumber:{
-        type: String,
-        required: true,
-      }, 
-      createdBy: {
-          empId: String,
-          name: String,
-      },
-      cashAdvanceStatus: {
-        type: String,
-        enum: cashAdvanceStatusEnum,
-        required: true,
-        default: 'draft',
-      },
-      cashAdvanceState: {
-        type: String,
-        enum: cashAdvanceStateEnums,
-        default: 'section 0',
-        required: true,
-      },
-      amountDetails: [
-        {
-          amount: Number,
-          currency: {},
-          mode: String,
-        },
-      ],
-      approvers: [
-        {
-          empId: String,
-          name: String,
-          status: {
-            type: String,
-            enum: approverStatusEnums,
-          },
-        },
-      ],
-      assignedTo:{empId:String, name:String},
-      paidBy:{empId:String, name:String},
-      recoveredBy:{empId:String, name:String},
-      cashAdvanceRequestDate: Date,
-      cashAdvanceApprovalDate: Date,
-      cashAdvanceSettlementDate: Date,
-      cashAdvanceViolations: String,
-      cashAdvanceRejectionReason: String,
+    travelRequestId: {
+      type: String,
+      required: true,
     },
-  ],
+    travelRequestNumber:{
+      type: String,
+      required: true,
+    },
+    cashAdvanceId: {
+      type: String,
+      // unique: true,
+      // required: true,
+    },
+    cashAdvanceNumber:{
+      type: String,
+      required: true,
+    },
+    createdBy: {
+        empId: String,
+        name: String,
+    },
+    cashAdvanceStatus: {
+      type: String,
+      enum: cashAdvanceStatusEnum,
+      required: true,
+      default: 'draft',
+    },
+    cashAdvanceState: {
+      type: String,
+      enum: cashAdvanceStateEnums,
+      default: 'section 0',
+      required: true,
+    },
+    amountDetails: [
+      {
+        amount: Number,
+        currency: {},
+        mode: String,
+      },
+    ],
+    approvers: [
+      {
+        empId: String,
+        name: String,
+        status: {
+          type: String,
+          enum: approverStatusEnums,
+        },
+      },
+    ],
+    assignedTo:{
+      empId:{type:String, default:null},
+      name:{type:String, default:null},
+    },
+    paidBy:{
+      empId:{type: String, default: null},
+      name: {type:String, default: null},
+    },
+    recoveredBy:{
+      empId:{type: String, default: null},
+      name:{type: String, default: null},
+    },
+    settlementFlag: {
+      type:Boolean,
+      required:true,
+      default:false,
+    },
+    actionedUpon:{
+      type:Boolean,
+      required:true,
+      default:false,
+    },
+    actionedUponDate:{
+      type: Date,
+      // default: Date.now(),
+      // required: true,
+    },
+    settlementBy:{
+      empId:{type: String, default:null},
+      name:{type: String, default:null}
+    },
+    cashAdvanceRequestDate: Date,
+    cashAdvanceApprovalDate: Date,
+    cashAdvanceSettlementDate: Date,
+    cashAdvanceViolations: String,
+    cashAdvanceRejectionReason: String,
+  },
+],
 });
 
 
-export default model('CashAdvance', cashAdvanceSchema);
 
 
+// const CashAdvance = mongoose.model('CashAdvance', cashAdvanceSchema);
 // export default CashAdvance
+// // export default CashAdvance
+
+
+
+
 
 
  
+
+
+
+
+
+
+
+
+
 
 
 

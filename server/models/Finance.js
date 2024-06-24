@@ -1,103 +1,37 @@
-import { Schema, model } from "mongoose";
-//const travelRequestSchema = require('./travelRequest.js').travelRequestSchema;
+import mongoose from 'mongoose';
+import { cashAdvanceSchema } from "./cashAdvance.js";
+import { tripSchema } from "./trip.js";
+import { reimbursementSchema } from "./reimbursement.js";
 
-const cashAdvanceStatusEnum = [ 
-  "draft",
-  "pending approval",
-  "approved",
-  "rejected",
-  "awaiting pending settlement",
-  "pending settlement",
-  "paid",
-  "cancelled",
-  "paid and cancelled",
-];
-
-const cashAdvanceStateEnums = [
-  "section 0",
-  "section 1",
-  "section 2",
-  "section 3",
-];
-
-const approverStatusEnums = ["pending approval", "approved", "rejected"];
-
-const financeSchema = new Schema({
-  settlementFlag: {type:Boolean} , 
-  travelRequestData:  {
-      type: String, //travelRequestSchema,
-      // required: true,
+const financeSchema = new mongoose.Schema({
+  tenantId:{
+    type: String,
+    required: true,
+  },
+  tenantName:{
+    type:String,
+  },
+  travelRequestId:{
+    type: mongoose.Schema.Types.ObjectId,
+    unique: function(){
+      return !this.reimbursementSchema
     },
-    
-    cashAdvancesData: [
-      {
-        tenantId: {
-          type: String,
-          required: true,
-        },
-        travelRequestId: {
-          type: String,
-          required: true,
-        },
-        travelRequestNumber:{
-          type: String,
-          required: true,
-        },
-        cashAdvanceId: {
-          type: String,
-          unique: true,
-          required: true,
-        },
-        cashAdvanceNumber:{
-          type: String,
-          required: true,
-        }, 
-        createdBy: {
-            empId: String,
-            name: String,
-        },
-        cashAdvanceStatus: {
-          type: String,
-          enum: cashAdvanceStatusEnum,
-          required: true,
-          default: 'draft',
-        },
-        cashAdvanceState: {
-          type: String,
-          enum: cashAdvanceStateEnums,
-          default: 'section 0',
-          required: true,
-        },
-        amountDetails: [
-          {
-            amount: Number,
-            currency: {},
-            mode: String,
-          },
-        ],
-        approvers: [
-          {
-            empId: String,
-            name: String,
-            status: {
-              type: String,
-              enum: approverStatusEnums,
-            },
-          },
-        ],
-        assignedTo:{empId:String, name:String},
-        paidBy:{empId:String, name:String},
-        recoveredBy:{empId:String, name:String},
-        cashAdvanceRequestDate: Date,
-        cashAdvanceApprovalDate: Date,
-        cashAdvanceSettlementDate: Date,
-        cashAdvanceViolations: String,
-        cashAdvanceRejectionReason: String,
-      },
-    ],
-  
+    required: function(){
+      return !this.reimbursementSchema
+    },
+  },
+  reimbursementSchema:{
+    type: reimbursementSchema,
+    required:false,
+  },
+   cashAdvanceSchema: cashAdvanceSchema,
+   tripSchema: tripSchema,
 });
 
-export default model("Finance", financeSchema);
+const Finance = mongoose.model("Finance", financeSchema);
 
-// export default finance
+export default Finance
+
+
+
+
