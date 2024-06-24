@@ -260,7 +260,7 @@ export const BookExpense = async (req, res) => {
       if (expenseHeaderNumber) {
        const allExpenseReportsList = await allExpenseReports(expenseReport);
     //    console.log(" all expense reports", allExpenseReportsList)
-       const {  entireExpenseReport, flagToOpen} = allExpenseReportsList
+       let {  entireExpenseReport, flagToOpen} = allExpenseReportsList
        const{expenseAmountStatus,travelExpenseData } =  entireExpenseReport
         return res.status(200).json({
           success: true,
@@ -391,6 +391,8 @@ const currentTotalAlreadyBookedExpense = currentTotalExpenseAmount;
           createdBy,
           newExpenseReport: true,
           expenseHeaderNumber,
+          expenseHeaderId:newExpenseHeaderId,
+          flagToOpen:newExpenseHeaderId,
           expenseAmountStatus,
           travelExpenseData,
           isCashAdvanceTaken: isCashAdvanceTaken, 

@@ -196,19 +196,19 @@ export const getHighestLimitGroupPolicy = async (req, res) => {
     
       if(!expenseHeaderId){
         console.log("expenseHeaderId from req body",expenseHeaderId)
-        // const maxIncrementalValue = await Reimbursement.findOne({ tenantId })
-        // .sort({ expenseHeaderNumber: -1 })
-        // .limit(1)
-        // .select('expenseHeaderNumber');
+        const maxIncrementalValue = await Reimbursement.findOne({ tenantId, 'createdBy.empId':empId })
+        .sort({ expenseHeaderNumber: -1 })
+        .limit(1)
+        .select('expenseHeaderNumber');
     
     let nextIncrementalValue = 0;
     
-    // if (maxIncrementalValue && maxIncrementalValue.expenseHeaderNumber) {
-    //     const numericPart = maxIncrementalValue.expenseHeaderNumber.match(/\d+$/);
-    //     if (numericPart) {
-    //         nextIncrementalValue = parseInt(numericPart[0], 10) + 1;
-    //     }
-    // }
+    if (maxIncrementalValue && maxIncrementalValue.expenseHeaderNumber) {
+        const numericPart = maxIncrementalValue.expenseHeaderNumber.match(/\d+$/);
+        if (numericPart) {
+            nextIncrementalValue = parseInt(numericPart[0], 10) + 1;
+        }
+    }
 
       expenseHeaderNumber = generateIncrementalNumber(companyName, nextIncrementalValue);
 
