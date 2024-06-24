@@ -5,7 +5,7 @@ import { getTravelRequest_API } from "../utils/api";
 import Icon from "../components/common/Icon";
 import { left_arrow_icon } from "../components/common/Icons";
 
-const TRAVEL_API = import.meta.env.VITE_TRAVEL_API_URL
+
 
 export default function () {
 
