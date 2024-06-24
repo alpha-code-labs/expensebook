@@ -1,12 +1,15 @@
 import { Router } from "express";
-const router = Router();
 import { getTravelExpenseData, settlementTravelExpenseData, unSettlementTravelExpenseData } from "../controller/travelExpenseController.js";
- 
 
-router.get("/find" , getTravelExpenseData);
+const expenseRouter = Router();
 
-router.put("/settlement" , settlementTravelExpenseData);
+expenseRouter.get("/find/:tenantId" , getTravelExpenseData);
 
-router.put("/unSettlement" , unSettlementTravelExpenseData);
+expenseRouter.put("/settlement" , settlementTravelExpenseData);
 
-export default router;
+expenseRouter.put("/unSettlement" , unSettlementTravelExpenseData);
+
+export default expenseRouter;
+
+
+
