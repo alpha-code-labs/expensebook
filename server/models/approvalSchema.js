@@ -497,7 +497,7 @@ const approvalSchema = new mongoose.Schema({
     travelRequestId:{
       type: mongoose.Schema.Types.ObjectId,
       required:true,
-      unique:true,
+      // unique:true,
     },
     approvalNumber:{
       type: String,
