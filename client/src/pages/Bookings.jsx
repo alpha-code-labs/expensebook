@@ -14,12 +14,10 @@ import {getTravelRequest_API, getTravelBookingOnboardingData_API, updateTravelBo
 import { cab_icon, bus_icon, train_icon, biderectional_arrows_icon as double_arrow, calender_icon, clock_icon, airplane_icon, location_icon } from "../assets/icon";
 import CloseButton from "../components/common/closeButton";
 import Error from "../components/common/Error";
-import { Document, Page } from 'react-pdf';
 import Prompt from "../components/common/Prompt";
 import { close_gray_icon, material_flight_black_icon, material_train_black_icon, material_bus_black_icon, material_cab_black_icon, material_car_rental_black_icon, material_hotel_black_icon, material_personal_black_icon, add_icon} from "../assets/icon";
 import { BlobServiceClient } from "@azure/storage-blob";
 
-const TRAVEL_API = import.meta.env.VITE_TRAVEL_API_URL
 const az_blob_container = import.meta.env.VITE_AZURE_BLOB_CONTAINER
 
 const storage_sas_token = import.meta.env.VITE_AZURE_BLOB_SAS_TOKEN
@@ -30,8 +28,6 @@ const blob_endpoint = `https://${storage_account}.blob.core.windows.net/?${stora
 
 const DASHBOARD_URL = import.meta.env.VITE_DASHBOARD_URL
 
-
-console.log(import.meta.env.VITE_TRAVEL_API_URL)
 
 const expenseCategories = {
     'flight' : [{name:'Vendor Name', id:'vendorName', toSet:'bookingDetails', type:'text'}, 
@@ -185,20 +181,33 @@ export default function () {
         console.log(onBoardingData?.policies?.['Train'])
         formData_copy.itinerary[_toSet][itemIndex][toSet].billDetails[id] = e.target.value 
         if(id == 'totalAmount'){
-            if(_toSet == 'flights' && e.target.value > (onBoardingData?.policies?.['Flight']?.limit??99999999) && onBoardingData?.policies?.['Flight']?.limit != 0)
+            let goAhead = true;
+
+            if(_toSet == 'flights' && e.target.value > (onBoardingData?.policies?.['Flight']?.limit??99999999) && onBoardingData?.policies?.['Flight']?.limit != 0){
+                console.log('violation occured in flight ticket amount')
                 formData_copy.itinerary[_toSet][itemIndex].bkd_violations.amount = 'Allowed flight ticket limit exceeded'
+                goAhead=false;
+            } else if(goAhead)  {formData_copy.itinerary[_toSet][itemIndex].bkd_violations.amount = ''; goAhead=false}
+                
+            // else formData_copy.itinerary[_toSet][itemIndex].bkd_violations.amount = '';
 
-            if(_toSet == 'trains' && e.target.value > (onBoardingData?.policies?.['Train']?.limit??99999999))
+            if(_toSet == 'trains' && e.target.value > (onBoardingData?.policies?.['Train']?.limit??99999999)){
                 formData_copy.itinerary[_toSet][itemIndex].bkd_violations.amount = 'Allowed Train ticket limit exceeded'
+                goAhead=false;
+            }else if(goAhead) formData_copy.itinerary[_toSet][itemIndex].bkd_violations.amount = '';
 
-            if(_toSet == 'cabs' && e.target.value > (onBoardingData?.policies?.['Cab']?.limit??99999999))
+            if(_toSet == 'cabs' && e.target.value > (onBoardingData?.policies?.['Cab']?.limit??99999999)){
                 formData_copy.itinerary[_toSet][itemIndex].bkd_violations.amount = 'Allowed Cab booking limit exceeded'
+                goAhead=false;
+            }else if(goAhead) {formData_copy.itinerary[_toSet][itemIndex].bkd_violations.amount = ''; goAhead=false}
 
             // if(_toSet == 'buses' && e.target.value > (onBoardingData?.policies?.['Cab Rental']?.limit??99999999))
             // formData_copy.itinerary[_toSet][itemIndex].bkd_violations.amount = 'Allowed limit exceeded'
 
-            if(_toSet == 'cabRentals' && e.target.value > (onBoardingData?.policies?.['Cab Rental']?.limit??99999999))
+            if(_toSet == 'cabRentals' && e.target.value > (onBoardingData?.policies?.['Cab Rental']?.limit??99999999)){
                 formData_copy.itinerary[_toSet][itemIndex].bkd_violations.amount = 'Allowed Cab Rental booking limit exceeded'
+                goAhead=false;
+            }else if(goAhead) {formData_copy.itinerary[_toSet][itemIndex].bkd_violations.amount = ''; goAhead=false}
         }
     }
 
@@ -348,8 +357,9 @@ export default function () {
                     if(newData.totalAmount != null) itineraryItem.bookingDetails = {...itineraryItem.bookingDetails, billDetails: {...itineraryItem.bookingDetails.billDetails, totalAmount: newData.totalAmount}}
                     
                     console.log(newData.totalAmount, 'limit:', onBoardingData?.policies?.['Flight']?.limit)
-                    if(newData.totalAmount!= null && newData.totalAmount>(onBoardingData?.policies?.['Flight']?.limit??99999999) && onBoardingData?.policies?.['Flight']?.limit != 0)
-                        itineraryItem.bkd_violations.amount = 'Allowed limit exceeded as per Amex policies for this employee'
+                    if(newData.totalAmount!= null && newData.totalAmount>(onBoardingData?.policies?.['Flight']?.limit??99999999) && onBoardingData?.policies?.['Flight']?.limit != 0){
+                        itineraryItem.bkd_violations.amount = `Allowed limit exceeded as per ${formData.tenantName??'your company'} policies for this employee`
+                    }else itineraryItem.bkd_violations.amount = '';
                 }
     
                 if(categoryToScan == 'trains'){
@@ -361,8 +371,9 @@ export default function () {
                     if(newData.taxAmount != null) itineraryItem.bookingDetails = {...itineraryItem.bookingDetails, billDetails: {...itineraryItem.bookingDetails.billDetails, taxAmount: newData.taxAmount} }
                     if(newData.totalAmount != null) itineraryItem.bookingDetails = {...itineraryItem.bookingDetails, billDetails: {...itineraryItem.bookingDetails.billDetails, totalAmount: newData.totalAmount}}
 
-                    if(newData.totalAmount!= null && newData.totalAmount>(onBoardingData?.policies?.['Train']?.limit??99999999))
-                        itineraryItem.bkd_violations.amount = 'Allowed limit exceeded as per Amex policies for this employee'
+                    if(newData.totalAmount!= null && newData.totalAmount>(onBoardingData?.policies?.['Train']?.limit??99999999)){
+                        itineraryItem.bkd_violations.amount = `Allowed limit exceeded as per ${formData.tenantName??'your company'} policies for this employee`
+                    }else itineraryItem.bkd_violations.amount = '';
                 }
     
                 if(categoryToScan == 'Buses'){
@@ -373,8 +384,9 @@ export default function () {
                     if(newData.taxAmount != null) itineraryItem.bookingDetails = {...itineraryItem.bookingDetails, billDetails: {...itineraryItem.bookingDetails.billDetails, taxAmount: newData.taxAmount} }
                     if(newData.totalAmount != null) itineraryItem.bookingDetails = {...itineraryItem.bookingDetails, billDetails: {...itineraryItem.bookingDetails.billDetails, totalAmount: newData.totalAmount}}
                     
-                    if(newData.totalAmount!= null && newData.totalAmount>(onBoardingData?.policies?.['Cab Rental']?.limit??99999999))
-                        itineraryItem.bkd_violations.amount = 'Allowed limit exceeded as per Amex policies for this employee'
+                    if(newData.totalAmount!= null && newData.totalAmount>(onBoardingData?.policies?.['Cab Rental']?.limit??99999999)){
+                        itineraryItem.bkd_violations.amount = `Allowed limit exceeded as per ${formData.tenantName??'your company'} policies for this employee`
+                    }else itineraryItem.bkd_violations.amount = '';
                 }
     
                 if(categoryToScan == 'cabs'){
@@ -385,8 +397,9 @@ export default function () {
                     if(newData.taxAmount != null) itineraryItem.bookingDetails = {...itineraryItem.bookingDetails, billDetails: {...itineraryItem.bookingDetails.billDetails, taxAmount: newData.taxAmount} }
                     if(newData.totalAmount != null) itineraryItem.bookingDetails = {...itineraryItem.bookingDetails, billDetails: {...itineraryItem.bookingDetails.billDetails, totalAmount: newData.totalAmount}}
                     
-                    if(newData.totalAmount!= null && newData.totalAmount>(onBoardingData?.policies?.['Cab']?.limit??99999999))
-                        itineraryItem.bkd_violations.amount = 'Allowed limit exceeded as per Amex policies for this employee'
+                    if(newData.totalAmount!= null && newData.totalAmount>(onBoardingData?.policies?.['Cab']?.limit??99999999)){
+                        itineraryItem.bkd_violations.amount = `Allowed limit exceeded as per ${formData.tenantName??'your company'} policies for this employee`
+                    }else itineraryItem.bkd_violations.amount = '';
                 }
     
                 if(categoryToScan == 'Car Rentals'){
@@ -397,8 +410,9 @@ export default function () {
                     if(newData.taxAmount != null) itineraryItem.bookingDetails = {...itineraryItem.bookingDetails, billDetails: {...itineraryItem.bookingDetails.billDetails, taxAmount: newData.taxAmount} }
                     if(newData.totalAmount != null) itineraryItem.bookingDetails = {...itineraryItem.bookingDetails, billDetails: {...itineraryItem.bookingDetails.billDetails, totalAmount: newData.totalAmount}}
                     
-                    if(newData.totalAmount!= null && newData.totalAmount>(onBoardingData?.policies?.['Cab Rental']?.limit??99999999))
-                        itineraryItem.bkd_violations.amount = 'Allowed limit exceeded as per Amex policies for this employee'
+                    if(newData.totalAmount!= null && newData.totalAmount>(onBoardingData?.policies?.['Cab Rental']?.limit??99999999)){
+                        itineraryItem.bkd_violations.amount = `Allowed limit exceeded as per ${formData.tenantName??'your company'} policies for this employee`
+                    }else itineraryItem.bkd_violations.amount = '';
                 }
 
                 if(categoryToScan == 'hotels'){
@@ -409,8 +423,9 @@ export default function () {
                     if(newData.taxAmount != null) itineraryItem.bookingDetails = {...itineraryItem.bookingDetails, billDetails: {...itineraryItem.bookingDetails.billDetails, taxAmount: newData.taxAmount} }
                     if(newData.totalAmount != null) itineraryItem.bookingDetails = {...itineraryItem.bookingDetails, billDetails: {...itineraryItem.bookingDetails.billDetails, totalAmount: newData.totalAmount}}
                     
-                    if(newData.totalAmount!= null && newData.totalAmount>(onBoardingData?.policies?.['Hotels']?.limit??99999999))
-                        itineraryItem.bkd_violations.amount = 'Allowed limit exceeded as per Amex policies for this employee'
+                    if(newData.totalAmount!= null && newData.totalAmount>(onBoardingData?.policies?.['Hotels']?.limit??99999999)){
+                        itineraryItem.bkd_violations.amount = `Allowed limit exceeded as per ${formData.tenantName??'your company'} policies for this employee`
+                    }else itineraryItem.bkd_violations.amount = '';
                 }
     
                 setFormData(formData_copy)
@@ -449,7 +464,7 @@ export default function () {
 
         setTimeout(()=>{
             //window.location.href = `${DASHBOARD_URL}/${formData.tenantId}/${formData.createdBy.empId}/overview`
-            window.location.href = `${DASHBOARD_URL}/${formData.tenantId}/${formData.assignedTo.empId}/overview`
+            window.location.href = `${DASHBOARD_URL}/${formData.tenantId}/${formData.assignedTo.empId}/bookings`
         }, 3000)
         
     }
@@ -1006,7 +1021,7 @@ function AddTicketManually(
             </div>
 
             <div className='absolute z-[11] right-2.5 top-2 cursor-pointer'>
-                <CloseButton onClick={()=>setShowModal(false)} />
+                <CloseButton onClick={()=>setShowModal(false)} /> 
             </div>
         </div>
     )
@@ -1178,7 +1193,6 @@ function AddScannedTicket(
 
                     case 'amount' : return(  
                         <div className='' key={index}>
-
                             <div className="min-w-[200px] w-full md:w-fit max-w-[403px] h-[73px] flex-col justify-start items-start gap-2 inline-flex">
                                 {/* title */}
                                 <div className="text-zinc-600 text-sm font-cabin">{field.name}</div>
