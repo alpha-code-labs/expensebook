@@ -8,7 +8,7 @@ export const expenseReport = async(payload) => {
     const {travelRequestId} = travelRequestData
     const {getExpenseReport} = payload
 
-    const expenseReport = await Approval.findOneAndUpdate({'tripSchema.tenantId': tenantId,travelRequestId, 'tripSchema.tripId': tripId}, 
+    const expenseReport = await Approval.findOneAndUpdate({ tenantId,travelRequestId}, 
     {$set: {
         tripSchema: getExpenseReport
     }}, {upsert: true, new: true})
