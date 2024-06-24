@@ -28,12 +28,12 @@ const settlement = async (req, res) => {
   const { tenantId, travelRequestId, cashAdvanceId } = req.params;
   const { settlementBy } = req.body;
 
-  if (!tenantId || !travelRequestId || !cashAdvanceId || !settlementBy) {
-    return res.status(400).json({ message: 'Missing required parameters or body fields' });
+  if (!tenantId || !travelRequestId || !cashAdvanceId || !settlementBy || typeof settlementBy !== 'string') {
+    return res.status(400).json({ message: 'Missing or invalid settlementBy field' });
   }
 
-  console.log("Received Parameters:", tenantId, travelRequestId, cashAdvanceId);
-  console.log("Received Body Data:", settlementBy);
+  console.log(`Received Parameters: ${tenantId}, ${travelRequestId}, ${cashAdvanceId}`);
+  console.log(`Received Body Data: ${settlementBy}`);
 
   try {
     const filter = {
@@ -48,11 +48,19 @@ const settlement = async (req, res) => {
       return res.status(404).json({ message: 'Error, not found' });
     }
 
+    const Status = {
+      PENDING_SETTLEMENT: 'pending settlement',
+      AWAITING_PENDING_SETTLEMENT: 'awaiting pending settlement',
+      PAID_AND_CANCELLED: 'paid and cancelled',
+      PAID: 'paid',
+      RECOVERED: 'recovered'
+    };
+
     let newStatus;
-    if (['pending settlement', 'awaiting pending settlement'].includes(cashAdvance.cashAdvanceSchema.cashAdvancesData.cashAdvanceStatus)) {
-      newStatus = 'paid';
-    } else if (cashAdvance.cashAdvanceSchema.cashAdvancesData.cashAdvanceStatus === 'paid and cancelled') {
-      newStatus = 'recovered';
+    if ([Status.PENDING_SETTLEMENT, Status.AWAITING_PENDING_SETTLEMENT].includes(cashAdvance.cashAdvanceSchema.cashAdvancesData.cashAdvanceStatus)) {
+      newStatus = Status.PAID;
+    } else if (cashAdvance.cashAdvanceSchema.cashAdvancesData.cashAdvanceStatus === Status.PAID_AND_CANCELLED) {
+      newStatus = Status.RECOVERED;
     }
 
     const updateFields = {
@@ -66,14 +74,10 @@ const settlement = async (req, res) => {
       updateFields.cashAdvanceStatus = newStatus;
     }
 
-    const cashAdvanceSettlement = await Finance.updateOne(filter, { $set: updateFields }, { upsert: true, new: true });
+    const cashAdvanceSettlement = await Finance.findOneAndUpdate(filter, { $set: updateFields }, { new: true });
 
-    if (cashAdvanceSettlement.matchedCount === 0) {
+    if (!cashAdvanceSettlement) {
       return res.status(404).json({ message: 'No matching document found for update' });
-    }
-
-    if (cashAdvanceSettlement.modifiedCount === 0) {
-      return res.status(200).json({ message: 'No fields were modified as the data was already up-to-date' });
     }
 
     return res.status(200).json({ message: 'Update successful', result: cashAdvanceSettlement });
