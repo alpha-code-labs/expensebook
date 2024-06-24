@@ -13,7 +13,7 @@ import { cancelCashAdvance_API, cashPolicyValidation_API, getCashAdvance_API } f
 import Modal from '../components/common/Modal';
 import Error from '../components/common/Error';
 
-const CASH_API_URL = import.meta.env.VITE_TRAVEL_API_URL
+
 const DASHBOARD_URL = import.meta.env.VITE_DASHBOARD_URL
 
 
@@ -32,7 +32,6 @@ export default function(){
   const [popupMessage, setPopupMessage] = useState('')
   const [violationMessage, setViolationMessage] = useState(null)
   const [showCancelModal, setShowCancelModal] = useState(false)
-
   const [tenantId, setTenantId] = useState(undefined)
   const [employeeId, setEmployeeId] = useState(undefined)
 

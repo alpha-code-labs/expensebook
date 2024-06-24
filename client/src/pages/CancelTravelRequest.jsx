@@ -13,7 +13,6 @@ import { material_flight_black_icon, material_train_black_icon, material_bus_bla
 import { left_arrow_icon, calender_icon, location_icon , clock_icon} from "../assets/icon";
 
 
-console.log(import.meta.env.VITE_TRAVEL_API_URL)
 
 const DASHBOARD_URL = import.meta.env.VITE_DASHBOARD_URL
 
