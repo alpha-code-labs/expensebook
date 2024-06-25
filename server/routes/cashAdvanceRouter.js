@@ -1,9 +1,11 @@
 import { Router } from "express";
-import { getCashAdvanceData, settlement, unSettlement } from "../controller/cashAdvanceController.js";
+import { getPaidAndCancelledCash, getCashAdvanceToSettle, settlement, unSettlement } from "../controller/cashAdvanceController.js";
 
 const router = Router();
 
-router.get("/find/:tenantId" , getCashAdvanceData);
+router.get("/cancelled/:tenantId" , getPaidAndCancelledCash);
+
+router.get('/settle/:tenantId', getCashAdvanceToSettle)
 
 router.put("/settlement/:tenantId/:travelRequestId/:cashAdvanceId" , settlement);
 
