@@ -58,20 +58,41 @@ console.log("tenantId",tenantId )
 //All Cash advances with status as pending settlement. All cash advances as status Paid and Cancelled. 
 export const settlement = async (req, res) => {
   const { tenantId, travelRequestId, cashAdvanceId } = req.params;
-  const { settlementBy } = req.body;
+  const { paidBy } = req.body;
 
-  if (!tenantId || !travelRequestId || !cashAdvanceId || !settlementBy || typeof settlementBy !== 'string') {
-    return res.status(400).json({ message: 'Missing or invalid settlementBy field' });
+  if (!tenantId || !travelRequestId || !cashAdvanceId || !paidBy) {
+    return res.status(400).json({ message: 'Missing field' });
   }
 
   console.log(`Received Parameters: ${tenantId}, ${travelRequestId}, ${cashAdvanceId}`);
-  console.log(`Received Body Data: ${settlementBy}`);
+  console.log(`Received Body Data: ${paidBy}`);
+
+  const status = {
+    PENDING_SETTLEMENT :'pending settlement',
+    AWAITING_PENDING_SETTLEMENT:'awaiting pending settlement'
+  }
+
+  const Status = {
+    PENDING_SETTLEMENT: 'pending settlement',
+    AWAITING_PENDING_SETTLEMENT: 'awaiting pending settlement',
+    PAID_AND_CANCELLED: 'paid and cancelled',
+    PAID: 'paid',
+    RECOVERED: 'recovered'
+  };
+
+  const cashStatus = Object.values(Status)
 
   try {
     const filter = {
       tenantId,
       travelRequestId,
-      'cashAdvanceSchema.cashAdvancesData.cashAdvanceId': cashAdvanceId
+      'cashAdvanceSchema.cashAdvancesData':{
+        $elemMatch:{
+          cashAdvanceId,
+          cashAdvanceStatus:{$in:cashStatus},
+          actionedUpon:false
+        }
+      } 
     };
 
     const cashAdvance = await Finance.findOne(filter);
@@ -80,13 +101,6 @@ export const settlement = async (req, res) => {
       return res.status(404).json({ message: 'Error, not found' });
     }
 
-    const Status = {
-      PENDING_SETTLEMENT: 'pending settlement',
-      AWAITING_PENDING_SETTLEMENT: 'awaiting pending settlement',
-      PAID_AND_CANCELLED: 'paid and cancelled',
-      PAID: 'paid',
-      RECOVERED: 'recovered'
-    };
 
     let newStatus;
     if ([Status.PENDING_SETTLEMENT, Status.AWAITING_PENDING_SETTLEMENT].includes(cashAdvance.cashAdvanceSchema.cashAdvancesData.cashAdvanceStatus)) {
@@ -97,7 +111,7 @@ export const settlement = async (req, res) => {
 
     const updateFields = {
       'cashAdvanceSchema.cashAdvancesData.$.settlementFlag': true,
-      'cashAdvanceSchema.cashAdvancesData.$.settlementBy': settlementBy,
+      'cashAdvanceSchema.cashAdvancesData.$.paidBy': paidBy,
       'cashAdvanceSchema.cashAdvancesData.$.actionedUpon': true,
       'cashAdvanceSchema.cashAdvancesData.$.actionedUponDate': new Date(),
     };
