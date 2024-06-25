@@ -26,65 +26,41 @@ export const updateFinance = async (payload) => {
 
 
 export const fullUpdateReimbursement = async (settlements) => {
-  for (const settlement of settlements) {
-      const { tenantId, reimbursementSchema, } = settlement;
-      const { tenantName,
-        companyName,
-        expenseHeaderId,
-        expenseHeaderNumber,
-        expenseHeaderType,
-        expensePurpose,
-        createdBy,
-        expenseHeaderStatus,
-        travelAllocationFlags,
-        settlementFlag,
-        actionedUpon,
-        expenseLines,
-        expenseViolations,
-        expenseCancelledReason,
-        expenseSubmissionDate} = reimbursementSchema
-      const { empId } = createdBy;
-      console.log("reimbursement array i get ..... ", JSON.stringify(settlement))
-      const reimbursementReport = {
-          tenantId,
-          tenantName,
-          companyName,
-          expenseHeaderId,
-          expenseHeaderNumber,
-          expenseHeaderType,
-          expensePurpose,
-          createdBy,
-          expenseHeaderStatus,
-          travelAllocationFlags,
-          settlementFlag,
-          actionedUpon,
-          expenseLines,
-          expenseViolations,
-          expenseCancelledReason,
-          expenseSubmissionDate,
-      };
+  console.log("reimbursement array one..... ", JSON.stringify(settlements))
+try{
+   const updateAll = settlements.map(async(reimbursement) => {
+     const {reimbursementSchema} = reimbursement
+     const {tenantId, expenseHeaderId,} = reimbursementSchema
 
-      try {
-          const reimbursement = await Finance.findOneAndUpdate(
-              { tenantId, 'reimbursementSchema.tenantId': tenantId, 'reimbursementSchema.actionedUpon': false, 'reimbursementSchema.expenseHeaderId': expenseHeaderId },
-              { $set: { reimbursementSchema:reimbursementReport } },
-              { upsert: true, new: true }
-          );
-
-          console.log("Reimbursement update result:", reimbursement);
-
-          if (reimbursement) {
-              console.log("Success: Reimbursement updated successfully.");
-              return { success: true , error: null}
-            } else {
-              console.log("Failed: Unable to save reimbursement expense in Finance.");
-               return { success: false , error: error}
-            }
-      } catch (error) {
-          console.error('Failed to update settlement:', error);
+     const reimbursementReport = await Finance.findOneAndUpdate({
+      tenantId,
+      'reimbursementSchema.actionedUpon':false,
+      'reimbursementSchema.expenseHeaderId':expenseHeaderId
+     },
+     {
+      $set:{
+        reimbursementSchema:reimbursementSchema,
       }
-  }
-};
+      },
+      {
+        upsert:true, new:true
+      }
+     )
+
+     return { success:true, error: null}
+   })
+   const results = await Promise.all(updateAll)
+   const isSuccess = results.every(result => result.success)
+   if(isSuccess){
+    return {success:true, error: null}
+   } else{
+    return { success:false, error: error}
+   }
+} catch (error){
+  return {success:false, error:error.message}
+}
+}
+
 
 export const fullUpdateCashBatchJob = async (payloadArray) => {
   try {
@@ -102,7 +78,7 @@ export const fullUpdateCashBatchJob = async (payloadArray) => {
         { 
           "tenantId": tenantId,
           "travelRequestId": travelRequestId,
-          "cashAdvanceSchema.actionedUpon":false,
+          "cashAdvanceSchema.cashAdvancesData.actionedUpon":false,
         },
         { 
           $set:{
@@ -164,7 +140,6 @@ export const fullUpdateExpense = async (payloadArray) => {
 
     console.log('Saved to Finance: TravelExpenseData updated successfully', updated);
     return { success: true, error: null}
-
   })
 
   const results = await Promise.all(updatePromises)
@@ -172,7 +147,7 @@ export const fullUpdateExpense = async (payloadArray) => {
   if(isSuccess){
     return { success: true, error: null}
   } else {
-    return {success: false, error: null}
+    return {success: false, error: error}
   }
  } catch (error) {
     console.error('Failed to update Finance: TravelExpenseData updation failed', error);
