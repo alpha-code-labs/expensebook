@@ -1,12 +1,14 @@
 import Finance from "../models/Finance.js";
- 
-//All Expense Header Reports with status as pending Settlement (Full Trip).
+
+
+//All Expense Header Reports with status as pending Settlement or Paid (Full Trip).
 export const getTravelExpenseData = async(req , res)=>{
     try {
       const {tenantId} = req.params
 
       const status = {
-        PENDING_SETTLEMENT:'pending settlement'
+        PENDING_SETTLEMENT:'pending settlement',
+        PAID:'paid'
       }
 
       const expenseStatus = Object.values(status)
@@ -81,3 +83,5 @@ export const unSettlementTravelExpenseData = async(req , res)=>{
          res.status(500).json(error);
        }
 }
+
+
