@@ -29,7 +29,7 @@ export default function () {
           mode : 'flight',
           from : '',
           to : '',
-          date: new Date().toISOString,
+          date: new Date().toISOString().split('T')[0],
           returnDate: undefined,
           hotelNights: '',
           pickUpNeeded: false,
@@ -93,7 +93,7 @@ export default function () {
 
        console.log(travelRequestDetails.formData);
        
-       if(travelRequestDetails.formData != null && travelRequestDetails.formData.itinerary!=undefined){
+       if(travelRequestDetails.formData != null && travelRequestDetails.formData.itinerary!=undefined && Object.keys(travelRequestDetails.formData.itinerary).lenght>0 ){
         setCurrentFormState(travelRequestDetails.formData);
        }
 

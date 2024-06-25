@@ -75,7 +75,7 @@ export default function () {
         mode : 'flight',
         from : '',
         to : '',
-        date: new Date().toISOString,
+        date: new Date().toISOString().split('T')[0],
         returnDate: undefined,
         hotelNights: '',
         pickUpNeeded: false,

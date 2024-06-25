@@ -221,74 +221,70 @@ export default function({formData, setFormData, nextPage, lastPage, onBoardingDa
     },[])
 
     return(<>
-            {isLoading && <Error message={loadingErrMsg}/> }
-            {!isLoading && <>
-            <div className="w-full h-full relative bg-white md:px-24 md:mx-0 sm:px-0 sm:mx-auto py-12 select-none">
-            {/* app icon */}
-            <div className='w-full flex justify-center  md:justify-start lg:justify-start'>
-                <Icon/>
-            </div>
+        {isLoading && <Error message={loadingErrMsg}/> }
+        {!isLoading && <>
+            <div className="h-full relative bg-white mx-auto w-[90%] py-6 select-none">
+    
+                {/* Rest of the section */}
+                <div className="w-full h-full mx-auto">
+                    {/* back link */}
+                    <div className='flex items-center gap-4 cursor-pointer'>
+                        <img className='w-[24px] h-[24px]' src={leftArrow_icon} onClick={()=>navigate(lastPage)} />
+                        <p className='text-neutral-700 text-md font-semibold font-cabin'>Allocate Travel</p>
+                    </div>
 
-            {/* Rest of the section */}
-            <div className="w-full h-full mt-10 p-10">
-                {/* back link */}
-                <div className='flex items-center gap-4 cursor-pointer'>
-                    <img className='w-[24px] h-[24px]' src={leftArrow_icon} onClick={()=>navigate(lastPage)} />
-                    <p className='text-neutral-700 text-md font-semibold font-cabin'>Allocate Travel</p>
-                </div>
+                    <div>
+                        { selectedItineraryObjects?.length>0 && <div>
+                        
+                        {selectedItineraryObjects.length>0 && selectedItineraryObjects.map((cat, catInd)=>{
+                            const categoryAllocationDetails = travelAllocations[travelType].find(c=>c.categoryName.toLowerCase() == cat.toLowerCase())
+                            const allocations = categoryAllocationDetails?.allocation??[]
 
-                <div>
-                    { selectedItineraryObjects?.length>0 && <div>
-                    
-                    {selectedItineraryObjects.length>0 && selectedItineraryObjects.map((cat, catInd)=>{
-                        const categoryAllocationDetails = travelAllocations[travelType].find(c=>c.categoryName.toLowerCase() == cat.toLowerCase())
-                        const allocations = categoryAllocationDetails?.allocation??[]
+                            console.log(allocations)
 
-                        console.log(allocations)
-
-                        return(
-                            <div key={`${cat}-${catInd}`}  className='mt-8 flex flex-col gap-4'>
-                                <p className='text-lg font-cabin text-neutral-700'>{camelCaseToTitleCase(cat)}</p>
-                                <div className='flex flex-wrap gap-4'>
-                                    {allocations.map((header, index)=>{
-                                        return(
-                                            <>
-                                            <Select
-                                                currentOption={selectedTravelAllocationHeaders.find(h=>h.categoryName == cat)?.allocations.find(h=>h.headerName == header.headerName)?.headerValue}
-                                                options={header.headerValues}
-                                                onSelect = {(option)=>{handleAllocationHeaderSelect(cat, header.headerName, option)}}
-                                                placeholder={`Select ${camelCaseToTitleCase(header.headerName)}`} 
-                                                title={camelCaseToTitleCase(header.headerName)} />
-                                            </>
-                                        )
-                                    })}
+                            return(
+                                <div key={`${cat}-${catInd}`}  className='mt-8 flex flex-col gap-4'>
+                                    <p className='text-lg font-cabin text-neutral-700'>{camelCaseToTitleCase(cat)}</p>
+                                    <div className='flex flex-wrap gap-4'>
+                                        {allocations.map((header, index)=>{
+                                            return(
+                                                <>
+                                                <Select
+                                                    currentOption={selectedTravelAllocationHeaders.find(h=>h.categoryName == cat)?.allocations.find(h=>h.headerName == header.headerName)?.headerValue}
+                                                    options={header.headerValues}
+                                                    onSelect = {(option)=>{handleAllocationHeaderSelect(cat, header.headerName, option)}}
+                                                    placeholder={`Select ${camelCaseToTitleCase(header.headerName)}`} 
+                                                    title={camelCaseToTitleCase(header.headerName)} />
+                                                </>
+                                            )
+                                        })}
+                                    </div>
+                                    {<hr className='py-2' />}
                                 </div>
-                                {<hr className='py-2' />}
-                            </div>
-                        )
-                    })}
-                         
-                                  
-                    { selectedTravelAllocationHeaders && selectedTravelAllocationHeaders.length == 0 && 
-                    <div className='mt-6 flex gap-4'>
-                        <input type='radio' />
-                        <p className='text-zinc-800 text-sm font-medium font-cabin'>Not Sure</p>
-                    </div>}
-                    
-                </div> }
+                            )
+                        })}
+                            
+                                    
+                        { selectedTravelAllocationHeaders && selectedTravelAllocationHeaders.length == 0 && 
+                        <div className='mt-6 flex gap-4'>
+                            <input type='radio' />
+                            <p className='text-zinc-800 text-sm font-medium font-cabin'>Not Sure</p>
+                        </div>}
+                        
+                    </div> }
 
-                </div>
+                    </div>
 
-                <div className='my-8 w-full flex justify-between items-center'>
-                    <Button disabled={isLoading} variant='fit' text='Save as Draft' onClick={handleSaveAsDraft}/>
-                
-                    <Button 
-                        variant='fit'
-                        text='Continue' 
-                        onClick={handleContinueButton} />
-                </div>
+                    <div className='my-8 w-full flex justify-between items-center'>
+                        <Button disabled={isLoading} variant='fit' text='Save as Draft' onClick={handleSaveAsDraft}/>
                     
+                        <Button 
+                            variant='fit'
+                            text='Continue' 
+                            onClick={handleContinueButton} />
+                    </div>
                 </div> 
+
             </div>
         <PopupMessage message={popupMessage} showPopup={showPopup} setshowPopup={setshowPopup} />
         </>}

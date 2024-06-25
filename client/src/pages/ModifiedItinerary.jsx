@@ -19,7 +19,7 @@ export default function ModifiedItinerary({formData, setFormData, nextPage, last
     const [oneWayTrip, setOneWayTrip] = useState(formData.tripType.oneWayTrip)
     const [roundTrip, setRoundTrip] = useState(formData.tripType.roundTrip)
     const [multiCityTrip, setMultiCityTrip] = useState(formData.tripType.multiCityTrip)
-    const profileAdress = 'Delhi Office'
+    const profileAdress = 'Office Address'
 
     const navigate = useNavigate();
 
@@ -330,6 +330,7 @@ export default function ModifiedItinerary({formData, setFormData, nextPage, last
                 newFormState.itinerary[0].fullDayCabs = 0;
                 newFormState.itinerary[0].fullDayCabDates = 0;
                 newFormState.itinerary[0].dropNeeded = false;
+                newFormState.itinerary[0].returnDate = newFormState.itinerary[0].date;
                 setCurrentFormState(newFormState)
                 return
             }
@@ -667,8 +668,7 @@ export default function ModifiedItinerary({formData, setFormData, nextPage, last
     let firstTime = true;
 
     useEffect(()=>{
-        console.log('currentFormState got changed');
-        console.log(currentFormState)
+        console.log('currentFormState got changed', currentFormState);
     },[currentFormState])
 
 
@@ -677,7 +677,11 @@ export default function ModifiedItinerary({formData, setFormData, nextPage, last
 
     return(
         <AnimatePresence>
-            
+            {/* back link */}
+            <div className='flex items-center gap-4 cursor-pointer py-6 w-[90%] mx-auto'>
+                <img className='w-[24px] h-[24px]' src={left_arrow_icon} onClick={()=>navigate(lastPage)} />
+                <p className='text-neutral-700 text-md font-semibold font-cabin'>Itinerary</p>
+            </div>
             <motion.div
                 initial={{x:'0px'}}
                 animate={{x:'0px'}}
@@ -686,12 +690,6 @@ export default function ModifiedItinerary({formData, setFormData, nextPage, last
 
             <motion.div key='1'
                 className="p-10 border border-sm rounded-xl w-[90%] mx-auto mt-10">
-            
-                        {/* back link */}
-                        <div className='flex items-center gap-4 cursor-pointer'>
-                    <img className='w-[24px] h-[24px]' src={left_arrow_icon} onClick={()=>navigate(lastPage)} />
-                    <p className='text-neutral-700 text-md font-semibold font-cabin'>Itinerary</p>
-                </div>
 
             {<div className="w-fit h-6 justify-start items-center gap-4 inline-flex mt-5">
                 <div onClick={()=>{selectTripType('oneWay')}} className={`${ oneWayTrip? 'text-zinc-100 bg-indigo-600 px-2 py-1 rounded-xl' : 'text-zinc-500' } text-xs font-medium font-cabin cursor-pointer`}>One Way </div>
@@ -790,6 +788,7 @@ export default function ModifiedItinerary({formData, setFormData, nextPage, last
                 <Button text='Continue' variant='fit' onClick={handleContinue} />
             </div>
         </motion.div>
+
         </AnimatePresence>
     );
 }
@@ -850,7 +849,9 @@ function FullDayCabs({currentFormState, setCurrentFormState, itemIndex, roundTri
     const handleFullDayDropdown = (e, startDate, endDate, itemIndex)=>{
         const parentBounderies =  dropdownParentRef.current.getBoundingClientRect();
         const x = parentBounderies.x;
-        const y = parentBounderies.y-40+window.scrollY;
+        const y = parentBounderies.y-70+window.scrollY;
+
+        console.log(x, y, 'cab drop down');
 
         const dates = getAllDates(startDate, endDate)
         setFullDayCabDropdown(pre=>({visible:!pre.visible, x, y, dates}))
@@ -875,7 +876,7 @@ function FullDayCabs({currentFormState, setCurrentFormState, itemIndex, roundTri
         className="h-[73px] font-cabin text-zinc-600 flex flex-col gap-2 text-sm">
             <p className="whitespace-nowrap">Full Day Cabs</p>
             <p ref={dropdownParentRef} className="h-[45px] w-[100px] py-2 whitespace-nowrap px-6 border border-m border-neutral-100 rounded-md cursor-pointer flex items-center" onClick={(e)=>handleFullDayDropdown(e, item.date, roundTrip? item.returnDate : currentFormState.itinerary[itemIndex+1].date, itemIndex)}>{`${item.fullDayCabs} days`}</p>
-            {fullDayCabDropdown.visible && <div ref={dropdownRef} style={{left:`${fullDayCabDropdown.x}px`, top:`${fullDayCabDropdown.y + 47}px`}} className={`dropdown fixed w-[100px] bg-white rounded z-[101] shadow-xl cursor-pointerp py-2`}>
+            {fullDayCabDropdown.visible && <div ref={dropdownRef} style={{left:`${fullDayCabDropdown.x}px`, top:`${fullDayCabDropdown.y}px`}} className={`dropdown fixed w-[100px] bg-white rounded z-[101] shadow-xl cursor-pointerp py-2`}>
                 <p className="py-2 font-cabin text-neutral-500 px-2  rounded-t">Select Dates:</p>
                 <hr className="bg-indigo-600"/>
                 <motion.ul  variants={list} initial='hidden' animate='visible' className="flex flex-col divide-y overflow-y-scroll no-scroll h-[140px]">
@@ -914,7 +915,7 @@ function Mode({onChange}){
         const parentBounderies =  dropdownParentRef.current.getBoundingClientRect();
         setShowDropdown(pre=>!pre)
         console.log(parentBounderies, {x:parentBounderies.x, y:parentBounderies.y})
-        setCoordinates({x:parentBounderies.x, y:parentBounderies.y-40+window.scrollY})
+        setCoordinates({x:parentBounderies.x, y:parentBounderies.y-70+window.scrollY})
     }
 
     useEffect(() => {
@@ -980,7 +981,7 @@ function Mode({onChange}){
                 animate='visible' 
                 variants={list} 
                 ref={dropdownRef} 
-                style={{top: `${coordinates.y+47}px` , left: `${coordinates.x}px`}} 
+                style={{top: `${coordinates.y}px` , left: `${coordinates.x}px`}} 
                 className="fixed flex flex-col w-[114px] bg-white rounded shadow-xl border border-md border-neutral-300 z-[101]">
                 
                 {modes.map((mode,index)=>(
@@ -1036,7 +1037,7 @@ const getAllDates = (a, b)=>{
     const _MS_PER_DAY = 1000 * 60 * 60 * 24;
 
     // Get the UTC timestamps for start and end dates
-    const startUTC = Date.UTC(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+    const startUTC = Date.UTC(startDate.getFullYear(), startDate.getMonth(), startDate.getDate()+1);
     const endUTC = Date.UTC(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
 
     // Calculate the number of days between the two dates
