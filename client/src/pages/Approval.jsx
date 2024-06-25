@@ -102,7 +102,7 @@ console.log('Expense approval data',expApprovalData)
                     }`}
                     onClick={() => handleScreenChange('Travel & Cash Adv. Requests')}
                   >
-                    Travel & CashAdvance
+                    Travel & Cash-Advance
                   </div>
                 </div>
                  
@@ -126,7 +126,7 @@ console.log('Expense approval data',expApprovalData)
 
   <div className="w-full font-cabin   h-6 flex flex-row gap-3 mt-6 items-center sm:px-4 px-4">
     <img className="w-6 h-5" src={airplane_1} alt="travel" />
-    <div className="text-base tracking-[0.02em] font-bold">Travel Requests & Cash Advances</div>
+    <div className="text-base tracking-[0.02em] font-bold">Travel Requests & Cash-Advances</div>
   </div>
 
   <div className="box-border mt-[46px] w-full border-t-[1px] "/>
@@ -336,16 +336,10 @@ console.log('Expense approval data',expApprovalData)
 
 {/* {activeScreen === 'Travel & Cash Adv. Requests' && 
            <>
-
   <div className="w-full   h-6 flex flex-row gap-3 mt-7 items-center sm:px-8 px-4">
     <img className="w-6 h-5" src={airplane_1} alt="travel" />
     <div className="text-base tracking-[0.02em] font-bold">Travel Requests & Cash Advances</div>
-  </div>
-  
-
-
-
-                     
+  </div>            
          <div className="box-border  mt-[46px] w-full  h-px border-t-[1px]   border-slate-300 "/>
         
          <div className='min-h-[400px] h-full overflow-auto mt-6 w-auto flex flex-col items-center   '>
