@@ -1,12 +1,17 @@
 import Finance from "../models/Finance.js";
 
- const getCashAdvanceData = async(req , res)=>{
+export const getPaidAndCancelledCash = async(req , res)=>{
     try { 
       const { tenantId} = req.params;
+
+      const cashStatus ={
+        PAID_AND_CANCELLED :'paid and cancelled' 
+      }
 
       const singleCashAdvanceData = await Finance.find({
         'cashAdvanceSchema.cashAdvancesData.actionedUpon': false,
         'cashAdvanceSchema.cashAdvancesData.tenantId':tenantId,
+        'cashAdvanceSchema.cashAdvancesData.cashAdvanceStatus':{$in:[cashStatus.PAID_AND_CANCELLED]}
         }
       );
 
@@ -20,11 +25,38 @@ import Finance from "../models/Finance.js";
     }
 };
 
+export const getCashAdvanceToSettle = async(req,res) => {
+  try{
+    const {tenantId} = req.params
+console.log("tenantId",tenantId )
+    const status = {
+      PENDING_SETTLEMENT :'pending settlement',
+      AWAITING_PENDING_SETTLEMENT:'awaiting pending settlement'
+    }
+
+    const cashToSettle = Object.values(status)
+    console.log("status", cashToSettle)
+
+    const getAllCashToSettle = await Finance.find({
+      'cashAdvanceSchema.cashAdvancesData.tenantId':tenantId,
+      'cashAdvanceSchema.cashAdvancesData.cashAdvanceStatus':{$in:cashToSettle},
+      'cashAdvanceSchema.cashAdvancesData.actionedUpon':false
+    })
+
+    if(!getAllCashToSettle){
+      return res.status(201).json({message:"All are settled", success: true})
+    }else{
+      return res.status(200).json(getAllCashToSettle)
+    }
+
+  } catch(error){
+    res.status(500).json(error);
+  }
+}
 
 
-
-
-const settlement = async (req, res) => {
+//All Cash advances with status as pending settlement. All cash advances as status Paid and Cancelled. 
+export const settlement = async (req, res) => {
   const { tenantId, travelRequestId, cashAdvanceId } = req.params;
   const { settlementBy } = req.body;
 
@@ -88,7 +120,7 @@ const settlement = async (req, res) => {
 };
 
 
-//  const settlement = async(req , res)=>{
+//export  const settlement = async(req , res)=>{
 //     const {tenantId , travelRequestId, cashAdvanceId} = req.params;
 //     console.log("LINE AT 17" , tenantId , travelRequestId ,cashAdvanceId );
 //     const {cashSetteledBy} = req.body
@@ -145,7 +177,7 @@ const settlement = async (req, res) => {
 // };
 
 
- const unSettlement = async(req , res)=>{
+export const unSettlement = async(req , res)=>{
   console.log("LINE AT 37" , req.body);
     const {tenantId , travelRequestId} = req.params;
     const id = req.body._id;
@@ -172,7 +204,6 @@ const settlement = async (req, res) => {
     }
 }
 
-export {getCashAdvanceData , settlement , unSettlement};
 
 
 
