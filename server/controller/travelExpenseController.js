@@ -1,17 +1,32 @@
 import Finance from "../models/Finance.js";
  
+//All Expense Header Reports with status as pending Settlement (Full Trip).
 export const getTravelExpenseData = async(req , res)=>{
     try {
       const {tenantId} = req.params
-        const singletravelExpenseData = await Finance.find({
+
+      const status = {
+        PENDING_SETTLEMENT:'pending settlement'
+      }
+
+      const expenseStatus = Object.values(status)
+
+        const expenseReportsToSettle = await Finance.find({
           tenantId,
-          'tripSchema.travelExpenseData.actionedUpon':false
+          'tripSchema.travelExpenseData':{
+            $elemMatch:{
+              'actionedUpon': false,
+              'expenseHeaderStatus':{
+                $in:expenseStatus
+              }
+            }
+          },
         });
 
-        if (!singletravelExpenseData) {
+        if (!expenseReportsToSettle) {
           return res.status(201).json({ success: true, message: `All are settled` });
       } else {
-          return res.status(200).json(singleReimbursement);
+          return res.status(200).json(expenseReportsToSettle);
       }
     } catch (error) {
         res.status(500).json(error);
