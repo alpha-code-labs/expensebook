@@ -203,12 +203,9 @@ const getDashboardViews = async (tenantId, empId) => {
         const layoutFunctions = {
             employee: async () => employeeLayout(tenantId, empId),
             employeeManager: async () => managerLayout(tenantId, empId),
-            // employee: async () => {},
-            // employeeManager: async () => {},
             finance: async () => financeLayout(tenantId, empId),
             businessAdmin: async () => businessAdminLayout(tenantId, empId),
             superAdmin: async () => superAdminLayout(tenantId, empId)
-
         };
 
         const applicableRoles = Object.keys(employeeRoles).filter(role => employeeRoles[role]);
@@ -1844,6 +1841,7 @@ const approvalsForManager = async (tenantId, empId) => {
                 const filteredApprovals = approvalDoc.filter(approval =>
                     approval.travelRequestSchema?.approvers &&
                     approval.travelRequestSchema.approvers.length > 0 &&
+                    approval.travelRequestSchema.isCashAdvanceTaken === false &&
                     approval.travelRequestSchema.approvers.some(approver =>
                         approver.empId === empId &&
                         approver.status === 'pending approval'
@@ -1900,7 +1898,7 @@ const approvalsForManager = async (tenantId, empId) => {
                                    
 
                 return filteredApprovals.map(approval => {
-                    console.log("cashAdvanceRaisedLater", approval)
+                    // console.log("cashAdvanceRaisedLater", approval)
                     const { travelRequestData, cashAdvancesData } = approval.cashAdvanceSchema;
                     const isValidCashStatus = cashAdvancesData.some(cashAdvance => cashAdvance.cashAdvanceStatus === 'pending approval');
             
@@ -1947,25 +1945,25 @@ const approvalsForManager = async (tenantId, empId) => {
         const travelExpenseReports = await (async () => {
             try {
                 const filteredApprovals = approvalDoc.filter(approval => {
-                    console.log("Checking approval:", approval);
+                    // console.log("Checking approval:", approval);
                     return approval?.tripSchema?.travelExpenseData?.some(expense => {
-                        console.log("Checking expense:", expense);
+                        // console.log("Checking expense:", expense);
                         return expense.tenantId === tenantId &&
                             expense.expenseHeaderStatus === 'pending approval' &&
                             expense.approvers.some(approver => {
-                                console.log("Checking approver:", approver);
+                                // console.log("Checking approver:", approver);
                                 return approver.empId === empId &&
                                     approver.status === 'pending approval';
                             });
                     });
                 });
         
-                console.log("Filtered approvals:", filteredApprovals);
+                // console.log("Filtered approvals:", filteredApprovals);
         
                 const travelExpenseDataList = filteredApprovals.flatMap(approval => {
-                    console.log("Processing approval:", approval);
+                    // console.log("Processing approval:", approval);
                     return approval.tripSchema.travelExpenseData.map(expense => {
-                        console.log("Processing expense:", expense);
+                        // console.log("Processing expense:", expense);
                         const { tripId, tripNumber, tripStatus } = approval.tripSchema;
                         const { tripPurpose} = approval.tripSchema.travelRequestData
                         const { expenseHeaderNumber,expenseHeaderId, expenseHeaderStatus, approvers } = expense;
@@ -1973,11 +1971,11 @@ const approvalsForManager = async (tenantId, empId) => {
                     });
                 });
         
-                console.log(" expense reports for approval:", travelExpenseDataList);
+                // console.log(" expense reports for approval:", travelExpenseDataList);
         
                 return travelExpenseDataList;
             } catch (error) {
-                console.error('Error occurred:', error);
+                // console.error('Error occurred:', error);
                 return []; // Return an empty array or handle the error accordingly
             }
         })();
@@ -1991,7 +1989,10 @@ const approvalsForManager = async (tenantId, empId) => {
             return uniqueItems;
         }, {}));
 
-        
+        console.log("rule1", travel)
+        console.log("rule2"), travelWithCash
+        console.log("rule12", uniqueTravelWithCash)
+     
         const responseData = {
                 // travelAndCash: [...travelRequests, ...travelWithCash,cashAdvanceRaisedLater, addAleg],
                 travelAndCash: [ ...filteredTravelWithCash, ...cashAdvanceRaisedLater, ],
@@ -2043,7 +2044,7 @@ console.log("verified bussiness admin layout", tenantId, empId);
                     booking?.travelRequestSchema?.travelRequestStatus === 'pending booking'
                 );
             
-                console.log("filteredBooking for travel", filteredBooking)
+                // console.log("filteredBooking for travel", filteredBooking)
                 return filteredBooking.map(booking => {
                     const { travelRequestId, tripPurpose, travelRequestNumber, travelRequestStatus, isCashAdvanceTaken, assignedTo } = booking.travelRequestSchema;
                     return { travelRequestId, tripPurpose, travelRequestNumber, travelRequestStatus, isCashAdvanceTaken, assignedTo };
@@ -2063,7 +2064,7 @@ console.log("verified bussiness admin layout", tenantId, empId);
                 }).filter(Boolean);
             })();
 
-            console.log("travel booking .......", travelWithCash)
+            // console.log("travel booking .......", travelWithCash)
 
         
             const trips = await (async () => {
@@ -2141,14 +2142,37 @@ console.log("verified bussiness admin layout", tenantId, empId);
     }
 };
 
-
+// -----------------------------------------------------Super Admin
+// i need to test and improve below code as per the dashboard view 
 const superAdminLayout = async (tenantId, empId) => {
-try{
+    try {
+        const layoutAccess = {
+            employee: async () => await employeeLayout(tenantId, empId),
+            employeeManager: async () => await managerLayout(tenantId, empId),
+            finance: async () => await financeLayout(tenantId, empId),
+            businessAdmin: async () => await businessAdminLayout(tenantId, empId),
+        };
 
+        const results = await Promise.all([
+            layoutAccess.employee(),
+            layoutAccess.employeeManager(),
+            layoutAccess.finance(),
+            layoutAccess.businessAdmin()
+        ]);
 
-}catch(error){
-}
-}
+        return {
+            employee: results[0],
+            employeeManager: results[1],
+            finance: results[2],
+            businessAdmin: results[3]
+        };
+
+    } catch (error) {
+        console.error("Error in superAdminLayout:", error);
+        throw error;
+    }
+};
+
 
 
 
