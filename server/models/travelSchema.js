@@ -552,6 +552,10 @@ export const travelRequestSchema = new mongoose.Schema({
     default: Date.now(),
     required: true,
   },
+  actionedUpon:{
+    type:Boolean,
+    default:false
+  },
   travelBookingDate: Date,
   travelCompletionDate: Date,
   cancellationDate: Date,
