@@ -103,6 +103,10 @@ export const cashAdvanceSchema = new mongoose.Schema({
         empId:{type: String, default: null},
        name:{type: String, default: null},
       },
+      actionedUpon:{
+        type:Boolean,
+        default:false
+      },
       cashAdvanceRequestDate: Date,
       cashAdvanceApprovalDate: Date,
       cashAdvanceSettlementDate: Date,

@@ -97,6 +97,10 @@ travelAllocationFlags:{ //Comes from HRMaster -Based on this expense booking scr
 },
 expenseLines: [expenseLineSchema],
 expenseViolations: [String],
+actionedUpon:{
+  type:Boolean,
+  default:false
+},
 expenseCancelledReason: String,
 expenseSubmissionDate: Date,
 });
