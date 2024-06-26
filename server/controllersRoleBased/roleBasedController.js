@@ -259,14 +259,14 @@ const employeeLayout = async (tenantId, empId) => {
     const trip = await getTripForEmployee(tenantId, empId);
 
     const expense = await getAllExpensesForEmployee(tenantId, empId);
-      const {rejectedCashAdvances} = travelWithCash
+    const {rejectedCashAdvances} = travelWithCash
     const travelRequestCombined = [ ...travelStandAlone.travelRequests, ...travelWithCash.travelRequests]
     const rejectedTravelRequestsCombined = [ ...travelStandAlone.rejectedTravelRequests, ...travelWithCash.rejectedTravelRequests]
     const employee = { travelRequests :travelRequestCombined,rejectedTravelRequests:rejectedTravelRequestsCombined , rejectedCashAdvances , ...trip,expense:expense }
-      return employee;
+    return employee;
   } catch (error) {
-      console.error("Error:", error);
-      throw new Error({ message: 'Internal server error' });
+    console.error("Error:", error);
+    throw new Error({ message: 'Internal server error' });
   }
 };
 
@@ -1191,7 +1191,7 @@ const getAllExpensesForEmployee = async (tenantId, empId) => {
       console.log("each trip", trip)
       const { tripSchema} = trip
         const {travelRequestData, cashAdvancesData, travelExpenseData, expenseAmountStatus, tripId, tripNumber, tripStartDate,tripCompletionDate} = tripSchema || {};
-        const { totalCashAmount, totalremainingCash } = expenseAmountStatus ||  {};
+        // const { totalCashAmount, totalremainingCash } = expenseAmountStatus ||  {};
         const {travelRequestId,travelRequestNumber,travelRequestStatus,tripPurpose, isCashAdvanceTaken, itinerary} = travelRequestData || {};
        
         const itineraryToSend = Object.fromEntries(
@@ -1236,8 +1236,7 @@ const getAllExpensesForEmployee = async (tenantId, empId) => {
             tripCompletionDate,
             travelRequestStatus,
             isCashAdvanceTaken,
-            totalCashAmount,
-            totalremainingCash,
+            expenseAmountStatus,
             cashAdvances: isCashAdvanceTaken ? (cashAdvancesData ? cashAdvancesData.map(({ cashAdvanceId, cashAdvanceNumber, amountDetails, cashAdvanceStatus }) => ({
                 cashAdvanceId,
                 cashAdvanceNumber,
