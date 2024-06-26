@@ -91,6 +91,7 @@ const Sidebar = ({ fetchData }) => {
     ];
 
     if (employeeRoles) {
+
         if (employeeRoles?.employeeRoles?.employeeManager) {
             sidebarItems.push({ label: 'Approval', icon: approval_icon, icon1: approval_w_icon, url: '', count: (countData?.trApproval + countData?.expApproval) });
         }
@@ -106,6 +107,7 @@ const Sidebar = ({ fetchData }) => {
         if (employeeRoles?.employeeRoles?.superAdmin) {
             sidebarItems.push({ label: 'Configure', icon: setting_icon, icon1: setting_icon1, url: '', count: "" });
         }
+        
     }
 
     return (

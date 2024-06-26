@@ -1,7 +1,3 @@
-
-
-
-
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { DataProvider } from './api/DataProvider';
@@ -14,7 +10,6 @@ import Approval from './pages/Approval';
 import BookingAdmin from './pages/BookingAdmin';
 import { useData } from './api/DataProvider';
 import Expense from './pages/Expense';
-
 import Settlement from './pages/Settlement';
 import { getEmployeeData_API, getEmployeeRoles_API, logoutApi } from './utils/api';
 import { handleLoginPageUrl } from './utils/actionHandler';

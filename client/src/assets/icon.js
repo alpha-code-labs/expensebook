@@ -58,5 +58,6 @@ export {default as approval_w_icon} from './icons8-pass-fail-100 (1).png';
 export {default as briefcaseMap} from './suitcase/breifcase03.jpg';
 export {default as user_icon} from './userprofile.png';
 export {default as plus_icon} from './plus.svg';
+export {default as plus_violet_icon} from './plus copy.svg';
 
 

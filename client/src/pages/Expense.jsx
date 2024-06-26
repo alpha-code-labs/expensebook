@@ -40,7 +40,7 @@ const Expense = ({fetchData}) => {
  
  
   
-  const [activeScreen, setActiveScreen] = useState('Travel & Non Travel Expenses');
+  const [activeScreen, setActiveScreen] = useState('Travel & Reimbursement Expenses');
   const handleScreenChange = (screen) => {
     setActiveScreen(screen);
   };
@@ -149,11 +149,11 @@ const Expense = ({fetchData}) => {
 
 <div
   className={`cursor-pointer   py-1 px-2 w-auto min-w-[100px] rounded-xl  truncate${
-    activeScreen === 'Travel & Non Travel Expenses' ? 'font-medium rounded-xl bg-purple-500 text-xs text-gray-900 w-auto min-w-[100px] truncate' : ' bg-white-100 rounded-xl'
+    activeScreen === 'Travel & Reimbursement Expenses' ? 'font-medium rounded-xl bg-purple-500 text-xs text-gray-900 w-auto min-w-[100px] truncate' : ' bg-white-100 rounded-xl'
   }`}
-  onClick={() => handleScreenChange('Travel & Non Travel Expenses')}
+  onClick={() => handleScreenChange('Travel & Reimbursement Expenses')}
 >
-  Travel & Non Travel Expenses
+  Travel & reimbursement Expenses
 </div>
 
 <div
@@ -177,12 +177,12 @@ Rejected Expenses
 </div>
  
 <div className="  w-full h-auto lg:h-[581px] rounded-lg  bg-white-100 border-[1px] border-slate-300 shrink-0 font-cabin mt-3 sm:mt-6 ">
-           {activeScreen=== 'Travel & Non Travel Expenses' && 
+           {activeScreen=== 'Travel & Reimbursement Expenses' && 
            <>
            <div className='flex flex-row justify-between items-end sm:px-8 px-4'>
   <div className=" h-6 flex flex-row gap-3 mt-7 items-center">
     <img className="w-6 h-6" src={receipt} alt="receipt" />
-    <div className="text-base tracking-[0.02em] font-bold truncate">Travel & Non Travel Expenses</div>
+    <div className="text-base tracking-[0.02em] font-bold truncate">Travel & Reimbursement Expenses</div>
   </div>
   <div className='lg:ml-4 cursor-pointer px-4'>
     <div className='float-right inline-flex h-8 w-auto  items-center justify-center bg-indigo-600 text-white-100 flex-shrink rounded-lg'>

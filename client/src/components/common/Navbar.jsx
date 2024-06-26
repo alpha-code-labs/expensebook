@@ -36,7 +36,7 @@ const LOGIN_PAGE_URL = import.meta.env.VITE_LOGIN_PAGE_URL
         <p className=' text-sm text-white-100'>{employeeInfo?.employeeDetails?.name}</p>
         <p className=' text-xs text-indigo-100'>{employeeInfo?.email}</p>
       </div>
-      <div className='bg-white-100 p-2 shadow-sm shadow-neutral-600 rounded-md' onClick={() => window.location.href = `${LOGIN_PAGE_URL}`}>
+      <div className='bg-white-100 p-2 shadow-sm shadow-neutral-600 rounded-md' onClick={() => {window.location.href = `${LOGIN_PAGE_URL}`,localStorage.removeItem("empId"),localStorage.removeItem("tenantId",localStorage.removeItem('pageNo'))}}>
         <img src={logout_icon} className='w-5 h-5'/>
       </div>
 

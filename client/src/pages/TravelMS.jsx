@@ -13,8 +13,9 @@ const TravelMS = ({ visible, setVisible, src }) => {
   }, [visible])
 
   return (
+    
     visible && (
-      <div className='relative '>
+      <div className='relative'>
       <div className='fixed  w-[100%] h-[100%] left-0 top-0 bg-black/30 z-10'>
 
        </div>
