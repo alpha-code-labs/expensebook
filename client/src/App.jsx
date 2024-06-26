@@ -6,6 +6,7 @@ import ClearRejectedTravelRequest from './pages/ClearRejectedTravelRequest';
 import Bookings from './pages/Bookings'
 import React, { useState, useRef, useEffect } from 'react';
 import ModifiedItinerary from './pages/ModifiedItinerary'
+import LatestItinerary from './pages/latestItinerary';
 
 
 function App() {
@@ -17,7 +18,7 @@ function App() {
         <Route path='/bookings/:travelRequestId' element={<Bookings/>} />
         <Route path='/cancel/:travelRequestId' element={<CancelTravelRequest/>} />
         <Route path='/rejected/:travelRequestId' element={<ClearRejectedTravelRequest />} />
-        <Route path='/playground' element={<ModifiedItinerary />} />
+        <Route path='/playground' element={<LatestItinerary />} />
       </Routes>
     </Router>
   </>;
