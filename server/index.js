@@ -5,7 +5,6 @@ import dotenv from 'dotenv';
 import cashAdvanceRouter from "./routes/cashAdvanceRouter.js";
 import travelExpenseRouter from "./routes/travelExpenseRouter.js";
 import reimbursementRouter from "./routes/reimbursementRouter.js";
-import financeRouter from "./routes/financeRouter.js";
 import { handleErrors } from './errorHandler/errorHandler.js';
 import { startConsumer } from "./rabbitmq/consumer.js";
 
@@ -89,10 +88,9 @@ app.use(express.json());
 
 // 09/01/24
 app.use(cors());
-app.use("/api/cashAdvance" , cashAdvanceRouter);
-app.use("/api/travelExpense" , travelExpenseRouter);
-app.use("/api/reimbursement" , reimbursementRouter);
-app.use("/api/finance" , financeRouter);
+app.use("/api/cashadvance" , cashAdvanceRouter);
+app.use("/api/travelexpense" , travelExpenseRouter);
+app.use("/api/nontravel" , reimbursementRouter);
 
 
 const connectToMongoDB = async () => {
