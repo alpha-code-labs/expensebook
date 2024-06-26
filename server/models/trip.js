@@ -781,11 +781,6 @@ const expenseLineSchema = new mongoose.Schema({
           assignedTo:{empId:String, name:String},
           paidBy:{empId:String, name:String},
           recoveredBy:{empId:String, name:String},
-          settlementFlag: {
-            type:Boolean,
-            required:true,
-            default:false,
-          },
           actionedUpon:{
             type:Boolean,
             required:true,
@@ -874,11 +869,6 @@ const expenseLineSchema = new mongoose.Schema({
           paidBy:{empId:String, name:String},
           recoveredBy:{empId:String, name:String},
           submissionDate: Date,
-          settlementFlag: {
-            type:Boolean,
-            required:true,
-            default:false,
-          },
           actionedUpon:{
             type:Boolean,
             required:true,

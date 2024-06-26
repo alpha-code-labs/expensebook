@@ -81,6 +81,13 @@ export const cashAdvanceSchema = new mongoose.Schema({
         mode: String,
       },
     ],
+    recoveredAmountDetails: [
+      {
+        amount: Number,
+        currency: {},
+        mode: String,
+      },
+    ],
     approvers: [
       {
         empId: String,
@@ -102,11 +109,6 @@ export const cashAdvanceSchema = new mongoose.Schema({
     recoveredBy:{
       empId:{type: String, default: null},
       name:{type: String, default: null},
-    },
-    settlementFlag: {
-      type:Boolean,
-      required:true,
-      default:false,
     },
     actionedUpon:{
       type:Boolean,
