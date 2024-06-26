@@ -125,7 +125,7 @@ export const fullUpdateExpense = async (payloadArray) => {
     const updated = await Finance.findOneAndUpdate(
       { 
         tenantId,
-        'tripSchema.tenantId': tenantId , 
+        travelRequestId,
         'tripSchema.travelRequestData.travelRequestId':travelRequestId,
         'tripSchema.tripId': tripId,
         'tripSchema.travelExpenseData.actionedUpon':false,
