@@ -9,7 +9,7 @@ import {useSortable, SortableContext, verticalListSortingStrategy, arrayMove} fr
 import {CSS} from '@dnd-kit/utilities'
 import { material_flight_black_icon, material_train_black_icon, material_bus_black_icon, material_cab_black_icon, material_car_rental_black_icon, material_hotel_black_icon, material_personal_black_icon } from "../assets/icon";
 import { titleCase } from "../utils/handyFunctions";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 
 
@@ -22,8 +22,8 @@ const itinerary_ = [
         "sequence": {
             "$numberInt": "2"
         },
-        "from": "Delhi",
-        "to": "Lucknow",
+        "from": "Jaipur",
+        "to": "Delhi",
         "date": "12-16-14",
         "returnDate": null,
         "time": null,
@@ -198,10 +198,7 @@ const itinerary_ = [
         }
     },
 ]
-
-
-
-export default function () {
+export default function ({shouldAddItem}) {
 
     const handleDragEnd = (event)=>{
         console.log('drag end called');
@@ -209,7 +206,23 @@ export default function () {
 
         setItinerary(items=>{
             const activeIndex = items.findIndex(item=>item.formId == active.id) //items.indexOf(active.id);
-            const overIndex = items.findIndex(item => item.formId == active.id);
+            const overIndex = items.findIndex(item => item.formId == over.id);
+
+            console.log(activeIndex, overIndex);
+
+            return arrayMove(items, activeIndex, overIndex);
+        })
+    
+        console.log(active.id, 'active, over ', over.id);
+    }
+
+    const handleDragEnd_ = (event)=>{
+        console.log('drag end called');
+        const {active, over} = event;
+
+        setItemsList(items=>{
+            const activeIndex = items.indexOf(active.id);
+            const overIndex = items.indexOf(over.id);
 
             return arrayMove(items, activeIndex, overIndex);
         })
@@ -218,6 +231,13 @@ export default function () {
     }
 
     const [itinerary, setItinerary] = useState(itinerary_);
+    const [itemsList, setItemsList] = useState(['cab', 'hotel']);
+
+    useEffect(()=>{
+        if(shouldAddItem){
+            setItemsList(pre=>[...pre, 'flight']);
+        }
+    },[shouldAddItem])
 
     // const combinedItinerary = [
     //     ...itinerary.flights?.map((flight, index)=>{
@@ -342,36 +362,23 @@ export default function () {
     return(<>
 
         {/* {combinedItinerary.sort((a,b)=>a.sequence-b.sequence).map(itm=>itm.element)} */}
+        
+        <DndContext
+            onDragEnd={handleDragEnd_}
+            collisionDetection={closestCorners}>
 
-        <DndContext 
-             onDragEnd={handleDragEnd}
-             collisionDetection={closestCorners}>
-            <div className='p-4 w-[700px] flex flex-col gap-4 border border-gray-500 m-4 rounded-md'>
-                <SortableContext  
+            <div className='p-4 w-[800px]'>
+                <SortableContext
                     strategy={verticalListSortingStrategy}
-                    items={itinerary}>
-                    {itinerary.map((item, index)=>{
-                        if(item.category == 'flight'){
-                            return (
-                            <SortableItem id={item.formId} key={item.formId} >
-                                <FlightCard
-                                    id={index} 
-                                    from={item.from} 
-                                    to={item.to} 
-                                    date={item.date}
-                                    returnDate={item.returnDate}
-                                    returnTime={item.returnTime}
-                                    travelClass={item.travelClass} 
-                                    mode={'Flight'}
-                                    time={item.time}/>
-                            </SortableItem>
-                            )
-                        }    
-                    })}
+                    items={itemsList}>
+
+                    {itemsList.map(item=> <SortableItem key={item} id={item}>
+                        {item}
+                    </SortableItem>)}
                 </SortableContext>
             </div>
+
         </DndContext>
-        
 
     </>)
 }
@@ -537,13 +544,11 @@ function spitImageSource(modeOfTransit){
 }
 
 function isoString(dateString){
-    console.log('receivedDate', dateString)
     if(dateString==null || dateString == undefined) return ''
     // Convert string to Date object
     const dateObject = new Date(dateString);
     // Convert Date object back to ISO string
     const isoDateString = dateObject.toDateString();
-    console.log(isoDateString);
     return isoDateString
 }
 
@@ -557,7 +562,7 @@ function formattedTime(timeValue){
         return `${hours}:${minutes} ${suffix}`
     }
     catch(e){
-        return timeValue
+        return timeValue;
     }
 }
 
@@ -571,10 +576,14 @@ const SortableItem = ({id, key, children})=>{
     
     return(<>
         <div ref={setNodeRef} {...attributes} {...listeners} style={style} key={key} >
-            <div className=''>
-                {children}
+            <div className='p-1 border border-gray-100'>
+                {id=='flight' && <FlightCard from='Delhi' to='Jaipur' date='2024-06-27' returnDate={null} time='13:00' onClick={()=>{}} mode='Flight' />}
+                {id=='cab' && <CabCard from='Platinum Tower, Gurugram' to='IGI Airport' date='2024-06-27' time='11:00' mode='Cab' returnDate={null} />}
+                {id=='hotel' && <FlightCard from='Delhi' to='Mumbai' date='2024-06-28' returnDate={null} time='11:00' onClick={()=>{}} mode='Flight' />}
             </div>
         </div>
     </>)
 }
+
+
  

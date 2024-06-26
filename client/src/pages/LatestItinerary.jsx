@@ -27,6 +27,8 @@ const [itinerary, setItinerary] = useState({
     hotels:[]
   })
 
+const [shouldAddItem, setShouldAddItem] = useState(false);
+
   useEffect(()=>{
     const itinerary_copy = JSON.parse(JSON.stringify(itinerary));
     itinerary_copy.flights.push(dummyFlight);
@@ -35,8 +37,14 @@ const [itinerary, setItinerary] = useState({
 
 const addItineraryItem = (item)=>{
     console.log(`clicked on ${item}`)
-    setModalContent(FlightForm)
+    setModalContent(<FlightForm handleAddToItinerary={handleAddToItinerary}/>)
     setVisible(true);
+}
+
+const handleAddToItinerary = ()=>{
+    console.log('clicked on add to itinerary')
+    setShouldAddItem(true);
+    setVisible(false);
 }
 
     return(<>
@@ -53,8 +61,7 @@ const addItineraryItem = (item)=>{
                 </div>
             </div>
             <div className={`w-[calc(100%-${sideBarWidth})]`}>
-                <DisplayItems/>
-                <DisplayItinerary/>
+                <DisplayItinerary shouldAddItem={shouldAddItem} />
                 <Modal visible={visible} setVisible={setVisible}>
                     {modalContent}
                 </Modal>
@@ -64,7 +71,7 @@ const addItineraryItem = (item)=>{
     </>)
 }
 
-const FlightForm = ()=>{
+const FlightForm = ({handleAddToItinerary})=>{
     
     return(<>
     <   div className='pb-10 text-lg text-neutral-700 font-cabin'>Flight</div>
@@ -77,7 +84,7 @@ const FlightForm = ()=>{
             <PreferredTime  />
         </div>
         <div className='flex flex-row-reverse mt-6'>
-            <div className='w-fit px-2 py-1 bg-blue-600  rounded-md border-bg-blue-800 text-gray-100 text-sm hover:bg-blue-500 cursor-pointer'>Add to Itinerary</div>
+            <div onClick={handleAddToItinerary} className='w-fit px-2 py-1 bg-blue-600  rounded-md border-bg-blue-800 text-gray-100 text-sm hover:bg-blue-500 cursor-pointer'>Add to Itinerary</div>
         </div>
         
         
