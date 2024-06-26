@@ -28,7 +28,7 @@ export const getPaidAndCancelledCash = async(req , res)=>{
 export const getCashAdvanceToSettle = async(req,res) => {
   try{
     const {tenantId} = req.params
-console.log("tenantId",tenantId )
+    console.log("tenantId",tenantId )
     const status = {
       PENDING_SETTLEMENT :'pending settlement',
       AWAITING_PENDING_SETTLEMENT:'awaiting pending settlement'
@@ -54,79 +54,162 @@ console.log("tenantId",tenantId )
   }
 }
 
-
-//All Cash advances with status as pending settlement. All cash advances as status Paid and Cancelled. 
-export const settlement = async (req, res) => {
+//All Cash advances with status as pending settlement. 
+export const paidCashAdvance = async (req, res) => {
   const { tenantId, travelRequestId, cashAdvanceId } = req.params;
   const { paidBy } = req.body;
 
-  if (!tenantId || !travelRequestId || !cashAdvanceId || !paidBy) {
-    return res.status(400).json({ message: 'Missing field' });
-  }
+  console.log("Received Parameters:", { tenantId, travelRequestId, cashAdvanceId });
+  console.log("Received Body Data:", { paidBy });
 
-  console.log(`Received Parameters: ${tenantId}, ${travelRequestId}, ${cashAdvanceId}`);
-  console.log(`Received Body Data: ${paidBy}`);
+  if (!tenantId || !travelRequestId || !cashAdvanceId || !paidBy) {
+    return res.status(400).json({ message: 'Missing required field' });
+  }
 
   const status = {
-    PENDING_SETTLEMENT :'pending settlement',
-    AWAITING_PENDING_SETTLEMENT:'awaiting pending settlement'
-  }
-
-  const Status = {
-    PENDING_SETTLEMENT: 'pending settlement',
-    AWAITING_PENDING_SETTLEMENT: 'awaiting pending settlement',
-    PAID_AND_CANCELLED: 'paid and cancelled',
-    PAID: 'paid',
-    RECOVERED: 'recovered'
+    PENDING_SETTLEMENT:'pending settlement'
   };
 
-  const cashStatus = Object.values(Status)
+  const newStatus ={
+    PAID: 'paid',
+  }
+
 
   try {
-    const filter = {
+    const travelRequest = await Finance.findOne({
       tenantId,
       travelRequestId,
-      'cashAdvanceSchema.cashAdvancesData':{
-        $elemMatch:{
+      'cashAdvanceSchema.cashAdvancesData': {
+        $elemMatch: {
           cashAdvanceId,
-          cashAdvanceStatus:{$in:cashStatus},
-          actionedUpon:false
+          cashAdvanceStatus: status.PENDING_SETTLEMENT,
+          actionedUpon: false
         }
-      } 
-    };
+      }
+    });
 
-    const cashAdvance = await Finance.findOne(filter);
-
-    if (!cashAdvance) {
-      return res.status(404).json({ message: 'Error, not found' });
+    if (!travelRequest) {
+      return res.status(404).json({ message: 'No matching document found' });
     }
 
+    const cashAdvanceIndex = travelRequest.cashAdvanceSchema.cashAdvancesData.findIndex(
+      (item) => JSON.stringify(item.cashAdvanceId) === JSON.stringify(cashAdvanceId)
+    );
 
-    let newStatus;
-    if ([Status.PENDING_SETTLEMENT, Status.AWAITING_PENDING_SETTLEMENT].includes(cashAdvance.cashAdvanceSchema.cashAdvancesData.cashAdvanceStatus)) {
-      newStatus = Status.PAID;
-    } else if (cashAdvance.cashAdvanceSchema.cashAdvancesData.cashAdvanceStatus === Status.PAID_AND_CANCELLED) {
-      newStatus = Status.RECOVERED;
+    if (cashAdvanceIndex === -1) {
+      return res.status(404).json({ message: 'No matching cash advance found' });
     }
 
-    const updateFields = {
-      'cashAdvanceSchema.cashAdvancesData.$.settlementFlag': true,
-      'cashAdvanceSchema.cashAdvancesData.$.paidBy': paidBy,
-      'cashAdvanceSchema.cashAdvancesData.$.actionedUpon': true,
-      'cashAdvanceSchema.cashAdvancesData.$.actionedUponDate': new Date(),
-    };
+    const updateResult = await Finance.updateOne(
+      {
+        tenantId,
+        travelRequestId,
+        'cashAdvanceSchema.cashAdvancesData': {
+          $elemMatch: {
+            cashAdvanceId,
+            cashAdvanceStatus: status.PENDING_SETTLEMENT,
+            actionedUpon: false
+          }
+        }
+      },
+      {
+        $set: {
+          'cashAdvanceSchema.cashAdvancesData.$[elem].paidBy': paidBy,
+          'cashAdvanceSchema.cashAdvancesData.$[elem].actionedUpon': true,
+          'cashAdvanceSchema.cashAdvancesData.$[elem].cashAdvanceStatus': newStatus.PAID
+        }
+      },
+      {
+        arrayFilters: [{ 'elem.cashAdvanceId': cashAdvanceId }],
+        new: true
+      }
+    );
 
-    if (newStatus) {
-      updateFields.cashAdvanceStatus = newStatus;
-    }
-
-    const cashAdvanceSettlement = await Finance.findOneAndUpdate(filter, { $set: updateFields }, { new: true });
-
-    if (!cashAdvanceSettlement) {
+    if (updateResult.modifiedCount === 0) {
       return res.status(404).json({ message: 'No matching document found for update' });
     }
 
-    return res.status(200).json({ message: 'Update successful', result: cashAdvanceSettlement });
+    console.log("Update successful:", updateResult);
+    return res.status(200).json({ message: 'Update successful', result: updateResult });
+  } catch (error) {
+    console.error('Error updating cashAdvance status:', error.message);
+    return res.status(500).json({ message: 'Internal server error', error: error.message });
+  }
+};
+
+// All cash advances as status Paid and Cancelled. 
+export const recoverCashAdvance = async (req, res) => {
+  const { tenantId, travelRequestId, cashAdvanceId } = req.params;
+  const { recoveredBy } = req.body;
+
+  console.log("Received Parameters:", { tenantId, travelRequestId, cashAdvanceId });
+  console.log("Received Body Data:", { recoveredBy });
+
+  if (!tenantId || !travelRequestId || !cashAdvanceId || !recoveredBy) {
+    return res.status(400).json({ message: 'Missing required field' });
+  }
+
+  const status = {
+    PAID_AND_CANCELLED: 'paid and cancelled',
+    RECOVERED: 'recovered'
+  };
+
+  try {
+    const travelRequest = await Finance.findOne({
+      tenantId,
+      travelRequestId,
+      'cashAdvanceSchema.cashAdvancesData': {
+        $elemMatch: {
+          cashAdvanceId,
+          cashAdvanceStatus: status.PAID_AND_CANCELLED,
+          actionedUpon: false
+        }
+      }
+    });
+
+    if (!travelRequest) {
+      return res.status(404).json({ message: 'No matching document found' });
+    }
+
+    const cashAdvanceIndex = travelRequest.cashAdvanceSchema.cashAdvancesData.findIndex(
+      (item) => JSON.stringify(item.cashAdvanceId) === JSON.stringify(cashAdvanceId)
+    );
+
+    if (cashAdvanceIndex === -1) {
+      return res.status(404).json({ message: 'No matching cash advance found' });
+    }
+
+    const updateResult = await Finance.updateOne(
+      {
+        tenantId,
+        travelRequestId,
+        'cashAdvanceSchema.cashAdvancesData': {
+          $elemMatch: {
+            cashAdvanceId,
+            cashAdvanceStatus: status.PAID_AND_CANCELLED,
+            actionedUpon: false
+          }
+        }
+      },
+      {
+        $set: {
+          'cashAdvanceSchema.cashAdvancesData.$[elem].recoveredBy': recoveredBy,
+          'cashAdvanceSchema.cashAdvancesData.$[elem].actionedUpon': true,
+          'cashAdvanceSchema.cashAdvancesData.$[elem].cashAdvanceStatus': status.RECOVERED
+        }
+      },
+      {
+        arrayFilters: [{ 'elem.cashAdvanceId': cashAdvanceId }],
+        new: true
+      }
+    );
+
+    if (updateResult.modifiedCount === 0) {
+      return res.status(404).json({ message: 'No matching document found for update' });
+    }
+
+    console.log("Update successful:", updateResult);
+    return res.status(200).json({ message: 'Update successful', result: updateResult });
   } catch (error) {
     console.error('Error updating cashAdvance status:', error.message);
     return res.status(500).json({ message: 'Internal server error', error: error.message });
@@ -134,89 +217,6 @@ export const settlement = async (req, res) => {
 };
 
 
-//export  const settlement = async(req , res)=>{
-//     const {tenantId , travelRequestId, cashAdvanceId} = req.params;
-//     console.log("LINE AT 17" , tenantId , travelRequestId ,cashAdvanceId );
-//     const {cashSetteledBy} = req.body
-//     console.log("LINE AT 17" , cashSetteledBy);
-
-//     try {
-//     const cashAdvanceSettlement = await Finance.updateOne({
-//           tenantId,
-//           travelRequestId,
-//           'cashAdvanceSchema.cashAdvancesData.cashAdvanceId':cashAdvanceId,
-//           },{
-//             $set: {
-//               'cashAdvanceSchema.cashAdvancesData':{
-//                 $elemMatch: {
-//                   settlementFlag: true,
-//                   settlementBy: cashSetteledBy,
-//                   actionedUpon: true,
-//                   actionedUponDate: new Date(),
-//                   cashAdvanceStatus: {
-//                     $cond: {
-//                       if: {
-//                         $or: [
-//                           { $eq: ['$cashAdvanceStatus', 'pending settlement'] },
-//                           { $eq: ['$cashAdvanceStatus', 'awaiting pending settlement'] }
-//                         ]
-//                       },
-//                       then: 'paid',
-//                       else: {
-//                         $cond: {
-//                           if: { $eq: ['$cashAdvanceStatus', 'paid and cancelled'] },
-//                           then: 'recovered',
-//                           else: '$cashAdvanceStatus'
-//                         }
-//                       }
-//                     }
-//                   }
-//                 }
-//               }
-//             }
-//           }
-//          , // Update only the cashAdvanceStatus field
-//         {new: true } 
-//       );
-  
-//       if (!cashAdvanceSettlement) {
-//         return res.status(404).json({ message: `Error Occured` });
-//       } else{
-//         return res.status(200).json(cashAdvanceSettlement);
-//       }
-//     } catch (error) {
-//       console.log("LINE AT 30" , error.message);
-//       res.status(500).json(error);
-//     }
-// };
-
-
-export const unSettlement = async(req , res)=>{
-  console.log("LINE AT 37" , req.body);
-    const {tenantId , travelRequestId} = req.params;
-    const id = req.body._id;
-    console.log("LINE AT 39" , id);
-
-    try {
-    const singleCashAdvanceUpdateAgain = await CashAdvance.findOneAndUpdate({
-      tenantId,
-      travelRequestId,
-      },{
-        $set: {
-          settlementFlag: false
-        }} , // Update only the cashAdvanceStatus field
-      { new: true } 
-      );
-  
-      if (!singleCashAdvanceUpdateAgain) {
-        return res.status(404).json({ message: `Element not found` });
-      }
-      res.status(200).json(singleCashAdvanceUpdateAgain);
-    } catch (error) {
-      console.log("LINE AT 53" , error.message);
-      res.status(500).json(error);
-    }
-}
 
 
 

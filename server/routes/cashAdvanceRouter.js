@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { getPaidAndCancelledCash, getCashAdvanceToSettle, settlement, unSettlement } from "../controller/cashAdvanceController.js";
+import { getPaidAndCancelledCash, getCashAdvanceToSettle, recoverCashAdvance, paidCashAdvance } from "../controller/cashAdvanceController.js";
 
 const router = Router();
 
@@ -7,10 +7,9 @@ router.get("/cancelled/:tenantId" , getPaidAndCancelledCash);
 
 router.get('/settle/:tenantId', getCashAdvanceToSettle)
 
-router.put("/settlement/:tenantId/:travelRequestId/:cashAdvanceId" , settlement);
+router.put('/recovery/:tenantId/:travelRequestId/:cashAdvanceId', recoverCashAdvance)
 
-router.put("/unSettlement/:tenantId/:travelRequestId" , unSettlement);
-
+router.put("/paid/:tenantId/:travelRequestId/:cashAdvanceId" , paidCashAdvance);
 
 export default router;
 
