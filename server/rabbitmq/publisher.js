@@ -3,7 +3,6 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-  
 const connectToRabbitMQ = async () => {
   const rabbitMQUrl = process.env.rabbitMQUrl;
     try {
