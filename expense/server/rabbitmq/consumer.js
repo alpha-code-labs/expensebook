@@ -89,7 +89,7 @@ export async function startConsumer(receiver) {
         
         if(content.headers.destination == 'expense'){
     
-          if(source == 'onboarding'){
+          if(source == 'onboarding' || source == 'system-config'){
             console.log('trying to update HR Master')
             const res = await updateHRMaster(payload)
             console.log(res)
