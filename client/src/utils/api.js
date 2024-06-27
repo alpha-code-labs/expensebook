@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 
-const DASHBOARD_BACKEND_API_URL = import.meta.env.VITE_DASHBOARD_BACKEND_API_URL;
+const FINANCE_BACKEND_API_URL = import.meta.env.VITE_FINANCE_BACKEND_API_URL;
 
 const retry = 2;
 const retryDelay = 3000;
@@ -71,7 +71,7 @@ export const logoutApi = async (authToken) => {
 
 
 export const getEmployeeData_API = async (tenantId,empId) => {
-  const url = `${DASHBOARD_BACKEND_API_URL}/api/fe/dashboard/role/${tenantId}/${empId}`;
+  const url = `${FINANCE_BACKEND_API_URL}/api/fe/finance/role/${tenantId}/${empId}`;
 
   try {
     const response = await axiosRetry(axios.get, url);
@@ -107,7 +107,7 @@ export const getEmployeeRoles_API = async (tenantId,empId) => {
 
 
 export const assignBusinessAdmin_API = async (tenantId,travelRequestId,data) => {
-  const url = `${DASHBOARD_BACKEND_API_URL}/api/fe/dashboard/travel-admin/${tenantId}/${travelRequestId}`;
+  const url = `${FINANCE_BACKEND_API_URL}/api/fe/finance/travel-admin/${tenantId}/${travelRequestId}`;
 
   try {
     const response = await axiosRetry(axios.patch, url,data );
@@ -125,7 +125,7 @@ export const assignBusinessAdmin_API = async (tenantId,travelRequestId,data) => 
 
 
 export const getTravelPreference_API = async (tenantId,empId) => {
-  const url = `${DASHBOARD_BACKEND_API_URL}/api/fe/dashboard/role/${tenantId}/${empId}`;
+  const url = `${FINANCE_BACKEND_API_URL}/api/fe/dashboard/role/${tenantId}/${empId}`;
 
   try {
     const response = await axiosRetry(axios.get, url);
@@ -144,7 +144,7 @@ export const getTravelPreference_API = async (tenantId,empId) => {
 
 export const postTravelPreference_API = async(tenantId,empId,data)=>{
 
-  const url = `${DASHBOARD_BACKEND_API_URL}/api/${tenantId}/${empId}`;
+  const url = `${FINANCE_BACKEND_API_URL}/api/${tenantId}/${empId}`;
 
   // this is the real api route
   
@@ -190,7 +190,7 @@ export const postTravelPreference_API = async(tenantId,empId,data)=>{
 
 
 export const submitLeg = async (tenantId, tripId, empId, legDetails) => {
-  const url = `${DASHBOARD_BACKEND_API_URL}/api/dashboard/overview/addleg/${tenantId}/${tripId}/${empId}`;
+  const url = `${FINANCE_BACKEND_API_URL}/api/dashboard/overview/addleg/${tenantId}/${tripId}/${empId}`;
   
   try {
     const response = await axios.post(url, legDetails);

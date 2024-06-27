@@ -9,9 +9,6 @@ const Navbar = ({ employeeRole,employeeInfo }) => {
  
 const LOGIN_PAGE_URL = import.meta.env.VITE_LOGIN_PAGE_URL
   console.log('employee info from navbar',employeeInfo)
-
-  const authToken = "helloworld whel" 
-  
   
   
   return (
