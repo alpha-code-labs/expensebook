@@ -4,11 +4,11 @@ import {  calender, cancel, double_arrow, loading } from '../../assets/icon'
 import { useNavigate, useParams } from 'react-router-dom';
 
 import axios from 'axios'
-import { assignBusinessAdmin_API } from '../../utils/api';
+import { assignCashSettle_API } from '../../utils/api';
 
 
 
-const SettlingCashAdvance = ({department,trId,tripPurpose ,travelName,travelRequestId,travelRequestNumber,travelRequestStatus  ,employeeRole,isCashAdvanceTaken,assignedTo ,handleTravel}) => {
+const SettlingCashAdvance = ({department,trId,tripPurpose ,travelName,travelRequestId,travelRequestNumber,travelRequestStatus  ,employeeRole,isCashAdvanceTaken,paidBy ,handleTravel}) => {
 
   const [isHovered, setIsHovered] = useState(false);
   const [isUploading, setIsUploading]=useState(
@@ -30,16 +30,16 @@ const SettlingCashAdvance = ({department,trId,tripPurpose ,travelName,travelRequ
   const [assignedEmployeeName, setAssignedEmployeeName] = useState(null);
 
   useEffect(()=>{
-    if(assignedTo?.empId===employeeRole?.empId){
+    if(paidBy?.empId===employeeRole?.empId){
       setIsChecked(true);
-      setAssignedEmployeeName(assignedTo?.name)
+      setAssignedEmployeeName(paidBy?.name)
     }
   },[])
 
-  const handleCheckboxChange = async (assignedTo) => {   
+  const handleCheckboxChange = async (paidBy) => {   
     const data = {
       isCashAdvanceTaken,
-      assignedTo
+      paidBy
     }
    
     // if (isChecked) {
@@ -55,7 +55,7 @@ const SettlingCashAdvance = ({department,trId,tripPurpose ,travelName,travelRequ
       try {
         setIsUploading(prevState => ({...prevState, set:true, id:travelRequestId}))
        
-        const response = await assignBusinessAdmin_API(tenantId,travelRequestId,data) 
+        const response = await assignCashSettle_API(tenantId,travelRequestId,data) 
         setIsChecked(true);
         setAssignedEmployeeName(employeeRole?.name);
         console.log('admin response',response)
@@ -116,10 +116,10 @@ const SettlingCashAdvance = ({department,trId,tripPurpose ,travelName,travelRequ
     </div>
     </>
   ) : (
-    assignedTo?.empId===employeeRole?.employeeDetails?.empId || assignedTo?.empId===null ? <div className="font-bold text-[14px]  min-w-[72px] truncate w-auto max-w-[140px]   lg:truncate   h-[17px] text-purple-500 text-center">
+    paidBy?.empId===employeeRole?.employeeDetails?.empId || paidBy?.empId===null ? <div className="font-bold text-[14px]  min-w-[72px] truncate w-auto max-w-[140px]   lg:truncate   h-[17px] text-purple-500 text-center">
     
     <input type="checkbox" onClick={()=>handleCheckboxChange(assignTo)} checked={isChecked} />
-    </div> :  assignedTo?.name  
+    </div> :  paidBy?.name  
   )}
 </div>
 

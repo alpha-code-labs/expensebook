@@ -4,10 +4,10 @@ import {  calender, cancel, double_arrow, loading } from '../../assets/icon'
 import { useNavigate, useParams } from 'react-router-dom';
 
 import axios from 'axios'
-import { assignBusinessAdmin_API } from '../../utils/api';
+import { assignCashSettle_API } from '../../utils/api';
 
 
-const RecoveringCashAdvance = ({department,trId,tripPurpose ,travelName,travelRequestId,travelRequestNumber,travelRequestStatus  ,employeeRole,isCashAdvanceTaken,assignedTo ,handleTravel}) => {
+const RecoveringCashAdvance = ({department,trId,tripPurpose ,travelName,travelRequestId, cashAdvanceId,travelRequestNumber,travelRequestStatus  ,employeeRole,isCashAdvanceTaken,recoveredBy ,handleTravel}) => {
 
   const [isHovered, setIsHovered] = useState(false);
   const [isUploading, setIsUploading]=useState(
@@ -29,16 +29,16 @@ const RecoveringCashAdvance = ({department,trId,tripPurpose ,travelName,travelRe
   const [assignedEmployeeName, setAssignedEmployeeName] = useState(null);
 
   useEffect(()=>{
-    if(assignedTo?.empId===employeeRole?.empId){
+    if(recoveredBy?.empId===employeeRole?.empId){
       setIsChecked(true);
-      setAssignedEmployeeName(assignedTo?.name)
+      setAssignedEmployeeName(recoveredBy?.name)
     }
   },[])
 
-  const handleCheckboxChange = async (assignedTo) => {   
+  const handleCheckboxChange = async (recoveredBy) => {   
     const data = {
       isCashAdvanceTaken,
-      assignedTo
+      recoveredBy
     }
    
     // if (isChecked) {
@@ -54,7 +54,7 @@ const RecoveringCashAdvance = ({department,trId,tripPurpose ,travelName,travelRe
       try {
         setIsUploading(prevState => ({...prevState, set:true, id:travelRequestId}))
        
-        const response = await assignBusinessAdmin_API(tenantId,travelRequestId,data) 
+        const response = await assignCashSettle_API(tenantId,travelRequestId, cashAdvanceId,data) 
         setIsChecked(true);
         setAssignedEmployeeName(employeeRole?.name);
         console.log('admin response',response)
@@ -72,8 +72,6 @@ const RecoveringCashAdvance = ({department,trId,tripPurpose ,travelName,travelRe
     
   };
 
-
-  
   return (
     <div className="flex flex-row items-center justify-between   min-h-[56px] rounded-xl border-[1px] border-b-gray hover:border-indigo-600 shadow-md">
     <div className="flex h-[52px] items-center justify-start w-[221px] py-3 px-2">
@@ -115,10 +113,10 @@ const RecoveringCashAdvance = ({department,trId,tripPurpose ,travelName,travelRe
     </div>
     </>
   ) : (
-    assignedTo?.empId===employeeRole?.employeeDetails?.empId || assignedTo?.empId===null ? <div className="font-bold text-[14px]  min-w-[72px] truncate w-auto max-w-[140px]   lg:truncate   h-[17px] text-purple-500 text-center">
+    recoveredBy?.empId===employeeRole?.employeeDetails?.empId || recoveredBy?.empId===null ? <div className="font-bold text-[14px]  min-w-[72px] truncate w-auto max-w-[140px]   lg:truncate   h-[17px] text-purple-500 text-center">
     
     <input type="checkbox" onClick={()=>handleCheckboxChange(assignTo)} checked={isChecked} />
-    </div> :  assignedTo?.name  
+    </div> :  recoveredBy?.name  
   )}
 </div>
 
