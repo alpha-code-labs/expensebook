@@ -1,5 +1,5 @@
 import Finance from "../models/Finance.js";
- 
+
 export const getReimbursement = async(req , res)=>{
     try {
       const {tenantId}= req.params
@@ -19,7 +19,6 @@ export const getReimbursement = async(req , res)=>{
         res.status(500).json(error);
     }
 };
-
 
 //Expense Header Reports with status as pending Settlement updated to paid(Non Travel Expense Reports).
 export const paidNonTravelExpenseReports = async (req, res) => {
