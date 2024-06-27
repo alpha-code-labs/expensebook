@@ -9,9 +9,13 @@ import left_arrow_icon from './assets/arrow-left.svg'
 function App() {
   const [currentPage, setCurrentPage] = useState('company-info')
   const dashboard_url = 'https://localhost.google.com'
+  const url = window.location.href;
+  const tenantId = url.split(':')[2].split('/')[1];
+  console.log(url.split(':')[2], 'use params hook')
 
   return (
     <>
+    
     <div className='flex'>
       
       <div className='w-[270px] h-[100vh] max-h-[100vh] overflow-hidden fixed'>
@@ -19,7 +23,7 @@ function App() {
       </div>
 
       <div className='absolute w-[calc(100%-270px)] left-[270px] top-0'>
-          <RenderPage page={currentPage} tenantId={'hhghq6iva'} />
+          <RenderPage page={currentPage} tenantId={tenantId} />
           <div className='fixed right-4 top-4 p-2 bg-white rounded-full'>
             <div className='rounded-full border border-indigo-600 py-2 px-4 cursor-pointer bg-white' onClick={()=>window.location.href = dashboard_url}>
                 <div className='flex gap-2 items-center'>

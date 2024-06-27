@@ -161,7 +161,7 @@ const [loadingErr, setLoadingErr] = useState(null)
         <>
             {loading && <Error message={loadingErr} />}
             {!loading &&
-            <div  className="overflow-hidden flex justify-center items-center inset-0 w-full h-[100vh] bg-slate-50  scroll-none">       
+            <div  className="overflow-hidden flex justify-center items-center inset-0 w-full h-[100vh] scroll-none">       
                
                 <div className='px-10 pb-10 pt-4 w-fit max-w-[480px] rounded-lg bg-white mx-auto'>
                     {/* allow user to upload file*/}

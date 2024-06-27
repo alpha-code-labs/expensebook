@@ -1,44 +1,22 @@
-import axios from 'axios'
+import { sendToOtherMicroservice } from "../rabbitmq/publisher.js";
 
-const ms_endpoints = {
-    travel_ms:'http://localhost:8001/api/travel/hr-data',
-    cash_ms:'http://localhost:8002/api/cash/hr-data',
-    approval_ms:'http://localhost:8003/api/approval/hr-data',
-    finance_ms:'http://localhost:8004/api/finance/hr-data',
-    dashboard_ms:'http://localhost:8005/api/dashboard/hr-data',
-    loginLogout_ms:'http://localhost:8006/api/login/hr-data',
-    onboarding_ms:'http://localhost:8007/api/onboarding/hr-data',
-    expense:'http://localhost:8001/api/expense/hr-data',
+//sendToOtherMicroservice(payload, comments, destination, source='onboarding', onlineVsBatch, action='full-update')
 
-}
 
-export default async function sendUpdatedReplica(data){
+const msList = ['login', 'onboarding', 'travel', 'cash', 'dashboard', 'trip', 'expense', 'approval', 'finance', 'reporting']
+
+export default async function sendUpdatedReplica(payload, microservices = msList){
     try{
-        //using circuit-breaker pattern
+        const comments = 'full-update for HR data due to changes in system configuration microservice';
+        const source = 'system-config';
+        const onlineVsBatch = 'online';
 
-        const keys = Object.keys(ms_endpoints)
-        
-        keys.forEach(async (key)=>{
-            try{
-                const res = await axios.post(ms_endpoints[key], data)
-                if(!success(res.status)){
-                    //handle failure
-                    //break the circuit
-                    throw new Error(`Could not update ${key}`)
-                }
-            }catch(e){
-                throw(e)
-            }
-        })
+        const promises = microservices.map(ms=>sendToOtherMicroservice(payload, comments, ms, source, onlineVsBatch))
 
-        return 1
+        await Promise.all(promises);
 
+        return {success: true, error:null};
     }catch(e){
-        return 0
+        return {success: false, error:e};
     }
-}
-
-function success(x){
-    if(x<300 && x>199) return true
-    return false
 }

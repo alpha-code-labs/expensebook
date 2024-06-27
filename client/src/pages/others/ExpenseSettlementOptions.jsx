@@ -1,38 +1,55 @@
 import Button from "../../components/common/Button"
 import Icon from "../../components/common/Icon"
+import HollowButton from "../../components/common/HollowButton"
 import { useEffect, useState } from "react"
+import axios from 'axios'
 import Checkbox from "../../components/common/Checkbox"
-import { getTenantExpenseSettlementOptions_API, updateTenantExpenseSettlementOptions_API } from "../../utils/api"
 import Error from "../../components/common/Error"
+import Prompt from "../../components/common/Prompt"
+import MainSectionLayout from "../../layouts/MainSectionLayout"
 
-
+const ONBOARDING_API = import.meta.env.VITE_PROXY_URL
 
 export default function ({tenantId}){
-
     const [options, setOptions] = useState({Cash:false, Cheque:false, ['Salary Account']:false, ['Prepaid Card']:false, ['NEFT Bank Transfer']:false})
     const [loading, setLoading] = useState(true)
     const [loadingError, setLoadingError] = useState(null)
+    const [isUploading, setIsUploading] = useState(false);
+    const [prompt, setPrompt] = useState({showPrompt: false, promptMsg: null})
 
     useEffect(()=>{
         (async function(){
-        
-            setLoading(true)
-            const res = await getTenantExpenseSettlementOptions_API({tenantId})
+            try{
+                const res = await axios.get(`${ONBOARDING_API}/tenant/${tenantId}/expense-settlement-options`)
+                const expenseSettlementOptions = res.data.expenseSettlementOptions
 
-            if(res.err){
-                setLoadingError(res.err)
-                return
-            } 
+                if(Object.keys(expenseSettlementOptions).length > 0){
+                    setOptions(expenseSettlementOptions)
+                }
+                
+                if(res.status == 200){
+                    setLoading(false)
+                    setLoadingError(null)    
+                }
 
-            const expenseSettlementOptions = res.data.expenseSettlementOptions
+            }catch(e){
+                if(e.response){
+                    if(e.response.status == 404){
+                        setLoadingError('Requested resource not found')
+                    }
+                    else{
+                        setLoadingError('Something went wrong, please try again later')
+                    }
+                }
+                else if(e.request){
+                    setLoadingError('Internal server error')
+                }
+                else{
+                    setLoadingError('Something went wrong, can not place this request at the moment')
+                }
 
-            if(Object.keys(expenseSettlementOptions).length > 0){
-                setOptions(expenseSettlementOptions)
+                console.log(e)
             }
-        
-            setLoading(false)
-            setLoadingError(null)    
-
         })()
     }, [])
 
@@ -41,22 +58,38 @@ export default function ({tenantId}){
     }
 
     const saveExpenseSettlementOptions = async () =>{
-        setLoading(true)
-        const res = await updateTenantExpenseSettlementOptions_API({tenantId, expenseSettlementOptions:options}) 
-        setLoading(false)
+        
+        try{
+            setIsUploading(true)
+            const res = await axios.post(`${ONBOARDING_API}/tenant/${tenantId}/expense-settlement-options`, {expenseSettlementOptions:options})
 
-        if(res.err){
-            alert('Could not update expense settleent options at the moment. Please try again later')
-            return
+            setIsUploading(false)
+
+            if(res.status == 200){
+                setPrompt({showPrompt:true, promptMsg: "Expense Settlement Options Updated!", success: true })
+            }
         }
-        alert('Expense Settlement Options Updated !')
+        catch(e){
+            if(e.response){
+
+            }
+            else if(e.request){
+
+            }
+            else{
+
+            }
+
+            setPrompt({showPrompt:true, promptMsg: "Cant save changes at the moment, please try again later", success: true })
+        }
     }
 
 
     return(<>
+    <MainSectionLayout>
         {loading && <Error message={loadingError} />}
-        {!loading && <div className="bg-slate-50 min-h-[calc(100vh-107px)] px-[20px] md:px-[50px] lg:px-[104px] pb-10 w-full tracking-tight">
-            <div className='px-6 py-10 bg-white rounded shadow'>
+        {!loading &&
+            <div className='px-6 py-10 bg-white'>
                 <div className="flex justify-between">
                     <div className="gap-2">
                         <p className="text-neutral-700 text-xl font-semibold tracking-tight">
@@ -80,11 +113,14 @@ export default function ({tenantId}){
                     })}    
                 </div>
 
-                <div className="mt-10 w-full flex flex-row-reverse justify-between">
-                    <Button variant='fit' text='Save Expense Settlement Options' onClick={()=>saveExpenseSettlementOptions()} />
+                <div className="mt-10 w-full flex justify-end">
+                    {/* <Button variant='fit' text='Save As draft' onClick={handleSaveAsDraft} /> */}
+                    <Button isLoading={isUploading} variant='fit' text='Save Expense Settlement Options' onClick={()=>saveExpenseSettlementOptions()} />
                 </div>
-
+            
+                <Prompt prompt={prompt} setPrompt={setPrompt} />
             </div>
-        </div>}
+         }
+    </MainSectionLayout>
     </>)
 }

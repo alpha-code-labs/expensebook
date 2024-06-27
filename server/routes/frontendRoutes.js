@@ -1,5 +1,16 @@
 import express from "express";
 import {
+    getTenantDefaultCurrency,
+    updateTenantReimbursementAllocations,
+    getTenantReimbursementAllocations,
+    updateTenantReimbursementExpenseCategories,
+    getTenantReimbursementExpenseCategories,
+    updateTenantTravelAllocations,
+    getTenantTravelAllocations,
+    updateTenantTravelExpenseCategories,
+    getTenantTravelExpenseCategories,
+    updateTenantTravelAllocationFlags,
+    getTenantTravelAllocationFlags,
     updateExistingHrCompanyInfo,
     handleUpload,
     getTenantHRMaster,
@@ -77,12 +88,28 @@ router.get('/tenant/:tenantId/travel-allocation', getTenantTravelAllocation);
 router.get('/tenant/:tenantId/travel-expense-allocation', getTenantTravelExpenseAllocation);
 router.get('/tenant/:tenantId/travel-categories-expense-allocation', getTravelCategoriesExpenseAllocation);
 router.get('/tenant/:tenantId/non-travel-expense-allocation', getTenantNonTravelExpenseAllocation);
+router.post('/tenant/:tenantId/travel-expense-categories', updateTenantTravelExpenseCategories);
+router.get('/tenant/:tenantId/travel-expense-categories', getTenantTravelExpenseCategories);
+router.post('/tenant/:tenantId/reimbursement-expense-categories', updateTenantReimbursementExpenseCategories);
+router.get('/tenant/:tenantId/reimbursement-expense-categories', getTenantReimbursementExpenseCategories);
+router.post('/tenant/:tenantId/reimbursement-allocations', updateTenantReimbursementAllocations);
+router.get('/tenant/:tenantId/reimbursement-allocations', getTenantReimbursementAllocations);
+
+//allocation flags
+router.post('/tenant/:tenantId/travel-allocation-flags', updateTenantTravelAllocationFlags);
+router.get('/tenant/:tenantId/travel-allocation-flags', getTenantTravelAllocationFlags)
+router.post('/tenant/:tenantId/travel-allocations', updateTenantTravelAllocations);
+router.get('/tenant/:tenantId/travel-allocations', getTenantTravelAllocations);
 
 //groups
 router.post('/tenant/:tenantId/grouping-labels', updateTenantGroupingLabels)
 router.get('/tenant/:tenantId/grouping-labels', getTenantGroupingLabels)
 router.post('/tenant/:tenantId/groups', updateTenantGroups)
 router.get('/tenant/:tenantId/groups', getTenantGroups)
+
+//default currency
+router.get('/tenant/:tenantId/default-currency', getTenantDefaultCurrency)
+
 
 //policies
 router.get('/tenant/:tenantId/policies/travel', getTenantPolicies)

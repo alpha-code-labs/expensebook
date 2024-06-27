@@ -1,199 +1,23 @@
 import Button from "../../components/common/Button"
-import Icon from "../../components/common/Icon"
-import { useNavigate, useParams } from "react-router-dom"
-import HollowButton from "../../components/common/HollowButton"
 import { CircleFlag } from 'react-circle-flags'
 import Select from "../../components/common/Select"
 import { useEffect, useState } from "react"
-import { getTenantMulticurrencyTable_API, updateTenantMulticurrencyTable_API } from "../../utils/api"
+import { updateFormState_API } from "../../utils/api"
+import {currenciesList} from "../../data/currenciesList"
+import { getTenantDefaultCurrency_API, getTenantMulticurrencyTable_API, postTenantMulticurrencyTable_API } from "../../utils/api"
+import Prompt from "../../components/common/Prompt"
 import Error from "../../components/common/Error"
+import MainSectionLayout from "../../layouts/MainSectionLayout"
+import remove_icon from "../../assets/close.svg"
 
 export default function ({tenantId}){
-    const defaultCurrency = {fullName:'Indian Rupees', shortName:'INR', symbol:'₹', countryCode:'in' }
-    const [tenantDefaultCurrency, setTenantDefaultCurrency] =  useState(defaultCurrency)
+    const [tenantDefaultCurrency, setTenantDefaultCurrency] =  useState({fullName:'', shortName:'', symbol:'', countryCode:''})
     const [currencyTable, setCurrencyTable] = useState([])
-    const [loading, setLoading] = useState(false)
-    const [loadingErr, setLoadingErr] = useState(null)
-
-    const currenciesList = [
-        {
-          fullName: "United States Dollar",
-          shortName: "USD",
-          symbol: "$",
-          countryCode: "US"
-        },
-        {
-          fullName: "Euro",
-          shortName: "EUR",
-          symbol: "€",
-          countryCode: "EU"
-        },
-        {
-          fullName: "British Pound Sterling",
-          shortName: "GBP",
-          symbol: "£",
-          countryCode: "GB"
-        },
-        {
-          fullName: "Japanese Yen",
-          shortName: "JPY",
-          symbol: "¥",
-          countryCode: "JP"
-        },
-        {
-          fullName: "Swiss Franc",
-          shortName: "CHF",
-          symbol: "CHF",
-          countryCode: "CH"
-        },
-        {
-          fullName: "Canadian Dollar",
-          shortName: "CAD",
-          symbol: "CA$",
-          countryCode: "CA"
-        },
-        {
-          fullName: "Australian Dollar",
-          shortName: "AUD",
-          symbol: "A$",
-          countryCode: "AU"
-        },
-        {
-          fullName: "Chinese Yuan",
-          shortName: "CNY",
-          symbol: "¥",
-          countryCode: "CN"
-        },
-        {
-          fullName: "Indian Rupee",
-          shortName: "INR",
-          symbol: "₹",
-          countryCode: "IN"
-        },
-        {
-          fullName: "Brazilian Real",
-          shortName: "BRL",
-          symbol: "R$",
-          countryCode: "BR"
-        },
-        {
-          fullName: "Russian Ruble",
-          shortName: "RUB",
-          symbol: "₽",
-          countryCode: "RU"
-        },
-        {
-          fullName: "South African Rand",
-          shortName: "ZAR",
-          symbol: "R",
-          countryCode: "ZA"
-        },
-        {
-          fullName: "Singapore Dollar",
-          shortName: "SGD",
-          symbol: "S$",
-          countryCode: "SG"
-        },
-        {
-            fullName: "Mexican Peso",
-            shortName: "MXN",
-            symbol: "$",
-            countryCode: "MX"
-          },
-          {
-            fullName: "New Zealand Dollar",
-            shortName: "NZD",
-            symbol: "NZ$",
-            countryCode: "NZ"
-          },
-          {
-            fullName: "Norwegian Krone",
-            shortName: "NOK",
-            symbol: "kr",
-            countryCode: "NO"
-          },
-          {
-            fullName: "Swedish Krona",
-            shortName: "SEK",
-            symbol: "kr",
-            countryCode: "SE"
-          },
-          {
-            fullName: "Turkish Lira",
-            shortName: "TRY",
-            symbol: "₺",
-            countryCode: "TR"
-          },
-          {
-            fullName: "South Korean Won",
-            shortName: "KRW",
-            symbol: "₩",
-            countryCode: "KR"
-          },
-          {
-            fullName: "Argentine Peso",
-            shortName: "ARS",
-            symbol: "$",
-            countryCode: "AR"
-          },
-          {
-            fullName: "South African Rand",
-            shortName: "ZAR",
-            symbol: "R",
-            countryCode: "ZA"
-          },
-          {
-            fullName: "Indonesian Rupiah",
-            shortName: "IDR",
-            symbol: "Rp",
-            countryCode: "ID"
-          },
-          {
-            fullName: "Saudi Riyal",
-            shortName: "SAR",
-            symbol: "﷼",
-            countryCode: "SA"
-          },
-          {
-            fullName: "Polish Złoty",
-            shortName: "PLN",
-            symbol: "zł",
-            countryCode: "PL"
-          },
-          {
-            fullName: "Hungarian Forint",
-            shortName: "HUF",
-            symbol: "Ft",
-            countryCode: "HU"
-          },
-          {
-            fullName: "Czech Koruna",
-            shortName: "CZK",
-            symbol: "Kč",
-            countryCode: "CZ"
-          },
-          {
-            fullName: "Chilean Peso",
-            shortName: "CLP",
-            symbol: "$",
-            countryCode: "CL"
-          },
-          {
-            fullName: "Malaysian Ringgit",
-            shortName: "MYR",
-            symbol: "RM",
-            countryCode: "MY"
-          },
-          {
-            fullName: "Philippine Peso",
-            shortName: "PHP",
-            symbol: "₱",
-            countryCode: "PH"
-          },
-        // Add more currencies as needed
-      ];
-
+    const [prompt, setPrompt] = useState({showPrompt:false, promptMsg:null, successs:null})
+    const [networkStates, setNetworkStates] = useState({isLoading:false, isUploading:false, loadingErrMsg:null})
     const [selectedCurrency, setSelectedCurrency] = useState(null)
+    const [activeButton, setActiveButton] = useState(null)
+
     const handleCurrencySelection = (option)=>{
         setSelectedCurrency(option)
     }
@@ -219,11 +43,11 @@ export default function ({tenantId}){
                 setCurrencyTable(currencyTable_copy)
             }
             else{
-                alert('Currency already in table, please modify value')
+              setPrompt({showPrompt: true, promptMsg:'Currency already in table, please modify value', success: false})
             }
         }
         else{
-            alert('Please select a currency to continue')
+          setPrompt({showPrompt: true, promptMsg:'Please select a currency to continue', success: false})
         }
     }
 
@@ -235,6 +59,7 @@ export default function ({tenantId}){
     }
 
     const handleSaveChanges = async ()=>{
+        setActiveButton('Save and Continue')
         //upload non empty values to database
         const filteredEntries = currencyTable.filter(entry=>entry.exchangeValue.value!='')
         const exchangeValue = filteredEntries.map(entry=>entry.exchangeValue)
@@ -245,60 +70,138 @@ export default function ({tenantId}){
             return
         }
 
-        setLoading(true)
+        try{
+            setNetworkStates({isLoading:false, isUploading:true, loadingErrMsg:null})
+            const res = await postTenantMulticurrencyTable_API({tenantId, multiCurrencyTable:{defaultCurrency:tenantDefaultCurrency, exchangeValue} })
 
-        const res = updateTenantMulticurrencyTable_API({tenantId, multiCurrencyTable:{defaultCurrency:tenantDefaultCurrency, exchangeValue}}) 
-        if(res.err){
-            setLoading(false)
-            alert('Could not update multicurrency table at the moment. Please try again later')
-            return
+
+            if(res.err){
+                setNetworkStates({isLoading:false, isUploading:false, loadingErrMsg:res.err})
+                setPrompt({showPrompt:true, promptMsg: res.err??progress_res.err, success: false})
+            }
+            if(!res.err){
+                setNetworkStates({isLoading:false, isUploading:false, loadingErrMsg:res.err});
+                setPrompt({showPrompt:true, promptMsg: 'Multicurrency table updated', success: true});
+            }
+
+        }catch(e){
+            console.log(e)
         }
-        setLoading(false)
-        alert('Multicurrency table updated')
+    }
+
+    const handleSaveAsDraft = async ()=>{
+        setActiveButton('Save as Draft')
+      //upload non empty values to database
+      const filteredEntries = currencyTable.filter(entry=>entry.exchangeValue.value!='')
+      const exchangeValue = filteredEntries.map(entry=>entry.exchangeValue)
+      console.log(exchangeValue)
+
+      if(exchangeValue.length!=0){
+          // alert('No values provided')
+        try{
+            setNetworkStates({isLoading:false, isUploading:true, loadingErrMsg:null})
+            const res = await postTenantMulticurrencyTable_API({tenantId, multiCurrencyTable:{defaultCurrency:tenantDefaultCurrency, exchangeValue} })
+            
+            if(!res.err){
+                // alert('Multicurrency table updated')
+                setNetworkStates({isLoading:false, isUploading: false, loadingErrMsg:null})
+                setPrompt({showPrompt:true, promptMsg:'Multicurrency table updated.', success: true})
+                setTimeout(()=>{
+                    window.location.href = import.meta.env.VITE_WEB_PAGE_URL
+                }, 2700)
+            }
+
+        }catch(e){
+            console.log(e)
+        }
+      }
+
+      //update form state
+      await updateFormState_API({tenantId, state:'others/multicurrency'})
+      setTimeout(()=>{window.location.href = import.meta.env.VITE_WEB_PAGE_URL??'google.com'}, 3000)
+    }
+
+    const removeCurrency = async (index)=>{
+       
+        try{
+            console.log('currency table copy', currencyTable)
+            const currencyTable_copy = JSON.parse(JSON.stringify(currencyTable));
+            currencyTable_copy.splice(index, 1);
+
+            console.log(currencyTable_copy, 'currency table copy')
+
+            const filteredEntries = currencyTable_copy.filter(entry=>entry.exchangeValue.value!='')
+            const exchangeValue = filteredEntries.map(entry=>entry.exchangeValue)
+
+        
+            setNetworkStates({isLoading:false, isUploading:true, loadingErrMsg:null})
+            const res = await postTenantMulticurrencyTable_API({tenantId, multiCurrencyTable:{defaultCurrency:tenantDefaultCurrency, exchangeValue} })
+
+            if(res.err){
+                setNetworkStates({isLoading:false, isUploading:false, loadingErrMsg:res.err})
+                setPrompt({showPrompt:true, promptMsg: 'Something went wrong while removing currency from table', success: true})
+            }
+            if(!res.err){
+                setNetworkStates({isLoading:false, isUploading:false, loadingErrMsg:res.err})
+                setPrompt({showPrompt:true, promptMsg: 'Currency Removed', success: true})
+                setCurrencyTable(currencyTable_copy)
+            }
+
+        }catch(e){
+            console.log(e)
+        }
     }
 
     useEffect(()=>{
         console.log(currencyTable)
     },[currencyTable])
-      
+
     useEffect(()=>{
         (async function(){
-            setLoading(true)
+            try{
+                setNetworkStates(pre=>({isLoading:true}))
+                const res = await getTenantMulticurrencyTable_API({tenantId})
+                if(res.err){
+                    setNetworkStates(pre=>({...pre, loadingErrMsg:res.err}))
+                }
+                const multiCurrencyData = res.data.multiCurrencyTable
+                console.log(multiCurrencyData)
+                if(multiCurrencyData.exchangeValue.length>0){
+                    //This needs to be setup despite absence of any entry in exchangeValue...
+                    setTenantDefaultCurrency(multiCurrencyData.defaultCurrency)
 
-            const res = await getTenantMulticurrencyTable_API({tenantId})
+                    const currencyTable_copy = []
+                    multiCurrencyData.exchangeValue.map(entry=>{
+                        currencyTable_copy.push({currency:multiCurrencyData.defaultCurrency, exchangeValue:{currency:entry.currency, value:entry.value}})
+                    })
+                
+                    setCurrencyTable(currencyTable_copy)
+                }
+                else{
+                    //fetch default currency
+                    const resD = await getTenantDefaultCurrency_API({tenantId})
+                    console.log(resD.data, 'default')
+                    if(!resD.err){
+                        if(resD.data?.defaultCurrency?.shortName != '')
+                            setTenantDefaultCurrency(resD.data.defaultCurrency)
+                    }
+                }
 
-            if(res.err){
-                setLoadingErr(res.err)
-                return
+                setNetworkStates(pre=>({...pre, isLoading:false, isUploading:false, loadingErrMsg:null}))
+                                
+            }catch(e){
+                console.log(e)
             }
-
-            const multiCurrencyData = res.data.multiCurrencyTable
-            console.log(multiCurrencyData)
-            if(multiCurrencyData.exchangeValue.length>0){
-                //This needs to be setup despite absence of any entry in exchangeValue...
-                setTenantDefaultCurrency(multiCurrencyData.defaultCurrency)
-
-                const currencyTable_copy = []
-                multiCurrencyData.exchangeValue.map(entry=>{
-                    currencyTable_copy.push({currency:multiCurrencyData.defaultCurrency, exchangeValue:{currency:entry.currency, value:entry.value}})
-                })
-            
-                setCurrencyTable(currencyTable_copy)
-            }
-
-            setLoading(false)
-            setLoadingErr(null)
         })()
 
     }, [])
 
 
     return(<>
-        
-        {loading && <Error message={loadingErr}/>}
-
-        {!loading && <div className="bg-slate-50 min-h-[calc(100vh-107px)] px-[20px] md:px-[50px] overflow-y-auto lg:px-[104px] pb-10 w-full tracking-tight">
-            <div className='px-6 py-10 bg-white rounded shadow'>
+    <MainSectionLayout>
+        {networkStates.isLoading && <Error message={networkStates.loadingErrMsg}/>}
+        {!networkStates.isLoading && <>
+            <div className='px-6 py-10 bg-white'>
                 <div className="flex justify-between">
                     <div className="gap-2">
                         <p className="text-neutral-700 text-xl font-semibold tracking-tight">
@@ -319,24 +222,29 @@ export default function ({tenantId}){
 
                 <div className='mt-10 flex flex-wrap gap-20'>
                     {currencyTable.length>0 && currencyTable.map((entry,index)=>(
-                        <div className="flex gap-6 h-12 w-[230px] items-center">
-                            <div className='flex items-center gap-4'>
-                                <div className='w-6 h-6'>
-                                    <CircleFlag countryCode={entry.exchangeValue.currency.countryCode.toLowerCase()} />
-                                </div>
-                                <p className="text-neutral-700 font-cabin font-normal text-sm">{entry.exchangeValue.currency.shortName}</p>
-                            </div>
-
-                            <div className="px-4 py-3 rounded-xl border border-gray-400 flex gap-8">
+                        <div className="w-fit flex gap-6 items-center">
+                            <div className="flex gap-6 h-12 w-[230px] items-center">
                                 <div className='flex items-center gap-4'>
                                     <div className='w-6 h-6'>
-                                        <CircleFlag countryCode={entry.currency.countryCode.toLowerCase()} />
+                                        <CircleFlag countryCode={entry.exchangeValue.currency.countryCode.toLowerCase()} />
                                     </div>
-                                    <div className='flex gap-2 text-neutral-700 font-cabin font-normal text-sm'>
-                                        <p className="symbol">{entry.currency.symbol}</p>
-                                        <input value={entry.exchangeValue.value} onChange={(e)=>handleValueChange(e,index)} className="border border-gray-200 w-8 border-neutral-300 focus-visible:outline-0 focus-visible:border-indigo-600" />
+                                    <p className="text-neutral-700 whitespace-nowrap font-cabin font-normal text-sm">{`1 ${entry.exchangeValue.currency.shortName}  `}</p>
+                                </div>
+
+                                <div className="px-4 py-3 rounded-xl border border-gray-400 flex gap-8">
+                                    <div className='flex items-center gap-4'>
+                                        <div className='w-6 h-6'>
+                                            <CircleFlag countryCode={entry?.currency?.countryCode.toLowerCase()} />
+                                        </div>
+                                        <div className='flex gap-2 text-neutral-700 font-cabin font-normal text-sm'>
+                                            <p className="symbol">{entry.currency.symbol}</p>
+                                            <input value={entry.exchangeValue.value} onChange={(e)=>handleValueChange(e,index)} className="border border-gray-200 rounded-md pl-1 w-12 border-neutral-300 focus-visible:outline-0 focus-visible:border-indigo-600" />
+                                        </div>
                                     </div>
                                 </div>
+                            </div>
+                            <div className="w-6 bg-gray-100 rounded-full p-1">
+                                <img src={remove_icon} className='w-4 hover:scale-125 cursor-pointer' onClick={()=>removeCurrency(index)} />
                             </div>
                         </div>
                     ))}
@@ -356,16 +264,19 @@ export default function ({tenantId}){
                         </div>
 
                         <div>
-                            <HollowButton title='Add' onClick={addCurrency} />
+                            <Button text='Add' onClick={addCurrency} />
                         </div>
                     </div>
                 </div>
 
-                <div className="flex flex-row-reverse w-full justify-between mt-10">
-                    <Button variant='fit' text='Save Changes' onClick={handleSaveChanges} />
+                <div className="flex w-full justify-end mt-10">
+                   {/* <Button variant='fit' text='Save as Draft' onClick={handleSaveAsDraft} isLoading={networkStates.isUploading && activeButton == 'Save as Draft'} /> */}
+                    <Button variant='fit' text='Save and Continue' onClick={handleSaveChanges} isLoading={networkStates.isUploading && activeButton == 'Save and Continue'} />
                 </div>
-
+                
+                <Prompt prompt={prompt} setPrompt={setPrompt} timeout={3000} />
             </div>
-        </div>}
+        </>}
+    </MainSectionLayout>
     </>)
 }

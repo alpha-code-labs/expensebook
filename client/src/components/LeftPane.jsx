@@ -2,30 +2,39 @@ import * as ScrollArea from '@radix-ui/react-scroll-area';
 import './LeftPaneStyles.css'
 import { useState } from 'react';
 import Icon from './common/Icon';
+import app_icon from '../assets/app_icon.svg';
+import app_symbol from '../assets/app_symbol.svg';
 
 
 
 const options = [
-    [{name:'Company Info', link:'company-info'}],
-
-    [{name:'Travel Allocations', link:'travel-allocations'},
-    {name:'Travel Expense Allocations', link:'travel-expense-allocations'},
-    {name:'Travel Categories Expense Allocations', link:'travel-categories-expense-allocations'},
+    [ 
+        {name:'Company Info', link:'company-info'} 
     ],
 
-    [{name:'Grouping Labels', link:'grouping-labels'},
+    [   
+        {name:'Travel Allocation Level', link:'travel-allocation-level'},
+        {name:'Travel Allocations', link:'travel-allocations'},
+        {name:'Reimbursement Allocations', link:'reimbursement-allocations'},
+    ],
+
+    [
+        {name:'Grouping Labels', link:'grouping-labels'},
         {name:'Groups', link:'groups'},
-    {name:'Travel Policies', link:'travel-policies'},
-    {name:'non-Travel Expenses And Policies', link:'non-travel-expenses-and-policies'}],
+        {name:'Company Policies', link:'travel-policies'},
+    ],
 
-    [{name:'Account Lines', link:'account-lines'},
-    {name:'Multicurrency', link:'multicurrency'},
-    {name:'System Roles', link:'system-roles'},
-    {name:'Advance Reimbursement Options', link:'advance-settlement-options'},
-    {name:'Expense Reimbursement Options', link:'expense-settlement-options'}],
+    [
+        {name:'Multicurrency', link:'multicurrency'},
+        {name:'System Roles', link:'system-roles'},
+        {name:'Cash Advance Settlement Options', link:'advance-settlement-options'},
+        {name:'Expense Settlement Options', link:'expense-settlement-options'}
+    ],
 
-    [{name:'Configure New Employees', link:'update-hr-master'},
-    {name:'Configure Org Headers', link:'update-org-headers'}]
+    [
+        {name:'Configure New Employees', link:'update-hr-master'},
+        {name:'Configure Org Headers', link:'update-org-headers'}
+    ]
 ]
 
 
@@ -38,6 +47,10 @@ const ScrollAreaDemo = ({loadLink}) => {
     return(
     <ScrollArea.Root className="ScrollAreaRoot bg-slate-100">
         <ScrollArea.Viewport className="ScrollAreaViewport">
+        <div className="flex items-center h-[12] pt-8 w-fit justify-center px-4">
+            <img className='w-[23px] h-[23px]' src={app_symbol} />
+            <img className='w-[168px] h-[27px] -ml-[7px]' src={app_icon} />
+        </div>
         <div className='text-sm font-inter pt-10 text-neutral-900'>
             {options.map((groups) => (
                 <>

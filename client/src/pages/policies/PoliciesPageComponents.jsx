@@ -2,9 +2,8 @@ import internatinal_travel_icon from '../../assets/in-flight.svg'
 import domestic_travel_icon from '../../assets/briefcase.svg'
 import local_travel_icon from '../../assets/map-pin.svg'
 import non_travel_icon from '../../assets/paper-money-two.svg'
-
+import React from 'react'
 import back_icon from '../../assets/arrow-left.svg'
-import Icon from '../../components/common/Icon';
 import arrow_down from "../../assets/chevron-down.svg";
 import { useState, useEffect, useRef } from 'react';
 import Checkbox from '../../components/common/Checkbox';
@@ -14,20 +13,23 @@ import Input from '../../components/common/Input';
 import HollowButton from '../../components/common/HollowButton';
 import Button from '../../components/common/Button'
 import MultiSelect from '../../components/common/MultiSelect'
-import axios from 'axios'
-import Modal from '../../components/common/Modal'
-import { EmitFlags } from 'typescript'
-import Select from '../../components/common/Select'
-import remove_icon from '../../assets/XCircle.svg'
-import { updateFormState_API } from '../../utils/api'
+import {updateTravelPolicies_API } from '../../utils/api'
+import Switch from '../../components/common/Switch'
+import Prompt from '../../components/common/Prompt'
+import { motion } from 'framer-motion'
+import MainSectionLayout from '../../layouts/MainSectionLayout'
+import { camelCaseToTitleCase, titleCaseToCamelCase } from '../../utils/handyFunctions'
 
-export default function (props) {
-    const [ruleEngineState, setRuleEngineState] = [props.ruleEngineState, props.setRuleEngineState]
-    const tenantId = props.tenantId
-    const travelType = props.travelType
+const redirectionTimeout = import.meta.env.VITE_REDIRECT_TIMEOUT??3000
+const promptTimeout = import.meta.env.VITE_PROMPT_TIMEOUT??2700
+
+export default function ({tenantId, travelType, ruleEngineState, setRuleEngineState, currencySymbol, setShowPage}) {
     const icon = switchIcon(travelType)
     const [showAddExpenseCategoriesModal, setShowAddExpenseCategoriesModal] = useState(false)
-    const setShowPolicyType = props.setShowPolicyType
+    const [prompt, setPrompt] = useState({showPrompt:false, promptMsg:null, success:false})
+    const [networkStates, setNetworkStates] = useState({isLoading:false, isUploading:false, loadingErrMsg:null})
+    const [activeTabIndex, setActiveTabIndex] = useState(-2)
+    const [expandedTab, setExpandedTab] = useState(-1);
 
     function switchIcon(travelType){
 
@@ -65,197 +67,38 @@ export default function (props) {
             Object.keys(ruleEngineState[0][Object.keys(ruleEngineState[0])[0]][travelType]).map(item=>policies.push(item))
         }
         setPolicies(policies)
+        // console.log(policies)
     },[ruleEngineState] )
 
     const savePolicies = async ()=>{
+        console.log('save policies clicked....')
         //save policies to backend
-        axios.post(`http://localhost:8001/api/tenant/${tenantId}/policies/travel`, {policies:ruleEngineState})
-        .then(res=>{
-            console.log(res.data)
-            updateFormState_API({tenantId, state:'/setup-company-policies'})
-            alert('Changes Saved')
-        })
-        .catch(error=>{
-            if(error.response){
-                console.log(error.response.error)
-            }
-            else if(error.request){
-                console.log('server error')
-            }   
-            else{
-                //can not place request
-                console.log('can not place request')
-            }
-        })
-    }
+        setNetworkStates(pre=>({...pre, isUploading:true}))
+        const res = await updateTravelPolicies_API({tenantId, policies:ruleEngineState})
 
-    const [expenseCategoryName, setExpenseCategoryName] = useState(null)
-    const [expenseCategoryFields, setExpenseCategoryFieds] = useState([])
-    const [existingCategory, setExistingCategory] = useState(false)
-    const [existingCategoryName, setExistingCategoryName] = useState(null)
+        let currentSubSection ;
 
-
-    useEffect(()=>{
-        console.log(expenseCategoryName)
-        console.log(expenseCategoryFields)
-
-    }, [expenseCategoryFields, expenseCategoryName])
-
-    const addCategoryField = ()=>{
-        setExpenseCategoryFieds(prev=>[...prev, {name:'', type:''}])
-    }
-
-    const handleCategoryNameChange = (e)=>{
-       // console.log(e.target.value)
-        setExpenseCategoryName(e.target.value)
-    }
-
-    const handleAddCategory = async ()=>{
-        if(expenseCategoryName==null || expenseCategoryName==''){
-            alert('Please provide expense category name e.g Office Supplies')
-            return
-        }
-        if(expenseCategoryFields.length==0){
-            alert('Please add atleast one field to continue')
-            return
-        }
-
-        //update existing category
-        const ruleEngineState_copy = JSON.parse(JSON.stringify(ruleEngineState))
-        const groupsCount = Object.keys(ruleEngineState_copy)
-
-        try{
-            groupsCount.forEach(index=>{
-                console.log(index)
-                const group = Object.keys(ruleEngineState_copy[index])[0]
-                console.log(group)
-
-            const limitContent =  {amount:'', currency:'', violationMessage:''}
-            
-                ruleEngineState_copy[index][group]['nonTravel'] = {...ruleEngineState_copy[index][group]['nonTravel'], [expenseCategoryName]:{['limit']:limitContent, ['fields']:expenseCategoryFields} }
-            })
-
-            console.log(ruleEngineState_copy)
-            setRuleEngineState(ruleEngineState_copy)
-            setShowAddExpenseCategoriesModal(false)
-
-            const res = await axios.post(`http://localhost:8001/api/tenant/${tenantId}/policies`, {policies:ruleEngineState_copy})
-
-            alert('category added')
-        }
-        catch(e){
-            if(e.response){
-                console.error(e.response.data)
-            }
-            if(e.request){
-                console.error('Internal server error', e)
-            }
-            else{
-                console.error('something went wrong, please try later', e)
-            }
-        }
-
-        setExpenseCategoryFieds([])
-        setExistingCategoryName(null)
-        setExistingCategory(false)
-        setExistingCategoryName(null)
-
-    }
-
-    const removeCategoryField = (index)=>{
-        console.log(index, 'index...')
-        const expenseCategoryFields_copy = JSON.parse(JSON.stringify(expenseCategoryFields))
-        expenseCategoryFields_copy.splice(index,1)
-        console.log(expenseCategoryFields_copy)
-        setExpenseCategoryFieds(expenseCategoryFields_copy)
-    }
-
-    const handleCategoryFieldNameChang = (e, index)=>{
-        let expenseCategoryFields_copy = JSON.parse(JSON.stringify(expenseCategoryFields))
-        expenseCategoryFields_copy[index].name = e.target.value
-        setExpenseCategoryFieds(expenseCategoryFields_copy)
-    }
-
-    const handleCategoryFieldTypeChange = (e, index)=>{
-        let expenseCategoryFields_copy = JSON.parse(JSON.stringify(expenseCategoryFields))
-        expenseCategoryFields_copy[index].type = e.target.value
-        setExpenseCategoryFieds(expenseCategoryFields_copy)
-    }
-
-    const handleEditFields = ({category, fields})=>{
-        setExistingCategory(true)
-        setExistingCategoryName(category)
-        setExpenseCategoryName(category)
-        setExpenseCategoryFieds(fields)
-        setShowAddExpenseCategoriesModal(true)
-    }
-
-    const handleEditCategory = async ()=>{
+        if(travelType == 'international') currentSubSection = 'International Policies';
+        if(travelType == 'domestic') currentSubSection = 'Domestic Policies';
+        if(travelType == 'local') currentSubSection = 'Local Policies';
         
-        if(expenseCategoryName==null || expenseCategoryName==''){
-            alert('Please provide expense category name e.g Office Supplies')
-            return
+       
+        setNetworkStates(pre=>({...pre, isUploading:false}))
+
+        if(res.err){
+            setPrompt({showPrompt:true, promptMsg:'Can not update policies at the moment. Please try again later', success: false})
         }
-        if(expenseCategoryFields.length==0){
-            alert('Please add atleast one field to continue')
-            return
+        else{
+            setPrompt({showPrompt:true, promptMsg:`${camelCaseToTitleCase(travelType)} Policies Updated!`, success: true})
+            console.log(res.data)
         }
- 
-        try{
-                //update existing category
-            const ruleEngineState_copy = JSON.parse(JSON.stringify(ruleEngineState))
-            const groupsCount = Object.keys(ruleEngineState_copy)
-            groupsCount.forEach(index=>{
-                console.log(index)
-                const group = Object.keys(ruleEngineState_copy[index])[0]
-                console.log(group)
-
-            const currentLimitContent =  ruleEngineState_copy[index][group]['nonTravel'][existingCategoryName]['limit'] 
-            
-                
-            if(existingCategoryName.toLowerCase() === expenseCategoryName.toLowerCase()){
-                ruleEngineState_copy[index][group]['nonTravel'][existingCategoryName]['fields'] = expenseCategoryFields
-            }
-
-            else{
-                delete ruleEngineState_copy[index][group]['nonTravel'][existingCategoryName]
-                ruleEngineState_copy[index][group]['nonTravel'] = {...ruleEngineState_copy[index][group]['nonTravel'], [expenseCategoryName]:{['limit']:currentLimitContent, ['fields']:expenseCategoryFields} }
-            }
-            })
-
-            console.log(ruleEngineState_copy)
-            setRuleEngineState(ruleEngineState_copy)
-            setShowAddExpenseCategoriesModal(false)
-
-            const res = await axios.post(`http://localhost:8001/api/tenant/${tenantId}/policies`, {policies:ruleEngineState_copy})
-
-            alert('category added')
-        }
-        catch(e){
-            if(e.response){
-                console.error(e.response.data)
-            }
-            if(e.request){
-                console.error('Internal server error', e)
-            }
-            else{
-                console.error('something went wrong, please try later', e)
-            }
-        }
-
-        setExpenseCategoryFieds([])
-        setExistingCategoryName(null)
-        setExistingCategory(false)
-        setExistingCategoryName(null)
     }
 
     return(<>
-        {
-        <div className="bg-slate-50 min-h-[calc(100vh-107px)] px-[20px] md:px-[50px] lg:px-[104px] pb-10 w-full tracking-tight">
-            <div className='px-6 py-10 bg-white rounded shadow'>               
-               {/* back button and title */}
+            <div className='bg-white mb-10'>               
+                {/* back button and title */}
                 <div className='flex gap-4'>
-                    <div className='w-6 h-6 cursor-pointer' onClick={()=>setShowPolicyType(null)}>
+                    <div className='w-6 h-6 cursor-pointer' onClick={()=>setShowPage(null)}>
                         <img src={back_icon} />
                     </div>
 
@@ -276,10 +119,30 @@ export default function (props) {
                     {policies.map((policy,index)=>{
 
                             if(ruleEngineState[0][Object.keys(ruleEngineState[0])[0]][travelType][policy]){
-                                return (<Policy key={index} handleEditFields={handleEditFields} savePolicies={savePolicies} title={policy} tripType={travelType} ruleEngineState={ruleEngineState} setRuleEngineState={setRuleEngineState} />)
+                                return (
+                                <Policy 
+                                    currencySymbol={currencySymbol} 
+                                    key={index} 
+                                    savePolicies={savePolicies} 
+                                    title={policy} 
+                                    tripType={travelType} 
+                                    ruleEngineState={ruleEngineState} 
+                                    setRuleEngineState={setRuleEngineState}
+                                    networkStates={networkStates}
+                                    activeTabIndex={activeTabIndex}
+                                    setActiveTabIndex={setActiveTabIndex}
+                                    expandedTab={expandedTab}
+                                    setExpandedTab={setExpandedTab}
+                                    tabIndex={index}
+                                        />)
                             }
                         }
                     )}
+
+                    <div className='flex flex-row-reverse'>
+                        <Button isLoading={networkStates.isUploading} variant='fit' text='Save Changes' onClick={savePolicies} />
+                    </div>
+
                         { travelType==='nonTravel' && 
                             <div className='mt-6'>
                                 <HollowButton title='Add Expense Categories' onClick={()=>{setExistingCategory(false); setShowAddExpenseCategoriesModal(true)}} />
@@ -288,71 +151,8 @@ export default function (props) {
                 </div>
 
             </div>
-        </div>}
-        
-        {showAddExpenseCategoriesModal &&
-        <div className="fixed  z-[1000]  overflow-hidden flex justify-center items-center inset-0 backdrop-blur-sm w-full h-full left-0 top-0 bg-gray-800/60 scroll-none">
-            <div className='z-[10001] max-w-[600px] w-[90%] md:w-[75%] lg:w-[60%] min-h-[200px] scroll-none bg-white rounded-lg shadow-md'>
-                <div className=' relative p-10 text text-neutral-400 text-xs font-cabin'>
-                    {existingCategory? 'Edit Expense Category' : 'Add Expense Category'}
 
-                    <div className='mt-4'>
-                        <Input title='Category Name' value={expenseCategoryName} placeholder='eg. Utilities' onChange={handleCategoryNameChange} />
-                        <hr className='my-2'/>
-                        <div className='flex flex-col gap-2'>
-                            {expenseCategoryFields.length>0 && expenseCategoryFields.map((field, index)=>(
-                                <div key={index} className='flex flex-wrap gap-4 items-center'>
-                                    <Input  showTitle={false} placeholder='eg. Amount' value={field.name} onChange={(e)=>{handleCategoryFieldNameChang(e, index)}} />
-                                    <select value={field.type} onChange={e=>handleCategoryFieldTypeChange(e,index)} className='min-w-[200px] w-full md:w-fit max-w-[403px] h-[45px] flex-col justify-start items-start gap-2 inline-flex px-6 py-2 text-neutral-700 w-full  h-full text-sm font-normal font-cabin border rounded-md border border-neutral-300 focus-visible:outline-0 focus-visible:border-indigo-600'>
-                                        <option value='default'>
-                                            Select Type
-                                        </option>
-                                        <option value='text'>
-                                            Text
-                                        </option>
-                                        <option value='amount'>
-                                            Amount
-                                        </option>
-                                        <option value='number'>
-                                            Number
-                                        </option>
-                                        <option value='days'>
-                                            days
-                                        </option>
-                                        <option value='true/false'>
-                                            True / False
-                                        </option>
-                                    </select>
-                                    <img src={remove_icon} onClick={()=>removeCategoryField(index)} />
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-
-
-                <div className='flex flex-wrap mt-10 items-center justify-between'>
-                    <div className='w-[200px] '>
-                            <HollowButton title='Add Fields' onClick={()=>addCategoryField()} />
-                        </div>
-                        {!existingCategory && <div className='w-fit '>
-                            <Button text='Add Category' onClick={handleAddCategory} />
-                        </div>}
-                        {existingCategory && <div className='w-fit '>
-                            <Button text='Save Changes' onClick={handleEditCategory} />
-                        </div> }
-                </div>
-                <div className='absolute top-4 right-4'>
-                        <img className='cursor-pointer' src={cross_icon} 
-                                onClick={()=>{
-                                    setExpenseCategoryName(null) 
-                                    setExpenseCategoryFieds([])
-                                    setShowAddExpenseCategoriesModal(false)
-                                }} />
-                    </div>
-                </div>
-            </div>
-        </div>}
-
+            <Prompt prompt={prompt} setPrompt={setPrompt} timeout={3000} />
         </>
     );
   }
@@ -383,7 +183,7 @@ export default function (props) {
 
     {values.map((value,valIndex) =>{
     
-        return(<>
+        return(<React.Fragment key={valIndex}>
             {/* rest of the rows */}
             <div className='flex justify-content divide-x'>
                 <div className={`w-[${colWidth}] p-2 text-zinc-500 text-sm font-normal font-cabiin tracking-tight`} >{`${value} :`}</div>
@@ -393,7 +193,7 @@ export default function (props) {
                 </div>)}
             </div>
 
-        </>)
+        </React.Fragment>)
     })}
 
    </>)
@@ -425,6 +225,7 @@ export default function (props) {
 
 function AmountTable(props){
     const groups = props.groups || ['Executives', 'Managers', "VC's"]
+    const currencySymbol = props.currencySymbol
     const tripType = props.tripType
     const policy = props.policy
     const ruleEngineState = props.ruleEngineState
@@ -440,7 +241,7 @@ function AmountTable(props){
             setUnit('amount')
             setPlaceholder('maximum amount')
             //default currency...
-            setSymbol('₹')
+            setSymbol(currencySymbol)
         }
         else if(types.includes('dayLimit')){
             setUnit('days')
@@ -468,7 +269,7 @@ function AmountTable(props){
     return(<>
         <div className='py-6 px-auto'>
             
-            {types[0]!= 'text' && <div className='flex flex-col gap-6'>
+            {types[0]!= 'text' && types[0]!= 'permission' && <div className='flex flex-col gap-6'>
                 {groups.map((group,index)=> <div key={index} className='flex gap-32 items-center'>
                     <div key={index} className='text inline-flex w-[132px] text-sm tracking-tight text-zinc-500 font-normal font-cabin'>{group}</div>
                     <div> 
@@ -476,7 +277,8 @@ function AmountTable(props){
                             <input
                                 onChange={(e)=>handleAmountChange(index,e)} 
                                 className=" w-full h-full decoration:none w-[172px] h-[34px] pl-11 py-2 border rounded-md border border-neutral-300 focus-visible:outline-0 focus-visible:border-indigo-600 " 
-                                value={ruleEngineState[index][groups[index]][tripType][policy][types[0]][unit]}
+                                value={ruleEngineState[index][groups[index]][tripType][policy][types[0]][unit]??''}
+                                placeholder='maximum amount'
                                 />
                             <p className="absolute left-6 top-2 text-black text-sm font-normal font-cabin">{symbol}</p>
                         </div>}
@@ -485,7 +287,7 @@ function AmountTable(props){
                             <input
                                 onChange={(e)=>handleAmountChange(index,e)} 
                                 className=" w-full h-full decoration:none w-[172px] h-[34px] px-6 py-2 border rounded-md border border-neutral-300 focus-visible:outline-0 focus-visible:border-indigo-600 " 
-                                value={ruleEngineState[index][groups[index]][tripType][policy][types[0]][unit]}
+                                value={ruleEngineState[index][groups[index]][tripType][policy][types[0]][unit]??''}
                                 placeholder={placeholder}
                                 /></div>}
                         
@@ -493,7 +295,7 @@ function AmountTable(props){
                 </div>)}
             </div>}
 
-            {types[0]== 'text' && <div className='flex flex divide-x flex-wrap'>
+            {types[0]== 'text' && types[0]!= 'permission' && <div className='flex flex divide-x flex-wrap'>
                 {groups.map((group,index)=> 
                 
                 <div key={index} className='div flex w-[337px] h-[178px] flex-col gap-3 px-6 items-center justify-center'>
@@ -510,8 +312,29 @@ function AmountTable(props){
 
                 </div>)}
 
-            </div>}
+            
 
+            </div>}
+            
+            {types[0] == 'permission' && <div className='flex flex-col gap-3 flex-wrap'>
+                {groups.map((group,index)=> 
+                
+                <div key={index} className='div inline-flex w-[337px] gap-3 px-6 items-center justify-center'>
+                    <div key={index} className='text inline-flex w-[132px] text-sm tracking-tight text-zinc-500 font-normal font-cabin'>{group}</div>
+                    <div>
+                        <Switch 
+                            label = {'Allow'}
+                            isChecked= {ruleEngineState[index][groups[index]][tripType][policy][types[0]].allowed} 
+                            setIsChecked = {(checked)=>{
+                                const ruleEngineState_copy = JSON.parse(JSON.stringify(ruleEngineState))
+                                ruleEngineState_copy[index][groups[index]][tripType][policy][types[0]].allowed = checked
+                                setRuleEngineState(ruleEngineState_copy)
+                            }} 
+                            />
+                    </div>
+                </div>)}
+
+            </div>}
 
         </div>
     </>)
@@ -524,14 +347,12 @@ function ApprovalSetup(props){
     const ruleEngineState = props.ruleEngineState
     const setRuleEngineState = props.setRuleEngineState
 
-
     const handleSelect = (options, index)=>{
         console.log(options)
         const ruleEngineState_copy = JSON.parse(JSON.stringify(ruleEngineState))
         ruleEngineState_copy[index][groups[index]][tripType][policy]['approval']['approvers'] = options
         setRuleEngineState(ruleEngineState_copy)
     }
-
 
     return(<>
         <div className='py-6 px-auto'>
@@ -569,11 +390,17 @@ function Policy(props){
     const ruleEngineState = props.ruleEngineState
     const setRuleEngineState = props.setRuleEngineState
     const savePolicies = props.savePolicies
-    const handleEditFields = props.handleEditFields
+    const currencySymbol = props.currencySymbol
+    const networkStates = props.networkStates
+    const tabIndex = props.tabIndex
+    const activeTabIndex = props.activeTabIndex
+    const setActiveTabIndex = props.setActiveTabIndex
+    const expandedTab = props.expandedTab
+    const setExpandedTab = props.setExpandedTab
 
     const [fieldsPresent, setFieldsPresent] = useState(false)
-
     let types = Object.keys(ruleEngineState[0][Object.keys(ruleEngineState[0])[0]][tripType][title])
+
     let indexOfFileds = types.indexOf('fields')
     if(indexOfFileds){
      //   types.splice(indexOfFileds, 1)
@@ -604,14 +431,34 @@ function Policy(props){
         values = Object.keys(ruleEngineState[0][Object.keys(ruleEngineState[0])][tripType][title]['class'])
     }
 
-    if(types.includes('fields')){
-        fields = ruleEngineState[0][Object.keys(ruleEngineState[0])][tripType][title]['fields']
-      //  console.log('fields..', fields)
+    const handleExpandedTab = ()=>{
+        if(collapse){
+            setExpandedTab(tabIndex)
+        }
+        else{
+            setExpandedTab(-1)
+        }
     }
 
+
+    useEffect(()=>{
+        if(expandedTab != tabIndex){
+            setCollapse(true)
+        }else{
+            setCollapse(false)
+        }
+    }, [expandedTab])
+
     return (
-        <div className={`w-full p-6 transition-max-height duration-1000 ${collapse? 'max-h-[75px]' : 'max-h-[900px]'} bg-white rounded-xl border border-neutral-200`}>
-            <div onClick={()=>setCollapse(pre=>!pre)} className="w-full relative bg-white cursor-pointer">
+        <motion.div 
+            animate={{
+                maxHeight: collapse? '75px' : '100000px'
+            }}
+            transition={{
+                ease : 'linear',
+            }}
+            className={`w-full p-6  ${collapse? 'max-h-[75px] z-[20]' : 'max-h-[100000px] z-[50]'} bg-white rounded-xl border border-neutral-200`}>
+            <div onClick={handleExpandedTab} className="w-full relative bg-white cursor-pointer">
                 <div className="flex justify-between items-center">
                     
                     <div className="justify-start items-center gap-8 inline-flex">
@@ -629,8 +476,18 @@ function Policy(props){
                 </div>
             </div>
 
-            <div className={`transition-max-height transition-all duration-1000 ${collapse? 'max-h-0 h-0 hidden': 'max-h-[1000px]'} `}>
-            {!approvalSetup && types.length==2 && !types.includes('fields') &&
+            <motion.div 
+                initial={{
+                    maxHeight: collapse? '0px' : '100000px'
+                }}
+                animate={{
+                    maxHeight: collapse? '0px' : '100000px'
+                }}
+                transition={{
+                    ease : 'linear',
+                }}
+                className={`${collapse? 'max-h-0 h-0 hidden': 'max-h-[10000px]'} `}>
+            {!approvalSetup && types.includes('class') && types.includes('limit') &&
                 <div>
                     {/* by class, by budget*/}
                     <div className="w-fit h-6 justify-start items-center gap-4 inline-flex mt-5">
@@ -642,7 +499,7 @@ function Policy(props){
 
             {/* table */}
             {!approvalSetup && byClass && 
-                <div className={`w-full h-fit bg-white transition-max-height  ${collapse? 'hidden max-height-0': 'max-height-[1000px]' }`} >
+                <div className={`w-full h-fit bg-white transition-max-height  ${collapse? 'hidden max-height-0': 'max-height-[10000px]' }`} >
                     {/* table */}
                     <div className='mt-10'>
                         <ClassTable tripType={tripType} policy={title} groups={groups} values={values} ruleEngineState={ruleEngineState} setRuleEngineState={setRuleEngineState} />
@@ -650,30 +507,28 @@ function Policy(props){
                 </div>}
 
             {!approvalSetup && byBudget && 
-            <div className={`w-full h-fit bg-white transition-opacity transition-max-height delay-1000  ${collapse? 'hidden opacity-0 max-height-0': 'opacity-100 max-height-[1000px]' }`} >
+            <div className={`w-full h-fit bg-white transition-opacity transition-max-height delay-1000  ${collapse? 'hidden opacity-0 max-height-0': 'opacity-100 max-height-[10000px]' }`} >
                 {/* table */}
                 <div className='mt-10'>
-                    <AmountTable tripType={tripType} types={types} policy={title} groups={groups} ruleEngineState={ruleEngineState} setRuleEngineState={setRuleEngineState} />
+                    <AmountTable currencySymbol={currencySymbol} tripType={tripType} types={types} policy={title} groups={groups} ruleEngineState={ruleEngineState} setRuleEngineState={setRuleEngineState} />
                 </div>
             </div>}
 
             {approvalSetup && 
-                <div className={`w-full h-fit bg-white transition-opacity transition-max-height delay-1000  ${collapse? 'hidden opacity-0 max-height-0': 'opacity-100 max-height-[1000px]' }`} >
+                <div className={`w-full h-fit bg-white transition-opacity transition-max-height delay-1000  ${collapse? 'hidden opacity-0 max-height-0': 'opacity-100 max-height-[10000px]' }`} >
                     <div className='mt-10'>
                         <ApprovalSetup tripType={tripType} policy={title} groups={groups} ruleEngineState={ruleEngineState} setRuleEngineState={setRuleEngineState}/>
                     </div>
                 </div> }
-                
-           {types.includes('fields') && 
-            <div className='mt-4 w-fit h-10 inline-flex items-center float-left'>
-                <p className='text-indigo-600 font-cabin text-sm cursor-pointer' onClick={()=>handleEditFields({category:title, fields})}>Edit Category name/captured fields</p>
-            </div>}
-
+        
             <div className='mt-4 float-right'>
-                <HollowButton title='Save Policies' onClick={()=>savePolicies()} />
+                {/* <HollowButton 
+                    isLoading={networkStates.isUploading && activeTabIndex == tabIndex}
+                    title='Save Policies' 
+                    onClick={()=>{setActiveTabIndex(tabIndex); savePolicies()}} /> */}
             </div>
 
-            </div>
-        </div>)
+            </motion.div>
+        </motion.div>)
       
 }

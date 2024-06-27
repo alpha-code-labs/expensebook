@@ -11,6 +11,8 @@ import axios from 'axios'
 import Checkbox from '../../components/common/Checkbox'
 import { getTenantEmployees_API, getTenantGroupingLabels_API, getTenantGroups_API, updateTenantGroups_API } from '../../utils/api'
 import Error from '../../components/common/Error'
+import React from "react"
+import Prompt from '../../components/common/Prompt'
 
 //tracking-tight --for font spacing
 
@@ -33,6 +35,8 @@ export default function ({tenantId}){
     const [groupEmployeeList, setGroupEmployeeList] = useState([])
     const [loading, setLoading] = useState(true)
     const [loadingErr, setLoadingErr] = useState(null)
+    const [networkStates, setNetworkStates] = useState({isLoading:false, isUploading:false, loadingErrMsg:null});
+    const [prompt, setPrompt] = useState({showPrompt: false, success: false, promptMsg: null});
 
     const [showCreatedGroups, setShowCreatedGroups] = useState(true)
     
@@ -108,38 +112,61 @@ export default function ({tenantId}){
     }
 
     const handleCreateGroup = async ()=>{
-        
+        let current_groups_data = [];
+
        await (function(){
             return new Promise((resolve, reject)=>{
                 if(filteredEmployeeList.length === 0){
-                    alert('No employees found for the selected filters')
+                    setPrompt({showPrompt:true, promptMsg:'No employees found for the selected filters', success:false, informational: true})
                     return
                 }
                 else if(filteredEmployeeList.length === employeeData.length){
                     //create default group if no name is given
-                    if(groupName === ''){
+                    console.log(current_groups_data, 'current group data');
+
+                    if(groupName === '' && !groupData.some(g=>g.groupName == 'All')){
                         setGroupName('All')
+                    }else{
+                        setPrompt({showPrompt:true, promptMsg:'Company wide group "All"  is already present', success:false, informational: true})
+                        return;
                     }
                     setGroupEmployeeList(employeeData)
         
                     const groupData_copy = JSON.parse(JSON.stringify(groupData))
                     groupData_copy.push({groupName:'All', employees:employeeData, canDelegate, filters:selectedFilters})
                     setGroupData(groupData_copy)
+                    current_groups_data = groupData_copy;
                 }
                 else{
-                    if(groupName === ''){
-                        alert('Please enter a group name')
-                        return
+                    
+                    if(groupData.some(g=> JSON.stringify(g.filters) == JSON.stringify(selectedFilters))){
+                        const groupName = groupData.find(g=> JSON.stringify(g.filters) == JSON.stringify(selectedFilters)).groupName;
+                        setPrompt({showPrompt:true, promptMsg:`Group with selected filters already present by the name  "${groupName}"`, success:false, informational:true})
+                        return;
                     }
+                    else if(groupName === ''){
+                        setPrompt({showPrompt:true, promptMsg:'Please enter a group name', success:false,  informational: true})
+                        return
+                    }else if(groupData.some(g=>g.groupName == groupName)){
+                        setPrompt({showPrompt:true, promptMsg:'Group name already assigned', success:false, informational: true})
+                        return;
+                    }
+
                     setGroupEmployeeList(filteredEmployeeList)
                     const groupData_copy = JSON.parse(JSON.stringify(groupData))
                     groupData_copy.push({groupName, employees:filteredEmployeeList, filters:selectedFilters, canDelegate})
                     setGroupData(groupData_copy)
+                    current_groups_data = groupData_copy;
                 }
 
                 resolve()
             })
         })()
+
+
+        //Post groups data to backend
+        setNetworkStates({isLoading:false, isUploading:true, loadingErrMsg:null})
+        const res = await updateTenantGroups_API({tenantId, groups: current_groups_data.map(g=>({groupName:g.groupName, filters:g.filters}))})
 
         setShowCreatedGroups(true)
     }
@@ -210,15 +237,15 @@ export default function ({tenantId}){
         {loading && <Error message={loadingErr} />}
         {!loading && <>
             {!showCreatedGroups && <>
-            {loading && <div className="bg-slate-50 min-h-[calc(100vh-107px)] px-[20px] md:px-[50px] lg:px-[104px] pb-10 w-full tracking-tight">
+            {loading && <div className="-h-[100vh] px-[20px] md:px-[50px] lg:px-[104px] pb-10 w-full tracking-tight">
                 <div className='px-6 py-10 bg-white rounded shadow'>
                     loading grouping labels..
                 </div>
             </div> }
-            {!loading && <div className="bg-slate-50 min-h-[calc(100vh-107px)] px-[20px] md:px-[50px] lg:px-[104px] pb-10 w-full tracking-tight">
-                <div className='px-6 py-10 bg-white rounded shadow'>
+            {!loading && <div className="min-h-[100vh] px-[20px] md:px-[50px] lg:px-[104px] pb-10 w-full tracking-tight">
+                <div className='px-6 py-10'>
                     <p className='text-neutral-700 text-lg font-medium font-cabin'>Apply filters to set groups</p>
-                    <div ref={filtersDivRef} className='sticky top-5 z-10 bg-white'>
+                    <div ref={filtersDivRef} className='sticky top-5 z-10'>
                         <div className='mt-6 w-full flex flex-wrap gap-10'>
                             {filters.map((filter, index) => {
                                 if(filter.type === 'select'){
@@ -242,7 +269,7 @@ export default function ({tenantId}){
                     
                 
                         <div className={`-mt-2 sticky top-[${currentFiltersDivHeight}px] bg-white top-0 w-full max-h-[300px] px-auto border border-neutral-200 flex flex-col items-center rounded-xl justify-center`}>
-                                <div className='relative w-3/4 mx-1/4 flex flex-col justify-between gap-4 overflow-y-scroll scroll'>
+                                <div className='relative w-3/4 mx-1/4 flex flex-col justify-between gap-4 overflow-y-scroll no-scroll'>
                                     <>
                                         <div className='sticky top-0 pt-2 bg-white border-b z-[100]'>
                                             <div className='bg-white w-full flex flex-row justify-between'>
@@ -258,7 +285,7 @@ export default function ({tenantId}){
                         </div>
                     </div>
 
-                    <div className='relative mt-8 flex items-center flex-wrap justify-between bg-white z-20'>
+                    <div className='relative mt-8 flex items-center flex-wrap justify-between z-20'>
                         <Input 
                             onBlur={(e)=>{setGroupName(e.target.value)}}
                             title='Group Name' 
@@ -277,8 +304,8 @@ export default function ({tenantId}){
         </>}
         
         {showCreatedGroups && <>
-            <div className="bg-slate-50 min-h-calc(100vh-107px)] px-[20px] md:px-[50px] lg:px-[104px] pb-10 w-full">
-                <div className='px-6 py-10 bg-white rounded shadow'>
+            <div className="min-h-[100vh] px-[20px] md:px-[50px] lg:px-[104px] pb-10 w-full">
+                <div className='px-6 py-10'>
                     {<div className="flex flex-col gap-4">
                         <div className="flex gap-20 mb-5">
                             <p className='text-sm flex-1 font-cabin text-neutral-500 tracking-tight'>Group Name</p>
@@ -287,22 +314,22 @@ export default function ({tenantId}){
                         </div>
 
                         { groupData.length>0 &&
-                            groupData.map((group, index) => {
-                            return(<>
+                           groupData.map((group, index) => {
+                            return(<React.Fragment key={group.groupName}>
                                     <div className="flex gap-20">
                                         <p className='text-sm flex-1 font-cabin text-neutral-700 tracking-tight'>{group.groupName}</p>
                                         <p className='text-sm flex-1 font-cabin text-neutral-700 tracking-tight'>{}</p>
                                         <div className="flex-1 flex gap-6">
-                                            <p 
-                                                
-                                                className="text-neutral-700 hover:text-neutral-400 cursor-pointer text-xs font-medium font-cabin">Edit</p>
+                                        {/* <p 
+                                            onClick={()=>handleEdit(index)}
+                                            className="text-neutral-700 hover:text-neutral-400 cursor-pointer text-xs font-medium font-cabin">Edit</p> */}
                                             <p 
                                                 onClick={()=>handleRemove(index)}
                                                 className="text-red-500 hover:text-red-700 cursor-pointer text-xs font-medium font-cabin">Remove</p>
                                         </div>
                                     </div>
                                     <hr></hr>
-                            </>)  
+                            </React.Fragment>)  
                             })
                         }
 
@@ -326,6 +353,7 @@ export default function ({tenantId}){
             </div>
         </>}
 
+        <Prompt prompt={prompt} setPrompt={setPrompt} />
         </>}
 
         </>)
@@ -349,7 +377,6 @@ function TableItem(props){
             </div>
     )
 }
-
 
 function Table(props){
     const employees = props.employees  

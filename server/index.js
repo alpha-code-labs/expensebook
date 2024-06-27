@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import frontendRoutes from './routes/frontendRoutes.js'
 import PSFirstTimeIntegrationRoute from './routes/psHRIntegrationRoute.js'
 import cors from "cors"
+import startConsumer from "./rabbitmq/consumer.js";
 
 
 dotenv.config();
@@ -30,4 +31,5 @@ async function connectToMongoDB() {
   }
 }
 
-connectToMongoDB();
+await connectToMongoDB();
+await startConsumer('system-config');

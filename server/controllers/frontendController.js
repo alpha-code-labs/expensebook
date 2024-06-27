@@ -1,20 +1,7 @@
 import HRCompany from '../model/hr_company_structure.js'
-import {upload} from '../middlewares/upload.js'
-import readXlsxFile from "read-excel-file/node"
 import { updateAccountLinesAndExpenseCategories } from '../routines/updateAccountLInesAndExenseCategories.js'
-import replicateHrStructure from '../services/replicateHRStructure.js'
-import sendUpdatedReplica from '../routines/sendUpdatedReplica.js'
+import { expenseCategories } from '../data/expenseCategories.js'
 
-
-const base_URL = {
-  TRAVEL_MS : 'http://8001/localhost/',
-  CASH_MS : 'http://8001/localhost/' ,
-  TRIP_MS: 'http://8001/localhost/' ,
-  EXPENSE_MS: 'http://8001/localhost/',
-  APPROVAL_MS: 'http://8001/localhost/',
-  DASHBOARD_MS: 'http://8001/localhost/',
-  LOGIN_MS: 'http://8001/localhost/',
-}
 
 const handleUpload = async (req, res) => {
   // Handle the uploaded file
@@ -22,24 +9,22 @@ const handleUpload = async (req, res) => {
   res.json({ message: 'File uploaded successfully!', fileName: req.file.filename});
 }
 
-
 const updateTenantCompanyInfo = async (req, res) => {
   try{
     const {tenantId} = req.params
     const {companyInfo} = req.body
 
     //validate companyInfo
+    console.log(companyInfo)
+    const {defaultCurrency, companyName, companyHQ, businessCategory, teamSize, companyEmail} = companyInfo
     //see if tenant exists
-    const tenant = HRCompany.findOne({tenantId})
+    const tenant = await HRCompany.findOne({tenantId})
     if(!tenant) return res.status(404).json({message: 'Tenant not found'})
 
     //update tenant companyInfo
-    tenant.companyDetails = {...tenant.companyDetails, ...companyInfo}
+    tenant.companyDetails = {defaultCurrency, companyName, companySize:teamSize, companyHeadquarters: companyHQ, industry:businessCategory, companyEmail:companyEmail, companyLogo: ""}
     await tenant.save()
 
-    //send updates to other microservices
-    //const update_res = await sendUpdatedReplica({companyDetails:companyInfo})
-    //modify later to return success message only if update_res returns 1
     return res.status(200).json({message: 'Company Information updated'})
     
   }catch(e){
@@ -54,7 +39,7 @@ const getTenantCompanyInfo = async (req, res) => {
       const { tenantId } = req.params;
   
       // Find the HRCompany document by its tenantId
-      const companyDetails = await HRCompany.findOne({ tenantId: tenantId }, {companyDetails:1});
+      const companyDetails = await HRCompany.findOne({ tenantId }, {companyDetails:1});
       if(!companyDetails) return res.status(404).json({message: 'Tenant not found'})
   
       res.status(200).json(companyDetails); // Respond with the HRCompany data
@@ -63,7 +48,6 @@ const getTenantCompanyInfo = async (req, res) => {
       res.status(500).json({ error: 'Internal Server Error' });
   }
 }
-
 
 const updateExistingHrCompanyInfo = async (req, res) => {
     try {
@@ -129,7 +113,6 @@ const updateTenantEmployeeDetails = async (req, res) => {
 
     }
 }
-
 
 const getTenantEmployee = async (req, res) => {
     try {
@@ -208,7 +191,7 @@ const updateTenantOrgHeaders = async (req, res) => {
         
         //send updates to other microservices
         //const update_res = await sendUpdatedReplica({orgHeaders})
-        //modify later to return success message only if update_res returns 1
+        //update needed to handle update_res
 
         res.status(200).json(updatedHRCompany); // Respond with the updated HRCompany data
     } catch (error) {
@@ -216,6 +199,356 @@ const updateTenantOrgHeaders = async (req, res) => {
         res.status(500).json({ error: 'Internal Server Error' });
     }
 }
+
+
+const updateTenantTravelAllocationFlags = async (req, res) => {
+  try{
+    const {tenantId} = req.params
+    const {travelAllocationFlags} = req.body
+
+    if(!tenantId || !travelAllocationFlags) return res.status(400).json({message: 'Bad request. Missing required fields'})
+
+    //check tenant
+    const tenant = await HRCompany.findOne({tenantId}, {tenantId:1, travelAllocationFlags:1})
+    if(!tenant) return res.status(404).json({message: 'Tenant not found'})
+
+
+    //default travel allocations and travel categories
+    let travel_allocations, travel_expenseCategories
+
+    if(travelAllocationFlags.level1){
+        travel_allocations = {
+          allocation: [],
+          expenseAllocation: [],
+          allocation_accountLine: null,
+          expenseAllocation_accountLine: null,
+        }
+        travel_expenseCategories = expenseCategories
+    }
+
+    else if(travelAllocationFlags.level2){
+      travel_allocations = {
+        international:{
+            allocation: [],
+            expenseAllocation: [],
+            allocation_accountLine: null,
+            expenseAllocation_accountLine: null,
+        },
+        domestic:{
+            allocation: [],
+            expenseAllocation: [],
+            allocation_accountLine: null,
+            expenseAllocation_accountLine: null,
+        },
+        local:{
+            allocation: [],
+            expenseAllocation: [],
+            allocation_accountLine: null,
+            expenseAllocation_accountLine: null,
+        }
+      }
+
+      travel_expenseCategories = [
+        {international: expenseCategories},
+        {domestic: expenseCategories},
+        {local: expenseCategories}
+      ]
+    }
+
+    else if(travelAllocationFlags.level3){
+      travel_allocations = {
+        international: expenseCategories.map(category=>{
+            if(category.hasOwnProperty('class')){
+                return {
+                    categoryName: category.categoryName,
+                    allocation: [],
+                    expenseAllocation: [],
+                    allocationAccountLine: null,
+                    expenseAllcationAccountLine: null,
+                    fields:category.fields, 
+                    class:category.class,
+                }
+            }
+            else {
+                return {
+                    categoryName: category.categoryName,
+                    allocation: [],
+                    expenseAllocation: [],
+                    allocationAccountLine: null,
+                    expenseAllcationAccountLine: null,
+                    fields:category.fields, 
+                }
+            }
+        }),
+    
+        domestic: expenseCategories.map(category=>{
+            if(category.hasOwnProperty('class')){
+                return {
+                    categoryName: category.categoryName,
+                    allocation: [],
+                    expenseAllocation: [],
+                    allocationAccountLine: null,
+                    expenseAllcationAccountLine: null,
+                    fields:category.fields, 
+                    class:category.class,
+                }
+            }
+            else {
+                return {
+                    categoryName: category.categoryName,
+                    allocation: [],
+                    expenseAllocation: [],
+                    allocationAccountLine: null,
+                    expenseAllcationAccountLine: null,
+                    fields:category.fields, 
+                }
+            }
+        }),
+    
+        local: expenseCategories.map(category=>{
+            if(category.hasOwnProperty('class')){
+                return {
+                    categoryName: category.categoryName,
+                    allocation: [],
+                    expenseAllocation: [],
+                    allocationAccountLine: null,
+                    expenseAllcationAccountLine: null,
+                    fields:category.fields, 
+                    class:category.class,
+                }
+            }
+            else {
+                return {
+                    categoryName: category.categoryName,
+                    allocation: [],
+                    expenseAllocation: [],
+                    allocationAccountLine: null,
+                    expenseAllcationAccountLine: null,
+                    fields:category.fields, 
+                }
+            }
+        }),
+      }
+
+      travel_expenseCategories =  Object.keys(travel_allocations).map(traveltype=>{
+        return ({[traveltype]: travel_allocations[traveltype].map(cat=>{
+            if(cat.hasOwnProperty('class')) return({categoryName:cat.categoryName, fields:cat.fields, class:cat.class})
+            else return({categoryName:cat.categoryName, fields:cat.fields, class:cat.class})
+        })
+    })      
+    })
+    } 
+
+    //check if the last submitted flags are same as current submitted flags if not update flags and reset everything
+    if(JSON.stringify(tenant.travelAllocationFlags) != JSON.stringify(travelAllocationFlags)){
+      await HRCompany.findOneAndUpdate({tenantId}, {$set:{travelAllocationFlags, travelAllocations:travel_allocations, travelExpenseCategories:travel_expenseCategories, policies:{...tenant.policies, travelPolicies:{}} }})
+      return res.status(200).json({message: 'Tenant travelAllocationFlags updated'})
+    }else{
+      return res.status(200).json({message: 'Travel Allocation Flags up to date'})
+    }
+
+  }catch(e){
+    console.log(e)
+    return res.status(500).json({message: 'Internal Server Error'})
+  }
+}
+
+const getTenantTravelAllocationFlags = async (req, res) =>{
+  try{
+    const {tenantId} = req.params
+
+    if(!tenantId) return res.status(400).json({message: 'Bad request. Missing required fields'})
+
+    //check tenant
+    const tenant = await HRCompany.findOne({tenantId}, {travelAllocationFlags:1})
+    if(!tenant) return res.status(404).json({message: 'Tenant not found'})
+
+    return res.status(200).json({travelAllocationFlags: tenant?.travelAllocationFlags??{}})
+  }catch(e){
+    console.log(e)
+    return res.status(500).json({message: 'Internal Server Error'})
+  }
+}
+
+const updateTenantTravelExpenseCategories = async (req, res) => {
+  try{
+    const {tenantId} = req.params
+    const {travelExpenseCategories} = req.body
+
+    if(!tenantId || !travelExpenseCategories) return res.status(400).json({message: 'Bad request. Missing required fields'})
+
+    //check tenant
+    const tenant = await HRCompany.findOne({tenantId})
+    if(!tenant) return res.status(404).json({message: 'Tenant not found'})
+
+    //update tenant state
+    //await HRCompany.findOneAndUpdate({tenantId}, {$set:{travelExpenseCategories}})
+    tenant.travelExpenseCategories = travelExpenseCategories
+  
+    await tenant.save()
+    return res.status(200).json({message: 'Tenant travelExpenseCategories updated'})
+
+  }catch(e){
+    console.log(e)
+    return res.status(500).json({message: 'Internal Server Error'})
+  }
+}
+
+const getTenantTravelExpenseCategories = async (req, res) => {
+  try{
+    const {tenantId} = req.params
+
+    if(!tenantId) return res.status(400).json({message: 'Bad request. Missing required fields'})
+
+    //check tenant
+    const tenant = await HRCompany.findOne({tenantId})
+    if(!tenant) return res.status(404).json({message: 'Tenant not found'})
+
+    return res.status(200).json({travelExpenseCategories: tenant?.travelExpenseCategories??{}})
+
+  }catch(e){
+    console.log(e)
+    return res.status(500).json({message: 'Internal Server Error'})
+  }
+}
+
+const updateTenantReimbursementExpenseCategories = async (req, res) => {
+  try{
+    const {tenantId} = req.params
+    const {reimbursementExpenseCategories} = req.body
+
+    if(!tenantId || !reimbursementExpenseCategories) return res.status(400).json({message: 'Bad request. Missing required fields'})
+
+    //check tenant
+    const tenant = await HRCompany.findOne({tenantId}, {tenantId})
+    if(!tenant) return res.status(404).json({message: 'Tenant not found'})
+
+    //update tenant reimbursementExpenseCategories
+    tenant.reimbursementExpenseCategories = reimbursementExpenseCategories
+
+    // const tmpPolicies =  reimbursementExpenseCategories.map(category=>{
+    //       return({
+    //         [category.categoryName] : {
+    //           limit: {amount:null, currency:{}, violationMessage: ''}
+    //         }
+    //       })
+    //     })
+
+    // //group name is 'All'
+    // const nonTravelPolicies = [{ 'All' : {...tmpPolicies} }]
+    // tenant.policies.nonTravelPolicies = nonTravelPolicies
+    
+    //save updated tenant
+    tenant.save()
+    return res.status(200).json({message: 'Tenant reimbursementExpenseCategories updated'})
+
+  }catch(e){
+    console.log(e)
+    return res.status(500).json({message: 'Internal Server Error'})
+  }
+}
+
+const getTenantReimbursementExpenseCategories = async (req, res) => {
+  try{
+    const {tenantId} = req.params
+
+    if(!tenantId) return res.status(400).json({message: 'Bad request. Missing required fields'})
+
+    //check tenant
+    const tenant = await HRCompany.findOne({tenantId}, {reimbursementExpenseCategories:1})
+    if(!tenant) return res.status(404).json({message: 'Tenant not found'})
+
+    return res.status(200).json({reimbursementExpenseCategories: tenant?.reimbursementExpenseCategories??{}})
+
+  }catch(e){
+    console.log(e)
+    return res.status(500).json({message: 'Internal Server Error'})
+  }
+}
+
+
+const updateTenantTravelAllocations = async (req, res) => {
+  try{
+    const {tenantId} = req.params
+    const {travelAllocations} = req.body
+
+    if(!tenantId || !travelAllocations) return res.status(400).json({message: 'Bad request. Missing required fields'})
+
+    //check tenant
+    const tenant = await HRCompany.findOne({tenantId}, {tenantId})
+    if(!tenant) return res.status(404).json({message: 'Tenant not found'})
+
+    //update tenant state
+    await HRCompany.findOneAndUpdate({tenantId}, {$set:{travelAllocations}})
+
+    return res.status(200).json({message: 'Tenant travelAllocations updated'})
+
+  }catch(e){
+    console.log(e)
+    return res.status(500).json({message: 'Internal Server Error'})
+  }
+}
+
+const getTenantTravelAllocations = async (req, res) => {
+  try{
+    const {tenantId} = req.params
+    if(!tenantId) return res.status(400).json({message: 'Bad request. Missing required fields'})
+
+    //check tenant
+    const tenant = await HRCompany.findOne({tenantId}, {travelAllocations:1})
+    if(!tenant) return res.status(404).json({message: 'Tenant not found'})
+
+
+    return res.status(200).json({travelAllocations: tenant?.travelAllocations??{}})
+
+  }catch(e){
+    console.log(e)
+    return res.status(500).json({message: 'Internal Server Error'})
+  }
+}
+
+const updateTenantReimbursementAllocations = async (req, res) => {
+  try{
+    const {tenantId} = req.params
+    const {reimbursementAllocations} = req.body
+
+    if(!tenantId || !reimbursementAllocations) return res.status(400).json({message: 'Bad request. Missing required fields'})
+
+    //check tenant
+    const tenant = await HRCompany.findOne({tenantId}, {tenantId:1})
+    if(!tenant) return res.status(404).json({message: 'Tenant not found'})
+
+    //update tenant state
+    await HRCompany.findOneAndUpdate({tenantId}, {$set:{reimbursementAllocations}})
+
+    return res.status(200).json({message: 'Tenant reimbursementAllocations updated'})
+
+  }catch(e){
+    console.log(e)
+    return res.status(500).json({message: 'Internal Server Error'})
+  }
+}
+
+const getTenantReimbursementAllocations = async (req, res) => {
+  try{
+    const {tenantId} = req.params
+
+
+    if(!tenantId) return res.status(400).json({message: 'Bad request. Missing required fields'})
+
+    //check tenant
+    const tenant = await HRCompany.findOne({tenantId}, {reimbursementAllocations:1})
+    if(!tenant) return res.status(404).json({message: 'Tenant not found'})
+
+
+    return res.status(200).json({reimbursementAllocations: tenant?.reimbursementAllocations??{}})
+
+  }catch(e){
+    console.log(e)
+    return res.status(500).json({message: 'Internal Server Error'})
+  }
+}
+
 
 const updateTravelAllocation = async (req, res) => {
     try {
@@ -234,12 +567,15 @@ const updateTravelAllocation = async (req, res) => {
           res.status(404).json({ error: 'Tenant record not found' })
         }
 
-        //send updates to other microservices
-        //const update_res = await sendUpdatedReplica({travelAllocation:allocationHeaders})
-        //modify later to return success message only if update_res returns 1
+        
 
         //update the travelAllocationHeaders
         const updatedHRCompany = await HRCompany.findOneAndUpdate({ tenantId: tenantId }, {$set: {travelAllocation: allocationHeaders}}, { new: true });
+        
+        //send updates to other microservices
+        //const update_res = await sendUpdatedReplica(updatedHRCompany)
+        //modify later to return success message only if update_res returns 1
+
         res.status(200).json(updatedHRCompany); // Respond with the updated HRCompany data
 
     } catch (error) {
@@ -521,7 +857,7 @@ const updateTenantGroups = async (req, res) => {
     const { tenantId } = req.params;
 
     //get HRCompany document by its tenantId
-    let hrCompany = await HRCompany.findOne({ tenantId: tenantId }, {tenantId:1, groupingLabels:1, employees:1});
+    let hrCompany = await HRCompany.findOne({ tenantId: tenantId });
     console.log(hrCompany)
 
     if(!hrCompany){
@@ -534,7 +870,13 @@ const updateTenantGroups = async (req, res) => {
     //validate groups data for each group... 
 
     //update groups and blanket information in HR master
-    const updatedHRCompany = await HRCompany.findOneAndUpdate({ tenantId: tenantId }, {$set: {groups}}, { new: true });
+    hrCompany.groups = groups
+    //const updatedHRCompany = await HRCompany.findOneAndUpdate({ tenantId: tenantId }, {$set: {groups}}, { new: true });
+
+    //clear all group data from employee list
+    hrCompany.employees.forEach(employee=>{
+        employee.group = []
+      })
 
     //tag employees with groups
     async function tagEmployees(){
@@ -547,14 +889,16 @@ const updateTenantGroups = async (req, res) => {
           group.filters.forEach((filter, index)=>{
             if(!filter.length == 0 && !filter.includes(employee.employeeDetails[groupingLabels[index].headerName])){
                 taggable = false
-                console.log('this ran', employee.employeeDetails[groupingLabels[index].headerName], filter, group.groupName)
+                //console.log('this ran', employee.employeeDetails[groupingLabels[index].headerName], filter, group.groupName)
             }           
           })
   
           if(taggable){
+            console.log('pushed', group.groupName)
+            //see if the group already exists
             employee.group.push(group.groupName)
           }
-  
+
         })
   
       })  
@@ -562,11 +906,196 @@ const updateTenantGroups = async (req, res) => {
     
     await tagEmployees()
     //update employees
-    await HRCompany.findOneAndUpdate({ tenantId: tenantId }, {$set: {employees:hrCompany.employees}}, { new: true });
-    //send updates to other microservices
-    //const update_res = await sendUpdatedReplica({employees: hrCompany.employees, groups})
-    //modify later to return success message only if update_res returns 1
-    res.status(200).json({message:'Groups updated!'}); // Respond with success message
+    //await HRCompany.findOneAndUpdate({ tenantId: tenantId }, {$set: {employees:hrCompany.employees}}, { new: true });
+
+
+
+    //update policies
+    const defaultCurrency = hrCompany.companyDetails.defaultCurrency
+
+    let travelPolicies = hrCompany.policies?.travelPolicies??[]
+    travelPolicies = {}
+
+
+    const travelAllocationFlags = hrCompany.travelAllocationFlags
+    const travelExpenseCategories = hrCompany.travelExpenseCategories??[]
+    const reimbursementExpenseCategories = hrCompany.reimbursementExpenseCategories??[]
+    
+
+     let modified_travelPolicies = [...groups].map(group=>{
+        const key = group.groupName
+        let tmpPolicies = []
+
+        //push fixed policies inside policies object for each category
+        const fixed = {
+          international: {
+              ['Allowed Trip Purpose'] : {
+                class: {
+                'Business': {allowed:true, violationMessage:'', enabled:false}, 
+                'Personal': {allowed:true, violationMessage:'', enabled:false},
+                'Training': {allowed:true, violationMessage:'', enabled:false},
+                'Events': {allowed:true, violationMessage:'', enabled:false}
+              }},
+              ['Approval Flow'] : {approval: {approvers:[], violationMessage:''}},
+              ['Per Diem allowance / Cash Advance allowed'] : {permission: {allowed: true, violationMessage:'', enabled:false}},
+              ['Advance Payment'] : {limit:{amount:null, currency:defaultCurrency, violationMessage:'', enabled:false}},
+              ['Allow International Travel Submission/booking with violations'] : {permission: {allowed: true, violationMessage:''}, enabled:false},
+              ['Allow International Travel Expense Submission with violations'] : {permission: {allowed: true, violationMessage:''}, enabled:false},
+              ['Expense Report Submission Deadline'] : {dayLimit: {days:'', violationMessage:''}, enabled:false},
+              ['Minimum Days to Book Before Travel'] : {dayLimit: {days:'', violationMessage:''}, enabled:false},
+          },
+          domestic: {
+            ['Allowed Trip Purpose'] : {
+              class: {
+              'Business': {allowed:true, violationMessage:'', enabled:false}, 
+              'Personal': {allowed:true, violationMessage:'', enabled:false},
+              'Training': {allowed:true, violationMessage:'', enabled:false},
+              'Events': {allowed:true, violationMessage:'', enabled:false}
+            }},
+            ['Approval Flow'] : {approval: {approvers:[], violationMessage:''}},
+            ['Per Diem allowance / Cash Advance allowed'] : {permission: {allowed: true, violationMessage:'', enabled:false}},
+            ['Advance Payment'] : {limit:{amount:null, currency:defaultCurrency, violationMessage:'', enabled:false}},
+            ['Expense Report Submission Deadline'] : {dayLimit: {days:'', violationMessage:''}, enabled:false},
+            ['Minimum Days to Book Before Travel'] : {dayLimit: {days:'', violationMessage:''}, enabled:false},
+        },
+        local: {
+          ['Allowed Trip Purpose'] : {
+            class: {
+            'Business': {allowed:true, violationMessage:'', enabled:false}, 
+            'Personal': {allowed:true, violationMessage:'', enabled:false},
+            'Training': {allowed:true, violationMessage:'', enabled:false},
+            'Events': {allowed:true, violationMessage:'', enabled:false}
+          }},
+          ['Approval Flow'] : {approval: {approvers:[], violationMessage:''}},
+          ['Per Diem allowance / Cash Advance allowed'] : {permission: {allowed: true, violationMessage:'', enabled:false}},
+          ['Advance Payment'] : {limit:{amount:null, currency:defaultCurrency, violationMessage:'', enabled:false}},
+          ['Expense Report Submission Deadline'] : {dayLimit: {days:'', violationMessage:''}, enabled:false},
+          ['Minimum Days to Book Before Travel'] : {dayLimit: {days:'', violationMessage:''}, enabled:false},
+      },
+        }
+
+        if(travelAllocationFlags.level1){
+          tmpPolicies = ['international', 'domestic', 'local'].map(travelType=>({
+            [travelType]: travelExpenseCategories.map(category=>{
+              if(category.hasOwnProperty('class')){
+                return({
+                  [category.categoryName] : {
+                    class:category.class.map(c=>({ [c] : {allowed:true, violationMessage: ''} })).reduce((result, currentObj) => {
+                      const [key] = Object.keys(currentObj);
+                      const value = currentObj[key];
+                      result[key] = value;
+                      return result;
+                    }, {}),
+                    limit: {amount:null, currency:defaultCurrency, violationMessage: ''},
+                    enabled:false
+                  }
+                })
+              }
+              else return({
+                [category.categoryName] : {
+                  limit: {amount:null, currency:defaultCurrency, violationMessage: ''},
+                  enabled:false
+                }
+              })
+            }).reduce((result, currentObj) => {
+              const [key] = Object.keys(currentObj);
+              const value = currentObj[key];
+              result[key] = value;
+              return result;
+            }, {...fixed[travelType]}),
+           
+          }))
+        }
+        else{
+           tmpPolicies = ['international', 'domestic', 'local'].map((travelType, index)=>({
+            [travelType]: travelExpenseCategories[index][travelType].map(category=>{
+              if(category.hasOwnProperty('class') && category.class != null && category.class !=undefined){
+                console.log('category name', category.categoryName)
+                return({
+                  [category.categoryName] : {
+                    class:category.class.map(c=>({[c] : {allowed:true, violationMessage: ''}})).reduce((result, currentObj) => {
+                      const [key] = Object.keys(currentObj);
+                      const value = currentObj[key];
+                      result[key] = value;
+                      return result;
+                    }, {}),
+                    limit: {amount:null, currency:defaultCurrency, violationMessage: ''},
+                    enabled:false
+                  }
+                })
+              }
+              else return({
+                [category.categoryName] : {
+                  limit: {amount:null, currency:defaultCurrency, violationMessage: ''},
+                  enabled:false
+                }
+              })
+            }).reduce((result, currentObj) => {
+              const [key] = Object.keys(currentObj);
+              const value = currentObj[key];
+              result[key] = value;
+              return result;
+            }, {...fixed[travelType]})
+          }))
+        }
+        
+        tmpPolicies = tmpPolicies.reduce((result, currentObj) => {
+          const [key] = Object.keys(currentObj);
+          const value = currentObj[key];
+          result[key] = value;
+          return result;
+        }, {});
+
+        return({[key]:tmpPolicies})
+      })
+
+      const ind = Object.keys(modified_travelPolicies).length
+
+      modified_travelPolicies = {...modified_travelPolicies}
+
+
+      let modified_nonTravelPolicies = [...groups].map(group=>{
+        const key = group.groupName
+        let tmpPolicies = []
+
+        tmpPolicies = reimbursementExpenseCategories.map(category=>{
+          if(category.hasOwnProperty('class')){
+            return({
+              [category.categoryName] : {
+                class:category.class.map(c=>({ [c] : {allowed:true, violationMessage: ''} })).reduce((result, currentObj) => {
+                  const [key] = Object.keys(currentObj);
+                  const value = currentObj[key];
+                  result[key] = value;
+                  return result;
+                }, {}),
+                limit: {amount:null, currency:defaultCurrency, violationMessage: ''},
+                enabled:false
+              }
+            })
+          }
+          else return({
+            [category.categoryName] : {
+              limit: {amount:null, currency:defaultCurrency, violationMessage: ''},
+              enabled:false
+            }
+          })
+        }).reduce((result, currentObj) => {
+          const [key] = Object.keys(currentObj);
+          const value = currentObj[key];
+          result[key] = value;
+          return result;
+        }, {})
+
+        return({[key]:tmpPolicies})
+      })
+
+      
+     hrCompany.policies = {nonTravelPolicies:modified_nonTravelPolicies, travelPolicies:modified_travelPolicies}
+    
+     //save modified hrCompany
+     hrCompany.save()
+
+    res.status(200).json({message:'Groups updated!'}); //Respond with success message
 
   } catch (error) {
       console.log(error)
@@ -616,15 +1145,14 @@ const updateTenantPolicies = async (req, res) => {
     }
 
     const { policies } = req.body;
-    
     //validate policies data for each group... 
 
     //update policies information in HR master
-    const updatedHRCompany = await HRCompany.findOneAndUpdate({ tenantId: tenantId }, {$set: {'policies.travelPolicies': policies}}, { new: true });
+    const updatedHRCompany = await HRCompany.findOneAndUpdate({ tenantId: tenantId }, {$set: {'policies.travelPolicies': policies, 'flags.POLICY_SETUP_FLAG':true}}, { new: true });
     //send updates to other microservices
-    //const update_res = await sendUpdatedReplica({policies: {updatedHrCompany.policies} })
+    //const update_res = await sendUpdatedReplica({travelExpenseAllocation: allocationHeaders})
     //modify later to return success message only if update_res returns 1
-    res.status(200).json({message:'Policies update'}); // Respond with success message
+    res.status(200).json({message:'Policies Updated!'}); // Respond with success message
 
   } catch (error) {
       console.log(error)
@@ -679,13 +1207,15 @@ const updateTenantNonTravelPolicies = async (req, res) => {
 
     //update policies information in HR master
     const updatedHRCompany = await HRCompany.findOneAndUpdate({ tenantId: tenantId }, {$set: {'policies.nonTravelPolicies': policies}}, { new: true });
-        //send updates to other microservices
-    //const update_res = await sendUpdatedReplica({policies: updatedHrCompany.policies})
+    
+    //send updates to other microservices
+    //const update_res = await sendUpdatedReplica({travelExpenseAllocation: allocationHeaders})
     //modify later to return success message only if update_res returns 1
-    res.status(200).json({message:'Policies update'}); // Respond with success message
+
+    res.status(200).json({message:'Policies Updated!'}); // Respond with success message
 
     //update account lines and expense categories
-    updateAccountLinesAndExpenseCategories(tenantId)
+    //updateAccountLinesAndExpenseCategories(tenantId)
 
 
   } catch (error) {
@@ -1228,56 +1758,6 @@ const getBlanketDelegations = async (req, res) => {
   }
 }
 
-const replicateHRStructure = async (req, res) =>{
-  try{
-    const {tenantId} = req.params
-
-    if(!tenantId){
-      //bad request
-      res.status(400).json({error:'Bad request'})
-      return
-    }
-
-    const hrCompany = HRCompany.findOne({tenantId})
-
-    if(!hrCompany){
-      res.status(404).json({error:'can not find tenant'})
-    }
-
-    //send hrCompany replica to all microservices
-
-    //Travel Microservice
-    const travel_endpoint = base_URL.TRAVEL_MS + 'api/create-hrCompany'
-    const travel_res = await replicateHrStructure(hrCompany, travel_endpoint)
-
-    //Cash Microservice
-    const cash_endpoint = base_URL.CASH_MS + 'api/create-hrCompany'
-    const cash_res = await replicateHrStructure(hrCompany, cash_endpoint)
-
-    //Trip Microservice
-    const trip_endpoint = base_URL.TRIP_MS + 'api/create-hrCompany'
-    const trip_res = await replicateHrStructure(hrCompany, trip_endpoint)
-
-    //Expense Microservice
-    const expense_endpoint = base_URL.EXPENSE_MS + 'api/create-hrCompany'
-    const expense_res = await replicateHrStructure(hrCompany, expense_endpoint)
-
-
-    //have to do same 
-
-// Finance Backend
-// Approval Backend
-// Dashboard and Profile Backend
-// System Confirguration Backend
-// Login Logout Backend
-
-
-
-  }catch(e){
-    console.log(e)
-  }
-}
-
 const handleHRData = async (req, res) => {
   
   console.log(req.body, 'req.body')
@@ -1637,7 +2117,35 @@ const updateTenantState = async (req, res) => {
   }
 }
 
+const getTenantDefaultCurrency = async (req, res)=>{
+  try{
+    const {tenantId} = req.params
+
+    const tenant = await HRCompany.findOne({tenantId}, {companyDetails:1})
+
+    if(!tenant){
+      return res.status(404).json({message: 'Tenant not found'})
+    }
+
+    res.status(200).json({defaultCurrency: tenant?.companyDetails?.defaultCurrency??{}})
+    
+  }catch(e){
+    return res.status(500).json({message: 'Internal Server Error'})
+  }
+}
+
 export { 
+          getTenantDefaultCurrency,
+          updateTenantReimbursementAllocations,
+          getTenantReimbursementAllocations,
+          updateTenantReimbursementExpenseCategories,
+          getTenantReimbursementExpenseCategories,
+          updateTenantTravelAllocations,
+          getTenantTravelAllocations,
+          getTenantTravelExpenseCategories,
+          updateTenantTravelExpenseCategories,
+          updateTenantTravelAllocationFlags, 
+          getTenantTravelAllocationFlags,
           updateExistingHrCompanyInfo, 
           updateTenantCompanyInfo,
           handleUpload,
@@ -1673,7 +2181,6 @@ export {
           updateTenantSystemRelatedRoles,
           updateBlanketDelegations,
           getBlanketDelegations,
-          replicateHRStructure,
           handleHRData,
           updateTenantState,
           getTenantNonTravelPolicies,

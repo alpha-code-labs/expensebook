@@ -3,12 +3,14 @@ import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import Checkbox from '../../components/common/Checkbox';
 import Error from '../../components/common/Error';
-import { getTenantGroupingLabels_API } from '../../utils/api';
+import { getTenantGroupingLabels_API, getTenantOrgHeaders_API, getTenantGroupHeaders_API} from '../../utils/api';
+import Prompt from '../../components/common/Prompt';
 
 export default function ({tenantId}) {
   
 const [flags, setFlags] = useState({ORG_HEADERS_FLAG:true, GROUPING_HEADERS_FLAG:true})
 const [groupHeaders, setGroupHeaders] = useState([])
+const [prompt, setPrompt] = useState({showPrompt: false, success: false, promptMsg:null});
 const [groupingHeaders, setGroupingHeaders] = useState([])
 console.log(tenantId, '...tenantId')
 
@@ -27,15 +29,21 @@ useEffect(()=>{
     useEffect(() => {
      
         (async function (){
-            await axios.get(`http://localhost:8001/api/tenant/${tenantId}/org-headers`)
-            .then(res => {
-                console.log(res.data, '...res.data')
+
+            try{
+                setIsLoading(true);
+                const res = await getTenantOrgHeaders_API({tenantId});
+                if(res.err){
+                    setPrompt({showPrompt:true, success: false, promptMsg: 'Failed to fetch data at the moment. Please try again later.'});
+                    return;
+                }
+
                 let orgHeadersData = res.data.orgHeaders
                 let tmpOrgHeaders = []
                 Object.keys(orgHeadersData).forEach(key => {
-                if(orgHeadersData[key].length !== 0){
-                    tmpOrgHeaders.push({headerName:key, headerValues:orgHeadersData[key]})
-                }
+                    if(orgHeadersData[key].length !== 0){
+                        tmpOrgHeaders.push({headerName:key, headerValues:orgHeadersData[key]})
+                    }
                 })
         
                 if(tmpOrgHeaders.length === 0){
@@ -44,40 +52,44 @@ useEffect(()=>{
                 else{
                     setGroupingHeaders(tmpOrgHeaders)
                 }
+
+
+                //get groupHeaders 
+                const groupHeadersRes = await getTenantGroupHeaders_API({tenantId});
+                console.log(groupHeadersRes.data, '...res.data')
+                    let groupHeadersData = groupHeadersRes.data.groupHeaders
+                    let tmpGroupHeaders = []
+                    Object.keys(groupHeadersData).forEach(key => {
+                        if(groupHeadersData[key].length !== 0){
+                            tmpGroupHeaders.push({headerName:key, headerValues:groupHeadersData[key]})
+                        }
+                    })
                 
-            })
-            .catch(err => console.log(err))
-
-
-            //get groupHeaders 
-            axios.get(`http://localhost:8001/api/tenant/${tenantId}/group-headers`)
-            .then(res => {
-                console.log(res.data, '...res.data')
-                let groupHeadersData = res.data.groupHeaders
-                let tmpGroupHeaders = []
-                Object.keys(groupHeadersData).forEach(key => {
-                    if(groupHeadersData[key].length !== 0){
-                        tmpGroupHeaders.push({headerName:key, headerValues:groupHeadersData[key]})
+                    console.log(tmpGroupHeaders, '...tmpGroupHeaders')
+                
+                    if(tmpGroupHeaders.length === 0){
+                        setFlags(prev => ({...prev, GROUPING_HEADERS_FLAG:false}))
                     }
-                })
-            
-                console.log(tmpGroupHeaders, '...tmpGroupHeaders')
-            
-                if(tmpGroupHeaders.length === 0){
-                    setFlags(prev => ({...prev, GROUPING_HEADERS_FLAG:false}))
+                    else{
+                        setGroupHeaders(tmpGroupHeaders)
+                        setGroupingHeaders(pre=>[...pre, ...tmpGroupHeaders])
+                    }
+                    
+                    
+
+                //get current grouping labesl
+                const gl_res = await getTenantGroupingLabels_API({tenantId})
+                if(gl_res.err) {
+                    setPrompt({showPrompt:true, promptMsg:'Failed to fetch data at the moment. Please try again later', success:false});
+                    return;
                 }
-                else{
-                    setGroupHeaders(tmpGroupHeaders)
-                    setGroupingHeaders(pre=>[...pre, ...tmpGroupHeaders])
-                }
-                
+                console.log({gl_res})
+                setSelectedHeaders(gl_res.data.groupingLabels)
+
                 setIsLoading(false)
-            })
-            
-            //get current grouping labesl
-            const gl_res = await getTenantGroupingLabels_API({tenantId})
-            console.log({gl_res})
-            setSelectedHeaders(gl_res.data.groupingLabels)
+            }catch(e){
+                console.error(e);
+            }
         })()
     },[])
 
@@ -100,7 +112,7 @@ useEffect(()=>{
         .then(res => {
             console.log(res.data, '...res.data')
             setIsLoading(false)
-            alert('Grouping Labels Updated')
+            setPrompt({showPrompt: true, success: true, promptMsg:'Groping Labels Updated. Please proceed to make groups in order to set your policies'})
         })
     }
 
@@ -108,9 +120,9 @@ useEffect(()=>{
 
         {isLoading && <Error message={loadingErr} /> }
 
-        {!isLoading && <div className="bg-slate-50 min-h-[calc(100vh-107px)] px-[20px] md:px-[50px] lg:px-[104px] pb-10 w-full tracking-tight">
+        {!isLoading && <div className="min-h-[100vh] px-[20px] md:px-[50px] lg:px-[104px] pb-10 w-full tracking-tight">
             
-            <div className='px-6 py-10 bg-white rounded shadow w-full'>
+            <div className='px-6 py-10  w-full'>
                
                 {/* rest of the section */}
                 <div className='w-full flex flex-col gap-4'>  
@@ -150,7 +162,7 @@ useEffect(()=>{
             </div>
 
         </div>}
-        
+        <Prompt prompt={prompt} setPrompt={setPrompt}/>
         </>
     );
   }

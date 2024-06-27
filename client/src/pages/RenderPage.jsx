@@ -1,9 +1,6 @@
-import { useState, useEffect, createContext } from "react";
-import {BrowserRouter as Router, Routes, Route} from 'react-router-dom'
+import { useState, useEffect } from "react";
 import CompanyInfo from "./CompanyInfo";
-import TravelAllocations from "./expenseAllocations/TravelAllocations";
-import TravelRelatedExpenses from "./expenseAllocations/TravelRelatedExpenses";
-import TravelCategoriesExpenseAllocation from "./expenseAllocations/TravelCategoriesExpenseAllocation";
+import TravelAllocationLevel from './expenseSetup/travel/Index';
 import NonTravelExpensesAndPolicies from "./nonTravel/NonTravelExpensesAndPolicies";
 import AccountLines from "./others/AccountLines";
 import Multicurrency from "./others/Multicurrency";
@@ -17,18 +14,52 @@ import Groups from "./groups/Groups";
 
 import UpdateOrgHeaders from "./UpdateOrgHeaders";
 import UpdateEmployeeInfo from "./UpdateEmployeeInfo";
+import { getTravelAllocationFlags_API } from "../utils/api";
+import Error from "../components/common/Error";
 
+import Level1 from './expenseSetup/travel/Level1';
+import Level2 from "./expenseSetup/travel/Level2";
+import Level3 from "./expenseSetup/travel/Level3";
 
+import ReimbursementAllocations from "./expenseSetup/reimbursements/ReimbursementAllocationsPage";
 
 export default function ({page, tenantId, employeeId}) {
   //flags
   const [flags, setFlags] = useState({})  
+  const [allocationLevel, setAllocationLevel] = useState({})
+
+  useEffect(()=>{
+    if(page == 'travel-allocations'){
+      //first fetch the travel allocations flags
+      (async function(){
+        const res = await getTravelAllocationFlags_API({tenantId});
+        if(res.err || Object.keys(res.data) == 0 ){
+          setAllocationLevel({})
+          return;
+        }
+
+        const travelAllocationFlags = res.data.travelAllocationFlags;
+        setAllocationLevel(travelAllocationFlags)
+        console.log(res, 'allocations flag res', travelAllocationFlags);
+      })()
+    }
+  },[page])
+
+  useEffect(()=>{
+
+  })
+
 
   switch(page){
     case 'company-info': return (<CompanyInfo tenantId={tenantId} />)
-    case 'travel-allocations': return(<TravelAllocations tenantId={tenantId} />)
-    case 'travel-expense-allocations': return(<TravelRelatedExpenses tenantId={tenantId} />)
-    case 'travel-categories-expense-allocations': return(<TravelCategoriesExpenseAllocation tenantId={tenantId} />)
+    case 'travel-allocation-level':  return (<TravelAllocationLevel tenantId={tenantId} />)
+    case 'travel-allocations': {
+      if(allocationLevel.level1) return (<Level1 tenantId={tenantId} />);
+      if(allocationLevel.level2) return (<Level2 tenantId={tenantId}/>);
+      if(allocationLevel.level3) return (<Level3 tenantId={tenantId}/>);
+      return (<Error message={'Sorry something went wrong'}/>)
+    };
+    case 'reimbursement-allocations' : return(<ReimbursementAllocations tenantId={tenantId} />)
     case 'travel-policies': return(<PoliciesHome tenantId={tenantId} />)
     case 'grouping-labels': return(<GroupingLabels tenantId={tenantId} />)
     case 'groups': return(<Groups tenantId={tenantId} />)

@@ -42,8 +42,8 @@ export default function ({tenantId}){
     return(<>
         
         {loading && <Error message={loadingError} />}
-        {!loading && <div className="bg-slate-50 min-h-[calc(100vh-107px)] px-[20px] md:px-[50px] lg:px-[104px] pb-10 w-full tracking-tight">
-            <div className='px-6 py-10 bg-white rounded shadow'>
+        {!loading && <div className="min-h-[calc(100vh-107px)] px-[20px] md:px-[50px] lg:px-[104px] pb-10 w-full tracking-tight">
+            <div className='px-6 py-10'>
                 <div className="flex justify-between">
                     <div className="gap-2">
                         <p className="text-gray-600 text-base font-semibold font-cabin" >
