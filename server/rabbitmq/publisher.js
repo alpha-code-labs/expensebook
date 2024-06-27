@@ -142,8 +142,6 @@ export const sendToDashboardQueue = async (payload, needConfirmation, onlineVsBa
 
 export async function sendToOtherMicroservice(payload, comments, destination, source='onboarding', onlineVsBatch, action='full-update'){
     try {
-        console.log('Sending message to RabbitMQ...');
-    
         const channel = await connectToRabbitMQ();
         const exchangeName = 'amqp.dashboard';
         const queue = `q.${destination}`;
@@ -173,7 +171,7 @@ export async function sendToOtherMicroservice(payload, comments, destination, so
          };
     
     
-        console.log('Publishing message to RabbitMQ:', messageToSend);
+        console.log('Publishing message to RabbitMQ:');
     
         try {
           
@@ -182,7 +180,7 @@ export async function sendToOtherMicroservice(payload, comments, destination, so
               persistent: true,
             });
           
-          console.log('Message sent to RabbitMQ:', messageToSend);
+          console.log(`Message sent to RabbitMQ queue: ${queue}`);
 
         } catch (error) {
           console.log('Error sending message to RabbitMQ:', error);
