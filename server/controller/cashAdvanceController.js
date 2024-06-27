@@ -1,8 +1,8 @@
 import Finance from "../models/Finance.js";
 
-export const getPaidAndCancelledCash = async(req , res)=>{
+
+export const getPaidAndCancelledCash = async(tenantId, empId)=>{
     try { 
-      const { tenantId} = req.params;
 
       const cashStatus ={
         PAID_AND_CANCELLED :'paid and cancelled' 
@@ -16,18 +16,19 @@ export const getPaidAndCancelledCash = async(req , res)=>{
       );
 
       if(!singleCashAdvanceData){
-        return res.status(200).json({ success:true,message: `All are settled` });
+        return { success:true, message: `All are settled` };
       } else {
-        return res.status(200).json(singleCashAdvanceData);
+        return singleCashAdvanceData;
       }
     } catch (error) {
-        res.status(500).json(error);
-    }
+      console.error("Error in fetching paid and cancelled cashAdvance:", error);
+      // Return an object indicating the error occurred
+      throw new Error({ error: 'Error in fetching paid and cancelled cashAdvance', error });
+  }
 };
 
-export const getCashAdvanceToSettle = async(req,res) => {
+export const getCashAdvanceToSettle = async(tenantId, empId) => {
   try{
-    const {tenantId} = req.params
     console.log("tenantId",tenantId )
     const status = {
       PENDING_SETTLEMENT :'pending settlement',
@@ -44,13 +45,15 @@ export const getCashAdvanceToSettle = async(req,res) => {
     })
 
     if(!getAllCashToSettle){
-      return res.status(201).json({message:"All are settled", success: true})
+      return {message:"All are settled", success: true}
     }else{
-      return res.status(200).json(getAllCashToSettle)
+      return  getAllCashToSettle
     }
 
   } catch(error){
-    res.status(500).json(error);
+    console.error("Error in fetching cashAdvance to settle:", error);
+    throw new Error({ error: 'Error in fetching cashAdvance to settle:', error });
+
   }
 }
 

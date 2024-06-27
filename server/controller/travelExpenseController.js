@@ -2,9 +2,9 @@ import Finance from "../models/Finance.js";
 
 
 //All Expense Header Reports with status as pending Settlement(Full Trip).
-export const getTravelExpenseData = async(req , res)=>{
+export const getTravelExpenseData = async(tenantId, empId)=>{
     try {
-      const {tenantId} = req.params
+      // const {tenantId} = req.params
 
       const status = {
         PENDING_SETTLEMENT:'pending settlement',
@@ -21,12 +21,12 @@ export const getTravelExpenseData = async(req , res)=>{
         });
 
         if (!expenseReportsToSettle) {
-          return res.status(201).json({ success: true, message: `All are settled` });
+          return { success: true, message: `All are settled` };
       } else {
-          return res.status(200).json(expenseReportsToSettle);
+          return expenseReportsToSettle
       }
     } catch (error) {
-        res.status(500).json(error);
+      throw new Error({ error: 'Error in fetching travel expense reports:', error });
     }
 };
 

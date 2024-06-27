@@ -1,9 +1,9 @@
 import Finance from "../models/Finance.js";
 
-export const getReimbursement = async(req , res)=>{
+export const getReimbursement = async(tenantId, empId)=>{
     try {
-      const {tenantId}= req.params
-      console.log("tenantId", req.params.tenantId)
+      // const {tenantId}= req.params
+      console.log("tenantId", tenantId)
 
         const singleReimbursement = await Finance.find({
           'reimbursementSchema.tenantId': tenantId,
@@ -11,12 +11,12 @@ export const getReimbursement = async(req , res)=>{
       });
 
         if(!singleReimbursement){
-          return res.status(200).json({success:true, message: `All are settled` });
+          return {success:true, message: `All are settled` };
         } else{
-          return res.status(200).json(singleReimbursement)
+          return singleReimbursement
         }
     } catch (error) {
-        res.status(500).json(error);
+        throw new Error ({error: 'Error in  fetching non travel expense reports', error});
     }
 };
 
