@@ -1,12 +1,11 @@
-import React, { useState,useEffect } from 'react';
+import { useState,useEffect } from 'react';
 import { useData } from '../api/DataProvider';
 import { receipt} from '../assets/icon';
-import CancelledTrRequest from '../components/trips/CancelledTrip';
 import { handleTravel, handleTrip } from '../utils/actionHandler';
 import { useParams } from 'react-router-dom';
 import { filterTravelRequests } from '../utils/handyFunctions';
-import SettlingCashAdvance from '../components/CashAdvance/SettlingCashAdvance';
-import RecoveringCashAdvance from '../components/CashAdvance/RecoveringCashAdvance';
+import SettlingCashAdvance from '../components/cashAdvance/SettlingCashAdvance';
+import RecoveringCashAdvance from '../components/cashAdvance/RecoveringCashAdvance';
 
 
 
@@ -21,17 +20,24 @@ const Settlement = ({fetchData}) => {
   
 
   const [cashAdvanceData, setCashAdvanceData ]=useState(null)
-  const [cancelledTrips , setCancelledTrips]=useState(null)
+  const [recoverCashAdvance , setRecoverCashAdvance]=useState(null)
   useEffect(()=>{
-    const data = employeeData && employeeData?.dashboardViews?.businessAdmin
+    const data = employeeData && employeeData?.dashboardViews?.finance
    
-    setCashAdvanceData(data?.pendingBooking)
-    // setCancelledTrips(data?.travelExpenseReports)
+    setCashAdvanceData(data?.cashAdvanceToSettle)
+    // setRecoverCashAdvance(data?.travelExpenseReports)
   },[employeeData])
-  console.log('Finance cashAdvance to pay employee',cashAdvancePaid )
+
+  useEffect(()=>{
+    const data = employeeData && employeeData?.dashboardViews?.finance
+   
+    setRecoverCashAdvance(data?.paidAndCancelledCash)
+    // setRecoverCashAdvance(data?.travelExpenseReports)
+  },[employeeData])
+  console.log('Finance cashAdvance to pay employee',recoverCashAdvance )
   console.log('Finance cashAdvance  employee details',employeeRoles?.employeeInfo?.employeeDetails
   )
- 
+
   
   // const [DropdownOpen, setDropdownOpen] = useState(false);
   const [dropdownStates, setDropdownStates] = useState({});
