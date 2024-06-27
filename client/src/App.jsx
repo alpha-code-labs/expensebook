@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import './App.css'
 import Navbar from './components/common/Navbar'
 import { useState } from 'react'
-import Settlement from './pages/Settlement';
+import Settlement from '../src/pages/Settlement';
 import Sidebar from './components/common/Sidebar';
 import { getEmployeeData_API, getEmployeeRoles_API } from './utils/api';
 import { useData } from './api/DataProvider';
@@ -22,7 +22,8 @@ const fetchData = async (tenantId, empId) => {
     const employeeResponse = await getEmployeeData_API(tenantId, empId);
     localStorage.setItem('tenantId', tenantId);
     localStorage.setItem('empId', empId);
-    console.log('employee data',rolesResponse)
+    console.log('rolesResponse',rolesResponse)
+    console.log('employeeResponse',employeeResponse)
 
     setEmployeeData(employeeResponse);
     setEmployeeRoles(rolesResponse)
