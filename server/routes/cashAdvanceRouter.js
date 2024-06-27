@@ -1,17 +1,17 @@
 import { Router } from "express";
 import { getPaidAndCancelledCash, getCashAdvanceToSettle, recoverCashAdvance, paidCashAdvance } from "../controller/cashAdvanceController.js";
 
-const router = Router();
+const cashAdvance = Router();
 
-router.get("/cancelled/:tenantId" , getPaidAndCancelledCash);
+cashAdvance.get("/cancelled/:tenantId" , getPaidAndCancelledCash);
 
-router.get('/settle/:tenantId', getCashAdvanceToSettle)
+cashAdvance.get('/settle/:tenantId', getCashAdvanceToSettle)
 
-router.put('/recovery/:tenantId/:travelRequestId/:cashAdvanceId', recoverCashAdvance)
+cashAdvance.put('/recovery/:tenantId/:travelRequestId/:cashAdvanceId', recoverCashAdvance)
 
-router.put("/paid/:tenantId/:travelRequestId/:cashAdvanceId" , paidCashAdvance);
+cashAdvance.put("/paid/:tenantId/:travelRequestId/:cashAdvanceId" , paidCashAdvance);
 
-export default router;
+export default cashAdvance;
 
 
 
