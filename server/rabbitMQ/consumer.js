@@ -76,6 +76,18 @@ export default async function startConsumer(receiver) {
           //implement retry mechanism
           console.log("update failed with error code", res.error);
         }
+      }else if (source == "system-config") {
+        console.log("trying to update HR Master");
+        const res = await updateHRMaster(payload);
+        console.log(res);
+        if (res.success) {
+          //acknowledge message
+          channel.ack(msg);
+          console.log("message processed successfully");
+        } else {
+          //implement retry mechanism
+          console.log("update failed with error code", res.error);
+        }
       } else if (source == "trip") {
         if ((action == "full-update")) {
           const res = await cancelTravelRequest(payload);
