@@ -2,11 +2,9 @@ import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
 import dotenv from 'dotenv';
-import cashAdvanceRouter from "./routes/cashAdvanceRouter.js";
-import travelExpenseRouter from "./routes/travelExpenseRouter.js";
-import reimbursementRouter from "./routes/reimbursementRouter.js";
 import { handleErrors } from './errorHandler/errorHandler.js';
 import { startConsumer } from "./rabbitmq/consumer.js";
+import router from "./routes/mainFrontendRouter.js";
 
 dotenv.config()
 const app = express();
@@ -88,10 +86,7 @@ app.use(express.json());
 
 // 09/01/24
 app.use(cors());
-app.use("/api/cashadvance" , cashAdvanceRouter);
-app.use("/api/travelexpense" , travelExpenseRouter);
-app.use("/api/nontravel" , reimbursementRouter);
-
+app.use("/api/fe/finance", router)
 
 const connectToMongoDB = async () => {
 try{
