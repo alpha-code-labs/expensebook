@@ -5,7 +5,6 @@ import { formatAmount, formatDate, getStatusClass } from '../utils/handyFunction
 import Tooltip from '../components/Tooltip';
 import { Tilt } from 'react-tilt'
 import { travelExpense,reimbursementExpense, travelRequests } from '../utils/dummyData';
-import { motion } from 'framer-motion';
 
 const Overview = () => {
   const trips = [
@@ -212,9 +211,9 @@ const Overview = () => {
   return (
     <div className=" border border-black min-h-screen flex items-center justify-center px-2 md:px-10">
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 w-full overflow-hidden   ">
-    
-      <div className={`min-w-[400px] px-2  h-[340px] ${visibleDivs[0] ? 'opacity-100' : 'opacity-0'}`} >
-         <div className="border-b-2  border-indigo-600 flex flex-row items-center justify-start gap-2 overflow-hidden py-2">
+        {/* <Tilt className="min-w-[400px] h-[340px]"> */}
+      <div className={`min-w-[400px] h-[340px] ${visibleDivs[0] ? 'opacity-100' : 'opacity-0'}`} >
+         <div className="border-b-2 border-indigo-600 flex flex-row items-center justify-start gap-2 overflow-hidden py-2">
            <img
              className="w-5 h-5 shrink-0"
              alt="briefcase_icon"
@@ -222,9 +221,8 @@ const Overview = () => {
            />
            <b className="tracking-[0.02em] font-cabin text-[16px] text-indigo-600 font-semibold">In-transit Trips</b>
          </div>
-         <div className='ring-2 ring-indigo-600 shadow-sm shadow-indigo-600 rounded-md'/>
 
-         <div className="h-[285px] overflow-hidden overflow-y-auto mt-2 border-4 ring-offset-2 ring-2 ring-indigo-600/50 shadow-lg  shadow-indigo-500 border-indigo-600 rounded-md px-2">
+         <div className="h-[285px] overflow-hidden overflow-y-auto mt-2 border-4 border-indigo-600 rounded-md px-2">
          
            {trips.map((trip, index) => (
              <Trips key={index} index={index} trip={trip} lastIndex={trips.length - 1} />
@@ -233,11 +231,11 @@ const Overview = () => {
          </div>
          
        </div>
-       
+       {/* </Tilt> */}
        
 
 
-     <div className={`min-w-[400px] px-2 h-[340px] ${visibleDivs[1] ? 'opacity-100' : 'opacity-0'}`} >
+     <div className={`min-w-[400px] h-[340px] ${visibleDivs[1] ? 'opacity-100' : 'opacity-0'}`} >
 
 <div className="border-b-2 border-indigo-600 flex flex-row items-center justify-start gap-2 overflow-hidden py-2">
   <img
@@ -313,7 +311,7 @@ reimbursementExpense?.map((expense,index) => <NonTravelExpenses index={index} ex
 
 
 
-<div className={`min-w-[400px] px-2  h-[340px] transition-opacity delay-100 ${visibleDivs[2] ? 'opacity-100' : 'opacity-0'}`} >
+<div className={`min-w-[400px] h-[340px] transition-opacity delay-100 ${visibleDivs[2] ? 'opacity-100' : 'opacity-0'}`} >
           <div className="border-b-2 border-indigo-600 flex flex-row items-center justify-start gap-2 overflow-hidden py-2">
             <img
               className="w-5 h-5 shrink-0"
@@ -334,7 +332,7 @@ reimbursementExpense?.map((expense,index) => <NonTravelExpenses index={index} ex
 
 
 
-        <div className={`min-w-[400px] px-2 h-[340px] ${visibleDivs[3] ? 'opacity-100' : 'opacity-0'}`} >
+        <div className={`min-w-[400px] h-[340px] ${visibleDivs[3] ? 'opacity-100' : 'opacity-0'}`} >
           <div className="border-b-2 border-indigo-600 flex flex-row items-center justify-start gap-2 overflow-hidden py-2">
             <img
               className="w-5 h-5 shrink-0"
@@ -403,25 +401,25 @@ const getIconForItinerary = (itineraryType) => {
 
 
 
+const Trips = ({ index, trip,lastIndex }) => {
 
-
-
-const Trips = ({ index, trip, lastIndex }) => {
+ 
   const [activeTabs, setActiveTabs] = useState("completed");
-
+  
   const handleTabChange = (tab) => {
     setActiveTabs(tab);
   };
+  
 
-  console.log(activeTabs);
-
+ console.log(activeTabs)
+  
   function separateItineraryByDate(currentDate, itinerary) {
-    const completedItinerary = { flights: [], hotels: [], buses: [], cabs: [] };
-    const upcomingItinerary = { flights: [], hotels: [], buses: [], cabs: [] };
-
+    const completedItinerary = { flights: [], hotels: [], buses: [],cabs:[] };
+  const upcomingItinerary = { flights: [], hotels: [], buses: [] ,cabs:[]};
+    
     function checkAndPush(item, dateField, category) {
       const itemDate = new Date(item[dateField]);
-      if (category === "hotels") {
+      if (category==="hotels") {
         if (itemDate < currentDate) {
           completedItinerary[category].push(item);
         } else {
@@ -435,271 +433,382 @@ const Trips = ({ index, trip, lastIndex }) => {
         }
       }
     }
-
-    itinerary.flights.forEach(flight => checkAndPush(flight, 'bkd_date', 'flights'));
-    itinerary.hotels.forEach(hotel => checkAndPush(hotel, 'bkd_checkOut', 'hotels'));
-    itinerary.buses.forEach(bus => checkAndPush(bus, 'bkd_date', 'buses'));
-    itinerary.trains.forEach(train => checkAndPush(train, 'bkd_date', 'trains'));
-    itinerary.cabs.forEach(cab => checkAndPush(cab, 'bkd_date', 'cabs'));
-
+  
+    // Process flights
+    itinerary.flights.forEach(flight => {
+      checkAndPush(flight, 'bkd_date','flights');
+    });
+  
+    // Process hotels (use bkd_checkOut for comparison)
+    itinerary.hotels.forEach(hotel => {
+      checkAndPush(hotel, 'bkd_checkOut', 'hotels');
+    });
+  
+    // Process other travel modes if needed (buses, trains, etc.)
+    // Assuming other travel modes have similar date fields for comparison
+    itinerary.buses.forEach(bus => {
+      checkAndPush(bus, 'bkd_date','buses');
+    });
+    itinerary.trains.forEach(train => {
+      checkAndPush(train, 'bkd_date' , 'trains');
+    });
+    itinerary.cabs.forEach(cab => {
+      checkAndPush(cab, 'bkd_date' , 'cabs');
+    });
+  
     return { completedItinerary, upcomingItinerary };
   }
+  
+ 
 
   const currentDate = new Date();
   const { completedItinerary, upcomingItinerary } = separateItineraryByDate(currentDate, trip?.itinerary);
-
+  
   console.log('Completed Itinerary:', completedItinerary);
   console.log('Upcoming Itinerary:', upcomingItinerary);
+const [visible ,setVisible]=useState({addALeg:false})
 
-  const [visible, setVisible] = useState({ addALeg: false });
+
+
+
+ 
 
   return (
-    <div className={`${index === lastIndex ? ' ' : 'mb-2'} h-[270px] rounded-md border border-white-100 shadow-sm shadow-indigo-600`}>
-      <div className="flex gap-2 px-2 flex-row items-center justify-between text-center font-cabin border-b shadow-sm shadow-indigo-500 border-indigo-600 py-2 text-neutral-700 text-xs">
+    <div className={ `${index ===lastIndex ? ' ' :'mb-2'}  shadow h-[285px]  rounded-md `}>
+      <div className="flex gap-2 px-2 flex-row items-center justify-between text-center font-cabin border-b-2  border-slate-300 py-2 text-neutral-700 text-xs">
         <div className='flex'>
-          <motion.div
-            className={`px-2 py-1 rounded-xl cursor-pointer transition duration-150 ease-in-out ${activeTabs === 'completed' ? 'bg-indigo-100 font-semibold text-indigo-600 border border-white-100 text-xs shadow-md shadow-indigo-600' : 'text-xs'}`}
-            onClick={() => handleTabChange('completed')}
-            whileHover={{ scale: 1.1 }}
-          >
-            <p>Completed</p>
-          </motion.div>
-          <motion.div
-            className={`px-2 py-1 rounded-xl cursor-pointer ease-in-out ${activeTabs === 'upcoming' ? 'bg-indigo-100 font-semibold text-indigo-600 border border-white-100 text-xs shadow-md shadow-indigo-600' : 'text-xs'}`}
-            onClick={() => handleTabChange('upcoming')}
-            whileHover={{ scale: 1.1 }}
-          >
-            <p>Upcoming</p>
-          </motion.div>
+        <div
+           className={`px-2 py-1 rounded-xl cursor-pointer  delay-150  transition-colors ${
+            activeTabs=== 'completed'
+              ? 'text-white-100 bg-indigo-600 border border-white-100 text-xs'
+              : 'text-xs'
+          }`}
+
+          onClick={() => handleTabChange('completed')}
+          
+        >
+          <p>Completed</p>
         </div>
+        <div
+          className={`px-2 py-1 rounded-xl cursor-pointer delay-150 transition duration-300 ${
+            activeTabs === 'upcoming'
+              ? 'text-white-100 bg-indigo-600 border border-white-100 text-xs'
+              : 'text-xs'
+          }`}
+          onClick={() => handleTabChange('upcoming')}
+          
+        >
+          <p>Upcoming</p>
+        </div>
+        </div>
+     
+        
+    
+
         <div className='gap-4 flex '>
-          <motion.div
-            onMouseEnter={() => setVisible({ cancel: true })}
-            onMouseLeave={() => setVisible({ cancel: false })}
-            className={`relative shadow-md shadow-red-200 hover:px-2 w-6 h-6 hover:overflow-hidden hover:w-auto group text-indigo-600 bg-red-100 border border-white-100 flex items-center justify-center rounded-full cursor-pointer transition-all duration-300`}
-            whileHover={{ scale: 1.2 }}
-          >
-            <img src={cancel} width={20} height={20} alt="Add Icon" />
-            <p className={`${visible?.cancel ? 'opacity-100 ' : 'opacity-0 w-0'} whitespace-nowrap text-red-200 text-xs transition-all duration-300 group-hover:opacity-100 group-hover:w-auto`}>
-              Cancel
-            </p>
-          </motion.div>
-          <motion.div
-            onMouseEnter={() => setVisible({ addALeg: true })}
-            onMouseLeave={() => setVisible({ addALeg: false })}
-            className={`relative shadow-md shadow-indigo-600 hover:px-2 w-6 h-6 hover:overflow-hidden hover:w-auto group text-indigo-600 bg-indigo-100 border border-white-100 flex items-center justify-center hover:gap-x-1 rounded-full cursor-pointer transition-all duration-300`}
-            whileHover={{ scale: 1.2 }}
-          >
-            <img src={plus_violet_icon} width={16} height={16} alt="Add Icon" />
-            <p className={`${visible?.addALeg ? 'opacity-100 ' : 'opacity-0 w-0'} whitespace-nowrap text-xs transition-all duration-300 group-hover:opacity-100 group-hover:w-auto`}>
-              Add a Leg
-            </p>
-          </motion.div>
-        </div>
+         
+        <div
+      onMouseEnter={() => setVisible({cancel:true})}
+      onMouseLeave={() => setVisible({cancel:false})}
+      className={`relative  hover:px-2 w-6 h-6 hover:overflow-hidden hover:w-auto group text-indigo-600 bg-red-100 border border-white-100 flex items-center justify-center   rounded-full cursor-pointer transition-all duration-300`}
+    >
+      <img src={cancel} width={20} height={20} alt="Add Icon" />
+      <p
+        className={`${
+          visible?.cancel ? 'opacity-100 ' : 'opacity-0 w-0'
+        } whitespace-nowrap text-red-200 text-xs transition-all duration-300 group-hover:opacity-100 group-hover:w-auto`}
+      >
+       Cancel
+      </p>
+    </div>
+        
+          
+          
+             
+        <div
+      onMouseEnter={() => setVisible({addALeg:true})}
+      onMouseLeave={() => setVisible({addALeg:false})}
+      className={`relative  hover:px-2 w-6 h-6 hover:overflow-hidden hover:w-auto group text-indigo-600 bg-indigo-100 border border-white-100 flex items-center justify-center  hover:gap-x-1 rounded-full cursor-pointer transition-all duration-300`}
+    >
+      <img src={plus_violet_icon} width={16} height={16} alt="Add Icon" />
+      <p
+        className={`${
+          visible?.addALeg ? 'opacity-100 ' : 'opacity-0 w-0'
+        } whitespace-nowrap text-xs transition-all duration-300 group-hover:opacity-100 group-hover:w-auto`}
+      >
+        Add a Leg
+      </p>
+    </div>
+
+
+          </div>
+        
+
       </div>
 
-      {activeTabs === 'completed' && (
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <div className='h-[220px] min-w-max w-full bg-white-100 overflow-y-auto rounded-b-md py-1 px-2'>
-            <div className="flex flex-col py-1">
-              {Object.keys(completedItinerary).map(key => (
-                <React.Fragment key={key}>
-                  {key !== 'formState' && completedItinerary[key].length > 0 && (
-                    <div className='w-full'>
-                      <div className='flex gap-2 font-cabin items-center text-neutral-600 py-1'>
-                        <img src={getIconForItinerary(key)} className='w-4 h-4' />
-                        <h2 className="text-md font-semibold text-indigo-600 text-center">{key.charAt(0).toUpperCase() + key.slice(1)}</h2>
+      {activeTabs=== 'completed' && (
+        <div>
+          {/* <div>
+          <p>{trip.tripNumber}</p>
+        </div> */}
+
+         <div className='h-[240px] min-w-max w-full  overflow-y-auto rounded-b-md py-1 px-2'>
+ <div className=" flex flex-col py-1">
+      {Object.keys(completedItinerary).map(key => (
+        <React.Fragment key={key}>
+          {key !== 'formState' && completedItinerary[key].length > 0 && (
+            <div className='w-full'>
+              <div className='flex gap-2 font-cabin items-center text-neutral-600 py-1'>
+              <img src={getIconForItinerary(key)} className='w-4 h-4' />
+              <h2 className="text-md font-semibold  text-center">{key.charAt(0).toUpperCase() + key.slice(1)}</h2>
+              {/* <h2 className="text-md font-semibold  text-center">{key.charAt(0).toUpperCase() + key.slice(1)}</h2> */}
+              </div>
+              <div className="" >
+                {completedItinerary[key]?.map(item => (
+                  <React.Fragment key={item._id} >
+                    <div className="bg-white-100  p-3 rounded shadow w-full border border-slate-300 bg-slate-50">
+              {['flights','trains','buses'].includes(key)  && (
+
+                   <div className='flex flex-col items-start gap-2   '>
+                    <div className='flex  w-full  items-center  justify-between '>
+                      <div className='inline-flex gap-1'>
+                      <img src={calender} alt='icon' className='w-4 h-4'/>
+                      <span className='text-sm font-cabin text-neutral-600'>{formatDate(item.bkd_date)}</span>
                       </div>
-                      <div className="space-y-2">
-                        {completedItinerary[key]?.map(item => (
-                          <React.Fragment key={item._id}>
-                            <motion.div
-                              className="bg-white-100 p-3 rounded w-full shadow-md shadow-indigo-600 border border-slate-300"
-                              whileHover={{ scale: 1.05 }}
-                            >
-                              {['flights', 'trains', 'buses'].includes(key) && (
-                                <div className='flex flex-col items-start gap-2'>
-                                  <div className='flex w-full items-center justify-between'>
-                                    <div className='inline-flex gap-1'>
-                                      <img src={calender} alt='icon' className='w-4 h-4' />
-                                      <span className='text-sm font-cabin text-neutral-600'>{formatDate(item.bkd_date)}</span>
-                                    </div>
-                                  </div>
-                                  <div className='flex-1 w-full capitalize inline-flex items-center justify-between'>
-                                    <div className='w-2/5 font-cabin items-start text-sm text-neutral-600'>
-                                      <div className='text-neutral-600 text-xs'>Pickup Address</div>
-                                      <div className='text-neutral-800 '>{item?.bkd_from}</div>
-                                    </div>
-                                    <img src={double_arrow} className='w-5 h-5' alt='icon' />
-                                    <div className='w-2/5 items-start font-cabin text-sm text-neutral-600'>
-                                      <div className='text-neutral-600 text-xs'>Dropoff Address</div>
-                                      <div className='text-neutral-800'>{item?.bkd_to}</div>
-                                    </div>
-                                  </div>
-                                </div>
-                              )}
-                              {key === 'cabs' && (
-                                <div className='flex flex-col items-start gap-2'>
-                                  <div className='flex w-full items-center justify-between'>
-                                    <div className='inline-flex gap-1'>
-                                      <img src={calender} alt='icon' className='w-4 h-4' />
-                                      <span className='text-sm font-cabin text-neutral-600'>{formatDate(item?.bkd_date)}</span>
-                                    </div>
-                                  </div>
-                                  <div className='flex-1 w-full inline-flex items-center justify-between'>
-                                    <div className='w-2/5 font-cabin text-sm text-neutral-600'>
-                                      <div className='text-neutral-600 text-xs'>Pickup Address</div>
-                                      <div className='text-neutral-800'>{item?.bkd_pickup}</div>
-                                    </div>
-                                    <img src={double_arrow} className='w-5 h-5' alt='icon' />
-                                    <div className='w-2/5 font-cabin text-sm text-neutral-600'>
-                                      <div className='text-neutral-600 text-xs'>Dropoff Address</div>
-                                      <div className='text-neutral-800'>{item?.bkd_dropoff}</div>
-                                    </div>
-                                  </div>
-                                </div>
-                              )}
-                              {key === 'hotels' && (
-                                <div className='flex flex-col gap-2'>
-                                  <div className='flex w-full gap-2'>
-                                    <div className='inline-flex w-1/2 gap-1'>
-                                      <img src={calender} alt='icon' className='w-4 h-4' />
-                                      <span className='text-sm font-cabin text-neutral-600'>{formatDate(item?.bkd_checkIn)}</span>
-                                    </div>
-                                    <div className='inline-flex w-1/2 gap-1'>
-                                      <img src={calender} alt='icon' className='w-4 h-4' />
-                                      <span className='text-sm font-cabin text-neutral-600'>{formatDate(item?.bkd_checkOut)}</span>
-                                    </div>
-                                  </div>
-                                  <div className='flex-1 w-full capitalize flex flex-col items-start'>
-                                    <div className='text-neutral-600 text-xs'>Hotel Name</div>
-                                    <div className='text-neutral-800'>{item?.bkd_hotelName}</div>
-                                    <div className='text-neutral-600 text-xs'>Address</div>
-                                    <div className='text-neutral-800'>{item?.bkd_hotelAddress}</div>
-                                  </div>
-                                </div>
-                              )}
-                            </motion.div>
-                          </React.Fragment>
-                        ))}
-                      </div>
+                      {/* <div className={` text-center rounded-sm  ${getStatusClass(item.status)}`}>
+                      <p className='px-2 py-1 text-sm text-center capitalize font-cabin '>{item?.status}</p>
+                      </div> */}
+                    
+
                     </div>
-                  )}
-                </React.Fragment>
-              ))}
+
+                    <div className='flex-1 w-full capitalize    inline-flex items-center  justify-between   '>
+                <div className='w-2/5   font-cabin items-start  text-sm text-neutral-600'>
+                  <div className=' text-neutral-600 text-xs'>Pickup Address</div>
+                  <div className='text-neutral-800 '>{item?.bkd_from}</div>
+                </div>
+                <img src={double_arrow} className=' w-5 h-5' alt='icon'/>
+                <div className='w-2/5 items-start  font-cabin text-sm text-neutral-600'>
+                <div className=' text-neutral-600 text-xs'>Dropoff Address</div>
+                <div className='text-neutral-800'> {item?.bkd_to}</div></div>
+                </div>
+                    
+                    
+    
+                  </div>
+                )}
+                    {/* Add more details as needed */}
+                {key === 'cabs' && (
+          
+                <div className='flex flex-col items-start gap-2'>
+                <div className='flex  w-full  items-center  justify-between'>
+                  <div className='inline-flex gap-1'>
+                  <img src={calender} alt='icon' className='w-4 h-4'/>
+                  <span className='text-sm font-cabin text-neutral-600'>{formatDate(item?.bkd_date)}</span>
+                  </div>
+                  {/* <div className={` text-center rounded-sm  ${getStatusClass(item?.status)}`}>
+                  <p className='px-2 py-1 text-sm text-center capitalize font-cabin '>{item?.status}</p>
+                  </div> */}
+                </div>
+
+                <div className='flex-1 w-full   inline-flex items-center justify-between'>
+                <div className='w-2/5  font-cabin  text-sm text-neutral-600'>
+                  <div className=' text-neutral-600 text-xs'>Pickup Address</div>
+                  <div className='text-neutral-800'>{item?.bkd_pickupAddress}</div>
+                  </div>
+                <img src={double_arrow} className=' w-5 h-5' alt='icon'/>
+                <div className='w-2/5  font-cabin text-sm text-neutral-600'>
+                <div className=' text-neutral-600 text-xs'>Dropoff Address</div>
+                <div className='text-neutral-800'> {item?.bkd_dropAddress}</div></div>
+                </div>
+                
+                
+
+              </div>
+                )}
+                   {key === 'hotels' && (
+                       <div className='flex flex-col items-start capitalize'>
+                        
+                        <div className='flex items-center  justify-between w-full'>
+
+                      <div className='flex w-full'>
+                        <div className='justify-between flex '>
+                       <img src={calender} alt='icon' className='w-4 h-4 mr-1'/>
+                       <p className='text-sm font-cabin text-neutral-600'>{formatDate(item?.bkd_checkIn)}</p>
+                       </div>
+                       <div className='text-center px-2 '> to </div>
+                       <div className='flex justify-between '>
+                       <img src={calender} alt='icon' className='w-4 h-4 mr-1'/>
+                       <p className='text-sm font-cabin text-neutral-600'>{formatDate(item?.bkd_checkOut)}</p>
+                       </div>
+                       </div>
+                      
+
+                        
+                         {/* <div className={`px-2 py-1 rounded-sm    ${getStatusClass(item?.status)}`}>
+                         <p className='text-sm text-center capitalize font-cabin '>{item?.status}</p>
+                         </div> */}
+                     
+                        </div>
+
+                       <div className='flex-1  flex-col items-center font-cabin  '>
+                        <div className='text-neutral-600  text-xs '> Location</div>
+                        
+                         <span className='text-sm font-cabin text-neutral-800'>{item?.bkd_location}</span>
+                       </div>
+                       
+                       
+                  
+       
+                     </div>
+                    )}    
+                 
+                 </div>
+                  </React.Fragment>
+                ))}
+              </div>
             </div>
-          </div>
-        </motion.div>
+          )}
+        </React.Fragment>
+      ))}
+</div>
+
+
+</div>
+        </div>
       )}
-      {activeTabs === 'upcoming' && (
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <div className='h-[220px] min-w-max w-full bg-white-100 overflow-y-auto rounded-b-md py-1 px-2'>
-            <div className="flex flex-col py-1">
-              {Object.keys(upcomingItinerary).map(key => (
-                <React.Fragment key={key}>
-                  {key !== 'formState' && upcomingItinerary[key].length > 0 && (
-                    <div className='w-full'>
-                      <div className='flex gap-2 font-cabin items-center text-neutral-600 py-1'>
-                        <img src={getIconForItinerary(key)} className='w-4 h-4' />
-                        <h2 className="text-md font-semibold text-indigo-600 text-center">{key.charAt(0).toUpperCase() + key.slice(1)}</h2>
+      {activeTabs=== 'upcoming' && (
+        <div>
+         <div className='h-[240px] min-w-max w-full  overflow-y-auto rounded-b-md py-1 px-2'>
+ <div className=" flex flex-col py-1">
+      {Object.keys(upcomingItinerary).map(key => (
+        <React.Fragment key={key}>
+          {key !== 'formState' && upcomingItinerary[key].length > 0 && (
+            <div className='w-full'>
+              <div className='flex gap-2 font-cabin items-center text-neutral-600 py-1'>
+              <img src={getIconForItinerary(key)} className='w-4 h-4' />
+              <h2 className="text-md font-semibold  text-center">{key.charAt(0).toUpperCase() + key.slice(1)}</h2>
+              {/* <h2 className="text-md font-semibold  text-center">{key.charAt(0).toUpperCase() + key.slice(1)}</h2> */}
+              </div>
+              <div className="" >
+                {upcomingItinerary[key]?.map(item => (
+                  <React.Fragment key={item._id} >
+                    <div className="bg-white  p-3 rounded shadow w-full border border-slate-300 bg-slate-50">
+              {['flights','trains','buses'].includes(key)  && (
+
+                   <div className='flex flex-col items-start gap-2   '>
+                    <div className='flex  w-full  items-center  justify-between '>
+                      <div className='inline-flex gap-1'>
+                      <img src={calender} alt='icon' className='w-4 h-4'/>
+                      <span className='text-sm font-cabin text-neutral-600'>{formatDate(item.bkd_date)}</span>
                       </div>
-                      <div className="space-y-2">
-                        {upcomingItinerary[key]?.map(item => (
-                          <React.Fragment key={item._id}>
-                            <motion.div
-                              className="bg-white-100 p-3 rounded w-full shadow-md shadow-indigo-600 border border-slate-300"
-                              whileHover={{ scale: 1.05 }}
-                            >
-                              {['flights', 'trains', 'buses'].includes(key) && (
-                                <div className='flex flex-col items-start gap-2'>
-                                  <div className='flex w-full items-center justify-between'>
-                                    <div className='inline-flex gap-1'>
-                                      <img src={calender} alt='icon' className='w-4 h-4' />
-                                      <span className='text-sm font-cabin text-neutral-600'>{formatDate(item.bkd_date)}</span>
-                                    </div>
-                                  </div>
-                                  <div className='flex-1 w-full capitalize inline-flex items-center justify-between'>
-                                    <div className='w-2/5 font-cabin items-start text-sm text-neutral-600'>
-                                      <div className='text-neutral-600 text-xs'>Pickup Address</div>
-                                      <div className='text-neutral-800 '>{item?.bkd_from}</div>
-                                    </div>
-                                    <img src={double_arrow} className='w-5 h-5' alt='icon' />
-                                    <div className='w-2/5 items-start font-cabin text-sm text-neutral-600'>
-                                      <div className='text-neutral-600 text-xs'>Dropoff Address</div>
-                                      <div className='text-neutral-800'>{item?.bkd_to}</div>
-                                    </div>
-                                  </div>
-                                </div>
-                              )}
-                              {key === 'cabs' && (
-                                <div className='flex flex-col items-start gap-2'>
-                                  <div className='flex w-full items-center justify-between'>
-                                    <div className='inline-flex gap-1'>
-                                      <img src={calender} alt='icon' className='w-4 h-4' />
-                                      <span className='text-sm font-cabin text-neutral-600'>{formatDate(item?.bkd_date)}</span>
-                                    </div>
-                                  </div>
-                                  <div className='flex-1 w-full inline-flex items-center justify-between'>
-                                    <div className='w-2/5 font-cabin text-sm text-neutral-600'>
-                                      <div className='text-neutral-600 text-xs'>Pickup Address</div>
-                                      <div className='text-neutral-800'>{item?.bkd_pickup}</div>
-                                    </div>
-                                    <img src={double_arrow} className='w-5 h-5' alt='icon' />
-                                    <div className='w-2/5 font-cabin text-sm text-neutral-600'>
-                                      <div className='text-neutral-600 text-xs'>Dropoff Address</div>
-                                      <div className='text-neutral-800'>{item?.bkd_dropoff}</div>
-                                    </div>
-                                  </div>
-                                </div>
-                              )}
-                              {key === 'hotels' && (
-                                <div className='flex flex-col gap-2'>
-                                  <div className='flex w-full gap-2'>
-                                    <div className='inline-flex w-1/2 gap-1'>
-                                      <img src={calender} alt='icon' className='w-4 h-4' />
-                                      <span className='text-sm font-cabin text-neutral-600'>{formatDate(item?.bkd_checkIn)}</span>
-                                    </div>
-                                    <div className='inline-flex w-1/2 gap-1'>
-                                      <img src={calender} alt='icon' className='w-4 h-4' />
-                                      <span className='text-sm font-cabin text-neutral-600'>{formatDate(item?.bkd_checkOut)}</span>
-                                    </div>
-                                  </div>
-                                  <div className='flex-1 w-full capitalize flex flex-col items-start'>
-                                    <div className='text-neutral-600 text-xs'>Hotel Name</div>
-                                    <div className='text-neutral-800'>{item?.bkd_hotelName}</div>
-                                    <div className='text-neutral-600 text-xs'>Address</div>
-                                    <div className='text-neutral-800'>{item?.bkd_hotelAddress}</div>
-                                  </div>
-                                </div>
-                              )}
-                            </motion.div>
-                          </React.Fragment>
-                        ))}
-                      </div>
+                      {/* <div className={` text-center rounded-sm  ${getStatusClass(item.status)}`}>
+                      <p className='px-2 py-1 text-sm text-center capitalize font-cabin '>{item?.status}</p>
+                      </div> */}
+                    
+
                     </div>
-                  )}
-                </React.Fragment>
-              ))}
+
+                    <div className='flex-1 w-full capitalize    inline-flex items-center  justify-between   '>
+                <div className='w-2/5   font-cabin items-start  text-sm text-neutral-600'>
+                  <div className=' text-neutral-600 text-xs'>Pickup Address</div>
+                  <div className='text-neutral-800 '>{item?.bkd_from}</div>
+                </div>
+                <img src={double_arrow} className=' w-5 h-5' alt='icon'/>
+                <div className='w-2/5 items-start  font-cabin text-sm text-neutral-600'>
+                <div className=' text-neutral-600 text-xs'>Dropoff Address</div>
+                <div className='text-neutral-800'> {item?.bkd_to}</div></div>
+                </div>
+                    
+                    
+    
+                  </div>
+                )}
+                    {/* Add more details as needed */}
+                {key === 'cabs' && (
+          
+                <div className='flex flex-col items-start gap-2'>
+                <div className='flex  w-full  items-center  justify-between'>
+                  <div className='inline-flex gap-1'>
+                  <img src={calender} alt='icon' className='w-4 h-4'/>
+                  <span className='text-sm font-cabin text-neutral-600'>{formatDate(item?.bkd_date)}</span>
+                  </div>
+                  {/* <div className={` text-center rounded-sm  ${getStatusClass(item?.status)}`}>
+                  <p className='px-2 py-1 text-sm text-center capitalize font-cabin '>{item?.status}</p>
+                  </div> */}
+                </div>
+
+                <div className='flex-1 w-full   inline-flex items-center justify-between'>
+                <div className='w-2/5  font-cabin  text-sm text-neutral-600'>
+                  <div className=' text-neutral-600 text-xs'>Pickup Address</div>
+                  <div className='text-neutral-800'>{item?.bkd_pickupAddress}</div>
+                  </div>
+                <img src={double_arrow} className=' w-5 h-5' alt='icon'/>
+                <div className='w-2/5  font-cabin text-sm text-neutral-600'>
+                <div className=' text-neutral-600 text-xs'>Dropoff Address</div>
+                <div className='text-neutral-800'> {item?.bkd_dropAddress}</div></div>
+                </div>
+                
+                
+
+              </div>
+                )}
+                   {key === 'hotels' && (
+                       <div className='flex flex-col items-start capitalize'>
+                        
+                        <div className='flex items-center  justify-between w-full'>
+
+                      <div className='flex w-full'>
+                        <div className='justify-between flex '>
+                       <img src={calender} alt='icon' className='w-4 h-4 mr-1'/>
+                       <p className='text-sm font-cabin text-neutral-600'>{formatDate(item?.bkd_checkIn)}</p>
+                       </div>
+                       <div className='text-center px-2 '> to </div>
+                       <div className='flex justify-between '>
+                       <img src={calender} alt='icon' className='w-4 h-4 mr-1'/>
+                       <p className='text-sm font-cabin text-neutral-600'>{formatDate(item?.bkd_checkOut)}</p>
+                       </div>
+                       </div>
+                      
+
+                        
+                         {/* <div className={`px-2 py-1 rounded-sm    ${getStatusClass(item?.status)}`}>
+                         <p className='text-sm text-center capitalize font-cabin '>{item?.status}</p>
+                         </div> */}
+                     
+                        </div>
+
+                       <div className='flex-1  flex-col items-center font-cabin  '>
+                        <div className='text-neutral-600  text-xs '> Location</div>
+                        
+                         <span className='text-sm font-cabin text-neutral-800'>{item?.bkd_location}</span>
+                       </div>
+                       
+                       
+                  
+       
+                     </div>
+                    )}    
+                 
+                 </div>
+                  </React.Fragment>
+                ))}
+              </div>
             </div>
-          </div>
-        </motion.div>
+          )}
+        </React.Fragment>
+      ))}
+</div>
+
+
+</div>
+        </div>
       )}
+
+      
     </div>
   );
 };
-
-
-
-
-
 
 
 
