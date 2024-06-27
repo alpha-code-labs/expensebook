@@ -3,7 +3,6 @@ import React, { useState,useEffect } from 'react';
 import { airplane_1, briefcase, calender, double_arrow,cab_purple,  house_simple, train, bus, cancel_round, cancel, modify, plus_icon, plus_violet_icon, receipt, down_arrow, chevron_down, down_left_arrow } from '../assets/icon';
 import { formatAmount, formatDate, getStatusClass } from '../utils/handyFunctions';
 import Tooltip from '../components/Tooltip';
-import { Tilt } from 'react-tilt'
 import { travelExpense,reimbursementExpense, travelRequests } from '../utils/dummyData';
 
 const Overview = () => {
@@ -209,9 +208,9 @@ const Overview = () => {
 
 
   return (
-    <div className=" border border-black min-h-screen flex items-center justify-center px-2 md:px-10">
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 w-full overflow-hidden  border border-red-200 ">
-        {/* <Tilt className="min-w-[400px] h-[340px]"> */}
+    <div className="w-full border border-black min-h-screen flex items-center justify-center px-2 md:px-10">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 w-full overflow-x-auto">
+        
       <div className={`min-w-[400px] h-[340px] ${visibleDivs[0] ? 'opacity-100' : 'opacity-0'}`} >
          <div className="border-b-2 border-indigo-600 flex flex-row items-center justify-start gap-2 overflow-hidden py-2">
            <img
@@ -231,7 +230,6 @@ const Overview = () => {
          </div>
          
        </div>
-       {/* </Tilt> */}
        
 
 
@@ -362,11 +360,11 @@ reimbursementExpense?.map((expense,index) => <NonTravelExpenses index={index} ex
           
       </div>
 
-      {/* <div className="h-[238px] overflow-y-auto px-2">
+      <div className="h-[238px] overflow-y-auto px-2">
           {travelRequests?.map((travel, index)=>(
             <TravelRequests travel={travel} index={index} lastIndex={travelRequests?.length-1}/>
           ))}
-          </div> */}
+          </div>
           </div>
         </div>
 

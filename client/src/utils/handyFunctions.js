@@ -132,9 +132,11 @@ function formatDate(date=Date.now()){
   }  
 
   function formatAmount(number) {
-    return number?.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-}
-
+    // Convert to a number if it isn't already
+    const amount = parseFloat(number) || 0;
+    return amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  }
+  
   function formatDate3(inputDate) {
     
     const datePattern = /^\d{4}-\d{2}-\d{2}$/;
