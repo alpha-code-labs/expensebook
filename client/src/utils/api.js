@@ -107,10 +107,44 @@ export const getEmployeeRoles_API = async (tenantId,empId) => {
 
 
 export const assignBusinessAdmin_API = async (tenantId,travelRequestId,data) => {
-  const url = `${FINANCE_BACKEND_API_URL}/api/fe/finance/travel-admin/${tenantId}/${travelRequestId}`;
+  const url = `${FINANCE_BACKEND_API_URL}/api/fe/finance/cash/recovery/${tenantId}/${travelRequestId}/${cashAdvanceId}`;
 
   try {
     const response = await axiosRetry(axios.patch, url,data );
+    return response.data
+  } catch (error) {
+    handleRequestError(error);
+    const errorObject = {
+      status: error.response?.status || null,
+      message: error.message || 'Unknown error',
+    };
+
+    return { data: null, error: errorObject };
+  }
+};
+
+export const assignCashRecovery_API = async (tenantId,travelRequestId,cashAdvanceId,data) => {
+  const url = `${FINANCE_BACKEND_API_URL}/api/fe/finance/cash/recovery/${tenantId}/${travelRequestId}/${cashAdvanceId}`;
+
+  try {
+    const response = await axiosRetry(axios.put, url,data );
+    return response.data
+  } catch (error) {
+    handleRequestError(error);
+    const errorObject = {
+      status: error.response?.status || null,
+      message: error.message || 'Unknown error',
+    };
+
+    return { data: null, error: errorObject };
+  }
+};
+
+export const assignCashSettle_API = async (tenantId,travelRequestId,cashAdvanceId,data) => {
+  const url = `${FINANCE_BACKEND_API_URL}/api/fe/finance/cash/paid/${tenantId}/${travelRequestId}/${cashAdvanceId}`;
+
+  try {
+    const response = await axiosRetry(axios.put, url,data );
     return response.data
   } catch (error) {
     handleRequestError(error);
