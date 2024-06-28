@@ -13,19 +13,215 @@ import DisplayItinerary from './DisplayItinerary';
 export default function(){
 const sideBarWidth = '230px'
 
-const itineraryItems = ['Flight', 'Hotel', 'Cab', 'Rental Cab', 'Tranin', 'Bus'];
+const itineraryItems = ['Flight', 'Hotel', 'Cab', 'Rental Cab', 'Train', 'Bus'];
 const [modalContent, setModalContent] = useState(null);
 const [visible, setVisible] = useState(false);
 
 const [itinerary, setItinerary] = useState({
-    carRentals:[],
-    cabs:[],
-    trains:[],
-    flights:[],
-    buses:[],
-    personalVehicles:[],
-    hotels:[]
-  })
+    flights: [
+      {
+        category:'flights',
+        violations: {
+          class: null,
+          amount: null
+        },
+        bkd_violations: {
+          class: null,
+          amount: null
+        },
+        bookingDetails: {
+          billDetails: {
+            vendorName: null,
+            taxAmount: null,
+            totalAmount: null
+          },
+          docURL: null,
+          docType: null
+        },
+        itineraryId: "66795e09b2e14ac28c9ed0c2",
+        id: "travel_5b5c964a-e99a-436f-a22c-fa7d49f4784f",
+        sequence: 2,
+        from: "Delhi",
+        to: "Lucknow",
+        date: "2024-06-24T00:00:00.000Z",
+        returnDate: null,
+        time: null,
+        returnTime: null,
+        travelClass: null,
+        isReturnTravel: false,
+        approvers: [
+          {
+            empId: "1002",
+            name: "Emma Thompson",
+            status: "pending approval",
+            _id: "66795e09b2e14ac28c9ed0ba"
+          }
+        ],
+        bkd_from: null,
+        bkd_to: null,
+        bkd_date: null,
+        bkd_returnDate: null,
+        bkd_time: null,
+        bkd_returnTime: null,
+        bkd_travelClass: null,
+        modified: false,
+        cancellationDate: null,
+        cancellationReason: null,
+        rejectionReason: null,
+        status: "pending approval",
+        _id: "66795e09b2e14ac28c9ed0b9"
+      },
+      {
+        category:'flights',
+        violations: {
+          class: null,
+          amount: null
+        },
+        bkd_violations: {
+          class: null,
+          amount: null
+        },
+        bookingDetails: {
+          billDetails: {
+            vendorName: null,
+            taxAmount: null,
+            totalAmount: null
+          },
+          docURL: null,
+          docType: null
+        },
+        itineraryId: "66795e09b2e14ac28c9ed0c3",
+        id: "travel_5b5c964a-e99a-436f-a22c-fa7d49f4784j",
+        sequence: 4,
+        from: "Lucknow",
+        to: "Delhi",
+        date: "2024-06-26T00:00:00.000Z",
+        returnDate: null,
+        time: null,
+        returnTime: null,
+        travelClass: null,
+        isReturnTravel: false,
+        approvers: [
+          {
+            empId: "1002",
+            name: "Emma Thompson",
+            status: "pending approval",
+            _id: "66795e09b2e14ac28c9ed0bc"
+          }
+        ],
+        bkd_from: null,
+        bkd_to: null,
+        bkd_date: null,
+        bkd_returnDate: null,
+        bkd_time: null,
+        bkd_returnTime: null,
+        bkd_travelClass: null,
+        modified: false,
+        cancellationDate: null,
+        cancellationReason: null,
+        rejectionReason: null,
+        status: "pending approval",
+        _id: "66795e09b2e14ac28c9ed0bb"
+      }
+    ],
+    buses: [],
+    trains: [],
+    hotels: [
+      {
+        category:'hotels',
+        violations: {
+          class: null,
+          amount: null
+        },
+        bkd_violations: {
+          class: null,
+          amount: null
+        },
+        bookingDetails: {
+          billDetails: {
+            vendorName: null,
+            taxAmount: null,
+            totalAmount: null
+          },
+          docURL: null,
+          docType: null
+        },
+        itineraryId: "66795e09b2e14ac28c9ed0c5",
+        id: "travel_5b5c964a-e99a-436f-a22c-fa7d49f4784k",
+        sequence: 3,
+        location: "Lucknow",
+        locationPreference: null,
+        class: null,
+        checkIn: "2024-06-24T00:00:00.000Z",
+        checkOut: "2024-06-26T00:00:00.000Z",
+        approvers: [
+          {
+            empId: "1002",
+            name: "Emma Thompson",
+            status: "pending approval",
+            _id: "66795e09b2e14ac28c9ed0be"
+          }
+        ],
+        bkd_location: null,
+        bkd_class: null,
+        bkd_checkIn: null,
+        bkd_checkOut: null,
+        modified: false,
+        cancellationDate: null,
+        cancellationReason: null,
+        status: "pending approval",
+        _id: "66795e09b2e14ac28c9ed0bd"
+      }
+    ],
+    cabs: [
+      {
+        category:'cabs',
+        violations: {
+          class: null,
+          amount: null
+        },
+        bookingDetails: {
+          billDetails: {
+            vendorName: null,
+            taxAmount: null,
+            totalAmount: null
+          },
+          docURL: null,
+          docType: null
+        },
+        itineraryId: "66795e09b2e14ac28c9ed0c4",
+        id: "travel_5b5c964a-e99a-436f-a22c-fa7d49f4784l",
+        sequence: 1,
+        date: "2024-06-24T00:00:00.000Z",
+        class: null,
+        time: null,
+        pickupAddress: "Office Address",
+        dropAddress: "Delhi airport",
+        approvers: [
+          {
+            empId: "1002",
+            name: "Emma Thompson",
+            status: "pending approval",
+            _id: "66795e09b2e14ac28c9ed0c0"
+          }
+        ],
+        bkd_date: null,
+        bkd_class: null,
+        bkd_time: null,
+        bkd_pickupAddress: null,
+        bkd_dropAddress: null,
+        modified: false,
+        cancellationDate: null,
+        cancellationReason: null,
+        status: "pending approval",
+        type: "pickup",
+        _id: "66795e09b2e14ac28c9ed0bf"
+      }
+    ],
+    carRentals: [],
+    personalVehicles: []
+  });
+  
 
 const [shouldAddItem, setShouldAddItem] = useState(false);
 
@@ -47,6 +243,7 @@ const handleAddToItinerary = ()=>{
     setVisible(false);
 }
 
+
     return(<>
         <div className="min-w-[100%] min-h-[100%] flex">
             <div className={`w-[${sideBarWidth}] h-[100%] bg-blue-600`}>
@@ -61,7 +258,7 @@ const handleAddToItinerary = ()=>{
                 </div>
             </div>
             <div className={`w-[calc(100%-${sideBarWidth})]`}>
-                <DisplayItinerary shouldAddItem={shouldAddItem} />
+                <DisplayItinerary itinerary={itinerary} setItinerary={setItinerary}/>
                 <Modal visible={visible} setVisible={setVisible}>
                     {modalContent}
                 </Modal>

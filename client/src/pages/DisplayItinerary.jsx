@@ -9,204 +9,29 @@ import {useSortable, SortableContext, verticalListSortingStrategy, arrayMove} fr
 import {CSS} from '@dnd-kit/utilities'
 import { material_flight_black_icon, material_train_black_icon, material_bus_black_icon, material_cab_black_icon, material_car_rental_black_icon, material_hotel_black_icon, material_personal_black_icon } from "../assets/icon";
 import { titleCase } from "../utils/handyFunctions";
-import { useEffect, useState } from "react";
+import { Children, useEffect, useState } from "react";
 
 
 
-const itinerary_ = [
-    {
-        "itineraryId": {
-            "$oid": "66795e09b2e14ac28c9ed0c2"
-        },
-        "formId": "travel_5b5c964a-e99a-436f-a22c-fa7d49f4784f",
-        "sequence": {
-            "$numberInt": "2"
-        },
-        "from": "Jaipur",
-        "to": "Delhi",
-        "date": "12-16-14",
-        "returnDate": null,
-        "time": null,
-        "returnTime": null,
-        "travelClass": null,
-        "isReturnTravel": false,
-        "violations": {
-            "class": null,
-            "amount": null
-        },
-        "approvers": [
-            {
-                "empId": "1002",
-                "name": "Emma Thompson",
-                "status": "pending approval",
-                "_id": {
-                    "$oid": "66795e09b2e14ac28c9ed0ba"
-                }
-            }
-        ],
-        "bkd_from": null,
-        "bkd_to": null,
-        "bkd_date": null,
-        "bkd_returnDate": null,
-        "bkd_time": null,
-        "bkd_returnTime": null,
-        "bkd_travelClass": null,
-        "bkd_violations": {
-            "class": null,
-            "amount": null
-        },
-        "modified": false,
-        "cancellationDate": null,
-        "cancellationReason": null,
-        "rejectionReason": null,
-        "status": "pending approval",
-        "bookingDetails": {
-            "docURL": null,
-            "docType": null,
-            "billDetails": {
-                "vendorName": null,
-                "taxAmount": null,
-                "totalAmount": null
-            }
-        },
-        "_id": {
-            "$oid": "66795e09b2e14ac28c9ed0b9"
-        },
+export default function ({itinerary, setItinerary}) {
 
-        "category" : 'flight'
-    },
-
-    {
-        "category" : 'flight',
-        "itineraryId": {
-            "$oid": "66795e09b2e14ac28c9ed0c2"
-        },
-        "formId": "travel_5b5c964a-e99a-436f-a22c-fa7d49f4784j",
-        "sequence": {
-            "$numberInt": "2"
-        },
-        "from": "Delhi",
-        "to": "Lucknow",
-        "date": "12-24-14",
-        "returnDate": null,
-        "time": null,
-        "returnTime": null,
-        "travelClass": null,
-        "isReturnTravel": false,
-        "violations": {
-            "class": null,
-            "amount": null
-        },
-        "approvers": [
-            {
-                "empId": "1002",
-                "name": "Emma Thompson",
-                "status": "pending approval",
-                "_id": {
-                    "$oid": "66795e09b2e14ac28c9ed0ba"
-                }
-            }
-        ],
-        "bkd_from": null,
-        "bkd_to": null,
-        "bkd_date": null,
-        "bkd_returnDate": null,
-        "bkd_time": null,
-        "bkd_returnTime": null,
-        "bkd_travelClass": null,
-        "bkd_violations": {
-            "class": null,
-            "amount": null
-        },
-        "modified": false,
-        "cancellationDate": null,
-        "cancellationReason": null,
-        "rejectionReason": null,
-        "status": "pending approval",
-        "bookingDetails": {
-            "docURL": null,
-            "docType": null,
-            "billDetails": {
-                "vendorName": null,
-                "taxAmount": null,
-                "totalAmount": null
-            }
-        },
-        "_id": {
-            "$oid": "66795e09b2e14ac28c9ed0b9"
-        }
-    },
-
-    {
-        "category" : 'flight',
-        "itineraryId": {
-            "$oid": "66795e09b2e14ac28c9ed0c2"
-        },
-        "formId": "travel_5b5c964a-e99a-436f-a22c-fa7d49f4784k",
-        "sequence": {
-            "$numberInt": "2"
-        },
-        "from": "Delhi",
-        "to": "Lucknow",
-        "date": '"12-25-14"',
-        "returnDate": null,
-        "time": null,
-        "returnTime": null,
-        "travelClass": null,
-        "isReturnTravel": false,
-        "violations": {
-            "class": null,
-            "amount": null
-        },
-        "approvers": [
-            {
-                "empId": "1002",
-                "name": "Emma Thompson",
-                "status": "pending approval",
-                "_id": {
-                    "$oid": "66795e09b2e14ac28c9ed0ba"
-                }
-            }
-        ],
-        "bkd_from": null,
-        "bkd_to": null,
-        "bkd_date": null,
-        "bkd_returnDate": null,
-        "bkd_time": null,
-        "bkd_returnTime": null,
-        "bkd_travelClass": null,
-        "bkd_violations": {
-            "class": null,
-            "amount": null
-        },
-        "modified": false,
-        "cancellationDate": null,
-        "cancellationReason": null,
-        "rejectionReason": null,
-        "status": "pending approval",
-        "bookingDetails": {
-            "docURL": null,
-            "docType": null,
-            "billDetails": {
-                "vendorName": null,
-                "taxAmount": null,
-                "totalAmount": null
-            }
-        },
-        "_id": {
-            "$oid": "66795e09b2e14ac28c9ed0b9"
-        }
-    },
-]
-export default function ({shouldAddItem}) {
+    function flattenObjectToArray(obj) {
+        return Object.values(obj).reduce((acc, val) => {
+          if (Array.isArray(val)) {
+            return acc.concat(flattenObjectToArray(val));
+          } else {
+            return acc.concat(val);
+          }
+        }, []);
+      }
 
     const handleDragEnd = (event)=>{
         console.log('drag end called');
         const {active, over} = event;
 
-        setItinerary(items=>{
-            const activeIndex = items.findIndex(item=>item.formId == active.id) //items.indexOf(active.id);
-            const overIndex = items.findIndex(item => item.formId == over.id);
+        setFlattendedItinerary(items=>{
+            const activeIndex = items.findIndex(item=>item.id == active.id) //items.indexOf(active.id);
+            const overIndex = items.findIndex(item => item.id == over.id);
 
             console.log(activeIndex, overIndex);
 
@@ -216,176 +41,96 @@ export default function ({shouldAddItem}) {
         console.log(active.id, 'active, over ', over.id);
     }
 
-    const handleDragEnd_ = (event)=>{
-        console.log('drag end called');
-        const {active, over} = event;
-
-        setItemsList(items=>{
-            const activeIndex = items.indexOf(active.id);
-            const overIndex = items.indexOf(over.id);
-
-            return arrayMove(items, activeIndex, overIndex);
-        })
-    
-        console.log(active.id, 'active, over ', over.id);
-    }
-
-    const [itinerary, setItinerary] = useState(itinerary_);
-    const [itemsList, setItemsList] = useState(['cab', 'hotel']);
-
-    useEffect(()=>{
-        if(shouldAddItem){
-            setItemsList(pre=>[...pre, 'flight']);
-        }
-    },[shouldAddItem])
-
-    // const combinedItinerary = [
-    //     ...itinerary.flights?.map((flight, index)=>{
-    //         return({
-    //             sequence:flight.sequence,
-    //             element: <div key={flight.sequence}>
-    
-    //             <div className='flex flex-col gap-2 mt-2'>
-    //             {<>
-    //                 <FlightCard
-    //                     id={index} 
-    //                     from={flight.from} 
-    //                     to={flight.to} 
-    //                     date={flight.date}
-    //                     returnDate={flight.returnDate}
-    //                     returnTime={flight.returnTime}
-    //                     travelClass={flight.travelClass} 
-    //                     mode={'Flight'}
-    //                     time={flight.time}/>
-    //                 {/* {(flight.return?.date??false) && 
-    //                     <FlightCard 
-    //                         id={index}
-    //                         from={flight.to} 
-    //                         to={flight.from} 
-    //                         date={flight.returnDate}
-    //                         travelClass={'N/A'} 
-    //                         mode={'flight'} 
-    //                         time={flight.returnTime }/>
-    //                 } */}
-    //              </>}
-    //             </div>
-    //         </div>
-    //         }) 
-    //      }),   
-    
-    //      ...itinerary.trains?.map((train, index)=>{
-    //         return({
-    //             sequence: train.sequence,
-    //             element: <div key={index}>
-    
-    //             <div className='flex flex-col gap-2 mt-2'>
-    //             {<>
-    //                 <FlightCard
-    //                     id={train.sequence} 
-    //                     from={train.from} 
-    //                     to={train.to} 
-    //                     date={train.date}
-    //                     travelClass={train.travelClass} 
-    //                     mode={'Train'}
-    //                     time={train.time}/>
-    //              </>}
-    //             </div>
-    //         </div>
-    //         }) 
-    //      }),
-    
-    //      ...itinerary.buses?.map((bus, index)=>{
-    //         return({
-    //             sequence:bus.sequence,
-    //             element: <div key={bus.sequence}>
-    
-    //             <div className='flex flex-col gap-2 mt-2'>
-    //             {<>
-    //                 <FlightCard
-    //                     id={index} 
-    //                     from={bus.from} 
-    //                     to={bus.to} 
-    //                     date={bus.date}
-    //                     travelClass={bus.travelClass} 
-    //                     mode={'Bus'}
-    //                     time={bus.time}/>
-    //              </>}
-    //             </div>
-    //         </div>
-    //         }) 
-    //      }),
-    
-    //      ...itinerary.cabs?.map((cab, index)=>{
-    //         return({
-    //             sequence: cab.sequence,
-    //             element: <div key={cab.sequence}>
-             
-    //             <div className='flex flex-col gap-2 mt-2'>
-    //             {<>
-    //                 <CabCard
-    //                     id={index} 
-    //                     from={cab.pickupAddress} 
-    //                     to={cab.dropAddress} 
-    //                     date={cab.date}
-    //                     travelClass={cab.travelClass} 
-    //                     mode={'Cab'}
-    //                     time={cab.time}/>
-    //              </>}
-    //             </div>
-    //         </div>
-    //         }) 
-    //      }),
-    
-    //      ...itinerary.hotels?.map((hotel, index)=>{
-    //         return({
-    //             sequence: hotel.sequence,
-    //             element: <div key={hotel.sequence}>
-             
-    //             <div className='flex flex-col gap-2 mt-2'>
-    //             {<>
-    //                 <HotelCard
-    //                     id={index} 
-    //                     checkIn={hotel.checkIn} 
-    //                     checkOut={hotel.checkOut} 
-    //                     location={hotel.location}
-    //                     time={hotel.preferredTime}/>
-    //              </>}
-    //             </div>
-    //         </div>
-    //         }) 
-    //      })
-    // ]
-
-    
-    // console.log(combinedItinerary.sort((a,b)=>a.sequence-b.sequence));
+    const [flattendItinerary, setFlattendedItinerary] = useState(flattenObjectToArray(itinerary).filter(item=>item.category != null && item.category != undefined).sort((a,b)=> a.sequence - b.sequence))
+    console.log('flattened itinerary', flattenObjectToArray(itinerary).filter(item=>item.category != null && item.category != undefined).sort((a,b)=> a.sequence - b.sequence) )
 
     return(<>
-
-        {/* {combinedItinerary.sort((a,b)=>a.sequence-b.sequence).map(itm=>itm.element)} */}
-        
         <DndContext
-            onDragEnd={handleDragEnd_}
+            onDragEnd={handleDragEnd}
             collisionDetection={closestCorners}>
 
             <div className='p-4 w-[800px]'>
                 <SortableContext
                     strategy={verticalListSortingStrategy}
-                    items={itemsList}>
+                    items={flattendItinerary}>
+                    {flattendItinerary.map(item=>{
+                        if(item.category == 'flights'){
+                            return( 
+                            <SortableItem id={item.id} key={item.id}>
+                                <FlightCard
+                                    id={item.id} 
+                                    from={item.from} 
+                                    to={item.to} 
+                                    date={item.date}
+                                    returnDate={item.returnDate}
+                                    returnTime={item.returnTime}
+                                    travelClass={item.travelClass} 
+                                    mode={'Flight'}
+                                    time={item.time}/>
+                            </SortableItem>)
+                        }
 
-                    {itemsList.map(item=> <SortableItem key={item} id={item}>
-                        {item}
-                    </SortableItem>)}
+                        if(item.category == 'trains'){
+                            <SortableItem id={item.id} key={item.id}>
+                                <FlightCard
+                                    id={item.id} 
+                                    from={item.from} 
+                                    to={item.to} 
+                                    date={item.date}
+                                    travelClass={item.travelClass} 
+                                    mode={'Train'}
+                                    time={item.time}/>
+                            </SortableItem>
+                        }
+
+                        if(item.category == 'buses'){
+                            <SortableItem id={item.id} key={item.id}>
+                                <FlightCard
+                                    id={item.id} 
+                                    from={item.from} 
+                                    to={item.to} 
+                                    date={item.date}
+                                    travelClass={item.travelClass} 
+                                    mode={'Bus'}
+                                    time={item.time}/>
+                            </SortableItem>
+                        }
+
+                        if(item.category == 'cabs'){
+                            <SortableItem id={item.id} key={item.id}>
+                                <FlightCard
+                                    id={item.id} 
+                                    from={item.pickupAddress} 
+                                    to={item.dropAddress} 
+                                    date={item.date}
+                                    travelClass={item.travelClass} 
+                                    mode={'Cab'}
+                                    time={item.time}/>
+                            </SortableItem>
+                        }
+
+                        if(item.category == 'hotels'){
+                            <SortableItem id={item.id} key={item.id}>
+                                <HotelCard
+                                    id={item.id} 
+                                    checkIn={item.checkIn} 
+                                    checkOut={item.checkOut} 
+                                    location={item.location}
+                                    time={item.preferredTime}/>
+                            </SortableItem>
+                        }
+
+                    })}
                 </SortableContext>
             </div>
 
         </DndContext>
-
     </>)
 }
 
-function FlightCard({from, to, date, returnDate, time, returnTime, travelClass, onClick, mode='Flight'}){
+function FlightCard({from, to, date, returnDate, time, returnTime, travelClass, onClick, mode='Flight', id}){
   return(
-      <div className="shadow-sm min-h-[76px] bg-slate-50 rounded-md border border-slate-300 w-full px-6 py-4 flex flex-col sm:flex-row gap-4 items-center sm:divide-x">
+        <div className="shadow-sm min-h-[76px] bg-slate-50 rounded-md border border-slate-300 w-full px-6 py-4 flex flex-col sm:flex-row gap-4 items-center sm:divide-x">
       <div className="flex flex-col justify-center">
         <img src={spitImageSource(mode)} className='w-4 h-4 md:w-6 md:h-6' />
       </div>
@@ -439,7 +184,7 @@ function FlightCard({from, to, date, returnDate, time, returnTime, travelClass, 
             </div>
         </div>
       
-  </div>)
+        </div>)
 }
 
 function CabCard({from, to, date, time, travelClass, onClick, mode, isTransfer=false}){
@@ -576,11 +321,7 @@ const SortableItem = ({id, key, children})=>{
     
     return(<>
         <div ref={setNodeRef} {...attributes} {...listeners} style={style} key={key} >
-            <div className='p-1 border border-gray-100'>
-                {id=='flight' && <FlightCard from='Delhi' to='Jaipur' date='2024-06-27' returnDate={null} time='13:00' onClick={()=>{}} mode='Flight' />}
-                {id=='cab' && <CabCard from='Platinum Tower, Gurugram' to='IGI Airport' date='2024-06-27' time='11:00' mode='Cab' returnDate={null} />}
-                {id=='hotel' && <FlightCard from='Delhi' to='Mumbai' date='2024-06-28' returnDate={null} time='11:00' onClick={()=>{}} mode='Flight' />}
-            </div>
+            {children}
         </div>
     </>)
 }
