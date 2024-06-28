@@ -296,7 +296,7 @@ export default function ({tenantId}) {
         {!networkStates.isLoading && <>
         {
         
-        <div className='px-6 py-10 bg-white'>               
+        <div className='bg-white'>               
             {/* back button and title */}
 
             <div className='flex gap-4'>

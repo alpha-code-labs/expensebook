@@ -5,6 +5,7 @@ import Checkbox from '../../components/common/Checkbox';
 import Error from '../../components/common/Error';
 import { getTenantGroupingLabels_API, getTenantOrgHeaders_API, getTenantGroupHeaders_API} from '../../utils/api';
 import Prompt from '../../components/common/Prompt';
+import MainSectionLayout from '../../layouts/MainSectionLayout';
 
 export default function ({tenantId}) {
   
@@ -116,7 +117,7 @@ useEffect(()=>{
         })
     }
 
-    return(<>
+    return(<MainSectionLayout>
 
         {isLoading && <Error message={loadingErr} /> }
 
@@ -163,7 +164,7 @@ useEffect(()=>{
 
         </div>}
         <Prompt prompt={prompt} setPrompt={setPrompt}/>
-        </>
+        </MainSectionLayout>
     );
   }
 

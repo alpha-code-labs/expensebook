@@ -309,10 +309,9 @@ export default function ({allocations, setAllocations, tenantId, travelType, org
     return(<>
     <MainSectionLayout>
         {
-        
-            <div className='relative px-6 py-10 bg-white'>               
+            <div className='relative bg-white'>               
                {/* back button and title */}
-                <div className='flex gap-4 absolute py-10 bg-white z-[50]'>
+                <div className='flex  sticky top-0 gap-4 py-10 bg-white z-[50]'>
 
                     <div className='w-6 h-6 cursor-pointer' onClick={()=>setShowTravelType(null)}>
                         <img src={back_icon} />
@@ -331,7 +330,7 @@ export default function ({allocations, setAllocations, tenantId, travelType, org
                 </div>
 
                 {/* rest of the section */}
-                <div className='mt-28 flex flex-col gap-4'>  
+                <div className='flex flex-col gap-4'>  
                     {allocations && allocations[travelType]?.length>0 && allocations[travelType]?.map((category, index)=>{
                             return (
                             <Policy 

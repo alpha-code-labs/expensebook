@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { titleCase } from "../../utils/handyFunctions";
+import React from "react";
 
 export default function Search(props){
     const placeholder = props.placeholder || "Placeholder Text";

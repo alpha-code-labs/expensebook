@@ -50,7 +50,7 @@ export default function ({tenantId}){
                 setFlags(travelAllocationFlags)
             }
              
-            setIsLoading(fasle);
+            setIsLoading(false);
         })()
     },[])
 

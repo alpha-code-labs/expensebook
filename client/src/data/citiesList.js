@@ -333,6 +333,7 @@ export const indianCitiesList = [
     "Guntur",
     "Gurdaspur",
     "Gurgaon",
+    "Gurugram",
     "Guruvayur",
     "Guwahati",
     "Gwalior",

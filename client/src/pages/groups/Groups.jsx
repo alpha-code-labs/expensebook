@@ -13,6 +13,7 @@ import { getTenantEmployees_API, getTenantGroupingLabels_API, getTenantGroups_AP
 import Error from '../../components/common/Error'
 import React from "react"
 import Prompt from '../../components/common/Prompt'
+import MainSectionLayout from '../../layouts/MainSectionLayout'
 
 //tracking-tight --for font spacing
 
@@ -233,7 +234,7 @@ export default function ({tenantId}){
         }
     }
     
-    return(<>
+    return(<MainSectionLayout>
         {loading && <Error message={loadingErr} />}
         {!loading && <>
             {!showCreatedGroups && <>
@@ -356,7 +357,7 @@ export default function ({tenantId}){
         <Prompt prompt={prompt} setPrompt={setPrompt} />
         </>}
 
-        </>)
+        </MainSectionLayout>)
 }
 
 

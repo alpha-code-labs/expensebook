@@ -66,7 +66,7 @@ export default function ({tenantId}){
                 <MainSectionLayout>
                     {<>   
                         
-                        <div className='px-6 py-10 bg-white'>
+                        <div className='pb-10 bg-white'>
                                 {/* back button and title */}
                             <div className='flex gap-4 sticky top-20'>
                                 <div className='flex gap-2'>

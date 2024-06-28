@@ -99,7 +99,7 @@ export default function ({tenantId, travelType, ruleEngineState, setRuleEngineSt
     }
 
     return(
-        <>
+        <MainSectionLayout>
         {
         
             <div className='px-6 py-10 bg-white'>               
@@ -157,7 +157,7 @@ export default function ({tenantId, travelType, ruleEngineState, setRuleEngineSt
                 <Prompt prompt={prompt} setPrompt={setPrompt} timeout={3000} />
             </div>
         }
-        </>
+        </MainSectionLayout>
     
     );
   }

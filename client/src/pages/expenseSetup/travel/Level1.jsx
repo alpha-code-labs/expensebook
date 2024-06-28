@@ -259,7 +259,7 @@ export default function ({tenantId}) {
         {networkStates.isLoading && <Error message={networkStates.loadingErrMsg} />}
         {!networkStates.isLoading && <>
         
-        <div className='px-6 py-10 bg-white relative'>               
+        <div className='bg-white relative'>               
         {/* back button and title */}
         <div className='flex gap-4'>
                 <div className='flex gap-2'>

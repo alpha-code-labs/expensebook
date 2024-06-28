@@ -214,13 +214,13 @@ export default function ({tenantId, travelType, ruleEngineState, setRuleEngineSt
   function CrossIcon(props){
     const onClick = props.onClick
 
-    return(<>
+    return(<MainSectionLayout>
         <div onClick={props.onClick} className="p-1 cursor-pointer bg-red-300 rounded-3xl justify-center items-center inline-flex">
             <div className="w-4 h-4">
                 <img src={cross_icon} />
             </div>
         </div>
-    </>)
+    </MainSectionLayout>)
   }
 
 function AmountTable(props){
