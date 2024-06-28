@@ -9,6 +9,7 @@ import {currenciesList} from '../data/currenciesList';
 import Error from '../components/common/Error';
 import MainSectionLayout from '../layouts/MainSectionLayout';
 import Prompt from '../components/common/Prompt';
+import { indianCitiesList } from '../data/citiesList';
 
 const WEB_PAGE_URL = import.meta.env.VITE_WEB_PAGE_URL
 
@@ -16,7 +17,7 @@ export default function CompanyInfo({tenantId}){
 
   const [companyList, setCompanyList] = useState([])
   const [businessCategoriesList, setBusinessCategoriesList] = useState([])
-  const [locationsList, setLocationsList] = useState(['Bangalore', 'Mumbai', 'Delhi', 'Chennai', 'Hyderabad', 'Kolkata'])
+  const [locationsList, setLocationsList] = useState(indianCitiesList)
   const [formData, setFormData] = useState({companyName:'', businessCategory:'', teamSize:'', companyHQ:'', onboardingCompleted: false, state: 'section_1', defaultCurrency: {}, companyEmail:''})
 
   const [diyFlag, setDiyFlag] = useState(true); //initialize this with the actual value

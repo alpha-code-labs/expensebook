@@ -8,17 +8,18 @@ export default function Search(props){
     const dropdownRef = useRef(null);
     const inputRef = useRef(null)
     const optionsList = props.options || []
-    const currentOption = props.currentOption || null
+    const currentOption = props.currentOption??''
     const [selectedOption, setSelectedOption] = useState(currentOption) 
-    const [textInput, setTextInput] = useState('')
+    const [textInput, setTextInput] = useState(currentOption)
     const [filteredOptionsList, setFilteredOptionsList] = useState(null)
     const [keyboardFocusIndex, setKeyboardFocusIndex] = useState(-1)
     const allowCustomInput = props.allowCustomInput || false
     const error = props.error || {set:false, message:''}
 
+    console.log(textInput, currentOption, 'from search')
+
     //refs for filtered options
     const dropdownOptionsRef = useRef([]);
-    console.log(currentOption, 'current search option')
 
     useEffect(()=>{
         setKeyboardFocusIndex(-1)
@@ -195,12 +196,10 @@ export default function Search(props){
                 >
                     {filteredOptionsList &&
                     filteredOptionsList.map((option, index) => (
-                        <>
+                        <React.Fragment key={index}>
                         <p
-                            key={index}
                             tabIndex={index+1}
                             onKeyDown={handleDropdownKeyDown}
-                            //ref={firstDropDownOptionsRef}
                             ref={el => dropdownOptionsRef.current[index] = el} 
                             onClick={(e)=>{ handleOptionSelect(option, index) }}
                             className="text-xs font-medium font-cabin text-neutral-700 px-4 py-3 cursor-pointer transition-color hover:bg-gray-200 focus-visible:outline-0 focus-visible:bg-gray-100"
@@ -208,7 +207,7 @@ export default function Search(props){
                             {titleCase(option)}
                         </p>
                         {index != optionsList.length - 1 && <hr key={option} />}
-                        </>
+                        </React.Fragment>
                     ))}
                 </div>
                 }
