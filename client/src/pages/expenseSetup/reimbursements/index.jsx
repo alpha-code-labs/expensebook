@@ -4,6 +4,7 @@ import { useLocation, useParams } from "react-router-dom";
 import NonTravelPoliciesPageComponent from "../../policies/NonTravelPoliciesPageComponent";
 import { expenseCategories } from "../../../data/expenseCategories";
 import ReimbursementAllocationsPage from "./ReimbursementAllocationsPage";
+import Error from "../../../components/common/Error";
 
 const defaultCategories = expenseCategories
 
@@ -18,6 +19,7 @@ export default function ({progress, setProgress}){
   const [groups, setGroups] = useState(null)
   const [ruleEngineState, setRuleEngineState] = useState()
   const [groupsNotFound, setGroupsNotFound] = useState(false)
+  const [networkStates, setNetworkStates] = useState({isLoading: true, loadingErrMsg: null});
 
 
   const [ruleEngineData, setRuleEngineData] = useState({
@@ -143,8 +145,14 @@ export default function ({progress, setProgress}){
         } else {
           console.log('this ran..');
           try {
+            setNetworkStates({isLoading: true, loadingErrMsg: null});
             const groups_data_response = await axios.get(`import.meta.VITE_PROXY_URL/tenant/${tenantId}/groups`);
             const policies_data_response = await axios.get(`import.meta.VITE_PROXY_URL/tenant/${tenantId}/policies/non-travel`);
+
+            if(groups_data_response.err || policies_data_response.err){
+              setNetworkStates({isLoading: true, loadingErrMsg: groups_data_response.err??policies_data_response.err??'Something went wrong please try again later' });
+              return;
+            }
 
             const groups = groups_data_response.data.groups
             const policies = policies_data_response.data.policies
@@ -255,12 +263,7 @@ export default function ({progress, setProgress}){
   },[ruleEngineState])
 
   return <>
-    {/* <NonTravelPoliciesPageComponent 
-        tenantId = {tenantId}
-        ruleEngineState={ruleEngineState}
-        setRuleEngineState={setRuleEngineState}
-        travelType='nonTravel' /> */}
-
-    <ReimbursementAllocationsPage tenantId = {tenantId} progress={progress} setProgress={setProgress} />
+  {networkStates.isLoading && <Error message={networkStates.loadingErrMsg} />}
+  {!networkStates.isLoading && <ReimbursementAllocationsPage tenantId = {tenantId} progress={progress} setProgress={setProgress} />}
   </>;
 }

@@ -13,6 +13,7 @@ import Prompt from '../../../components/common/Prompt'
 import { expenseCategories } from '../../../data/expenseCategories'
 import { camelCaseToTitleCase } from '../../../utils/handyFunctions'
 import MainSectionLayout from '../../../layouts/MainSectionLayout'
+import Error from "../../../components/common/Error";
 
 const reimbursement_allocations = expenseCategories.map(category=>{
     if(category.hasOwnProperty('class')){
@@ -84,14 +85,6 @@ export default function ({tenantId}) {
     const [existingCategory, setExistingCategory] = useState(false)
     const [existingCategoryName, setExistingCategoryName] = useState(null)
     const [orgHeaders, setOrgHeaders] = useState([])
-    const [selectedOrgHeaders_cat, setSelectedOrgHeaders_cat] = useState([])
-    const [selectedOrgHeaders_exp, setSelectedOrgHeaders_exp] = useState([])
-    const [accountLine_cat, setAccountLine_cat] = useState(null)
-    const [accountLine_exp, setAccountLine_exp] = useState(null)
-    const [presentFieldLength, setPresentFieldLength] = useState([])
-    const [isUploading, setIsUploading] = useState(false)
-    const [openAccordion, setOpenAccordion] = useState('')
-
 
     const [prompt, setPrompt] = useState({showPrompt:false, promptMsg:null, success:false})
     const [networkStates, setNetworkStates] = useState({isLoading:false, isUploading:false, loadingErrMsg:null})
@@ -294,7 +287,8 @@ export default function ({tenantId}) {
     },[updatedOrgHeadeers])
 
     return(<>
-        <MainSectionLayout>
+        {networkStates.isLoading && <Error message={networkStates.loadingErrMsg} />}
+        {!networkStates.isLoading && <MainSectionLayout>
             {
                 <div className='px-6 py-10 bg-white'>               
                 {/* back button and title */}
@@ -407,7 +401,7 @@ export default function ({tenantId}) {
                     </div>
                 </div>
                 </div>}
-        </MainSectionLayout>
+        </MainSectionLayout>}
         </>
     );
   }

@@ -34,7 +34,7 @@ useEffect(()=>{
                 setIsLoading(true);
                 const res = await getTenantOrgHeaders_API({tenantId});
                 if(res.err){
-                    setPrompt({showPrompt:true, success: false, promptMsg: 'Failed to fetch data at the moment. Please try again later.'});
+                    setLoadingErr(res.err??'Something went wrong please try again later');
                     return;
                 }
 

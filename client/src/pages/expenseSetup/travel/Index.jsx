@@ -35,16 +35,22 @@ export default function ({tenantId}){
 
     useEffect(()=>{
         (async function(){
+            setIsLoading(true)
             const res = await getTravelAllocationFlags_API({tenantId})
-            console.log(res.data)
+            console.log(res)
             if(res.err){
-                alert('Error while fetching details')
+                console.log('setting prompt')
+                setLoadingErrMsg('Network Error')
+                setPrompt({showPrompt: true, success: false, promptMsg: 'Can not fetch details at the moment. Please try again later'});
                 return
             }
             const travelAllocationFlags = res.data.travelAllocationFlags
             
-            if(Object.keys(travelAllocationFlags).length != 0)
+            if(Object.keys(travelAllocationFlags).length != 0){
                 setFlags(travelAllocationFlags)
+            }
+             
+            setIsLoading(fasle);
         })()
     },[])
 
@@ -89,11 +95,10 @@ export default function ({tenantId}){
                     <Button variant='fit' text='Save Changes' onClick={handleContinue}  />
                 </div>
 
+                <Prompt prompt={prompt} setPrompt={setPrompt} />
             </div>
-
-            <Prompt prompt={prompt} setPrompt={setPrompt} />
-
             </>}
+
         </MainSectionLayout>
     </>)
 }

@@ -1,7 +1,6 @@
 import * as ScrollArea from '@radix-ui/react-scroll-area';
 import './LeftPaneStyles.css'
 import { useState } from 'react';
-import Icon from './common/Icon';
 import app_icon from '../assets/app_icon.svg';
 import app_symbol from '../assets/app_symbol.svg';
 
@@ -38,7 +37,7 @@ const options = [
 ]
 
 
-const ScrollAreaDemo = ({loadLink}) => {
+const ScrollAreaDemo = ({loadLink, dashboardLink}) => {
     const [selectedOption, setSelectedOption] = useState(null)
     const handleOptionSelect = (option, link)=>{
         setSelectedOption(option)
@@ -47,7 +46,7 @@ const ScrollAreaDemo = ({loadLink}) => {
     return(
     <ScrollArea.Root className="ScrollAreaRoot bg-slate-100">
         <ScrollArea.Viewport className="ScrollAreaViewport">
-        <div className="flex items-center h-[12] pt-8 w-fit justify-center px-4">
+        <div onClick={()=> window.location.href = dashboardLink} className="flex items-center h-[12] pt-8 w-fit justify-center px-4 cursor-pointer">
             <img className='w-[23px] h-[23px]' src={app_symbol} />
             <img className='w-[168px] h-[27px] -ml-[7px]' src={app_icon} />
         </div>
