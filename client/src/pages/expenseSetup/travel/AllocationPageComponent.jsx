@@ -508,7 +508,7 @@ function Policy({
             <div className={`w-full h-fit bg-white transition-opacity transition-max-height delay-1000  ${collapse? 'hidden opacity-0 max-height-0': 'opacity-100 max-height-[1000px]' }`} >
                 <div className='mt-10'>
                     <p className='text-neutral-800 text-base'>Captured Fields</p>
-                    <div className='flex gap-2 divide-x'>
+                    <div className='flex flex-wrap gap-2 divide-x'>
                         {fields?.length>0 && fields.map((field, fieldIndex)=>
                             <div key={fieldIndex} className='flex gap-4 pl-1 items-center'>
                                 <p className='text-neutral-700 text-sm font-cabin'>{field.name}</p>
