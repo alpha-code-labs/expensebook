@@ -14,8 +14,10 @@ export const getTravelExpenseData = async(tenantId, empId)=>{
           tenantId,
           'tripSchema.travelExpenseData':{
             $elemMatch:{
-              'actionedUpon': false,
-              'expenseHeaderStatus':status.PENDING_SETTLEMENT
+              $or:[
+                {'paidFlag':false, 'expenseHeaderStatus': status.PENDING_SETTLEMENT },
+                {'recoveredFlag':false, 'expenseHeaderStatus': status.PENDING_SETTLEMENT}
+              ]
             }
           },
         });
@@ -23,9 +25,31 @@ export const getTravelExpenseData = async(tenantId, empId)=>{
         if (!expenseReportsToSettle) {
           return { success: true, message: `All are settled` };
       } else {
-          return expenseReportsToSettle
+
+      const travelExpense = expenseReportsToSettle.flatMap((report) =>{
+        if(!report?.tripSchema || !report?.tripSchema?.travelExpenseData?.length > 1){
+          return []
       }
-    } catch (error) {
+      const {expenseAmountStatus, createdBy} = report.tripSchema
+
+        return report.tripSchema.travelExpenseData
+        .filter((expense) => expense.expenseHeaderStatus === status.PENDING_SETTLEMENT)
+        .map(({travelRequestId,expenseHeaderId, paidBy,recoveredBy, paidFlag, recoveryFlag})=>({
+          expenseAmountStatus,
+          travelRequestId,
+          expenseHeaderId,
+          createdBy,
+          paidBy,
+          recoveredBy,
+          paidFlag,
+          recoveryFlag
+          }))
+      })
+
+      console.log("travelExpense",travelExpense)
+      return travelExpense
+
+    }} catch (error) {
       throw new Error({ error: 'Error in fetching travel expense reports:', error });
     }
 };
@@ -55,12 +79,22 @@ export const paidExpenseReports = async (req, res) => {
     travelRequestId,
     'tripSchema.travelExpenseData': {
       $elemMatch: {
-        expenseHeaderId,
-        expenseHeaderStatus: status.PENDING_SETTLEMENT,
-        actionedUpon: false
-      }
+      $or: [
+        { expenseHeaderId,'paidFlag': false, 'expenseHeaderStatus': status.PENDING_SETTLEMENT },
+        { expenseHeaderId,'recoveredFlag': false, 'expenseHeaderStatus': status.PENDING_SETTLEMENT }
+      ]
     }
   }
+}
+
+const update = {
+  $set: {
+    'tripSchema.travelExpenseData.$[elem].paidFlag': true,
+    'tripSchema.travelExpenseData.$[elem].paidBy': paidBy,
+    'tripSchema.travelExpenseData.$[elem].actionedUpon': true,
+    'tripSchema.travelExpenseData.$[elem].expenseHeaderStatus': newStatus.PAID
+  }
+}
 
   try {
     const expenseReport = await Finance.findOne(filter);
@@ -68,6 +102,11 @@ export const paidExpenseReports = async (req, res) => {
     if (!expenseReport) {
       return res.status(404).json({ message: 'No matching document found' });
     }
+
+    const {expenseAmountStatus} = expenseReport.tripSchema
+
+    const {totalRemainingCash} = expenseAmountStatus
+
 
     const expenseHeaderIndex = expenseReport.tripSchema?.travelExpenseData.findIndex(
       (expense) => JSON.stringify(expense.expenseHeaderId) === JSON.stringify(expenseHeaderId)
@@ -79,13 +118,7 @@ export const paidExpenseReports = async (req, res) => {
 
     const updateResult = await Finance.updateOne(
       filter,
-      {
-        $set: {
-          'tripSchema.travelExpenseData.$[elem].paidBy': paidBy,
-          'tripSchema.travelExpenseData.$[elem].actionedUpon': true,
-          'tripSchema.travelExpenseData.$[elem].expenseHeaderStatus': newStatus.PAID
-        }
-      },
+      update,
       {
         arrayFilters: [{ 'elem.expenseHeaderId': expenseHeaderId }],
         new: true
@@ -104,53 +137,7 @@ export const paidExpenseReports = async (req, res) => {
   }
 };
 
-export const settlementTravelExpenseData = async(req , res)=>{
-        try {
-        const { tenantId, travelRequestId, expenseHeaderId} = req.params;
-        const{ settledBy} = req.body
 
-        // console.log("LINE AT 15" , id);
-         const singletravelExpenseDataUpdate = await Finance.findByIdAndUpdate({
-            'tripSchema.travelExpenseData.expenseHeaderId': expenseHeaderId,
-          },{
-            $set: {          
-                'tripSchema.travelExpenseData.actionedUpon':true,
-                'tripSchema.travelExpenseData.settlementFlag':true
-            }},
-               { new: true } 
-          );
-      
-          if (!singletravelExpenseDataUpdate) {
-            return res.status(404).json({ message: `Element not found` });
-          }
-          res.status(200).json(singletravelExpenseDataUpdate);
-        } catch (error) {
-          console.log("LINE AT 30" , error.message);
-          res.status(500).json(error);
-        }
-};
-
-export const unSettlementTravelExpenseData = async(req , res)=>{
-       // console.log("LINE AT 37" , req.body);
-       const id = req.body._id;
-       // console.log("LINE AT 39" , id);
-   
-       try {
-       const singletravelExpenseDataUpdateAgain = await travelExpense.findByIdAndUpdate(
-           id,
-              {$set: {settlementFlag: false}} , // Update only the cashAdvanceStatus field
-              { new: true } 
-         );
-     
-         if (!singletravelExpenseDataUpdateAgain) {
-           return res.status(404).json({ message: `Element not found` });
-         }
-         res.status(200).json(singletravelExpenseDataUpdateAgain);
-       } catch (error) {
-         console.log("LINE AT 53" , error.message);
-         res.status(500).json(error);
-       }
-}
 
 
 

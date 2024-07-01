@@ -8,17 +8,38 @@ export const getPaidAndCancelledCash = async(tenantId, empId)=>{
         PAID_AND_CANCELLED :'paid and cancelled' 
       }
 
-      const singleCashAdvanceData = await Finance.find({
-        'cashAdvanceSchema.cashAdvancesData.actionedUpon': false,
+      const cashAdvanceReports = await Finance.find({
+        'cashAdvanceSchema.cashAdvancesData.recoveryFlag': false,
         'cashAdvanceSchema.cashAdvancesData.tenantId':tenantId,
         'cashAdvanceSchema.cashAdvancesData.cashAdvanceStatus':{$in:[cashStatus.PAID_AND_CANCELLED]}
         }
       );
 
-      if(!singleCashAdvanceData){
+      if(!cashAdvanceReports){
         return { success:true, message: `All are settled` };
       } else {
-        return singleCashAdvanceData;
+
+        const recoverCash = cashAdvanceReports.flatMap((report) => {
+          if (!report.cashAdvanceSchema || !Array.isArray(report.cashAdvanceSchema.cashAdvancesData)) {
+            return [];
+          }
+      
+          return report.cashAdvanceSchema.cashAdvancesData
+            .filter(cash => cash.cashAdvanceStatus === cashStatus.PAID_AND_CANCELLED)
+            .map(({ travelRequestId, cashAdvanceId, cashAdvanceStatus, createdBy, amountDetails, recoveredBy, paidBy, actionedUpon }) => ({
+              actionedUpon,
+              travelRequestId,
+              cashAdvanceId,
+              createdBy,
+              cashAdvanceStatus,
+              amountDetails:amountDetails[0],
+              recoveredBy,
+              paidBy
+            }));
+        });
+        // console.log("recoverCash", recoverCash)
+        return recoverCash;
+
       }
     } catch (error) {
       console.error("Error in fetching paid and cancelled cashAdvance:", error);
@@ -35,19 +56,45 @@ export const getCashAdvanceToSettle = async(tenantId, empId) => {
       AWAITING_PENDING_SETTLEMENT:'awaiting pending settlement'
     }
 
+    const filterStatus = [
+      status.PENDING_SETTLEMENT,
+      status.AWAITING_PENDING_SETTLEMENT
+    ]
+
     const cashToSettle = Object.values(status)
     console.log("status", cashToSettle)
 
     const getAllCashToSettle = await Finance.find({
       'cashAdvanceSchema.cashAdvancesData.tenantId':tenantId,
       'cashAdvanceSchema.cashAdvancesData.cashAdvanceStatus':{$in:cashToSettle},
-      'cashAdvanceSchema.cashAdvancesData.actionedUpon':false
+      'cashAdvanceSchema.cashAdvancesData.paidFlag':false
     })
 
     if(!getAllCashToSettle){
       return {message:"All are settled", success: true}
     }else{
-      return  getAllCashToSettle
+
+      const settleCash = getAllCashToSettle.flatMap((report) => {
+          if (!report.cashAdvanceSchema || !Array.isArray(report.cashAdvanceSchema.cashAdvancesData)) {
+            return [];
+          }
+      
+          return report.cashAdvanceSchema.cashAdvancesData
+            // .filter(cash => cash.cashAdvanceStatus === status.PENDING_SETTLEMENT || cash.cashAdvanceStatus === status.AWAITING_PENDING_SETTLEMENT)
+            .filter(cash => filterStatus.includes(cash.cashAdvanceStatus) )
+            .map(({ travelRequestId, cashAdvanceId, cashAdvanceStatus, createdBy, amountDetails, recoveredBy, paidBy, actionedUpon }) => ({
+              actionedUpon,
+              travelRequestId,
+              cashAdvanceId,
+              createdBy,
+              cashAdvanceStatus,
+              amountDetails:amountDetails[0],
+              recoveredBy,
+              paidBy
+            }));
+        });
+        // console.log("settleCash", settleCash)
+        return settleCash;
     }
 
   } catch(error){
@@ -86,7 +133,7 @@ export const paidCashAdvance = async (req, res) => {
         $elemMatch: {
           cashAdvanceId,
           cashAdvanceStatus: status.PENDING_SETTLEMENT,
-          actionedUpon: false
+          paidFlag: false
         }
       }
     });
@@ -111,14 +158,14 @@ export const paidCashAdvance = async (req, res) => {
           $elemMatch: {
             cashAdvanceId,
             cashAdvanceStatus: status.PENDING_SETTLEMENT,
-            actionedUpon: false
+            paidFlag: false
           }
         }
       },
       {
         $set: {
           'cashAdvanceSchema.cashAdvancesData.$[elem].paidBy': paidBy,
-          'cashAdvanceSchema.cashAdvancesData.$[elem].actionedUpon': true,
+          'cashAdvanceSchema.cashAdvancesData.$[elem].paidFlag': true,
           'cashAdvanceSchema.cashAdvancesData.$[elem].cashAdvanceStatus': newStatus.PAID
         }
       },
@@ -165,7 +212,7 @@ export const recoverCashAdvance = async (req, res) => {
         $elemMatch: {
           cashAdvanceId,
           cashAdvanceStatus: status.PAID_AND_CANCELLED,
-          actionedUpon: false
+          recoveryFlag: false
         }
       }
     });
@@ -190,14 +237,14 @@ export const recoverCashAdvance = async (req, res) => {
           $elemMatch: {
             cashAdvanceId,
             cashAdvanceStatus: status.PAID_AND_CANCELLED,
-            actionedUpon: false
+            recoveryFlag: false
           }
         }
       },
       {
         $set: {
           'cashAdvanceSchema.cashAdvancesData.$[elem].recoveredBy': recoveredBy,
-          'cashAdvanceSchema.cashAdvancesData.$[elem].actionedUpon': true,
+          'cashAdvanceSchema.cashAdvancesData.$[elem].recoveryFlag': true,
           'cashAdvanceSchema.cashAdvancesData.$[elem].cashAdvanceStatus': status.RECOVERED
         }
       },
