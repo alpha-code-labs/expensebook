@@ -115,6 +115,16 @@ export const cashAdvanceSchema = new mongoose.Schema({
       required:true,
       default:false,
     },
+    recoveryFlag:{
+      type:Boolean,
+      required:true,
+      default:false,
+    },
+    paidFlag:{
+      type:Boolean,
+      required:true,
+      default:false,
+    },
     actionedUponDate:{
       type: Date,
       // default: Date.now(),

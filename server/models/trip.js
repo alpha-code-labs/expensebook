@@ -866,16 +866,27 @@ const expenseLineSchema = new mongoose.Schema({
           violations: [String],
           travelType: String,
           rejectionReason: String,
-          paidBy:{empId:String, name:String},
-          recoveredBy:{empId:String, name:String},
+          paidBy:{
+            empId:String, 
+            name:String
+          },
+          recoveredBy:{
+            empId:String, 
+            name:String
+          },
           submissionDate: Date,
-          actionedUpon:{
-            type:Boolean,
-            required:true,
-            default:false,
+          recoveryFlag:{
+          type:Boolean,
+          required:true,
+          default:false,
+          },
+          paidFlag:{
+          type:Boolean,
+          required:true,
+          default:false,
           },
         }
-      ],
+  ],
 }); 
 
 
