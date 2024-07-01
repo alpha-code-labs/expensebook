@@ -8,7 +8,7 @@ const router = Router()
 
 router.get('/role/:tenantId/:empId', roleBasedLayout)
 
-router.use('/cashadvance', cashAdvance)
+router.use('/cash', cashAdvance)
 
 router.use('/expense', expenseRouter)
 
