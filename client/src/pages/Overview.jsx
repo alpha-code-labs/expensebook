@@ -1,11 +1,12 @@
 /* eslint-disable react/jsx-key */
 import React, { useState,useEffect } from 'react';
-import { airplane_1, briefcase, calender, double_arrow,cab_purple,  house_simple, train, bus, cancel_round, cancel, modify, plus_icon, plus_violet_icon, receipt, down_arrow, chevron_down, down_left_arrow } from '../assets/icon';
+import { airplane_1, briefcase, calender, double_arrow,cab_purple,  house_simple, train, bus, cancel_round, cancel, modify, plus_icon, plus_violet_icon, receipt, down_arrow, chevron_down, down_left_arrow, calender_2_icon, airplane, material_flight_icon, material_cab_icon, material_hotel_icon, city_icon } from '../assets/icon';
 import { formatAmount, formatDate, getStatusClass } from '../utils/handyFunctions';
 import Tooltip from '../components/Tooltip';
 import { Tilt } from 'react-tilt'
 import { travelExpense,reimbursementExpense, travelRequests } from '../utils/dummyData';
 import { motion } from 'framer-motion';
+
 
 const Overview = () => {
   const trips = [
@@ -210,7 +211,7 @@ const Overview = () => {
 
 
   return (
-    <div className=" border border-black min-h-screen flex items-center justify-center px-2 md:px-10">
+    <div className=" border border-black bg-[#eef2ff] min-h-screen flex items-center justify-center px-2 md:px-10">
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 w-full overflow-hidden   ">
     
       <div className={`min-w-[400px] px-2  h-[340px] ${visibleDivs[0] ? 'opacity-100' : 'opacity-0'}`} >
@@ -220,15 +221,119 @@ const Overview = () => {
              alt="briefcase_icon"
              src={briefcase}
            />
-           <b className="tracking-[0.02em] font-cabin text-[16px] text-indigo-600 font-semibold">In-transit Trips</b>
+           <b className="tracking-[0.02em] font-cabin text-[16px] text-black font-semibold">Activities for On-going Trips</b>
          </div>
-         <div className='ring-2 ring-indigo-600 shadow-sm shadow-indigo-600 rounded-md'/>
+         <div className='ring-2 ring-black shadow-sm shadow-indigo-600 rounded-md'/>
 
-         <div className="h-[285px] overflow-hidden overflow-y-auto mt-2 border-4 ring-offset-2 ring-2 ring-indigo-600/50 shadow-lg  shadow-indigo-500 border-indigo-600 rounded-md px-2">
+         <div className="h-[285px] flex justify-center items-center  bg-white-100 overflow-hidden overflow-y-auto mt-2  border-[4px] border-gray-600  shadow-lg  shadow-black/60  rounded-3xl px-2">
+         {/* <div className="h-[285px] bg-white-100 overflow-hidden overflow-y-auto mt-2  border-[4px] border-gray-600  shadow-lg  shadow-custom-light  rounded-3xl px-2"> */}
          
-           {trips.map((trip, index) => (
+           {/* {trips.map((trip, index) => (
              <Trips key={index} index={index} trip={trip} lastIndex={trips.length - 1} />
-           ))}
+           ))} */}
+           <div className='h-[260px] w-full   rounded-2xl px-2 py-2 '>
+            <div className='border-2 border-black rounded-xl py-2'>
+            <div className='flex items-center  py-1 px-2'>
+            <div className='px-2 py-1 text-center bg-black rounded-2xl text-white-100'>
+                <p className='font-inter text-xs'>Upcoming</p>
+              </div>
+              <div className='px-2 py-1'>
+                <p className='font-inter text-xs font-semibold'>Completed</p>
+              </div>
+             
+
+            </div>
+            <div className='w-full flex flex-row border-t-2 border-black p-2 items-center justify-between'>
+            <div className='w-2/3 font-mono font-medium mt-2 flex flex-col gap-2'>
+            <div className='flex gap-2 font-inter '>
+                <img src={calender_2_icon} className='w-4 h-4'/>
+                <div className='font-semibold text-sm'>24<sup>th</sup> June</div>
+              </div>
+              <div>
+              <div className='font-semibold text-neutral-400 text-xs font-inter '>DEPARTURE</div>
+              <div className='font-inter text-sm'>Mumbai - Lucknow - Delhi</div>
+              </div>
+            </div>
+            <div className='w-1/3 flex justify-end'>
+              <div className='bg-black text-white-100 text-sm px-2 py-1 rounded-md'>
+               <p >Modify</p>
+              </div>
+            </div>
+            </div>
+            <div className=' space-y-2 px-2'>
+              <div className='flex flex-row  border-y-2 rounded-lg border-black shadow-sm shadow-black w-full '>
+                <div className='flex w-2/5'>
+              <div className='w-8 h-8 p-2 flex items-center'>
+                <img src={material_flight_icon} className='w-4 h-4'/>
+              </div>
+              <div className='flex gap-2 font-inter items-center justify-center p-2 '>
+                <img src={calender_2_icon} className='w-4 h-4'/>
+                <div className='font-semibold text-sm'>24<sup>th</sup> June</div>
+              </div>
+              </div>
+
+              <div className='w-3/5 flex text-black space-x-2 font-inter text-sm font-medium  items-center justify-center'>
+                <div className=''>Delhi</div>
+                <img src={double_arrow} className='w-5 h-5'/>
+                <div>Lucknow</div>
+              </div>
+              <div>
+               
+             
+
+              </div>
+              </div>
+              <div className='flex flex-row  border-y-2 rounded-lg border-black shadow-sm shadow-black w-full '>
+                <div className='flex w-2/5'>
+              <div className='w-8 h-8 p-2 flex items-center'>
+                <img src={material_cab_icon} className='w-4 h-4'/>
+              </div>
+              <div className='flex gap-2 font-inter items-center justify-center p-2 '>
+                <img src={calender_2_icon} className='w-4 h-4'/>
+                <div className='font-semibold text-sm'>24<sup>th</sup> June</div>
+              </div>
+              </div>
+
+              <div className='w-3/5 flex text-black space-x-2 font-inter text-sm font-medium  items-center justify-center'>
+                <div className=''>Amax Office</div>
+                <img src={double_arrow} className='w-5 h-5'/>
+                <div>Delhi Airport</div>
+              </div>
+              <div>
+               
+             
+
+              </div>
+              </div>
+              <div className='flex flex-row   border-y-2 rounded-lg border-black shadow-sm shadow-black w-full '>
+                <div className='flex w-2/5'>
+              <div className='w-8 h-8 p-2 flex items-center'>
+                <img src={material_hotel_icon} className='w-4 h-4'/>
+              </div>
+              <div className='flex gap-2 font-inter items-center justify-center p-2 '>
+                <img src={city_icon} className='w-4 h-4'/>
+                <div className='font-semibold text-sm'>Lucknow</div>
+              </div>
+              </div>
+
+              <div className='w-3/5 flex space-x-2 font-inter text-sm font-medium  items-center justify-center'>
+              <div className=''>24<sup>th</sup> June</div>
+                <img src={double_arrow} className='w-5 h-5'/>
+                <div className=''>26<sup>th</sup> June</div>
+              </div>
+              <div>
+               
+             
+
+              </div>
+              </div>
+              
+
+            </div>
+            </div>
+           </div>
+
+           
           
          </div>
          
@@ -454,8 +559,8 @@ const Trips = ({ index, trip, lastIndex }) => {
   const [visible, setVisible] = useState({ addALeg: false });
 
   return (
-    <div className={`${index === lastIndex ? ' ' : 'mb-2'} h-[270px] rounded-md border border-white-100 shadow-sm shadow-indigo-600`}>
-      <div className="flex gap-2 px-2 flex-row items-center justify-between text-center font-cabin border-b shadow-sm shadow-indigo-500 border-indigo-600 py-2 text-neutral-700 text-xs">
+    <div className={`${index === lastIndex ? ' ' : 'mb-2'} h-[270px] rounded-md border border-white-100 `}>
+      <div className="flex gap-2 px-2 flex-row items-center justify-between text-center font-cabin border-b shadow-sm  py-2 text-neutral-700 text-xs">
         <div className='flex'>
           <motion.div
             className={`px-2 py-1 rounded-xl cursor-pointer transition duration-150 ease-in-out ${activeTabs === 'completed' ? 'bg-indigo-100 font-semibold text-indigo-600 border border-white-100 text-xs shadow-md shadow-indigo-600' : 'text-xs'}`}

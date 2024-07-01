@@ -1,3 +1,20 @@
+///material icon
+export { default as material_flight_icon } from './material_icon/outline_flight_takeoff_black_48dp.png';
+export { default as material_flight_w_icon } from  './material_icon/outline_flight_takeoff_white_48dp.png';
+export { default as material_bus_icon } from './material_icon/outline_directions_bus_black_48dp.png' ;
+export {default as meterial_bus_w_icon} from './material_icon/outline_directions_bus_white_48dp.png';
+export { default as material_cab_icon } from  './material_icon/outline_local_taxi_black_48dp.png';
+export { default as material_cab_w_icon } from  './material_icon/outline_local_taxi_white_48dp.png';
+export {default as material_train_icon} from './material_icon/outline_train_black_48dp.png';
+export {default as material_train_w_icon} from './material_icon/outline_train_white_48dp.png';
+export {default as material_hotel_icon} from './material_icon/outline_hotel_black_48dp.png';
+export {default as material_hotel_w_icon} from './material_icon/outline_hotel_white_48dp.png';
+export {default as material_carRental_icon} from './material_icon/outline_car_rental_black_48dp.png';
+export {default as material_carRental_w_icon} from './material_icon/outline_car_rental_white_48dp.png';
+export {default as material_personalVehicle_icon} from './material_icon/outline_commute_black_48dp.png';
+export {default as material_personalVehicle_w_icon} from './material_icon/outline_commute_white_48dp.png';
+
+
 export { default as expense_text } from './expensebook.svg';
 export {default as frame_504} from './Frame 504.svg';
 export {default as airplay_1} from './airplay (1).svg';
@@ -59,5 +76,7 @@ export {default as briefcaseMap} from './suitcase/breifcase03.jpg';
 export {default as user_icon} from './userprofile.png';
 export {default as plus_icon} from './plus.svg';
 export {default as plus_violet_icon} from './plus copy.svg';
+export {default as calender_2_icon} from './calender-2.png';
+export {default as city_icon} from './city.png';
 
 

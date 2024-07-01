@@ -14,12 +14,18 @@ export default {
         '50%': '50%',
         '16': '4rem',
       },
+      boxShadow: {
+        'custom-light': '0 8px 12px rgba(0, 0, 0, 0.1)',
+        card: "0px 35px 120px -15px #211e35",
+      },
+      
       colors :{
         white : {
           100:'#FFF',
           200:'#FDFCFC',
           300:'#FDFDFD'
         },
+        
         purple:{
           50:'#EAE7FD',
           500: '#4C36F1',
@@ -31,7 +37,7 @@ export default {
           300:'#707070',
           400:'#333',
           500:'#000',
-          600:'#C8C9D0',
+          600:"#f8f9fa",
           700:'#363636',
           
           900:'#F1F1F3',
