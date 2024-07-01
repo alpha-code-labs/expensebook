@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import closeIcon from '../assets/close.svg';
 import Input from '../components/common/Input';
 import SlimDate from '../components/common/SlimDate';
@@ -9,6 +9,7 @@ import { dummyFlight, dummyCabs, dummyBus, dummyHotel } from '../data/dummy';
 import {Draggable} from 'react-beautiful-dnd'
 import DisplayItems from './DisplayItems'
 import DisplayItinerary from './DisplayItinerary';
+import { generateUniqueIdentifier } from '../utils/uuid';
 
 export default function(){
 const sideBarWidth = '230px'
@@ -17,10 +18,13 @@ const itineraryItems = ['Flight', 'Hotel', 'Cab', 'Rental Cab', 'Train', 'Bus'];
 const [modalContent, setModalContent] = useState(null);
 const [visible, setVisible] = useState(false);
 
+function getNextSequenceNumber(){
+  return Math.max(...flattenObjectToArray(itinerary).map(item=>item.sequence), 0)+1;
+}
+
 const [itinerary, setItinerary] = useState({
     flights: [
       {
-        category:'flights',
         violations: {
           class: null,
           amount: null
@@ -39,7 +43,7 @@ const [itinerary, setItinerary] = useState({
           docType: null
         },
         itineraryId: "66795e09b2e14ac28c9ed0c2",
-        id: "travel_5b5c964a-e99a-436f-a22c-fa7d49f4784f",
+        formId: "travel_5b5c964a-e99a-436f-a22c-fa7d49f4784f",
         sequence: 2,
         from: "Delhi",
         to: "Lucknow",
@@ -72,7 +76,6 @@ const [itinerary, setItinerary] = useState({
         _id: "66795e09b2e14ac28c9ed0b9"
       },
       {
-        category:'flights',
         violations: {
           class: null,
           amount: null
@@ -91,7 +94,7 @@ const [itinerary, setItinerary] = useState({
           docType: null
         },
         itineraryId: "66795e09b2e14ac28c9ed0c3",
-        id: "travel_5b5c964a-e99a-436f-a22c-fa7d49f4784j",
+        formId: "travel_5b5c964a-e99a-436f-a22c-fa7d49f4784j",
         sequence: 4,
         from: "Lucknow",
         to: "Delhi",
@@ -128,7 +131,6 @@ const [itinerary, setItinerary] = useState({
     trains: [],
     hotels: [
       {
-        category:'hotels',
         violations: {
           class: null,
           amount: null
@@ -147,7 +149,7 @@ const [itinerary, setItinerary] = useState({
           docType: null
         },
         itineraryId: "66795e09b2e14ac28c9ed0c5",
-        id: "travel_5b5c964a-e99a-436f-a22c-fa7d49f4784k",
+        formId: "travel_5b5c964a-e99a-436f-a22c-fa7d49f4784k",
         sequence: 3,
         location: "Lucknow",
         locationPreference: null,
@@ -175,7 +177,6 @@ const [itinerary, setItinerary] = useState({
     ],
     cabs: [
       {
-        category:'cabs',
         violations: {
           class: null,
           amount: null
@@ -190,7 +191,7 @@ const [itinerary, setItinerary] = useState({
           docType: null
         },
         itineraryId: "66795e09b2e14ac28c9ed0c4",
-        id: "travel_5b5c964a-e99a-436f-a22c-fa7d49f4784l",
+        formId: "travel_5b5c964a-e99a-436f-a22c-fa7d49f4784l",
         sequence: 1,
         date: "2024-06-24T00:00:00.000Z",
         class: null,
@@ -225,24 +226,114 @@ const [itinerary, setItinerary] = useState({
 
 const [shouldAddItem, setShouldAddItem] = useState(false);
 
-  useEffect(()=>{
-    const itinerary_copy = JSON.parse(JSON.stringify(itinerary));
-    itinerary_copy.flights.push(dummyFlight);
-    setItinerary(itinerary_copy);
-  },[])
 
 const addItineraryItem = (item)=>{
     console.log(`clicked on ${item}`)
-    setModalContent(<FlightForm handleAddToItinerary={handleAddToItinerary}/>)
+    switch(item){
+      case 'Flight' : setModalContent(<FlightForm  handleAddToItinerary={handleAddToItinerary} action='create' />); break;
+    }
+    
     setVisible(true);
 }
 
-const handleAddToItinerary = ()=>{
+const deleteItineraryItem = useCallback((formId)=>{
+  console.log('deleting item with formId', formId);
+  const newItinerary = JSON.parse(JSON.stringify(itinerary));
+  Object.keys(newItinerary).forEach(key=>{
+    newItinerary[key] = itinerary[key].filter(item=>item.formId != formId);
+  })
+
+  setItinerary(newItinerary);
+ 
+},[itinerary])
+
+const editItineraryItem = useCallback((formId)=>{
+  console.log('editing item with formId', formId); 
+  let category = null;
+  let item = null;
+
+  for(let i=0; i<Object.keys(itinerary).length; i++){
+    const key= Object.keys(itinerary)[i];
+    item = itinerary[key].find(item=>item.formId == formId)
+
+    if(item!=undefined){
+      category = key;
+      break;
+    }
+  }
+
+  if(category == null || item == null || item == undefined) return;
+
+  switch(category){
+    case 'flights' : {
+     setModalContent(<FlightForm setVisible={setVisible} handleAddToItinerary={handleAddToItinerary} action='edit' editId={formId} editData={{from:item.from, to:item.to, date:item.date, time:item.time}} />);
+     break; 
+    }
+  }
+
+  console.log('category', category);
+
+  setVisible(true);
+},[itinerary])
+
+const handleAddToItinerary = (category, data)=>{
+  try{
     console.log('clicked on add to itinerary')
-    setShouldAddItem(true);
+    console.log('received formData', data);
+
+    switch(category){
+      case 'flights' : {
+        if(data.action == 'create'){
+          const newItem = JSON.parse(JSON.stringify(dummyFlight));
+          newItem.from = data.formData.from;
+          newItem.to = data.formData.to;
+          newItem.date = data.formData.date;
+          newItem.time = data.formData.time;
+          newItem.sequence = getNextSequenceNumber();
+          newItem.formId = generateUniqueIdentifier();
+          newItem.approvers = []; //need to change it
+          console.log('creating flight item', newItem);
+
+          const newItinerary = JSON.parse(JSON.stringify(itinerary));
+          newItinerary.flights.push(newItem);
+
+          console.log(newItinerary);
+          setItinerary(newItinerary)
+        }
+
+        if(data.action == 'edit'){
+          const itineraryCopy = JSON.parse(JSON.stringify(itinerary)); 
+          const item = Object.keys(itineraryCopy)
+
+          for(let i=0; i<Object.keys(itineraryCopy).length; i++){
+            const key = Object.keys(itineraryCopy)[i];
+
+            const item = itineraryCopy[key].find(item=>item.formId == data.editId);
+            if(item != undefined){
+              item.from = data.formData.from;
+              item.to = data.formData.to;
+              item.date = data.formData.date;
+              item.time = data.formData.time;
+              break;
+            }
+          }
+          setItinerary(itineraryCopy);
+        }
+      }
+    }
+
+    //add item to the itinerary
+
     setVisible(false);
+  }catch(e){
+    console.log(e);
+  }
 }
 
+
+useEffect(()=>{
+  console.log(itinerary, 'itinerary updated')
+},[itinerary])
 
     return(<>
         <div className="min-w-[100%] min-h-[100%] flex">
@@ -250,15 +341,18 @@ const handleAddToItinerary = ()=>{
                 {/* sidebar for adding itinerary items */}
                 <div className="flex-flex-row divide-y">
                     {itineraryItems.map(item=>(
-                        <div onClick={()=>addItineraryItem(item)} 
-                            className="flex p-4 w-[100%] h-[100px] gap-2 items-center justify-center cursor-pointer hover:bg-blue-700">
+                        <div 
+                          key={item}
+                          onClick={()=>addItineraryItem(item)}
+                          className="flex p-4 w-[100%] h-[100px] gap-2 items-center justify-center cursor-pointer hover:bg-blue-700">
                         <p className="text-white text-lg ">{item}</p>
                         <p className="text-2xl text-white">+</p>
                     </div>))}
                 </div>
             </div>
+
             <div className={`w-[calc(100%-${sideBarWidth})]`}>
-                <DisplayItinerary itinerary={itinerary} setItinerary={setItinerary}/>
+                <DisplayItinerary itinerary={itinerary} setItinerary={setItinerary} handleDelete={deleteItineraryItem}  handleEdit={editItineraryItem}/>
                 <Modal visible={visible} setVisible={setVisible}>
                     {modalContent}
                 </Modal>
@@ -268,22 +362,226 @@ const handleAddToItinerary = ()=>{
     </>)
 }
 
-const FlightForm = ({handleAddToItinerary})=>{
+const FlightForm = ({setVisible, handleAddToItinerary, action='create', editId = null, editData=null})=>{
+
+  const [formData, setFormData] = useState({from:editData.from??'', to:editData.to??'', date:editData.date??getCurrentDate(), time:editData.time??'12pm - 3pm'});
+
+  const [errors, setErrors] = useState({fromError:{set:false, message:null}, toError:{set:false, message:null}, dateError:{set:false, message:null}, timeError:{set:false, message:null}});
+
+  const updateCity = (e, field)=>{
+      const formData_copy = JSON.parse(JSON.stringify(formData))
+      formData_copy[field] = e.target.value
+      setFormData(formData_copy)
+  }
+
+  const handleTimeChange = (value)=>{
+      const formData_copy = JSON.parse(JSON.stringify(formData))
+      formData_copy.time = value
+      setFormData(formData_copy)
+  }
+
+  const handleDateChange = (e)=>{
+      const formData_copy = JSON.parse(JSON.stringify(formData))
+      formData_copy.date = e.target.value
+      setFormData(formData_copy)
+  }
+
+  const handleSubmit = ()=>{
+
+    console.log('form submitted')
+    let goAhead = true;
+
+    if(formData.from == null || formData.from == undefined || formData.from == ''){
+      setErrors(pre=>({...pre, fromError: {set: true, message: 'Please enter departure city'}}))
+      goAhead=false;
+    }else setErrors(pre=>({...pre, fromError:{set:false, message:null} }));
+
+    if(formData.to == null || formData.to == undefined || formData.to == ''){
+      setErrors(pre=>({...pre, toError:{set:true, message:'Please enter destination city'}}))
+      goAhead=false;
+    }else setErrors(pre=>({...pre, toError:{set:false, message:null} }));
+
+    if(formData.date == null || formData.date == undefined || formData.date == ''){
+      setErrors(pre=>({...pre, dateError: {set:true, message: 'Plese select date'}}))
+      goAhead=false;
+    }else setErrors(pre=>({...pre, dateError:{set:false, message:null} }));
+
+    if(formData.time == null && formData.time == undefined){
+      setErrors(pre=>({...pre, timeError:{set: true, message : 'Please select preferred time'}}))
+      goAhead=false;
+    }else setErrors(pre=>({...pre, timeError:{set:false, message:null} }));
+
+
+    
+    if(goAhead){
+      handleAddToItinerary('flights', {action, editId, formData});
+    }
+    
+  }
+
+  const handleCancel = ()=>{
+    setVisible(false);
+  }
+
+  useEffect(()=>{
+    console.log(formData, 'form data');
+  },[formData])
+
+  useEffect(()=>{
+    console.log(errors, 'flight form errors')
+  }, [errors])
+
     
     return(<>
     <   div className='pb-10 text-lg text-neutral-700 font-cabin'>Flight</div>
-        <div className='w-[100%] h-[100%] bg-white flex gap-2 flex-wrap items-end'>
-            <Input
-                on 
-                title='Leaving From?' />
-            <Input title='Where To?' />
-            <SlimDate title='On?' />
-            <PreferredTime  />
-        </div>
-        <div className='flex flex-row-reverse mt-6'>
-            <div onClick={handleAddToItinerary} className='w-fit px-2 py-1 bg-blue-600  rounded-md border-bg-blue-800 text-gray-100 text-sm hover:bg-blue-500 cursor-pointer'>Add to Itinerary</div>
-        </div>
         
+        <div className='w-[100%] h-[100%] bg-white flex gap-2 flex-wrap items-end'>
+          <Input 
+            title='Leaving From'  
+            placeholder='City' 
+            value={formData.from}
+            error={errors?.fromError} 
+            onBlur={(e)=>updateCity(e, 'from')} />
+
+          <Input 
+            title='Where To?' 
+            placeholder='City' 
+            value={formData.to} 
+            error={errors?.toError}
+            onBlur={(e)=>updateCity(e, 'to')} />
+
+            <SlimDate 
+              format='date-month'
+              min={0}
+              date={formData.date}
+              onChange = {handleDateChange}
+              title='On?' />
+
+            <PreferredTime
+              value={formData.time}
+              onChange={handleTimeChange}  />
+        </div>
+
+        {action == 'create' && <div className='flex flex-row-reverse mt-6'>
+            <div onClick={handleSubmit} className='w-fit px-2 py-1 bg-blue-600  rounded-md border-bg-blue-800 text-gray-100 text-sm hover:bg-blue-500 cursor-pointer'>Add to Itinerary</div>
+        </div>}
+
+        {action == 'edit' && <div className='flex flex-row-reverse mt-6 gap-4'>
+            <div onClick={handleCancel} className='w-fit px-2 py-1 bg-blue-600  rounded-md border-bg-blue-800 text-gray-100 text-sm hover:bg-blue-500 cursor-pointer'>Cancel</div>
+            <div onClick={handleSubmit} className='w-fit px-2 py-1 bg-blue-600  rounded-md border-bg-blue-800 text-gray-100 text-sm hover:bg-blue-500 cursor-pointer'>Save Changes</div>
+          </div>}
+        
+    </>)
+}
+
+const CabForm = ({setVisible, handleAddToItinerary, action='create', editId = null, editData=null})=>{
+
+  const [formData, setFormData] = useState({pickupAddress:editData.pickupAddress??'', dropoAddress:editData.dropoAddress??'', date:editData.date??getCurrentDate(), time:editData.time??'12pm - 3pm'});
+
+  const [errors, setErrors] = useState({fromError:{set:false, message:null}, toError:{set:false, message:null}, dateError:{set:false, message:null}, timeError:{set:false, message:null}});
+
+  const updateCity = (e, field)=>{
+      const formData_copy = JSON.parse(JSON.stringify(formData))
+      formData_copy[field] = e.target.value
+      setFormData(formData_copy)
+  }
+
+  const handleTimeChange = (value)=>{
+      const formData_copy = JSON.parse(JSON.stringify(formData))
+      formData_copy.time = value
+      setFormData(formData_copy)
+  }
+
+  const handleDateChange = (e)=>{
+      const formData_copy = JSON.parse(JSON.stringify(formData))
+      formData_copy.date = e.target.value
+      setFormData(formData_copy)
+  }
+
+  const handleSubmit = ()=>{
+
+    console.log('form submitted')
+    let goAhead = true;
+
+    if(formData.from == null || formData.from == undefined || formData.from == ''){
+      setErrors(pre=>({...pre, fromError: {set: true, message: 'Please enter departure city'}}))
+      goAhead=false;
+    }else setErrors(pre=>({...pre, fromError:{set:false, message:null} }));
+
+    if(formData.to == null || formData.to == undefined || formData.to == ''){
+      setErrors(pre=>({...pre, toError:{set:true, message:'Please enter destination city'}}))
+      goAhead=false;
+    }else setErrors(pre=>({...pre, toError:{set:false, message:null} }));
+
+    if(formData.date == null || formData.date == undefined || formData.date == ''){
+      setErrors(pre=>({...pre, dateError: {set:true, message: 'Plese select date'}}))
+      goAhead=false;
+    }else setErrors(pre=>({...pre, dateError:{set:false, message:null} }));
+
+    if(formData.time == null && formData.time == undefined){
+      setErrors(pre=>({...pre, timeError:{set: true, message : 'Please select preferred time'}}))
+      goAhead=false;
+    }else setErrors(pre=>({...pre, timeError:{set:false, message:null} }));
+
+
+    
+    if(goAhead){
+      handleAddToItinerary('flights', {action, editId, formData});
+    }
+    
+  }
+
+  const handleCancel = ()=>{
+    setVisible(false);
+  }
+
+  useEffect(()=>{
+    console.log(formData, 'form data');
+  },[formData])
+
+  useEffect(()=>{
+    console.log(errors, 'flight form errors')
+  }, [errors])
+
+    
+    return(<>
+    <   div className='pb-10 text-lg text-neutral-700 font-cabin'>Flight</div>
+        
+        <div className='w-[100%] h-[100%] bg-white flex gap-2 flex-wrap items-end'>
+          <Input 
+            title='Leaving From'  
+            placeholder='City' 
+            value={formData.from}
+            error={errors?.fromError} 
+            onBlur={(e)=>updateCity(e, 'from')} />
+
+          <Input 
+            title='Where To?' 
+            placeholder='City' 
+            value={formData.to} 
+            error={errors?.toError}
+            onBlur={(e)=>updateCity(e, 'to')} />
+
+            <SlimDate 
+              format='date-month'
+              min={0}
+              date={formData.date}
+              onChange = {handleDateChange}
+              title='On?' />
+
+            <PreferredTime
+              value={formData.time}
+              onChange={handleTimeChange}  />
+        </div>
+
+        {action == 'create' && <div className='flex flex-row-reverse mt-6'>
+            <div onClick={handleSubmit} className='w-fit px-2 py-1 bg-blue-600  rounded-md border-bg-blue-800 text-gray-100 text-sm hover:bg-blue-500 cursor-pointer'>Add to Itinerary</div>
+        </div>}
+
+        {action == 'edit' && <div className='flex flex-row-reverse mt-6 gap-4'>
+            <div onClick={handleCancel} className='w-fit px-2 py-1 bg-blue-600  rounded-md border-bg-blue-800 text-gray-100 text-sm hover:bg-blue-500 cursor-pointer'>Cancel</div>
+            <div onClick={handleSubmit} className='w-fit px-2 py-1 bg-blue-600  rounded-md border-bg-blue-800 text-gray-100 text-sm hover:bg-blue-500 cursor-pointer'>Save Changes</div>
+          </div>}
         
     </>)
 }
@@ -322,6 +620,20 @@ const Modal = ({ visible, setVisible, children }) => {
     )
   );
 };
+
+function getCurrentDate(){
+  const date = new Date();
+  const year = date.getFullYear();
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const day = date.getDate().toString().padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function flattenObjectToArray(obj) {
+  return Object.values(obj).reduce((acc, val) => acc.concat(val), []);
+}
+
+
 
 
 

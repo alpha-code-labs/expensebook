@@ -14,8 +14,6 @@ export default function Input(props){
     const error = props.error || {set:false, message:''}
     const [inputEntered, setInputEntered] = useState(false)
 
-    console.log(error, 'error from input component')
-    
     const handleChange = (e)=>{
         e.preventDefault()
         setTextInput(e.target.value)

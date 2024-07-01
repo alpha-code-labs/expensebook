@@ -2,12 +2,11 @@ import clock_icon  from "../../assets/clock.svg";
 import { useState, useEffect, useRef } from "react";
 import {motion} from 'framer-motion'
 
-export default function ({onChange}){
+export default function ({onChange, value}){
     console.log('rendering preferredTime...')
     const [showDropdown, setShowDropdown] = useState(false)
     const [coordinates, setCoordinates] = useState({x:null, y:null});
-
-    const [preferredTime, setPreferredTime] = useState('9am - 12pm');
+    const [preferredTime, setPreferredTime] = useState(value??'9am - 12pm');
 
     const spitSource = (type)=>{
         switch(type){
