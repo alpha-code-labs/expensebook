@@ -2,7 +2,7 @@ import clock_icon  from "../../assets/clock.svg";
 import { useState, useEffect, useRef } from "react";
 import {motion} from 'framer-motion'
 
-export default function ({onChange, value}){
+export default function ({onChange, value, title='Pickup Time'}){
     console.log('rendering preferredTime...')
     const [showDropdown, setShowDropdown] = useState(false)
     const [coordinates, setCoordinates] = useState({x:null, y:null});
@@ -81,12 +81,18 @@ export default function ({onChange, value}){
 
     return(
 
-        <div ref={dropdownParentRef} className="relative h-[45px] py-2 rounded border border-md border-neutral-300 items-center justify-center flex hover:cursor-pointer" onClick={(e)=>handleDropdown(e)}>
+        <div ref={dropdownParentRef} className="relative flex" onClick={(e)=>handleDropdown(e)}>
 
-            <div className="pl-6 w-[152px] h-[45px] flex items-center gap-2" >
-                <img src={spitSource(preferredTime)} className="w-4 h-4"/>
-                <p className="font-cabin text-neutral-700 text-md">{preferredTime}</p>
-            </div>
+           <div className="flex flex-col gap-2">
+                <div className="font-cabin text-sm text-neutral-600 select-none">
+                    {title}
+                </div>
+
+                <div className="px-4 w-[152px] h-[45px] gap-2 h-[45px] rounded border border-md border-neutral-300 items-center justify-center flex hover:cursor-pointer" >
+                    <img src={spitSource(preferredTime)} className="w-4 h-4"/>
+                    <p className="font-cabin text-neutral-700 text-md select-none">{preferredTime}</p>
+                </div>
+           </div>
 
             {showDropdown && 
             <motion.div 
