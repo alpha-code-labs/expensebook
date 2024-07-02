@@ -46,7 +46,7 @@ export default function SlimDate(props){
     return(<>
 {format != 'date-month' && <div className="min-w-[200px] w-full md:w-fit max-w-[403px] h-[73px] flex-col justify-start items-start gap-2 inline-flex">
             {/* title */}
-            <div className="text-zinc-600 text-sm font-cabin">{title}</div>
+            <div className="text-zinc-600 text-sm font-cabin select-none">{title}</div>
 
             {/* input */}
             <div className="w-full h-full bg-white items-center flex">
