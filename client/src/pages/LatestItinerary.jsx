@@ -10,6 +10,8 @@ import {Draggable} from 'react-beautiful-dnd'
 import DisplayItems from './DisplayItems'
 import DisplayItinerary from './DisplayItinerary';
 import { generateUniqueIdentifier } from '../utils/uuid';
+import moment from 'moment';
+import Select from '../components/common/Select';
 
 export default function(){
 const sideBarWidth = '230px'
@@ -229,11 +231,16 @@ const [shouldAddItem, setShouldAddItem] = useState(false);
 
 const addItineraryItem = (item)=>{
     console.log(`clicked on ${item}`)
-    switch(item){
-      case 'Flight' : setModalContent(<FlightForm  handleAddToItinerary={handleAddToItinerary} action='create' />); break;
-    }
-    
     setVisible(true);
+
+    switch(item){
+      case 'Flight' : setModalContent(<FlightForm  handleAddToItinerary={handleAddToItinerary} action='create' />); return;
+      case 'Cab' : setModalContent(<CabForm handleAddToItinerary={handleAddToItinerary} action='create' />); return;
+      case 'Rental Cab' : setModalContent(<RentalCabForm handleAddToItinerary={handleAddToItinerary} action='create' />); return;
+      case 'Train': setModalContent(<TrainForm  handleAddToItinerary={handleAddToItinerary} action='create' />); return;
+      case 'Bus': setModalContent(<BusForm  handleAddToItinerary={handleAddToItinerary} action='create' />); return;
+      case 'Hotel': setModalContent(<HotelForm  handleAddToItinerary={handleAddToItinerary} action='create' />); return;
+    }
 }
 
 const deleteItineraryItem = useCallback((formId)=>{
@@ -264,16 +271,24 @@ const editItineraryItem = useCallback((formId)=>{
 
   if(category == null || item == null || item == undefined) return;
 
+  console.log('category', category, item);
+  setVisible(true);
+
   switch(category){
     case 'flights' : {
      setModalContent(<FlightForm setVisible={setVisible} handleAddToItinerary={handleAddToItinerary} action='edit' editId={formId} editData={{from:item.from, to:item.to, date:item.date, time:item.time}} />);
-     break; 
+     return; 
+    }
+    case 'cabs' : {
+      setModalContent(<CabForm setVisible={setVisible} handleAddToItinerary={handleAddToItinerary} action='edit' editId={formId} editData={{pickupAddress:item.pickupAddress, dropAddress:item.dropAddress, class:item.class, time:item.time, date:item.date, returnDate:item.returnDate}} />);
+      return;
+    }
+    case 'hotels' : {
+      setModalContent(<HotelForm setVisible={setVisible} handleAddToItinerary={handleAddToItinerary} action='edit' editId={formId} editData={{checkIn:item.checkIn, checkOut:item.checkOut, class:item.class, location:item.location, time:item.time, needBreakfast:item.needBreakfast, needLunch: item.needLunch, needDinner:item.needDinner, needNonSmokingRoom:item.needNonSmokingRoom}} />);
+      return;
     }
   }
-
-  console.log('category', category);
-
-  setVisible(true);
+  
 },[itinerary])
 
 const handleAddToItinerary = (category, data)=>{
@@ -298,7 +313,50 @@ const handleAddToItinerary = (category, data)=>{
           newItinerary.flights.push(newItem);
 
           console.log(newItinerary);
-          setItinerary(newItinerary)
+          setItinerary(newItinerary);
+        }
+
+        if(data.action == 'edit'){
+          const itineraryCopy = JSON.parse(JSON.stringify(itinerary)); 
+          const item = Object.keys(itineraryCopy)
+
+          for(let i=0; i<Object.keys(itineraryCopy).length; i++){
+            const key = Object.keys(itineraryCopy)[i];
+
+            const item = itineraryCopy[key].find(item=>item.formId == data.editId);
+            if(item != undefined){
+              item.from = data.formData.from;
+              item.to = data.formData.to;
+              item.date = data.formData.date;
+              item.time = data.formData.time;
+
+              break;
+            }
+          }
+          setItinerary(itineraryCopy);
+        }
+
+        setVisible(false);
+        return;
+      }
+
+      case 'trains' : {
+        if(data.action == 'create'){
+          const newItem = JSON.parse(JSON.stringify(dummyFlight));
+          newItem.from = data.formData.from;
+          newItem.to = data.formData.to;
+          newItem.date = data.formData.date;
+          newItem.time = data.formData.time;
+          newItem.sequence = getNextSequenceNumber();
+          newItem.formId = generateUniqueIdentifier();
+          newItem.approvers = []; //need to change it
+          console.log('creating train item', newItem);
+
+          const newItinerary = JSON.parse(JSON.stringify(itinerary));
+          newItinerary.trains.push(newItem);
+
+          console.log(newItinerary);
+          setItinerary(newItinerary);
         }
 
         if(data.action == 'edit'){
@@ -319,7 +377,151 @@ const handleAddToItinerary = (category, data)=>{
           }
           setItinerary(itineraryCopy);
         }
+
+        setVisible(false);
+        return;
       }
+
+      case 'buses' : {
+        if(data.action == 'create'){
+          const newItem = JSON.parse(JSON.stringify(dummyFlight));
+          newItem.from = data.formData.from;
+          newItem.to = data.formData.to;
+          newItem.date = data.formData.date;
+          newItem.time = data.formData.time;
+          newItem.sequence = getNextSequenceNumber();
+          newItem.formId = generateUniqueIdentifier();
+          newItem.approvers = []; //need to change it
+          console.log('creating bus item', newItem);
+
+          const newItinerary = JSON.parse(JSON.stringify(itinerary));
+          newItinerary.buses.push(newItem);
+
+          console.log(newItinerary);
+          setItinerary(newItinerary);
+        }
+
+        if(data.action == 'edit'){
+          const itineraryCopy = JSON.parse(JSON.stringify(itinerary)); 
+          const item = Object.keys(itineraryCopy)
+
+          for(let i=0; i<Object.keys(itineraryCopy).length; i++){
+            const key = Object.keys(itineraryCopy)[i];
+
+            const item = itineraryCopy[key].find(item=>item.formId == data.editId);
+            if(item != undefined){
+              item.from = data.formData.from;
+              item.to = data.formData.to;
+              item.date = data.formData.date;
+              item.time = data.formData.time;
+              break;
+            }
+          }
+          setItinerary(itineraryCopy);
+        }
+
+        setVisible(false);
+        return;
+      }
+
+      case 'cabs' : {
+        if(data.action == 'create'){
+          const newItem = JSON.parse(JSON.stringify(dummyCabs));
+          newItem.pickupAddress = data.formData.pickupAddress;
+          newItem.dropAddress = data.formData.dropAddress;
+          newItem.class = data.formData.class;
+          newItem.date = data.formData.date;
+          newItem.returnDate = data.formData.returnDate;
+          newItem.isFullDayCab = data.formData.isFullDayCab;
+          newItem.time = data.formData.time;
+          newItem.sequence = getNextSequenceNumber();
+          newItem.formId = generateUniqueIdentifier();
+          newItem.approvers = []; //need to change it
+          console.log('creating cab item', newItem);
+
+          const newItinerary = JSON.parse(JSON.stringify(itinerary));
+          newItinerary.cabs.push(newItem);
+
+          console.log(newItinerary);
+          setItinerary(newItinerary)
+        }
+
+        if(data.action == 'edit'){
+          const itineraryCopy = JSON.parse(JSON.stringify(itinerary)); 
+          const item = Object.keys(itineraryCopy)
+
+          for(let i=0; i<Object.keys(itineraryCopy).length; i++){
+            const key = Object.keys(itineraryCopy)[i];
+
+            const item = itineraryCopy[key].find(item=>item.formId == data.editId);
+
+            if(item != undefined){
+              item.pickupAddress = data.formData.pickupAddress;
+              item.dropAddress = data.formData.dropAddress;
+              item.class = data.formData.class;
+              item.date = data.formData.date;
+              item.returnDate = data.formData.returnDate;
+              item.isFullDayCab = data.formData.isFullDayCab;
+              item.time = data.formData.time;
+            }
+          }
+          setItinerary(itineraryCopy);
+        }
+
+        setVisible(false);
+        return;
+      }
+
+      case 'hotels' : {
+        if(data.action == 'create'){
+          const newItem = JSON.parse(JSON.stringify(dummyHotel));
+          newItem.checkIn = data.formData.checkIn;
+          newItem.checkOut = data.formData.checkOut;
+          newItem.class = data.formData.class;
+          newItem.location = data.formData.location;
+          newItem.needBreakfast = data.formData.needBreakfast;
+          newItem.needLunch = data.formData.needLunch;
+          newItem.needDinner = data.formData.needDinner;
+          newItem.needNonSmokingRoom = data.formData.needNonSmokingRoom;
+          newItem.time = data.formData.time;
+          newItem.sequence = getNextSequenceNumber();
+          newItem.formId = generateUniqueIdentifier();
+          newItem.approvers = []; //need to change it
+          console.log('creating hotel item', newItem);
+
+          const newItinerary = JSON.parse(JSON.stringify(itinerary));
+          newItinerary.hotels.push(newItem);
+
+          console.log(newItinerary);
+          setItinerary(newItinerary)
+        }
+
+        if(data.action == 'edit'){
+          const itineraryCopy = JSON.parse(JSON.stringify(itinerary)); 
+
+          for(let i=0; i<Object.keys(itineraryCopy).length; i++){
+            const key = Object.keys(itineraryCopy)[i];
+
+            const item = itineraryCopy[key].find(item=>item.formId == data.editId);
+
+            if(item != undefined){
+              item.checkIn = data.formData.checkIn;
+              item.checkOut = data.formData.checkOut;
+              item.location = data.formData.location;
+              item.time = data.formData.time;
+              item.class = data.formData.class;
+              item.needBreakfast = data.formData.needBreakfast;
+              item.needLunch = data.formData.needLunch;
+              item.needDinner = data.formData.needDinner;
+              item.needNonSmokingRoom = data.formData.needNonSmokingRoom;
+            }
+          }
+          setItinerary(itineraryCopy);
+        }
+
+        setVisible(false);
+        return;
+      } 
     }
 
     //add item to the itinerary
@@ -330,13 +532,13 @@ const handleAddToItinerary = (category, data)=>{
   }
 }
 
-
 useEffect(()=>{
   console.log(itinerary, 'itinerary updated')
 },[itinerary])
 
     return(<>
         <div className="min-w-[100%] min-h-[100%] flex">
+
             <div className={`w-[${sideBarWidth}] h-[100%] bg-blue-600`}>
                 {/* sidebar for adding itinerary items */}
                 <div className="flex-flex-row divide-y">
@@ -353,6 +555,7 @@ useEffect(()=>{
 
             <div className={`w-[calc(100%-${sideBarWidth})]`}>
                 <DisplayItinerary itinerary={itinerary} setItinerary={setItinerary} handleDelete={deleteItineraryItem}  handleEdit={editItineraryItem}/>
+                
                 <Modal visible={visible} setVisible={setVisible}>
                     {modalContent}
                 </Modal>
@@ -364,7 +567,7 @@ useEffect(()=>{
 
 const FlightForm = ({setVisible, handleAddToItinerary, action='create', editId = null, editData=null})=>{
 
-  const [formData, setFormData] = useState({from:editData.from??'', to:editData.to??'', date:editData.date??getCurrentDate(), time:editData.time??'12pm - 3pm'});
+  const [formData, setFormData] = useState({from:editData?.from??'', to:editData?.to??'', date:editData?.date??getCurrentDate(), time:editData?.time??'12pm - 3pm'});
 
   const [errors, setErrors] = useState({fromError:{set:false, message:null}, toError:{set:false, message:null}, dateError:{set:false, message:null}, timeError:{set:false, message:null}});
 
@@ -432,7 +635,7 @@ const FlightForm = ({setVisible, handleAddToItinerary, action='create', editId =
   }, [errors])
 
     
-    return(<>
+    return(<div className='max-w-[440px]'>
     <   div className='pb-10 text-lg text-neutral-700 font-cabin'>Flight</div>
         
         <div className='w-[100%] h-[100%] bg-white flex gap-2 flex-wrap items-end'>
@@ -450,35 +653,267 @@ const FlightForm = ({setVisible, handleAddToItinerary, action='create', editId =
             error={errors?.toError}
             onBlur={(e)=>updateCity(e, 'to')} />
 
-            <SlimDate 
-              format='date-month'
-              min={0}
-              date={formData.date}
-              onChange = {handleDateChange}
-              title='On?' />
+            <div className='flex gap-2'>
+              <SlimDate 
+                format='date-month'
+                min={0}
+                date={formData.date}
+                onChange = {handleDateChange}
+                title='On?' />
 
-            <PreferredTime
-              value={formData.time}
-              onChange={handleTimeChange}  />
+              <PreferredTime
+                value={formData.time}
+                onChange={handleTimeChange}  />
+            </div>
         </div>
 
         {action == 'create' && <div className='flex flex-row-reverse mt-6'>
             <div onClick={handleSubmit} className='w-fit px-2 py-1 bg-blue-600  rounded-md border-bg-blue-800 text-gray-100 text-sm hover:bg-blue-500 cursor-pointer'>Add to Itinerary</div>
-        </div>}
+        </div>} 
 
         {action == 'edit' && <div className='flex flex-row-reverse mt-6 gap-4'>
             <div onClick={handleCancel} className='w-fit px-2 py-1 bg-blue-600  rounded-md border-bg-blue-800 text-gray-100 text-sm hover:bg-blue-500 cursor-pointer'>Cancel</div>
             <div onClick={handleSubmit} className='w-fit px-2 py-1 bg-blue-600  rounded-md border-bg-blue-800 text-gray-100 text-sm hover:bg-blue-500 cursor-pointer'>Save Changes</div>
           </div>}
         
-    </>)
+    </div>)
+}
+
+const TrainForm = ({setVisible, handleAddToItinerary, action='create', editId = null, editData=null})=>{
+
+  const [formData, setFormData] = useState({from:editData?.from??'', to:editData?.to??'', date:editData?.date??getCurrentDate(), time:editData?.time??'12pm - 3pm'});
+
+  const [errors, setErrors] = useState({fromError:{set:false, message:null}, toError:{set:false, message:null}, dateError:{set:false, message:null}, timeError:{set:false, message:null}});
+
+  const updateCity = (e, field)=>{
+      const formData_copy = JSON.parse(JSON.stringify(formData))
+      formData_copy[field] = e.target.value
+      setFormData(formData_copy)
+  }
+
+  const handleTimeChange = (value)=>{
+      const formData_copy = JSON.parse(JSON.stringify(formData))
+      formData_copy.time = value
+      setFormData(formData_copy)
+  }
+
+  const handleDateChange = (e)=>{
+      const formData_copy = JSON.parse(JSON.stringify(formData))
+      formData_copy.date = e.target.value
+      setFormData(formData_copy)
+  }
+
+  const handleSubmit = ()=>{
+
+    console.log('form submitted')
+    let goAhead = true;
+
+    if(formData.from == null || formData.from == undefined || formData.from == ''){
+      setErrors(pre=>({...pre, fromError: {set: true, message: 'Please enter departure city'}}))
+      goAhead=false;
+    }else setErrors(pre=>({...pre, fromError:{set:false, message:null} }));
+
+    if(formData.to == null || formData.to == undefined || formData.to == ''){
+      setErrors(pre=>({...pre, toError:{set:true, message:'Please enter destination city'}}))
+      goAhead=false;
+    }else setErrors(pre=>({...pre, toError:{set:false, message:null} }));
+
+    if(formData.date == null || formData.date == undefined || formData.date == ''){
+      setErrors(pre=>({...pre, dateError: {set:true, message: 'Plese select date'}}))
+      goAhead=false;
+    }else setErrors(pre=>({...pre, dateError:{set:false, message:null} }));
+
+    if(formData.time == null && formData.time == undefined){
+      setErrors(pre=>({...pre, timeError:{set: true, message : 'Please select preferred time'}}))
+      goAhead=false;
+    }else setErrors(pre=>({...pre, timeError:{set:false, message:null} }));
+
+
+    
+    if(goAhead){
+      handleAddToItinerary('trains', {action, editId, formData});
+    }
+    
+  }
+
+  const handleCancel = ()=>{
+    setVisible(false);
+  }
+
+  useEffect(()=>{
+    console.log(formData, 'form data');
+  },[formData])
+
+  useEffect(()=>{
+    console.log(errors, 'train form errors')
+  }, [errors])
+
+    
+    return(<div className='max-w-[440px]'>
+    <   div className='pb-10 text-lg text-neutral-700 font-cabin'>Train</div>
+        
+        <div className='w-[100%] h-[100%] bg-white flex gap-2 flex-wrap items-end'>
+          <Input 
+            title='Leaving From'  
+            placeholder='City' 
+            value={formData.from}
+            error={errors?.fromError} 
+            onBlur={(e)=>updateCity(e, 'from')} />
+
+          <Input 
+            title='Where To?' 
+            placeholder='City' 
+            value={formData.to} 
+            error={errors?.toError}
+            onBlur={(e)=>updateCity(e, 'to')} />
+
+            <div className='flex gap-2'>
+              <SlimDate 
+                format='date-month'
+                min={0}
+                date={formData.date}
+                onChange = {handleDateChange}
+                title='On?' />
+
+              <PreferredTime
+                value={formData.time}
+                onChange={handleTimeChange}  />
+            </div>
+        </div>
+
+        {action == 'create' && <div className='flex flex-row-reverse mt-6'>
+            <div onClick={handleSubmit} className='w-fit px-2 py-1 bg-blue-600  rounded-md border-bg-blue-800 text-gray-100 text-sm hover:bg-blue-500 cursor-pointer'>Add to Itinerary</div>
+        </div>} 
+
+        {action == 'edit' && <div className='flex flex-row-reverse mt-6 gap-4'>
+            <div onClick={handleCancel} className='w-fit px-2 py-1 bg-blue-600  rounded-md border-bg-blue-800 text-gray-100 text-sm hover:bg-blue-500 cursor-pointer'>Cancel</div>
+            <div onClick={handleSubmit} className='w-fit px-2 py-1 bg-blue-600  rounded-md border-bg-blue-800 text-gray-100 text-sm hover:bg-blue-500 cursor-pointer'>Save Changes</div>
+          </div>}
+        
+    </div>)
+}
+
+const BusForm = ({setVisible, handleAddToItinerary, action='create', editId = null, editData=null})=>{
+
+  const [formData, setFormData] = useState({from:editData?.from??'', to:editData?.to??'', date:editData?.date??getCurrentDate(), time:editData?.time??'12pm - 3pm'});
+
+  const [errors, setErrors] = useState({fromError:{set:false, message:null}, toError:{set:false, message:null}, dateError:{set:false, message:null}, timeError:{set:false, message:null}});
+
+  const updateCity = (e, field)=>{
+      const formData_copy = JSON.parse(JSON.stringify(formData))
+      formData_copy[field] = e.target.value
+      setFormData(formData_copy)
+  }
+
+  const handleTimeChange = (value)=>{
+      const formData_copy = JSON.parse(JSON.stringify(formData))
+      formData_copy.time = value
+      setFormData(formData_copy)
+  }
+
+  const handleDateChange = (e)=>{
+      const formData_copy = JSON.parse(JSON.stringify(formData))
+      formData_copy.date = e.target.value
+      setFormData(formData_copy)
+  }
+
+  const handleSubmit = ()=>{
+
+    console.log('form submitted')
+    let goAhead = true;
+
+    if(formData.from == null || formData.from == undefined || formData.from == ''){
+      setErrors(pre=>({...pre, fromError: {set: true, message: 'Please enter departure city'}}))
+      goAhead=false;
+    }else setErrors(pre=>({...pre, fromError:{set:false, message:null} }));
+
+    if(formData.to == null || formData.to == undefined || formData.to == ''){
+      setErrors(pre=>({...pre, toError:{set:true, message:'Please enter destination city'}}))
+      goAhead=false;
+    }else setErrors(pre=>({...pre, toError:{set:false, message:null} }));
+
+    if(formData.date == null || formData.date == undefined || formData.date == ''){
+      setErrors(pre=>({...pre, dateError: {set:true, message: 'Plese select date'}}))
+      goAhead=false;
+    }else setErrors(pre=>({...pre, dateError:{set:false, message:null} }));
+
+    if(formData.time == null && formData.time == undefined){
+      setErrors(pre=>({...pre, timeError:{set: true, message : 'Please select preferred time'}}))
+      goAhead=false;
+    }else setErrors(pre=>({...pre, timeError:{set:false, message:null} }));
+
+
+    
+    if(goAhead){
+      handleAddToItinerary('buses', {action, editId, formData});
+    }
+    
+  }
+
+  const handleCancel = ()=>{
+    setVisible(false);
+  }
+
+  useEffect(()=>{
+    console.log(formData, 'form data');
+  },[formData])
+
+  useEffect(()=>{
+    console.log(errors, 'Bus form errors')
+  }, [errors])
+
+    
+    return(<div className='max-w-[440px]'>
+    <   div className='pb-10 text-lg text-neutral-700 font-cabin'>Flight</div>
+        
+        <div className='w-[100%] h-[100%] bg-white flex gap-2 flex-wrap items-end'>
+          <Input 
+            title='Leaving From'  
+            placeholder='City' 
+            value={formData.from}
+            error={errors?.fromError} 
+            onBlur={(e)=>updateCity(e, 'from')} />
+
+          <Input 
+            title='Where To?' 
+            placeholder='City' 
+            value={formData.to} 
+            error={errors?.toError}
+            onBlur={(e)=>updateCity(e, 'to')} />
+
+            <div className='flex gap-2'>
+              <SlimDate 
+                format='date-month'
+                min={0}
+                date={formData.date}
+                onChange = {handleDateChange}
+                title='On?' />
+
+              <PreferredTime
+                value={formData.time}
+                onChange={handleTimeChange}  />
+            </div>
+        </div>
+
+        {action == 'create' && <div className='flex flex-row-reverse mt-6'>
+            <div onClick={handleSubmit} className='w-fit px-2 py-1 bg-blue-600  rounded-md border-bg-blue-800 text-gray-100 text-sm hover:bg-blue-500 cursor-pointer'>Add to Itinerary</div>
+        </div>} 
+
+        {action == 'edit' && <div className='flex flex-row-reverse mt-6 gap-4'>
+            <div onClick={handleCancel} className='w-fit px-2 py-1 bg-blue-600  rounded-md border-bg-blue-800 text-gray-100 text-sm hover:bg-blue-500 cursor-pointer'>Cancel</div>
+            <div onClick={handleSubmit} className='w-fit px-2 py-1 bg-blue-600  rounded-md border-bg-blue-800 text-gray-100 text-sm hover:bg-blue-500 cursor-pointer'>Save Changes</div>
+          </div>}
+        
+    </div>)
 }
 
 const CabForm = ({setVisible, handleAddToItinerary, action='create', editId = null, editData=null})=>{
 
-  const [formData, setFormData] = useState({pickupAddress:editData.pickupAddress??'', dropoAddress:editData.dropoAddress??'', date:editData.date??getCurrentDate(), time:editData.time??'12pm - 3pm'});
+  const [formData, setFormData] = useState({pickupAddress:editData?.pickupAddress??'', dropAddress:editData?.dropAddress??'', class:editData?.class??'Regular', date:editData?.date??getCurrentDate(), returnDate: editData?.returnDate??getCurrentDate(1), time:editData?.time??'12pm - 3pm', isFullDayCab:editData?.isFullDayCab??false});
 
-  const [errors, setErrors] = useState({fromError:{set:false, message:null}, toError:{set:false, message:null}, dateError:{set:false, message:null}, timeError:{set:false, message:null}});
+  const [errors, setErrors] = useState({pickupError:{set:false, message:null}, dropError:{set:false, message:null}, dateError:{set:false, message:null}, returnDateError:{set: false, message:null},  timeError:{set:false, message:null}});
+
+  const [showDropdown, setShowDropdonw] = useState(false);
 
   const updateCity = (e, field)=>{
       const formData_copy = JSON.parse(JSON.stringify(formData))
@@ -498,25 +933,36 @@ const CabForm = ({setVisible, handleAddToItinerary, action='create', editId = nu
       setFormData(formData_copy)
   }
 
+  const handleReturnDateChange = (e)=>{
+    const formData_copy = JSON.parse(JSON.stringify(formData))
+    formData_copy.returnDate = e.target.value
+    setFormData(formData_copy)
+  }
+
   const handleSubmit = ()=>{
 
     console.log('form submitted')
     let goAhead = true;
 
-    if(formData.from == null || formData.from == undefined || formData.from == ''){
-      setErrors(pre=>({...pre, fromError: {set: true, message: 'Please enter departure city'}}))
+    if(formData.pickupAddress == null || formData.pickupAddress == undefined || formData.pickupAddress == ''){
+      setErrors(pre=>({...pre, pickupError: {set: true, message: 'Please enter pickup address'}}))
       goAhead=false;
-    }else setErrors(pre=>({...pre, fromError:{set:false, message:null} }));
+    }else setErrors(pre=>({...pre, pickupError:{set:false, message:null} }));
 
-    if(formData.to == null || formData.to == undefined || formData.to == ''){
-      setErrors(pre=>({...pre, toError:{set:true, message:'Please enter destination city'}}))
+    if(formData.dropAddress == null || formData.dropAddress == undefined || formData.dropAddress == ''){
+      setErrors(pre=>({...pre, dropError:{set:true, message:'Please enter drop address'}}))
       goAhead=false;
-    }else setErrors(pre=>({...pre, toError:{set:false, message:null} }));
+    }else setErrors(pre=>({...pre, dropError:{set:false, message:null} }));
 
     if(formData.date == null || formData.date == undefined || formData.date == ''){
       setErrors(pre=>({...pre, dateError: {set:true, message: 'Plese select date'}}))
       goAhead=false;
     }else setErrors(pre=>({...pre, dateError:{set:false, message:null} }));
+
+    if(formData.isFullDayCab && (formData.returnDate == null || formData.returnDate == undefined || formData.returnDate == '') ){
+      setErrors(pre=>({...pre, returnDateError: {set: true, message: 'Please select return date'} }));
+      goAhead=false;
+    }
 
     if(formData.time == null && formData.time == undefined){
       setErrors(pre=>({...pre, timeError:{set: true, message : 'Please select preferred time'}}))
@@ -526,7 +972,359 @@ const CabForm = ({setVisible, handleAddToItinerary, action='create', editId = nu
 
     
     if(goAhead){
-      handleAddToItinerary('flights', {action, editId, formData});
+      handleAddToItinerary('cabs', {action, editId, formData});
+    }
+    
+  }
+
+  const handleCancel = ()=>{
+    setVisible(false);
+  }
+
+  const handleFullDayCabCheckbox = (e)=>{
+    console.log(e);
+    setFormData(pre=>({...pre, isFullDayCab:e.target.checked}))
+  }
+
+  const handleClassChange = (option)=>{
+    setFormData(pre=>({...pre, class:option}));
+  }
+
+  useEffect(()=>{
+    console.log(formData, 'form data');
+  },[formData])
+
+  useEffect(()=>{
+    console.log(errors, 'flight form errors')
+  }, [errors])
+
+    
+    return(<div className=''>
+    <   div className='pb-10 text-lg text-neutral-700 font-cabin'>Cab</div>
+        
+        <div className='flex gap-2 mb-8'>
+            <input className='cursor-pointer w-4 h-4 rounded-sm' onChange={handleFullDayCabCheckbox} name='full-day-cab' type='checkbox' checked={formData.isFullDayCab} />
+            <label htmlFor='full-day-cab' className='font-cabin text-sm text-neutral-700'>Full Day Cab</label>
+        </div>
+
+        <div className='w-[100%] h-[100%] bg-white flex gap-2 flex-wrap items-end'>
+
+           <div className='flex flex-col gap-4 items-start relative'>
+
+           <div className='flex gap-2 w-full'>
+            <Select
+              maxWidth = {'200px'}
+              currentOption = {'Regular'}
+              title={'Cab Type'}
+              onSelect = {handleClassChange}
+              options={['Regular', 'Sedan', 'SUV']} 
+              />
+
+            <PreferredTime
+              value={formData.time}
+              onChange={handleTimeChange}  />
+           </div>
+              
+            <div className='flex flex-col gap-2 w-full'>
+              <Input 
+                maxWidth = {'400px'}
+                showLocationSymbol = {true}
+                title='Pickup Address?'  
+                placeholder='pickup address' 
+                value={formData.pickupAddress}
+                error={errors?.fromError} 
+                onBlur={(e)=>updateCity(e, 'pickupAddress')} />
+
+              <Input 
+                showLocationSymbol = {true}
+                title='Drop Address?' 
+                placeholder='drop address' 
+                value={formData.dropAddress} 
+                error={errors?.toError}
+                onBlur={(e)=>updateCity(e, 'dropAddress')} />
+            </div>
+
+            <div className='flex gap-2'>
+              <SlimDate 
+                format='date-month'
+                min={0}
+                date={formData?.date}
+                onChange = {handleDateChange}
+                title={`${formData.isFullDayCab? 'From Date' : 'On?'}`} />
+
+              {formData.isFullDayCab && <SlimDate 
+                format='date-month'
+                min={dateDiffInDays(formData.date, getCurrentDate())}
+                date={formData?.returnDate}
+                onChange = {handleReturnDateChange}
+                title={`Till Date?`} />}
+
+              {formData.isFullDayCab && <div className='w-fit h-[73px] flex flex-col gap-2'>
+                  <p className='whitespace-nowrap text-zinc-600 text-sm font-cabin'>Total Days</p>
+                  <div className='px-6 py-2 border rounded-md border border-neutral-300'>{dateDiffInDays(formData.date, formData.returnDate)+1}</div>
+                </div>}
+            </div>
+            
+
+            </div>
+        </div>
+
+        {action == 'create' && <div className='flex flex-row-reverse mt-10'>
+            <div onClick={handleSubmit} className='w-fit px-2 py-1 bg-blue-600  rounded-md border-bg-blue-800 text-gray-100 text-sm hover:bg-blue-500 cursor-pointer'>Add to Itinerary</div>
+        </div>}
+
+        {action == 'edit' && <div className='flex flex-row-reverse mt-10 gap-4'>
+            <div onClick={handleCancel} className='w-fit px-2 py-1 bg-blue-600  rounded-md border-bg-blue-800 text-gray-100 text-sm hover:bg-blue-500 cursor-pointer'>Cancel</div>
+            <div onClick={handleSubmit} className='w-fit px-2 py-1 bg-blue-600  rounded-md border-bg-blue-800 text-gray-100 text-sm hover:bg-blue-500 cursor-pointer'>Save Changes</div>
+          </div>}
+        
+    </div>)
+}
+
+const RentalCabForm = ({setVisible, handleAddToItinerary, action='create', editId = null, editData=null})=>{
+
+  const [formData, setFormData] = useState({pickupAddress:editData?.pickupAddress??'', dropAddress:editData?.dropAddress??'', class:editData?.class??'Regular', date:editData?.date??getCurrentDate(), returnDate: editData?.returnDate??getCurrentDate(1), time:editData?.time??'12pm - 3pm', isFullDayCab:editData?.isFullDayCab??false});
+
+  const [errors, setErrors] = useState({pickupError:{set:false, message:null}, dropError:{set:false, message:null}, dateError:{set:false, message:null}, returnDateError:{set: false, message:null},  timeError:{set:false, message:null}});
+
+  const [showDropdown, setShowDropdonw] = useState(false);
+
+  const updateCity = (e, field)=>{
+      const formData_copy = JSON.parse(JSON.stringify(formData))
+      formData_copy[field] = e.target.value
+      setFormData(formData_copy)
+  }
+
+  const handleTimeChange = (value)=>{
+      const formData_copy = JSON.parse(JSON.stringify(formData))
+      formData_copy.time = value
+      setFormData(formData_copy)
+  }
+
+  const handleDateChange = (e)=>{
+      const formData_copy = JSON.parse(JSON.stringify(formData))
+      formData_copy.date = e.target.value
+      setFormData(formData_copy)
+  }
+
+  const handleReturnDateChange = (e)=>{
+    const formData_copy = JSON.parse(JSON.stringify(formData))
+    formData_copy.returnDate = e.target.value
+    setFormData(formData_copy)
+  }
+
+  const handleSubmit = ()=>{
+
+    console.log('form submitted')
+    let goAhead = true;
+
+    if(formData.pickupAddress == null || formData.pickupAddress == undefined || formData.pickupAddress == ''){
+      setErrors(pre=>({...pre, pickupError: {set: true, message: 'Please enter pickup address'}}))
+      goAhead=false;
+    }else setErrors(pre=>({...pre, pickupError:{set:false, message:null} }));
+
+    if(formData.dropAddress == null || formData.dropAddress == undefined || formData.dropAddress == ''){
+      setErrors(pre=>({...pre, dropError:{set:true, message:'Please enter drop address'}}))
+      goAhead=false;
+    }else setErrors(pre=>({...pre, dropError:{set:false, message:null} }));
+
+    if(formData.date == null || formData.date == undefined || formData.date == ''){
+      setErrors(pre=>({...pre, dateError: {set:true, message: 'Plese select date'}}))
+      goAhead=false;
+    }else setErrors(pre=>({...pre, dateError:{set:false, message:null} }));
+
+    if(formData.isFullDayCab && (formData.returnDate == null || formData.returnDate == undefined || formData.returnDate == '') ){
+      setErrors(pre=>({...pre, returnDateError: {set: true, message: 'Please select return date'} }));
+      goAhead=false;
+    }
+
+    if(formData.time == null && formData.time == undefined){
+      setErrors(pre=>({...pre, timeError:{set: true, message : 'Please select preferred time'}}))
+      goAhead=false;
+    }else setErrors(pre=>({...pre, timeError:{set:false, message:null} }));
+
+
+    
+    if(goAhead){
+      handleAddToItinerary('cabs', {action, editId, formData});
+    }
+    
+  }
+
+  const handleCancel = ()=>{
+    setVisible(false);
+  }
+
+  const handleFullDayCabCheckbox = (e)=>{
+    console.log(e);
+    setFormData(pre=>({...pre, isFullDayCab:e.target.checked}))
+  }
+
+  const handleClassChange = (option)=>{
+    setFormData(pre=>({...pre, class:option}));
+  }
+
+  useEffect(()=>{
+    console.log(formData, 'form data');
+  },[formData])
+
+  useEffect(()=>{
+    console.log(errors, 'flight form errors')
+  }, [errors])
+
+    
+    return(<div className=''>
+    <   div className='pb-10 text-lg text-neutral-700 font-cabin'>Cab</div>
+        
+        <div className='flex gap-2 mb-8'>
+            <input className='cursor-pointer w-4 h-4 rounded-sm' onChange={handleFullDayCabCheckbox} name='full-day-cab' type='checkbox' checked={formData.isFullDayCab} />
+            <label for='full-day-cab' className='font-cabin text-sm text-neutral-700'>Full Day Cab</label>
+        </div>
+
+        <div className='w-[100%] h-[100%] bg-white flex gap-2 flex-wrap items-end'>
+
+           <div className='flex flex-col gap-4 items-start relative'>
+
+           <div className='flex gap-2 w-full'>
+            <Select
+              maxWidth = {'200px'}
+              currentOption = {'Regular'}
+              title={'Cab Type'}
+              onSelect = {handleClassChange}
+              options={['Regular', 'Sedan', 'SUV']} 
+              />
+
+            <PreferredTime
+              value={formData.time}
+              onChange={handleTimeChange}  />
+           </div>
+              
+            <div className='flex flex-col gap-2 w-full'>
+              <Input 
+                maxWidth = {'400px'}
+                showLocationSymbol = {true}
+                title='Pickup Address?'  
+                placeholder='pickup address' 
+                value={formData.pickupAddress}
+                error={errors?.fromError} 
+                onBlur={(e)=>updateCity(e, 'pickupAddress')} />
+
+              <Input 
+                showLocationSymbol = {true}
+                title='Drop Address?' 
+                placeholder='drop address' 
+                value={formData.dropAddress} 
+                error={errors?.toError}
+                onBlur={(e)=>updateCity(e, 'dropAddress')} />
+            </div>
+
+            <div className='flex gap-2'>
+              <SlimDate 
+                format='date-month'
+                min={0}
+                date={formData?.date}
+                onChange = {handleDateChange}
+                title={`${formData.isFullDayCab? 'From Date' : 'On?'}`} />
+
+              {formData.isFullDayCab && <SlimDate 
+                format='date-month'
+                min={dateDiffInDays(formData.date, getCurrentDate())}
+                date={formData?.returnDate}
+                onChange = {handleReturnDateChange}
+                title={`Till Date?`} />}
+
+              {formData.isFullDayCab && <div className='w-fit h-[73px] flex flex-col gap-2'>
+                  <p className='whitespace-nowrap text-zinc-600 text-sm font-cabin'>Total Days</p>
+                  <div className='px-6 py-2 border rounded-md border border-neutral-300'>{dateDiffInDays(formData.date, formData.returnDate)+1}</div>
+                </div>}
+            </div>
+            
+
+            </div>
+        </div>
+
+        {action == 'create' && <div className='flex flex-row-reverse mt-10'>
+            <div onClick={handleSubmit} className='w-fit px-2 py-1 bg-blue-600  rounded-md border-bg-blue-800 text-gray-100 text-sm hover:bg-blue-500 cursor-pointer'>Add to Itinerary</div>
+        </div>}
+
+        {action == 'edit' && <div className='flex flex-row-reverse mt-10 gap-4'>
+            <div onClick={handleCancel} className='w-fit px-2 py-1 bg-blue-600  rounded-md border-bg-blue-800 text-gray-100 text-sm hover:bg-blue-500 cursor-pointer'>Cancel</div>
+            <div onClick={handleSubmit} className='w-fit px-2 py-1 bg-blue-600  rounded-md border-bg-blue-800 text-gray-100 text-sm hover:bg-blue-500 cursor-pointer'>Save Changes</div>
+          </div>}
+        
+    </div>)
+}
+
+const HotelForm = ({setVisible, handleAddToItinerary, action='create', editId = null, editData = null})=>{
+
+  const [formData, setFormData] = useState(
+    {checkIn:editData?.checkIn??getCurrentDate(), 
+      checkOut:editData?.checkOut??getCurrentDate(), 
+      class:editData?.date??'Any', 
+      location:editData?.location??'', 
+      needBreakfast:editData?.needBreakfast??false,
+      needLunch:editData?.needLunch??false,
+      needDinner:editData?.needDinner??false,
+      needNonSmokingRoom:editData?.needNonSmokingRoom??false,
+      time:editData?.time??'12pm - 3pm'});
+
+  const [errors, setErrors] = useState({checkInError:{set:false, message:null}, checkOutError:{set:false, message:null}, locationError:{set:false, message:null}, timeError:{set:false, message:null}});
+
+  const updateCity = (e)=>{
+      const formData_copy = JSON.parse(JSON.stringify(formData))
+      formData_copy.location = e.target.value
+      setFormData(formData_copy)
+  }
+
+  const updateClass = (option)=>{
+    const formData_copy = JSON.parse(JSON.stringify(formData));
+    formData_copy.class = option;
+    setFormData(formData_copy);
+  }
+
+  const handleTimeChange = (value)=>{
+      const formData_copy = JSON.parse(JSON.stringify(formData))
+      formData_copy.time = value
+      setFormData(formData_copy)
+  }
+
+  const handleDateChange = (e, field)=>{
+      const formData_copy = JSON.parse(JSON.stringify(formData))
+      formData_copy[field] = e.target.value
+      setFormData(formData_copy)
+  }
+
+  const handlePreferences = (e, field)=>{
+    setFormData(pre=>({...pre, [field]:e.target.checked}))
+  }
+
+  const handleSubmit = ()=>{
+
+    console.log('form submitted')
+    let goAhead = true;
+
+    if(formData.checkIn == null || formData.checkIn == undefined || formData.checkIn == ''){
+      setErrors(pre=>({...pre, checkInError: {set: true, message: 'Please select check-In date'}}))
+      goAhead=false;
+    }else setErrors(pre=>({...pre, checkInError:{set:false, message:null} }));
+
+    if(formData.checkOut == null || formData.checkOut == undefined || formData.checkOut == ''){
+      setErrors(pre=>({...pre, checkOutError:{set:true, message:'Please select check-Out date'}}))
+      goAhead=false;
+    }else setErrors(pre=>({...pre, checkOutError:{set:false, message:null} }));
+
+    if(dateDiffInDays(formData.checkIn, formData.checkOut) < 1 ){
+      setErrors(pre=>({...pre, checkOutError:{set:true, message:'check out date should be higher'}}))
+      goAhead=false;
+    }else setErrors(pre=>({...pre, checkOutError:{set:false, message:null} }));
+
+    if(formData.location == null || formData.location == undefined || formData.location == ''){
+      setErrors(pre=>({...pre, locationError: {set:true, message: 'Plese enter hotel location'}}))
+      goAhead=false;
+    }else setErrors(pre=>({...pre, locationError:{set:false, message:null} }));
+ 
+    if(goAhead){
+      handleAddToItinerary('hotels', {action, editId, formData});
     }
     
   }
@@ -540,50 +1338,92 @@ const CabForm = ({setVisible, handleAddToItinerary, action='create', editId = nu
   },[formData])
 
   useEffect(()=>{
-    console.log(errors, 'flight form errors')
+    console.log(errors, 'hotel form errors')
   }, [errors])
 
     
-    return(<>
-    <   div className='pb-10 text-lg text-neutral-700 font-cabin'>Flight</div>
+    return(<div className='max-w-[440px]'>
+    <   div className='pb-10 text-lg text-neutral-700 font-cabin'>Hotel</div>
         
-        <div className='w-[100%] h-[100%] bg-white flex gap-2 flex-wrap items-end'>
-          <Input 
-            title='Leaving From'  
-            placeholder='City' 
-            value={formData.from}
-            error={errors?.fromError} 
-            onBlur={(e)=>updateCity(e, 'from')} />
+        <div className='w-[100%] h-[100%] bg-white flex gap-4 flex-wrap items-end'>
+          
+          <div className='flex gap-2'>
+            <Input 
+              maxWidth={'200px'}
+              title='Location'  
+              placeholder='City' 
+              value={formData.location}
+              error={errors?.locationError} 
+              onBlur={(e)=>updateCity(e)} />
 
-          <Input 
-            title='Where To?' 
-            placeholder='City' 
-            value={formData.to} 
-            error={errors?.toError}
-            onBlur={(e)=>updateCity(e, 'to')} />
+            <Select
+              maxWidth={'150px'}
+              currentOption={'Any'}
+              title='Hotel Rating'
+              onSelect={updateClass} 
+              options={['Any', '3-star', '4-star', '5-star']} />
+            </div>
 
-            <SlimDate 
-              format='date-month'
-              min={0}
-              date={formData.date}
-              onChange = {handleDateChange}
-              title='On?' />
+            <div className='flex gap-2'>
+              <SlimDate 
+                format='date-month'
+                min={0}
+                date={formData.checkIn}
+                error={errors.checkInError}
+                onChange = {(e)=>handleDateChange(e, 'checkIn')}
+                title='Check-In' />
+              
+              <SlimDate 
+                format='date-month'
+                min={0}
+                date={formData.checkOut}
+                error={errors.checkOutError}
+                onChange = {(e)=>handleDateChange(e,'checkOut')}
+                title='Check-Out' />
 
-            <PreferredTime
-              value={formData.time}
-              onChange={handleTimeChange}  />
+              <div className='w-fit h-[73px] flex flex-col gap-2'>
+                <p className='whitespace-nowrap text-zinc-600 text-sm font-cabin'>Total Nights</p>
+                <div className='px-6 py-2 border rounded-md border border-neutral-300'>{dateDiffInDays(formData.checkIn, formData.checkOut)}</div>
+              </div>
+            </div>
+
+            <div className=''>
+              <p className='text-neutral-600 text-sm mb-4'>Preferences</p>
+
+              <div className='flex gap-2 flex-wrap'>
+                  <div className='flex gap-2 items-center'>
+                    <input onChange={(e)=>handlePreferences(e, 'needBreakfast')} type='checkbox' className='w-4 h-4 cursor-pointer' checked={formData.needBreakfast}/>
+                    <p className='text-sm text-neutral-600'>Breakfast</p>
+                  </div>
+
+                  <div className='flex gap-2 items-center'>
+                    <input onChange={(e)=>handlePreferences(e, 'needLunch')} type='checkbox' className='w-4 h-4 cursor-pointer' checked={formData.needLunch}/>
+                    <p className='text-sm text-neutral-600'>Lunch</p>
+                  </div>
+
+                  <div className='flex gap-2 items-center'>
+                    <input onChange={(e)=>handlePreferences(e, 'needDinner')} type='checkbox' className='w-4 h-4 cursor-pointer' checked={formData.needDinner}/>
+                    <p className='text-sm text-neutral-600'>Dinner</p>
+                  </div>
+
+                  <div className='flex gap-2 items-center'>
+                    <input onChange={(e)=>handlePreferences(e, 'needNonSmokingRoom')} type='checkbox' className='w-4 h-4 cursor-pointer' checked={formData.needNonSmokingRoom}/>
+                    <p className='text-sm text-neutral-600'>Non-Smoking Room</p>
+                  </div>
+              </div>
+            </div>
         </div>
 
-        {action == 'create' && <div className='flex flex-row-reverse mt-6'>
+        {action == 'create' && <div className='flex flex-row-reverse mt-10'>
             <div onClick={handleSubmit} className='w-fit px-2 py-1 bg-blue-600  rounded-md border-bg-blue-800 text-gray-100 text-sm hover:bg-blue-500 cursor-pointer'>Add to Itinerary</div>
-        </div>}
+        </div>} 
 
-        {action == 'edit' && <div className='flex flex-row-reverse mt-6 gap-4'>
+        {action == 'edit' && <div className='flex flex-row-reverse mt-10 gap-4'>
             <div onClick={handleCancel} className='w-fit px-2 py-1 bg-blue-600  rounded-md border-bg-blue-800 text-gray-100 text-sm hover:bg-blue-500 cursor-pointer'>Cancel</div>
             <div onClick={handleSubmit} className='w-fit px-2 py-1 bg-blue-600  rounded-md border-bg-blue-800 text-gray-100 text-sm hover:bg-blue-500 cursor-pointer'>Save Changes</div>
           </div>}
         
-    </>)
+    </div>)
 }
 
 const Modal = ({ visible, setVisible, children }) => {
@@ -611,7 +1451,7 @@ const Modal = ({ visible, setVisible, children }) => {
             </div>
             
             {/* childrens */}
-            <div className='p-10'>
+            <div className='p-10 max-w-[440px]'>
                 {children}
             </div>
         </div>
@@ -633,7 +1473,14 @@ function flattenObjectToArray(obj) {
   return Object.values(obj).reduce((acc, val) => acc.concat(val), []);
 }
 
-
-
-
-
+function dateDiffInDays(a, b) {
+  try{
+    const date1 = moment(a);
+    const date2 = moment(b);    
+    // Calculate the difference in days
+    const diffInDays = date2.diff(date1, 'days');
+    return diffInDays;
+  }catch(e){
+    return 0;
+  }
+}

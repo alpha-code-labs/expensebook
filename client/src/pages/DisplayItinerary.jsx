@@ -126,7 +126,7 @@ export default React.memo(function({itinerary, setItinerary, handleEdit, handleD
                                     from={item.pickupAddress} 
                                     to={item.dropAddress} 
                                     date={item.date}
-                                    travelClass={item.travelClass} 
+                                    travelClass={item.class} 
                                     mode={'Cab'}
                                     time={item.time}/>
                             </SortableItem>)
@@ -337,22 +337,8 @@ function isoString(dateString){
     }
 }
 
-
-
-
 function formattedTime(timeValue){
     return timeValue;
-    try{
-        if(timeValue == null || timeValue == undefined) return timeValue
-        const hours = timeValue.split(':')[0]>=12? timeValue.split(':')[0]-12 : timeValue.split(':')[0]
-        const minutes = timeValue.split(':')[1]
-        const suffix = timeValue.split(':')[0]>=12? 'PM' : 'AM'
-
-        return `${hours}:${minutes} ${suffix}`
-    }
-    catch(e){
-        return timeValue;
-    }
 }
 
 const SortableItem = ({id, children})=>{
