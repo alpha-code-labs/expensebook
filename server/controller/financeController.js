@@ -2,6 +2,7 @@
 import HRMaster from "../models/hrMaster.js";
 import { getCashAdvanceToSettle, getPaidAndCancelledCash } from "./cashAdvanceController.js";
 import { getReimbursement } from "./reimbursementController.js";
+import { getTravelAndNonTravelExpenseData } from "./settlingAccountingEntries.js";
 import { getTravelExpenseData } from "./travelExpenseController.js";
 
 const getEmployeeRoles = async (tenantId, empId) => {
@@ -92,10 +93,19 @@ const financeLayout = async (tenantId, empId) => {
     const cashAdvanceToSettle = await getCashAdvanceToSettle(tenantId, empId);
     const nonTravelExpense = await getReimbursement(tenantId, empId);
     const travelExpense = await getTravelExpenseData(tenantId, empId);
-    const settlements = { cashAdvanceToSettle, paidAndCancelledCash, travelExpense, nonTravelExpense}
+    const entries= await getTravelAndNonTravelExpenseData(tenantId, empId);
+    const settlements = { cashAdvanceToSettle, paidAndCancelledCash, travelExpense, nonTravelExpense, entries}
     return settlements;
   } catch (error) {
     console.error("Error:", error);
     throw new Error({ message: 'Internal server error :Finance Layout' });
   }
 };
+
+
+
+
+
+
+
+
