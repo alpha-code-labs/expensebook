@@ -20,7 +20,7 @@ const getOnboardingAndProfileData = async (req, res) => {
     const onboardingData = await fetchOnboardingData(tenantId, employeeId);
     //const profileData = await fetchProfileData(tenantId, employeeId);
 
-    res.status(200).json(onboardingData /** , profileData */);
+    res.status(200).json(onboardingData);
   } catch (e) {
     console.error(e);
     res.status(500).json({ message: "Internal server error" });
@@ -47,6 +47,7 @@ const createTravelRequest = async (req, res) => {
       "preferences",
       "travelViolations",
       "tripType",
+      "travelType",
       "isCancelled",
       "cancellationReason", 
       "cancellationDate", 
@@ -87,6 +88,7 @@ const createTravelRequest = async (req, res) => {
       travelAllocationHeaders,
       itinerary,
       tripType,
+      travelType,
       travelDocuments,
       bookings,
       approvers,
@@ -126,6 +128,7 @@ const createTravelRequest = async (req, res) => {
       travelAllocationHeaders,
       itinerary,
       tripType,
+      travelType,
       travelDocuments,
       bookings,
       approvers,
