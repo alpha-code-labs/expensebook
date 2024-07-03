@@ -234,12 +234,12 @@ const handleScreenChange = (screen) => {
           {/* Accounting Entries */}
           {activeScreen=== 'Settling Accounting Entries' && 
             <>
-      <div className="w-auto h-6 flex flex-row gap-3 ml-8 mt-7 items-center">
+      <div className="w-auto h-4 flex flex-row gap-3 ml-8 mt-4 items-center">
         <img className="w-6 h-6" src={receipt} alt="receipt" />
         <div className="text-base tracking-[0.02em] font-bold w-auto">Settling Accounting Entries For All Expenses</div>
       </div>
 
-    <div className="box-border mx-4  mt-[46px]  w-auto    border-[1px]  border-b-gray "/>
+    <div className="box-border mx-4  mt-[27px]  w-auto    border-[1px]  border-b-gray "/>
     <div className='overflow-y-auto overflow-x-hidden  mt-6  w-dvh px-10'>
     <Entries 
     employeeRole={employeeRole}

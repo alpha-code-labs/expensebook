@@ -236,7 +236,24 @@ export const postTravelPreference_API = async(tenantId,empId,data)=>{
 }
 
 //Entries 
-export const getTravelAndNonTravelExpenseData_API = async (tenantId,empId,data) => {
+export const getTravelExpenseDataEntries_API = async (tenantId,empId,data) => {
+  const url = `${FINANCE_BACKEND_API_URL}/api/fe/finance/expense/filter/${tenantId}/${empId}`;
+
+  try {
+    const response = await axiosRetry(axios.post, url,data );
+    return response.data
+  } catch (error) {
+    handleRequestError(error);
+    const errorObject = {
+      status: error.response?.status || null,
+      message: error.message || 'Unknown error',
+    };
+
+    return { data: null, error: errorObject };
+  }
+};
+
+export const getNonTravelExpenseDataEntries_API = async (tenantId,empId,data) => {
   const url = `${FINANCE_BACKEND_API_URL}/api/fe/finance/nontravel/filter/${tenantId}/${empId}`;
 
   try {
