@@ -15,14 +15,29 @@ import Select from '../components/common/Select';
 import { camelCaseToTitleCase } from '../utils/handyFunctions';
 import { left_arrow_icon } from "../assets/icon";
 import { useNavigate } from 'react-router-dom';
+import itinerary_icon from '../assets/itinerary.webp'
+import Button from '../components/common/Button';
+import { updateTravelRequest_API } from '../utils/api';
+import Error from '../components/common/Error';
 
-export default function({formData, setFormData, onboardingData, lastPage, nextPage}){
+export default function({formData, setFormData, onBoardingData, lastPage, nextPage}){
 const sideBarWidth = '230px'
 const navigate = useNavigate();
+
+console.log('nextpage - lastpage ', nextPage, lastPage)
 
 const itineraryItems = ['cab', 'flight', 'hotel', 'train', 'bus'];
 const [modalContent, setModalContent] = useState(null);
 const [visible, setVisible] = useState(false);
+const DASHBOARD_URL = import.meta.env.VITE_DASHBOARD_URL
+
+const [requestDrafted, setRequestDrafted] = useState(false)
+const [showSaveAsDraftPopup, setShowSaveAsDraftPopup] = useState(false)
+const tenantId = formData.tenantId;
+const [requestSubmitted, setRequestSubmitted] = useState(false)
+const [showPopup, setShowPopup] = useState(false)
+const [loadingErrMsg, setLoadingErrMsg] = useState(false)
+const cashAdvanceAllowed = onBoardingData.cashAdvanceAllowed
 
 function getNextSequenceNumber(){
   return Math.max(...flattenObjectToArray(itinerary).map(item=>item.sequence), 0)+1;
@@ -584,45 +599,105 @@ const handleAddToItinerary = (category, data)=>{
   }
 }
 
+const handleNext = async ()=>{
+  console.log('clicked on next');
+  if(nextPage == undefined && formData.travelRequestId){
+    //submission logic
+      console.log('sending call')
+      setShowPopup(true)
+      setRequestSubmitted(false)
+      const res = await updateTravelRequest_API({travelRequest:{...formData, isCashAdvanceTaken:false}, submitted:true})
+      
+      if(res.err){
+          setLoadingErrMsg(res.err)
+          return
+      }
+      else{
+          setRequestSubmitted(true)
+      }
+  }
+  else navigate(nextPage);
+}
+
+const handleCashAdvance = async (needed)=>{
+  //send data to backend
+  if(needed){
+      window.parent.postMessage(`raiseAdvance ${tenantId} ${formData.travelRequestId}`, DASHBOARD_URL);
+      setShowPopup(false)
+  }    
+  else{
+      //post message to close iframe
+      window.parent.postMessage('closeIframe', DASHBOARD_URL);
+  }
+
+}
+
 useEffect(()=>{
   console.log(formData.itinerary, 'itinerary updated')
 },[formData.itinerary])
 
-    return(<>
-    
+    return(<>     
+        <div className="min-w-[100%] min-h-[100%] flex flex-col sm:px-8 px-6 py-6">
+            
+                {/* back link */}
+            <div className='flex items-center gap-4 cursor-pointer mb-4'>
+                <img className='w-[24px] h-[24px]' src={left_arrow_icon} onClick={()=>navigate(lastPage)} />
+                <img className='w-6 h-6' src={itinerary_icon}/>
+                <p className='text-neutral-700 text-md font-semibold font-cabin'>Itinerary</p>
+            </div>
+            
+            <div className='flex w-full h-full'>
+              <div className={`w-[${sideBarWidth}] h-[100%] bg-white`}>
+                  {/* sidebar for adding itinerary items */}
+                  <div className="flex-flex-row divide-y">
+                      {itineraryItems.map(item=>(
+                          <div 
+                            key={item}
+                            onClick={()=>addItineraryItem(camelCaseToTitleCase(item))}
+                            className="flex flex-col p-4 w-[100%] h-[100px] gap-2 items-center justify-center cursor-pointer hover:bg-blue-100">
+                          <div className={`sprite ic-${item}`}/>
+                          <p className="text-neutral-800 text-sm">{camelCaseToTitleCase(item)}</p>
+                      </div>))}
+                  </div>
+              </div>
         
-        <div className="min-w-[100%] min-h-[100%] flex">
-            <div className={`w-[${sideBarWidth}] h-[100%] bg-white`}>
-                {/* sidebar for adding itinerary items */}
-                <div className="flex-flex-row divide-y">
-                    {itineraryItems.map(item=>(
-                        <div 
-                          key={item}
-                          onClick={()=>addItineraryItem(camelCaseToTitleCase(item))}
-                          className="flex flex-col p-4 w-[100%] h-[100px] gap-2 items-center justify-center cursor-pointer hover:bg-blue-100">
-                        <div className={`sprite ic-${item}`}/>
-                        <p className="text-neutral-800 text-sm">{camelCaseToTitleCase(item)}</p>
-                    </div>))}
-                </div>
+              <div className={`w-[calc(100vw-${sideBarWidth})] px-6 py-4 sm:px-12 md:px-24`}>
+                  <DisplayItinerary formData={formData} setFormData={setFormData} handleDelete={deleteItineraryItem}  handleEdit={editItineraryItem}/>
+                  
+                  <Modal visible={visible} setVisible={setVisible}>
+                      {modalContent}
+                  </Modal>
+              </div>
             </div>
-      
-            <div className={`w-[calc(100vw-${sideBarWidth})] px-6 py-4 sm:px-12 md:px-24`}>
-                <DisplayItinerary formData={formData} setFormData={setFormData} handleDelete={deleteItineraryItem}  handleEdit={editItineraryItem}/>
-                
-                <Modal visible={visible} setVisible={setVisible}>
-                    {modalContent}
-                </Modal>
+
+            <div className='flex w-full justify-end'>
+                <Button disabled={nextPage == 'undefined' && formData.itinerary } text={`${nextPage == undefined ? 'Submit' : 'Continue'}`} onClick={handleNext}/>
             </div>
+            
+            <Modal visible={showPopup} setVisible={setShowPopup} skipable={true}>
+                {!requestSubmitted && 
+                  <div className='w-[150px] h-[150px]'>
+                    <Error message={loadingErrMsg} />
+                  </div>}
+                {requestSubmitted && <div className='p-10'>
+                    <p className='text-2xl text-neutral-700 font-semibold font-cabin'>Travel Request Submitted !</p>
+                    { cashAdvanceAllowed && <> 
+                        <p className='text-zinc-800 text-base font-medium font-cabin mt-4'>Would you like to raise a cash advance request for this trip?</p>
+                        <div className='flex gap-10 justify-between mt-10'>
+                            <Button text='Yes' onClick={()=>handleCashAdvance(true)} />
+                            <Button text='No' onClick={()=>handleCashAdvance(false)} />
+                        </div>
+                      </>
+                    }
+
+                    {!cashAdvanceAllowed && <div className='flex gap-10 justify-between mt-10'>
+                            <Button text='Ok' onClick={()=>handleCashAdvance(false)} />
+                        </div>}
+
+                </div>}
+            </Modal>
 
         </div>
-
-        {/* back link */}
-        <div className='flex items-center gap-4 cursor-pointer py-10 w-[90%] mx-auto'>
-            <img className='w-[24px] h-[24px]' src={left_arrow_icon} onClick={()=>navigate(lastPage)} />
-            <p className='text-indigo-500 text-md font-semibold font-cabin'>Back</p>
-        </div>
-
-        
     </>)
 }
 
@@ -1130,7 +1205,7 @@ const CabForm = ({setVisible, handleAddToItinerary, action='create', editId = nu
                 title='Pickup Address?'  
                 placeholder='pickup address' 
                 value={formData.pickupAddress}
-                error={errors?.fromError} 
+                error={errors?.pickupError} 
                 onBlur={(e)=>updateCity(e, 'pickupAddress')} />
 
               <Input 
@@ -1138,7 +1213,7 @@ const CabForm = ({setVisible, handleAddToItinerary, action='create', editId = nu
                 title='Drop Address?' 
                 placeholder='drop address' 
                 value={formData.dropAddress} 
-                error={errors?.toError}
+                error={errors?.dropError}
                 onBlur={(e)=>updateCity(e, 'dropAddress')} />
             </div>
 
@@ -1352,7 +1427,6 @@ const HotelForm = ({setVisible, handleAddToItinerary, action='create', editId = 
 
 const Modal = ({ visible, setVisible, children }) => {
 
-
   useEffect(()=>{
     if(visible){
       document.body.style.overflowY='hidden';
@@ -1363,7 +1437,7 @@ const Modal = ({ visible, setVisible, children }) => {
 
   return (
     visible && (
-      <div className='relative '>
+      <div className='relative'>
 
         <div className='fixed  w-[100%] h-[100%] left-0 top-0 bg-black/30 z-10' onClick={()=>setVisible(false)}>
         </div>

@@ -6,7 +6,7 @@ import Button from "../components/common/Button"
 
 
 export default function({nextPage, formData, setFormData, setOnBoardingData}){
-    const [travelType, setTravelType] = useState(formData.travelType)
+    const [travelType, setTravelType] = useState(formData.travelType??'international')
     const [isLoading, setIsLoading] = useState(true)
     const navigate = useNavigate()
 
@@ -17,6 +17,23 @@ export default function({nextPage, formData, setFormData, setOnBoardingData}){
     useEffect(()=>{
         console.log(travelType)
     }, [travelType])
+
+    useEffect(()=>{
+        (async function(){
+          if(formData?.travelType??false){
+            setIsLoading(true);
+            const response = await getOnboardingData_API({ tenantId: formData.tenantId, employeeId: formData.createdBy.empId, travelType: formData.travelType })
+            if (response.err) {
+              setLoadingErrMsg(response.err)
+              return
+            }
+      
+            setOnBoardingData(response.data.onboardingData)
+            setIsLoading(false);
+          }
+        })()
+       
+      },[formData?.travelType])
 
 
     const handleContinueButton = ()=>{
@@ -32,6 +49,7 @@ export default function({nextPage, formData, setFormData, setOnBoardingData}){
 
         {!isLoading && <>
         <div className="w-full h-full relative bg-white md:px-6 md:mx-0 sm:px-0 sm:mx-auto py-6 select-none">
+
         {/* app icon */}
         <div className='w-full flex justify-center  md:justify-start lg:justify-start'>
             <Icon/>

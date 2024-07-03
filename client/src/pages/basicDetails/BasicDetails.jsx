@@ -16,22 +16,13 @@ import Error from '../../components/common/Error'
 import { useQuery } from '../../utils/hooks'
 import { camelCaseToTitleCase } from '../../utils/handyFunctions'
 
-export default function BasicDetails(props){
-    const query = useQuery()
-    const travelType = props.formData.travelType
+export default function BasicDetails({onBoardingData, formData, setFormData, nextPage}){
     const navigate = useNavigate()
-
-    if(!['international', 'domestic', 'local'].includes(travelType)){
-        return navigate(props.lastPage)
-    }
-    const DASHBOARD_URL = import.meta.env.VITE_DASHBOARD_URL
-
     //loader state
     const [isLoading, setIsLoading] = useState(false)
     const [loadingErrMsg, setLoadingErrMsg] = useState(null)
     
     //onboarding data...
-    const onBoardingData = props.onBoardingData
     const APPROVAL_FLAG = onBoardingData?.APPROVAL_FLAG
     const MANAGER_FLAG =  onBoardingData?.MANAGER_FLAG
     const DELEGATED_FLAG = onBoardingData?.DELEGATED_FLAG
@@ -48,24 +39,8 @@ export default function BasicDetails(props){
     const [showPopup, setshowPopup] = useState(false)
     const [popupMessage, setPopupMessage] = useState(null)
     
-    //form data
-    const formData = props.formData
-    const setFormData = props.setFormData
-
     console.log(formData, 'form data')
 
-    //next page
-    const nextPage = props.nextPage
-    console.log(nextPage, props.lastPage,  'nextPage - lastPage')
-
-    //details of current employee
-    
-    //get this as props
-    const EMPLOYEE_ID  = props.EMPLOYEE_ID 
-    const groups = props.groups 
-
-    //get this from onboarding....
-    const teamMembers = props.teamMembers
     
     //local states
     const [tripPurposeViolationMessage, setTripPurposeViiolationMessage] = useState(formData.travelViolations.tripPurposeViolationMessage)
@@ -121,7 +96,6 @@ export default function BasicDetails(props){
     const handleContinueButton = async ()=>{
         setIsLoading(true)
 
-        console.log(sectionForm)
         console.log(formData)
         let allowSubmit = false
         //check required fields
@@ -162,7 +136,6 @@ export default function BasicDetails(props){
     }
 
     const handleSaveAsDraft = async ()=>{
-        console.log(sectionForm)
         console.log(formData)
         setIsLoading(true)
         let allowSubmit = await checkRequiredFields()
@@ -431,14 +404,6 @@ export default function BasicDetails(props){
         setFormData(formData_copy)
     },[selectedTravelAllocationHeaders])
 
-    const sectionForm =  {
-        createdBy:EMPLOYEE_ID,
-        createdFor: formData.createdFor,
-        teamMembers: formData.teamMembers,
-        travelAllocationHeaders: selectedTravelAllocationHeaders,
-        approvers: formData.approvers
-    }
-
     return(<>
             {isLoading && <Error message={loadingErrMsg}/> }
             {!isLoading && <>
@@ -452,9 +417,45 @@ export default function BasicDetails(props){
             <div className="w-full h-full px-6">
                 {/* back link */}
                 <div className='flex items-center gap-4 cursor-pointer'>
-                    <img className='w-[24px] h-[24px]' src={leftArrow_icon} onClick={()=>navigate(props.lastPage)} />
-                    <p className='text-neutral-700 text-md font-semibold font-cabin'>Create travel request</p>
+                    {/* <img className='w-[24px] h-[24px]' src={leftArrow_icon} onClick={()=>navigate(props.lastPage)} /> */}
+                    <p className='text-neutral-700 text-md font-semibold font-cabin'>{`Travel request`}</p>
                 </div>
+
+                {/* Rest of the section */}
+
+                <legend className='font-cabin text-neutral-700 text-sm mt-6'>Select type of travel?</legend>
+                    <fieldset className='flex flex-col sm:flex-row gap-4'>
+                        <div>
+                            <div className='flex gap-4 border border-indigo-400 max-w-[300px] accent-indigo-600 px-6 py-2 rounded mt-4 cursor-pointer' onClick={()=>setFormData(pre=>({...pre, travelType: 'international'}))}>
+                                <input type="radio" id="International" name="travelType" value="traveltype" checked={formData.travelType == 'international'}  />
+                                <div>
+                                    <p className='font-cabin text-neutral-800 text-normal tracking-wider'> International </p>
+                                    <p className='font-cabin -mt-1 text-neutral-600 text-xs tracking-tight'>Travelling out of country</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div className='flex gap-4 border border-indigo-400 max-w-[300px] accent-indigo-600 px-6 py-2 rounded mt-4 cursor-pointer' onClick={()=>setFormData(pre=>({...pre, travelType: 'domestic'}))}>
+                                <input type="radio" id="Domestic" name="travelType" value="traveltype" checked={formData.travelType=='domestic'}  />
+                                <div>
+                                    <p className='font-cabin text-neutral-800 text-normal tracking-wider'> Domestic </p>
+                                    <p className='font-cabin -mt-1 text-neutral-600 text-xs tracking-tight'>Travelling within country</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div className='flex gap-4 border border-indigo-400 max-w-[300px] accent-indigo-600 px-6 py-2 rounded mt-4 cursor-pointer' onClick={()=>setFormData(pre=>({...pre, travelType: 'local'}))} >
+                                <input type="radio" id="Local" name="travelType" value="traveltype" checked={formData.travelType == 'local'}  />
+                                <div>
+                                    <p className='font-cabin text-neutral-800 text-normal tracking-wider'> Local </p>
+                                    <p className='font-cabin -mt-1 text-neutral-600 text-xs tracking-tight'>Travelling nearby</p>
+                                </div>
+                            </div>
+                        </div>
+
+                    </fieldset>
 
                 {/* only for manager */}
                { MANAGER_FLAG && <>
@@ -470,6 +471,19 @@ export default function BasicDetails(props){
 
                 {/* Trip Purpose */}
                 <div className="mt-8">
+                    
+                </div>
+
+
+                <div className='mt-8 flex gap-8 flex-wrap items-center'>
+                    {/* Booking for.. will be displayed if employee is delegated  */}
+                    {/* {DELEGATED_FLAG  && !formData.bookingForTeam && <ObjectSelect
+                        options={delegatedFor}
+                        currentOption={formData?.createdFor}
+                        placeholder='Name of the travelling employeee' 
+                        onSelect={(option)=>{updateTravelRequestCreatedFor(option)}}
+                        title='Assign request for' />} */}
+                    
                     <Select 
                         title='Select trip purpose'
                         placeholder='Select puropse of trip'
@@ -478,17 +492,6 @@ export default function BasicDetails(props){
                         error={errors.tripPurposeError}
                         currentOption={formData.tripPurpose}
                         onSelect = {(option)=> {updateTripPurpose(option)}} />
-                </div>
-
-
-                <div className='mt-8 flex gap-8 flex-wrap'>
-                    {/* Booking for.. will be displayed if employee is delegated  */}
-                    {DELEGATED_FLAG  && !formData.bookingForTeam && <ObjectSelect
-                        options={delegatedFor}
-                        currentOption={formData?.createdFor}
-                        placeholder='Name of the travelling employeee' 
-                        onSelect={(option)=>{updateTravelRequestCreatedFor(option)}}
-                        title='Assign request for' />}
 
                     {/* Select approvers */}
 
@@ -573,9 +576,7 @@ export default function BasicDetails(props){
 
                 </div>}
              
-                <div className='my-8 w-full flex justify-between items-center'>
-                    <Button disabled={isLoading} variant='fit' text='Save as Draft' onClick={handleSaveAsDraft}/>
-                
+                <div className='my-8 w-full flex justify-end items-center'>    
                     <Button 
                         variant='fit'
                         text='Continue' 

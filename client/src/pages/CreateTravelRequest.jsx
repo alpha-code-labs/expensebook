@@ -117,6 +117,30 @@ useEffect(() => {
       setIsLoading(false)
     }
   })()
+},[])
+
+useEffect(()=>{
+  (async function(){
+    if(formData?.travelType??false){
+      setIsLoading(true);
+      const response = await getOnboardingData_API({ tenantId: formData.tenantId, employeeId: formData.createdBy.empId, travelType: formData.travelType })
+      if (response.err) {
+        setLoadingErrMsg(response.err)
+        return
+      }
+
+      setOnBoardingData(response.data.onboardingData)
+      setIsLoading(false);
+    }
+  })()
+ 
+},[formData?.travelType])
+
+
+useEffect(()=>{
+  (async function(){
+
+  })()
 },[formData.travelType])
 
 
@@ -125,27 +149,18 @@ useEffect(() => {
 
       {!isLoading &&
       <Routes>
-        <Route path='/' element={<SelectTravelType 
-                                    formData={formData} 
-                                    setFormData={setFormData}
-                                    onBoardingData={onBoardingData}
-                                    setOnBoardingData={setOnBoardingData} 
-                                    nextPage={`/create/${tenantId}/${employeeId}/section0`} />} />
+        <Route path='/' element={<BasicDetails 
+                                            formData={formData} 
+                                            setFormData={setFormData} 
+                                            onBoardingData={onBoardingData}
+                                            lastPage={`/create/${tenantId}/${employeeId}/`}
+                                            nextPage={`/create/${tenantId}/${employeeId}/section1`} />} />
         <Route path='/section0' element={<BasicDetails 
                                             formData={formData} 
                                             setFormData={setFormData} 
                                             onBoardingData={onBoardingData}
                                             lastPage={`/create/${tenantId}/${employeeId}/`}
                                             nextPage={`/create/${tenantId}/${employeeId}/section1`} />} />
-
-        {/* <Route path='/section1' element={<ModifiedItinerary
-                                            currentFormState={currentFormState}
-                                            setCurrentFormState={setCurrentFormState}
-                                            formData={formData} 
-                                            setFormData={setFormData} 
-                                            onBoardingData={onBoardingData}
-                                            nextPage={onBoardingData?.travelAllocationFlags.level3 ?  `/create/${tenantId}/${employeeId}/allocations` : `/create/${tenantId}/${employeeId}/section2` }
-                                            lastPage={`/create/${tenantId}/${employeeId}/section0`} />} /> */}
 
         <Route path='/section1' element={<LatestItinerary
                                             formData={formData} 

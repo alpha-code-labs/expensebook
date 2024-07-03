@@ -60,16 +60,19 @@ export default function({formData, setFormData, handleEdit, handleDelete}) {
         })
       )
 
-    return(<div className='w-full border border-sm border-neutral-800'>
+    return(<div className='w-full border border-sm border-neutral-50'>
         <DndContext
             sensors={sensors}
             onDragEnd={handleDragEnd}
             collisionDetection={closestCorners}>
-            <div className="flex gap-4">
-                <img src={itinerary_icon} className="w-8 h-8"/>
-                <p className="text-neutral-600 font-cabin text-xl">Itinerary</p>
-            </div>
-            <div className='p-4 w-[800px] flex flex-col gap-4'>
+
+            {flattendItinerary && flattendItinerary.length == 0 && <div className="min-w-[200px] min-h-[100px] sm:min-w-[280px] sm:min-h-[250px] md:min-w-[400px] md:min-h-[300px] flex justify-center items-center">
+                    <div className="flex flex-col gap-4">
+                        <img src={empty_itinerary_icon} className="w-[200px]"/>
+                        <p className="text-xl font-cabin text-neutral-600">Your Itinerary will appear here</p>
+                    </div>
+                </div>}
+            <div className='p-4 w-[270px] sm:w-[400px] md:w-[700px] flex flex-col gap-4'>
                 <SortableContext
                     strategy={verticalListSortingStrategy}
                     items={flattendItinerary??[]}>
@@ -195,7 +198,7 @@ function FlightCard({from, to, date, returnDate, time, returnTime, travelClass, 
                     }
 
                     <div className="flex-1 justify-center">
-                        <p className="text-xs text-neutral-600 flex justify-between flex-col sm:flex-row">Prefferred Time</p>
+                        <p className="text-xs text-neutral-600 flex justify-between flex-col sm:flex-row">Preferred Time</p>
                         <div className='flex items-center gap-1'>
                             <img src={clock_icon} className='w-4'/>
                             <p>{formattedTime(time)??'--:--'}</p>    
@@ -251,7 +254,7 @@ function CabCard({from, to, date, time, travelClass, onClick, mode, isTransfer=f
                   </div>
               </div>
               <div className="flex-1 justify-center">
-                  <p className="text-xs text-neutral-600 flex justify-between flex-col sm:flex-row">Prefferred Time</p>
+                  <p className="text-xs text-neutral-600 flex justify-between flex-col sm:flex-row">Preferred Time</p>
                   <div className="flex items-center gap-1">
                     <img src={clock_icon} className="w-4 h-4"/>
                     <p className="whitespace-wrap">{formattedTime(time)??'not provided'}</p>

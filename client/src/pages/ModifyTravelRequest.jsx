@@ -84,16 +84,36 @@ export default function () {
       console.log(response.data.onboardingData)
       setIsLoading(false)
     })()
-  }, [])
+  }, []);
+
+  useEffect(()=>{
+    (async function(){
+      if(formData?.travelType??false){
+        setIsLoading(true);
+        const response = await getOnboardingData_API({ tenantId: formData.tenantId, employeeId: formData.createdBy.empId, travelType: formData.travelType })
+        if (response.err) {
+          setLoadingErrMsg(response.err)
+          return
+        }
+  
+        setOnBoardingData(response.data.onboardingData)
+        setIsLoading(false);
+      }
+    })()
+   
+  },[formData?.travelType])
+
+  
 
   return <>
     {isLoading && <Error message={loadingErrMsg} />}
     {!isLoading && <Routes>
-      <Route path='/' element={<SelectTravelType
+      <Route path='/' element={<BasicDetails
         formData={formData}
         setFormData={setFormData}
         onBoardingData={onBoardingData}
-        nextPage={`/modify/${travelRequestId}/section0`} />} />
+        lastPage={`/modify/${travelRequestId}/`}
+        nextPage={`/modify/${travelRequestId}/section1`} />} />
 
       <Route path='/section0' element={<BasicDetails
         formData={formData}
@@ -106,14 +126,14 @@ export default function () {
         formData={formData}
         setFormData={setFormData}
         onBoardingData={onBoardingData}
-        nextPage={onBoardingData?.travelAllocationFlags.level3 ? `/modify/${travelRequestId}/allocations` : `/modify/${travelRequestId}/section2`}
+        nextPage={onBoardingData?.travelAllocationFlags.level3 ? `/modify/${travelRequestId}/allocations` : undefined}
         lastPage={`/modify/${travelRequestId}/section0`} />} />
 
-      <Route path='/allocation' element={<AllocateTravelObjects
+      <Route path='/allocations' element={<AllocateTravelObjects
         formData={formData}
         setFormData={setFormData}
         onBoardingData={onBoardingData}
-        nextPage={`/modify/${travelRequestId}/section2`}
+        nextPage={undefined}
         lastPage={`/modify/${travelRequestId}/section1`} />} />
 
       {/* <Route path='/section2' element={<Review
