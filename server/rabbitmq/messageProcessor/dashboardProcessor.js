@@ -126,8 +126,6 @@ export const fullUpdateExpense = async (payloadArray) => {
       { 
         tenantId,
         travelRequestId,
-        'tripSchema.travelRequestData.travelRequestId':travelRequestId,
-        'tripSchema.tripId': tripId,
         'tripSchema.travelExpenseData.actionedUpon':false,
         },
       {

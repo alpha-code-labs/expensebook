@@ -96,7 +96,8 @@ const update = {
   $set: {
     'tripSchema.travelExpenseData.$[elem].settlementBy': settlementBy,
     'tripSchema.travelExpenseData.$[elem].actionedUpon': true,
-    'tripSchema.travelExpenseData.$[elem].expenseHeaderStatus': newStatus.PAID
+    'tripSchema.travelExpenseData.$[elem].expenseHeaderStatus': newStatus.PAID,
+    'tripSchema.travelExpenseData.$[elem].submissionDate': new Date(), // IMPORTANT --this need to be renamed as paidDate , for report extraction testing purpose added submission date
   }
 }
 
@@ -143,8 +144,59 @@ const arrayFilters = {
 };
 
 
+export const getAllPaidForEntries = async(req,res) => {
+    try {
+      const {tenantId, empId} = req.params
 
+      const status = {
+        PAID:'paid',
+      }
 
+        const expenseReportsToSettle = await Finance.find({
+          tenantId,
+          'tripSchema.travelExpenseData':{
+            $elemMatch:{
+              'actionedUpon':false,
+              'expenseHeaderStatus':status.PAID
+              // $or:[
+              //   {'paidFlag':false, 'expenseHeaderStatus': status.PENDING_SETTLEMENT },
+              //   {'recoveredFlag':false, 'expenseHeaderStatus': status.PENDING_SETTLEMENT}
+              // ]
+            }
+          },
+        });
+
+        if (!expenseReportsToSettle) {
+          return { success: true, message: `All are settled` };
+      } else {
+
+      const travelExpense = expenseReportsToSettle.flatMap((report) =>{
+        // console.log("reports expense", report)
+        if(!report?.tripSchema || !report?.tripSchema?.travelExpenseData?.length > 1){
+          return []
+      }
+      const {expenseAmountStatus, createdBy} = report.tripSchema
+
+        return report.tripSchema.travelExpenseData
+        .filter((expense) => expense.expenseHeaderStatus === status.PENDING_SETTLEMENT)
+        .map(({travelRequestId,expenseHeaderId,actionedUpon,settlementBy , expenseHeaderStatus})=>({
+          expenseHeaderStatus,
+          expenseAmountStatus,
+          travelRequestId,
+          expenseHeaderId,
+          createdBy,
+          settlementBy,
+          actionedUpon
+          }))
+      })
+
+      // console.log("travelExpense",travelExpense)
+      return travelExpense
+
+    }} catch (error) {
+      throw new Error({ error: 'Error in fetching travel expense reports:', error });
+    }
+};
 
 
 
