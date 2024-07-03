@@ -7,6 +7,7 @@ const loginBaseUrl       = import.meta.env.VITE_LOGIN_PAGE_URL;
 const cashAdvanceBaseUrl = import.meta.env.VITE_CASHADVANCE_PAGE_URL;
 const expenseBaseUrl     = import.meta.env.VITE_EXPENSE_PAGE_URL;
 const approvalBaseUrl    = import.meta.env.VITE_APPROVAL_PAGE_URL;
+const tripBaseUrl        = import.meta.env.VITE_TRIP_BASE_URL;
 
 
 export const loginPageRoutes = {
@@ -48,8 +49,14 @@ export const travelRoutes = {
   },
 };
 
+// cashAdvance Routes
 
-
+export const cashRoutes = {
+  payCash :{
+   path:'/ca-pay/:tenantId/:empId/:travelRequestId/:cashAdvanceId',
+   getUrl:(travelRequestId, cashAdvanceId) => `${cashAdvanceBaseUrl}/pay/${tenantId}/${travelRequestId}/${cashAdvanceId}`
+  }
+}
 
 
 export const cashAdvanceRoutes={
@@ -83,11 +90,6 @@ booking_tr_with_ca:{
 }
 
 
-///travel expense routes
-
-
-
-
 export const expenseRoutes={  
   create:{
     path:'travel/book-expense/:tenantId/:empId/:tripId',
@@ -108,10 +110,7 @@ export const expenseRoutes={
 }
 
 
-
 //non-travel routes
-
-
 
 export const nonExpenseRoutes={  
   create:{
@@ -135,8 +134,6 @@ export const nonExpenseRoutes={
 
 //travel request view for approval
 
-
-
 export const approvalViewRoutes={
   viewDetails:{
     viewDetails_tr_standalone:{
@@ -153,8 +150,6 @@ export const approvalViewRoutes={
 
 
 //travel request view for approval
-const tripBaseUrl = import.meta.env.VITE_TRIP_BASE_URL;
-
 
 export const tripRoutes={
     tripRecoveryView:{
@@ -166,3 +161,11 @@ export const tripRoutes={
       getUrl:(tripId)=>`${tripBaseUrl}/trip-cancel-view/${tenantId}/${empId}/${tripId}`
     } 
 } 
+
+
+
+
+
+
+
+

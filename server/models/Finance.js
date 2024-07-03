@@ -4,34 +4,32 @@ import { tripSchema } from "./trip.js";
 import { reimbursementSchema } from "./reimbursement.js";
 
 const financeSchema = new mongoose.Schema({
-  tenantId:{
+  tenantId: {
     type: String,
     required: true,
   },
-  tenantName:{
-    type:String,
+  tenantName: {
+    type: String,
   },
-  travelRequestId:{
+  travelRequestId: {
     type: mongoose.Schema.Types.ObjectId,
-    unique: function(){
-      return !this.reimbursementSchema
-    },
-    required: function(){
-      return !this.reimbursementSchema
+    required: function() {
+      return !this.reimbursementSchema;
     },
   },
-  reimbursementSchema:{
+  reimbursementSchema: {
     type: reimbursementSchema,
-    required:false,
+    required: false,
   },
-   cashAdvanceSchema: cashAdvanceSchema,
-   tripSchema: tripSchema,
+  cashAdvanceSchema: cashAdvanceSchema,
+  tripSchema: tripSchema,
+});
+
+financeSchema.index({ travelRequestId: 1 }, {
+  unique: true,
+  partialFilterExpression: { reimbursementSchema: { $exists: false } }
 });
 
 const Finance = mongoose.model("Finance", financeSchema);
 
-export default Finance
-
-
-
-
+export default Finance;

@@ -104,12 +104,22 @@ paidBy:{
   empId:{type: String, default: null},
   name: {type:String, default: null},
 },
+settlementBy:{
+  empId:{type: String, default:null},
+  name:{type: String, default:null}
+},
+entriesFlag:{
+type:Boolean,
+required:true,
+default:false,
+},
 expenseLines: [expenseLineSchema],
 expenseViolations: [String],
 expenseCancelledReason: String,
 expenseSubmissionDate: Date,
+expenseSettledDate: Date,
 });
- 
+
 
 // Pre hook to generate and assign an ObjectId to expenseHeaderId before saving the document
 reimbursementSchema.pre('validate', function(next) {

@@ -107,8 +107,8 @@ app.use((err, req, res, next) => {
     console.log(`Server is running on port ${port}`);
   });
   
-  // start consuming messages..
-  startConsumer('finance');
+// start consuming messages..
+startConsumer('finance');
 
 
 

@@ -7,6 +7,7 @@ import Sidebar from './components/common/Sidebar';
 import { getEmployeeData_API, getEmployeeRoles_API } from './utils/api';
 import { useData } from './api/DataProvider';
 import InternalRedirect from './components/redirect/InternalRedirect';
+import Toast from './components/common/Toast';
 
 function App() {
 const [tenantId, setTenantId] = useState(null);
@@ -61,6 +62,7 @@ const handleLogout = async () => {
   return (
    <>
    <div className='bg-slate-100'>
+   <Toast/>
    <BrowserRouter>
    <section>
           <div>

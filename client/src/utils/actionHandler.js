@@ -1,5 +1,5 @@
 import { urlRedirection } from "./handyFunctions";
-import { approvalViewRoutes, expenseRoutes, nonExpenseRoutes, travelRoutes, tripRoutes,cashAdvanceRoutes, loginPageRoutes } from "./route";
+import { approvalViewRoutes, expenseRoutes, nonExpenseRoutes, travelRoutes, tripRoutes,cashAdvanceRoutes, loginPageRoutes, cashRoutes } from "./route";
 
 
 
@@ -32,7 +32,14 @@ export const handleTravel = (travelRequestId, isCashAdvanceTaken, action) => {
   urlRedirection(url);
 };
 
+export const handleCash = (travelRequestId, cashAdvanceId, action) => {
+  let url;
 
+  if(action === 'ca-pay'){
+    url = cashRoutes.payCash.getUrl(travelRequestId, cashAdvanceId)
+  }
+  urlRedirection(url)
+}
 
 /////cash advance handler
 export const handleCashAdvance = ( travelRequestId, cashAdvanceId, action) => {

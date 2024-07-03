@@ -1,12 +1,8 @@
-import React ,{useEffect, useState}from 'react';
-import { getStatusClass , urlRedirection } from '../../utils/handyFunctions';
-import {  calender, cancel, double_arrow, loading } from '../../assets/icon'
-import { useNavigate, useParams } from 'react-router-dom';
-import axios from 'axios'
+import {useEffect, useState}from 'react';
+import { loading } from '../../assets/icon'
+import { useParams } from 'react-router-dom';
 import { assignCashSettle_API } from '../../utils/api';
 import {toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import Modal from '../common/Modal';
 
 
 const SettleCashAdvance = ({ travelDetails, employeeRole}) => {
@@ -14,9 +10,6 @@ const [isHovered, setIsHovered] = useState(false);
 const [isUploading, setIsUploading]=useState({set:false, id:null})
 const [isChecked, setIsChecked] = useState(false);
 const [assignedEmployeeName, setAssignedEmployeeName] = useState(null);
-const [isSettled, setIsSettled] = useState(false);
-const [showModal, setShowModal] = useState(false);
-
 
 const {tenantId}= useParams()
 console.log('employeeRole from SettlingCashAdvance',employeeRole)
@@ -43,6 +36,7 @@ useEffect(()=>{
     }
 },[])
 
+
 const handleCheckboxChange = () => {
   if (isChecked) {
     setIsChecked(false);
@@ -64,26 +58,19 @@ const handleCashAdvance = async (paidBy) => {
         setAssignedEmployeeName(employeeRole?.name);
         console.log('admin response',response)
         setIsUploading(prevState => ({...prevState, set:false, id:null}))
-        if (isChecked) {
-          setIsChecked(false);
-          setAssignedEmployeeName(null);
-          }
-        if(response){
-          // setShowModal(true)
+        if(response ){
           toast.success(`Cash Advance Settled Successfully for ${createdBy.name}`)
           setTimeout(() => {
             window.location.reload()
           }, 3000);
+        } else {
+          toast.error('Error settling cash advance');
         }
-    
     } catch (error) { 
         console.error('Error fetching data:', error.message);
+        toast.error('Error fetching data');
         setIsUploading(prevState => ({...prevState, set:false, id:null}))
     }
-};
-
-const handleCloseModal = () => {
-  setShowModal(false);
 };
 
 return (
@@ -116,9 +103,7 @@ return (
             </div>: 
             <div onClick={() => handleCheckboxChange(employeeNotAssigned)} className='text-red-500  px-4 py-2 bg-red-50 rounded-md'>
               <p>Remove</p>
-              </div>
-              //  <img onClick={() => handleCheckboxChange(employeeNotAssigned)} src={cancel} alt='cancel' className='w-5 h-5 cursor-pointer' />
-           
+              </div>           
             }
         </div>
       )}
@@ -126,22 +111,21 @@ return (
     </>
   ) : (
     paidBy?.empId===employeeRole?.employeeDetails?.empId || paidBy?.empId===null ? <div className="font-bold text-[14px]  min-w-[72px] truncate w-auto max-w-[140px]   lg:truncate   h-[17px] text-purple-500 text-center">
-    
-    <input type="checkbox" onClick={()=>handleCheckboxChange(employeeAssigned)} checked={isChecked} />
+    <input type="checkbox" onClick={()=>handleCheckboxChange(employeeAssigned)} checked={isChecked} readOnly/>
     </div> :  paidBy?.name  
   )}
 </div>
     </div> 
     <div className="flex h-[52px] items-center justify-start w-[221px] py-3 px-2  ">
     <div>
-        <p className='font-cabin font-normal text-xs text-neutral-400'>travelRequestId</p>
+        <p className='font-cabin font-normal text-xs text-neutral-400'>Travel Request Id</p>
         <p className='lg:text-[14px] text-[16px] text-left font-medium  tracking-[0.03em] text-neutral-800 font-cabin lg:truncate '> {travelRequestId}</p>
     </div>
     </div> 
 
     <div className='flex h-[52px] items-center justify-start w-[221px] py-3 px-2 '>
   <div>
-      <p className='font-cabin font-normal  text-xs text-neutral-400'> employee Name</p>
+      <p className='font-cabin font-normal  text-xs text-neutral-400'>Employee Name</p>
        <p className='lg:text-[14px] text-[16px] text-left font-medium tracking-[0.03em] text-neutral-800 font-cabin lg:truncate '>{createdBy.name}</p>
 </div>
 </div>
@@ -161,15 +145,7 @@ return (
  {/* MARK AS SETTLEMENT */}
 <div className=" flex h-[52px] items-center justify-start w-[221px] py-3 px-2 ">
   <div onClick={()=> handleCashAdvance(employeeAssigned)} className="font-bold text-[14px]   truncate    lg:truncate   h-[17px] text-purple-500 text-center">
-        MARK AS SETTLED
-        {showModal && (
-        <Modal
-          showPopup={showModal}
-          setshowPopup={handleCloseModal}
-          message="Cash Advance Settled Successfully"
-          skipable={true}
-        />
-      )}
+        Mark as Settled
   </div>
 </div>      
   </div>

@@ -5,15 +5,45 @@ export const getReimbursement = async(tenantId, empId)=>{
       // const {tenantId}= req.params
       console.log("tenantId", tenantId)
 
-        const singleReimbursement = await Finance.find({
+      const status = {
+        PENDING_SETTLEMENT:"pending settlement",
+      }
+
+        const getNonTravelExpenseReports = await Finance.find({
           'reimbursementSchema.tenantId': tenantId,
           'reimbursementSchema.actionedUpon': false
       });
 
-        if(!singleReimbursement){
+        if(!getNonTravelExpenseReports){
           return {success:true, message: `All are settled` };
         } else{
-          return singleReimbursement
+
+      console.log("non travel",getNonTravelExpenseReports )
+      const nonTravelExpense = getNonTravelExpenseReports.map((report) => {
+        // console.log("reports expense", JSON.stringify(report, null, 2)); 
+      
+        const {
+          expenseHeaderId,
+          actionedUpon,
+          settlementBy,
+          expenseHeaderStatus,
+          createdBy
+        } = report.reimbursementSchema;
+      
+        const { expenseAmountStatus } = report;
+      
+        return {
+          expenseHeaderId,
+          expenseHeaderStatus,
+          expenseAmountStatus,
+          createdBy,
+          settlementBy,
+          actionedUpon
+        };
+      });
+      
+      console.log("nonTravelExpense", JSON.stringify(nonTravelExpense, null, 2));
+      return nonTravelExpense;
         }
     } catch (error) {
         throw new Error ({error: 'Error in  fetching non travel expense reports', error});
@@ -23,12 +53,12 @@ export const getReimbursement = async(tenantId, empId)=>{
 //Expense Header Reports with status as pending Settlement updated to paid(Non Travel Expense Reports).
 export const paidNonTravelExpenseReports = async (req, res) => {
   const { tenantId, expenseHeaderId } = req.params;
-  const { paidBy } = req.body;
+  const { settlementBy } = req.body;
 
   console.log("Received Parameters:", { tenantId, expenseHeaderId });
-  console.log("Received Body Data: non travel", { paidBy });
+  console.log("Received Body Data: non travel", { settlementBy });
 
-  if (!tenantId || !expenseHeaderId || !paidBy) {
+  if (!tenantId || !expenseHeaderId || !settlementBy) {
     return res.status(400).json({ message: 'Missing required field' });
   }
 
@@ -63,7 +93,7 @@ export const paidNonTravelExpenseReports = async (req, res) => {
       filter,
       {
         $set: {
-          'reimbursementSchema.paidBy': paidBy,
+          'reimbursementSchema.settlementBy': settlementBy,
           'reimbursementSchema.actionedUpon': true,
           'reimbursementSchema.expenseHeaderStatus': newStatus.PAID
         }
@@ -131,6 +161,11 @@ export const unSettlementReimbursement = async(req , res)=>{
        res.status(500).json(error);
      }
 };
+
+
+
+
+
 
 
 

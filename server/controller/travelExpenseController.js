@@ -14,10 +14,12 @@ export const getTravelExpenseData = async(tenantId, empId)=>{
           tenantId,
           'tripSchema.travelExpenseData':{
             $elemMatch:{
-              $or:[
-                {'paidFlag':false, 'expenseHeaderStatus': status.PENDING_SETTLEMENT },
-                {'recoveredFlag':false, 'expenseHeaderStatus': status.PENDING_SETTLEMENT}
-              ]
+              'actionedUpon':false,
+              'expenseHeaderStatus':status.PENDING_SETTLEMENT
+              // $or:[
+              //   {'paidFlag':false, 'expenseHeaderStatus': status.PENDING_SETTLEMENT },
+              //   {'recoveredFlag':false, 'expenseHeaderStatus': status.PENDING_SETTLEMENT}
+              // ]
             }
           },
         });
@@ -27,6 +29,7 @@ export const getTravelExpenseData = async(tenantId, empId)=>{
       } else {
 
       const travelExpense = expenseReportsToSettle.flatMap((report) =>{
+        // console.log("reports expense", report)
         if(!report?.tripSchema || !report?.tripSchema?.travelExpenseData?.length > 1){
           return []
       }
@@ -34,19 +37,18 @@ export const getTravelExpenseData = async(tenantId, empId)=>{
 
         return report.tripSchema.travelExpenseData
         .filter((expense) => expense.expenseHeaderStatus === status.PENDING_SETTLEMENT)
-        .map(({travelRequestId,expenseHeaderId, paidBy,recoveredBy, paidFlag, recoveryFlag})=>({
+        .map(({travelRequestId,expenseHeaderId,actionedUpon,settlementBy , expenseHeaderStatus})=>({
+          expenseHeaderStatus,
           expenseAmountStatus,
           travelRequestId,
           expenseHeaderId,
           createdBy,
-          paidBy,
-          recoveredBy,
-          paidFlag,
-          recoveryFlag
+          settlementBy,
+          actionedUpon
           }))
       })
 
-      console.log("travelExpense",travelExpense)
+      // console.log("travelExpense",travelExpense)
       return travelExpense
 
     }} catch (error) {
@@ -57,12 +59,12 @@ export const getTravelExpenseData = async(tenantId, empId)=>{
 //Expense Header Reports with status as pending Settlement updated to paid(Full Trip).
 export const paidExpenseReports = async (req, res) => {
   const { tenantId, travelRequestId, expenseHeaderId } = req.params;
-  const { paidBy } = req.body;
+  const { settlementBy } = req.body;
 
   console.log("Received Parameters:", { tenantId, travelRequestId, expenseHeaderId });
-  console.log("Received Body Data:", { paidBy });
+  console.log("Received Body Data:", { settlementBy });
 
-  if (!tenantId || !travelRequestId || !expenseHeaderId || !paidBy) {
+  if (!tenantId || !travelRequestId || !expenseHeaderId || !settlementBy) {
     return res.status(400).json({ message: 'Missing required field' });
   }
 
@@ -79,21 +81,28 @@ export const paidExpenseReports = async (req, res) => {
     travelRequestId,
     'tripSchema.travelExpenseData': {
       $elemMatch: {
-      $or: [
-        { expenseHeaderId,'paidFlag': false, 'expenseHeaderStatus': status.PENDING_SETTLEMENT },
-        { expenseHeaderId,'recoveredFlag': false, 'expenseHeaderStatus': status.PENDING_SETTLEMENT }
-      ]
+        expenseHeaderId,
+        'expenseHeaderStatus': status.PENDING_SETTLEMENT,
+        actionedUpon:false,
+      // $or: [
+      //   { expenseHeaderId,'paidFlag': false, 'expenseHeaderStatus': status.PENDING_SETTLEMENT },
+      //   { expenseHeaderId,'recoveredFlag': false, 'expenseHeaderStatus': status.PENDING_SETTLEMENT }
+      // ]
     }
   }
 }
 
 const update = {
   $set: {
-    'tripSchema.travelExpenseData.$[elem].paidFlag': true,
-    'tripSchema.travelExpenseData.$[elem].paidBy': paidBy,
+    'tripSchema.travelExpenseData.$[elem].settlementBy': settlementBy,
     'tripSchema.travelExpenseData.$[elem].actionedUpon': true,
     'tripSchema.travelExpenseData.$[elem].expenseHeaderStatus': newStatus.PAID
   }
+}
+
+const arrayFilters = {
+  arrayFilters: [{ 'elem.expenseHeaderId': expenseHeaderId }],
+  new: true
 }
 
   try {
@@ -107,7 +116,6 @@ const update = {
 
     const {totalRemainingCash} = expenseAmountStatus
 
-
     const expenseHeaderIndex = expenseReport.tripSchema?.travelExpenseData.findIndex(
       (expense) => JSON.stringify(expense.expenseHeaderId) === JSON.stringify(expenseHeaderId)
     )
@@ -119,10 +127,7 @@ const update = {
     const updateResult = await Finance.updateOne(
       filter,
       update,
-      {
-        arrayFilters: [{ 'elem.expenseHeaderId': expenseHeaderId }],
-        new: true
-      }
+      arrayFilters
     );
 
     if (updateResult.modifiedCount === 0) {
@@ -136,6 +141,10 @@ const update = {
     return res.status(500).json({ message: 'Internal server error', error: error.message });
   }
 };
+
+
+
+
 
 
 

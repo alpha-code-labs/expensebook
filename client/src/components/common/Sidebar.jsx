@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useParams } from 'react-router-dom';
-import { useData } from '../../api/DataProvider';
 import { Link } from 'react-router-dom';
 import { filterTravelRequests} from '../../utils/handyFunctions';
 import { receipt, house_simple, airplane_1, money, logo_with_text, airplane, house_simple_1, money1, airplane_icon1, receipt_icon1, setting_icon, setting_icon1, businessAdmin_icon, businessAdmin1_icon, approval_icon, approval_w_icon } from '../../assets/icon';
+import { useData } from '../../api/DataProvider';
 
 
 const Sidebar = ({ fetchData }) => {
@@ -20,7 +20,7 @@ const Sidebar = ({ fetchData }) => {
     }
 
     const { employeeRoles, employeeData } = useData();
-    console.log('employee roles from sidebar', employeeRoles?.employeeRoles);
+    console.log('employee roles from sidebar --', employeeRoles?.employeeRoles);
 
     const location = useLocation();
     const [countData, setCountData] = useState({
@@ -33,6 +33,7 @@ const Sidebar = ({ fetchData }) => {
         const data = employeeData && employeeData?.dashboardViews?.employee;
         const approvalData = employeeData && employeeData?.dashboardViews?.employeeManager;
         const businessAdminData = employeeData && employeeData?.dashboardViews?.businessAdmin;
+        const financeData = employeeData && employeeData?.dashboardViews?.finance;
         console.log('approvalData', approvalData);
 
         // Filtered travelRequests array
@@ -55,6 +56,7 @@ const Sidebar = ({ fetchData }) => {
             filteredTrApprovalData = approvalData?.travelAndCash?.filter(item => ['approved', 'pending approval', 'upcoming', 'intransit'].includes(item?.travelRequestStatus));
         }
 
+    
         setCountData(prevStates => ({
             ...prevStates,
             travelRequests: filteredData?.length || 0,
@@ -64,7 +66,13 @@ const Sidebar = ({ fetchData }) => {
             trApproval: filteredTrApprovalData?.length || 0,
             expApproval: approvalData?.travelExpenseReports?.length || 0,
             //business admin
-            pendingBooking: filteredPendingBookingData?.length || 0
+            pendingBooking: filteredPendingBookingData?.length || 0,
+            //finance
+            settleCashAdvance : financeData?.cashAdvanceToSettle?.length || 0,
+            paidAndCancelledCash: financeData?.paidAndCancelledCash?.length || 0,
+            travelExpense: financeData?.travelExpense?.length || 0,
+            nonTravelExpense: financeData?.nonTravelExpense?.length  || 0,
+            entries: financeData?.entries?.length || 0,
         }));
     }, [employeeData]);
 
@@ -100,7 +108,7 @@ const Sidebar = ({ fetchData }) => {
         }
 
         if (employeeRoles?.employeeRoles?.finance) {
-            sidebarItems.push({ label: 'Settlement', icon: money, icon1: money1, url: '', count: "" });
+            sidebarItems.push({ label: 'Settlement', icon: money, icon1: money1, url: '', count: ( countData?.settleCashAdvance + countData?.paidAndCancelledCash + countData?.travelExpense + countData?.nonTravelExpense + countData?.entries) });
         }
 
         if (employeeRoles?.employeeRoles?.superAdmin) {
@@ -123,7 +131,7 @@ const Sidebar = ({ fetchData }) => {
                     to={`${tenantId}/${empId}/${item.label.toLowerCase().replace(' ', '-')}`}
                     key={index}
                     onClick={() => handleItemClick(index)}
-                    className={`w-full   ${activeIndex === index ? 'bg-purple-500 text-white-100' : ""} overflow-hidden flex flex-col items-center sm:items-start justify-start   box-border cursor-pointer`}
+                    className={`w-full   ${activeIndex === index ? 'bg-indigo-400 text-white-100' : ""} overflow-hidden flex flex-col items-center sm:items-start justify-start   box-border cursor-pointer`}
                 >
                     <div className="flex sm:flex-row flex-col items-center justify-between px-3 py-3 gap-2 md:gap-0">
                         <div className='flex gap-2'>

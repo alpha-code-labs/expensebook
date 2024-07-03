@@ -7,7 +7,6 @@ import NonTravelExpenseContainer from "../components/SettlingNonTravelExpense/Se
 
 
 const SettlingNonTravelExpense = () => {
-  
 
   return (
   <div className="relative bg-white w-full h-[832px] overflow-hidden text-left text-xs text-gray-200 font-cabin">

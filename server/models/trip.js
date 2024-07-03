@@ -12,7 +12,8 @@ const travelRequestStatusEnums = [
   'transit', 
   'paid and cancelled', 
   'recovered',
-  'cancelled',  
+  'cancelled', 
+  'paid and distributed' 
 ] 
 
 const travelRequestStateEnums = [
@@ -874,20 +875,34 @@ const expenseLineSchema = new mongoose.Schema({
             empId:String, 
             name:String
           },
+          actionedUpon:{
+            type:Boolean,
+            required:true,
+            default:false
+          },
+          settlementBy:{
+            empId:{type: String, default:null},
+            name:{type: String, default:null}
+          },
+          paidBy:{
+            empId:{type: String, default:null},
+            name:{type: String, default:null}
+          },
           submissionDate: Date,
-          recoveryFlag:{
+          entriesFlag:{
           type:Boolean,
           required:true,
           default:false,
           },
-          paidFlag:{
-          type:Boolean,
-          required:true,
-          default:false,
-          },
+          // paidFlag:{
+          // type:Boolean,
+          // required:true,
+          // default:false,
+          // },
         }
   ],
 }); 
+
 
 
 

@@ -10,7 +10,34 @@ function titleCase(str){
     return str.join(' ')
   }
 
+
+  function formatDateMonth(date=Date.now()) {
+    // Get the current timestamp
+    const currentTimestamp = date
+    
+    // Create a Date object from the timestamp
+    const currentDate = new Date(currentTimestamp);
+    
+    // Define an array of month names for conversion
+    const monthNames = [
+      "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+    ];
   
+    // Get the day, month, and year
+    const day = currentDate.getDate();
+    const month = monthNames[currentDate.getMonth()];
+    const year = currentDate.getFullYear();
+  
+    // Add the appropriate ordinal indicator to the day
+    const dayWithOrdinal = addOrdinalIndicator(day);
+  
+    // Format the date as "24 Aug"
+    const formattedDate = `${day} ${month}`;
+  
+    return formattedDate;
+  }
+
 function formatDate(date=Date.now()){
     // Get the current timestamp
     const currentTimestamp = date
@@ -193,8 +220,6 @@ function formatDate(date=Date.now()){
     return Array.from(map.values());
 }
 
- 
-  
 
-export {titleCase, formatDate, filterTravelRequests,formatDate2 ,getStatusClass ,addOrdinalIndicator ,formatDate3 ,getCashAdvanceButtonText,urlRedirection,formatAmount}  
+export {titleCase, formatDate, filterTravelRequests,formatDate2 ,getStatusClass ,addOrdinalIndicator ,formatDate3 ,getCashAdvanceButtonText,urlRedirection,formatAmount, formatDateMonth}  
 

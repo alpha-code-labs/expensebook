@@ -10,8 +10,7 @@ export default function ShowCabDates(props){
     console.log(dates, 'dates')
     const setDates = props.setDates || null
     const [textInput, setTextInput] = useState(dates? dates.map(d=>formatDate3(d)).join(', ') : '')
-   
-
+    
     useEffect(()=>{
         setTextInput(dates.length>0? dates.map(d=>formatDate3(d)).join(', ') : '')
         console.log(dates, 'dates changed')

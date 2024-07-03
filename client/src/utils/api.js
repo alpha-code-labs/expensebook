@@ -1,6 +1,5 @@
 import axios from 'axios';
 
-
 const FINANCE_BACKEND_API_URL = import.meta.env.VITE_FINANCE_BACKEND_API_URL;
 
 const retry = 2;
@@ -123,6 +122,41 @@ export const assignBusinessAdmin_API = async (tenantId,travelRequestId,data) => 
   }
 };
 
+
+export const assignTravelExpenseSettlement_API = async (tenantId,travelRequestId,expenseHeaderId,data) => {
+  const url = `${FINANCE_BACKEND_API_URL}/api/fe/finance/expense/paid/${tenantId}/${travelRequestId}/${expenseHeaderId}`;
+
+  try {
+    const response = await axiosRetry(axios.put, url,data );
+    return response.data
+  } catch (error) {
+    handleRequestError(error);
+    const errorObject = {
+      status: error.response?.status || null,
+      message: error.message || 'Unknown error',
+    };
+
+    return { data: null, error: errorObject };
+  }
+};
+
+export const assignNonTravelExpenseSettlement_API = async (tenantId,expenseHeaderId,data) => {
+  const url = `${FINANCE_BACKEND_API_URL}/api/fe/finance/nontravel/paid/${tenantId}/${expenseHeaderId}`;
+
+  try {
+    const response = await axiosRetry(axios.put, url,data );
+    return response.data
+  } catch (error) {
+    handleRequestError(error);
+    const errorObject = {
+      status: error.response?.status || null,
+      message: error.message || 'Unknown error',
+    };
+
+    return { data: null, error: errorObject };
+  }
+};
+
 export const assignCashRecovery_API = async (tenantId,travelRequestId,cashAdvanceId,data) => {
   const url = `${FINANCE_BACKEND_API_URL}/api/fe/finance/cash/recovery/${tenantId}/${travelRequestId}/${cashAdvanceId}`;
 
@@ -201,10 +235,23 @@ export const postTravelPreference_API = async(tenantId,empId,data)=>{
 
 }
 
+//Entries 
+export const getTravelAndNonTravelExpenseData_API = async (tenantId,empId,data) => {
+  const url = `${FINANCE_BACKEND_API_URL}/api/fe/finance/nontravel/filter/${tenantId}/${empId}`;
 
+  try {
+    const response = await axiosRetry(axios.post, url,data );
+    return response.data
+  } catch (error) {
+    handleRequestError(error);
+    const errorObject = {
+      status: error.response?.status || null,
+      message: error.message || 'Unknown error',
+    };
 
-
-
+    return { data: null, error: errorObject };
+  }
+};
 
 
 
