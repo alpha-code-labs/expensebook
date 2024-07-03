@@ -66,3 +66,59 @@
   -ms-overflow-style: none;  /* IE and Edge */
   scrollbar-width: none;  /* Firefox */
 }
+
+.sprite{
+  background-image: url('./assets/sprite.png');
+  background-size: 260px 400px;
+  width:42px;
+  height:32px;
+}
+
+.ic-flight {
+  background-position: -5px -4px;
+}
+
+.ic-flight:hover {
+  background-position: -5px -44px;
+}
+
+.ic-hotel:hover {
+  background-position: -62px -41.5px;
+}
+
+.ic-hotel {
+  background-position: -60px 0px;
+}
+
+.ic-train {
+  background-position: -156.5px -3px;
+}
+
+.ic-train:hover {
+  background-position: -156px -41px;
+}
+
+.ic-bus:hover {
+  background-position: -209px -42px;
+}
+
+
+.ic-bus{
+  background-position: -210.5px -2px;
+}
+
+.ic-cab:hover{
+  background-position: -110px -122px;
+}
+
+.ic-cab{
+  background-position: -110px -82px;
+}
+
+.ic-rentalCab:hover{
+  background-position: -110px -122px;
+}
+
+.ic-rentalCab{
+  background-position: -110px -82px;
+}

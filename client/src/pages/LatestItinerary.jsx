@@ -12,11 +12,12 @@ import DisplayItinerary from './DisplayItinerary';
 import { generateUniqueIdentifier } from '../utils/uuid';
 import moment from 'moment';
 import Select from '../components/common/Select';
+import { camelCaseToTitleCase } from '../utils/handyFunctions';
 
 export default function(){
 const sideBarWidth = '230px'
 
-const itineraryItems = ['Flight', 'Hotel', 'Cab', 'Rental Cab', 'Train', 'Bus'];
+const itineraryItems = ['flight', 'hotel', 'cab', 'rentalCab', 'train', 'bus'];
 const [modalContent, setModalContent] = useState(null);
 const [visible, setVisible] = useState(false);
 
@@ -225,10 +226,6 @@ const [itinerary, setItinerary] = useState({
     personalVehicles: []
   });
   
-
-const [shouldAddItem, setShouldAddItem] = useState(false);
-
-
 const addItineraryItem = (item)=>{
     console.log(`clicked on ${item}`)
     setVisible(true);
@@ -539,21 +536,22 @@ useEffect(()=>{
     return(<>
         <div className="min-w-[100%] min-h-[100%] flex">
 
-            <div className={`w-[${sideBarWidth}] h-[100%] bg-blue-600`}>
+            <div className={`w-[${sideBarWidth}] h-[100vh] bg-white`}>
                 {/* sidebar for adding itinerary items */}
                 <div className="flex-flex-row divide-y">
                     {itineraryItems.map(item=>(
                         <div 
                           key={item}
-                          onClick={()=>addItineraryItem(item)}
-                          className="flex p-4 w-[100%] h-[100px] gap-2 items-center justify-center cursor-pointer hover:bg-blue-700">
-                        <p className="text-white text-lg ">{item}</p>
-                        <p className="text-2xl text-white">+</p>
+                          onClick={()=>addItineraryItem(camelCaseToTitleCase(item))}
+                          className="flex flex-col p-4 w-[100%] h-[100px] gap-2 items-center justify-center cursor-pointer hover:bg-blue-100">
+                        <div className={`sprite ic-${item}`}/>
+                        <p className="text-neutral-800 text-sm">{camelCaseToTitleCase(item)}</p>
                     </div>))}
                 </div>
             </div>
-
-            <div className={`w-[calc(100%-${sideBarWidth})]`}>
+      
+            <div className={`w-[calc(100vw-${sideBarWidth})] px-6 py-4 sm:px-12 md:px-24`}>
+                <p className='font-cabin text-neutral-800 text-lg'>Itinerary</p>
                 <DisplayItinerary itinerary={itinerary} setItinerary={setItinerary} handleDelete={deleteItineraryItem}  handleEdit={editItineraryItem}/>
                 
                 <Modal visible={visible} setVisible={setVisible}>
@@ -1441,7 +1439,7 @@ const Modal = ({ visible, setVisible, children }) => {
     visible && (
       <div className='relative '>
 
-        <div className='fixed  w-[100%] h-[100%] left-0 top-0 bg-black/10 z-10' onClick={()=>setVisible(false)}>
+        <div className='fixed  w-[100%] h-[100%] left-0 top-0 bg-black/30 z-10' onClick={()=>setVisible(false)}>
         </div>
 
         <div className="fixed w-fit h-fit left-[50%] translate-x-[-50%] top-[10%] sm:rounded-lg shadow-lg z-[100] bg-white">
