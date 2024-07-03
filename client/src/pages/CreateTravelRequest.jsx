@@ -10,6 +10,8 @@ import AllocateTravelObjects from './allocations/AllocateTravelObjects'
 import SelectTravelType from "./SelectTravelType";
 import ModifiedItinerary from "./ModifiedItinerary";
 import { generateUniqueIdentifier } from "../utils/uuid";
+import latestItinerary from "./latestItinerary";
+import LatestItinerary from "./latestItinerary";
 
 export default function () {
 
@@ -135,15 +137,17 @@ useEffect(() => {
                                             onBoardingData={onBoardingData}
                                             lastPage={`/create/${tenantId}/${employeeId}/`}
                                             nextPage={`/create/${tenantId}/${employeeId}/section1`} />} />
-        {/* <Route path='/section1' element={<Itinerary 
+
+        {/* <Route path='/section1' element={<ModifiedItinerary
+                                            currentFormState={currentFormState}
+                                            setCurrentFormState={setCurrentFormState}
                                             formData={formData} 
                                             setFormData={setFormData} 
                                             onBoardingData={onBoardingData}
                                             nextPage={onBoardingData?.travelAllocationFlags.level3 ?  `/create/${tenantId}/${employeeId}/allocations` : `/create/${tenantId}/${employeeId}/section2` }
                                             lastPage={`/create/${tenantId}/${employeeId}/section0`} />} /> */}
-        <Route path='/section1' element={<ModifiedItinerary
-                                            currentFormState={currentFormState}
-                                            setCurrentFormState={setCurrentFormState}
+
+        <Route path='/section1' element={<LatestItinerary
                                             formData={formData} 
                                             setFormData={setFormData} 
                                             onBoardingData={onBoardingData}
@@ -156,13 +160,13 @@ useEffect(() => {
                                             onBoardingData={onBoardingData}
                                             nextPage={`/create/${tenantId}/${employeeId}/section2`}
                                             lastPage={`/create/${tenantId}/${employeeId}/section0`} />} />
-        <Route path='/section2' element={<Review 
-                                            formData={formData} 
-                                            setFormData={setFormData}
-                                            currentFormState={currentFormState} 
-                                            onBoardingData={onBoardingData}
-                                            nextPage={`/create/${tenantId}/${employeeId}/section2`}
-                                            lastPage={onBoardingData?.travelAllocationFlags.level3 ? `/create/${tenantId}/${employeeId}/allocations` :  `/create/${tenantId}/${employeeId}/section1`} />} />
+
+      {/* <Route path='/section2' element={<Review 
+                                          formData={formData} 
+                                          setFormData={setFormData}
+                                          onBoardingData={onBoardingData}
+                                          nextPage={`/create/${tenantId}/${employeeId}/section2`}
+                                          lastPage={onBoardingData?.travelAllocationFlags.level3 ? `/create/${tenantId}/${employeeId}/allocations` :  `/create/${tenantId}/${employeeId}/section1`} />} /> */}
       </Routes>}
   </>;
 }

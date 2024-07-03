@@ -15,7 +15,7 @@ import delete_icon from '../assets/delete.svg';
 import moment from 'moment';
 
 
-export default React.memo(function({itinerary, setItinerary, handleEdit, handleDelete}) {
+export default React.memo(function({formData, setFormData, handleEdit, handleDelete}) {
 
     console.log('component rerendered');
     const [flattendItinerary, setFlattendedItinerary] = useState();
@@ -31,7 +31,9 @@ export default React.memo(function({itinerary, setItinerary, handleEdit, handleD
         //console.log(movedArray, 'after drag end flattened')
         //console.log(arrayToObject(movedArray.map((item,index)=>({...item, sequence:index+1}))), 'itinerary')
 
-        setItinerary(arrayToObject(movedArray.map((item,index)=>({...item, sequence:index+1}))));
+        const formData_copy = JSON.parse(JSON.stringify(formData));
+        formData_copy.itinerary = arrayToObject(movedArray.map((item,index)=>({...item, sequence:index+1})));
+        setFormData(formData_copy);
         
         setFlattendedItinerary(movedArray);
     
@@ -44,9 +46,8 @@ export default React.memo(function({itinerary, setItinerary, handleEdit, handleD
     },[flattendItinerary])
 
     useEffect(()=>{
-        //console.log(itinerary, 'itinerary updated in display itinerary component')
-        setFlattendedItinerary(flattenObjectToArray(itinerary).filter(item=>item.id != null && item.id != undefined).sort((a,b)=> a.sequence - b.sequence));
-    },[itinerary])
+        setFlattendedItinerary(flattenObjectToArray(formData.itinerary).filter(item=>item.id != null && item.id != undefined).sort((a,b)=> a.sequence - b.sequence));
+    },[formData.itinerary])
 
 
     const sensors = useSensors(

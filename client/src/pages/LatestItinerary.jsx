@@ -13,11 +13,14 @@ import { generateUniqueIdentifier } from '../utils/uuid';
 import moment from 'moment';
 import Select from '../components/common/Select';
 import { camelCaseToTitleCase } from '../utils/handyFunctions';
+import { left_arrow_icon } from "../assets/icon";
+import { useNavigate } from 'react-router-dom';
 
-export default function(){
+export default function({formData, setFormData, onboardingData, lastPage, nextPage}){
 const sideBarWidth = '230px'
+const navigate = useNavigate();
 
-const itineraryItems = ['flight', 'hotel', 'cab', 'rentalCab', 'train', 'bus'];
+const itineraryItems = ['cab', 'flight', 'hotel', 'train', 'bus'];
 const [modalContent, setModalContent] = useState(null);
 const [visible, setVisible] = useState(false);
 
@@ -231,34 +234,33 @@ const addItineraryItem = (item)=>{
     setVisible(true);
 
     switch(item){
-      case 'Flight' : setModalContent(<FlightForm  handleAddToItinerary={handleAddToItinerary} action='create' />); return;
       case 'Cab' : setModalContent(<CabForm handleAddToItinerary={handleAddToItinerary} action='create' />); return;
-      case 'Rental Cab' : setModalContent(<RentalCabForm handleAddToItinerary={handleAddToItinerary} action='create' />); return;
+      case 'Flight' : setModalContent(<FlightForm  handleAddToItinerary={handleAddToItinerary} action='create' />); return;
+      case 'Hotel': setModalContent(<HotelForm  handleAddToItinerary={handleAddToItinerary} action='create' />); return;
       case 'Train': setModalContent(<TrainForm  handleAddToItinerary={handleAddToItinerary} action='create' />); return;
       case 'Bus': setModalContent(<BusForm  handleAddToItinerary={handleAddToItinerary} action='create' />); return;
-      case 'Hotel': setModalContent(<HotelForm  handleAddToItinerary={handleAddToItinerary} action='create' />); return;
     }
 }
 
 const deleteItineraryItem = useCallback((formId)=>{
   console.log('deleting item with formId', formId);
-  const newItinerary = JSON.parse(JSON.stringify(itinerary));
-  Object.keys(newItinerary).forEach(key=>{
-    newItinerary[key] = itinerary[key].filter(item=>item.formId != formId);
+  const newFormData = JSON.parse(JSON.stringify(formData));
+  Object.keys(newFormData.itinerary).forEach(key=>{
+    newFormData.itinerary[key] = formData.itinerary[key].filter(item=>item.formId != formId);
   })
 
-  setItinerary(newItinerary);
+  setItinerary(newFormData);
  
-},[itinerary])
+},[formData.itinerary])
 
 const editItineraryItem = useCallback((formId)=>{
   console.log('editing item with formId', formId); 
   let category = null;
   let item = null;
 
-  for(let i=0; i<Object.keys(itinerary).length; i++){
-    const key= Object.keys(itinerary)[i];
-    item = itinerary[key].find(item=>item.formId == formId)
+  for(let i=0; i<Object.keys(formData.itinerary).length; i++){
+    const key= Object.keys(formData.itinerary)[i];
+    item = formData.itinerary[key].find(item=>item.formId == formId)
 
     if(item!=undefined){
       category = key;
@@ -276,7 +278,19 @@ const editItineraryItem = useCallback((formId)=>{
      setModalContent(<FlightForm setVisible={setVisible} handleAddToItinerary={handleAddToItinerary} action='edit' editId={formId} editData={{from:item.from, to:item.to, date:item.date, time:item.time}} />);
      return; 
     }
+    case 'trains' : {
+      setModalContent(<TrainForm setVisible={setVisible} handleAddToItinerary={handleAddToItinerary} action='edit' editId={formId} editData={{from:item.from, to:item.to, date:item.date, time:item.time}} />);
+      return; 
+     }
+     case 'buses' : {
+      setModalContent(<BusForm setVisible={setVisible} handleAddToItinerary={handleAddToItinerary} action='edit' editId={formId} editData={{from:item.from, to:item.to, date:item.date, time:item.time}} />);
+      return; 
+     }
     case 'cabs' : {
+      setModalContent(<CabForm setVisible={setVisible} handleAddToItinerary={handleAddToItinerary} action='edit' editId={formId} editData={{pickupAddress:item.pickupAddress, dropAddress:item.dropAddress, class:item.class, time:item.time, date:item.date, returnDate:item.returnDate}} />);
+      return;
+    }
+    case 'carRentals' : {
       setModalContent(<CabForm setVisible={setVisible} handleAddToItinerary={handleAddToItinerary} action='edit' editId={formId} editData={{pickupAddress:item.pickupAddress, dropAddress:item.dropAddress, class:item.class, time:item.time, date:item.date, returnDate:item.returnDate}} />);
       return;
     }
@@ -286,7 +300,7 @@ const editItineraryItem = useCallback((formId)=>{
     }
   }
   
-},[itinerary])
+},[formData.itinerary])
 
 const handleAddToItinerary = (category, data)=>{
   try{
@@ -303,24 +317,23 @@ const handleAddToItinerary = (category, data)=>{
           newItem.time = data.formData.time;
           newItem.sequence = getNextSequenceNumber();
           newItem.formId = generateUniqueIdentifier();
-          newItem.approvers = []; //need to change it
+          newItem.approvers = formData.approvers; 
           console.log('creating flight item', newItem);
 
-          const newItinerary = JSON.parse(JSON.stringify(itinerary));
-          newItinerary.flights.push(newItem);
+          const formData_copy = JSON.parse(JSON.stringify(formData));
+          formData_copy.itinerary.flights.push(newItem);
 
-          console.log(newItinerary);
-          setItinerary(newItinerary);
+          console.log(formData.itinerary);
+          setFormData(formData_copy);
         }
 
         if(data.action == 'edit'){
-          const itineraryCopy = JSON.parse(JSON.stringify(itinerary)); 
-          const item = Object.keys(itineraryCopy)
+          const formData_copy = JSON.parse(JSON.stringify(formData)); 
 
-          for(let i=0; i<Object.keys(itineraryCopy).length; i++){
-            const key = Object.keys(itineraryCopy)[i];
+          for(let i=0; i<Object.keys(formData_copy.itinerary).length; i++){
+            const key = Object.keys(formData_copy.itinerary)[i];
 
-            const item = itineraryCopy[key].find(item=>item.formId == data.editId);
+            const item = formData_copy.itinerary[key].find(item=>item.formId == data.editId);
             if(item != undefined){
               item.from = data.formData.from;
               item.to = data.formData.to;
@@ -330,7 +343,7 @@ const handleAddToItinerary = (category, data)=>{
               break;
             }
           }
-          setItinerary(itineraryCopy);
+          setFormData(formData_copy);
         }
 
         setVisible(false);
@@ -346,24 +359,23 @@ const handleAddToItinerary = (category, data)=>{
           newItem.time = data.formData.time;
           newItem.sequence = getNextSequenceNumber();
           newItem.formId = generateUniqueIdentifier();
-          newItem.approvers = []; //need to change it
+          newItem.approvers = formData.approvers; 
           console.log('creating train item', newItem);
 
-          const newItinerary = JSON.parse(JSON.stringify(itinerary));
-          newItinerary.trains.push(newItem);
+          const formData_copy = JSON.parse(JSON.stringify(formData));
+          formData_copy.itinerary.trains.push(newItem);
 
-          console.log(newItinerary);
-          setItinerary(newItinerary);
+          console.log(formData_copy.itinerary);
+          setFormData(formData_copy);
         }
 
         if(data.action == 'edit'){
-          const itineraryCopy = JSON.parse(JSON.stringify(itinerary)); 
-          const item = Object.keys(itineraryCopy)
+          const formData_copy = JSON.parse(JSON.stringify(formData)); 
 
-          for(let i=0; i<Object.keys(itineraryCopy).length; i++){
-            const key = Object.keys(itineraryCopy)[i];
+          for(let i=0; i<Object.keys(formData_copy.itinerary).length; i++){
+            const key = Object.keys(formData_copy.itinerary)[i];
 
-            const item = itineraryCopy[key].find(item=>item.formId == data.editId);
+            const item =formData_copy.itinerary[key].find(item=>item.formId == data.editId);
             if(item != undefined){
               item.from = data.formData.from;
               item.to = data.formData.to;
@@ -372,7 +384,7 @@ const handleAddToItinerary = (category, data)=>{
               break;
             }
           }
-          setItinerary(itineraryCopy);
+          setFormData(formData_copy);
         }
 
         setVisible(false);
@@ -388,24 +400,23 @@ const handleAddToItinerary = (category, data)=>{
           newItem.time = data.formData.time;
           newItem.sequence = getNextSequenceNumber();
           newItem.formId = generateUniqueIdentifier();
-          newItem.approvers = []; //need to change it
+          newItem.approvers = formData.approvers; 
           console.log('creating bus item', newItem);
 
-          const newItinerary = JSON.parse(JSON.stringify(itinerary));
-          newItinerary.buses.push(newItem);
+          const formData_copy = JSON.parse(JSON.stringify(formData));
+          formData_copy.itinerary.buses.push(newItem);
 
-          console.log(newItinerary);
-          setItinerary(newItinerary);
+          console.log(formData_copy.itinerary);
+          setFormData(formData_copy);
         }
 
         if(data.action == 'edit'){
-          const itineraryCopy = JSON.parse(JSON.stringify(itinerary)); 
-          const item = Object.keys(itineraryCopy)
+          const formData_copy = JSON.parse(JSON.stringify(formData)); 
 
-          for(let i=0; i<Object.keys(itineraryCopy).length; i++){
-            const key = Object.keys(itineraryCopy)[i];
+          for(let i=0; i<Object.keys(formData_copy.itinerary).length; i++){
+            const key = Object.keys(formData_copy.itinerary)[i];
 
-            const item = itineraryCopy[key].find(item=>item.formId == data.editId);
+            const item = formData_copy.itinerary[key].find(item=>item.formId == data.editId);
             if(item != undefined){
               item.from = data.formData.from;
               item.to = data.formData.to;
@@ -414,7 +425,7 @@ const handleAddToItinerary = (category, data)=>{
               break;
             }
           }
-          setItinerary(itineraryCopy);
+          setFormData(formData_copy);
         }
 
         setVisible(false);
@@ -433,24 +444,22 @@ const handleAddToItinerary = (category, data)=>{
           newItem.time = data.formData.time;
           newItem.sequence = getNextSequenceNumber();
           newItem.formId = generateUniqueIdentifier();
-          newItem.approvers = []; //need to change it
+          newItem.approvers = formData.approvers; 
           console.log('creating cab item', newItem);
 
-          const newItinerary = JSON.parse(JSON.stringify(itinerary));
-          newItinerary.cabs.push(newItem);
+          const formData_copy = JSON.parse(JSON.stringify(formData));
+          formData_copy.itinerary.cabs.push(newItem);
 
-          console.log(newItinerary);
-          setItinerary(newItinerary)
+          console.log(formData_copy.itinerary);
+          setFormData(formData_copy)
         }
 
         if(data.action == 'edit'){
-          const itineraryCopy = JSON.parse(JSON.stringify(itinerary)); 
-          const item = Object.keys(itineraryCopy)
+          const formData_copy = JSON.parse(JSON.stringify(formData)); 
 
-          for(let i=0; i<Object.keys(itineraryCopy).length; i++){
-            const key = Object.keys(itineraryCopy)[i];
-
-            const item = itineraryCopy[key].find(item=>item.formId == data.editId);
+          for(let i=0; i<Object.keys(formData_copy.itinerary).length; i++){
+            const key = Object.keys(formData_copy.itinerary)[i];
+            const item = formData_copy.itinerary[key].find(item=>item.formId == data.editId);
 
             if(item != undefined){
               item.pickupAddress = data.formData.pickupAddress;
@@ -462,7 +471,53 @@ const handleAddToItinerary = (category, data)=>{
               item.time = data.formData.time;
             }
           }
-          setItinerary(itineraryCopy);
+          setFormData(formData_copy);
+        }
+
+        setVisible(false);
+        return;
+      }
+
+      case 'rentalCabs' : {
+        if(data.action == 'create'){
+          const newItem = JSON.parse(JSON.stringify(dummyCabs));
+          newItem.pickupAddress = data.formData.pickupAddress;
+          newItem.dropAddress = data.formData.dropAddress;
+          newItem.class = data.formData.class;
+          newItem.date = data.formData.date;
+          newItem.returnDate = data.formData.returnDate;
+          newItem.isFullDayCab = data.formData.isFullDayCab;
+          newItem.time = data.formData.time;
+          newItem.sequence = getNextSequenceNumber();
+          newItem.formId = generateUniqueIdentifier();
+          newItem.approvers = formData.approvers; 
+          console.log('creating rental cab item', newItem);
+
+          const formData_copy = JSON.parse(JSON.stringify(formData));
+          formData_copy.itinerary.carRentals.push(newItem);
+
+          console.log(formData_copy.itinerary);
+          setFormData(formData_copy)
+        }
+
+        if(data.action == 'edit'){
+          const formData_copy = JSON.parse(JSON.stringify(formData)); 
+
+          for(let i=0; i<Object.keys(formData_copy.itinerary).length; i++){
+            const key = Object.keys(formData_copy.itinerary)[i];
+            const item = formData_copy.itinerary[key].find(item=>item.formId == data.editId);
+
+            if(item != undefined){
+              item.pickupAddress = data.formData.pickupAddress;
+              item.dropAddress = data.formData.dropAddress;
+              item.class = data.formData.class;
+              item.date = data.formData.date;
+              item.returnDate = data.formData.returnDate;
+              item.isFullDayCab = data.formData.isFullDayCab;
+              item.time = data.formData.time;
+            }
+          }
+          setFormData(formData_copy);
         }
 
         setVisible(false);
@@ -483,23 +538,23 @@ const handleAddToItinerary = (category, data)=>{
           newItem.time = data.formData.time;
           newItem.sequence = getNextSequenceNumber();
           newItem.formId = generateUniqueIdentifier();
-          newItem.approvers = []; //need to change it
+          newItem.approvers = formData.approvers; 
           console.log('creating hotel item', newItem);
 
-          const newItinerary = JSON.parse(JSON.stringify(itinerary));
-          newItinerary.hotels.push(newItem);
+          const formData_copy = JSON.parse(JSON.stringify(formData));
+          formData_copy.itinerary.hotels.push(newItem);
 
-          console.log(newItinerary);
-          setItinerary(newItinerary)
+          console.log(formData_copy.itinerary);
+          setFormData(formData_copy)
         }
 
         if(data.action == 'edit'){
-          const itineraryCopy = JSON.parse(JSON.stringify(itinerary)); 
+          const formData_copy = JSON.parse(JSON.stringify(formData)); 
 
-          for(let i=0; i<Object.keys(itineraryCopy).length; i++){
-            const key = Object.keys(itineraryCopy)[i];
-
-            const item = itineraryCopy[key].find(item=>item.formId == data.editId);
+          for(let i=0; i<Object.keys(formData_copy.itinerary).length; i++){
+            
+            const key = Object.keys(formData_copy.itinerary)[i];
+            const item = formData_copy.itinerary[key].find(item=>item.formId == data.editId);
 
             if(item != undefined){
               item.checkIn = data.formData.checkIn;
@@ -513,7 +568,7 @@ const handleAddToItinerary = (category, data)=>{
               item.needNonSmokingRoom = data.formData.needNonSmokingRoom;
             }
           }
-          setItinerary(itineraryCopy);
+          setFormData(formData_copy);
         }
 
         setVisible(false);
@@ -530,13 +585,14 @@ const handleAddToItinerary = (category, data)=>{
 }
 
 useEffect(()=>{
-  console.log(itinerary, 'itinerary updated')
-},[itinerary])
+  console.log(formData.itinerary, 'itinerary updated')
+},[formData.itinerary])
 
     return(<>
+    
+        
         <div className="min-w-[100%] min-h-[100%] flex">
-
-            <div className={`w-[${sideBarWidth}] h-[100vh] bg-white`}>
+            <div className={`w-[${sideBarWidth}] h-[100%] bg-white`}>
                 {/* sidebar for adding itinerary items */}
                 <div className="flex-flex-row divide-y">
                     {itineraryItems.map(item=>(
@@ -552,7 +608,7 @@ useEffect(()=>{
       
             <div className={`w-[calc(100vw-${sideBarWidth})] px-6 py-4 sm:px-12 md:px-24`}>
                 <p className='font-cabin text-neutral-800 text-lg'>Itinerary</p>
-                <DisplayItinerary itinerary={itinerary} setItinerary={setItinerary} handleDelete={deleteItineraryItem}  handleEdit={editItineraryItem}/>
+                <DisplayItinerary formData={formData} setFormData={setFormData} handleDelete={deleteItineraryItem}  handleEdit={editItineraryItem}/>
                 
                 <Modal visible={visible} setVisible={setVisible}>
                     {modalContent}
@@ -560,6 +616,14 @@ useEffect(()=>{
             </div>
 
         </div>
+
+        {/* back link */}
+        <div className='flex items-center gap-4 cursor-pointer py-10 w-[90%] mx-auto'>
+            <img className='w-[24px] h-[24px]' src={left_arrow_icon} onClick={()=>navigate(lastPage)} />
+            <p className='text-indigo-500 text-md font-semibold font-cabin'>Back</p>
+        </div>
+
+        
     </>)
 }
 
@@ -907,11 +971,27 @@ const BusForm = ({setVisible, handleAddToItinerary, action='create', editId = nu
 
 const CabForm = ({setVisible, handleAddToItinerary, action='create', editId = null, editData=null})=>{
 
-  const [formData, setFormData] = useState({pickupAddress:editData?.pickupAddress??'', dropAddress:editData?.dropAddress??'', class:editData?.class??'Regular', date:editData?.date??getCurrentDate(), returnDate: editData?.returnDate??getCurrentDate(1), time:editData?.time??'12pm - 3pm', isFullDayCab:editData?.isFullDayCab??false});
+  const [formData, setFormData] = useState( 
+    {
+      pickupAddress:editData?.pickupAddress??'', 
+      dropAddress:editData?.dropAddress??'', 
+      class:editData?.class??'Regular', 
+      date:editData?.date??getCurrentDate(), 
+      returnDate: editData?.returnDate??getCurrentDate(1), 
+      time:editData?.time??'12pm - 3pm', 
+      isFullDayCab:editData?.isFullDayCab??false, 
+      isRentalCab: editData?.isRentalCab??false 
+    });
 
-  const [errors, setErrors] = useState({pickupError:{set:false, message:null}, dropError:{set:false, message:null}, dateError:{set:false, message:null}, returnDateError:{set: false, message:null},  timeError:{set:false, message:null}});
+  const [errors, setErrors] = useState(
+    {
+      pickupError:{set:false, message:null}, 
+      dropError:{set:false, message:null}, 
+      dateError:{set:false, message:null}, 
+      returnDateError:{set: false, message:null},  
+      timeError:{set:false, message:null}
+    });
 
-  const [showDropdown, setShowDropdonw] = useState(false);
 
   const updateCity = (e, field)=>{
       const formData_copy = JSON.parse(JSON.stringify(formData))
@@ -967,10 +1047,10 @@ const CabForm = ({setVisible, handleAddToItinerary, action='create', editId = nu
       goAhead=false;
     }else setErrors(pre=>({...pre, timeError:{set:false, message:null} }));
 
-
-    
     if(goAhead){
-      handleAddToItinerary('cabs', {action, editId, formData});
+      if(formData.isRentalCab) {
+        handleAddToItinerary('rentalCabs', {action, editId, formData});
+      }else handleAddToItinerary('cabs', {action, editId, formData});
     }
     
   }
@@ -980,12 +1060,26 @@ const CabForm = ({setVisible, handleAddToItinerary, action='create', editId = nu
   }
 
   const handleFullDayCabCheckbox = (e)=>{
-    console.log(e);
+    if(e.target.checked){
+      setFormData(pre=>({...pre, isFullDayCab:e.target.checked, isRentalCab:false}))
+      return;
+    }
+    
     setFormData(pre=>({...pre, isFullDayCab:e.target.checked}))
   }
 
   const handleClassChange = (option)=>{
+
     setFormData(pre=>({...pre, class:option}));
+  }
+
+  const handleRentalCabCheckbox = (e)=>{
+    if(e.target.checked){
+      setFormData(pre=>({...pre, isRentalCab:e.target.checked, isFullDayCab:false}))
+      return;
+    }
+    
+    setFormData(pre=>({...pre, isRentalCab:e.target.checked}))
   }
 
   useEffect(()=>{
@@ -1000,9 +1094,16 @@ const CabForm = ({setVisible, handleAddToItinerary, action='create', editId = nu
     return(<div className=''>
     <   div className='pb-10 text-lg text-neutral-700 font-cabin'>Cab</div>
         
-        <div className='flex gap-2 mb-8'>
-            <input className='cursor-pointer w-4 h-4 rounded-sm' onChange={handleFullDayCabCheckbox} name='full-day-cab' type='checkbox' checked={formData.isFullDayCab} />
-            <label htmlFor='full-day-cab' className='font-cabin text-sm text-neutral-700'>Full Day Cab</label>
+        <div className='flex gap-6'>
+          <div className='flex gap-2 mb-8'>
+              <input className='cursor-pointer w-4 h-4 rounded-sm' onChange={handleFullDayCabCheckbox} name='full-day-cab' type='checkbox' checked={formData.isFullDayCab} />
+              <label htmlFor='full-day-cab' className='font-cabin text-sm text-neutral-700'>Full Day Cab</label>
+          </div>
+
+          <div className='flex gap-2 mb-8'>
+              <input className='cursor-pointer w-4 h-4 rounded-sm' onChange={handleRentalCabCheckbox} name='rental-cab' type='checkbox' checked={formData.isRentalCab} />
+              <label htmlFor='rental-cab' className='font-cabin text-sm text-neutral-700'>Rental Cab / Self Drive </label>
+          </div>
         </div>
 
         <div className='w-[100%] h-[100%] bg-white flex gap-2 flex-wrap items-end'>
@@ -1048,190 +1149,16 @@ const CabForm = ({setVisible, handleAddToItinerary, action='create', editId = nu
                 min={0}
                 date={formData?.date}
                 onChange = {handleDateChange}
-                title={`${formData.isFullDayCab? 'From Date' : 'On?'}`} />
+                title={`${(formData.isFullDayCab || formData.isRentalCab)? 'From Date' : 'On?'}`} />
 
-              {formData.isFullDayCab && <SlimDate 
+              {(formData.isFullDayCab || formData.isRentalCab) && <SlimDate 
                 format='date-month'
                 min={dateDiffInDays(formData.date, getCurrentDate())}
                 date={formData?.returnDate}
                 onChange = {handleReturnDateChange}
                 title={`Till Date?`} />}
 
-              {formData.isFullDayCab && <div className='w-fit h-[73px] flex flex-col gap-2'>
-                  <p className='whitespace-nowrap text-zinc-600 text-sm font-cabin'>Total Days</p>
-                  <div className='px-6 py-2 border rounded-md border border-neutral-300'>{dateDiffInDays(formData.date, formData.returnDate)+1}</div>
-                </div>}
-            </div>
-            
-
-            </div>
-        </div>
-
-        {action == 'create' && <div className='flex flex-row-reverse mt-10'>
-            <div onClick={handleSubmit} className='w-fit px-2 py-1 bg-blue-600  rounded-md border-bg-blue-800 text-gray-100 text-sm hover:bg-blue-500 cursor-pointer'>Add to Itinerary</div>
-        </div>}
-
-        {action == 'edit' && <div className='flex flex-row-reverse mt-10 gap-4'>
-            <div onClick={handleCancel} className='w-fit px-2 py-1 bg-blue-600  rounded-md border-bg-blue-800 text-gray-100 text-sm hover:bg-blue-500 cursor-pointer'>Cancel</div>
-            <div onClick={handleSubmit} className='w-fit px-2 py-1 bg-blue-600  rounded-md border-bg-blue-800 text-gray-100 text-sm hover:bg-blue-500 cursor-pointer'>Save Changes</div>
-          </div>}
-        
-    </div>)
-}
-
-const RentalCabForm = ({setVisible, handleAddToItinerary, action='create', editId = null, editData=null})=>{
-
-  const [formData, setFormData] = useState({pickupAddress:editData?.pickupAddress??'', dropAddress:editData?.dropAddress??'', class:editData?.class??'Regular', date:editData?.date??getCurrentDate(), returnDate: editData?.returnDate??getCurrentDate(1), time:editData?.time??'12pm - 3pm', isFullDayCab:editData?.isFullDayCab??false});
-
-  const [errors, setErrors] = useState({pickupError:{set:false, message:null}, dropError:{set:false, message:null}, dateError:{set:false, message:null}, returnDateError:{set: false, message:null},  timeError:{set:false, message:null}});
-
-  const [showDropdown, setShowDropdonw] = useState(false);
-
-  const updateCity = (e, field)=>{
-      const formData_copy = JSON.parse(JSON.stringify(formData))
-      formData_copy[field] = e.target.value
-      setFormData(formData_copy)
-  }
-
-  const handleTimeChange = (value)=>{
-      const formData_copy = JSON.parse(JSON.stringify(formData))
-      formData_copy.time = value
-      setFormData(formData_copy)
-  }
-
-  const handleDateChange = (e)=>{
-      const formData_copy = JSON.parse(JSON.stringify(formData))
-      formData_copy.date = e.target.value
-      setFormData(formData_copy)
-  }
-
-  const handleReturnDateChange = (e)=>{
-    const formData_copy = JSON.parse(JSON.stringify(formData))
-    formData_copy.returnDate = e.target.value
-    setFormData(formData_copy)
-  }
-
-  const handleSubmit = ()=>{
-
-    console.log('form submitted')
-    let goAhead = true;
-
-    if(formData.pickupAddress == null || formData.pickupAddress == undefined || formData.pickupAddress == ''){
-      setErrors(pre=>({...pre, pickupError: {set: true, message: 'Please enter pickup address'}}))
-      goAhead=false;
-    }else setErrors(pre=>({...pre, pickupError:{set:false, message:null} }));
-
-    if(formData.dropAddress == null || formData.dropAddress == undefined || formData.dropAddress == ''){
-      setErrors(pre=>({...pre, dropError:{set:true, message:'Please enter drop address'}}))
-      goAhead=false;
-    }else setErrors(pre=>({...pre, dropError:{set:false, message:null} }));
-
-    if(formData.date == null || formData.date == undefined || formData.date == ''){
-      setErrors(pre=>({...pre, dateError: {set:true, message: 'Plese select date'}}))
-      goAhead=false;
-    }else setErrors(pre=>({...pre, dateError:{set:false, message:null} }));
-
-    if(formData.isFullDayCab && (formData.returnDate == null || formData.returnDate == undefined || formData.returnDate == '') ){
-      setErrors(pre=>({...pre, returnDateError: {set: true, message: 'Please select return date'} }));
-      goAhead=false;
-    }
-
-    if(formData.time == null && formData.time == undefined){
-      setErrors(pre=>({...pre, timeError:{set: true, message : 'Please select preferred time'}}))
-      goAhead=false;
-    }else setErrors(pre=>({...pre, timeError:{set:false, message:null} }));
-
-
-    
-    if(goAhead){
-      handleAddToItinerary('cabs', {action, editId, formData});
-    }
-    
-  }
-
-  const handleCancel = ()=>{
-    setVisible(false);
-  }
-
-  const handleFullDayCabCheckbox = (e)=>{
-    console.log(e);
-    setFormData(pre=>({...pre, isFullDayCab:e.target.checked}))
-  }
-
-  const handleClassChange = (option)=>{
-    setFormData(pre=>({...pre, class:option}));
-  }
-
-  useEffect(()=>{
-    console.log(formData, 'form data');
-  },[formData])
-
-  useEffect(()=>{
-    console.log(errors, 'flight form errors')
-  }, [errors])
-
-    
-    return(<div className=''>
-    <   div className='pb-10 text-lg text-neutral-700 font-cabin'>Cab</div>
-        
-        <div className='flex gap-2 mb-8'>
-            <input className='cursor-pointer w-4 h-4 rounded-sm' onChange={handleFullDayCabCheckbox} name='full-day-cab' type='checkbox' checked={formData.isFullDayCab} />
-            <label for='full-day-cab' className='font-cabin text-sm text-neutral-700'>Full Day Cab</label>
-        </div>
-
-        <div className='w-[100%] h-[100%] bg-white flex gap-2 flex-wrap items-end'>
-
-           <div className='flex flex-col gap-4 items-start relative'>
-
-           <div className='flex gap-2 w-full'>
-            <Select
-              maxWidth = {'200px'}
-              currentOption = {'Regular'}
-              title={'Cab Type'}
-              onSelect = {handleClassChange}
-              options={['Regular', 'Sedan', 'SUV']} 
-              />
-
-            <PreferredTime
-              value={formData.time}
-              onChange={handleTimeChange}  />
-           </div>
-              
-            <div className='flex flex-col gap-2 w-full'>
-              <Input 
-                maxWidth = {'400px'}
-                showLocationSymbol = {true}
-                title='Pickup Address?'  
-                placeholder='pickup address' 
-                value={formData.pickupAddress}
-                error={errors?.fromError} 
-                onBlur={(e)=>updateCity(e, 'pickupAddress')} />
-
-              <Input 
-                showLocationSymbol = {true}
-                title='Drop Address?' 
-                placeholder='drop address' 
-                value={formData.dropAddress} 
-                error={errors?.toError}
-                onBlur={(e)=>updateCity(e, 'dropAddress')} />
-            </div>
-
-            <div className='flex gap-2'>
-              <SlimDate 
-                format='date-month'
-                min={0}
-                date={formData?.date}
-                onChange = {handleDateChange}
-                title={`${formData.isFullDayCab? 'From Date' : 'On?'}`} />
-
-              {formData.isFullDayCab && <SlimDate 
-                format='date-month'
-                min={dateDiffInDays(formData.date, getCurrentDate())}
-                date={formData?.returnDate}
-                onChange = {handleReturnDateChange}
-                title={`Till Date?`} />}
-
-              {formData.isFullDayCab && <div className='w-fit h-[73px] flex flex-col gap-2'>
+              {(formData.isFullDayCab || formData.isRentalCab) && <div className='w-fit h-[73px] flex flex-col gap-2'>
                   <p className='whitespace-nowrap text-zinc-600 text-sm font-cabin'>Total Days</p>
                   <div className='px-6 py-2 border rounded-md border border-neutral-300'>{dateDiffInDays(formData.date, formData.returnDate)+1}</div>
                 </div>}
