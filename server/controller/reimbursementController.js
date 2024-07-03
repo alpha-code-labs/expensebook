@@ -95,7 +95,8 @@ export const paidNonTravelExpenseReports = async (req, res) => {
         $set: {
           'reimbursementSchema.settlementBy': settlementBy,
           'reimbursementSchema.actionedUpon': true,
-          'reimbursementSchema.expenseHeaderStatus': newStatus.PAID
+          'reimbursementSchema.expenseHeaderStatus': newStatus.PAID,
+          'reimbursementSchema.expenseSettledDate': new Date(),
         }
       },
       {
