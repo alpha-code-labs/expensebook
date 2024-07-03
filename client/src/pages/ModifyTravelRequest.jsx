@@ -106,8 +106,8 @@ export default function () {
         formData={formData}
         setFormData={setFormData}
         onBoardingData={onBoardingData}
-        nextPage={onBoardingData?.travelAllocationFlags.level3 ? `/create/${tenantId}/${employeeId}/allocations` : `/create/${tenantId}/${employeeId}/section2`}
-        lastPage={`/create/${tenantId}/${employeeId}/section0`} />} />
+        nextPage={onBoardingData?.travelAllocationFlags.level3 ? `/modify/${travelRequestId}/allocations` : `/modify/${travelRequestId}/section2`}
+        lastPage={`/modify/${travelRequestId}/section0`} />} />
 
       <Route path='/allocation' element={<AllocateTravelObjects
         formData={formData}
@@ -116,14 +116,14 @@ export default function () {
         nextPage={`/modify/${travelRequestId}/section2`}
         lastPage={`/modify/${travelRequestId}/section1`} />} />
 
-      <Route path='/section2' element={<Review
+      {/* <Route path='/section2' element={<Review
         formData={formData}
         setFormData={setFormData}
         currentFormState={currentFormState}
         onBoardingData={onBoardingData}
         nextPage={`/modify/${travelRequestId}/section2`}
         lastPage={onBoardingData?.travelAllocationFlags.level3 ? `/modify/${travelRequestId}/allocation` : `/modify/${travelRequestId}/section1`}
-      />} />
+      />} /> */}
     </Routes>}
   </>;
 }

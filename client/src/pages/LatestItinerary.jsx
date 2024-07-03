@@ -607,7 +607,6 @@ useEffect(()=>{
             </div>
       
             <div className={`w-[calc(100vw-${sideBarWidth})] px-6 py-4 sm:px-12 md:px-24`}>
-                <p className='font-cabin text-neutral-800 text-lg'>Itinerary</p>
                 <DisplayItinerary formData={formData} setFormData={setFormData} handleDelete={deleteItineraryItem}  handleEdit={editItineraryItem}/>
                 
                 <Modal visible={visible} setVisible={setVisible}>

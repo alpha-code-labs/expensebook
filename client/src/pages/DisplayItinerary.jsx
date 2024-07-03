@@ -13,9 +13,11 @@ import React, { Children, useCallback, useEffect, useState } from "react";
 import edit_icon from '../assets/edit.svg';
 import delete_icon from '../assets/delete.svg';
 import moment from 'moment';
+import itinerary_icon from '../assets/itinerary.webp';
+import empty_itinerary_icon from '../assets/empty_itinerary.png';
 
 
-export default React.memo(function({formData, setFormData, handleEdit, handleDelete}) {
+export default function({formData, setFormData, handleEdit, handleDelete}) {
 
     console.log('component rerendered');
     const [flattendItinerary, setFlattendedItinerary] = useState();
@@ -58,12 +60,15 @@ export default React.memo(function({formData, setFormData, handleEdit, handleDel
         })
       )
 
-    return(<>
+    return(<div className='w-full border border-sm border-neutral-800'>
         <DndContext
             sensors={sensors}
             onDragEnd={handleDragEnd}
             collisionDetection={closestCorners}>
-
+            <div className="flex gap-4">
+                <img src={itinerary_icon} className="w-8 h-8"/>
+                <p className="text-neutral-600 font-cabin text-xl">Itinerary</p>
+            </div>
             <div className='p-4 w-[800px] flex flex-col gap-4'>
                 <SortableContext
                     strategy={verticalListSortingStrategy}
@@ -151,8 +156,8 @@ export default React.memo(function({formData, setFormData, handleEdit, handleDel
             </div>
 
         </DndContext>
-    </>)
-})
+    </div>)
+}
 
 function FlightCard({from, to, date, returnDate, time, returnTime, travelClass, onClick, mode='Flight', id, handleEdit, handleDelete}){
   return(
@@ -372,25 +377,25 @@ function flattenObjectToArray(obj) {
   }
 
 function arrayToObject(arr) {
-const fixedKeys = ['flights', 'buses', 'trains', 'cabs', 'carRentals', 'hotels'];
+    const fixedKeys = ['flights', 'buses', 'trains', 'cabs', 'carRentals', 'hotels'];
 
-// Initialize the object with fixed keys and empty arrays
-const result = fixedKeys.reduce((acc, key) => {
-    acc[key] = [];
-    return acc;
-}, {});
+    // Initialize the object with fixed keys and empty arrays
+    const result = fixedKeys.reduce((acc, key) => {
+        acc[key] = [];
+        return acc;
+    }, {});
 
-// Populate the object with items from the array
-arr.forEach(item => {
-    const { id, category, ...rest } = item;
-    const newItem = { ...rest, formId: id };
-    
-    if (result[category]) {
-    result[category].push(newItem);
-    }
-});
+    // Populate the object with items from the array
+    arr.forEach(item => {
+        const { id, category, ...rest } = item;
+        const newItem = { ...rest, formId: id };
+        
+        if (result[category]) {
+        result[category].push(newItem);
+        }
+    });
 
-return result;
+    return result;
 }
 
 

@@ -34,14 +34,11 @@ export default function SlimDate(props){
         return `${year}-${month}-${day}`;
       }
 
-
     const handleChange= (e)=>{
        setValue(e.target.value)
        console.log(e.target.value)
        onChange(e)
     }
-
-    
 
     return(<>
     {format != 'date-month' && <div className="min-w-[200px] w-full md:w-fit max-w-[403px] h-[73px] flex-col justify-start items-start gap-2 inline-flex">
