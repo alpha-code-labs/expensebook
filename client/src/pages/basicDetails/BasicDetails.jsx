@@ -16,7 +16,8 @@ import Error from '../../components/common/Error'
 import { useQuery } from '../../utils/hooks'
 import { camelCaseToTitleCase } from '../../utils/handyFunctions'
 
-export default function BasicDetails({onBoardingData, formData, setFormData, nextPage}){
+export default function BasicDetails({onBoardingData, formData, setFormData}){
+
     const navigate = useNavigate()
     //loader state
     const [isLoading, setIsLoading] = useState(false)
@@ -126,11 +127,11 @@ export default function BasicDetails({onBoardingData, formData, setFormData, nex
                 const formData_copy = JSON.parse(JSON.stringify(formData))
                 formData_copy.travelRequestId = travelRequestId
                 setFormData(formData_copy)
-                navigate(nextPage)
+                navigate(`/modify/${travelRequestId}/section1`)
             }
             else{
                 setIsLoading(true)
-                navigate(nextPage)
+                navigate(`/modify/${formData.travelRequestId}/section1`)
             }
         }
     }

@@ -1,12 +1,10 @@
 import { useState, useEffect} from "react";
 import { Routes, Route, useParams } from 'react-router-dom'
 import BasicDetails from "./basicDetails/BasicDetails";
-import Review from "./review/Review"
 import Error from "../components/common/Error";
 import { getTravelRequest_API, getOnboardingData_API } from "../utils/api";
 import AllocateTravelObjects from "./allocations/AllocateTravelObjects";
-import SelectTravelType from "./SelectTravelType";
-import LatestItinerary from "./latestItinerary";
+import LatestItinerary from "./Itinerary/LatestItinerary";
 
 
 

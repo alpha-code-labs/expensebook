@@ -3,18 +3,17 @@ import {
   clock_icon,
   biderectional_arrows_icon as double_arrow,
   location_icon,
-} from "../assets/icon";
+} from "../../assets/icon";
 import {closestCorners, DndContext, useSensors, useSensor, PointerSensor} from '@dnd-kit/core';
 import {useSortable, SortableContext, verticalListSortingStrategy, arrayMove} from '@dnd-kit/sortable'
 import {CSS} from '@dnd-kit/utilities'
-import { material_flight_black_icon, material_train_black_icon, material_bus_black_icon, material_cab_black_icon, material_car_rental_black_icon, material_hotel_black_icon, material_personal_black_icon } from "../assets/icon";
-import { titleCase } from "../utils/handyFunctions";
-import React, { Children, useCallback, useEffect, useState } from "react";
-import edit_icon from '../assets/edit.svg';
-import delete_icon from '../assets/delete.svg';
+import { material_flight_black_icon, material_train_black_icon, material_bus_black_icon, material_cab_black_icon, material_car_rental_black_icon, material_hotel_black_icon, material_personal_black_icon } from "../../assets/icon";
+import { titleCase } from "../../utils/handyFunctions";
+import React, { useCallback, useEffect, useState } from "react";
+import edit_icon from '../../assets/edit.svg';
+import delete_icon from '../../assets/delete.svg';
 import moment from 'moment';
-import itinerary_icon from '../assets/itinerary.webp';
-import empty_itinerary_icon from '../assets/empty_itinerary.png';
+import empty_itinerary_icon from '../../assets/empty_itinerary.png';
 
 
 export default function({formData, setFormData, handleEdit, handleDelete}) {

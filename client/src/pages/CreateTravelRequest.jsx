@@ -1,25 +1,19 @@
-import { useState, useEffect, createContext, useMemo } from "react";
-import {BrowserRouter as Router, Routes, Route, useParams} from 'react-router-dom'
+import { useState, useEffect} from "react";
+import { Routes, Route, useParams } from 'react-router-dom'
 import BasicDetails from "./basicDetails/BasicDetails";
-//import Itinerary from "./itinerary/Itinerary"
-import Itinerary from "./itinerary/NewItinerary";
-import Review from "./review/Review"
 import { getOnboardingData_API } from "../utils/api";
 import Error from "../components/common/Error";
-import AllocateTravelObjects from './allocations/AllocateTravelObjects'
-import SelectTravelType from "./SelectTravelType";
-import ModifiedItinerary from "./ModifiedItinerary";
 import { generateUniqueIdentifier } from "../utils/uuid";
-import latestItinerary from "./latestItinerary";
-import LatestItinerary from "./latestItinerary";
+
 
 export default function () {
 
-  const TRAVEL_API = import.meta.env.VITE_TRAVEL_API_URL 
-  const {tenantId, employeeId} = useParams();
+  const TRAVEL_API = import.meta.env.VITE_TRAVEL_API_URL
+  const { tenantId, employeeId } = useParams();
 
   console.log(tenantId, employeeId, 'tId, employeeId')
   const [employeeName, setEmployeeName] = useState('')
+  const [travelRequestId, setTravelRequestId] = useState(null);
 
   const [formData, setFormData] = useState({
     travelRequestId: null,
@@ -30,53 +24,53 @@ export default function () {
     companyName: '',
     travelRequestStatus: 'draft',
     travelRequestState: 'section 0',
-    createdBy: {name: employeeName, empId: employeeId},
+    createdBy: { name: employeeName, empId: employeeId },
     createdFor: null,
-    travelAllocationHeaders:[],
-    tripPurpose:null,
-    
-    raisingForDelegator:false,
-    nameOfDelegator:null,
-    isDelegatorManager:false,
-    selectDelegatorTeamMembers:false,
-    delegatorsTeamMembers:[],
+    travelAllocationHeaders: [],
+    tripPurpose: null,
 
-    bookingForSelf:true,
-    bookiingForTeam:false,
-    teamMembers : [],
-    sentToTrip:false,
+    raisingForDelegator: false,
+    nameOfDelegator: null,
+    isDelegatorManager: false,
+    selectDelegatorTeamMembers: false,
+    delegatorsTeamMembers: [],
+
+    bookingForSelf: true,
+    bookiingForTeam: false,
+    teamMembers: [],
+    sentToTrip: false,
     itinerary: {
-      carRentals:[],
-      cabs:[],
-      trains:[],
-      flights:[],
-      buses:[],
-      personalVehicles:[],
-      hotels:[]
+      carRentals: [],
+      cabs: [],
+      trains: [],
+      flights: [],
+      buses: [],
+      personalVehicles: [],
+      hotels: []
     },
 
-    travelDocuments:[],
-    tripType:{oneWayTrip:true, roundTrip:false, multiCityTrip:false},
-    preferences:[],
-    travelViolations:{
-      tripPurpose:null,
-      class:null,
-      amount:null,
+    travelDocuments: [],
+    tripType: { oneWayTrip: true, roundTrip: false, multiCityTrip: false },
+    preferences: [],
+    travelViolations: {
+      tripPurpose: null,
+      class: null,
+      amount: null,
     },
-    isCancelled:false,
-    cancellationDate:null,
-    cancellationReason:null,
-    isCashAdvanceTaken:null,
+    isCancelled: false,
+    cancellationDate: null,
+    cancellationReason: null,
+    isCashAdvanceTaken: null,
   })
 
   const [currentFormState, setCurrentFormState] = useState({
     isReturnTravel: false,
     itinerary: [
-    {
+      {
         formId: generateUniqueIdentifier(),
-        mode : 'flight',
-        from : '',
-        to : '',
+        mode: 'flight',
+        from: '',
+        to: '',
         date: new Date().toISOString().split('T')[0],
         returnDate: undefined,
         hotelNights: '',
@@ -84,104 +78,67 @@ export default function () {
         dropNeeded: false,
         fullDayCabs: 0,
         fullDayCabDates: [],
-        dateError:{set:false, message:null},
-        returnDateError:{set:false, message:null},
-        fromError: {set:false, message:null},
-        toError: {set:false, message:null},
+        dateError: { set: false, message: null },
+        returnDateError: { set: false, message: null },
+        fromError: { set: false, message: null },
+        toError: { set: false, message: null },
+      }
+    ]
+  });
+
+
+  useEffect(() => {
+    if (formData.travelRequestId != null) {
+      setTravelRequestId(formData.travelRequestId);
     }
-]});
+
+  }, [formData.travelRequestId])
 
   const [onBoardingData, setOnBoardingData] = useState()
 
   //flags
-  
-const [isLoading, setIsLoading] = useState(true)
-const [loadingErrMsg, setLoadingErrMsg] = useState(null)
+
+  const [isLoading, setIsLoading] = useState(true)
+  const [loadingErrMsg, setLoadingErrMsg] = useState(null)
 
 
-useEffect(() => {
-  (async function(){
-    const response = await getOnboardingData_API({tenantId, employeeId, travelType:formData.travelType})
-    if(response.err){
-      setLoadingErrMsg(response.err)
-    }  
-    else{
-      setOnBoardingData(response.data.onboardingData)
-      const companyName = response.data.onboardingData.companyName;
-      if(response?.data?.onboardingData?.employeeData?.employeeDetails?.employeeName!= null || response?.data?.onboardingData?.employeeDetails?.employeeName!=undefined){
-        console.log('setting name to ', response?.data?.onboardingData?.employeeData?.employeeDetails?.employeeName )
-        setFormData(pre=>({...pre, companyName, tenantName: companyName, createdBy:{...pre.createdBy, name:response?.data?.onboardingData?.employeeData?.employeeDetails?.employeeName}}))
-      }
-      
-      console.log(response.data.onboardingData)
-      setIsLoading(false)
-    }
-  })()
-},[])
-
-useEffect(()=>{
-  (async function(){
-    if(formData?.travelType??false){
-      setIsLoading(true);
-      const response = await getOnboardingData_API({ tenantId: formData.tenantId, employeeId: formData.createdBy.empId, travelType: formData.travelType })
+  useEffect(() => {
+    (async function () {
+      const response = await getOnboardingData_API({ tenantId, employeeId, travelType: formData.travelType })
       if (response.err) {
         setLoadingErrMsg(response.err)
-        return
       }
+      else {
+        setOnBoardingData(response.data.onboardingData)
+        const companyName = response.data.onboardingData.companyName;
+        if (response?.data?.onboardingData?.employeeData?.employeeDetails?.employeeName != null || response?.data?.onboardingData?.employeeDetails?.employeeName != undefined) {
+          console.log('setting name to ', response?.data?.onboardingData?.employeeData?.employeeDetails?.employeeName)
+          setFormData(pre => ({ ...pre, companyName, tenantName: companyName, createdBy: { ...pre.createdBy, name: response?.data?.onboardingData?.employeeData?.employeeDetails?.employeeName } }))
+        }
 
-      setOnBoardingData(response.data.onboardingData)
-      setIsLoading(false);
-    }
-  })()
- 
-},[formData?.travelType])
+        console.log(response.data.onboardingData)
+        setIsLoading(false)
+      }
+    })()
+  }, [formData.travelType])
 
 
-useEffect(()=>{
-  (async function(){
+  return <>
+    {isLoading && <Error message={loadingErrMsg} />}
 
-  })()
-},[formData.travelType])
-
-
-  return <>  
-      {isLoading && <Error message={loadingErrMsg} />}
-
-      {!isLoading &&
+    {!isLoading &&
       <Routes>
-        <Route path='/' element={<BasicDetails 
-                                            formData={formData} 
-                                            setFormData={setFormData} 
-                                            onBoardingData={onBoardingData}
-                                            lastPage={`/create/${tenantId}/${employeeId}/`}
-                                            nextPage={`/create/${tenantId}/${employeeId}/section1`} />} />
-        <Route path='/section0' element={<BasicDetails 
-                                            formData={formData} 
-                                            setFormData={setFormData} 
-                                            onBoardingData={onBoardingData}
-                                            lastPage={`/create/${tenantId}/${employeeId}/`}
-                                            nextPage={`/create/${tenantId}/${employeeId}/section1`} />} />
+        
+        <Route path='/' element={<BasicDetails
+          formData={formData}
+          setFormData={setFormData}
+          onBoardingData={onBoardingData} />} />
 
-        <Route path='/section1' element={<LatestItinerary
-                                            formData={formData} 
-                                            setFormData={setFormData} 
-                                            onBoardingData={onBoardingData}
-                                            nextPage={onBoardingData?.travelAllocationFlags.level3 ?  `/create/${tenantId}/${employeeId}/allocations` : `/create/${tenantId}/${employeeId}/section2` }
-                                            lastPage={`/create/${tenantId}/${employeeId}/section0`} />} />
+        <Route path='/section0' element={<BasicDetails
+          formData={formData}
+          setFormData={setFormData}
+          onBoardingData={onBoardingData} />} />
 
-        <Route path='/allocations' element={<AllocateTravelObjects 
-                                            formData={formData} 
-                                            setFormData={setFormData} 
-                                            onBoardingData={onBoardingData}
-                                            nextPage={`/create/${tenantId}/${employeeId}/section2`}
-                                            lastPage={`/create/${tenantId}/${employeeId}/section0`} />} />
-
-      {/* <Route path='/section2' element={<Review 
-                                          formData={formData} 
-                                          setFormData={setFormData}
-                                          onBoardingData={onBoardingData}
-                                          nextPage={`/create/${tenantId}/${employeeId}/section2`}
-                                          lastPage={onBoardingData?.travelAllocationFlags.level3 ? `/create/${tenantId}/${employeeId}/allocations` :  `/create/${tenantId}/${employeeId}/section1`} />} /> */}
       </Routes>}
   </>;
 }

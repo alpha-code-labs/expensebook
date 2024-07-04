@@ -1,24 +1,22 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
-import closeIcon from '../assets/close.svg';
-import Input from '../components/common/Input';
-import SlimDate from '../components/common/SlimDate';
-import PreferredTime from '../components/common/PreferredTime';
+import closeIcon from '../../assets/close.svg';
+import Input from '../../components/common/Input';
+import SlimDate from '../../components/common/SlimDate';
+import PreferredTime from '../../components/common/PreferredTime';
 // import DisplayItinerary from './DisplayItinerary';
-import { dummyFlight, dummyCabs, dummyBus, dummyHotel } from '../data/dummy';
-import {Draggable} from 'react-beautiful-dnd'
-import DisplayItems from './DisplayItems'
+import { dummyFlight, dummyCabs, dummyBus, dummyHotel } from '../../data/dummy';
 import DisplayItinerary from './DisplayItinerary';
-import { generateUniqueIdentifier } from '../utils/uuid';
+import { generateUniqueIdentifier } from '../../utils/uuid';
 import moment from 'moment';
-import Select from '../components/common/Select';
-import { camelCaseToTitleCase } from '../utils/handyFunctions';
-import { left_arrow_icon } from "../assets/icon";
+import Select from '../../components/common/Select';
+import { camelCaseToTitleCase } from '../../utils/handyFunctions';
+import { left_arrow_icon } from "../../assets/icon";
 import { useNavigate } from 'react-router-dom';
-import itinerary_icon from '../assets/itinerary.webp'
-import Button from '../components/common/Button';
-import { updateTravelRequest_API } from '../utils/api';
-import Error from '../components/common/Error';
+import itinerary_icon from '../../assets/itinerary.webp'
+import Button from '../../components/common/Button';
+import { updateTravelRequest_API } from '../../utils/api';
+import Error from '../../components/common/Error';
 
 export default function({formData, setFormData, onBoardingData, lastPage, nextPage}){
 const sideBarWidth = '230px'
@@ -30,9 +28,6 @@ const itineraryItems = ['cab', 'flight', 'hotel', 'train', 'bus'];
 const [modalContent, setModalContent] = useState(null);
 const [visible, setVisible] = useState(false);
 const DASHBOARD_URL = import.meta.env.VITE_DASHBOARD_URL
-
-const [requestDrafted, setRequestDrafted] = useState(false)
-const [showSaveAsDraftPopup, setShowSaveAsDraftPopup] = useState(false)
 const tenantId = formData.tenantId;
 const [requestSubmitted, setRequestSubmitted] = useState(false)
 const [showPopup, setShowPopup] = useState(false)
