@@ -1,5 +1,10 @@
 import cron from 'node-cron';
 import Expense from '../models/travelExpenseSchema.js';
+import { config } from 'dotenv';
+
+config()
+
+const SCHEDULE = process.env.SCHEDULE_TIME??'* * * * * *'; // Runs every 30 seconds
 
 
 //1) To update status for travel expense report from Approved to Next State
@@ -54,8 +59,6 @@ const approvedToNextStateBatchJob = async () => {
           } else {
             return { success: false , message : `Updated status for ${countModified} expense(s)`}
           }
-   
-        
       }
      
     } catch (error) {
@@ -67,7 +70,7 @@ const approvedToNextStateBatchJob = async () => {
 
 // Schedule the cron job to run every day at midnight('0 0 * * *) or [use -(for every 20 seconds */20 * * * * *)]
 export const runApproveToNextState = async () =>{
-    cron.schedule('* * * * * *', () => {
+    cron.schedule('*/5 * * * * *', () => {
         console.log('Running approved To Next State BatchJob for travel expense report...');
         approvedToNextStateBatchJob();
       });    
@@ -126,7 +129,7 @@ const SendForApprovalAndTripWithPS = async () => {
 };
 
 // Cron job to run SendForApprovalAndTripWithPS every day at midnight
-cron.schedule('*/30 * * * * *', () => {
+cron.schedule(SCHEDULE, () => {
   console.log('Running SendForApprovalAndTripWithPS for travel expense report...');
   SendForApprovalAndTripWithPS();
 });
