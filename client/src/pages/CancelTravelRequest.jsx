@@ -1,16 +1,11 @@
 import { useState, useEffect} from "react";
 import {BrowserRouter as Router, useParams} from 'react-router-dom'
-import axios from 'axios'
 import Icon from "../components/common/Icon";
 import { camelCaseToTitleCase, titleCase } from "../utils/handyFunctions";
 import Button from "../components/common/Button";
 import Error from "../components/common/Error";
 import PopupMessage from "../components/common/PopupMessage";
 import cab_icon from "../assets/cab-purple.svg"
-//import airplane_icon from "../assets/Airplane_1.svg"
-//import bus_icon from "../assets/bus.png"
-//import train_icon from '../assets/train.png'
-//import calendar_icon from "../assets/calendar.svg"
 import double_arrow from '../assets/double-arrow.svg'
 import { getRawTravelRequest_API, updateRawTravelRequest_API, cancelTravelRequest_API } from "../utils/api";
 import { material_flight_black_icon, material_train_black_icon, material_bus_black_icon, material_cab_black_icon, material_car_rental_black_icon, material_hotel_black_icon, material_personal_black_icon } from "../assets/icon";

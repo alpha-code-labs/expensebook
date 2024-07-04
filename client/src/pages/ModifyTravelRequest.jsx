@@ -133,15 +133,6 @@ export default function () {
         onBoardingData={onBoardingData}
         nextPage={undefined}
         lastPage={`/modify/${travelRequestId}/section1`} />} />
-
-      {/* <Route path='/section2' element={<Review
-        formData={formData}
-        setFormData={setFormData}
-        currentFormState={currentFormState}
-        onBoardingData={onBoardingData}
-        nextPage={`/modify/${travelRequestId}/section2`}
-        lastPage={onBoardingData?.travelAllocationFlags.level3 ? `/modify/${travelRequestId}/allocation` : `/modify/${travelRequestId}/section1`}
-      />} /> */}
     </Routes>}
   </>;
 }
