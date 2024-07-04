@@ -219,8 +219,13 @@ const itinerarySchema = {
       class: String,
       checkIn: String,
       checkOut: String,
+      time: String,
       checkInTime: String,
       checkOutTime: String,
+      needBrakfast: Boolean,
+      needLunch: Boolean,
+      needDinner: Boolean,
+      needNonSmokingRoom : Boolean,
       violations: {
         class: String,
         amount: String,
