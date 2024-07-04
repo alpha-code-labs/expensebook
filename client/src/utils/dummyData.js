@@ -1,3 +1,182 @@
+const trips = [
+    
+  {
+    tripId: '667a3a5be9a18ce3478d1a0d',
+    tripNumber: 'TRIPAL000003',
+    travelRequestId: '66796b3bb2e14ac28c9eebb8',
+    travelRequestNumber: 'TRAL000002',
+    tripPurpose: 'Business',
+    tripStartDate: '2024-06-26T00:00:00.000Z',
+    tripCompletionDate: '2024-06-27T00:00:00.000Z',
+    travelRequestStatus: 'booked',
+    isCashAdvanceTaken: true,
+    totalCashAmount: 0,
+    cashAdvances: [
+      {
+        cashAdvanceId: '667a39e4a1b88232721397fb',
+        cashAdvanceNumber: 'CA0001',
+        amountDetails: [
+          {
+            amount: 4000,
+            currency: {
+              countryCode: 'IN',
+              fullName: 'Indian Rupee',
+              shortName: 'INR',
+              symbol: '₹',
+            },
+            mode: null,
+            _id: '667a39e4a1b8823272139809',
+          },
+        ],
+        cashAdvanceStatus: 'pending settlement',
+      },
+    ],
+    travelExpenses: [],
+    itinerary: {
+      flights: [
+        {
+          category: 'flights',
+          itineraryId: '667a39d68daacf93aefc1c37',
+          status: 'booked',
+          bkd_from: 'Lucknow',
+          bkd_to: 'Delhi',
+          bkd_date: '2024-07-09T00:00:00.000Z',
+          bkd_time: null,
+          bkd_travelClass: null,
+          bkd_violations: {
+            class: null,
+            amount: '',
+          },
+        },
+        {
+          category: 'flights',
+          itineraryId: '667a39d68daacf93aefc1c38',
+          status: 'booked',
+          bkd_from: 'Delhi',
+          bkd_to: 'Lucknow',
+          bkd_date: '2024-06-27T00:00:00.000Z',
+          bkd_time: null,
+          bkd_travelClass: null,
+          bkd_violations: {
+            class: null,
+            amount: '',
+          },
+        },
+      ],
+      buses: [],
+      trains: [],
+      hotels: [
+        {
+          category: 'hotels',
+          itineraryId: '667a39d68daacf93aefc1c39',
+          status: 'booked',
+          bkd_location: 'Lucknow',
+          bkd_class: null,
+          bkd_checkIn: '2024-06-26T00:00:00.000Z',
+          bkd_checkOut: '2024-07-05T00:00:00.000Z',
+          bkd_violations: {
+            class: null,
+            amount: null,
+          },
+          cancellationDate: null,
+          cancellationReason: null,
+        },
+      ],
+      cabs: [],
+      carRentals: [],
+      personalVehicles: [],
+    },
+  },
+  {
+    tripId: '667a3af2e9a18ce3478d1d27',
+    tripNumber: 'TRIPAL000005',
+    travelRequestId: '667a3a718daacf93aefc1dc1',
+    travelRequestNumber: 'TRAL000003',
+    tripPurpose: 'Business',
+    tripStartDate: '2024-06-26T00:00:00.000Z',
+    tripCompletionDate: '2024-06-27T00:00:00.000Z',
+    travelRequestStatus: 'booked',
+    isCashAdvanceTaken: true,
+    totalCashAmount: 0,
+    cashAdvances: [
+      {
+        cashAdvanceId: '667a3a8ca1b8823272139bde',
+        cashAdvanceNumber: 'CA0001',
+        amountDetails: [
+          {
+            amount: 5000,
+            currency: {
+              countryCode: 'IN',
+              fullName: 'Indian Rupee',
+              shortName: 'INR',
+              symbol: '₹',
+            },
+            mode: null,
+            _id: '667a3a8ca1b8823272139bec',
+          },
+        ],
+        cashAdvanceStatus: 'pending settlement',
+      },
+    ],
+    travelExpenses: [],
+    itinerary: {
+      flights: [
+        {
+          category: 'flights',
+          itineraryId: '667a3a8b8daacf93aefc1e07',
+          status: 'booked',
+          bkd_from: 'Mumbai',
+          bkd_to: 'Goa',
+          bkd_date: '2024-06-26T00:00:00.000Z',
+          bkd_time: null,
+          bkd_travelClass: null,
+          bkd_violations: {
+            class: null,
+            amount: '',
+          },
+        },
+        {
+          category: 'flights',
+          itineraryId: '667a3a8b8daacf93aefc1e08',
+          status: 'booked',
+          bkd_from: 'Goa',
+          bkd_to: 'Delhi',
+          bkd_date: '2024-06-27T00:00:00.000Z',
+          bkd_time: null,
+          bkd_travelClass: null,
+          bkd_violations: {
+            class: null,
+            amount: '',
+          },
+        },
+      ],
+      buses: [],
+      trains: [],
+      hotels: [
+        {
+          category: 'hotels',
+          itineraryId: '667a3a8b8daacf93aefc1e09',
+          status: 'booked',
+          bkd_location: 'Goa',
+          bkd_class: null,
+          bkd_checkIn: '2024-06-26T00:00:00.000Z',
+          bkd_checkOut: '2024-06-24T00:00:00.000Z',
+          bkd_violations: {
+            class: null,
+            amount: '',
+          },
+          cancellationDate: null,
+          cancellationReason: null,
+        },
+      ],
+      cabs: [],
+      carRentals: [],
+      personalVehicles: [],
+    },
+  },
+]
+
+
 const travelExpense = [
   
   {
@@ -17,7 +196,7 @@ const travelExpense = [
       "expenseHeaderNumber": "ERAL000001",
       "expenseHeaderId": "667a393fb043bb2aadca3017",
       "expenseHeaderType": "travel",
-      "expenseHeaderStatus": "pending settlement",
+      "expenseHeaderStatus": "paid",
       "alreadyBookedExpenseLines": {
         "flights": [
           {
@@ -300,8 +479,8 @@ const travelExpense = [
           "Description": "",
           "Quantity": "1",
           "Unit Cost": "209",
-          "Tax Amount": "5.99",
-          "Total Amount": "136",
+          "Tax Amount": "2000",
+          "Total Amount": "7000",
           "Mode of Payment": "Cash",
           "Currency": {
             "countryCode": "IN",
@@ -309,7 +488,7 @@ const travelExpense = [
             "shortName": "INR",
             "symbol": "₹"
           },
-          "Category Name": "Meals",
+          "Category Name": "Flight",
           "convertedAmountDetails": null,
           "allocations": [
             {
@@ -356,8 +535,8 @@ const travelExpense = [
           "Description": "",
           "Quantity": "1",
           "Unit Cost": "209",
-          "Tax Amount": "5.99",
-          "Total Amount": "136",
+          "Tax Amount": "180",
+          "Total Amount": "1000",
           "Mode of Payment": "Cash",
           "Currency": {
             "countryCode": "IN",
@@ -365,7 +544,7 @@ const travelExpense = [
             "shortName": "INR",
             "symbol": "₹"
           },
-          "Category Name": "Meals",
+          "Category Name": "Cab Rental",
           "convertedAmountDetails": null,
           "allocations": [
             {
@@ -421,7 +600,7 @@ const travelExpense = [
       "expenseHeaderNumber": "ERAL000001",
       "expenseHeaderId": "667a393fb043bb2aadca3017",
       "expenseHeaderType": "travel",
-      "expenseHeaderStatus": "pending settlement",
+      "expenseHeaderStatus": "pending approval",
       "alreadyBookedExpenseLines": {
         "flights": [
           {
@@ -648,8 +827,8 @@ const travelExpense = [
           "Description": "",
           "Quantity": "1",
           "Unit Cost": "209",
-          "Tax Amount": "5.99",
-          "Total Amount": "136",
+          "Tax Amount": "369",
+          "Total Amount": "2050",
           "Mode of Payment": "Cash",
           "Currency": {
             "countryCode": "IN",
@@ -1003,6 +1182,361 @@ const travelExpense = [
 
 ]
 
+const TRCashadvance = [
+  {
+    tripId: "667a38e9e9a18ce3478d1263",
+    travelRequestStatus:"cancelled",
+    tripNumber: "TRIPAL000001",
+    travelRequestId: "667955dbb2e14ac28c9ec056",
+    travelRequestNumber: "TRAL000001",
+    tripName: ["mum", "luc", "del"],
+    cashAdvances: [
+      {
+        cashAdvanceId: "66795ea1a4b5e4e0e666cd4a",
+        cashAdvanceNumber: "CA0001",
+        amountDetails: [
+          {
+            amount: 400,
+            currency: {
+              countryCode: "IN",
+              fullName: "Indian Rupee",
+              shortName: "INR",
+              symbol: "₹"
+            },
+            mode: null,
+            _id: "66795ea1a4b5e4e0e666cd5a"
+          },
+          {
+            amount: 500,
+            currency: {
+              countryCode: "IN",
+              fullName: "Indian Rupee",
+              shortName: "INR",
+              symbol: "₹"
+            },
+            mode: null,
+            _id: "66795ea1a4b5e4e0e666cd5a"
+          }
+        ],
+        cashAdvanceStatus: "pending settlement"
+      },
+      {
+        cashAdvanceId: "66795ea1a4b5e4e0e666cd4a",
+        cashAdvanceNumber: "CA0001",
+        amountDetails: [
+          {
+            amount: 6000,
+            currency: {
+              countryCode: "IN",
+              fullName: "Indian Rupee",
+              shortName: "INR",
+              symbol: "₹"
+            },
+            mode: null,
+            _id: "66795ea1a4b5e4e0e666cd5a"
+          }
+        ],
+        cashAdvanceStatus: "pending settlement"
+      }
+    ]
+  },
+  {
+    travelRequestStatus:"booked",
+    tripId: "667a38e9e9a18ce3478d126r",
+    tripNumber: "TRIPAL000001",
+    travelRequestId: "667955dbb2e14ac28c9ec056",
+    travelRequestNumber: "TRAL000001",
+    tripName: ["mum", "luc", "del"],
+    cashAdvances: [
+      {
+        cashAdvanceId: "66795ea1a4b5e4e0e666cd4a",
+        cashAdvanceNumber: "CA0001",
+        amountDetails: [
+          {
+            amount: 400,
+            currency: {
+              countryCode: "IN",
+              fullName: "Indian Rupee",
+              shortName: "INR",
+              symbol: "₹"
+            },
+            mode: null,
+            _id: "66795ea1a4b5e4e0e666cd5a"
+          },
+          {
+            amount: 500,
+            currency: {
+              countryCode: "IN",
+              fullName: "Indian Rupee",
+              shortName: "INR",
+              symbol: "₹"
+            },
+            mode: null,
+            _id: "66795ea1a4b5e4e0e666cd5a"
+          }
+        ],
+        cashAdvanceStatus: "pending settlement"
+      },
+      {
+        cashAdvanceId: "66795ea1a4b5e4e0e666cd4a",
+        cashAdvanceNumber: "CA0001",
+        amountDetails: [
+          {
+            amount: 6000,
+            currency: {
+              countryCode: "IN",
+              fullName: "Indian Rupee",
+              shortName: "INR",
+              symbol: "₹"
+            },
+            mode: null,
+            _id: "66795ea1a4b5e4e0e666cd5a"
+          }
+        ],
+        cashAdvanceStatus: "pending settlement"
+      }
+    ]
+  },
+  {
+    travelRequestStatus:"cancelled",
+    tripId: "667a38e9e9a18ce3478d126x",
+    tripNumber: "TRIPAL000001",
+    travelRequestId: "667955dbb2e14ac28c9ec056",
+    travelRequestNumber: "TRAL000001",
+    tripName: ["mum", "luc", "del"],
+    cashAdvances: [
+      {
+        cashAdvanceId: "66795ea1a4b5e4e0e666cd4a",
+        cashAdvanceNumber: "CA0001",
+        amountDetails: [
+          {
+            amount: 400,
+            currency: {
+              countryCode: "IN",
+              fullName: "Indian Rupee",
+              shortName: "INR",
+              symbol: "₹"
+            },
+            mode: null,
+            _id: "66795ea1a4b5e4e0e666cd5a"
+          },
+          {
+            amount: 500,
+            currency: {
+              countryCode: "IN",
+              fullName: "Indian Rupee",
+              shortName: "INR",
+              symbol: "₹"
+            },
+            mode: null,
+            _id: "66795ea1a4b5e4e0e666cd5a"
+          }
+        ],
+        cashAdvanceStatus: "pending settlement"
+      },
+      {
+        cashAdvanceId: "66795ea1a4b5e4e0e666cd4a",
+        cashAdvanceNumber: "CA0001",
+        amountDetails: [
+          {
+            amount: 6000,
+            currency: {
+              countryCode: "IN",
+              fullName: "Indian Rupee",
+              shortName: "INR",
+              symbol: "₹"
+            },
+            mode: null,
+            _id: "66795ea1a4b5e4e0e666cd5a"
+          }
+        ],
+        cashAdvanceStatus: "pending settlement"
+      }
+    ]
+  },
+  {
+    travelRequestStatus:"draft",
+    tripId: "667a38e9e9a18ce3478d1265",
+    tripNumber: "TRIPAL000001",
+    travelRequestId: "667955dbb2e14ac28c9ec056",
+    travelRequestNumber: "TRAL000001",
+    tripName: ["mum", "luc", "del"],
+    cashAdvances: [
+      {
+        cashAdvanceId: "66795ea1a4b5e4e0e666cd4a",
+        cashAdvanceNumber: "CA0001",
+        amountDetails: [
+          {
+            amount: 400,
+            currency: {
+              countryCode: "IN",
+              fullName: "Indian Rupee",
+              shortName: "INR",
+              symbol: "₹"
+            },
+            mode: null,
+            _id: "66795ea1a4b5e4e0e666cd5a"
+          },
+          {
+            amount: 500,
+            currency: {
+              countryCode: "IN",
+              fullName: "Indian Rupee",
+              shortName: "INR",
+              symbol: "₹"
+            },
+            mode: null,
+            _id: "66795ea1a4b5e4e0e666cd5a"
+          }
+        ],
+        cashAdvanceStatus: "pending settlement"
+      },
+      {
+        cashAdvanceId: "66795ea1a4b5e4e0e666cd4a",
+        cashAdvanceNumber: "CA0001",
+        amountDetails: [
+          {
+            amount: 6000,
+            currency: {
+              countryCode: "IN",
+              fullName: "Indian Rupee",
+              shortName: "INR",
+              symbol: "₹"
+            },
+            mode: null,
+            _id: "66795ea1a4b5e4e0e666cd5a"
+          }
+        ],
+        cashAdvanceStatus: "pending settlement"
+      }
+    ]
+  },
+  {
+    travelRequestStatus:"pending booking",
+    tripId: "667a38e9e9a18ce3478d126b",
+    tripNumber: "TRIPAL000001",
+    travelRequestId: "667955dbb2e14ac28c9ec056",
+    travelRequestNumber: "TRAL000001",
+    tripName: ["mum", "luc", "del"],
+    cashAdvances: [
+      {
+        cashAdvanceId: "66795ea1a4b5e4e0e666cd4a",
+        cashAdvanceNumber: "CA0001",
+        amountDetails: [
+          {
+            amount: 200,
+            currency: {
+              countryCode: "IN",
+              fullName: "Indian Rupee",
+              shortName: "INR",
+              symbol: "₹"
+            },
+            mode: null,
+            _id: "66795ea1a4b5e4e0e666cd5a"
+          }
+        ],
+        cashAdvanceStatus: "pending settlement"
+      },
+      {
+        cashAdvanceId: "66795ea1a4b5e4e0e666cd4a",
+        cashAdvanceNumber: "CA0001",
+        amountDetails: [
+          {
+            amount: 100,
+            currency: {
+              countryCode: "IN",
+              fullName: "Indian Rupee",
+              shortName: "INR",
+              symbol: "₹"
+            },
+            mode: null,
+            _id: "66795ea1a4b5e4e0e666cd5a"
+          }
+        ],
+        cashAdvanceStatus: "pending settlement"
+      }
+    ]
+  }
+];
+
+const NonTRCashAdvances = [
+  {
+    cashAdvanceId: "66795ea1a4b5e4e0e666cd4a",
+    cashAdvanceNumber: "CA0001",
+    amountDetails: [
+      {
+        amount: 400,
+        currency: {
+          countryCode: "IN",
+          fullName: "Indian Rupee",
+          shortName: "INR",
+          symbol: "₹"
+        },
+        mode: null,
+        _id: "66795ea1a4b5e4e0e666cd5a"
+      },
+      {
+        amount: 500,
+        currency: {
+          countryCode: "IN",
+          fullName: "Indian Rupee",
+          shortName: "INR",
+          symbol: "₹"
+        },
+        mode: null,
+        _id: "66795ea1a4b5e4e0e666cd5b"
+      }
+    ],
+    cashAdvanceStatus: "pending settlement"
+  },
+  {
+    cashAdvanceId: "66795ea1a4b5e4e0e666cd4b",
+    cashAdvanceNumber: "CA0002",
+    amountDetails: [
+      {
+        amount: 6000,
+        currency: {
+          countryCode: "IN",
+          fullName: "Indian Rupee",
+          shortName: "INR",
+          symbol: "₹"
+        },
+        mode: null,
+        _id: "66795ea1a4b5e4e0e666cd5c"
+      }
+    ],
+    cashAdvanceStatus: "pending settlement"
+  },
+  {
+    cashAdvanceId: "66795ea1a4b5e4e0e666cd4c",
+    cashAdvanceNumber: "CA0003",
+    amountDetails: [
+      {
+        amount: 1500,
+        currency: {
+          countryCode: "US",
+          fullName: "US Dollar",
+          shortName: "USD",
+          symbol: "$"
+        },
+        mode: null,
+        _id: "66795ea1a4b5e4e0e666cd5d"
+      },
+      {
+        amount: 2000,
+        currency: {
+          countryCode: "US",
+          fullName: "US Dollar",
+          shortName: "USD",
+          symbol: "$"
+        },
+        mode: null,
+        _id: "66795ea1a4b5e4e0e666cd5e"
+      }
+    ],
+    cashAdvanceStatus: "approved"
+  }
+];
 
 const reimbursementExpense = [
   {
@@ -1156,31 +1690,31 @@ const reimbursementExpense = [
 const travelRequests = [
   {
     travelRequestNumber:"TRAL000012",
-    travelRequestStatus:"pending approval"
+    travelRequestStatus:"draft"
   },
   {
     travelRequestNumber:"TRAL000012",
-    travelRequestStatus:"pending approval"
+    travelRequestStatus:"draft"
   },
   {
     travelRequestNumber:"TRAL000012",
-    travelRequestStatus:"pending approval"
+    travelRequestStatus:"draft"
   },
   {
     travelRequestNumber:"TRAL000012",
-    travelRequestStatus:"pending approval"
+    travelRequestStatus:"draft"
   },
   {
     travelRequestNumber:"TRAL000012",
-    travelRequestStatus:"pending approval"
+    travelRequestStatus:"draft"
   },
   {
     travelRequestNumber:"TRAL000012",
-    travelRequestStatus:"pending approval"
+    travelRequestStatus:"draft"
   },
   {
     travelRequestNumber:"TRAL000012",
-    travelRequestStatus:"pending approval"
+    travelRequestStatus:"draft"
   }
 ]
 
@@ -2378,4 +2912,4 @@ const tripArray = [
     },
   ];
 
-  export {tripArray,travelExpense,reimbursementExpense,travelRequests}
+  export {NonTRCashAdvances,tripArray,travelExpense,reimbursementExpense,travelRequests,trips,TRCashadvance}

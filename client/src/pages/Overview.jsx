@@ -4,188 +4,12 @@ import { airplane_1, briefcase, calender, double_arrow,cab_purple,  house_simple
 import { formatAmount, formatDate, getStatusClass } from '../utils/handyFunctions';
 import Tooltip from '../components/Tooltip';
 import { Tilt } from 'react-tilt'
-import { travelExpense,reimbursementExpense, travelRequests } from '../utils/dummyData';
+import { travelExpense,reimbursementExpense, travelRequests, trips } from '../utils/dummyData';
 import { motion } from 'framer-motion';
 
 
 const Overview = () => {
-  const trips = [
-    
-      {
-        tripId: '667a3a5be9a18ce3478d1a0d',
-        tripNumber: 'TRIPAL000003',
-        travelRequestId: '66796b3bb2e14ac28c9eebb8',
-        travelRequestNumber: 'TRAL000002',
-        tripPurpose: 'Business',
-        tripStartDate: '2024-06-26T00:00:00.000Z',
-        tripCompletionDate: '2024-06-27T00:00:00.000Z',
-        travelRequestStatus: 'booked',
-        isCashAdvanceTaken: true,
-        totalCashAmount: 0,
-        cashAdvances: [
-          {
-            cashAdvanceId: '667a39e4a1b88232721397fb',
-            cashAdvanceNumber: 'CA0001',
-            amountDetails: [
-              {
-                amount: 4000,
-                currency: {
-                  countryCode: 'IN',
-                  fullName: 'Indian Rupee',
-                  shortName: 'INR',
-                  symbol: '₹',
-                },
-                mode: null,
-                _id: '667a39e4a1b8823272139809',
-              },
-            ],
-            cashAdvanceStatus: 'pending settlement',
-          },
-        ],
-        travelExpenses: [],
-        itinerary: {
-          flights: [
-            {
-              category: 'flights',
-              itineraryId: '667a39d68daacf93aefc1c37',
-              status: 'booked',
-              bkd_from: 'Lucknow',
-              bkd_to: 'Delhi',
-              bkd_date: '2024-06-24T00:00:00.000Z',
-              bkd_time: null,
-              bkd_travelClass: null,
-              bkd_violations: {
-                class: null,
-                amount: '',
-              },
-            },
-            {
-              category: 'flights',
-              itineraryId: '667a39d68daacf93aefc1c38',
-              status: 'booked',
-              bkd_from: 'Delhi',
-              bkd_to: 'Lucknow',
-              bkd_date: '2024-06-27T00:00:00.000Z',
-              bkd_time: null,
-              bkd_travelClass: null,
-              bkd_violations: {
-                class: null,
-                amount: '',
-              },
-            },
-          ],
-          buses: [],
-          trains: [],
-          hotels: [
-            {
-              category: 'hotels',
-              itineraryId: '667a39d68daacf93aefc1c39',
-              status: 'booked',
-              bkd_location: 'Lucknow',
-              bkd_class: null,
-              bkd_checkIn: '2024-06-26T00:00:00.000Z',
-              bkd_checkOut: '2024-06-27T00:00:00.000Z',
-              bkd_violations: {
-                class: null,
-                amount: null,
-              },
-              cancellationDate: null,
-              cancellationReason: null,
-            },
-          ],
-          cabs: [],
-          carRentals: [],
-          personalVehicles: [],
-        },
-      },
-      {
-        tripId: '667a3af2e9a18ce3478d1d27',
-        tripNumber: 'TRIPAL000005',
-        travelRequestId: '667a3a718daacf93aefc1dc1',
-        travelRequestNumber: 'TRAL000003',
-        tripPurpose: 'Business',
-        tripStartDate: '2024-06-26T00:00:00.000Z',
-        tripCompletionDate: '2024-06-27T00:00:00.000Z',
-        travelRequestStatus: 'booked',
-        isCashAdvanceTaken: true,
-        totalCashAmount: 0,
-        cashAdvances: [
-          {
-            cashAdvanceId: '667a3a8ca1b8823272139bde',
-            cashAdvanceNumber: 'CA0001',
-            amountDetails: [
-              {
-                amount: 5000,
-                currency: {
-                  countryCode: 'IN',
-                  fullName: 'Indian Rupee',
-                  shortName: 'INR',
-                  symbol: '₹',
-                },
-                mode: null,
-                _id: '667a3a8ca1b8823272139bec',
-              },
-            ],
-            cashAdvanceStatus: 'pending settlement',
-          },
-        ],
-        travelExpenses: [],
-        itinerary: {
-          flights: [
-            {
-              category: 'flights',
-              itineraryId: '667a3a8b8daacf93aefc1e07',
-              status: 'booked',
-              bkd_from: 'Mumbai',
-              bkd_to: 'Goa',
-              bkd_date: '2024-06-26T00:00:00.000Z',
-              bkd_time: null,
-              bkd_travelClass: null,
-              bkd_violations: {
-                class: null,
-                amount: '',
-              },
-            },
-            {
-              category: 'flights',
-              itineraryId: '667a3a8b8daacf93aefc1e08',
-              status: 'booked',
-              bkd_from: 'Goa',
-              bkd_to: 'Delhi',
-              bkd_date: '2024-06-27T00:00:00.000Z',
-              bkd_time: null,
-              bkd_travelClass: null,
-              bkd_violations: {
-                class: null,
-                amount: '',
-              },
-            },
-          ],
-          buses: [],
-          trains: [],
-          hotels: [
-            {
-              category: 'hotels',
-              itineraryId: '667a3a8b8daacf93aefc1e09',
-              status: 'booked',
-              bkd_location: 'Goa',
-              bkd_class: null,
-              bkd_checkIn: '2024-06-26T00:00:00.000Z',
-              bkd_checkOut: '2024-06-24T00:00:00.000Z',
-              bkd_violations: {
-                class: null,
-                amount: '',
-              },
-              cancellationDate: null,
-              cancellationReason: null,
-            },
-          ],
-          cabs: [],
-          carRentals: [],
-          personalVehicles: [],
-        },
-      },
-    ]
+  
 
   const [visible , setVisible]=useState({expense:false,createTravel:false})
   const [expenseTabs , setExpenseTabs]=useState("travelExpense")
@@ -221,117 +45,17 @@ const Overview = () => {
              alt="briefcase_icon"
              src={briefcase}
            />
-           <b className="tracking-[0.02em] font-cabin text-[16px] text-black font-semibold">Activities for On-going Trips</b>
+           <b className="tracking-[0.02em] font-cabin text-[16px] text-indigo-600 font-semibold">Activities for On-going Trips</b>
          </div>
-         <div className='ring-2 ring-black shadow-sm shadow-indigo-600 rounded-md'/>
+         <div className=' shadow-sm shadow-indigo-600 rounded-md'/>
 
-         <div className="h-[285px] flex justify-center items-center  bg-white-100 overflow-hidden overflow-y-auto mt-2  border-[4px] border-gray-600  shadow-lg  shadow-black/60  rounded-3xl px-2">
-         {/* <div className="h-[285px] bg-white-100 overflow-hidden overflow-y-auto mt-2  border-[4px] border-gray-600  shadow-lg  shadow-custom-light  rounded-3xl px-2"> */}
+         {/* <div className="h-[285px] flex justify-center items-center  bg-white-100 overflow-hidden overflow-y-auto mt-2  border-[4px] border-gray-600  shadow-lg  shadow-black/60  rounded-3xl px-2"> */}
+         <div className="h-[285px] bg-white-100 overflow-hidden overflow-y-auto mt-2  border-[4px] border-gray-600    shadow-custom-light  rounded-3xl px-2">
          
-           {/* {trips.map((trip, index) => (
+           {trips.map((trip, index) => (
              <Trips key={index} index={index} trip={trip} lastIndex={trips.length - 1} />
-           ))} */}
-           <div className='h-[260px] w-full   rounded-2xl px-2 py-2 '>
-            <div className='border-2 border-black rounded-xl py-2'>
-            <div className='flex items-center  py-1 px-2'>
-            <div className='px-2 py-1 text-center bg-black rounded-2xl text-white-100'>
-                <p className='font-inter text-xs'>Upcoming</p>
-              </div>
-              <div className='px-2 py-1'>
-                <p className='font-inter text-xs font-semibold'>Completed</p>
-              </div>
-             
-
-            </div>
-            <div className='w-full flex flex-row border-t-2 border-black p-2 items-center justify-between'>
-            <div className='w-2/3 font-mono font-medium mt-2 flex flex-col gap-2'>
-            <div className='flex gap-2 font-inter '>
-                <img src={calender_2_icon} className='w-4 h-4'/>
-                <div className='font-semibold text-sm'>24<sup>th</sup> June</div>
-              </div>
-              <div>
-              <div className='font-semibold text-neutral-400 text-xs font-inter '>DEPARTURE</div>
-              <div className='font-inter text-sm'>Mumbai - Lucknow - Delhi</div>
-              </div>
-            </div>
-            <div className='w-1/3 flex justify-end'>
-              <div className='bg-black text-white-100 text-sm px-2 py-1 rounded-md'>
-               <p >Modify</p>
-              </div>
-            </div>
-            </div>
-            <div className=' space-y-2 px-2'>
-              <div className='flex flex-row  border-y-2 rounded-lg border-black shadow-sm shadow-black w-full '>
-                <div className='flex w-2/5'>
-              <div className='w-8 h-8 p-2 flex items-center'>
-                <img src={material_flight_icon} className='w-4 h-4'/>
-              </div>
-              <div className='flex gap-2 font-inter items-center justify-center p-2 '>
-                <img src={calender_2_icon} className='w-4 h-4'/>
-                <div className='font-semibold text-sm'>24<sup>th</sup> June</div>
-              </div>
-              </div>
-
-              <div className='w-3/5 flex text-black space-x-2 font-inter text-sm font-medium  items-center justify-center'>
-                <div className=''>Delhi</div>
-                <img src={double_arrow} className='w-5 h-5'/>
-                <div>Lucknow</div>
-              </div>
-              <div>
-               
-             
-
-              </div>
-              </div>
-              <div className='flex flex-row  border-y-2 rounded-lg border-black shadow-sm shadow-black w-full '>
-                <div className='flex w-2/5'>
-              <div className='w-8 h-8 p-2 flex items-center'>
-                <img src={material_cab_icon} className='w-4 h-4'/>
-              </div>
-              <div className='flex gap-2 font-inter items-center justify-center p-2 '>
-                <img src={calender_2_icon} className='w-4 h-4'/>
-                <div className='font-semibold text-sm'>24<sup>th</sup> June</div>
-              </div>
-              </div>
-
-              <div className='w-3/5 flex text-black space-x-2 font-inter text-sm font-medium  items-center justify-center'>
-                <div className=''>Amax Office</div>
-                <img src={double_arrow} className='w-5 h-5'/>
-                <div>Delhi Airport</div>
-              </div>
-              <div>
-               
-             
-
-              </div>
-              </div>
-              <div className='flex flex-row   border-y-2 rounded-lg border-black shadow-sm shadow-black w-full '>
-                <div className='flex w-2/5'>
-              <div className='w-8 h-8 p-2 flex items-center'>
-                <img src={material_hotel_icon} className='w-4 h-4'/>
-              </div>
-              <div className='flex gap-2 font-inter items-center justify-center p-2 '>
-                <img src={city_icon} className='w-4 h-4'/>
-                <div className='font-semibold text-sm'>Lucknow</div>
-              </div>
-              </div>
-
-              <div className='w-3/5 flex space-x-2 font-inter text-sm font-medium  items-center justify-center'>
-              <div className=''>24<sup>th</sup> June</div>
-                <img src={double_arrow} className='w-5 h-5'/>
-                <div className=''>26<sup>th</sup> June</div>
-              </div>
-              <div>
-               
-             
-
-              </div>
-              </div>
-              
-
-            </div>
-            </div>
-           </div>
+           ))}
+           
 
            
           
@@ -512,7 +236,7 @@ const getIconForItinerary = (itineraryType) => {
 
 
 const Trips = ({ index, trip, lastIndex }) => {
-  const [activeTabs, setActiveTabs] = useState("completed");
+  const [activeTabs, setActiveTabs] = useState("upcoming");
 
   const handleTabChange = (tab) => {
     setActiveTabs(tab);
@@ -556,51 +280,43 @@ const Trips = ({ index, trip, lastIndex }) => {
   console.log('Completed Itinerary:', completedItinerary);
   console.log('Upcoming Itinerary:', upcomingItinerary);
 
-  const [visible, setVisible] = useState({ addALeg: false });
+  const [visible, setVisible] = useState({ modify: false });
 
   return (
     <div className={`${index === lastIndex ? ' ' : 'mb-2'} h-[270px] rounded-md border border-white-100 `}>
       <div className="flex gap-2 px-2 flex-row items-center justify-between text-center font-cabin border-b shadow-sm  py-2 text-neutral-700 text-xs">
         <div className='flex'>
-          <motion.div
-            className={`px-2 py-1 rounded-xl cursor-pointer transition duration-150 ease-in-out ${activeTabs === 'completed' ? 'bg-indigo-100 font-semibold text-indigo-600 border border-white-100 text-xs shadow-md shadow-indigo-600' : 'text-xs'}`}
-            onClick={() => handleTabChange('completed')}
-            whileHover={{ scale: 1.1 }}
-          >
-            <p>Completed</p>
-          </motion.div>
-          <motion.div
+        <div
             className={`px-2 py-1 rounded-xl cursor-pointer ease-in-out ${activeTabs === 'upcoming' ? 'bg-indigo-100 font-semibold text-indigo-600 border border-white-100 text-xs shadow-md shadow-indigo-600' : 'text-xs'}`}
             onClick={() => handleTabChange('upcoming')}
-            whileHover={{ scale: 1.1 }}
+            
           >
             <p>Upcoming</p>
-          </motion.div>
-        </div>
-        <div className='gap-4 flex '>
-          <motion.div
-            onMouseEnter={() => setVisible({ cancel: true })}
-            onMouseLeave={() => setVisible({ cancel: false })}
-            className={`relative shadow-md shadow-red-200 hover:px-2 w-6 h-6 hover:overflow-hidden hover:w-auto group text-indigo-600 bg-red-100 border border-white-100 flex items-center justify-center rounded-full cursor-pointer transition-all duration-300`}
-            whileHover={{ scale: 1.2 }}
+          </div>
+          <div
+            className={`px-2 py-1 rounded-xl cursor-pointer transition duration-150 ease-in-out ${activeTabs === 'completed' ? 'bg-indigo-100 font-semibold text-indigo-600 border border-white-100 text-xs shadow-md shadow-indigo-600' : 'text-xs'}`}
+            onClick={() => handleTabChange('completed')}
+            
           >
-            <img src={cancel} width={20} height={20} alt="Add Icon" />
-            <p className={`${visible?.cancel ? 'opacity-100 ' : 'opacity-0 w-0'} whitespace-nowrap text-red-200 text-xs transition-all duration-300 group-hover:opacity-100 group-hover:w-auto`}>
-              Cancel
-            </p>
-          </motion.div>
-          <motion.div
-            onMouseEnter={() => setVisible({ addALeg: true })}
-            onMouseLeave={() => setVisible({ addALeg: false })}
+            <p>Completed</p>
+          </div>
+         
+        </div>
+        
+        {activeTabs === 'upcoming' &&
+        <div
+            onMouseEnter={() => setVisible({ modify: true })}
+            onMouseLeave={() => setVisible({ modify: false })}
             className={`relative shadow-md shadow-indigo-600 hover:px-2 w-6 h-6 hover:overflow-hidden hover:w-auto group text-indigo-600 bg-indigo-100 border border-white-100 flex items-center justify-center hover:gap-x-1 rounded-full cursor-pointer transition-all duration-300`}
-            whileHover={{ scale: 1.2 }}
+
           >
-            <img src={plus_violet_icon} width={16} height={16} alt="Add Icon" />
-            <p className={`${visible?.addALeg ? 'opacity-100 ' : 'opacity-0 w-0'} whitespace-nowrap text-xs transition-all duration-300 group-hover:opacity-100 group-hover:w-auto`}>
-              Add a Leg
+            <img src={modify} width={16} height={16} alt="Add Icon" />
+            <p className={`${visible?.modify ? 'opacity-100 ' : 'opacity-0 w-0'} whitespace-nowrap text-xs transition-all duration-300 group-hover:opacity-100 group-hover:w-auto`}>
+              Modify
             </p>
-          </motion.div>
-        </div>
+          </div>}  
+          
+       
       </div>
 
       {activeTabs === 'completed' && (
@@ -822,44 +538,28 @@ const [visible ,setVisible]=useState(false)
       <div className='font-cabin text-xs text-neutral-700'>
           <div className='text-xs text-start'>
             <div className='text-neutral-400'>Trip No.</div>
-             <p>{trip.tripNumber}</p>
+             <p>{trip?.tripNumber}</p>
           </div>
         </div>
 
         <div className='gap-4 flex '>
          
-        <div
-      onMouseEnter={() => setVisible({cancel:true})}
-      onMouseLeave={() => setVisible({cancel:false})}
-      className={`relative  hover:px-2 w-6 h-6 hover:overflow-hidden hover:w-auto group text-indigo-600 bg-red-100 border border-white-100 flex items-center justify-center   rounded-full cursor-pointer transition-all duration-300`}
-    >
-      <img src={cancel} width={20} height={20} alt="Add Icon" />
-      <p
-        className={`${
-          visible?.cancel ? 'opacity-100 ' : 'opacity-0 w-0'
-        } whitespace-nowrap text-red-200 text-xs transition-all duration-300 group-hover:opacity-100 group-hover:w-auto`}
-      >
-       Cancel
-      </p>
-    </div>
+      
         
           
           
              
         <div
-      onMouseEnter={() => setVisible({addALeg:true})}
-      onMouseLeave={() => setVisible({addALeg:false})}
-      className={`relative  hover:px-2 w-6 h-6 hover:overflow-hidden hover:w-auto group text-indigo-600 bg-indigo-100 border border-white-100 flex items-center justify-center  hover:gap-x-1 rounded-full cursor-pointer transition-all duration-300`}
-    >
-      <img src={plus_violet_icon} width={16} height={16} alt="Add Icon" />
-      <p
-        className={`${
-          visible?.addALeg ? 'opacity-100 ' : 'opacity-0 w-0'
-        } whitespace-nowrap text-xs transition-all duration-300 group-hover:opacity-100 group-hover:w-auto`}
-      >
-        Add a Leg
-      </p>
-    </div>
+            onMouseEnter={() => setVisible({ modify: true })}
+            onMouseLeave={() => setVisible({ modify: false })}
+            className={`relative shadow-md shadow-indigo-600 hover:px-2 w-6 h-6 hover:overflow-hidden hover:w-auto group text-indigo-600 bg-indigo-100 border border-white-100 flex items-center justify-center hover:gap-x-1 rounded-full cursor-pointer transition-all duration-300`}
+
+          >
+            <img src={modify} width={16} height={16} alt="Add Icon" />
+            <p className={`${visible?.modify ? 'opacity-100 ' : 'opacity-0 w-0'} whitespace-nowrap text-xs transition-all duration-300 group-hover:opacity-100 group-hover:w-auto`}>
+              Modify
+            </p>
+          </div>
 
 
           </div>
@@ -924,7 +624,13 @@ const [visible ,setVisible]=useState(false)
                   <img src={calender} alt='icon' className='w-4 h-4'/>
                   <span className='text-sm font-cabin text-neutral-600'>{formatDate(item?.bkd_date)}</span>
                   </div>
-                  {/* <div className={` text-center rounded-sm  ${getStatusClass(item?.status)}`}>
+                  {/* <div className={` text-center rounded-sm  ${get
+                  
+                  
+                  
+                  
+                  
+                Class(item?.status)}`}>
                   <p className='px-2 py-1 text-sm text-center capitalize font-cabin '>{item?.status}</p>
                   </div> */}
                 </div>
@@ -1038,15 +744,15 @@ const TravelExpenses = ({ index, expense ,lastIndex}) => {
           
           <div className={`flex ${dropdowns[index] &&  'border-b border-slate-300'} justify-between items-center min-h-4 py-1 `} onClick={() => toggleDropdown(index)}>
             <div className='flex gap-x-2 ml-2 items-center'>
-              <img src={down_left_arrow} className='w-4 h-3' />
+            <img src={down_left_arrow} className='w-4 h-3'/>
               
               
-          <div className='font-cabin text-xs text-neutral-700'>
+          {/* <div className='font-cabin text-xs text-neutral-700'>
           <div className='text-xs text-start'>
             <div className='text-neutral-400'>Expense Header No.</div>
              <p> {item?.expenseHeaderNumber}</p>
           </div>
-          </div>
+          </div> */}
             </div>
 
             <div className={`text-center rounded-sm ${getStatusClass(item?.expenseHeaderStatus ?? "-")}`}>

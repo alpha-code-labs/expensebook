@@ -56,8 +56,8 @@ export {default as frame_341} from './frame-341.svg';
 export {default as validation_sym} from './validation-sym.svg';
 export {default as three_dot} from './three-dot.png';
 export {default as down_left_arrow} from './down-left-arrow.svg';
-export {default as modify} from './modify.svg'
-export {default as check_tick} from './check-tick.svg'
+export {default as modify} from './modify.svg';
+export {default as check_tick} from './check-tick.svg';
 export {default as app_icon} from './app_icon.svg';
 export {default as app_symbol} from './app_symbol.svg';
 export {default as spinner_icon} from './spinner.gif';
@@ -65,7 +65,7 @@ export {default as profile_bg} from './profile-bg.png';
 export {default as cab_purple} from './cab-purple.svg';
 export {default as mail_icon} from './mail.svg';
 export {default as location_pin} from './location-pin.svg';
-
+export {default as loading_icon} from './loading2.svg';
 export {default as loading} from './loading.svg';
 export {default as businessAdmin_icon} from './business-admin.png';
 export {default as businessAdmin1_icon} from './businessAdmin1.png';
