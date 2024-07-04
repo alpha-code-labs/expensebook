@@ -56,7 +56,7 @@ export default function () {
   const az_blob_container = import.meta.env.VITE_AZURE_BLOB_CONTAINER
    const blob_endpoint = import.meta.env.VITE_AZURE_BLOB_CONNECTION_URL
    const dashboard_url = import.meta.env.VITE_DASHBOARD_URL
-   const DASHBOARD_URL=`${dashboard_url}/${tenantId}/${empId}`
+   const DASHBOARD_URL=`${dashboard_url}/${tenantId}/${empId}/overview`
  
    async function uploadFileToAzure(file) {
     try {
@@ -259,10 +259,11 @@ const ocrValues = {
   };
   useEffect(() => {
     if (onboardingData) {
-        //     // const onboardingData = tripDummyData;
-  //     // setOnboadingData(onboardingData);
-  //   // const onboardingData = tripDummyDataLevel2; //level 2 dummy data
-  //   // const onboardingData = bookAnExpenseDatalevel; //level 2 dummy data
+       // const onboardingData = tripDummyData;
+       // setOnboadingData(onboardingData);
+       // const onboardingData = tripDummyDataLevel2; //    level 2 dummy data
+       // const onboardingData = bookAnExpenseDatalevel; // level 2 dummy data
+
       const travelAllocationFlags = onboardingData?.companyDetails?.travelAllocationFlags;
       const onboardingLevel = Object.keys(travelAllocationFlags).find((level) => travelAllocationFlags[level] === true);
       setDefaultCurrency(onboardingData?.companyDetails?.defaultCurrency)
@@ -658,6 +659,7 @@ console.log('selected Currency',selectDropdown)
   }
  
 // Handle Convert
+
   const handleConverter = async (totalAmount ,personalExpenseAmount ) => { 
     let allowForm = true;
     if (totalAmount === 0 || totalAmount === undefined || totalAmount ===""){
@@ -1305,8 +1307,8 @@ console.log('categoryfields by selected', categoryFieldBySelect)
         {/* <div className='w-full flex justify-center pl-10  md:justify-start lg:justify-start'>
             <Icon/>
         </div> */}
-         <div className='w-full flex justify-center pl-10  md:justify-start lg:justify-start '>
-        <div className="flex items-center cursor-pointer " onClick={()=>(urlRedirection(`${DASHBOARD_URL}/overview`))}>
+         <div className='w-full flex justify-center pl-10  md:justify-start lg:justify-start'>
+        <div className="flex items-center cursor-pointer" onClick={()=>urlRedirection(DASHBOARD_URL)}>
         <img src={arrow_left} className="w-6 h-6"/>
        </div>
             <Icon/>
@@ -1808,7 +1810,8 @@ handleDeleteLineItem={handleDeleteLineItem}/>
            </div>              
             </div>
             </div>
-            {openModal =='category' && <div className="fixed overflow-hidden max-h-4/5 flex justify-center items-center inset-0 backdrop-blur-sm w-full h-full left-0 top-0 bg-gray-800/60 " >
+            {openModal =='category' && 
+            <div className="fixed overflow-hidden max-h-4/5 flex justify-center items-center inset-0 backdrop-blur-sm w-full h-full left-0 top-0 bg-gray-800/60 " >
                 <div className='z-20  min-h-4/5 max-h-4/5 scroll-none bg-white-100  rounded-lg shadow-md'>
                 <div onClick={()=>{setOpenModal(null);}} className=' w-10 h-10 flex translate-y-[-15px] translate-x-[-10px] mt-5 justify-center items-center float-right   hover:bg-red-300 rounded-full'>
                       <img src={cancel_icon} className='w-8 h-8'/>
@@ -1834,7 +1837,8 @@ handleDeleteLineItem={handleDeleteLineItem}/>
                 </div>
             }
 
-            {openModal==='upload' && <div className="fixed overflow-hidden max-h-4/5 flex justify-center items-center inset-0 backdrop-blur-sm w-full h-full left-0 top-0 bg-gray-800/60 scroll-none " >
+            {openModal==='upload' && 
+            <div className="fixed overflow-hidden max-h-4/5 flex justify-center items-center inset-0 backdrop-blur-sm w-full h-full left-0 top-0 bg-gray-800/60 scroll-none " >
                 <div className='z-10  md:w-3/5 w-full mx-8  min-h-4/5 max-h-4/5 scroll-none bg-white-100  rounded-lg shadow-md'>
                 <div onClick={()=>{setOpenModal(null);setOcrSelectedFile(null);setOcrFileSelected(false);setSelectedCategory(null)}} className=' w-10 h-10 flex justify-center items-center float-right  mr-5 mt-5 hover:bg-red-300 rounded-full'>
                       <img src={cancel_icon} className='w-8 h-8'/>
