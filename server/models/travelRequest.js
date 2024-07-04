@@ -535,7 +535,7 @@ export const travelRequestSchema = new mongoose.Schema({
   travelViolations: {},
   travelRequestDate: {
     type: String,
-    default: String.now(),
+    default: Date.now(),
     required: true,
   },
   travelBookingDate: String,
