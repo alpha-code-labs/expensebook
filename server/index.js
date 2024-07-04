@@ -18,8 +18,6 @@ const logger = pino({});
 
 logger.info("Hello World");
 
-//later to be done using cron
-//statusUpdateBatchJob();
 
 dotenv.config();
 const app = express();
@@ -41,76 +39,6 @@ app.post("/test/rabbitmq", async (req, res) => {
   console.log(result);
 });
 
-async function startProducer() {
-  try {
-    const connection = await amqp.connect(
-      "amqp://ajay318:ajay@318@localhost:15672"
-    );
-    console.log("this ran");
-    const channel = await connection.createChannel();
-
-    const exchangeName = "approvals";
-    const queueName = "travelApprovals";
-
-    // Ensure the exchange exists
-    await channel.assertExchange(exchangeName, "direct", { durable: true });
-
-    // Ensure the queue exists
-    await channel.assertQueue(queueName, { durable: true });
-
-    // Bind the queue to the exchange with the routing key
-    await channel.bindQueue(queueName, exchangeName);
-
-    const msg = { message: "Hello from travel" };
-    channel.publish(exchangeName, "", Buffer.from(JSON.stringify(msg)));
-
-    console.log(`Waiting for messages on queue: ${msg} published`);
-    await channel.close();
-    await connection.close();
-  } catch (error) {
-    console.error("Error setting up publisher:", error);
-  }
-}
-
-async function receiveTravelApprovedMessage() {
-  try {
-    const connection = await amqp.connect(
-      "amqp://ajay:Ajay@1234@192.168.1.4:5672"
-    );
-    console.log("this ran");
-    const channel = await connection.createChannel();
-
-    const exchangeName = "approvals";
-    const queueName = "travelApprovals";
-
-    // Ensure the exchange exists
-    await channel.assertExchange(exchangeName, "direct", { durable: true });
-
-    // Ensure the queue exists
-    await channel.assertQueue(queueName, { durable: true });
-
-    // Bind the queue to the exchange with the specified routing key
-    // await channel.bindQueue(queueName, exchangeName, '');
-
-    console.log(
-      `[*] Waiting for messages from ${exchangeName} . To exit press CTRL+C`
-    );
-
-    // Set up the consumer to handle messages
-    channel.consume(queueName, (msg) => {
-      if (msg !== null) {
-        const message = JSON.parse(msg.content.toString());
-        console.log(`Received message:`, message);
-
-        // Acknowledge the message
-        channel.ack(msg);
-      }
-    });
-  } catch (error) {
-    console.error("Error receiving message from RabbitMQ:", error.message);
-  }
-}
-
 async function connectToMongoDB() {
   try {
     await mongoose.connect(MONGO_URI, {
@@ -124,11 +52,10 @@ async function connectToMongoDB() {
   }
 }
 
-
 await connectToMongoDB();
-startConsumer('travel')
+//startConsumer('travel')
 
-statusUpdateBatchJob()
-createTripBatchJob()
+//statusUpdateBatchJob()
+//createTripBatchJob()
 
 

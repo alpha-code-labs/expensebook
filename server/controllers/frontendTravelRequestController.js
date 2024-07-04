@@ -351,7 +351,7 @@ const updateTravelRequest = async (req, res) =>{
 
       //update all itinerary items to draft
       if(travelRequestData.hasOwnProperty('itinerary')){
-        const items = ['flights', 'trains', 'buses', 'cabs', 'hotels', 'carRentals', 'personalVehicles']
+        const items = ['flights', 'trains', 'buses', 'cabs', 'hotels', 'carRentals']
         items.forEach(item=>{
           travelRequestData.itinerary[item].forEach(subItem=>{
             subItem.status = 'draft'
@@ -398,7 +398,7 @@ const updateTravelRequest = async (req, res) =>{
     if(submitted){
       //update all itinerary items to appropriate state
       console.log('itinerary is present')
-        const items = ['flights', 'trains', 'buses', 'cabs', 'hotels', 'carRentals', 'personalVehicles']
+        const items = ['flights', 'trains', 'buses', 'cabs', 'hotels', 'carRentals']
         items.forEach(item=>{
           travelRequestData.itinerary[item].forEach(subItem=>{
               subItem.status = needApproval? 'pending approval' : 'pending booking'
@@ -518,7 +518,7 @@ const cancelTravelRequest = async (req, res)=>{
     console.log(travelRequest.approvers, travelRequest.travelRequestStatus)
 
     //update all itinerary item status to cancelled
-    const items = ['flights', 'trains', 'buses', 'cabs', 'hotels', 'personalVehicles']
+    const items = ['flights', 'trains', 'buses', 'cabs', 'hotels', 'carRentals']
     items.forEach(item=>{
       travelRequest.itinerary[item].forEach(subItem=>{
         subItem.status = 'cancelled'
