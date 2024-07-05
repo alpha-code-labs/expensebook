@@ -173,7 +173,7 @@ Raise a Cash-Advance
              
               <div className='flex justify-center items-center'>
               <img src={money1} className='w-6 h-6 mr-2' />
-              <p>Travel Cash-Advance</p>
+              <p>Travel Cash-Advances</p>
               </div>
 
             </div>
@@ -222,33 +222,29 @@ Raise a Cash-Advance
           ))}
         </div>
           </div>
-
-
-
-
-
           <div className='flex-1'>
             <div className='flex justify-center items-center rounded-r-md font-inter text-md text-white-100 h-[52px] bg-indigo-600  text-center'>
               <img src={money1} className='w-6 h-6 mr-2' />
-              <p>Non-Travel Cash-Advance</p>
+              <p>Non-Travel Cash-Advances</p>
             </div>
-            <div className='w-full mt-4 xl:h-[570px] lg:h-[370px] md:[590px] overflow-y-auto px-2'>
-          {NonTRCashAdvances.map((cashAdvance,index) => (
-            <div key={`${index}nonTr`} className='mb-4 rounded-md shadow-custom-light bg-white-100 p-4'>
-              <div className='flex gap-2 items-center '>
+<div className='w-full mt-4 xl:h-[570px] lg:h-[370px] md:[590px] overflow-y-auto px-2'>
+            {NonTRCashAdvances.map((cashAdvance,index) => (
+              <div key={`${index}nonTr`} className='mb-4 rounded-md shadow-custom-light bg-white-100 p-4'>
+              <div className='flex gap-2 items-center'>
               <img src={money} className='w-5 h-5'/>
-              <div className='font-medium font-cabin text-md '>
+              <div className='font-medium font-cabin text-md'>
                 <div className='text-neutral-400 text-sm'>Cash-Advance No.</div>
                <p className='text-neutral-700 text-base'>{cashAdvance?.cashAdvanceNumber}</p>
               </div>
+
               </div>
               
-                <div  className={`px-2 py-2 `}>
+                <div  className={`px-2 py-2`}>
                   <div className='flex justify-between'>
                     <div className='flex flex-col justify-center max-w-[120px]'>
                       <div className='font-medium text-sm font-cabin text-neutral-400'>Advance Amount</div>
-                      <div className='font-medium text-sm font-cabin text-neutral-700 '>
-  {cashAdvance?.amountDetails.map((amount, index) => (
+<div className='font-medium text-sm font-cabin text-neutral-700'>
+{cashAdvance?.amountDetails.map((amount, index) => (
     <div key={index}>
       {`${amount?.currency?.shortName} ${formatAmount(amount.amount)}`}
       {index < cashAdvance?.amountDetails.length - 1 && <span>, </span>}
@@ -256,12 +252,11 @@ Raise a Cash-Advance
   ))}
 </div>
 
-                     
-                    </div>
+                  </div>
                     <div className='flex justify-center items-center gap-2 '>
                     <div className={`text-center rounded-sm ${getStatusClass(cashAdvance?.cashAdvanceStatus ?? "-")}`}>
                        <p className='px-1 py-1 text-xs text-center capitalize font-cabin'>{cashAdvance?.cashAdvanceStatus ?? "-"}</p>
-                    </div>
+                  </div>
                     <div  className='cursor-pointer w-7 h-7 bg-indigo-100 rounded-full border border-white-100 flex items-center justify-center'>
                     <img src={modify} className='w-4 h-4' alt="Add Icon" />
                   </div>
@@ -276,7 +271,7 @@ Raise a Cash-Advance
         </div>
       </div>
 
-      <Modal 
+    <Modal 
         isOpen={modalOpen} 
         onClose={modalOpen}
         content={<div className=' w-full h-auto'>

@@ -2,8 +2,6 @@
 import React, { useState,useEffect } from 'react';
 import { airplane_1, briefcase, calender, double_arrow,cab_purple,  house_simple, train, bus, cancel_round, cancel, modify, plus_icon, plus_violet_icon, receipt, down_arrow, chevron_down, down_left_arrow, calender_2_icon, airplane, material_flight_icon, material_cab_icon, material_hotel_icon, city_icon } from '../assets/icon';
 import { formatAmount, formatDate, getStatusClass } from '../utils/handyFunctions';
-import Tooltip from '../components/Tooltip';
-import { Tilt } from 'react-tilt'
 import { travelExpense,reimbursementExpense, travelRequests, trips } from '../utils/dummyData';
 import { motion } from 'framer-motion';
 
@@ -48,7 +46,6 @@ const Overview = () => {
            <b className="tracking-[0.02em] font-cabin text-[16px] text-indigo-600 font-semibold">Activities for On-going Trips</b>
          </div>
          <div className=' shadow-sm shadow-indigo-600 rounded-md'/>
-
          {/* <div className="h-[285px] flex justify-center items-center  bg-white-100 overflow-hidden overflow-y-auto mt-2  border-[4px] border-gray-600  shadow-lg  shadow-black/60  rounded-3xl px-2"> */}
          <div className="h-[285px] bg-white-100 overflow-hidden overflow-y-auto mt-2  border-[4px] border-gray-600    shadow-custom-light  rounded-3xl px-2">
          
@@ -63,9 +60,6 @@ const Overview = () => {
          
        </div>
        
-       
-
-
      <div className={`min-w-[400px] px-2 h-[340px] ${visibleDivs[1] ? 'opacity-100' : 'opacity-0'}`} >
 
 <div className="border-b-2 border-indigo-600 flex flex-row items-center justify-start gap-2 overflow-hidden py-2">
