@@ -353,8 +353,8 @@ export default function BasicDetails({ onBoardingData, formData, setFormData }) 
                     <legend className='font-cabin text-neutral-700 text-sm mt-6'>Select type of travel?</legend>
                     <fieldset className='flex flex-col sm:flex-row gap-4 sm:justify-between'>
                         <div>
-                            <div className='flex gap-4 border border-indigo-400 max-w-[300px] accent-indigo-600 px-6 py-2 rounded mt-4 cursor-pointer' onClick={() => setFormData(pre => ({ ...pre, travelType: 'international' }))}>
-                                <input type="radio" id="International" name="travelType" value="traveltype" checked={formData.travelType == 'international'} />
+                            <div className='flex gap-4 border border-indigo-400 max-w-[300px] accent-indigo-600 px-6 py-2 rounded mt-4 cursor-pointer'  onClick={() => setFormData(pre => ({ ...pre, travelType: 'international' }))}>
+                                <input type="radio" id="International" name="travelType" value="traveltype" checked={formData.travelType == 'international'} readOnly />
                                 <div>
                                     <p className='font-cabin text-neutral-800 text-normal tracking-wider'> International </p>
                                     <p className='font-cabin -mt-1 text-neutral-600 text-xs tracking-tight'>Travelling out of country</p>
@@ -363,8 +363,8 @@ export default function BasicDetails({ onBoardingData, formData, setFormData }) 
                         </div>
 
                         <div>
-                            <div className='flex gap-4 border border-indigo-400 max-w-[300px] accent-indigo-600 px-6 py-2 rounded mt-4 cursor-pointer' onClick={() => setFormData(pre => ({ ...pre, travelType: 'domestic' }))}>
-                                <input type="radio" id="Domestic" name="travelType" value="traveltype" checked={formData.travelType == 'domestic'} />
+                            <div className='flex gap-4 border border-indigo-400 max-w-[300px] accent-indigo-600 px-6 py-2 rounded mt-4 cursor-pointer'   onClick={() => setFormData(pre => ({ ...pre, travelType: 'domestic' }))}>
+                                <input type="radio" id="Domestic" name="travelType" value="traveltype" checked={formData.travelType == 'domestic'} readOnly />
                                 <div>
                                     <p className='font-cabin text-neutral-800 text-normal tracking-wider'> Domestic </p>
                                     <p className='font-cabin -mt-1 text-neutral-600 text-xs tracking-tight'>Travelling within country</p>
@@ -373,8 +373,8 @@ export default function BasicDetails({ onBoardingData, formData, setFormData }) 
                         </div>
 
                         <div>
-                            <div className='flex gap-4 border border-indigo-400 max-w-[300px] accent-indigo-600 px-6 py-2 rounded mt-4 cursor-pointer' onClick={() => setFormData(pre => ({ ...pre, travelType: 'local' }))} >
-                                <input type="radio" id="Local" name="travelType" value="traveltype" checked={formData.travelType == 'local'} />
+                            <div className='flex gap-4 border border-indigo-400 max-w-[300px] accent-indigo-600 px-6 py-2 rounded mt-4 cursor-pointer'   onClick={() => setFormData(pre => ({ ...pre, travelType: 'local' }))} >
+                                <input type="radio" id="Local" name="travelType" value="traveltype" checked={formData.travelType == 'local'} readOnly />
                                 <div>
                                     <p className='font-cabin text-neutral-800 text-normal tracking-wider'> Local </p>
                                     <p className='font-cabin -mt-1 text-neutral-600 text-xs tracking-tight'>Travelling nearby</p>

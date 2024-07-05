@@ -187,7 +187,7 @@ export default function({formData, setFormData, nextPage, lastPage, onBoardingDa
     return(<>
         {isLoading && <Error message={loadingErrMsg}/> }
         {!isLoading && <>
-            <div className="h-full relative bg-white mx-auto w-[90%] py-6 select-none">
+            <div className="h-full relative bg-white mx-auto max-w-[712px] py-6 select-none px-6 sm:px-8">
                 {/* Rest of the section */}
                 <div className="w-full h-full mx-auto">
                     {/* back link */}
@@ -211,14 +211,14 @@ export default function({formData, setFormData, nextPage, lastPage, onBoardingDa
                                     <div className='flex flex-wrap gap-4'>
                                         {allocations.map((header, index)=>{
                                             return(
-                                                <>
+                                                <div className='relative'>
                                                 <Select
                                                     currentOption={selectedTravelAllocationHeaders.find(h=>h.categoryName == cat)?.allocations.find(h=>h.headerName == header.headerName)?.headerValue}
                                                     options={header.headerValues}
                                                     onSelect = {(option)=>{handleAllocationHeaderSelection(cat, header.headerName, option)}}
                                                     placeholder={`Select ${camelCaseToTitleCase(header.headerName)}`} 
                                                     title={camelCaseToTitleCase(header.headerName)} />
-                                                </>
+                                                </div>
                                             )
                                         })}
                                     </div>
