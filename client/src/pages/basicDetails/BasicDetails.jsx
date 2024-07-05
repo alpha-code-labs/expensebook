@@ -15,6 +15,7 @@ import PopupMessage from '../../components/common/PopupMessage'
 import Error from '../../components/common/Error'
 import { useQuery } from '../../utils/hooks'
 import { camelCaseToTitleCase } from '../../utils/handyFunctions'
+import CommentBox from '../../components/common/CommentBox'
 
 export default function BasicDetails({ onBoardingData, formData, setFormData }) {
 
@@ -45,7 +46,7 @@ export default function BasicDetails({ onBoardingData, formData, setFormData }) 
 
     //local states
     const [tripPurposeViolationMessage, setTripPurposeViiolationMessage] = useState(formData.travelViolations.tripPurposeViolationMessage)
-    const [errors, setErrors] = useState({ tripPurposeError: { set: false, message: 'Trip Purpose is required' }, approversError: { set: false, message: 'Please select approvers' } })
+    const [errors, setErrors] = useState({ tripPurposeError: { set: false, message: 'Trip Purpose is required' }, tripPurposeDescriptionError: { set: false, message: 'Trip Purpose description is required' }, approversError: { set: false, message: 'Please select approvers' } })
 
     async function checkRequiredFields() {
         return new Promise((resolve, reject) => {
@@ -60,6 +61,17 @@ export default function BasicDetails({ onBoardingData, formData, setFormData }) 
             else {
                 setErrors(pre => {
                     return { ...pre, tripPurposeError: { ...pre.tripPurposeError, set: false } }
+                })
+            }
+
+            if (formData.tripPurposeDescription == null) {
+                setErrors(pre => {
+                    return { ...pre, tripPurposeDescriptionError: { ...pre.tripPurposeDescriptionError, set: true } }
+                })
+            }
+            else {
+                setErrors(pre => {
+                    return { ...pre, tripPurposeDescriptionError: { ...pre.tripPurposeDescription, set: false } }
                 })
             }
 
@@ -85,7 +97,7 @@ export default function BasicDetails({ onBoardingData, formData, setFormData }) 
                 })
             }
 
-            if (formData.tripPurpose == null || (onBoardingData.approvalFlow != null && formData?.approvers?.length != onBoardingData?.approvalFlow?.length)) {
+            if (formData.tripPurpose == null || formData.tripPurposeDescription == null || (onBoardingData.approvalFlow != null && formData?.approvers?.length != onBoardingData?.approvalFlow?.length)) {
                 allowSubmit = false
             }
             else allowSubmit = true
@@ -249,6 +261,12 @@ export default function BasicDetails({ onBoardingData, formData, setFormData }) 
         const formData_copy = JSON.parse(JSON.stringify(formData))
         formData_copy.selectDelegatorTeamMembers = value
         formData_copy.teamMembers = []
+        setFormData(formData_copy)
+    }
+
+    const handleDescriptionChange = (e)=>{
+        const formData_copy = JSON.parse(JSON.stringify(formData))
+        formData_copy.tripPurposeDescription = e.target.value;
         setFormData(formData_copy)
     }
 
@@ -439,6 +457,12 @@ export default function BasicDetails({ onBoardingData, formData, setFormData }) 
                             </div>}
 
                     </div>
+                    
+                    <div className='mt-8'>
+                        <CommentBox title='Trip Purpos Description' onchange={handleDescriptionChange} value={formData.tripPurposeDescription} error={errors.tripPurposeDescriptionError} />
+                    </div>
+                    
+
                     <hr className='my-8' />
 
 
