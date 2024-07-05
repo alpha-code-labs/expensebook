@@ -1,19 +1,9 @@
-import {
-  calender_icon,
-  clock_icon,
-  biderectional_arrows_icon as double_arrow,
-  location_icon,
-} from "../../assets/icon";
 import {closestCorners, DndContext, useSensors, useSensor, PointerSensor} from '@dnd-kit/core';
 import {useSortable, SortableContext, verticalListSortingStrategy, arrayMove} from '@dnd-kit/sortable'
 import {CSS} from '@dnd-kit/utilities'
-import { material_flight_black_icon, material_train_black_icon, material_bus_black_icon, material_cab_black_icon, material_car_rental_black_icon, material_hotel_black_icon, material_personal_black_icon } from "../../assets/icon";
-import { titleCase } from "../../utils/handyFunctions";
 import React, { useCallback, useEffect, useState } from "react";
-import edit_icon from '../../assets/edit.svg';
-import delete_icon from '../../assets/delete.svg';
-import moment from 'moment';
 import empty_itinerary_icon from '../../assets/empty_itinerary.png';
+import { FlightCard, CabCard, HotelCard, RentalCabCard } from "./ItineraryCards";
 
 
 export default function({formData, setFormData, handleEdit, handleDelete}) {
@@ -59,7 +49,7 @@ export default function({formData, setFormData, handleEdit, handleDelete}) {
         })
       )
 
-    return(<div className='w-full border border-sm border-neutral-50'>
+    return(<div className='w-full border border-sm border-neutral-50 flex-col justify-center items-center'>
         <DndContext
             sensors={sensors}
             onDragEnd={handleDragEnd}
@@ -71,7 +61,7 @@ export default function({formData, setFormData, handleEdit, handleDelete}) {
                         <p className="text-xl font-cabin text-neutral-600">Your Itinerary will appear here</p>
                     </div>
                 </div>}
-            <div className='p-4 w-[270px] sm:w-[400px] md:w-[700px] flex flex-col gap-4'>
+            <div className='flex flex-col gap-4'>
                 <SortableContext
                     strategy={verticalListSortingStrategy}
                     items={flattendItinerary??[]}>
@@ -134,6 +124,24 @@ export default function({formData, setFormData, handleEdit, handleDelete}) {
                                     from={item.pickupAddress} 
                                     to={item.dropAddress} 
                                     date={item.date}
+                                    returnDate={item.returnDate}
+                                    isFullDayCab={item.isFullDayCab}
+                                    travelClass={item.class} 
+                                    mode={'Cab'}
+                                    time={item.time}/>
+                            </SortableItem>)
+                        }
+
+                        if(item.category == 'carRentals'){
+                            return (<SortableItem id={item.id} key={item.id} >
+                                <RentalCabCard
+                                    handleDelete={handleDelete}
+                                    handleEdit={handleEdit}
+                                    id={item.id} 
+                                    from={item.pickupAddress} 
+                                    to={item.dropAddress} 
+                                    date={item.date}
+                                    returnDate={item.returnDate}
                                     travelClass={item.class} 
                                     mode={'Cab'}
                                     time={item.time}/>
@@ -149,7 +157,12 @@ export default function({formData, setFormData, handleEdit, handleDelete}) {
                                     checkIn={item.checkIn} 
                                     checkOut={item.checkOut} 
                                     location={item.location}
-                                    time={item.preferredTime}/>
+                                    time={item.preferredTime}
+                                    needBreakfast={item.needBreakfast}
+                                    needLunch={item.needLunch}
+                                    needDinner={item.needDinner}
+                                    needNonSmokingRoom={item.needNonSmokingRoom}
+                                    />
                             </SortableItem>)
                         }
 
@@ -161,194 +174,6 @@ export default function({formData, setFormData, handleEdit, handleDelete}) {
     </div>)
 }
 
-function FlightCard({from, to, date, returnDate, time, returnTime, travelClass, onClick, mode='Flight', id, handleEdit, handleDelete}){
-  return(
-        
-        <div className="shadow-sm min-h-[76px] bg-slate-50 rounded-md border border-slate-300 w-full px-6 py-4 flex flex-col sm:flex-row gap-4 items-center sm:divide-x">
-            <div className="flex flex-col justify-center">
-                <img src={spitImageSource(mode)} className='w-4 h-4 md:w-6 md:h-6' />
-            </div>
-            <div className="w-full flex sm:block">
-                <div className="mx-2 text-sm w-full flex gap-1 flex-col lg:flex-row lg:justify-between lg:items-center">
-                    <div className='flex items-center gap-1 lg:justify-center flex-1'>
-                        <div className="text-lg semibold">
-                            {titleCase(from)}     
-                        </div>
-                        <img src={double_arrow} className="w-5"/>
-                        <div className="text-lg semibold">
-                            {titleCase(to)}     
-                        </div>
-                    </div>
-                    <div className="flex-1 justify-center">
-                        <p className="text-xs text-neutral-600 flex justify-between flex-col sm:flex-row">Departure Date</p>
-                        <div className="flex items-center gap-1">
-                            <img src={calender_icon} className='w-4'/>
-                            <p>{isoString(date)}</p>
-                        </div>
-                    </div>
-                    {returnDate!=null && returnDate != undefined && 
-                    <div className="flex-1 justify-center">
-                        <p className="text-xs text-neutral-600 flex justify-between flex-col sm:flex-row">Return Date</p>
-                        <div className="flex items-center gap-1">
-                            <img src={calender_icon} className='w-4'/>
-                            <p>{isoString(returnDate)}</p>
-                        </div>
-                    </div>
-                    }
-
-                    <div className="flex-1 justify-center">
-                        <p className="text-xs text-neutral-600 flex justify-between flex-col sm:flex-row">Preferred Time</p>
-                        <div className='flex items-center gap-1'>
-                            <img src={clock_icon} className='w-4'/>
-                            <p>{formattedTime(time)??'--:--'}</p>    
-                        </div>
-                    </div>
-
-                    <div className="flex gap-2">
-                        <div onClick={()=>{handleEdit(id)}} className="w-6 h-6 flex items-center justify-center">
-                            <img src={edit_icon} className="w-6 h-6 hover:w-5 hover:h-5"/>
-                        </div>
-
-                        <div onClick={()=>{handleDelete(id)}} className="w-6 h-6 flex items-center justify-center">
-                            <img src={delete_icon} className="w-6 h-6 hover:w-5 hover:h-5"/>
-                        </div>
-                    </div>
-                
-                </div>
-            </div>
-      
-        </div>
-        
-    )
-}
-
-function CabCard({from, to, date, time, travelClass, onClick, mode, isTransfer=false, id, handleDelete, handleEdit} ){
-  return(
-      <div className="shadow-sm min-h-[76px] bg-slate-50 rounded-md border border-slate-300 w-full px-6 py-4 flex flex-col sm:flex-row gap-4 items-center sm:divide-x">
-      <div className='font-semibold text-base text-neutral-600'>
-      <img src={spitImageSource(mode)} className='w-4 h-4 md:w-6 md:h-6' />
-      </div>
-      <div className="w-full flex sm:block">
-          
-          <div className="mx-2 text-sm w-full flex justify-between flex-col sm:flex-row">
-              <div className="flex-1 justify-center">
-                 <p className="text-xs text-neutral-600 flex justify-between flex-col sm:flex-row">Pickup Location</p>
-                  <div className="flex items-center gap-1">
-                    <img src={location_icon} className="w-4 h-4"/>
-                    <p className="whitespace-wrap">{from??'not provided'}</p>
-                  </div>     
-              </div>
-              <div className="flex-1 justify-center">
-                  <p className="text-xs text-neutral-600 flex justify-between flex-col sm:flex-row">Drop Location</p>
-                  <div className="flex items-center gap-1">
-                    <img src={location_icon} className="w-4 h-4"/>
-                    <p className="whitespace-wrap">{to??'not provided'}</p>
-                  </div>     
-              </div>
-              <div className="flex-1 justify-center">
-                  <p className="text-xs text-neutral-600 flex justify-between flex-col sm:flex-row">{mode} Date</p>
-                  <div className="flex items-center gap-1">
-                    <img src={calender_icon} className="w-4 h-4"/>
-                    <p className="whitespace-wrap">{isoString(date)??'not provided'}</p>
-                  </div>
-              </div>
-              <div className="flex-1 justify-center">
-                  <p className="text-xs text-neutral-600 flex justify-between flex-col sm:flex-row">Preferred Time</p>
-                  <div className="flex items-center gap-1">
-                    <img src={clock_icon} className="w-4 h-4"/>
-                    <p className="whitespace-wrap">{formattedTime(time)??'not provided'}</p>
-                  </div>
-              </div>
-             {!isTransfer && <div className="flex-1 justify-center">
-                  {travelClass??'N/A'}
-              </div>}
-
-                <div className="flex gap-2">
-                    <div onClick={()=>handleEdit(id)} className="w-6 h-6 flex items-center justify-center">
-                        <img src={edit_icon} className="w-6 h-6 hover:w-5 hover:h-5"/>
-                    </div>
-
-                    <div onClick={()=>handleDelete(id)} className="w-6 h-6 flex items-center justify-center">
-                        <img src={delete_icon} className="w-6 h-6 hover:w-5 hover:h-5"/>
-                    </div>
-                </div>
-          </div>
-
-      </div>
-  </div>)
-}
-
-function HotelCard({checkIn, checkOut, location, onClick, id, handleDelete, handleEdit}){
-  return(
-      <div className="shadow-sm min-h-[76px] bg-slate-50 rounded-md border border-slate-300 w-full px-6 py-4 flex flex-col sm:flex-row gap-4 items-center sm:divide-x">
-      <img src={material_hotel_black_icon} className="w-4 h-4 md:w-6 md:h-6"/>
-      <div className="w-full flex sm:block">
-          <div className="mx-2 text-sm w-full flex justify-between flex-col sm:flex-row">
-          <div className="flex-1 justify-center">
-                    <p className="text-xs text-neutral-600 flex justify-between flex-col sm:flex-row">CheckIn Date</p>
-                    <div className="flex items-center gap-1">
-                        <img src={calender_icon} className='w-4'/>
-                        <p>{isoString(checkIn)}</p>
-                    </div>
-                </div>
-                <div className="flex-1 justify-center">
-                    <p className="text-xs text-neutral-600 flex justify-between flex-col sm:flex-row">CheckOut Date</p>
-                    <div className="flex items-center gap-1">
-                        <img src={calender_icon} className='w-4'/>
-                        <p>{isoString(checkOut)}</p>
-                    </div>
-                </div>
-                <div className='flex-1 justify-center'>
-                    <p className="text-xs text-neutral-600 flex justify-between flex-col sm:flex-row">Location</p>
-                    <div className="flex items-center gap-1">
-                        <img src={location_icon} className='w-4'/>
-                        <p>{location??'not provided'}</p>
-                    </div>
-                </div>
-
-                <div className="flex gap-2">
-                    <div onClick={()=>handleEdit(id)} className="w-6 h-6 flex items-center justify-center">
-                        <img src={edit_icon} className="w-6 h-6 hover:w-5 hover:h-5"/>
-                    </div>
-
-                    <div onClick={()=>handleDelete(id)} className="w-6 h-6 flex items-center justify-center">
-                        <img src={delete_icon} className="w-6 h-6 hover:w-5 hover:h-5"/>
-                    </div>
-                </div>
-          </div>
-      </div>
-  </div>)
-}
-
-function spitImageSource(modeOfTransit){
-    if(modeOfTransit === 'Flight')
-        return material_flight_black_icon
-    else if(modeOfTransit === 'Train')
-        return material_train_black_icon
-    else if(modeOfTransit === 'Bus')
-        return material_bus_black_icon
-    else if(modeOfTransit === 'Cab')
-        return material_cab_black_icon
-    else if(modeOfTransit === 'Cab Rentals')
-        return material_car_rental_black_icon
-    else if(modeOfTransit === 'Personal Vehicle')
-        return material_personal_black_icon
-}
-
-function isoString(dateString){
-    if(dateString==null || dateString == undefined) return ''
-    try{
-        return moment(dateString).format('ddd DD MMM');
-    }catch(e){
-        console.error(e);
-        return dateString;
-    }
-}
-
-function formattedTime(timeValue){
-    return timeValue;
-}
-
 const SortableItem = ({id, children})=>{
     const {attributes, listeners, setNodeRef, transform, transition} = useSortable({id});
 
@@ -358,7 +183,7 @@ const SortableItem = ({id, children})=>{
     }
     
     return(<>
-        <div ref={setNodeRef} {...attributes} {...listeners} style={style} key={id} >
+        <div className="hover:cursor-move flex items-center justify-center" ref={setNodeRef} {...attributes} {...listeners} style={style} key={id} >
             {children}
         </div>
     </>)
@@ -399,6 +224,3 @@ function arrayToObject(arr) {
 
     return result;
 }
-
-
- 
