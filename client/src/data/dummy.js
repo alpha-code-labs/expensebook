@@ -3,6 +3,47 @@ const dummyCabs = {
   foromId: null,
   date: null,
   returnDate:null,
+  selectedDates: [],
+  class: null,
+  time: null,
+  pickupAddress: null,
+  dropAddress: null,
+  isFullDayCab: false,
+  violations: {
+    class: null,
+    amount: null,
+  },
+  bkd_date: null,
+  bkd_class: null,
+  bkd_time: null,
+  bkd_returnTime: null,
+  bkd_pickupAddress: null,
+  bkd_dropAddress: null,
+  bkd_vioilations: {
+    class: String,
+    amount: String,
+  },
+  modified: false,
+  cancellationDate: null,
+  cancellationReason: null,
+  status: "draft",
+  bookingDetails: {
+    docURL: null,
+    docType: null,
+    billDetails: {
+      vendorName: null,
+      taxAmount: null,
+      totalAmount: null,
+    },
+  },
+};
+
+const dummyCarRentals = {
+  itineraryId: null,
+  foromId: null,
+  date: null,
+  returnDate:null,
+  selectedDates: [],
   class: null,
   time: null,
   pickupAddress: null,
@@ -34,7 +75,6 @@ const dummyCabs = {
       totalAmount: null,
     },
   },
-  type: "regular",
 };
 
 const dummyFlight = {
@@ -229,6 +269,7 @@ const dummyPersonalVehicle = {
 
 export {
   dummyCabs,
+  dummyCarRentals,
   dummyFlight,
   dummyBus,
   dummyTrain,
