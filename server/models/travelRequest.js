@@ -476,6 +476,10 @@ export const travelRequestSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  tripPurposeDescription: {
+    type: String,
+    required: true,
+  },
   travelRequestStatus: {
     //initialize with status as 'draft'
     type: String,
