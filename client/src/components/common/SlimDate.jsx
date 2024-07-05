@@ -34,18 +34,16 @@ export default function SlimDate(props){
         return `${year}-${month}-${day}`;
       }
 
-
     const handleChange= (e)=>{
        setValue(e.target.value)
+       console.log(e.target.value)
        onChange(e)
     }
 
-    
-
     return(<>
-{format != 'date-month' && <div className="min-w-[200px] w-full md:w-fit max-w-[403px] h-[73px] flex-col justify-start items-start gap-2 inline-flex">
+    {format != 'date-month' && <div className="min-w-[200px] w-full md:w-fit max-w-[403px] h-[73px] flex-col justify-start items-start gap-2 inline-flex">
             {/* title */}
-            <div className="text-zinc-600 text-sm font-cabin">{title}</div>
+            <div className="text-zinc-600 text-sm font-cabin select-none">{title}</div>
 
             {/* input */}
             <div className="w-full h-full bg-white items-center flex">
@@ -53,7 +51,7 @@ export default function SlimDate(props){
                     <div className=" w-full z-100 relative h-full decoration:none px-6 py-2 border rounded-md border border-neutral-300 inline-flex justify-center items-center cursor-pointer">
                         <div className="flex relative w-full gap-4 justify-center items-center" >
                             <input className='slim absolute w-full h-full opacity-0 focus-visible:outline-0 cursor-hover' onChange={handleChange} value={value} min={getDateXDaysAway(Number(min))} type='date'/>
-                            <div className="text-gray-600 bg-white whitespace-nowrap text-base font-medium font-cabin">{formatDate(value)}</div>
+                            <div className="text-neutral-600 bg-white whitespace-nowrap text-sm font-medium font-cabin">{formatDate(value)}</div>
                             <div className="h-6 w-6">
                                 <img src={chevron_down} alt="open" />
                             </div>
@@ -64,8 +62,7 @@ export default function SlimDate(props){
                     </div>
                 </div>
             </div>
-      </div>
-}
+      </div>}
 
     {format == 'date-month' && <div className="min-w-[136px] w-full md:w-fit max-w-[403px] h-[73px] flex-col justify-start items-start gap-2 inline-flex">
             {/* title */}

@@ -3,6 +3,7 @@ import { titleCase } from "../../utils/handyFunctions";
 import { location_icon } from "../../assets/icon";
 
 export default function Input(props){
+    const width = props.maxWidth??false;
     const placeholder = props.placeholder || "Placeholder Text";
     const value = props.value
     const title = props.title || "Title";
@@ -14,7 +15,6 @@ export default function Input(props){
     const error = props.error || {set:false, message:''}
     const [inputEntered, setInputEntered] = useState(false)
 
-    
     const handleChange = (e)=>{
         e.preventDefault()
         setTextInput(e.target.value)
@@ -35,9 +35,9 @@ export default function Input(props){
     }
     
     return(<>
-        <div className={`${showLocationSymbol? 'min-w-[184px]' : 'min-w-[200px]'} w-full md:w-fit max-w-[403px] h-[73px] flex-col justify-start items-start gap-2 inline-flex`}>
+        <div className={`${showLocationSymbol? `min-w-[${width??'184px'}]` : `min-w-[${width??'200px'}]`} ${width? `w-[${width}]` : 'w-full' } max-w-[403px] h-[73px] flex-col justify-start items-start gap-2 inline-flex`}>
             {/* title */}
-            <div className="text-zinc-600 text-sm font-cabin">{title}</div>
+            <div className="text-zinc-600 text-sm font-cabin select-none">{title}</div>
 
             {/* input */}
             <div className="relative w-full h-full bg-white items-center flex">

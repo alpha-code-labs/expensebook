@@ -3,6 +3,7 @@ import chevron_down from "../../assets/chevron-down.svg";
 import {titleCase} from '../../utils/handyFunctions'
 
 export default function Select(props) {
+  const maxWidth = props.maxWidth; 
   const placeholder = props.placeholder || "Placeholder Text";
   const title = props.title || "Title";
   const [hidePlaceholder, setHidePlaceholder] = useState(false);
@@ -19,6 +20,7 @@ export default function Select(props) {
   const required = props.required || false
   const submitAttempted = props.submitAttempted || false
 
+  const [dropUp, setDropUp] = useState(false);
 
     useEffect(()=>{
       if(currentOption != null && currentOption != undefined && currentOption != '' ){
@@ -141,12 +143,11 @@ const selectDivFocus = (e)=>{
     };
   }, [showDropdown]);
 
-
   return (
     <>
-      <div className="min-w-[300px] w-full max-w-[403px] h-[73px] flex-col justify-start items-start gap-2 inline-flex">
+      <div className={`min-w-[${maxWidth??'300px'}] ${maxWidth? `w-[${maxWidth}]` : 'w-full'} max-w-[${maxWidth??'403px'}] h-[73px] flex-col justify-start items-start gap-2 inline-flex`}>
         {/* title*/}
-        <div className="text-zinc-600 text-sm font-cabin">{title}</div>
+        <div className="text-zinc-600 text-sm font-cabin select-none">{title}</div>
         <div className="self-stretch h-12 justify-start items-start gap-4 inline-flex">
           <div className={`grow relative shrink basis-0 self-stretch px-6 py-2 bg-white rounded-md border border-neutral-300 justify-between items-center flex`} >
             <div
@@ -184,7 +185,7 @@ const selectDivFocus = (e)=>{
               <div
                 key='dropdown'
                 ref={dropdownRef}
-                className="absolute z-10 w-[calc(100%-10px)] h-fit max-h-[230px] overflow-y-scroll scroll rounded-b left-[5px] top-11 bg-white transition-all border-b  border-l border-r border-neutral-300 shadow-sm"
+                className={`absolute z-10 w-[calc(100%-10px)] h-fit max-h-[230px] overflow-y-scroll scroll ${dropUp ? 'border-t rounded-t bottom-11' : 'rounded-b top-11 border-b'}  left-[5px]  bg-white transition-all border-l border-r border-neutral-300 shadow-sm`}
               >
                 {optionsList &&
                   optionsList.map((option, index) => (
@@ -203,9 +204,7 @@ const selectDivFocus = (e)=>{
                   ))}
               </div>
             )}
-
           </div>
-
         </div>
       </div>
     </>

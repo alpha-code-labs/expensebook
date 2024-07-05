@@ -1,34 +1,31 @@
 import { useState, useEffect } from 'react'
 import leftArrow_icon from '../../assets/arrow-left.svg'
 import Select from '../../components/common/Select'
-import ObjectSelect from '../../components/custom/page_1/ObjectSelect'
-import MultiSearch from '../../components/common/MultiSearch'
 import Button from '../../components/common/Button'
 import { useNavigate } from 'react-router-dom'
-import Icon from '../../components/common/Icon'
-import InputPercentage from '../../components/common/InputPercentage'
-import Checkbox from '../../components/common/Checkbox'
-import TableItem from '../../components/table/TableItem'
-import { postTravelRequest_API, updateTravelRequest_API, policyValidation_API } from '../../utils/api'
-import CloseButton from '../../components/common/closeButton'
+import { postTravelRequest_API, updateTravelRequest_API } from '../../utils/api'
 import PopupMessage from '../../components/common/PopupMessage'
 import Error from '../../components/common/Error'
-import { useQuery } from '../../utils/hooks'
-import { TR_backendTransformer } from '../../utils/transformers'
+
+import { camelCaseToTitleCase } from '../../utils/handyFunctions'
+import Modal from '../../components/common/Modal'
 
 export default function({formData, setFormData, nextPage, lastPage, onBoardingData}){
 
-    console.log('from allocations...')
-
-    const navigate = useNavigate()
     const DASHBOARD_URL = import.meta.env.VITE_DASHBOARD_URL
+    const navigate = useNavigate()
+    const tenantId = formData.tenantId 
+    const employeeId = formData.createdBy.empId 
+
     //loader state
     const [isLoading, setIsLoading] = useState(false)
     const [loadingErrMsg, setLoadingErrMsg] = useState(null)
+    const cashAdvanceAllowed = onBoardingData.cashAdvanceAllowed
     
     //onboarding data...
     const travelAllocations = onBoardingData.travelAllocations
     const travelAllocationFlags= onBoardingData.travelAllocationFlags
+
 
     if(!travelAllocationFlags.level3){
         //no need to show this page
@@ -38,6 +35,11 @@ export default function({formData, setFormData, nextPage, lastPage, onBoardingDa
     //popup message
     const [showPopup, setshowPopup] = useState(false)
     const [popupMessage, setPopupMessage] = useState(null)
+    const [showModal, setShowModal] = useState(false);
+
+    const [requestSubmitted, setRequestSubmitted] = useState(false)
+    const [requestDrafted, setRequestDrafted] = useState(false)
+    const [showSaveAsDraftPopup, setShowSaveAsDraftPopup] = useState(false)
     
     const travelType = formData.travelType
     console.log(formData, 'form data')
@@ -80,73 +82,36 @@ export default function({formData, setFormData, nextPage, lastPage, onBoardingDa
         }
     }
 
-    const handleSaveAsDraft = async ()=>{
-        console.log(sectionForm)
-        console.log(formData)
-        setIsLoading(true)
-        //check required fields
-        
-        if(true){
-            setIsLoading(true)
-            if(!formData.travelRequestId){
-                const res = await postTravelRequest_API({...formData, travelRequestState:'section 0', travelRequestStatus:'draft'})
-                if(res.err){
-                    setLoadingErrMsg(res.err)
-                    return
-                }
-
-                const travelRequestId = res.data.travelRequestId
-                console.log(travelRequestId, 'travel request id')
-                const formData_copy = JSON.parse(JSON.stringify(formData))
-                formData_copy.travelRequestId = travelRequestId
-                setFormData(formData_copy)
-
-                setIsLoading(false)
-
-                if(travelRequestId){
-                    //show popup
-                    setIsLoading(true)
-                    const res = await updateTravelRequest_API({travelRequest:formData, submitted:false})
-                    if(res.err){
-                        setLoadingErrMsg(res.err)
-                        return
-                    }
-                    setIsLoading(false)
-                    setPopupMessage(`Your draft travel request with ID ${travelRequestId} has been saved`)
-                    setshowPopup(true)
-
-                    setTimeout(()=>{
-                        setshowPopup(false)
-                        setPopupMessage(null)
-                        // navigate to dashboard after 5 seconds
-                        //navigate(DASHBOARD_URL)
-                    },5000)
-                }
-                else{
-                    //show server error
-                    console.log('server error')
-                }
+    const handleSubmit = async()=>{
+        if(formData.travelRequestId){
+            console.log('sending call')
+            setShowModal(true)
+            setRequestSubmitted(false)
+            const res = await updateTravelRequest_API({travelRequest:{...formData, travelAllocationHeaders:selectedTravelAllocationHeaders, isCashAdvanceTaken:false}, submitted:true})
+            
+            if(res.err){
+                setLoadingErrMsg(res.err)
+                return
             }
             else{
-                setIsLoading(true)
-                const res = await updateTravelRequest_API({...formData, travelRequestState:'section 0', travelRequestStatus:'draft', tenantId:formData.tenantId})
-                if(res.err){
-                    setLoadingErrMsg(res.err)
-                    return
-                }
-                
-                setPopupMessage(`Your travel request with ID ${formData.travelRequestId} has been saved as draft successfull`)
-                setshowPopup(true)
-
-                setTimeout(()=>{
-                    setshowPopup(false)
-                    setPopupMessage(null)
-                    // navigate to dashboard after 5 seconds
-                    //navigate(DASHBOARD_URL)
-                },5000)
+                setRequestSubmitted(true)
             }
-        }        
+
+            console.log(res)        
+        }
     }
+
+    const handleCashAdvance = async (needed)=>{
+        if(needed){
+            window.parent.postMessage(`raiseAdvance ${tenantId} ${formData.travelRequestId}`, DASHBOARD_URL);
+            setShowModal(false)
+        }    
+        else{
+            //post message to close iframe
+            window.parent.postMessage('closeIframe', DASHBOARD_URL);
+        }
+    }
+
 
     //form states
     const [selectedTravelAllocationHeaders, setSelectedTravelAllocationHeaders] = useState(formData.travelAllocationHeaders??[])
@@ -156,7 +121,7 @@ export default function({formData, setFormData, nextPage, lastPage, onBoardingDa
         console.log(selectedTravelAllocationHeaders, '..selected headers')
     }, [selectedTravelAllocationHeaders])
 
-    const handleAllocationHeaderSelect = (category, headerName, option)=>{
+    const handleAllocationHeaderSelection = (category, headerName, option)=>{
         
         const selectedTravelAllocationHeaders_copy = JSON.parse(JSON.stringify(selectedTravelAllocationHeaders))
 
@@ -220,77 +185,82 @@ export default function({formData, setFormData, nextPage, lastPage, onBoardingDa
     },[])
 
     return(<>
-            {isLoading && <Error message={loadingErrMsg}/> }
-            {!isLoading && <>
-            <div className="w-full h-full relative bg-white md:px-24 md:mx-0 sm:px-0 sm:mx-auto py-12 select-none">
-            {/* app icon */}
-            <div className='w-full flex justify-center  md:justify-start lg:justify-start'>
-                <Icon/>
-            </div>
+        {isLoading && <Error message={loadingErrMsg}/> }
+        {!isLoading && <>
+            <div className="h-full relative bg-white mx-auto max-w-[712px] py-6 select-none px-6 sm:px-8">
+                {/* Rest of the section */}
+                <div className="w-full h-full mx-auto">
+                    {/* back link */}
+                    <div className='flex items-center gap-4 cursor-pointer'>
+                        <img className='w-[24px] h-[24px]' src={leftArrow_icon} onClick={()=>navigate(lastPage)} />
+                        <p className='text-neutral-700 text-md font-semibold font-cabin'>Allocate Travel</p>
+                    </div>
 
-            {/* Rest of the section */}
-            <div className="w-full h-full mt-10 p-10">
-                {/* back link */}
-                <div className='flex items-center gap-4 cursor-pointer'>
-                    <img className='w-[24px] h-[24px]' src={leftArrow_icon} onClick={()=>navigate(lastPage)} />
-                    <p className='text-neutral-700 text-md font-semibold font-cabin'>Create travel request</p>
-                </div>
+                    <div>
+                        { selectedItineraryObjects?.length>0 && <div>
+                        
+                        {selectedItineraryObjects.length>0 && selectedItineraryObjects.map((cat, catInd)=>{
+                            const categoryAllocationDetails = travelAllocations[travelType].find(c=>c.categoryName.toLowerCase() == cat.toLowerCase())
+                            const allocations = categoryAllocationDetails?.allocation??[]
 
-                <div>
-                    { selectedItineraryObjects?.length>0 && <div>
-                    <p className='text-base font-medium text-neutral-700 font-cabin'>Allocate travel.</p>
-                    
-                    {selectedItineraryObjects.length>0 && selectedItineraryObjects.map((cat, catInd)=>{
-                        const categoryAllocationDetails = travelAllocations[travelType].find(c=>c.categoryName.toLowerCase() == cat.toLowerCase())
-                        const allocations = categoryAllocationDetails?.allocation??[]
+                            console.log(allocations)
 
-                        console.log(allocations)
-
-                        return(
-                            <div key={`${cat}-${catInd}`}  className='mt-8 flex flex-col gap-4'>
-                                <p className='text-lg font-cabin text-neutral-700'>{cat}</p>
-                                <div className='flex flex-wrap gap-4'>
-                                    {allocations.map((header, index)=>{
-                                        return(
-                                            <>
-                                            <Select
-                                                currentOption={selectedTravelAllocationHeaders[index]?.allocations.find(h=>h.headerName == header.headerName)?.headerValue}
-                                                options={header.headerValues}
-                                                onSelect = {(option)=>{handleAllocationHeaderSelect(cat, header.headerName, option)}}
-                                                placeholder={`Select ${header.headerName}`} 
-                                                title={header.headerName} />
-                                            </>
-                                        )
-                                    })}
+                            return(
+                                <div key={`${cat}-${catInd}`}  className='mt-8 flex flex-col gap-4'>
+                                    <p className='text-lg font-cabin text-neutral-700'>{camelCaseToTitleCase(cat)}</p>
+                                    <div className='flex flex-wrap gap-4'>
+                                        {allocations.map((header, index)=>{
+                                            return(
+                                                <div className='relative'>
+                                                <Select
+                                                    currentOption={selectedTravelAllocationHeaders.find(h=>h.categoryName == cat)?.allocations.find(h=>h.headerName == header.headerName)?.headerValue}
+                                                    options={header.headerValues}
+                                                    onSelect = {(option)=>{handleAllocationHeaderSelection(cat, header.headerName, option)}}
+                                                    placeholder={`Select ${camelCaseToTitleCase(header.headerName)}`} 
+                                                    title={camelCaseToTitleCase(header.headerName)} />
+                                                </div>
+                                            )
+                                        })}
+                                    </div>
+                                    {<hr className='py-2' />}
                                 </div>
-                                {<hr className='py-2' />}
-                            </div>
-                        )
-                    })}
-                         
-                                  
-                    { selectedTravelAllocationHeaders && selectedTravelAllocationHeaders.length == 0 && 
-                    <div className='mt-6 flex gap-4'>
-                        <input type='radio' />
-                        <p className='text-zinc-800 text-sm font-medium font-cabin'>Not Sure</p>
-                    </div>}
-                    
-                </div> }
+                            )
+                        })}
+                            
+                                    
+                        { selectedTravelAllocationHeaders && selectedTravelAllocationHeaders.length == 0 && 
+                        <div className='mt-6 flex gap-4'>
+                            <input type='radio' />
+                            <p className='text-zinc-800 text-sm font-medium font-cabin'>Not Sure</p>
+                        </div>}
+                        
+                    </div> }
 
-                </div>
+                    </div>
 
-                <div className='my-8 w-full flex justify-between items-center'>
-                    <Button disabled={isLoading} variant='fit' text='Save as Draft' onClick={handleSaveAsDraft}/>
-                
-                    <Button 
-                        variant='fit'
-                        text='Continue' 
-                        onClick={handleContinueButton} />
-                </div>
-                    
+                    <div className='my-8 w-full flex justify-end items-center'>
+                       
+                        <Button 
+                            variant='fit'
+                            text='Submit' 
+                            onClick={handleSubmit} />
+                    </div>
                 </div> 
             </div>
-        <PopupMessage message={popupMessage} showPopup={showPopup} setshowPopup={setshowPopup} />
+
+            <Modal showModal={showModal} setShowModal={setShowModal} skipable={true}>
+                {!requestSubmitted && <Error/>}
+                {requestSubmitted && <div className='p-10'>
+                    <p className='text-2xl text-neutral-700 font-semibold font-cabin'>Travel Request Submitted !</p>
+                   
+                    {<div className='flex gap-10 justify-between mt-10'>
+                            <Button text='Ok' onClick={()=>handleCashAdvance(false)} />
+                        </div>}
+
+                </div>}
+            </Modal>
+
+            <PopupMessage message={popupMessage} showPopup={showPopup} setshowPopup={setshowPopup} />
         </>}
     </>)
-}
+    }

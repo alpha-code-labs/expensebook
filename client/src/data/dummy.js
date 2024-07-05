@@ -2,10 +2,13 @@ const dummyCabs = {
   itineraryId: null,
   foromId: null,
   date: null,
+  returnDate:null,
+  selectedDates: [],
   class: null,
   time: null,
   pickupAddress: null,
   dropAddress: null,
+  isFullDayCab: false,
   violations: {
     class: null,
     amount: null,
@@ -13,6 +16,7 @@ const dummyCabs = {
   bkd_date: null,
   bkd_class: null,
   bkd_time: null,
+  bkd_returnTime: null,
   bkd_pickupAddress: null,
   bkd_dropAddress: null,
   bkd_vioilations: {
@@ -32,7 +36,45 @@ const dummyCabs = {
       totalAmount: null,
     },
   },
-  type: "regular",
+};
+
+const dummyCarRentals = {
+  itineraryId: null,
+  foromId: null,
+  date: null,
+  returnDate:null,
+  selectedDates: [],
+  class: null,
+  time: null,
+  pickupAddress: null,
+  dropAddress: null,
+  violations: {
+    class: null,
+    amount: null,
+  },
+  bkd_date: null,
+  bkd_class: null,
+  bkd_time: null,
+  bkd_returnTime: null,
+  bkd_pickupAddress: null,
+  bkd_dropAddress: null,
+  bkd_vioilations: {
+    class: String,
+    amount: String,
+  },
+  modified: false,
+  cancellationDate: null,
+  cancellationReason: null,
+  status: "draft",
+  bookingDetails: {
+    docURL: null,
+    docType: null,
+    billDetails: {
+      vendorName: null,
+      taxAmount: null,
+      totalAmount: null,
+    },
+  },
 };
 
 const dummyFlight = {
@@ -168,6 +210,10 @@ const dummyHotel = {
   class: null,
   checkIn: null,
   checkOut: null,
+  needBrakfast: false,
+  needLunch: false,
+  needDinner: false,
+  needNonSmokingRoom : false,
   violations: {
     class: null,
     amount: null,
@@ -223,6 +269,7 @@ const dummyPersonalVehicle = {
 
 export {
   dummyCabs,
+  dummyCarRentals,
   dummyFlight,
   dummyBus,
   dummyTrain,
