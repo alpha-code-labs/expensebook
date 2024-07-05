@@ -5,7 +5,7 @@ import Input from '../../components/common/Input';
 import SlimDate from '../../components/common/SlimDate';
 import PreferredTime from '../../components/common/PreferredTime';
 // import DisplayItinerary from './DisplayItinerary';
-import { dummyFlight, dummyCabs, dummyBus, dummyHotel } from '../../data/dummy';
+import { dummyFlight, dummyCabs, dummyCarRentals, dummyHotel } from '../../data/dummy';
 import DisplayItinerary from './DisplayItinerary';
 import { generateUniqueIdentifier } from '../../utils/uuid';
 import moment from 'moment';
@@ -21,6 +21,8 @@ import Error from '../../components/common/Error';
 export default function({formData, setFormData, onBoardingData, lastPage, nextPage}){
 const sideBarWidth = '230px'
 const navigate = useNavigate();
+
+console.log (moment('2024-007-14').format('Do MMM'), 'date..')
 
 console.log('nextpage - lastpage ', nextPage, lastPage)
 
@@ -297,11 +299,11 @@ const editItineraryItem = useCallback((formId)=>{
       return; 
      }
     case 'cabs' : {
-      setModalContent(<CabForm setVisible={setVisible} handleAddToItinerary={handleAddToItinerary} action='edit' editId={formId} editData={{pickupAddress:item.pickupAddress, dropAddress:item.dropAddress, class:item.class, time:item.time, date:item.date, returnDate:item.returnDate}} />);
+      setModalContent(<CabForm setVisible={setVisible} handleAddToItinerary={handleAddToItinerary} action='edit' editId={formId} editData={{pickupAddress:item.pickupAddress, dropAddress:item.dropAddress, class:item.class, time:item.time, date:item.date, returnDate:item.returnDate, isFullDayCab:item.isFullDayCab}} />);
       return;
     }
     case 'carRentals' : {
-      setModalContent(<CabForm setVisible={setVisible} handleAddToItinerary={handleAddToItinerary} action='edit' editId={formId} editData={{pickupAddress:item.pickupAddress, dropAddress:item.dropAddress, class:item.class, time:item.time, date:item.date, returnDate:item.returnDate}} />);
+      setModalContent(<CabForm setVisible={setVisible} handleAddToItinerary={handleAddToItinerary} action='edit' editId={formId} editData={{pickupAddress:item.pickupAddress, dropAddress:item.dropAddress, class:item.class, time:item.time, date:item.date, returnDate:item.returnDate, isRentalCab:true}} />);
       return;
     }
     case 'hotels' : {
@@ -490,13 +492,12 @@ const handleAddToItinerary = (category, data)=>{
 
       case 'rentalCabs' : {
         if(data.action == 'create'){
-          const newItem = JSON.parse(JSON.stringify(dummyCabs));
+          const newItem = JSON.parse(JSON.stringify(dummyCarRentals));
           newItem.pickupAddress = data.formData.pickupAddress;
           newItem.dropAddress = data.formData.dropAddress;
           newItem.class = data.formData.class;
           newItem.date = data.formData.date;
           newItem.returnDate = data.formData.returnDate;
-          newItem.isFullDayCab = data.formData.isFullDayCab;
           newItem.time = data.formData.time;
           newItem.sequence = getNextSequenceNumber();
           newItem.formId = generateUniqueIdentifier();
@@ -628,35 +629,42 @@ const handleCashAdvance = async (needed)=>{
 }
 
 useEffect(()=>{
-  console.log(formData.itinerary, 'itinerary updated')
+  console.log(formData.itinerary, 'itinerary updated');
+  //update trip name 
+  const sortedItinerary = [...formData.itinerary.flights, ...formData.itinerary.trains, ...formData.itinerary.buses].sort((a,b)=>a.sequence-b.sequence);
+  const flattend = sortedItinerary.map(item=>([item.from, item.to])).flat(2);
+  const cityString = flattend.filter((item,index)=> flattend[index-1] != item).map(item=>item.substr(0,3).toUpperCase()).join('-');
+  const startDate = sortedItinerary[0]?.date;
+
+  setFormData(pre=>({...pre, tripName:generateTripName(pre.tripPurpose, cityString, startDate)}))
 },[formData.itinerary])
 
     return(<>     
-        <div className="min-w-[100%] min-h-[100%] flex flex-col sm:px-8 px-6 py-6">
-            
-                {/* back link */}
+        <div className="max-w-[712px] mx-auto min-h-[100%] flex flex-col sm:px-8 px-6 py-6">
+            {/* back link */}
             <div className='flex items-center gap-4 cursor-pointer mb-4'>
                 <img className='w-[24px] h-[24px]' src={left_arrow_icon} onClick={()=>navigate(lastPage)} />
                 <img className='w-6 h-6' src={itinerary_icon}/>
                 <p className='text-neutral-700 text-md font-semibold font-cabin'>Itinerary</p>
             </div>
             
-            <div className='flex w-full h-full'>
-              <div className={`w-[${sideBarWidth}] h-[100%] bg-white`}>
-                  {/* sidebar for adding itinerary items */}
-                  <div className="flex-flex-row divide-y">
-                      {itineraryItems.map(item=>(
-                          <div 
-                            key={item}
-                            onClick={()=>addItineraryItem(camelCaseToTitleCase(item))}
-                            className="flex flex-col p-4 w-[100%] h-[100px] gap-2 items-center justify-center cursor-pointer hover:bg-blue-100">
-                          <div className={`sprite ic-${item}`}/>
-                          <p className="text-neutral-800 text-sm">{camelCaseToTitleCase(item)}</p>
-                      </div>))}
-                  </div>
+            <div className='flex flex-col w-full h-full'>
+
+
+              {/* sidebar for adding itinerary items */}
+              <div className="flex flex-row transition-all rounded-lg bg-white">
+                  {itineraryItems.map(item=>(
+                      <div 
+                        key={item}
+                        onClick={()=>addItineraryItem(camelCaseToTitleCase(item))}
+                        className="flex relative flex-col w-[100%] h-[100px] gap-2 items-center justify-center cursor-pointer group">
+                      <div className={`sprite ic-${item} group-hover:ic-${item}-hovered`}/>
+                      <p className="text-neutral-800 text-sm group-hover:text-indigo-600 group-hover:font-semibold">{camelCaseToTitleCase(item)}</p>
+                      <div className='absolute bottom-0 w-full h-1 bg-white group-hover:bg-indigo-600'></div>
+                  </div>))}
               </div>
         
-              <div className={`w-[calc(100vw-${sideBarWidth})] px-6 py-4 sm:px-12 md:px-24`}>
+              <div className={`py-4`}>
                   <DisplayItinerary formData={formData} setFormData={setFormData} handleDelete={deleteItineraryItem}  handleEdit={editItineraryItem}/>
                   
                   <Modal visible={visible} setVisible={setVisible}>
@@ -1475,5 +1483,17 @@ function dateDiffInDays(a, b) {
     return diffInDays;
   }catch(e){
     return 0;
+  }
+}
+
+function generateTripName(tripPurpose, tripString, startDate){
+  try{
+    const dateString = startDate? moment(startDate).format('Do MMM') : ''; 
+    if(tripString == '') return `${tripPurpose}-trip-(${dateString})`;
+    return tripString+=`(${dateString})`;
+
+  }catch(e){
+    console.log(e)
+    return 'Trip';
   }
 }
