@@ -4,45 +4,35 @@
 @tailwind utilities;
 
 .scroll::-webkit-scrollbar {
-    width: 0px;
-  }
-  
-  .scroll::-webkit-scrollbar-track {
-    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3); 
-    border-radius: 10px;
-  }
-  
-  .scroll::-webkit-scrollbar-thumb {
-    border-radius: 10px;
-    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.5); 
-  }
-
-
-  .no-scroll::-webkit-scrollbar {
-    width: 0px;
-  }
-  
-  .no-scroll::-webkit-scrollbar-track {
-    -webkit-box-shadow: inset 0 0 0px rgba(0,0,0,0.3); 
-    border-radius: 0px;
-  }
-  
-  .no-scroll::-webkit-scrollbar-thumb {
-    border-radius: 0px;
-    -webkit-box-shadow: inset 0 0 0px rgba(0,0,0,0.5); 
-  }
-
-.slim::-webkit-calendar-picker-indicator{
-    background-color: #ffffff;
-    color: black;
-    padding-left: 0;
-    cursor: pointer;
-    width: 18px;
-    height: 18px;
-    background-image: url('./assets/calendar.svg');
+  width: 0px;
 }
 
-.date-time::-webkit-calendar-picker-indicator{
+.scroll::-webkit-scrollbar-track {
+  -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+  border-radius: 10px;
+}
+
+.scroll::-webkit-scrollbar-thumb {
+  border-radius: 10px;
+  -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.5);
+}
+
+
+.no-scroll::-webkit-scrollbar {
+  width: 0px;
+}
+
+.no-scroll::-webkit-scrollbar-track {
+  -webkit-box-shadow: inset 0 0 0px rgba(0, 0, 0, 0.3);
+  border-radius: 0px;
+}
+
+.no-scroll::-webkit-scrollbar-thumb {
+  border-radius: 0px;
+  -webkit-box-shadow: inset 0 0 0px rgba(0, 0, 0, 0.5);
+}
+
+.slim::-webkit-calendar-picker-indicator {
   background-color: #ffffff;
   color: black;
   padding-left: 0;
@@ -52,7 +42,17 @@
   background-image: url('./assets/calendar.svg');
 }
 
-.date::-webkit-calendar-picker-indicator{
+.date-time::-webkit-calendar-picker-indicator {
+  background-color: #ffffff;
+  color: black;
+  padding-left: 0;
+  cursor: pointer;
+  width: 18px;
+  height: 18px;
+  background-image: url('./assets/calendar.svg');
+}
+
+.date::-webkit-calendar-picker-indicator {
   background-color: #ffffff;
   color: black;
   padding-left: 0;
@@ -63,62 +63,76 @@
 }
 
 .scrollbar-hide {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
 }
 
-.sprite{
+.sprite {
   background-image: url('./assets/sprite.png');
   background-size: 260px 400px;
-  width:42px;
-  height:32px;
+  width: 42px;
+  height: 32px;
 }
 
 .ic-flight {
+  @apply bg-no-repeat;
   background-position: -5px -4px;
 }
 
-.ic-flight:hover {
+.ic-flight-hovered {
+  @apply bg-no-repeat;
   background-position: -5px -44px;
 }
 
-.ic-hotel:hover {
+.ic-hotel-hovered {
+  @apply bg-no-repeat;
   background-position: -62px -41.5px;
 }
 
 .ic-hotel {
+  @apply bg-no-repeat;
   background-position: -60px 0px;
 }
 
 .ic-train {
+  @apply bg-no-repeat;
   background-position: -156.5px -3px;
 }
 
-.ic-train:hover {
+.ic-train-hovered {
+  @apply bg-no-repeat;
   background-position: -156px -41px;
 }
 
-.ic-bus:hover {
+.ic-bus-hovered {
+  @apply bg-no-repeat;
   background-position: -209px -42px;
 }
 
 
-.ic-bus{
+.ic-bus {
+  @apply bg-no-repeat;
   background-position: -210.5px -2px;
 }
 
-.ic-cab:hover{
+.ic-cab-hovered {
+  @apply bg-no-repeat;
   background-position: -110px -122px;
 }
 
-.ic-cab{
+.ic-cab {
+  @apply bg-no-repeat;
   background-position: -110px -82px;
 }
 
-.ic-rentalCab:hover{
+.ic-rentalCab-hovered {
+  @apply bg-no-repeat;
   background-position: -110px -122px;
 }
 
-.ic-rentalCab{
+.ic-rentalCab {
+  @apply bg-no-repeat;
   background-position: -110px -82px;
 }
