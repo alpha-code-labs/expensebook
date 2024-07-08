@@ -201,8 +201,8 @@ const getCompletedStandaloneTravelRequests = async () => {
     'travelRequestData.isCashAdvanceTaken': false,
   });
 
-  const listOfCompletedStandaloneTravelRequests = completedStandaloneTrips.map(trip => trip.travelRequestId);
-
+  const listOfCompletedStandaloneTravelRequests = completedStandaloneTrips.map(trip => trip.travelRequestData.travelRequestId);
+  console.log("listOfCompletedStandaloneTravelRequests", listOfCompletedStandaloneTravelRequests)
   return { listOfCompletedStandaloneTravelRequests };
 };
 
