@@ -52,8 +52,8 @@ export const statusChangeBatchJob = async () => {
       console.error('Error in statusChangeBatchJob:', error);
       return { error: 'An error occurred during the batch job.' };
   }
- };
- 
+};
+
 
 
 export const scheduleTripTransitBatchJob = () => {
