@@ -2,9 +2,9 @@ import axios from "axios";
 import policies from '../../src/assets/policies.json'
 import { TR_backendTransformer, TR_frontendTransformer } from "./transformers";
 
-const TRAVEL_API_URL = import.meta.env.VITE_TRAVEL_API_URL;
+const CASH_API_URL = import.meta.env.VITE_API_BASE_URL;
 console.log(import.meta.env, 'env file')
-console.log(TRAVEL_API_URL, 'travel api url')
+console.log(CASH_API_URL, 'travel api url')
 
 const retry =  3
 const retryDelay = 3000
@@ -19,7 +19,7 @@ const errorMessages = {
 
 async function postTravelRequest_API(data){
   try{
-    const res = await axios.post(`${TRAVEL_API_URL}/travel-request`, TR_backendTransformer(data), {retry, retryDelay})
+    const res = await axios.post(`${CASH_API_URL}/travel-request`, TR_backendTransformer(data), {retry, retryDelay})
 
     if(res.status >= 200 && res.status<300){
       return {data: {travelRequestId: res.data.travelRequestId}, err:null}
@@ -52,7 +52,7 @@ async function postTravelRequest_API(data){
 
 async function updateTravelRequest_API(data){
   try{
-    const res = await axios.patch(`${TRAVEL_API_URL}/travel-requests/${data.travelRequest.travelRequestId}`, {travelRequest: TR_backendTransformer(data.travelRequest), submitted:data.submitted}, {retry, retryDelay})
+    const res = await axios.patch(`${CASH_API_URL}/travel-requests/${data.travelRequest.travelRequestId}`, {travelRequest: TR_backendTransformer(data.travelRequest), submitted:data.submitted}, {retry, retryDelay})
 
     if(res.status >= 200 && res.status<300){
       return {data: {response: res.data}, err:null}
@@ -87,7 +87,7 @@ async function updateTravelRequest_API(data){
 async function getTravelRequest_API(data){
   try{
     const {travelRequestId} = data
-    const res = await axios.get(`${TRAVEL_API_URL}/travel-requests/${travelRequestId}`)
+    const res = await axios.get(`${CASH_API_URL}/travel-requests/${travelRequestId}`)
     if(res.status >=200 && res.status<300){
       return {data:TR_frontendTransformer(res.data), err:null}
     }
@@ -119,7 +119,7 @@ async function getTravelRequest_API(data){
 async function cashPolicyValidation_API(data){
   try{
     const {tenantId, employeeId, type, amount} = data;
-    const res = await axios.post(`${TRAVEL_API_URL}/validate-cash-policy/${tenantId}`, {tenantId, employeeId, type, amount})
+    const res = await axios.post(`${CASH_API_URL}/validate-cash-policy/${tenantId}`, {tenantId, employeeId, type, amount})
     
     if(res.status >= 200 && res.status<300){
       return {data: {response: res.data}, err:null}
@@ -153,7 +153,7 @@ async function cashPolicyValidation_API(data){
 async function policyValidation_API(data){
   try{
     const {type, groups, policy, value, tenantId} = data;
-    const res = await axios.post(`${TRAVEL_API_URL}/validate-travel-policy/${tenantId}/`, {type, groups, policy, value}, {retry, retryDelay})
+    const res = await axios.post(`${CASH_API_URL}/validate-travel-policy/${tenantId}/`, {type, groups, policy, value}, {retry, retryDelay})
 
     if(res.status >= 200 && res.status<300){
       return {data: {response: res.data}, err:null}
@@ -188,7 +188,7 @@ async function policyValidation_API(data){
 async function getCashAdvance_API(data){
   try{
     const {travelRequestId, cashAdvanceId} = data
-    const res = await axios.get(`${TRAVEL_API_URL}/cash-advances/${travelRequestId}/${cashAdvanceId}`)
+    const res = await axios.get(`${CASH_API_URL}/cash-advances/${travelRequestId}/${cashAdvanceId}`)
     if(res.status >=200 && res.status<300){
       return {data:res.data, err:null}
     }
@@ -220,7 +220,7 @@ async function getCashAdvance_API(data){
 async function cancelCashAdvance_API(data){
   try{
     const {travelRequestId, cashAdvanceId} = data;
-    const res = await axios.post(`${TRAVEL_API_URL}/cash-advances/${travelRequestId}/${cashAdvanceId}/cancel`)
+    const res = await axios.post(`${CASH_API_URL}/cash-advances/${travelRequestId}/${cashAdvanceId}/cancel`)
     
     if(res.status >= 200 && res.status<300){
       return {data:res.data, err:null}
@@ -254,7 +254,7 @@ async function cancelCashAdvance_API(data){
 async function getOnboardingData_API(data){
   try{
     const {tenantId, employeeId, travelType} = data
-    const res = await axios.get(`${TRAVEL_API_URL}/initial-data/${tenantId}/${employeeId}/${travelType}`)
+    const res = await axios.get(`${CASH_API_URL}/initial-data/${tenantId}/${employeeId}/${travelType}`)
     if(res.status >=200 && res.status<300){
       return {data:{onboardingData: res.data}}
     }
@@ -286,7 +286,7 @@ async function getOnboardingData_API(data){
 async function getOnboardingDataForCash_API(data){
   try{
     const {tenantId, EMPLOYEE_ID, travelType} = data
-    const res = await axios.get(`${TRAVEL_API_URL}/initial-data-cash/${tenantId}/${EMPLOYEE_ID}/${travelType}`)
+    const res = await axios.get(`${CASH_API_URL}/initial-data-cash/${tenantId}/${EMPLOYEE_ID}/${travelType}`)
     if(res.status >=200 && res.status<300){
       return {data:{onboardingData: res.data}}
     }
@@ -318,7 +318,7 @@ async function getOnboardingDataForCash_API(data){
 async function getRawTravelRequest_API(data){
   try{
     const {travelRequestId} = data
-    const res = await axios.get(`${TRAVEL_API_URL}/travel-requests/${travelRequestId}`)
+    const res = await axios.get(`${CASH_API_URL}/travel-requests/${travelRequestId}`)
     if(res.status >=200 && res.status<300){
       return {data:res.data, err:null}
     }
@@ -350,7 +350,7 @@ async function getRawTravelRequest_API(data){
 async function updateTravelBookings_API(data){
   try{
     const {itinerary, travelRequestId, submitted} = data
-    const res = await axios.patch(`${TRAVEL_API_URL}/travel-requests/${travelRequestId}/bookings`, {itinerary, submitted}, {retry, retryDelay})
+    const res = await axios.patch(`${CASH_API_URL}/travel-requests/${travelRequestId}/bookings`, {itinerary, submitted}, {retry, retryDelay})
 
     if(res.status >= 200 && res.status<300){
       return {data: {response: res.data}, err:null}
@@ -381,7 +381,7 @@ async function updateTravelBookings_API(data){
 async function getTravelBookingOnboardingData_API(data){
   try{
     const {tenantId, employeeId, travelType} = data
-    const res = await axios.get(`${TRAVEL_API_URL}/bookings-initial-data/${tenantId}/${employeeId}/${travelType}`)
+    const res = await axios.get(`${CASH_API_URL}/bookings-initial-data/${tenantId}/${employeeId}/${travelType}`)
     if(res.status >=200 && res.status<300){
       return {data:res.data, err:null}
     }
@@ -403,7 +403,7 @@ async function getTravelBookingOnboardingData_API(data){
 async function uploadBill_API(data){
   try{
     const {category, fileURL, travelRequestId} = data
-    const res = await axios.post(`${TRAVEL_API_URL}/upload-bill/${travelRequestId}`, {category, fileURL})
+    const res = await axios.post(`${CASH_API_URL}/upload-bill/${travelRequestId}`, {category, fileURL})
     
     if(res.status >= 200 && res.status<300){
       return {data: {response: res.data}, err:null}
@@ -439,7 +439,7 @@ async function uploadBill_API(data){
 async function cancelTravelRequest_API(data){
   try{
     const {travelRequestId} = data
-    const res = await axios.patch(`${TRAVEL_API_URL}/travel-requests/${travelRequestId}/cancel`, {travelRequestStatus:'cancelled'})
+    const res = await axios.patch(`${CASH_API_URL}/travel-requests/${travelRequestId}/cancel`, {travelRequestStatus:'cancelled'})
     if(res.status >=200 && res.status<300){
       return {data:{message: res.data}, err:null}
     }

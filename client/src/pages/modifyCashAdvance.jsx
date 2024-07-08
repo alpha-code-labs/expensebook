@@ -13,7 +13,7 @@ import CommentBox from '../components/common/CommentBox';
 import { currenciesList } from '../data/currenciesList';
 import Error from '../components/common/Error';
 
-const CASH_API_URL = import.meta.env.VITE_TRAVEL_API_URL
+const CASH_API_URL = import.meta.env.VITE_API_BASE_URL
 const DASHBOARD_URL = import.meta.env.VITE_DASHBOARD_URL
 
 export default function(){
@@ -271,15 +271,15 @@ export default function(){
                 <div className='mt-10 flex flex-col gap-4'>
                   <div className='flex items-center flex-wrap gap-2 mb-2'>
                     <div>
-                      <p className='font-cabin text-xs text-neutral-600'>Travel Request Number</p>
-                      <p className='font-cabin font-semibold tex-lg'>{cashAdvance?.travelRequestNumber}</p>
+                    <p className='font-cabin text-xs text-neutral-600'>Trip Name</p>
+                    <p className='font-cabin font-semibold tex-lg'>{cashAdvance?.tripName}</p>
                     </div>
                   </div>
                   <p className='font-cabin text-sm tracking-tight text-yellow-600'>{violationMessage}</p>
                 </div>
 
                 <div className='mt-8'>
-                    <CommentBox title='Reaons for Cash Advance' onchange={handleReasonChange} value={cashAdvance.cashAdvanceReason} error={reasonError} />
+                    <CommentBox title='Reason for Cash Advance' onchange={handleReasonChange} value={cashAdvance.cashAdvanceReason} error={reasonError} />
                 </div>
 
                 <div className='mt-10 flex flex-col gap-4'>
