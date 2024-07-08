@@ -126,7 +126,8 @@ const createCashAdvance = async (req, res) => {
     const createdBy = travelRequestData.createdFor?.empId ?? travelRequestData.createdBy
     const tenantId = travelRequestData.tenantId
     const travelRequestNumber = travelRequestData.travelRequestNumber
-    const tripName = travalRequestData.tripName
+    const tripName = travelRequestData.tripName??'';
+    const cashAdvanceReason = '';
     const travelType = travelRequestData.travelType
     const cashAdvanceNumber = `CA0001`
     const cashAdvanceId = new mongoose.Types.ObjectId
@@ -150,6 +151,7 @@ const createCashAdvance = async (req, res) => {
         defaultCurrency,
         travelRequestNumber,
         tripName,
+        cashAdvanceReason,
         travelType,
         cashAdvanceId,
         cashAdvanceNumber,

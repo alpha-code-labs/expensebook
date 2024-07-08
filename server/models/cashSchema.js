@@ -50,12 +50,10 @@ const cashAdvanceSchema = new mongoose.Schema({
       },
       tripName:{
         type:String,
-        required: true,
       },
       
       cashAdvanceReason:{
         type:String,
-        required: true,
       },
       travelType: String,
       cashAdvanceId: {
