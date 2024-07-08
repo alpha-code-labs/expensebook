@@ -1,5 +1,6 @@
 import {closestCorners, DndContext, useSensors, useSensor, PointerSensor, TouchSensor} from '@dnd-kit/core';
 import {useSortable, SortableContext, verticalListSortingStrategy, arrayMove} from '@dnd-kit/sortable'
+import {restrictToVerticalAxis,} from '@dnd-kit/modifiers';
 import {CSS} from '@dnd-kit/utilities'
 import React, { useCallback, useEffect, useState } from "react";
 import empty_itinerary_icon from '../../assets/empty_itinerary.png';
@@ -54,12 +55,14 @@ export default function({formData, setFormData, handleEdit, handleDelete}) {
         useSensor(detectSensor(), {
           activationConstraint: {
             distance: 8,
+            delay: detectDeviceType() == 'Mobile' ? '1000' : '0',
           },
         })
       )
 
     return(<div className='w-full border border-sm border-neutral-50 flex-col justify-center items-center'>
         <DndContext
+            modifiers={[restrictToVerticalAxis]}
             sensors={sensors}
             onDragEnd={handleDragEnd}
             collisionDetection={closestCorners}>
@@ -188,7 +191,8 @@ const SortableItem = ({id, children})=>{
 
     const style={
         transition,
-        transform: CSS.Transform.toString(transform)
+        transform: CSS.Transform.toString(transform),
+        touchAction: 'none', 
     }
     
     return(<>

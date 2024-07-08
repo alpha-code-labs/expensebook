@@ -775,7 +775,7 @@ const FlightForm = ({setVisible, handleAddToItinerary, action='create', editId =
 
     
     return(<div className='max-w-[440px]'>
-    <   div className='pb-10 text-lg text-neutral-700 font-cabin'>Flight</div>
+    <   div className='pb-4 sm:pb-10 text-lg text-neutral-700 font-cabin'>Flight</div>
         
         <div className='w-[100%] h-[100%] bg-white flex gap-2 flex-wrap items-end'>
           <Input 
@@ -806,11 +806,11 @@ const FlightForm = ({setVisible, handleAddToItinerary, action='create', editId =
             </div>
         </div>
 
-        {action == 'create' && <div className='flex flex-row-reverse mt-6'>
+        {action == 'create' && <div className='flex flex-row-reverse my-6'>
             <div onClick={handleSubmit} className='w-fit px-2 py-1 bg-blue-600  rounded-md border-bg-blue-800 text-gray-100 text-sm hover:bg-blue-500 cursor-pointer'>Add to Itinerary</div>
         </div>} 
 
-        {action == 'edit' && <div className='flex flex-row-reverse mt-6 gap-4'>
+        {action == 'edit' && <div className='flex flex-row-reverse my-6 gap-4'>
             <div onClick={handleCancel} className='w-fit px-2 py-1 bg-blue-600  rounded-md border-bg-blue-800 text-gray-100 text-sm hover:bg-blue-500 cursor-pointer'>Cancel</div>
             <div onClick={handleSubmit} className='w-fit px-2 py-1 bg-blue-600  rounded-md border-bg-blue-800 text-gray-100 text-sm hover:bg-blue-500 cursor-pointer'>Save Changes</div>
           </div>}
@@ -889,7 +889,7 @@ const TrainForm = ({setVisible, handleAddToItinerary, action='create', editId = 
 
     
     return(<div className='max-w-[440px]'>
-    <   div className='pb-10 text-lg text-neutral-700 font-cabin'>Train</div>
+    <   div className='pb-4 sm:pb-10 text-lg text-neutral-700 font-cabin'>Train</div>
         
         <div className='w-[100%] h-[100%] bg-white flex gap-2 flex-wrap items-end'>
           <Input 
@@ -1003,7 +1003,7 @@ const BusForm = ({setVisible, handleAddToItinerary, action='create', editId = nu
 
     
     return(<div className='max-w-[440px]'>
-    <   div className='pb-10 text-lg text-neutral-700 font-cabin'>Flight</div>
+    <   div className='pb-4 sm:pb-10 text-lg text-neutral-700 font-cabin'>Flight</div>
         
         <div className='w-[100%] h-[100%] bg-white flex gap-2 flex-wrap items-end'>
           <Input 
@@ -1169,7 +1169,7 @@ const CabForm = ({setVisible, handleAddToItinerary, action='create', editId = nu
 
     
     return(<div className=''>
-    <   div className='pb-10 text-lg text-neutral-700 font-cabin'>Cab</div>
+    <   div className='pb-4 sm:pb-10 text-lg text-neutral-700 font-cabin'>Cab</div>
         
         <div className='flex gap-6'>
           <div className='flex gap-2 mb-8'>
@@ -1345,7 +1345,7 @@ const HotelForm = ({setVisible, handleAddToItinerary, action='create', editId = 
 
     
     return(<div className='max-w-[440px]'>
-    <   div className='pb-10 text-lg text-neutral-700 font-cabin'>Hotel</div>
+    <   div className='pb-4 sm:pb-10 text-lg text-neutral-700 font-cabin'>Hotel</div>
         
         <div className='w-[100%] h-[100%] bg-white flex gap-4 flex-wrap items-end'>
           
@@ -1445,14 +1445,14 @@ const Modal = ({ visible, setVisible, children }) => {
         <div className='fixed  w-[100%] h-[100%] left-0 top-0 bg-black/30 z-10' onClick={()=>setVisible(false)}>
         </div>
 
-        <div className="fixed w-fit h-fit left-[50%] translate-x-[-50%] top-[10%] sm:rounded-lg shadow-lg z-[100] bg-white">
+        <div className="fixed w-[100%] sm:w-fit max-w-[100%] h-fit left-[50%] translate-x-[-50%] top-[10%] sm:rounded-lg shadow-lg z-[100] bg-white">
             {/* close icon */}
             <div onClick={()=>setVisible(false)} className='cursor-pointer absolute right-0 hover:bg-red-100 p-2 rounded-full mt-2 mr-4'>
                 <img src={closeIcon} alt="" className='w-6 h-6' />
             </div>
             
             {/* childrens */}
-            <div className='p-10 max-w-[440px]'>
+            <div className='p-2 sm:p-10 max-w-[100%] rounded-md'>
                 {children}
             </div>
         </div>
