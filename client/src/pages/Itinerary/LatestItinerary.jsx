@@ -801,18 +801,19 @@ const FlightForm = ({setVisible, handleAddToItinerary, action='create', editId =
                 title='On?' />
 
               <PreferredTime
+                title={'Preferred Time'}
                 value={formData.time}
                 onChange={handleTimeChange}  />
             </div>
         </div>
 
-        {action == 'create' && <div className='flex flex-row-reverse my-6'>
-            <div onClick={handleSubmit} className='w-fit px-2 py-1 bg-blue-600  rounded-md border-bg-blue-800 text-gray-100 text-sm hover:bg-blue-500 cursor-pointer'>Add to Itinerary</div>
+        {action == 'create' && <div className='flex flex-row-reverse mt-6'>
+            <div onClick={handleSubmit} className='w-fit px-4 py-2 bg-blue-600  rounded-md border-bg-blue-800 text-gray-100 text-sm hover:bg-blue-500 cursor-pointer'>Add to Itinerary</div>
         </div>} 
 
-        {action == 'edit' && <div className='flex flex-row-reverse my-6 gap-4'>
-            <div onClick={handleCancel} className='w-fit px-2 py-1 bg-blue-600  rounded-md border-bg-blue-800 text-gray-100 text-sm hover:bg-blue-500 cursor-pointer'>Cancel</div>
-            <div onClick={handleSubmit} className='w-fit px-2 py-1 bg-blue-600  rounded-md border-bg-blue-800 text-gray-100 text-sm hover:bg-blue-500 cursor-pointer'>Save Changes</div>
+        {action == 'edit' && <div className='flex flex-row-reverse mt-6 gap-4'>
+            <div onClick={handleCancel} className='w-fit px-4 py-2 bg-blue-600  rounded-md border-bg-blue-800 text-gray-100 text-sm hover:bg-blue-500 cursor-pointer'>Cancel</div>
+            <div onClick={handleSubmit} className='w-fit px-4 py-2 bg-blue-600  rounded-md border-bg-blue-800 text-gray-100 text-sm hover:bg-blue-500 cursor-pointer'>Save Changes</div>
           </div>}
         
     </div>)
@@ -915,18 +916,19 @@ const TrainForm = ({setVisible, handleAddToItinerary, action='create', editId = 
                 title='On?' />
 
               <PreferredTime
+                title={'Preferred Time'}
                 value={formData.time}
                 onChange={handleTimeChange}  />
             </div>
         </div>
 
         {action == 'create' && <div className='flex flex-row-reverse mt-6'>
-            <div onClick={handleSubmit} className='w-fit px-2 py-1 bg-blue-600  rounded-md border-bg-blue-800 text-gray-100 text-sm hover:bg-blue-500 cursor-pointer'>Add to Itinerary</div>
+            <div onClick={handleSubmit} className='w-fit px-4 py-2 bg-blue-600  rounded-md border-bg-blue-800 text-gray-100 text-sm hover:bg-blue-500 cursor-pointer'>Add to Itinerary</div>
         </div>} 
 
         {action == 'edit' && <div className='flex flex-row-reverse mt-6 gap-4'>
-            <div onClick={handleCancel} className='w-fit px-2 py-1 bg-blue-600  rounded-md border-bg-blue-800 text-gray-100 text-sm hover:bg-blue-500 cursor-pointer'>Cancel</div>
-            <div onClick={handleSubmit} className='w-fit px-2 py-1 bg-blue-600  rounded-md border-bg-blue-800 text-gray-100 text-sm hover:bg-blue-500 cursor-pointer'>Save Changes</div>
+            <div onClick={handleCancel} className='w-fit px-4 py-2 bg-blue-600  rounded-md border-bg-blue-800 text-gray-100 text-sm hover:bg-blue-500 cursor-pointer'>Cancel</div>
+            <div onClick={handleSubmit} className='w-fit px-4 py-2 bg-blue-600  rounded-md border-bg-blue-800 text-gray-100 text-sm hover:bg-blue-500 cursor-pointer'>Save Changes</div>
           </div>}
         
     </div>)
@@ -1029,18 +1031,19 @@ const BusForm = ({setVisible, handleAddToItinerary, action='create', editId = nu
                 title='On?' />
 
               <PreferredTime
+                title={'Preferred Time'}
                 value={formData.time}
                 onChange={handleTimeChange}  />
             </div>
         </div>
 
         {action == 'create' && <div className='flex flex-row-reverse mt-6'>
-            <div onClick={handleSubmit} className='w-fit px-2 py-1 bg-blue-600  rounded-md border-bg-blue-800 text-gray-100 text-sm hover:bg-blue-500 cursor-pointer'>Add to Itinerary</div>
+            <div onClick={handleSubmit} className='w-fit px-4 py-2 bg-blue-600  rounded-md border-bg-blue-800 text-gray-100 text-sm hover:bg-blue-500 cursor-pointer'>Add to Itinerary</div>
         </div>} 
 
         {action == 'edit' && <div className='flex flex-row-reverse mt-6 gap-4'>
-            <div onClick={handleCancel} className='w-fit px-2 py-1 bg-blue-600  rounded-md border-bg-blue-800 text-gray-100 text-sm hover:bg-blue-500 cursor-pointer'>Cancel</div>
-            <div onClick={handleSubmit} className='w-fit px-2 py-1 bg-blue-600  rounded-md border-bg-blue-800 text-gray-100 text-sm hover:bg-blue-500 cursor-pointer'>Save Changes</div>
+            <div onClick={handleCancel} className='w-fit px-4 py-2 bg-blue-600  rounded-md border-bg-blue-800 text-gray-100 text-sm hover:bg-blue-500 cursor-pointer'>Cancel</div>
+            <div onClick={handleSubmit} className='w-fit px-4 py-2 bg-blue-600  rounded-md border-bg-blue-800 text-gray-100 text-sm hover:bg-blue-500 cursor-pointer'>Save Changes</div>
           </div>}
         
     </div>)
@@ -1187,7 +1190,7 @@ const CabForm = ({setVisible, handleAddToItinerary, action='create', editId = nu
 
            <div className='flex flex-col gap-4 items-start relative'>
 
-           <div className='flex gap-2 w-full'>
+           <div className='flex flex-col sm:flex-row gap-2 w-full'>
             <Select
               maxWidth = {'200px'}
               currentOption = {'Regular'}
@@ -1196,9 +1199,19 @@ const CabForm = ({setVisible, handleAddToItinerary, action='create', editId = nu
               options={['Regular', 'Sedan', 'SUV']} 
               />
 
-            <PreferredTime
-              value={formData.time}
-              onChange={handleTimeChange}  />
+            <div className='flex gap-2'>
+              <PreferredTime
+                value={formData.time}
+                onChange={handleTimeChange}  />
+
+              {(!formData.isFullDayCab && !formData.isRentalCab) && <SlimDate 
+                format='date-month'
+                min={0}
+                date={formData?.date}
+                onChange = {handleDateChange}
+                title={`${(formData.isFullDayCab || formData.isRentalCab)? 'From Date' : 'On?'}`} />}
+            </div>
+
            </div>
               
             <div className='flex flex-col gap-2 w-full'>
@@ -1212,6 +1225,7 @@ const CabForm = ({setVisible, handleAddToItinerary, action='create', editId = nu
                 onBlur={(e)=>updateCity(e, 'pickupAddress')} />
 
               <Input 
+                maxWidth = {'400px'}
                 showLocationSymbol = {true}
                 title='Drop Address?' 
                 placeholder='drop address' 
@@ -1220,38 +1234,40 @@ const CabForm = ({setVisible, handleAddToItinerary, action='create', editId = nu
                 onBlur={(e)=>updateCity(e, 'dropAddress')} />
             </div>
 
-            <div className='flex gap-2'>
-              <SlimDate 
-                format='date-month'
-                min={0}
-                date={formData?.date}
-                onChange = {handleDateChange}
-                title={`${(formData.isFullDayCab || formData.isRentalCab)? 'From Date' : 'On?'}`} />
+            {(formData.isFullDayCab || formData.isRentalCab) && <div className='flex gap-2 flex-wrap'>
+              <div className='flex gap-2'>
+                <SlimDate 
+                  format='date-month'
+                  min={0}
+                  date={formData?.date}
+                  onChange = {handleDateChange}
+                  title={`${(formData.isFullDayCab || formData.isRentalCab)? 'From Date' : 'On?'}`} />
 
-              {(formData.isFullDayCab || formData.isRentalCab) && <SlimDate 
-                format='date-month'
-                min={dateDiffInDays(formData.date, getCurrentDate())}
-                date={formData?.returnDate}
-                onChange = {handleReturnDateChange}
-                title={`Till Date?`} />}
+                {(formData.isFullDayCab || formData.isRentalCab) && <SlimDate 
+                  format='date-month'
+                  min={dateDiffInDays(formData.date, getCurrentDate())}
+                  date={formData?.returnDate}
+                  onChange = {handleReturnDateChange}
+                  title={`Till Date?`} />}
+                </div>
 
               {(formData.isFullDayCab || formData.isRentalCab) && <div className='w-fit h-[73px] flex flex-col gap-2'>
                   <p className='whitespace-nowrap text-zinc-600 text-sm font-cabin'>Total Days</p>
                   <div className='px-6 py-2 border rounded-md border border-neutral-300'>{dateDiffInDays(formData.date, formData.returnDate)+1}</div>
                 </div>}
-            </div>
+            </div>}
             
 
             </div>
         </div>
 
         {action == 'create' && <div className='flex flex-row-reverse mt-10'>
-            <div onClick={handleSubmit} className='w-fit px-2 py-1 bg-blue-600  rounded-md border-bg-blue-800 text-gray-100 text-sm hover:bg-blue-500 cursor-pointer'>Add to Itinerary</div>
+            <div onClick={handleSubmit} className='w-fit px-4 py-2 bg-blue-600  rounded-md border-bg-blue-800 text-gray-100 text-sm hover:bg-blue-500 cursor-pointer'>Add to Itinerary</div>
         </div>}
 
         {action == 'edit' && <div className='flex flex-row-reverse mt-10 gap-4'>
-            <div onClick={handleCancel} className='w-fit px-2 py-1 bg-blue-600  rounded-md border-bg-blue-800 text-gray-100 text-sm hover:bg-blue-500 cursor-pointer'>Cancel</div>
-            <div onClick={handleSubmit} className='w-fit px-2 py-1 bg-blue-600  rounded-md border-bg-blue-800 text-gray-100 text-sm hover:bg-blue-500 cursor-pointer'>Save Changes</div>
+            <div onClick={handleCancel} className='w-fit px-4 py-2 bg-blue-600  rounded-md border-bg-blue-800 text-gray-100 text-sm hover:bg-blue-500 cursor-pointer'>Cancel</div>
+            <div onClick={handleSubmit} className='w-fit px-4 py-2 bg-blue-600  rounded-md border-bg-blue-800 text-gray-100 text-sm hover:bg-blue-500 cursor-pointer'>Save Changes</div>
           </div>}
         
     </div>)
@@ -1349,7 +1365,7 @@ const HotelForm = ({setVisible, handleAddToItinerary, action='create', editId = 
         
         <div className='w-[100%] h-[100%] bg-white flex gap-4 flex-wrap items-end'>
           
-          <div className='flex gap-2'>
+          <div className='flex flex-col sm:flex-row gap-2'>
             <Input 
               maxWidth={'200px'}
               title='Location'  
@@ -1366,22 +1382,24 @@ const HotelForm = ({setVisible, handleAddToItinerary, action='create', editId = 
               options={['Any', '3-star', '4-star', '5-star']} />
             </div>
 
-            <div className='flex gap-2'>
-              <SlimDate 
-                format='date-month'
-                min={0}
-                date={formData.checkIn}
-                error={errors.checkInError}
-                onChange = {(e)=>handleDateChange(e, 'checkIn')}
-                title='Check-In' />
-              
-              <SlimDate 
-                format='date-month'
-                min={0}
-                date={formData.checkOut}
-                error={errors.checkOutError}
-                onChange = {(e)=>handleDateChange(e,'checkOut')}
-                title='Check-Out' />
+            <div className='flex flex-col sm:flex-row gap-2'>
+              <div className='flex gap-2'>
+                <SlimDate 
+                  format='date-month'
+                  min={0}
+                  date={formData.checkIn}
+                  error={errors.checkInError}
+                  onChange = {(e)=>handleDateChange(e, 'checkIn')}
+                  title='Check-In' />
+                
+                <SlimDate 
+                  format='date-month'
+                  min={0}
+                  date={formData.checkOut}
+                  error={errors.checkOutError}
+                  onChange = {(e)=>handleDateChange(e,'checkOut')}
+                  title='Check-Out' />
+              </div>
 
               <div className='w-fit h-[73px] flex flex-col gap-2'>
                 <p className='whitespace-nowrap text-zinc-600 text-sm font-cabin'>Total Nights</p>
@@ -1413,16 +1431,17 @@ const HotelForm = ({setVisible, handleAddToItinerary, action='create', editId = 
                     <p className='text-sm text-neutral-600'>Non-Smoking Room</p>
                   </div>
               </div>
+
             </div>
         </div>
 
         {action == 'create' && <div className='flex flex-row-reverse mt-10'>
-            <div onClick={handleSubmit} className='w-fit px-2 py-1 bg-blue-600  rounded-md border-bg-blue-800 text-gray-100 text-sm hover:bg-blue-500 cursor-pointer'>Add to Itinerary</div>
+            <div onClick={handleSubmit} className='w-fit px-4 py-2 bg-blue-600  rounded-md border-bg-blue-800 text-gray-100 text-sm hover:bg-blue-500 cursor-pointer'>Add to Itinerary</div>
         </div>} 
 
         {action == 'edit' && <div className='flex flex-row-reverse mt-10 gap-4'>
-            <div onClick={handleCancel} className='w-fit px-2 py-1 bg-blue-600  rounded-md border-bg-blue-800 text-gray-100 text-sm hover:bg-blue-500 cursor-pointer'>Cancel</div>
-            <div onClick={handleSubmit} className='w-fit px-2 py-1 bg-blue-600  rounded-md border-bg-blue-800 text-gray-100 text-sm hover:bg-blue-500 cursor-pointer'>Save Changes</div>
+            <div onClick={handleCancel} className='w-fit px-4 py-2 bg-blue-600  rounded-md border-bg-blue-800 text-gray-100 text-sm hover:bg-blue-500 cursor-pointer'>Cancel</div>
+            <div onClick={handleSubmit} className='w-fit px-4 py-2 bg-blue-600  rounded-md border-bg-blue-800 text-gray-100 text-sm hover:bg-blue-500 cursor-pointer'>Save Changes</div>
           </div>}
         
     </div>)
@@ -1445,14 +1464,14 @@ const Modal = ({ visible, setVisible, children }) => {
         <div className='fixed  w-[100%] h-[100%] left-0 top-0 bg-black/30 z-10' onClick={()=>setVisible(false)}>
         </div>
 
-        <div className="fixed w-[100%] sm:w-fit max-w-[100%] h-fit left-[50%] translate-x-[-50%] top-[10%] sm:rounded-lg shadow-lg z-[100] bg-white">
+        <div className="fixed w-[90%] sm:w-fit max-w-[100%] h-fit max-h-[90%] overflow-y-scroll sm:overflow-y-hidden left-[50%] translate-x-[-50%] top-[5%] sm:top-[10%] rounded-lg shadow-lg z-[100] bg-white">
             {/* close icon */}
             <div onClick={()=>setVisible(false)} className='cursor-pointer absolute right-0 hover:bg-red-100 p-2 rounded-full mt-2 mr-4'>
                 <img src={closeIcon} alt="" className='w-6 h-6' />
             </div>
             
             {/* childrens */}
-            <div className='p-2 sm:p-10 max-w-[100%] rounded-md'>
+            <div className='p-4 sm:p-10 max-w-[100%] rounded-md'>
                 {children}
             </div>
         </div>
