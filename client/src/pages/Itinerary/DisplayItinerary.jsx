@@ -1,10 +1,19 @@
-import {closestCorners, DndContext, useSensors, useSensor, PointerSensor} from '@dnd-kit/core';
+import {closestCorners, DndContext, useSensors, useSensor, PointerSensor, TouchSensor} from '@dnd-kit/core';
 import {useSortable, SortableContext, verticalListSortingStrategy, arrayMove} from '@dnd-kit/sortable'
 import {CSS} from '@dnd-kit/utilities'
 import React, { useCallback, useEffect, useState } from "react";
 import empty_itinerary_icon from '../../assets/empty_itinerary.png';
 import { FlightCard, CabCard, HotelCard, RentalCabCard } from "./ItineraryCards";
 
+const detectDeviceType = () =>
+    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+      ? 'Mobile'
+      : 'Desktop';
+  console.log(detectDeviceType()); // "Mobile" or "Desktop"
+
+const detectSensor = ()=>{
+    return detectDeviceType() == 'Mobile' ? TouchSensor : PointerSensor 
+}
 
 export default function({formData, setFormData, handleEdit, handleDelete}) {
 
@@ -42,7 +51,7 @@ export default function({formData, setFormData, handleEdit, handleDelete}) {
 
 
     const sensors = useSensors(
-        useSensor(PointerSensor, {
+        useSensor(detectSensor(), {
           activationConstraint: {
             distance: 8,
           },
