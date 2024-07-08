@@ -9,6 +9,9 @@ import AddMore from '../components/common/AddMore';
 import Button from '../components/common/Button'
 import PopupMessage from '../components/common/PopupMessage';
 import { cashPolicyValidation_API, getOnboardingDataForCash_API } from '../utils/api';
+import CommentBox from '../components/common/CommentBox';
+import { currenciesList } from '../data/currenciesList';
+import Error from '../components/common/Error';
 
 const CASH_API_URL = import.meta.env.VITE_TRAVEL_API_URL
 const DASHBOARD_URL = import.meta.env.VITE_DASHBOARD_URL
@@ -34,7 +37,7 @@ export default function(){
   const [multiCurrencyTable, setMultiCurrencyTable] = useState([])
   const [defaultCurrency, setDefaultCurrency] = useState({fullName:'Indian Rupees', shortName:'INR', symbol:'₹', countryCode:'IN'})
   const [violationMessage, setViolationMessage] = useState(cashAdvance?.cashAdvanceViolations??undefined)
-
+  const [reasonError, setReasonError] = useState({set:false, message: 'Please state reason for cash advance'});
 
   useEffect(()=>{
     console.log(multiCurrencyTable)
@@ -191,21 +194,29 @@ export default function(){
     }catch(e){console.log(e)}
   }
 
+
   const handleSubmit = async ()=>{
     //do validations
-    let allowSubmit = false
-    
+  
     async function validate(){
       return(new Promise((resolve, reject)=>{
-
-        allowSubmit=true
+        if(cashAdvance.amountDetails.some(item=>item.amount > 0)){
+          if(cashAdvance.cashAdvanceReason == undefined || cashAdvance.cashAdvanceReason == ""){
+            setReasonError({set:true, message:''});
+            return;
+          }else {
+            setReasonError({set:false, message:''})
+          }
+        }else{
+          setReasonError({set:false, message:''})
+        }
+        
         resolve()
       }))
     }
 
     await validate()
 
-    
     //send data to backend 
     try{
       console.log('this ran')
@@ -219,7 +230,9 @@ export default function(){
         //redirect to desktop after 5 seconds
         setTimeout(()=>{
           setShowPopup(false)
-          window.location.href = `${DASHBOARD_URL}/${tenantId}/${employeeId}/overview`
+          //window.location.href = `${DASHBOARD_URL}/${tenantId}/${employeeId}/overview`
+          
+          window.parent.postMessage('closeIframe', DASHBOARD_URL);
         }, 5000)
       }
 
@@ -237,34 +250,37 @@ export default function(){
     }
   }
 
+  function handleReasonChange(e){
+    const cashAdvance_copy = JSON.parse(JSON.stringify(cashAdvance))
+    cashAdvance_copy.cashAdvanceReason = e.target.value;
+    setCashAdvance(cashAdvance_copy)
+  }
+
     
   return (
-    <div className="w-full h-full relative bg-white md:px-24 md:mx-0 sm:px-0 sm:mx-auto py-12 select-none">
-            {/* app icon */}
-            <div className='w-full flex justify-center  md:justify-start lg:justify-start'>
-                <Icon/>
-            </div>
-
+    <div className="w-fit h-full relative bg-white md:px-8 sm:px-2 mx-auto py-4 select-none">
             {/* Rest of the section */}
-              {loading && <div className='w-full h-full mt-10 p-10'>Loading...</div>}
-              {!loading && <div className='w-full h-full mt-10 p-10'>   
+              {loading && <Error message={null} /> }
+              {!loading && <div className='w-full h-full'>   
 
                 {/* back link */}
-                <div className='flex items-center gap-4 cursor-pointer' onClick={handleBackButton}>
-                    <img className='w-[24px] h-[24px]' src={leftArrow_icon} />
+                <div className='flex items-center gap-4 cursor-pointer'>
                     <p className='text-neutral-700 text-md font-semibold font-cabin'>Edit Cash Advance</p>
                 </div>
                 
                 <div className='mt-10 flex flex-col gap-4'>
-                  <div className='flex items-center flex-wrap gap-6 mb-2'>
-                  <div>
-                    <p className='font-cabin text-xs text-neutral-600'>Travel Request Number</p>
-                    <p className='font-cabin font-semibold tex-lg'>{cashAdvance?.travelRequestNumber}</p>
+                  <div className='flex items-center flex-wrap gap-2 mb-2'>
+                    <div>
+                      <p className='font-cabin text-xs text-neutral-600'>Travel Request Number</p>
+                      <p className='font-cabin font-semibold tex-lg'>{cashAdvance?.travelRequestNumber}</p>
+                    </div>
                   </div>
                   <p className='font-cabin text-sm tracking-tight text-yellow-600'>{violationMessage}</p>
                 </div>
-                </div>
 
+                <div className='mt-8'>
+                    <CommentBox title='Reaons for Cash Advance' onchange={handleReasonChange} value={cashAdvance.cashAdvanceReason} error={reasonError} />
+                </div>
 
                 <div className='mt-10 flex flex-col gap-4'>
                 <div className='flex font-cabin gap-1'>
@@ -272,16 +288,32 @@ export default function(){
                   <p className='text-sm text-neutral-600'>{spitUnderstandableStatus(cashAdvance.cashAdvanceStatus)}</p>
                 </div>
                 {cashAdvance.amountDetails?.map((amountLine, index)=>
-                  <CurrencyInput id={index} amount={amountLine.amount} currency={amountLine.currency} mode={amountLine.mode} onModeChange= {handleModeChange} currencyOptions={filteredCurrencyOptions} onAmountChange={handleAmountChange} onCurrencyChange={handleCurrencyChange} setSearchParam={setSearchParam} removeItem={removeItem} />)
+                  <div className='flex gap-4 items-center'>
+                    <CurrencyInput 
+                      id={index} 
+                      amount={amountLine.amount} 
+                      currency={amountLine.currency} 
+                      mode={amountLine.mode} 
+                      onModeChange= {handleModeChange} 
+                      currencyOptions={filteredCurrencyOptions} 
+                      onAmountChange={handleAmountChange} 
+                      onCurrencyChange={handleCurrencyChange} 
+                      setSearchParam={setSearchParam} 
+                      removeItem={removeItem} />
+                    
+                     {index + 1 == cashAdvance.amountDetails.length && 
+                     <div className='' onClick={handleAddMore}>
+                        <p className='text-blue-800 underline cursor-pointer'>Add More</p>
+                      </div>}
+
+                    </div>
+                    )
                 }
                 </div>
 
-                <div className='mt-6'>
-                  <AddMore onClick={handleAddMore} />
-                </div>
+                
 
-                <div className='flex mt-10 justify-between items-center w-full'>
-                  <Button variant='fit' text="Save As Draft" onClick={handleSaveAsDraft} />
+                <div className='flex flex-row-reverse w-full mt-12 justify-between items-center w-full'>
                   <Button variant='fit' text="Submit" onClick={handleSubmit} />
                 </div>
 

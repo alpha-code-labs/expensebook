@@ -599,10 +599,3 @@ travelRequestSchema.pre("validate", function (next) {
     next();
   }
 });
-
-const TravelRequest = mongoose.model(
-  "travel_request_container",
-  travelRequestSchema
-);
-
-export default TravelRequest;

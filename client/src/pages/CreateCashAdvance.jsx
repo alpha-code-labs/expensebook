@@ -9,8 +9,9 @@ import PopupMessage from '../components/common/PopupMessage';
 import CloseButton from '../components/common/closeButton'
 import { cashPolicyValidation_API, getCashAdvance_API, getOnboardingDataForCash_API } from '../utils/api';
 import CurrencyInput from "../components/CurrencyIntput"
-
+import CommentBox from '../components/common/CommentBox';
 import Error from '../components/common/Error';
+import { currenciesList } from '../data/currenciesList';
 
 const CASH_API_URL = import.meta.env.VITE_TRAVEL_API_URL
 const DASHBOARD_URL = import.meta.env.VITE_DASHBOARD_URL
@@ -52,6 +53,7 @@ export default function(){
   const [violationMessage, setViolationMessage] = useState(null)
   const [tenantId, setTenantId] = useState('');
   const [employeeId, setEmployeeId] = useState('');
+  const [reasonError, setReasonError] = useState({set:false, message: 'Please state reason for cash advance'});
 
   useEffect(()=>{
     console.log(multiCurrencyTable)
@@ -117,7 +119,7 @@ export default function(){
     })()
   },[])
 
-  const [filteredCurrencyOptions, setFilteredCurrencyOptions] = useState([])
+  const [filteredCurrencyOptions, setFilteredCurrencyOptions] = useState(currenciesList.map(item=>({currency:item, value:1})))
   const [searchParam, setSearchParam] = useState('')
   
   useEffect(()=>{
@@ -125,11 +127,14 @@ export default function(){
   },[filteredCurrencyOptions])
 
   useEffect(()=>{
+    console.log(searchParam,'searchparam')
     if(searchParam == '' || searchParam == null || searchParam==undefined)
-    setFilteredCurrencyOptions(multiCurrencyTable.exchangeValue)
+    //setFilteredCurrencyOptions(multiCurrencyTable.exchangeValue)
+    setFilteredCurrencyOptions(currenciesList.map(item=>({currency:item, value:1})));
 
     else{
-     const filteredOptions = multiCurrencyTable.exchangeValue.filter(option=> (option.currency.fullName.toLowerCase().startsWith(searchParam.toLowerCase()) || option.currency.shortName.toLowerCase().startsWith(searchParam.toLowerCase()) ))
+     //const filteredOptions = multiCurrencyTable.exchangeValue.filter(option=> (option.currency.fullName.toLowerCase().startsWith(searchParam.toLowerCase()) || option.currency.shortName.toLowerCase().startsWith(searchParam.toLowerCase()) ))
+     const filteredOptions = currenciesList.map(item=>({currency:item, value:1})).filter(option=> (option.currency.fullName.toLowerCase().startsWith(searchParam.toLowerCase()) || option.currency.shortName.toLowerCase().startsWith(searchParam.toLowerCase()) ))
      setFilteredCurrencyOptions(filteredOptions)
     }
 
@@ -228,12 +233,19 @@ export default function(){
 
   const handleSubmit = async ()=>{
     //do validations
-    let allowSubmit = false
-    
     async function validate(){
       return(new Promise((resolve, reject)=>{
-
-        allowSubmit=true
+        if(cashAdvance.amountDetails.some(item=>item.amount > 0)){
+          if(cashAdvance.cashAdvanceReason == undefined || cashAdvance.cashAdvanceReason == ""){
+            setReasonError({set:true, message:''});
+            return;
+          }else {
+            setReasonError({set:false, message:''})
+          }
+        }else{
+          setReasonError({set:false, message:''})
+        }
+        
         resolve()
       }))
     }
@@ -264,44 +276,63 @@ export default function(){
     }catch(e){console.log(e)}
   }
 
+  function handleReasonChange(e){
+    const cashAdvance_copy = JSON.parse(JSON.stringify(cashAdvance))
+    cashAdvance_copy.cashAdvanceReason = e.target.value;
+    setCashAdvance(cashAdvance_copy)
+  }
+
   return (<>
     {loading && <Error message={loadingErrMsg}/>}
-    {!loading && <div className="w-full h-full relative bg-white md:px-24 md:mx-0 sm:px-0 sm:mx-auto py-12 select-none">
-            {/* app icon */}
-            <div className='w-full flex justify-center  md:justify-start lg:justify-start'>
-                <Icon/>
-            </div>
+    {!loading && <div className="w-fit h-full relative bg-white md:px-8 sm:px-2 mx-auto py-4 select-none">
 
             {/* Rest of the section */}
-              {<div className='w-full h-full mt-10 p-10'>   
+              {<div className='w-full h-full mt-10'>   
                 {/* back link */}
-                <div className='flex items-center gap-4 cursor-pointer' onClick={handleBackButton}>
-                    <img className='w-[24px] h-[24px]' src={leftArrow_icon} />
+                <div className='flex items-center gap-4 cursor-pointer'>
                     <p className='text-neutral-700 text-md font-semibold font-cabin'>Create Cash Advance</p>
                 </div>
 
                 <div className='mt-10 flex flex-col gap-4'>
-                  <div className='flex items-center flex-wrap gap-6 mb-2'>
-                  <div>
-                    <p className='font-cabin text-xs text-neutral-600'>Travel Request Number</p>
-                    <p className='font-cabin font-semibold tex-lg'>{cashAdvance?.travelRequestNumber}</p>
-                  </div>
-                  <p className='font-cabin text-sm tracking-tight text-yellow-600'>{violationMessage}</p>
-                </div>
 
+                  <div className='flex flex-col gap-2 mb-2'>
+                    <div>
+                      <p className='font-cabin text-xs text-neutral-600'>Travel Request Number</p>
+                      <p className='font-cabin font-semibold tex-lg'>{cashAdvance?.travelRequestNumber}</p>
+                    </div>
+                    <p className='font-cabin text-sm tracking-tight text-yellow-600'>{violationMessage}</p>
+                  </div>
+                
+                <div className='mt-8'>
+                    <CommentBox title='Reaons for Cash Advance' onchange={handleReasonChange} value={cashAdvance.cashAdvanceReason} error={reasonError} />
+                </div>
+                
                 {cashAdvance.amountDetails?.map((amountLine, index)=>
                   <div key={index}>
-                    <CurrencyInput id={index} amount={amountLine.amount} currency={amountLine.currency} mode={amountLine.mode} onModeChange= {handleModeChange} currencyOptions={filteredCurrencyOptions} cashAdvanceOptions={paymentOptions??[]} onAmountChange={handleAmountChange} onCurrencyChange={handleCurrencyChange} setSearchParam={setSearchParam} removeItem={removeItem} />
+                    <div className='flex gap-4 items-center'>
+                    <CurrencyInput 
+                      id={index} 
+                      amount={amountLine.amount} 
+                      currency={amountLine.currency} 
+                      mode={amountLine.mode} 
+                      onModeChange= {handleModeChange} 
+                      currencyOptions={filteredCurrencyOptions} 
+                      onAmountChange={handleAmountChange} 
+                      onCurrencyChange={handleCurrencyChange} 
+                      setSearchParam={setSearchParam} 
+                      removeItem={removeItem} />
+                    
+                     {index + 1 == cashAdvance.amountDetails.length && 
+                     <div className='' onClick={handleAddMore}>
+                        <p className='text-blue-800 underline cursor-pointer'>Add More</p>
+                      </div>}
+
+                    </div>
                   </div>)
                 }
                 </div>
 
-                <div className='mt-6'>
-                  <AddMore onClick={handleAddMore} />
-                </div>
-
-                <div className='flex mt-10 justify-between items-center w-full'>
-                  <Button variant='fit' text="Save As Draft" onClick={handleSaveAsDraft} />
+                <div className='flex flex-row-reverse mt-10 justify-between items-center w-full'>
                   <Button variant='fit' text="Submit" onClick={handleSubmit} />
                 </div>
               </div>}

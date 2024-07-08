@@ -126,6 +126,7 @@ const createCashAdvance = async (req, res) => {
     const createdBy = travelRequestData.createdFor?.empId ?? travelRequestData.createdBy
     const tenantId = travelRequestData.tenantId
     const travelRequestNumber = travelRequestData.travelRequestNumber
+    const tripName = travalRequestData.tripName
     const travelType = travelRequestData.travelType
     const cashAdvanceNumber = `CA0001`
     const cashAdvanceId = new mongoose.Types.ObjectId
@@ -148,6 +149,7 @@ const createCashAdvance = async (req, res) => {
         totalConvertedAmount: 0,
         defaultCurrency,
         travelRequestNumber,
+        tripName,
         travelType,
         cashAdvanceId,
         cashAdvanceNumber,
@@ -231,26 +233,26 @@ const updateCashAdvance = async (req, res) => {
           //some amount is requested
           
           //populate converted amount in amount details
-          const currencyRates_res = await HRMaster.findOne({tenantId: cashAdvances[0].tenantId}, {multiCurrencyTable:1});
-          if(!currencyRates_res) throw new Error('Can not query multicurrency table');
+          // const currencyRates_res = await HRMaster.findOne({tenantId: cashAdvances[0].tenantId}, {multiCurrencyTable:1});
+          // if(!currencyRates_res) throw new Error('Can not query multicurrency table');
 
-          const multiCurrencyTable = currencyRates_res.multiCurrencyTable;
-          const defaultCurrency = multiCurrencyTable.defaultCurrency;
+          // const multiCurrencyTable = currencyRates_res.multiCurrencyTable;
+          // const defaultCurrency = multiCurrencyTable.defaultCurrency;
           
-          let totalConvertedAmount = 0;
-          updatedCashAdvance.amountDetails.forEach(item=>{
+          // let totalConvertedAmount = 0;
+          // updatedCashAdvance.amountDetails.forEach(item=>{
 
-            const exchangeValueItem = 
-            multiCurrencyTable.exchangeValue.find(er=> er.currency.shortName  ==  item.currency.shortName)?? item.currency.shortName == defaultCurrency.shortName ? {value: 1} : false ;
-            if(!exchangeValueItem) throw new Error('Can not find requested currencies conversion rate');
+          //   const exchangeValueItem = 
+          //   multiCurrencyTable.exchangeValue.find(er=> er.currency.shortName  ==  item.currency.shortName)?? item.currency.shortName == defaultCurrency.shortName ? {value: 1} : false ;
+          //   if(!exchangeValueItem) throw new Error('Can not find requested currencies conversion rate');
 
-            const conversionRate = exchangeValueItem.value;
-            item.exchangeRate = conversionRate;
-            item.convertedAmount = Math.round(item?.amount*conversionRate*100)/100 ?? 0;
-            totalConvertedAmount+=item.convertedAmount;
-          })
+          //   const conversionRate = exchangeValueItem.value;
+          //   item.exchangeRate = conversionRate;
+          //   item.convertedAmount = Math.round(item?.amount*conversionRate*100)/100 ?? 0;
+          //   totalConvertedAmount+=item.convertedAmount;
+          // })
           
-          updatedCashAdvance.totalConvertedAmount = totalConvertedAmount;
+         // updatedCashAdvance.totalConvertedAmount = totalConvertedAmount;
 
           //check if approval is needed
           if(updatedCashAdvance.approvers.length>0){
@@ -277,23 +279,23 @@ const updateCashAdvance = async (req, res) => {
     console.log(ca_index, 'index of cash advance')
     ca_res.cashAdvancesData[ca_index] = updatedCashAdvance;
 
-    ca_res.cashAdvancesData.forEach((advance)=>console.log(advance?.totalConvertedAmount??'not found'));
+    // ca_res.cashAdvancesData.forEach((advance)=>console.log(advance?.totalConvertedAmount??'not found'));
 
-    const requested_statusList = ['pending approval', 'pending settlement', 'awaiting pending settlement', 'cancelled', 'paid'] 
+    // const requested_statusList = ['pending approval', 'pending settlement', 'awaiting pending settlement', 'cancelled', 'paid'] 
 
-    ca_res.totalAdvanceRequested = ca_res.cashAdvancesData
-    .filter(advance=>advance.totalConvertedAmount>0 && requested_statusList.includes(advance.cashAdvanceStatus) )
-    .reduce((acc, advance)=> advance?.totalConvertedAmount + acc, 0);
+    // ca_res.totalAdvanceRequested = ca_res.cashAdvancesData
+    // .filter(advance=>advance.totalConvertedAmount>0 && requested_statusList.includes(advance.cashAdvanceStatus) )
+    // .reduce((acc, advance)=> advance?.totalConvertedAmount + acc, 0);
 
-    const granted_statusList = ['paid', 'recovered', 'paid and cancelled'] 
-    ca_res.totalAdvanceGranted = ca_res.cashAdvancesData
-    .filter(advance=>advance.totalConvertedAmount>0 && granted_statusList.includes(advance.cashAdvanceStatus) )
-    .reduce((acc, advance)=> advance?.totalConvertedAmount + acc, 0);
+    // const granted_statusList = ['paid', 'recovered', 'paid and cancelled'] 
+    // ca_res.totalAdvanceGranted = ca_res.cashAdvancesData
+    // .filter(advance=>advance.totalConvertedAmount>0 && granted_statusList.includes(advance.cashAdvanceStatus) )
+    // .reduce((acc, advance)=> advance?.totalConvertedAmount + acc, 0);
 
-    const recovered_statusList = ['recovered'] 
-    ca_res.totalAdvanceRecovered = ca_res.cashAdvancesData
-    .filter(advance=>advance.totalConvertedAmount>0 && recovered_statusList.includes(advance.cashAdvanceStatus) )
-    .reduce((acc, advance)=> advance?.totalConvertedAmount + acc, 0);
+    // const recovered_statusList = ['recovered'] 
+    // ca_res.totalAdvanceRecovered = ca_res.cashAdvancesData
+    // .filter(advance=>advance.totalConvertedAmount>0 && recovered_statusList.includes(advance.cashAdvanceStatus) )
+    // .reduce((acc, advance)=> advance?.totalConvertedAmount + acc, 0);
 
     
     console.log(ca_res, 'ca_res')

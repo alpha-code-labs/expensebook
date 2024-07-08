@@ -32,6 +32,7 @@ const getTravelRequest = async (req, res) => {
         .json({ message: "missing travel request identifier" });
     }
 
+    console.log(travelRequestId, 'tr id')
     const travelRequest_res = await CashAdvance.findOne(
       { 'travelRequestData.travelRequestId':travelRequestId },
       { travelRequestData: 1, cashAdvancesData:1}
