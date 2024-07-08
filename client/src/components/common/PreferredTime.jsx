@@ -100,8 +100,8 @@ export default function ({onChange, value, title='Pickup Time'}){
                 animate='visible' 
                 variants={list} 
                 ref={dropdownRef} 
-                style={{top: `${coordinates.y}px` , left: `${coordinates.x-230}px`}} 
-                className="fixed flex flex-col w-[174px] bg-white rounded shadow-xl border border-md border-neutral-300 z-[101]">
+                style={{top: `-100px` , left: `0px`}} 
+                className="absolute flex flex-col w-[174px] bg-white rounded shadow-xl border border-md border-neutral-300 z-[101]">
                 
                 {timings.map((preferredTime,index)=>(
                     <motion.div variants={listItem}  key={index} className="w-full pl-6 z-[100] h-[45px] flex items-center py-2 gap-2 hover:bg-slate-100 hover:scale-1.5" onClick={()=>onPreferredTimeChange(preferredTime)}>
