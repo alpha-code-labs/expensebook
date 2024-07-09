@@ -30,14 +30,14 @@ export const statusChangeBatchJob = async () => {
       const updatedTrips = tripsToUpdate.map(trip => ({
         ...trip._doc,
         tripStatus: 'transit'
-       }));
-       
+      }));
+      
       const action = 'status-update';
       const needConfirmation = false;
       console.log("updatedTrips before rabbitMq", updatedTrips);
   
       // Send updatedTrips to RabbitMQ
-      const sendResult = await sendToDashboardMicroservice(updatedTrips, action, 'Batchjob trip status change from upcoming to transit', 'trip', 'batch', needConfirmation);
+      const sendResult = await sendToDashboardMicroservice(updatedTrips, action, 'Batch job trip status change from upcoming to transit', 'trip', 'batch', needConfirmation);
   
       if (sendResult) {
         // Update the database only if the message was successfully sent to RabbitMQ
@@ -52,9 +52,9 @@ export const statusChangeBatchJob = async () => {
       console.error('Error in statusChangeBatchJob:', error);
       return { error: 'An error occurred during the batch job.' };
   }
- };
- 
- 
+};
+
+
 // export const statusChangeBatchJob = async () => {
 //   try {
 //       const todayDate = new Date();
@@ -140,7 +140,7 @@ export const statusChangeBatchJob = async () => {
 //      return { error: 'An error occurred during the batch job.' };
 //   }
 //  };
- 
+
 
 export const scheduleTripTransitBatchJob = () => {
  const schedule = process.env.SCHEDULE_TIME??'* * * * *'; // Runs every 20 seconds

@@ -4,101 +4,66 @@ import  Trip  from '../models/tripSchema.js';
 import { calculateDateDifferenceInDays } from '../utils/dateUtils.js';
 import { sendToDashboardMicroservice } from '../rabbitmq/dashboardMicroservice.js';
 import dotenv from 'dotenv'
-import { sendToOtherMicroservice } from '../rabbitmq/publisher.js';
 
 dotenv.config();
 
 // Define the schedule time for the batch job (e.g., daily at midnight)
 const scheduleTime = process.env.SCHEDULE_TIME??'* * * * *';
 
-//send all 3 (standalone travel , travel from cash and cash from cash) arrays to dashboard- to update the status 
+
 const updateTransitTrips = async (transitTrips) => {
-  console.log("array of transit trips to update status", transitTrips)
   const todayDate = new Date();
 
-  const listOfClosedTravelRequests = [];
-  const listOfClosedCashAdvances = [];
-  const listOfClosedStandAloneTravelRequests = [];
+  const ListOfClosedtravelRequests = [];
+  const ListOfClosedcashAdvances = [];
+  const ListOfClosedStandAlonetravelRequests = [];
 
   for (const trip of transitTrips) {
     const lastLineItemDate = getLastLineItemDate(trip.travelRequestData.itinerary);
 
     if (todayDate > lastLineItemDate) {
       await processCompletionIfApplicable(trip, todayDate, lastLineItemDate);
+
       await processClosureIfApplicable(trip);
-      
-      if (
-        trip.tripStatus === 'completed' &&
-        trip.tripCompletionDate <= new Date(todayDate.setDate(todayDate.getDate() - 1)) &&
-        trip?.travelRequestData?.isCashAdvanceTaken
-      ) {
-        listOfClosedTravelRequests.push(trip.travelRequestId);
 
       //Closed Travel Requests with Cash Advances Taken
       if (
         trip.tripStatus === 'closed' &&
         trip.tripCompletionDate <= new Date(todayDate.setDate(todayDate.getDate() - 89)) &&
-        trip?.travelRequestData?.isCashAdvanceTaken
+        trip.isCashAdvanceTaken
       ) {
-        listOfClosedTravelRequests.push(trip.travelRequestId);
+        ListOfClosedtravelRequests.push(trip.travelRequestId);
 
         // Iterate over each cash advance and push its ID to the list
-        trip.cashAdvancesData.forEach(advance => listOfClosedCashAdvances.push(advance.cashAdvanceId));
+        trip.cashAdvancesData.forEach(advance => ListOfClosedcashAdvances.push(advance.cashAdvanceId));
       }
 
       // Closed Standalone Travel Requests
       if (
         trip.tripStatus === 'completed' &&
         trip.tripCompletionDate <= new Date(todayDate.setDate(todayDate.getDate() - 89)) &&
-        !trip.travelRequestData?.isCashAdvanceTaken
+        !trip.isCashAdvanceTaken
       ) {
-        listOfClosedStandAloneTravelRequests.push(trip.travelRequestId);
+        ListOfClosedStandAlonetravelRequests.push(trip.travelRequestId);
       }
     }
   }
 
   // Further operations with the lists if needed
-  console.log('listOfClosedTravelRequests:', listOfClosedTravelRequests);
-  console.log('listOfClosedCashAdvances:', listOfClosedCashAdvances);
-  console.log('listOfClosedStandAloneTravelRequests:', listOfClosedStandAloneTravelRequests);
-}
-
-return { 
-  listOfClosedStandAloneTravelRequests ,
-  listOfClosedTravelRequests , 
-  listOfClosedCashAdvances 
-}
+  console.log('ListOfClosedtravelRequests:', ListOfClosedtravelRequests);
+  console.log('ListOfClosedcashAdvances:', ListOfClosedcashAdvances);
+  console.log('ListOfClosedStandAlonetravelRequests:', ListOfClosedStandAlonetravelRequests);
 };
 
 const processCompletionIfApplicable = async (trip, todayDate, lastLineItemDate) => {
   const dateDifference = calculateDateDifferenceInDays(lastLineItemDate, todayDate);
 
-  const {tripId} = trip
-
-  const status = {
-    TRANSIT:'transit',
-    COMPLETED:'completed'
-  }
-
   if (dateDifference > 1) {
     await updateDocumentsForCompletion(trip);
 
-    // Additional data processing for completion
+    // Additional data processing for completion, if needed
     trip.tripStatus = 'completed';
-
-    const tripCompleted = await Trip.updateOne({
-      tripId,
-      'trip.tripStatus':status.TRANSIT
-    },
-  {
-    'trip.tripStatus': status.COMPLETED
-  })
-
-  if(!tripCompleted){
-    throw new Error(`Error Occurred - batch job -status change from transit to completed - ${tripId} tripId no found `)
-  } else {
-    console.log(`Trip ${tripId} status updated to completed successfully`)
-  }
+    await saveDataInTripContainer(trip);
 
     // Check if expenses have been submitted
     // if (!trip.expensesSubmitted) {
@@ -110,16 +75,9 @@ const processCompletionIfApplicable = async (trip, todayDate, lastLineItemDate) 
 
 // Function to update documents in the Trip collection for completion
 const updateDocumentsForCompletion = async (trip) => {
-  const {tripId} = trip
-
-  const status = {
-    TRANSIT: 'transit',
-    COMPLETED:'completed'
-  }
-
   const updateConditions = {
-    tripId,
-    tripStatus: status.TRANSIT,
+    _id: trip._id,
+    tripStatus: 'transit',
     tripStartDate: { $lte: new Date() },
   };
 
@@ -137,62 +95,54 @@ const updateDocumentsForCompletion = async (trip) => {
   });
 
   // Combine the transportation queries using $or operator
-  updateConditions.$and = transportationQuery.map(query => ({ $or: [query] }));
+   updateConditions.$and = transportationQuery.map(query => ({ $or: [query] }));
 
   await Trip.updateMany(
     updateConditions,
     {
       $set: {
-        tripStatus: status.COMPLETED,
-        travelRequestStatus: status.COMPLETED,
+        tripStatus: 'completed',
+        travelRequestStatus: 'completed',
       },
     }
   );
 
-  // //RabbitMq - sending to dashboard 
-  // const action = 'status-completed'
-  // const comments = 'Status update for TRIPS from TRANSIT to COMPLETED'
-  // const data = 'batch';
-  // const needConfirmation = false;
-  //  // Send updated trip to the dashboard synchronously
-  // await sendToDashboardMicroservice(trip,action, comments, data,needConfirmation );
+   //RabbitMq - sending to dashboard 
+   const data = 'batch';
+   const needConfirmation = false;
+   // Send updated trip to the dashboard synchronously
+   await sendToDashboardMicroservice(trip, data,needConfirmation );
 };
 
 
 // Function to process close the trip, if trip last line item is more than 90 days
 const processClosureIfApplicable = async (trip) => {
-
-  if (trip.tripStatus === 'completed' && calculateDateDifferenceInDays(trip.lastLineItem.date, new Date()) > 90) {
+  if (trip.status === 'completed' && calculateDateDifferenceInDays(trip.lastLineItem.date, new Date()) > 90) {
     await updateDocumentsForClosure(trip);
 
     // Additional data processing for closure, if needed
-    trip.tripStatus = 'closed';
+    trip.status = 'closed';
+    await saveDataInTripContainer(trip);
 
-  
-  //   //RabbitMq - sending to dashboard 
-  //   const data = 'batch';
-  //   const needConfirmation = false;
-  //   // Send updated trip to the dashboard synchronously
-  //  await sendToDashboardMicroservice(trip, data,needConfirmation );
+    //RabbitMq - sending to dashboard 
+    const data = 'batch';
+    const needConfirmation = false;
+    // Send updated trip to the dashboard synchronously
+   await sendToDashboardMicroservice(trip, data,needConfirmation );
   }
 };
 
 // Function to update documents in the Trip collection for closure
 const updateDocumentsForClosure = async (trip) => {
-  const {tripId} = trip
-  const status = {
-    COMPLETED: 'completed',
-    CLOSED: 'closed',
-  }
   await Trip.updateMany(
     {
-      tripId: tripId,
-      tripStatus: status.COMPLETED,
+      _id: trip._id,
+      tripStatus: 'completed',
     },
     {
       $set: {
-        tripStatus: status.CLOSED,
-        'travelRequestStatus': status.CLOSED,
+        tripStatus: 'closed',
+        'travelRequestStatus': 'closed',
       },
     }
   );
@@ -244,7 +194,7 @@ const getCompletedTravelRequestsWithCashAdvances = async () => {
     isCashAdvanceTaken: true,
   });
 
-  const listOfCompletedTravelRequests = completedTrips.map(trip => trip.travelRequestData.travelRequestId);
+  const listOfCompletedTravelRequests = completedTrips.map(trip => trip.travelRequestId);
 
   // Extracting cashAdvanceId from each object in the CashAdvances array
   const listOfCompletedCashAdvances = completedTrips.reduce((cashAdvancesData, trip) => {
@@ -267,70 +217,28 @@ const getCompletedStandaloneTravelRequests = async () => {
     'isCashAdvanceTaken': false,
   });
 
-  const listOfCompletedStandaloneTravelRequests = completedStandaloneTrips.map(trip => trip.travelRequestData.travelRequestId);
+  const listOfCompletedStandaloneTravelRequests = completedStandaloneTrips.map(trip => trip.travelRequestId);
 
   return { listOfCompletedStandaloneTravelRequests };
 };
 
 // Define the batch job
-const transitToCompleteBatchJob = ()=>{ 
-  cron.schedule(scheduleTime, async () => {
+const transitBatchJob = ()=>{ cron.schedule(scheduleTime, async () => {
   try {
     // Find all trips with status "transit"
     const transitTrips = await Trip.find({ tripStatus: 'transit' });
 
     // Update transit trips
-    const { listOfClosedStandAloneTravelRequests , listOfClosedTravelRequests , listOfClosedCashAdvances  } = await updateTransitTrips(transitTrips);
+    await updateTransitTrips(transitTrips);
 
-    //RabbitMq 
-    const destinationDash = 'dashboard'
-
-    if(listOfClosedStandAloneTravelRequests.length > 0){
-      const payload = {listOfClosedStandAloneTravelRequests}
-      const action = 'status-completed-closed'
-      const destination = 'travel'
-      const comments = 'Status change of transit Trips to CLOSED, travel request status change to CLOSED'
-      const onlineVsBatch = 'batch'
-      await sendToOtherMicroservice(payload, action, destination, comments, source='trip', onlineVsBatch)
-      await sendToOtherMicroservice(payload,action, destinationDash,comments, source= 'trip',onlineVsBatch)
-    } else if(listOfClosedTravelRequests.length > 0 || listOfClosedCashAdvances.length > 0){
-      const payload = {listOfClosedTravelRequests, listOfClosedCashAdvances }
-      const action = 'status-completed-closed'
-      const destination = 'cash'
-      const comments = 'Status change of transit Trips to CLOSED, travel request status change to CLOSED and cashAdvance status is changed to CLOSED'
-      const onlineVsBatch = 'batch'
-      await sendToOtherMicroservice(payload, action, destination, comments, source='trip', onlineVsBatch)
-      await sendToOtherMicroservice(payload, action, destinationDash, comments, source='trip', onlineVsBatch)
-    }
-
-  // Collect completed standalone travel requests
-  const { listOfCompletedStandaloneTravelRequests } = await getCompletedStandaloneTravelRequests();
-
-    // Collect completed travel requests with cash advances taken
+    // Logic 1: Collect completed travel requests with cash advances taken
     const {
       listOfCompletedTravelRequests,
       listOfCompletedCashAdvances,
     } = await getCompletedTravelRequestsWithCashAdvances();
 
-
-    if(listOfCompletedStandaloneTravelRequests.length > 0){
-      const payload = {listOfCompletedStandaloneTravelRequests}
-      const action = 'status-completed-closed'
-      const destination = 'travel'
-      const comments = 'Status change of transit Trips to COMPLETED, travel request status change to COMPLETED'
-      const onlineVsBatch = 'batch'
-      await sendToOtherMicroservice(payload, action, destination, comments, source='trip', onlineVsBatch)
-      await sendToOtherMicroservice(payload, action, destinationDash, comments, source='trip', onlineVsBatch)
-    }
-    else if(listOfCompletedTravelRequests.length > 0 || listOfCompletedCashAdvances.length > 0){
-      const payload = {listOfCompletedTravelRequests, listOfCompletedCashAdvances }
-      const action = 'status-completed-closed'
-      const destination = 'cash'
-      const comments = 'Status change of transit Trips to COMPLETED, travel request status change to COMPLETED and cashAdvance status is changed to COMPLETED'
-      const onlineVsBatch = 'batch'
-      await sendToOtherMicroservice(payload, action, destination, comments, source='trip', onlineVsBatch)
-      await sendToOtherMicroservice(payload, action, destinationDash, comments, source='trip', onlineVsBatch)
-    }
+    // Logic 2: Collect completed standalone travel requests
+    const { listOfCompletedStandaloneTravelRequests } = await getCompletedStandaloneTravelRequests();
 
     console.log('Status change Transit to complete batch job completed successfully.');
   } catch (error) {
@@ -341,7 +249,11 @@ const transitToCompleteBatchJob = ()=>{
 
 
 // Export the batch job for use in other modules
-export {transitToCompleteBatchJob};
+export {transitBatchJob};
+
+
+
+
 
 
 
