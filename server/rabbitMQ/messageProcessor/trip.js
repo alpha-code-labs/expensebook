@@ -10,16 +10,25 @@ export async function cancelTravelRequest(payload){
         return {success:true, error:null}
     }catch(e){
         return {success:false, error:e}
-        
     }
 }
 
 export async function markCompleted(payload){
     try{
-        const {listOfClosedStandAloneTravelRequests} = payload
-        const result = await TravelRequest.updateMany(
-            { travelRequestId: { $in : listOfClosedStandAloneTravelRequests }}, 
-            { $set : { travelRequestStatus: 'completed' } });
+        const {listOfClosedStandAloneTravelRequests, listOfCompletedStandAloneTravelRequests} = payload
+
+        if(listOfClosedStandAloneTravelRequests?.length >0){
+            const result = await TravelRequest.updateMany(
+                { travelRequestId: { $in : listOfClosedStandAloneTravelRequests }}, 
+                { $set : { travelRequestStatus: 'completed' } });
+        }
+
+        if(listOfCompletedStandAloneTravelRequests?.length > 0){
+            const result = await TravelRequest.updateMany(
+                { travelRequestId: { $in : listOfCompletedStandAloneTravelRequests }}, 
+                { $set : { travelRequestStatus: 'completed' } });
+        }
+        
         return {success:true, error:null}
     }catch(e){
         return {success:false, error:e}
