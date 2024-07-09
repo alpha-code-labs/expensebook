@@ -10,6 +10,8 @@ const travelRequestStatusEnums = [
   "cancelled",
   "recovered",
   "paid and cancelled",
+  "closed",
+  "completed",
 ];
 
 const travelRequestStateEnums = [

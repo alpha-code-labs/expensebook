@@ -20,7 +20,7 @@ export async function markCompleted(payload){
         if(listOfClosedStandAloneTravelRequests?.length >0){
             const result = await TravelRequest.updateMany(
                 { travelRequestId: { $in : listOfClosedStandAloneTravelRequests }}, 
-                { $set : { travelRequestStatus: 'completed' } });
+                { $set : { travelRequestStatus: 'closed' } });
         }
 
         if(listOfCompletedStandAloneTravelRequests?.length > 0){
