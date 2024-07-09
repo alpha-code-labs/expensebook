@@ -1054,6 +1054,7 @@ function AddScannedTicket(
         return;
      }
 
+     console.log('from add scanned tickets');
      console.log(addTicketVariables, 'addTicketVariables')
      let presentURL = formData.itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex].bookingDetails.docURL??undefined;
        
@@ -1096,11 +1097,18 @@ function AddScannedTicket(
      return(<>
         {!scanComplete && <div className="h-full flex flex-1 flex-col items-center justify-center overflow-y-scroll no-scroll">
                     
-            {!fileSelected && <Upload 
-                    selectedFile={selectedFile} 
-                    setSelectedFile={setSelectedFile} 
-                    fileSelected={fileSelected} 
-                    setFileSelected={setFileSelected}  />}
+            {!fileSelected && 
+                    <div>
+                        <Upload 
+                                selectedFile={selectedFile} 
+                                setSelectedFile={setSelectedFile} 
+                                fileSelected={fileSelected} 
+                                setFileSelected={setFileSelected}  />
+
+                        <label htmlFor="camera_input">Open Camera</label>      
+                        <input name='camera_input' type="file" accept="image/*" capture="camera"/>
+                    </div>
+                    }
         
             {fileSelected && 
                 <div className='relative flex flex-col items-center w-full h-full'>
