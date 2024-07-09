@@ -1,6 +1,7 @@
 import dashboard from '../../models/dashboardSchema.js';
 import pino from 'pino';
 import pinoPretty from 'pino-pretty';
+import { getTravelRequestStatus} from './status.js';
 
 const logger = pino({
   prettifier: pinoPretty
@@ -261,4 +262,179 @@ if (failedUpdates.length > 0) {
   }
 }
 }
+
+// export const updateTripToCompleteOrClosed = async(payload) => {
+
+//   const {
+//     listOfClosedStandAloneTravelRequests = [], 
+//     listOfCompletedStandaloneTravelRequests= [],
+//     listOfCompletedTravelRequests = [],
+//     listOfClosedTravelRequests = [],
+//   } = payload
+
+
+//   if(listOfClosedStandAloneTravelRequests.length > 0){
+
+//     const updateTravel = await dashboard.updateMany({
+//       'travelRequestSchema.travelRequestId':{$in:listOfClosedStandAloneTravelRequests}
+//     },{
+//       $set:{
+//         'travelRequestSchema.travelStatus': getTravelRequestStatus.CLOSED
+//       }
+//     }
+//   )
+
+//   if (updateTravel.modifiedCount !== listOfClosedStandAloneTravelRequests.length) {
+//     console.log('error occurred', updateTravel)
+//     throw new Error('Failed to update travel requests to closed status', updateTravel);
+//   } else {
+//     console.log('Successfully updated travel requests to closed status');
+//     return 
+//   }
+//   } else if (listOfCompletedStandaloneTravelRequests.length > 0){
+//     const updateTravel = await dashboard.updateMany({
+//       'travelRequestSchema.travelRequestId':{$in:listOfCompletedStandaloneTravelRequests}
+//     },{
+//       $set:{
+//         'travelRequestSchema.travelRequestStatus': getTravelRequestStatus.COMPLETED
+//       }
+//     })
+
+//     if(updateTravel.modifiedCount !== listOfCompletedStandaloneTravelRequests.length > 0){
+//       console.log('error occurred', updateTravel)
+//       // throw new Error('Failed to update travel requests to completed status', updateTravel);
+//       return{success:false, error: error}
+//     }else{
+//       console.log('Successfully updated travel requests to completed status');
+//       return{success:true, error: null}
+//     }
+//   } else if (listOfCompletedTravelRequests.length > 0){
+//     const updateTravel = await dashboard.updateMany({
+//       'cashAdvanceSchema.travelRequestData.travelRequestId':{$in:listOfCompletedTravelRequests}
+//     },{
+//       $set:{
+//         'cashAdvanceSchema.travelRequestData.travelRequestStatus': getTravelRequestStatus.COMPLETED
+//       }
+//     })
+//     if(updateTravel.modifiedCount !== listOfCompletedTravelRequests.length > 0){
+//       console.log('error occurred', updateTravel)
+//       return { success: false, error: error}
+//     } else{
+//       console.log('Successfully updated travel requests to completed status');
+//       return {success: true , error: error}
+//     }
+//   } else if(listOfClosedTravelRequests.length > 0){
+//     const updateTravel = await dashboard.updateMany({
+//       'cashAdvanceSchema.travelRequestData.travelRequestId':{$in:listOfClosedTravelRequests}
+//     },{
+//       $set:{
+//         'cashAdvanceSchema.travelRequestData.travelRequestStatus': getTravelRequestStatus.CLOSED
+//       }
+//     }
+//   )
+//   if(updateTravel.modifiedCount !== listOfClosedTravelRequests.length > 0){
+//     console.log('error occurred', updateTravel)
+//     return { success: false, error: error}
+//   }else{
+//     console.log('Successfully updated travel requests to closed status');
+//     return { success: true, error: null}
+//   }
+//   }
+
+// }
+
+export const updateTripToCompleteOrClosed = async (payload) => {
+  const {
+    listOfCompletedStandaloneTravelRequests = [],
+    listOfClosedStandAloneTravelRequests = [], 
+    listOfCompletedTravelRequests = [],
+    listOfClosedTravelRequests = [],
+  } = payload;
+
+  const promises = [];
+
+  if (listOfCompletedStandaloneTravelRequests.length > 0) {
+    promises.push(updateTravelRequests(listOfCompletedStandaloneTravelRequests, 'travelRequestSchema.travelRequestStatus', getTravelRequestStatus.COMPLETED));
+  }
+
+  if (listOfClosedStandAloneTravelRequests.length > 0) {
+    promises.push(updateTravelRequests(listOfClosedStandAloneTravelRequests, 'travelRequestSchema.travelRequestStatus', getTravelRequestStatus.CLOSED));
+  }
+
+  if (listOfCompletedTravelRequests.length > 0) {
+    promises.push(updateCashAdvanceRequests(listOfCompletedTravelRequests, 'cashAdvanceSchema.travelRequestData.travelRequestStatus', getTravelRequestStatus.COMPLETED));
+  }
+
+  if (listOfClosedTravelRequests.length > 0) {
+    promises.push(updateCashAdvanceRequests(listOfClosedTravelRequests, 'cashAdvanceSchema.travelRequestData.travelRequestStatus', getTravelRequestStatus.CLOSED));
+  }
+
+  try {
+    const results = await Promise.all(promises);
+
+    // Check if all updates were successful
+    results.forEach(result => {
+      if (!result.success) {
+        throw new Error(result.error || 'Unknown error');
+      }
+    });
+
+    return { success: true, error: null };
+  } catch (error) {
+    console.error('Error occurred during updates:', error);
+    return { success: false, error: error.message || 'Unknown error' };
+  }
+};
+
+async function updateTravelRequests(travelRequestIds, updateField, updateValue) {
+  try {
+    const updateTravel = await dashboard.updateMany({
+      'travelRequestSchema.travelRequestId': { $in: travelRequestIds }
+    }, {
+      $set: {
+        [updateField]: updateValue
+      }
+    });
+
+    if (updateTravel.modifiedCount !== travelRequestIds.length) {
+      console.log('Failed to update travel requests:', updateTravel);
+      return { success: false, error: 'Failed to update travel requests to desired status' };
+    } else {
+      console.log('Successfully updated travel requests');
+      return { success: true, error: null };
+    }
+  } catch (error) {
+    console.error('Error updating travel requests:', error);
+    return { success: false, error: error.message || 'Unknown error' };
+  }
+}
+
+async function updateCashAdvanceRequests(travelRequestIds, updateField, updateValue) {
+  try {
+    const updateTravel = await dashboard.updateMany({
+      'cashAdvanceSchema.travelRequestData.travelRequestId': { $in: travelRequestIds }
+    }, {
+      $set: {
+        [updateField]: updateValue
+      }
+    });
+
+    if (updateTravel.modifiedCount !== travelRequestIds.length) {
+      console.log('Failed to update cash advance requests:', updateTravel);
+      return { success: false, error: 'Failed to update cash advance requests to desired status' };
+    } else {
+      console.log('Successfully updated cash advance requests');
+      return { success: true, error: null };
+    }
+  } catch (error) {
+    console.error('Error updating cash advance requests:', error);
+    return { success: false, error: error.message || 'Unknown error' };
+  }
+}
+
+
+
+
+
+
 
