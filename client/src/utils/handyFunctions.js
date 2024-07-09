@@ -113,18 +113,18 @@ function formatDate(date=Date.now()){
         case "booked":
         case "paid":
         case "recovered":
-        return 'border border-green-200 bg-green-100 text-green-200 rounded-md';
+        return 'border border-green-200 bg-green-100 text-green-200 rounded-full';
       case "rejected":
       case "cancelled":  
       case "paid and cancelled":  
-        return 'border border-red-900 bg-red-100 text-red-900 rounded-md';
+        return 'border border-red-900 bg-red-100 text-red-900 rounded-full';
       case "pending settlement":
       case "pending approval": 
       case "pending booking": 
       case "pending": 
       case "transit":
       case "draft":
-        return 'border border-yellow-200 bg-yellow-100 text-yellow-200 rounded-md';
+        return 'border border-yellow-200 bg-yellow-100 text-yellow-200 rounded-full';
       default:
         return " ";  
 

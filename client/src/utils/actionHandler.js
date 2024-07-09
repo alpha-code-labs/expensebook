@@ -40,11 +40,15 @@ export const handleCashAdvance = ( travelRequestId, cashAdvanceId, action) => {
 
   if (action === 'ca-create') {
     url = cashAdvanceRoutes.create.getUrl( travelRequestId);
+    return url
   } else if (action === 'ca-modify') {
     url = cashAdvanceRoutes.modify.getUrl( travelRequestId, cashAdvanceId);
   } else if (action === 'ca-cancel') {
     url = cashAdvanceRoutes.cancel.getUrl( travelRequestId, cashAdvanceId);
-  } else {
+  } else if( action === 'non-tr-ca-create'){ 
+    url = cashAdvanceRoutes.nonTravel_ca_create.getUrl( );
+  return url}
+  else {
     throw new Error('Invalid action');
   }
   urlRedirection(url);

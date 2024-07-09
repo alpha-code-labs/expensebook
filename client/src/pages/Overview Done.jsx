@@ -209,7 +209,7 @@ const Overview = () => {
 
 
   return (
-    <div className=" border border-black min-h-screen flex items-center justify-center px-2 md:px-10">
+    <div className=" border border-black bg-white-100 min-h-screen flex items-center justify-center px-2 md:px-10">
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 w-full overflow-hidden   ">
         {/* <Tilt className="min-w-[400px] h-[340px]"> */}
       <div className={`min-w-[400px] h-[340px] ${visibleDivs[0] ? 'opacity-100' : 'opacity-0'}`} >

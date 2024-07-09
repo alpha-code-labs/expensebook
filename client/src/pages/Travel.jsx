@@ -358,7 +358,6 @@ const cashBaseUrl = import.meta.env.VITE_CASHADVANCE_PAGE_URL;
 
 const Travel = ({fetchData,isLoading,setIsLoading}) => {  
 
-
   const [visible, setVisible]=useState(false)
   const [iframeURL, setIframeURL] = useState(null); 
 
@@ -366,6 +365,7 @@ const Travel = ({fetchData,isLoading,setIsLoading}) => {
     setVisible(!visible);
     setIframeURL(`${travelBaseUrl}/create/${tenantId}/${empId}`);
   }
+
   useEffect(() => {
     const handleMessage = event => {
       console.log(event)
@@ -408,8 +408,7 @@ const Travel = ({fetchData,isLoading,setIsLoading}) => {
 
     fetchData(tenantId,empId,page)
 
-  },[])
- 
+  },[]) 
 
   const { employeeData } = useData();
   const [travelData,setTravelData]=useState(null);
@@ -424,10 +423,6 @@ const Travel = ({fetchData,isLoading,setIsLoading}) => {
 
   console.log('employee data form travel',travelData)
  
-
-
-
-  
   const [dropdownStates, setDropdownStates] = useState({});
 
   const handleDropdownToggle = (index) => {
@@ -436,6 +431,7 @@ const Travel = ({fetchData,isLoading,setIsLoading}) => {
       [index]: !prevStates[index],
     }));
   };
+
   const modalRef = useRef(null)
 
   
@@ -450,18 +446,19 @@ const Travel = ({fetchData,isLoading,setIsLoading}) => {
   
 
   const [activeScreen, setActiveScreen] = useState('All Travel Requests');
+
   const handleScreenChange = (screen) => {
     setActiveScreen(screen);
   };
    
-
+  
   const handleTravelCreation = (tenantId, empId) => {
     const createUrl = travelRoutes.create.getUrl(tenantId, empId);
     urlRedirection(createUrl);
   };
-
-
-
+  
+  
+  
   ///modify travel request route handle
   const handleModifyTravel=(tenantId,empId,travelRequestId,isCashAdvanceTaken)=>{
     if(isCashAdvanceTaken){
@@ -472,7 +469,7 @@ const Travel = ({fetchData,isLoading,setIsLoading}) => {
       urlRedirection(modifyUrl)
     }
   }
-
+  
   ///cancel travel request route handle
   const handleCancelTravel=(tenantId,empId,travelRequestId,isCashAdvanceTaken)=>{
     if(isCashAdvanceTaken){
@@ -483,22 +480,22 @@ const Travel = ({fetchData,isLoading,setIsLoading}) => {
       urlRedirection(cancelUrl)
     }
   }
-
-
-
+  
+  
+   
 let filteredData
+   
+  
+  if(travelData){
+    let filteredTravelRequests = filterTravelRequests(travelData?.travelRequests);
+    filteredData=filteredTravelRequests
+    console.log('filter travel requests',filteredTravelRequests);
+  }
 
-
-if(travelData){
-  let filteredTravelRequests = filterTravelRequests(travelData?.travelRequests);
-  filteredData=filteredTravelRequests
-  console.log('filter travel requests',filteredTravelRequests);
-}
-
-//disable by status
-function disableButton(status){
-  return ['draft','cancelled'].includes(status);
-}
+  //disable by status
+  function disableButton(status){
+    return ['draft','cancelled'].includes(status);
+  }
 
   return (
     <>
@@ -507,7 +504,7 @@ function disableButton(status){
  
 //  lg:ml-[292px]
 
-      <div   className="relative w-auto min-h-screen  flex flex-col items-center px-2 lg:px-10 xl:px-20  pt-[50px] bg-slate-100">
+      <div   className="w-auto min-h-screen  flex flex-col items-center px-2 lg:px-10 xl:px-20  pt-[50px] bg-slate-100">
   <TravelMS visible={visible} setVisible={setVisible} src={iframeURL}/>
 
  <div onClick={handleOutsideClick}  className="flex flex-row items-center justify-center gap-2 sm:gap-4 font-cabin mb-2 ">
@@ -552,18 +549,18 @@ function disableButton(status){
     
   </div>
   </div>
-</div>                         
-            <div className="box-border mx-4  mt-[46px] w-auto    border-[1px]  border-b-gray "/>
+</div>
+
+         <div className="box-border mx-4 mt-[46px] w-auto border-[1px] border-b-gray"/>
          <div className='h-[400px] overflow-auto mt-6 w-auto flex flex-col items-center'>
             {filteredData && filteredData?.map((travelDetails ,index)=>(
               <React.Fragment key={index}>
-            <div className="box w-auto  h-auto   mb-2  font-cabin">
+            <div className="box w-auto h-auto mb-2 font-cabin">
             <div className={`w-auto min-w-[400px] lg:w-[896px] h-auto lg:min-h-[56px] rounded-xl border-b-gray hover:border-indigo-600  border-[1px]`}>
-            <div className='w-auto max-w-[932px]  rounded-md'>
-    <div className={`w-auto max-w-[900px]   h-auto max-h-[180px] lg:h-[52px] flex flex-col lg:flex-row items-start ${travelDetails.isCashAdvanceTaken && 'border-b-[1px]   border-b-gray '} m-2 lg:items-center justify:start lg:justify-center `}>    
+            <div className='w-auto max-w-[932px] rounded-md'>
+    <div className={`w-auto max-w-[900px] h-auto max-h-[180px] lg:h-[52px] flex flex-col lg:flex-row items-start ${travelDetails.isCashAdvanceTaken && 'border-b-[1px]   border-b-gray '} m-2 lg:items-center justify:start lg:justify-center `}>    
     <div className='flex flex-auto flex-row w-full justify-between gap-2'>
     <div className='flex flex-1 flex-col lg:flex-row gap-0 md:gap-2'>
-
     <div className="flex h-[52px] items-center justify-start w-auto lg:w-fit py-0 md:py-3 px-2 order-1">
    
     <div>
@@ -625,6 +622,7 @@ function disableButton(status){
     {getCashAdvanceButtonText(travelDetails.departureDate)}
   </div>
 </div> */}
+
 <div className="flex h-[52px] px-2 py-2 w-fit">
 <div onClick={() => { if (!disableButton(travelDetails.travelRequestStatus)) {handleCashAdvance(travelDetails.travelRequestId, "", 'ca-create') } }} className={`flex justify-center gap-1 items-center px-2 py-2  text-white-100 border-[1px] bg-purple-500 rounded-md text-[14px] font-medium tracking-[0.03em] truncate ${disableButton(travelDetails?.travelRequestStatus) ? 'cursor-not-allowed opacity-50' : ' cursor-pointer'}`}>
       <img src={plus_icon} className='w-4 h-4'/>
@@ -673,8 +671,8 @@ function disableButton(status){
   {travelDetails?.isCashAdvanceTaken && travelDetails?.cashAdvances?.map((caDetails,index)=>(
     <React.Fragment key={index}> 
     <div className='flex flex-row items-center ml-0   lg:ml-32  sm:ml-28 gap-2 text-gray-200'>
-  <div className='w-auto  mi min-w-[20px] flex justify-center items-center px-3 py-3 '>
-  <img className='w-6 h-[20px] translate-y-[-2px]' src={down_left_arrow}/>
+  <div className='w-auto  mi min-w-[20px] flex justify-center items-center px-3 py-3'>
+    <img className='w-6 h-[20px] translate-y-[-2px]' src={down_left_arrow}/>
       
       
   </div>
@@ -703,7 +701,7 @@ function disableButton(status){
 
     <img src={cancel} alt='cancel' width={20} height={20} />
     </div>
-    <div onClick={()=>{if(!disableButton(travelDetails?.travelRequestStatus)){handleCashAdvance(travelDetails.travelRequestId,caDetails.cashAdvanceId, 'ca-modify')}}} className={`flex items-center cursor-pointer justify-center w-6 h-6 bg-purple-50 rounded-full ${disableButton(travelDetails?.travelRequestStatus)? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}>
+  <div onClick={()=>{if(!disableButton(travelDetails?.travelRequestStatus)){handleCashAdvance(travelDetails.travelRequestId,caDetails.cashAdvanceId, 'ca-modify')}}} className={`flex items-center cursor-pointer justify-center w-6 h-6 bg-purple-50 rounded-full ${disableButton(travelDetails?.travelRequestStatus)? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}>
     <img src={modify} alt='modify' width={12} height={12} />
     </div>
   </div>

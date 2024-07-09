@@ -43,6 +43,7 @@ const Approval = ({fetchData}) => {
      setApprovalUrl(url)
    }
    console.log('approval url',approvalUrl)
+   
    useEffect(() => {
      const handleMessage = event => {
        console.log(event)

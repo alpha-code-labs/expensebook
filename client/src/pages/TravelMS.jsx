@@ -4,13 +4,13 @@ import { cancel } from '../assets/icon';
 const TravelMS = ({ visible, setVisible, src }) => {
 
 
-  useEffect(()=>{
-    if(visible){
-      document.body.style.overflowY='hidden';
+  useEffect(() => {
+    if (visible) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'visible';
     }
-    else 
-    document.body.style.overflowY= 'visible'
-  }, [visible])
+  }, [visible]);
 
   return (
     

@@ -1,3 +1,20 @@
+///material icon
+export { default as material_flight_icon } from './material_icon/outline_flight_takeoff_black_48dp.png';
+export { default as material_flight_w_icon } from  './material_icon/outline_flight_takeoff_white_48dp.png';
+export { default as material_bus_icon } from './material_icon/outline_directions_bus_black_48dp.png' ;
+export {default as meterial_bus_w_icon} from './material_icon/outline_directions_bus_white_48dp.png';
+export { default as material_cab_icon } from  './material_icon/outline_local_taxi_black_48dp.png';
+export { default as material_cab_w_icon } from  './material_icon/outline_local_taxi_white_48dp.png';
+export {default as material_train_icon} from './material_icon/outline_train_black_48dp.png';
+export {default as material_train_w_icon} from './material_icon/outline_train_white_48dp.png';
+export {default as material_hotel_icon} from './material_icon/outline_hotel_black_48dp.png';
+export {default as material_hotel_w_icon} from './material_icon/outline_hotel_white_48dp.png';
+export {default as material_carRental_icon} from './material_icon/outline_car_rental_black_48dp.png';
+export {default as material_carRental_w_icon} from './material_icon/outline_car_rental_white_48dp.png';
+export {default as material_personalVehicle_icon} from './material_icon/outline_commute_black_48dp.png';
+export {default as material_personalVehicle_w_icon} from './material_icon/outline_commute_white_48dp.png';
+
+
 export { default as expense_text } from './expensebook.svg';
 export {default as frame_504} from './Frame 504.svg';
 export {default as airplay_1} from './airplay (1).svg';
@@ -39,8 +56,8 @@ export {default as frame_341} from './frame-341.svg';
 export {default as validation_sym} from './validation-sym.svg';
 export {default as three_dot} from './three-dot.png';
 export {default as down_left_arrow} from './down-left-arrow.svg';
-export {default as modify} from './modify.svg'
-export {default as check_tick} from './check-tick.svg'
+export {default as modify} from './modify.svg';
+export {default as check_tick} from './check-tick.svg';
 export {default as app_icon} from './app_icon.svg';
 export {default as app_symbol} from './app_symbol.svg';
 export {default as spinner_icon} from './spinner.gif';
@@ -48,7 +65,7 @@ export {default as profile_bg} from './profile-bg.png';
 export {default as cab_purple} from './cab-purple.svg';
 export {default as mail_icon} from './mail.svg';
 export {default as location_pin} from './location-pin.svg';
-
+export {default as loading_icon} from './loading2.svg';
 export {default as loading} from './loading.svg';
 export {default as businessAdmin_icon} from './business-admin.png';
 export {default as businessAdmin1_icon} from './businessAdmin1.png';
@@ -59,5 +76,72 @@ export {default as briefcaseMap} from './suitcase/breifcase03.jpg';
 export {default as user_icon} from './userprofile.png';
 export {default as plus_icon} from './plus.svg';
 export {default as plus_violet_icon} from './plus copy.svg';
+export {default as calender_2_icon} from './calender-2.png';
+export {default as city_icon} from './city.png';
+export {default as info_icon} from './icons8-info.svg';
+export {default as filter_icon} from './filter.svg';
 
 
+
+
+import flight_icon from './expense_icon/flight_icon.svg';
+import train_icon from './expense_icon/train.svg';
+import bus_icon from './expense_icon/bus.svg';
+import cab_icon from './expense_icon/cab.svg';
+import cabRental_icon from './expense_icon/cab_rental.svg';
+import hotel_icon from './expense_icon/hotel.svg';
+import meals_icon from './expense_icon/meals.svg';
+import travelReimbursement_icon from './expense_icon/travel_reimbursement.svg'
+import conferenceAndEvent_icon from './expense_icon/conference.svg'
+import travelInsurance_icon from './expense_icon/travel_insurance.svg'
+import baggage_icon from './expense_icon/luggage.svg'
+import tips_icon from './expense_icon/tips.svg'
+import miscellaneous_icon from './expense_icon/miscellaneous.svg'
+import officeSupplies_icon from './expense_icon/officeSupllies.svg'
+import utilities_icon from './expense_icon/utilities.svg'
+import insurance_icon from './expense_icon/insurance.svg'
+import marketingAndAdvertising_icon from './expense_icon/marketting_advertisement.svg'
+import professionalFees_icon from './expense_icon/professional_fees.svg'
+import softwareAndLicense_icon from './expense_icon/software_license.svg'
+import equipment_icon from './expense_icon/equipment.svg'
+import repairAndMaintenance_icon from './expense_icon/maintenance.svg'
+import legalCompliance_icon from './expense_icon/legal_compliance.svg'
+import communication_icon from './expense_icon/communication.svg'
+import researchAndDevelopment_icon from './expense_icon/research_development.svg'
+import training_icon from './expense_icon/traning.svg'
+import softwareSubscription_icon from './expense_icon/subscriptions.svg'
+import clientEntertainment_icon from './expense_icon/insurance.svg'
+import clientGift_icon from './expense_icon/insurance.svg'
+import receipt_icon from './expense_icon/receipt.svg'
+
+export const categoryIcons = {
+  'Flight': flight_icon, 
+  'Train': train_icon,
+  'Bus': bus_icon,
+  'Cab': cab_icon,
+  'Cab Rental': cabRental_icon,
+  'Hotel': hotel_icon,
+  'Meals': meals_icon,
+  'Travel Reimbursement': travelReimbursement_icon,
+  'Conference / Event': conferenceAndEvent_icon,
+  'Travel Insurance': travelInsurance_icon,
+  'Baggage': baggage_icon,
+  'Tips': tips_icon,
+  'Miscellaneous': miscellaneous_icon,
+  'Office Supplies': officeSupplies_icon,
+  'Utilities': utilities_icon,
+  'Insurance': insurance_icon,
+  'Marketing and Advertising': marketingAndAdvertising_icon,
+  'Professional Fees': professionalFees_icon,
+  'Software and Licenses': softwareAndLicense_icon,
+  'Equipment': equipment_icon,
+  'Repairs and Maintenance': repairAndMaintenance_icon,
+  'Legal and Compliance': legalCompliance_icon,
+  'Communication': communication_icon,
+  'Research and Development': researchAndDevelopment_icon,
+  'Training': training_icon,
+  'Software Subscriptions': softwareSubscription_icon,
+  'Client Entertainment': clientEntertainment_icon,
+  'Client Gift': clientGift_icon,
+  'Receipt': receipt_icon
+};

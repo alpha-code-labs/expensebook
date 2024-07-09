@@ -45,7 +45,7 @@ export default function Input(props){
                         ref={inputRef}
                         onChange={handleChange} 
                         onBlur={handleBlur}
-                        className=" w-full h-full decoration:none px-6 py-2  rounded-md border border-neutral-300 focus-visible:outline-0 focus-visible:border-indigo-600 " 
+                        className=" w-full h-full placeholder:text-zinc-400 decoration:none px-6 py-2  rounded-md border border-neutral-300 focus-visible:outline-0 focus-visible:border-indigo-600 " 
                         value={textInput} 
                         placeholder={placeholder}></input>
                 </div>

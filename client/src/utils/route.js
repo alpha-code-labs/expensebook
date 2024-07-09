@@ -57,6 +57,10 @@ export const cashAdvanceRoutes={
     path:'/ca-create/:tenantId/:empId/:travelRequestId',
     getUrl:(travelRequestId,)=>`${cashAdvanceBaseUrl}/create/advance/${travelRequestId}`
   },
+  nonTravel_ca_create:{
+    path:'/ca-create/:tenantId/:empId/:travelRequestId',
+    getUrl:()=>`${cashAdvanceBaseUrl}/non-travel/create/advance`
+  },
   modify:{
     path:'/ca-modify/:tenantId/:empId/:travelRequestId/:cashAdvanceId',
     getUrl:(travelRequestId,cashAdvanceId,)=>`${cashAdvanceBaseUrl}/modify/advance/${travelRequestId}/${cashAdvanceId}`
