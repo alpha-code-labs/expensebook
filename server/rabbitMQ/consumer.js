@@ -1,7 +1,7 @@
 import updateHRMaster from "./messageProcessor/onboarding.js";
 import amqp from 'amqplib'
 import dotenv from 'dotenv'
-import cancelTravelRequest from "./messageProcessor/trip.js";
+import {cancelTravelRequest, markCompleted} from "./messageProcessor/trip.js";
 import {approveRejectLegItem, approveRejectTravelRequest} from "./messageProcessor/approval.js";
 import { updatePreferences, addALeg, updateBookingAdmin, updateFinanceAdmin } from "./messageProcessor/dashboard.js";
 
@@ -85,6 +85,18 @@ export default async function startConsumer(receiver) {
             if (source == "trip") {
                 if(action == 'full-update'){
                     const res = await cancelTravelRequest(payload)
+                    console.log(res);
+                        if (res.success) {
+                            //acknowledge message
+                            channel.ack(msg);
+                            console.log("message processed successfully");
+                        } else {
+                            //implement retry mechanism
+                            console.log("update failed with error code", res.error);
+                    }
+                }
+                if(action == 'status-completed-closed'){
+                    const res = await markCompleted(payload);
                     console.log(res);
                         if (res.success) {
                             //acknowledge message

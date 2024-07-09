@@ -1,6 +1,6 @@
 import TravelRequest from "../../models/travelRequest.js"
 
-export default async function cancelTravelRequest(payload){
+export async function cancelTravelRequest(payload){
     try{
         const {travelRequestData} = payload
         const travelRequestId = travelRequestData.travelRequestId
@@ -11,5 +11,17 @@ export default async function cancelTravelRequest(payload){
     }catch(e){
         return {success:false, error:e}
         
+    }
+}
+
+export async function markCompleted(payload){
+    try{
+        const {listOfClosedStandAloneTravelRequests} = payload
+        const result = await TravelRequest.updateMany(
+            { travelRequestId: { $in : listOfClosedStandAloneTravelRequests }}, 
+            { $set : { travelRequestStatus: 'completed' } });
+        return {success:true, error:null}
+    }catch(e){
+        return {success:false, error:e}
     }
 }
