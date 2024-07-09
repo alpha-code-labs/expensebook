@@ -10,9 +10,10 @@ const detectDeviceType = () =>
     /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
       ? 'Mobile'
       : 'Desktop';
-  console.log(detectDeviceType()); // "Mobile" or "Desktop"
+  console.log(detectDeviceType(), 'Device Type'); // "Mobile" or "Desktop"
 
 const detectSensor = ()=>{
+    console.log('sensor: ', detectDeviceType() == 'Mobile' ? 'ToucSensor' : 'PointerSensor');
     return detectDeviceType() == 'Mobile' ? TouchSensor : PointerSensor 
 }
 
@@ -55,7 +56,6 @@ export default function({formData, setFormData, handleEdit, handleDelete}) {
         useSensor(detectSensor(), {
           activationConstraint: {
             distance: 8,
-            delay: detectDeviceType() == 'Mobile' ? '1000' : '0',
           },
         })
       )
@@ -192,7 +192,6 @@ const SortableItem = ({id, children})=>{
     const style={
         transition,
         transform: CSS.Transform.toString(transform),
-        touchAction: 'none', 
     }
     
     return(<>

@@ -19,12 +19,7 @@ import { updateTravelRequest_API } from '../../utils/api';
 import Error from '../../components/common/Error';
 
 export default function({formData, setFormData, onBoardingData, lastPage, nextPage}){
-const sideBarWidth = '230px'
 const navigate = useNavigate();
-
-console.log (moment('2024-007-14').format('Do MMM'), 'date..')
-
-console.log('nextpage - lastpage ', nextPage, lastPage)
 
 const itineraryItems = ['cab', 'flight', 'hotel', 'train', 'bus'];
 const [modalContent, setModalContent] = useState(null);
@@ -35,211 +30,12 @@ const [requestSubmitted, setRequestSubmitted] = useState(false)
 const [showPopup, setShowPopup] = useState(false)
 const [loadingErrMsg, setLoadingErrMsg] = useState(false)
 const cashAdvanceAllowed = onBoardingData.cashAdvanceAllowed
+const [showConfirm, setShowConfirm] = useState(false);
+const [deleteId, setDeleteId] = useState()
 
 function getNextSequenceNumber(){
-  return Math.max(...flattenObjectToArray(itinerary).map(item=>item.sequence), 0)+1;
+  return Math.max(...flattenObjectToArray(formData.itinerary).map(item=>item.sequence), 0)+1;
 }
-
-const [itinerary, setItinerary] = useState({
-    flights: [
-      {
-        violations: {
-          class: null,
-          amount: null
-        },
-        bkd_violations: {
-          class: null,
-          amount: null
-        },
-        bookingDetails: {
-          billDetails: {
-            vendorName: null,
-            taxAmount: null,
-            totalAmount: null
-          },
-          docURL: null,
-          docType: null
-        },
-        itineraryId: "66795e09b2e14ac28c9ed0c2",
-        formId: "travel_5b5c964a-e99a-436f-a22c-fa7d49f4784f",
-        sequence: 2,
-        from: "Delhi",
-        to: "Lucknow",
-        date: "2024-06-24T00:00:00.000Z",
-        returnDate: null,
-        time: null,
-        returnTime: null,
-        travelClass: null,
-        isReturnTravel: false,
-        approvers: [
-          {
-            empId: "1002",
-            name: "Emma Thompson",
-            status: "pending approval",
-            _id: "66795e09b2e14ac28c9ed0ba"
-          }
-        ],
-        bkd_from: null,
-        bkd_to: null,
-        bkd_date: null,
-        bkd_returnDate: null,
-        bkd_time: null,
-        bkd_returnTime: null,
-        bkd_travelClass: null,
-        modified: false,
-        cancellationDate: null,
-        cancellationReason: null,
-        rejectionReason: null,
-        status: "pending approval",
-        _id: "66795e09b2e14ac28c9ed0b9"
-      },
-      {
-        violations: {
-          class: null,
-          amount: null
-        },
-        bkd_violations: {
-          class: null,
-          amount: null
-        },
-        bookingDetails: {
-          billDetails: {
-            vendorName: null,
-            taxAmount: null,
-            totalAmount: null
-          },
-          docURL: null,
-          docType: null
-        },
-        itineraryId: "66795e09b2e14ac28c9ed0c3",
-        formId: "travel_5b5c964a-e99a-436f-a22c-fa7d49f4784j",
-        sequence: 4,
-        from: "Lucknow",
-        to: "Delhi",
-        date: "2024-06-26T00:00:00.000Z",
-        returnDate: null,
-        time: null,
-        returnTime: null,
-        travelClass: null,
-        isReturnTravel: false,
-        approvers: [
-          {
-            empId: "1002",
-            name: "Emma Thompson",
-            status: "pending approval",
-            _id: "66795e09b2e14ac28c9ed0bc"
-          }
-        ],
-        bkd_from: null,
-        bkd_to: null,
-        bkd_date: null,
-        bkd_returnDate: null,
-        bkd_time: null,
-        bkd_returnTime: null,
-        bkd_travelClass: null,
-        modified: false,
-        cancellationDate: null,
-        cancellationReason: null,
-        rejectionReason: null,
-        status: "pending approval",
-        _id: "66795e09b2e14ac28c9ed0bb"
-      }
-    ],
-    buses: [],
-    trains: [],
-    hotels: [
-      {
-        violations: {
-          class: null,
-          amount: null
-        },
-        bkd_violations: {
-          class: null,
-          amount: null
-        },
-        bookingDetails: {
-          billDetails: {
-            vendorName: null,
-            taxAmount: null,
-            totalAmount: null
-          },
-          docURL: null,
-          docType: null
-        },
-        itineraryId: "66795e09b2e14ac28c9ed0c5",
-        formId: "travel_5b5c964a-e99a-436f-a22c-fa7d49f4784k",
-        sequence: 3,
-        location: "Lucknow",
-        locationPreference: null,
-        class: null,
-        checkIn: "2024-06-24T00:00:00.000Z",
-        checkOut: "2024-06-26T00:00:00.000Z",
-        approvers: [
-          {
-            empId: "1002",
-            name: "Emma Thompson",
-            status: "pending approval",
-            _id: "66795e09b2e14ac28c9ed0be"
-          }
-        ],
-        bkd_location: null,
-        bkd_class: null,
-        bkd_checkIn: null,
-        bkd_checkOut: null,
-        modified: false,
-        cancellationDate: null,
-        cancellationReason: null,
-        status: "pending approval",
-        _id: "66795e09b2e14ac28c9ed0bd"
-      }
-    ],
-    cabs: [
-      {
-        violations: {
-          class: null,
-          amount: null
-        },
-        bookingDetails: {
-          billDetails: {
-            vendorName: null,
-            taxAmount: null,
-            totalAmount: null
-          },
-          docURL: null,
-          docType: null
-        },
-        itineraryId: "66795e09b2e14ac28c9ed0c4",
-        formId: "travel_5b5c964a-e99a-436f-a22c-fa7d49f4784l",
-        sequence: 1,
-        date: "2024-06-24T00:00:00.000Z",
-        class: null,
-        time: null,
-        pickupAddress: "Office Address",
-        dropAddress: "Delhi airport",
-        approvers: [
-          {
-            empId: "1002",
-            name: "Emma Thompson",
-            status: "pending approval",
-            _id: "66795e09b2e14ac28c9ed0c0"
-          }
-        ],
-        bkd_date: null,
-        bkd_class: null,
-        bkd_time: null,
-        bkd_pickupAddress: null,
-        bkd_dropAddress: null,
-        modified: false,
-        cancellationDate: null,
-        cancellationReason: null,
-        status: "pending approval",
-        type: "pickup",
-        _id: "66795e09b2e14ac28c9ed0bf"
-      }
-    ],
-    carRentals: [],
-    personalVehicles: []
-  });
   
 const addItineraryItem = (item)=>{
     console.log(`clicked on ${item}`)
@@ -261,9 +57,14 @@ const deleteItineraryItem = useCallback((formId)=>{
     newFormData.itinerary[key] = formData.itinerary[key].filter(item=>item.formId != formId);
   })
 
-  setItinerary(newFormData);
+  setFormData(newFormData);
  
 },[formData.itinerary])
+
+const conirmDeleteItineraryItem = (formId)=>{
+  setShowConfirm(true);
+  setDeleteId(formId);
+}
 
 const editItineraryItem = useCallback((formId)=>{
   console.log('editing item with formId', formId); 
@@ -316,8 +117,6 @@ const editItineraryItem = useCallback((formId)=>{
 
 const handleAddToItinerary = (category, data)=>{
   try{
-    console.log('clicked on add to itinerary')
-    console.log('received formData', data);
 
     switch(category){
       case 'flights' : {
@@ -330,12 +129,10 @@ const handleAddToItinerary = (category, data)=>{
           newItem.sequence = getNextSequenceNumber();
           newItem.formId = generateUniqueIdentifier();
           newItem.approvers = formData.approvers; 
-          console.log('creating flight item', newItem);
+
 
           const formData_copy = JSON.parse(JSON.stringify(formData));
           formData_copy.itinerary.flights.push(newItem);
-
-          console.log(formData.itinerary);
           setFormData(formData_copy);
         }
 
@@ -372,12 +169,9 @@ const handleAddToItinerary = (category, data)=>{
           newItem.sequence = getNextSequenceNumber();
           newItem.formId = generateUniqueIdentifier();
           newItem.approvers = formData.approvers; 
-          console.log('creating train item', newItem);
 
           const formData_copy = JSON.parse(JSON.stringify(formData));
           formData_copy.itinerary.trains.push(newItem);
-
-          console.log(formData_copy.itinerary);
           setFormData(formData_copy);
         }
 
@@ -413,12 +207,10 @@ const handleAddToItinerary = (category, data)=>{
           newItem.sequence = getNextSequenceNumber();
           newItem.formId = generateUniqueIdentifier();
           newItem.approvers = formData.approvers; 
-          console.log('creating bus item', newItem);
 
           const formData_copy = JSON.parse(JSON.stringify(formData));
           formData_copy.itinerary.buses.push(newItem);
 
-          console.log(formData_copy.itinerary);
           setFormData(formData_copy);
         }
 
@@ -457,12 +249,11 @@ const handleAddToItinerary = (category, data)=>{
           newItem.sequence = getNextSequenceNumber();
           newItem.formId = generateUniqueIdentifier();
           newItem.approvers = formData.approvers; 
-          console.log('creating cab item', newItem);
+
 
           const formData_copy = JSON.parse(JSON.stringify(formData));
           formData_copy.itinerary.cabs.push(newItem);
 
-          console.log(formData_copy.itinerary);
           setFormData(formData_copy)
         }
 
@@ -502,12 +293,10 @@ const handleAddToItinerary = (category, data)=>{
           newItem.sequence = getNextSequenceNumber();
           newItem.formId = generateUniqueIdentifier();
           newItem.approvers = formData.approvers; 
-          console.log('creating rental cab item', newItem);
 
           const formData_copy = JSON.parse(JSON.stringify(formData));
           formData_copy.itinerary.carRentals.push(newItem);
 
-          console.log(formData_copy.itinerary);
           setFormData(formData_copy)
         }
 
@@ -550,12 +339,10 @@ const handleAddToItinerary = (category, data)=>{
           newItem.sequence = getNextSequenceNumber();
           newItem.formId = generateUniqueIdentifier();
           newItem.approvers = formData.approvers; 
-          console.log('creating hotel item', newItem);
 
           const formData_copy = JSON.parse(JSON.stringify(formData));
           formData_copy.itinerary.hotels.push(newItem);
 
-          console.log(formData_copy.itinerary);
           setFormData(formData_copy)
         }
 
@@ -629,7 +416,6 @@ const handleCashAdvance = async (needed)=>{
 }
 
 useEffect(()=>{
-  console.log(formData.itinerary, 'itinerary updated');
   //update trip name 
   const sortedItinerary = [...formData.itinerary.flights, ...formData.itinerary.trains, ...formData.itinerary.buses].sort((a,b)=>a.sequence-b.sequence);
   const flattend = sortedItinerary.map(item=>([item.from, item.to])).flat(2);
@@ -665,7 +451,7 @@ useEffect(()=>{
               </div>
         
               <div className={`py-4`}>
-                  <DisplayItinerary formData={formData} setFormData={setFormData} handleDelete={deleteItineraryItem}  handleEdit={editItineraryItem}/>
+                  <DisplayItinerary formData={formData} setFormData={setFormData} handleDelete={conirmDeleteItineraryItem}  handleEdit={editItineraryItem}/>
                   
                   <Modal visible={visible} setVisible={setVisible}>
                       {modalContent}
@@ -699,7 +485,8 @@ useEffect(()=>{
 
                 </div>}
             </Modal>
-
+            
+            <Confirm visible={showConfirm} setVisible={setShowConfirm} itemId = {deleteId} actionHandler={deleteItineraryItem} />
         </div>
     </>)
 }
@@ -765,15 +552,6 @@ const FlightForm = ({setVisible, handleAddToItinerary, action='create', editId =
     setVisible(false);
   }
 
-  useEffect(()=>{
-    console.log(formData, 'form data');
-  },[formData])
-
-  useEffect(()=>{
-    console.log(errors, 'flight form errors')
-  }, [errors])
-
-    
     return(<div className='max-w-[440px]'>
     <   div className='pb-4 sm:pb-10 text-lg text-neutral-700 font-cabin'>Flight</div>
         
@@ -845,7 +623,6 @@ const TrainForm = ({setVisible, handleAddToItinerary, action='create', editId = 
 
   const handleSubmit = ()=>{
 
-    console.log('form submitted')
     let goAhead = true;
 
     if(formData.from == null || formData.from == undefined || formData.from == ''){
@@ -879,14 +656,6 @@ const TrainForm = ({setVisible, handleAddToItinerary, action='create', editId = 
   const handleCancel = ()=>{
     setVisible(false);
   }
-
-  useEffect(()=>{
-    console.log(formData, 'form data');
-  },[formData])
-
-  useEffect(()=>{
-    console.log(errors, 'train form errors')
-  }, [errors])
 
     
     return(<div className='max-w-[440px]'>
@@ -960,7 +729,6 @@ const BusForm = ({setVisible, handleAddToItinerary, action='create', editId = nu
 
   const handleSubmit = ()=>{
 
-    console.log('form submitted')
     let goAhead = true;
 
     if(formData.from == null || formData.from == undefined || formData.from == ''){
@@ -994,14 +762,6 @@ const BusForm = ({setVisible, handleAddToItinerary, action='create', editId = nu
   const handleCancel = ()=>{
     setVisible(false);
   }
-
-  useEffect(()=>{
-    console.log(formData, 'form data');
-  },[formData])
-
-  useEffect(()=>{
-    console.log(errors, 'Bus form errors')
-  }, [errors])
 
     
     return(<div className='max-w-[440px]'>
@@ -1099,7 +859,6 @@ const CabForm = ({setVisible, handleAddToItinerary, action='create', editId = nu
 
   const handleSubmit = ()=>{
 
-    console.log('form submitted')
     let goAhead = true;
 
     if(formData.pickupAddress == null || formData.pickupAddress == undefined || formData.pickupAddress == ''){
@@ -1162,17 +921,10 @@ const CabForm = ({setVisible, handleAddToItinerary, action='create', editId = nu
     setFormData(pre=>({...pre, isRentalCab:e.target.checked}))
   }
 
-  useEffect(()=>{
-    console.log(formData, 'form data');
-  },[formData])
-
-  useEffect(()=>{
-    console.log(errors, 'flight form errors')
-  }, [errors])
 
     
     return(<div className=''>
-    <   div className='pb-4 sm:pb-10 text-lg text-neutral-700 font-cabin'>Cab</div>
+    < div className='pb-4 sm:pb-10 text-lg text-neutral-700 font-cabin'>Cab</div>
         
         <div className='flex gap-6'>
           <div className='flex gap-2 mb-8'>
@@ -1318,7 +1070,6 @@ const HotelForm = ({setVisible, handleAddToItinerary, action='create', editId = 
 
   const handleSubmit = ()=>{
 
-    console.log('form submitted')
     let goAhead = true;
 
     if(formData.checkIn == null || formData.checkIn == undefined || formData.checkIn == ''){
@@ -1351,15 +1102,7 @@ const HotelForm = ({setVisible, handleAddToItinerary, action='create', editId = 
     setVisible(false);
   }
 
-  useEffect(()=>{
-    console.log(formData, 'form data');
-  },[formData])
-
-  useEffect(()=>{
-    console.log(errors, 'hotel form errors')
-  }, [errors])
-
-    
+ 
     return(<div className='max-w-[440px]'>
     <   div className='pb-4 sm:pb-10 text-lg text-neutral-700 font-cabin'>Hotel</div>
         
@@ -1516,3 +1259,50 @@ function generateTripName(tripPurpose, tripString, startDate){
     return 'Trip';
   }
 }
+
+const Confirm = ({ visible, setVisible, actionHandler, itemId}) => {
+
+  useEffect(()=>{
+    if(visible){
+      document.body.style.overflowY='hidden';
+    }
+    else 
+    document.body.style.overflowY= 'visible'
+  }, [visible]);
+
+  const onConfirm = ()=>{
+      actionHandler(itemId);
+      setVisible(false);
+  }
+
+  return (
+    visible && (
+      <div className='relative'>
+
+        <div className='fixed  w-[100%] h-[100%] left-0 top-0 bg-black/30 z-10' onClick={()=>setVisible(false)}>
+        </div>
+
+        <div className="fixed w-[90%] sm:w-fit max-w-[100%] h-fit max-h-[90%] overflow-y-scroll sm:overflow-y-hidden left-[50%] translate-x-[-50%] top-[50%] translate-y-[-50%] rounded-sm shadow-lg z-[100] bg-white">
+      
+            {/* childrens */}
+            <div className='p-6 sm:p-10 max-w-[100%] rounded-sm'>
+                <div className="flex flex-col">
+                      <p className='text-lg sm:text-xl text-neutral-800 font-cabin'>Are you sure you want to delete this item from your itinerary?</p>
+                      <p className='text-sm text-neutral-400 font-cabin mt-6'>Once you delete, it's gone for good</p>
+                      <div className="flex gap-2 mt-10">
+                          <div className='flex flex-row-reverse'>
+                              <div onClick={onConfirm} className='w-fit px-4 py-2 hover:bg-blue-800 bg-blue-600  rounded-md border-bg-blue-800 text-gray-100 text-sm hover:bg-blue-500 cursor-pointer'>Delete Item</div>
+                          </div>
+
+                          <div className='flex flex-row-reverse'>
+                              <div onClick={()=>setVisible(false)} className='w-fit px-4 py-2 bg-blue-600  rounded-md border-bg-blue-800 text-gray-100 text-sm hover:bg-blue-500 cursor-pointer'>Cancel</div>
+                          </div>
+                      </div>
+                </div>
+            </div>
+        </div>
+
+        </div>
+    )
+  );
+};
