@@ -1,5 +1,5 @@
 import updateHRMaster from "./messageProcessor/onboarding.js";
-import cancelTravelRequest from "./messageProcessor/trip.js";
+import {cancelTravelRequest, markCompleted} from "./messageProcessor/trip.js";
 import {
   approveRejectTravelRequest,
   approveRejectCashAdvance,
@@ -101,6 +101,20 @@ export default async function startConsumer(receiver) {
             console.log("update failed with error code", res.error);
           }
         }
+
+        if(action == 'status-completed-closed'){
+          const res = await markCompleted(payload);
+          console.log(res);
+              if (res.success) {
+                  //acknowledge message
+                  channel.ack(msg);
+                  console.log("message processed successfully");
+              } else {
+                  //implement retry mechanism
+                  console.log("update failed with error code", res.error);
+          }
+        }
+        
       } else if (source == "approval") {
         if ((action == "approve-reject-tr")) {
           const res = await approveRejectTravelRequest(payload);
