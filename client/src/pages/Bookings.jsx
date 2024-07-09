@@ -1082,11 +1082,15 @@ function AddScannedTicket(
      return(<>
         {!scanComplete && <div className="h-full flex flex-1 flex-col items-center justify-center overflow-y-scroll no-scroll">
                     
-            {!fileSelected && <Upload 
-                    selectedFile={selectedFile} 
-                    setSelectedFile={setSelectedFile} 
-                    fileSelected={fileSelected} 
-                    setFileSelected={setFileSelected}  />}
+            {!fileSelected && <div>
+                        <Upload 
+                                selectedFile={selectedFile} 
+                                setSelectedFile={setSelectedFile} 
+                                fileSelected={fileSelected} 
+                                setFileSelected={setFileSelected}  />
+                    </div>}
+
+                    
         
             {fileSelected && 
                 <div className='relative flex flex-col items-center w-full h-full'>

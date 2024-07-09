@@ -84,6 +84,7 @@ export default function (props){
                 style={{ display: 'none' }}
                 onChange={handleFileChange}
                 accept="image/*, .pdf" // Specify the accepted file type (Excel files)
+                capture="camera"
               />
             </div>
     </>)
