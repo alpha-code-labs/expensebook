@@ -1,5 +1,6 @@
 import axios from "axios";
 import HRMaster from "../models/hrMaster.js";
+import getRandomAvatarUrl from "../utils/avatarUrl.js";
 
 const ONBOARDING_MICROSERVICE_URL = "";
 const DASHBOARD_MICROSERVICE_URL = "";
@@ -28,10 +29,9 @@ export async function fetchOnboardingData(
     const tenantPolicies = tenantData?.policies.travelPolicies??[]
     const travelAllocationFlags = tenantData?.travelAllocationFlags //{level1:false, level2:false, level3:true}
     const travelAllocations = tenantData?.travelAllocations 
-    
    //tenantData.travelAllocation
     const MANAGER_FLAG = employeeRoles.employeeManager
-    const listOfManagers = tenantData.employees.filter(employee=>employee.employeeRoles.employeeManager).map(emp=> emp.employeeDetails)
+    const listOfManagers = tenantData.employees.filter(employee=>employee.employeeRoles.employeeManager).map(emp=> ({...emp.employeeDetails, imageUrl:emp?.imageUrl??getRandomAvatarUrl()}));
     
     //related to policies
     let APPROVAL_FLAG = false
@@ -125,7 +125,7 @@ export async function fetchOnboardingData(
         companyName,
         employeeData, 
         employeeGroups, 
-        employeeRoles, 
+        employeeRoles,
         travelAllocations, 
         MANAGER_FLAG,
         listOfManagers,

@@ -537,6 +537,7 @@ export const travelRequestSchema = new mongoose.Schema({
         type: String,
         enum: approverStatusEnums,
       },
+      imageUrl: String,
     },
   ],
   assignedTo: { empId: String, name: String },
