@@ -432,7 +432,7 @@ useEffect(()=>{
             <div className='flex items-center gap-4 cursor-pointer mb-4'>
                 <img className='w-[24px] h-[24px]' src={left_arrow_icon} onClick={()=>navigate(lastPage)} />
                 <img className='w-6 h-6' src={itinerary_icon}/>
-                <p className='text-neutral-700 text-md font-semibold font-cabin'>Itinerary</p>
+                <p className='text-neutral-600 text-md font-semibold font-sans-serif'>Itinerary</p>
             </div>
             
             <div className='flex flex-col w-full h-full'>

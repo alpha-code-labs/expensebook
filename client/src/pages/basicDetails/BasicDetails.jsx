@@ -16,6 +16,9 @@ import Error from '../../components/common/Error'
 import { useQuery } from '../../utils/hooks'
 import { camelCaseToTitleCase } from '../../utils/handyFunctions'
 import CommentBox from '../../components/common/CommentBox'
+import { close_icon, close_gray_icon } from '../../assets/icon'
+import Search from '../../components/Search/Index'
+
 
 export default function BasicDetails({ onBoardingData, formData, setFormData }) {
 
@@ -40,6 +43,8 @@ export default function BasicDetails({ onBoardingData, formData, setFormData }) 
     //popup message
     const [showPopup, setshowPopup] = useState(false)
     const [popupMessage, setPopupMessage] = useState(null)
+    const [tripPurposeSearchVisible, setTripPurposeSearchVisible] = useState(false);
+    const [approversSearchVisible, setApproversSearchVisible] = useState(false);
 
     console.log(formData, 'form data')
 
@@ -172,9 +177,10 @@ export default function BasicDetails({ onBoardingData, formData, setFormData }) 
     }
 
     const updateApprovers = (option) => {
+        console.log(option, 'option')
         const formData_copy = JSON.parse(JSON.stringify(formData))
-        formData_copy.approvers = option.map(o => ({ name: o.employeeName, empId: o.employeeId, status: 'pending approval' }))
-        setFormData(formData_copy)
+        formData_copy.approvers.push({ name: option.employeeName, empId: option.employeeId, status: 'pending approval', imageUrl:option.imageUrl });
+        setFormData(formData_copy);
     }
 
     const updateTravelRequestCreatedFor = (option) => {
@@ -357,13 +363,13 @@ export default function BasicDetails({ onBoardingData, formData, setFormData }) 
     return (<>
         {isLoading && <Error message={loadingErrMsg} />}
         {!isLoading && <>
-            <div className="w-fit h-full relative bg-white sm:px-8 px-6 py-6 select-none mx-auto">
+            <div className="w-fit min-w-[400px] h-full relative bg-white sm:px-8 px-6 py-6 select-none mx-auto">
                 {/* Rest of the section */}
                 <div className="w-full h-full px-6">
                     {/* back link */}
                     <div className='flex items-center gap-4 cursor-pointer'>
                         {/* <img className='w-[24px] h-[24px]' src={leftArrow_icon} onClick={()=>navigate(props.lastPage)} /> */}
-                        <p className='text-neutral-700 text-md font-semibold font-cabin'>{`Travel request`}</p>
+                        <p className='text-neutral-600 text-md font-semibold font-sans-serif'>{`Travel Request`}</p>
                     </div>
 
                     {/* Rest of the section */}
@@ -414,48 +420,62 @@ export default function BasicDetails({ onBoardingData, formData, setFormData }) 
 
                     {/* form */}
 
-                    {/* Trip Purpose */}
-                    <div className="mt-8">
+                    <div className='flex flex-col sm:flex-row gap-10'>
+                        {/* Trip Purpose */} 
+                        <div className='mt-8 flex gap-8 flex-wrap items-center'>
+                            <div className='relative flex flex-col h-[73px] justify-start item-start gap-2'>
+                                <div class="text-zinc-600 text-sm font-cabin select-none">Select trip purpose</div>
+                                <div onClick={()=>setTripPurposeSearchVisible(pre=>!pre)} className='h-[40px] w-full px-4 py-1 flex items-center gap-2 bg-gray-100 hover:bg-gray-200 rounded-sm items-center transition ease-out hover:ease-in cursor-pointer'>
+                                    <div class="text-neutral-700 text-normal font-normal font-cabin">{formData.tripPurpose}</div>
+                                </div>
 
-                    </div>
+                                <div className='absolute top-[73px]'>
+                                    <Search 
+                                        visible={tripPurposeSearchVisible}
+                                        setVisible={setTripPurposeSearchVisible}
+                                        title='Select trip purpose'
+                                        placeholder='Select purpose of trip'
+                                        options={tripPurposeOptions}
+                                        currentOption={formData.tripPurpose}
+                                        onSelect={(option) => { updateTripPurpose(option) }}/>
+                                </div>
+                            </div>
+                            
+                        </div>
+                    
+                        {/* Approvers */}
+                        {APPROVAL_FLAG && <div className='mt-8 flex items-center relative'>
+                            <div className='flex flex-col h-[73px] justify-start item-start gap-2'>
+                                <div class="text-zinc-600 text-sm font-cabin select-none">Approvers</div>
+                                <div className='flex gap-2 flex-wrap'>
+                                    {formData.approvers && formData.approvers.length>0 && formData.approvers.map((approver, index)=>
+                                    <div
+                                        onClick={()=>setFormData(pre=>({...pre, approvers:pre.approvers.filter(emp=>emp.employeeId != approver.employeeId)}))}
+                                        className='h-[40px] px-2 py-.5 flex gap-2 bg-gray-100 hover:bg-gray-200 rounded-sm items-center transition ease-out hover:ease-in cursor-pointer'>
+                                        <img src={approver?.imageUrl??'https://blobstorage0401.blob.core.windows.net/avatars/IDR_PROFILE_AVATAR_27@1x.png'} className='w-8 h-8 rounded-full' />
+                                        <div class="text-neutral-700 text-normal text-sm sm:text-[14.5px] font-cabin -mt-1 sm:mt-0">{approver.name}</div>
+                                        <div className='-mt-1'>
+                                            <img src={close_gray_icon} className='w-4 h-4'/>
+                                        </div>
+                                    </div>)}
+                                    {formData.approvers.length < onBoardingData?.approvalFlow?.length && formData.approvers.length != 0 && <p onClick={()=>setApproversSearchVisible(pre=>!pre)} className='text-sm text-blue-700 hover:text-blue-800 underline cursor-pointer'>Add More</p>}
+                                    {formData.approvers && formData.approvers.length == 0 && <p onClick={()=>setApproversSearchVisible(pre=>!pre)} className='text-sm text-neutral-500 font-cabin cursor-pointer'>{'Unassigned'}</p>}
+                                </div>
+                            </div>
 
-
-                    <div className='mt-8 flex gap-8 flex-wrap items-center'>
-                        {/* Booking for.. will be displayed if employee is delegated  */}
-                        {/* {DELEGATED_FLAG  && !formData.bookingForTeam && <ObjectSelect
-                        options={delegatedFor}
-                        currentOption={formData?.createdFor}
-                        placeholder='Name of the travelling employeee' 
-                        onSelect={(option)=>{updateTravelRequestCreatedFor(option)}}
-                        title='Assign request for' />} */}
-
-                         {/* Select approvers */}
-                          <div className='relative'>
-                            <Select
-                                title='Select trip purpose'
-                                placeholder='Select puropse of trip'
-                                options={tripPurposeOptions}
-                                violationMessage={tripPurposeViolationMessage}
-                                error={errors.tripPurposeError}
-                                currentOption={formData.tripPurpose}
-                                onSelect={(option) => { updateTripPurpose(option) }} />
-                          </div>
-                        
-                        {/* Select approvers */}
-                        {APPROVAL_FLAG &&
-                            <div className='relative'>
-                                <MultiSearch
+                            {<div className='absolute'>
+                                <Search
+                                    visible={approversSearchVisible}
+                                    setVisible={setApproversSearchVisible}
+                                    searchChildren={'employeeName'}
                                     title='Who will Approve this?'
                                     placeholder="Name's of managers approving this"
                                     onSelect={(option) => { updateApprovers(option) }}
                                     error={errors.approversError}
                                     currentOption={formData.approvers && formData.approvers.length > 0 ? formData.approvers : []}
                                     options={listOfAllManagers} />
-                                <p className='absolute text-xs text-neutral-600 top-[4px] left-[140px]'>
-                                    {`(Select ${onBoardingData.approvalFlow.map((a, ind) => `${a} ${ind < onBoardingData.approvalFlow.length - 1 ? ',' : ''} ${onBoardingData.approvalFlow.length > 1 ? 'managers' : 'manager'}`)})`}
-                                </p>
-                            </div>}
-
+                                </div>}
+                        </div>}
                     </div>
                     
                     <div className='mt-8'>

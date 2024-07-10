@@ -193,7 +193,7 @@ export default function({formData, setFormData, nextPage, lastPage, onBoardingDa
                     {/* back link */}
                     <div className='flex items-center gap-4 cursor-pointer'>
                         <img className='w-[24px] h-[24px]' src={leftArrow_icon} onClick={()=>navigate(lastPage)} />
-                        <p className='text-neutral-700 text-md font-semibold font-cabin'>Allocate Travel</p>
+                        <p className='text-neutral-700 text-md font-semibold font-sans-serif'>Allocate Travel</p>
                     </div>
 
                     <div>
@@ -212,12 +212,12 @@ export default function({formData, setFormData, nextPage, lastPage, onBoardingDa
                                         {allocations.map((header, index)=>{
                                             return(
                                                 <div className='relative'>
-                                                <Select
-                                                    currentOption={selectedTravelAllocationHeaders.find(h=>h.categoryName == cat)?.allocations.find(h=>h.headerName == header.headerName)?.headerValue}
-                                                    options={header.headerValues}
-                                                    onSelect = {(option)=>{handleAllocationHeaderSelection(cat, header.headerName, option)}}
-                                                    placeholder={`Select ${camelCaseToTitleCase(header.headerName)}`} 
-                                                    title={camelCaseToTitleCase(header.headerName)} />
+                                                    <Select
+                                                        currentOption={selectedTravelAllocationHeaders.find(h=>h.categoryName == cat)?.allocations.find(h=>h.headerName == header.headerName)?.headerValue}
+                                                        options={header.headerValues}
+                                                        onSelect = {(option)=>{handleAllocationHeaderSelection(cat, header.headerName, option)}}
+                                                        placeholder={`Select ${camelCaseToTitleCase(header.headerName)}`} 
+                                                        title={camelCaseToTitleCase(header.headerName)} />
                                                 </div>
                                             )
                                         })}

@@ -49,7 +49,7 @@ export default function Search(props){
             selectedOption.forEach((option, index)=>{
                 
                 //not sure if we should keep this
-                if(selectedOption.slice(0, index+1).map(o=>o.employeeName).join(', ').length == caretIndex){
+                if(selectedOption.slice(0, index+1).map(o=>o.name).join(', ').length == caretIndex){
                     removeOption(option)
                 }    
             })
@@ -89,9 +89,13 @@ export default function Search(props){
     const inputBlur = (e)=>{
         //bad idea...
         //setShowDropdown(false)
-        if(textInput.length>0 && textInput[textInput.length-1] != ','){
-            const keywords = selectedOption.map(o=>o.employeeName)  
-            setTextInput(keywords.join(', ')+', ')
+        console.log(textInput, 'textInput');
+
+        if(textInput.length>0 && textInput[textInput.length-1] != ', ' ){
+            const keywords = selectedOption.map(o=>o.name)
+            let finalTextInput = keywords.join(', ');
+            if(keywords.length>0) finalTextInput+=', ';
+            setTextInput(finalTextInput)
             //setTextInput(textInput+', ')
         }
         if(selectedOption.length==0){
