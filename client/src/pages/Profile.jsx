@@ -15,7 +15,7 @@ import TextBox from "../components/TextBox";
 import { travelPreferences,preference } from "../dummyData/profile";
 import { getTravelPreference_API, postTravelPreference_API } from "../utils/api";
 import { useData } from "../api/DataProvider";
-import ImageUploader from "../components/common/ImageUploader";
+// import ImageUploader from "../components/common/ImageUploader";
 
 const Profile = ({fetchData}) => {
 
@@ -189,14 +189,14 @@ const handleImageUpload = (url) => {
             <div className="flex rounded-t-[16px] bg-slate-50  border-[1px] border-slate-300 flex-row justify-between px-4 py-5">
             <div className="inline-flex gap-2 p-4 font-cabin text-base font-medium">
             <div>
-            <ImageUploader onSuccess={handleImageUpload} />
-            {formData?.imageUrl && (
+            {/* <ImageUploader onSuccess={handleImageUpload} /> */}
+            {/* {formData?.imageUrl && (
                 <div>
                     <h3>Uploaded Image URL:</h3>
                     <p>{formData?.imageUrl}</p>
                     <img src={formData?.imageUrl} alt="Upload " style={{ maxWidth: '100%', maxHeight: '200px' }} />
                 </div>
-            )}
+            )} */}
 
 
         </div>
@@ -211,7 +211,7 @@ const handleImageUpload = (url) => {
             </div>
             </div>
 
-            <ImageUploader onSuccess={handleImageUpload} />
+            {/* <ImageUploader onSuccess={handleImageUpload} /> */}
             { formData.imageUrl && (
             <div className="flex justify-center items-center flex-col">
               <div className=' w-full  lg:h-[200px] h-[150px] flex justify-center  md:justify-start lg:justify-start'>
@@ -221,7 +221,7 @@ const handleImageUpload = (url) => {
                 <div className=" rounded-full bg-indigo-100 flex shrink  w-[104px] h-[104px] items-center justify-center  mx-auto  shadow-md border-4 border-white-100 transition duration-200 transform hover:scale-110">
                   {/* <img src='/profilePic.jpg' alt="profile" /> */}
                   <img src={formData?.imageUrl} alt="profile" className="rounded-full w-full h-full object-cover"  />
-                  <h2 className="text-white"> A  L </h2>
+                  <h2 className="text-white">  </h2>
                 </div>
                 <div className="flex flex-col items-center">
                   <div className="font-cabin text-lg text-neutral-800">{formData?.employeeName}</div>
