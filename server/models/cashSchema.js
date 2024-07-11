@@ -43,7 +43,7 @@ export const cashAdvanceSchema = new mongoose.Schema({
       },
       travelRequestId: {
         type: String,
-        required: true,
+        // required: true,
       },
       travelRequestNumber:{
         type: String,
