@@ -92,7 +92,7 @@ app.listen(port, () => {
 startConsumer('dashboard');
 
 //BatchJobs
-scheduleToFinanceBatchJob()
+// scheduleToFinanceBatchJob()
 
 consumeFromDashboardQueue();
 // consumeFromDashboardQueue();
