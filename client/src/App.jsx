@@ -115,7 +115,7 @@ function App() {
   //     clearTimeout(timer);
   //   };
   // }, [authToken]);
-  
+
 
 
   return (<>
@@ -167,7 +167,7 @@ function App() {
             />
             <Route
               path="/:tenantId/:empId/profile"
-              element={<Profile setAuthToken={setAuthToken} />}
+              element={<Profile fetchData={fetchData} loadingErrMsg={loadingErrMsg} isLoading={isLoading} setAuthToken={setAuthToken}/>}
             />
             {/* <Route
               path="/create/:tenantId/:empId"
