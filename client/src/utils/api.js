@@ -90,7 +90,7 @@ const LOGINBASEURL = import.meta.env.VITE_LOGIN_LOGOUT_BACKEND_URL
 
 export const getEmployeeRoles_API = async (tenantId,empId) => {
   const url = `${LOGINBASEURL}/api/internal/${tenantId}/${empId}/roles`;
-
+  
   try {
     const response = await axiosRetry(axios.get, url);
     return response.data

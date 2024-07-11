@@ -123,7 +123,7 @@ export default CancelledTrip;
 
 // import React,{useState,useEffect} from 'react';
 // import { getStatusClass ,titleCase, urlRedirection } from '../../utils/handyFunctions';
-// import {  airplane_1, calender, double_arrow, down_left_arrow, validation_sym } from '../../assets/icon'
+// import {  airplane_1, calender_icon, double_arrow, down_left_arrow, validation_sym } from '../../assets/icon'
 
 // import { useData } from '../../api/DataProvider';
 

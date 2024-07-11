@@ -1,6 +1,6 @@
 import React from 'react';
 import { getStatusClass ,titleCase } from '../../utils/handyFunctions';
-import {  calender, double_arrow } from '../../assets/icon'
+import {  calender_icon, double_arrow } from '../../assets/icon'
 const TrExpenseForApproval = ({trId ,travelName ,from , to,departureDate, returnDate,status,employeeName}) => {
   return (
     <div>
@@ -17,7 +17,7 @@ const TrExpenseForApproval = ({trId ,travelName ,from , to,departureDate, return
     {/* date  */}
     <div className="flex   h-[52px] w-auto   items-center justify-start py-0 md:py-3 gap-1 px-0 lg:px-2 ">
       <div className='pl-2 md:pl-0'>
-      <img src={calender} alt="calendar" className="w-[16px]"/>
+      <img src={calender_icon} alt="calendar" className="w-[16px]"/>
       </div>
       <div className=" tracking-[0.03em] leading-normal text-neutral-800 text-[12px]  w-[100px]">
       
@@ -42,7 +42,7 @@ const TrExpenseForApproval = ({trId ,travelName ,from , to,departureDate, return
 {/* Date */}
     <div className="flex   h-[52px] w-auto xl:w-[150px]  xl:min-w-[210px]  items-center justify-start py-0 md:py-3 gap-1 px-0 lg:px-2 order-3 lg:order-2">
       <div className='pl-2 md:pl-0'>
-      <img src={calender} alt="calendar" className="w-[16px]"/>
+      <img src={calender_icon} alt="calendar" className="w-[16px]"/>
       </div>
       <div className=" tracking-[0.03em] leading-normal text-neutral-800 text-[12px]">
       
@@ -128,7 +128,7 @@ export default TrExpenseForApproval
 // {/* Date */}
 //     <div className="flex   h-[52px] w-auto xl:w-[150px]  xl:min-w-[210px]  items-center justify-start py-0 md:py-3 gap-1 px-0 lg:px-2 order-3 lg:order-2">
 //       <div className='pl-2 md:pl-0'>
-//       <img src={calender} alt="calendar" className="w-[16px]"/>
+//       <img src={calender_icon} alt="calendar" className="w-[16px]"/>
 //       </div>
 //       <div className=" tracking-[0.03em] leading-normal text-neutral-800 text-[12px]">
       

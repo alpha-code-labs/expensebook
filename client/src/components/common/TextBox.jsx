@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react";
-import { titleCase } from "../utils/handyFunctions";
+import { titleCase } from "../../utils/handyFunctions";
 
 const TextBox = ({ title, placeholder, onChange, error, initialValue }) => {
   const inputRef = useRef(null);

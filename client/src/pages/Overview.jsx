@@ -1,17 +1,107 @@
 /* eslint-disable react/jsx-key */
 import React, { useState,useEffect } from 'react';
-import { airplane_1, briefcase, calender, double_arrow,cab_purple,  house_simple, train, bus, cancel_round, cancel, modify, plus_icon, plus_violet_icon, receipt, down_arrow, chevron_down, down_left_arrow, calender_2_icon, airplane, material_flight_icon, material_cab_icon, material_hotel_icon, city_icon } from '../assets/icon';
+import { airplane_1, briefcase, calender_icon, double_arrow,cab_purple,  house_simple, train, bus, cancel_round, cancel, modify, plus_icon, plus_violet_icon, receipt, down_arrow, chevron_down, down_left_arrow, calender_2_icon, airplane, material_flight_black_icon, material_cab_black_icon, material_hotel_black_icon, city_icon, empty_itinerary_icon } from '../assets/icon';
 import { formatAmount, formatDate, getStatusClass } from '../utils/handyFunctions';
 import { travelExpense,reimbursementExpense, travelRequests, trips } from '../utils/dummyData';
+import { useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import TravelMS from './TravelMS';
+import { useData } from '../api/DataProvider';
+import Error from '../components/common/Error';
+import { CabCard, FlightCard, HotelCard, RentalCabCard } from '../components/itinerary/ItineraryCard';
+
+const travelBaseUrl  = import.meta.env.VITE_TRAVEL_PAGE_URL;
+const cashBaseUrl = import.meta.env.VITE_CASHADVANCE_PAGE_URL;
+
+function CardLayout({cardSequence,icon,cardTitle,children}){
+  return(
+  <div className={`min-w-[400px] px-2  h-[340px] ${cardSequence ? 'opacity-100' : 'opacity-0'}`} >
+         <div className="border-b-2  border-indigo-600 flex flex-row items-center justify-start gap-2 overflow-hidden py-2">
+           <img
+             className="w-5 h-5 shrink-0"
+             alt="briefcase_icon"
+             src={icon}
+           />
+           <b className="tracking-[0.02em] font-cabin text-[16px] text-indigo-600 font-semibold">{cardTitle}</b>
+         </div>
+         <div className=' shadow-sm shadow-indigo-600 rounded-md'/>
+         {/* <div className="h-[285px] flex justify-center items-center  bg-white-100 overflow-hidden overflow-y-auto mt-2  border-[4px] border-gray-600  shadow-lg  shadow-black/60  rounded-3xl px-2"> */}
+         <div className="h-[285px] bg-white-100 overflow-hidden overflow-y-auto mt-2  border-[4px] border-gray-600    shadow-custom-light  rounded-3xl px-2">
+         
+          {children}
+      
+         </div>
+         
+       </div>)
+}
 
 
-const Overview = () => {
+
+const Overview = ({fetchData ,isLoading,setIsLoading,loadingErrMsg, setLoadingErrMsg}) => {
+
+  const { setEmployeeData , employeeData } = useData(); 
+  const [tripsData,setTripsData]=useState(null);
+  const {tenantId,empId,page}= useParams();
+
+  useEffect(()=>{
+    fetchData(tenantId,empId,page)
+  },[])
+
+
+useEffect(()=>{
+  console.log('data11',employeeData?.dashboardViews?.employee?.trips)
+  setTripsData(employeeData && employeeData?.dashboardViews?.employee?.trips)
+},[employeeData])
+
+
+
+
   
+  const [visible, setVisible]=useState(false);
+  const [iframeURL, setIframeURL] = useState(null); 
 
-  const [visible , setVisible]=useState({expense:false,createTravel:false})
-  const [expenseTabs , setExpenseTabs]=useState("travelExpense")
+  const handleVisible= ()=>{
+    setVisible(!visible);
+    setIframeURL(`${travelBaseUrl}/create/${tenantId}/${empId}`);
+  }
 
+  useEffect(() => {
+    const handleMessage = event => {
+      console.log(event)
+      // Check if the message is coming from the iframe
+      if (event.origin === travelBaseUrl || event.origin === cashBaseUrl) {
+        // Check the message content or identifier
+        if (event.data === 'closeIframe') {
+          setVisible(false)
+        }
+         // Check the message content or identifier
+         if (event.data === 'closeIframe') {
+          setVisible(false)
+          window.location.href = window.location.href;
+        }else if(event.data.split(' ')[0] == 'raiseAdvance'){
+          //we have to open an Iframe to raise cash advance
+          setVisible(false)
+          
+          const tenantId = event.data.split(' ')[1];
+          const travelRequestId = event.data.split(' ')[2];
+          console.log(event.data, ' event data ', travelRequestId, ' trId ', tenantId, ' tenant Id');
+          setIframeURL(`${cashBaseUrl}/create/advance/${travelRequestId}`);
+          setVisible(true);
+        }
+      }
+    };
+    // Listen for messages from the iframe
+    window.addEventListener('message', handleMessage);
+  
+    return () => {
+      // Clean up event listener
+      window.removeEventListener('message', handleMessage);
+    };
+  }, []);
+  
+  const [textVisible , setTextVisible]=useState({expense:false,createTravel:false});
+  const [expenseTabs , setExpenseTabs]=useState("travelExpense");
+  
   const handleExpenseTabChange = (tab)=>{
     setExpenseTabs(tab)
   }
@@ -33,34 +123,24 @@ const Overview = () => {
 
 
   return (
+    <>
+    {isLoading && <Error message={loadingErrMsg}/>}
+    {!isLoading &&
     <div className=" border border-black bg-[#eef2ff] min-h-screen flex items-center justify-center px-2 md:px-10">
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 w-full overflow-hidden   ">
+        <TravelMS visible={visible} setVisible={setVisible} src={iframeURL}/>
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 w-full overflow-hidden pb-2">
     
-      <div className={`min-w-[400px] px-2  h-[340px] ${visibleDivs[0] ? 'opacity-100' : 'opacity-0'}`} >
-         <div className="border-b-2  border-indigo-600 flex flex-row items-center justify-start gap-2 overflow-hidden py-2">
-           <img
-             className="w-5 h-5 shrink-0"
-             alt="briefcase_icon"
-             src={briefcase}
-           />
-           <b className="tracking-[0.02em] font-cabin text-[16px] text-indigo-600 font-semibold">Activities for On-going Trips</b>
-         </div>
-         <div className=' shadow-sm shadow-indigo-600 rounded-md'/>
-         {/* <div className="h-[285px] flex justify-center items-center  bg-white-100 overflow-hidden overflow-y-auto mt-2  border-[4px] border-gray-600  shadow-lg  shadow-black/60  rounded-3xl px-2"> */}
-         <div className="h-[285px] bg-white-100 overflow-hidden overflow-y-auto mt-2  border-[4px] border-gray-600    shadow-custom-light  rounded-3xl px-2">
-         
-           {trips.map((trip, index) => (
-             <Trips key={index} index={index} trip={trip} lastIndex={trips.length - 1} />
-           ))}
-           
+     
 
-           
-          
-         </div>
-         
-       </div>
+<CardLayout cardSequence={visibleDivs[0]} icon={briefcase} cardTitle={"Activities for On-going Trips"}>
+{trips.map((trip, index) => (
+      <IntransitTrips key={index} index={index} trip={trip} lastIndex={trips.length - 1} />
+    ))}
+</CardLayout>
+
+     
        
-     <div className={`min-w-[400px] px-2 h-[340px] ${visibleDivs[1] ? 'opacity-100' : 'opacity-0'}`} >
+<div className={`min-w-[400px] px-2 h-[340px] ${visibleDivs[1] ? 'opacity-100' : 'opacity-0'}`} >
 
 <div className="border-b-2 border-indigo-600 flex flex-row items-center justify-start gap-2 overflow-hidden py-2">
   <img
@@ -72,7 +152,6 @@ const Overview = () => {
 </div>
 
 <div className="h-[285px] mt-2 border-4 border-indigo-600 rounded-md">
-  
 <div className="flex gap-x-2 h-[40px]   px-2 flex-row items-center justify-between text-center font-cabin border-b-2  border-slate-300  text-neutral-700 text-xs">
 <div className='flex'>
 <div
@@ -81,7 +160,6 @@ const Overview = () => {
     ? 'text-white-100 bg-indigo-600'
     : 'text-xs'
 }`}
-
 onClick={() => handleExpenseTabChange("travelExpense")}
 >
 <p>Travel Expense</p>
@@ -99,25 +177,24 @@ onClick={() => handleExpenseTabChange("nonTravelExpense")}
 </div>     
 
 <div
-onMouseEnter={() => setVisible({expense:true})}
-onMouseLeave={() => setVisible({expense:false})}
+onMouseEnter={() => setTextVisible({expense:true})}
+onMouseLeave={() => setTextVisible({expense:false})}
 className={`relative  hover:px-2 w-6 h-6 hover:overflow-hidden hover:w-auto group text-indigo-600 bg-indigo-100 border border-white-100 flex items-center justify-center  hover:gap-x-1 rounded-full cursor-pointer transition-all duration-300`}
 >
 <img src={plus_violet_icon} width={16} height={16} alt="Add Icon" />
 <p
 className={`${
-visible?.expense ? 'opacity-100 ' : 'opacity-0 w-0'
+textVisible?.expense ? 'opacity-100 ' : 'opacity-0 w-0'
 } whitespace-nowrap text-xs transition-all duration-300 group-hover:opacity-100 group-hover:w-auto`}
 >
 Add an Expense
 </p>
 </div>
-
 </div>
 
-<div className='  h-[238px] overflow-y-auto px-2 '>
+<div className='h-[238px] overflow-y-auto px-2'>
 {expenseTabs === "travelExpense" &&
-travelExpense.map((expense,index) => <TravelExpenses index={index} expense={expense} lastIndex={travelExpense.length-1} />)}
+travelExpense.map((expense,index) => <TravelExpenses index={`${index}-TravelExpense`} expense={expense} lastIndex={travelExpense.length-1} />)}
 
 
 
@@ -136,67 +213,58 @@ reimbursementExpense?.map((expense,index) => <NonTravelExpenses index={index} ex
 
 
 
-<div className={`min-w-[400px] px-2  h-[340px] transition-opacity delay-100 ${visibleDivs[2] ? 'opacity-100' : 'opacity-0'}`} >
-          <div className="border-b-2 border-indigo-600 flex flex-row items-center justify-start gap-2 overflow-hidden py-2">
-            <img
-              className="w-5 h-5 shrink-0"
-              alt="briefcase_icon"
-              src={briefcase}
-            />
-            <b className="tracking-[0.02em] font-cabin text-[16px] font-semibold text-indigo-600">Upcoming Trips</b>
-          </div>
-
-        <div className="h-[288px] overflow-hidden overflow-y-auto   mt-2 border-4 border-indigo-600 rounded-md px-2">
-          {trips.map((trip, index) => (
-           
-              <UpcomingTrips key={index} index={index} trip={trip} lastIndex={trips.length - 1} />
-              
-            ))}
-          </div>
-        </div>
+<CardLayout cardSequence={visibleDivs[2]} icon={briefcase} cardTitle={"Upcoming Trips"}>
+  {trips.map((trip, index) => (
+    
+      <UpcomingTrips key={index} index={index} trip={trip} lastIndex={trips.length - 1} />
+      
+    ))}
+</CardLayout>
 
 
 
-        <div className={`min-w-[400px] px-2 h-[340px] ${visibleDivs[3] ? 'opacity-100' : 'opacity-0'}`} >
-          <div className="border-b-2 border-indigo-600 flex flex-row items-center justify-start gap-2 overflow-hidden py-2">
-            <img
-              className="w-5 h-5 shrink-0"
-              alt="briefcase_icon"
-              src={airplane_1}
-            />
-            <b className="tracking-[0.02em] text-indigo-600 font-cabin text-[16px] font-semibold">Travel Requests</b>
-          </div>
-          
-          <div className="h-[288px]    mt-2 border-4 border-indigo-600 rounded-md px-2">
-          <div className="flex gap-x-2 h-[40px]   px-2 flex-row items-center justify-end text-center font-cabin border-b-2  border-slate-300  text-neutral-700 text-xs">
-       
-        <div
-      onMouseEnter={() => setVisible({createTravel:true})}
-      onMouseLeave={() => setVisible({createTravel:false})}
-      className={`relative  hover:px-2 w-6 h-6 hover:overflow-hidden hover:w-auto group text-indigo-600 bg-indigo-100 border border-white-100 flex items-center justify-center  hover:gap-x-1 rounded-full cursor-pointer transition-all duration-300`}
-    >
-      <img src={plus_violet_icon} width={16} height={16} alt="Add Icon" />
-      <p
-        className={`${
-          visible?.createTravel ? 'opacity-100 ' : 'opacity-0 w-0'
-        } whitespace-nowrap text-xs transition-all duration-300 group-hover:opacity-100 group-hover:w-auto`}
-      >
-        Raise Travel Request
-      </p>
-    </div>
-          
-      </div>
+<div className={`min-w-[400px] px-2 h-[340px] ${visibleDivs[3] ? 'opacity-100' : 'opacity-0'}`} >
+  <div className="border-b-2 border-indigo-600 flex flex-row items-center justify-start gap-2 overflow-hidden py-2">
+    <img
+      className="w-5 h-5 shrink-0"
+      alt="briefcase_icon"
+      src={airplane_1}
+    />
+    <b className="tracking-[0.02em] text-indigo-600 font-cabin text-[16px] font-semibold">Travel Requests</b>
+  </div>
+  
+  <div className="h-[288px]    mt-2 border-4 border-indigo-600 rounded-md px-2">
+  <div className="flex gap-x-2 h-[40px]   px-2 flex-row items-center justify-end text-center font-cabin border-b-2  border-slate-300  text-neutral-700 text-xs">
 
-      <div className="h-[238px] overflow-y-auto   px-2">
-          {travelRequests?.map((travel, index)=>(
-            <TravelRequests travel={travel} index={index} lastIndex={travelRequests?.length-1}/>
-          ))}
-          </div>
-          </div>
-        </div>
+<div
+onMouseEnter={() => setTextVisible({createTravel:true})}
+onMouseLeave={() => setTextVisible({createTravel:false})}
+onClick={handleVisible}
+className={`relative  hover:px-2 w-6 h-6 hover:overflow-hidden hover:w-auto group text-indigo-600 bg-indigo-100 border border-white-100 flex items-center justify-center  hover:gap-x-1 rounded-full cursor-pointer transition-all duration-300`}
+>
+<img src={plus_violet_icon} width={16} height={16} alt="Add Icon" />
+<p
+className={`${
+  textVisible?.createTravel ? 'opacity-100 ' : 'opacity-0 w-0'
+} whitespace-nowrap text-xs transition-all duration-300 group-hover:opacity-100 group-hover:w-auto`}
+>
+Raise Travel Request
+</p>
+</div>
+  
+</div>
+
+<div className="h-[238px] overflow-y-auto   px-2">
+  {travelRequests?.map((travel, index)=>(
+    <TravelRequests travel={travel} index={index} lastIndex={travelRequests?.length-1}/>
+  ))}
+  </div>
+  </div>
+</div>
 
       </div>
-    </div>
+    </div>}
+    </>
   );
 };
 
@@ -204,81 +272,108 @@ export default Overview;
 
 
 
-const getIconForItinerary = (itineraryType) => {
-  switch (itineraryType) {
-    case 'flights':
-      return airplane_1;
-    case 'buses':
-      return bus ;
-    case 'trains':
-      return train;
-    case 'hotels':
-      return house_simple;
-    case 'cabs':
-      return cab_purple;
-    default:
-      return null;
-  }
-};
 
 
 
 
-
-
-
-
-
-const Trips = ({ index, trip, lastIndex }) => {
+const IntransitTrips = ({ index, trip, lastIndex }) => {
+  
   const [activeTabs, setActiveTabs] = useState("upcoming");
+ 
 
-  const handleTabChange = (tab) => {
-    setActiveTabs(tab);
-  };
+
 
   console.log(activeTabs);
 
-  function separateItineraryByDate(currentDate, itinerary) {
-    const completedItinerary = { flights: [], hotels: [], buses: [], cabs: [] };
-    const upcomingItinerary = { flights: [], hotels: [], buses: [], cabs: [] };
 
+  function separateItineraryByDate(currentDate, itinerary) {
+    let completedItinerary = [];
+    let upcomingItinerary = [];
+  
     function checkAndPush(item, dateField, category) {
       const itemDate = new Date(item[dateField]);
+      const itemWithCategory = { ...item, category };
       if (category === "hotels") {
         if (itemDate < currentDate) {
-          completedItinerary[category].push(item);
+          completedItinerary.push(itemWithCategory);
         } else {
-          upcomingItinerary[category].push(item);
+          upcomingItinerary.push(itemWithCategory);
         }
       } else {
         if (itemDate >= currentDate) {
-          upcomingItinerary[category].push(item);
+          upcomingItinerary.push(itemWithCategory);
         } else {
-          completedItinerary[category].push(item);
+          completedItinerary.push(itemWithCategory);
         }
       }
     }
-
+  
     itinerary.flights.forEach(flight => checkAndPush(flight, 'bkd_date', 'flights'));
     itinerary.hotels.forEach(hotel => checkAndPush(hotel, 'bkd_checkOut', 'hotels'));
     itinerary.buses.forEach(bus => checkAndPush(bus, 'bkd_date', 'buses'));
     itinerary.trains.forEach(train => checkAndPush(train, 'bkd_date', 'trains'));
     itinerary.cabs.forEach(cab => checkAndPush(cab, 'bkd_date', 'cabs'));
+  
 
+    completedItinerary = completedItinerary.sort((a,b)=>(a.sequence - b.sequence));
+    upcomingItinerary = upcomingItinerary.sort((a,b)=>(a.sequence - b.sequence));
     return { completedItinerary, upcomingItinerary };
   }
-
   const currentDate = new Date();
   const { completedItinerary, upcomingItinerary } = separateItineraryByDate(currentDate, trip?.itinerary);
+  
+  const [itineraryByTab , setItineraryByTab] = useState(upcomingItinerary)
+  const handleTabChange = (tab) => {
+    setActiveTabs(tab);
+    if ( tab === "completed"){
+      setItineraryByTab(completedItinerary)
+    }else if (tab === "upcoming"){
+      setItineraryByTab(upcomingItinerary)
+    }
+  };
+ 
+
+  // function separateItineraryByDate(currentDate, itinerary) {
+  //   const completedItinerary = { flights: [], hotels: [], buses: [], cabs: [] };
+  //   const upcomingItinerary = { flights: [], hotels: [], buses: [], cabs: [] };
+    
+
+  //   function checkAndPush(item, dateField, category) {
+  //     const itemDate = new Date(item[dateField]);
+  //     if (category === "hotels") {
+  //       if (itemDate < currentDate) {
+  //         completedItinerary[category].push(item);
+  //       } else {
+  //         upcomingItinerary[category].push(item);
+  //       }
+  //     } else {
+  //       if (itemDate >= currentDate) {
+  //         upcomingItinerary[category].push(item);
+  //       } else {
+  //         completedItinerary[category].push(item);
+  //       }
+  //     }
+  //   }
+
+  //   itinerary.flights.forEach(flight => checkAndPush(flight, 'bkd_date', 'flights'));
+  //   itinerary.hotels.forEach(hotel => checkAndPush(hotel, 'bkd_checkOut', 'hotels'));
+  //   itinerary.buses.forEach(bus => checkAndPush(bus, 'bkd_date', 'buses'));
+  //   itinerary.trains.forEach(train => checkAndPush(train, 'bkd_date', 'trains'));
+  //   itinerary.cabs.forEach(cab => checkAndPush(cab, 'bkd_date', 'cabs'));
+
+  //   return { completedItinerary, upcomingItinerary };
+  // }
+
+
 
   console.log('Completed Itinerary:', completedItinerary);
   console.log('Upcoming Itinerary:', upcomingItinerary);
 
-  const [visible, setVisible] = useState({ modify: false });
+  const [textVisible, setTextVisible] = useState({ modify: false });
 
   return (
-    <div className={`${index === lastIndex ? ' ' : 'mb-2'} h-[270px] rounded-md border border-white-100 `}>
-      <div className="flex gap-2 px-2 flex-row items-center justify-between text-center font-cabin border-b shadow-sm  py-2 text-neutral-700 text-xs">
+    <div className={`h-[280px] rounded-md border border-white-100 `}>
+      <div className="flex gap-2 px-2 flex-row items-center justify-between text-center font-cabin border-b-2 border-slate-300 shadow-sm  py-2 text-neutral-700 text-xs">
         <div className='flex'>
         <div
             className={`px-2 py-1 rounded-xl cursor-pointer ease-in-out ${activeTabs === 'upcoming' ? 'bg-indigo-100 font-semibold text-indigo-600 border border-white-100 text-xs shadow-md shadow-indigo-600' : 'text-xs'}`}
@@ -299,214 +394,138 @@ const Trips = ({ index, trip, lastIndex }) => {
         
         {activeTabs === 'upcoming' &&
         <div
-            onMouseEnter={() => setVisible({ modify: true })}
-            onMouseLeave={() => setVisible({ modify: false })}
+            onMouseEnter={() => setTextVisible({ modify: true })}
+            onMouseLeave={() => setTextVisible({ modify: false })}
             className={`relative shadow-md shadow-indigo-600 hover:px-2 w-6 h-6 hover:overflow-hidden hover:w-auto group text-indigo-600 bg-indigo-100 border border-white-100 flex items-center justify-center hover:gap-x-1 rounded-full cursor-pointer transition-all duration-300`}
 
           >
             <img src={modify} width={16} height={16} alt="Add Icon" />
-            <p className={`${visible?.modify ? 'opacity-100 ' : 'opacity-0 w-0'} whitespace-nowrap text-xs transition-all duration-300 group-hover:opacity-100 group-hover:w-auto`}>
+            <p className={`${textVisible?.modify ? 'opacity-100 ' : 'opacity-0 w-0'} whitespace-nowrap text-xs transition-all duration-300 group-hover:opacity-100 group-hover:w-auto`}>
               Modify
             </p>
           </div>}  
           
-       
+      
       </div>
+      <div className='flex gap-2 items-center px-2 py-2 text-base  font-cabin'>
+              <img src={briefcase} className='w-4 h-4'/>
+              <div className='  text-sm uppercase text-neutral-700 '>
+               {trip?.tripName.split('(')[0]}
 
-      {activeTabs === 'completed' && (
+
+      </div>
+      </div>
+      
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <div className='h-[220px] min-w-max w-full bg-white-100 overflow-y-auto rounded-b-md py-1 px-2'>
-            <div className="flex flex-col py-1">
-              {Object.keys(completedItinerary).map(key => (
-                <React.Fragment key={key}>
-                  {key !== 'formState' && completedItinerary[key].length > 0 && (
-                    <div className='w-full'>
-                      <div className='flex gap-2 font-cabin items-center text-neutral-600 py-1'>
-                        <img src={getIconForItinerary(key)} className='w-4 h-4' />
-                        <h2 className="text-md font-semibold text-indigo-600 text-center">{key.charAt(0).toUpperCase() + key.slice(1)}</h2>
-                      </div>
-                      <div className="space-y-2">
-                        {completedItinerary[key]?.map(item => (
-                          <React.Fragment key={item._id}>
-                            <motion.div
-                              className="bg-white-100 p-3 rounded w-full shadow-md shadow-indigo-600 border border-slate-300"
-                              whileHover={{ scale: 1.05 }}
-                            >
-                              {['flights', 'trains', 'buses'].includes(key) && (
-                                <div className='flex flex-col items-start gap-2'>
-                                  <div className='flex w-full items-center justify-between'>
-                                    <div className='inline-flex gap-1'>
-                                      <img src={calender} alt='icon' className='w-4 h-4' />
-                                      <span className='text-sm font-cabin text-neutral-600'>{formatDate(item.bkd_date)}</span>
-                                    </div>
-                                  </div>
-                                  <div className='flex-1 w-full capitalize inline-flex items-center justify-between'>
-                                    <div className='w-2/5 font-cabin items-start text-sm text-neutral-600'>
-                                      <div className='text-neutral-600 text-xs'>Pickup Address</div>
-                                      <div className='text-neutral-800 '>{item?.bkd_from}</div>
-                                    </div>
-                                    <img src={double_arrow} className='w-5 h-5' alt='icon' />
-                                    <div className='w-2/5 items-start font-cabin text-sm text-neutral-600'>
-                                      <div className='text-neutral-600 text-xs'>Dropoff Address</div>
-                                      <div className='text-neutral-800'>{item?.bkd_to}</div>
-                                    </div>
-                                  </div>
-                                </div>
-                              )}
-                              {key === 'cabs' && (
-                                <div className='flex flex-col items-start gap-2'>
-                                  <div className='flex w-full items-center justify-between'>
-                                    <div className='inline-flex gap-1'>
-                                      <img src={calender} alt='icon' className='w-4 h-4' />
-                                      <span className='text-sm font-cabin text-neutral-600'>{formatDate(item?.bkd_date)}</span>
-                                    </div>
-                                  </div>
-                                  <div className='flex-1 w-full inline-flex items-center justify-between'>
-                                    <div className='w-2/5 font-cabin text-sm text-neutral-600'>
-                                      <div className='text-neutral-600 text-xs'>Pickup Address</div>
-                                      <div className='text-neutral-800'>{item?.bkd_pickup}</div>
-                                    </div>
-                                    <img src={double_arrow} className='w-5 h-5' alt='icon' />
-                                    <div className='w-2/5 font-cabin text-sm text-neutral-600'>
-                                      <div className='text-neutral-600 text-xs'>Dropoff Address</div>
-                                      <div className='text-neutral-800'>{item?.bkd_dropoff}</div>
-                                    </div>
-                                  </div>
-                                </div>
-                              )}
-                              {key === 'hotels' && (
-                                <div className='flex flex-col gap-2'>
-                                  <div className='flex w-full gap-2'>
-                                    <div className='inline-flex w-1/2 gap-1'>
-                                      <img src={calender} alt='icon' className='w-4 h-4' />
-                                      <span className='text-sm font-cabin text-neutral-600'>{formatDate(item?.bkd_checkIn)}</span>
-                                    </div>
-                                    <div className='inline-flex w-1/2 gap-1'>
-                                      <img src={calender} alt='icon' className='w-4 h-4' />
-                                      <span className='text-sm font-cabin text-neutral-600'>{formatDate(item?.bkd_checkOut)}</span>
-                                    </div>
-                                  </div>
-                                  <div className='flex-1 w-full capitalize flex flex-col items-start'>
-                                    <div className='text-neutral-600 text-xs'>Hotel Name</div>
-                                    <div className='text-neutral-800'>{item?.bkd_hotelName}</div>
-                                    <div className='text-neutral-600 text-xs'>Address</div>
-                                    <div className='text-neutral-800'>{item?.bkd_hotelAddress}</div>
-                                  </div>
-                                </div>
-                              )}
-                            </motion.div>
-                          </React.Fragment>
-                        ))}
-                      </div>
+          <div className='h-[200px] space-y-2 min-w-max w-full bg-white-100 overflow-y-auto rounded-b-md py-1 px-2'>
+          {itineraryByTab && itineraryByTab.length == 0 && <div className="min-w-[100px] h-full  sm:min-w-[280px]  md:min-w-[400px]  flex justify-center items-center">
+                    <div className="flex flex-col gap-4">
+                        <img src={empty_itinerary_icon} className="w-[200px]"/>
+                        <p className="text-xl font-cabin text-neutral-600">No upcoming itineraries.</p>
                     </div>
-                  )}
-                </React.Fragment>
-              ))}
-            </div>
+                </div>}
+           {
+            itineraryByTab?.map((item,index)=>{
+              if(item?.category === "flights"){
+                return ( 
+                <FlightCard 
+                id={item.id} 
+                from={item.bkd_from} 
+                to={item.bkd_to} 
+                date={item.bkd_date}
+                returnDate={item.bkd_returnDate}
+                returnTime={item.bkd_returnTime}
+                travelClass={item.bkd_travelClass} 
+                mode={'Flight'}
+                time={item.bkd_time}
+                />)
+              }
+              if(item?.category === "trains"){
+                return ( 
+                  <FlightCard 
+                  id={item.id} 
+                  from={item.bkd_from} 
+                  to={item.bkd_to} 
+                  date={item.bkd_date}
+                  returnDate={item.bkd_returnDate}
+                  returnTime={item.bkd_returnTime}
+                  travelClass={item.bkd_travelClass} 
+                  mode={'Flight'}
+                  time={item.bkd_time}
+                  />)
+              }
+              if(item?.category === "buses"){
+                return (                 
+                  <FlightCard 
+                  id={item.id} 
+                  from={item.bkd_from} 
+                  to={item.bkd_to} 
+                  date={item.bkd_date}
+                  returnDate={item.bkd_returnDate}
+                  returnTime={item.bkd_returnTime}
+                  travelClass={item.bkd_travelClass} 
+                  mode={'Flight'}
+                  time={item.bkd_time}
+                  />)
+              }
+              if(item?.category === "cabs"){
+                return (                 
+                  <CabCard
+                  id={item.id} 
+                  from={item.bkd_pickupAddress} 
+                  to={item.bkd_dropAddress} 
+                  date={item.bkd_date}
+                  returnDate={item.bkd_returnDate}
+                  isFullDayCab={item.isFullDayCab}
+                  travelClass={item.bkd_class} 
+                  mode={'Cab'}
+                  time={item.bkd_time}/>)
+              }
+              if(item.category == 'carRentals'){
+                return (
+                    <RentalCabCard
+                        id={item.id} 
+                        from={item.bkd_pickupAddress} 
+                        to={item.bkd_dropAddress} 
+                        date={item.bkd_date}
+                        returnDate={item.bkd_returnDate}
+                        travelClass={item.bkd_class} 
+                        mode={'Cab'}
+                        time={item.bkd_time}/>
+                )
+            }
+            if(item.category == 'hotels'){
+              return (
+                  <HotelCard
+                      id={item.id} 
+                      checkIn={item.bkd_checkIn} 
+                      checkOut={item.bkd_checkOut} 
+                      location={item.bkd_location}
+                      time={item.bkd_preferredTime}
+                      needBreakfast={item.bkd_needBreakfast}
+                      needLunch={item.bkd_needLunch}
+                      needDinner={item.bkd_needDinner}
+                      needNonSmokingRoom={item.bkd_needNonSmokingRoom}
+                      />
+              )
+          }
+
+
+            })
+           }
+            
+          
+           
+            
           </div>
         </motion.div>
-      )}
-      {activeTabs === 'upcoming' && (
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <div className='h-[220px] min-w-max w-full bg-white-100 overflow-y-auto rounded-b-md py-1 px-2'>
-            <div className="flex flex-col py-1">
-              {Object.keys(upcomingItinerary).map(key => (
-                <React.Fragment key={key}>
-                  {key !== 'formState' && upcomingItinerary[key].length > 0 && (
-                    <div className='w-full'>
-                      <div className='flex gap-2 font-cabin items-center text-neutral-600 py-1'>
-                        <img src={getIconForItinerary(key)} className='w-4 h-4' />
-                        <h2 className="text-md font-semibold text-indigo-600 text-center">{key.charAt(0).toUpperCase() + key.slice(1)}</h2>
-                      </div>
-                      <div className="space-y-2">
-                        {upcomingItinerary[key]?.map(item => (
-                          <React.Fragment key={item._id}>
-                            <motion.div
-                              className="bg-white-100 p-3 rounded w-full shadow-md shadow-indigo-600 border border-slate-300"
-                              whileHover={{ scale: 1.05 }}
-                            >
-                              {['flights', 'trains', 'buses'].includes(key) && (
-                                <div className='flex flex-col items-start gap-2'>
-                                  <div className='flex w-full items-center justify-between'>
-                                    <div className='inline-flex gap-1'>
-                                      <img src={calender} alt='icon' className='w-4 h-4' />
-                                      <span className='text-sm font-cabin text-neutral-600'>{formatDate(item.bkd_date)}</span>
-                                    </div>
-                                  </div>
-                                  <div className='flex-1 w-full capitalize inline-flex items-center justify-between'>
-                                    <div className='w-2/5 font-cabin items-start text-sm text-neutral-600'>
-                                      <div className='text-neutral-600 text-xs'>Pickup Address</div>
-                                      <div className='text-neutral-800 '>{item?.bkd_from}</div>
-                                    </div>
-                                    <img src={double_arrow} className='w-5 h-5' alt='icon' />
-                                    <div className='w-2/5 items-start font-cabin text-sm text-neutral-600'>
-                                      <div className='text-neutral-600 text-xs'>Dropoff Address</div>
-                                      <div className='text-neutral-800'>{item?.bkd_to}</div>
-                                    </div>
-                                  </div>
-                                </div>
-                              )}
-                              {key === 'cabs' && (
-                                <div className='flex flex-col items-start gap-2'>
-                                  <div className='flex w-full items-center justify-between'>
-                                    <div className='inline-flex gap-1'>
-                                      <img src={calender} alt='icon' className='w-4 h-4' />
-                                      <span className='text-sm font-cabin text-neutral-600'>{formatDate(item?.bkd_date)}</span>
-                                    </div>
-                                  </div>
-                                  <div className='flex-1 w-full inline-flex items-center justify-between'>
-                                    <div className='w-2/5 font-cabin text-sm text-neutral-600'>
-                                      <div className='text-neutral-600 text-xs'>Pickup Address</div>
-                                      <div className='text-neutral-800'>{item?.bkd_pickup}</div>
-                                    </div>
-                                    <img src={double_arrow} className='w-5 h-5' alt='icon' />
-                                    <div className='w-2/5 font-cabin text-sm text-neutral-600'>
-                                      <div className='text-neutral-600 text-xs'>Dropoff Address</div>
-                                      <div className='text-neutral-800'>{item?.bkd_dropoff}</div>
-                                    </div>
-                                  </div>
-                                </div>
-                              )}
-                              {key === 'hotels' && (
-                                <div className='flex flex-col gap-2'>
-                                  <div className='flex w-full gap-2'>
-                                    <div className='inline-flex w-1/2 gap-1'>
-                                      <img src={calender} alt='icon' className='w-4 h-4' />
-                                      <span className='text-sm font-cabin text-neutral-600'>{formatDate(item?.bkd_checkIn)}</span>
-                                    </div>
-                                    <div className='inline-flex w-1/2 gap-1'>
-                                      <img src={calender} alt='icon' className='w-4 h-4' />
-                                      <span className='text-sm font-cabin text-neutral-600'>{formatDate(item?.bkd_checkOut)}</span>
-                                    </div>
-                                  </div>
-                                  <div className='flex-1 w-full capitalize flex flex-col items-start'>
-                                    <div className='text-neutral-600 text-xs'>Hotel Name</div>
-                                    <div className='text-neutral-800'>{item?.bkd_hotelName}</div>
-                                    <div className='text-neutral-600 text-xs'>Address</div>
-                                    <div className='text-neutral-800'>{item?.bkd_hotelAddress}</div>
-                                  </div>
-                                </div>
-                              )}
-                            </motion.div>
-                          </React.Fragment>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </React.Fragment>
-              ))}
-            </div>
-          </div>
-        </motion.div>
-      )}
+      
+
+     
     </div>
   );
 };
@@ -523,17 +542,38 @@ const Trips = ({ index, trip, lastIndex }) => {
 
 const UpcomingTrips = ({ index, trip,lastIndex }) => {
 
-const [visible ,setVisible]=useState(false)
+  function flattenObjectToArray(obj) {
+    return Object.entries(obj).reduce((acc, [key, val]) => {
+      if (Array.isArray(val)) {
+        const transformedArray = val.map(item => ({
+          ...item,
+          id: item.formId,
+          category: key
+        }));
+        return acc.concat(transformedArray);
+      }
+      return acc;
+    }, []);
+  }
+
+   const itineary = flattenObjectToArray(trip?.itinerary)
+  console.log('flattenArrya',flattenObjectToArray(trip?.itinerary))
+
+const [textVisible ,setTextVisible]=useState(false)
 
   return (
-    <div className={ `${index ===lastIndex ? ' ' :'mb-2'}  shadow h-[285px] rounded-md `}>
+    <div className={ ` h-[270px] rounded-md `}>
       <div className="flex gap-2 px-2 flex-row items-center justify-between text-center font-cabin border-b-2  border-slate-300 py-2 text-neutral-700 text-xs">
        
       <div className='font-cabin text-xs text-neutral-700'>
-          <div className='text-xs text-start'>
-            <div className='text-neutral-400'>Trip No.</div>
-             <p>{trip?.tripNumber}</p>
-          </div>
+         
+           <div className='flex gap-2 items-center '>
+              <img src={briefcase} className='w-4 h-4'/>
+              <div className='font-medium font-cabin  text-sm uppercase text-neutral-700 '>
+               {trip?.tripName.split('(')[0]}
+
+              </div>
+              </div>
         </div>
 
         <div className='gap-4 flex '>
@@ -544,13 +584,13 @@ const [visible ,setVisible]=useState(false)
           
              
         <div
-            onMouseEnter={() => setVisible({ modify: true })}
-            onMouseLeave={() => setVisible({ modify: false })}
+            onMouseEnter={() => setTextVisible({ modify: true })}
+            onMouseLeave={() => setTextVisible({ modify: false })}
             className={`relative shadow-md shadow-indigo-600 hover:px-2 w-6 h-6 hover:overflow-hidden hover:w-auto group text-indigo-600 bg-indigo-100 border border-white-100 flex items-center justify-center hover:gap-x-1 rounded-full cursor-pointer transition-all duration-300`}
 
           >
             <img src={modify} width={16} height={16} alt="Add Icon" />
-            <p className={`${visible?.modify ? 'opacity-100 ' : 'opacity-0 w-0'} whitespace-nowrap text-xs transition-all duration-300 group-hover:opacity-100 group-hover:w-auto`}>
+            <p className={`${textVisible?.modify ? 'opacity-100 ' : 'opacity-0 w-0'} whitespace-nowrap text-xs transition-all duration-300 group-hover:opacity-100 group-hover:w-auto`}>
               Modify
             </p>
           </div>
@@ -565,131 +605,113 @@ const [visible ,setVisible]=useState(false)
   
         <div>
          <div className='h-[234px] min-w-max w-full  overflow-y-auto rounded-b-md py-1 px-2'>
- <div className=" flex flex-col py-1">
-      {Object.keys(trip?.itinerary).map(key => (
-        <React.Fragment key={key}>
-          {key !== 'formState' && trip?.itinerary[key].length > 0 && (
-            <div className='w-full'>
-              <div className='flex gap-2 font-cabin items-center text-neutral-600 py-1'>
-              <img src={getIconForItinerary(key)} className='w-4 h-4' />
-              <h2 className="text-md font-semibold  text-center">{key.charAt(0).toUpperCase() + key.slice(1)}</h2>
-              {/* <h2 className="text-md font-semibold  text-center">{key.charAt(0).toUpperCase() + key.slice(1)}</h2> */}
-              </div>
-              <div className="" >
-                {trip?.itinerary[key]?.map(item => (
-                  <React.Fragment key={item._id} >
-                    <div className="bg-white  p-3 rounded shadow w-full border border-slate-300 bg-slate-50">
-              {['flights','trains','buses'].includes(key)  && (
-
-                   <div className='flex flex-col items-start gap-2   '>
-                    <div className='flex  w-full  items-center  justify-between '>
-                      <div className='inline-flex gap-1'>
-                      <img src={calender} alt='icon' className='w-4 h-4'/>
-                      <span className='text-sm font-cabin text-neutral-600'>{formatDate(item.bkd_date)}</span>
-                      </div>
-                      {/* <div className={` text-center rounded-sm  ${getStatusClass(item.status)}`}>
-                      <p className='px-2 py-1 text-sm text-center capitalize font-cabin '>{item?.status}</p>
-                      </div> */}
-                    
-
+         <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <div className='max-h-[220px]  h-full space-y-2 min-w-max w-full bg-white-100 overflow-y-auto rounded-b-md py-1 px-2'>
+          {itineary && itineary.length == 0 && <div className="min-w-[100px] h-full  sm:min-w-[280px]  md:min-w-[400px]  flex justify-center items-center">
+                    <div className="flex flex-col gap-4">
+                        <img src={empty_itinerary_icon} className="w-[200px]"/>
+                        <p className="text-xl font-cabin text-neutral-600">No upcoming itineraries.</p>
                     </div>
+                </div>}
+           {
+            itineary?.map((item)=>{
+              if(item?.category === "flights"){
+                return ( 
+                <FlightCard 
+                id={item.id} 
+                from={item.bkd_from} 
+                to={item.bkd_to} 
+                date={item.bkd_date}
+                returnDate={item.bkd_returnDate}
+                returnTime={item.bkd_returnTime}
+                travelClass={item.bkd_travelClass} 
+                mode={'Flight'}
+                time={item.bkd_time}
+                />)
+              }
+              if(item?.category === "trains"){
+                return ( 
+                  <FlightCard 
+                  id={item.id} 
+                  from={item.bkd_from} 
+                  to={item.bkd_to} 
+                  date={item.bkd_date}
+                  returnDate={item.bkd_returnDate}
+                  returnTime={item.bkd_returnTime}
+                  travelClass={item.bkd_travelClass} 
+                  mode={'Flight'}
+                  time={item.bkd_time}
+                  />)
+              }
+              if(item?.category === "buses"){
+                return (                 
+                  <FlightCard 
+                  id={item.id} 
+                  from={item.bkd_from} 
+                  to={item.bkd_to} 
+                  date={item.bkd_date}
+                  returnDate={item.bkd_returnDate}
+                  returnTime={item.bkd_returnTime}
+                  travelClass={item.bkd_travelClass} 
+                  mode={'Flight'}
+                  time={item.bkd_time}
+                  />)
+              }
+              if(item?.category === "cabs"){
+                return (                 
+                  <CabCard
+                  id={item.id} 
+                  from={item.bkd_pickupAddress} 
+                  to={item.bkd_dropAddress} 
+                  date={item.bkd_date}
+                  returnDate={item.bkd_returnDate}
+                  isFullDayCab={item.isFullDayCab}
+                  travelClass={item.bkd_class} 
+                  mode={'Cab'}
+                  time={item.bkd_time}/>)
+              }
+              if(item.category == 'carRentals'){
+                return (
+                    <RentalCabCard
+                        id={item.id} 
+                        from={item.bkd_pickupAddress} 
+                        to={item.bkd_dropAddress} 
+                        date={item.bkd_date}
+                        returnDate={item.bkd_returnDate}
+                        travelClass={item.bkd_class} 
+                        mode={'Cab'}
+                        time={item.bkd_time}/>
+                )
+            }
+            if(item.category == 'hotels'){
+              return (
+                  <HotelCard
+                      id={item.id} 
+                      checkIn={item.bkd_checkIn} 
+                      checkOut={item.bkd_checkOut} 
+                      location={item.bkd_location}
+                      time={item.bkd_preferredTime}
+                      needBreakfast={item.bkd_needBreakfast}
+                      needLunch={item.bkd_needLunch}
+                      needDinner={item.bkd_needDinner}
+                      needNonSmokingRoom={item.bkd_needNonSmokingRoom}
+                      />
+              )
+          }
 
-                    <div className='flex-1 w-full capitalize    inline-flex items-center  justify-between   '>
-                <div className='w-2/5   font-cabin items-start  text-sm text-neutral-600'>
-                  <div className=' text-neutral-600 text-xs'>Pickup Address</div>
-                  <div className='text-neutral-800 '>{item?.bkd_from}</div>
-                </div>
-                <img src={double_arrow} className=' w-5 h-5' alt='icon'/>
-                <div className='w-2/5 items-start  font-cabin text-sm text-neutral-600'>
-                <div className=' text-neutral-600 text-xs'>Dropoff Address</div>
-                <div className='text-neutral-800'> {item?.bkd_to}</div></div>
-                </div>
-                    
-                    
-    
-                  </div>
-                )}
-                    {/* Add more details as needed */}
-                {key === 'cabs' && (
+
+            })
+           }
+            
           
-                <div className='flex flex-col items-start gap-2'>
-                <div className='flex  w-full  items-center  justify-between'>
-                  <div className='inline-flex gap-1'>
-                  <img src={calender} alt='icon' className='w-4 h-4'/>
-                  <span className='text-sm font-cabin text-neutral-600'>{formatDate(item?.bkd_date)}</span>
-                  </div>
-                  {/* <div className={` text-center rounded-sm  ${get
-                  
-                  
-                  
-                  
-                  
-                Class(item?.status)}`}>
-                  <p className='px-2 py-1 text-sm text-center capitalize font-cabin '>{item?.status}</p>
-                  </div> */}
-                </div>
-
-                <div className='flex-1 w-full   inline-flex items-center justify-between'>
-                <div className='w-2/5  font-cabin  text-sm text-neutral-600'>
-                  <div className=' text-neutral-600 text-xs'>Pickup Address</div>
-                  <div className='text-neutral-800'>{item?.bkd_pickupAddress}</div>
-                  </div>
-                <img src={double_arrow} className=' w-5 h-5' alt='icon'/>
-                <div className='w-2/5  font-cabin text-sm text-neutral-600'>
-                <div className=' text-neutral-600 text-xs'>Dropoff Address</div>
-                <div className='text-neutral-800'> {item?.bkd_dropAddress}</div></div>
-                </div>
-                
-                
-
-              </div>
-                )}
-                   {key === 'hotels' && (
-                       <div className='flex flex-col items-start capitalize'>
-                        
-                        <div className='flex items-center  justify-between w-full'>
-
-                      <div className='flex w-full'>
-                        <div className='justify-between flex '>
-                       <img src={calender} alt='icon' className='w-4 h-4 mr-1'/>
-                       <p className='text-sm font-cabin text-neutral-600'>{formatDate(item?.bkd_checkIn)}</p>
-                       </div>
-                       <div className='text-center px-2 '> to </div>
-                       <div className='flex justify-between '>
-                       <img src={calender} alt='icon' className='w-4 h-4 mr-1'/>
-                       <p className='text-sm font-cabin text-neutral-600'>{formatDate(item?.bkd_checkOut)}</p>
-                       </div>
-                       </div>
-                      
-
-                        
-                         {/* <div className={`px-2 py-1 rounded-sm    ${getStatusClass(item?.status)}`}>
-                         <p className='text-sm text-center capitalize font-cabin '>{item?.status}</p>
-                         </div> */}
-                     
-                        </div>
-
-                       <div className='flex-1  flex-col items-center font-cabin  '>
-                        <div className='text-neutral-600  text-xs '> Location</div>
-                        
-                         <span className='text-sm font-cabin text-neutral-800'>{item?.bkd_location}</span>
-                       </div>
-                       
-                       
-                  
-       
-                     </div>
-                    )}    
-                 
-                 </div>
-                  </React.Fragment>
-                ))}
-              </div>
-            </div>
-          )}
-        </React.Fragment>
-      ))}
-</div>
+           
+            
+          </div>
+        </motion.div>
 
 
 </div>
@@ -857,14 +879,12 @@ const TravelRequests = ({travel,index,lastIndex})=>{
 
 
 
-// import React ,{ useState,useEffect}from 'react';
+// import React ,{ useState,useEffect} from 'react';
 // import { useData } from '../api/DataProvider';
 // import { intransit_trip, arrow_left, down_arrow, chevron_down, cancel_round, cancel, upcoming_trip} from '../assets/icon';
 // import NotifyModal from '../components/NotifyModal';
 // import UpcomingTrip from '../components/trips/UpcomingTrip';
 // import  IntransitTrip from '../components/trips/IntransitTrip';
-
-
 // import { handleTrip ,handleTravelExpense, handleCashAdvance,} from '../utils/actionHandler';
 // import { useParams } from 'react-router-dom';
 // import Error from '../components/common/Error';

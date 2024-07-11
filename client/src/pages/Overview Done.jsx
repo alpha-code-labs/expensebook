@@ -1,6 +1,6 @@
 /* eslint-disable react/jsx-key */
 import React, { useState,useEffect } from 'react';
-import { airplane_1, briefcase, calender, double_arrow,cab_purple,  house_simple, train, bus, cancel_round, cancel, modify, plus_icon, plus_violet_icon, receipt, down_arrow, chevron_down, down_left_arrow } from '../assets/icon';
+import { airplane_1, briefcase, calender_icon, double_arrow,cab_purple,  house_simple, train, bus, cancel_round, cancel, modify, plus_icon, plus_violet_icon, receipt, down_arrow, chevron_down, down_left_arrow } from '../assets/icon';
 import { formatAmount, formatDate, getStatusClass } from '../utils/handyFunctions';
 import Tooltip from '../components/Tooltip';
 import { Tilt } from 'react-tilt'
@@ -572,7 +572,7 @@ const [visible ,setVisible]=useState({addALeg:false})
                    <div className='flex flex-col items-start gap-2   '>
                     <div className='flex  w-full  items-center  justify-between '>
                       <div className='inline-flex gap-1'>
-                      <img src={calender} alt='icon' className='w-4 h-4'/>
+                      <img src={calender_icon} alt='icon' className='w-4 h-4'/>
                       <span className='text-sm font-cabin text-neutral-600'>{formatDate(item.bkd_date)}</span>
                       </div>
                       {/* <div className={` text-center rounded-sm  ${getStatusClass(item.status)}`}>
@@ -603,7 +603,7 @@ const [visible ,setVisible]=useState({addALeg:false})
                 <div className='flex flex-col items-start gap-2'>
                 <div className='flex  w-full  items-center  justify-between'>
                   <div className='inline-flex gap-1'>
-                  <img src={calender} alt='icon' className='w-4 h-4'/>
+                  <img src={calender_icon} alt='icon' className='w-4 h-4'/>
                   <span className='text-sm font-cabin text-neutral-600'>{formatDate(item?.bkd_date)}</span>
                   </div>
                   {/* <div className={` text-center rounded-sm  ${getStatusClass(item?.status)}`}>
@@ -633,12 +633,12 @@ const [visible ,setVisible]=useState({addALeg:false})
 
                       <div className='flex w-full'>
                         <div className='justify-between flex '>
-                       <img src={calender} alt='icon' className='w-4 h-4 mr-1'/>
+                       <img src={calender_icon} alt='icon' className='w-4 h-4 mr-1'/>
                        <p className='text-sm font-cabin text-neutral-600'>{formatDate(item?.bkd_checkIn)}</p>
                        </div>
                        <div className='text-center px-2 '> to </div>
                        <div className='flex justify-between '>
-                       <img src={calender} alt='icon' className='w-4 h-4 mr-1'/>
+                       <img src={calender_icon} alt='icon' className='w-4 h-4 mr-1'/>
                        <p className='text-sm font-cabin text-neutral-600'>{formatDate(item?.bkd_checkOut)}</p>
                        </div>
                        </div>
@@ -699,7 +699,7 @@ const [visible ,setVisible]=useState({addALeg:false})
                    <div className='flex flex-col items-start gap-2   '>
                     <div className='flex  w-full  items-center  justify-between '>
                       <div className='inline-flex gap-1'>
-                      <img src={calender} alt='icon' className='w-4 h-4'/>
+                      <img src={calender_icon} alt='icon' className='w-4 h-4'/>
                       <span className='text-sm font-cabin text-neutral-600'>{formatDate(item.bkd_date)}</span>
                       </div>
                       {/* <div className={` text-center rounded-sm  ${getStatusClass(item.status)}`}>
@@ -730,7 +730,7 @@ const [visible ,setVisible]=useState({addALeg:false})
                 <div className='flex flex-col items-start gap-2'>
                 <div className='flex  w-full  items-center  justify-between'>
                   <div className='inline-flex gap-1'>
-                  <img src={calender} alt='icon' className='w-4 h-4'/>
+                  <img src={calender_icon} alt='icon' className='w-4 h-4'/>
                   <span className='text-sm font-cabin text-neutral-600'>{formatDate(item?.bkd_date)}</span>
                   </div>
                   {/* <div className={` text-center rounded-sm  ${getStatusClass(item?.status)}`}>
@@ -760,12 +760,12 @@ const [visible ,setVisible]=useState({addALeg:false})
 
                       <div className='flex w-full'>
                         <div className='justify-between flex '>
-                       <img src={calender} alt='icon' className='w-4 h-4 mr-1'/>
+                       <img src={calender_icon} alt='icon' className='w-4 h-4 mr-1'/>
                        <p className='text-sm font-cabin text-neutral-600'>{formatDate(item?.bkd_checkIn)}</p>
                        </div>
                        <div className='text-center px-2 '> to </div>
                        <div className='flex justify-between '>
-                       <img src={calender} alt='icon' className='w-4 h-4 mr-1'/>
+                       <img src={calender_icon} alt='icon' className='w-4 h-4 mr-1'/>
                        <p className='text-sm font-cabin text-neutral-600'>{formatDate(item?.bkd_checkOut)}</p>
                        </div>
                        </div>
@@ -894,7 +894,7 @@ const [visible ,setVisible]=useState(false)
                    <div className='flex flex-col items-start gap-2   '>
                     <div className='flex  w-full  items-center  justify-between '>
                       <div className='inline-flex gap-1'>
-                      <img src={calender} alt='icon' className='w-4 h-4'/>
+                      <img src={calender_icon} alt='icon' className='w-4 h-4'/>
                       <span className='text-sm font-cabin text-neutral-600'>{formatDate(item.bkd_date)}</span>
                       </div>
                       {/* <div className={` text-center rounded-sm  ${getStatusClass(item.status)}`}>
@@ -925,7 +925,7 @@ const [visible ,setVisible]=useState(false)
                 <div className='flex flex-col items-start gap-2'>
                 <div className='flex  w-full  items-center  justify-between'>
                   <div className='inline-flex gap-1'>
-                  <img src={calender} alt='icon' className='w-4 h-4'/>
+                  <img src={calender_icon} alt='icon' className='w-4 h-4'/>
                   <span className='text-sm font-cabin text-neutral-600'>{formatDate(item?.bkd_date)}</span>
                   </div>
                   {/* <div className={` text-center rounded-sm  ${getStatusClass(item?.status)}`}>
@@ -955,12 +955,12 @@ const [visible ,setVisible]=useState(false)
 
                       <div className='flex w-full'>
                         <div className='justify-between flex '>
-                       <img src={calender} alt='icon' className='w-4 h-4 mr-1'/>
+                       <img src={calender_icon} alt='icon' className='w-4 h-4 mr-1'/>
                        <p className='text-sm font-cabin text-neutral-600'>{formatDate(item?.bkd_checkIn)}</p>
                        </div>
                        <div className='text-center px-2 '> to </div>
                        <div className='flex justify-between '>
-                       <img src={calender} alt='icon' className='w-4 h-4 mr-1'/>
+                       <img src={calender_icon} alt='icon' className='w-4 h-4 mr-1'/>
                        <p className='text-sm font-cabin text-neutral-600'>{formatDate(item?.bkd_checkOut)}</p>
                        </div>
                        </div>

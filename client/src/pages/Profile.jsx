@@ -1,17 +1,14 @@
 /* eslint-disable react-refresh/only-export-components */
 /* eslint-disable react/display-name */
 import { useState, useEffect } from "react";
-import { BrowserRouter as Router, useParams } from 'react-router-dom'
-import axios from 'axios'
-import Icon from '../components/common/Icon'
 import { titleCase } from "../utils/handyFunctions";
 import Error from "../components/common/Error";
 import PopupMessage from "../components/common/PopupMessage";
 import {profile_bg, app_icon, airplane_1 as airplane_icon, arrow_left, mail_icon, location_pin } from "../assets/icon";
 import Select from "../components/common/Select";
 import Button from "../components/common/Button";
-import Input from "../components/Input";
-import TextBox from "../components/TextBox";
+import Input from "../components/common/SearchInput";
+import TextBox from "../components/common/TextBox";
 import { travelPreferences,preference } from "../dummyData/profile";
 import { postTravelPreference_API } from "../utils/api";
 

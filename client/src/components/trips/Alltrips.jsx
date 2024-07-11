@@ -1,5 +1,5 @@
 import React from 'react';
-import { calender, double_arrow ,all_trips} from '../../assets/icon';
+import { calender_icon, double_arrow ,all_trips} from '../../assets/icon';
 import { titleCase } from '../../utils/handyFunctions';
 
 export const Alltrips = ({ travelName, from, to, departureDate, returnDate ,status }) => {
@@ -35,7 +35,7 @@ export const Alltrips = ({ travelName, from, to, departureDate, returnDate ,stat
     {/* Date */}
     
     <div className="flex h-[52px] w-[222px]  items-center justify-start py-3 gap-1 ">
-      <img src={calender} alt="calendar" className="w-[16px]" />
+      <img src={calender_icon} alt="calendar" className="w-[16px]" />
       <div className=" tracking-[0.03em] leading-normal text-neutral-800 text-[14px]">
         {departureDate} to {returnDate}
       </div>

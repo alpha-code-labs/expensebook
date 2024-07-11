@@ -1,57 +1,62 @@
 import React, { useEffect, useState } from 'react';
-import { briefcase, cancel, modify, money, money1, plus_violet_icon } from '../assets/icon';
+import { briefcase, cancel, filter_icon, modify, money, money1, plus_violet_icon } from '../assets/icon';
 import { formatAmount, getStatusClass } from '../utils/handyFunctions';
-import {TRCashadvance,NonTRCashAdvances} from '../utils/dummyData'
-import Modal from '../components/Modal';
+import {TRCashadvance,NonTRCashAdvances} from '../utils/dummyData';
+import Modal from '../components/common/Modal1';
 import TripSearch from '../components/common/TripSearch';
 import Button1 from '../components/common/Button1';
 import { handleCashAdvance } from '../utils/actionHandler';
 import TravelMS from './TravelMS';
+import { useData } from '../api/DataProvider';
+import Error from '../components/common/Error';
+import { useParams } from 'react-router-dom';
 
-const CashAdvance = () => {
-  const [cashAdvanceUrl , setCashAdvanceUrl]=useState(null)
-  const [visible, setVisible]=useState(false)// for iframe
-  const [travelRequestId , setTravelRequestId]=useState(null)
-  const [advancetype , setAdvanceType]=useState(null)
-  const [textVisible,setTextVisible]=useState({cashAdvance:false}) //for icon text
-  const [modalOpen , setModalOpen]=useState(false)
+const CashAdvance = ({isLoading, fetchData, loadingErrMsg}) => {
+
+  const [cashAdvanceUrl , setCashAdvanceUrl]=useState(null) 
+  const [visible, setVisible]=useState(false) 
+  const [travelRequestId , setTravelRequestId]=useState(null) 
+  const [advancetype , setAdvanceType]=useState(null) 
+  const [textVisible,setTextVisible]=useState({cashAdvance:false}) 
+  const [modalOpen , setModalOpen]=useState(false) 
+
   const [error , setError]= useState({
     travelRequestId: {set:false, message:""}
-  })
- 
-  const tripsAndTr= [
+  }) 
 
-    {
-      "travelRequestId": "667a8a108daacf93aefcc2cxs",
-      "travelRequestNumber": "TRAL000032",
-      "tripName":"us - del - mum - gkr"
-    },
-    {
-      "travelRequestId": "667a8a108daacf93aefcc2ex",
-      "travelRequestNumber": "TRAL000012",
-       "tripName":"san-lkw"
-    },
-    {
-      "tripId": "667a8a108daacf93aefcc2sa",
-      "tripNumber": "TRIPAL000033",
-      "tripName":"nag-aur-hyd"
-    },
-    {
-      "travelRequestId": "667a8a108daacf93aefcc2egf",
-      "travelRequestNumber": "TRAL000038",
-      "tripName":"us - del - mum - gkr"
-    },
-    {
-      "travelRequestId": "667a8a108daacf93aefcc2xs",
-      "travelRequestNumber": "TRAL000012",
-       "tripName":"san-lkw"
-    },
-    {
-      "tripId": "667a8a108daacf93aefcc2nbv",
-      "tripNumber": "TRIPAL000001",
-      "tripName":"nag-aur-hyd"
+  const { employeeData } = useData();
+  const [travelData, setTravelData]=useState([])
+  const [cashAdvanceData, setCashAdvanceData]=useState([])
+
+  const {tenantId,empId,page}= useParams();
+
+  useEffect(()=>{
+
+    fetchData(tenantId,empId,page)
+
+  },[])
+
+  useEffect(() => {
+    if (employeeData) {
+      const data = employeeData?.dashboardViews?.employee || [];
+      const travelData = data?.travelRequests || [];
+      const upcomingTrips = data?.trips?.upcomingTrips || [];
+      const intransitTrips = data?.trips?.transitTrips || [];
+  
+      const dataForRaiseCashadvance = [...travelData, ...upcomingTrips, ...intransitTrips];
+      const pushedData = dataForRaiseCashadvance?.map(item => ({ ...item, tripName: "us - del - mum - gkr" }));
+
+      setTravelData(pushedData);
+  
+      console.log('Travel data for raise advance:', dataForRaiseCashadvance);
+    } else {
+      console.error('Employee data is missing.');
     }
-  ]
+  }, [employeeData]);
+  
+ 
+  
+
 
   const handleRaise = () => {
     if (advancetype === "travel_Cash-Advance") {
@@ -61,12 +66,10 @@ const CashAdvance = () => {
         return;
       } 
       setError(prev => ({ ...prev, travelRequestId: { set: false, message: "" } }));
-      
       setTravelRequestId(null)
       setAdvanceType(null)
       setModalOpen(false)
       handleVisible(travelRequestId, 'ca-create')
-      
     } else {
       setAdvanceType(null)
       setModalOpen(false)
@@ -74,9 +77,12 @@ const CashAdvance = () => {
     }
   };
 
-///cashadvance iframe
+ 
 
-const handleVisible= (travelRequestId  ,action,)=>{
+
+//cashadvance iframe
+
+const handleVisible = (travelRequestId, action, cashadvanceId) => {
 
   setVisible(!visible);
   let url ;
@@ -88,6 +94,8 @@ const handleVisible= (travelRequestId  ,action,)=>{
   else if (action==="non-tr-ca-create"){
     url=handleCashAdvance("", 'non-tr-ca-create');
    
+  }else if (action === "ca-modify"){
+    url=handleCashAdvance(travelRequestId, cashadvanceId, 'ca-modify');
   }
   else {
     throw new Error('Invalid action');
@@ -118,15 +126,7 @@ const handleVisible= (travelRequestId  ,action,)=>{
     };
   }, []);
 
-
-  
   console.log(error.travelRequestId)
-
-
-  //disable by status
-function disableButton(status){
-  return ['draft','cancelled'].includes(status);
-}
 
   const handleSelect=(option)=>{
     console.log(option)
@@ -141,16 +141,72 @@ function disableButton(status){
     }
   }, [visible]);
 
+
+  const [selectedStatuses, setSelectedStatuses] = useState([]);
+
+  const handleStatusClick = (status) => {
+
+    setSelectedStatuses((prev) =>
+      prev.includes(status)
+        ? prev.filter((s) => s !== status)
+        : [...prev, status]
+    );
+
+  };
+  
+  const filterCashadvances = (cashadvances) => {
+
+    return cashadvances.filter((cashadvance) =>
+      selectedStatuses.length === 0 ||
+      selectedStatuses.includes(cashadvance?.cashAdvanceStatus)
+    );
+
+  };
+  
+  const getStatusCount = (status, cashadvance) => {
+    return cashadvance.filter((cashadvance) => cashadvance?.cashAdvanceStatus === status)?.length;
+  };
+  
+  
+  const disableButton = (status) => {
+    return ['draft', 'cancelled'].includes(status);
+  };
+  
+  
   return (
+    <>
+     {isLoading && <Error message={loadingErrMsg}/>}
+     {!isLoading && 
     <div className='min-h-screen'>
        <TravelMS visible={visible} setVisible={setVisible} src={cashAdvanceUrl}/>
-      <div className='flex-col w-full p-4 flex items-start'>
+      <div className='flex-col w-full p-4 flex items-start gap-2'>
       
-        <div className='min-h-[120px] border w-full'>
-          for filter and other
+      <div className='min-h-[120px] border border-slate-300 bg-white-100 rounded-md  w-full flex flex-wrap items-start gap-2 px-2 py-2'>
+       <div className='flex flex-wrap space-x-2'>
+        <div className='flex items-center justify-center p-2 bg-slate-100 rounded-full border border-slate-300 '><img src={filter_icon} className='w-5 h-5'/></div>
+  {["draft","pending approval", "pending settlement", "paid",  "cancelled", "paid and cancelled"].map((status) => {
+    const statusCount = getStatusCount(status, [...TRCashadvance.flatMap(te => te?.cashAdvances), ...NonTRCashAdvances]);
+    const isDisabled = statusCount === 0;
+    
+    return (
+      <div key={status} className={`flex items-center  ${isDisabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
+        <div
+          onClick={() => !isDisabled && handleStatusClick(status)}
+          className={`ring-1 ring-white-100 flex py-1 pr-3 text-center rounded-sm ${selectedStatuses.includes(status) ? getStatusClass(status ?? "-") : "bg-slate-100 text-neutral-700 border border-slate-300"}`}
+        >
+          <p className='px-1 py-1 text-sm text-center capitalize font-cabin'>{status ?? "-"}</p>
         </div>
-        <div className='w-full flex md:flex-row flex-col'>
-          <div className='flex-1 justify-center items-center'>
+        <div className={`shadow-md shadow-black/30 font-semibold -translate-x-3 ring-1 rounded-full ring-white-100 w-6 h-6 flex justify-center items-center text-center text-xs ${selectedStatuses.includes(status) ? getStatusClass(status ?? "-") : "bg-slate-100 text-neutral-700 border border-slate-300 "}`}>
+          <p>{statusCount}</p>
+        </div>
+      </div>
+    );
+  })}
+  <div className='text-neutral-700 text-base flex justify-center items-center hover:text-red-200 hover:font-semibold text-center w-auto h-[36px] font-cabin cursor-pointer' onClick={() => setSelectedStatuses([])}>Clear All</div>
+  </div>
+</div>
+        <div className='w-full flex md:flex-row flex-col '>
+          <div className='flex-1 rounded-md justify-center items-center'>
          
 <div className='relative  flex justify-center items-center  rounded-l-md   font-inter text-md text-white-100 h-[52px] bg-indigo-600  text-center'>
 
@@ -171,7 +227,7 @@ Raise a Cash-Advance
 </div>
   
              
-              <div className='flex justify-center items-center'>
+              <div className='flex justify-center items-center '>
               <img src={money1} className='w-6 h-6 mr-2' />
               <p>Travel Cash-Advances</p>
               </div>
@@ -182,17 +238,22 @@ Raise a Cash-Advance
 
 
             
-      <div className='w-full mt-4 xl:h-[570px] lg:h-[370px] md:[590px] overflow-y-auto px-2'>
-          {TRCashadvance.map((trip) => (
+      <div className='w-full bg-white-100  mt-4 xl:h-[570px] lg:h-[370px] md:[590px] overflow-y-auto px-2'>
+          {TRCashadvance.map((trip) => { 
+            const filteredCashadvances = filterCashadvances(trip?.cashAdvances)
+            if (filteredCashadvances.length === 0) return null;
+            return(
             <div key={trip.tripId} className='mb-4 rounded-md shadow-custom-light bg-white-100 p-4'>
-              <div className='flex gap-2 items-center '>
+              <div className='flex gap-2 items-center'>
               <img src={briefcase} className='w-4 h-4'/>
-              <div className='font-medium font-cabin text-md  uppercase'>
+              <div className='font-medium font-cabin text-md uppercase'>
                {trip.tripName.join(' - ')}
               </div>
               </div>
-              {trip.cashAdvances.map((advance,index) => (
-                <div key={index} className={`px-2 py-2 ${index < trip.cashAdvances.length-1 && 'border-b border-slate-400 '}`}>
+              {filteredCashadvances?.map((advance,index) => ( 
+                
+
+                <div key={index} className={`px-2 py-2 ${index < filteredCashadvances.length-1 && 'border-b border-slate-400 '}`}>
                   <div className='flex justify-between'>
                     <div className='flex flex-col justify-center max-w-[120px]'>
                       <div className='font-medium text-sm font-cabin text-neutral-400'>Advance Amount</div>
@@ -207,33 +268,33 @@ Raise a Cash-Advance
 
                      
                     </div>
-                    <div className='flex justify-center items-center gap-2 '>
+                    <div className='flex justify-center items-center gap-2'>
                     <div className={`text-center rounded-sm ${getStatusClass(advance?.cashAdvanceStatus ?? "-")}`}>
                        <p className='px-1 py-1 text-xs text-center capitalize font-cabin'>{advance?.cashAdvanceStatus ?? "-"}</p>
                     </div>
-                    <div onClick={()=>{if(!disableButton(trip?.travelRequestStatus)){handleCashAdvance(trip?.travelRequestId, advance?.cashAdvanceId, 'ca-modify')}}} className={`w-7 h-7 bg-indigo-100 rounded-full border border-white-100 flex items-center justify-center ${disableButton(trip?.travelRequestStatus)? ' cursor-not-allowed opacity-50' : ' cursor-pointer'}`}>
+                    <div onClick={()=>{if(!disableButton(trip?.travelRequestStatus)){handleVisible(trip?.travelRequestId,  'ca-modify' ,advance?.cashAdvanceId,)}}} className={`w-7 h-7 bg-indigo-100 rounded-full border border-white-100 flex items-center justify-center ${disableButton(trip?.travelRequestStatus)? ' cursor-not-allowed opacity-50' : ' cursor-pointer'}`}>
                     <img src={modify} className='w-4 h-4' alt="modify_icon" />
-                  </div>
+                    </div>
                   </div>
                   </div>
                 </div>
-              ))}
-            </div>
-          ))}
+))}
+            </div>)
+           })}
         </div>
           </div>
-          <div className='flex-1'>
+          <div className='flex-1 rounded-md'>
             <div className='flex justify-center items-center rounded-r-md font-inter text-md text-white-100 h-[52px] bg-indigo-600  text-center'>
-              <img src={money1} className='w-6 h-6 mr-2' />
+              <img src={money1} className='w-6 h-6 mr-2'/>
               <p>Non-Travel Cash-Advances</p>
             </div>
 <div className='w-full mt-4 xl:h-[570px] lg:h-[370px] md:[590px] overflow-y-auto px-2'>
-            {NonTRCashAdvances.map((cashAdvance,index) => (
+            {filterCashadvances(NonTRCashAdvances).map((cashAdvance,index) => (
               <div key={`${index}nonTr`} className='mb-4 rounded-md shadow-custom-light bg-white-100 p-4'>
               <div className='flex gap-2 items-center'>
               <img src={money} className='w-5 h-5'/>
               <div className='font-medium font-cabin text-md'>
-                <div className='text-neutral-400 text-sm'>Cash-Advance No.</div>
+               <div className='text-neutral-400 text-sm'>Cash-Advance No.</div>
                <p className='text-neutral-700 text-base'>{cashAdvance?.cashAdvanceNumber}</p>
               </div>
 
@@ -279,7 +340,7 @@ Raise a Cash-Advance
             
               <div className='flex gap-2 justify-between items-center bg-indigo-100 w-full p-4'>
                
-                <p className='font-inter text-base font-semibold text-indigo-600'>Raise Cash-Advance</p>
+                <p className='font-inter text-base font-semibold text-indigo-600'>Raise a Cash-Advance</p>
                 <div onClick={()=>{setModalOpen(!modalOpen);setTravelRequestId(null);setAdvanceType(null)}} className='bg-red-100 cursor-pointer rounded-full border border-white-100'>
                 <img src={cancel} className='w-5 h-5'/>
                 </div>
@@ -301,7 +362,7 @@ Raise a Cash-Advance
 <div className='flex gap-4 flex-col items-start justify-start w-full py-2'>
 { advancetype=== "travel_Cash-Advance" &&
  <div className='w-full'>
-  <TripSearch placeholder={"Select the trip"} error={error?.travelRequestId} title="Apply to trip" data={tripsAndTr} onSelect={handleSelect} />
+  <TripSearch placeholder={"Select the trip"} error={error?.travelRequestId} title="Apply to trip" data={travelData} onSelect={handleSelect} />
  </div> }
   
 
@@ -327,7 +388,8 @@ Raise a Cash-Advance
 
 
         
-    </div>
+    </div>}
+    </>
   );
 };
 
@@ -343,7 +405,7 @@ export default CashAdvance;
 // import { useData } from '../api/DataProvider';
 // import { getStatusClass ,titleCase} from '../utils/handyFunctions';
 // import { Alltrips } from '../components/trips/Alltrips';
-// import { receipt, chevron_down, calender, double_arrow , three_dot ,validation_sym, down_left_arrow, money} from '../assets/icon';
+// import { receipt, chevron_down, calender_icon, double_arrow , three_dot ,validation_sym, down_left_arrow, money} from '../assets/icon';
 // import Dropdown from '../components/common/Dropdown';
 // import RejectedCA from '../components/cashAdvance/RejectedCA';
 // import { useParams } from 'react-router-dom';

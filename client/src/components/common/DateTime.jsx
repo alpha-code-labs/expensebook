@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { chevron_down } from "../assets/icon";
-import { formatDate } from "../utils/handyFunctions";
+import { chevron_down } from "../../assets/icon";
+import { formatDate } from "../../utils/handyFunctions";
 
 function getCurrentDate() {
   const date = new Date();

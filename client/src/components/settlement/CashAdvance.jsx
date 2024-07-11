@@ -1,5 +1,5 @@
 import React,{useState} from "react";
-import { up_arrow, down_arrow ,calender, frame_341} from "../../assets/icon";
+import { up_arrow, down_arrow ,calender_icon, frame_341} from "../../assets/icon";
 import { titleCase } from "../../utils/handyFunctions";
 
 const CashAdvance = () => {
@@ -214,7 +214,7 @@ const CashAdvance = () => {
     
   </div>
   <div className="flex flex-row gap-1 w-[240px] h-14 py-5 px-3">
-  <img src={calender} alt="calendar" className="w-[16px]" />
+  <img src={calender_icon} alt="calendar" className="w-[16px]" />
 <div className=" tracking-[0.03em] leading-normal text-neutral-800 text-[14px] font-medium">
 20-Sep-2023 to 22-Sep-2023
 </div>

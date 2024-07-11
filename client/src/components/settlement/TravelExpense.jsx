@@ -1,5 +1,5 @@
 import React,{useState} from "react";
-import { calender, double_arrow } from "../../assets/icon";
+import { calender_icon, double_arrow } from "../../assets/icon";
 import { titleCase } from "../../utils/handyFunctions";
 
 const TravelExpense = () => {
@@ -216,7 +216,7 @@ const searchByName = TrExpense.filter((expense) => {
                 </div>
               </div>
               <div className="flex flex-row gap-1 w-[240px] py-5 h-14 ">
-                <img src={calender} alt="calendar" className="w-[16px]" />
+                <img src={calender_icon} alt="calendar" className="w-[16px]" />
                 <div className="tracking-[0.03em]  leading-normal text-neutral-800 text-[14px] font-medium">
                   {tr.date}
                 </div>

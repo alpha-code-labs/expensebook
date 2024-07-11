@@ -2,7 +2,7 @@ import React, { useState,useEffect } from 'react';
 
 import { useData } from '../api/DataProvider';
 import { getStatusClass ,titleCase, urlRedirection} from '../utils/handyFunctions';
-import { receipt, chevron_down, calender, double_arrow , three_dot ,validation_sym, down_left_arrow, airplane_1, receipt_icon1, money} from '../assets/icon';
+import { receipt, chevron_down, calender_icon, double_arrow , three_dot ,validation_sym, down_left_arrow, airplane_1, receipt_icon1, money} from '../assets/icon';
 import ApprovalTravelExpense from '../components/approvals/ApprovalTravelExpense';
 import { handleApproval } from '../utils/actionHandler';
 import { useParams } from 'react-router-dom';

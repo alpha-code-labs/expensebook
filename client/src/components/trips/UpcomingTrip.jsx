@@ -1,6 +1,6 @@
 import React ,{Fragment, useEffect, useState}from 'react';
 import Modal from '../Modal';
-import {cab_purple, three_dot, airplane_1,intransit_trip, briefcase,calender, double_arrow, cab, location, arrow_left, down_arrow, chevron_down, house_simple, train, bus, briefcaseMap} from '../../assets/icon';
+import {cab_purple, three_dot, airplane_1,intransit_trip, briefcase,calender_icon, double_arrow, cab, location, arrow_left, down_arrow, chevron_down, house_simple, train, bus, briefcaseMap} from '../../assets/icon';
 import AddLeg from '../addLeg/LegForm';
 
 import { formatDate, formatDate2, getCashAdvanceButtonText ,getStatusClass,urlRedirection} from '../../utils/handyFunctions';
@@ -214,7 +214,7 @@ upComingTrip && upComingTrip?.map((item, index) => (
                    <div className='flex flex-col items-start gap-2   '>
                     <div className='flex  w-full  items-center  justify-between '>
                       <div className='inline-flex gap-1'>
-                      <img src={calender} alt='icon' className='w-4 h-4'/>
+                      <img src={calender_icon} alt='icon' className='w-4 h-4'/>
                       <span className='text-sm font-cabin text-neutral-600'>{formatDate(item.bkd_date)}</span>
                       </div>
                       <div className={` text-center rounded-sm  ${getStatusClass(item.status)}`}>
@@ -245,7 +245,7 @@ upComingTrip && upComingTrip?.map((item, index) => (
                 <div className='flex flex-col items-start gap-2'>
                 <div className='flex  w-full  items-center  justify-between'>
                   <div className='inline-flex gap-1'>
-                  <img src={calender} alt='icon' className='w-4 h-4'/>
+                  <img src={calender_icon} alt='icon' className='w-4 h-4'/>
                   <span className='text-sm font-cabin text-neutral-600'>{formatDate(item?.bkd_date)}</span>
                   </div>
                   <div className={` text-center rounded-sm  ${getStatusClass(item?.status)}`}>
@@ -277,12 +277,12 @@ upComingTrip && upComingTrip?.map((item, index) => (
 
                       <div className='flex w-full'>
                         <div className='justify-between flex '>
-                       <img src={calender} alt='icon' className='w-4 h-4 mr-1'/>
+                       <img src={calender_icon} alt='icon' className='w-4 h-4 mr-1'/>
                        <p className='text-sm font-cabin text-neutral-600'>{formatDate(item?.bkd_checkIn)}</p>
                        </div>
                        <div className='text-center px-2 '> to </div>
                        <div className='flex justify-between '>
-                       <img src={calender} alt='icon' className='w-4 h-4 mr-1'/>
+                       <img src={calender_icon} alt='icon' className='w-4 h-4 mr-1'/>
                        <p className='text-sm font-cabin text-neutral-600'>{formatDate(item?.bkd_checkOut)}</p>
                        </div>
                        </div>
@@ -478,7 +478,7 @@ export default UpcomingTrip
 //                     <div className='flex flex-col items-start gap-2   '>
 //                      <div className='flex  w-full  items-center  justify-between '>
 //                        <div className='inline-flex gap-1'>
-//                        <img src={calender} alt='icon' className='w-4 h-4'/>
+//                        <img src={calender_icon} alt='icon' className='w-4 h-4'/>
 //                        <span className='text-sm font-cabin text-neutral-600'>{formatDate(item.bkd_date)}</span>
 //                        </div>
 //                        <div className={` text-center rounded-sm  ${getStatusClass(item.status)}`}>
@@ -509,7 +509,7 @@ export default UpcomingTrip
 //                  <div className='flex flex-col items-start gap-2'>
 //                  <div className='flex  w-full  items-center  justify-between'>
 //                    <div className='inline-flex gap-1'>
-//                    <img src={calender} alt='icon' className='w-4 h-4'/>
+//                    <img src={calender_icon} alt='icon' className='w-4 h-4'/>
 //                    <span className='text-sm font-cabin text-neutral-600'>{formatDate(item?.bkd_date)}</span>
 //                    </div>
 //                    <div className={` text-center rounded-sm  ${getStatusClass(item?.status)}`}>
@@ -541,12 +541,12 @@ export default UpcomingTrip
  
 //                        <div className='flex w-full'>
 //                          <div className='justify-between flex '>
-//                         <img src={calender} alt='icon' className='w-4 h-4 mr-1'/>
+//                         <img src={calender_icon} alt='icon' className='w-4 h-4 mr-1'/>
 //                         <p className='text-sm font-cabin text-neutral-600'>{formatDate(item?.bkd_checkIn)}</p>
 //                         </div>
 //                         <div className='text-center px-2 '> to </div>
 //                         <div className='flex justify-between '>
-//                         <img src={calender} alt='icon' className='w-4 h-4 mr-1'/>
+//                         <img src={calender_icon} alt='icon' className='w-4 h-4 mr-1'/>
 //                         <p className='text-sm font-cabin text-neutral-600'>{formatDate(item?.bkd_checkOut)}</p>
 //                         </div>
 //                         </div>
@@ -616,7 +616,7 @@ export default UpcomingTrip
 // </div>
 // import React ,{Fragment, useEffect, useState}from 'react';
 // import Modal from '../Modal';
-// import {cab_purple, three_dot, airplane_1,intransit_trip, briefcase,calender, double_arrow, cab, location, arrow_left, down_arrow, chevron_down, house_simple, train, bus} from '../../assets/icon';
+// import {cab_purple, three_dot, airplane_1,intransit_trip, briefcase,calender_icon, double_arrow, cab, location, arrow_left, down_arrow, chevron_down, house_simple, train, bus} from '../../assets/icon';
 // import AddLeg from '../addLeg/LegForm';
 
 // import { formatDate, formatDate2, getCashAdvanceButtonText ,getStatusClass,urlRedirection} from '../../utils/handyFunctions';
@@ -827,7 +827,7 @@ export default UpcomingTrip
 //               {['flights','trains','buses'].includes(key)  && (
 //                    <div className='flex flex-row items-center '>
 //                     <div className='flex-1 inline-flex items-center  gap-1'>
-//                       <img src={calender} alt='icon' className='w-4 h-4'/>
+//                       <img src={calender_icon} alt='icon' className='w-4 h-4'/>
 //                       <span className='text-sm font-cabin'>{formatDate2(item?.bkd_date)}</span>
 //                     </div>
 //                     <div className='flex-1 inline-flex items-center gap-2'>
@@ -849,7 +849,7 @@ export default UpcomingTrip
           
 //                    <div className='flex flex-row items-center '>
 //                    <div className='flex-1 inline-flex items-center  gap-1 '>
-//                      <img src={calender} alt='icon' className='w-4 h-4'/>
+//                      <img src={calender_icon} alt='icon' className='w-4 h-4'/>
 //                      <span className='text-sm font-cabin'>{formatDate(item.bkd_date)}</span>
 //                    </div>
 //                    <div className='flex-1 inline-flex items-center gap-2'>
@@ -873,11 +873,11 @@ export default UpcomingTrip
 //                          <span className='text-sm font-cabin'>{item?.bkd_location}</span>
 //                        </div>
 //                        <div className='flex-1 inline-flex items-center justify-center gap-1'>
-//                        <img src={calender} alt='icon' className='w-4 h-4'/>
+//                        <img src={calender_icon} alt='icon' className='w-4 h-4'/>
 //                        <p className='font-cabin text-sm'>{formatDate(item?.bkd_checkIn)}</p>
 //                        </div>
 //                        <div className='flex-1 inline-flex items-center justify-center gap-1'>
-//                        <img src={calender} alt='icon' className='w-4 h-4'/>
+//                        <img src={calender_icon} alt='icon' className='w-4 h-4'/>
 //                        <p className='font-cabin text-sm'>{formatDate(item?.bkd_checkOut)}</p>
 //                        </div>
                        
@@ -948,7 +948,7 @@ export default UpcomingTrip
 // export default UpcomingTrip
 // import React ,{Fragment, useState}from 'react';
 // import Modal from '../Modal';
-// import { three_dot, airplane_1,intransit_trip, briefcase,calender, double_arrow, cab, location, arrow_left, down_arrow, chevron_down} from '../../assets/icon';
+// import { three_dot, airplane_1,intransit_trip, briefcase,calender_icon, double_arrow, cab, location, arrow_left, down_arrow, chevron_down} from '../../assets/icon';
 // import AddLeg from '../addLeg/LegForm';
 // import { CANCEL_TRIP, CREATE_CASH_ADVANCE } from '../../utils/url';
 // import { getCashAdvanceButtonText ,urlRedirection} from '../../utils/handyFunctions';
@@ -1082,7 +1082,7 @@ export default UpcomingTrip
 //               <div className="">Kyton,Japan</div>
 //             </div>
 //             <div className="flex flex-row items-end justify-start gap-[4px]">
-//               <img className=" w-4 h-4 overflow-hidden shrink-0" alt="" src={calender} />
+//               <img className=" w-4 h-4 overflow-hidden shrink-0" alt="" src={calender_icon} />
 //               <div className="flex flex-row items-start justify-start gap-[8px] font-cabin font-medium text-[12px]">
 //                 <div className="">17-Sep-2023</div>
 //                 <div className="">to</div>
@@ -1195,7 +1195,7 @@ export default UpcomingTrip
 ///this is old code but working you can check it
 
 // import React from 'react';
-// import { calender, double_arrow , intransit_trip , upcoming_trip} from '../../assets/icon';
+// import { calender_icon, double_arrow , intransit_trip , upcoming_trip} from '../../assets/icon';
 
 
 // export const UpcomingContent = ({ travelName, from, to, departureDate, returnDate }) => {
@@ -1223,7 +1223,7 @@ export default UpcomingTrip
 //                           <img
 //                             className="relative w-4 h-4 overflow-hidden shrink-0"
 //                             alt=""
-//                             src={calender}
+//                             src={calender_icon}
 //                           />
 //                           <div className="flex flex-row items-start justify-start gap-[8px]">
 //                             <div className="relative">{departureDate}</div>

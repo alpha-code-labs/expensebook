@@ -1,7 +1,7 @@
 import React ,{Fragment, useState,useRef}from 'react';
 import { tripArray } from '../../utils/dummyData';
 import Modal from '../Modal';
-import {  bus, cab_purple, train ,three_dot, airplane_1,intransit_trip, briefcase,calender, double_arrow, house_simple,  briefcaseMap} from '../../assets/icon';
+import {  bus, cab_purple, train ,three_dot, airplane_1,intransit_trip, briefcase,calender_icon, double_arrow, house_simple,  briefcaseMap} from '../../assets/icon';
 import AddLeg from '../addLeg/LegForm';
 import { formatDate, getCashAdvanceButtonText ,getStatusClass,urlRedirection} from '../../utils/handyFunctions';
 
@@ -227,7 +227,7 @@ transitTripData && transitTripData?.map((item, index) => (
                    <div className='flex flex-col items-start gap-2   '>
                     <div className='flex  w-full  items-center  justify-between '>
                       <div className='inline-flex gap-1'>
-                      <img src={calender} alt='icon' className='w-4 h-4'/>
+                      <img src={calender_icon} alt='icon' className='w-4 h-4'/>
                       <span className='text-sm font-cabin text-neutral-600'>{formatDate(item.bkd_date)}</span>
                       </div>
                       <div className={` text-center rounded-sm  ${getStatusClass(item.status)}`}>
@@ -258,7 +258,7 @@ transitTripData && transitTripData?.map((item, index) => (
                 <div className='flex flex-col items-start gap-2'>
                 <div className='flex  w-full  items-center  justify-between'>
                   <div className='inline-flex gap-1'>
-                  <img src={calender} alt='icon' className='w-4 h-4'/>
+                  <img src={calender_icon} alt='icon' className='w-4 h-4'/>
                   <span className='text-sm font-cabin text-neutral-600'>{formatDate(item?.bkd_date)}</span>
                   </div>
                   <div className={` text-center rounded-sm  ${getStatusClass(item?.status)}`}>
@@ -288,12 +288,12 @@ transitTripData && transitTripData?.map((item, index) => (
 
                       <div className='flex w-full'>
                         <div className='justify-between flex '>
-                       <img src={calender} alt='icon' className='w-4 h-4 mr-1'/>
+                       <img src={calender_icon} alt='icon' className='w-4 h-4 mr-1'/>
                        <p className='text-sm font-cabin text-neutral-600'>{formatDate(item?.bkd_checkIn)}</p>
                        </div>
                        <div className='text-center px-2 '> to </div>
                        <div className='flex justify-between '>
-                       <img src={calender} alt='icon' className='w-4 h-4 mr-1'/>
+                       <img src={calender_icon} alt='icon' className='w-4 h-4 mr-1'/>
                        <p className='text-sm font-cabin text-neutral-600'>{formatDate(item?.bkd_checkOut)}</p>
                        </div>
                        </div>

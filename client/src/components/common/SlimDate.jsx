@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
-import { titleCase, formatDate } from "../utils/handyFunctions";
-import {chevron_down} from "../assets/icon";
-import { formatDate2 } from "../utils/handyFunctions";
+import { titleCase, formatDate } from "../../utils/handyFunctions";
+import {chevron_down} from "../../assets/icon";
+import { formatDate2 } from "../../utils/handyFunctions";
 
 
 function getCurrentDate(){

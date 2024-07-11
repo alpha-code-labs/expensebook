@@ -1,5 +1,5 @@
 import React from 'react';
-import { check_tick } from '../assets/icon';
+import { check_tick } from '../../assets/icon';
 
 const NotifyModal = () => {
   return (

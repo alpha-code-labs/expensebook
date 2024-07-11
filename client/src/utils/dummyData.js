@@ -5,6 +5,7 @@ const trips = [
     tripNumber: 'TRIPAL000003',
     travelRequestId: '66796b3bb2e14ac28c9eebb8',
     travelRequestNumber: 'TRAL000002',
+    "tripName": "DEL-BAN-LUC-DEL-BAN-DEL(9th Jul)",
     tripPurpose: 'Business',
     tripStartDate: '2024-06-26T00:00:00.000Z',
     tripCompletionDate: '2024-06-27T00:00:00.000Z',
@@ -32,66 +33,274 @@ const trips = [
       },
     ],
     travelExpenses: [],
-    itinerary: {
-      flights: [
-        {
-          category: 'flights',
-          itineraryId: '667a39d68daacf93aefc1c37',
-          status: 'booked',
-          bkd_from: 'Lucknow',
-          bkd_to: 'Delhi',
-          bkd_date: '2024-07-09T00:00:00.000Z',
-          bkd_time: null,
-          bkd_travelClass: null,
-          bkd_violations: {
-            class: null,
-            amount: '',
+    "itinerary":{
+      "flights": [
+          {
+              "itineraryId": null,
+              "formId": "c47879c9-075c-4e11-80fd-f6bf055aa82e",
+              "date": "2024-07-12",
+              "returnDate": null,
+              "travelClass": null,
+              "time": "12pm - 3pm",
+              "returnTime": null,
+              "from": "delhi",
+              "to": "banaras",
+              "isReturnTravel": false,
+              "violations": {
+                  "class": null,
+                  "amount": null
+              },
+              "bkd_date": "2024-07-13",
+              "bkd_returnDate": null,
+              "bkd_travelClass": null,
+              "bkd_time": "1pm - 4pm",
+              "bkd_returnTime": null,
+              "bkd_from": "delhi",
+              "bkd_to": "banaras",
+              "bkd_violations": {
+                  "class": null,
+                  "amount": null
+              },
+              "modified": false,
+              "cancellationDate": null,
+              "cancellationReason": null,
+              "status": "draft",
+              "bookingDetails": {
+                  "docURL": null,
+                  "docType": null,
+                  "billDetails": {
+                      "vendorName": null,
+                      "taxAmount": null,
+                      "totalAmount": null
+                  }
+              },
+              "approvers": [
+                  {
+                      "empId": "1002",
+                      "name": "Emma Thompson",
+                      "status": "pending approval",
+                      "_id": "668cd9d2c515a7f938787226"
+                  }
+              ],
+              "rejectionReason": null,
+              "travelAllocations": [],
+              "sequence": 1
           },
-        },
-        {
-          category: 'flights',
-          itineraryId: '667a39d68daacf93aefc1c38',
-          status: 'booked',
-          bkd_from: 'Delhi',
-          bkd_to: 'Lucknow',
-          bkd_date: '2024-06-27T00:00:00.000Z',
-          bkd_time: null,
-          bkd_travelClass: null,
-          bkd_violations: {
-            class: null,
-            amount: '',
+          {
+              "itineraryId": null,
+              "formId": "19602fb6-1d95-4820-9851-9c993813da3a",
+              "date": "2024-07-12",
+              "returnDate": null,
+              "travelClass": null,
+              "time": "12pm - 3pm",
+              "returnTime": null,
+              "from": "lucknow",
+              "to": "delhi",
+              "isReturnTravel": false,
+              "violations": {
+                  "class": null,
+                  "amount": null
+              },
+              "bkd_date": "2024-07-13",
+              "bkd_returnDate": null,
+              "bkd_travelClass": null,
+              "bkd_time": "1pm - 4pm",
+              "bkd_returnTime": null,
+              "bkd_from": "lucknow",
+              "bkd_to": "delhi",
+              "bkd_violations": {
+                  "class": null,
+                  "amount": null
+              },
+              "modified": false,
+              "cancellationDate": null,
+              "cancellationReason": null,
+              "status": "draft",
+              "bookingDetails": {
+                  "docURL": null,
+                  "docType": null,
+                  "billDetails": {
+                      "vendorName": null,
+                      "taxAmount": null,
+                      "totalAmount": null
+                  }
+              },
+              "approvers": [
+                  {
+                      "empId": "1002",
+                      "name": "Emma Thompson",
+                      "status": "pending approval",
+                      "_id": "668cd9d2c515a7f938787226"
+                  }
+              ],
+              "rejectionReason": null,
+              "travelAllocations": [],
+              "sequence": 3
           },
-        },
+          {
+              "itineraryId": null,
+              "formId": "283f1900-ebe8-4158-90ab-fbed5f66eb5f",
+              "date": "2024-07-09",
+              "returnDate": null,
+              "travelClass": null,
+              "time": "12pm - 3pm",
+              "returnTime": null,
+              "from": "banaras ",
+              "to": "delhi",
+              "isReturnTravel": false,
+              "violations": {
+                  "class": null,
+                  "amount": null
+              },
+              "bkd_date": "2024-07-10",
+              "bkd_returnDate": null,
+              "bkd_travelClass": null,
+              "bkd_time": "1pm - 4pm",
+              "bkd_returnTime": null,
+              "bkd_from": "banaras",
+              "bkd_to": "delhi",
+              "bkd_violations": {
+                  "class": null,
+                  "amount": null
+              },
+              "modified": false,
+              "cancellationDate": null,
+              "cancellationReason": null,
+              "status": "draft",
+              "bookingDetails": {
+                  "docURL": null,
+                  "docType": null,
+                  "billDetails": {
+                      "vendorName": null,
+                      "taxAmount": null,
+                      "totalAmount": null
+                  }
+              },
+              "approvers": [
+                  {
+                      "empId": "1002",
+                      "name": "Emma Thompson",
+                      "status": "pending approval",
+                      "_id": "668cd9d2c515a7f938787226"
+                  }
+              ],
+              "rejectionReason": null,
+              "travelAllocations": [],
+              "sequence": 5
+          }
       ],
-      buses: [],
-      trains: [],
-      hotels: [
-        {
-          category: 'hotels',
-          itineraryId: '667a39d68daacf93aefc1c39',
-          status: 'booked',
-          bkd_location: 'Lucknow',
-          bkd_class: null,
-          bkd_checkIn: '2024-06-26T00:00:00.000Z',
-          bkd_checkOut: '2024-07-05T00:00:00.000Z',
-          bkd_violations: {
-            class: null,
-            amount: null,
-          },
-          cancellationDate: null,
-          cancellationReason: null,
-        },
+      "buses": [],
+      "trains": [],
+      "cabs": [
+          {
+              "itineraryId": null,
+              "foromId": null,
+              "date": "2024-07-09",
+              "returnDate": "2024-07-09",
+              "selectedDates": [],
+              "class": "Regular",
+              "time": "12pm - 3pm",
+              "pickupAddress": "sandila",
+              "dropAddress": "lucknow",
+              "isFullDayCab": true,
+              "violations": {
+                  "class": null,
+                  "amount": null
+              },
+              "bkd_date": "2024-07-10",
+              "bkd_class": "Luxury",
+              "bkd_time": "1pm - 4pm",
+              "bkd_returnTime": "5pm - 8pm",
+              "bkd_pickupAddress": "sandila",
+              "bkd_dropAddress": "lucknow",
+              "bkd_vioilations": {},
+              "modified": false,
+              "cancellationDate": null,
+              "cancellationReason": null,
+              "status": "draft",
+              "bookingDetails": {
+                  "docURL": null,
+                  "docType": null,
+                  "billDetails": {
+                      "vendorName": null,
+                      "taxAmount": null,
+                      "totalAmount": null
+                  }
+              },
+              "sequence": 4,
+              "formId": "9d647a4a-18b9-4104-b7eb-b607ba4b70d6",
+              "approvers": [
+                  {
+                      "empId": "1002",
+                      "name": "Emma Thompson",
+                      "status": "pending approval",
+                      "_id": "668cd9d2c515a7f938787226"
+                  }
+              ]
+          }
       ],
-      cabs: [],
-      carRentals: [],
-      personalVehicles: [],
-    },
+      "carRentals": [],
+      "hotels": [
+          {
+              "itineraryId": null,
+              "formId": "bee5aff2-324f-4508-9d05-68aa74313ea9",
+              "location": "lucknow",
+              "locationPreference": null,
+              "class": "3-star",
+              "checkIn": "2024-07-09",
+              "checkOut": "2024-07-18",
+              "needBrakfast": false,
+              "needLunch": true,
+              "needDinner": true,
+              "needNonSmokingRoom": false,
+              "violations": {
+                  "class": null,
+                  "amount": null
+              },
+              "bkd_location": "lucknow",
+              "bkd_class": "4-star",
+              "bkd_checkIn": "2024-07-10",
+              "bkd_checkOut": "2024-07-19",
+              "bkd_violations": {
+                  "class": null,
+                  "amount": null
+              },
+              "modified": false,
+              "cancellationDate": null,
+              "cancellationReason": null,
+              "status": "draft",
+              "bookingDetails": {
+                  "docURL": null,
+                  "docType": null,
+                  "billDetails": {
+                      "vendorName": null,
+                      "taxAmount": null,
+                      "totalAmount": null
+                  }
+              },
+              "approvers": [
+                  {
+                      "empId": "1002",
+                      "name": "Emma Thompson",
+                      "status": "pending approval",
+                      "_id": "668cd9d2c515a7f938787226"
+                  }
+              ],
+              "needBreakfast": false,
+              "time": "12pm - 3pm",
+              "sequence": 2
+          }
+      ]
+  }
+  
+    
   },
   {
-    tripId: '667a3af2e9a18ce3478d1d27',
-    tripNumber: 'TRIPAL000005',
-    travelRequestId: '667a3a718daacf93aefc1dc1',
-    travelRequestNumber: 'TRAL000003',
+    tripId: '667a3a5be9a18ce3478d1a0d',
+    tripNumber: 'TRIPAL000003',
+    travelRequestId: '66796b3bb2e14ac28c9eebb8',
+    travelRequestNumber: 'TRAL000002',
+    "tripName": "DEL-BAN-LUC-DEL-BAN-DEL(9th Jul)",
     tripPurpose: 'Business',
     tripStartDate: '2024-06-26T00:00:00.000Z',
     tripCompletionDate: '2024-06-27T00:00:00.000Z',
@@ -100,11 +309,11 @@ const trips = [
     totalCashAmount: 0,
     cashAdvances: [
       {
-        cashAdvanceId: '667a3a8ca1b8823272139bde',
+        cashAdvanceId: '667a39e4a1b88232721397fb',
         cashAdvanceNumber: 'CA0001',
         amountDetails: [
           {
-            amount: 5000,
+            amount: 4000,
             currency: {
               countryCode: 'IN',
               fullName: 'Indian Rupee',
@@ -112,75 +321,608 @@ const trips = [
               symbol: '₹',
             },
             mode: null,
-            _id: '667a3a8ca1b8823272139bec',
+            _id: '667a39e4a1b8823272139809',
           },
         ],
         cashAdvanceStatus: 'pending settlement',
       },
     ],
     travelExpenses: [],
-    itinerary: {
-      flights: [
-        {
-          category: 'flights',
-          itineraryId: '667a3a8b8daacf93aefc1e07',
-          status: 'booked',
-          bkd_from: 'Mumbai',
-          bkd_to: 'Goa',
-          bkd_date: '2024-06-26T00:00:00.000Z',
-          bkd_time: null,
-          bkd_travelClass: null,
-          bkd_violations: {
-            class: null,
-            amount: '',
+    "itinerary":{
+      "flights": [
+          {
+              "itineraryId": null,
+              "formId": "c47879c9-075c-4e11-80fd-f6bf055aa82e",
+              "date": "2024-07-12",
+              "returnDate": null,
+              "travelClass": null,
+              "time": "12pm - 3pm",
+              "returnTime": null,
+              "from": "delhi",
+              "to": "banaras",
+              "isReturnTravel": false,
+              "violations": {
+                  "class": null,
+                  "amount": null
+              },
+              "bkd_date": "2024-07-13",
+              "bkd_returnDate": null,
+              "bkd_travelClass": null,
+              "bkd_time": "1pm - 4pm",
+              "bkd_returnTime": null,
+              "bkd_from": "delhi",
+              "bkd_to": "banaras",
+              "bkd_violations": {
+                  "class": null,
+                  "amount": null
+              },
+              "modified": false,
+              "cancellationDate": null,
+              "cancellationReason": null,
+              "status": "draft",
+              "bookingDetails": {
+                  "docURL": null,
+                  "docType": null,
+                  "billDetails": {
+                      "vendorName": null,
+                      "taxAmount": null,
+                      "totalAmount": null
+                  }
+              },
+              "approvers": [
+                  {
+                      "empId": "1002",
+                      "name": "Emma Thompson",
+                      "status": "pending approval",
+                      "_id": "668cd9d2c515a7f938787226"
+                  }
+              ],
+              "rejectionReason": null,
+              "travelAllocations": [],
+              "sequence": 1
           },
-        },
-        {
-          category: 'flights',
-          itineraryId: '667a3a8b8daacf93aefc1e08',
-          status: 'booked',
-          bkd_from: 'Goa',
-          bkd_to: 'Delhi',
-          bkd_date: '2024-06-27T00:00:00.000Z',
-          bkd_time: null,
-          bkd_travelClass: null,
-          bkd_violations: {
-            class: null,
-            amount: '',
+          {
+              "itineraryId": null,
+              "formId": "19602fb6-1d95-4820-9851-9c993813da3a",
+              "date": "2024-07-12",
+              "returnDate": null,
+              "travelClass": null,
+              "time": "12pm - 3pm",
+              "returnTime": null,
+              "from": "lucknow",
+              "to": "delhi",
+              "isReturnTravel": false,
+              "violations": {
+                  "class": null,
+                  "amount": null
+              },
+              "bkd_date": "2024-07-13",
+              "bkd_returnDate": null,
+              "bkd_travelClass": null,
+              "bkd_time": "1pm - 4pm",
+              "bkd_returnTime": null,
+              "bkd_from": "lucknow",
+              "bkd_to": "delhi",
+              "bkd_violations": {
+                  "class": null,
+                  "amount": null
+              },
+              "modified": false,
+              "cancellationDate": null,
+              "cancellationReason": null,
+              "status": "draft",
+              "bookingDetails": {
+                  "docURL": null,
+                  "docType": null,
+                  "billDetails": {
+                      "vendorName": null,
+                      "taxAmount": null,
+                      "totalAmount": null
+                  }
+              },
+              "approvers": [
+                  {
+                      "empId": "1002",
+                      "name": "Emma Thompson",
+                      "status": "pending approval",
+                      "_id": "668cd9d2c515a7f938787226"
+                  }
+              ],
+              "rejectionReason": null,
+              "travelAllocations": [],
+              "sequence": 3
           },
-        },
+          {
+              "itineraryId": null,
+              "formId": "283f1900-ebe8-4158-90ab-fbed5f66eb5f",
+              "date": "2024-07-09",
+              "returnDate": null,
+              "travelClass": null,
+              "time": "12pm - 3pm",
+              "returnTime": null,
+              "from": "banaras ",
+              "to": "delhi",
+              "isReturnTravel": false,
+              "violations": {
+                  "class": null,
+                  "amount": null
+              },
+              "bkd_date": "2024-07-10",
+              "bkd_returnDate": null,
+              "bkd_travelClass": null,
+              "bkd_time": "1pm - 4pm",
+              "bkd_returnTime": null,
+              "bkd_from": "banaras",
+              "bkd_to": "delhi",
+              "bkd_violations": {
+                  "class": null,
+                  "amount": null
+              },
+              "modified": false,
+              "cancellationDate": null,
+              "cancellationReason": null,
+              "status": "draft",
+              "bookingDetails": {
+                  "docURL": null,
+                  "docType": null,
+                  "billDetails": {
+                      "vendorName": null,
+                      "taxAmount": null,
+                      "totalAmount": null
+                  }
+              },
+              "approvers": [
+                  {
+                      "empId": "1002",
+                      "name": "Emma Thompson",
+                      "status": "pending approval",
+                      "_id": "668cd9d2c515a7f938787226"
+                  }
+              ],
+              "rejectionReason": null,
+              "travelAllocations": [],
+              "sequence": 5
+          }
       ],
-      buses: [],
-      trains: [],
-      hotels: [
-        {
-          category: 'hotels',
-          itineraryId: '667a3a8b8daacf93aefc1e09',
-          status: 'booked',
-          bkd_location: 'Goa',
-          bkd_class: null,
-          bkd_checkIn: '2024-06-26T00:00:00.000Z',
-          bkd_checkOut: '2024-06-24T00:00:00.000Z',
-          bkd_violations: {
-            class: null,
-            amount: '',
-          },
-          cancellationDate: null,
-          cancellationReason: null,
-        },
+      "buses": [],
+      "trains": [],
+      "cabs": [
+          {
+              "itineraryId": null,
+              "foromId": null,
+              "date": "2024-07-09",
+              "returnDate": "2024-07-09",
+              "selectedDates": [],
+              "class": "Regular",
+              "time": "12pm - 3pm",
+              "pickupAddress": "sandila",
+              "dropAddress": "lucknow",
+              "isFullDayCab": true,
+              "violations": {
+                  "class": null,
+                  "amount": null
+              },
+              "bkd_date": "2024-07-10",
+              "bkd_class": "Luxury",
+              "bkd_time": "1pm - 4pm",
+              "bkd_returnTime": "5pm - 8pm",
+              "bkd_pickupAddress": "sandila",
+              "bkd_dropAddress": "lucknow",
+              "bkd_vioilations": {},
+              "modified": false,
+              "cancellationDate": null,
+              "cancellationReason": null,
+              "status": "draft",
+              "bookingDetails": {
+                  "docURL": null,
+                  "docType": null,
+                  "billDetails": {
+                      "vendorName": null,
+                      "taxAmount": null,
+                      "totalAmount": null
+                  }
+              },
+              "sequence": 4,
+              "formId": "9d647a4a-18b9-4104-b7eb-b607ba4b70d6",
+              "approvers": [
+                  {
+                      "empId": "1002",
+                      "name": "Emma Thompson",
+                      "status": "pending approval",
+                      "_id": "668cd9d2c515a7f938787226"
+                  }
+              ]
+          }
       ],
-      cabs: [],
-      carRentals: [],
-      personalVehicles: [],
-    },
+      "carRentals": [],
+      "hotels": [
+          {
+              "itineraryId": null,
+              "formId": "bee5aff2-324f-4508-9d05-68aa74313ea9",
+              "location": "lucknow",
+              "locationPreference": null,
+              "class": "3-star",
+              "checkIn": "2024-07-09",
+              "checkOut": "2024-07-18",
+              "needBrakfast": false,
+              "needLunch": true,
+              "needDinner": true,
+              "needNonSmokingRoom": false,
+              "violations": {
+                  "class": null,
+                  "amount": null
+              },
+              "bkd_location": "lucknow",
+              "bkd_class": "4-star",
+              "bkd_checkIn": "2024-07-10",
+              "bkd_checkOut": "2024-07-19",
+              "bkd_violations": {
+                  "class": null,
+                  "amount": null
+              },
+              "modified": false,
+              "cancellationDate": null,
+              "cancellationReason": null,
+              "status": "draft",
+              "bookingDetails": {
+                  "docURL": null,
+                  "docType": null,
+                  "billDetails": {
+                      "vendorName": null,
+                      "taxAmount": null,
+                      "totalAmount": null
+                  }
+              },
+              "approvers": [
+                  {
+                      "empId": "1002",
+                      "name": "Emma Thompson",
+                      "status": "pending approval",
+                      "_id": "668cd9d2c515a7f938787226"
+                  }
+              ],
+              "needBreakfast": false,
+              "time": "12pm - 3pm",
+              "sequence": 2
+          }
+      ]
+  }
+  
+    
   },
+  
 ]
 
 
+const travelRequestNew =[
+
+  {
+    "travelRequestId": "668cd9d2c515a7f938787223",
+    "approvers": [
+        {
+            "empId": "1002",
+            "name": "Emma Thompson",
+            "status": "pending approval",
+            "_id": "668cd9d2c515a7f938787226"
+        }
+    ],
+    "tenantId": "66794853c61cc24ba97b5b0f",
+    "travelType": "international",
+    "tenantName": "alpha code labs",
+    "companyName": "alpha code labs",
+    "createdBy": {
+        "empId": "1002",
+        "name": "Emma Thompson",
+        "_id": "668cd9d2c515a7f938787225"
+    },
+    "createdFor": null,
+    "travelAllocationHeaders": [],
+    "tripPurpose": "Business",
+    "raisingForDelegator": false,
+    "nameOfDelegator": null,
+    "isDelegatorManager": false,
+    "selectDelegatorTeamMembers": false,
+    "delegatorsTeamMembers": [],
+    "bookingForSelf": true,
+    "bookiingForTeam": false,
+    "teamMembers": [],
+    "travelDocuments": [],
+    "itinerary": {
+        "flights": [
+            {
+                "itineraryId": null,
+                "formId": "c47879c9-075c-4e11-80fd-f6bf055aa82e",
+                "date": "2024-07-12",
+                "returnDate": null,
+                "travelClass": null,
+                "time": "12pm - 3pm",
+                "returnTime": null,
+                "from": "delhi",
+                "to": "banaras",
+                "isReturnTravel": false,
+                "violations": {
+                    "class": null,
+                    "amount": null
+                },
+                "bkd_date": null,
+                "bkd_returnDate": null,
+                "bkd_travelClass": null,
+                "bkd_time": null,
+                "bkd_returnTime": null,
+                "bkd_from": null,
+                "bkd_to": null,
+                "bkd_violations": {
+                    "class": null,
+                    "amount": null
+                },
+                "modified": false,
+                "cancellationDate": null,
+                "cancellationReason": null,
+                "status": "draft",
+                "bookingDetails": {
+                    "docURL": null,
+                    "docType": null,
+                    "billDetails": {
+                        "vendorName": null,
+                        "taxAmount": null,
+                        "totalAmount": null
+                    }
+                },
+                "approvers": [
+                    {
+                        "empId": "1002",
+                        "name": "Emma Thompson",
+                        "status": "pending approval",
+                        "_id": "668cd9d2c515a7f938787226"
+                    }
+                ],
+                "rejectionReason": null,
+                "travelAllocations": [],
+                "sequence": 1
+            },
+            {
+                "itineraryId": null,
+                "formId": "19602fb6-1d95-4820-9851-9c993813da3a",
+                "date": "2024-07-12",
+                "returnDate": null,
+                "travelClass": null,
+                "time": "12pm - 3pm",
+                "returnTime": null,
+                "from": "lucknow",
+                "to": "delhi",
+                "isReturnTravel": false,
+                "violations": {
+                    "class": null,
+                    "amount": null
+                },
+                "bkd_date": null,
+                "bkd_returnDate": null,
+                "bkd_travelClass": null,
+                "bkd_time": null,
+                "bkd_returnTime": null,
+                "bkd_from": null,
+                "bkd_to": null,
+                "bkd_violations": {
+                    "class": null,
+                    "amount": null
+                },
+                "modified": false,
+                "cancellationDate": null,
+                "cancellationReason": null,
+                "status": "draft",
+                "bookingDetails": {
+                    "docURL": null,
+                    "docType": null,
+                    "billDetails": {
+                        "vendorName": null,
+                        "taxAmount": null,
+                        "totalAmount": null
+                    }
+                },
+                "approvers": [
+                    {
+                        "empId": "1002",
+                        "name": "Emma Thompson",
+                        "status": "pending approval",
+                        "_id": "668cd9d2c515a7f938787226"
+                    }
+                ],
+                "rejectionReason": null,
+                "travelAllocations": [],
+                "sequence": 3
+            },
+            {
+                "itineraryId": null,
+                "formId": "283f1900-ebe8-4158-90ab-fbed5f66eb5f",
+                "date": "2024-07-09",
+                "returnDate": null,
+                "travelClass": null,
+                "time": "12pm - 3pm",
+                "returnTime": null,
+                "from": "banaras ",
+                "to": "delhi",
+                "isReturnTravel": false,
+                "violations": {
+                    "class": null,
+                    "amount": null
+                },
+                "bkd_date": null,
+                "bkd_returnDate": null,
+                "bkd_travelClass": null,
+                "bkd_time": null,
+                "bkd_returnTime": null,
+                "bkd_from": null,
+                "bkd_to": null,
+                "bkd_violations": {
+                    "class": null,
+                    "amount": null
+                },
+                "modified": false,
+                "cancellationDate": null,
+                "cancellationReason": null,
+                "status": "draft",
+                "bookingDetails": {
+                    "docURL": null,
+                    "docType": null,
+                    "billDetails": {
+                        "vendorName": null,
+                        "taxAmount": null,
+                        "totalAmount": null
+                    }
+                },
+                "approvers": [
+                    {
+                        "empId": "1002",
+                        "name": "Emma Thompson",
+                        "status": "pending approval",
+                        "_id": "668cd9d2c515a7f938787226"
+                    }
+                ],
+                "rejectionReason": null,
+                "travelAllocations": [],
+                "sequence": 5
+            }
+        ],
+        "buses": [],
+        "trains": [],
+        "cabs": [
+            {
+                "itineraryId": null,
+                "foromId": null,
+                "date": "2024-07-09",
+                "returnDate": "2024-07-09",
+                "selectedDates": [],
+                "class": "Regular",
+                "time": "12pm - 3pm",
+                "pickupAddress": "sandila",
+                "dropAddress": "lucknow",
+                "isFullDayCab": true,
+                "violations": {
+                    "class": null,
+                    "amount": null
+                },
+                "bkd_date": null,
+                "bkd_class": null,
+                "bkd_time": null,
+                "bkd_returnTime": null,
+                "bkd_pickupAddress": null,
+                "bkd_dropAddress": null,
+                "bkd_vioilations": {},
+                "modified": false,
+                "cancellationDate": null,
+                "cancellationReason": null,
+                "status": "draft",
+                "bookingDetails": {
+                    "docURL": null,
+                    "docType": null,
+                    "billDetails": {
+                        "vendorName": null,
+                        "taxAmount": null,
+                        "totalAmount": null
+                    }
+                },
+                "sequence": 4,
+                "formId": "9d647a4a-18b9-4104-b7eb-b607ba4b70d6",
+                "approvers": [
+                    {
+                        "empId": "1002",
+                        "name": "Emma Thompson",
+                        "status": "pending approval",
+                        "_id": "668cd9d2c515a7f938787226"
+                    }
+                ]
+            }
+        ],
+        "carRentals": [],
+        "hotels": [
+            {
+                "itineraryId": null,
+                "formId": "bee5aff2-324f-4508-9d05-68aa74313ea9",
+                "location": "lucknow",
+                "locationPreference": null,
+                "class": "3-star",
+                "checkIn": "2024-07-09",
+                "checkOut": "2024-07-18",
+                "needBrakfast": false,
+                "needLunch": true,
+                "needDinner": true,
+                "needNonSmokingRoom": false,
+                "violations": {
+                    "class": null,
+                    "amount": null
+                },
+                "bkd_location": null,
+                "bkd_class": null,
+                "bkd_checkIn": null,
+                "bkd_checkOut": null,
+                "bkd_violations": {
+                    "class": null,
+                    "amount": null
+                },
+                "modified": false,
+                "cancellationDate": null,
+                "cancellationReason": null,
+                "status": "draft",
+                "bookingDetails": {
+                    "docURL": null,
+                    "docType": null,
+                    "billDetails": {
+                        "vendorName": null,
+                        "taxAmount": null,
+                        "totalAmount": null
+                    }
+                },
+                "approvers": [
+                    {
+                        "empId": "1002",
+                        "name": "Emma Thompson",
+                        "status": "pending approval",
+                        "_id": "668cd9d2c515a7f938787226"
+                    }
+                ],
+                "needBreakfast": false,
+                "time": "12pm - 3pm",
+                "sequence": 2
+            }
+        ]
+    },
+    "tripType": {
+        "oneWayTrip": true,
+        "roundTrip": false,
+        "multiCityTrip": false
+    },
+    "preferences": [],
+    "travelViolations": {
+        "tripPurpose": null,
+        "class": null,
+        "amount": null,
+        "tripPurposeViolationMesssage": null
+    },
+    "isCancelled": false,
+    "travelRequestStatus": "draft",
+    "formData": {
+        "itinerary": []
+    },
+    "_id": "668cd9d2c515a7f938787224",
+    "travelRequestNumber": "TRAL000056",
+    "tripPurposeDescription": "gg",
+    "travelRequestState": "section 0",
+    "bookings": [],
+    "travelRequestDate": "2024-07-09T06:33:54.382Z",
+    "isCashAdvanceTaken": false,
+    "isAddALeg": false,
+    "sentToTrip": false,
+    "__v": 0,
+    "tripName": "DEL-BAN-LUC-DEL-BAN-DEL(9th Jul)"
+}
+]
+
+
+
 const travelExpense = [
-  
   {
   "tripNumber": "TRIPAL000001",
+  "tripId": "667a3a5be9a18ce3478d1a0d",
   "tripPurpose": "Business",
   "tripName":"us - del - mum",
   "travelExpenseData": [
@@ -883,6 +1625,7 @@ const travelExpense = [
   ]
 },
   {
+    "tripId": "667a38e9e9a18ce3478d1261",
   "tripNumber": "TRIPAL000001",
   "tripPurpose": "Business",
   "tripName":"us - del - mum - gkr",
@@ -1644,6 +2387,7 @@ const travelExpense = [
 }
 
 ]
+
 const nonTravelExpense = [
   {
     "_id": "667babcdb02acc127897f405",
@@ -1653,10 +2397,10 @@ const nonTravelExpense = [
     "companyName": "alpha code labs",
     "createdBy": {
       "empId": "1002",
-      "name": "Benjamin Clark",
+      "name": "anamila",
       "_id": "667babcdb043bb2aadcd288b"
     },
-    "expenseHeaderNumber": "REAL000007",
+    "expenseHeaderNumber": "REAL000006",
     "expenseHeaderStatus": "pending booking",
     "expenseHeaderType": "reimbursement",
     "expenseLines": [
@@ -1689,93 +2433,93 @@ const nonTravelExpense = [
           "symbol": "₹"
         }
       },
-      {
-        "lineItemId": "667babcdb043bb2aadcd2890",
-        "lineItemStatus": "approved",
-        "expenseLineAllocation": [],
-        "multiCurrencyDetails": null,
-        "_id": "667babcdb043bb2aadcd2891",
-        "group": {
-          "limit": 500,
-          "group": "Sales Team",
-          "message": "Benjamin Clark is part of Sales Team. Highest limit found: 500"
-        },
-        "Category Name": "Travel",
-        "Bill Date": "2024-06-25",
-        "Bill Number": "TRV12345",
-        "Vendor Name": "XYZ Travels",
-        "Description": "Flight to New York",
-        "Quantity": "1",
-        "Unit Cost": "5000",
-        "Tax Amount": "500",
-        "Total Amount": "5500",
-        "Mode of Payment": "Credit Card",
-        "Document": "",
-        "Currency": {
-          "countryCode": "IN",
-          "fullName": "Indian Rupee",
-          "shortName": "INR",
-          "symbol": "₹"
-        }
-      },
-      {
-        "lineItemId": "667babcdb043bb2aadcd2892",
-        "lineItemStatus": "submitted",
-        "expenseLineAllocation": [],
-        "multiCurrencyDetails": null,
-        "_id": "667babcdb043bb2aadcd2893",
-        "group": {
-          "limit": 1000,
-          "group": "Marketing Team",
-          "message": "Benjamin Clark is part of Marketing Team. Highest limit found: 1000"
-        },
-        "Category Name": "Entertainment",
-        "Bill Date": "2024-06-26",
-        "Bill Number": "ENT45678",
-        "Vendor Name": "ABC Events",
-        "Description": "Team building event",
-        "Quantity": "1",
-        "Unit Cost": "10000",
-        "Tax Amount": "1000",
-        "Total Amount": "11000",
-        "Mode of Payment": "Bank Transfer",
-        "Document": "",
-        "Currency": {
-          "countryCode": "IN",
-          "fullName": "Indian Rupee",
-          "shortName": "INR",
-          "symbol": "₹"
-        }
-      },
-      {
-        "lineItemId": "667babcdb043bb2aadcd2894",
-        "lineItemStatus": "rejected",
-        "expenseLineAllocation": [],
-        "multiCurrencyDetails": null,
-        "_id": "667babcdb043bb2aadcd2895",
-        "group": {
-          "limit": 0,
-          "group": "HR Team",
-          "message": "Benjamin Clark is part of HR Team. Highest limit found: 0"
-        },
-        "Category Name": "Stationery",
-        "Bill Date": "2024-06-24",
-        "Bill Number": "STN78901",
-        "Vendor Name": "Office Supplies Ltd",
-        "Description": "Office stationery purchase",
-        "Quantity": "10",
-        "Unit Cost": "50",
-        "Tax Amount": "5",
-        "Total Amount": "505",
-        "Mode of Payment": "Cash",
-        "Document": "",
-        "Currency": {
-          "countryCode": "IN",
-          "fullName": "Indian Rupee",
-          "shortName": "INR",
-          "symbol": "₹"
-        }
-      }
+      // {
+      //   "lineItemId": "667babcdb043bb2aadcd2890",
+      //   "lineItemStatus": "approved",
+      //   "expenseLineAllocation": [],
+      //   "multiCurrencyDetails": null,
+      //   "_id": "667babcdb043bb2aadcd2891",
+      //   "group": {
+      //     "limit": 500,
+      //     "group": "Sales Team",
+      //     "message": "Benjamin Clark is part of Sales Team. Highest limit found: 500"
+      //   },
+      //   "Category Name": "Travel",
+      //   "Bill Date": "2024-06-25",
+      //   "Bill Number": "TRV12345",
+      //   "Vendor Name": "XYZ Travels",
+      //   "Description": "Flight to New York",
+      //   "Quantity": "1",
+      //   "Unit Cost": "5000",
+      //   "Tax Amount": "500",
+      //   "Total Amount": "5500",
+      //   "Mode of Payment": "Credit Card",
+      //   "Document": "",
+      //   "Currency": {
+      //     "countryCode": "IN",
+      //     "fullName": "Indian Rupee",
+      //     "shortName": "INR",
+      //     "symbol": "₹"
+      //   }
+      // },
+      // {
+      //   "lineItemId": "667babcdb043bb2aadcd2892",
+      //   "lineItemStatus": "submitted",
+      //   "expenseLineAllocation": [],
+      //   "multiCurrencyDetails": null,
+      //   "_id": "667babcdb043bb2aadcd2893",
+      //   "group": {
+      //     "limit": 1000,
+      //     "group": "Marketing Team",
+      //     "message": "Benjamin Clark is part of Marketing Team. Highest limit found: 1000"
+      //   },
+      //   "Category Name": "Entertainment",
+      //   "Bill Date": "2024-06-26",
+      //   "Bill Number": "ENT45678",
+      //   "Vendor Name": "ABC Events",
+      //   "Description": "Team building event",
+      //   "Quantity": "1",
+      //   "Unit Cost": "10000",
+      //   "Tax Amount": "1000",
+      //   "Total Amount": "11000",
+      //   "Mode of Payment": "Bank Transfer",
+      //   "Document": "",
+      //   "Currency": {
+      //     "countryCode": "IN",
+      //     "fullName": "Indian Rupee",
+      //     "shortName": "INR",
+      //     "symbol": "₹"
+      //   }
+      // },
+      // {
+      //   "lineItemId": "667babcdb043bb2aadcd2894",
+      //   "lineItemStatus": "rejected",
+      //   "expenseLineAllocation": [],
+      //   "multiCurrencyDetails": null,
+      //   "_id": "667babcdb043bb2aadcd2895",
+      //   "group": {
+      //     "limit": 0,
+      //     "group": "HR Team",
+      //     "message": "Benjamin Clark is part of HR Team. Highest limit found: 0"
+      //   },
+      //   "Category Name": "Stationery",
+      //   "Bill Date": "2024-06-24",
+      //   "Bill Number": "STN78901",
+      //   "Vendor Name": "Office Supplies Ltd",
+      //   "Description": "Office stationery purchase",
+      //   "Quantity": "10",
+      //   "Unit Cost": "50",
+      //   "Tax Amount": "5",
+      //   "Total Amount": "505",
+      //   "Mode of Payment": "Cash",
+      //   "Document": "",
+      //   "Currency": {
+      //     "countryCode": "IN",
+      //     "fullName": "Indian Rupee",
+      //     "shortName": "INR",
+      //     "symbol": "₹"
+      //   }
+      // }
     ]
   },
   {
@@ -1804,7 +2548,7 @@ const nonTravelExpense = [
           "group": "Finance Team",
           "message": "Benjamin Clark is part of Finance Team. Highest limit found: 0"
         },
-        "Category Name": "Meals",
+        "Category Name": "Luggage",
         "Bill Date": "2024-06-27",
         "Bill Number": "",
         "Vendor Name": "",
@@ -1822,93 +2566,93 @@ const nonTravelExpense = [
           "symbol": "₹"
         }
       },
-      {
-        "lineItemId": "667babcdb043bb2aadcd2890",
-        "lineItemStatus": "approved",
-        "expenseLineAllocation": [],
-        "multiCurrencyDetails": null,
-        "_id": "667babcdb043bb2aadcd2891",
-        "group": {
-          "limit": 500,
-          "group": "Sales Team",
-          "message": "Benjamin Clark is part of Sales Team. Highest limit found: 500"
-        },
-        "Category Name": "Travel",
-        "Bill Date": "2024-06-25",
-        "Bill Number": "TRV12345",
-        "Vendor Name": "XYZ Travels",
-        "Description": "Flight to New York",
-        "Quantity": "1",
-        "Unit Cost": "5000",
-        "Tax Amount": "500",
-        "Total Amount": "5500",
-        "Mode of Payment": "Credit Card",
-        "Document": "",
-        "Currency": {
-          "countryCode": "IN",
-          "fullName": "Indian Rupee",
-          "shortName": "INR",
-          "symbol": "₹"
-        }
-      },
-      {
-        "lineItemId": "667babcdb043bb2aadcd2892",
-        "lineItemStatus": "submitted",
-        "expenseLineAllocation": [],
-        "multiCurrencyDetails": null,
-        "_id": "667babcdb043bb2aadcd2893",
-        "group": {
-          "limit": 1000,
-          "group": "Marketing Team",
-          "message": "Benjamin Clark is part of Marketing Team. Highest limit found: 1000"
-        },
-        "Category Name": "Entertainment",
-        "Bill Date": "2024-06-26",
-        "Bill Number": "ENT45678",
-        "Vendor Name": "ABC Events",
-        "Description": "Team building event",
-        "Quantity": "1",
-        "Unit Cost": "10000",
-        "Tax Amount": "1000",
-        "Total Amount": "11000",
-        "Mode of Payment": "Bank Transfer",
-        "Document": "",
-        "Currency": {
-          "countryCode": "IN",
-          "fullName": "Indian Rupee",
-          "shortName": "INR",
-          "symbol": "₹"
-        }
-      },
-      {
-        "lineItemId": "667babcdb043bb2aadcd2894",
-        "lineItemStatus": "rejected",
-        "expenseLineAllocation": [],
-        "multiCurrencyDetails": null,
-        "_id": "667babcdb043bb2aadcd2895",
-        "group": {
-          "limit": 0,
-          "group": "HR Team",
-          "message": "Benjamin Clark is part of HR Team. Highest limit found: 0"
-        },
-        "Category Name": "Stationery",
-        "Bill Date": "2024-06-24",
-        "Bill Number": "STN78901",
-        "Vendor Name": "Office Supplies Ltd",
-        "Description": "Office stationery purchase",
-        "Quantity": "10",
-        "Unit Cost": "50",
-        "Tax Amount": "5",
-        "Total Amount": "505",
-        "Mode of Payment": "Cash",
-        "Document": "",
-        "Currency": {
-          "countryCode": "IN",
-          "fullName": "Indian Rupee",
-          "shortName": "INR",
-          "symbol": "₹"
-        }
-      }
+      // {
+      //   "lineItemId": "667babcdb043bb2aadcd2890",
+      //   "lineItemStatus": "approved",
+      //   "expenseLineAllocation": [],
+      //   "multiCurrencyDetails": null,
+      //   "_id": "667babcdb043bb2aadcd2891",
+      //   "group": {
+      //     "limit": 500,
+      //     "group": "Sales Team",
+      //     "message": "Benjamin Clark is part of Sales Team. Highest limit found: 500"
+      //   },
+      //   "Category Name": "Travel",
+      //   "Bill Date": "2024-06-25",
+      //   "Bill Number": "TRV12345",
+      //   "Vendor Name": "XYZ Travels",
+      //   "Description": "Flight to New York",
+      //   "Quantity": "1",
+      //   "Unit Cost": "5000",
+      //   "Tax Amount": "500",
+      //   "Total Amount": "5500",
+      //   "Mode of Payment": "Credit Card",
+      //   "Document": "",
+      //   "Currency": {
+      //     "countryCode": "IN",
+      //     "fullName": "Indian Rupee",
+      //     "shortName": "INR",
+      //     "symbol": "₹"
+      //   }
+      // },
+      // {
+      //   "lineItemId": "667babcdb043bb2aadcd2892",
+      //   "lineItemStatus": "submitted",
+      //   "expenseLineAllocation": [],
+      //   "multiCurrencyDetails": null,
+      //   "_id": "667babcdb043bb2aadcd2893",
+      //   "group": {
+      //     "limit": 1000,
+      //     "group": "Marketing Team",
+      //     "message": "Benjamin Clark is part of Marketing Team. Highest limit found: 1000"
+      //   },
+      //   "Category Name": "Entertainment",
+      //   "Bill Date": "2024-06-26",
+      //   "Bill Number": "ENT45678",
+      //   "Vendor Name": "ABC Events",
+      //   "Description": "Team building event",
+      //   "Quantity": "1",
+      //   "Unit Cost": "10000",
+      //   "Tax Amount": "1000",
+      //   "Total Amount": "11000",
+      //   "Mode of Payment": "Bank Transfer",
+      //   "Document": "",
+      //   "Currency": {
+      //     "countryCode": "IN",
+      //     "fullName": "Indian Rupee",
+      //     "shortName": "INR",
+      //     "symbol": "₹"
+      //   }
+      // },
+      // {
+      //   "lineItemId": "667babcdb043bb2aadcd2894",
+      //   "lineItemStatus": "rejected",
+      //   "expenseLineAllocation": [],
+      //   "multiCurrencyDetails": null,
+      //   "_id": "667babcdb043bb2aadcd2895",
+      //   "group": {
+      //     "limit": 0,
+      //     "group": "HR Team",
+      //     "message": "Benjamin Clark is part of HR Team. Highest limit found: 0"
+      //   },
+      //   "Category Name": "Stationery",
+      //   "Bill Date": "2024-06-24",
+      //   "Bill Number": "STN78901",
+      //   "Vendor Name": "Office Supplies Ltd",
+      //   "Description": "Office stationery purchase",
+      //   "Quantity": "10",
+      //   "Unit Cost": "50",
+      //   "Tax Amount": "5",
+      //   "Total Amount": "505",
+      //   "Mode of Payment": "Cash",
+      //   "Document": "",
+      //   "Currency": {
+      //     "countryCode": "IN",
+      //     "fullName": "Indian Rupee",
+      //     "shortName": "INR",
+      //     "symbol": "₹"
+      //   }
+      // }
     ]
   },
   {
@@ -2075,10 +2819,6 @@ const nonTravelExpense = [
   },
 ]
 
-
-
-
-
 const TRCashadvance = [
   {
     tripId: "667a38e9e9a18ce3478d1263",
@@ -2115,7 +2855,7 @@ const TRCashadvance = [
             _id: "66795ea1a4b5e4e0e666cd5a"
           }
         ],
-        cashAdvanceStatus: "pending settlement"
+        cashAdvanceStatus: "pending approval"
       },
       {
         cashAdvanceId: "66795ea1a4b5e4e0e666cd4a",
@@ -2133,7 +2873,7 @@ const TRCashadvance = [
             _id: "66795ea1a4b5e4e0e666cd5a"
           }
         ],
-        cashAdvanceStatus: "pending settlement"
+        cashAdvanceStatus: "paid"
       }
     ]
   },
@@ -2143,7 +2883,7 @@ const TRCashadvance = [
     tripNumber: "TRIPAL000001",
     travelRequestId: "667955dbb2e14ac28c9ec056",
     travelRequestNumber: "TRAL000001",
-    tripName: ["mum", "luc", "del"],
+    tripName: ["mum", "luc", "san"],
     cashAdvances: [
       {
         cashAdvanceId: "66795ea1a4b5e4e0e666cd4a",
@@ -2172,7 +2912,7 @@ const TRCashadvance = [
             _id: "66795ea1a4b5e4e0e666cd5a"
           }
         ],
-        cashAdvanceStatus: "pending settlement"
+        cashAdvanceStatus: "draft"
       },
       {
         cashAdvanceId: "66795ea1a4b5e4e0e666cd4a",
@@ -2190,20 +2930,20 @@ const TRCashadvance = [
             _id: "66795ea1a4b5e4e0e666cd5a"
           }
         ],
-        cashAdvanceStatus: "pending settlement"
+        cashAdvanceStatus: "cancelled"
       }
     ]
   },
   {
-    travelRequestStatus:"cancelled",
+    travelRequestStatus:"pending approval",
     tripId: "667a38e9e9a18ce3478d126x",
     tripNumber: "TRIPAL000001",
-    travelRequestId: "667955dbb2e14ac28c9ec056",
+    travelRequestId: "66796b3bb2e14ac28c9eebb8",
     travelRequestNumber: "TRAL000001",
-    tripName: ["mum", "luc", "del"],
+    tripName: ["mum", "luc", "dub"],
     cashAdvances: [
       {
-        cashAdvanceId: "66795ea1a4b5e4e0e666cd4a",
+        cashAdvanceId: "667a39e4a1b88232721397fb",
         cashAdvanceNumber: "CA0001",
         amountDetails: [
           {
@@ -2229,7 +2969,7 @@ const TRCashadvance = [
             _id: "66795ea1a4b5e4e0e666cd5a"
           }
         ],
-        cashAdvanceStatus: "pending settlement"
+        cashAdvanceStatus: "paid and cancelled"
       },
       {
         cashAdvanceId: "66795ea1a4b5e4e0e666cd4a",
@@ -2615,7 +3355,6 @@ const travelRequests = [
   }
 ]
 
-
 const tripArray = [
     {
       "tripNumber":"TRIPAM0000001",
@@ -2624,7 +3363,7 @@ const tripArray = [
       travelName: 'Business Meeting with Nirvana Association',
       from: 'New York',
       to: 'Los Angeles',
-      departureDate: '20-Sep-2023',
+      departureDate: '20-Sep-2025',
       returnDate: '22-Sep-2023',
       status: 'cancelled',
       tripStatus: 'upcoming',

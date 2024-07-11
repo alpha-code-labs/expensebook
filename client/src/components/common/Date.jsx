@@ -1,5 +1,5 @@
-import {chevron_down} from '../assets/icon'
-import { formatDate } from '../utils/handyFunctions'
+import {chevron_down} from '../../assets/icon'
+import { formatDate } from '../../utils/handyFunctions'
 import { useState } from 'react';
 
 export default function Date(props){

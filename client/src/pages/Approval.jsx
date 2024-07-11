@@ -2,7 +2,7 @@ import React, { useState,useEffect } from 'react';
 
 import { useData } from '../api/DataProvider';
 import { getStatusClass ,titleCase, urlRedirection} from '../utils/handyFunctions';
-import { receipt, chevron_down, calender, double_arrow , three_dot ,validation_sym, down_left_arrow, airplane_1, receipt_icon1} from '../assets/icon';
+import { receipt, chevron_down, calender_icon, double_arrow , three_dot ,validation_sym, down_left_arrow, airplane_1, receipt_icon1} from '../assets/icon';
 import ApprovalTravelExpense from '../components/approvals/ApprovalTravelExpense';
 import { handleApproval } from '../utils/actionHandler';
 import { useParams } from 'react-router-dom';
@@ -515,7 +515,7 @@ export default Approval;
 
 // import { useData } from '../api/DataProvider';
 // import { getStatusClass ,titleCase, urlRedirection} from '../utils/handyFunctions';
-// import { receipt, chevron_down, calender, double_arrow , three_dot ,validation_sym, down_left_arrow, airplane_1} from '../assets/icon';
+// import { receipt, chevron_down, calender_icon, double_arrow , three_dot ,validation_sym, down_left_arrow, airplane_1} from '../assets/icon';
 // import ApprovalTravelExpense from '../components/approvals/ApprovalTravelExpense';
 // import { handleApproval } from '../utils/actionHandler';
 // import { useParams } from 'react-router-dom';
@@ -695,7 +695,7 @@ export default Approval;
 //     {/* Date */}
 //     {/* <div className="flex   h-[52px] w-auto  items-center justify-start py-3 gap-1  lg:px-0 order-3 lg:order-2">
 //       <div className=' pl-2 md:pl-0'>
-//       <img src={calender} alt="calendar" className="w-[16px]"/>
+//       <img src={calender_icon} alt="calendar" className="w-[16px]"/>
 //       </div>
 //       <div className=" tracking-[0.03em] leading-normal text-neutral-800 text-[12px] lg:w-[221px] w-auto ">
 //         {item.departureDate} to {item.returnDate}

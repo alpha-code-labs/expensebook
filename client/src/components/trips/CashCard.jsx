@@ -1,5 +1,5 @@
 import React from 'react'
-import { calender, cancel,modify, validation_sym } from '../../assets/icon'
+import { calender_icon, cancel,modify, validation_sym } from '../../assets/icon'
 import { titleCase,getStatusClass, urlRedirection, formatAmount } from '../../utils/handyFunctions'
 
 
