@@ -11,6 +11,8 @@ const travelRequestStatusEnums = [
   "cancelled",
   "recovered",
   "paid and cancelled",
+  "closed",
+  "completed"
 ];
 
 const travelRequestStateEnums = [
@@ -37,11 +39,7 @@ const itineraryStatusEnums = [
   'recovered',
   ];
 
-const transferEnums = [
-  "regular",
-  "pickup",
-  "drop",
-];
+
 
 const itinerarySchema = {
   flights: [
@@ -227,8 +225,13 @@ const itinerarySchema = {
       class: String,
       checkIn: Date,
       checkOut: Date,
+      time: String,
       checkInTime: String,
       checkOutTime: String,
+      needBreakFast: Boolean,
+      needLunch: Boolean,
+      needDinner: Boolean,
+      needNonSmokingRoom : Boolean,
       violations: {
         class: String,
         amount: String,
@@ -287,10 +290,14 @@ const itinerarySchema = {
       formId: String,
       sequence: Number,
       date: Date,
+      returnDate: String,
+      selectedDates: [String],
       class: String,
       time: String,
       pickupAddress: String,
       dropAddress: String,
+      isFullDayCab: Boolean,
+
       violations: {
         class: String,
         amount: String,
@@ -306,6 +313,8 @@ const itinerarySchema = {
         },
       ],
       bkd_date: Date,
+      bkd_returnDate: String,
+      bkd_isFullDayCab: String,
       bkd_class: String,
       bkd_time: String,
       bkd_pickupAddress: String,
@@ -327,10 +336,6 @@ const itinerarySchema = {
           taxAmount: String,
           totalAmount: String,
         },
-      },
-      type: {
-        type: String,
-        enum: transferEnums,
       },
     },
   ],
@@ -341,6 +346,8 @@ const itinerarySchema = {
       formId: String,
       sequence: Number,
       date: Date,
+      returnDate: String,
+      selectedDates: [String],
       class: String,
       time: String,
       pickupAddress: String,
@@ -381,10 +388,6 @@ const itinerarySchema = {
           taxAmount: String,
           totalAmount: String,
         },
-      },
-      type: {
-        type: String,
-        enum: transferEnums,
       },
     },
   ],
@@ -448,7 +451,7 @@ const formDataSchema = {
       returnDateError:{set: Boolean, message:String},
       fromError: {set: Boolean, message:String},
       toError: {set: Boolean, message:String},
-   },
+  },
 ],
 };
 
@@ -478,6 +481,13 @@ export const travelRequestSchema = new mongoose.Schema({
   tripPurpose: {
     type: String,
     // required: true,
+  },
+  tripPurposeDescription: {
+    type: String,
+    required: true,
+  },
+  tripName:{
+    type: String,
   },
   travelRequestStatus: {
     //initialize with status as 'draft'
