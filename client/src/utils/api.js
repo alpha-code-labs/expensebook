@@ -123,13 +123,19 @@ export const assignBusinessAdmin_API = async (tenantId,travelRequestId,data) => 
   }
 };
 
+export const getTravelPreference_API = async ({ tenantId, empId }) => {
+  console.log("getTravelPreference_API", tenantId, empId);
 
-export const getTravelPreference_API = async (tenantId,empId) => {
-  const url = `${DASHBOARD_BACKEND_API_URL}/api/fe/dashboard/role/${tenantId}/${empId}`;
+  // Ensure tenantId and empId are not undefined or null
+  if (!tenantId || !empId) {
+    throw new Error('Both tenantId and empId must be provided.');
+  }
+
+  const url = `${DASHBOARD_BACKEND_API_URL}/api/fe/dashboard/profile/${tenantId}/${empId}`;
 
   try {
-    const response = await axiosRetry(axios.get, url);
-    return response.data
+    const response = await axiosRetry(() => axios.get(url));
+    return response.data;
   } catch (error) {
     handleRequestError(error);
     const errorObject = {
@@ -142,31 +148,30 @@ export const getTravelPreference_API = async (tenantId,empId) => {
 };
 
 
-export const postTravelPreference_API = async(tenantId,empId,data)=>{
+export const postTravelPreference_API = async (tenantId, empId, formData) => {
+  console.log("API tenantId:", tenantId);
+  console.log("API data:", formData);
+  console.log("API empId:", empId);
 
-  const url = `${DASHBOARD_BACKEND_API_URL}/api/${tenantId}/${empId}`;
+  if (!tenantId || !empId ||!formData) {
+    throw new Error('Both tenantId,empId and formData must be provided.');
+  }
 
-  // this is the real api route
-  
-  try{
+  const url = `${DASHBOARD_BACKEND_API_URL}/api/fe/dashboard/profile/${tenantId}/${empId}`;
 
-    const response= await axiosRetry(axios.update,url,data)
-     return response.data
-     
-  }catch(error){
+  try {
+    const response = await axiosRetry(axios.post,url, formData);
+    return response.data;
+  } catch (error) {
     handleRequestError(error);
     const errorObject = {
       status: error.response?.status || null,
       message: error.message || 'Unknown error',
     };
-    console.log('Post Error : ',errorObject);
-    return {  error: errorObject };
-
-
+    console.log('Post Error:', errorObject);
+    return { error: errorObject };
   }
-
-}
-
+};
 
 
 
