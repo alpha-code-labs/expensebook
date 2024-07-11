@@ -259,15 +259,17 @@ try {
         getTripForEmployee(tenantId, empId),
         getAllExpensesForEmployee(tenantId, empId),
         getOverView(tenantId,empId),
+        getAllCashAdvance(tenantId,empId)
     ]
 
-    const [travelStandAlone,travelWithCash, trip,expense, allTravelRequests] = await Promise.all(promises)
+    const [travelStandAlone,travelWithCash, trip,expense, allTravelRequests, allCashAdvance] = await Promise.all(promises)
 
 
     const {rejectedCashAdvances} = travelWithCash
     const { trips,reimbursements } = trip
     const { upcomingTrips,transitTrips, completedTrips,rejectedTrips} = trips
     const { allTripExpenseReports, allNonTravelReports,} = expense
+    const {nonTravelCashAdvance, travelCashAdvance} = allCashAdvance
 
 
     const travelRequestCombined = [ ...travelStandAlone.travelRequests, ...travelWithCash.travelRequests]
@@ -275,9 +277,12 @@ try {
 
     //screens
     const overviewUi = {transitTrips,upcomingTrips,allTravelRequests , expense}
+    const cashAdvanceUi = {...allCashAdvance}
+
 
     const employee = { 
         overview:overviewUi,
+        cashAdvance:cashAdvanceUi,
         travelRequests :travelRequestCombined,
         rejectedTravelRequests:rejectedTravelRequestsCombined,
         rejectedCashAdvances,
@@ -340,6 +345,43 @@ if(getAllTravelRequests.length > 0){
  }
 }
 
+const getAllCashAdvance = async(tenantId,empId) => {
+    try{
+
+        const allCashReports = await dashboard.find({
+            tenantId,
+            'cashAdvanceSchema.cashAdvancesData.createdBy.empId':empId,
+        })
+
+        if(allCashReports?.length > 0){
+            
+            const nonTravelCashAdvance = allCashReports
+            .filter(cash => cash?.cashAdvanceSchema && !cash?.cashAdvanceSchema?.hasOwnProperty('travelRequestId'))
+            .map(cash => ({
+                cashAdvanceId: cash?.cashAdvanceSchema?.cashAdvancesData?.cashAdvanceId,
+                cashAdvanceNumber: cash?.cashAdvanceSchema?.cashAdvancesData?.cashAdvanceNumber,
+                cashAdvanceStatus: cash?.cashAdvanceSchema?.cashAdvancesData?.cashAdvanceStatus,
+                amountDetails: cash?.cashAdvanceSchema?.cashAdvancesData?.amountDetails,
+            })).filter(Boolean)
+
+            const travelCashAdvance = allCashReports
+            .filter(cash => cash?.cashAdvanceSchema?.hasOwnProperty('travelRequestId'))
+            .map(cash => ({
+                travelRequestId: cash?.cashAdvanceSchema?.cashAdvancesData?.travelRequestId,
+                cashAdvanceId: cash?.cashAdvanceSchema?.cashAdvancesData?.cashAdvanceId,
+                cashAdvanceNumber: cash?.cashAdvanceSchema?.cashAdvancesData?.cashAdvanceNumber,
+                tripName: cash?.cashAdvanceSchema?.travelRequestData?.tripName,
+                travelRequestNumber: cash?.cashAdvanceSchema?.cashAdvancesData?.travelRequestNumber,
+                amountDetails: cash?.cashAdvanceSchema?.cashAdvancesData?.amountDetails,
+            })).filter(Boolean)
+
+            return {nonTravelCashAdvance, travelCashAdvance}
+        }
+    } catch(error){
+        console.error("Error:", error);
+        throw new Error('Error in Fetching CashAdvance')
+    }
+}
 
 //----------------travel standalone for an employee
 // const travelStandAloneForEmployee = async (tenantId, empId) => {
@@ -1327,7 +1369,6 @@ const getAllExpensesForEmployee = async (tenantId, empId) => {
     });
     // console.log("allTripExpenseReports", allTripExpenseReports)
 
-     
     //   const allTrip = tripDocs
     //       .filter(trip => trip?.tripSchema?.tripStatus === 'upcoming' && trip?.tripSchema?.travelExpenseData && trip?.tripSchema?.travelExpenseData?.length > 0 )
     //       .flatMap(trip => trip.tripSchema.travelExpenseData.map(({ tripId, expenseHeaderId, expenseHeaderNumber, expenseHeaderStatus }) => ({
