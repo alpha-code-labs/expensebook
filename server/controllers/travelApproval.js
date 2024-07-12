@@ -645,7 +645,7 @@ export const travelWithCashRejectTravelRequest = async (req, res) => {
         booking.status = 'rejected'
       }})
   } else {
-    throw new Error('Travel Request doenst have anything in itinerary to approve');
+    throw new Error("Travel Request doesn't have anything in itinerary to approve");
   }
 
     console.log(approvers , );
