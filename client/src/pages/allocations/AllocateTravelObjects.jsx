@@ -193,7 +193,7 @@ export default function({formData, setFormData, nextPage, lastPage, onBoardingDa
                     {/* back link */}
                     <div className='flex items-center gap-4 cursor-pointer'>
                         <img className='w-[24px] h-[24px]' src={leftArrow_icon} onClick={()=>navigate(lastPage)} />
-                        <p className='text-neutral-700 text-md font-semibold font-cabin'>Allocate Travel</p>
+                        <p className='text-neutral-700 text-md font-semibold font-sans-serif'>Allocate Travel</p>
                     </div>
 
                     <div>
@@ -212,12 +212,12 @@ export default function({formData, setFormData, nextPage, lastPage, onBoardingDa
                                         {allocations.map((header, index)=>{
                                             return(
                                                 <div className='relative'>
-                                                <Select
-                                                    currentOption={selectedTravelAllocationHeaders.find(h=>h.categoryName == cat)?.allocations.find(h=>h.headerName == header.headerName)?.headerValue}
-                                                    options={header.headerValues}
-                                                    onSelect = {(option)=>{handleAllocationHeaderSelection(cat, header.headerName, option)}}
-                                                    placeholder={`Select ${camelCaseToTitleCase(header.headerName)}`} 
-                                                    title={camelCaseToTitleCase(header.headerName)} />
+                                                    <Select
+                                                        currentOption={selectedTravelAllocationHeaders.find(h=>h.categoryName == cat)?.allocations.find(h=>h.headerName == header.headerName)?.headerValue}
+                                                        options={header.headerValues}
+                                                        onSelect = {(option)=>{handleAllocationHeaderSelection(cat, header.headerName, option)}}
+                                                        placeholder={`Select ${camelCaseToTitleCase(header.headerName)}`} 
+                                                        title={camelCaseToTitleCase(header.headerName)} />
                                                 </div>
                                             )
                                         })}
@@ -252,8 +252,16 @@ export default function({formData, setFormData, nextPage, lastPage, onBoardingDa
                 {!requestSubmitted && <Error/>}
                 {requestSubmitted && <div className='p-10'>
                     <p className='text-2xl text-neutral-700 font-semibold font-cabin'>Travel Request Submitted !</p>
-                   
-                    {<div className='flex gap-10 justify-between mt-10'>
+                    { cashAdvanceAllowed && <> 
+                        <p className='text-zinc-800 text-base font-medium font-cabin mt-4'>Would you like to raise a cash advance request for this trip?</p>
+                        <div className='flex gap-10 justify-between mt-10'>
+                            <Button text='Yes' onClick={()=>handleCashAdvance(true)} />
+                            <Button text='No' onClick={()=>handleCashAdvance(false)} />
+                        </div>
+                        </>
+                    }
+
+                    {!cashAdvanceAllowed && <div className='flex gap-10 justify-between mt-10'>
                             <Button text='Ok' onClick={()=>handleCashAdvance(false)} />
                         </div>}
 
