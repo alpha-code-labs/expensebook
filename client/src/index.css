@@ -52,3 +52,15 @@ body {
   background: linear-gradient(90.13deg, #00cea8 1.9%, #bf61ff 97.5%);
   background: -webkit-linear-gradient(-90.13deg, #00cea8 1.9%, #bf61ff 97.5%);
 }
+
+.header-title {
+  @apply font-medium text-xs font-cabin text-neutral-400 ;
+}
+
+.header-text {
+  @apply font-medium text-xs font-cabin text-neutral-700 ;
+}
+
+.action-hover {
+  @apply hover:shadow-md hover:shadow-green-200/60 transition duration-300 ;
+}

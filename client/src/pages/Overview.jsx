@@ -1,7 +1,7 @@
 /* eslint-disable react/jsx-key */
 import React, { useState,useEffect } from 'react';
 import { airplane_1, briefcase, calender_icon, double_arrow,cab_purple,  house_simple, train, bus, cancel_round, cancel, modify, plus_icon, plus_violet_icon, receipt, down_arrow, chevron_down, down_left_arrow, calender_2_icon, airplane, material_flight_black_icon, material_cab_black_icon, material_hotel_black_icon, city_icon, empty_itinerary_icon } from '../assets/icon';
-import { formatAmount, formatDate, getStatusClass } from '../utils/handyFunctions';
+import { formatAmount, formatDate, getStatusClass, splitTripName } from '../utils/handyFunctions';
 import { travelExpense,reimbursementExpense, travelRequests, trips } from '../utils/dummyData';
 import { useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -570,8 +570,7 @@ const [textVisible ,setTextVisible]=useState(false)
            <div className='flex gap-2 items-center '>
               <img src={briefcase} className='w-4 h-4'/>
               <div className='font-medium font-cabin  text-sm uppercase text-neutral-700 '>
-               {trip?.tripName.split('(')[0]}
-
+               {splitTripName(trip?.tripName)}
               </div>
               </div>
         </div>

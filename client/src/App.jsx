@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { DataProvider } from './api/DataProvider';
+import { useParams } from 'react-router-dom';
 import Sidebar from './components/common/Sidebar';
 import Travel from './pages/Travel';
 import Navbar from './components/common/Navbar';

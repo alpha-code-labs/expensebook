@@ -116,10 +116,10 @@ export const handleNonTravelExpense=(expenseHeaderId,action)=>{
     
  export const handleApproval=(tenantId,empId,travelRequestId , expenseHeaderId ,action, )=>{
   let url ;
-  if (action==="travel-approval"){
-    url=approvalViewRoutes.viewDetails.viewDetails_tr_standalone.getUrl(tenantId,empId,travelRequestId)
+  if (action==="travel-approval-view"){
+    return url=approvalViewRoutes.viewDetails.viewDetails_tr_standalone.getUrl(tenantId,empId,travelRequestId)
   }
-  else if (action==="approval-view-tr-expense"){
+  else if (action==="travelExpense-approval-view"){
     url=approvalViewRoutes.viewDetails.viewDetails_tr_expense.getUrl(tenantId,empId,expenseHeaderId)
   }
   else {

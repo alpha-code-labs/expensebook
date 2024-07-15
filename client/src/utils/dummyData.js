@@ -1628,7 +1628,7 @@ const travelExpense = [
     "tripId": "667a38e9e9a18ce3478d1261",
   "tripNumber": "TRIPAL000001",
   "tripPurpose": "Business",
-  "tripName":"us - del - mum - gkr",
+  "tripName": "DEL-BAN-LUC-DEL-BAN-DEL(9th Jul)",
   "travelExpenseData": [
     {
       "travelAllocationFlags": {
@@ -2384,9 +2384,7 @@ const travelExpense = [
       }
     }
   ]
-}
-
-]
+}];
 
 const nonTravelExpense = [
   {
@@ -2817,16 +2815,21 @@ const nonTravelExpense = [
       }
     ]
   },
-]
+];
 
 const TRCashadvance = [
   {
-    tripId: "667a38e9e9a18ce3478d1263",
-    travelRequestStatus:"cancelled",
+    tripId:"667a38e9e9a18ce3478d1263",
+    travelRequestStatus:"pending approval",
     tripNumber: "TRIPAL000001",
-    travelRequestId: "667955dbb2e14ac28c9ec056",
+    travelRequestId: "667a9de68daacf93aefceb12",
     travelRequestNumber: "TRAL000001",
-    tripName: ["mum", "luc", "del"],
+    "tripName": "DEL-BAN-LUC-DEL-BAN-DEL(9th Jul)",
+    "createdBy": {
+                        "empId": "1002",
+                        "name": "Benjamin Clark",
+                        "_id": "667aa2d3b043bb2aadcb0c88"
+                    },
     cashAdvances: [
       {
         cashAdvanceId: "66795ea1a4b5e4e0e666cd4a",
@@ -2880,10 +2883,10 @@ const TRCashadvance = [
   {
     travelRequestStatus:"booked",
     tripId: "667a38e9e9a18ce3478d126r",
-    tripNumber: "TRIPAL000001",
-    travelRequestId: "667955dbb2e14ac28c9ec056",
+    tripNumber: "TRIPAL000002",
+    travelRequestId: "667955dbb2e14ac28c9ec052",
     travelRequestNumber: "TRAL000001",
-    tripName: ["mum", "luc", "san"],
+    "tripName": "DEL-BAN-LUC-DEL-BAN-DEL(9th Jul)",
     cashAdvances: [
       {
         cashAdvanceId: "66795ea1a4b5e4e0e666cd4a",
@@ -2937,10 +2940,10 @@ const TRCashadvance = [
   {
     travelRequestStatus:"pending approval",
     tripId: "667a38e9e9a18ce3478d126x",
-    tripNumber: "TRIPAL000001",
-    travelRequestId: "66796b3bb2e14ac28c9eebb8",
+    tripNumber: "TRIPAL000003",
+    travelRequestId: "66796b3bb2e14ac28c9eebb3",
     travelRequestNumber: "TRAL000001",
-    tripName: ["mum", "luc", "dub"],
+    "tripName": "DEL-BAN-LUC-DEL-BAN-DEL(9th Jul)",
     cashAdvances: [
       {
         cashAdvanceId: "667a39e4a1b88232721397fb",
@@ -2994,10 +2997,10 @@ const TRCashadvance = [
   {
     travelRequestStatus:"draft",
     tripId: "667a38e9e9a18ce3478d1265",
-    tripNumber: "TRIPAL000001",
-    travelRequestId: "667955dbb2e14ac28c9ec056",
+    tripNumber: "TRIPAL000004",
+    travelRequestId: "667955dbb2e14ac28c9ec054",
     travelRequestNumber: "TRAL000001",
-    tripName: ["mum", "luc", "del"],
+    "tripName": "DEL-BAN-LUC-DEL-BAN-DEL(9th Jul)",
     cashAdvances: [
       {
         cashAdvanceId: "66795ea1a4b5e4e0e666cd4a",
@@ -3051,10 +3054,10 @@ const TRCashadvance = [
   {
     travelRequestStatus:"pending booking",
     tripId: "667a38e9e9a18ce3478d126b",
-    tripNumber: "TRIPAL000001",
-    travelRequestId: "667955dbb2e14ac28c9ec056",
+    tripNumber: "TRIPAL000005",
+    travelRequestId: "667955dbb2e14ac28c9ec055",
     travelRequestNumber: "TRAL000001",
-    tripName: ["mum", "luc", "del"],
+    "tripName": "DEL-BAN-LUC-DEL-BAN-DEL(9th Jul)",
     cashAdvances: [
       {
         cashAdvanceId: "66795ea1a4b5e4e0e666cd4a",
@@ -3354,6 +3357,7 @@ const travelRequests = [
     travelRequestStatus:"draft"
   }
 ]
+
 
 const tripArray = [
     {
