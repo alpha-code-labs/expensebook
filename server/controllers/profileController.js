@@ -54,7 +54,7 @@ export const getProfile = async (req, res) => {
 export const saveProfile = async (req, res) => {
     try {
     
- const { error, value} = preferenceSchema.validate(req.params)
+ const { error, value} = employeeSchema.validate(req.params)
 
     if (error) {
         return res.status(400).json({ error: error.details[0].message
