@@ -192,6 +192,9 @@ const getAllCashAdvance = async(tenantId,empId) => {
             'cashAdvanceSchema.cashAdvancesData.createdBy.empId':empId,
         })
 
+        console.log("allCashReports",JSON.stringify(allCashReports, '' , 2))
+        
+
         if(allCashReports?.length > 0){
             
             const nonTravelCashAdvance = allCashReports
@@ -204,16 +207,16 @@ const getAllCashAdvance = async(tenantId,empId) => {
             })).filter(Boolean)
 
             const travelCashAdvance = allCashReports
-            .filter(cash => cash?.cashAdvanceSchema?.hasOwnProperty('travelRequestId'))
-            .map(cash => ({
-                travelRequestId: cash?.cashAdvanceSchema?.cashAdvancesData?.travelRequestId,
-                cashAdvanceId: cash?.cashAdvanceSchema?.cashAdvancesData?.cashAdvanceId,
-                cashAdvanceNumber: cash?.cashAdvanceSchema?.cashAdvancesData?.cashAdvanceNumber,
-                tripName: cash?.cashAdvanceSchema?.travelRequestData?.tripName ?? '',
-                travelRequestNumber: cash?.cashAdvanceSchema?.cashAdvancesData?.travelRequestNumber,
-                amountDetails: cash?.cashAdvanceSchema?.cashAdvancesData?.amountDetails,
-            })).filter(Boolean)
+            .flatMap(c => c?.cashAdvanceSchema?.cashAdvancesData?.map(ad => ({
+                travelRequestId: ad.travelRequestId,
+                cashAdvanceId: ad.cashAdvanceId,
+                cashAdvanceNumber: ad.cashAdvanceNumber,
+                tripName: c?.cashAdvanceSchema?.travelRequestData?.[ad.travelRequestId]?.tripName ?? '',
+                travelRequestNumber: ad.travelRequestNumber,
+                amountDetails: ad.amountDetails,
+              }))).filter(Boolean);
 
+            console.log("travelCashAdvance", travelCashAdvance)
             return {nonTravelCashAdvance, travelCashAdvance}
         }
     } catch(error){
