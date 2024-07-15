@@ -3,17 +3,19 @@ import Button from './Button';
 // import { LOGIN_PAGE_URL, logoutApi } from '../../utils/api';
 import { handleLoginPageUrl } from '../../utils/actionHandler';
 import { alert_circle, company_icon, logout_icon, user_icon } from '../../assets/icon';
+import { Link } from 'react-router-dom';
 
 const Navbar = ({ employeeRole,employeeInfo }) => {
-  
- 
+
+
 const LOGIN_PAGE_URL = import.meta.env.VITE_LOGIN_PAGE_URL
   console.log('employee info from navbar',employeeInfo)
+console.log("local storage navbar", localStorage  )
 
   const authToken = "helloworld whel" 
   
-  
-  
+  let tenantId = localStorage.tenantId
+  let empId = localStorage.empId
   return (
     <div className="lg:h-[56px] p-4 flex flex-row justify-between items-center bg-indigo-600">
 
@@ -29,9 +31,11 @@ const LOGIN_PAGE_URL = import.meta.env.VITE_LOGIN_PAGE_URL
 
       <div className=" justify-center items-center cursor-pointer flex flex-row gap-2">
         <div className='bg-white-100 rounded-full'>
+        <Link to={`/${tenantId}/${empId}/profile`}>
           <img src={user_icon} className='w-8 h-8'/>
+        </Link>
         </div>
-       
+      
       <div className="font-semibold  ">
         <p className=' text-sm text-white-100'>{employeeInfo?.employeeDetails?.name}</p>
         <p className=' text-xs text-indigo-100'>{employeeInfo?.email}</p>
@@ -40,7 +44,7 @@ const LOGIN_PAGE_URL = import.meta.env.VITE_LOGIN_PAGE_URL
         <img src={logout_icon} className='w-5 h-5'/>
       </div>
 
-     
+
         {/* <Button text='Logout' onClick={()=>(handleLoginPageUrl('login-page'))}/> */}
         {/* <Button text='Logout' onClick={()=>(logoutApi(authToken))}/> */}
 
