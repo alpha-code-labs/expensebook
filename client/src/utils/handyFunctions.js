@@ -196,8 +196,11 @@ function formatDate(date=Date.now()){
     return Array.from(map.values());
 }
 
- 
+function splitTripName(tripName){
+    
+  return tripName?.split('(')[0];
+}
   
 
-export {titleCase, formatDate, filterTravelRequests,formatDate2 ,getStatusClass ,addOrdinalIndicator ,formatDate3 ,getCashAdvanceButtonText,urlRedirection,formatAmount}  
+export {splitTripName, titleCase, formatDate, filterTravelRequests,formatDate2 ,getStatusClass ,addOrdinalIndicator ,formatDate3 ,getCashAdvanceButtonText,urlRedirection,formatAmount}  
 

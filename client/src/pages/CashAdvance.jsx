@@ -53,9 +53,8 @@ const CashAdvance = ({isLoading, fetchData, loadingErrMsg}) => {
       console.error('Employee data is missing.');
     }
   }, [employeeData]);
-  
- 
-  
+
+
 
 
   const handleRaise = () => {
@@ -247,7 +246,7 @@ Raise a Cash-Advance
               <div className='flex gap-2 items-center'>
               <img src={briefcase} className='w-4 h-4'/>
               <div className='font-medium font-cabin text-md uppercase'>
-               {trip.tripName.join(' - ')}
+               {trip.tripName}
               </div>
               </div>
               {filteredCashadvances?.map((advance,index) => ( 
@@ -264,11 +263,9 @@ Raise a Cash-Advance
       {index < advance.amountDetails.length - 1 && <span>, </span>}
     </div>
   ))}
-</div>
-
-                     
-                    </div>
-                    <div className='flex justify-center items-center gap-2'>
+</div> 
+    </div>
+      <div className='flex justify-center items-center gap-2'>
                     <div className={`text-center rounded-sm ${getStatusClass(advance?.cashAdvanceStatus ?? "-")}`}>
                        <p className='px-1 py-1 text-xs text-center capitalize font-cabin'>{advance?.cashAdvanceStatus ?? "-"}</p>
                     </div>
@@ -276,10 +273,10 @@ Raise a Cash-Advance
                     <img src={modify} className='w-4 h-4' alt="modify_icon" />
                     </div>
                   </div>
-                  </div>
-                </div>
+      </div>
+      </div>
 ))}
-            </div>)
+</div>)
            })}
         </div>
           </div>
@@ -293,9 +290,9 @@ Raise a Cash-Advance
               <div key={`${index}nonTr`} className='mb-4 rounded-md shadow-custom-light bg-white-100 p-4'>
               <div className='flex gap-2 items-center'>
               <img src={money} className='w-5 h-5'/>
-              <div className='font-medium font-cabin text-md'>
-               <div className='text-neutral-400 text-sm'>Cash-Advance No.</div>
-               <p className='text-neutral-700 text-base'>{cashAdvance?.cashAdvanceNumber}</p>
+              <div className=''>
+               <div className='header-title'>Cash-Advance No.</div>
+               <p className='header-text'>{cashAdvance?.cashAdvanceNumber}</p>
               </div>
 
               </div>

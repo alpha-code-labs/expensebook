@@ -9,6 +9,7 @@ import Select from "../components/common/Select";
 import Button from "../components/common/Button";
 import Input from "../components/common/SearchInput";
 import TextBox from "../components/common/TextBox";
+import{useParams} from "react-router-dom"
 import { travelPreferences,preference } from "../dummyData/profile";
 import { getTravelPreference_API, postTravelPreference_API } from "../utils/api";
 import { useData } from "../api/DataProvider";

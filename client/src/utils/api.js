@@ -44,7 +44,6 @@ const axiosRetry = async (requestFunction, ...args) => {
   }
 };
 
-// http://192.168.0.194:8088/api/fe/dashboard/role/65c5c3bef21cc9ab3038e21f/1002
 
 
 export const logoutApi = async (authToken) => {

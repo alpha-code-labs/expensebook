@@ -233,9 +233,9 @@ const Expense = ({isLoading ,fetchData,loadingErrMsg}) => {
                   <div className='flex flex-row justify-between'>
                     <div className='flex gap-2 items-center '>
                       <img src={receipt} className='w-5 h-5' />
-                      <div className='font-medium font-cabin text-neutral-700'>
-                        <div className='text-neutral-400 text-sm'>Expense Header No.</div>
-                        <p className='text-base'>{nonTravelExp?.expenseHeaderNumber}</p>
+                      <div >
+                        <div className='header-title'>Expense Header No.</div>
+                        <p className='header-text'>{nonTravelExp?.expenseHeaderNumber}</p>
                       </div>
                     </div>
                     <div className='flex flex-row gap-2 justify-between items-center font-cabin font-xs'>
