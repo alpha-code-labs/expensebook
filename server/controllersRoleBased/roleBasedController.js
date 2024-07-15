@@ -206,15 +206,17 @@ const getAllCashAdvance = async(tenantId,empId) => {
                 amountDetails: cash?.cashAdvanceSchema?.cashAdvancesData?.amountDetails,
             })).filter(Boolean)
 
-            const travelCashAdvance = allCashReports
-            .flatMap(c => c?.cashAdvanceSchema?.cashAdvancesData?.map(ad => ({
-                travelRequestId: ad.travelRequestId,
-                cashAdvanceId: ad.cashAdvanceId,
-                cashAdvanceNumber: ad.cashAdvanceNumber,
-                tripName: c?.cashAdvanceSchema?.travelRequestData?.[ad.travelRequestId]?.tripName ?? '',
-                travelRequestNumber: ad.travelRequestNumber,
-                amountDetails: ad.amountDetails,
-              }))).filter(Boolean);
+            const travelCashAdvance = allCashReports.map(cash => ({
+                cashAdvancesData: cash?.cashAdvanceSchema?.cashAdvancesData?.map(advance => ({
+                  travelRequestId: advance.travelRequestId,
+                  cashAdvanceId: advance.cashAdvanceId,
+                  cashAdvanceNumber: advance.cashAdvanceNumber,
+                  cashAdvanceStatus: advance.cashAdvanceStatus,
+                  tripName: cash?.cashAdvanceSchema?.travelRequestData?.[advance.travelRequestId]?.tripName ?? '',
+                  travelRequestNumber: advance.travelRequestNumber,
+                  amountDetails: advance.amountDetails,
+                })).filter(Boolean)
+              })).filter(cash => cash.cashAdvancesData.length > 0);
 
             console.log("travelCashAdvance", travelCashAdvance)
             return {nonTravelCashAdvance, travelCashAdvance}
