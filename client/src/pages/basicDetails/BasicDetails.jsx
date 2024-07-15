@@ -16,7 +16,7 @@ import Error from '../../components/common/Error'
 import { useQuery } from '../../utils/hooks'
 import { camelCaseToTitleCase } from '../../utils/handyFunctions'
 import CommentBox from '../../components/common/CommentBox'
-import { close_gray_icon } from '../../assets/icon'
+import { close_icon, close_gray_icon } from '../../assets/icon'
 import Search from '../../components/Search/Index'
 
 
@@ -58,7 +58,7 @@ export default function BasicDetails({ onBoardingData, formData, setFormData }) 
 
             let allowSubmit = true;
 
-            if (formData.tripPurpose == null) {
+            if (formData.tripPurpose == null || formData.tripPurpose == 'Not Selected') {
                 setErrors(pre => {
                     return { ...pre, tripPurposeError: { ...pre.tripPurposeError, set: true } }
                 })
@@ -425,11 +425,11 @@ export default function BasicDetails({ onBoardingData, formData, setFormData }) 
                         <div className='mt-8 flex gap-8 flex-wrap items-center'>
                             <div className='relative flex flex-col h-[73px] justify-start item-start gap-2'>
                                 <div className="text-zinc-600 text-sm font-cabin select-none">Select trip purpose</div>
-                                <div onClick={(e)=>{e.preventDefault(); setTripPurposeSearchVisible(pre=>!pre)}} className='h-[40px] w-full px-4 py-1 flex items-center gap-2 bg-gray-100 hover:bg-gray-200 rounded-sm items-center transition ease-out hover:ease-in cursor-pointer'>
+                                <div onClick={(e)=>{e.stopPropagation(); setTripPurposeSearchVisible(pre=>!pre)}} className='h-[40px] w-full px-4 py-1 flex items-center gap-2 bg-gray-100 hover:bg-gray-200 rounded-sm items-center transition ease-out hover:ease-in cursor-pointer'>
                                     <div className="text-neutral-700 text-normal font-normal font-cabin">{formData.tripPurpose}</div>
                                 </div>
 
-                                {errors?.tripPurposeError?.set && (formData.tripPurpose == null || formData.tripPurpose == undefined || formData.tripPurpose == '')  && <p className='absolute top-[58px] text-red-600 font-cabin text-sm whitespace-nowrap'>{errors?.tripPurposeError?.message}</p>}
+                                {errors?.tripPurposeError?.set && (formData.tripPurpose == null || formData.tripPurpose == undefined || formData.tripPurpose == '' || formData.tripPurpose == 'Not Selected')  && <p className='absolute top-[58px] text-red-600 font-cabin text-sm whitespace-nowrap'>{errors?.tripPurposeError?.message}</p>}
 
                                 {tripPurposeSearchVisible && <div className='absolute top-[73px]'>
                                     <Search 
@@ -462,7 +462,7 @@ export default function BasicDetails({ onBoardingData, formData, setFormData }) 
                                         </div>
                                     </div>)}
                                     {formData.approvers.length < onBoardingData?.approvalFlow?.length && formData.approvers.length != 0 && <p onClick={()=>setApproversSearchVisible(pre=>!pre)} className='text-sm text-blue-700 hover:text-blue-800 underline cursor-pointer'>Add More</p>}
-                                    {formData.approvers && formData.approvers.length == 0 && <p onClick={(e)=>{e.preventDefault(); setApproversSearchVisible(pre=>!pre)}} className='text-sm text-neutral-500 font-cabin cursor-pointer'>{'Unassigned'}</p>}
+                                    {formData.approvers && formData.approvers.length == 0 && <p onClick={(e)=>{e.stopPropagation(); setApproversSearchVisible(pre=>!pre)}} className='text-sm text-neutral-500 font-cabin cursor-pointer'>{'Unassigned'}</p>}
                                     {errors?.approversError?.set && formData?.approvers?.length < onBoardingData?.approvalFlow?.length  && <p className='absolute top-[58px] text-red-600 font-cabin text-sm whitespace-nowrap'>{errors?.approversError?.message}</p>}
                                 </div>
                             </div>

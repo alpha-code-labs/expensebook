@@ -766,7 +766,7 @@ const BusForm = ({setVisible, handleAddToItinerary, action='create', editId = nu
 
     
     return(<div className='max-w-[440px]'>
-    <   div className='pb-4 sm:pb-10 text-lg text-neutral-700 font-cabin'>Flight</div>
+    <   div className='pb-4 sm:pb-10 text-lg text-neutral-700 font-cabin'>Bus</div>
         
         <div className='w-[100%] h-[100%] bg-white flex gap-2 flex-wrap items-end'>
           <Input 

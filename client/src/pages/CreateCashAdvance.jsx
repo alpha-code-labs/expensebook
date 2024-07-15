@@ -16,22 +16,6 @@ import { currenciesList } from '../data/currenciesList';
 const CASH_API_URL = import.meta.env.VITE_API_BASE_URL
 const DASHBOARD_URL = import.meta.env.VITE_DASHBOARD_URL
 
-
-console.log('from cash advance...')
-
-const currencyOptions = [
-  'USD $',
-  'EUR €',
-  'GBP £',
-  'JPY ¥',
-  'AUD $',
-  'CAD $',
-  'CHF Fr',
-  'CNY ¥',
-  'INR ₹',
-  'SGD $',
-];
-
 export default function(){
 
   const navigate = useNavigate()
@@ -62,6 +46,8 @@ export default function(){
   }, [multiCurrencyTable])
 
   useEffect(()=>{
+    console.log(CASH_API_URL, travelRequestId, 'url  + tr id');
+
     (async function(){
       try{
         const res = await axios.post(`${CASH_API_URL}/cash-advances/${travelRequestId}`)
@@ -113,10 +99,12 @@ export default function(){
 
 
       }catch(e){
-        setLoadingErrMsg(e.response.data.error??'Some error occured. Please try again later.')
-        console.log(e.response.data.error)
+        setLoadingErrMsg(e?.response?.data?.error??'Some error occured. Please try again later.')
+        console.log(e?.response?.data?.error)
       }
-    })()
+    })();
+
+    
   },[])
 
   const [filteredCurrencyOptions, setFilteredCurrencyOptions] = useState(currenciesList.map(item=>({currency:item, value:1})))
@@ -298,10 +286,25 @@ export default function(){
                   <div className='flex flex-col gap-2 mb-2'>
                     <div>
                       <p className='font-cabin text-xs text-neutral-600'>Trip Name</p>
-                      <p className='font-cabin font-semibold tex-lg'>{cashAdvance?.tripName}</p>
+                      <p className='font-sans-serif tex-[14px] text-neutral-700'>{cashAdvance?.tripName}</p>
                     </div>
                     <p className='font-cabin text-sm tracking-tight text-yellow-600'>{violationMessage}</p>
                   </div>
+
+                 { cashAdvance.approvers && cashAdvance.approvers.length > 0 && <div className='flex flex-col gap-2 mb-2'>
+       
+                      <p className='font-cabin text-xs text-neutral-600'>Approvers</p>
+                        {cashAdvance?.approvers && cashAdvance?.approvers?.length>0 && cashAdvance?.approvers.map((approver, index)=>
+                          <div
+                              key={index}
+                              className='h-[40px] w-fit px-2 py-.5 flex gap-2 bg-gray-100 hover:bg-gray-200 rounded-sm items-center transition ease-out hover:ease-in'>
+                              <img src={approver?.imageUrl??'https://blobstorage0401.blob.core.windows.net/avatars/IDR_PROFILE_AVATAR_27@1x.png'} className='w-8 h-8 rounded-full' />
+                              <div className="text-neutral-700 text-normal text-sm sm:text-[14.5px] font-cabin -mt-1 sm:mt-0">{approver.name}</div>
+                          </div>)}
+                  </div>}
+
+
+                  
                 
                 <div className='mt-8'>
                     <CommentBox title='Reason for Cash Advance' onchange={handleReasonChange} value={cashAdvance.cashAdvanceReason} error={reasonError} />
@@ -316,7 +319,7 @@ export default function(){
                       currency={amountLine.currency} 
                       mode={amountLine.mode} 
                       onModeChange= {handleModeChange} 
-                      currencyOptions={filteredCurrencyOptions} 
+                      currencyOptions={currenciesList.map(cr=>({...cr, imageUrl:`https://hatscripts.github.io/circle-flags/flags/${cr.countryCode.toLowerCase()}.svg`}))} 
                       onAmountChange={handleAmountChange} 
                       onCurrencyChange={handleCurrencyChange} 
                       setSearchParam={setSearchParam} 

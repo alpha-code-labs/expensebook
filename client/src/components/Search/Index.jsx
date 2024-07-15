@@ -20,15 +20,11 @@ export default function Search(props){
     const visible = props.visible;
     const setVisible = props.setVisible;
 
-    console.log(visible, 'visible');
-    
-    console.log('rendering component')
     //refs for filtered options
     const dropdownOptionsRef = useRef([]);
 
     useEffect(()=>{
         setKeyboardFocusIndex(-1)
-        console.log('filtered options list', filteredOptionsList);
     },[filteredOptionsList])
 
     //methods passed as props
@@ -42,7 +38,7 @@ export default function Search(props){
         setTextInput(e.target.value)
 
         if(e.target.value.length > startShowingOptions && optionsList.length>0){
-            const filteredOptions = optionsList.filter(option=> isObject? option[searchChildren].toLowerCase().startsWith(e.target.value.toLowerCase()) : option.toLowerCase().startsWith(e.target.value.toLowerCase())  )
+            const filteredOptions = optionsList.filter(option=> isObject? getValueByPath(option, searchChildren).toLowerCase().startsWith(e.target.value.toLowerCase()) : option.toLowerCase().startsWith(e.target.value.toLowerCase())  )
             setFilteredOptionsList(filteredOptions)
             console.log('filtered options', filteredOptions);
         }else{
@@ -52,7 +48,7 @@ export default function Search(props){
 
     const inputFocus = (e)=>{
         if(textInput && textInput.length > startShowingOptions && optionsList.length>0){
-            const filteredOptions = optionsList.filter(option=> isObject? option[searchChildren].toLowerCase().startsWith(e.target.value.toLowerCase()) : option.toLowerCase().startsWith(e.target.value.toLowerCase())  )
+            const filteredOptions = optionsList.filter(option=> isObject? getValueByPath(option, searchChildren).toLowerCase().startsWith(e.target.value.toLowerCase()) : option.toLowerCase().startsWith(e.target.value.toLowerCase())  )
             setFilteredOptionsList(filteredOptions)
             if(filteredOptions.length > 0){
                 setShowDropdown(true)
@@ -139,7 +135,7 @@ export default function Search(props){
     
     //handles selection of options
     const handleOptionSelect = (option, index=0)=>{
-      setSelectedOption(isObject? option[searchChildren] : option)
+      setSelectedOption(isObject? getValueByPath(option, searchChildren) : option)
   
       if(onSelect != null){
           onSelect(option)
@@ -204,18 +200,17 @@ export default function Search(props){
                 >
                     {filteredOptionsList &&
                     filteredOptionsList.map((option, index) => (
-                        <div onClick={(e)=>{ handleOptionSelect(option, index) }} key={index} className="flex gap-4 items-center pl-4 text-neutral-600 px-4 py-3 cursor-pointer transition-color hover:bg-gray-200 focus-visible:outline-0 focus-visible:bg-gray-100">
-                        {option.imageUrl && <img src={option.imageUrl} className="w-6 h-6 rounded-full"/>}
-                        <p
-                            key={index}
+                        <div key={index}
                             tabIndex={index+1}
                             onKeyDown={handleDropdownKeyDown}
                             //ref={firstDropDownOptionsRef}
                             ref={el => dropdownOptionsRef.current[index] = el}
-                            data={JSON.stringify(option)} 
-                            className="text-sm font-medium font-cabin"
-                        >
-                            {titleCase(isObject? option[searchChildren] : option)}
+                            data={JSON.stringify(option)}  
+                            onClick={(e)=>{ handleOptionSelect(option, index) }} 
+                            className="flex gap-4 items-center pl-4 text-neutral-600 px-4 py-3 cursor-pointer transition-color hover:bg-gray-200 focus-visible:outline-0 focus-visible:bg-gray-100">
+                        {option.imageUrl && <img src={option.imageUrl} className="w-6 h-6 rounded-full"/>}
+                        <p className="text-sm font-medium font-cabin">
+                            {titleCase(isObject? getValueByPath(option, searchChildren) : option)}
                         </p>
 
                         {index != optionsList.length - 1 && <hr key={option} />}
@@ -232,3 +227,17 @@ export default function Search(props){
       </div>}
     </>)
 }
+
+function getValueByPath(obj, path) {
+    // Split the path into an array of keys
+    const keys = path.split('.');
+    
+    // Traverse the object using the keys
+    return keys.reduce((acc, key) => {
+      // If acc is undefined or null, return undefined
+      if (acc === undefined || acc === null) {
+        return undefined;
+      }
+      return acc[key];
+    }, obj);
+  }

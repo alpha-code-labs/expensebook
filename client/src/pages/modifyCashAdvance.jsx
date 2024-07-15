@@ -38,6 +38,7 @@ export default function(){
   const [defaultCurrency, setDefaultCurrency] = useState({fullName:'Indian Rupees', shortName:'INR', symbol:'₹', countryCode:'IN'})
   const [violationMessage, setViolationMessage] = useState(cashAdvance?.cashAdvanceViolations??undefined)
   const [reasonError, setReasonError] = useState({set:false, message: 'Please state reason for cash advance'});
+  const [loadingErrMsg, setLoadingErrMsg] = useState(null)
 
   useEffect(()=>{
     console.log(multiCurrencyTable)
@@ -257,45 +258,56 @@ export default function(){
   }
 
     
-  return (
-    <div className="w-fit h-full relative bg-white md:px-8 sm:px-2 mx-auto py-4 select-none">
-            {/* Rest of the section */}
-              {loading && <Error message={null} /> }
-              {!loading && <div className='w-full h-full'>   
+  return (<>
+    {loading && <Error message={loadingErrMsg}/>}
+    {!loading && <div className="w-fit h-full relative bg-white md:px-8 sm:px-2 mx-auto py-4 select-none">
 
+            {/* Rest of the section */}
+              {<div className='w-full h-full mt-10'>   
                 {/* back link */}
                 <div className='flex items-center gap-4 cursor-pointer'>
-                    <p className='text-neutral-700 text-md font-semibold font-cabin'>Edit Cash Advance</p>
-                </div>
-                
-                <div className='mt-10 flex flex-col gap-4'>
-                  <div className='flex items-center flex-wrap gap-2 mb-2'>
-                    <div>
-                    <p className='font-cabin text-xs text-neutral-600'>Trip Name</p>
-                    <p className='font-cabin font-semibold tex-lg'>{cashAdvance?.tripName}</p>
-                    </div>
-                  </div>
-                  <p className='font-cabin text-sm tracking-tight text-yellow-600'>{violationMessage}</p>
+                    <p className='text-neutral-700 text-md font-semibold font-cabin'>Create Cash Advance</p>
                 </div>
 
+                <div className='mt-10 flex flex-col gap-4'>
+
+                  <div className='flex flex-col gap-2 mb-2'>
+                    <div>
+                      <p className='font-cabin text-xs text-neutral-600'>Trip Name</p>
+                      <p className='font-sans-serif tex-[14px] text-neutral-700'>{cashAdvance?.tripName}</p>
+                    </div>
+                    <p className='font-cabin text-sm tracking-tight text-yellow-600'>{violationMessage}</p>
+                  </div>
+
+                 { cashAdvance.approvers && cashAdvance.approvers.length > 0 && <div className='flex flex-col gap-2 mb-2'>
+       
+                      <p className='font-cabin text-xs text-neutral-600'>Approvers</p>
+                        {cashAdvance?.approvers && cashAdvance?.approvers?.length>0 && cashAdvance?.approvers.map((approver, index)=>
+                          <div
+                              key={index}
+                              className='h-[40px] w-fit px-2 py-.5 flex gap-2 bg-gray-100 hover:bg-gray-200 rounded-sm items-center transition ease-out hover:ease-in'>
+                              <img src={approver?.imageUrl??'https://blobstorage0401.blob.core.windows.net/avatars/IDR_PROFILE_AVATAR_27@1x.png'} className='w-8 h-8 rounded-full' />
+                              <div className="text-neutral-700 text-normal text-sm sm:text-[14.5px] font-cabin -mt-1 sm:mt-0">{approver.name}</div>
+                          </div>)}
+                  </div>}
+
+
+                  
+                
                 <div className='mt-8'>
                     <CommentBox title='Reason for Cash Advance' onchange={handleReasonChange} value={cashAdvance.cashAdvanceReason} error={reasonError} />
                 </div>
-
-                <div className='mt-10 flex flex-col gap-4'>
-                <div className='flex font-cabin gap-1'>
-                  <p className='text-sm text-neutral-700'>Status :</p>
-                  <p className='text-sm text-neutral-600'>{spitUnderstandableStatus(cashAdvance.cashAdvanceStatus)}</p>
-                </div>
+                
                 {cashAdvance.amountDetails?.map((amountLine, index)=>
-                  <div className='flex gap-4 items-center'>
+                  <div key={index}>
+                    <div className='flex gap-4 items-center'>
                     <CurrencyInput 
                       id={index} 
                       amount={amountLine.amount} 
                       currency={amountLine.currency} 
                       mode={amountLine.mode} 
                       onModeChange= {handleModeChange} 
-                      currencyOptions={filteredCurrencyOptions} 
+                      currencyOptions={currenciesList.map(cr=>({...cr, imageUrl:`https://hatscripts.github.io/circle-flags/flags/${cr.countryCode.toLowerCase()}.svg`}))} 
                       onAmountChange={handleAmountChange} 
                       onCurrencyChange={handleCurrencyChange} 
                       setSearchParam={setSearchParam} 
@@ -307,20 +319,17 @@ export default function(){
                       </div>}
 
                     </div>
-                    )
+                  </div>)
                 }
                 </div>
 
-                
-
-                <div className='flex flex-row-reverse w-full mt-12 justify-between items-center w-full'>
+                <div className='flex flex-row-reverse mt-10 justify-between items-center w-full'>
                   <Button variant='fit' text="Submit" onClick={handleSubmit} />
                 </div>
-
               </div>}
               
               <PopupMessage showPopup={showPopup} setshowPopup={setShowPopup} message={popupMessage} />
-      </div>
-      );
+      </div>}
+      </>);
 };
 
