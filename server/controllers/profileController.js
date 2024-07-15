@@ -3,7 +3,7 @@ import HRMaster from "../models/hrMasterSchema.js";
 import { sendToOtherMicroservice } from "../rabbitmq/publisher.js";
 
 
-const preferenceSchema = Joi.object({
+export const employeeSchema = Joi.object({
     tenantId: Joi.string().required(),
     empId:Joi.string().required()
 });
@@ -12,7 +12,7 @@ const preferenceSchema = Joi.object({
 export const getProfile = async (req, res) => {
     try {
 
-    const {error , value } = preferenceSchema.validate(req.params)
+    const {error , value } = employeeSchema.validate(req.params)
 
     if (error) {
         return res.status(400).json({ error: error.details[0].message });
@@ -54,7 +54,7 @@ export const getProfile = async (req, res) => {
 export const saveProfile = async (req, res) => {
     try {
     
- const { error, value} = preferenceSchema.validate(req.params)
+ const { error, value} = employeeSchema.validate(req.params)
 
     if (error) {
         return res.status(400).json({ error: error.details[0].message

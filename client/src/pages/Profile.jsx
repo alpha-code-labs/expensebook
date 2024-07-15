@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { titleCase } from "../utils/handyFunctions";
 import Error from "../components/common/Error";
 import PopupMessage from "../components/common/PopupMessage";
-import {profile_bg, app_icon, airplane_1 as airplane_icon, arrow_left, mail_icon, location_pin } from "../assets/icon";
+import {profile_bg, app_icon, airplane_1 as airplane_icon, arrow_left, mail_icon, location_pin, categoryIcons} from "../assets/icon";
 import Select from "../components/common/Select";
 import Button from "../components/common/Button";
 import Input from "../components/common/SearchInput";
@@ -13,6 +13,7 @@ import{useParams} from "react-router-dom";
 import { travelPreferences,preference } from "../dummyData/profile";
 import { getTravelPreference_API, postTravelPreference_API } from "../utils/api";
 import { useData } from "../api/DataProvider";
+import { useParams } from "react-router-dom";
 // import ImageUploader from "../components/common/ImageUploader";
 
 const Profile = ({fetchData}) => {
@@ -174,7 +175,26 @@ const handleImageUpload = (url) => {
   ...formData,
   imageUrl:url,
  });
+};
 
+// function getInitials(name) {
+//   if (!name) {
+//     return '';
+//   }
+
+//   const words = name.trim().split(' ');
+//   if (words.length === 1) {
+//     return words[0].slice(0, 2);
+//   } else {
+//     return words.map(word => word.charAt(0)).join(' ');
+//   }
+// }
+
+
+const getInitials = (name) => {
+  if (!name) return '';
+  const initials = name.split(' ').map(word => word[0]).join('');
+  return initials.toUpperCase();
 };
 
 
@@ -188,21 +208,18 @@ const handleImageUpload = (url) => {
             <div className="inline-flex gap-2 p-4 font-cabin text-base font-medium">
             <div>
             {/* <ImageUploader onSuccess={handleImageUpload} /> */}
-            {/* {formData?.imageUrl && (
+            {formData?.imageUrl && (
                 <div>
                     <h3>Uploaded Image URL:</h3>
                     <p>{formData?.imageUrl}</p>
                     <img src={formData?.imageUrl} alt="Upload " style={{ maxWidth: '100%', maxHeight: '200px' }} />
                 </div>
-            )} */}
-
-
+            )}
         </div>
 
               <img src={arrow_left} alt="arrow-left" />
               <p>Your Profile</p>
             </div>
-
 
             <div className="w-fit">
               <Button onClick={handleSaveProfile} text='Save' textAndBgColor='bg-indigo-600 text-white-100' />
@@ -210,25 +227,35 @@ const handleImageUpload = (url) => {
             </div>
 
             {/* <ImageUploader onSuccess={handleImageUpload} /> */}
-            { formData.imageUrl && (
             <div className="flex justify-center items-center flex-col">
               <div className=' w-full  lg:h-[200px] h-[150px] flex justify-center  md:justify-start lg:justify-start'>
                 <img src='/image1.jpg' alt="profile-bg" />
               </div>
               <div className="translate-y-[-50px] bottom-[-50px]">
                 <div className=" rounded-full bg-indigo-100 flex shrink  w-[104px] h-[104px] items-center justify-center  mx-auto  shadow-md border-4 border-white-100 transition duration-200 transform hover:scale-110">
-                  {/* <img src='/profilePic.jpg' alt="profile" /> */}
-                  <img src={formData?.imageUrl} alt="profile" className="rounded-full w-full h-full object-cover"  />
-                  <h2 className="text-white">  </h2>
+                  <div className="relative w-full h-full">
+      {formData ? (
+        <img 
+          src='/profilepic.jpg' 
+          alt={getInitials(formData.employeeName)} 
+          className="rounded-full w-full h-full object-cover" 
+        />
+      ) : (
+        <div className="absolute inset-0 flex items-center justify-center text-white font-italic text-2xl tracking-wide">
+          {getInitials(formData.employeeName)}
+        </div>
+      )}
+    </div>
                 </div>
+              { formData?.employeeName  && (
                 <div className="flex flex-col items-center">
                   <div className="font-cabin text-lg text-neutral-800">{formData?.employeeName}</div>
                   <div className="font-cabin text-medium text-neutral-600">{formData?.department}</div>
                 </div>
+              )}
               </div>
             </div>
-            )}
-
+         
 
 
             { formData && (
