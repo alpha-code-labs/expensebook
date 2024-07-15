@@ -8,8 +8,8 @@ export default function () {
 
   const { tenantId, employeeId } = useParams();
 
-  console.log(tenantId, employeeId, 'tId, employeeId')
-  const [employeeName, setEmployeeName] = useState('')
+  //console.log(tenantId, employeeId, 'tId, employeeId')
+  const [employeeName, setEmployeeName] = useState('');
 
   const [formData, setFormData] = useState({
     travelRequestId: null,
@@ -23,7 +23,7 @@ export default function () {
     createdBy: { name: employeeName, empId: employeeId },
     createdFor: null,
     travelAllocationHeaders: [],
-    tripPurpose: null,
+    tripPurpose: 'Not Selected',
     tripName: null,
     raisingForDelegator: false,
     nameOfDelegator: null,
@@ -74,6 +74,7 @@ export default function () {
 
   useEffect(() => {
     (async function () {
+      setIsLoading(true);
       const response = await getOnboardingData_API({ tenantId, employeeId, travelType: formData.travelType })
       if (response.err) {
         setLoadingErrMsg(response.err)
@@ -85,33 +86,31 @@ export default function () {
         setEmployeeName(response?.data?.onboardingData?.employeeData?.employeeDetails?.employeeName ?? '');
 
         const approvers = [];
-
-        if(onBoardingData.approvalFlow.length != 0){
-          
-          if(onBoardingData.approvalFlow.includes('L1')){
-            const l1Manager = onBoardingData?.listOfManagers?.find(manager=>onBoardingData?.employeeData?.employeeDetails?.l1Manager == manager?.employeeId);
+        
+        if(response.data.onboardingData?.approvalFlow?.length != 0){
+          if(response.data.onboardingData?.approvalFlow?.includes('L1')){
+            const l1Manager = response.data.onboardingData?.listOfManagers?.find(manager=>response.data.onboardingData?.employeeData?.employeeDetails?.l1Manager == manager?.employeeId);
             if(l1Manager??false){
-              approvers.push({ name: l1Manager.employeeName, empId: l1Manager.employeeId, status: 'pending approval' });
+              approvers.push({ name: l1Manager.employeeName, empId: l1Manager.employeeId, status: 'pending approval', imageUrl:l1Manager.imageUrl });
             }    
           }
 
-          if(onBoardingData.approvalFlow.includes('L2')){
-            const l2Manager = onBoardingData?.listOfManagers?.find(manager=>onBoardingData?.employeeData?.employeeDetails?.l2Manager == manager?.employeeId);
+          if(response.data.onboardingData?.approvalFlow?.includes('L2')){
+            const l2Manager = response.data.onboardingData?.listOfManagers?.find(manager=>response.data.onboardingData?.employeeData?.employeeDetails?.l2Manager == manager?.employeeId);
             if(l2Manager??false){
-              approvers.push({ name: l2Manager.employeeName, empId: l2Manager.employeeId, status: 'pending approval' });
+              approvers.push({ name: l2Manager.employeeName, empId: l2Manager.employeeId, status: 'pending approval', imageUrl:l2Manager.imageUrl });
             }    
           }
 
-          if(onBoardingData.approvalFlow.includes('L2')){
-            const l3Manager = onBoardingData?.listOfManagers?.find(manager=>onBoardingData?.employeeData?.employeeDetails?.l3Manager == manager?.employeeId);
+          if(response.data.onboardingData?.approvalFlow?.includes('L2')){
+            const l3Manager = response.data.onboardingData?.listOfManagers?.find(manager=>response.data.onboardingData?.employeeData?.employeeDetails?.l3Manager == manager?.employeeId);
             if(l3Manager??false){
-              approvers.push({ name: l3Manager.employeeName, empId: l3Manager.employeeId, status: 'pending approval' });
+              approvers.push({ name: l3Manager.employeeName, empId: l3Manager.employeeId, status: 'pending approval', l3Manager:l3 });
             }    
           }
         }
 
-        if (response?.data?.onboardingData?.employeeData?.employeeDetails?.employeeName != null || response?.data?.onboardingData?.employeeDetails?.employeeName != undefined) {
-          console.log('setting name to ', response?.data?.onboardingData?.employeeData?.employeeDetails?.employeeName)
+          //console.log('setting name to ', response?.data?.onboardingData?.employeeData?.employeeDetails?.employeeName)
           setFormData(pre => (
             { 
               ...pre, 
@@ -120,13 +119,13 @@ export default function () {
               createdBy: { ...pre.createdBy, name: response?.data?.onboardingData?.employeeData?.employeeDetails?.employeeName },
               approvers 
             }))
-        }
 
         console.log(response.data.onboardingData)
         setIsLoading(false)
       }
     })()
   }, [formData.travelType])
+
 
   return <>
     {isLoading && <Error message={loadingErrMsg} />}
