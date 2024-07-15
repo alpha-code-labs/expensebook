@@ -117,7 +117,7 @@ try {
     //screens
     const overviewUi = {transitTrips,upcomingTrips,allTravelRequests , expense}
     const cashAdvanceUi = {...allCashAdvance}
-    const expenseUi = {}
+    const expenseUi = {...expense}
 
     const employee = { 
         overview:overviewUi,
@@ -147,11 +147,14 @@ const getOverView = async(tenantId,empId) => {
     ]
 }) 
 
+const status ={
+  BOOKED:'booked'
+}
 
 if(getAllTravelRequests.length > 0){
     const travelRequests = getAllTravelRequests
     .filter(travelRequest => travelRequest?.travelRequestSchema?.createdBy?.empId === empId
-        && travelRequest?.travelRequestSchema?.isCashAdvanceTaken === false
+        && travelRequest?.travelRequestSchema?.isCashAdvanceTaken === false && travelRequest?.travelRequestSchema?.travelRequestStatus !== status.BOOKED
     )
     .map(travelRequest => ({
         travelRequestId: travelRequest?.travelRequestSchema?.travelRequestId,
@@ -162,7 +165,9 @@ if(getAllTravelRequests.length > 0){
     }))
 
     const travelRequestWithCash = getAllTravelRequests
-    .filter(travelRequest => travelRequest?.cashAdvanceSchema?.travelRequestData?.createdBy?.empId == empId)
+    .filter(travelRequest => travelRequest?.cashAdvanceSchema?.travelRequestData?.createdBy?.empId == empId
+        && travelRequest?.cashAdvanceSchema?.travelRequestData?.travelRequestStatus !== status.BOOKED
+    )
     .map(travelRequest => ({
         travelRequestId: travelRequest?.cashAdvanceSchema?.travelRequestData?.travelRequestId,
         travelRequestNumber: travelRequest?.cashAdvanceSchema?.travelRequestData?.travelRequestNumber,
@@ -192,31 +197,40 @@ const getAllCashAdvance = async(tenantId,empId) => {
             'cashAdvanceSchema.cashAdvancesData.createdBy.empId':empId,
         })
 
-        console.log("allCashReports",JSON.stringify(allCashReports, '' , 2))
-        
+        // console.log("allCashReports",JSON.stringify(allCashReports, '' , 2))
 
         if(allCashReports?.length > 0){
             
-            const nonTravelCashAdvance = allCashReports
-            .filter(cash => cash?.cashAdvanceSchema && !cash?.cashAdvanceSchema?.hasOwnProperty('travelRequestId'))
-            .map(cash => ({
-                cashAdvanceId: cash?.cashAdvanceSchema?.cashAdvancesData?.cashAdvanceId,
-                cashAdvanceNumber: cash?.cashAdvanceSchema?.cashAdvancesData?.cashAdvanceNumber,
-                cashAdvanceStatus: cash?.cashAdvanceSchema?.cashAdvancesData?.cashAdvanceStatus,
-                amountDetails: cash?.cashAdvanceSchema?.cashAdvancesData?.amountDetails,
-            })).filter(Boolean)
+            const isEmptyObject = obj => Object.keys(obj).length === 0
 
-            const travelCashAdvance = allCashReports.map(cash => ({
-                cashAdvancesData: cash?.cashAdvanceSchema?.cashAdvancesData?.map(advance => ({
-                  travelRequestId: advance.travelRequestId,
+            const getNonTravelCashAdvance = allCashReports
+              .filter(cash => cash?.cashAdvanceSchema && !cash?.cashAdvanceSchema?.hasOwnProperty('travelRequestId'))
+              .map(cash => ({
+                cashAdvanceId: cash?.cashAdvanceSchema?.cashAdvancesData?.cashAdvanceId ?? '',
+                cashAdvanceNumber: cash?.cashAdvanceSchema?.cashAdvancesData?.cashAdvanceNumber?? '',
+                cashAdvanceStatus: cash?.cashAdvanceSchema?.cashAdvancesData?.cashAdvanceStatus?? '',
+                amountDetails: cash?.cashAdvanceSchema?.cashAdvancesData?.amountDetails?? '',
+              }))
+              .filter(Boolean);
+            
+            const allEmpty = getNonTravelCashAdvance.every(isEmptyObject);
+            
+            // const  nonTravelCashAdvance = allEmpty ? [] : getNonTravelCashAdvance;
+            const nonTravelCashAdvance = []
+
+            const travelCashAdvance = allCashReports
+            .map(cash => ({
+                travelRequestId: cash?.cashAdvanceSchema.travelRequestData?.travelRequestId,
+                travelRequestNumber: cash?.cashAdvanceSchema.travelRequestData?.travelRequestNumber,
+                tripName: cash?.cashAdvanceSchema?.travelRequestData?.tripName ?? '',
+                createdBy: cash?.cashAdvanceSchema?.travelRequestData?.createdBy,
+                cashAdvances: cash?.cashAdvanceSchema?.cashAdvancesData?.map(advance => ({
                   cashAdvanceId: advance.cashAdvanceId,
                   cashAdvanceNumber: advance.cashAdvanceNumber,
                   cashAdvanceStatus: advance.cashAdvanceStatus,
-                  tripName: cash?.cashAdvanceSchema?.travelRequestData?.[advance.travelRequestId]?.tripName ?? '',
-                  travelRequestNumber: advance.travelRequestNumber,
                   amountDetails: advance.amountDetails,
                 })).filter(Boolean)
-              })).filter(cash => cash.cashAdvancesData.length > 0);
+              }))
 
             console.log("travelCashAdvance", travelCashAdvance)
             return {nonTravelCashAdvance, travelCashAdvance}
