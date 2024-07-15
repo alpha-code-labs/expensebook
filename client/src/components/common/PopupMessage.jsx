@@ -6,8 +6,6 @@ export default function (props){
     const [showPopup, setshowPopup] = [props.showPopup, props.setshowPopup]
     const { message, skipable} = props
 
-   // const skipable = props.skipable || true
-    console.log(skipable, showPopup, 'skipable')
     
     useEffect(()=>{
         if(showPopup){

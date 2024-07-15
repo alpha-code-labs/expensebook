@@ -4,14 +4,10 @@ export default function Button(props){
     const onClick = props.onClick
     const variant = props.variant?? 'fit'
     const disabled = props.disabled?? false
-    console.log(disabled)
 
     const handleClick = (e)=>{
         if(!disabled){
             onClick(e)
-        }
-        else{
-            console.log('disabled')
         }
     }
 
