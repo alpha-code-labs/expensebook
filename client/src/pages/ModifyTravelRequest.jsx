@@ -11,7 +11,7 @@ import LatestItinerary from "./Itinerary/LatestItinerary";
 export default function () {
   //get travel request Id from params
   const { travelRequestId } = useParams()
-  console.log(travelRequestId, 'travelRequestId')
+  //console.log(travelRequestId, 'travelRequestId')
   const [isLoading, setIsLoading] = useState(true)
   const [loadingErrMsg, setLoadingErrMsg] = useState(null)
   const [formData, setFormData] = useState()
@@ -65,7 +65,7 @@ export default function () {
         ...travelRequestDetails /* other travel request details */
       }
 
-      console.log(travelRequestDetails.formData);
+      //console.log(travelRequestDetails.formData);
 
       if (travelRequestDetails.formData != null && travelRequestDetails.formData.itinerary != undefined && Object.keys(travelRequestDetails.formData.itinerary).lenght > 0) {
         setCurrentFormState(travelRequestDetails.formData);
@@ -79,7 +79,7 @@ export default function () {
 
       setFormData(currentFormData)
       setOnBoardingData(response.data.onboardingData)
-      console.log(response.data.onboardingData)
+      //console.log(response.data.onboardingData)
       setIsLoading(false)
     })()
   }, []);
