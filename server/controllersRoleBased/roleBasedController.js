@@ -92,27 +92,25 @@ const employeeLayout = async (tenantId, empId) => {
     // console.log("Entering employeeLayout function...", tenantId, empId);
 try {
 
-    const promises = [
+const promises = [
         travelStandAloneForEmployee(tenantId, empId),
         travelWithCashForEmployee(tenantId, empId),
         getTripForEmployee(tenantId, empId),
         getAllExpensesForEmployee(tenantId, empId),
         getOverView(tenantId,empId),
         getAllCashAdvance(tenantId,empId)
-    ]
+]
 
-    const [travelStandAlone,travelWithCash, trip,expense, allTravelRequests, allCashAdvance] = await Promise.all(promises)
-
-
-    const {rejectedCashAdvances} = travelWithCash
-    const { trips,reimbursements } = trip
-    const { upcomingTrips,transitTrips, completedTrips,rejectedTrips} = trips
-    const { allTripExpenseReports, allNonTravelReports,} = expense
-    const {nonTravelCashAdvance, travelCashAdvance} = allCashAdvance
+const [travelStandAlone,travelWithCash, trip,expense, allTravelRequests, allCashAdvance] = await Promise.all(promises)
 
 
-    const travelRequestCombined = [ ...travelStandAlone.travelRequests, ...travelWithCash.travelRequests]
-    const rejectedTravelRequestsCombined = [ ...travelStandAlone.rejectedTravelRequests, ...travelWithCash.rejectedTravelRequests]
+const { rejectedCashAdvances = [] } = travelWithCash || {};
+const { trips = {}, reimbursements = [] } = trip || {};
+const { upcomingTrips = [], transitTrips = [], completedTrips = [], rejectedTrips = [] } = trips;
+const { nonTravelCashAdvance = [], travelCashAdvance = [] } = allCashAdvance || {};
+
+const travelRequestCombined = [ ...travelStandAlone.travelRequests, ...travelWithCash.travelRequests]
+// const rejectedTravelRequestsCombined = [ ...travelStandAlone.rejectedTravelRequests, ...travelWithCash.rejectedTravelRequests]
 
     //screens
     const overviewUi = {transitTrips,upcomingTrips,allTravelRequests , expense}
@@ -123,10 +121,10 @@ try {
         overview:overviewUi,
         cashAdvance:cashAdvanceUi,
         travelRequests :travelRequestCombined,
-        rejectedTravelRequests:rejectedTravelRequestsCombined,
-        rejectedCashAdvances,
-        ...trip,
-        expense:expense,
+        // rejectedTravelRequests:rejectedTravelRequestsCombined,
+        // rejectedCashAdvances,
+        // ...trip,
+        expense:expenseUi,
     }
     return employee;
   } catch (error) {
@@ -893,13 +891,15 @@ const getTripForEmployee = async (tenantId, empId) => {
         // console.log("reimbursements reports:", reimbursements);
         
         const trips = {           
-            upcomingTrips,
-            transitTrips,
-            completedTrips,
-            rejectedTrips, }
+            upcomingTrips: upcomingTrips ?? [],
+            transitTrips: transitTrips?? [],
+            completedTrips:completedTrips??[],
+            rejectedTrips:rejectedTrips ?? [], 
+        }
 
           return {
-            trips,reimbursements
+            trips,
+            reimbursements: reimbursements ?? []
         };
   } catch (error) {
       console.error("Error in fetching employee Dashboard:", error);
@@ -925,9 +925,15 @@ const getAllExpensesForEmployee = async (tenantId, empId) => {
     
 
     if (tripDocs?.length === 0) {
-        return { message: 'There are no trips found for the user' };
+        return { allTripExpenseReports : [],
+            allNonTravelReports :[],
+            completedTrips :[]};
     } 
 //  console.log("tripDocs............", tripDocs)
+
+const status ={
+    COMPLETED:'completed'
+}
 
     const allTripExpenseReports = tripDocs
     ?.filter(trip => trip?.tripSchema?.travelExpenseData?.length > 0)
@@ -1002,16 +1008,79 @@ const getAllExpensesForEmployee = async (tenantId, empId) => {
     });
     // console.log("allTripExpenseReports", allTripExpenseReports)
 
-    //   const allTrip = tripDocs
-    //       .filter(trip => trip?.tripSchema?.tripStatus === 'upcoming' && trip?.tripSchema?.travelExpenseData && trip?.tripSchema?.travelExpenseData?.length > 0 )
-    //       .flatMap(trip => trip.tripSchema.travelExpenseData.map(({ tripId, expenseHeaderId, expenseHeaderNumber, expenseHeaderStatus }) => ({
-    //           tripId,
-    //           tripPurpose: trip.tripSchema.travelRequestData.tripPurpose || '',
-    //           expenseHeaderId: expenseHeaderId || '',
-    //           expenseHeaderNumber: expenseHeaderNumber || '',
-    //           expenseHeaderStatus:expenseHeaderStatus|| '',
-    //       })));
+    const completedTrips = tripDocs
+    ?.filter(trip => trip?.tripSchema?.travelExpenseData?.length >= 0 && 
+        trip?.tripSchema?.tripStatus == status.COMPLETED
+    )
+    ?.map(trip => {
+    //   console.log("each trip", trip)
+    const { tripSchema} = trip
+        const {travelRequestData, cashAdvancesData, travelExpenseData, expenseAmountStatus, tripId, tripNumber, tripStartDate,tripCompletionDate} = tripSchema || {};
+        // const { totalCashAmount, totalRemainingCash } = expenseAmountStatus ||  {};
+        const {travelRequestId,travelRequestNumber,travelRequestStatus,tripName,tripPurpose, isCashAdvanceTaken, itinerary} = travelRequestData || {};
 
+        const itineraryToSend = Object.fromEntries(
+            Object.entries(itinerary)
+                .filter(([category]) => category !== 'formState')
+                .map(([category, items]) => {
+                    let mappedItems;
+                    if (category === 'hotels') {
+                        mappedItems = items.map(({
+                            itineraryId, status, bkd_location, bkd_class, bkd_checkIn, bkd_checkOut, bkd_violations, cancellationDate, cancellationReason,
+                        }) => ({
+                            category,
+                            itineraryId, status, bkd_location, bkd_class, bkd_checkIn, bkd_checkOut, bkd_violations, cancellationDate, cancellationReason,
+                        }));
+                    } else if (category === 'cabs') {
+                        mappedItems = items.map(({
+                            itineraryId, status, bkd_date, bkd_class, bkd_pickupAddress, bkd_dropAddress,
+                        }) => ({
+                            category,
+                            itineraryId, status, bkd_date, bkd_class, bkd_pickupAddress, bkd_dropAddress,
+                        }));
+                    } else {
+                        mappedItems = items.map(({
+                            itineraryId, status, bkd_from, bkd_to, bkd_date, bkd_time, bkd_travelClass, bkd_violations,
+                        }) => ({
+                            category,
+                            itineraryId, status, bkd_from, bkd_to, bkd_date, bkd_time, bkd_travelClass, bkd_violations,
+                        }));
+                    }
+        
+                    return [category, mappedItems];
+                })
+        );
+
+        const travelExpenseReports = travelExpenseData?.map(expense => ({
+            expenseHeaderId: expense?.expenseHeaderId ?? '',
+            createdBy: expense?.createdBy ?? '',
+            expenseHeaderStatus: expense?.expenseHeaderStatus ?? '',
+            expenseLines: expense?.expenseLines ?? '',
+        }))
+
+        // console.log("itineraryTosend.........................................", itineraryToSend)
+        return {
+            tripId: tripId ?? '', 
+            tripNumber: tripNumber ??'', 
+            tripName: tripName ??'',
+            travelRequestId,
+            travelRequestNumber,
+            tripPurpose,
+            tripStartDate,
+            tripCompletionDate,
+            travelRequestStatus,
+            isCashAdvanceTaken,
+            expenseAmountStatus,
+            cashAdvances: isCashAdvanceTaken ? (cashAdvancesData ? cashAdvancesData.map(({ cashAdvanceId, cashAdvanceNumber, amountDetails, cashAdvanceStatus }) => ({
+                cashAdvanceId,
+                cashAdvanceNumber,
+                amountDetails,
+                cashAdvanceStatus
+            })) : []) : [], 
+            travelExpenses: travelExpenseReports,
+            itinerary: itineraryToSend
+        };
+    });
 
         const allNonTravelReports = tripDocs
         .filter(trip => {
@@ -1037,6 +1106,7 @@ const getAllExpensesForEmployee = async (tenantId, empId) => {
         return {           
             allTripExpenseReports,
             allNonTravelReports,
+            completedTrips
          }
 
     
