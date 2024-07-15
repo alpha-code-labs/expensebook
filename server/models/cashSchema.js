@@ -51,7 +51,6 @@ const cashAdvanceSchema = new mongoose.Schema({
       tripName:{
         type:String,
       },
-      
       cashAdvanceReason:{
         type:String,
       },
@@ -98,6 +97,7 @@ const cashAdvanceSchema = new mongoose.Schema({
             type: String,
             enum: approverStatusEnums,
           },
+          imageUrl: String,
         },
       ],
       assignedTo:{empId:String, name:String},
