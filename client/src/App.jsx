@@ -42,26 +42,12 @@ function App() {
         setEmployeeData(employeeResponse);
         setEmployeeRoles(rolesResponse)
         setTenantId(tenantId)
-        setEmpId(empId)
-        // setRouteData(
-        //   {
-        //     tenantId:tenantId,
-        //     empId:empId
-        //   }
-        // )
-        
-        // setIsLoading(false)
-       
+        setEmpId(empId)      
         setIsLoading(false)
-        
-        
-
-      } catch (error) {
-        
+      } catch (error) {       
         console.error('Error fetching data:', error.message);
         setLoadingErrMsg('Error danger',error.message);
         setIsLoading(false)
-        
       }
     };
 

@@ -3327,7 +3327,7 @@ const reimbursementExpense = [
     }
 ]
 
-const travelRequests = [
+const dummytravelRequests = [
   {
     travelRequestNumber:"TRAL000012",
     travelRequestStatus:"draft"
@@ -4552,4 +4552,4 @@ const tripArray = [
     },
   ];
 
-  export {nonTravelExpense,NonTRCashAdvances,tripArray,travelExpense,reimbursementExpense,travelRequests,trips,TRCashadvance}
+  export {nonTravelExpense,NonTRCashAdvances,tripArray,travelExpense,reimbursementExpense,dummytravelRequests,trips,TRCashadvance}

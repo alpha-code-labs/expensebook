@@ -2,7 +2,7 @@
 import React, { useState,useEffect } from 'react';
 import { airplane_1, briefcase, calender_icon, double_arrow,cab_purple,  house_simple, train, bus, cancel_round, cancel, modify, plus_icon, plus_violet_icon, receipt, down_arrow, chevron_down, down_left_arrow, calender_2_icon, airplane, material_flight_black_icon, material_cab_black_icon, material_hotel_black_icon, city_icon, empty_itinerary_icon } from '../assets/icon';
 import { formatAmount, formatDate, getStatusClass, splitTripName } from '../utils/handyFunctions';
-import { travelExpense,reimbursementExpense, travelRequests, trips } from '../utils/dummyData';
+import { travelExpense,reimbursementExpense, dummytravelRequests, trips } from '../utils/dummyData';
 import { useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import TravelMS from './TravelMS';
@@ -39,8 +39,8 @@ function CardLayout({cardSequence,icon,cardTitle,children}){
 
 const Overview = ({fetchData ,isLoading,setIsLoading,loadingErrMsg, setLoadingErrMsg}) => {
 
-  const { setEmployeeData , employeeData } = useData(); 
-  const [tripsData,setTripsData]=useState(null);
+  const { employeeData } = useData(); 
+  const [overviewData,setOverviewData]=useState(null);
   const {tenantId,empId,page}= useParams();
 
   useEffect(()=>{
@@ -49,14 +49,20 @@ const Overview = ({fetchData ,isLoading,setIsLoading,loadingErrMsg, setLoadingEr
 
 
 useEffect(()=>{
-  console.log('data11',employeeData?.dashboardViews?.employee?.trips)
-  setTripsData(employeeData && employeeData?.dashboardViews?.employee?.trips)
+  
+  setOverviewData(employeeData && employeeData?.dashboardViews?.employee?.overview)
+
 },[employeeData])
 
+console.log('data11',overviewData)
+
+const travelExpenses     = overviewData?.expense?.allTripExpenseReports || [];
+const nonTravelExpenses  = overviewData?.expense?.allNonTravelReports || [];
+const travelRequests    = overviewData?.allTravelRequests?.allTravelRequests || [];
+
+console.log('travel request11', travelRequests)
 
 
-
-  
   const [visible, setVisible]=useState(false);
   const [iframeURL, setIframeURL] = useState(null); 
 
@@ -64,6 +70,7 @@ useEffect(()=>{
     setVisible(!visible);
     setIframeURL(`${travelBaseUrl}/create/${tenantId}/${empId}`);
   }
+
 
   useEffect(() => {
     const handleMessage = event => {
@@ -194,17 +201,15 @@ Add an Expense
 
 <div className='h-[238px] overflow-y-auto px-2'>
 {expenseTabs === "travelExpense" &&
-travelExpense.map((expense,index) => <TravelExpenses index={`${index}-TravelExpense`} expense={expense} lastIndex={travelExpense.length-1} />)}
+travelExpenses && travelExpenses?.map((expense,index) => <TravelExpenses key={index} index={`${index}-TravelExpense`} expense={expense} lastIndex={travelExpenses?.length-1} />)}
 
 
 
 {expenseTabs === "nonTravelExpense" &&
-reimbursementExpense?.map((expense,index) => <NonTravelExpenses index={index} expense={expense} lastIndex={reimbursementExpense.length-1}/>)}
+nonTravelExpenses?.map((expense,index) => <NonTravelExpenses index={index} expense={expense} lastIndex={nonTravelExpenses?.length-1}/>)}
 </div>
 
 </div>
-
-
 </div> 
        
 
@@ -256,7 +261,7 @@ Raise Travel Request
 
 <div className="h-[238px] overflow-y-auto   px-2">
   {travelRequests?.map((travel, index)=>(
-    <TravelRequests travel={travel} index={index} lastIndex={travelRequests?.length-1}/>
+    <TravelRequests key={index} travel={travel} index={index} lastIndex={travelRequests?.length-1}/>
   ))}
   </div>
   </div>
@@ -433,6 +438,7 @@ const IntransitTrips = ({ index, trip, lastIndex }) => {
               if(item?.category === "flights"){
                 return ( 
                 <FlightCard 
+                key={index}
                 id={item.id} 
                 from={item.bkd_from} 
                 to={item.bkd_to} 
@@ -447,6 +453,7 @@ const IntransitTrips = ({ index, trip, lastIndex }) => {
               if(item?.category === "trains"){
                 return ( 
                   <FlightCard 
+                  key={index}
                   id={item.id} 
                   from={item.bkd_from} 
                   to={item.bkd_to} 
@@ -461,6 +468,7 @@ const IntransitTrips = ({ index, trip, lastIndex }) => {
               if(item?.category === "buses"){
                 return (                 
                   <FlightCard 
+                  key={index}
                   id={item.id} 
                   from={item.bkd_from} 
                   to={item.bkd_to} 
@@ -475,6 +483,7 @@ const IntransitTrips = ({ index, trip, lastIndex }) => {
               if(item?.category === "cabs"){
                 return (                 
                   <CabCard
+                  key={index}
                   id={item.id} 
                   from={item.bkd_pickupAddress} 
                   to={item.bkd_dropAddress} 
@@ -488,6 +497,7 @@ const IntransitTrips = ({ index, trip, lastIndex }) => {
               if(item.category == 'carRentals'){
                 return (
                     <RentalCabCard
+                    key={index}
                         id={item.id} 
                         from={item.bkd_pickupAddress} 
                         to={item.bkd_dropAddress} 
@@ -501,6 +511,7 @@ const IntransitTrips = ({ index, trip, lastIndex }) => {
             if(item.category == 'hotels'){
               return (
                   <HotelCard
+                  key={index}
                       id={item.id} 
                       checkIn={item.bkd_checkIn} 
                       checkOut={item.bkd_checkOut} 
@@ -621,6 +632,7 @@ const [textVisible ,setTextVisible]=useState(false)
               if(item?.category === "flights"){
                 return ( 
                 <FlightCard 
+                key={item.id}
                 id={item.id} 
                 from={item.bkd_from} 
                 to={item.bkd_to} 
@@ -635,6 +647,7 @@ const [textVisible ,setTextVisible]=useState(false)
               if(item?.category === "trains"){
                 return ( 
                   <FlightCard 
+                  key={item.id}
                   id={item.id} 
                   from={item.bkd_from} 
                   to={item.bkd_to} 
@@ -649,6 +662,7 @@ const [textVisible ,setTextVisible]=useState(false)
               if(item?.category === "buses"){
                 return (                 
                   <FlightCard 
+                  key={item.id}
                   id={item.id} 
                   from={item.bkd_from} 
                   to={item.bkd_to} 
@@ -663,6 +677,7 @@ const [textVisible ,setTextVisible]=useState(false)
               if(item?.category === "cabs"){
                 return (                 
                   <CabCard
+                  key={item.id}
                   id={item.id} 
                   from={item.bkd_pickupAddress} 
                   to={item.bkd_dropAddress} 
@@ -676,6 +691,7 @@ const [textVisible ,setTextVisible]=useState(false)
               if(item.category == 'carRentals'){
                 return (
                     <RentalCabCard
+                        key={item.id}
                         id={item.id} 
                         from={item.bkd_pickupAddress} 
                         to={item.bkd_dropAddress} 
@@ -689,6 +705,7 @@ const [textVisible ,setTextVisible]=useState(false)
             if(item.category == 'hotels'){
               return (
                   <HotelCard
+                      key={item.id}
                       id={item.id} 
                       checkIn={item.bkd_checkIn} 
                       checkOut={item.bkd_checkOut} 
@@ -735,7 +752,8 @@ const TravelExpenses = ({ index, expense ,lastIndex}) => {
     setIsExpanded(!isExpanded)
   }
   
-  const [dropdowns, setDropdowns] = useState(expense?.travelExpenseData.map(() => false));
+  const [dropdowns, setDropdowns] = useState(expense?.travelExpenses?.map(() => false)?? []);
+
 
   // Function to toggle the dropdown for a specific index
   const toggleDropdown = (i) => {
@@ -744,7 +762,7 @@ const TravelExpenses = ({ index, expense ,lastIndex}) => {
 
   return (
     <div className={`${index ===lastIndex ? ' ' :'mb-2'} p-3 rounded shadow w-full border border-slate-300 bg-slate-50 hover:border hover:border-indigo-600 hover:bg-indigo-100`}>
-      <div onClick={handleExpanded} className={`${expense?.travelExpenseData.length > 0 && isExpanded && 'border-b-[1px]'} flex items-center  justify-between cursor-pointer min-h-4`}>
+      <div onClick={handleExpanded} className={`${expense?.travelExpenses.length > 0 && isExpanded && 'border-b-[1px]'} flex items-center  justify-between cursor-pointer min-h-4`}>
         
         <div className='font-cabin text-xs text-neutral-700'>
           <div className='text-xs text-start'>
@@ -754,8 +772,8 @@ const TravelExpenses = ({ index, expense ,lastIndex}) => {
         </div>
         <img src={chevron_down} className='w-5 h-5' />
       </div>
-{isExpanded &&  expense?.travelExpenseData.map((item, index) => (
-        <div key={index} className={`px-2 hover:bg-indigo-100 hover:border-[1px] hover:border-indigo-600 cursor-pointer rounded-sm border border-slate-300 ${expense?.travelExpenseData.length - 1 !== index && 'mb-2'}`}>
+{isExpanded && expense?.travelExpenses.map((item, index) => (
+        <div key={index} className={`px-2 hover:bg-indigo-100 hover:border-[1px] hover:border-indigo-600 cursor-pointer rounded-sm border border-slate-300 ${expense?.travelExpenses.length - 1 !== index && 'mb-2'}`}>
           
           <div className={`flex ${dropdowns[index] &&  'border-b border-slate-300'} justify-between items-center min-h-4 py-1 `} onClick={() => toggleDropdown(index)}>
             <div className='flex gap-x-2 ml-2 items-center'>
@@ -768,8 +786,8 @@ const TravelExpenses = ({ index, expense ,lastIndex}) => {
              <p> {item?.expenseHeaderNumber}</p>
           </div>
           </div> */}
-            </div>
 
+          </div>
             <div className={`text-center rounded-sm ${getStatusClass(item?.expenseHeaderStatus ?? "-")}`}>
               <p className='px-1 py-1 text-xs text-center capitalize font-cabin'>{item?.expenseHeaderStatus ?? "-"}</p>
             </div>
@@ -893,7 +911,7 @@ const TravelRequests = ({travel,index,lastIndex})=>{
 // const Overview = ({fetchData ,isLoading,setIsLoading,loadingErrMsg, setLoadingErrMsg}) => {
 
 //   const { setEmployeeData , employeeData } = useData(); 
-//   const [tripsData,setTripsData]=useState(null);
+//   const [tripsData,setOverviewData]=useState(null);
 //   const {tenantId,empId,page}= useParams();
 
 //   useEffect(()=>{
@@ -903,7 +921,7 @@ const TravelRequests = ({travel,index,lastIndex})=>{
 
 // useEffect(()=>{
 //   console.log('data11',employeeData?.dashboardViews?.employee?.trips)
-//   setTripsData(employeeData && employeeData?.dashboardViews?.employee?.trips)
+//   setOverviewData(employeeData && employeeData?.dashboardViews?.employee?.trips)
 // },[employeeData])
 
 
