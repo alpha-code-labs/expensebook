@@ -27,14 +27,10 @@ const Expense = ({isLoading ,fetchData,loadingErrMsg}) => {
     tripId: {set:false, message:""}
   }); 
   const [searchQuery , setSearchQuery] = useState('');
+  const [expenseData , setExpenseData] = useState({})
 
 
-  const handleSearch = (e)=>{
-
-    const query = e.target.value.toLowerCase()
-    setSearchQuery(query)
-
-  }
+  
 
   
   useEffect(()=>{
@@ -45,22 +41,37 @@ const Expense = ({isLoading ,fetchData,loadingErrMsg}) => {
   
 
 
-  useEffect(() => {
-    if (employeeData) {
-      const data = employeeData?.dashboardViews?.employee || [];
+  // useEffect(() => {
+  //   if (employeeData) {
+  //     const data = employeeData?.dashboardViews?.employee || [];
      
-      const intransitTrips = data?.trips?.transitTrips || [];
+  //     const intransitTrips = data?.trips?.transitTrips || [];
   
-      const dataForRaiseCashadvance = [ ...intransitTrips];
-      const pushedData = dataForRaiseCashadvance?.map(item => ({ ...item, tripName: "us - del - mum - gkr" }));
+  //     const dataForRaiseCashadvance = [ ...intransitTrips];
+  //     const pushedData = dataForRaiseCashadvance?.map(item => ({ ...item, tripName: "us - del - mum - gkr" }));
       
-      setTripData(pushedData);
+  //     setTripData(pushedData);
       
-      console.log('Trip data for expense:', dataForRaiseCashadvance);
-    } else {
-      console.error('Employee data is missing.');
-    }
-  }, [employeeData]);
+  //     console.log('Trip data for expense:', dataForRaiseCashadvance);
+  //   } else {
+  //     console.error('Employee data is missing.');
+  //   }
+  // }, [employeeData]);
+
+  useEffect(()=>{
+  
+    setExpenseData(employeeData && employeeData?.dashboardViews?.employee?.expense)
+  
+  },[employeeData])
+  
+ 
+  
+
+      const travelExpenses     = expenseData?.allTripExpenseReports || [];
+      const nonTravelExpenses  = expenseData?.allNonTravelReports || [];
+      console.log('expenses from expense tab', travelExpenses , nonTravelExpenses)
+  
+  
 
 
   const handleStatusClick = (status) => {
@@ -122,7 +133,7 @@ const Expense = ({isLoading ,fetchData,loadingErrMsg}) => {
  <div className='flex flex-wrap  space-x-2 '>      
 <div className='flex items-center justify-center p-2 bg-slate-100 rounded-full border border-slate-300 '><img src={filter_icon} className='w-5 h-5'/></div>
   {["draft","pending approval", "pending settlement", "paid",  "cancelled", "paid and cancelled"].map((status) => {
-    const statusCount = getStatusCount(status, [...travelExpense.flatMap(te => te.travelExpenseData), ...nonTravelExpense]);
+    const statusCount = getStatusCount(status, [...travelExpenses.flatMap(te => te?.travelExpenses ), ...nonTravelExpenses]);
     const isDisabled = statusCount === 0;
     
     return (
@@ -177,8 +188,8 @@ const Expense = ({isLoading ,fetchData,loadingErrMsg}) => {
               </div>
             </div>
             <div className='w-full mt-4 xl:h-[570px] lg:h-[370px] md:[590px] overflow-y-auto px-2'>
-              {travelExpense.map((trip, index) => {
-                const filteredTripExpenses = filterExpenses(trip?.travelExpenseData);
+              {travelExpenses?.map((trip, index) => {
+                const filteredTripExpenses = filterExpenses(trip?.travelExpenses);
                 if (filteredTripExpenses.length === 0) return null; // Skip rendering if no expenses match the selected statuses
 
                 return (
@@ -228,7 +239,7 @@ const Expense = ({isLoading ,fetchData,loadingErrMsg}) => {
               <p>Non-Travel Expenses</p>
             </div>
             <div className='w-full mt-4 xl:h-[570px] lg:h-[370px] md:[590px] overflow-y-auto px-2'>
-              {filterExpenses(nonTravelExpense)?.map((nonTravelExp, index) => (
+              {filterExpenses(nonTravelExpenses)?.map((nonTravelExp, index) => (
                 <div key={`${index}-nonTr-expense`} className='mb-4 text-neutral-700 rounded-md shadow-custom-light bg-white-100 p-4'>
                   <div className='flex flex-row justify-between'>
                     <div className='flex gap-2 items-center '>
