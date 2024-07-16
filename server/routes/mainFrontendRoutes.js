@@ -12,4 +12,4 @@ mainRouter.use("/travel-admin", travelAdminRoutes)
 
 mainRouter.use("/profile", profileRouter)
 
-mainRouter.use("/approval",approvalRouter)
+mainRouter.use("/approval/:tenantId/:empId",approvalRouter)

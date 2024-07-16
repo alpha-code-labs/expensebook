@@ -1,15 +1,23 @@
 import express from "express";
-import { approveAllTravelWithCash, approveTravelWithCash, rejectTravelWithCash, travelWithCashApproveCashAdvance, travelWithCashRejectCashAdvance } from "../controllers/approval.js";
+import { approveAllTravelWithCash, approveExpenseReports, approveNonTravelExpenseReports, approveTravelWithCash, rejectExpenseReports, rejectNonTravelExpenseReports, rejectTravelWithCash, travelWithCashApproveCashAdvance, travelWithCashRejectCashAdvance } from "../controllers/approval.js";
 
 export const approvalRouter = express.Router()
 
-approvalRouter.patch('/approve/:tenantId/:empId/:travelRequestId', approveTravelWithCash)
+approvalRouter.patch('/approve/:travelRequestId', approveTravelWithCash)
 
-approvalRouter.patch('/reject/:tenantId/:empId/:travelRequestId', rejectTravelWithCash)
+approvalRouter.patch('/reject/:travelRequestId', rejectTravelWithCash)
 
-approvalRouter.patch('/approve/:tenantId/:empId', approveAllTravelWithCash)
+approvalRouter.patch('/approve', approveAllTravelWithCash)
 
-approvalRouter.patch('/approve/:tenantId/:empId/:travelRequestId/:cashAdvanceId', travelWithCashApproveCashAdvance)
+approvalRouter.patch('/approve/:travelRequestId/:cashAdvanceId', travelWithCashApproveCashAdvance)
 
-approvalRouter.patch('/reject/:tenantId/:empId/:travelRequestId/:cashAdvanceId', travelWithCashRejectCashAdvance)
+approvalRouter.patch('/reject/:travelRequestId/:cashAdvanceId', travelWithCashRejectCashAdvance)
+
+approvalRouter.patch('/approve/:tripId/:expenseHeaderId', approveExpenseReports)
+
+approvalRouter.patch('/reject/:tripId/:expenseHeaderId', rejectExpenseReports)
+
+approvalRouter.patch('/approve/:expenseHeaderId', approveNonTravelExpenseReports)
+
+approvalRouter.patch('/reject/:expenseHeaderId', rejectNonTravelExpenseReports)
 
