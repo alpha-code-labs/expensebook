@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import Icon from '../components/common/Icon';
 import axios from 'axios';
-import { verify_shield } from '../assets/icon';
+import { signup_icon, verify_shield } from '../assets/icon';
 import Search from '../components/common/Search';
 import Input from '../components/common/Input';
 import Button from '../components/common/Button';
 import Modal from '../components/common/Modal';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { getCityList_API, postOtpValidation_API, postSignupData_API } from '../utils/api';
 import PopupMessage from '../components/common/PopupMessage';
 import Error from '../components/common/Error';
@@ -153,20 +153,21 @@ export default function CompanyAndHRInformation(){
           setTimeout(()=>{
             setMessage(null)
             setShowPopup(false)
-           // navigate("/user-login")
+           // navigate("/sign-in")
 
           },3000)
         } else {
           // Check the result and perform necessary actions
           console.log('API Response:', data.message);
           setIsUploading(prevState => ({ ...prevState, signup: false }));
-          setMessage(data.message);
-          setShowPopup(true)
-          setTimeout(()=>{
-            setMessage(null)
-            setShowPopup(false)
-            navigate("/user-login")
-          },3000)
+          navigate("/sign-in")
+          // setMessage(data.message);
+          // setShowPopup(true)
+          // setTimeout(()=>{
+          //   setMessage(null)
+          //   setShowPopup(false)
+          //   navigate("/sign-in")
+          // },3000)
           // For example, you can redirect to another page after successful signup
           // navigate('/success-page');
         }
@@ -241,28 +242,30 @@ export default function CompanyAndHRInformation(){
     {isLoading && <Error message={loadingErrorMsg}/>}
     {!isLoading && 
     <>
-    <div className='fixed bg-white py-4 px-4 w-full z-10 top-0'>
+   
+
+    <div className='flex flex-col md:flex-row min-h-screen'>
+    <div className='static md:fixed bg-white py-4 px-4 w-fit  top-0 left-0'>
         <Icon/>
     </div>
-
-    <div className='mx-auto w-fit'>
+   
+     <div className='w-full md:w-1/2 flex items-center justify-center'>
+      <img src={signup_icon} className=' bg-cover h-full w-[80%] '/>
+    </div>
+    <div className=' w-full md:w-1/2  border-l border-slate-300    flex justify-center items-center'>
     
-    {/* <div className='fixed sr-only lg:not-sr-only left-0 top-0 h-[100vh] w-[40vw] flex flex-col justify-center items-center [background:linear-gradient(187.95deg,_rgba(76,_54,_241,_0),_rgba(76,_54,_241,_0.03)_9.19%,_rgba(76,_54,_241,_0.06)_17.67%,_rgba(76,_54,_241,_0.1)_25.54%,_rgba(76,_54,_241,_0.14)_32.86%,_rgba(76,_54,_241,_0.19)_39.72%,_rgba(76,_54,_241,_0.25)_46.19%,_rgba(76,_54,_241,_0.31)_52.36%,_rgba(76,_54,_241,_0.38)_58.3%,_rgba(76,_54,_241,_0.46)_64.08%,_rgba(76,_54,_241,_0.53)_69.79%,_rgba(76,_54,_241,_0.62)_75.51%,_rgba(76,_54,_241,_0.71)_81.31%,_rgba(76,_54,_241,_0.8)_87.28%,_rgba(76,_54,_241,_0.9)_93.48%,_#4c36f1)]'>
-      <img src={leftFrame} className='w-fit' />
-    </div> */}
-    
-    <div className='mx-auto mt-10 w-full p-4 overflow-hidden flex  items-center'>
-      <div className="md:p-0 lg:pt-10 flex flex-col items-start justify-start gap-[24px]">
-        
-        <div className="flex flex-col items-start justify-start gap-[24px] w-full">
+   
+      <div className=" flex flex-col items-start justify-start  ">
+         
+        <div className="flex flex-col items-start justify-start ">
           <div className="flex flex-col items-start justify-start gap-[8px]">
-            <div className="text-neutral-800 text-xl tracking-tight font-semibold font-cabin">
+            <div className=" text-neutral-800 py-6 text-xl tracking-tight font-semibold font-cabin">
             Create your account now to get started!
             </div>
           </div>
         </div>
 
-          <form className='border-neutral-400 p-4 rounded-lg border'>
+          <form className='p-4 pt-6 rounded-lg border border-slate-300'>
             <div className="flex w-full flex-col items-start justify-start gap-[24px] text-sm">
 
             <div className='flex gap-2 flex-col md:flex-row w-full'>
@@ -299,6 +302,7 @@ export default function CompanyAndHRInformation(){
                 <Input
                     title='Email Id' 
                     placeholder='email id'
+                      type='email'
                     value={formData.email}
                     titleCase={false}
                     error={errors.emailError} 
@@ -337,9 +341,13 @@ export default function CompanyAndHRInformation(){
             </div>
             </div>
 
-            <div className='mt-10 mb-10 w-full max-w-[403px] flex items-center flex-row-reverse'>
-                <Button uploading={isUploading.signup} disabled={isUploading.signup} text='Sign Up' onClick={()=>handleSubmit()} />
+            <div  className='flex flex-col mt-10 mb-5 w-full px-6  flex-grow gap-2 items-center '>
+                <Button variant='full' uploading={isUploading.signup} disabled={isUploading.signup} text='Sign Up' onClick={()=>handleSubmit()} />
+          <div className="text-sm font-cabin" >
+           <Link to='/sign-in'><p  className="font-semibold text-indigo-600 hover:text-indigo-500 cursor-pointer">Already have an account?</p></Link> 
+          </div>
             </div>
+            
 
           </form>
 
