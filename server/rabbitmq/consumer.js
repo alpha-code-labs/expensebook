@@ -3,6 +3,7 @@ import { updateHRMaster, updatePreferences } from './messageProcessor/hrMasterMe
 import { TravelAndCashUpdate, cancelTravelWithCash, itineraryAddedToTravelRequest, updateCashStatus, updateTravel, updateTravelStatus } from './messageProcessor/travelMessage.js';
 import dotenv from 'dotenv';
 import { expenseReport } from './messageProcessor/expense.js';
+import { deleteReimbursement, updateReimbursement } from './messageProcessor/reimbursement.js';
 
 dotenv.config();
   
@@ -217,7 +218,34 @@ export default async function startConsumer(receiver){
                 console.log('update failed with error code', res.error)
               }
           }  
-    }}}, { noAck: false });
+        } else if (source == 'reimbursement'){
+          if (action == 'full-update') {
+            console.log('Trying to update reimbursement Data');
+              const results = await updateReimbursement(payload);
+                if (results.success) {
+                  // Acknowledge message
+                  channel.ack(msg);
+                  console.log('Message processed successfully');
+                } else {
+                  // Implement retry mechanism or handle error
+                  console.log('Update failed with error:', results.error);
+                }
+              } 
+          if( action == 'delete'){    
+            console.log('Trying to update reimbursement Data');
+            const results = await deleteReimbursement(payload);
+              if (results.success) {
+                // Acknowledge message
+                channel.ack(msg);
+                console.log('Message processed successfully');
+              } else {
+                // Implement retry mechanism or handle error
+                console.log('Update failed with error:', results.error);
+              }
+
+          }
+        } 
+  }}, { noAck: false });
 }
 
 
