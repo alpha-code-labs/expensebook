@@ -19,7 +19,7 @@ console.log(`Running in ${environment} environment`);
 const rabbitMQUrl = process.env.rabbitMQUrl;
 
 
-const mongoURI = process.env.MONGODB_URI;
+const mongoURI = 'mongodb+srv://intospendlogaiv1:intospendlogaiv1@clustorai.on4r4ca.mongodb.net/dashboarddb?retryWrites=true&w=majority'
 
 const app = express();
 
@@ -89,12 +89,12 @@ app.listen(port, () => {
 });
 
 // start consuming messages..
-startConsumer('dashboard');
+//startConsumer('dashboard');
 
 //BatchJobs
 // scheduleToFinanceBatchJob()
 
-consumeFromDashboardQueue();
+//consumeFromDashboardQueue();
 // consumeFromDashboardQueue();
 
 //-----------------------------------------------------------------------------------------------------
