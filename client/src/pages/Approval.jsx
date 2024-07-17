@@ -1,8 +1,8 @@
 /* eslint-disable no-unreachable */
 import React, { useEffect, useState } from 'react';
-import { briefcase, cancel, cancel_round, check_tick, cross_icon, filter_icon, info_icon, modify, money, money1, plus_violet_icon, search_icon } from '../assets/icon';
+import { briefcase, cancel, cancel_round, categoryIcons, check_tick, cross_icon, filter_icon, info_icon, modify, money, money1, plus_violet_icon, receipt, search_icon } from '../assets/icon';
 import { formatAmount, getStatusClass, splitTripName } from '../utils/handyFunctions';
-import {TRCashadvance,NonTRCashAdvances} from '../utils/dummyData';
+import {TRCashadvance,NonTRCashAdvances, travelExpense, TrExpenseForApproval, NonTrExpenseForApproval} from '../utils/dummyData';
 import Modal from '../components/common/Modal1';
 import TripSearch from '../components/common/TripSearch';
 import Button1 from '../components/common/Button1';
@@ -73,8 +73,14 @@ const Approval = ({isLoading, fetchData, loadingErrMsg}) => {
   }) 
 
   const { employeeData } = useData();
-  const [travelData, setTravelData]=useState([])
-  const [cashAdvanceData, setCashAdvanceData]=useState([])
+ 
+  const [approvalData, setApprovalData]=useState([]);
+
+  useEffect(()=>{
+    const data = employeeData && employeeData?.dashboardViews?.employeeManager
+    setApprovalData(data)
+    
+  },[employeeData])
 
   const {tenantId,empId,page}= useParams();
 
@@ -84,23 +90,16 @@ const Approval = ({isLoading, fetchData, loadingErrMsg}) => {
 
   },[])
 
-  useEffect(() => {
-    if (employeeData) {
-      const data = employeeData?.dashboardViews?.employee || [];
-      const travelData = data?.travelRequests || [];
-      const upcomingTrips = data?.trips?.upcomingTrips || [];
-      const intransitTrips = data?.trips?.transitTrips || [];
-  
-      const dataForRaiseCashadvance = [...travelData, ...upcomingTrips, ...intransitTrips];
-      const pushedData = dataForRaiseCashadvance?.map(item => ({ ...item, tripName: "us - del - mum - gkr" }));
+  const travelAndCashAdvances = approvalData?.travelAndCash || []
+  const travelAndNonTravelExpenses = approvalData?.travelExpenseReports || []
+  const dummyTrExpense = TrExpenseForApproval?.map((expense)=> ({...expense,expenseType:"Travel Expense"})) || []
+  const dummyNonTravelExpense = NonTrExpenseForApproval?.map((expense)=>({...expense,expenseType:"Non Travel Expense"})) || []
 
-      setTravelData(pushedData);
-  
-      console.log('Travel data for raise advance:', dataForRaiseCashadvance);
-    } else {
-      console.error('Employee data is missing.');
-    }
-  }, [employeeData]);
+
+
+  const DummyExpenseData = [...dummyTrExpense, ...dummyNonTravelExpense]
+
+console.log('dummy expense for approval ', DummyExpenseData)
   
  
   
@@ -200,6 +199,8 @@ const Approval = ({isLoading, fetchData, loadingErrMsg}) => {
     );
 
   };
+
+  
   
   const filterCashadvances = (cashadvances) => {
     if(searchQuery){
@@ -212,6 +213,48 @@ const Approval = ({isLoading, fetchData, loadingErrMsg}) => {
     
 
   };
+  const filterExpenses = (expenseObject) => {
+    if (!searchQuery) {
+      return expenseObject;
+    }
+  
+    const lowerCaseQuery = searchQuery.toLowerCase();
+  
+    // Recursive function to search within the object
+    const searchObject = (obj) => {
+      for (const key in obj) {
+        if (typeof obj[key] === 'object' && obj[key] !== null) {
+          if (searchObject(obj[key])) {
+            return true;
+          }
+        } else if (typeof obj[key] === 'string' || typeof obj[key] === 'number') {
+          if (obj[key].toString().toLowerCase().includes(lowerCaseQuery)) {
+            return true;
+          }
+        }
+      }
+      return false;
+    };
+  
+    return searchObject(expenseObject) ? expenseObject : null;
+  };
+  // const filterExpenses = (expenses) => {
+  //   if (searchQuery) {
+  //     return Object.values(expenses)?.filter(expense =>
+  //       JSON.stringify(expense).toLowerCase().includes(searchQuery.toLowerCase())
+  //     );
+  //   } else {
+  //     return expenses;
+  //   }
+  //   // if(searchQuery){
+  //   //   return expenses?.filter(expense =>
+  //   //     JSON.stringify(expense).toLowerCase().includes(searchQuery)
+  //   //   );
+  //   // }else{
+  //   //   return expenses
+  //   // }
+    
+  // };
   
   const getStatusCount = (status, cashadvance) => {
     return cashadvance.filter((cashadvance) => cashadvance?.cashAdvanceStatus === status)?.length;
@@ -228,15 +271,15 @@ const Approval = ({isLoading, fetchData, loadingErrMsg}) => {
     return(<div className='font-cabin text-xs flex gap-x-2 items-center justify-center'>
        
           
-        <div className='w-fit hover:shadow-md hover:shadow-red-200/60 transition duration-300 cursor-pointer min-w-[70px] inline-flex gap-2 items-center justify-center border border-red-200 rounded-sm text-center  text-red-200 px-2 py-1 bg-red-100'>
+        <div className='w-fit hover:shadow-md hover:shadow-red-200/60 transition duration-300 cursor-pointer min-w-[70px] inline-flex gap-2 items-center justify-center border border-red-200 rounded-sm text-center  text-white-100 px-2 py-1 bg-red-600'>
         <p className='text-center'>{reject}</p>
-        <div className='border border-red-200 p-[2px] rounded-full'>
+        <div className='border border-white-100 p-[2px] rounded-full'>
           <img src={cross_icon} className='w-3 h-3'/>
         </div>
         </div>
-        <div className='w-fit hover:shadow-md hover:shadow-green-200/60 transition duration-300 cursor-pointer min-w-[70px] inline-flex gap-2 items-center justify-center  border border-green-200 rounded-sm text-center  text-green-200 px-2 py-1 bg-green-100'>
+        <div className='w-fit hover:shadow-md hover:shadow-green-200/60 transition duration-300 cursor-pointer min-w-[70px] inline-flex gap-2 items-center justify-center  border border-green-200 rounded-sm text-center  text-white-100 px-2 py-1 bg-green-600'>
           <p className='text-center'>{approve}</p>
-          <div className='border border-green-200 p-[2px] rounded-full '><img src={check_tick} className='w-3 h-3'/></div>
+          <div className='border border-white-100 p-[2px] rounded-full '><img src={check_tick} className='w-3 h-3'/></div>
         </div>
       </div>)
     
@@ -277,7 +320,7 @@ const Approval = ({isLoading, fetchData, loadingErrMsg}) => {
 
 <div>
    
-   <Input placeholder="Search Expense..." type="search" icon={search_icon} onChange={(value)=>setSearchQuery(value)}/>
+   <Input placeholder="Search" type="search" icon={search_icon} onChange={(value)=>setSearchQuery(value)}/>
    
  </div>
 </div>
@@ -305,8 +348,7 @@ Raise a Cash-Advance
     <img src={money1} className='w-6 h-6 mr-2'/>
      <p>Travel & Cash-Advances</p>
     </div>
-
-            </div>
+</div>
   <div className='flex px-2 h-[52px] py-4  items-center justify-start gap-2'>
     <input type='checkbox' checked={TRCashadvance.length === seleactAll.length ? true : false}  className='w-4 h-4 accent-indigo-600' onChange={handleSelectAll}/>
     Select All
@@ -382,12 +424,10 @@ Raise a Cash-Advance
               <img src={money1} className='w-6 h-6 mr-2'/>
               <p>Travel & Non-Travel Expenses</p>
             </div>
-            <div className='flex px-2 h-[52px] py-4 items-center justify-start gap-2'>
+            <div className='flex px-2 h-[52px] py-4 items-center justify-start gap-2'/>
 
-            </div>
-<div className='w-full bg-white-100 xl:h-[570px] lg:h-[370px] md:[590px] overflow-y-auto px-2'>
-
-  {filterCashadvances(NonTRCashAdvances).map((cashAdvance,index) => (
+{/* <div className='w-full bg-white-100 xl:h-[570px] lg:h-[370px] md:[590px] overflow-y-auto px-2'>
+{filterCashadvances(NonTRCashAdvances).map((cashAdvance,index) => (
               <div key={`${index}nonTr`} className='mb-4 rounded-md shadow-custom-light bg-white-100 p-4'>
               <div className='flex gap-2 items-center'>
               <img src={money} className='w-5 h-5'/>
@@ -421,7 +461,59 @@ Raise a Cash-Advance
                   </div>
                 </div>
    </div>))}
-</div>
+</div> */}
+ <div className='w-full xl:h-[570px] lg:h-[370px] md:[590px] overflow-y-auto px-2 bg-white-100 rounded-l-md'>
+              {TrExpenseForApproval?.map((trip, index) => {
+                const filteredTripExpenses = filterExpenses(trip?.travelExpenseData);
+                if (filteredTripExpenses?.length === 0) return null; 
+
+                return (
+                  <div key={`${index}-tr-expense`} className='mb-4 text-neutral-700 rounded-md shadow-custom-light bg-white-100 p-4'>
+                  
+                    {trip?.tripType === "Travel Expense" && <div className='flex gap-2 items-center'>
+                      <img src={briefcase} className='w-4 h-4' />
+                      <div className='font-medium font-cabin text-md uppercase'>
+                        {trip.tripName}
+                      </div>
+                    </div>}
+                    <div className='mt-2 space-y-2'>
+                      {/* {filteredTripExpenses?.map((trExpense, index) => ( */}
+                        <div key={index} className='border border-slate-300 rounded-md px-2 py-1'>
+                          <div className='flex flex-row justify-between items-center py-1 border-b border-slate-300 font-cabin font-xs'>
+                          <div className='flex gap-2 items-center '>
+                      <img src={receipt} className='w-5 h-5' />
+                      <div >
+                        <div className='header-title'>Expense Header No.</div>
+                        <p className='header-text'>{filteredTripExpenses?.expenseHeaderNumber}</p>
+                      </div>
+                    </div>
+                            <div className={`text-center rounded-sm ${getStatusClass(filteredTripExpenses?.expenseHeaderStatus ?? "-")}`}>
+                              <p className='px-1 py-1 text-xs text-center capitalize font-cabin'>{filteredTripExpenses?.expenseHeaderStatus ?? "-"}</p>
+                            </div>
+                            {/* <div onClick={()=>{if(!disableButton(trip?.travelRequestStatus)){handleTravelExpense(trip?.tripId, filteredTripExpenses?.expenseHeaderId,  'trip-ex-modify' ,)}}} className={`w-7 h-7 bg-indigo-100 rounded-full border border-white-100 flex items-center justify-center ${disableButton(trip?.travelRequestStatus) ? ' cursor-not-allowed opacity-50' : ' cursor-pointer'}`}>
+                              <img src={modify} className='w-4 h-4' alt="modify_icon" />
+                            </div> */}
+                          </div>
+                          <div className='overflow-x-hidden overflow-y-auto max-h-[236px] py-1 pt-2 h-auto px-2 space-y-2'>
+                            {filteredTripExpenses?.expenseLines.map((line, index) => (
+                              <div key={`${index}-line`} className='flex  text-neutral-700 flex-row justify-between items-center font-cabin text-sm'>
+                                <div className='bg-indigo-50 border-2 shadow-md shadow-slate-900/50 translate-x-4 border-white-100 p-2 rounded-full'>
+                                  <img src={categoryIcons?.[line?.["Category Name"]]} className='w-4 h-4' />
+                                </div>
+                                <div className='flex border-slate-400 border flex-row justify-between text-neutral-700 flex-1 items-center gap-2 py-4 px-4 pl-6 rounded-md bg-slate-200'>
+                                  <div>{line?.["Category Name"]}</div>
+                                  <div>{line?.["Currency"]?.shortName} {formatAmount(line?.["Total Amount"])}</div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      {/* // ))} */}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
       </div>

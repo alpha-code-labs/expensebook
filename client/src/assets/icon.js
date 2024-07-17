@@ -91,7 +91,7 @@ export {default as edit_icon} from './edit.svg';
 export {default as hotel_class_icon} from './hotel_class.svg';
 export {default as location_icon} from './location.svg';
 export {default as straight_arrow_icon} from './arrow_straight.svg';
-export {default as cross_icon} from './icons8-cross-48.png';
+export {default as cross_icon} from './icons8-close.svg';
 
 
 

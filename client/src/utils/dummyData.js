@@ -2384,7 +2384,1103 @@ const travelExpense = [
       }
     }
   ]
-}];
+}
+];
+
+const TrExpenseForApproval = [
+  {
+    "tripNumber": "TRIPAL000001",
+    "tripId": "667a3a5be9a18ce3478d1a0d",
+    "tripPurpose": "Business",
+    "tripName":"us - del - mum",
+    "travelExpenseData": 
+      {
+        "travelAllocationFlags": {
+          "level1": false,
+          "level2": false,
+          "level3": true
+        },
+        "tenantId": "66794853c61cc24ba97b5b0f",
+        "tenantName": "alpha code labs",
+        "travelRequestId": "667955dbb2e14ac28c9ec056",
+        "travelRequestNumber": "TRAL000001",
+        "expenseHeaderNumber": "ERAL000001",
+        "expenseHeaderId": "667a393fb043bb2aadca3017",
+        "expenseHeaderType": "travel",
+        "expenseHeaderStatus": "paid",
+        "alreadyBookedExpenseLines": {
+          "flights": [
+            {
+              "violations": {
+                "class": null,
+                "amount": null
+              },
+              "bkd_violations": {
+                "class": null,
+                "amount": ""
+              },
+              "bookingDetails": {
+                "billDetails": {
+                  "vendorName": "Ytra",
+                  "taxAmount": null,
+                  "totalAmount": "5000"
+                },
+                "docURL": null,
+                "docType": null
+              },
+              "itineraryId": "66795e09b2e14ac28c9ed0c2",
+              "formId": "travel_5b5c964a-e99a-436f-a22c-fa7d49f4784f",
+              "sequence": 2,
+              "from": "Delhi",
+              "to": "Lucknow",
+              "date": "2024-06-24T00:00:00.000Z",
+              "returnDate": null,
+              "time": null,
+              "returnTime": null,
+              "travelClass": null,
+              "isReturnTravel": false,
+              "approvers": [
+                {
+                  "empId": "1002",
+                  "name": "Emma Thompson",
+                  "status": "approved",
+                  "_id": "66795e09b2e14ac28c9ed0b7"
+                }
+              ],
+              "bkd_from": "Delhi",
+              "bkd_to": "Lucknow",
+              "bkd_date": "2024-06-25T00:00:00.000Z",
+              "bkd_returnDate": null,
+              "bkd_time": null,
+              "bkd_returnTime": null,
+              "bkd_travelClass": null,
+              "modified": false,
+              "cancellationDate": null,
+              "cancellationReason": null,
+              "rejectionReason": null,
+              "status": "booked",
+              "_id": "66795e09b2e14ac28c9ed0b9"
+            },
+            {
+              "violations": {
+                "class": null,
+                "amount": null
+              },
+              "bkd_violations": {
+                "class": null,
+                "amount": ""
+              },
+              "bookingDetails": {
+                "billDetails": {
+                  "vendorName": "yatra",
+                  "taxAmount": "0",
+                  "totalAmount": "5000"
+                },
+                "docURL": null,
+                "docType": null
+              },
+              "itineraryId": "66795e09b2e14ac28c9ed0c3",
+              "formId": "travel_5b5c964a-e99a-436f-a22c-fa7d49f4784f",
+              "sequence": 4,
+              "from": "Lucknow",
+              "to": "Delhi",
+              "date": "2024-06-26T00:00:00.000Z",
+              "returnDate": null,
+              "time": null,
+              "returnTime": null,
+              "travelClass": null,
+              "isReturnTravel": false,
+              "approvers": [
+                {
+                  "empId": "1002",
+                  "name": "Emma Thompson",
+                  "status": "approved",
+                  "_id": "66795e09b2e14ac28c9ed0b7"
+                }
+              ],
+              "bkd_from": "Lucknow",
+              "bkd_to": "Delhi",
+              "bkd_date": "2024-06-27T00:00:00.000Z",
+              "bkd_returnDate": null,
+              "bkd_time": null,
+              "bkd_returnTime": null,
+              "bkd_travelClass": null,
+              "modified": false,
+              "cancellationDate": null,
+              "cancellationReason": null,
+              "rejectionReason": null,
+              "status": "booked",
+              "_id": "66795e09b2e14ac28c9ed0bb"
+            }
+          ],
+          "buses": [],
+          "trains": [],
+          "hotels": [
+            {
+              "violations": {
+                "class": null,
+                "amount": null
+              },
+              "bkd_violations": {
+                "class": null,
+                "amount": ""
+              },
+              "bookingDetails": {
+                "billDetails": {
+                  "vendorName": "MMT",
+                  "taxAmount": null,
+                  "totalAmount": "5000"
+                },
+                "docURL": null,
+                "docType": null
+              },
+              "itineraryId": "66795e09b2e14ac28c9ed0c5",
+              "formId": "travel_5b5c964a-e99a-436f-a22c-fa7d49f4784f",
+              "sequence": 3,
+              "location": "Lucknow",
+              "locationPreference": null,
+              "class": null,
+              "checkIn": "2024-06-24T00:00:00.000Z",
+              "checkOut": "2024-06-26T00:00:00.000Z",
+              "approvers": [
+                {
+                  "empId": "1002",
+                  "name": "Emma Thompson",
+                  "status": "approved",
+                  "_id": "66795e09b2e14ac28c9ed0b7"
+                }
+              ],
+              "bkd_location": "Lucknow",
+              "bkd_class": null,
+              "bkd_checkIn": "2024-06-25T00:00:00.000Z",
+              "bkd_checkOut": "2024-06-27T00:00:00.000Z",
+              "modified": false,
+              "cancellationDate": null,
+              "cancellationReason": null,
+              "status": "booked",
+              "_id": "66795e09b2e14ac28c9ed0bd"
+            }
+          ],
+          "cabs": [
+            {
+              "violations": {
+                "class": null,
+                "amount": null
+              },
+              "bookingDetails": {
+                "billDetails": {
+                  "vendorName": "Yatra",
+                  "taxAmount": "000",
+                  "totalAmount": null
+                },
+                "docURL": null,
+                "docType": null
+              },
+              "itineraryId": "66795e09b2e14ac28c9ed0c4",
+              "formId": "travel_5b5c964a-e99a-436f-a22c-fa7d49f4784f",
+              "sequence": 1,
+              "date": "2024-06-24T00:00:00.000Z",
+              "class": null,
+              "time": null,
+              "pickupAddress": "Office Address",
+              "dropAddress": "Delhi airport",
+              "approvers": [
+                {
+                  "empId": "1002",
+                  "name": "Emma Thompson",
+                  "status": "approved",
+                  "_id": "66795e09b2e14ac28c9ed0b7"
+                }
+              ],
+              "bkd_date": "2024-06-25T00:00:00.000Z",
+              "bkd_class": null,
+              "bkd_time": null,
+              "bkd_pickupAddress": "Amax Office",
+              "bkd_dropAddress": "Delhi Airport",
+              "modified": false,
+              "cancellationDate": null,
+              "cancellationReason": null,
+              "status": "booked",
+              "type": "pickup",
+              "_id": "66795e09b2e14ac28c9ed0bf"
+            }
+          ],
+          "carRentals": [],
+          "personalVehicles": [],
+          "_id": "667a393fb043bb2aadca3019"
+        },
+        "approvers": [
+          {
+            "empId": "1002",
+            "name": "Emma Thompson",
+            "status": "approved",
+            "_id": "667a393fb043bb2aadca3022"
+          }
+        ],
+        "allocations": [],
+        "violations": [],
+        "travelType": "international",
+        "_id": "667a393fb043bb2aadca3018",
+        "expenseLines": [
+          {
+            "expenseLineId": "667a3951b043bb2aadca304e",
+            "isMultiCurrency": false,
+            "isPersonalExpense": false,
+            "billImageUrl": "",
+            "_id": "667a3951b043bb2aadca304f",
+            "Bill Date": "2024-01-19",
+            "Bill Number": "5497579396",
+            "Vendor Name": "Uncle Jack's",
+            "Description": "",
+            "Quantity": "1",
+            "Unit Cost": "209",
+            "Tax Amount": "5.99",
+            "Total Amount": "136",
+            "Mode of Payment": "Cash",
+            "Currency": {
+              "countryCode": "IN",
+              "fullName": "Indian Rupee",
+              "shortName": "INR",
+              "symbol": "₹"
+            },
+            "Category Name": "Meals",
+            "convertedAmountDetails": null,
+            "allocations": [
+              {
+                "headerName": "department",
+                "headerValue": "Finance"
+              },
+              {
+                "headerName": "legalEntity",
+                "headerValue": "Company XYZ"
+              },
+              {
+                "headerName": "profitCenter",
+                "headerValue": "PC-101"
+              },
+              {
+                "headerName": "division",
+                "headerValue": "Corporate"
+              }
+            ],
+            "policyValidation": [
+              {
+                "success": true,
+                "greenFlag": true,
+                "currencyName": "INR",
+                "amountAllowed": 5000,
+                "violationMessage": "Total amount is under the policy limit"
+              },
+              {
+                "success": false,
+                "message": "Group policies not found"
+              }
+            ],
+            "expenseLineAllocation": []
+          },
+          {
+            "expenseLineId": "667a3951b043bb2aadca304e",
+            "isMultiCurrency": false,
+            "isPersonalExpense": false,
+            "billImageUrl": "",
+            "_id": "667a3951b043bb2aadca304f",
+            "Bill Date": "2024-01-19",
+            "Bill Number": "5497579396",
+            "Vendor Name": "Uncle Jack's",
+            "Description": "",
+            "Quantity": "1",
+            "Unit Cost": "209",
+            "Tax Amount": "2000",
+            "Total Amount": "7000",
+            "Mode of Payment": "Cash",
+            "Currency": {
+              "countryCode": "IN",
+              "fullName": "Indian Rupee",
+              "shortName": "INR",
+              "symbol": "₹"
+            },
+            "Category Name": "Flight",
+            "convertedAmountDetails": null,
+            "allocations": [
+              {
+                "headerName": "department",
+                "headerValue": "Finance"
+              },
+              {
+                "headerName": "legalEntity",
+                "headerValue": "Company XYZ"
+              },
+              {
+                "headerName": "profitCenter",
+                "headerValue": "PC-101"
+              },
+              {
+                "headerName": "division",
+                "headerValue": "Corporate"
+              }
+            ],
+            "policyValidation": [
+              {
+                "success": true,
+                "greenFlag": true,
+                "currencyName": "INR",
+                "amountAllowed": 5000,
+                "violationMessage": "Total amount is under the policy limit"
+              },
+              {
+                "success": false,
+                "message": "Group policies not found"
+              }
+            ],
+            "expenseLineAllocation": []
+          },
+          {
+            "expenseLineId": "667a3951b043bb2aadca304e",
+            "isMultiCurrency": false,
+            "isPersonalExpense": false,
+            "billImageUrl": "",
+            "_id": "667a3951b043bb2aadca304f",
+            "Bill Date": "2024-01-19",
+            "Bill Number": "5497579396",
+            "Vendor Name": "Uncle Jack's",
+            "Description": "",
+            "Quantity": "1",
+            "Unit Cost": "209",
+            "Tax Amount": "180",
+            "Total Amount": "1000",
+            "Mode of Payment": "Cash",
+            "Currency": {
+              "countryCode": "IN",
+              "fullName": "Indian Rupee",
+              "shortName": "INR",
+              "symbol": "₹"
+            },
+            "Category Name": "Cab Rental",
+            "convertedAmountDetails": null,
+            "allocations": [
+              {
+                "headerName": "department",
+                "headerValue": "Finance"
+              },
+              {
+                "headerName": "legalEntity",
+                "headerValue": "Company XYZ"
+              },
+              {
+                "headerName": "profitCenter",
+                "headerValue": "PC-101"
+              },
+              {
+                "headerName": "division",
+                "headerValue": "Corporate"
+              }
+            ],
+            "policyValidation": [
+              {
+                "success": true,
+                "greenFlag": true,
+                "currencyName": "INR",
+                "amountAllowed": 5000,
+                "violationMessage": "Total amount is under the policy limit"
+              },
+              {
+                "success": false,
+                "message": "Group policies not found"
+              }
+            ],
+            "expenseLineAllocation": []
+          }
+        ],
+        "defaultCurrency": {
+          "countryCode": "IN",
+          "fullName": "Indian Rupee",
+          "shortName": "INR",
+          "symbol": "₹"
+        }
+      },
+      
+  },
+    {
+      "tripId": "667a38e9e9a18ce3478d1261",
+    "tripNumber": "TRIPAL000001",
+    "tripPurpose": "Business",
+    "tripName": "DEL-BAN-LUC-DEL-BAN-DEL(9th Jul)",
+    "travelExpenseData": 
+      {
+        "travelAllocationFlags": {
+          "level1": false,
+          "level2": false,
+          "level3": true
+        },
+        "tenantId": "66794853c61cc24ba97b5b0f",
+        "tenantName": "alpha code labs",
+        "travelRequestId": "667955dbb2e14ac28c9ec056",
+        "travelRequestNumber": "TRAL000001",
+        "expenseHeaderNumber": "ERAL000001",
+        "expenseHeaderId": "667a393fb043bb2aadca3017",
+        "expenseHeaderType": "travel",
+        "expenseHeaderStatus": "pending settlement",
+        "alreadyBookedExpenseLines": {
+          "flights": [
+            {
+              "violations": {
+                "class": null,
+                "amount": null
+              },
+              "bkd_violations": {
+                "class": null,
+                "amount": ""
+              },
+              "bookingDetails": {
+                "billDetails": {
+                  "vendorName": "Ytra",
+                  "taxAmount": null,
+                  "totalAmount": "5000"
+                },
+                "docURL": null,
+                "docType": null
+              },
+              "itineraryId": "66795e09b2e14ac28c9ed0c2",
+              "formId": "travel_5b5c964a-e99a-436f-a22c-fa7d49f4784f",
+              "sequence": 2,
+              "from": "Delhi",
+              "to": "Lucknow",
+              "date": "2024-06-24T00:00:00.000Z",
+              "returnDate": null,
+              "time": null,
+              "returnTime": null,
+              "travelClass": null,
+              "isReturnTravel": false,
+              "approvers": [
+                {
+                  "empId": "1002",
+                  "name": "Emma Thompson",
+                  "status": "approved",
+                  "_id": "66795e09b2e14ac28c9ed0b7"
+                }
+              ],
+              "bkd_from": "Delhi",
+              "bkd_to": "Lucknow",
+              "bkd_date": "2024-06-25T00:00:00.000Z",
+              "bkd_returnDate": null,
+              "bkd_time": null,
+              "bkd_returnTime": null,
+              "bkd_travelClass": null,
+              "modified": false,
+              "cancellationDate": null,
+              "cancellationReason": null,
+              "rejectionReason": null,
+              "status": "booked",
+              "_id": "66795e09b2e14ac28c9ed0b9"
+            },
+            {
+              "violations": {
+                "class": null,
+                "amount": null
+              },
+              "bkd_violations": {
+                "class": null,
+                "amount": ""
+              },
+              "bookingDetails": {
+                "billDetails": {
+                  "vendorName": "yatra",
+                  "taxAmount": "0",
+                  "totalAmount": "5000"
+                },
+                "docURL": null,
+                "docType": null
+              },
+              "itineraryId": "66795e09b2e14ac28c9ed0c3",
+              "formId": "travel_5b5c964a-e99a-436f-a22c-fa7d49f4784f",
+              "sequence": 4,
+              "from": "Lucknow",
+              "to": "Delhi",
+              "date": "2024-06-26T00:00:00.000Z",
+              "returnDate": null,
+              "time": null,
+              "returnTime": null,
+              "travelClass": null,
+              "isReturnTravel": false,
+              "approvers": [
+                {
+                  "empId": "1002",
+                  "name": "Emma Thompson",
+                  "status": "approved",
+                  "_id": "66795e09b2e14ac28c9ed0b7"
+                }
+              ],
+              "bkd_from": "Lucknow",
+              "bkd_to": "Delhi",
+              "bkd_date": "2024-06-27T00:00:00.000Z",
+              "bkd_returnDate": null,
+              "bkd_time": null,
+              "bkd_returnTime": null,
+              "bkd_travelClass": null,
+              "modified": false,
+              "cancellationDate": null,
+              "cancellationReason": null,
+              "rejectionReason": null,
+              "status": "booked",
+              "_id": "66795e09b2e14ac28c9ed0bb"
+            }
+          ],
+          "buses": [],
+          "trains": [],
+          "hotels": [
+            {
+              "violations": {
+                "class": null,
+                "amount": null
+              },
+              "bkd_violations": {
+                "class": null,
+                "amount": ""
+              },
+              "bookingDetails": {
+                "billDetails": {
+                  "vendorName": "MMT",
+                  "taxAmount": null,
+                  "totalAmount": "5000"
+                },
+                "docURL": null,
+                "docType": null
+              },
+              "itineraryId": "66795e09b2e14ac28c9ed0c5",
+              "formId": "travel_5b5c964a-e99a-436f-a22c-fa7d49f4784f",
+              "sequence": 3,
+              "location": "Lucknow",
+              "locationPreference": null,
+              "class": null,
+              "checkIn": "2024-06-24T00:00:00.000Z",
+              "checkOut": "2024-06-26T00:00:00.000Z",
+              "approvers": [
+                {
+                  "empId": "1002",
+                  "name": "Emma Thompson",
+                  "status": "approved",
+                  "_id": "66795e09b2e14ac28c9ed0b7"
+                }
+              ],
+              "bkd_location": "Lucknow",
+              "bkd_class": null,
+              "bkd_checkIn": "2024-06-25T00:00:00.000Z",
+              "bkd_checkOut": "2024-06-27T00:00:00.000Z",
+              "modified": false,
+              "cancellationDate": null,
+              "cancellationReason": null,
+              "status": "booked",
+              "_id": "66795e09b2e14ac28c9ed0bd"
+            }
+          ],
+          "cabs": [
+            {
+              "violations": {
+                "class": null,
+                "amount": null
+              },
+              "bookingDetails": {
+                "billDetails": {
+                  "vendorName": "Yatra",
+                  "taxAmount": "000",
+                  "totalAmount": null
+                },
+                "docURL": null,
+                "docType": null
+              },
+              "itineraryId": "66795e09b2e14ac28c9ed0c4",
+              "formId": "travel_5b5c964a-e99a-436f-a22c-fa7d49f4784f",
+              "sequence": 1,
+              "date": "2024-06-24T00:00:00.000Z",
+              "class": null,
+              "time": null,
+              "pickupAddress": "Office Address",
+              "dropAddress": "Delhi airport",
+              "approvers": [
+                {
+                  "empId": "1002",
+                  "name": "Emma Thompson",
+                  "status": "approved",
+                  "_id": "66795e09b2e14ac28c9ed0b7"
+                }
+              ],
+              "bkd_date": "2024-06-25T00:00:00.000Z",
+              "bkd_class": null,
+              "bkd_time": null,
+              "bkd_pickupAddress": "Amax Office",
+              "bkd_dropAddress": "Delhi Airport",
+              "modified": false,
+              "cancellationDate": null,
+              "cancellationReason": null,
+              "status": "booked",
+              "type": "pickup",
+              "_id": "66795e09b2e14ac28c9ed0bf"
+            }
+          ],
+          "carRentals": [],
+          "personalVehicles": [],
+          "_id": "667a393fb043bb2aadca3019"
+        },
+        "approvers": [
+          {
+            "empId": "1002",
+            "name": "Emma Thompson",
+            "status": "approved",
+            "_id": "667a393fb043bb2aadca3022"
+          }
+        ],
+        "allocations": [],
+        "violations": [],
+        "travelType": "international",
+        "_id": "667a393fb043bb2aadca3018",
+        "expenseLines": [
+          {
+            "expenseLineId": "667a3951b043bb2aadca304e",
+            "isMultiCurrency": false,
+            "isPersonalExpense": false,
+            "billImageUrl": "",
+            "_id": "667a3951b043bb2aadca304f",
+            "Bill Date": "2024-01-19",
+            "Bill Number": "5497579396",
+            "Vendor Name": "Uncle Jack's",
+            "Description": "",
+            "Quantity": "1",
+            "Unit Cost": "209",
+            "Tax Amount": "5.99",
+            "Total Amount": "136",
+            "Mode of Payment": "Cash",
+            "Currency": {
+              "countryCode": "IN",
+              "fullName": "Indian Rupee",
+              "shortName": "INR",
+              "symbol": "₹"
+            },
+            "Category Name": "Meals",
+            "convertedAmountDetails": null,
+            "allocations": [
+              {
+                "headerName": "department",
+                "headerValue": "Finance"
+              },
+              {
+                "headerName": "legalEntity",
+                "headerValue": "Company XYZ"
+              },
+              {
+                "headerName": "profitCenter",
+                "headerValue": "PC-101"
+              },
+              {
+                "headerName": "division",
+                "headerValue": "Corporate"
+              }
+            ],
+            "policyValidation": [
+              {
+                "success": true,
+                "greenFlag": true,
+                "currencyName": "INR",
+                "amountAllowed": 5000,
+                "violationMessage": "Total amount is under the policy limit"
+              },
+              {
+                "success": false,
+                "message": "Group policies not found"
+              }
+            ],
+            "expenseLineAllocation": []
+          },
+          {
+            "expenseLineId": "667a3951b043bb2aadca304e",
+            "isMultiCurrency": false,
+            "isPersonalExpense": false,
+            "billImageUrl": "",
+            "_id": "667a3951b043bb2aadca304f",
+            "Bill Date": "2024-01-19",
+            "Bill Number": "5497579396",
+            "Vendor Name": "Uncle Jack's",
+            "Description": "",
+            "Quantity": "1",
+            "Unit Cost": "209",
+            "Tax Amount": "5.99",
+            "Total Amount": "136",
+            "Mode of Payment": "Cash",
+            "Currency": {
+              "countryCode": "IN",
+              "fullName": "Indian Rupee",
+              "shortName": "INR",
+              "symbol": "₹"
+            },
+            "Category Name": "Meals",
+            "convertedAmountDetails": null,
+            "allocations": [
+              {
+                "headerName": "department",
+                "headerValue": "Finance"
+              },
+              {
+                "headerName": "legalEntity",
+                "headerValue": "Company XYZ"
+              },
+              {
+                "headerName": "profitCenter",
+                "headerValue": "PC-101"
+              },
+              {
+                "headerName": "division",
+                "headerValue": "Corporate"
+              }
+            ],
+            "policyValidation": [
+              {
+                "success": true,
+                "greenFlag": true,
+                "currencyName": "INR",
+                "amountAllowed": 5000,
+                "violationMessage": "Total amount is under the policy limit"
+              },
+              {
+                "success": false,
+                "message": "Group policies not found"
+              }
+            ],
+            "expenseLineAllocation": []
+          },
+          {
+            "expenseLineId": "667a3951b043bb2aadca304e",
+            "isMultiCurrency": false,
+            "isPersonalExpense": false,
+            "billImageUrl": "",
+            "_id": "667a3951b043bb2aadca304f",
+            "Bill Date": "2024-01-19",
+            "Bill Number": "5497579396",
+            "Vendor Name": "Uncle Jack's",
+            "Description": "",
+            "Quantity": "1",
+            "Unit Cost": "209",
+            "Tax Amount": "5.99",
+            "Total Amount": "136",
+            "Mode of Payment": "Cash",
+            "Currency": {
+              "countryCode": "IN",
+              "fullName": "Indian Rupee",
+              "shortName": "INR",
+              "symbol": "₹"
+            },
+            "Category Name": "Meals",
+            "convertedAmountDetails": null,
+            "allocations": [
+              {
+                "headerName": "department",
+                "headerValue": "Finance"
+              },
+              {
+                "headerName": "legalEntity",
+                "headerValue": "Company XYZ"
+              },
+              {
+                "headerName": "profitCenter",
+                "headerValue": "PC-101"
+              },
+              {
+                "headerName": "division",
+                "headerValue": "Corporate"
+              }
+            ],
+            "policyValidation": [
+              {
+                "success": true,
+                "greenFlag": true,
+                "currencyName": "INR",
+                "amountAllowed": 5000,
+                "violationMessage": "Total amount is under the policy limit"
+              },
+              {
+                "success": false,
+                "message": "Group policies not found"
+              }
+            ],
+            "expenseLineAllocation": []
+          },
+          {
+            "expenseLineId": "667a3951b043bb2aadca304e",
+            "isMultiCurrency": false,
+            "isPersonalExpense": false,
+            "billImageUrl": "",
+            "_id": "667a3951b043bb2aadca304f",
+            "Bill Date": "2024-01-19",
+            "Bill Number": "5497579396",
+            "Vendor Name": "Uncle Jack's",
+            "Description": "",
+            "Quantity": "1",
+            "Unit Cost": "209",
+            "Tax Amount": "5.99",
+            "Total Amount": "136",
+            "Mode of Payment": "Cash",
+            "Currency": {
+              "countryCode": "IN",
+              "fullName": "Indian Rupee",
+              "shortName": "INR",
+              "symbol": "₹"
+            },
+            "Category Name": "Meals",
+            "convertedAmountDetails": null,
+            "allocations": [
+              {
+                "headerName": "department",
+                "headerValue": "Finance"
+              },
+              {
+                "headerName": "legalEntity",
+                "headerValue": "Company XYZ"
+              },
+              {
+                "headerName": "profitCenter",
+                "headerValue": "PC-101"
+              },
+              {
+                "headerName": "division",
+                "headerValue": "Corporate"
+              }
+            ],
+            "policyValidation": [
+              {
+                "success": true,
+                "greenFlag": true,
+                "currencyName": "INR",
+                "amountAllowed": 5000,
+                "violationMessage": "Total amount is under the policy limit"
+              },
+              {
+                "success": false,
+                "message": "Group policies not found"
+              }
+            ],
+            "expenseLineAllocation": []
+          },
+         
+        ],
+        "defaultCurrency": {
+          "countryCode": "IN",
+          "fullName": "Indian Rupee",
+          "shortName": "INR",
+          "symbol": "₹"
+        }
+      },
+     
+  }
+]
+
+const NonTrExpenseForApproval = [
+  {
+    "_id": "667babcdb02acc127897f405",
+    "expenseHeaderId": "667babbeb043bb2aadcd2866",
+    "tenantId": "66794853c61cc24ba97b5b0f",
+    "__v": 0,
+    "companyName": "alpha code labs",
+    "createdBy": {
+      "empId": "1002",
+      "name": "Benjamin Clark",
+      "_id": "667babcdb043bb2aadcd288b"
+    },
+    "expenseHeaderNumber": "REAL000007",
+    "expenseHeaderStatus": "draft",
+    "expenseHeaderType": "reimbursement",
+    "expenseLines": [
+      {
+        "lineItemId": "667babcdb043bb2aadcd2889",
+        "lineItemStatus": "save",
+        "expenseLineAllocation": [],
+        "multiCurrencyDetails": null,
+        "_id": "667babcdb043bb2aadcd288a",
+        "group": {
+          "limit": 0,
+          "group": "Finance Team",
+          "message": "Benjamin Clark is part of Finance Team. Highest limit found: 0"
+        },
+        "Category Name": "Luggage",
+        "Bill Date": "2024-06-27",
+        "Bill Number": "",
+        "Vendor Name": "",
+        "Description": "",
+        "Quantity": "",
+        "Unit Cost": "",
+        "Tax Amount": "",
+        "Total Amount": "761",
+        "Mode of Payment": "Cash",
+        "Document": "",
+        "Currency": {
+          "countryCode": "IN",
+          "fullName": "Indian Rupee",
+          "shortName": "INR",
+          "symbol": "₹"
+        }
+      },
+    ]
+  },
+  {
+    "_id": "667babcdb02acc127897f405",
+    "expenseHeaderId": "667babbeb043bb2aadcd2866",
+    "tenantId": "66794853c61cc24ba97b5b0f",
+    "__v": 0,
+    "companyName": "alpha code labs",
+    "createdBy": {
+      "empId": "1002",
+      "name": "Benjamin Clark",
+      "_id": "667babcdb043bb2aadcd288b"
+    },
+    "expenseHeaderNumber": "REAL000007",
+    "expenseHeaderStatus": "paid",
+    "expenseHeaderType": "reimbursement",
+    "expenseLines": [
+      {
+        "lineItemId": "667babcdb043bb2aadcd2889",
+        "lineItemStatus": "save",
+        "expenseLineAllocation": [],
+        "multiCurrencyDetails": null,
+        "_id": "667babcdb043bb2aadcd288a",
+        "group": {
+          "limit": 0,
+          "group": "Finance Team",
+          "message": "Benjamin Clark is part of Finance Team. Highest limit found: 0"
+        },
+        "Category Name": "Meals",
+        "Bill Date": "2024-06-27",
+        "Bill Number": "",
+        "Vendor Name": "",
+        "Description": "",
+        "Quantity": "",
+        "Unit Cost": "",
+        "Tax Amount": "",
+        "Total Amount": "761",
+        "Mode of Payment": "Cash",
+        "Document": "",
+        "Currency": {
+          "countryCode": "IN",
+          "fullName": "Indian Rupee",
+          "shortName": "INR",
+          "symbol": "₹"
+        }
+      },
+      {
+        "lineItemId": "667babcdb043bb2aadcd2890",
+        "lineItemStatus": "approved",
+        "expenseLineAllocation": [],
+        "multiCurrencyDetails": null,
+        "_id": "667babcdb043bb2aadcd2891",
+        "group": {
+          "limit": 500,
+          "group": "Sales Team",
+          "message": "Benjamin Clark is part of Sales Team. Highest limit found: 500"
+        },
+        "Category Name": "Flight",
+        "Bill Date": "2024-06-25",
+        "Bill Number": "TRV12345",
+        "Vendor Name": "XYZ Travels",
+        "Description": "Flight to New York",
+        "Quantity": "1",
+        "Unit Cost": "5000",
+        "Tax Amount": "500",
+        "Total Amount": "5500",
+        "Mode of Payment": "Credit Card",
+        "Document": "",
+        "Currency": {
+          "countryCode": "IN",
+          "fullName": "Indian Rupee",
+          "shortName": "INR",
+          "symbol": "₹"
+        }
+      },
+      {
+        "lineItemId": "667babcdb043bb2aadcd2892",
+        "lineItemStatus": "submitted",
+        "expenseLineAllocation": [],
+        "multiCurrencyDetails": null,
+        "_id": "667babcdb043bb2aadcd2893",
+        "group": {
+          "limit": 1000,
+          "group": "Marketing Team",
+          "message": "Benjamin Clark is part of Marketing Team. Highest limit found: 1000"
+        },
+        "Category Name": "Entertainment",
+        "Bill Date": "2024-06-26",
+        "Bill Number": "ENT45678",
+        "Vendor Name": "ABC Events",
+        "Description": "Team building event",
+        "Quantity": "1",
+        "Unit Cost": "10000",
+        "Tax Amount": "1000",
+        "Total Amount": "11000",
+        "Mode of Payment": "Bank Transfer",
+        "Document": "",
+        "Currency": {
+          "countryCode": "IN",
+          "fullName": "Indian Rupee",
+          "shortName": "INR",
+          "symbol": "₹"
+        }
+      },
+      {
+        "lineItemId": "667babcdb043bb2aadcd2894",
+        "lineItemStatus": "rejected",
+        "expenseLineAllocation": [],
+        "multiCurrencyDetails": null,
+        "_id": "667babcdb043bb2aadcd2895",
+        "group": {
+          "limit": 0,
+          "group": "HR Team",
+          "message": "Benjamin Clark is part of HR Team. Highest limit found: 0"
+        },
+        "Category Name": "Office Supplies",
+        "Bill Date": "2024-06-24",
+        "Bill Number": "STN78901",
+        "Vendor Name": "Office Supplies Ltd",
+        "Description": "Office stationery purchase",
+        "Quantity": "10",
+        "Unit Cost": "50",
+        "Tax Amount": "5",
+        "Total Amount": "505",
+        "Mode of Payment": "Cash",
+        "Document": "",
+        "Currency": {
+          "countryCode": "IN",
+          "fullName": "Indian Rupee",
+          "shortName": "INR",
+          "symbol": "₹"
+        }
+      },
+      {
+        "lineItemId": "667babcdb043bb2aadcd2894",
+        "lineItemStatus": "rejected",
+        "expenseLineAllocation": [],
+        "multiCurrencyDetails": null,
+        "_id": "667babcdb043bb2aadcd2895",
+        "group": {
+          "limit": 0,
+          "group": "HR Team",
+          "message": "Benjamin Clark is part of HR Team. Highest limit found: 0"
+        },
+        "Category Name": "Office Supplies",
+        "Bill Date": "2024-06-24",
+        "Bill Number": "STN78901",
+        "Vendor Name": "Office Supplies Ltd",
+        "Description": "Office stationery purchase",
+        "Quantity": "10",
+        "Unit Cost": "50",
+        "Tax Amount": "5",
+        "Total Amount": "505",
+        "Mode of Payment": "Cash",
+        "Document": "",
+        "Currency": {
+          "countryCode": "IN",
+          "fullName": "Indian Rupee",
+          "shortName": "INR",
+          "symbol": "₹"
+        }
+      }
+    ]
+  },
+]
 
 const nonTravelExpense = [
   {
@@ -2824,7 +3920,7 @@ const TRCashadvance = [
     tripNumber: "TRIPAL000001",
     travelRequestId: "667a9de68daacf93aefceb12",
     travelRequestNumber: "TRAL000001",
-    "tripName": "DEL-BAN-LUC-DEL-BAN-DEL(9th Jul)",
+    "tripName": "DEL-BAN-LUC-DEL-BAN-DEL(1st Jul)",
     "createdBy": {
                         "empId": "1002",
                         "name": "Benjamin Clark",
@@ -4552,4 +5648,4 @@ const tripArray = [
     },
   ];
 
-  export {nonTravelExpense,NonTRCashAdvances,tripArray,travelExpense,reimbursementExpense,dummytravelRequests,trips,TRCashadvance}
+export {NonTrExpenseForApproval, TrExpenseForApproval, nonTravelExpense, NonTRCashAdvances, tripArray, travelExpense, reimbursementExpense, dummytravelRequests, trips, TRCashadvance}

@@ -1,7 +1,7 @@
 /* eslint-disable react/jsx-key */
 import React, { useState,useEffect } from 'react';
 import { airplane_1, briefcase, calender_icon, double_arrow,cab_purple,  house_simple, train, bus, cancel_round, cancel, modify, plus_icon, plus_violet_icon, receipt, down_arrow, chevron_down, down_left_arrow, calender_2_icon, airplane, material_flight_black_icon, material_cab_black_icon, material_hotel_black_icon, city_icon, empty_itinerary_icon } from '../assets/icon';
-import { formatAmount, formatDate, getStatusClass, splitTripName } from '../utils/handyFunctions';
+import {  formatAmount,  getStatusClass, splitTripName } from '../utils/handyFunctions';
 import { travelExpense,reimbursementExpense, dummytravelRequests, trips } from '../utils/dummyData';
 import { useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -9,6 +9,10 @@ import TravelMS from './TravelMS';
 import { useData } from '../api/DataProvider';
 import Error from '../components/common/Error';
 import { CabCard, FlightCard, HotelCard, RentalCabCard } from '../components/itinerary/ItineraryCard';
+import Modal from '../components/common/Modal1';
+import TripSearch from '../components/common/TripSearch';
+import Button1 from '../components/common/Button1';
+import { handleNonTravelExpense, handleTravelExpense } from '../utils/actionHandler';
 
 const travelBaseUrl  = import.meta.env.VITE_TRAVEL_PAGE_URL;
 const cashBaseUrl = import.meta.env.VITE_CASHADVANCE_PAGE_URL;
@@ -42,6 +46,12 @@ const Overview = ({fetchData ,isLoading,setIsLoading,loadingErrMsg, setLoadingEr
   const { employeeData } = useData(); 
   const [overviewData,setOverviewData]=useState(null);
   const {tenantId,empId,page}= useParams();
+  const [modalOpen , setModalOpen]=useState(false);
+  const [tripId , setTripId]=useState(null);
+  const [expenseType , setExpenseType]=useState(null);
+  const [error , setError]= useState({
+    tripId: {set:false, message:""}
+  });
 
   useEffect(()=>{
     fetchData(tenantId,empId,page)
@@ -55,7 +65,7 @@ useEffect(()=>{
 },[employeeData])
 
 console.log('data11',overviewData)
-
+const intransitTrips = overviewData?.transitTrips || []
 const travelExpenses     = overviewData?.expense?.allTripExpenseReports || [];
 const nonTravelExpenses  = overviewData?.expense?.allNonTravelReports || [];
 const travelRequests    = overviewData?.allTravelRequests?.allTravelRequests || [];
@@ -105,6 +115,30 @@ console.log('travel request11', travelRequests)
       window.removeEventListener('message', handleMessage);
     };
   }, []);
+
+const handleSelect=(option)=>{
+  console.log(option)
+  setTripId(option?.tripId)
+}
+
+const handleRaise = () => {
+  if (expenseType=== "travel_Cash-Advance") {
+    if (!tripId) {
+      setError(prev => ({ ...prev, tripId: { set: true, message: "Select the trip" } }));
+      
+      return;
+    } 
+    setError(prev => ({ ...prev, travelRequestId: { set: false, message: "" } }));
+    setTripId(null)
+    setExpenseType(null)
+    setModalOpen(false)
+    handleTravelExpense(tripId, '','trip-ex-create')
+  } else {
+    setExpenseType(null)
+    setModalOpen(false)
+    handleNonTravelExpense('','non-tr-ex-create')
+  }
+};
   
   const [textVisible , setTextVisible]=useState({expense:false,createTravel:false});
   const [expenseTabs , setExpenseTabs]=useState("travelExpense");
@@ -184,8 +218,10 @@ onClick={() => handleExpenseTabChange("nonTravelExpense")}
 </div>     
 
 <div
+onClick={()=>setModalOpen(!modalOpen)}
 onMouseEnter={() => setTextVisible({expense:true})}
 onMouseLeave={() => setTextVisible({expense:false})}
+
 className={`relative  hover:px-2 w-6 h-6 hover:overflow-hidden hover:w-auto group text-indigo-600 bg-indigo-100 border border-white-100 flex items-center justify-center  hover:gap-x-1 rounded-full cursor-pointer transition-all duration-300`}
 >
 <img src={plus_violet_icon} width={16} height={16} alt="Add Icon" />
@@ -210,6 +246,7 @@ nonTravelExpenses?.map((expense,index) => <NonTravelExpenses index={index} expen
 </div>
 
 </div>
+
 </div> 
        
 
@@ -219,11 +256,13 @@ nonTravelExpenses?.map((expense,index) => <NonTravelExpenses index={index} expen
 
 
 <CardLayout cardSequence={visibleDivs[2]} icon={briefcase} cardTitle={"Upcoming Trips"}>
+  <div className='mt-2'>
   {trips.map((trip, index) => (
     
       <UpcomingTrips key={index} index={index} trip={trip} lastIndex={trips.length - 1} />
       
     ))}
+  </div>
 </CardLayout>
 
 
@@ -268,6 +307,57 @@ Raise Travel Request
 </div>
 
       </div>
+      <Modal
+        isOpen={modalOpen} 
+        onClose={modalOpen} 
+        content={<div className='w-full h-auto'> 
+          <div>
+              <div className='flex gap-2 justify-between items-center bg-indigo-100 w-full p-4'>
+                <p className='font-inter text-base font-semibold text-indigo-600'>Raise an Expense</p>
+                <div onClick={()=>{setModalOpen(!modalOpen);setTripId(null);setExpenseType(null)}} className='bg-red-100 cursor-pointer rounded-full border border-white-100'>
+                <img src={cancel} className='w-5 h-5'/>
+                </div>
+              </div>
+<div className='p-4'>
+ <div className='flex md:flex-row flex-col justify-between gap-2 '>
+ <div onClick={()=>setExpenseType("travel_Cash-Advance")} className={`cursor-pointer transition  duration-200 hover:bg-indigo-100 hover:rounded-md flex-1 flex gap-2 items-center justify-center ${expenseType === "travel_Cash-Advance" ? ' border-b-2 border-indigo-600 text-indigo-600' : 'border-b-2 border-white-100 '}  p-4`}>
+    <img src={receipt} className='w-5 h-5'/>
+    <p className='truncate '>Travel Expense</p> 
+  </div>
+           
+  <div onClick={()=>setExpenseType("non-Travel_Cash-Advance")} className={`cursor-pointer transition  duration-200 hover:bg-indigo-100 hover:rounded-md flex-1  flex items-center justify-center gap-2 p-4 ${expenseType === "non-Travel_Cash-Advance" ? 'border-b-2 border-indigo-600 text-indigo-600': "border-b-2 border-white-100"}  `}>
+    <img src={receipt} className='w-5 h-5'/>
+    <p className='truncate  shrink'>Non-Travel Expense</p>
+  </div>
+  
+  </div>  
+  
+
+<div className='flex gap-4 flex-col items-start justify-start w-full py-2'>
+{ expenseType=== "travel_Cash-Advance" &&
+ <div className='w-full'>
+  <TripSearch placeholder={"Select the trip"} error={error?.tripId} title="Apply to trip" data={intransitTrips} onSelect={handleSelect} />
+ </div> }
+  
+
+
+{expenseType && <Button1 text={"Raise"} onClick={handleRaise} />}
+
+  
+   
+
+
+</div>   
+</div>
+
+
+ 
+   
+            
+          </div>
+
+      </div>}
+      />
     </div>}
     </>
   );
@@ -552,6 +642,9 @@ const IntransitTrips = ({ index, trip, lastIndex }) => {
 
 
 const UpcomingTrips = ({ index, trip,lastIndex }) => {
+  
+
+
 
   function flattenObjectToArray(obj) {
     return Object.entries(obj).reduce((acc, [key, val]) => {
@@ -572,9 +665,10 @@ const UpcomingTrips = ({ index, trip,lastIndex }) => {
 
 const [textVisible ,setTextVisible]=useState(false)
 
+
   return (
-    <div className={ ` h-[270px] rounded-md `}>
-      <div className="flex gap-2 px-2 flex-row items-center justify-between text-center font-cabin border-b-2  border-slate-300 py-2 text-neutral-700 text-xs">
+    <div className={`${index === lastIndex ? '' : 'mb-2'} cursor-pointer flex justify-between items-center p-3 hover:border hover:border-indigo-600 rounded shadow w-full border border-slate-300 bg-slate-50 hover:bg-indigo-100`}>
+      {/* <div className="flex gap-2 px-2 flex-row items-center justify-between text-center font-cabin  border-slate-300 py-2 text-neutral-700 text-xs"> */}
        
       <div className='font-cabin text-xs text-neutral-700'>
          
@@ -583,16 +677,14 @@ const [textVisible ,setTextVisible]=useState(false)
               <div className='font-medium font-cabin  text-sm uppercase text-neutral-700 '>
                {splitTripName(trip?.tripName)}
               </div>
+              <div className='font-medium font-cabin  text-sm  text-neutral-700 '>
+               {extractAndFormatDate(trip?.tripName)}
+              </div>
               </div>
         </div>
 
         <div className='gap-4 flex '>
-         
-      
-        
-          
-          
-             
+
         <div
             onMouseEnter={() => setTextVisible({ modify: true })}
             onMouseLeave={() => setTextVisible({ modify: false })}
@@ -605,144 +697,20 @@ const [textVisible ,setTextVisible]=useState(false)
             </p>
           </div>
 
-
           </div>
         
 
-      </div>
+      {/* </div> */}
 
       
   
-        <div>
-         <div className='h-[234px] min-w-max w-full  overflow-y-auto rounded-b-md py-1 px-2'>
-         <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <div className='max-h-[220px]  h-full space-y-2 min-w-max w-full bg-white-100 overflow-y-auto rounded-b-md py-1 px-2'>
-          {itineary && itineary.length == 0 && <div className="min-w-[100px] h-full  sm:min-w-[280px]  md:min-w-[400px]  flex justify-center items-center">
-                    <div className="flex flex-col gap-4">
-                        <img src={empty_itinerary_icon} className="w-[200px]"/>
-                        <p className="text-xl font-cabin text-neutral-600">No upcoming itineraries.</p>
-                    </div>
-                </div>}
-           {
-            itineary?.map((item)=>{
-              if(item?.category === "flights"){
-                return ( 
-                <FlightCard 
-                key={item.id}
-                id={item.id} 
-                from={item.bkd_from} 
-                to={item.bkd_to} 
-                date={item.bkd_date}
-                returnDate={item.bkd_returnDate}
-                returnTime={item.bkd_returnTime}
-                travelClass={item.bkd_travelClass} 
-                mode={'Flight'}
-                time={item.bkd_time}
-                />)
-              }
-              if(item?.category === "trains"){
-                return ( 
-                  <FlightCard 
-                  key={item.id}
-                  id={item.id} 
-                  from={item.bkd_from} 
-                  to={item.bkd_to} 
-                  date={item.bkd_date}
-                  returnDate={item.bkd_returnDate}
-                  returnTime={item.bkd_returnTime}
-                  travelClass={item.bkd_travelClass} 
-                  mode={'Flight'}
-                  time={item.bkd_time}
-                  />)
-              }
-              if(item?.category === "buses"){
-                return (                 
-                  <FlightCard 
-                  key={item.id}
-                  id={item.id} 
-                  from={item.bkd_from} 
-                  to={item.bkd_to} 
-                  date={item.bkd_date}
-                  returnDate={item.bkd_returnDate}
-                  returnTime={item.bkd_returnTime}
-                  travelClass={item.bkd_travelClass} 
-                  mode={'Flight'}
-                  time={item.bkd_time}
-                  />)
-              }
-              if(item?.category === "cabs"){
-                return (                 
-                  <CabCard
-                  key={item.id}
-                  id={item.id} 
-                  from={item.bkd_pickupAddress} 
-                  to={item.bkd_dropAddress} 
-                  date={item.bkd_date}
-                  returnDate={item.bkd_returnDate}
-                  isFullDayCab={item.isFullDayCab}
-                  travelClass={item.bkd_class} 
-                  mode={'Cab'}
-                  time={item.bkd_time}/>)
-              }
-              if(item.category == 'carRentals'){
-                return (
-                    <RentalCabCard
-                        key={item.id}
-                        id={item.id} 
-                        from={item.bkd_pickupAddress} 
-                        to={item.bkd_dropAddress} 
-                        date={item.bkd_date}
-                        returnDate={item.bkd_returnDate}
-                        travelClass={item.bkd_class} 
-                        mode={'Cab'}
-                        time={item.bkd_time}/>
-                )
-            }
-            if(item.category == 'hotels'){
-              return (
-                  <HotelCard
-                      key={item.id}
-                      id={item.id} 
-                      checkIn={item.bkd_checkIn} 
-                      checkOut={item.bkd_checkOut} 
-                      location={item.bkd_location}
-                      time={item.bkd_preferredTime}
-                      needBreakfast={item.bkd_needBreakfast}
-                      needLunch={item.bkd_needLunch}
-                      needDinner={item.bkd_needDinner}
-                      needNonSmokingRoom={item.bkd_needNonSmokingRoom}
-                      />
-              )
-          }
-
-
-            })
-           }
-            
-          
-           
-            
-          </div>
-        </motion.div>
-
-
-</div>
-        </div>
+       
      
 
       
     </div>
   );
 };
-
-
- 
-
-
 
 const TravelExpenses = ({ index, expense ,lastIndex}) => {
   
@@ -872,7 +840,7 @@ const NonTravelExpenses = ({ index, expense, lastIndex }) => {
 const TravelRequests = ({travel,index,lastIndex})=>{
 
   return(
-    <div className={`${index === lastIndex ? '' : 'mb-2'} p-3 hover:border hover:border-indigo-600 rounded shadow w-full border border-slate-300 bg-slate-50 hover:bg-indigo-100 `}>
+    <div className={`${index === lastIndex ? '' : 'mb-2'} p-3 hover:border hover:border-indigo-600 rounded shadow w-full border border-slate-300 bg-slate-50 hover:bg-indigo-100`}>
     <div className={` flex items-center justify-between cursor-pointer min-h-4`}>
       {/* <div className='font-cabin text-xs text-neutral-700'>
         {travel?.travelRequestNumber}
@@ -893,7 +861,22 @@ const TravelRequests = ({travel,index,lastIndex})=>{
   )
 };
 
+const extractAndFormatDate = (inputString) => {
+  const datePattern = /(\d{1,2})(st|nd|rd|th) (\w{3})/;
+  const match = inputString.match(datePattern);
 
+  if (match) {
+    const [, day, suffix, month] = match;
+    return (
+      <>
+        {day}
+        <span className="align-super text-xs">{suffix}</span> {month}
+      </>
+    );
+  }
+
+  return null;
+};
 
 
 // import React ,{ useState,useEffect} from 'react';

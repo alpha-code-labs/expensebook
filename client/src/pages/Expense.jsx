@@ -20,7 +20,7 @@ const Expense = ({isLoading ,fetchData,loadingErrMsg}) => {
   const [selectedStatuses, setSelectedStatuses] = useState([]);
   const [textVisible,setTextVisible]=useState({tripId:false}); 
   const [modalOpen , setModalOpen]=useState(false);
-  const [tripData, setTripData]=useState(false);
+  const [tripData, setTripData]=useState([]);
   const {tenantId,empId,page}= useParams();
   const { employeeData } = useData();
   const [error , setError]= useState({
@@ -59,7 +59,12 @@ const Expense = ({isLoading ,fetchData,loadingErrMsg}) => {
   // }, [employeeData]);
 
   useEffect(()=>{
-  
+    const data = employeeData?.dashboardViews?.employee?.overview || [];
+    const intransitTrips = data?.transitTrips || [];
+
+    const dataForRaiseCashadvance = [...intransitTrips];
+    const pushedData = dataForRaiseCashadvance?.map(item => ({ ...item, tripName: "us - del - mum - gkr" }));
+    setTripData(pushedData)
     setExpenseData(employeeData && employeeData?.dashboardViews?.employee?.expense)
   
   },[employeeData])
@@ -175,7 +180,7 @@ const Expense = ({isLoading ,fetchData,loadingErrMsg}) => {
           <img src={plus_violet_icon} width={16} height={16} alt="Add Icon" />
           <p
           className={`${
-          textVisible?.expense ? 'opacity-100 ' : 'opacity-0 w-0'
+          textVisible?.expense ? 'opacity-100' : 'opacity-0 w-0'
           } whitespace-nowrap text-xs transition-all duration-300 group-hover:opacity-100 group-hover:w-auto`}
           >
           Raise an Expense
@@ -187,7 +192,7 @@ const Expense = ({isLoading ,fetchData,loadingErrMsg}) => {
                 <p>Travel Expenses</p>
               </div>
             </div>
-            <div className='w-full mt-4 xl:h-[570px] lg:h-[370px] md:[590px] overflow-y-auto px-2'>
+            <div className='w-full mt-4 xl:h-[570px] lg:h-[370px] md:[590px] overflow-y-auto px-2 bg-white-100 rounded-l-md'>
               {travelExpenses?.map((trip, index) => {
                 const filteredTripExpenses = filterExpenses(trip?.travelExpenses);
                 if (filteredTripExpenses.length === 0) return null; // Skip rendering if no expenses match the selected statuses
@@ -232,13 +237,14 @@ const Expense = ({isLoading ,fetchData,loadingErrMsg}) => {
               })}
             </div>
           </div>
+
           <div className='flex-1'>
-          
             <div className='flex justify-center items-center rounded-r-md font-inter text-md text-white-100 h-[52px] bg-indigo-600 text-center'>
               <img src={receipt_icon1} className='w-6 h-6 mr-2' />
               <p>Non-Travel Expenses</p>
             </div>
-            <div className='w-full mt-4 xl:h-[570px] lg:h-[370px] md:[590px] overflow-y-auto px-2'>
+
+            <div className='w-full mt-4 xl:h-[570px] lg:h-[370px] md:[590px] overflow-y-auto px-2 bg-white-100 rounded-r-md'>
               {filterExpenses(nonTravelExpenses)?.map((nonTravelExp, index) => (
                 <div key={`${index}-nonTr-expense`} className='mb-4 text-neutral-700 rounded-md shadow-custom-light bg-white-100 p-4'>
                   <div className='flex flex-row justify-between'>
@@ -290,11 +296,11 @@ const Expense = ({isLoading ,fetchData,loadingErrMsg}) => {
                 </div>
               </div>
 <div className='p-4'>
- <div className='flex md:flex-row flex-col justify-between gap-2 '>
+ <div className='flex md:flex-row flex-col justify-between gap-2'>
  <div onClick={()=>setExpenseType("travel_Cash-Advance")} className={`cursor-pointer transition  duration-200 hover:bg-indigo-100 hover:rounded-md flex-1 flex gap-2 items-center justify-center ${expenseType === "travel_Cash-Advance" ? ' border-b-2 border-indigo-600 text-indigo-600' : 'border-b-2 border-white-100 '}  p-4`}>
     <img src={receipt} className='w-5 h-5'/>
     <p className='truncate '>Travel Expense</p> 
-  </div>
+ </div> 
            
   <div onClick={()=>setExpenseType("non-Travel_Cash-Advance")} className={`cursor-pointer transition  duration-200 hover:bg-indigo-100 hover:rounded-md flex-1  flex items-center justify-center gap-2 p-4 ${expenseType === "non-Travel_Cash-Advance" ? 'border-b-2 border-indigo-600 text-indigo-600': "border-b-2 border-white-100"}  `}>
     <img src={receipt} className='w-5 h-5'/>

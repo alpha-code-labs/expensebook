@@ -200,7 +200,26 @@ function splitTripName(tripName){
     
   return tripName?.split('(')[0];
 }
+// export const extractAndFormatDate = (inputString) => {
+//   const datePattern = /(\d{1,2})(st|nd|rd|th) (\w{3})/;
+//   const match = inputString.match(datePattern);
+
+//   if (match) {
+//     const [, day, suffix, month] = match;
+//     return (
+//       <>
+//         {day}
+//         <span className="align-super text-xs">{suffix}</span> {month}
+//       </>
+//     );
+//   }
+
+//   return null;
+// };
+
+
+
   
 
-export {splitTripName, titleCase, formatDate, filterTravelRequests,formatDate2 ,getStatusClass ,addOrdinalIndicator ,formatDate3 ,getCashAdvanceButtonText,urlRedirection,formatAmount}  
+export { splitTripName, titleCase, formatDate, filterTravelRequests,formatDate2 ,getStatusClass ,addOrdinalIndicator ,formatDate3 ,getCashAdvanceButtonText,urlRedirection,formatAmount}  
 

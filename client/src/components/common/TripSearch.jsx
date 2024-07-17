@@ -83,25 +83,34 @@ const TripSearch = ({ data, onSelect, title, error, placeholder }) => {
           {loading ? (
             <li className="p-2 text-center text-gray-500">loading...</li>
           ) : (
-            filteredOptions.map((option, index) => (
-              <li
-                key={option.travelRequestId || option.tripId}
-                onClick={() => handleSelect(option)}
-                className={`flex justify-between p-2 border-b border-slate-300 cursor-pointer ${highlightedIndex === index ? 'bg-gray-200' : 'hover:bg-gray-100'}`}
-              >
-                <div className='flex-1 flex flex-col justify-center items-start'>
-                  <div className='font-medium text-sm font-cabin text-neutral-400'>{option.travelRequestNumber ? "Travel Request No." : "Trip No."}</div>
-                  <div className='text-sm font-cabin text-start text-neutral-700'>{option.travelRequestNumber || option.tripNumber}</div>
-                </div>
-
-                <div className='flex-1 flex gap-2 items-center '>
-                  <img src={briefcase} className='w-4 h-4'/>
-                  <div className='font-medium font-cabin text-md uppercase text-neutral-700'>
-                    {option.tripName}
+            filteredOptions.length === 0 ? (
+              <div className='h-12 text-center flex justify-center items-center font-inter'>trips not found.</div>
+            ) : (
+              filteredOptions.map((option, index) => (
+                <li
+                  key={option.travelRequestId || option.tripId}
+                  onClick={() => handleSelect(option)}
+                  className={`flex justify-between p-2 border-b border-slate-300 cursor-pointer ${highlightedIndex === index ? 'bg-gray-200' : 'hover:bg-gray-100'}`}
+                >
+                  <div className='flex-1 flex flex-col justify-center items-start'>
+                    <div className='font-medium text-sm font-cabin text-neutral-400'>
+                      {option.tripNumber ? "Trip No." : "Travel Request No."}
+                    </div>
+                    <div className='text-sm font-cabin text-start text-neutral-700'>
+                      {option.tripNumber || option.travelRequestNumber}
+                    </div>
                   </div>
-                </div>
-              </li>
-            ))
+            
+                  <div className='flex-1 flex gap-2 items-center'>
+                    <img src={briefcase} className='w-4 h-4' alt="briefcase icon"/>
+                    <div className='font-medium font-cabin text-md uppercase text-neutral-700'>
+                      {option.tripName}
+                    </div>
+                  </div>
+                </li>
+              ))
+            )
+            
           )}
         </ul>
       )}

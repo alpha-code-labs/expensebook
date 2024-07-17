@@ -36,23 +36,32 @@ const CashAdvance = ({isLoading, fetchData, loadingErrMsg}) => {
 
   },[])
 
+
+
   useEffect(() => {
+
     if (employeeData) {
-      const data = employeeData?.dashboardViews?.employee || [];
-      const travelData = data?.travelRequests || [];
-      const upcomingTrips = data?.trips?.upcomingTrips || [];
-      const intransitTrips = data?.trips?.transitTrips || [];
+
+      const data = employeeData?.dashboardViews?.employee?.overview || [];
+      const travelData = data?.allTravelRequests?.allTravelRequests || [];
+      const upcomingTrips = data?.upcomingTrips || [];
+      const intransitTrips = data?.transitTrips || [];
   
       const dataForRaiseCashadvance = [...travelData, ...upcomingTrips, ...intransitTrips];
       const pushedData = dataForRaiseCashadvance?.map(item => ({ ...item, tripName: "us - del - mum - gkr" }));
 
       setTravelData(pushedData);
-  
+      setCashAdvanceData(employeeData?.dashboardViews?.employee?.cashAdvance);
       console.log('Travel data for raise advance:', dataForRaiseCashadvance);
+
     } else {
       console.error('Employee data is missing.');
     }
+
   }, [employeeData]);
+
+  const travelCashAdvances = cashAdvanceData?.travelCashAdvance?.filter((travel)=>!travel.cashAdvances.some((cash)=>["awaiting pending settlement"].includes(cash.cashAdvanceStatus))) || []
+  const nonTravelCashAdvances = cashAdvanceData?.nonTravelCashAdvance || []
 
 
 
@@ -184,7 +193,7 @@ const handleVisible = (travelRequestId, action, cashadvanceId) => {
        <div className='flex flex-wrap space-x-2'>
         <div className='flex items-center justify-center p-2 bg-slate-100 rounded-full border border-slate-300 '><img src={filter_icon} className='w-5 h-5'/></div>
   {["draft","pending approval", "pending settlement", "paid",  "cancelled", "paid and cancelled"].map((status) => {
-    const statusCount = getStatusCount(status, [...TRCashadvance.flatMap(te => te?.cashAdvances), ...NonTRCashAdvances]);
+    const statusCount = getStatusCount(status, [...travelCashAdvances.flatMap(te => te?.cashAdvances), ...NonTRCashAdvances]);
     const isDisabled = statusCount === 0;
     
     return (
@@ -237,8 +246,8 @@ Raise a Cash-Advance
 
 
             
-      <div className='w-full bg-white-100  mt-4 xl:h-[570px] lg:h-[370px] md:[590px] overflow-y-auto px-2'>
-          {TRCashadvance.map((trip) => { 
+      <div className='w-full  mt-4 xl:h-[570px] lg:h-[370px] md:[590px] overflow-y-auto px-2 bg-white-100 rounded-l-md'>
+          {travelCashAdvances?.map((trip) => { 
             const filteredCashadvances = filterCashadvances(trip?.cashAdvances)
             if (filteredCashadvances.length === 0) return null;
             return(
@@ -285,7 +294,7 @@ Raise a Cash-Advance
               <img src={money1} className='w-6 h-6 mr-2'/>
               <p>Non-Travel Cash-Advances</p>
             </div>
-<div className='w-full mt-4 xl:h-[570px] lg:h-[370px] md:[590px] overflow-y-auto px-2'>
+<div className='w-full mt-4 xl:h-[570px] lg:h-[370px] md:[590px] overflow-y-auto px-2 bg-white-100 rounded-r-md'>
             {filterCashadvances(NonTRCashAdvances).map((cashAdvance,index) => (
               <div key={`${index}nonTr`} className='mb-4 rounded-md shadow-custom-light bg-white-100 p-4'>
               <div className='flex gap-2 items-center'>

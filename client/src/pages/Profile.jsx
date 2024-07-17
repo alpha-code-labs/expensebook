@@ -13,7 +13,7 @@ import{useParams} from "react-router-dom";
 import { travelPreferences,preference } from "../dummyData/profile";
 import { getTravelPreference_API, postTravelPreference_API } from "../utils/api";
 import { useData } from "../api/DataProvider";
-import { useParams } from "react-router-dom";
+
 // import ImageUploader from "../components/common/ImageUploader";
 
 const Profile = ({fetchData}) => {
