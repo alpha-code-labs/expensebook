@@ -103,6 +103,7 @@ actionedUpon:{
 },
 expenseCancelledReason: String,
 expenseSubmissionDate: Date,
+rejectionReason: String,
 });
  
 
