@@ -360,10 +360,6 @@ export default function BasicDetails({ onBoardingData, formData, setFormData }) 
         setFormData(formData_copy)
     }, [selectedTravelAllocationHeaders])
 
-    useEffect(()=>{
-        console.log(formData, 'form data');
-      }, [formData])
-
     return (<>
         {isLoading && <Error message={loadingErrMsg} />}
         {!isLoading && <>
