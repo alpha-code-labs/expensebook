@@ -528,7 +528,7 @@ export default function ({allocations, setAllocations, tenantId, travelType, org
                         <Button text='Save and Continue' onClick={handleContinue} />
                     </div>
 
-                    <Prompt prompt={prompt} setPrompt={setPrompt} />
+                    <Prompt prompt={prompt} setPrompt={setPrompt} timeout={8000} />
                 </div>
         
             </div>

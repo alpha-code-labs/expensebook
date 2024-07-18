@@ -1,8 +1,6 @@
-import updateHRMaster from "./messageProcessor/onboarding.js";
+import updateHRMaster from "./messageProcessor/systemConfig.js";
 import amqp from 'amqplib'
 import dotenv from 'dotenv'
-import cancelTravelRequest from "./messageProcessor/trip.js";
-import {approveRejectLegItem, approveRejectTravelRequest} from "./messageProcessor/approval.js";
 import { updatePreferences } from "./messageProcessor/dashboard.js";
 
 dotenv.config()
@@ -65,6 +63,23 @@ export default async function startConsumer(receiver) {
                         console.log("update failed with error code", res.error);
                     }
                 }
+            }
+
+            if (source == "system-config") {
+              console.log("trying to update HR Master");
+              const res = await updateHRMaster(payload);
+              console.log(res);
+                  if (res.success) {
+                      //acknowledge message
+                      channel.ack(msg);
+                      console.log("message processed successfully");
+                  } else {
+                      //implement retry mechanism
+                      console.log("update failed with error code", res.error);
+              }
+            }
+            else{
+              console.log("Message consumption failed  no handler defiend for the received message source")
             }
             
           },

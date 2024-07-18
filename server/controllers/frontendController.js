@@ -1732,7 +1732,7 @@ const handleHRData = async (req, res) => {
               }  = {...row}
             
             const employee = {
-              employeeDetails:{employeeName,employeeId,designation,grade,department,businessUnit,legalEntity,costCenter,profitCenter,responsibilityCenter,division,project,geographicalLocation,l1Manager,l2Manager,l3Manager,joiningDate,mobileNumber,phoneNumber,emailId},
+              employeeDetails:{employeeName,employeeId:employeeId.trim(),designation,grade,department,businessUnit,legalEntity,costCenter,profitCenter,responsibilityCenter,division,project,geographicalLocation,l1Manager,l2Manager,l3Manager,joiningDate,mobileNumber,phoneNumber,emailId},
               group:[],
               employeeRoles:{
                 employee: true,
@@ -1755,20 +1755,20 @@ const handleHRData = async (req, res) => {
             }
 
             //push employeeId's present in  l1, l2, l3 manager fields to managers
-            if(l1Manager??false) managers.add(Number(l1Manager))
-            if(l2Manager??false) managers.add(Number(l2Manager))
-            if(l3Manager??false) managers.add(Number(l3Manager)) 
+            if(l1Manager??false) managers.add(l1Manager)
+            if(l2Manager??false) managers.add(l2Manager)
+            if(l3Manager??false) managers.add(l3Manager) 
 
             //set other details
-            if(profitCenter!=null && profitCenter!=undefined) profitCenters.add(profitCenter)
-            if(costCenter!=null && costCenter!=undefined) costCenters.add(costCenter)
-            if(profitCenter!=null && profitCenter!=undefined) departments.add(department)
-            if(businessUnit!=null && businessUnit!=undefined) businessUnits.add(businessUnit)
-            if(legalEntity!=null && legalEntity!=undefined) legalEntities.add(legalEntity)
-            if(division!=null && division!=undefined) divisions.add(division)
-            if(project!=null && project!=undefined) projects.add(project)
-            if(geographicalLocation!=null && geographicalLocation!=undefined) geographicalLocations.add(geographicalLocation)
-            if(responsibilityCenter!=null && responsibilityCenter!=undefined) responsibilityCenters.add(responsibilityCenter)
+            if(profitCenter??false) profitCenters.add(profitCenter)
+            if(costCenter??false) costCenters.add(costCenter)
+            if(profitCenter??false) departments.add(department)
+            if(businessUnit??false) businessUnits.add(businessUnit)
+            if(legalEntity??false) legalEntities.add(legalEntity)
+            if(division??false) divisions.add(division)
+            if(project??false) projects.add(project)
+            if(geographicalLocation??false) geographicalLocations.add(geographicalLocation)
+            if(responsibilityCenter??false) responsibilityCenters.add(responsibilityCenter)
            // bands.add(band)
            if(grade!=null && grade!=undefined) grades.add(grade)
            if(designation!=null && designation!=undefined) designations.add(designation)
@@ -1784,7 +1784,7 @@ const handleHRData = async (req, res) => {
       async function tagEmployees(employees, managers){
         employees.forEach(employee=>{
           console.log('employeeId:', employee.employeeDetails.employeeId)
-          if(managers.has(Number(employee.employeeDetails.employeeId))){
+          if(managers.has(employee.employeeDetails.employeeId)){
             console.log('tagging manager')
             employee.employeeRoles.employeeManager = true
           }

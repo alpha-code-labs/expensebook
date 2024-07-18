@@ -198,14 +198,14 @@ export default function ({progress, setProgress}){
 
             if(error.response){
                 if(error.response.status(404)){
-                    alert('Cannot update requested resource')
+                    setPrompt({showPrompt: true, promptMsg: 'Cannot update requested resource', success: fasle})
                 }
             }
             if(error.request){
-                alert('Internal server error')
+                setPrompt({showPrompt: true, promptMsg: 'Internal server error', success: fasle})
             }
             else{
-                alert('Something went wrong please try again later')
+                setPrompt({showPrompt: true, promptMsg: 'Something went wrong please try again later', success: fasle})
             }
         }
     }

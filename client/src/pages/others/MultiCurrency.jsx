@@ -19,7 +19,7 @@ export default function ({progress, setProgress}){
     const {tenantId} = useParams()
     const [tenantDefaultCurrency, setTenantDefaultCurrency] =  useState({fullName:'', shortName:'', symbol:'', countryCode:''})
     const [currencyTable, setCurrencyTable] = useState([])
-    const [prompt, setPrompt] = useState({showPrompt:false, promptMsg:null, sucesss:null})
+    const [prompt, setPrompt] = useState({showPrompt:false, promptMsg:null, successs:null})
     const [networkStates, setNetworkStates] = useState({isLoading:false, isUploading:false, loadingErrMsg:null})
     const [selectedCurrency, setSelectedCurrency] = useState(null)
     const [activeButton, setActiveButton] = useState(null)
@@ -49,11 +49,11 @@ export default function ({progress, setProgress}){
                 setCurrencyTable(currencyTable_copy)
             }
             else{
-                alert('Currency already in table, please modify value')
+                setPrompt({showPrompt: true, promptMsg:'Currency already in table, please modify value', success: false})
             }
         }
         else{
-            alert('Please select a currency to continue')
+            setPrompt({showPrompt: true, promptMsg:'Please select a currency to continue', success: false})
         }
     }
 
@@ -114,11 +114,11 @@ export default function ({progress, setProgress}){
 
             if(res.err || progress_res.err){
                 setNetworkStates({isLoading:false, isUploading:false, loadingErrMsg:res.err})
-                setPrompt({showPrompt:true, promptMsg: res.err??progress_res.err, sucess: false})
+                setPrompt({showPrompt:true, promptMsg: res.err??progress_res.err, success: false})
             }
             if(!res.err){
                 setNetworkStates({isLoading:false, isUploading:false, loadingErrMsg:res.err})
-                setPrompt({showPrompt:true, promptMsg: 'Multicurrency table updated', sucess: true})
+                setPrompt({showPrompt:true, promptMsg: 'Multicurrency table updated', success: true})
 
                 setTimeout(()=>{
                     setProgress(progress_copy);
@@ -182,11 +182,11 @@ export default function ({progress, setProgress}){
 
             if(res.err){
                 setNetworkStates({isLoading:false, isUploading:false, loadingErrMsg:res.err})
-                setPrompt({showPrompt:true, promptMsg: 'Something went wrong while removing currency from table', sucess: true})
+                setPrompt({showPrompt:true, promptMsg: 'Something went wrong while removing currency from table', success: true})
             }
             if(!res.err){
                 setNetworkStates({isLoading:false, isUploading:false, loadingErrMsg:res.err})
-                setPrompt({showPrompt:true, promptMsg: 'Currency Removed', sucess: true})
+                setPrompt({showPrompt:true, promptMsg: 'Currency Removed', success: true})
                 setCurrencyTable(currencyTable_copy)
             }
 

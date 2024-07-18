@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import HRCompany from '../model/hr_company_structure.js';
 import { expenseCategories } from "../data/expenseCategories.js";
 import { reimbursementExpenseCategories } from "../data/reimbursementCategories.js";
+import getRandomAvatarUrl from "../utils/avatarUrl.js";
 
 const createTenant = async (req, res)=>{
   try{
@@ -48,6 +49,7 @@ const createTenant = async (req, res)=>{
       delegatedFor: '',
       endDate: '',
     },
+    imageUrl : getRandomAvatarUrl(),
   }
 
   // Create a new HRCompany document with data from the request body

@@ -120,7 +120,7 @@ export default function ({progress, setProgress}){
 
             }
 
-            alert('Cant save changes at the moment, please try again later')
+            setPrompt({showPrompt:true, promptMsg: "Cant save changes at the moment, please try again later", success: true })
         }
     }
 
