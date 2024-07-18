@@ -1,5 +1,5 @@
 import express from "express";
-import { approveAllTravelWithCash, approveExpenseReports, approveNonTravelExpenseReports, approveTravelWithCash, rejectExpenseReports, rejectNonTravelExpenseReports, rejectTravelWithCash, travelWithCashApproveCashAdvance, travelWithCashRejectCashAdvance } from "../controllers/approval.js";
+import { approveAllTravelWithCash, approveExpenseReports, approveNonTravelExpenseReports, approveTravelWithCash, rejectAllTravelWithCash, rejectExpenseReports, rejectNonTravelExpenseReports, rejectTravelWithCash, travelWithCashApproveCashAdvance, travelWithCashRejectCashAdvance } from "../controllers/approval.js";
 
 export const approvalRouter = express.Router()
 
@@ -8,6 +8,8 @@ approvalRouter.patch('/approve/:travelRequestId', approveTravelWithCash)
 approvalRouter.patch('/reject/:travelRequestId', rejectTravelWithCash)
 
 approvalRouter.patch('/approve', approveAllTravelWithCash)
+
+approvalRouter.patch('/reject', rejectAllTravelWithCash)
 
 approvalRouter.patch('/approve/:travelRequestId/:cashAdvanceId', travelWithCashApproveCashAdvance)
 
