@@ -6,6 +6,7 @@ import replicateHrStructure from '../services/replicateHRStructure.js'
 import { sendToDashboardQueue, sendToOtherMicroservice } from '../rabbitmq/publisher.js'
 import { sendMail } from '../services/emailService.js'
 import { expenseCategories } from '../data/expenseCategories.js'
+import getRandomAvatarUrl from '../utils/avatarUrl.js'
 
 
 const base_URL = {
@@ -1734,6 +1735,7 @@ const handleHRData = async (req, res) => {
             const employee = {
               employeeDetails:{employeeName,employeeId:employeeId.trim(),designation,grade,department,businessUnit,legalEntity,costCenter,profitCenter,responsibilityCenter,division,project,geographicalLocation,l1Manager,l2Manager,l3Manager,joiningDate,mobileNumber,phoneNumber,emailId},
               group:[],
+              imageUrl: getRandomAvatarUrl(),
               employeeRoles:{
                 employee: true,
                 employeeManager: false,
