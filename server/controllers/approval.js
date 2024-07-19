@@ -381,8 +381,12 @@ console.log("payload",payload)
   })
   
   const bodySchema = Joi.object({
-    travelRequestIds:Joi.array().required()
+    travelRequests:Joi.array().required()
   })
+
+  // const bodySchema = Joi.object({
+  //   travelRequestIds:Joi.array().required()
+  // })
 
 
 async function  getAllTravelWithCash(tenantId,empId,travelRequestIds){
@@ -405,7 +409,7 @@ async function  getAllTravelWithCash(tenantId,empId,travelRequestIds){
     }
   }
 
-  export const approveAllTravelWithCash = async (req, res) => {
+export const approveAllTravelWithCash = async (req, res) => {
     try {
       const {error : paramsError, value: paramsValue} = approveSchema.validate(req.params)
       if(paramsError){
@@ -418,8 +422,11 @@ async function  getAllTravelWithCash(tenantId,empId,travelRequestIds){
       }
 
       const { tenantId, empId,} = paramsValue
-      const { travelRequestIds } = bodyValue;
-      
+      // const { travelRequestIds } = bodyValue;
+      const { travelRequests } = bodyValue;
+
+      const travelRequestIds = bodyValue.map(obj => obj.travelRequestId);
+
       console.log("approveAllTravelWithCash",tenantId, empId, travelRequestIds)
       
       const cashApprovalDocs = await getAllTravelWithCash(tenantId,empId, travelRequestIds)
@@ -770,12 +777,14 @@ console.log("payload",payload)
     }
   }
 
+
   const raisedLaterReqSchema = Joi.object({
     tenantId: Joi.string().required(),
     empId:Joi.string().required(),
     travelRequestId: Joi.string().required(),
     cashAdvanceId:Joi.string().required(),
   })
+
 
   // travel with cash advance -- Approve cash advance / approve cashAdvance raised later
   export const travelWithCashApproveCashAdvance = async (req, res) => {
@@ -792,27 +801,14 @@ console.log("payload",payload)
 
     try {
       const cashApprovalDoc = await Approval.findOne({
-        'travelRequestData.tenantId': tenantId,
-        'travelRequestData.travelRequestId': travelRequestId,
-        'travelRequestData.isCashAdvanceTaken': true,
-        $or: [
-          {
-            'travelRequestData.approvers': {
-              $elemMatch: {
-                'empId': empId,
-                'status': 'approved'
-              }
-            }
-          },
-          {
-            'travelRequestData.approvers': {
-              $elemMatch: {
-                'empId': empId
-              }
-            },
-            'travelRequestData.travelRequestStatus': { $in: ['approved', 'booked'] },
-          }
-        ]
+          tenantId,
+          travelRequestId,
+          'cashAdvanceSchema.travelRequestData.travelRequestStatus': { $in: ['approved', 'booked'] },
+          'cashAdvanceSchema.cashAdvancesData.cashAdvanceStatus': { $in: ['pending approval'] },
+          'cashAdvanceSchema.cashAdvancesData.approvers':{
+              $elemMatch :{'empId': empId,'status': 'pending approval',}
+             }
+
       }).exec();
   
       if (!cashApprovalDoc) {
@@ -974,6 +970,103 @@ x
     }
   };
 
+
+  // travel with cash advance -- approve cashAdvance raised later
+  export const approveCashAdvance = async (req, res) => {
+
+    const {error, value} = raisedLaterReqSchema.validate(req.params)
+  
+    if(error){
+      return res.status(400).json({error: error.details[0].message})
+    }
+
+    const { tenantId, empId } = value;
+
+    const {travelRequests} = req.body
+    console.log("cash advance approve params ......", req.params);
+
+    const travelRequestIds = travelRequests.map(request => request.travelRequestId)
+    
+    try {
+      const cashApprovalDocs = await Approval.findOne({
+          tenantId,
+          travelRequestId:{$in:travelRequestIds},
+          'cashAdvanceSchema.travelRequestData.travelRequestStatus': { $in: ['approved', 'booked'] },
+          'cashAdvanceSchema.cashAdvancesData.cashAdvanceStatus': { $in: ['pending approval'] },
+          'cashAdvanceSchema.cashAdvancesData.approvers':{
+              $elemMatch :{'empId': empId,'status': 'pending approval',}
+             }
+      }).exec();
+  
+      if (!cashApprovalDocs) {
+        return res.status(404).json({ error: 'Travel request not found.' });
+      }
+
+      // Extract travelRequestIds from cashApprovalDocs
+  const allTravelRequestIds = cashApprovalDocs.map(doc => doc.travelRequestId);
+
+  // Filter travelRequests to get only those that match the travelRequestIds
+  const toApprove = travelRequests.filter(request => 
+    allTravelRequestIds.includes(request.travelRequestId)
+  );
+
+  
+      const { cashAdvancesData } = cashApprovalDoc;
+      const cashAdvanceFound = cashAdvancesData.find(cashAdvance => cashAdvance.cashAdvanceId.toString() == cashAdvanceId);
+  
+      console.log("valid cash advanceId", cashAdvanceFound);
+  
+      if (cashAdvanceFound) {
+        cashAdvanceFound.approvers.forEach(approver => {
+          if (approver.empId === empId && approver.status === 'pending approval') {
+            approver.status = 'approved';
+          }
+        });
+  
+        const allApproved = cashAdvanceFound.approvers.every(approver => approver.status == 'approved');
+  
+        if (allApproved) {
+          cashAdvanceFound.cashAdvanceStatus = 'approved';
+        }
+  
+        // Save the updated cashApprovalDoc document
+        const cashApproved = await cashApprovalDoc.save();
+  
+        const employee = cashAdvanceFound.createdBy.name;
+        // console.log("after approved ..", cashApproved);
+  
+        const payload = {
+          tenantId,
+          travelRequestId: cashApprovalDoc.travelRequestData.travelRequestId,
+          cashAdvanceId: cashAdvanceId,
+          cashAdvanceStatus: cashAdvanceFound?.cashAdvanceStatus,
+          approvers: cashAdvanceFound?.approvers,
+          rejectionReason: cashAdvanceFound?.rejectionReason,
+        };
+  
+        // console.log("is payload updated save()....", payload);
+
+      // await   sendToOtherMicroservice(payload, 'approve-reject-ca', 'cash', 'To update cashAdvanceStatus to approved in cash microservice');
+        if (payload) {
+          console.log("payload",payload)
+          return res.status(200).json({ message: `Cash Advance Approved for ${employee}` });
+        } else {
+          throw new Error('One or more microservices failed to process the request.');
+        }
+      }
+    } catch (error) {
+      console.error('An error occurred while updating approval:', error.message);
+      return res.status(500).json({ error: 'Failed to update approval.', error: error.message });
+    }
+  };
+
+
+
+
+
+
+
+
 const expenseSchema = Joi.object({
   tenantId:Joi.string().required(),
   empId: Joi.string().required(),
@@ -1032,6 +1125,13 @@ export const approveExpenseReports = async (req, res) => {
      console.log("valid expenseReport", expenseReportFound);
 
      if (expenseReportFound) {
+      const {expenseLines=[]} = expenseReportFound
+      expenseLines.forEach(line => {
+        if(line.lineItemStatus === 'pending approval'){
+          line.lineItemStatus === 'approved'
+        } 
+      })
+
       expenseReportFound.approvers.forEach(approver => {
         if (approver.empId === empId && approver.status === 'pending approval') {
           approver.status = 'approved';
@@ -1070,12 +1170,12 @@ export const approveExpenseReports = async (req, res) => {
      const comments = 'expense report approved'
      // Assuming sendToOtherMicroservice and sendToDashboardMicroservice are defined elsewhere
     //  await sendToDashboardMicroservice(payload, action, comments,'approval', 'online', true);
-    const promises = [
-      sendToOtherMicroservice(payload, action, 'trip', comments,  source='dashboard', onlineVsBatch='online'),
-      sendToOtherMicroservice(payload, action, 'expense', comments,  source='dashboard', onlineVsBatch='online'),
-      sendToOtherMicroservice(payload, action, 'approval', comments,  source='dashboard', onlineVsBatch='online'),
-    ]
-    await Promise.all(promises)
+    // const promises = [
+    //   sendToOtherMicroservice(payload, action, 'trip', comments,  source='dashboard', onlineVsBatch='online'),
+    //   sendToOtherMicroservice(payload, action, 'expense', comments,  source='dashboard', onlineVsBatch='online'),
+    //   sendToOtherMicroservice(payload, action, 'approval', comments,  source='dashboard', onlineVsBatch='online'),
+    // ]
+    // await Promise.all(promises)
 
      return res.status(200).json({ message: `expense Report approved for ${name}` });
   }} catch (error) {
@@ -1115,6 +1215,14 @@ export const rejectExpenseReports = async (req, res) => {
      console.log("valid expenseReport", expenseReportFound);
 
      if (expenseReportFound) {
+      const { expenseLines=[]} = expenseReportFound
+
+      expenseLines.forEach(line => {
+        if(line.lineItemStatus === 'pending approval'){
+          line.lineItemStatus === 'rejected'
+        }
+      })
+
        expenseReportFound.approvers.forEach(approver => {
          if (approver.empId === empId && approver.status === 'pending approval') {
            approver.status = 'rejected';
@@ -1144,19 +1252,19 @@ export const rejectExpenseReports = async (req, res) => {
        expenseRejectionReason: matchedExpense ? matchedExpense.expenseRejectionReason : '',
        approvers: matchedExpense ? matchedExpense.approvers : null,
      };
- 
-     console.log("payload for approve", payload);
+
+     console.log("payload for reject expense reports", payload);
      const action = 'expense-approval';
-     const comments = 'expense report approved'
+     const comments = 'expense report rejected at header level'
      // Assuming sendToOtherMicroservice and sendToDashboardMicroservice are defined elsewhere
     //  await sendToDashboardMicroservice(payload, action, comments,'approval', 'online', true);
 
-    const promises = [
-      sendToOtherMicroservice(payload, action, 'trip', comments,  source='dashboard', onlineVsBatch='online'),
-      sendToOtherMicroservice(payload, action, 'expense', comments,  source='dashboard', onlineVsBatch='online'),
-      sendToOtherMicroservice(payload, action, 'approval', comments,  source='dashboard', onlineVsBatch='online'),
-    ]
-    await Promise.all(promises)
+    // const promises = [
+    //   sendToOtherMicroservice(payload, action, 'trip', comments,  source='dashboard', onlineVsBatch='online'),
+    //   sendToOtherMicroservice(payload, action, 'expense', comments,  source='dashboard', onlineVsBatch='online'),
+    //   sendToOtherMicroservice(payload, action, 'approval', comments,  source='dashboard', onlineVsBatch='online'),
+    // ]
+    // await Promise.all(promises)
  
      return res.status(200).json({ message: `expense Report rejected for ${name}` });
   }} catch (error) {
@@ -1178,9 +1286,15 @@ function updateExpenseLineStatus(expenseLines, approve = [], reject=[]) {
   });
 }
 
-const expenseLineUpdateSchema = Joi.object({
+const approveLineSchema = Joi.object({
   approve: Joi.array().items(Joi.string()).default([]),
-  reject: Joi.array().items(Joi.string()).default([])
+  reject: Joi.array().items(Joi.string()).default([]),
+});
+
+const rejectLineSchema = Joi.object({
+  approve: Joi.array().items(Joi.string()).default([]),
+  reject: Joi.array().items(Joi.string()).default([]),
+  rejectionReason: Joi.string().required()
 });
 
 export const approveExpenseLines = async (req, res) => {
@@ -1191,7 +1305,7 @@ export const approveExpenseLines = async (req, res) => {
     }
     const { tenantId,tripId, expenseHeaderId, empId } = value;
 
-    const { approve, reject } = await expenseLineUpdateSchema.validateAsync(req.body);
+    const { approve, reject } = await approveLineSchema.validateAsync(req.body);
 
     console.log("expense report - params -- approve", req.params);
 
@@ -1212,20 +1326,27 @@ export const approveExpenseLines = async (req, res) => {
       const updatedExpenseLines = updateExpenseLineStatus(expenseLines, approve, reject)
 
       expenseReportFound.expenseLines = updatedExpenseLines
-      const allLinesApproved = updatedExpenseLines.every(line => line.lineItemStatus === 'approved')
+      const expenseLinesApproved = updatedExpenseLines.some(line => line.lineItemStatus === 'approved')
+      const isPendingApproval = updatedExpenseLines.some(line => line.lineItemStatus === 'pending approval')
+      const isRejected = updatedExpenseLines.some(line => line.lineItemStatus === 'rejected')
+
 
        const approver = expenseReportFound.approvers.find(approver =>
         approver.empId === empId && approver.status === 'pending approval'
        )
 
-       if(approver && allLinesApproved){
+       if(approver && expenseLinesApproved && !isPendingApproval && !isRejected){
         approver.status = 'approved'
+       } else if(approver && expenseLinesApproved && !isPendingApproval && isRejected ){
+        approver.status = 'rejected'
        }
 
        const allApproved = expenseReportFound.approvers.every(approver => approver.status == 'approved');
  
-       if (allApproved && allLinesApproved) {
+       if (allApproved && expenseLinesApproved && !isPendingApproval)  {
         expenseReportFound.expenseHeaderStatus = 'approved';
+       } else if (!allApproved && !isPendingApproval && isRejected){
+        expenseReportFound.expenseHeaderStatus = 'rejected';
        }
 
        // Save the updated approvalDocument document
@@ -1245,8 +1366,7 @@ export const approveExpenseLines = async (req, res) => {
        tenantId,
        expenseHeaderId,
        expenseHeaderStatus: 'approved',
-       expenseRejectionReason: matchedExpense ? matchedExpense.expenseRejectionReason : '',
-       approvers: matchedExpense ? matchedExpense.approvers : null,
+       expenseReport: matchedExpense 
      };
 
      console.log("payload for approve", payload);
@@ -1254,12 +1374,93 @@ export const approveExpenseLines = async (req, res) => {
      const comments = 'expense report approved'
      // Assuming sendToOtherMicroservice and sendToDashboardMicroservice are defined elsewhere
     //  await sendToDashboardMicroservice(payload, action, comments,'approval', 'online', true);
-    const promises = [
-      sendToOtherMicroservice(payload, action, 'trip', comments,  source='dashboard', onlineVsBatch='online'),
-      sendToOtherMicroservice(payload, action, 'expense', comments,  source='dashboard', onlineVsBatch='online'),
-      sendToOtherMicroservice(payload, action, 'approval', comments,  source='dashboard', onlineVsBatch='online'),
-    ]
-    await Promise.all(promises)
+    // const promises = [
+    //   sendToOtherMicroservice(payload, action, 'trip', comments,  source='dashboard', onlineVsBatch='online'),
+    //   sendToOtherMicroservice(payload, action, 'expense', comments,  source='dashboard', onlineVsBatch='online'),
+    //   sendToOtherMicroservice(payload, action, 'approval', comments,  source='dashboard', onlineVsBatch='online'),
+    // ]
+    // await Promise.all(promises)
+
+     return res.status(200).json({ message: `expense Report approved for ${name}` });
+  }} catch (error) {
+     console.error('An error occurred while updating Travel Expense status:', error.message);
+     res.status(500).json({ error: 'An error occurred while updating Travel Expense status.' });
+  }
+};
+
+export const rejectExpenseLines = async (req, res) => {
+  try {
+    const { error, value} = expenseSchema.validate(req.params)
+    if(error){
+      return res.status(400).json({error: error.details[0].message})
+    }
+    const { tenantId,tripId, expenseHeaderId, empId } = value;
+
+    const { approve, reject, rejectionReason } =  rejectLineSchema.validate(req.body);
+
+    console.log("expense report - params -- approve", req.params);
+
+    const approvalDocument = await getExpenseReport(tenantId,empId,tripId,expenseHeaderId)
+
+     if (!approvalDocument) {
+       return res.status(404).json({ message: 'No matching approval document found for updating travel expenses status.' });
+     }
+
+     const { travelExpenseData} = approvalDocument.tripSchema
+     const expenseReportFound = travelExpenseData.find(expense => expense.expenseHeaderId.toString() == expenseHeaderId);
+
+     console.log("valid expenseReport", expenseReportFound);
+
+     if (expenseReportFound) {
+     const {expenseLines = []} =expenseReportFound
+
+      const updatedExpenseLines = updateExpenseLineStatus(expenseLines, approve, reject)
+
+      expenseReportFound.expenseLines = updatedExpenseLines
+      const isRejected = updatedExpenseLines.some(line => line.lineItemStatus === 'rejected')
+      const isPendingApproval = updatedExpenseLines.some(line => line.lineItemStatus === 'pending approval')
+
+       const approver = expenseReportFound.approvers.find(approver =>
+        approver.empId === empId && approver.status === 'pending approval'
+       )
+
+       if(approver && isRejected && !isPendingApproval){
+        approver.status = 'rejected';
+        expenseReportFound.expenseHeaderStatus = 'rejected';
+        expenseReportFound.rejectionReason = rejectionReason
+       }
+
+       // Save the updated approvalDocument document
+       const expenseApproved = await approvalDocument.save();
+
+       if(!expenseApproved){
+         return res.status(404).json({message:`error occurred while updating expense report for ${name}`})
+       }
+
+     const { name } = expenseApproved.tripSchema.travelRequestData.createdBy;
+
+     const { travelExpenseData } = expenseApproved.tripSchema;
+     const matchedExpense = travelExpenseData.find(expense => expense.expenseHeaderId.toString() === expenseHeaderId);
+     console.log("expense report approvers", matchedExpense)
+     // Create the payload object
+     const payload = {
+       tenantId,
+       expenseHeaderId,
+       expenseHeaderStatus: 'rejected',
+       expenseReport:matchedExpense
+     };
+
+     console.log("payload for approve", payload);
+     const action = 'expense-approval';
+     const comments = 'expense report approved'
+     // Assuming sendToOtherMicroservice and sendToDashboardMicroservice are defined elsewhere
+    //  await sendToDashboardMicroservice(payload, action, comments,'approval', 'online', true);
+    // const promises = [
+    //   sendToOtherMicroservice(payload, action, 'trip', comments,  source='dashboard', onlineVsBatch='online'),
+    //   sendToOtherMicroservice(payload, action, 'expense', comments,  source='dashboard', onlineVsBatch='online'),
+    //   sendToOtherMicroservice(payload, action, 'approval', comments,  source='dashboard', onlineVsBatch='online'),
+    // ]
+    // await Promise.all(promises)
 
      return res.status(200).json({ message: `expense Report approved for ${name}` });
   }} catch (error) {
@@ -1353,21 +1554,21 @@ export const approveNonTravelExpenseReports = async (req, res) => {
         const payload = {
           tenantId,
           expenseHeaderId,
-          expenseHeaderStatus: 'rejected',
+          expenseHeaderStatus: 'approved',
           rejectionReason: reimbursementSchema?.rejectionReason ||'',
           approvers: reimbursementSchema?.approvers,
         };
 
      console.log("payload for approve", payload);
-     const action = 'other-expense-approval';
-     const comments = 'Non Travel expense report approved'
+     const action = 'partial-update';
+     const comments = 'Non Travel expense report approved at header level'
 
      // Assuming sendToOtherMicroservice and sendToDashboardMicroservice are defined elsewhere
-const promises = [
-   sendToOtherMicroservice(payload, action, 'expense', comments, source='dashboard', onlineVsBatch='online'),
-   sendToOtherMicroservice(payload, action, 'approval', comments, source='dashboard', onlineVsBatch='online'),
-]
-  await Promise.all(promises)
+// const promises = [
+//    sendToOtherMicroservice(payload, action, 'expense', comments, source='dashboard', onlineVsBatch='online'),
+//    sendToOtherMicroservice(payload, action, 'approval', comments, source='dashboard', onlineVsBatch='online'),
+// ]
+//   await Promise.all(promises)
      return res.status(200).json({ message: `expense Report approved for ${name}` });
       }
     } catch (error) {
@@ -1431,16 +1632,16 @@ export const rejectNonTravelExpenseReports = async (req, res) => {
           approvers: reimbursementSchema?.approvers,
         };
     
-        console.log("payload for approve", payload);
-        const action = 'other-expense-approval';
-        const comments = 'non travel expense report rejected'
+        console.log("payload for rejected non travel report", payload);
+        const action = 'partial-update';
+        const comments = 'non travel expense report rejected at header level'
         // Assuming sendToOtherMicroservice and sendToDashboardMicroservice are defined elsewhere
-     const promises = [
-       sendToOtherMicroservice(payload, action, 'expense', comments,  source='dashboard', onlineVsBatch='online'),
-       sendToOtherMicroservice(payload, action, 'approval', comments,  source='dashboard', onlineVsBatch='online'),
-     ]
+    //  const promises = [
+    //    sendToOtherMicroservice(payload, action, 'expense', comments,  source='dashboard', onlineVsBatch='online'),
+    //    sendToOtherMicroservice(payload, action, 'approval', comments,  source='dashboard', onlineVsBatch='online'),
+    //  ]
     
-     await Promise.all(promises);
+    //  await Promise.all(promises);
        //  await sendToDashboardMicroservice(payload, action, comments,'approval', 'online', true);
     return res.status(200).json({ message: `expense Report rejected for ${name}` });
 
@@ -1452,6 +1653,181 @@ export const rejectNonTravelExpenseReports = async (req, res) => {
   }
 };
 
+//approve nte line items
+export const approveNonTravelExpenseLines = async (req, res) => {
+  try {
+    const { error, value} = otherExpenseSchema.validate(req.params)
+    if(error){
+      return res.status(400).json({error: error.details[0].message})
+    }
+
+     const { tenantId, expenseHeaderId, empId } = value;
+     console.log("expense report - params -- approve", req.params);
+     
+     const {error: errorBody, value: valueBody} = approveLineSchema.validate(req.body)
+     if(errorBody){
+      return res.status(400).json({error: error.details[0].message})
+     }
+
+     const { approve, reject} = valueBody
+
+     const approvalDocument = await getNonTravelExpenseReport(tenantId,empId,expenseHeaderId)
+ 
+     if (!approvalDocument) {
+       return res.status(404).json({ message: 'No matching approval document found for updating travel expenses status.' });
+     }
+ 
+     const { reimbursementSchema={}} = approvalDocument
+
+     const { createdBy:{name = ''} = {}} = reimbursementSchema
+ 
+     console.log("valid expenseReport", reimbursementSchema);
+
+     const {expenseLines = []} =reimbursementSchema
+
+     const updatedExpenseLines = updateExpenseLineStatus(expenseLines, approve, reject)
+
+     reimbursementSchema.expenseLines = updatedExpenseLines
+     const expenseLinesApproved = updatedExpenseLines.some(line => line.lineItemStatus === 'approved')
+     const isPendingApproval = updatedExpenseLines.some(line => line.lineItemStatus === 'pending approval')
+     const isRejected = updatedExpenseLines.some(line => line.lineItemStatus === 'rejected')
 
 
+      const approver = reimbursementSchema.approvers.find(approver =>
+       approver.empId === empId && approver.status === 'pending approval'
+      )
 
+      if(approver && expenseLinesApproved && !isPendingApproval && !isRejected){
+       approver.status = 'approved'
+      } else if(approver && expenseLinesApproved && !isPendingApproval && isRejected ){
+       approver.status = 'rejected'
+      }
+
+      const allApproved = reimbursementSchema.approvers.every(approver => approver.status == 'approved');
+
+      if (allApproved && expenseLinesApproved && !isPendingApproval)  {
+       reimbursementSchema.expenseHeaderStatus = 'approved';
+      } else if (!allApproved && !isPendingApproval && isRejected){
+       reimbursementSchema.expenseHeaderStatus = 'rejected';
+      }
+
+      // Save the updated approvalDocument document
+       const expenseApproved = await approvalDocument.save();
+
+       if(!expenseApproved){
+         return res.status(404).json({message:`error occurred while updating expense report for ${name}`})
+       } else {
+
+        const { name } = expenseApproved?.reimbursementSchema?.createdBy;
+
+        const { reimbursementSchema } = expenseApproved;
+
+        console.log("expense report approvers", matchedExpense)
+        // Create the payload object
+        const payload = {
+          tenantId,
+          expenseHeaderId,
+          expenseHeaderStatus: 'rejected',
+          reimbursementSchema: reimbursementSchema
+        };
+
+     console.log("payload for approve", payload);
+     const action = 'full-update';
+     const comments = 'Non Travel expense report approved for line items'
+
+     // Assuming sendToOtherMicroservice and sendToDashboardMicroservice are defined elsewhere
+// const promises = [
+//    sendToOtherMicroservice(payload, action, 'expense', comments, source='dashboard', onlineVsBatch='online'),
+//    sendToOtherMicroservice(payload, action, 'approval', comments, source='dashboard', onlineVsBatch='online'),
+// ]
+//   await Promise.all(promises)
+     return res.status(200).json({ message: `expense Report approved for ${name}` });
+      }
+    } catch (error) {
+    console.error('An error occurred while updating Travel Expense status:', error.message);
+    res.status(500).json({ error: 'An error occurred while updating Travel Expense status.' });
+  }
+};
+
+//reject nte line items
+export const rejectNonTravelExpenseLines = async (req, res) => {
+  try {
+    const { error: errorParams, value: valueParams} = otherExpenseSchema.validate(req.params)
+
+    if(errorParams){
+      return res.status(400).json({error: `Invalid Parameters ${errorParams.details[0].message}`})
+    }
+     const { tenantId, expenseHeaderId, empId } = valueParams;
+
+     console.log("expense report - params -- approve", req.params);
+
+     const {error: errorBody, value : valueBody} = rejectLineSchema.validate(req.body)
+
+     if(errorBody){
+      return res.status(400).json({error: errorBody.details[0].message})
+     }
+     const {  approve, reject, rejectionReason } = valueBody;
+
+     const approvalDocument = await getNonTravelExpenseReport(tenantId,empId,expenseHeaderId)
+ 
+     if (!approvalDocument) {
+       return res.status(404).json({ message: 'No matching approval document found for updating travel expenses status.' });
+     }
+ 
+     const { reimbursementSchema} = approvalDocument
+  
+     const {expenseLines = []} =reimbursementSchema
+
+      const updatedExpenseLines = updateExpenseLineStatus(expenseLines, approve, reject)
+
+      reimbursementSchema.expenseLines = updatedExpenseLines
+      const isRejected = updatedExpenseLines.some(line => line.lineItemStatus === 'rejected')
+      const isPendingApproval = updatedExpenseLines.some(line => line.lineItemStatus === 'pending approval')
+
+       const approver = reimbursementSchema.approvers.find(approver =>
+        approver.empId === empId && approver.status === 'pending approval'
+       )
+
+       if(approver && isRejected && !isPendingApproval){
+        approver.status = 'rejected';
+        reimbursementSchema.expenseHeaderStatus = 'rejected';
+        reimbursementSchema.rejectionReason = rejectionReason
+       }
+
+       // Save the updated approvalDocument document
+      const expenseApproved = await approvalDocument.save();
+
+       if(!expenseApproved){
+         return res.status(404).json({message:`error occurred while updating expense report for ${name}`})
+       } else {
+        const { name } = expenseApproved?.reimbursementSchema?.createdBy;
+
+        const { reimbursementSchema } = expenseApproved;
+
+        console.log("expense report approvers", matchedExpense)
+        // Create the payload object
+        const payload = {
+          tenantId,
+          expenseHeaderId,
+          expenseHeaderStatus: 'rejected',
+          reimbursement:reimbursementSchema
+        };
+    
+        console.log("payload for approve", payload);
+        const action = 'full-update';
+        const comments = 'non travel expense report rejected at line item level'
+        // Assuming sendToOtherMicroservice and sendToDashboardMicroservice are defined elsewhere
+    //  const promises = [
+    //    sendToOtherMicroservice(payload, action, 'expense', comments,  source='dashboard', onlineVsBatch='online'),
+    //    sendToOtherMicroservice(payload, action, 'approval', comments,  source='dashboard', onlineVsBatch='online'),
+    //  ]
+    //  await Promise.all(promises);
+       //  await sendToDashboardMicroservice(payload, action, comments,'approval', 'online', true);
+    return res.status(200).json({ message: `expense Report rejected for ${name}` });
+
+      }
+     } catch (error) {
+     console.error('An error occurred while updating Travel Expense status:', error.message);
+     res.status(500).json({ error: 'An error occurred while updating Travel Expense status.' });
+  }
+};
