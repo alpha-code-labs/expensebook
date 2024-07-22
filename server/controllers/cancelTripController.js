@@ -1,6 +1,7 @@
 import Trip from '../models/tripSchema.js';
 import { sendToDashboardMicroservice } from '../rabbitmq/dashboardMicroservice.js';
 import { sendToOtherMicroservice } from '../rabbitmq/publisher.js';
+import { filterFutureFlights } from '../utils/dateUtils.js';
 
 // 1) get trip details -- for cancellation 
 // Trip cancellation 
@@ -142,7 +143,7 @@ const mapCabs = (cabsArray) => {
     }));
 };
 
-  
+
 const mapCashAdvance = (cashAdvance) => {
     return {
         travelRequestId: cashAdvance.travelRequestId || '',
@@ -181,7 +182,7 @@ export const getTripDetails = async (req, res) => {
     }
 
     // const tripDetails = await extractTripDetails(tenantId, tripId, empId);
-    const tripDetails = await Trip.findOne({
+    const getTrip = await Trip.findOne({
       tenantId,
       tripId,
       tripStatus: { $in: ['transit', 'upcoming', 'completed' , 'closed', 'paid and cancelled' ] },
@@ -191,15 +192,47 @@ export const getTripDetails = async (req, res) => {
       ],
   });
 
-   if(tripDetails){
-    const { tripPurpose} = tripDetails.travelRequestData
+  if(getTrip){
+    const upcomingItinerary = {}
+    const tripStatus = getTrip.tripStatus
+     const isTransit = getTrip?.tripStatus == 'transit'
+    const {itinerary={}}=getTrip?.travelRequestData
+  
+    let tripDetails = {
+      tripId:getTrip.tripId,
+      travelRequestId:getTrip.travelRequestData?.travelRequestId,
+      TripPurpose: getTrip?.tripPurpose ?? '',
+      tripName: getTrip?.tripName ?? '',
+      TripStartDate: getTrip.tripStartDate,
+      TripEndDate: getTrip.tripCompletionDate,
+      TripStatus: getTrip.tripStatus,
+      approvers: getTrip.travelRequestData?.approvers,
+      itinerary: isTransit ? upcomingItinerary: getTrip.travelRequestData?.itinerary,
+    }
+
+    if(tripStatus == 'transit'){
+      const {itinerary={}}=getTrip?.travelRequestData
+  
+      const flights = itinerary?.flights
+      const buses = itinerary?.buses
+  
+    console.log(flights)
+    const futureFlights = filterFutureFlights(flights);
+    upcomingItinerary.flights = futureFlights
+  
+    const futureBuses = filterFutureFlights(buses)
+    upcomingItinerary.buses = futureBuses
+    console.log("upcomingItinerary", upcomingItinerary)
+
+    }
+
     return res.status(200).json({
-      success: true,
-      message: 'trip details for the employee',
-      trip:tripDetails,
-    });
-   }
-   
+      success:true,
+      message:'trip details for the employee',
+      trip:tripDetails
+    })
+  }
+
   } catch (error) {
     console.error('Error fetching transit trips:', error);
     return res.status(500).json({ error: 'Internal Server Error', error });
@@ -317,8 +350,6 @@ export const cancelTripAtHeaderLevel = async (req, res) => {
 
 
 
-  
-
 // 3) Itinerary line item (Already booked line item) cancelled,  then update status from 'booked' to 'paid and cancelled'
 //Line item cancellation is allowed for trips with = upcoming, transit status only
   const updateStatus = (item) => {
@@ -345,7 +376,7 @@ export const cancelTripAtHeaderLevel = async (req, res) => {
     return tripDetails;
   };
 
-  
+
   // Line item cancel
   export const cancelTripAtLineItemLevel = async (req, res) => {
     try {
@@ -405,7 +436,3 @@ export const cancelTripAtHeaderLevel = async (req, res) => {
     }
   }
 
-  
-  
-
-  
