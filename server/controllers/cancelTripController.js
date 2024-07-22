@@ -201,6 +201,9 @@ export const getTripDetails = async (req, res) => {
     let tripDetails = {
       tripId:getTrip.tripId,
       travelRequestId:getTrip.travelRequestData?.travelRequestId,
+      travelAllocationHeaders:getTrip?.travelRequestData?.travelAllocationHeaders,
+      travelType:getTrip?.travelRequestData?.travelType,
+      createdBy:getTrip?.travelRequestData?.createdBy,
       TripPurpose: getTrip?.tripPurpose ?? '',
       tripName: getTrip?.tripName ?? '',
       TripStartDate: getTrip.tripStartDate,
@@ -215,6 +218,11 @@ export const getTripDetails = async (req, res) => {
   
       const flights = itinerary?.flights
       const buses = itinerary?.buses
+      const trains = itinerary?.trains
+      const cabs = itinerary?.cabs
+      const hotels = itinerary?.hotels
+      const carRentals = itinerary?.carRentals
+      const personalVehicles = itinerary?.personalVehicles
   
     console.log(flights)
     const futureFlights = filterFutureFlights(flights);
@@ -222,8 +230,18 @@ export const getTripDetails = async (req, res) => {
   
     const futureBuses = filterFutureFlights(buses)
     upcomingItinerary.buses = futureBuses
-    console.log("upcomingItinerary", upcomingItinerary)
 
+    const futureTrains = filterFutureFlights(trains)
+    upcomingItinerary.trains= futureTrains
+
+    const newHotels = filterFutureFlights(hotels)
+    upcomingItinerary.hotels= newHotels
+
+    upcomingItinerary.cabs=filterFutureFlights(cabs)
+    upcomingItinerary.carRentals=filterFutureFlights(carRentals)
+    upcomingItinerary.personalVehicles=filterFutureFlights(personalVehicles)
+
+    console.log("upcomingItinerary", upcomingItinerary)
     }
 
     return res.status(200).json({
@@ -349,7 +367,6 @@ export const cancelTripAtHeaderLevel = async (req, res) => {
 
 
 
-
 // 3) Itinerary line item (Already booked line item) cancelled,  then update status from 'booked' to 'paid and cancelled'
 //Line item cancellation is allowed for trips with = upcoming, transit status only
   const updateStatus = (item) => {
@@ -357,7 +374,7 @@ export const cancelTripAtHeaderLevel = async (req, res) => {
   };
 
   // Update status fields conditionally
-  const itineraryLineItem = async (tripDetails, itineraryIds) => {
+ export const itineraryLineItem = async (tripDetails, itineraryIds) => {
     const updateItemStatus = (items) => {
       items.forEach(item => {
         if (itineraryIds.includes(item.itineraryId.toString())) {   // .toString() is very important to make the code work.
