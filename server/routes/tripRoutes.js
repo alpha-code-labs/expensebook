@@ -1,11 +1,14 @@
 import express from 'express';
 import { cancelTripAtHeaderLevel, cancelTripAtLineItemLevel, getTripDetails } from '../controllers/cancelTripController.js';
 import { recoveryAtHeaderLevel, recoveryAtLineItemLevel } from '../controllers/recoveryFlow.js';
+import { getHrData } from '../controllers/modifyTrips.js';
 
 const tripRoutes = express.Router();
 
 // - Requirement - Cancellation workflow for Trips
 // Get trip details by trip Id -- row 16 - category 10 & Trip Microservice -Travel recovery flow for paid and cancelled Trips - 51 - category 10
+tripRoutes.get('/:tenantId/:empId', getHrData )
+
 tripRoutes.get('/:tenantId/:empId/:tripId/details', getTripDetails);
 
 // cancel at header level - upcoming trips only-- row 30 - category 4
