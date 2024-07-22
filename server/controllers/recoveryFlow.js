@@ -368,19 +368,19 @@ export const recoveryAtHeaderLevel = async (req, res) => {
 
     if(isCashAdvanceTaken){
          // // To Dashboard microservice
-    // sendToOtherMicroservice(cash, 'full-update', 'dashboard', 'to update travelRequestStatus and cashAdvances status in epense microservice- recover done after cancellation of entire trip')
+    // sendToOtherMicroservice(cash, 'full-update', 'dashboard', 'to update travelRequestStatus and cashAdvances status in expense microservice- recover done after cancellation of entire trip')
        // //send to cash microservices
     // sendToOtherMicroservice(cash, 'full-update', 'cash', 'to update travelRequestStatus and cashAdvances status in cash microservice- recovery done after cancellation of entire trip')
     } else {
           // // To Dashboard microservice
-    // sendToOtherMicroservice(travel, 'full-update', 'dashboard', 'to update travelRequestStatus and cashAdvances status in epense microservice- recover done after cancellation of entire trip')
+    // sendToOtherMicroservice(travel, 'full-update', 'dashboard', 'to update travelRequestStatus and cashAdvances status in expense microservice- recover done after cancellation of entire trip')
     // //send to travel microservices
     // sendToOtherMicroservice(travel, 'full-update', 'travel', 'to update entire travel request in Travel microservice- recovery done after cancellation of entire trip ')
     }
 
    
     // // To expense microservice
-    // sendToOtherMicroservice(cash, 'full-update', 'expense', 'to update travelRequestStatus and cashAdvances status in epense microservice- recover done after cancellation of entire trip')
+    // sendToOtherMicroservice(cash, 'full-update', 'expense', 'to update travelRequestStatus and cashAdvances status in expense microservice- recover done after cancellation of entire trip')
 
 
     console.log('Header level recovery successful.');
@@ -391,7 +391,7 @@ export const recoveryAtHeaderLevel = async (req, res) => {
     res.status(500).json({ message: 'Internal server error', error });
   }
 };
-  
+
 // ---------------------------------------------------------------------------------------
 
 // 3) Define updateRecoverStatus function
@@ -473,7 +473,7 @@ export const recoveryAtLineItemLevel = async (req, res) => {
     }
 
     const lineItemStatusUpdate = await itineraryLineItem(trip, itineraryIds);
-   const { isCashAdvanceTaken} = trip.travelRequestData
+   const { isCashAdvanceTaken} = trip?.travelRequestData
     // Save the updated trip
     await trip.save();
 
@@ -514,5 +514,3 @@ export const recoveryAtLineItemLevel = async (req, res) => {
 };
 
 
-
-       
