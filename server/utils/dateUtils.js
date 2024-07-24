@@ -99,7 +99,7 @@ const parseTimeToMinutes = (time) => {
   
     return false;
   };
-  
+
   // Main function to filter hotels
  export const filterFutureHotels = (hotels) => {
     const statusToShow = ['booked', 'pending approval']
