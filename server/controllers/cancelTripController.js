@@ -375,22 +375,27 @@ export const cancelTripAtHeaderLevel = async (req, res) => {
 
   // Update status fields conditionally
  export const itineraryLineItem = async (tripDetails, itineraryIds) => {
-    const updateItemStatus = (items) => {
-      items.forEach(item => {
-        if (itineraryIds.includes(item.itineraryId.toString())) {   // .toString() is very important to make the code work.
-          item.status = updateStatus(item);
-        }
-      });
-    };
-  
-    updateItemStatus(tripDetails.travelRequestData.itinerary.flights);
-    updateItemStatus(tripDetails.travelRequestData.itinerary.hotels);
-    updateItemStatus(tripDetails.travelRequestData.itinerary.cabs);
-    updateItemStatus(tripDetails.travelRequestData.itinerary.buses);
-  
-    await tripDetails.save();
-  
-    return tripDetails;
+    try{
+      const updateItemStatus = (items) => {
+        items.forEach(item => {
+          if (itineraryIds.includes(item.itineraryId.toString())) {   // .toString() is very important to make the code work.
+            item.status = updateStatus(item);
+          }
+        });
+      };
+    
+      updateItemStatus(tripDetails.travelRequestData.itinerary.flights);
+      updateItemStatus(tripDetails.travelRequestData.itinerary.hotels);
+      updateItemStatus(tripDetails.travelRequestData.itinerary.cabs);
+      updateItemStatus(tripDetails.travelRequestData.itinerary.buses);
+    
+      await tripDetails.save();
+    
+      return tripDetails;
+    } catch(error){
+      console.error(error);
+      throw new Error(error)
+    }
   };
 
 

@@ -90,7 +90,7 @@ export const addALeg = async (trip, newItinerary,allocations) => {
       console.error(error);
       throw new error('An error occurred while processing itinerary items.', error);
     }
-  };
+};
 
 // 1) Add a flight/flights to exiting trip
 export async function addFlight(trip, newFlights, newApproverStatus,addNote){
