@@ -1,8 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import mongoose from 'mongoose';
-import dotenv from 'dotenv';
-// import { config } from './config.js';
+import { config } from 'dotenv';
 // import { applyTenantFilter } from './middleware/tripMiddleware.js';
 import {startConsumer} from './rabbitmq/consumer.js';
 import tripRoutes from './routes/tripRoutes.js';
@@ -12,9 +11,12 @@ import Trip from './models/tripSchema.js';
 import { sendToOtherMicroservice } from './rabbitmq/publisher.js';
 import { scheduleToExpenseBatchJob } from './scheduler/sendToExpense.js';
 import{transitToCompleteBatchJob} from './scheduler/transitToCompleteBatchJob.js'
+import { filterFutureFlights } from './utils/dateUtils.js';
+import pino from 'pino';
+import PinoPretty from 'pino-pretty';
 
 // Load environment variables using dotenv
-dotenv.config();
+config();
 
 const environment = process.env.NODE_ENV || 'development';
 console.log(`Running in ${environment} environment`);
@@ -35,9 +37,9 @@ app.get('/get', (req,res) => res.status(200).json("hi from trips"))
 
 
 // Start the batch job
-scheduleToExpenseBatchJob()
-scheduleTripTransitBatchJob()
-transitToCompleteBatchJob()
+// scheduleToExpenseBatchJob()
+// scheduleTripTransitBatchJob()
+// transitToCompleteBatchJob()
 
 
 
