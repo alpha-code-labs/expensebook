@@ -26,9 +26,9 @@ const Modal = ({ isOpen, onClose, content }) => {
       <div className="absolute inset-0 bg-gray-500 opacity-75 z-10"></div>
       <div
         ref={modalRef}
-        className="relative border bg-white-100 h-auto rounded-lg text-left overflow-visible transform transition-all z-20 shadow-lg md:w-[60%] w-full xl:w-[50%]"
+        className="relative border bg-white-100 h-auto rounded-b-lg text-left overflow-visible transform transition-all z-20 shadow-lg md:w-[60%] w-full xl:w-auto"
       >
-        <div className="flex justify-center items-start text-center font-inter w-full">
+        <div className="flex max-h-screen  justify-center items-start text-center font-inter w-full">
           {content}
         </div>
       </div>

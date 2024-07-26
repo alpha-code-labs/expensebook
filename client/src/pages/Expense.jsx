@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { briefcase, modify, receipt, receipt_icon1, categoryIcons, filter_icon, plus_violet_icon, cancel, search_icon } from '../assets/icon';
+import { briefcase, modify, receipt, receipt_icon1, categoryIcons, filter_icon, plus_violet_icon, cancel, search_icon, info_icon } from '../assets/icon';
 import { formatAmount, getStatusClass } from '../utils/handyFunctions';
 import { travelExpense, nonTravelExpense } from '../utils/dummyData';
 import { handleNonTravelExpense, handleTravelExpense } from '../utils/actionHandler';
@@ -61,9 +61,10 @@ const Expense = ({isLoading ,fetchData,loadingErrMsg}) => {
   useEffect(()=>{
     const data = employeeData?.dashboardViews?.employee?.overview || [];
     const intransitTrips = data?.transitTrips || [];
+    const completedTrips = employeeData?.dashboardViews?.employee?.expense?.completedTrips || []
 
-    const dataForRaiseCashadvance = [...intransitTrips];
-    const pushedData = dataForRaiseCashadvance?.map(item => ({ ...item, tripName: "us - del - mum - gkr" }));
+    const dataForRaiseCashadvance = [...intransitTrips, ...completedTrips];
+    const pushedData = dataForRaiseCashadvance?.map(item => ({ ...item, tripName: "us-del-mum-gkr-mkr-pkr" }));
     setTripData(pushedData)
     setExpenseData(employeeData && employeeData?.dashboardViews?.employee?.expense)
   
@@ -171,7 +172,7 @@ const Expense = ({isLoading ,fetchData,loadingErrMsg}) => {
         <div className='w-full flex md:flex-row flex-col '>
           <div className='flex-1 justify-center items-center'>
             <div className='relative flex justify-center items-center rounded-l-md font-inter text-md text-white-100 h-[52px] bg-indigo-600 text-center'>
-                      <div
+          <div
           onClick={()=>setModalOpen(!modalOpen)}
           onMouseEnter={() => setTextVisible({cashAdvance:true})}
           onMouseLeave={() => setTextVisible({cashAdvance:false})}
@@ -202,7 +203,7 @@ const Expense = ({isLoading ,fetchData,loadingErrMsg}) => {
                     <div className='flex gap-2 items-center '>
                       <img src={briefcase} className='w-4 h-4' />
                       <div className='font-medium font-cabin text-md uppercase'>
-                        {trip.tripName}
+                        {trip?.tripName}
                       </div>
                     </div>
                     <div className='mt-2 space-y-2'>
@@ -212,7 +213,7 @@ const Expense = ({isLoading ,fetchData,loadingErrMsg}) => {
                             <div className={`text-center rounded-sm ${getStatusClass(trExpense?.expenseHeaderStatus ?? "-")}`}>
                               <p className='px-1 py-1 text-xs text-center capitalize font-cabin'>{trExpense?.expenseHeaderStatus ?? "-"}</p>
                             </div>
-                            <div onClick={()=>{if(!disableButton(trip?.travelRequestStatus)){handleTravelExpense(trip?.tripId, trExpense?.expenseHeaderId,  'trip-ex-modify' ,)}}} className={`w-7 h-7 bg-indigo-100 rounded-full border border-white-100 flex items-center justify-center ${disableButton(trip?.travelRequestStatus) ? ' cursor-not-allowed opacity-50' : ' cursor-pointer'}`}>
+                            <div onClick={()=>{handleTravelExpense(trip?.tripId, trExpense?.expenseHeaderId,  'trip-ex-modify' ,)}} className={`w-7 h-7 bg-indigo-100 rounded-full border border-white-100 flex items-center justify-center`}>
                               <img src={modify} className='w-4 h-4' alt="modify_icon" />
                             </div>
                           </div>
@@ -248,7 +249,7 @@ const Expense = ({isLoading ,fetchData,loadingErrMsg}) => {
               {filterExpenses(nonTravelExpenses)?.map((nonTravelExp, index) => (
                 <div key={`${index}-nonTr-expense`} className='mb-4 text-neutral-700 rounded-md shadow-custom-light bg-white-100 p-4'>
                   <div className='flex flex-row justify-between'>
-                    <div className='flex gap-2 items-center '>
+                    <div className='flex gap-2 items-center'>
                       <img src={receipt} className='w-5 h-5' />
                       <div >
                         <div className='header-title'>Expense Header No.</div>
@@ -259,7 +260,7 @@ const Expense = ({isLoading ,fetchData,loadingErrMsg}) => {
                       <div className={`text-center rounded-sm ${getStatusClass(nonTravelExp?.expenseHeaderStatus ?? "-")}`}>
                         <p className='px-1 py-1 text-xs text-center capitalize font-cabin'>{nonTravelExp?.expenseHeaderStatus ?? "-"}</p>
                       </div>
-                      <div onClick={() => { "" }} className={`w-7 h-7 bg-indigo-100 rounded-full border border-white-100 flex items-center justify-center ${disableButton(nonTravelExp?.travelRequestStatus) ? ' cursor-not-allowed opacity-50' : ' cursor-pointer'}`}>
+                      <div onClick={() => { handleNonTravelExpense(nonTravelExp?.expenseHeaderId,"non-tr-ex-modify") }} className={`w-7 h-7 bg-indigo-100 rounded-full border border-white-100 flex items-center justify-center ${disableButton(nonTravelExp?.travelRequestStatus) ? ' cursor-not-allowed opacity-50' : ' cursor-pointer'}`}>
                         <img src={modify} className='w-4 h-4' alt="modify_icon" />
                       </div>
                     </div>
@@ -290,19 +291,19 @@ const Expense = ({isLoading ,fetchData,loadingErrMsg}) => {
         content={<div className='w-full h-auto'> 
           <div>
               <div className='flex gap-2 justify-between items-center bg-indigo-100 w-full p-4'>
-                <p className='font-inter text-base font-semibold text-indigo-600'>Raise an Expense</p>
+                <p className='font-inter text-base font-semibold text-indigo-600'>Raise an Expense</p>              
                 <div onClick={()=>{setModalOpen(!modalOpen);setTripId(null);setExpenseType(null)}} className='bg-red-100 cursor-pointer rounded-full border border-white-100'>
                 <img src={cancel} className='w-5 h-5'/>
                 </div>
               </div>
 <div className='p-4'>
- <div className='flex md:flex-row flex-col justify-between gap-2'>
- <div onClick={()=>setExpenseType("travel_Cash-Advance")} className={`cursor-pointer transition  duration-200 hover:bg-indigo-100 hover:rounded-md flex-1 flex gap-2 items-center justify-center ${expenseType === "travel_Cash-Advance" ? ' border-b-2 border-indigo-600 text-indigo-600' : 'border-b-2 border-white-100 '}  p-4`}>
+<div className='flex md:flex-row flex-col justify-between gap-2'>
+ <div onClick={()=>setExpenseType("travel_Cash-Advance")} className={`min-w-fit cursor-pointer transition  duration-200 hover:bg-indigo-100 hover:rounded-md flex-1 flex gap-2 items-center justify-center ${expenseType === "travel_Cash-Advance" ? ' border-b-2 border-indigo-600 text-indigo-600' : 'border-b-2 border-white-100 '}  p-4`}>
     <img src={receipt} className='w-5 h-5'/>
     <p className='truncate '>Travel Expense</p> 
  </div> 
            
-  <div onClick={()=>setExpenseType("non-Travel_Cash-Advance")} className={`cursor-pointer transition  duration-200 hover:bg-indigo-100 hover:rounded-md flex-1  flex items-center justify-center gap-2 p-4 ${expenseType === "non-Travel_Cash-Advance" ? 'border-b-2 border-indigo-600 text-indigo-600': "border-b-2 border-white-100"}  `}>
+  <div onClick={()=>setExpenseType("non-Travel_Cash-Advance")} className={`min-w-fit cursor-pointer transition  duration-200 hover:bg-indigo-100 hover:rounded-md flex-1  flex items-center justify-center gap-2 p-4 ${expenseType === "non-Travel_Cash-Advance" ? 'border-b-2 border-indigo-600 text-indigo-600': "border-b-2 border-white-100"}  `}>
     <img src={receipt} className='w-5 h-5'/>
     <p className='truncate  shrink'>Non-Travel Expense</p>
   </div>

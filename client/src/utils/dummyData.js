@@ -2389,12 +2389,15 @@ const travelExpense = [
 
 const TrExpenseForApproval = [
   {
+    "createdBy": {
+      "empId": "1002",
+      "name": "Calicus Trivera",
+      "_id": "667babcdb043bb2aadcd288b"
+    },
     "tripNumber": "TRIPAL000001",
     "tripId": "667a3a5be9a18ce3478d1a0d",
     "tripPurpose": "Business",
-    "tripName":"us - del - mum",
-    "travelExpenseData": 
-      {
+    "tripName":"DEL-BAN-LUC-DEL-BAN-DEL(9th Jul)",
         "travelAllocationFlags": {
           "level1": false,
           "level2": false,
@@ -2623,6 +2626,65 @@ const TrExpenseForApproval = [
         "_id": "667a393fb043bb2aadca3018",
         "expenseLines": [
           {
+            "lineItemStatus": "pending approval",
+            "expenseLineId": "667a3951b043bb2a4dca304e",
+            "isMultiCurrency": false,
+            "isPersonalExpense": false,
+            "billImageUrl": "",
+            "_id": "667a3951b043bb2aadca304f",
+            "Bill Date": "2024-01-19",
+            "Bill Number": "5497579396",
+            "Vendor Name": "Uncle Jack's",
+            "Description": "",
+            "Quantity": "1",
+            "Unit Cost": "209",
+            "Tax Amount": "5.99",
+            "Total Amount": "136",
+            "Mode of Payment": "Cash",
+            "Currency": {
+              "countryCode": "IN",
+              "fullName": "Indian Rupee",
+              "shortName": "INR",
+              "symbol": "₹"
+            },
+            "Category Name": "Meals",
+            "convertedAmountDetails": null,
+            "allocations": [
+              {
+                "headerName": "department",
+                "headerValue": "Finance"
+              },
+              {
+                "headerName": "legalEntity",
+                "headerValue": "Company XYZ"
+              },
+              {
+                "headerName": "profitCenter",
+                "headerValue": "PC-101"
+              },
+              {
+                "headerName": "division",
+                "headerValue": "Corporate"
+              }
+            ],
+            "policyValidation": [
+              {
+                "success": true,
+                "greenFlag": true,
+                "currencyName": "INR",
+                "amountAllowed": 5000,
+                "violationMessage": "Total amount is under the policy limit"
+              },
+              {
+                "success": false,
+                "message": "Group policies not found"
+              }
+            ],
+            "expenseLineAllocation": [],
+            "lineItemStatus":"rejected"
+          },
+          {
+            "lineItemStatus": "pending approval",
             "expenseLineId": "667a3951b043bb2aadca304e",
             "isMultiCurrency": false,
             "isPersonalExpense": false,
@@ -2676,9 +2738,470 @@ const TrExpenseForApproval = [
                 "message": "Group policies not found"
               }
             ],
-            "expenseLineAllocation": []
+            "expenseLineAllocation": [],
+            "lineItemStatus":"rejected"
           },
           {
+            "lineItemStatus": "pending approval",
+            "expenseLineId": "667a3951b043bb2aadca304e",
+            "isMultiCurrency": false,
+            "isPersonalExpense": false,
+            "billImageUrl": "",
+            "_id": "667a3951b043bb2aadca304f",
+            "Bill Date": "2024-01-19",
+            "Bill Number": "5497579396",
+            "Vendor Name": "Uncle Jack's",
+            "Description": "",
+            "Quantity": "1",
+            "Unit Cost": "209",
+            "Tax Amount": "5.99",
+            "Total Amount": "136",
+            "Mode of Payment": "Cash",
+            "Currency": {
+              "countryCode": "IN",
+              "fullName": "Indian Rupee",
+              "shortName": "INR",
+              "symbol": "₹"
+            },
+            "Category Name": "Meals",
+            "convertedAmountDetails": null,
+            "allocations": [
+              {
+                "headerName": "department",
+                "headerValue": "Finance"
+              },
+              {
+                "headerName": "legalEntity",
+                "headerValue": "Company XYZ"
+              },
+              {
+                "headerName": "profitCenter",
+                "headerValue": "PC-101"
+              },
+              {
+                "headerName": "division",
+                "headerValue": "Corporate"
+              }
+            ],
+            "policyValidation": [
+              {
+                "success": true,
+                "greenFlag": true,
+                "currencyName": "INR",
+                "amountAllowed": 5000,
+                "violationMessage": "Total amount is under the policy limit"
+              },
+              {
+                "success": false,
+                "message": "Group policies not found"
+              }
+            ],
+            "expenseLineAllocation": [],
+            "lineItemStatus":"rejected"
+          },
+          {
+            "lineItemStatus": "approved",
+            "expenseLineId": "667a3951b043bb2aadca304e",
+            "isMultiCurrency": false,
+            "isPersonalExpense": false,
+            "billImageUrl": "",
+            "_id": "667a3951b043bb2aadca304f",
+            "Bill Date": "2024-01-19",
+            "Bill Number": "5497579396",
+            "Vendor Name": "Uncle Jack's",
+            "Description": "",
+            "Quantity": "1",
+            "Unit Cost": "209",
+            "Tax Amount": "5.99",
+            "Total Amount": "136",
+            "Mode of Payment": "Cash",
+            "Currency": {
+              "countryCode": "IN",
+              "fullName": "Indian Rupee",
+              "shortName": "INR",
+              "symbol": "₹"
+            },
+            "Category Name": "Meals",
+            "convertedAmountDetails": null,
+            "allocations": [
+              {
+                "headerName": "department",
+                "headerValue": "Finance"
+              },
+              {
+                "headerName": "legalEntity",
+                "headerValue": "Company XYZ"
+              },
+              {
+                "headerName": "profitCenter",
+                "headerValue": "PC-101"
+              },
+              {
+                "headerName": "division",
+                "headerValue": "Corporate"
+              }
+            ],
+            "policyValidation": [
+              {
+                "success": true,
+                "greenFlag": true,
+                "currencyName": "INR",
+                "amountAllowed": 5000,
+                "violationMessage": "Total amount is under the policy limit"
+              },
+              {
+                "success": false,
+                "message": "Group policies not found"
+              }
+            ],
+            "expenseLineAllocation": [],
+            "lineItemStatus":"rejected"
+          },
+          {
+            "lineItemStatus": "rejected",
+            "expenseLineId": "667a3951b043bb2aadca304e",
+            "isMultiCurrency": false,
+            "isPersonalExpense": false,
+            "billImageUrl": "",
+            "_id": "667a3951b043bb2aadca304f",
+            "Bill Date": "2024-01-19",
+            "Bill Number": "5497579396",
+            "Vendor Name": "Uncle Jack's",
+            "Description": "",
+            "Quantity": "1",
+            "Unit Cost": "209",
+            "Tax Amount": "5.99",
+            "Total Amount": "136",
+            "Mode of Payment": "Cash",
+            "Currency": {
+              "countryCode": "IN",
+              "fullName": "Indian Rupee",
+              "shortName": "INR",
+              "symbol": "₹"
+            },
+            "Category Name": "Meals",
+            "convertedAmountDetails": null,
+            "allocations": [
+              {
+                "headerName": "department",
+                "headerValue": "Finance"
+              },
+              {
+                "headerName": "legalEntity",
+                "headerValue": "Company XYZ"
+              },
+              {
+                "headerName": "profitCenter",
+                "headerValue": "PC-101"
+              },
+              {
+                "headerName": "division",
+                "headerValue": "Corporate"
+              }
+            ],
+            "policyValidation": [
+              {
+                "success": true,
+                "greenFlag": true,
+                "currencyName": "INR",
+                "amountAllowed": 5000,
+                "violationMessage": "Total amount is under the policy limit"
+              },
+              {
+                "success": false,
+                "message": "Group policies not found"
+              }
+            ],
+            "expenseLineAllocation": [],
+            "lineItemStatus":"rejected"
+          },
+          {
+            "expenseLineId": "667a3951b043bb2aadca304e",
+            "isMultiCurrency": false,
+            "isPersonalExpense": false,
+            "billImageUrl": "",
+            "_id": "667a3951b043bb2aadca304f",
+            "Bill Date": "2024-01-19",
+            "Bill Number": "5497579396",
+            "Vendor Name": "Uncle Jack's",
+            "Description": "",
+            "Quantity": "1",
+            "Unit Cost": "209",
+            "Tax Amount": "5.99",
+            "Total Amount": "136",
+            "Mode of Payment": "Cash",
+            "Currency": {
+              "countryCode": "IN",
+              "fullName": "Indian Rupee",
+              "shortName": "INR",
+              "symbol": "₹"
+            },
+            "Category Name": "Meals",
+            "convertedAmountDetails": null,
+            "allocations": [
+              {
+                "headerName": "department",
+                "headerValue": "Finance"
+              },
+              {
+                "headerName": "legalEntity",
+                "headerValue": "Company XYZ"
+              },
+              {
+                "headerName": "profitCenter",
+                "headerValue": "PC-101"
+              },
+              {
+                "headerName": "division",
+                "headerValue": "Corporate"
+              }
+            ],
+            "policyValidation": [
+              {
+                "success": true,
+                "greenFlag": true,
+                "currencyName": "INR",
+                "amountAllowed": 5000,
+                "violationMessage": "Total amount is under the policy limit"
+              },
+              {
+                "success": false,
+                "message": "Group policies not found"
+              }
+            ],
+            "expenseLineAllocation": [],
+            "lineItemStatus":"rejected"
+          },
+          {
+            "expenseLineId": "667a3951b043bb2aadca304e",
+            "isMultiCurrency": false,
+            "isPersonalExpense": false,
+            "billImageUrl": "",
+            "_id": "667a3951b043bb2aadca304f",
+            "Bill Date": "2024-01-19",
+            "Bill Number": "5497579396",
+            "Vendor Name": "Uncle Jack's",
+            "Description": "",
+            "Quantity": "1",
+            "Unit Cost": "209",
+            "Tax Amount": "5.99",
+            "Total Amount": "136",
+            "Mode of Payment": "Cash",
+            "Currency": {
+              "countryCode": "IN",
+              "fullName": "Indian Rupee",
+              "shortName": "INR",
+              "symbol": "₹"
+            },
+            "Category Name": "Meals",
+            "convertedAmountDetails": null,
+            "allocations": [
+              {
+                "headerName": "department",
+                "headerValue": "Finance"
+              },
+              {
+                "headerName": "legalEntity",
+                "headerValue": "Company XYZ"
+              },
+              {
+                "headerName": "profitCenter",
+                "headerValue": "PC-101"
+              },
+              {
+                "headerName": "division",
+                "headerValue": "Corporate"
+              }
+            ],
+            "policyValidation": [
+              {
+                "success": true,
+                "greenFlag": true,
+                "currencyName": "INR",
+                "amountAllowed": 5000,
+                "violationMessage": "Total amount is under the policy limit"
+              },
+              {
+                "success": false,
+                "message": "Group policies not found"
+              }
+            ],
+            "expenseLineAllocation": [],
+            "lineItemStatus":"rejected"
+          },
+          {
+            "expenseLineId": "667a3951b043bb2aadca304e",
+            "isMultiCurrency": false,
+            "isPersonalExpense": false,
+            "billImageUrl": "",
+            "_id": "667a3951b043bb2aadca304f",
+            "Bill Date": "2024-01-19",
+            "Bill Number": "5497579396",
+            "Vendor Name": "Uncle Jack's",
+            "Description": "",
+            "Quantity": "1",
+            "Unit Cost": "209",
+            "Tax Amount": "5.99",
+            "Total Amount": "136",
+            "Mode of Payment": "Cash",
+            "Currency": {
+              "countryCode": "IN",
+              "fullName": "Indian Rupee",
+              "shortName": "INR",
+              "symbol": "₹"
+            },
+            "Category Name": "Meals",
+            "convertedAmountDetails": null,
+            "allocations": [
+              {
+                "headerName": "department",
+                "headerValue": "Finance"
+              },
+              {
+                "headerName": "legalEntity",
+                "headerValue": "Company XYZ"
+              },
+              {
+                "headerName": "profitCenter",
+                "headerValue": "PC-101"
+              },
+              {
+                "headerName": "division",
+                "headerValue": "Corporate"
+              }
+            ],
+            "policyValidation": [
+              {
+                "success": true,
+                "greenFlag": true,
+                "currencyName": "INR",
+                "amountAllowed": 5000,
+                "violationMessage": "Total amount is under the policy limit"
+              },
+              {
+                "success": false,
+                "message": "Group policies not found"
+              }
+            ],
+            "expenseLineAllocation": [],
+            "lineItemStatus":"rejected"
+          },
+          {
+            "expenseLineId": "667a3951b043bb2aadca304e",
+            "isMultiCurrency": false,
+            "isPersonalExpense": false,
+            "billImageUrl": "",
+            "_id": "667a3951b043bb2aadca304f",
+            "Bill Date": "2024-01-19",
+            "Bill Number": "5497579396",
+            "Vendor Name": "Uncle Jack's",
+            "Description": "",
+            "Quantity": "1",
+            "Unit Cost": "209",
+            "Tax Amount": "5.99",
+            "Total Amount": "136",
+            "Mode of Payment": "Cash",
+            "Currency": {
+              "countryCode": "IN",
+              "fullName": "Indian Rupee",
+              "shortName": "INR",
+              "symbol": "₹"
+            },
+            "Category Name": "Meals",
+            "convertedAmountDetails": null,
+            "allocations": [
+              {
+                "headerName": "department",
+                "headerValue": "Finance"
+              },
+              {
+                "headerName": "legalEntity",
+                "headerValue": "Company XYZ"
+              },
+              {
+                "headerName": "profitCenter",
+                "headerValue": "PC-101"
+              },
+              {
+                "headerName": "division",
+                "headerValue": "Corporate"
+              }
+            ],
+            "policyValidation": [
+              {
+                "success": true,
+                "greenFlag": true,
+                "currencyName": "INR",
+                "amountAllowed": 5000,
+                "violationMessage": "Total amount is under the policy limit"
+              },
+              {
+                "success": false,
+                "message": "Group policies not found"
+              }
+            ],
+            "expenseLineAllocation": [],
+            "lineItemStatus":"rejected"
+          },
+          {
+            "expenseLineId": "667a3951b043bb2aadca304e",
+            "isMultiCurrency": false,
+            "isPersonalExpense": false,
+            "billImageUrl": "",
+            "_id": "667a3951b043bb2aadca304f",
+            "Bill Date": "2024-01-19",
+            "Bill Number": "5497579396",
+            "Vendor Name": "Uncle Jack's",
+            "Description": "",
+            "Quantity": "1",
+            "Unit Cost": "209",
+            "Tax Amount": "5.99",
+            "Total Amount": "136",
+            "Mode of Payment": "Cash",
+            "Currency": {
+              "countryCode": "IN",
+              "fullName": "Indian Rupee",
+              "shortName": "INR",
+              "symbol": "₹"
+            },
+            "Category Name": "Meals",
+            "convertedAmountDetails": null,
+            "allocations": [
+              {
+                "headerName": "department",
+                "headerValue": "Finance"
+              },
+              {
+                "headerName": "legalEntity",
+                "headerValue": "Company XYZ"
+              },
+              {
+                "headerName": "profitCenter",
+                "headerValue": "PC-101"
+              },
+              {
+                "headerName": "division",
+                "headerValue": "Corporate"
+              }
+            ],
+            "policyValidation": [
+              {
+                "success": true,
+                "greenFlag": true,
+                "currencyName": "INR",
+                "amountAllowed": 5000,
+                "violationMessage": "Total amount is under the policy limit"
+              },
+              {
+                "success": false,
+                "message": "Group policies not found"
+              }
+            ],
+            "expenseLineAllocation": [],
+            "lineItemStatus":"rejected"
+          },
+          {
+            "lineItemStatus":"pending approval",
             "expenseLineId": "667a3951b043bb2aadca304e",
             "isMultiCurrency": false,
             "isPersonalExpense": false,
@@ -2735,6 +3258,7 @@ const TrExpenseForApproval = [
             "expenseLineAllocation": []
           },
           {
+            "lineItemStatus":"approved",
             "expenseLineId": "667a3951b043bb2aadca304e",
             "isMultiCurrency": false,
             "isPersonalExpense": false,
@@ -2797,16 +3321,20 @@ const TrExpenseForApproval = [
           "shortName": "INR",
           "symbol": "₹"
         }
-      },
+      ,
       
   },
     {
+      "createdBy": {
+      "empId": "100b",
+      "name": "Lyklii heliana",
+      "_id": "667babcdb043bb2aadcd288b"
+    },
       "tripId": "667a38e9e9a18ce3478d1261",
     "tripNumber": "TRIPAL000001",
     "tripPurpose": "Business",
-    "tripName": "DEL-BAN-LUC-DEL-BAN-DEL(9th Jul)",
-    "travelExpenseData": 
-      {
+    "tripName": "DEL-LUC-LUC-DEL-BAN-DEL(9th Jul)",
+ 
         "travelAllocationFlags": {
           "level1": false,
           "level2": false,
@@ -3266,7 +3794,7 @@ const TrExpenseForApproval = [
           "shortName": "INR",
           "symbol": "₹"
         }
-      },
+      
      
   }
 ]
@@ -3283,13 +3811,100 @@ const NonTrExpenseForApproval = [
       "name": "Benjamin Clark",
       "_id": "667babcdb043bb2aadcd288b"
     },
-    "expenseHeaderNumber": "REAL000007",
+    "expenseHeaderNumber": "NEAL000007",
     "expenseHeaderStatus": "draft",
     "expenseHeaderType": "reimbursement",
     "expenseLines": [
       {
         "lineItemId": "667babcdb043bb2aadcd2889",
-        "lineItemStatus": "save",
+        "lineItemStatus": "pending approval",
+        "expenseLineAllocation": [],
+        "multiCurrencyDetails": null,
+        "_id": "667babcdb043bb2aadcd288a",
+        "group": {
+          "limit": 0,
+          "group": "Finance Team",
+          "message": "Benjamin Clark is part of Finance Team. Highest limit found: 0"
+        },
+        "Category Name": "Luggage",
+        "Bill Date": "2024-06-27",
+        "Bill Number": "",
+        "Vendor Name": "",
+        "Description": "",
+        "Quantity": "",
+        "Unit Cost": "",
+        "Tax Amount": "",
+        "Total Amount": "761",
+        "Mode of Payment": "Cash",
+        "Document": "",
+        "Currency": {
+          "countryCode": "IN",
+          "fullName": "Indian Rupee",
+          "shortName": "INR",
+          "symbol": "₹"
+        }
+      },
+      {
+        "lineItemId": "667babcdb0x3bb2aadcd2889",
+        "lineItemStatus": "rejected",
+        "expenseLineAllocation": [],
+        "multiCurrencyDetails": null,
+        "_id": "667babcdb043bb2aadcd288a",
+        "group": {
+          "limit": 0,
+          "group": "Finance Team",
+          "message": "Benjamin Clark is part of Finance Team. Highest limit found: 0"
+        },
+        "Category Name": "Luggage",
+        "Bill Date": "2024-06-27",
+        "Bill Number": "",
+        "Vendor Name": "",
+        "Description": "",
+        "Quantity": "",
+        "Unit Cost": "",
+        "Tax Amount": "",
+        "Total Amount": "761",
+        "Mode of Payment": "Cash",
+        "Document": "",
+        "Currency": {
+          "countryCode": "IN",
+          "fullName": "Indian Rupee",
+          "shortName": "INR",
+          "symbol": "₹"
+        }
+      },
+      {
+        "lineItemId": "6127babcdb0x3bb2aadcd2889",
+        "lineItemStatus": "approved",
+        "expenseLineAllocation": [],
+        "multiCurrencyDetails": null,
+        "_id": "667babcdb043bb2aadcd288a",
+        "group": {
+          "limit": 0,
+          "group": "Finance Team",
+          "message": "Benjamin Clark is part of Finance Team. Highest limit found: 0"
+        },
+        "Category Name": "Luggage",
+        "Bill Date": "2024-06-27",
+        "Bill Number": "",
+        "Vendor Name": "",
+        "Description": "",
+        "Quantity": "",
+        "Unit Cost": "",
+        "Tax Amount": "",
+        "Total Amount": "761",
+        "Mode of Payment": "Cash",
+        "Document": "",
+        "Currency": {
+          "countryCode": "IN",
+          "fullName": "Indian Rupee",
+          "shortName": "INR",
+          "symbol": "₹"
+        }
+      },
+      {
+        "lineItemId": "6127babcdb0x3bb2aadcdx889",
+        "lineItemStatus": "pending approval",
         "expenseLineAllocation": [],
         "multiCurrencyDetails": null,
         "_id": "667babcdb043bb2aadcd288a",
@@ -3392,7 +4007,7 @@ const NonTrExpenseForApproval = [
         }
       },
       {
-        "lineItemId": "667babcdb043bb2aadcd2892",
+        "lineItemId": "667babc7b043bb2aadcd2892",
         "lineItemStatus": "submitted",
         "expenseLineAllocation": [],
         "multiCurrencyDetails": null,
@@ -3420,64 +4035,7 @@ const NonTrExpenseForApproval = [
           "symbol": "₹"
         }
       },
-      {
-        "lineItemId": "667babcdb043bb2aadcd2894",
-        "lineItemStatus": "rejected",
-        "expenseLineAllocation": [],
-        "multiCurrencyDetails": null,
-        "_id": "667babcdb043bb2aadcd2895",
-        "group": {
-          "limit": 0,
-          "group": "HR Team",
-          "message": "Benjamin Clark is part of HR Team. Highest limit found: 0"
-        },
-        "Category Name": "Office Supplies",
-        "Bill Date": "2024-06-24",
-        "Bill Number": "STN78901",
-        "Vendor Name": "Office Supplies Ltd",
-        "Description": "Office stationery purchase",
-        "Quantity": "10",
-        "Unit Cost": "50",
-        "Tax Amount": "5",
-        "Total Amount": "505",
-        "Mode of Payment": "Cash",
-        "Document": "",
-        "Currency": {
-          "countryCode": "IN",
-          "fullName": "Indian Rupee",
-          "shortName": "INR",
-          "symbol": "₹"
-        }
-      },
-      {
-        "lineItemId": "667babcdb043bb2aadcd2894",
-        "lineItemStatus": "rejected",
-        "expenseLineAllocation": [],
-        "multiCurrencyDetails": null,
-        "_id": "667babcdb043bb2aadcd2895",
-        "group": {
-          "limit": 0,
-          "group": "HR Team",
-          "message": "Benjamin Clark is part of HR Team. Highest limit found: 0"
-        },
-        "Category Name": "Office Supplies",
-        "Bill Date": "2024-06-24",
-        "Bill Number": "STN78901",
-        "Vendor Name": "Office Supplies Ltd",
-        "Description": "Office stationery purchase",
-        "Quantity": "10",
-        "Unit Cost": "50",
-        "Tax Amount": "5",
-        "Total Amount": "505",
-        "Mode of Payment": "Cash",
-        "Document": "",
-        "Currency": {
-          "countryCode": "IN",
-          "fullName": "Indian Rupee",
-          "shortName": "INR",
-          "symbol": "₹"
-        }
-      }
+     
     ]
   },
 ]

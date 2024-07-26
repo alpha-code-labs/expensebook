@@ -6,7 +6,7 @@ import { receipt, chevron_down, calender_icon, double_arrow , three_dot ,validat
 import ApprovalTravelExpense from '../components/approvals/ApprovalTravelExpense';
 import { handleApproval } from '../utils/actionHandler';
 import { useParams } from 'react-router-dom';
-import TravelMS from './TravelMS';
+import TravelMS from '../microservice/TravelMS';
 import { approvalViewRoutes } from '../utils/route';
 import { travelExpense } from '../dummyData/travelExpense';
 // import CashAdvance from '../components/settlement/CashAdvance';

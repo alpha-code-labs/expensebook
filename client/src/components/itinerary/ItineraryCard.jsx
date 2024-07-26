@@ -197,5 +197,6 @@ function isoString(dateString) {
 }
 
 function formattedTime(timeValue) {
+    if(timeValue)
     return timeValue.split(' ').join('');
 }

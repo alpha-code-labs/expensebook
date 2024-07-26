@@ -6,7 +6,7 @@ import Modal from '../components/common/Modal1';
 import TripSearch from '../components/common/TripSearch';
 import Button1 from '../components/common/Button1';
 import { handleCashAdvance } from '../utils/actionHandler';
-import TravelMS from './TravelMS';
+import TravelMS from '../microservice/TravelMS';
 import { useData } from '../api/DataProvider';
 import Error from '../components/common/Error';
 import { useParams } from 'react-router-dom';
@@ -47,8 +47,8 @@ const CashAdvance = ({isLoading, fetchData, loadingErrMsg}) => {
       const upcomingTrips = data?.upcomingTrips || [];
       const intransitTrips = data?.transitTrips || [];
   
-      const dataForRaiseCashadvance = [...travelData, ...upcomingTrips, ...intransitTrips];
-      const pushedData = dataForRaiseCashadvance?.map(item => ({ ...item, tripName: "us - del - mum - gkr" }));
+      const dataForRaiseCashadvance = [...intransitTrips, ...upcomingTrips,...travelData,  ];
+      const pushedData = dataForRaiseCashadvance?.map(item => ({ ...item }));
 
       setTravelData(pushedData);
       setCashAdvanceData(employeeData?.dashboardViews?.employee?.cashAdvance);
@@ -259,8 +259,6 @@ Raise a Cash-Advance
               </div>
               </div>
               {filteredCashadvances?.map((advance,index) => ( 
-                
-
                 <div key={index} className={`px-2 py-2 ${index < filteredCashadvances.length-1 && 'border-b border-slate-400 '}`}>
                   <div className='flex justify-between'>
                     <div className='flex flex-col justify-center max-w-[120px]'>
@@ -303,7 +301,6 @@ Raise a Cash-Advance
                <div className='header-title'>Cash-Advance No.</div>
                <p className='header-text'>{cashAdvance?.cashAdvanceNumber}</p>
               </div>
-
               </div>
               
                 <div  className={`px-2 py-2`}>
@@ -318,18 +315,17 @@ Raise a Cash-Advance
     </div>
   ))}
 </div>
-
-                  </div>
-                    <div className='flex justify-center items-center gap-2 '>
-                    <div className={`text-center rounded-sm ${getStatusClass(cashAdvance?.cashAdvanceStatus ?? "-")}`}>
-                       <p className='px-1 py-1 text-xs text-center capitalize font-cabin'>{cashAdvance?.cashAdvanceStatus ?? "-"}</p>
-                  </div>
-                    <div  className='cursor-pointer w-7 h-7 bg-indigo-100 rounded-full border border-white-100 flex items-center justify-center'>
-                    <img src={modify} className='w-4 h-4' alt="Add Icon" />
-                  </div>
-                  </div>
-                  </div>
-                </div>
+      </div>
+        <div className='flex justify-center items-center gap-2 '>
+        <div className={`text-center rounded-sm ${getStatusClass(cashAdvance?.cashAdvanceStatus ?? "-")}`}>
+            <p className='px-1 py-1 text-xs text-center capitalize font-cabin'>{cashAdvance?.cashAdvanceStatus ?? "-"}</p>
+      </div>
+        <div  className='cursor-pointer w-7 h-7 bg-indigo-100 rounded-full border border-white-100 flex items-center justify-center'>
+        <img src={modify} className='w-4 h-4' alt="Add Icon" />
+      </div>
+      </div>
+      </div>
+    </div>
               
             </div>
           ))}
@@ -353,14 +349,14 @@ Raise a Cash-Advance
               </div>
 <div className='p-4'>
  <div className='flex md:flex-row flex-col justify-between gap-2 '>
- <div onClick={()=>setAdvanceType("travel_Cash-Advance")} className={`cursor-pointer transition  duration-200 hover:bg-indigo-100 hover:rounded-md flex-1 flex gap-2 items-center justify-center ${advancetype === "travel_Cash-Advance" ? ' border-b-2 border-indigo-600 text-indigo-600' : 'border-b-2 border-white-100 '}  p-4`}>
+  <div onClick={()=>setAdvanceType("travel_Cash-Advance")} className={`cursor-pointer transition  duration-200 hover:bg-indigo-100 hover:rounded-md flex-1 flex gap-2 items-center justify-center ${advancetype === "travel_Cash-Advance" ? ' border-b-2 border-indigo-600 text-indigo-600' : 'border-b-2 border-white-100 '}  p-4`}>
     <img src={money} className='w-5 h-5'/>
     <p className='truncate '>Travel Cash-Advance</p> 
   </div>
            
-  <div onClick={()=>setAdvanceType("non-Travel_Cash-Advance")} className={`cursor-pointer transition  duration-200 hover:bg-indigo-100 hover:rounded-md flex-1  flex items-center justify-center gap-2 p-4 ${advancetype === "non-Travel_Cash-Advance" ? 'border-b-2 border-indigo-600 text-indigo-600': "border-b-2 border-white-100"}  `}>
+  <div onClick={()=>setAdvanceType("non-Travel_Cash-Advance")} className={`min-w-fit cursor-pointer transition  duration-200 hover:bg-indigo-100 hover:rounded-md flex-1  flex items-center justify-center gap-2 p-4 ${advancetype === "non-Travel_Cash-Advance" ? 'border-b-2 border-indigo-600 text-indigo-600': "border-b-2 border-white-100"}  `}>
     <img src={money} className='w-5 h-5'/>
-    <p className='truncate  shrink'>Non-Travel Cash-Advance</p>
+    <p className=' shrink'>Non-Travel Cash-Advance</p>
   </div>
   
   </div>  

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { briefcase } from '../../assets/icon';
+import { splitTripName } from '../../utils/handyFunctions';
 
 const TripSearch = ({ data, onSelect, title, error, placeholder }) => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -90,21 +91,28 @@ const TripSearch = ({ data, onSelect, title, error, placeholder }) => {
                 <li
                   key={option.travelRequestId || option.tripId}
                   onClick={() => handleSelect(option)}
-                  className={`flex justify-between p-2 border-b border-slate-300 cursor-pointer ${highlightedIndex === index ? 'bg-gray-200' : 'hover:bg-gray-100'}`}
+                  className={`flex justify-between p-2 px-4 border-b border-slate-300 cursor-pointer ${highlightedIndex === index ? 'bg-gray-200' : 'hover:bg-gray-100'}`}
                 >
+                  
+            
+                  <div className='flex-1 flex gap-2 items-center'>
+                   
+                    <div className='flex min-w-max gap-2 items-center '>
+              <img src={briefcase} className='w-4 h-4'/>
+              <div className='font-medium font-cabin  text-sm uppercase text-neutral-700 '>
+               {splitTripName(option?.tripName)}
+              </div>
+              <div className='font-medium font-cabin  text-sm  text-neutral-700 '>
+               {extractAndFormatDate(option?.tripName)}
+              </div>
+              </div>
+                  </div>
                   <div className='flex-1 flex flex-col justify-center items-start'>
                     <div className='font-medium text-sm font-cabin text-neutral-400'>
                       {option.tripNumber ? "Trip No." : "Travel Request No."}
                     </div>
                     <div className='text-sm font-cabin text-start text-neutral-700'>
                       {option.tripNumber || option.travelRequestNumber}
-                    </div>
-                  </div>
-            
-                  <div className='flex-1 flex gap-2 items-center'>
-                    <img src={briefcase} className='w-4 h-4' alt="briefcase icon"/>
-                    <div className='font-medium font-cabin text-md uppercase text-neutral-700'>
-                      {option.tripName}
                     </div>
                   </div>
                 </li>
@@ -123,4 +131,23 @@ const TripSearch = ({ data, onSelect, title, error, placeholder }) => {
 };
 
 export default TripSearch;
+
+
+
+const extractAndFormatDate = (inputString) => {
+  const datePattern = /(\d{1,2})(st|nd|rd|th) (\w{3})/;
+  const match = inputString.match(datePattern);
+
+  if (match) {
+    const [, day, suffix, month] = match;
+    return (
+      <>
+        {day}
+        <span className="align-super text-xs">{suffix}</span> {month}
+      </>
+    );
+  }
+
+  return null;
+};
 

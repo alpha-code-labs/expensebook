@@ -85,7 +85,7 @@ const Sidebar = ({ fetchData }) => {
 
     const sidebarItems = [
         { label: 'Overview', icon: house_simple, icon1: house_simple_1, url: '', count: '' },
-        { label: 'Travel', icon: airplane_1, icon1: airplane_icon1, url: '', count: countData?.rejectedTravelRequests },
+        { label: 'Trip', icon: airplane_1, icon1: airplane_icon1, url: '', count: countData?.rejectedTravelRequests },
         { label: 'Cash-Advance', icon: money, icon1: money1, url: '', count: countData?.rejectedCashAdvances },
         { label: 'Expense', icon: receipt, icon1: receipt_icon1, url: '', count: "" },
     ];

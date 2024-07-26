@@ -7,26 +7,93 @@ import Modal from '../components/common/Modal1';
 import TripSearch from '../components/common/TripSearch';
 import Button1 from '../components/common/Button1';
 import { handleApproval, handleCashAdvance } from '../utils/actionHandler';
-import TravelMS from './TravelMS';
+import TravelMS from '../microservice/TravelMS';
 import { useData } from '../api/DataProvider';
 import Error from '../components/common/Error';
 import { useParams } from 'react-router-dom';
 import Input from '../components/common/SearchInput';
+import Select from '../components/common/Select';
+import Button from '../components/common/Button';
+import { approveTravelRequestApi } from '../utils/api';
+import PopupMessage from "../components/common/PopupMessage";
+
+
+const rejectionOptions=['Too Many Violations', 'Budget Constraints','Insufficient Documents','Upcoming Project Deadline']
 
 const Approval = ({isLoading, fetchData, loadingErrMsg}) => {
 
-   
-   
-   const [approvalUrl , setApprovalUrl]=useState(null)
-  const [visible, setVisible]=useState(false) 
-  const [travelRequestId , setTravelRequestId]=useState(null) 
-  const [advancetype , setAdvanceType]=useState(null) 
-  const [textVisible,setTextVisible]=useState({cashAdvance:false}) 
-  const [modalOpen , setModalOpen]=useState(false) 
-  const [searchQuery,setSearchQuery]= useState(false)
-  const [seleactAll , setSelectAll]=useState([])
+  const [approvalUrl , setApprovalUrl]=useState(null);
+  const [visible, setVisible]=useState(false); 
+  const [travelRequestId , setTravelRequestId]=useState(null); 
+  const [advancetype , setAdvanceType]=useState(null); 
+  const [textVisible,setTextVisible]=useState({cashAdvance:false});
+  const [modalOpen , setModalOpen]=useState(false);
+  const [searchQuery,setSearchQuery]= useState(false);
+  const [seleactAll , setSelectAll]=useState([]);
+  const [selectedLineItems , setSelectedLineItems]=useState([]);
+  const [modalContentTitle , setModalContentTitle]=useState(null);
+  const [actionType, setActionType] = useState(true); 
+  const [selectedRejReason, setSelectedRejReason]=useState(null);
+  const [expenseDetails, setExpenseDetails]=useState(null);
+  const [isUploading,setIsUploading]=useState(false);
+  const [showPopup, setShowPopup] = useState(false)
+  const [message, setMessage] = useState(null)
+  const [error , setError]= useState({
+    travelRequestId: {set:false, message:""},
+    rejectionReason:{set:false,message:""}
+  }) 
 
 
+  // short by status
+  const sortByStatus = (array) => {
+    const statusOrder = ["pending approval", "approved", "rejected"];
+    
+    return array.sort((a, b) => {
+      return statusOrder.indexOf(a.lineItemStatus) - statusOrder.indexOf(b.lineItemStatus);
+    });
+  };
+
+  const closeModal=()=>{
+    setModalOpen(!modalOpen);
+    setSelectAll([]);
+    setSelectedLineItems([]);
+  }
+
+
+  const openModal = (action) => {
+    setActionType(action);
+    setModalOpen(true);
+  };
+
+  const expenseLines = expenseDetails?.expenseLines?.filter(lineItem => lineItem?.lineItemStatus === "pending approval") || []
+  const handleAllLineItems = () => {
+    if (expenseLines?.length !== selectedLineItems?.length) {
+      const filteredData = expenseDetails?.expenseLines.filter(
+        lineItem => lineItem?.lineItemStatus === "pending approval"
+      );
+  
+      const data = filteredData.map(lineItem => lineItem?.lineItemId);
+  
+      console.log("filtered data", data);
+      setSelectedLineItems(data);
+    } else {
+      setSelectedLineItems([]);
+    }
+  };
+  
+
+  const handleLineItem = (lineItemId)=>{
+    const isSelected = selectedLineItems.includes(lineItemId)
+    if (isSelected) {
+      const data = selectedLineItems.filter(item => item !== lineItemId);
+      setSelectedLineItems(data);
+      } else {
+        setSelectedLineItems([...selectedLineItems, lineItemId]);
+        }  
+  }
+
+console.log('selected lineItems',selectedLineItems)
+  
   const handleSelectAll = ()=>{
 
   if(TRCashadvance?.length !== seleactAll?.length || 0){
@@ -39,7 +106,7 @@ const Approval = ({isLoading, fetchData, loadingErrMsg}) => {
       setSelectAll([]);
     }
   }
-
+  
   
   const handleSelect = (obj) => {
     setSelectAll(prevSelected => {
@@ -67,10 +134,8 @@ const Approval = ({isLoading, fetchData, loadingErrMsg}) => {
   console.log('all selected data', seleactAll)
 
 
-
-  const [error , setError]= useState({
-    travelRequestId: {set:false, message:""}
-  }) 
+  
+ 
 
   const { employeeData } = useData();
  
@@ -89,47 +154,29 @@ const Approval = ({isLoading, fetchData, loadingErrMsg}) => {
     fetchData(tenantId,empId,page)
 
   },[])
-
+  
   const travelAndCashAdvances = approvalData?.travelAndCash || []
   const travelAndNonTravelExpenses = approvalData?.travelExpenseReports || []
   const dummyTrExpense = TrExpenseForApproval?.map((expense)=> ({...expense,expenseType:"Travel Expense"})) || []
   const dummyNonTravelExpense = NonTrExpenseForApproval?.map((expense)=>({...expense,expenseType:"Non Travel Expense"})) || []
-
-
-
   const DummyExpenseData = [...dummyTrExpense, ...dummyNonTravelExpense]
-
-console.log('dummy expense for approval ', DummyExpenseData)
+  
+  
+  
+  console.log('dummy expense for approval ', DummyExpenseData)
   
  
   
 
 
-  const handleRaise = () => {
-    if (advancetype === "travel_Cash-Advance") {
-      if (!travelRequestId) {
-        setError(prev => ({ ...prev, travelRequestId: { set: true, message: "Select the trip" } }));
-        
-        return;
-      } 
-      setError(prev => ({ ...prev, travelRequestId: { set: false, message: "" } }));
-      setTravelRequestId(null)
-      setAdvanceType(null)
-      setModalOpen(false)
-      handleVisible(travelRequestId, 'ca-create')
-    } else {
-      setAdvanceType(null)
-      setModalOpen(false)
-      handleVisible(travelRequestId, 'ca-create')
-    }
-  };
+
 
  
 
 
 //cashadvance iframe
 
-    const handleVisible = (travelRequestId, action) => {
+const handleVisible = (travelRequestId, action) => {
 
   setVisible(!visible);
   let url ;
@@ -148,8 +195,6 @@ console.log('dummy expense for approval ', DummyExpenseData)
   
   setApprovalUrl(url)
       }
-
-
 
   useEffect(() => {
     const handleMessage = event => {
@@ -180,25 +225,17 @@ console.log('dummy expense for approval ', DummyExpenseData)
   // }
   
   useEffect(() => {
-    if (visible) {
+    if (visible || modalOpen) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = 'visible';
     }
-  }, [visible]);
+  }, [visible || modalOpen]);
 
   
-  const [selectedStatuses, setSelectedStatuses] = useState([]);
+ 
   
-  const handleStatusClick = (status) => {
 
-    setSelectedStatuses((prev) =>
-      prev.includes(status)
-        ? prev.filter((s) => s !== status)
-        : [...prev, status]
-    );
-
-  };
 
   
   
@@ -210,51 +247,45 @@ console.log('dummy expense for approval ', DummyExpenseData)
     }else{
       return cashadvances
     }
-    
-
   };
-  const filterExpenses = (expenseObject) => {
-    if (!searchQuery) {
-      return expenseObject;
-    }
   
-    const lowerCaseQuery = searchQuery.toLowerCase();
-  
-    // Recursive function to search within the object
-    const searchObject = (obj) => {
-      for (const key in obj) {
-        if (typeof obj[key] === 'object' && obj[key] !== null) {
-          if (searchObject(obj[key])) {
-            return true;
-          }
-        } else if (typeof obj[key] === 'string' || typeof obj[key] === 'number') {
-          if (obj[key].toString().toLowerCase().includes(lowerCaseQuery)) {
-            return true;
-          }
-        }
-      }
-      return false;
-    };
-  
-    return searchObject(expenseObject) ? expenseObject : null;
-  };
-  // const filterExpenses = (expenses) => {
-  //   if (searchQuery) {
-  //     return Object.values(expenses)?.filter(expense =>
-  //       JSON.stringify(expense).toLowerCase().includes(searchQuery.toLowerCase())
-  //     );
-  //   } else {
-  //     return expenses;
+  // const filterExpenses = (expenseObject) => {
+  //   if (!searchQuery) {
+  //     return expenseObject;
   //   }
-  //   // if(searchQuery){
-  //   //   return expenses?.filter(expense =>
-  //   //     JSON.stringify(expense).toLowerCase().includes(searchQuery)
-  //   //   );
-  //   // }else{
-  //   //   return expenses
-  //   // }
-    
+  
+  //   const lowerCaseQuery = searchQuery.toLowerCase();
+  
+  //   // Recursive function to search within the object
+  //   const searchObject = (obj) => {
+  //     for (const key in obj) {
+  //       if (typeof obj[key] === 'object' && obj[key] !== null) {
+  //         if (searchObject(obj[key])) {
+  //           return true;
+  //         }
+  //       } else if (typeof obj[key] === 'string' || typeof obj[key] === 'number') {
+  //         if (obj[key].toString().toLowerCase().includes(lowerCaseQuery)) {
+  //           return true;
+  //         }
+  //       }
+  //     }
+  //     return false;
+  //   };
+  
+  //   return searchObject(expenseObject) ? expenseObject : null;
   // };
+  
+  const filterExpenses = (expenses) => {
+    if (searchQuery) {
+      return expenses.filter(expense =>
+        JSON.stringify(expense).toLowerCase().includes(searchQuery)
+      );
+    } else {
+      return expenses;
+    }
+   
+    
+  };
   
   const getStatusCount = (status, cashadvance) => {
     return cashadvance.filter((cashadvance) => cashadvance?.cashAdvanceStatus === status)?.length;
@@ -265,27 +296,270 @@ console.log('dummy expense for approval ', DummyExpenseData)
     return ['draft', 'cancelled'].includes(status);
   };
   
-  function ActionButton({approve, reject})
-  {
   
+  function ActionButton({approve, reject, onApproveClick, onRejectClick})
+  {
     return(<div className='font-cabin text-xs flex gap-x-2 items-center justify-center'>
        
           
-        <div className='w-fit hover:shadow-md hover:shadow-red-200/60 transition duration-300 cursor-pointer min-w-[70px] inline-flex gap-2 items-center justify-center border border-red-200 rounded-sm text-center  text-white-100 px-2 py-1 bg-red-600'>
+      
+
+        <div onClick={onApproveClick} className='w-fit hover:shadow-md hover:shadow-green-200/60 transition duration-300 cursor-pointer min-w-[70px] inline-flex gap-2 items-center justify-center  border border-green-200 rounded-sm text-center  text-white-100 px-2 py-1 bg-green-600'>
+          <p className='text-center'>{approve}</p>
+          <div className='border border-white-100 p-[2px] rounded-full '>
+            <img src={check_tick} className='w-3 h-3'/>
+          </div>
+        </div>
+
+        <div onClick={onRejectClick} className='w-fit hover:shadow-md hover:shadow-red-200/60 transition duration-300 cursor-pointer min-w-[70px] inline-flex gap-2 items-center justify-center border border-red-200 rounded-sm text-center  text-white-100 px-2 py-1 bg-red-600'>
         <p className='text-center'>{reject}</p>
         <div className='border border-white-100 p-[2px] rounded-full'>
           <img src={cross_icon} className='w-3 h-3'/>
         </div>
         </div>
-        <div className='w-fit hover:shadow-md hover:shadow-green-200/60 transition duration-300 cursor-pointer min-w-[70px] inline-flex gap-2 items-center justify-center  border border-green-200 rounded-sm text-center  text-white-100 px-2 py-1 bg-green-600'>
-          <p className='text-center'>{approve}</p>
-          <div className='border border-white-100 p-[2px] rounded-full '><img src={check_tick} className='w-3 h-3'/></div>
-        </div>
+
       </div>)
     
   }
+
+  const handleConfirm = async( action)=>{
+   
+    const rejectionReason = {rejectionReason :selectedRejReason}
+     let api;
+      if(action==='approveTrip'){
+        api=approveTravelRequestApi(tenantId , empId, travelRequestId )
+        console.log('travel api hit')
+      }else if (action === "cashadvance-approve"){
+        api= approveTravelRequestApi(tenantId ,empId,travelRequestId )
+      }else if (action === 'rejectTrip' && rejectionReason?.rejectionReason){
+        api = approveTravelRequestApi(tenantId,empId,travelRequestId,rejectionReason)
+      }else if (action === 'itinerary-reject' && rejectionReason?.rejectionReason ){
+        api = approveTravelRequestApi(tenantId,empId,travelRequestId,rejectionReason)
+      }
+
+let validConfirm = true
+ if((action === 'rejectTrip' || action === 'rejectExpense') && selectedRejReason === null){
+  setError((prev)=>({...prev, rejectionReason:{set:true, message:"Select the rejection reason."}}))
+  validConfirm =false
+ }else{
+  setError((prev)=>({...prev, rejectionReason:{set:false, message:""}}))
+ }
+if(validConfirm){
+  try {
+     setIsUploading(true);
+    // const response = await postTravelPreference_API({ tenantId, empId, formData });
+   const response = await api
+   console.log('responsemessage',response)
+   setIsUploading(false)
+   setShowPopup(true)
+   setMessage(response)
+    setTimeout(() => {setShowPopup(false);setIsUploading(false);setMessage(null),window.location.reload()},3000);
+  } catch (error) {
+    // setLoadingErrorMsg(`Please retry again : ${error.message}`); 
+    setShowPopup(true)
+    setMessage(error.message)
+    setTimeout(() => {setIsUploading(false);setMessage(null);setShowPopup(false)},3000);
+  }
+
+  // handleModalVisible()
+  // setActionData({})
+  setSelectedRejReason(null)
+}
+}
   
   
+  const getTitle = () => {
+    switch (actionType) {
+      case 'approveTrip':
+        return 'Approve Trip?';
+      case 'rejectTrip':
+        return 'Reject Trip';
+      case 'expenseDetails':
+        return 'Expense Details';
+      default:
+        return '';
+    }
+  };
+
+  const getContent = () => {
+    switch (actionType) {
+      case 'approveTrip':
+      case 'rejectTrip':
+        return (
+          <>
+          <p className="text-md px-4  text-start font-cabin text-neutral-600 ">
+          {actionType === "approveTrip"
+                          ? 'Once you approve, bookings for this trip can be initiated, and the corresponding cash advance will be processed for settlement.'
+                          : 'Please select the reason for rejection before proceeding.'
+                        }</p>
+             {actionType === "rejectTrip" &&  
+             <div className="">
+                <Select 
+                currentOption={selectedRejReason}
+                
+                placeholder='Select Reason'
+                options={rejectionOptions}
+                onSelect={(value) => setSelectedRejReason(value)}
+                error={error?.rejectionReason}
+              />
+                </div>}
+         
+                                <div className="flex items-center gap-2 mt-10">
+                                <Button1 loading={isUploading} active={isUploading} text='Confirm' onClick={()=>handleConfirm(actionType)} />
+                                <Button   text='Cancel'  onClick={closeModal}/>
+                                </div>
+                    </>
+        );
+      // case 'rejectTrip':
+        // return (
+        //   <>
+        //     <p className="text-md px-4 text-start font-cabin text-neutral-600">
+        //       Please select the reason for rejection before proceeding.
+        //     </p>
+        //     <div className="mt-10">
+        //       <Select 
+        //         currentOption={selectedRejReason}
+        //         title='Please select the reason for reject'
+        //         placeholder='Select Reason'
+        //         options={rejectionOptions}
+        //         onSelect={(value) => setSelectedRejReason(value)}
+        //         error={error}
+        //       />
+        //     </div>
+        //     <div className="flex items-center gap-2 mt-10">
+        //       <Button1  text='Confirm'  />
+        //       <Button   text='Cancel'  />
+        //     </div>
+        //   </>
+        // );
+      case 'expenseDetails':
+        return (
+          <div  className='mb-4 xl:w-[500px] w-full grow text-neutral-700 rounded-md shadow-custom-light bg-white-100 p-4'>           
+            <div className='flex gap-2 flex-col'> 
+              
+            <div className='flex flex-row justify-between'>
+              
+            <div className='flex gap-2 items-center'>
+                {/* <input onChange={() => handleSelect(trip)} type='checkbox' className='w-4 h-4 accent-indigo-600' checked={isTravelRequestSelected(trip?.travelRequestId)}/> */}
+             <div>
+                <p className='header-title'>Created By</p>
+                <p className='header-text'>{expenseDetails?.createdBy?.name ?? <span className='text-center'>-</span>}</p>
+             </div>
+              </div>
+              {/* <Button1 text="Take Action" variant="fit" onClick={() => {openModal("expenseDetails");}}/> */}
+              {/* <ActionButton approve={"Approve"} reject={"Reject"}/> */}
+
+            {/* <div className='flex items-center justify-center'>
+             <img src={info_icon} className='w-4 h-4'/>
+              <div className='text-sm font-cabin px-2 py-1 cursor-pointer' onClick={()=>{if(!disableButton(trip?.travelRequestStatus)){handleVisible(trip?.travelRequestId,  'travel-approval-view' )}}}>
+                <p className='text-indigo-600 font-semibold'>View Details</p>
+              </div>
+              </div> */}
+
+              </div>  
+            {expenseDetails?.expenseType === "Travel Expense" &&
+             <div className='flex flex-row justify-between'>
+             <div className='flex gap-2 items-center'>
+                     <img src={briefcase} className='w-4 h-4'/>
+                     <div className='font-medium font-cabin  text-sm uppercase text-neutral-700 '>
+                      {splitTripName(expenseDetails?.tripName)}
+                     </div>
+                     {/* <div className='font-medium font-cabin  text-sm  text-neutral-700 '>
+                      {extractAndFormatDate(trip?.tripName)}
+                     </div> */}
+              </div>
+             {/* <div className='flex items-center justify-center'>
+             <img src={info_icon} className='w-4 h-4'/>
+              <div className='text-sm font-cabin px-2 py-1 cursor-pointer' onClick={()=>{if(!disableButton(trip?.travelRequestStatus)){handleVisible(trip?.travelRequestId,  'travel-approval-view' )}}}>
+                <p className='text-indigo-600 font-semibold'>View Details</p>
+              </div>
+              </div> */}
+             </div>}
+             <div className='flex px-2 h-[36px] py-4  items-center justify-between gap-2'>
+    <div className='flex justify-center items-center gap-2'>
+    <input type='checkbox' checked={expenseLines?.length === selectedLineItems?.length ? true : false}  className='w-4 h-4 accent-indigo-600' onChange={handleAllLineItems}/>
+    Select All
+    </div>
+    <div>
+    {selectedLineItems.length > 0 && <ActionButton onRejectClick={() => openModal('rejectTrip')} onApproveClick={() => openModal('approveTrip')} approve={"Approve"} reject={"Reject"}/>}
+    </div>
+  </div>
+              </div>
+
+                    {/* {trip?.expenseType === "Travel Expense" &&
+                     <div className='flex gap-2 items-center '>
+                     <img src={briefcase} className='w-4 h-4'/>
+                     <div className='font-medium font-cabin  text-sm uppercase text-neutral-700 '>
+                      {splitTripName(trip?.tripName)}
+                     </div>
+                     <div className='font-medium font-cabin  text-sm  text-neutral-700 '>
+                      {extractAndFormatDate(trip?.tripName)}
+                     </div>
+                     </div>
+                    } */}
+                    
+                    <div className='mt-2 space-y-2'>
+                      {/* {filteredTripExpenses?.map((trExpense, index) => ( */}
+                        <div  className='border border-slate-300 rounded-md px-2 py-1'>
+                          <div className='flex flex-row justify-between items-center py-1 border-b border-slate-300 font-cabin font-xs'>
+                          <div className='flex gap-2 items-center'>
+                      <img src={receipt} className='w-5 h-5'/>
+                      <div className='text-start'>
+                        <div className='header-title'>Expense Header No.</div>
+                        <p className='header-text'>{expenseDetails?.expenseHeaderNumber}</p>
+                      </div>
+                        </div>
+                <div className='flex items-center justify-center'>
+                <img src={info_icon} className='w-4 h-4'/>
+                <div className='text-sm font-cabin px-2 py-1 cursor-pointer' onClick={()=>{if(!disableButton(expenseDetails?.travelRequestStatus)){handleVisible(expenseDetails?.travelRequestId,  'travel-approval-view' )}}}>
+                  <p className='text-indigo-600 font-semibold'>View Details</p>
+                </div>
+                </div>
+                
+                            {/* <div className={`text-center rounded-sm ${getStatusClass(trip?.expenseHeaderStatus ?? "-")}`}>
+                              <p className='px-1 py-1 text-xs text-center capitalize font-cabin'>{trip?.expenseHeaderStatus ?? "-"}</p>
+                            </div> */}
+                            {/* <div onClick={()=>{if(!disableButton(trip?.travelRequestStatus)){handleTravelExpense(trip?.tripId, filteredTripExpenses?.expenseHeaderId,  'trip-ex-modify' ,)}}} className={`w-7 h-7 bg-indigo-100 rounded-full border border-white-100 flex items-center justify-center ${disableButton(trip?.travelRequestStatus) ? ' cursor-not-allowed opacity-50' : ' cursor-pointer'}`}>
+                              <img src={modify} className='w-4 h-4' alt="modify_icon" />
+                            </div> */}
+                          </div>
+                          <div className='overflow-x-hidden overscroll-y-scroll py-1 pt-2 max-h-[525px] h-auto px-2 space-y-2'>
+                            {sortByStatus(expenseDetails?.expenseLines)?.map((line, index) => (
+                              <div key={`${index}-line`} className='flex  text-neutral-700 flex-row justify-between items-center font-cabin text-sm'>
+                                <div className='bg-indigo-50 border-2 shadow-md shadow-slate-900/50 translate-x-4 border-white-100 p-2 rounded-full'>
+                                  <img src={categoryIcons?.[line?.["Category Name"]]} className='w-4 h-4' />
+                                </div>
+                                <div className='flex border-slate-400 border flex-row justify-between text-neutral-700 flex-1 items-center  py-4 px-4 pl-6 rounded-md bg-slate-200'>
+                                 {["pending approval"].includes(line?.lineItemStatus) && 
+
+                                 <div className='w-fit'>
+                                  <input 
+                                  onChange={()=>handleLineItem(line?.lineItemId)} 
+                                  type='checkbox' 
+                                  checked={selectedLineItems.includes(line?.lineItemId)} 
+                                  className='cursor-pointer w-4 h-4 accent-indigo-600'/>
+                                  </div>} 
+                                  <div className='text-start'>{line?.["Category Name"]}</div>
+                                  <div className=''>{line?.["Currency"]?.shortName} {formatAmount(line?.["Total Amount"])}</div>
+                                  <div className={` text-center rounded-sm ${getStatusClass(line?.lineItemStatus ?? "-")}`}>
+                                      <p className='px-1 py-1 text-xs text-center capitalize font-cabin'>{line?.lineItemStatus ?? "-"}</p>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      
+                    </div>
+                  </div>
+        );
+      default:
+        return '';
+    }
+  };
+  
+  
+
   return (
     <>
      {isLoading && <Error message={loadingErrMsg}/>}
@@ -329,7 +603,7 @@ console.log('dummy expense for approval ', DummyExpenseData)
          
 <div className='relative  flex justify-center items-center  rounded-l-md   font-inter text-md text-white-100 h-[52px] bg-indigo-600  text-center'>
 
-<div
+{/* <div
 onClick={()=>setModalOpen(!modalOpen)}
 onMouseEnter={() => setTextVisible({cashAdvance:true})}
 onMouseLeave={() => setTextVisible({cashAdvance:false})}
@@ -343,17 +617,19 @@ textVisible?.cashAdvance ? 'opacity-100' : 'opacity-0 w-0'
 >
 Raise a Cash-Advance
 </div>
-</div>            
-  <div className='flex justify-center items-center'>
+</div>*/}
+
+<div className='flex justify-center items-center'>
     <img src={money1} className='w-6 h-6 mr-2'/>
      <p>Travel & Cash-Advances</p>
     </div>
 </div>
+
   <div className='flex px-2 h-[52px] py-4  items-center justify-start gap-2'>
     <input type='checkbox' checked={TRCashadvance.length === seleactAll.length ? true : false}  className='w-4 h-4 accent-indigo-600' onChange={handleSelectAll}/>
     Select All
     <div>
-    {seleactAll.length > 1 && <ActionButton approve={"Approve All"} reject={"Reject All"}/>}
+    {seleactAll.length > 0 && <ActionButton onRejectClick={() => openModal('rejectTrip')} onApproveClick={() => openModal('approveTrip')} approve={"Approve"} reject={"Reject"}/>}
     </div>
   </div>
 
@@ -361,8 +637,8 @@ Raise a Cash-Advance
           {filterCashadvances(TRCashadvance).map((trip) => { 
             return (
             <div key={trip.tripId} className='mb-4 rounded-md shadow-custom-light bg-white-100 p-4'>
-             <div className='flex gap-2 flex-col'>
-              <div className='flex flex-row justify-between'>
+            <div className='flex gap-2 flex-col'> 
+            <div className='flex flex-row justify-between'>
                 <div className='flex gap-2 items-center'>
                 <input onChange={() => handleSelect(trip)} type='checkbox' className='w-4 h-4 accent-indigo-600' checked={isTravelRequestSelected(trip?.travelRequestId)}/>
              <div>
@@ -370,23 +646,32 @@ Raise a Cash-Advance
                 <p className='header-text'>{trip?.createdBy?.name ?? <span className='text-center'>-</span>}</p>
              </div>
               </div>
-                <ActionButton approve={"Approve"} reject={"Reject"}/>
-              </div>
-             <div className='flex flex-row justify-between'>
-              
-              <div className='flex gap-2 items-center'>
-              <img src={briefcase} className='w-4 h-4'/>
-              <div className='font-medium font-cabin text-md uppercase'>
-               {splitTripName(trip?.tripName)}
-              </div>
-              </div>
-             <div className='flex items-center justify-center'>
+
+            <div className='flex items-center justify-center'>
              <img src={info_icon} className='w-4 h-4'/>
               <div className='text-sm font-cabin px-2 py-1 cursor-pointer' onClick={()=>{if(!disableButton(trip?.travelRequestStatus)){handleVisible(trip?.travelRequestId,  'travel-approval-view' )}}}>
                 <p className='text-indigo-600 font-semibold'>View Details</p>
               </div>
               </div>
               </div>
+             <div className='flex flex-row justify-between'>
+              
+             <div className='flex gap-2 items-center'>
+                     <img src={briefcase} className='w-4 h-4'/>
+                     <div className='font-medium font-cabin  text-sm uppercase text-neutral-700 '>
+                      {splitTripName(trip?.tripName)}
+                     </div>
+                     <div className='font-medium font-cabin  text-sm  text-neutral-700 '>
+                      {extractAndFormatDate(trip?.tripName)}
+                     </div>
+              </div>
+             {/* <div className='flex items-center justify-center'>
+             <img src={info_icon} className='w-4 h-4'/>
+              <div className='text-sm font-cabin px-2 py-1 cursor-pointer' onClick={()=>{if(!disableButton(trip?.travelRequestStatus)){handleVisible(trip?.travelRequestId,  'travel-approval-view' )}}}>
+                <p className='text-indigo-600 font-semibold'>View Details</p>
+              </div>
+              </div> */}
+             </div>
               </div>
               
               {trip?.cashAdvances?.map((advance,index) => (
@@ -418,6 +703,7 @@ Raise a Cash-Advance
             )
            })}
       </div>
+
           </div>
           <div className='flex-1 rounded-md'>
             <div className='flex justify-center items-center rounded-r-md font-inter text-md text-white-100 h-[52px] bg-indigo-600  text-center'>
@@ -463,39 +749,90 @@ Raise a Cash-Advance
    </div>))}
 </div> */}
  <div className='w-full xl:h-[570px] lg:h-[370px] md:[590px] overflow-y-auto px-2 bg-white-100 rounded-l-md'>
-              {TrExpenseForApproval?.map((trip, index) => {
-                const filteredTripExpenses = filterExpenses(trip?.travelExpenseData);
-                if (filteredTripExpenses?.length === 0) return null; 
+              {filterExpenses(DummyExpenseData)?.map((trip, index) => {
+                // const filteredTripExpenses = filterExpenses(trip?.travelExpenseData);
+                // if (filteredTripExpenses?.length === 0) return null; 
 
-                return (
-                  <div key={`${index}-tr-expense`} className='mb-4 text-neutral-700 rounded-md shadow-custom-light bg-white-100 p-4'>
-                  
-                    {trip?.tripType === "Travel Expense" && <div className='flex gap-2 items-center'>
-                      <img src={briefcase} className='w-4 h-4' />
-                      <div className='font-medium font-cabin text-md uppercase'>
-                        {trip.tripName}
-                      </div>
-                    </div>}
+            return (
+            <div key={`${index}-tr-expense`} className='mb-4 text-neutral-700 rounded-md shadow-custom-light bg-white-100 p-4'>           
+            <div className='flex gap-2 flex-col'> 
+            <div className='flex flex-row justify-between'>
+            <div className='flex gap-2 items-center'>
+                {/* <input onChange={() => handleSelect(trip)} type='checkbox' className='w-4 h-4 accent-indigo-600' checked={isTravelRequestSelected(trip?.travelRequestId)}/> */}
+             <div>
+                <p className='header-title'>Created By</p>
+                <p className='header-text'>{trip?.createdBy?.name ?? <span className='text-center'>-</span>}</p>
+              </div>
+              </div>
+              <Button1 text="Take Action" variant="fit" onClick={() => {openModal("expenseDetails");setExpenseDetails(trip)}}/>
+              {/* <ActionButton approve={"Approve"} reject={"Reject"}/> */}
+
+            {/* <div className='flex items-center justify-center'>
+             <img src={info_icon} className='w-4 h-4'/>
+              <div className='text-sm font-cabin px-2 py-1 cursor-pointer' onClick={()=>{if(!disableButton(trip?.travelRequestStatus)){handleVisible(trip?.travelRequestId,  'travel-approval-view' )}}}>
+                <p className='text-indigo-600 font-semibold'>View Details</p>
+              </div>
+              </div> */}
+              </div>  
+              {trip?.expenseType === "Travel Expense" &&
+             <div className='flex flex-row justify-between'>
+              
+             <div className='flex gap-2 items-center'>
+                     <img src={briefcase} className='w-4 h-4'/>
+                     <div className='font-medium font-cabin  text-sm uppercase text-neutral-700 '>
+                      {splitTripName(trip?.tripName)}
+                     </div>
+                     {/* <div className='font-medium font-cabin  text-sm  text-neutral-700 '>
+                      {extractAndFormatDate(trip?.tripName)}
+                     </div> */}
+              </div>
+             {/* <div className='flex items-center justify-center'>
+             <img src={info_icon} className='w-4 h-4'/>
+              <div className='text-sm font-cabin px-2 py-1 cursor-pointer' onClick={()=>{if(!disableButton(trip?.travelRequestStatus)){handleVisible(trip?.travelRequestId,  'travel-approval-view' )}}}>
+                <p className='text-indigo-600 font-semibold'>View Details</p>
+              </div>
+              </div> */}
+             </div>}
+              </div>
+
+                    {/* {trip?.expenseType === "Travel Expense" &&
+                     <div className='flex gap-2 items-center '>
+                     <img src={briefcase} className='w-4 h-4'/>
+                     <div className='font-medium font-cabin  text-sm uppercase text-neutral-700 '>
+                      {splitTripName(trip?.tripName)}
+                     </div>
+                     <div className='font-medium font-cabin  text-sm  text-neutral-700 '>
+                      {extractAndFormatDate(trip?.tripName)}
+                     </div>
+                     </div>
+                    } */}
+                    
                     <div className='mt-2 space-y-2'>
                       {/* {filteredTripExpenses?.map((trExpense, index) => ( */}
                         <div key={index} className='border border-slate-300 rounded-md px-2 py-1'>
                           <div className='flex flex-row justify-between items-center py-1 border-b border-slate-300 font-cabin font-xs'>
                           <div className='flex gap-2 items-center '>
-                      <img src={receipt} className='w-5 h-5' />
-                      <div >
+                      <img src={receipt} className='w-5 h-5'/>
+                      <div>
                         <div className='header-title'>Expense Header No.</div>
-                        <p className='header-text'>{filteredTripExpenses?.expenseHeaderNumber}</p>
+                        <p className='header-text'>{trip?.expenseHeaderNumber}</p>
                       </div>
                     </div>
-                            <div className={`text-center rounded-sm ${getStatusClass(filteredTripExpenses?.expenseHeaderStatus ?? "-")}`}>
-                              <p className='px-1 py-1 text-xs text-center capitalize font-cabin'>{filteredTripExpenses?.expenseHeaderStatus ?? "-"}</p>
-                            </div>
+                    <div className='flex items-center justify-center'>
+              <img src={info_icon} className='w-4 h-4'/>
+                <div className='text-sm font-cabin px-2 py-1 cursor-pointer' onClick={()=>{if(!disableButton(trip?.travelRequestStatus)){handleVisible(trip?.travelRequestId,  'travel-approval-view' )}}}>
+                  <p className='text-indigo-600 font-semibold'>View Details</p>
+                </div>
+                </div>
+                            {/* <div className={`text-center rounded-sm ${getStatusClass(trip?.expenseHeaderStatus ?? "-")}`}>
+                              <p className='px-1 py-1 text-xs text-center capitalize font-cabin'>{trip?.expenseHeaderStatus ?? "-"}</p>
+                            </div> */}
                             {/* <div onClick={()=>{if(!disableButton(trip?.travelRequestStatus)){handleTravelExpense(trip?.tripId, filteredTripExpenses?.expenseHeaderId,  'trip-ex-modify' ,)}}} className={`w-7 h-7 bg-indigo-100 rounded-full border border-white-100 flex items-center justify-center ${disableButton(trip?.travelRequestStatus) ? ' cursor-not-allowed opacity-50' : ' cursor-pointer'}`}>
                               <img src={modify} className='w-4 h-4' alt="modify_icon" />
                             </div> */}
                           </div>
                           <div className='overflow-x-hidden overflow-y-auto max-h-[236px] py-1 pt-2 h-auto px-2 space-y-2'>
-                            {filteredTripExpenses?.expenseLines.map((line, index) => (
+                            {trip?.expenseLines?.map((line, index) => (
                               <div key={`${index}-line`} className='flex  text-neutral-700 flex-row justify-between items-center font-cabin text-sm'>
                                 <div className='bg-indigo-50 border-2 shadow-md shadow-slate-900/50 translate-x-4 border-white-100 p-2 rounded-full'>
                                   <img src={categoryIcons?.[line?.["Category Name"]]} className='w-4 h-4' />
@@ -518,68 +855,59 @@ Raise a Cash-Advance
         </div>
       </div>
 
-    {/* <Modal 
+  
+    <Modal 
         isOpen={modalOpen} 
-        onClose={modalOpen}
-        content={<div className=' w-full h-auto'>
-          <div>
-            
-              <div className='flex gap-2 justify-between items-center bg-indigo-100 w-full p-4'>
-               
-                <p className='font-inter text-base font-semibold text-indigo-600'>Raise a Cash-Advance</p>
-                <div onClick={()=>{setModalOpen(!modalOpen);setTravelRequestId(null);setAdvanceType(null)}} className='bg-red-100 cursor-pointer rounded-full border border-white-100'>
-                <img src={cancel} className='w-5 h-5'/>
-                </div>
-              </div>
-<div className='p-4'>
- <div className='flex md:flex-row flex-col justify-between gap-2 '>
- <div onClick={()=>setAdvanceType("travel_Cash-Advance")} className={`cursor-pointer transition  duration-200 hover:bg-indigo-100 hover:rounded-md flex-1 flex gap-2 items-center justify-center ${advancetype === "travel_Cash-Advance" ? ' border-b-2 border-indigo-600 text-indigo-600' : 'border-b-2 border-white-100 '}  p-4`}>
-    <img src={money} className='w-5 h-5'/>
-    <p className='truncate '>Travel Cash-Advance</p> 
-  </div>
-           
-  <div onClick={()=>setAdvanceType("non-Travel_Cash-Advance")} className={`cursor-pointer transition  duration-200 hover:bg-indigo-100 hover:rounded-md flex-1  flex items-center justify-center gap-2 p-4 ${advancetype === "non-Travel_Cash-Advance" ? 'border-b-2 border-indigo-600 text-indigo-600': "border-b-2 border-white-100"}  `}>
-    <img src={money} className='w-5 h-5'/>
-    <p className='truncate  shrink'>Travel & Non-Travel Expenses</p>
-  </div>
-  
-  </div>  
-
-<div className='flex gap-4 flex-col items-start justify-start w-full py-2'>
-{ advancetype=== "travel_Cash-Advance" &&
- <div className='w-full'>
-  <TripSearch placeholder={"Select the trip"} error={error?.travelRequestId} title="Apply to trip" data={travelData} onSelect={handleSelect} />
- </div> }
-  
-
-
-{advancetype &&  <Button1 text={"Raise"} onClick={handleRaise } />}
-
-  
-   
-
-
-</div>   
-</div>
-
-
- 
-   
-            
+        onClose={()=>closeModal}
+        content={
+          <div className='w-full h-auto'>
+          <div className='flex gap-2 justify-between items-center bg-indigo-100 w-auto p-4'>
+            <div className='flex gap-2'>
+              <img src={info_icon} className='w-5 h-5' alt="Info icon"/>
+              <p className='font-inter text-base font-semibold text-indigo-600'>
+                {getTitle()}
+              </p>
+            </div>
+            <div onClick={() => setModalOpen(false)} className='bg-red-100 cursor-pointer rounded-full border border-white-100'>
+              <img src={cancel} className='w-5 h-5' alt="Cancel icon"/>
+            </div>
           </div>
 
-      </div>}
-      /> */}
-     
-
-
-        
+          <div className="p-4">
+            {getContent()}
+            
+          </div>
+        </div>}
+      />  
     </div>}
+    <PopupMessage showPopup={showPopup} setShowPopup={setShowPopup} message={message}/>
     </>
   );
 };
 
 export default Approval;
+
+
+
+const extractAndFormatDate = (inputString) => {
+  const datePattern = /(\d{1,2})(st|nd|rd|th) (\w{3})/;
+  const match = inputString.match(datePattern);
+
+  if (match) {
+    const [, day, suffix, month] = match;
+    return (
+      <>
+        {day}
+        <span className="align-super text-xs">{suffix}</span> {month}
+      </>
+    );
+  }
+
+  return null;
+};
+
+
+
 
 
 

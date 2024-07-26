@@ -3,12 +3,13 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "scripts": {
-    "dev": "vite",
+  "scripts":{
+    "dev": "vite --port 7008",
     "build": "vite build",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
   },
+  
   "dependencies": {
     "@azure/storage-blob": "^12.23.0",
     "@azure/identity": "^1.0.3",
@@ -20,6 +21,7 @@
     "react-router-dom": "^6.17.0",
     "react-tilt": "^1.0.2"
   },
+
   "devDependencies": {
     "@types/react": "^18.2.15",
     "@types/react-dom": "^18.2.7",

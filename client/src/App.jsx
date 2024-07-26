@@ -15,8 +15,7 @@ import Settlement from './pages/Settlement';
 import { getEmployeeData_API, getEmployeeRoles_API, logoutApi } from './utils/api';
 import { handleLoginPageUrl } from './utils/actionHandler';
 import Profile from './pages/Profile';
-import Error from './components/common/Error';
-import TravelMS from './pages/TravelMS';
+
 
 
 function App() {
@@ -129,7 +128,7 @@ function App() {
               element={<Overview fetchData={fetchData} loadingErrMsg={loadingErrMsg} setLoadingErrMsg={setLoadingErrMsg} isLoading={isLoading} setIsLoading={setIsLoading} setAuthToken={setAuthToken} />}
             />
             <Route
-              path="/:tenantId/:empId/travel"
+              path="/:tenantId/:empId/trip"
               element={<Travel fetchData={fetchData} loadingErrMsg={loadingErrMsg} isLoading={isLoading} setIsLoading={setIsLoading} setAuthToken={setAuthToken} />}
             />
             <Route
@@ -178,6 +177,9 @@ function App() {
 }
 
 export default App;
+
+
+
 // import React, { useEffect, useState } from 'react';
 // import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 // import { DataProvider } from './api/DataProvider';

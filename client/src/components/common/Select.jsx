@@ -4,7 +4,7 @@ import {  chevron_down } from "../../assets/icon";
 
 export default function Select(props) {
   const placeholder = props.placeholder || "Placeholder Text";
-  const title = props.title || "Title";
+  const title = props.title || "";
   const [hidePlaceholder, setHidePlaceholder] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef(null);
@@ -172,7 +172,7 @@ const selectDivFocus = (e)=>{
               {violationMessage}
             </div>}
             
-            {!showDropdown && !hidePlaceholder && error?.set && <div className="absolute top-[35px] w-full text-xs text-red-600 font-cabin">
+            {!showDropdown && !hidePlaceholder && error?.set && <div className="absolute top-[35px] w-full text-xs text-red-600 font-cabin text-start">
               {error?.message}
             </div>}
 
@@ -184,7 +184,7 @@ const selectDivFocus = (e)=>{
               <div
                 key='dropdown'
                 ref={dropdownRef}
-                className="absolute z-10 w-[calc(100%-10px)] h-fit max-h-[230px] overflow-y-scroll scroll rounded-b left-[5px] top-11 bg-white-100 transition-all border-b  border-l border-r border-neutral-300 shadow-sm"
+                className="absolute text-start  z-10 w-[calc(100%-10px)] h-fit max-h-[230px] overflow-y-scroll scroll rounded-b left-[5px] top-11 bg-white-100 transition-all border-b  border-l border-r border-neutral-300 shadow-sm"
               >
                 {optionsList &&
                   optionsList.map((option, index) => (

@@ -105,12 +105,23 @@ function formatDate(date=Date.now()){
   
     return finalFormattedDate;
   }
+
+  const sortTripsByDate = (trips) => {
+    return trips.sort((a, b) => {
+      const dateA = new Date(a.tripStartDate);
+      const dateB = new Date(b.tripStartDate);
+      return dateA - dateB;
+    });
+  };
   
   function getStatusClass(status){
     switch(status){
       case "approved":
         case "completed":
         case "booked":
+        case "intransit":
+        case "upcoming":
+        case "save":
         case "paid":
         case "recovered":
         return 'border border-green-200 bg-green-100 text-green-200 rounded-full';
@@ -197,8 +208,11 @@ function formatDate(date=Date.now()){
 }
 
 function splitTripName(tripName){
-    
-  return tripName?.split('(')[0];
+  if(tripName){ 
+  return tripName?.split('(')[0];}
+  else{
+    "-"
+  }
 }
 // export const extractAndFormatDate = (inputString) => {
 //   const datePattern = /(\d{1,2})(st|nd|rd|th) (\w{3})/;
@@ -221,5 +235,5 @@ function splitTripName(tripName){
 
   
 
-export { splitTripName, titleCase, formatDate, filterTravelRequests,formatDate2 ,getStatusClass ,addOrdinalIndicator ,formatDate3 ,getCashAdvanceButtonText,urlRedirection,formatAmount}  
+export {sortTripsByDate, splitTripName, titleCase, formatDate, filterTravelRequests,formatDate2 ,getStatusClass ,addOrdinalIndicator ,formatDate3 ,getCashAdvanceButtonText,urlRedirection,formatAmount}  
 

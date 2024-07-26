@@ -2,6 +2,7 @@ import axios from 'axios';
 
 
 const DASHBOARD_BACKEND_API_URL = import.meta.env.VITE_DASHBOARD_BACKEND_API_URL;
+const APPROVAL_BACKEND_API_URL = import.meta.env.VITE_APPROVAL_BACKEND_API_URL;
 
 const retry = 2;
 const retryDelay = 3000;
@@ -171,6 +172,57 @@ export const postTravelPreference_API = async (tenantId, empId, formData) => {
     return { error: errorObject };
   }
 };
+
+
+
+export const approveTravelRequestApi = async(tenantId,empId,travelRequestId,isCashAdvanceTaken)=>{
+  let url
+   if(isCashAdvanceTaken){
+     url = `${APPROVAL_BACKEND_API_URL}/api/fe/approvals/tr-ca/approve-tr/${tenantId}/${empId}/${travelRequestId}`
+  }else{
+    url = `${APPROVAL_BACKEND_API_URL}/api/fe/approvals/tr-ca/approve-tr-standalone/${tenantId}/${empId}/${travelRequestId}`
+  }
+  
+    try{
+       const response = await axiosRetry(axios.patch,url)
+       return(response.data.message)
+  
+  
+    }catch(error){
+      handleRequestError(error);
+      const errorObject = {
+        status: error.response?.status || null,
+        message: error.message || 'Unknown error',
+      };
+      console.log('Post Error : ',errorObject);
+      return {  error: errorObject };
+    }
+  }
+  
+  ///reject for travelRequest
+  
+  export const rejectTravelRequestApi = async(tenantId,empId,travelRequestId,isCashAdvanceTaken,rejectionReason)=>{
+  let url
+   if(isCashAdvanceTaken){
+     url = `${APPROVAL_BACKEND_API_URL}/api/fe/approvals/tr-ca/reject-tr/${tenantId}/${empId}/${travelRequestId}`
+  }else{
+    url = `${APPROVAL_BACKEND_API_URL}/api/fe/approvals/tr-ca/reject-tr-standalone/${tenantId}/${empId}/${travelRequestId}`
+  }
+  
+    try{
+      const response= await axiosRetry(axios.patch,url,rejectionReason)
+  
+      return(response.data.message)
+    }catch(error){
+      handleRequestError(error);
+      const errorObject = {
+        status: error.response?.status || null,
+        message: error.message || 'Unknown error',
+      };
+      console.log('Post Error : ',errorObject);
+      return {  error: errorObject };
+    }
+  }
 
 
 
