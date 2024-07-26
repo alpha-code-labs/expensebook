@@ -916,7 +916,7 @@ const getAllExpensesForEmployee = async (tenantId, empId) => {
             'tripSchema.tenantId': tenantId,
             'tripSchema.travelRequestData.createdBy.empId': empId,
             $or: [
-              { 'tripSchema.tripStatus': { $nin: ['upcoming'] } },
+              { 'tripSchema.tripStatus': { $nin: ['upcoming',  'recovered',] } },
             ],
         },
         { 'reimbursementSchema.createdBy.empId': empId }, 
@@ -1513,38 +1513,6 @@ const managerLayout = async (tenantId,empId) => {
    }
 }
 
-//------------- employee manager Approvals 
-
-
-// cashAdvanceSchema
-// cashAdvanceSchema.forEach((cashAdvance) => {
-//     const { travelRequestData, cashAdvanceData } = cashAdvance;
-
-//     const isValidTravelStatus = travelRequestData.travelRequestStatus === 'pending approval';
-//     const isValidStatus = status === travelRequestData.approvers.status;
-//     const isValidApprover = empId === travelRequestData.approvers.empId;
-
-
-//     // travel and cash both are - pending approval 
-//     if ( isValidTravelStatus && isValidStatus && isValidApprover) {
-//       const { travelRequestId, approvers, travelRequestNumber, travelRequestStatus } = travelRequestData;
-
-//       const isValidCashStatus = cashAdvanceData.cashAdvanceStatus === 'pending approval';
-//       if (isValidCashStatus){
-//         // Assuming cashAdvanceData is an array and iterating through it
-//           cashAdvanceData.forEach((cashAdvance) => {
-//         const { travelRequestNumber, cashAdvanceNumber, cashAdvanceId } = cashAdvance;
-//         currentTrWithCash.cashAdvance.push({travelRequestNumber, cashAdvanceNumber, cashAdvanceId })
-//       });
-
-//       travelWithCashForApproval.push({ travelRequestId, approvers, travelRequestNumber, travelRequestStatus, cashAdvance });
-
-//       }
-//       const currentTrWithCash = {  travelRequestId, approvers, travelRequestNumber, travelRequestStatus , cashAdvance:[]};
-
-//       travelWithCashForApproval.push({ travelRequestId, approvers, travelRequestNumber, travelRequestStatus, cashAdvance });
-//     }
-//   });
 
 // travel, cash for approval
   const oldprocessApproval = async (approvalDoc, status, empId, res) => {
@@ -1731,6 +1699,27 @@ const processApprovaltravelExpenseReports = async (approvalDoc, status, empId) =
     }
 };
 
+function getViolations(itinerary){
+    try{
+      const allBkdViolations = [];
+  
+      Object.values(itinerary).forEach(array => {
+  array.forEach(obj => {
+  if (obj.bkd_violations) {
+      Object.values(obj.bkd_violations).forEach(value => {
+          if(typeof value === 'string'){
+                allBkdViolations.push(obj.bkd_violations);
+      }
+      })
+  }
+  });
+    });
+  
+       return allBkdViolations
+    } catch(error){
+      return []
+    }
+  }
 
 /**
  * Retrieves approval documents for a manager based on their tenant ID and employee ID.
@@ -1803,8 +1792,11 @@ const approvalsForManager = async (tenantId, empId) => {
                     )
                 )
                 return filteredApprovals.map(approval => {
-                    const { travelRequestId, approvers, tripPurpose, travelRequestNumber, travelRequestStatus, isCashAdvanceTaken } = approval.travelRequestSchema;
-                    return {travelRequestId, approvers,tripPurpose, travelRequestNumber, travelRequestStatus, isCashAdvanceTaken}
+                    const { travelRequestId, approvers, tripPurpose, travelRequestNumber, travelRequestStatus, isCashAdvanceTaken , itinerary } = approval.travelRequestSchema;
+                    
+                    const  violationsCounter= getViolations(itinerary)
+                    
+                    return {travelRequestId, approvers,tripPurpose, travelRequestNumber, travelRequestStatus, isCashAdvanceTaken , violationsCounter}
                 }).filter(Boolean);
             })()
 
@@ -1821,8 +1813,11 @@ const approvalsForManager = async (tenantId, empId) => {
                     return filteredApprovals.map(approval => {
                         const { travelRequestData, cashAdvancesData } = approval.cashAdvanceSchema;
                         const isValidCashStatus = cashAdvancesData.some(cashAdvance => cashAdvance.cashAdvanceStatus === 'pending approval');
-                        const { travelRequestId, approvers, travelRequestNumber,tripPurpose, travelRequestStatus, isCashAdvanceTaken } = travelRequestData;
-                        const travelRequest = { travelRequestId,travelRequestNumber, tripPurpose, travelRequestNumber, travelRequestStatus, approvers,isCashAdvanceTaken };
+                        const { travelRequestId, approvers, travelRequestNumber,tripPurpose, travelRequestStatus, isCashAdvanceTaken, itinerary } = travelRequestData;
+                        const  violationsCounter= getViolations(itinerary)
+
+                        const travelRequest = { travelRequestId,travelRequestNumber, tripPurpose, travelRequestNumber, travelRequestStatus, approvers,isCashAdvanceTaken , violationsCounter};
+
 
                         if (isValidCashStatus) {
                             const cashAdvanceDetails = cashAdvancesData?.map(cashAdvance => ({
@@ -1857,8 +1852,9 @@ const approvalsForManager = async (tenantId, empId) => {
                     const { travelRequestData, cashAdvancesData } = approval.cashAdvanceSchema;
                     const isValidCashStatus = cashAdvancesData.some(cashAdvance => cashAdvance.cashAdvanceStatus === 'pending approval');
             
-                    const { travelRequestId, travelRequestNumber,tripPurpose, travelRequestStatus } = travelRequestData;
-                    const travelRequest = { travelRequestId, tripPurpose, travelRequestNumber, travelRequestStatus };
+                    const { travelRequestId, travelRequestNumber,tripPurpose, travelRequestStatus, itinerary } = travelRequestData;
+                    const  violationsCounter= getViolations(itinerary)
+                    const travelRequest = { travelRequestId, tripPurpose, travelRequestNumber, travelRequestStatus, violationsCounter };
                     
                     if (isValidCashStatus) {
                         const cashAdvanceDetails = cashAdvancesData.map(cashAdvance => ({

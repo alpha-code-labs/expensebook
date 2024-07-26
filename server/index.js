@@ -12,15 +12,13 @@ import { consumeFromDashboardQueue } from './rabbitmq/dashboardConsumer.js';
 import { scheduleToFinanceBatchJob } from './schedulars/finance.js';
 // import dashboard from "../models/dashboardSchema.js";
 
-dotenv.config();
+const environment = process.env.NODE_ENV == 'production' ? '.env.prod' : '.env';
+dotenv.config({path:environment});
 
-const environment = process.env.NODE_ENV || 'development';
 console.log(`Running in ${environment} environment`);
 const rabbitMQUrl = process.env.rabbitMQUrl;
 
-
-const mongoURI = 'mongodb+srv://intospendlogaiv1:intospendlogaiv1@clustorai.on4r4ca.mongodb.net/dashboarddb?retryWrites=true&w=majority'
-
+const mongoURI= process.env.MONGODB_URI
 const app = express();
 
 app.use(express.json());
@@ -89,12 +87,11 @@ app.listen(port, () => {
 });
 
 // start consuming messages..
-startConsumer('dashboard');
+// startConsumer('dashboard');
 
 //BatchJobs
 // scheduleToFinanceBatchJob()
 
-consumeFromDashboardQueue();
 // consumeFromDashboardQueue();
 
 
