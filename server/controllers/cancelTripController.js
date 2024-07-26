@@ -185,7 +185,8 @@ export const getTripDetails = async (req, res) => {
     const getTrip = await Trip.findOne({
       tenantId,
       tripId,
-      tripStatus: { $in: ['transit', 'upcoming', 'completed' , 'closed', 'paid and cancelled' ] },
+      // tripStatus: { $in: ['transit', 'upcoming', 'completed' , 'closed', 'paid and cancelled' ] },
+      tripStatus: { $in: ['transit', 'upcoming'] },
       $or: [
           { 'travelRequestData.createdBy.empId': empId },
           { 'travelRequestData.createdFor.empId': empId },
