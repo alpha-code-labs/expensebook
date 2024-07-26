@@ -1251,7 +1251,7 @@ function dateDiffInDays(a, b) {
 
 function generateTripName(tripPurpose, tripString, startDate){
   try{
-    const dateString = startDate? moment(startDate).format('Do MMM') : ''; 
+    const dateString = startDate? moment(startDate).format('Do MMM YYYY') : ''; 
     if(tripString == '') return `${tripPurpose}-trip-(${dateString})`;
     return tripString+=`(${dateString})`;
 
