@@ -105,7 +105,6 @@ const promises = [
 
 const [travelStandAlone,travelWithCash, trip,expense, allTravelRequests, allCashAdvance] = await Promise.all(promises)
 
-
 const { rejectedCashAdvances = [] } = travelWithCash || {};
 const { trips = {}, reimbursements = [] } = trip || {};
 const { upcomingTrips = [], transitTrips = [], completedTrips = [], rejectedTrips = [] } = trips;
@@ -1789,13 +1788,14 @@ const approvalsForManager = async (tenantId, empId) => {
                         approver.status === 'pending approval'
                     )
                 )
-                return filteredApprovals.map(approval => {
-                    const { travelRequestId, approvers, tripPurpose,tripName,createdBy, travelRequestNumber, travelRequestStatus, isCashAdvanceTaken , itinerary } = approval.travelRequestSchema;
-                    
+                return filteredApprovals.map( async approval => {
+                    const { travelRequestId, approvers, tripPurpose,tripName,createdBy,  travelRequestNumber, travelRequestStatus, isCashAdvanceTaken , itinerary } = approval.travelRequestSchema;
+                    const tripStartDate = approval?.travelRequestSchema?.tripStartDate ?? await earliestDate(itinerary)
+
                     const allBkdViolations = extractValidViolations(itinerary);
                     const violationsCounter = countViolations(allBkdViolations);
                     
-                    return {travelRequestId, approvers,tripPurpose,tripName, travelRequestNumber,createdBy, travelRequestStatus, isCashAdvanceTaken , violationsCounter}
+                    return {travelRequestId, approvers,tripPurpose,tripName,tripStartDate, travelRequestNumber,createdBy, travelRequestStatus, isCashAdvanceTaken , violationsCounter}
                 }).filter(Boolean);
             })()
 
@@ -1809,14 +1809,16 @@ const approvalsForManager = async (tenantId, empId) => {
                     )
                 );                
                 
-                    return filteredApprovals.map(approval => {
+                    return filteredApprovals.map(async approval => {
                         const { travelRequestData, cashAdvancesData } = approval.cashAdvanceSchema;
                         const isValidCashStatus = cashAdvancesData.some(cashAdvance => cashAdvance.cashAdvanceStatus === 'pending approval');
                         const { travelRequestId, approvers, createdBy, travelRequestNumber,tripPurpose,tripName, travelRequestStatus, isCashAdvanceTaken, itinerary } = travelRequestData;
+                        const tripStartDate = travelRequestData?.tripStartDate ?? await earliestDate(itinerary)
+
                         const allBkdViolations = extractValidViolations(itinerary);
                         const violationsCounter = countViolations(allBkdViolations);
 
-                        const travelRequest = { travelRequestId,travelRequestNumber,createdBy, tripPurpose,tripName, travelRequestNumber, travelRequestStatus, approvers,isCashAdvanceTaken , violationsCounter};
+                        const travelRequest = { travelRequestId,travelRequestNumber,createdBy,tripStartDate, tripPurpose,tripName, travelRequestNumber, travelRequestStatus, approvers,isCashAdvanceTaken , violationsCounter};
 
 
                         if (isValidCashStatus) {
@@ -1848,17 +1850,17 @@ const approvalsForManager = async (tenantId, empId) => {
                 );
 
 
-                return filteredApprovals.map(approval => {
+                return filteredApprovals.map(async approval => {
                     // console.log("cashAdvanceRaisedLater", approval)
                     const { travelRequestData, cashAdvancesData } = approval.cashAdvanceSchema;
                     const isValidCashStatus = cashAdvancesData.some(cashAdvance => cashAdvance.cashAdvanceStatus === 'pending approval');
             
                     const { travelRequestId, travelRequestNumber,tripPurpose,tripName,createdBy, travelRequestStatus, itinerary } = travelRequestData;
 
-                
+                    const tripStartDate = travelRequestData?.tripStartDate ?? await earliestDate(itinerary)
                     const allBkdViolations = extractValidViolations(itinerary);
                     const violationsCounter = countViolations(allBkdViolations);
-                    const travelRequest = { travelRequestId, tripPurpose,tripName, travelRequestNumber,createdBy, travelRequestStatus, violationsCounter };
+                    const travelRequest = { travelRequestId, tripPurpose,tripName,tripStartDate, travelRequestNumber,createdBy, travelRequestStatus, violationsCounter };
                     
                     if (isValidCashStatus) {
                         const cashAdvanceDetails = cashAdvancesData.map(cashAdvance => ({
@@ -1924,10 +1926,10 @@ const approvalsForManager = async (tenantId, empId) => {
                     // console.log("Processing approval:", approval);
                     return approval.tripSchema.travelExpenseData.map(expense => {
                         // console.log("Processing expense:", expense);
-                        const { tripId, tripNumber, tripStatus } = approval.tripSchema;
+                        const { tripId, tripNumber, tripStatus, tripStartDate } = approval.tripSchema;
                         const { tripPurpose} = approval.tripSchema.travelRequestData
                         const { expenseHeaderNumber,expenseHeaderId, expenseHeaderStatus, approvers } = expense;
-                        return { tripId,tripNumber,tripPurpose,tripStatus, expenseHeaderNumber,expenseHeaderId, expenseHeaderStatus, approvers };
+                        return { tripId,tripNumber,tripPurpose,tripStatus,tripStartDate, expenseHeaderNumber,expenseHeaderId, expenseHeaderStatus, approvers };
                     });
                 });
         
