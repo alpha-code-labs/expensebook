@@ -35,7 +35,7 @@ const dashboardSchema = new mongoose.Schema({
     tripSchema: tripSchema, // trip Schema has travel,cash,travel expenses included.
   }); 
 
-const dashboard = mongoose.model('dashboardMonday', dashboardSchema);
+const dashboard = mongoose.model('dashboard', dashboardSchema);
 
 export default dashboard 
 

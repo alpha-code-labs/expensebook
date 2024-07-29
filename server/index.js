@@ -87,13 +87,13 @@ app.listen(port, () => {
 });
 
 // start consuming messages..
-// startConsumer('dashboard');
+startConsumer('dashboard');
 
 //BatchJobs
 // scheduleToFinanceBatchJob()
 
 // consumeFromDashboardQueue();
-
+// 
 
 
 
