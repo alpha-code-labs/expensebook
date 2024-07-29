@@ -175,7 +175,11 @@ const mapCashAdvance = (cashAdvance) => {
 // 1) get trip details for tripStatus - transit, upcoming or completed.
 export const getTripDetails = async (req, res) => {
   try {
-    const { tenantId, tripId, empId } = req.params;
+    const {error, value} = employeeSchema.validate(req.params)
+
+    if(error) return res.status(400).json(error.details[0].message)
+
+    const { tenantId, tripId, empId } = value;
 
     if (!(empId) || !(tenantId) || !(tripId)) {
       return res.status(400).json({ error: 'Invalid input parameters.' });
@@ -185,7 +189,6 @@ export const getTripDetails = async (req, res) => {
     const getTrip = await Trip.findOne({
       tenantId,
       tripId,
-      // tripStatus: { $in: ['transit', 'upcoming', 'completed' , 'closed', 'paid and cancelled' ] },
       tripStatus: { $in: ['transit', 'upcoming'] },
       $or: [
           { 'travelRequestData.createdBy.empId': empId },
@@ -250,6 +253,8 @@ export const getTripDetails = async (req, res) => {
       message:'trip details for the employee',
       trip:tripDetails
     })
+  } else {
+    return res.status(404).json({success:false, error:"Incorrect data"})
   }
 
   } catch (error) {
@@ -458,4 +463,11 @@ export const cancelTripAtHeaderLevel = async (req, res) => {
       return res.status(500).json({error: 'Internal Server Error'});
     }
   }
+
+
+
+
+
+
+
 
