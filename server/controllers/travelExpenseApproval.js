@@ -3,6 +3,7 @@ import { Approval } from '../models/approvalSchema.js';
 import { sendTripApprovalToDashboardQueue } from '../rabbitmq/dashboardMicroservice.js';
 import { sendToDashboardMicroservice } from '../rabbitmq/publisherDashboard.js';
 import { sendToOtherMicroservice } from '../rabbitmq/publisher.js';
+import Joi from 'joi';
 
 //for saving both travel and non travel dummy data into Approval container.
 export const saveDataInApprovalContainer = async (req, res) => {
@@ -69,7 +70,7 @@ export const saveDataInApprovalContainer = async (req, res) => {
   }
 };
 
- 
+
 //Get list of travel expenses  for approver
 export const getExpenseDetails = async (req, res) => {
   try {
@@ -236,7 +237,7 @@ export const oldviewTravelExpenseDetails = async (req, res) => {
   }
 };
 
-export const TravelexpenseHeaderStatusApproved = async (req, res) => {
+export const TravelExpenseHeaderStatusApproved = async (req, res) => {
   try {
      const { tenantId,tripId, expenseHeaderId, empId } = req.params;
      console.log("expense report - params -- approve", req.params);
@@ -320,7 +321,7 @@ export const TravelexpenseHeaderStatusApproved = async (req, res) => {
   }
  };
  
- export const TravelexpenseHeaderStatusRejected = async (req, res) => {
+ export const TravelExpenseHeaderStatusRejected = async (req, res) => {
   try {
      const { tenantId, expenseHeaderId,tripId, empId } = req.params;
      console.log("expense report - params -- approve", req.params);
@@ -405,7 +406,7 @@ export const TravelexpenseHeaderStatusApproved = async (req, res) => {
 
 // non travel expense reports
 
- const otherExpenseSchema = Joi.object({
+const otherExpenseSchema = Joi.object({
   tenantId:Joi.string().required(),
   empId: Joi.string().required(),
   expenseHeaderId: Joi.string().required(),
@@ -588,6 +589,9 @@ export const rejectNonTravelExpenseReports = async (req, res) => {
      res.status(500).json({ error: 'An error occurred while updating Travel Expense status.' });
   }
 };
+
+
+
 
 
 
