@@ -1790,7 +1790,7 @@ const approvalsForManager = async (tenantId, empId) => {
                     )
                 )
                 return filteredApprovals.map(approval => {
-                    const { travelRequestId, approvers, tripPurpose,tripName,createdBy, travelRequestNumber, travelRequestStatus, isCashAdvanceTaken , itinerary } = approval.travelRequestSchema;
+                    const { travelRequestId, approvers, tripPurpose,tripName,createdBy,  travelRequestNumber, travelRequestStatus, isCashAdvanceTaken , itinerary } = approval.travelRequestSchema;
                     
                     const allBkdViolations = extractValidViolations(itinerary);
                     const violationsCounter = countViolations(allBkdViolations);
