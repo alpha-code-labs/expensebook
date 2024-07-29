@@ -82,6 +82,8 @@ export {default as info_icon} from './icons8-info.svg';
 export {default as filter_icon} from './filter.svg';
 export {default as search_icon} from './serach.svg';
 export {default as empty_itinerary_icon} from './empty_itinerary.png';
+export {default as empty_travelExpense_icon} from './empty_travelExpense.png';
+export {default as empty_nonTravelExpense_icon} from './empty_nonTravelExpense.png';
 export {default as clock_icon} from './clock.svg';
 export {default as delete_icon} from './delete.svg';
 export {default as no_smoking_icon} from './no_smoking.svg';

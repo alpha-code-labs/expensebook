@@ -16,6 +16,8 @@ import Select from '../components/common/Select';
 import Button from '../components/common/Button';
 import { approveTravelRequestApi } from '../utils/api';
 import PopupMessage from "../components/common/PopupMessage";
+import TripMS from '../microservice/TripMS';
+import { TripName } from '../components/common/TinyComponent';
 
 
 const rejectionOptions=['Too Many Violations', 'Budget Constraints','Insufficient Documents','Upcoming Project Deadline']
@@ -297,12 +299,11 @@ const handleVisible = (travelRequestId, action) => {
   };
   
   
+  
   function ActionButton({approve, reject, onApproveClick, onRejectClick})
   {
-    return(<div className='font-cabin text-xs flex gap-x-2 items-center justify-center'>
-       
-          
-      
+    return(
+    <div className='font-cabin text-xs flex gap-x-2 items-center justify-center'>
 
         <div onClick={onApproveClick} className='w-fit hover:shadow-md hover:shadow-green-200/60 transition duration-300 cursor-pointer min-w-[70px] inline-flex gap-2 items-center justify-center  border border-green-200 rounded-sm text-center  text-white-100 px-2 py-1 bg-green-600'>
           <p className='text-center'>{approve}</p>
@@ -319,7 +320,6 @@ const handleVisible = (travelRequestId, action) => {
         </div>
 
       </div>)
-    
   }
 
   const handleConfirm = async( action)=>{
@@ -392,7 +392,7 @@ if(validConfirm){
                           ? 'Once you approve, bookings for this trip can be initiated, and the corresponding cash advance will be processed for settlement.'
                           : 'Please select the reason for rejection before proceeding.'
                         }</p>
-             {actionType === "rejectTrip" &&  
+          {actionType === "rejectTrip" &&  
              <div className="">
                 <Select 
                 currentOption={selectedRejReason}
@@ -432,6 +432,7 @@ if(validConfirm){
         //     </div>
         //   </>
         // );
+
       case 'expenseDetails':
         return (
           <div  className='mb-4 xl:w-[500px] w-full grow text-neutral-700 rounded-md shadow-custom-light bg-white-100 p-4'>           
@@ -459,15 +460,16 @@ if(validConfirm){
               </div>  
             {expenseDetails?.expenseType === "Travel Expense" &&
              <div className='flex flex-row justify-between'>
-             <div className='flex gap-2 items-center'>
+             {/* <div className='flex gap-2 items-center'>
                      <img src={briefcase} className='w-4 h-4'/>
                      <div className='font-medium font-cabin  text-sm uppercase text-neutral-700 '>
                       {splitTripName(expenseDetails?.tripName)}
                      </div>
-                     {/* <div className='font-medium font-cabin  text-sm  text-neutral-700 '>
+                     <div className='font-medium font-cabin  text-sm  text-neutral-700 '>
                       {extractAndFormatDate(trip?.tripName)}
-                     </div> */}
-              </div>
+                     </div>
+              </div> */}
+              <TripName tripName={trip?.tripName}/>
              {/* <div className='flex items-center justify-center'>
              <img src={info_icon} className='w-4 h-4'/>
               <div className='text-sm font-cabin px-2 py-1 cursor-pointer' onClick={()=>{if(!disableButton(trip?.travelRequestStatus)){handleVisible(trip?.travelRequestId,  'travel-approval-view' )}}}>
@@ -487,7 +489,7 @@ if(validConfirm){
               </div>
 
                     {/* {trip?.expenseType === "Travel Expense" &&
-                     <div className='flex gap-2 items-center '>
+                     <div className='flex gap-2 items-center'>
                      <img src={briefcase} className='w-4 h-4'/>
                      <div className='font-medium font-cabin  text-sm uppercase text-neutral-700 '>
                       {splitTripName(trip?.tripName)}
@@ -565,7 +567,7 @@ if(validConfirm){
      {isLoading && <Error message={loadingErrMsg}/>}
      {!isLoading && 
     <div className='min-h-screen'>
-       <TravelMS visible={visible} setVisible={setVisible} src={approvalUrl}/>
+       <TripMS visible={visible} setVisible={setVisible} src={approvalUrl}/>
       <div className='flex-col w-full p-4 flex items-start gap-2'>
       
       <div className=' border border-slate-300 bg-white-100 rounded-md  w-full flex flex-col justify-center items-start px-2'>
@@ -634,7 +636,7 @@ Raise a Cash-Advance
   </div>
 
       <div className='w-full bg-white-100 xl:h-[570px] lg:h-[370px] md:[590px] overflow-y-auto px-2'>
-          {filterCashadvances(TRCashadvance).map((trip) => { 
+          {filterCashadvances(travelAndCashAdvances).map((trip) => { 
             return (
             <div key={trip.tripId} className='mb-4 rounded-md shadow-custom-light bg-white-100 p-4'>
             <div className='flex gap-2 flex-col'> 
@@ -656,15 +658,7 @@ Raise a Cash-Advance
               </div>
              <div className='flex flex-row justify-between'>
               
-             <div className='flex gap-2 items-center'>
-                     <img src={briefcase} className='w-4 h-4'/>
-                     <div className='font-medium font-cabin  text-sm uppercase text-neutral-700 '>
-                      {splitTripName(trip?.tripName)}
-                     </div>
-                     <div className='font-medium font-cabin  text-sm  text-neutral-700 '>
-                      {extractAndFormatDate(trip?.tripName)}
-                     </div>
-              </div>
+             <TripName tripName={trip?.tripName} />
              {/* <div className='flex items-center justify-center'>
              <img src={info_icon} className='w-4 h-4'/>
               <div className='text-sm font-cabin px-2 py-1 cursor-pointer' onClick={()=>{if(!disableButton(trip?.travelRequestStatus)){handleVisible(trip?.travelRequestId,  'travel-approval-view' )}}}>
@@ -777,15 +771,7 @@ Raise a Cash-Advance
               {trip?.expenseType === "Travel Expense" &&
              <div className='flex flex-row justify-between'>
               
-             <div className='flex gap-2 items-center'>
-                     <img src={briefcase} className='w-4 h-4'/>
-                     <div className='font-medium font-cabin  text-sm uppercase text-neutral-700 '>
-                      {splitTripName(trip?.tripName)}
-                     </div>
-                     {/* <div className='font-medium font-cabin  text-sm  text-neutral-700 '>
-                      {extractAndFormatDate(trip?.tripName)}
-                     </div> */}
-              </div>
+              <TripName tripName={trip?.tripName}/>
              {/* <div className='flex items-center justify-center'>
              <img src={info_icon} className='w-4 h-4'/>
               <div className='text-sm font-cabin px-2 py-1 cursor-pointer' onClick={()=>{if(!disableButton(trip?.travelRequestStatus)){handleVisible(trip?.travelRequestId,  'travel-approval-view' )}}}>
@@ -890,6 +876,10 @@ export default Approval;
 
 
 const extractAndFormatDate = (inputString) => {
+  
+  if (!inputString){
+    return "-"
+  }
   const datePattern = /(\d{1,2})(st|nd|rd|th) (\w{3})/;
   const match = inputString.match(datePattern);
 

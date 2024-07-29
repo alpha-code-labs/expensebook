@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { briefcase, cancel, filter_icon, modify, money, money1, plus_violet_icon } from '../assets/icon';
-import { formatAmount, getStatusClass } from '../utils/handyFunctions';
+import { briefcase, cancel, filter_icon, modify, money, money1, plus_violet_icon, search_icon } from '../assets/icon';
+import { formatAmount, getStatusClass, splitTripName } from '../utils/handyFunctions';
 import {TRCashadvance,NonTRCashAdvances} from '../utils/dummyData';
 import Modal from '../components/common/Modal1';
 import TripSearch from '../components/common/TripSearch';
@@ -10,6 +10,9 @@ import TravelMS from '../microservice/TravelMS';
 import { useData } from '../api/DataProvider';
 import Error from '../components/common/Error';
 import { useParams } from 'react-router-dom';
+import Input from '../components/common/SearchInput';
+import TripMS from '../microservice/TripMS';
+import { TripName } from '../components/common/TinyComponent';
 
 const CashAdvance = ({isLoading, fetchData, loadingErrMsg}) => {
 
@@ -25,8 +28,9 @@ const CashAdvance = ({isLoading, fetchData, loadingErrMsg}) => {
   }) 
 
   const { employeeData } = useData();
-  const [travelData, setTravelData]=useState([])
-  const [cashAdvanceData, setCashAdvanceData]=useState([])
+  const [travelData, setTravelData]=useState([]);
+  const [searchQuery , setSearchQuery] = useState('');
+  const [cashAdvanceData, setCashAdvanceData]=useState([]);
 
   const {tenantId,empId,page}= useParams();
 
@@ -134,6 +138,7 @@ const handleVisible = (travelRequestId, action, cashadvanceId) => {
     };
   }, []);
 
+
   console.log(error.travelRequestId)
 
   const handleSelect=(option)=>{
@@ -163,13 +168,14 @@ const handleVisible = (travelRequestId, action, cashadvanceId) => {
   };
   
   const filterCashadvances = (cashadvances) => {
-
     return cashadvances.filter((cashadvance) =>
       selectedStatuses.length === 0 ||
       selectedStatuses.includes(cashadvance?.cashAdvanceStatus)
+    ).filter(cashadvance => 
+      JSON.stringify(cashadvance).toLowerCase().includes(searchQuery.toLowerCase())
     );
-
   };
+  
   
   const getStatusCount = (status, cashadvance) => {
     return cashadvance.filter((cashadvance) => cashadvance?.cashAdvanceStatus === status)?.length;
@@ -179,6 +185,7 @@ const handleVisible = (travelRequestId, action, cashadvanceId) => {
   const disableButton = (status) => {
     return ['draft', 'cancelled'].includes(status);
   };
+
   
   
   return (
@@ -186,13 +193,13 @@ const handleVisible = (travelRequestId, action, cashadvanceId) => {
      {isLoading && <Error message={loadingErrMsg}/>}
      {!isLoading && 
     <div className='min-h-screen'>
-       <TravelMS visible={visible} setVisible={setVisible} src={cashAdvanceUrl}/>
+       <TripMS visible={visible} setVisible={setVisible} src={cashAdvanceUrl}/>
       <div className='flex-col w-full p-4 flex items-start gap-2'>
       
       <div className='min-h-[120px] border border-slate-300 bg-white-100 rounded-md  w-full flex flex-wrap items-start gap-2 px-2 py-2'>
-       <div className='flex flex-wrap space-x-2'>
+       <div className='flex flex-wrap space-x-2 space-y-2'>
         <div className='flex items-center justify-center p-2 bg-slate-100 rounded-full border border-slate-300 '><img src={filter_icon} className='w-5 h-5'/></div>
-  {["draft","pending approval", "pending settlement", "paid",  "cancelled", "paid and cancelled"].map((status) => {
+  {["draft","pending approval", "pending settlement", "paid","rejected",  "cancelled", "paid and cancelled"].map((status) => {
     const statusCount = getStatusCount(status, [...travelCashAdvances.flatMap(te => te?.cashAdvances), ...NonTRCashAdvances]);
     const isDisabled = statusCount === 0;
     
@@ -212,6 +219,10 @@ const handleVisible = (travelRequestId, action, cashadvanceId) => {
   })}
   <div className='text-neutral-700 text-base flex justify-center items-center hover:text-red-200 hover:font-semibold text-center w-auto h-[36px] font-cabin cursor-pointer' onClick={() => setSelectedStatuses([])}>Clear All</div>
   </div>
+  <div className=''>
+   
+   <Input placeholder="Search Cash Advance..." type="search" icon={search_icon} onChange={(value)=>setSearchQuery(value)}/>
+ </div>
 </div>
         <div className='w-full flex md:flex-row flex-col '>
           <div className='flex-1 rounded-md justify-center items-center'>
@@ -251,13 +262,8 @@ Raise a Cash-Advance
             const filteredCashadvances = filterCashadvances(trip?.cashAdvances)
             if (filteredCashadvances.length === 0) return null;
             return(
-            <div key={trip.tripId} className='mb-4 rounded-md shadow-custom-light bg-white-100 p-4'>
-              <div className='flex gap-2 items-center'>
-              <img src={briefcase} className='w-4 h-4'/>
-              <div className='font-medium font-cabin text-md uppercase'>
-               {trip.tripName}
-              </div>
-              </div>
+            <div key={trip?.tripId} className='mb-4 rounded-md shadow-custom-light bg-white-100 p-4'>
+          <TripName tripName={trip?.tripName}/>
               {filteredCashadvances?.map((advance,index) => ( 
                 <div key={index} className={`px-2 py-2 ${index < filteredCashadvances.length-1 && 'border-b border-slate-400 '}`}>
                   <div className='flex justify-between'>
@@ -293,7 +299,7 @@ Raise a Cash-Advance
               <p>Non-Travel Cash-Advances</p>
             </div>
 <div className='w-full mt-4 xl:h-[570px] lg:h-[370px] md:[590px] overflow-y-auto px-2 bg-white-100 rounded-r-md'>
-            {filterCashadvances(NonTRCashAdvances).map((cashAdvance,index) => (
+            {filterCashadvances(NonTRCashAdvances)?.map((cashAdvance,index) => (
               <div key={`${index}nonTr`} className='mb-4 rounded-md shadow-custom-light bg-white-100 p-4'>
               <div className='flex gap-2 items-center'>
               <img src={money} className='w-5 h-5'/>
@@ -399,80 +405,4 @@ export default CashAdvance;
 
 
 
-
-
-
-
-// import React, { useState ,useEffect} from 'react';
-// import { useData } from '../api/DataProvider';
-// import { getStatusClass ,titleCase} from '../utils/handyFunctions';
-// import { Alltrips } from '../components/trips/Alltrips';
-// import { receipt, chevron_down, calender_icon, double_arrow , three_dot ,validation_sym, down_left_arrow, money} from '../assets/icon';
-// import Dropdown from '../components/common/Dropdown';
-// import RejectedCA from '../components/cashAdvance/RejectedCA';
-// import { useParams } from 'react-router-dom';
-// import Error from '../components/common/Error';
-// // import CashAdvance from '../components/settlement/CashAdvance';
-
-// const CashAdvance = ({isLoading ,fetchData,loadingErrMsg}) => {  
-//   const {tenantId,empId,page}= useParams();
-//   useEffect(()=>{
-
-//     fetchData(tenantId,empId,page)
-
-//   },[])
-//   const { employeeData } = useData();
-
-//   const [cashAdvanceData,setCashAdvanceData]=useState(null)
-
-//   useEffect(()=>{
-//     const cashAdvances = employeeData && employeeData?.dashboardViews?.employee
-
-    
-//     setCashAdvanceData(cashAdvances)
-//   },[employeeData])
-//   console.log('cashdata from cashadvance',cashAdvanceData?.rejectedCashAdvances)
-
- 
-
- 
-    
-
-
-    
-//   return (
-//     <>
-//      {isLoading && <Error message={loadingErrMsg}/>}
- 
-//  {!isLoading && 
-      
-//       <div className="w-auto min-h-screen  flex flex-col items-center px-2 lg:px-10 xl:px-20  pt-[50px] bg-slate-100   ">
-//         {/* <div className='relative w-fit mb-2 border border-indigo-600 px-2 py-2'>
-//        {cashAdvanceData?.rejectedCashAdvances?.length > 0 &&  <div className=' absolute right-0  top-[-8px] w-fit p-[6px] bg-green-200 border border-white-100 rounded-full '/>}
-//         <div className={`cursor-pointer py-1 px-2 w-fit min-w-[100px]  font-medium rounded-xl bg-purple-500 text-xs text-gray-900 truncate`}
-//                   // onClick={() => handleScreenChange('Rejected Cash Advances')}
-//                 >
-//                 Rejected Cash Advances
-//         </div>
-//         </div> */}
-        
-//           <div className="w-full  bg-white-100  h-auto lg:h-[581px] rounded-lg border-[1px] border-slate-300 shrink-0 font-cabin mt-3 sm:mt-[60px] ">          
-//            <>
-//            <div className="w-auto h-6 flex flex-row gap-3 sm:px-8 px-4 mt-7 items-center ">
-//       <img className="w-6 h-6" src={money} alt="receipt" />
-//       <div className="text-base tracking-[0.02em] font-bold w-auto">Rejected Cash-Advances</div>
-//     </div>
-//     <div className="box-border mx-4  mt-[46px] w-auto    border-[1px]  border-b-gray "/>
-//     <div className='h-[420px] overflow-auto mt-6 w-auto flex flex-col items-center mx-8'>  
-//            <RejectedCA rejectedCashAdvance={cashAdvanceData?.rejectedCashAdvances}/>
-//            </div>
-//           </>          
-//         </div>
-       
-//         </div>}
-//     </>
-//   );
-// };
-
-// export default CashAdvance;
 

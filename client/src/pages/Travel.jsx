@@ -747,7 +747,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { briefcase, modify, receipt, receipt_icon1, categoryIcons, filter_icon, plus_violet_icon, cancel, search_icon, info_icon, airplane_1, airplane_icon1 } from '../assets/icon';
-import { formatAmount, getStatusClass, sortTripsByDate, splitTripName } from '../utils/handyFunctions';
+import { extractTripNameStartDate, formatAmount, getStatusClass, sortTripsByDate, splitTripName } from '../utils/handyFunctions';
 import { travelExpense, nonTravelExpense } from '../utils/dummyData';
 import { handleNonTravelExpense, handleTravelExpense } from '../utils/actionHandler';
 import Modal from '../components/common/Modal1';
@@ -759,6 +759,7 @@ import Error from '../components/common/Error';
 import SearchComponent from '../components/common/ExpenseSearch';
 import Input from '../components/common/SearchInput';
 import TripMS from '../microservice/TripMS';
+import { TripName } from '../components/common/TinyComponent';
 
 
 const Travel = ({isLoading ,fetchData,loadingErrMsg}) => {
@@ -815,7 +816,11 @@ const tripBaseUrl = import.meta.env.VITE_TRIP_BASE_URL;
     const intransitTrips = data?.transitTrips || [];
     const upcomingTrips = data?.upcomingTrips || [];
     const completedTrips = employeeData?.dashboardViews?.employee?.expense?.completedTrips || [];
-    const travelRequests    = data?.allTravelRequests?.allTravelRequests || [];
+    const travelRequests = data?.allTravelRequests?.allTravelRequests?.map(travel => ({
+      ...travel,
+      tripStartDate: extractTripNameStartDate(travel?.tripName)
+    })) || [];
+    
     const travelRequestsAndTrips = [...intransitTrips, ...travelRequests,...completedTrips,...upcomingTrips];
 
     sortTripsByDate(travelRequestsAndTrips)
@@ -915,7 +920,7 @@ const tripBaseUrl = import.meta.env.VITE_TRIP_BASE_URL;
   };
 
   const disableButton = (status) => {
-    return ['draft', 'cancelled'].includes(status);
+    return [ 'cancelled'].includes(status);
   };
 
   const handleSelect=(option)=>{
@@ -950,7 +955,7 @@ const tripBaseUrl = import.meta.env.VITE_TRIP_BASE_URL;
       <TripMS visible={visible} setVisible={setVisible} src={iframeURL}/>
       <div className='flex-col w-full p-4 flex items-start gap-2'>
       <div className='min-h-[120px] border border-slate-300 bg-white-100 rounded-md  w-full flex flex-col items-start px-2 py-2 gap-2'>
- <div className='flex flex-wrap  space-x-2 '>      
+ <div className='flex flex-wrap   space-x-2 space-y-2 '>      
 <div className='flex items-center justify-center p-2 bg-slate-100 rounded-full border border-slate-300 '><img src={filter_icon} className='w-5 h-5'/></div>
   {["draft","pending approval", "pending booking", "upcoming","intransit", "rejected","cancelled", "paid and cancelled"].map((status) => {
     const statusCount = getStatusCount(status, [...tripData]);
@@ -985,7 +990,7 @@ const tripBaseUrl = import.meta.env.VITE_TRIP_BASE_URL;
 
         <div className='w-full flex md:flex-row flex-col '>
           <div className='flex-1 justify-center items-center'>
-            <div className='relative flex justify-center items-center rounded-l-md font-inter text-md text-white-100 h-[52px] bg-indigo-600 text-center'>
+            <div className='relative flex justify-center items-center rounded-md font-inter text-md text-white-100 h-[52px] bg-indigo-600 text-center'>
           <div
           onClick={()=>handleVisible({urlName:"travel-url"})}
           onMouseEnter={() => setTextVisible({cashAdvance:true})}
@@ -1022,15 +1027,7 @@ const tripBaseUrl = import.meta.env.VITE_TRIP_BASE_URL;
             <p>{trip?.travelRequestNumber}</p>
          </div>
           : 
-          <div className='flex gap-2 items-center '>
-          <img src={briefcase} className='w-4 h-4'/>
-          <div className='font-medium font-cabin  text-sm uppercase text-neutral-700 '>
-           {splitTripName(trip?.tripName)}
-          </div>
-          <div className='font-medium font-cabin  text-sm  text-neutral-700 '>
-           {extractAndFormatDate(trip?.tripName)}
-          </div>
-          </div>
+          <TripName tripName={trip?.tripName}/>
           
         }
          
@@ -1181,26 +1178,6 @@ const tripBaseUrl = import.meta.env.VITE_TRIP_BASE_URL;
 
 export default Travel;
 
-const extractAndFormatDate = (inputString) => {
-  // Convert the input string to lowercase
-  const lowerCaseInput = inputString.toLowerCase();
-
-  // Define the date pattern
-  const datePattern = /(\d{1,2})(st|nd|rd|th) (\w{3})/;
-  const match = lowerCaseInput.match(datePattern);
-
-  if (match) {
-    const [, day, suffix, month] = match;
-    return (
-      <>
-        {day}
-        <span className="align-super text-xs">{suffix}</span><span className='capat capitalize'>{` ${month}`}</span> 
-      </>
-    );
-  }
-
-  return null;
-};
 
 const getTripStatus = (status,tripStartDate) => {
   

@@ -1,7 +1,7 @@
 /* eslint-disable react/jsx-key */
 import React, { useState,useEffect } from 'react';
-import { airplane_1, briefcase, calender_icon, double_arrow,cab_purple,  house_simple, train, bus, cancel_round, cancel, modify, plus_icon, plus_violet_icon, receipt, down_arrow, chevron_down, down_left_arrow, calender_2_icon, airplane, material_flight_black_icon, material_cab_black_icon, material_hotel_black_icon, city_icon, empty_itinerary_icon } from '../assets/icon';
-import {  formatAmount,  getStatusClass, sortTripsByDate, splitTripName } from '../utils/handyFunctions';
+import { airplane_1, briefcase, calender_icon, double_arrow,cab_purple,  house_simple, train, bus, cancel_round, cancel, modify, plus_icon, plus_violet_icon, receipt, down_arrow, chevron_down, down_left_arrow, calender_2_icon, airplane, material_flight_black_icon, material_cab_black_icon, material_hotel_black_icon, city_icon, empty_itinerary_icon, empty_travelExpense_icon, empty_nonTravelExpense_icon } from '../assets/icon';
+import {  extractTripNameStartDate, formatAmount,  getStatusClass, sortTripsByDate, splitTripName } from '../utils/handyFunctions';
 import { travelExpense,reimbursementExpense, dummytravelRequests, trips } from '../utils/dummyData';
 import { useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -14,6 +14,7 @@ import TripSearch from '../components/common/TripSearch';
 import Button1 from '../components/common/Button1';
 import { handleNonTravelExpense, handleTravelExpense } from '../utils/actionHandler';
 import TripMS from '../microservice/TripMS';
+import { TripName } from '../components/common/TinyComponent';
 
 const travelBaseUrl  = import.meta.env.VITE_TRAVEL_PAGE_URL;
 const cashBaseUrl    = import.meta.env.VITE_CASHADVANCE_PAGE_URL;
@@ -73,7 +74,10 @@ const upcomingTrips      = overviewData?.upcomingTrips || [];
 const completedTrips     = employeeData?.dashboardViews?.employee?.expense?.completedTrips || [];
 const travelExpenses     = overviewData?.expense?.allTripExpenseReports || [];
 const nonTravelExpenses  = overviewData?.expense?.allNonTravelReports || [];
-const travelRequests     = overviewData?.allTravelRequests?.allTravelRequests || [];
+const travelRequests = overviewData?.allTravelRequests?.allTravelRequests?.map(travel => ({
+  ...travel,
+  tripStartDate: extractTripNameStartDate(travel?.tripName)
+})) || [];
 
 sortTripsByDate(travelRequests)
 sortTripsByDate(intransitTrips)
@@ -196,13 +200,13 @@ const handleRaise = () => {
     <div className=" bg-[#eef2ff] min-h-screen flex items-center justify-center px-2 md:px-10">
         {/* <TravelMS visible={visible} setVisible={setVisible} src={iframeURL}/> */}
         <TripMS visible={visible} setVisible={setVisible} src={iframeURL}/>
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 w-full overflow-hidden pb-2">
+    <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 w-full overflow-hidden pb-2">
     
      
 
 <CardLayout cardSequence={visibleDivs[0]} icon={briefcase} cardTitle={"Activities for On-going Trips"}>
 {intransitTrips.length === 0 ? (
-  <EmptyTrips text="No in-transit trips." />
+  <EmptyTrips icon={empty_itinerary_icon} text="No in-transit trips." />
 ) : (
   intransitTrips.map((trip, index) => (
     <IntransitTrips 
@@ -262,13 +266,20 @@ Add an Expense
 </div>
 
 <div className='h-[236px] overflow-y-auto px-2'>
-{expenseTabs === "travelExpense" &&
-travelExpenses && travelExpenses?.map((expense,index) => <TravelExpenses key={index} index={`${index}-TravelExpense`} expense={expense} lastIndex={travelExpenses?.length-1} />)}
+{expenseTabs === "travelExpense" && (
+  travelExpenses?.length ===0 ? <EmptyTrips icon={empty_travelExpense_icon} text="No travel expenses." /> :
+  
+   travelExpenses?.map((expense,index) => <TravelExpenses key={index} index={`${index}-TravelExpense`} expense={expense} lastIndex={travelExpenses?.length-1} />)
+)
+}
 
 
 
-{expenseTabs === "nonTravelExpense" &&
-nonTravelExpenses?.map((expense,index) => <NonTravelExpenses index={index} expense={expense} lastIndex={nonTravelExpenses?.length-1}/>)}
+{expenseTabs === "nonTravelExpense" && (
+   nonTravelExpenses?.length ===0 ? <EmptyTrips icon={empty_nonTravelExpense_icon} text="No non-travel expenses." /> :
+nonTravelExpenses?.map((expense,index) => <NonTravelExpenses index={index} expense={expense} lastIndex={nonTravelExpenses?.length-1}/>)
+)
+}
 </div>
 
 
@@ -283,7 +294,7 @@ nonTravelExpenses?.map((expense,index) => <NonTravelExpenses index={index} expen
 <CardLayout cardSequence={visibleDivs[2]} icon={briefcase} cardTitle={"Upcoming Trips"}>
  
  {  upcomingTrips?.length === 0 ? (
-  <EmptyTrips text="No upcoming trips" />
+  <EmptyTrips icon={empty_itinerary_icon} text="No upcoming trips" />
 ) : (
   <div className='mt-2'>
  {  upcomingTrips?.map((trip, index) => (
@@ -303,7 +314,7 @@ nonTravelExpenses?.map((expense,index) => <NonTravelExpenses index={index} expen
 
 
 
-<CardLayout cardSequence={visibleDivs[2]} icon={briefcase} cardTitle={"Upcoming Trips"}>
+<CardLayout cardSequence={visibleDivs[2]} icon={briefcase} cardTitle={"Travel Requests"}>
   {/* <div className="border-b-2 border-indigo-600 flex flex-row items-center justify-start gap-2 overflow-hidden py-2">
     <img
       className="w-5 h-5 shrink-0"
@@ -335,7 +346,9 @@ Raise Travel Request
 </div>
 
 <div className="h-[236px] overflow-y-auto px-2">
-  {travelRequests?.map((travel, index)=>(
+  {
+    travelRequests.length === 0 ? <EmptyTrips icon={empty_itinerary_icon} text="No travel requests." /> :
+  travelRequests?.map((travel, index)=>(
     <TravelRequests key={index} travel={travel} index={index} lastIndex={travelRequests?.length-1}/>
   ))}
 </div>
@@ -511,23 +524,10 @@ const IntransitTrips = ({ index, trip, lastIndex,handleVisible }) => {
           
       
       </div>
-      {/* <div className='flex gap-2 items-center px-2 py-2 text-base  font-cabin'>
-              <img src={briefcase} className='w-4 h-4'/>
-              <div className='  text-sm uppercase text-neutral-700 '>
-               {splitTripName(trip?.tripName)?? "-"}
-
-
+      
+      <div className=' px-2 py-2 '>
+      <TripName tripName={trip?.tripName}/>
       </div>
-      </div> */}
-      <div className='flex gap-2 items-center px-2 py-2 text-base  font-cabin '>
-              <img src={briefcase} className='w-4 h-4'/>
-              <div className='font-medium font-cabin  text-sm uppercase text-neutral-700 '>
-               {splitTripName(trip?.tripName)}
-              </div>
-              <div className='font-medium font-cabin  text-sm  text-neutral-700 '>
-               {extractAndFormatDate(trip?.tripName)}
-              </div>
-              </div>
       
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -536,10 +536,9 @@ const IntransitTrips = ({ index, trip, lastIndex,handleVisible }) => {
         >
           <div className='h-[200px] space-y-2 min-w-max w-full bg-white-100 overflow-y-auto rounded-b-md py-1 px-2'>
           {itineraryByTab && itineraryByTab.length == 0 && 
-         <EmptyTrips text={"No upcoming itineraries."}/>
+         <EmptyTrips icon={empty_itinerary_icon} text={"No upcoming itineraries."}/>
             }
-           {
-            itineraryByTab?.map((item,index)=>{
+           {itineraryByTab?.map((item,index)=>{
               if(item?.category === "flights"){
                 return ( 
                 <FlightCard 
@@ -682,18 +681,7 @@ const [textVisible ,setTextVisible]=useState(false)
     <div className={`${index === lastIndex ? '' : 'mb-2'} cursor-pointer flex justify-between items-center p-3 hover:border hover:border-indigo-600 rounded shadow w-full border border-slate-300 bg-slate-50 hover:bg-indigo-100`}>
       {/* <div className="flex gap-2 px-2 flex-row items-center justify-between text-center font-cabin  border-slate-300 py-2 text-neutral-700 text-xs"> */}
        
-      <div className='font-cabin text-xs text-neutral-700'>
-         
-           <div className='flex gap-2 items-center '>
-              <img src={briefcase} className='w-4 h-4'/>
-              <div className='font-medium font-cabin  text-sm uppercase text-neutral-700 '>
-               {splitTripName(trip?.tripName)}
-              </div>
-              <div className='font-medium font-cabin  text-sm  text-neutral-700 '>
-               {extractAndFormatDate(trip?.tripName)}
-              </div>
-           </div>
-        </div>
+      <TripName tripName={trip?.tripName}/>
 
         <div className='gap-4 flex '>
 
@@ -863,15 +851,7 @@ const TravelRequests = ({travel,index,lastIndex})=>{
             <p>{travel?.travelRequestNumber}</p>
          </div>
           : 
-          <div className='flex gap-2 items-center '>
-          <img src={briefcase} className='w-4 h-4'/>
-          <div className='font-medium font-cabin  text-sm uppercase text-neutral-700 '>
-           {splitTripName(travel?.tripName)}
-          </div>
-          <div className='font-medium font-cabin  text-sm  text-neutral-700 '>
-           {extractAndFormatDate(travel?.tripName)}
-          </div>
-          </div>
+          <TripName tripName={travel?.tripName}/>
           
         }
          
@@ -887,138 +867,19 @@ const TravelRequests = ({travel,index,lastIndex})=>{
   )
 };
 
-const extractAndFormatDate = (inputString) => {
-  // Convert the input string to lowercase
-  const lowerCaseInput = inputString.toLowerCase();
-
-  // Define the date pattern
-  const datePattern = /(\d{1,2})(st|nd|rd|th) (\w{3})/;
-  const match = lowerCaseInput.match(datePattern);
-
-  if (match) {
-    const [, day, suffix, month] = match;
-    return (
-      <>
-        {day}
-        <span className="align-super text-xs">{suffix}</span><span className='capat capitalize'>{` ${month}`}</span> 
-      </>
-    );
-  }
-
-  return null;
-};
 
 
 
 
 
 
-const EmptyTrips = ({ text }) => (
-  <div className="min-w-[100px] h-full sm:min-w-[280px] md:min-w-[400px] flex justify-center items-center">
+const EmptyTrips = ({icon, text }) => (
+  <div className="min-w-[100px]  h-full sm:min-w-[280px] md:min-w-[400px] flex justify-center items-center">
     <div className="flex flex-col gap-4">
-      <img src={empty_itinerary_icon} className="w-[200px] animate-pulse" alt="Empty itinerary icon" />
-      <p className="text-xl font-cabin text-neutral-600">{text}</p>
+      <img src={icon} className="w-[200px] animate-pulse" alt="Empty itinerary icon" />
+      <p className="text-xl text-center font-cabin text-neutral-600">{text}</p>
     </div>
   </div>
 );
-
-
-
-
-// import React ,{ useState,useEffect} from 'react';
-// import { useData } from '../api/DataProvider';
-// import { intransit_trip, arrow_left, down_arrow, chevron_down, cancel_round, cancel, upcoming_trip} from '../assets/icon';
-// import NotifyModal from '../components/NotifyModal';
-// import UpcomingTrip from '../components/trips/UpcomingTrip';
-// import  IntransitTrip from '../components/trips/IntransitTrip';
-// import { handleTrip ,handleTravelExpense, handleCashAdvance,} from '../utils/actionHandler';
-// import { useParams } from 'react-router-dom';
-// import Error from '../components/common/Error';
-
-
-
-// const Overview = ({fetchData ,isLoading,setIsLoading,loadingErrMsg, setLoadingErrMsg}) => {
-
-//   const { setEmployeeData , employeeData } = useData(); 
-//   const [tripsData,setOverviewData]=useState(null);
-//   const {tenantId,empId,page}= useParams();
-
-//   useEffect(()=>{
-//     fetchData(tenantId,empId,page)
-//   },[])
-
-
-// useEffect(()=>{
-//   console.log('data11',employeeData?.dashboardViews?.employee?.trips)
-//   setOverviewData(employeeData && employeeData?.dashboardViews?.employee?.trips)
-// },[employeeData])
-
-
-//   console.log('tripsData',tripsData?.transitTrips)
-  
-//     const [dropdownStates, setDropdownStates] = useState({});      
-//     const initialTripTab=['Trip','Trip','Trip']
-//     // const initialTripTab=tripsData?.transitTrips.map(item=> 'Trip')
-//     console.log('initial transit trip',initialTripTab)
-
-
-//     const [showConfirmationOverlay, setShowConfirmationOverlay] = useState(false);
-
-//     const handleOpenOverlay = () => {
-//        setShowConfirmationOverlay(true);
-  
-  
-//       setTimeout(()=>{
-//         setShowConfirmationOverlay(false);
-//         window.location.reload();
-//       },5000);
-      
-//     };
-
-//   //handle for Cancel and Add a Leg Options
-//     const handleDropdownToggle = (index) => {
-//     setDropdownStates((prevStates) => ({
-//       ...prevStates,
-//       [index]: !prevStates[index],
-//     }));
-//   };
-//   return (
-//     <>
-//      {isLoading && <Error message={loadingErrMsg}/>}
- 
-//     {!isLoading &&
-//      <div className='w-auto min-h-screen pt-12 px-0 lg:px-20 bg-white-100 flex flex-col gap-4'> 
-//      <div className=' overflow-x-auto'> 
-//    <IntransitTrip 
-//       handleCashAdvance={handleCashAdvance} 
-//       handleTrip={handleTrip} 
-//       dropdownStates={dropdownStates} 
-//       initialTransitTabs={initialTripTab}
-//       transitTripData={tripsData &&tripsData?.transitTrips} 
-//       handleDropdownToggle={handleDropdownToggle} 
-//       handleOpenOverlay={handleOpenOverlay}/> 
-//      </div>
-    
-//      {/* Third Div taking full width in the next row */}
-//    <div className=''>
-//        <UpcomingTrip 
-//        handleCashAdvance={handleCashAdvance} 
-//        handleTrip={handleTrip} dropdownStates={dropdownStates} 
-//        upComingTrip={tripsData &&tripsData?.upcomingTrips} 
-//        handleDropdownToggle={handleDropdownToggle} 
-//        handleOpenOverlay={handleOpenOverlay} 
-//        />
-//    </div>
-     
-//    {showConfirmationOverlay && (
-//      <NotifyModal/>
-//    )}
-//    </div>}
- 
-// </>
-//   )}
-
-// export default Overview;
-
 
 
