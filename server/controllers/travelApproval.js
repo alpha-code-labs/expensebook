@@ -67,7 +67,7 @@ export const getTravelRequestDetails = async (req, res) => {
        return res.status(200).json({ success: true , travelRequestData, cashAdvancesData})
    } else {
     console.error('cashAdvance not taken ', travelRequestData.isCashAdvanceTaken);
-
+    
        return res.status(200).json({success: true, travelRequestData, cashAdvancesData:[]});
    }
 
