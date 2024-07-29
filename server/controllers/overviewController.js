@@ -218,7 +218,6 @@ export const addBus = async (req, res) => {
 }
 
 
-
 // Validate train details
 const validateTrainDetails = (trainDetails) => {
   return trainDetails && trainDetails.from && trainDetails.to && trainDetails.date && trainDetails.time;
@@ -320,7 +319,6 @@ export const addTrain = async (req, res) => {
     return res.status(500).json({success:false , message: "Failed to add trains ", error})
   }
 }
-
 
 
 // Validate cab details
@@ -426,8 +424,6 @@ export const addCab = async (req, res) => {
   }
 }
 
-
-
 // Validate hotel details
 const validateHotelDetails = (hotelDetails) => {
   return hotelDetails && hotelDetails.hotelName && hotelDetails.checkIn && hotelDetails.checkOut;
@@ -520,7 +516,6 @@ export const addHotel = async (req, res) => {
         } else {
           await sendToOtherMicroservice(dataToSend, 'add-leg', 'travel', 'to update itinerary added to travelRequestData for trips');
         }
-        
       }
 
       return res.status(200).json({ success: true, message: 'Hotels added successfully', trip: updatedTrip });
