@@ -74,7 +74,7 @@ const bodySchema = Joi.object({
 export const modifyTrip = async(req,res) => {
     try{    
         const { error: errorParams, value: valueParams} = employeeSchema.validate(req.params)
-        if(errorParams) return res.status(400).send(errorParams.details[0].message)
+        if(errorParams) return res.status(400).json(errorParams.details[0].message)
         const {error: errorBody, value: valueBody} = bodySchema.validate(req.body)
         if(errorBody) return res.status(400).send(errorBody.details[0].message)
         
@@ -106,14 +106,14 @@ export const modifyTrip = async(req,res) => {
             console.log("addALeg maga", modifyTrip)
         }
 
-        return res.status(200).json({success:true , tripDetails})
+        return res.status(200).json({success:true ,message:"Trip Updated Successfully", tripDetails})
         } else {
             return res.status(400).json({success:false, message:"Invalid request:"})
         }
 
     } catch(error){
         console.error(error)
-        return res.status(500).json({success:false, error})
+        return res.status(500).json({success:false,message:"", error})
     }
 }
 

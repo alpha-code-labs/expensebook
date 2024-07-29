@@ -380,7 +380,7 @@ export const cancelTripAtHeaderLevel = async (req, res) => {
   };
 
   // Update status fields conditionally
- export const itineraryLineItem = async (tripDetails, itineraryIds) => {
+export const itineraryLineItem = async (tripDetails, itineraryIds) => {
     try{
       const updateItemStatus = (items) => {
         items.forEach(item => {

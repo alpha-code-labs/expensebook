@@ -158,13 +158,32 @@ export async function fetchGroupAndPoliciesData(tenantId, employeeId) {
 
 }
 
-const getPolicy = (group, policy, travelType, policies)=>{
-  let result = null
-  policies.forEach(groupPolicy=>{
-    if(groupPolicy[group]!=null && groupPolicy[group]!=undefined){
-        result = groupPolicy[group][travelType][policy] 
-        return
-    }
-  })
-  return result
-}
+// const getPolicy = (group, policy, travelType, policies)=>{
+//     console.log('Data being processed:', group, policy, travelType, policies);
+
+//   let result = null
+//   policies.forEach(groupPolicy=>{
+//     if(groupPolicy[group]!=null && groupPolicy[group]!=undefined){
+//         result = groupPolicy[group][travelType][policy] 
+//         return
+//     }
+//   })
+//   return result
+// }
+
+
+const getPolicy = (group, policy, travelType, policies) => {
+    console.log('Data being processed:', group, policy, travelType, policies);
+
+    return policies.reduce((result, groupPolicy) => {
+        if (result) return result; // If result is already found, return it
+
+        if (groupPolicy[group]) {
+            const travelPolicies = groupPolicy[group]?.[travelType];
+            return travelPolicies ? travelPolicies[policy] : null;
+        }
+
+        return null; // Continue reducing
+    }, null); // Initial value is null
+};
+

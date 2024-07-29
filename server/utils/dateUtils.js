@@ -17,10 +17,10 @@ const parseTimeToMinutes = (time) => {
     console.log("Time:", time);
     const [hours, minutes] = time.split(':').map(Number);
     return hours * 60 + minutes;
-  };
+};
 
   // Function to check if a flight is in the future
-  const isFlightInFuture = (flight, currentDate, currentTime) => {
+const isFlightInFuture = (flight, currentDate, currentTime) => {
     const flightDate = new Date(flight.bkd_date);
     const tempPastTime = '12:48'
 
@@ -52,10 +52,10 @@ const parseTimeToMinutes = (time) => {
     }
   
     return false;
-  };
+};
 
-  // Main function to filter flights
- export const filterFutureFlights = (flights) => {
+// Main function to filter flights
+export const filterFutureFlights = (flights) => {
     const statusName = ['booked','pending approval']
     const currentDate = new Date(); 
     const currentTime = currentDate.getHours() * 60 + currentDate.getMinutes(); 
@@ -63,10 +63,10 @@ const parseTimeToMinutes = (time) => {
       isFlightInFuture(flight, currentDate, currentTime)
     )
     .filter(flight => flight.status === statusName.includes(flight.status) )
-  };
+};
 
-  // Function to check if a Hotel is in the future
-  const isHotelsInFuture = (hotel, currentDate, currentTime) => {
+// Function to check if a Hotel is in the future
+const isHotelsInFuture = (hotel, currentDate, currentTime) => {
     const flightDate = new Date(hotel.bkd_date);
     const tempPastTime = '12:48'
 
@@ -98,10 +98,10 @@ const parseTimeToMinutes = (time) => {
     }
   
     return false;
-  };
+};
 
   // Main function to filter hotels
- export const filterFutureHotels = (hotels) => {
+export const filterFutureHotels = (hotels) => {
     const statusToShow = ['booked', 'pending approval']
     const currentDate = new Date(); 
     const currentTime = currentDate.getHours() * 60 + currentDate.getMinutes(); 
@@ -110,5 +110,8 @@ const parseTimeToMinutes = (time) => {
         isHotelsInFuture(hotel, currentDate, currentTime)
     )
     .filter(hotel => statusToShow.includes(hotel.status))
-  };
+};
+
+
+
 
