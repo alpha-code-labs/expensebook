@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { briefcase, modify, receipt, receipt_icon1, categoryIcons, filter_icon, plus_violet_icon, cancel, search_icon, info_icon } from '../assets/icon';
-import { formatAmount, getStatusClass } from '../utils/handyFunctions';
+import { formatAmount, getStatusClass, splitTripName } from '../utils/handyFunctions';
 import { travelExpense, nonTravelExpense } from '../utils/dummyData';
 import { handleNonTravelExpense, handleTravelExpense } from '../utils/actionHandler';
 import Modal from '../components/common/Modal1';
@@ -9,8 +9,9 @@ import { useData } from '../api/DataProvider';
 import TripSearch from '../components/common/TripSearch';
 import Button1 from '../components/common/Button1';
 import Error from '../components/common/Error';
-import SearchComponent from '../components/common/ExpenseSearch';
+
 import Input from '../components/common/SearchInput';
+import { TripName } from '../components/common/TinyComponent';
 
 
 const Expense = ({isLoading ,fetchData,loadingErrMsg}) => {
@@ -64,7 +65,7 @@ const Expense = ({isLoading ,fetchData,loadingErrMsg}) => {
     const completedTrips = employeeData?.dashboardViews?.employee?.expense?.completedTrips || []
 
     const dataForRaiseCashadvance = [...intransitTrips, ...completedTrips];
-    const pushedData = dataForRaiseCashadvance?.map(item => ({ ...item, tripName: "us-del-mum-gkr-mkr-pkr" }));
+    const pushedData = dataForRaiseCashadvance?.map(item => ({ ...item}));
     setTripData(pushedData)
     setExpenseData(employeeData && employeeData?.dashboardViews?.employee?.expense)
   
@@ -89,6 +90,7 @@ const Expense = ({isLoading ,fetchData,loadingErrMsg}) => {
   };
 
   const filterExpenses = (expenses) => {
+    
     return expenses.filter((expense) =>
       selectedStatuses.length === 0 ||
       selectedStatuses.includes(expense?.expenseHeaderStatus)
@@ -136,9 +138,9 @@ const Expense = ({isLoading ,fetchData,loadingErrMsg}) => {
     <div className='min-h-screen'>
       <div className='flex-col w-full p-4 flex items-start gap-2'>
       <div className='min-h-[120px] border border-slate-300 bg-white-100 rounded-md  w-full flex flex-col items-start px-2 py-2 gap-2'>
- <div className='flex flex-wrap  space-x-2 '>      
+ <div className='flex flex-wrap  space-x-2 space-y-2  '>      
 <div className='flex items-center justify-center p-2 bg-slate-100 rounded-full border border-slate-300 '><img src={filter_icon} className='w-5 h-5'/></div>
-  {["draft","pending approval", "pending settlement", "paid",  "cancelled", "paid and cancelled"].map((status) => {
+  {["draft","pending approval", "pending settlement", "paid","rejected", "cancelled", "paid and cancelled"].map((status) => {
     const statusCount = getStatusCount(status, [...travelExpenses.flatMap(te => te?.travelExpenses ), ...nonTravelExpenses]);
     const isDisabled = statusCount === 0;
     
@@ -200,12 +202,7 @@ const Expense = ({isLoading ,fetchData,loadingErrMsg}) => {
 
                 return (
                   <div key={`${index}-tr-expense`} className='mb-4 text-neutral-700 rounded-md shadow-custom-light bg-white-100 p-4'>
-                    <div className='flex gap-2 items-center '>
-                      <img src={briefcase} className='w-4 h-4' />
-                      <div className='font-medium font-cabin text-md uppercase'>
-                        {trip?.tripName}
-                      </div>
-                    </div>
+                   <TripName tripName={trip?.tripName}/>
                     <div className='mt-2 space-y-2'>
                       {filteredTripExpenses.map((trExpense, index) => (
                         <div key={index} className='border border-slate-300 rounded-md px-2 py-1'>

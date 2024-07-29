@@ -113,6 +113,49 @@ function formatDate(date=Date.now()){
       return dateA - dateB;
     });
   };
+
+  function extractTripNameStartDate(inputString) {
+    // Regular expression to match the date part within parentheses
+    const dateRegex = /\((\d{1,2})(?:st|nd|rd|th) (\w{3}) (\d{4})\)/;
+    const match = inputString.match(dateRegex);
+    
+    if (match) {
+      const day = parseInt(match[1]);
+      const month = match[2];
+      const year = parseInt(match[3]);
+  
+      // Month abbreviations and their corresponding numbers
+      const months = {
+        "Jan": 0,
+        "Feb": 1,
+        "Mar": 2,
+        "Apr": 3,
+        "May": 4,
+        "Jun": 5,
+        "Jul": 6,
+        "Aug": 7,
+        "Sep": 8,
+        "Oct": 9,
+        "Nov": 10,
+        "Dec": 11
+      };
+  
+      // Check if any part is missing or invalid
+      if (!day || !month || !year || !(month in months)) {
+        return "";
+      }
+  
+      // Create a new Date object in UTC
+      const date = new Date(Date.UTC(year, months[month], day));
+      
+      // Convert the date to ISO string format with Z timezone
+      const isoString = date.toISOString();
+      
+      return isoString;
+    } else {
+      return "";
+    }
+  }
   
   function getStatusClass(status){
     switch(status){
@@ -235,5 +278,5 @@ function splitTripName(tripName){
 
   
 
-export {sortTripsByDate, splitTripName, titleCase, formatDate, filterTravelRequests,formatDate2 ,getStatusClass ,addOrdinalIndicator ,formatDate3 ,getCashAdvanceButtonText,urlRedirection,formatAmount}  
+export {extractTripNameStartDate, sortTripsByDate, splitTripName, titleCase, formatDate, filterTravelRequests,formatDate2 ,getStatusClass ,addOrdinalIndicator ,formatDate3 ,getCashAdvanceButtonText,urlRedirection,formatAmount}  
 

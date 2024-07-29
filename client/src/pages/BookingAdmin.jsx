@@ -27,6 +27,7 @@ const BookingAdmin = ({fetchData}) => {
 
   const [travelBookingData ,setTravelBookingData]=useState(null)
   const [cancelledTrips , setCancelledTrips]=useState(null)
+
   useEffect(()=>{
     const data = employeeData && employeeData?.dashboardViews?.businessAdmin
    
@@ -51,6 +52,7 @@ const BookingAdmin = ({fetchData}) => {
 
 
   let filteredData
+  
 if(travelBookingData){
   let filteredTravelRequests = filterTravelRequests(travelBookingData);
   filteredData=filteredTravelRequests
