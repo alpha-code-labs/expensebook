@@ -129,10 +129,10 @@ const { nonTravelCashAdvance = [], travelCashAdvance = [] } = allCashAdvance || 
         expense:expenseUi,
     }
     return employee;
-  } catch (error) {
+} catch (error) {
     console.error("Error:", error);
     throw new Error({ message: 'Internal server error' });
-  }
+}
 };
 
 const getOverView = async(tenantId,empId) => {

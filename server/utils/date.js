@@ -59,7 +59,7 @@ export async function earliestDate(itinerary) {
         }
     
     const theDate = dateString ? formatDate(dateString) : null
-    console.log("magic", theDate)
+    // console.log("magic", theDate)
     return  theDate
 
     } catch(error){
