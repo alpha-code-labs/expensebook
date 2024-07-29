@@ -95,8 +95,8 @@ const employeeLayout = async (tenantId, empId) => {
 try {
 
 const promises = [
-        // travelStandAloneForEmployee(tenantId, empId),
-        // travelWithCashForEmployee(tenantId, empId),
+        travelStandAloneForEmployee(tenantId, empId),
+        travelWithCashForEmployee(tenantId, empId),
         getTripForEmployee(tenantId, empId),
         getAllExpensesForEmployee(tenantId, empId),
         getOverView(tenantId,empId),
@@ -132,7 +132,7 @@ const { nonTravelCashAdvance = [], travelCashAdvance = [] } = allCashAdvance || 
 } catch (error) {
     console.error("Error:", error);
     throw new Error({ message: 'Internal server error' });
-}
+  }
 };
 
 const getOverView = async(tenantId,empId) => {
@@ -503,10 +503,11 @@ const travelWithCashForEmployee = async (tenantId, empId) => {
         // Then, map over the filtered documents to transform them into the desired structure
         return filteredDocs.map(travelRequest => {
            const { cashAdvanceSchema } = travelRequest;
-           const { travelRequestId, travelRequestNumber, tripPurpose, travelRequestStatus, isCashAdvanceTaken , itinerary } = cashAdvanceSchema.travelRequestData;
+           const { travelRequestId, travelRequestNumber, tripPurpose, travelRequestStatus, isCashAdvanceTaken , itinerary } = cashAdvanceSchema?.travelRequestData;
 
-           const tripStartDate = earliestDate(itinerary)
-           console.log("hello ....................",tripStartDate ? tripStartDate.toISOString().split('T')[0] : 'No valid dates found');
+           const tripStartDate = earliestDate(itinerary) ?? ''
+           console.log("tripStartDate",tripStartDate)
+           console.log("hello ....................",tripStartDate ? tripStartDate?.toISOString().split('T')[0] : 'No valid dates found');
 
            const cashAdvancesData = cashAdvanceSchema?.cashAdvancesData || [];
        
