@@ -904,4 +904,10 @@ tripSchema.pre('validate', async function (next) {
   }
   next();
 });
-  git 
+  
+const Trip = mongoose.model('trips', tripSchema);
+
+export default Trip;
+
+
+
