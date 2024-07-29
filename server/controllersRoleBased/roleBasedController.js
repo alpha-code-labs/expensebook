@@ -501,13 +501,13 @@ const travelWithCashForEmployee = async (tenantId, empId) => {
         });
 
         // Then, map over the filtered documents to transform them into the desired structure
-        return filteredDocs.map(travelRequest => {
+        return filteredDocs.map(async travelRequest => {
            const { cashAdvanceSchema } = travelRequest;
            const { travelRequestId, travelRequestNumber, tripPurpose, travelRequestStatus, isCashAdvanceTaken , itinerary } = cashAdvanceSchema?.travelRequestData;
 
-           const tripStartDate = earliestDate(itinerary) ?? ''
+           const tripStartDate = await earliestDate(itinerary) ?? ''
            console.log("tripStartDate",tripStartDate)
-           console.log("hello ....................",tripStartDate ? tripStartDate?.toISOString().split('T')[0] : 'No valid dates found');
+           console.log("hello ....................",tripStartDate ? tripStartDate : 'No valid dates found');
 
            const cashAdvancesData = cashAdvanceSchema?.cashAdvancesData || [];
        
