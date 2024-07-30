@@ -48,15 +48,16 @@
 // };
 
 
-export const extractValidViolations = (itinerary) => {
+export const extractValidViolations = (itinerary,check) => {
     const allBkdViolations = [];
-  
     Object.keys(itinerary).forEach(key => {
       const items = itinerary[key];
   
       if (Array.isArray(items)) {
         items.forEach(item => {
-          if (item.status === "booked" && item.bkd_violations) {
+            const getViolations = check == 'preApproval' ? item.violations : item.bkd_violations;
+            console.log(getViolations)
+          if (item.status === "booked" && getViolations) {
             const { bkd_violations } = item;
             const { class: classValue, amount } = bkd_violations;
   

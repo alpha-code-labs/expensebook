@@ -50,16 +50,6 @@ export async function earliestDate(itinerary) {
     
     const dates = dateStrings.map(dateStr => new Date(dateStr));
     const dateString = dates.length ? new Date(Math.min(...dates)) : null;
-        const formatDate = (dateString) => {
-            const date = new Date(dateString);
-            const day = String(date.getDate()).padStart(2, '0');
-            const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero-based
-            const year = date.getFullYear();
-            return `${day}/${month}/${year}`;
-        }
-    
-    const theDate = dateString ? formatDate(dateString) : null
-    // console.log("magic", theDate)
     return  dateString
 
     } catch(error){
@@ -69,9 +59,18 @@ export async function earliestDate(itinerary) {
     
 };
 
-//   console.log(earliestDate ? earliestDate.toISOString().split('T')[0] : 'No valid dates found');
+//console.log(earliestDate ? earliestDate.toISOString().split('T')[0] : 'No valid dates found');
 
+const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero-based
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+}
 
+// const theDate = dateString ? formatDate(dateString) : null
+// console.log("magic", theDate)
 
 
 
