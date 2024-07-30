@@ -1,6 +1,6 @@
 /* eslint-disable no-unreachable */
 import React, { useEffect, useState } from 'react';
-import { briefcase, cancel, cancel_round, categoryIcons, check_tick, cross_icon, filter_icon, info_icon, modify, money, money1, plus_violet_icon, receipt, search_icon } from '../assets/icon';
+import { briefcase, cancel, cancel_round, categoryIcons, check_tick, cross_icon, filter_icon, info_icon, modify, money, money1, plus_violet_icon, receipt, search_icon, violation_icon } from '../assets/icon';
 import { formatAmount, getStatusClass, splitTripName } from '../utils/handyFunctions';
 import {TRCashadvance,NonTRCashAdvances, travelExpense, TrExpenseForApproval, NonTrExpenseForApproval} from '../utils/dummyData';
 import Modal from '../components/common/Modal1';
@@ -650,7 +650,8 @@ Raise a Cash-Advance
               </div>
 
             <div className='flex items-center justify-center'>
-             <img src={info_icon} className='w-4 h-4'/>
+              <div className='flex flex-row gap-2 justify-center items-center text-neutral-700 font-cabin  text-sm'><img src={violation_icon} className='w-4 h-4'/><p>{trip?.violationsCounter?.total}</p></div>
+             
               <div className='text-sm font-cabin px-2 py-1 cursor-pointer' onClick={()=>{if(!disableButton(trip?.travelRequestStatus)){handleVisible(trip?.travelRequestId,  'travel-approval-view' )}}}>
                 <p className='text-indigo-600 font-semibold'>View Details</p>
               </div>
