@@ -1778,38 +1778,46 @@ const approvalsForManager = async (tenantId, empId) => {
             return { message: 'There are no approvals found for the user' };
         } else {
             
-            const travel = await ( async() => {
-                const filteredApprovals = approvalDoc.filter(approval =>
+            const travel = await Promise.all(
+                approvalDoc
+                  .filter(approval =>
                     approval.travelRequestSchema?.approvers &&
                     approval.travelRequestSchema.approvers.length > 0 &&
                     approval.travelRequestSchema.isCashAdvanceTaken === false &&
                     approval.travelRequestSchema.approvers.some(approver =>
-                        approver.empId === empId &&
-                        approver.status === 'pending approval'
+                      approver.empId === empId &&
+                      approver.status === 'pending approval'
                     )
-                )
-                return filteredApprovals.map( async approval => {
-                    const { travelRequestId, approvers, tripPurpose,tripName,createdBy,  travelRequestNumber, travelRequestStatus, isCashAdvanceTaken , itinerary } = approval.travelRequestSchema;
-                    const tripStartDate = approval?.travelRequestSchema?.tripStartDate ?? await earliestDate(itinerary)
-
+                  )
+                  .map(async approval => {
+                    const { 
+                      travelRequestId, approvers, tripPurpose, tripName, createdBy, 
+                      travelRequestNumber, travelRequestStatus, isCashAdvanceTaken, itinerary 
+                    } = approval.travelRequestSchema;
+                    
+                    // Await earliestDate if tripStartDate is not present
+                    const tripStartDate = approval.travelRequestSchema.tripStartDate || await earliestDate(itinerary);
+                    
                     const allBkdViolations = extractValidViolations(itinerary);
                     const violationsCounter = countViolations(allBkdViolations);
                     
-                    return {travelRequestId, approvers,tripPurpose,tripName,tripStartDate, travelRequestNumber,createdBy, travelRequestStatus, isCashAdvanceTaken , violationsCounter}
-                }).filter(Boolean);
-            })()
+                    return {
+                      travelRequestId, approvers, tripPurpose, tripName, tripStartDate,
+                      travelRequestNumber, createdBy, travelRequestStatus, isCashAdvanceTaken, violationsCounter
+                    };
+                  })
+              );
 
 
-            const travelWithCash = await (async () => {
-                const filteredApprovals = approvalDoc.filter(approval => 
+            const travelWithCash = await Promise.all (approvalDoc
+                .filter(approval => 
                     approval?.cashAdvanceSchema?.travelRequestData?.travelRequestStatus === 'pending approval' &&
                     approval?.cashAdvanceSchema.travelRequestData.approvers?.some(approver =>
                         approver?.empId === empId && 
                         approver?.status === 'pending approval'
                     )
-                );                
-                
-                    return filteredApprovals.map(async approval => {
+                )
+                .map(async approval => {
                         const { travelRequestData, cashAdvancesData } = approval.cashAdvanceSchema;
                         const isValidCashStatus = cashAdvancesData.some(cashAdvance => cashAdvance.cashAdvanceStatus === 'pending approval');
                         const { travelRequestId, approvers, createdBy, travelRequestNumber,tripPurpose,tripName, travelRequestStatus, isCashAdvanceTaken, itinerary } = travelRequestData;
@@ -1833,12 +1841,12 @@ const approvalsForManager = async (tenantId, empId) => {
                         } else{
                             return { ...travelRequest, cashAdvance: []};
                         }
-                    }).filter(Boolean);
-                })();
+                    })
+                )
 
 
-            const cashAdvanceRaisedLater = await (async() =>{
-                const filteredApprovals = approvalDoc.filter(approval =>
+            const cashAdvanceRaisedLater = await Promise.all (approvalDoc
+                .filter(approval =>
                     (
                         approval?.cashAdvanceSchema?.travelRequestData?.travelRequestStatus === 'booked' ||
                         approval?.cashAdvanceSchema?.travelRequestData?.travelRequestStatus === 'approved'
@@ -1847,10 +1855,9 @@ const approvalsForManager = async (tenantId, empId) => {
                         approver?.empId === empId &&
                         approver?.status === 'pending approval'
                     ))
-                );
+                )
 
-
-                return filteredApprovals.map(async approval => {
+                .map(async approval => {
                     // console.log("cashAdvanceRaisedLater", approval)
                     const { travelRequestData, cashAdvancesData } = approval.cashAdvanceSchema;
                     const isValidCashStatus = cashAdvancesData.some(cashAdvance => cashAdvance.cashAdvanceStatus === 'pending approval');
@@ -1874,8 +1881,8 @@ const approvalsForManager = async (tenantId, empId) => {
                         return { ...travelRequest, cashAdvance: []};
                     }
                     return null;
-                }).filter(Boolean);
-                })();
+                })
+            )
 
             const addAleg = await (async() =>{
                 const filteredApprovals = approvalDoc.flatMap(approval => {
@@ -1884,7 +1891,7 @@ const approvalsForManager = async (tenantId, empId) => {
                             approver?.empId === empId && 
                             approver?.status === 'pending approval'
                         )) {
-                            const { travelRequestId, tripPurpose, createdBy,tripName, itinerary,travelRequestNumber, travelRequestStatus } = approval.tripSchema.travelRequestData;
+                            const { travelRequestId, tripPurpose, createdBy,tripName,tripStartDate, itinerary,travelRequestNumber, travelRequestStatus } = approval.tripSchema.travelRequestData;
                             const allBkdViolations = extractValidViolations(itinerary);
                             const violationsCounter = countViolations(allBkdViolations);
                             return {
@@ -1894,6 +1901,7 @@ const approvalsForManager = async (tenantId, empId) => {
                                 tripName,
                                 travelRequestNumber,
                                 travelRequestStatus,
+                                tripStartDate,
                                 violationsCounter,
                                 [key]: value,
                             };
