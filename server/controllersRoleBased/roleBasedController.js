@@ -1822,8 +1822,8 @@ const approvalsForManager = async (tenantId, empId) => {
                         const isValidCashStatus = cashAdvancesData.some(cashAdvance => cashAdvance.cashAdvanceStatus === 'pending approval');
                         const { travelRequestId, approvers, createdBy, travelRequestNumber,tripPurpose,tripName, travelRequestStatus, isCashAdvanceTaken, itinerary } = travelRequestData;
                         const tripStartDate = travelRequestData?.tripStartDate ?? await earliestDate(itinerary)
-
-                        const allBkdViolations = extractValidViolations(itinerary);
+                        const check= "preApproval"
+                        const allBkdViolations = extractValidViolations(itinerary, check);
                         const violationsCounter = countViolations(allBkdViolations);
 
                         const travelRequest = { travelRequestId,travelRequestNumber,createdBy,tripStartDate, tripPurpose,tripName, travelRequestNumber, travelRequestStatus, approvers,isCashAdvanceTaken , violationsCounter};
@@ -1834,7 +1834,8 @@ const approvalsForManager = async (tenantId, empId) => {
                                 travelRequestNumber: cashAdvance.travelRequestNumber,
                                 cashAdvanceNumber: cashAdvance.cashAdvanceNumber,
                                 cashAdvanceId: cashAdvance.cashAdvanceId,
-                                amountDetails: cashAdvance.amountDetails,
+                                amountDetails: cashAdvance?.amountDetails,
+                                cashViolationsCounter: cashAdvance?.cashAdvanceViolations ? 1:0 ,
                             }));
 
                             return { ...travelRequest, cashAdvance: cashAdvanceDetails };
@@ -1875,6 +1876,7 @@ const approvalsForManager = async (tenantId, empId) => {
                             cashAdvanceNumber: cashAdvance.cashAdvanceNumber,
                             cashAdvanceId: cashAdvance.cashAdvanceId,
                             amountDetails: cashAdvance.amountDetails,
+                            cashViolationsCounter: cashAdvance?.cashAdvanceViolations ? 1:0 ,
                         }));
                         return { ...travelRequest, cashAdvance: cashAdvanceDetails };
                     } else {
@@ -1962,7 +1964,7 @@ const approvalsForManager = async (tenantId, empId) => {
         // console.log("rule1", travel)
         // console.log("rule2"), travelWithCash
         // console.log("rule12", uniqueTravelWithCash)
-     
+    
         const responseData = {
                 // travelAndCash: [...travelRequests, ...travelWithCash,cashAdvanceRaisedLater, addAleg],
                 travelAndCash: [ ...filteredTravelWithCash, ...cashAdvanceRaisedLater, ],
