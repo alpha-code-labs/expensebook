@@ -93,7 +93,6 @@ app.use((err, req, res, next) => {
 });
 
 
-
 // start consuming messages..
 startConsumer('dashboard');
 
@@ -101,8 +100,6 @@ startConsumer('dashboard');
 // scheduleToFinanceBatchJob()
 
 consumeFromDashboardQueue();
-// 
-
 
 
 

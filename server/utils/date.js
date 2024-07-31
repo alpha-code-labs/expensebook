@@ -30,10 +30,8 @@ export async function earliestDate(itinerary) {
             'paid and cancelled',
             'paid and cancelled',
             'recovered',]
-        console.group('tripStartDate before booking')
-        console.log("hi i am itinerary",itinerary)
         const dateStrings=Object.entries(itinerary)
-            .filter(([category]) => category !== 'formState')
+            // .filter(([category]) => category !== 'formState')
             .flatMap(([category, items]) => {
                 const dateFields = {
                     hotels: 'checkIn_date',
