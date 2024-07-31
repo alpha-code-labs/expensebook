@@ -96,4 +96,42 @@ export const countViolations = (violationsArray) => {
 };
 
 
+// approveCashAdvance(tenantId,empId,travelRequestIds,cashReports))
 
+// export const approveCashAdvance = async (tenantId, empId, travelRequestIds,cashReports) => {
+//   console.log("Starting cash advance approval process...");
+//   try {
+//   const approvedStatuses = ['approved', 'booked'];
+
+// const filteredDocs = cashReports.filter(doc => 
+//   doc.cashAdvanceSchema?.travelRequestData?.travelRequestStatus &&
+//   approvedStatuses.includes(doc.cashAdvanceSchema.travelRequestData.travelRequestStatus)
+// );
+//     // Extract travelRequestIds from cashReports
+//     const allTravelRequestIds = filteredDocs?.map(doc => doc.travelRequestId.toString());
+
+//     // Filter travelRequestIds to get only those that match the travelRequestIds
+//     const matchedTravelRequests = travelRequestIds.filter(request =>
+//       allTravelRequestIds.includes(request.travelRequestId.toString())
+//     );
+
+//     const cashAdvanceIds = matchedTravelRequests.flatMap(request =>
+//       request.cashAdvanceData.map(cashAdvance => cashAdvance.cashAdvanceId)
+//     );
+
+//     const getReports = await updateCashAdvanceStatus(filteredDocs, cashAdvanceIds, empId);
+    
+//     // Construct the payload
+//     const payload = {
+//       tenantId,
+//       getReports,
+//     };
+
+//     console.log("Payload successfully for cash raised later:", payload);
+//     return { status: 200, json: payload };
+  
+//   }catch (error) {
+//     console.error('An error occurred while updating approval:', error.message);
+//     return { status: 500, json: { error: 'Failed to update approval.', details: error.message } };
+//   }
+// };
