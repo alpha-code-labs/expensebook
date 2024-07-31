@@ -1937,10 +1937,11 @@ const approvalsForManager = async (tenantId, empId) => {
                     // console.log("Processing approval:", approval);
                     return approval.tripSchema.travelExpenseData.map(expense => {
                         // console.log("Processing expense:", expense);
+                        const {tripName} = approval.travelRequestSchema
                         const { tripId, tripNumber, tripStatus, tripStartDate } = approval.tripSchema;
-                        const { tripPurpose} = approval.tripSchema.travelRequestData
+                        const { tripPurpose, createdBy} = approval.tripSchema.travelRequestData
                         const { expenseHeaderNumber,expenseHeaderId, expenseHeaderStatus, approvers } = expense;
-                        return { tripId,tripNumber,tripPurpose,tripStatus,tripStartDate, expenseHeaderNumber,expenseHeaderId, expenseHeaderStatus, approvers };
+                        return { tripId,tripName,tripNumber,tripPurpose,createdBy,tripStatus,tripStartDate, expenseHeaderNumber,expenseHeaderId, expenseHeaderStatus, approvers };
                     });
                 });
         
