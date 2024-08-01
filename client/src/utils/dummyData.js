@@ -594,328 +594,409 @@ const trips = [
 ]
 
 
-const travelRequestNew =[
 
-  {
-    "travelRequestId": "668cd9d2c515a7f938787223",
-    "approvers": [
-        {
-            "empId": "1002",
-            "name": "Emma Thompson",
-            "status": "pending approval",
-            "_id": "668cd9d2c515a7f938787226"
-        }
-    ],
-    "tenantId": "66794853c61cc24ba97b5b0f",
-    "travelType": "international",
-    "tenantName": "alpha code labs",
-    "companyName": "alpha code labs",
-    "createdBy": {
-        "empId": "1002",
-        "name": "Emma Thompson",
-        "_id": "668cd9d2c515a7f938787225"
-    },
-    "createdFor": null,
-    "travelAllocationHeaders": [],
-    "tripPurpose": "Business",
-    "raisingForDelegator": false,
-    "nameOfDelegator": null,
-    "isDelegatorManager": false,
-    "selectDelegatorTeamMembers": false,
-    "delegatorsTeamMembers": [],
-    "bookingForSelf": true,
-    "bookiingForTeam": false,
-    "teamMembers": [],
-    "travelDocuments": [],
-    "itinerary": {
-        "flights": [
+const itinerary = {
+"flights": [
             {
-                "itineraryId": null,
-                "formId": "c47879c9-075c-4e11-80fd-f6bf055aa82e",
-                "date": "2024-07-12",
-                "returnDate": null,
-                "travelClass": null,
-                "time": "12pm - 3pm",
-                "returnTime": null,
-                "from": "delhi",
-                "to": "banaras",
-                "isReturnTravel": false,
                 "violations": {
                     "class": null,
                     "amount": null
                 },
-                "bkd_date": null,
-                "bkd_returnDate": null,
-                "bkd_travelClass": null,
-                "bkd_time": null,
-                "bkd_returnTime": null,
-                "bkd_from": null,
-                "bkd_to": null,
                 "bkd_violations": {
                     "class": null,
                     "amount": null
                 },
-                "modified": false,
-                "cancellationDate": null,
-                "cancellationReason": null,
-                "status": "draft",
                 "bookingDetails": {
-                    "docURL": null,
-                    "docType": null,
                     "billDetails": {
                         "vendorName": null,
                         "taxAmount": null,
                         "totalAmount": null
-                    }
+                    },
+                    "docURL": null,
+                    "docType": null
                 },
+                "itineraryId": "66a8ad3c5839fcbbbc7b2133",
+                "formId": "638dfe7c-7260-473f-9126-e4c389032267",
+                "sequence": 1,
+                "from": "Lucknow",
+                "to": "Mumbai",
+                "date": "2024-07-31",
+                "returnDate": null,
+                "time": "12pm - 3pm",
+                "returnTime": null,
+                "travelClass": null,
+                "isReturnTravel": false,
                 "approvers": [
                     {
                         "empId": "1002",
                         "name": "Emma Thompson",
-                        "status": "pending approval",
-                        "_id": "668cd9d2c515a7f938787226"
+                        "status": "booked",
+                        "_id": "66a8ac9f5839fcbbbc7b2063"
                     }
                 ],
+                "bkd_from": null,
+                "bkd_to": null,
+                "bkd_date": null,
+                "bkd_returnDate": null,
+                "bkd_time": null,
+                "bkd_returnTime": null,
+                "bkd_travelClass": null,
+                "modified": false,
+                "cancellationDate": null,
+                "cancellationReason": null,
                 "rejectionReason": null,
-                "travelAllocations": [],
-                "sequence": 1
+                "status": "booked",
+                "_id": "66a8ad3c5839fcbbbc7b2127"
             },
             {
-                "itineraryId": null,
-                "formId": "19602fb6-1d95-4820-9851-9c993813da3a",
-                "date": "2024-07-12",
-                "returnDate": null,
-                "travelClass": null,
-                "time": "12pm - 3pm",
-                "returnTime": null,
-                "from": "lucknow",
-                "to": "delhi",
-                "isReturnTravel": false,
                 "violations": {
                     "class": null,
                     "amount": null
                 },
-                "bkd_date": null,
-                "bkd_returnDate": null,
-                "bkd_travelClass": null,
-                "bkd_time": null,
-                "bkd_returnTime": null,
-                "bkd_from": null,
-                "bkd_to": null,
                 "bkd_violations": {
                     "class": null,
                     "amount": null
                 },
-                "modified": false,
-                "cancellationDate": null,
-                "cancellationReason": null,
-                "status": "draft",
                 "bookingDetails": {
-                    "docURL": null,
-                    "docType": null,
                     "billDetails": {
                         "vendorName": null,
                         "taxAmount": null,
                         "totalAmount": null
-                    }
+                    },
+                    "docURL": null,
+                    "docType": null
                 },
-                "approvers": [
-                    {
-                        "empId": "1002",
-                        "name": "Emma Thompson",
-                        "status": "pending approval",
-                        "_id": "668cd9d2c515a7f938787226"
-                    }
-                ],
-                "rejectionReason": null,
-                "travelAllocations": [],
-                "sequence": 3
-            },
-            {
-                "itineraryId": null,
-                "formId": "283f1900-ebe8-4158-90ab-fbed5f66eb5f",
-                "date": "2024-07-09",
+                "itineraryId": "66a8ad3c5839fcbbbc7b2134",
+                "formId": "512812c9-fead-4917-842c-caff338f524c",
+                "sequence": 3,
+                "from": "Goa",
+                "to": "Madurai",
+                "date": "2024-08-01",
                 "returnDate": null,
-                "travelClass": null,
                 "time": "12pm - 3pm",
                 "returnTime": null,
-                "from": "banaras ",
-                "to": "delhi",
+                "travelClass": null,
                 "isReturnTravel": false,
-                "violations": {
-                    "class": null,
-                    "amount": null
-                },
-                "bkd_date": null,
-                "bkd_returnDate": null,
-                "bkd_travelClass": null,
-                "bkd_time": null,
-                "bkd_returnTime": null,
-                "bkd_from": null,
-                "bkd_to": null,
-                "bkd_violations": {
-                    "class": null,
-                    "amount": null
-                },
-                "modified": false,
-                "cancellationDate": null,
-                "cancellationReason": null,
-                "status": "draft",
-                "bookingDetails": {
-                    "docURL": null,
-                    "docType": null,
-                    "billDetails": {
-                        "vendorName": null,
-                        "taxAmount": null,
-                        "totalAmount": null
-                    }
-                },
                 "approvers": [
                     {
                         "empId": "1002",
                         "name": "Emma Thompson",
-                        "status": "pending approval",
-                        "_id": "668cd9d2c515a7f938787226"
+                        "status": "pending booking",
+                        "_id": "66a8ac9f5839fcbbbc7b2063"
                     }
                 ],
+                "bkd_from": null,
+                "bkd_to": null,
+                "bkd_date": null,
+                "bkd_returnDate": null,
+                "bkd_time": null,
+                "bkd_returnTime": null,
+                "bkd_travelClass": null,
+                "modified": false,
+                "cancellationDate": null,
+                "cancellationReason": null,
                 "rejectionReason": null,
-                "travelAllocations": [],
-                "sequence": 5
+                "status": "booked",
+                "_id": "66a8ad3c5839fcbbbc7b2129"
             }
         ],
-        "buses": [],
-        "trains": [],
+        "buses": [
+            {
+                "violations": {
+                    "class": null,
+                    "amount": null
+                },
+                "bookingDetails": {
+                    "billDetails": {
+                        "vendorName": null,
+                        "taxAmount": null,
+                        "totalAmount": null
+                    },
+                    "docURL": null,
+                    "docType": null
+                },
+                "itineraryId": "66a8ad3c5839fcbbbc7b2137",
+                "formId": "50afa770-5615-494b-9f2b-6592b40bc624",
+                "sequence": 4,
+                "from": "Madurai",
+                "to": "Minakshi Temple",
+                "date": "2024-08-02",
+                "time": "12pm - 3pm",
+                "travelClass": null,
+                "isReturnTravel": false,
+                "approvers": [
+                    {
+                        "empId": "1002",
+                        "name": "Emma Thompson",
+                        "status": "booked",
+                        "_id": "66a8ac9f5839fcbbbc7b2063"
+                    }
+                ],
+                "bkd_from": null,
+                "bkd_to": null,
+                "bkd_date": null,
+                "bkd_time": null,
+                "bkd_travelClass": null,
+                "modified": false,
+                "cancellationDate": null,
+                "cancellationReason": null,
+                "rejectionReason": null,
+                "status": "pending booking",
+                "_id": "66a8ad3c5839fcbbbc7b212b"
+            }
+        ],
+        "trains": [
+            {
+                "violations": {
+                    "class": null,
+                    "amount": null
+                },
+                "bkd_violations": {
+                    "class": null,
+                    "amount": null
+                },
+                "bookingDetails": {
+                    "billDetails": {
+                        "vendorName": null,
+                        "taxAmount": null,
+                        "totalAmount": null
+                    },
+                    "docURL": null,
+                    "docType": null
+                },
+                "itineraryId": "66a8ad3c5839fcbbbc7b2136",
+                "formId": "1e15b372-fad6-4d3f-b752-cf2294a76bda",
+                "sequence": 2,
+                "from": "Mumbai",
+                "to": "goa",
+                "date": "2024-07-31",
+                "time": "12pm - 3pm",
+                "travelClass": null,
+                "isReturnTravel": false,
+                "approvers": [
+                    {
+                        "empId": "1002",
+                        "name": "Emma Thompson",
+                        "status": "pending approval",
+                        "_id": "66a8ac9f5839fcbbbc7b2063"
+                    }
+                ],
+                "bkd_from": null,
+                "bkd_to": null,
+                "bkd_date": null,
+                "bkd_time": null,
+                "bkd_travelClass": null,
+                "modified": false,
+                "cancellationDate": null,
+                "cancellationReason": null,
+                "rejectionReason": null,
+                "status": "pending booking",
+                "_id": "66a8ad3c5839fcbbbc7b212d"
+            }
+        ],
+        "hotels": [{
+          "itineraryId": null,
+          "formId": "5794d75c-3b6a-429b-923a-04a10b02331e",
+          "location": "Lucknow",
+          "locationPreference": null,
+          "class": "Any",
+          "checkIn": "2024-07-31",
+          "checkOut": "2024-08-02",
+          "needBrakfast": false,
+          "needLunch": false,
+          "needDinner": false,
+          "needNonSmokingRoom": false,
+          "violations": {
+              "class": null,
+              "amount": null
+          },
+          "bkd_location": null,
+          "bkd_class": null,
+          "bkd_checkIn": null,
+          "bkd_checkOut": null,
+          "bkd_violations": {
+              "class": null,
+              "amount": null
+          },
+          "modified": false,
+          "cancellationDate": null,
+          "cancellationReason": null,
+          "status": "booked",
+          "bookingDetails": {
+              "docURL": null,
+              "docType": null,
+              "billDetails": {
+                  "vendorName": null,
+                  "taxAmount": null,
+                  "totalAmount": null
+              }
+          },
+          "approvers": [
+              {
+                  "empId": "1002",
+                  "name": "Emma Thompson",
+                  "status": "pending approval",
+                  "imageUrl": "https://blobstorage0401.blob.core.windows.net/avatars/IDR_PROFILE_AVATAR_37@1x.png",
+                  "_id": "66a8baf25839fcbbbc7b250c"
+              }
+          ],
+          "needBreakfast": false,
+          "time": "12pm - 3pm",
+          "sequence": 1
+      }],
         "cabs": [
             {
-                "itineraryId": null,
-                "foromId": null,
-                "date": "2024-07-09",
-                "returnDate": "2024-07-09",
+                "violations": {
+                    "class": null,
+                    "amount": null
+                },
+                "bookingDetails": {
+                    "billDetails": {
+                        "vendorName": null,
+                        "taxAmount": null,
+                        "totalAmount": null
+                    },
+                    "docURL": null,
+                    "docType": null
+                },
+                "itineraryId": "66a8ad3c5839fcbbbc7b2135",
+                "formId": "43b33ab3-099c-4712-a7a5-14086a8113bf",
+                "sequence": 5,
+                "date": "2024-08-05",
+                "returnDate": "2024-08-07",
                 "selectedDates": [],
                 "class": "Regular",
                 "time": "12pm - 3pm",
-                "pickupAddress": "sandila",
-                "dropAddress": "lucknow",
+                "pickupAddress": "Hotel States",
+                "dropAddress": "Airport",
                 "isFullDayCab": true,
-                "violations": {
-                    "class": null,
-                    "amount": null
-                },
+                "approvers": [
+                    {
+                        "empId": "1002",
+                        "name": "Emma Thompson",
+                        "status": "pending booking",
+                        "_id": "66a8ac9f5839fcbbbc7b2063"
+                    }
+                ],
                 "bkd_date": null,
                 "bkd_class": null,
                 "bkd_time": null,
-                "bkd_returnTime": null,
                 "bkd_pickupAddress": null,
                 "bkd_dropAddress": null,
-                "bkd_vioilations": {},
                 "modified": false,
                 "cancellationDate": null,
                 "cancellationReason": null,
-                "status": "draft",
-                "bookingDetails": {
-                    "docURL": null,
-                    "docType": null,
-                    "billDetails": {
-                        "vendorName": null,
-                        "taxAmount": null,
-                        "totalAmount": null
-                    }
-                },
-                "sequence": 4,
-                "formId": "9d647a4a-18b9-4104-b7eb-b607ba4b70d6",
-                "approvers": [
-                    {
-                        "empId": "1002",
-                        "name": "Emma Thompson",
-                        "status": "pending approval",
-                        "_id": "668cd9d2c515a7f938787226"
-                    }
-                ]
+                "status": "pending approval",
+                "_id": "66a8ad3c5839fcbbbc7b212f"
             }
         ],
-        "carRentals": [],
-        "hotels": [
+        "carRentals": [
             {
-                "itineraryId": null,
-                "formId": "bee5aff2-324f-4508-9d05-68aa74313ea9",
-                "location": "lucknow",
-                "locationPreference": null,
-                "class": "3-star",
-                "checkIn": "2024-07-09",
-                "checkOut": "2024-07-18",
-                "needBrakfast": false,
-                "needLunch": true,
-                "needDinner": true,
-                "needNonSmokingRoom": false,
                 "violations": {
                     "class": null,
                     "amount": null
                 },
-                "bkd_location": null,
-                "bkd_class": null,
-                "bkd_checkIn": null,
-                "bkd_checkOut": null,
-                "bkd_violations": {
-                    "class": null,
-                    "amount": null
-                },
-                "modified": false,
-                "cancellationDate": null,
-                "cancellationReason": null,
-                "status": "draft",
                 "bookingDetails": {
-                    "docURL": null,
-                    "docType": null,
                     "billDetails": {
                         "vendorName": null,
                         "taxAmount": null,
                         "totalAmount": null
-                    }
+                    },
+                    "docURL": null,
+                    "docType": null
                 },
+                "itineraryId": "66a8ad3c5839fcbbbc7b2138",
+                "formId": "9d975f26-6595-4157-98bc-7e994c969255",
+                "sequence": 6,
+                "date": "2024-08-02",
+                "returnDate": "2024-07-30",
+                "selectedDates": [],
+                "class": "Regular",
+                "time": "12pm - 3pm",
+                "pickupAddress": "Hotel States",
+                "dropAddress": "Temple",
                 "approvers": [
                     {
                         "empId": "1002",
                         "name": "Emma Thompson",
                         "status": "pending approval",
-                        "_id": "668cd9d2c515a7f938787226"
+                        "_id": "66a8ac9f5839fcbbbc7b2063"
                     }
                 ],
-                "needBreakfast": false,
-                "time": "12pm - 3pm",
-                "sequence": 2
+                "bkd_date": null,
+                "bkd_class": null,
+                "bkd_time": null,
+                "bkd_pickupAddress": null,
+                "bkd_dropAddress": null,
+                "modified": false,
+                "cancellationDate": null,
+                "cancellationReason": null,
+                "status": "pending booking",
+                "_id": "66a8ad3c5839fcbbbc7b2131"
             }
-        ]
-    },
-    "tripType": {
-        "oneWayTrip": true,
-        "roundTrip": false,
-        "multiCityTrip": false
-    },
-    "preferences": [],
-    "travelViolations": {
-        "tripPurpose": null,
-        "class": null,
-        "amount": null,
-        "tripPurposeViolationMesssage": null
-    },
-    "isCancelled": false,
-    "travelRequestStatus": "draft",
-    "formData": {
-        "itinerary": []
-    },
-    "_id": "668cd9d2c515a7f938787224",
-    "travelRequestNumber": "TRAL000056",
-    "tripPurposeDescription": "gg",
-    "travelRequestState": "section 0",
-    "bookings": [],
-    "travelRequestDate": "2024-07-09T06:33:54.382Z",
-    "isCashAdvanceTaken": false,
-    "isAddALeg": false,
-    "sentToTrip": false,
-    "__v": 0,
-    "tripName": "DEL-BAN-LUC-DEL-BAN-DEL(9th Jul)"
+        ],
+        "personalVehicles": []
+};
+
+
+
+    
+const dummyTravelReq =[
+
+  {
+    "travelRequestId": "66a7891b419ebf1bfe780227",
+    "travelRequestNumber": "TRAL000092",
+    "tripPurposeDescription": "Investor",
+    "tripName": "LUC-MUM(30th Jul 2024)",
+    "tripStartDate": "2024-07-30T00:00:00.000Z",
+    "travelRequestStatus": "pending approval"
+    
+},
+{
+    "travelRequestId": "66a793ee419ebf1bfe78087c",
+    "travelRequestNumber": "TRAL000096",
+    "tripPurposeDescription": "investors",
+    "tripName": "LUC-DEL(29th Jul 2024)",
+    "tripStartDate": "2024-07-29T00:00:00.000Z",
+    "travelRequestStatus": "pending approval"
+},
+{
+    "travelRequestId": "66a878ab5839fcbbbc7b1705",
+    "travelRequestNumber": "TRAL000098",
+    "tripPurposeDescription": "for investor",
+    "tripName": "JAI-KOL(30th Jul 2024)",
+    "tripStartDate": "2024-07-30T00:00:00.000Z",
+    "travelRequestStatus": "pending approval"
+},
+{
+    "travelRequestId": "66a87ba35839fcbbbc7b185d",
+    "travelRequestNumber": "TRAL000099",
+    "tripPurposeDescription": "investor",
+    "tripName": "KOL-DEL(30th Jul 2024)",
+    "tripStartDate": "2024-07-30T00:00:00.000Z",
+    "travelRequestStatus": "pending approval"
+},
+{
+    "travelRequestId": "66a78946419ebf1bfe780367",
+    "travelRequestNumber": "TRAL000093",
+    "tripPurposeDescription": "meal",
+    "tripName": "MUM-GOA(15th Aug 2024)",
+    "tripStartDate": "2024-08-15T00:00:00.000Z",
+    "travelRequestStatus": "pending approval"
+},
+{
+    "travelRequestId": "66a87c5e5839fcbbbc7b19a1",
+    "travelRequestNumber": "TRAL000100",
+    "tripPurposeDescription": "investors",
+    "tripName": "LON-IND(30th Jul 2024)",
+    "tripStartDate": "2024-07-30T00:00:00.000Z",
+    "travelRequestStatus": "pending approval"
 }
+
 ]
+
+
+const dummyTravelReqForBooking = dummyTravelReq.map(travel=>({...travel,itinerary}))
 
 
 
@@ -6206,4 +6287,4 @@ const tripArray = [
     },
   ];
 
-export {NonTrExpenseForApproval, TrExpenseForApproval, nonTravelExpense, NonTRCashAdvances, tripArray, travelExpense, reimbursementExpense, dummytravelRequests, trips, TRCashadvance}
+export {dummyTravelReqForBooking,NonTrExpenseForApproval, TrExpenseForApproval, nonTravelExpense, NonTRCashAdvances, tripArray, travelExpense, reimbursementExpense, dummytravelRequests, trips, TRCashadvance}

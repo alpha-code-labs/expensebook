@@ -1,5 +1,5 @@
 import { briefcase } from "../../assets/icon";
-import { splitTripName } from "../../utils/handyFunctions";
+import { getStatusClass, splitTripName } from "../../utils/handyFunctions";
 
 const TripName = ({tripName})=>(
     <div className='flex gap-2 items-center '>
@@ -34,5 +34,13 @@ const TripName = ({tripName})=>(
     return null;
   };
 
+  const StatusBox = ({status})=>(
+    <div className='flex justify-center items-center gap-2'>
+    <div className={`text-center rounded-sm ${getStatusClass(status?? "-")}`}>
+    <p className='px-1 py-1 text-xs text-center capitalize font-cabin'>{(status) ?? "-"}</p>
+  </div>
+  </div>
+  )
 
-export {TripName,ExtractAndFormatDate}  
+
+export {TripName,ExtractAndFormatDate,StatusBox}  

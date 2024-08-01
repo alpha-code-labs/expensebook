@@ -197,7 +197,7 @@ const handleRaise = () => {
     <>
     {isLoading && <Error message={loadingErrMsg}/>}
     {!isLoading &&
-    <div className=" bg-[#eef2ff] min-h-screen flex items-center justify-center px-2 md:px-10">
+    <div className=" bg-indigo-50 min-h-screen flex items-center justify-center px-2 md:px-10">
         {/* <TravelMS visible={visible} setVisible={setVisible} src={iframeURL}/> */}
         <TripMS visible={visible} setVisible={setVisible} src={iframeURL}/>
     <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 w-full overflow-hidden pb-2">
@@ -487,7 +487,7 @@ const IntransitTrips = ({ index, trip, lastIndex,handleVisible }) => {
   const [textVisible, setTextVisible] = useState({ modify: false });
 
   return (
-    <div className={`h-[280px] rounded-md border border-white-100 `}>
+    <div className={`h-[280px] rounded-md border border-white-100  `}>
       <div className="flex gap-2 px-2 flex-row items-center justify-between text-center font-cabin border-b-2 border-slate-300 shadow-sm  py-2 text-neutral-700 text-xs">
         <div className='flex'>
         <div

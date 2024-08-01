@@ -8,7 +8,7 @@ import Navbar from './components/common/Navbar';
 import Overview from './pages/Overview';
 import CashAdvance from './pages/CashAdvance';
 import Approval from './pages/Approval';
-import BookingAdmin from './pages/BookingAdmin';
+import Booking from './pages/Booking';
 import { useData } from './api/DataProvider';
 import Expense from './pages/Expense';
 import Settlement from './pages/Settlement';
@@ -149,7 +149,7 @@ function App() {
             />
             <Route
               path="/:tenantId/:empId/bookings"
-              element={<BookingAdmin fetchData={fetchData} loadingErrMsg={loadingErrMsg} isLoading={isLoading}   setAuthToken={setAuthToken} />}
+              element={<Booking fetchData={fetchData} loadingErrMsg={loadingErrMsg} isLoading={isLoading}   setAuthToken={setAuthToken} />}
             />
             <Route
               path="/:tenantId/:empId/profile"
