@@ -86,3 +86,60 @@ export async function approveRejectLegItem(payload){
         
     } 
 }
+
+export async function approveRejectRequests(payload) {
+    try {
+        const results = [];
+
+        for (const request of payload) {
+            const {
+                travelRequestId,
+                travelRequestStatus,
+                rejectionReason,
+                approvers,
+                cashAdvances
+            } = request;
+
+            // Find the cash advance based on the travel request ID
+            const cashAdvance = await CashAdvance.findOne({ 'travelRequestData.travelRequestId': travelRequestId });
+            if (!cashAdvance) {
+                results.push({ travelRequestId, success: false, error: 'Travel Request not found' });
+                continue;
+            }
+
+            // Update travel request details
+            cashAdvance.travelRequestData.travelRequestStatus = travelRequestStatus;
+            cashAdvance.travelRequestData.rejectionReason = rejectionReason;
+            cashAdvance.travelRequestData.approvers = approvers;
+
+            // Update itinerary items if pending approval
+            Object.keys(cashAdvance.travelRequestData.itinerary).forEach(key => {
+                cashAdvance.travelRequestData.itinerary[key].forEach(item => {
+                    if (item.status === 'pending approval') {
+                        item.status = travelRequestStatus;
+                        item.approvers = approvers;
+                    }
+                });
+            });
+
+            // Update cash advances
+            cashAdvances.forEach(ca => {
+                cashAdvance.cashAdvancesData.forEach(existingCa => {
+                    if (existingCa.cashAdvanceId === ca.cashAdvanceId) {
+                        existingCa.cashAdvanceStatus = ca.cashAdvanceStatus;
+                        existingCa.cashAdvanceRejectionReason = ca.cashAdvanceRejectionReason;
+                        existingCa.approvers = ca.approvers;
+                    }
+                });
+            });
+
+            // Save the updates
+            await cashAdvance.save();
+            results.push({ travelRequestId, success: true, error: null });
+        }
+
+        return {success: true, error: null};
+    } catch (e) {
+        return { success: false, error: e };
+    }
+}

@@ -3,6 +3,7 @@ import {cancelTravelRequest, markCompleted} from "./messageProcessor/trip.js";
 import {
   approveRejectTravelRequest,
   approveRejectCashAdvance,
+  approveRejectRequests,
   approveRejectLegItem,
 } from "./messageProcessor/approval.js";
 
@@ -116,19 +117,8 @@ export default async function startConsumer(receiver) {
         }
         
       } else if (source == "approval") {
-        if ((action == "approve-reject-tr")) {
-          const res = await approveRejectTravelRequest(payload);
-          console.log(res);
-          if (res.success) {
-            //acknowledge message
-            channel.ack(msg);
-            console.log("message processed successfully");
-          } else {
-            //implement retry mechanism
-            console.log("update failed with error code", res.error);
-          }
-        } else if ((action == "approve-reject-ca")) {
-          const res = await approveRejectCashAdvance(payload);
+        if ((action == "approve-reject-ca")) {
+          const res = await approveRejectRequests(payload);
           console.log(res);
           if (res.success) {
             //acknowledge message
