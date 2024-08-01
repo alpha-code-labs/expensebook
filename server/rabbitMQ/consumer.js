@@ -2,7 +2,7 @@ import updateHRMaster from "./messageProcessor/onboarding.js";
 import amqp from 'amqplib'
 import dotenv from 'dotenv'
 import {cancelTravelRequest, markCompleted} from "./messageProcessor/trip.js";
-import {approveRejectLegItem, approveRejectTravelRequest} from "./messageProcessor/approval.js";
+import {approveRejectLegItem, approveRejectTravelRequests} from "./messageProcessor/approval.js";
 import { updatePreferences, addALeg, updateBookingAdmin, updateFinanceAdmin } from "./messageProcessor/dashboard.js";
 
 
@@ -111,7 +111,7 @@ export default async function startConsumer(receiver) {
     
             if(source == 'approval'){
                 if(action == 'approve-reject-tr'){
-                    const res = await approveRejectTravelRequest(payload)
+                    const res = await approveRejectTravelRequests(payload)
                     console.log(res);
                     console.log(payload)
                     if (res.success) {
