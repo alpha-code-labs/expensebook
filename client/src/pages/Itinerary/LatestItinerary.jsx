@@ -30,6 +30,7 @@ const [requestSubmitted, setRequestSubmitted] = useState(false)
 const [showPopup, setShowPopup] = useState(false)
 const [loadingErrMsg, setLoadingErrMsg] = useState(false)
 const cashAdvanceAllowed = onBoardingData.cashAdvanceAllowed
+const allowCashAdvance = false;
 const [showConfirm, setShowConfirm] = useState(false);
 const [deleteId, setDeleteId] = useState()
 
@@ -471,7 +472,7 @@ useEffect(()=>{
                   </div>}
                 {requestSubmitted && <div className='p-10'>
                     <p className='text-2xl text-neutral-700 font-semibold font-cabin'>Travel Request Submitted !</p>
-                    { cashAdvanceAllowed && <> 
+                    { cashAdvanceAllowed && allowCashAdvance && <> 
                         <p className='text-zinc-800 text-base font-medium font-cabin mt-4'>Would you like to raise a cash advance request for this trip?</p>
                         <div className='flex gap-10 justify-between mt-10'>
                             <Button text='Yes' onClick={()=>handleCashAdvance(true)} />
@@ -480,7 +481,7 @@ useEffect(()=>{
                       </>
                     }
 
-                    {!cashAdvanceAllowed && <div className='flex gap-10 justify-between mt-10'>
+                    {(!cashAdvanceAllowed || !allowCashAdvance) && <div className='flex gap-10 justify-between mt-10'>
                             <Button text='Ok' onClick={()=>handleCashAdvance(false)} />
                         </div>}
 
