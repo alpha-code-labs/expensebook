@@ -28,6 +28,44 @@ export async function approveRejectTravelRequest(payload){
     }
 }
 
+export async function approveRejectTravelRequests(payload) {
+    try {
+        const results = [];
+
+        for (const request of payload.travel) {
+            const { travelRequestId, travelRequestStatus, rejectionReason, approvers } = request;
+            
+            const travelRequest = await TravelRequest.findOne({ travelRequestId });
+            if (!travelRequest) {
+                results.push({ travelRequestId, success: false, error: 'Travel Request not found' });
+                continue;
+            }
+
+            travelRequest.travelRequestStatus = travelRequestStatus;
+            travelRequest.rejectionReason = rejectionReason ?? null;
+            travelRequest.approvers = approvers;
+
+            Object.keys(travelRequest.itinerary).forEach(key => {
+                travelRequest.itinerary[key].forEach(item => {
+                    if (item.status === 'pending approval') {
+                        item.status = travelRequestStatus;
+                        item.approvers = approvers;
+                    }
+                });
+            });
+
+            const result = await travelRequest.save();
+            results.push({ travelRequestId, success: true, error: null });
+        }
+
+        return {success:true, error:null};
+    } catch (e) {
+        return { success: false, error: e };
+    }
+}
+
+
+
 export async function approveRejectLegItem(payload){
     try{
         const {travelRequestId, itineraryId, status, approvers, rejectionReason} = payload
