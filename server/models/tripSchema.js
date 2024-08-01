@@ -461,7 +461,7 @@ const formDataSchema = {
 
 
 //---------------------cash---------  
-  
+
 const cashAdvanceStateEnums = [
   'section 0',
   'section 1',
@@ -479,7 +479,7 @@ const cashAdvanceStatusEnum = [
   'paid',
   'cancelled',
 ];
-  
+
 
 //-----------trip---------
 const tripStatusEnum = [

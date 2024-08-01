@@ -17,8 +17,9 @@ dotenv.config({path:environment});
 
 console.log(`Running in ${environment} environment`);
 const rabbitMQUrl = process.env.rabbitMQUrl;
-
 const mongoURI= process.env.MONGODB_URI
+const port = process.env.PORT || 8088;
+
 const app = express();
 
 app.use(express.json());
@@ -28,6 +29,13 @@ app.use(cors());
 app.use('/api/dummydata', dummy); // dummy data for testing
 app.use('/api/dashboard/overview', overview ); // dashboard overview screen
 app.use('/api/fe/dashboard', mainRouter);
+app.use((req,res,next) =>{
+  res.status(404).json({success:false, message:"Wrong route. Please check the URL."})
+})
+app.use((err, req, res, next) => {
+  console.error(err.stack); // Log the error stack for debugging
+  res.status(500).json({ message: 'Internal Server Error' });
+});
 
 app.get('/ping', (req,res) => { return res.status(200).json({message:'Dashboard microservice is live'})})
 
@@ -35,6 +43,9 @@ const connectToMongoDB = async () => {
   try {
     await mongoose.connect(mongoURI);
     console.log('Connected to MongoDB');
+    app.listen(port, () => {
+      console.log(`Server is running on port ${port}`);
+    });
   } catch (error) {
     console.error('Error connecting to MongoDB:', error);
   }
@@ -81,10 +92,6 @@ app.use((err, req, res, next) => {
   handleErrors(err, req, res, next);
 });
 
-const port = process.env.PORT || 8088;
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
-});
 
 // start consuming messages..
 startConsumer('dashboard');
@@ -92,9 +99,7 @@ startConsumer('dashboard');
 //BatchJobs
 // scheduleToFinanceBatchJob()
 
-// consumeFromDashboardQueue();
-// 
-
+consumeFromDashboardQueue();
 
 
 

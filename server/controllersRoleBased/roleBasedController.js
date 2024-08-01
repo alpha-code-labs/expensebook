@@ -187,7 +187,7 @@ if(getAllTravelRequests.length > 0){
 
     const allTravelRequests = [...travelRequests, ...travelRequestWithCash]
    
-    console.log("allTravelRequests kaboom", allTravelRequests);
+    // console.log("allTravelRequests kaboom", allTravelRequests);
    
     return {allTravelRequests}
 } else {
@@ -503,10 +503,11 @@ const travelWithCashForEmployee = async (tenantId, empId) => {
         return filteredDocs.map(async travelRequest => {
            const { cashAdvanceSchema } = travelRequest;
            const { travelRequestId, travelRequestNumber, tripPurpose, travelRequestStatus, isCashAdvanceTaken , itinerary } = cashAdvanceSchema?.travelRequestData;
-
+        //    console.time('tripStartDate time')
            const tripStartDate = await earliestDate(itinerary) ?? ''
-           console.log("tripStartDate",tripStartDate)
-           console.log("hello ....................",tripStartDate ? tripStartDate : 'No valid dates found');
+        //    console.log("tripStartDate",tripStartDate)
+        //    console.timeEnd('tripStartDate time')
+        //    console.log("hello ....................",tripStartDate ? tripStartDate : 'No valid dates found');
 
            const cashAdvancesData = cashAdvanceSchema?.cashAdvancesData || [];
        
@@ -634,8 +635,6 @@ const travelWithCashForEmployee = async (tenantId, empId) => {
                    });
                });
            });
-       
-       
     
     //   console.log("Processed rejectedItineraryLines:", rejectedItineraryLines);
   
@@ -645,7 +644,7 @@ const filteredDocs = travelRequestDocs.filter(doc =>
        cashAdvance.cashAdvanceStatus === 'rejected'
     )
    );
-   
+
    const rejectedCashAdvances = filteredDocs.flatMap(doc =>
     doc.cashAdvanceSchema.cashAdvancesData
       .filter(cashAdvance => cashAdvance.cashAdvanceStatus === 'rejected')
@@ -662,8 +661,8 @@ const filteredDocs = travelRequestDocs.filter(doc =>
         // }))
       }))
   );
-  
-   
+
+
     //   console.log("Processed rejectedCashAdvances:", rejectedCashAdvances);
     // const rejectedCashAdvances = filteredDocs.flatMap(doc => 
     //     doc.cashAdvanceSchema.cashAdvancesData
@@ -1822,8 +1821,8 @@ const approvalsForManager = async (tenantId, empId) => {
                         const isValidCashStatus = cashAdvancesData.some(cashAdvance => cashAdvance.cashAdvanceStatus === 'pending approval');
                         const { travelRequestId, approvers, createdBy, travelRequestNumber,tripPurpose,tripName, travelRequestStatus, isCashAdvanceTaken, itinerary } = travelRequestData;
                         const tripStartDate = travelRequestData?.tripStartDate ?? await earliestDate(itinerary)
-
-                        const allBkdViolations = extractValidViolations(itinerary);
+                        const check= "preApproval"
+                        const allBkdViolations = extractValidViolations(itinerary, check);
                         const violationsCounter = countViolations(allBkdViolations);
 
                         const travelRequest = { travelRequestId,travelRequestNumber,createdBy,tripStartDate, tripPurpose,tripName, travelRequestNumber, travelRequestStatus, approvers,isCashAdvanceTaken , violationsCounter};
@@ -1833,8 +1832,10 @@ const approvalsForManager = async (tenantId, empId) => {
                             const cashAdvanceDetails = cashAdvancesData?.map(cashAdvance => ({
                                 travelRequestNumber: cashAdvance.travelRequestNumber,
                                 cashAdvanceNumber: cashAdvance.cashAdvanceNumber,
+                                cashAdvanceStatus: cashAdvance.cashAdvanceStatus,
                                 cashAdvanceId: cashAdvance.cashAdvanceId,
-                                amountDetails: cashAdvance.amountDetails,
+                                amountDetails: cashAdvance?.amountDetails,
+                                cashViolationsCounter: cashAdvance?.cashAdvanceViolations ? 1:0 ,
                             }));
 
                             return { ...travelRequest, cashAdvance: cashAdvanceDetails };
@@ -1862,19 +1863,21 @@ const approvalsForManager = async (tenantId, empId) => {
                     const { travelRequestData, cashAdvancesData } = approval.cashAdvanceSchema;
                     const isValidCashStatus = cashAdvancesData.some(cashAdvance => cashAdvance.cashAdvanceStatus === 'pending approval');
             
-                    const { travelRequestId, travelRequestNumber,tripPurpose,tripName,createdBy, travelRequestStatus, itinerary } = travelRequestData;
+                    const { travelRequestId, travelRequestNumber,tripPurpose,tripName,createdBy, travelRequestStatus,isCashAdvanceTaken, itinerary } = travelRequestData;
 
                     const tripStartDate = travelRequestData?.tripStartDate ?? await earliestDate(itinerary)
                     const allBkdViolations = extractValidViolations(itinerary);
                     const violationsCounter = countViolations(allBkdViolations);
-                    const travelRequest = { travelRequestId, tripPurpose,tripName,tripStartDate, travelRequestNumber,createdBy, travelRequestStatus, violationsCounter };
+                    const travelRequest = { travelRequestId, tripPurpose,tripName,tripStartDate, travelRequestNumber,createdBy,isCashAdvanceTaken, travelRequestStatus, violationsCounter };
                     
                     if (isValidCashStatus) {
                         const cashAdvanceDetails = cashAdvancesData.map(cashAdvance => ({
                             travelRequestNumber: cashAdvance.travelRequestNumber,
                             cashAdvanceNumber: cashAdvance.cashAdvanceNumber,
+                            cashAdvanceStatus: cashAdvance.cashAdvanceStatus,
                             cashAdvanceId: cashAdvance.cashAdvanceId,
                             amountDetails: cashAdvance.amountDetails,
+                            cashViolationsCounter: cashAdvance?.cashAdvanceViolations ? 1:0 ,
                         }));
                         return { ...travelRequest, cashAdvance: cashAdvanceDetails };
                     } else {
@@ -1934,10 +1937,11 @@ const approvalsForManager = async (tenantId, empId) => {
                     // console.log("Processing approval:", approval);
                     return approval.tripSchema.travelExpenseData.map(expense => {
                         // console.log("Processing expense:", expense);
+                        const {tripName} = approval.travelRequestSchema
                         const { tripId, tripNumber, tripStatus, tripStartDate } = approval.tripSchema;
-                        const { tripPurpose} = approval.tripSchema.travelRequestData
+                        const { tripPurpose, createdBy} = approval.tripSchema.travelRequestData
                         const { expenseHeaderNumber,expenseHeaderId, expenseHeaderStatus, approvers } = expense;
-                        return { tripId,tripNumber,tripPurpose,tripStatus,tripStartDate, expenseHeaderNumber,expenseHeaderId, expenseHeaderStatus, approvers };
+                        return { tripId,tripName,tripNumber,tripPurpose,createdBy,tripStatus,tripStartDate, expenseHeaderNumber,expenseHeaderId, expenseHeaderStatus, approvers };
                     });
                 });
         
@@ -1962,7 +1966,7 @@ const approvalsForManager = async (tenantId, empId) => {
         // console.log("rule1", travel)
         // console.log("rule2"), travelWithCash
         // console.log("rule12", uniqueTravelWithCash)
-     
+    
         const responseData = {
                 // travelAndCash: [...travelRequests, ...travelWithCash,cashAdvanceRaisedLater, addAleg],
                 travelAndCash: [ ...filteredTravelWithCash, ...cashAdvanceRaisedLater, ],
