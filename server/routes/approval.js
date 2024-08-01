@@ -1,5 +1,5 @@
 import express from "express";
-import {  approveAll, approveExpenseLines, approveExpenseReports, approveNonTravelExpenseLines, approveNonTravelExpenseReports, approveTravelWithCash, rejectAll, rejectExpenseLines, rejectExpenseReports, rejectNonTravelExpenseLines, rejectNonTravelExpenseReports, rejectTravelWithCash, travelWithCashApproveCashAdvance, travelWithCashRejectCashAdvance } from "../controllers/approval.js";
+import {  approveAll, approveExpenseLines, approveExpenseReports,  approveTravelWithCash, nonTravelReportApproval, rejectAll, rejectExpenseLines, rejectExpenseReports,  rejectTravelWithCash, travelWithCashApproveCashAdvance, travelWithCashRejectCashAdvance } from "../controllers/approval.js";
 
 export const approvalRouter = express.Router()
 
@@ -26,16 +26,40 @@ approvalRouter.patch('/:tenantId/:empId/approve/line/:tripId/:expenseHeaderId',a
 approvalRouter.patch('/:tenantId/:empId/reject/line/:tripId/:expenseHeaderId',rejectExpenseLines)
 
 //Non Travel Expense Reports
-approvalRouter.patch('/:tenantId/:empId/approve/:expenseHeaderId', approveNonTravelExpenseReports)
-
-approvalRouter.patch('/:tenantId/:empId/reject/:expenseHeaderId', rejectNonTravelExpenseReports)
-
-approvalRouter.patch('/:tenantId/:empId/approve/line/:expenseHeaderId',approveNonTravelExpenseLines)
-
-approvalRouter.patch('/:tenantId/:empId/reject/line/:expenseHeaderId', rejectNonTravelExpenseLines)
+approvalRouter.patch('/:tenantId/:empId/:expenseHeaderId', nonTravelReportApproval)
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// approvalRouter.patch('/:tenantId/:empId/approve/:expenseHeaderId', approveNonTravelExpenseReports)
+
+// approvalRouter.patch('/:tenantId/:empId/reject/:expenseHeaderId', rejectNonTravelExpenseReports)
+
+// approvalRouter.patch('/:tenantId/:empId/approve/line/:expenseHeaderId',approveNonTravelExpenseLines)
 
 
 
