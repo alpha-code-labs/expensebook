@@ -78,8 +78,6 @@ const Expense = ({isLoading ,fetchData,loadingErrMsg}) => {
       const nonTravelExpenses  = expenseData?.allNonTravelReports || [];
       console.log('expenses from expense tab', travelExpenses , nonTravelExpenses)
   
-  
-
 
   const handleStatusClick = (status) => {
     setSelectedStatuses((prev) =>
@@ -217,7 +215,7 @@ const Expense = ({isLoading ,fetchData,loadingErrMsg}) => {
                             <div className={`text-center rounded-sm ${getStatusClass(trExpense?.expenseHeaderStatus ?? "-")}`}>
                               <p className='px-1 py-1 text-xs text-center capitalize font-cabin'>{trExpense?.expenseHeaderStatus ?? "-"}</p>
                             </div>
-                            <div onClick={()=>{handleTravelExpense(trip?.tripId, trExpense?.expenseHeaderId,  'trip-ex-modify' ,)}} className={`w-7 h-7 bg-indigo-100 rounded-full border border-white-100 flex items-center justify-center`}>
+                            <div onClick={()=>{handleTravelExpense(trip?.tripId, trExpense?.expenseHeaderId,  'trip-ex-modify' ,)}} className={`w-7 h-7 bg-indigo-100 rounded-full border border-white-100 flex items-center justify-center cursor-pointer`}>
                               <img src={modify} className='w-4 h-4' alt="modify_icon" />
                             </div>
                           </div>

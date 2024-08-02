@@ -2,10 +2,10 @@ import React from 'react';
 import Button from './Button';
 // import { LOGIN_PAGE_URL, logoutApi } from '../../utils/api';
 import { handleLoginPageUrl } from '../../utils/actionHandler';
-import { alert_circle, company_icon, logout_icon, user_icon } from '../../assets/icon';
+import { alert_circle, arrow1_icon, cancel_round, company_icon, hamburger_icon, logout_icon, user_icon } from '../../assets/icon';
 import { Link } from 'react-router-dom';
 
-const Navbar = ({ employeeRole,employeeInfo }) => {
+const Navbar = ({setSidebarOpen, employeeRole,employeeInfo }) => {
 
 
 const LOGIN_PAGE_URL = import.meta.env.VITE_LOGIN_PAGE_URL
@@ -17,9 +17,12 @@ console.log("local storage navbar", localStorage  )
   let tenantId = localStorage.tenantId
   let empId = localStorage.empId
   return (
-    <div className="lg:h-[56px] p-4 flex flex-row justify-between items-center bg-indigo-600">
+    <div className="h-[56px] p-4 flex flex-row justify-between items-center bg-indigo-600">
 
-      <div className="flex flex-row items-center space-x-2">
+      <div className="flex flex-row items-center space-x-2 ">
+      <div onClick={()=>setSidebarOpen(false)} className='md:hidden block hover:bg-indigo-100 rounded-full p-2'>
+            <img src={hamburger_icon} className='w-4 h-4'/>
+      </div>
         <div className=' bg-white-100 p-1 rounded-md shadow-md shadow-black'>
         <img src={company_icon} className='w-8 h-8' />
         </div>

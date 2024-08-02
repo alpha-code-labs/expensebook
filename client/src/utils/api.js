@@ -225,6 +225,27 @@ export const approveTravelRequestApi = async(data)=>{
       }
     }
 
+    export const nonTravelExpenseApprovalActionApi = async(data,payload)=>{
+      const {tenantId,empId,expenseHeaderId} = data
+    
+      let url = `${APPROVAL_BACKEND_API_URL}/api/fe/dashboard/approval/${tenantId}/${empId}/${expenseHeaderId}`
+      
+        try{
+           const response = await axiosRetry(axios.patch,url,payload)
+           return(response.data.message)
+      
+      
+        }catch(error){
+          handleRequestError(error);
+          const errorObject = {
+            status: error.response?.status || null,
+            message: error.message || 'Unknown error',
+          };
+          console.log('Post Error : ',errorObject);
+          return {  error: errorObject };
+        }
+      }    
+
 
 
 

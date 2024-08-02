@@ -3,10 +3,11 @@ import { useLocation, useParams } from 'react-router-dom';
 import { useData } from '../../api/DataProvider';
 import { Link } from 'react-router-dom';
 import { filterTravelRequests} from '../../utils/handyFunctions';
-import { receipt, house_simple, airplane_1, money, logo_with_text, airplane, house_simple_1, money1, airplane_icon1, receipt_icon1, setting_icon, setting_icon1, businessAdmin_icon, businessAdmin1_icon, approval_icon, approval_w_icon } from '../../assets/icon';
+
+import {arrow1_icon, receipt, house_simple, airplane_1, money, logo_with_text, airplane, house_simple_1, money1, airplane_icon1, receipt_icon1, setting_icon, setting_icon1, businessAdmin_icon, businessAdmin1_icon, approval_icon, approval_w_icon, cancel_round, cancel, down_arrow, arrow_left, up_arrow, straight_arrow_icon } from '../../assets/icon';
 
 
-const Sidebar = ({ fetchData }) => {
+const Sidebar = ({setSidebarOpen, fetchData }) => {
     const [open, setOpen] = useState(true);
     let tenantId;
     let empId;
@@ -52,7 +53,7 @@ const Sidebar = ({ fetchData }) => {
         }
         let filteredTrApprovalData;
         if (approvalData) {
-            filteredTrApprovalData = approvalData?.travelAndCash?.filter(item => ['approved', 'pending approval', 'upcoming', 'intransit'].includes(item?.travelRequestStatus));
+            filteredTrApprovalData = approvalData?.travelAndCash?.filter(item => ['approved', 'pending approval', 'upcoming', 'intransit','booked'].includes(item?.travelRequestStatus));
         }
 
         setCountData(prevStates => ({
@@ -62,7 +63,9 @@ const Sidebar = ({ fetchData }) => {
             rejectedCashAdvances: data?.rejectedCashAdvances?.length || 0,
             //employee manager
             trApproval: filteredTrApprovalData?.length || 0,
-            expApproval: approvalData?.travelExpenseReports?.length || 0,
+            trExpApproval: approvalData?.travelExpenseReports?.length || 0,
+            nonTrExpApproval :approvalData?.nonTravelExpenseReports?.length || 0,
+
             //business admin
             pendingBooking: filteredPendingBookingData?.length || 0
         }));
@@ -93,7 +96,7 @@ const Sidebar = ({ fetchData }) => {
     if (employeeRoles) {
 
         if (employeeRoles?.employeeRoles?.employeeManager) {
-            sidebarItems.push({ label: 'Approval', icon: approval_icon, icon1: approval_w_icon, url: '', count: (countData?.trApproval + countData?.expApproval) });
+            sidebarItems.push({ label: 'Approval', icon: approval_icon, icon1: approval_w_icon, url: '', count: (countData?.trApproval + countData?.trExpApproval + countData?.nonTrExpApproval) });
         }
 
         if (employeeRoles?.employeeRoles?.businessAdmin) {
@@ -111,13 +114,20 @@ const Sidebar = ({ fetchData }) => {
     }
 
     return (
-        <div className={`lg:w-full border-r border-indigo-600  w-auto  min-h-screen h-full   bg-indigo-50   left-[0px] flex flex-col items-start justify-start  `}>
-            <div>
-            <img
-                className="w-[160px] pl-4 py-4 hidden sm:block  "
+        <div className={` border-r border-indigo-600    min-h-screen h-full   bg-indigo-50   left-[0px] flex flex-col items-start justify-start`}>
+            <div className='flex flex-row justify-between items-center w-full px-2 '>
+                <div className='h-16'>
+                <img
+                className="w-[140px] h-16"
                 alt=""
                 src={logo_with_text}
             />
+                </div>
+           
+            <div onClick={()=>setSidebarOpen(true)} className='md:hidden block hover:bg-indigo-100 rounded-full p-2'>
+            <img src={arrow1_icon} className='w-4 h-4 rotate-180'/>
+            </div>
+            
             </div>
             
             {sidebarItems.map((item, index) => (
@@ -125,12 +135,12 @@ const Sidebar = ({ fetchData }) => {
                     to={`${tenantId}/${empId}/${item.label.toLowerCase().replace(' ', '-')}`}
                     key={index}
                     onClick={() => handleItemClick(index)}
-                    className={`w-full   ${activeIndex === index ? 'bg-purple-500 text-white-100' : ""} overflow-hidden flex flex-col items-center sm:items-start justify-start   box-border cursor-pointer`}
+                    className={`w-full   ${activeIndex === index ? 'bg-purple-500 text-white-100' : ""} overflow-hidden flex flex-col items-start justify-start   box-border cursor-pointer`}
                 >
-                    <div className="flex sm:flex-row flex-col items-center justify-between px-3 py-3 gap-2 md:gap-0">
+                    <div className="flex flex-row items-center justify-between px-3 py-3 w-full ">
                         <div className='flex gap-2'>
                         <img src={activeIndex === index ? item.icon1 : item.icon} className='min-w-4 min-h-4 h-4 w-4' />
-                        <div className={` ${activeIndex === index ? 'text-white-100' : 'text-indigo-800'} relative hidden lg:block tracking-[0.02em] w-auto md:w-[140px] font-inter  font-medium`} >
+                        <div className={` ${activeIndex === index ? 'text-white-100' : 'text-indigo-800'} relative  tracking-[0.02em] w-auto md:w-[140px] font-inter  font-medium`} >
                             {item?.label}
                         </div>
                         </div>

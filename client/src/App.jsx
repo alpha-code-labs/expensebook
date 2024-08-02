@@ -18,10 +18,11 @@ import Profile from './pages/Profile';
 
 
 
+
 function App() {
   
   // const [employeeRole,setEmployeeRole]=useData(null)
-
+ const [sidebarOpen,setSidebarOpen]=useState(false)
  const [tenantId, setTenantId]=useState(null);
  const [empId , setEmpId]= useState(null);
   const [authToken , setAuthToken] = useState("authtoken");
@@ -50,6 +51,21 @@ function App() {
       }
     };
 
+
+    useEffect(() => {
+      // Function to update state based on screen width
+      const handleResize = () => {
+        setSidebarOpen(window.innerWidth <= 768);
+      };
+  
+      // Add event listener for window resize
+      window.addEventListener('resize', handleResize);
+  
+      // Remove event listener on cleanup
+      return () => {
+        window.removeEventListener('resize', handleResize);
+      };
+    }, []);
    
 
    
@@ -111,16 +127,22 @@ function App() {
         <BrowserRouter>
         <section>
           <div>
-             <Navbar employeeInfo={employeeRoles?.employeeInfo}  tenantId={tenantId} empId={empId}  />
+             <Navbar setSidebarOpen={setSidebarOpen} employeeInfo={employeeRoles?.employeeInfo}  tenantId={tenantId} empId={empId}  />
           </div>
         </section>
         <section>
-        <div className='grid grid-cols-12'>
-        <div className='col-span-1   md:col-span-3  xl:col-span-2  bg-indigo-50  min-h-screen  '>
-             <Sidebar fetchData={fetchData}  tenantId={tenantId} empId={empId}  />
+        <div className='flex flex-row'>
+       
+        
+        <div 
+       className={`fixed inset-0 z-0 md:static bg-indigo-50 min-h-screen w-64 transform transition-all duration-300 ease-in-out ${
+        sidebarOpen ? 'opacity-0 translate-x-[-100%]' : 'opacity-100 translate-x-0'
+      }`}>
+             <Sidebar setSidebarOpen={setSidebarOpen} fetchData={fetchData}  tenantId={tenantId} empId={empId}  />
         </div>
-        <div className='col-span-11  md:col-span-9  xl:col-span-10 min-h-screen '>
-        <div className=''>
+        
+       
+        <div className='min-h-screen w-full max-h-fit'>
           <Routes>
             <Route
               exact
@@ -162,7 +184,6 @@ function App() {
           </Routes>
           
           </div>
-        </div>
        
           
         </div>
@@ -183,21 +204,21 @@ export default App;
 // import React, { useEffect, useState } from 'react';
 // import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 // import { DataProvider } from './api/DataProvider';
+// import { useParams } from 'react-router-dom';
 // import Sidebar from './components/common/Sidebar';
 // import Travel from './pages/Travel';
 // import Navbar from './components/common/Navbar';
 // import Overview from './pages/Overview';
 // import CashAdvance from './pages/CashAdvance';
 // import Approval from './pages/Approval';
-// import BookingAdmin from './pages/BookingAdmin';
+// import Booking from './pages/Booking';
 // import { useData } from './api/DataProvider';
 // import Expense from './pages/Expense';
 // import Settlement from './pages/Settlement';
 // import { getEmployeeData_API, getEmployeeRoles_API, logoutApi } from './utils/api';
 // import { handleLoginPageUrl } from './utils/actionHandler';
 // import Profile from './pages/Profile';
-// import Error from './components/common/Error';
-// import TravelMS from './pages/TravelMS';
+
 
 
 // function App() {
@@ -223,26 +244,12 @@ export default App;
 //         setEmployeeData(employeeResponse);
 //         setEmployeeRoles(rolesResponse)
 //         setTenantId(tenantId)
-//         setEmpId(empId)
-//         // setRouteData(
-//         //   {
-//         //     tenantId:tenantId,
-//         //     empId:empId
-//         //   }
-//         // )
-        
-//         // setIsLoading(false)
-       
+//         setEmpId(empId)      
 //         setIsLoading(false)
-        
-        
-
-//       } catch (error) {
-        
+//       } catch (error) {       
 //         console.error('Error fetching data:', error.message);
 //         setLoadingErrMsg('Error danger',error.message);
 //         setIsLoading(false)
-        
 //       }
 //     };
 
@@ -297,7 +304,7 @@ export default App;
 //   //     clearTimeout(timer);
 //   //   };
 //   // }, [authToken]);
-  
+
 
 
 //   return (<>
@@ -324,7 +331,7 @@ export default App;
 //               element={<Overview fetchData={fetchData} loadingErrMsg={loadingErrMsg} setLoadingErrMsg={setLoadingErrMsg} isLoading={isLoading} setIsLoading={setIsLoading} setAuthToken={setAuthToken} />}
 //             />
 //             <Route
-//               path="/:tenantId/:empId/travel"
+//               path="/:tenantId/:empId/trip"
 //               element={<Travel fetchData={fetchData} loadingErrMsg={loadingErrMsg} isLoading={isLoading} setIsLoading={setIsLoading} setAuthToken={setAuthToken} />}
 //             />
 //             <Route
@@ -345,11 +352,11 @@ export default App;
 //             />
 //             <Route
 //               path="/:tenantId/:empId/bookings"
-//               element={<BookingAdmin fetchData={fetchData} loadingErrMsg={loadingErrMsg} isLoading={isLoading}   setAuthToken={setAuthToken} />}
+//               element={<Booking fetchData={fetchData} loadingErrMsg={loadingErrMsg} isLoading={isLoading}   setAuthToken={setAuthToken} />}
 //             />
 //             <Route
 //               path="/:tenantId/:empId/profile"
-//               element={<Profile setAuthToken={setAuthToken} />}
+//               element={<Profile fetchData={fetchData} loadingErrMsg={loadingErrMsg} isLoading={isLoading} setAuthToken={setAuthToken}/>}
 //             />
 //             {/* <Route
 //               path="/create/:tenantId/:empId"
@@ -373,5 +380,4 @@ export default App;
 // }
 
 // export default App;
-
 

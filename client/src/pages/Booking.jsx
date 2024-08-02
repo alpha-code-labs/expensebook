@@ -17,6 +17,7 @@ import SearchComponent from '../components/common/ExpenseSearch';
 import Input from '../components/common/SearchInput';
 import TripMS from '../microservice/TripMS';
 import { TripName } from '../components/common/TinyComponent';
+import TravelMS from '../microservice/TravelMS';
 
 
 
@@ -100,13 +101,11 @@ const filteredData = selectedStatuses.length > 0
   
     let url = '';
   
-    if (urlName === 'travel-url') {
-      url = `${travelBaseUrl}/create/${tenantId}/${empId}`;
-    } else if (tripId) {
+    if (urlName === 'bookingTravel') {
+      url = `${travelBaseUrl}/bookings/${travelRequestId}`;
+    } if (urlName === 'recoverTrip') {
       url = `${tripBaseUrl}/${tenantId}/${empId}/modify/${tripId}/section1`;
-    } else {
-      url = `${travelBaseUrl}/modify/${travelRequestId}/`
-    }
+    } 
   
     console.log('iframe url', url, urlName);
     setIframeURL(url);
@@ -218,7 +217,7 @@ const filteredData = selectedStatuses.length > 0
     {isLoading && <Error message={loadingErrMsg}/>}
     {!isLoading && 
     <div className='min-h-screen'>
-      <TripMS visible={visible} setVisible={setVisible} src={iframeURL}/>
+      <TravelMS visible={visible} setVisible={setVisible} src={iframeURL}/>
       <div className='flex flex-col w-full p-4  items-start gap-2'>
       <div className='min-h-[120px] flex-col border border-slate-300 bg-white-100 rounded-md  w-full flex  items-start gap-2 px-2 py-2'>
  <div className='flex  overflow-x-auto  space-x-2 space-y-2'>      
@@ -235,11 +234,11 @@ const filteredData = selectedStatuses.length > 0
           <div key={status} className={`flex items-center ${isDisabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
             <div
               onClick={() => !isDisabled && handleStatusClick(status)}
-              className={`ring-1 ring-white-100 flex py-1 pr-3 text-center rounded-sm ${selectedStatuses.includes(status) ? getStatusClass(status ?? "-") : "bg-slate-100 text-neutral-700 border border-slate-300"}`}
+              className={`ring-1 ring-white-100 flex py-1 pr-3 text-center rounded-sm ${selectedStatuses.includes(status) ? "bg-indigo-100 text-indigo-600 border border-indigo-600" : "bg-slate-100 text-neutral-700 border border-slate-300"}`}
             >
               <p className='px-1 py-1 text-sm text-center capitalize font-cabin whitespace-nowrap'>{status ?? "-"}</p>
             </div>
-            <div className={`shadow-md shadow-black/30 font-semibold -translate-x-3 ring-1 rounded-full ring-white-100 w-6 h-6 flex justify-center items-center text-center text-xs ${selectedStatuses.includes(status) ? getStatusClass(status ?? "-") : "bg-slate-100 text-neutral-700 border border-slate-300"}`}>
+            <div className={`shadow-md shadow-black/30 font-semibold -translate-x-3 ring-1 rounded-full ring-white-100 w-6 h-6 flex justify-center items-center text-center text-xs ${selectedStatuses.includes(status) ? "border border-indigo-600 bg-indigo-100 text-indigo-600"  : "bg-slate-100 text-neutral-700 border border-slate-300"}`}>
               <p>{statusCount}</p>
             </div>
           </div>
@@ -312,20 +311,25 @@ const filteredData = selectedStatuses.length > 0
                 <>
       <div key={`${index}-tr-expense`} className='flex border flex-col gap-y-2 w-full items-center hover:border hover:border-indigo-600 hover:bg-indigo-100 cursor-pointer  justify-between mb-4 text-neutral-700 rounded-md shadow-custom-light bg-white-100 p-4'>
       <div className='flex flex-row w-full justify-between'>
+        <div className='flex flex-col gap-2 items-start'>
+             <div>
+                <p className='header-title'>Created By</p>
+                <p className='header-text'>{trip?.createdBy?.name ?? <span className='text-center'>-</span>}</p>
+             </div>
        <div className='font-cabin text-xs text-neutral-700'>
-          {trip?.travelRequestStatus === "draft" ?
-           <div className='text-xs text-start'>
-           <div className='text-neutral-400'>Travel Request No.</div>
-            <p>{trip?.travelRequestNumber}</p>
-         </div>
-          : 
+          
           <TripName tripName={trip?.tripName}/>
           
-        }
-         
-
       </div>
-     <Button1 text={<div className='flex justify-center items-center space-x-2 -translate-x-1'><img src={plus_icon} className='w-5 h-5'/><p className='text-white-100'>Book Trip</p></div>}/>
+      </div>
+     <Button1 
+     onClick={()=>{handleVisible({travelRequestId:trip?.travelRequestId, urlName:"bookingTravel"})}} 
+     text={<div
+      className='flex justify-center items-center space-x-2 -translate-x-1'><img src={plus_icon} className='w-5 h-5'/><p className='text-white-100'>
+      Book Trip
+      </p>
+      </div>}
+      />
       </div>  
       <div className='w-full flex flex-col gap-1'>
                   {itineraryArray(trip?.itinerary).map((item,index)=>{

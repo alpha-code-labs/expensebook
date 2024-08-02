@@ -120,14 +120,16 @@ const handleVisible = (travelRequestId, action, cashadvanceId) => {
 
   useEffect(() => {
     const handleMessage = event => {
-      console.log(event)
+      console.log('data from cash advance',event)
       // Check if the message is coming from the iframe
-      if (event.origin === cashAdvanceUrl ) {
+      // if (event.origin === cashAdvanceUrl ) {
         // Check the message content or identifier
+        console.log('iframe close msg',event.data)
         if (event.data === 'closeIframe') {
           setVisible(false)
+          window.location.href = window.location.href;
         }
-      }
+      // }
     };
     // Listen for messages from the iframe
     window.addEventListener('message', handleMessage);

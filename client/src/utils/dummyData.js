@@ -949,7 +949,12 @@ const dummyTravelReq =[
     "tripPurposeDescription": "Investor",
     "tripName": "LUC-MUM(30th Jul 2024)",
     "tripStartDate": "2024-07-30T00:00:00.000Z",
-    "travelRequestStatus": "pending approval"
+    "travelRequestStatus": "pending approval",
+    "createdBy": {
+                            "empId": "1002",
+                            "name": "Emma Thompson",
+                            "_id": "66a878ab5839fcbbbc7b1707"
+                        },
     
 },
 {
@@ -958,7 +963,12 @@ const dummyTravelReq =[
     "tripPurposeDescription": "investors",
     "tripName": "LUC-DEL(29th Jul 2024)",
     "tripStartDate": "2024-07-29T00:00:00.000Z",
-    "travelRequestStatus": "pending approval"
+    "travelRequestStatus": "pending approval",
+    "createdBy": {
+                            "empId": "1002",
+                            "name": "Emma Thompson",
+                            "_id": "66a878ab5839fcbbbc7b1707"
+                        },
 },
 {
     "travelRequestId": "66a878ab5839fcbbbc7b1705",
@@ -966,7 +976,12 @@ const dummyTravelReq =[
     "tripPurposeDescription": "for investor",
     "tripName": "JAI-KOL(30th Jul 2024)",
     "tripStartDate": "2024-07-30T00:00:00.000Z",
-    "travelRequestStatus": "pending approval"
+    "travelRequestStatus": "pending approval",
+    "createdBy": {
+                            "empId": "1002",
+                            "name": "Emma Thompson",
+                            "_id": "66a878ab5839fcbbbc7b1707"
+                        },
 },
 {
     "travelRequestId": "66a87ba35839fcbbbc7b185d",
@@ -974,7 +989,12 @@ const dummyTravelReq =[
     "tripPurposeDescription": "investor",
     "tripName": "KOL-DEL(30th Jul 2024)",
     "tripStartDate": "2024-07-30T00:00:00.000Z",
-    "travelRequestStatus": "pending approval"
+    "travelRequestStatus": "pending approval",
+    "createdBy": {
+                            "empId": "1002",
+                            "name": "Engine Thompson",
+                            "_id": "66a878ab5839fcbbbc7b1707"
+                        },
 },
 {
     "travelRequestId": "66a78946419ebf1bfe780367",
@@ -982,7 +1002,12 @@ const dummyTravelReq =[
     "tripPurposeDescription": "meal",
     "tripName": "MUM-GOA(15th Aug 2024)",
     "tripStartDate": "2024-08-15T00:00:00.000Z",
-    "travelRequestStatus": "pending approval"
+    "travelRequestStatus": "pending approval",
+    "createdBy": {
+                            "empId": "1002",
+                            "name": "Benjamin Thompson",
+                            "_id": "66a878ab5839fcbbbc7b1707"
+                        },
 },
 {
     "travelRequestId": "66a87c5e5839fcbbbc7b19a1",
@@ -990,7 +1015,12 @@ const dummyTravelReq =[
     "tripPurposeDescription": "investors",
     "tripName": "LON-IND(30th Jul 2024)",
     "tripStartDate": "2024-07-30T00:00:00.000Z",
-    "travelRequestStatus": "pending approval"
+    "travelRequestStatus": "pending approval",
+    "createdBy": {
+                            "empId": "1002",
+                            "name": "Rawbard Thompson",
+                            "_id": "66a878ab5839fcbbbc7b1707"
+                        },
 }
 
 ]
@@ -3897,7 +3927,7 @@ const NonTrExpenseForApproval = [
     "expenseHeaderType": "reimbursement",
     "expenseLines": [
       {
-        "lineItemId": "667babcdb043bb2aadcd2889",
+        "expenseLineId": "667babcdb043bb2aadcd2889",
         "lineItemStatus": "pending approval",
         "expenseLineAllocation": [],
         "multiCurrencyDetails": null,
@@ -3915,7 +3945,7 @@ const NonTrExpenseForApproval = [
         "Quantity": "",
         "Unit Cost": "",
         "Tax Amount": "",
-        "Total Amount": "761",
+        "Total Amount": "888",
         "Mode of Payment": "Cash",
         "Document": "",
         "Currency": {
@@ -3926,7 +3956,7 @@ const NonTrExpenseForApproval = [
         }
       },
       {
-        "lineItemId": "667babcdb0x3bb2aadcd2889",
+        "expenseLineId": "667babcdb0x3bb2aadcd2889",
         "lineItemStatus": "rejected",
         "expenseLineAllocation": [],
         "multiCurrencyDetails": null,
@@ -3955,7 +3985,7 @@ const NonTrExpenseForApproval = [
         }
       },
       {
-        "lineItemId": "6127babcdb0x3bb2aadcd2889",
+        "expenseLineId": "6127babcdb0x3bb2aadcd2889",
         "lineItemStatus": "approved",
         "expenseLineAllocation": [],
         "multiCurrencyDetails": null,
@@ -3984,7 +4014,7 @@ const NonTrExpenseForApproval = [
         }
       },
       {
-        "lineItemId": "6127babcdb0x3bb2aadcdx889",
+        "expenseLineId": "6127babcdb0x3bb2aadcdx889",
         "lineItemStatus": "pending approval",
         "expenseLineAllocation": [],
         "multiCurrencyDetails": null,

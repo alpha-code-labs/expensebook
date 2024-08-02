@@ -1084,9 +1084,7 @@ console.log('trips and travel from travel screen', tripData)
     <img src={receipt} className='w-5 h-5'/>
     <p className='truncate  shrink'>Non-Travel Expense</p>
   </div>
-  
   </div>  
-  
 
 <div className='flex gap-4 flex-col items-start justify-start w-full py-2'>
 { expenseType=== "travel_Cash-Advance" &&
@@ -1097,11 +1095,6 @@ console.log('trips and travel from travel screen', tripData)
 
 
 {expenseType && <Button1 text={"Raise"} onClick={handleRaise} />}
-
-  
-   
-
-
 </div>   
 </div>
 

@@ -9,7 +9,7 @@ import {spinner_icon} from "../../assets/icon"
 
 export default function ({message=null}){
     return(
-        <div className="w-full h-full flex items-center justify-center">
+        <div className="w-full h-full flex items-start justify-center">
             {message==null &&  <div className='w-6 h-6 '>
                     <img src={spinner_icon} alt='spinner' />
                 </div>}    

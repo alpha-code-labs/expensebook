@@ -223,7 +223,7 @@ const handleRaise = () => {
      
  <CardLayout cardSequence={visibleDivs[0]} icon={receipt} cardTitle={"Expenses"}>    
 
-<div className="flex gap-x-2 h-[40px]   px-2 flex-row items-center justify-between text-center font-cabin border-b-2  border-slate-300  text-neutral-700 text-xs">
+<div className="flex gap-x-2 h-[40px] px-2 flex-row items-center justify-between text-center font-cabin border-b-2  border-slate-300  text-neutral-700 text-xs">
 <div className='flex'>
 <div
  className={`px-2 py-1 rounded-xl cursor-pointer delay-150  transition-colors ${
@@ -236,7 +236,7 @@ onClick={() => handleExpenseTabChange("travelExpense")}
 <p>Travel Expense</p>
 </div>
 <div
-className={`px-2 py-1 rounded-xl cursor-pointer  delay-150  transition-colors ${
+className={`px-2 py-1 rounded-xl cursor-pointer delay-150 transition-colors ${
   expenseTabs === 'nonTravelExpense'
     ? 'text-white-100 bg-indigo-600 border border-white-100'
     : 'text-xs'
@@ -251,8 +251,7 @@ onClick={() => handleExpenseTabChange("nonTravelExpense")}
 onClick={()=>setModalOpen(!modalOpen)}
 onMouseEnter={() => setTextVisible({expense:true})}
 onMouseLeave={() => setTextVisible({expense:false})}
-
-className={`relative  hover:px-2 w-6 h-6 hover:overflow-hidden hover:w-auto group text-indigo-600 bg-indigo-100 border border-white-100 flex items-center justify-center  hover:gap-x-1 rounded-full cursor-pointer transition-all duration-300`}
+className={`relative hover:px-2 w-6 h-6 hover:overflow-hidden hover:w-auto group text-indigo-600 bg-indigo-100 border border-white-100 flex items-center justify-center  hover:gap-x-1 rounded-full cursor-pointer transition-all duration-300`}
 >
 <img src={plus_violet_icon} width={16} height={16} alt="Add Icon" />
 <p
@@ -272,8 +271,6 @@ Add an Expense
    travelExpenses?.map((expense,index) => <TravelExpenses key={index} index={`${index}-TravelExpense`} expense={expense} lastIndex={travelExpenses?.length-1} />)
 )
 }
-
-
 
 {expenseTabs === "nonTravelExpense" && (
    nonTravelExpenses?.length ===0 ? <EmptyTrips icon={empty_nonTravelExpense_icon} text="No non-travel expenses." /> :
@@ -487,7 +484,7 @@ const IntransitTrips = ({ index, trip, lastIndex,handleVisible }) => {
   const [textVisible, setTextVisible] = useState({ modify: false });
 
   return (
-    <div className={`h-[280px] rounded-md border border-white-100  `}>
+    <div className={`h-[275px]  rounded-md border border-white-100  `}>
       <div className="flex gap-2 px-2 flex-row items-center justify-between text-center font-cabin border-b-2 border-slate-300 shadow-sm  py-2 text-neutral-700 text-xs">
         <div className='flex'>
         <div
