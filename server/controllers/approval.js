@@ -4,7 +4,7 @@ import dashboard from "../models/dashboardSchema.js";
 import { sendToOtherMicroservice } from "../rabbitmq/publisher.js";
 
 const status = {
-    PENDING_APPROVAL:'pending approval'
+  PENDING_APPROVAL:'pending approval'
 }
 
 async function findPendingTravelRequests(tenantId,empId,travelRequestId){
@@ -243,24 +243,24 @@ export const approveTravelWithCash = async (req, res) => {
     }
 };
 
-  const approveSchema = Joi.object({
+const approveSchema = Joi.object({
     tenantId:Joi.string().required(),
     empId:Joi.string().required(),
-  })
+})
 
 
-  const bodySchema = Joi.object({
+const bodySchema = Joi.object({
     travelRequests: Joi.array().items(
       Joi.object({
         travelRequestId: Joi.string().required()
       })
     ).required()
-  });
+});
 
-  const rejBodySchema = Joi.object({
+const rejBodySchema = Joi.object({
     travelRequests:Joi.array().required(),
     rejectionReason:Joi.string().required()
-  })
+})
 
 const raisedLaterReqSchema = Joi.object({
     tenantId: Joi.string().required(),
@@ -271,6 +271,7 @@ const raisedLaterReqSchema = Joi.object({
 
 async function  getReportsForApproval(tenantId,empId,travelRequestIds){
     try{
+      console.log("i am here")
        const getReports = await dashboard.find({
         tenantId,
         'travelRequestId':{$in:travelRequestIds},
@@ -295,6 +296,8 @@ async function  getReportsForApproval(tenantId,empId,travelRequestIds){
           }
         ]
       })
+
+      // console.log("getREPORS", getReports)
 
       if(getReports.length){
         const travelReports = getReports.filter(reports =>
@@ -334,30 +337,32 @@ export async function approveAll(req,res){
 
       const { tenantId, empId,} = paramsValue
       const { travelRequests } = bodyValue;
-
       const travelRequestIds = travelRequests.map(obj => obj.travelRequestId);
 
-      const { payloadCash, payloadTravel } = travelRequests.reduce((acc, travelRequest) => {
-        if (travelRequest.cashAdvances.length > 0) {
-            acc.payloadCash.push(travelRequest);
-        } else {
-            acc.payloadTravel.push(travelRequest);
-        }
-        return acc;
-    }, { payloadCash: [], payloadTravel: [] });
+    //   const { payloadCash, payloadTravel } = travelRequests.reduce((acc, travelRequest) => {
+    //     if (travelRequest?.cashAdvances?.length > 0) {
+    //         acc.payloadCash.push(travelRequest);
+    //     } else {
+    //         acc.payloadTravel.push(travelRequest);
+    //     }
+    //     return acc;
+    // }, { payloadCash: [], payloadTravel: [] });
 
       const [travelReports, cashReports] = await getReportsForApproval(tenantId,empId, travelRequestIds)
 
-     if(!travelReports.length || !cashReports.length){
+     console.log("travelReports, cashReports", travelReports)
+     if(!travelReports.length && !cashReports.length){
       return res.status(404).json({error: 'Documents Not found for approval'})
      } 
 
     const approvalDocs = []
 
     if(travelReports.length){
+      console.log("its travel ms")
       approvalDocs.push(approveAllTravelWithCash(tenantId, empId,travelReports))
     }
     if(cashReports.length){
+      console.log("cash ms")
       approvalDocs.push(approveCashAdvance(tenantId,empId,cashReports))
     }
 
@@ -378,7 +383,7 @@ export async function approveAll(req,res){
 }
 
 
-export const approveAllTravelWithCash = async (tenantId, empId, travelReports,) => {
+export const approveAllTravelWithCash = async (tenantId, empId, travelReports) => {
   try {
     console.log("approveAllTravelWithCash",tenantId, empId, )
     const allTravelRequests = []
@@ -525,13 +530,13 @@ export const approveAllTravelWithCash = async (tenantId, empId, travelReports,) 
 
     if(allTravelRequests?.length > 0){
       console.log("allTravelRequests", payloadToTravel)
-      sendToOtherMicroservice(payloadToTravel,  'approve-reject-ca', 'travel', 'approve travelRequests', source='dashboard', onlineVsBatch='online')
-      sendToOtherMicroservice(payloadToTravel,  'approve-reject-ca', 'approval', 'approve travelRequests', source='dashboard', onlineVsBatch='online')
+      sendToOtherMicroservice(payloadToTravel,  'approve-reject-ca', 'travel', 'approve travelRequests', 'dashboard', 'online')
+      sendToOtherMicroservice(payloadToTravel,  'approve-reject-ca', 'approval', 'approve travelRequests', 'dashboard', 'online')
 
     } else if (allTravelRequestsWithCash?.length > 0){
       console.log("payloadToCash", payloadToCash)
-      sendToOtherMicroservice(payloadToCash,  'approve-reject-ca', 'cash', 'approve travelRequests with cash', source='dashboard', onlineVsBatch='online')
-      sendToOtherMicroservice(payloadToCash,  'approve-reject-ca', 'approval', 'approve travelRequests with cash', source='dashboard', onlineVsBatch='online')
+      sendToOtherMicroservice(payloadToCash,  'approve-reject-ca', 'cash', 'approve travelRequests with cash','dashboard','online')
+      sendToOtherMicroservice(payloadToCash,  'approve-reject-ca', 'approval', 'approve travelRequests with cash','dashboard','online')
     }
 
     if (allTravelRequests?.length > 0 ||allTravelRequestsWithCash?.length > 0) {
@@ -632,9 +637,9 @@ export const rejectTravelWithCash = async (req, res) => {
       const { itinerary, approvers } = travelRequestData;
   
       if (typeof itinerary === 'object') {
-        const itineraryApproved = Object.values(itinerary).flatMap(Object.values);
+        const itineraryRejected = Object.values(itinerary).flatMap(Object.values);
   
-      itineraryApproved.forEach(booking => {  
+      itineraryRejected.forEach(booking => {  
         booking.approvers.forEach(approver => {
           if(approver.empId === req.params.empId && approver.status == 'pending approval' && booking.status == 'pending approval'){
           approver.status = 'rejected'
@@ -703,9 +708,9 @@ console.log("payload",payload)
       const { itinerary, approvers } = travelRequestSchema;
   
       if (typeof itinerary === 'object') {
-        const itineraryApproved = Object.values(itinerary).flatMap(Object.values);
+        const itineraryRejected = Object.values(itinerary).flatMap(Object.values);
   
-      itineraryApproved.forEach(booking => {  
+      itineraryRejected.forEach(booking => {  
         booking.approvers.forEach(approver => {
           if(approver.empId === req.params.empId && approver.status == 'pending approval' && booking.status == 'pending approval'){
           approver.status = 'rejected'
@@ -794,17 +799,19 @@ try{
       // const travelAndCashIds = travelRequests.filter(item => item?.cashAdvanceData && item?.cashAdvanceData.length > 0)
       const [travelReports, cashReports] = await getReportsForApproval(tenantId,empId, travelRequestIds)
 
-      if(!travelReports.length || !cashReports.length){
+      if(!travelReports.length && !cashReports.length){
       return res.status(404).json({error: 'Documents Not found for approval'})
       } 
 
     const approvalDocs = []
 
     if(travelReports.length){
+      console.log("just travel")
       approvalDocs.push(rejectAllTravelWithCash(tenantId, empId,travelReports,rejectionReason))
 
     }
     if(cashReports.length){
+      console.log("just cash")
       approvalDocs.push(rejectCashAdvance(tenantId,empId,cashReports,rejectionReason))
     }
 
@@ -847,9 +854,9 @@ export const rejectAllTravelWithCash = async (tenantId, empId,travelReports,reje
       const { itinerary, approvers } = travelRequestData;
   
       if (typeof itinerary === 'object') {
-        const itineraryApproved = Object.values(itinerary).flatMap(Object.values);
+        const itineraryRejected = Object.values(itinerary).flatMap(Object.values);
   
-      itineraryApproved.forEach(booking => {  
+      itineraryRejected.forEach(booking => {  
         booking.approvers.forEach(approver => {
           if(approver.empId === req.params.empId && approver.status == 'pending approval' && booking.status == 'pending approval'){
           approver.status = 'rejected'
@@ -921,12 +928,13 @@ console.log("payload",payload)
       const { itinerary ={} , approvers = [] } = travelRequestSchema;
   
       if (typeof itinerary === 'object') {
-        const itineraryApproved = Object.values(itinerary).flatMap(Object.values);
+        const itineraryRejected = Object.values(itinerary).flatMap(Object.values);
   
-      itineraryApproved.forEach(booking => {  
+      itineraryRejected.forEach(booking => {  
         booking.approvers.forEach(approver => {
-          if(approver.empId === req.params.empId && approver.status == 'pending approval' && booking.status == 'pending approval'){
+          if(approver.empId === empId && approver.status == 'pending approval' && booking.status == 'pending approval'){
           approver.status = 'rejected'
+          booking.rejectionReason = rejectionReason
           }
         })
         
@@ -989,20 +997,19 @@ console.log("payload",payload)
      return{tenantId, travelRequestId, approvers, travelRequestStatus, rejectionReason , cashAdvances}
     }) 
 
-
     console.log("total approved",approvedDocs.length)
 
     console.log("payloadToTravel", payloadToTravel, "payloadToCash", payloadToCash)
 
     if(allTravelRequests?.length > 0){
       console.log("allTravelRequests", payloadToTravel)
-      sendToOtherMicroservice(payloadToTravel,  'approve-reject-ca', 'travel', 'reject travelRequests', source='dashboard', onlineVsBatch='online')
-      sendToOtherMicroservice(payloadToTravel,  'approve-reject-ca', 'approval', 'reject travelRequests', source='dashboard', onlineVsBatch='online')
+      sendToOtherMicroservice(payloadToTravel,  'approve-reject-ca', 'travel', 'reject travelRequests', 'dashboard', 'online')
+      sendToOtherMicroservice(payloadToTravel,  'approve-reject-ca', 'approval', 'reject travelRequests', 'dashboard', 'online')
 
     } else if (allTravelRequestsWithCash?.length > 0){
       console.log("payloadToCash", payloadToCash)
-      sendToOtherMicroservice(payloadToCash,  'approve-reject-ca', 'cash', 'reject travelRequests with cash', source='dashboard', onlineVsBatch='online')
-      sendToOtherMicroservice(payloadToCash,  'approve-reject-ca', 'approval', 'reject travelRequests with cash', source='dashboard', onlineVsBatch='online')
+      sendToOtherMicroservice(payloadToCash,  'approve-reject-ca', 'cash', 'reject travelRequests with cash', 'dashboard', 'online')
+      sendToOtherMicroservice(payloadToCash,  'approve-reject-ca', 'approval', 'reject travelRequests with cash', 'dashboard', 'online')
     }
 
      if (allTravelRequests?.length > 0 ||allTravelRequestsWithCash?.length > 0) {
@@ -1017,7 +1024,7 @@ console.log("payload",payload)
 
 
 // travel with cash advance -- Approve cash advance / approve cashAdvance raised later
-  export const travelWithCashApproveCashAdvance = async (req, res) => {
+export const travelWithCashApproveCashAdvance = async (req, res) => {
 
     const {error, value} = raisedLaterReqSchema.validate(req.params)
   
@@ -1095,7 +1102,7 @@ console.log("payload",payload)
   };
 
   // travel with cash advance -- Reject cash advance / reject cash Advance raised later
-  export const travelWithCashRejectCashAdvance = async (req, res) => {
+export const travelWithCashRejectCashAdvance = async (req, res) => {
     const { error: errorParams, value: valueParams} = raisedLaterReqSchema.validate(req.params)
   if(errorParams){
     return res.status(400).json({error: errorParams.details[0].message})
@@ -1201,7 +1208,7 @@ x
   };
 
 
-  const rejectCashStatusUpdate = async (cashApprovalDocs, cashAdvanceIds, empId, rejectionReason) => {
+const rejectCashStatusUpdate = async (cashApprovalDocs, cashAdvanceIds, empId, rejectionReason) => {
     const updateStatusToRejected = (approvers, empId) =>
       approvers.map(approver => 
         approver.empId === empId && approver.status === 'pending approval'
@@ -1547,9 +1554,10 @@ export const rejectExpenseReports = async (req, res) => {
 
 function updateExpenseLineStatus(expenseLines, approve = [], reject=[]) {
   return expenseLines.map(expenseLine => {
-    if (approve.includes(expenseLine.expenseLineId)) {
+    const expenseLineIdStr = expenseLine.expenseLineId.toString()
+    if (approve.includes(expenseLineIdStr)) {
       return { ...expenseLine, lineItemStatus: 'approved' };
-    } else if (reject.includes(expenseLine.expenseLineId)) {
+    } else if (reject.includes(expenseLineStr)) {
       return { ...expenseLine, lineItemStatus: 'rejected' };
     } else {
       return expenseLine;
@@ -1751,6 +1759,32 @@ export const rejectExpenseLines = async (req, res) => {
      res.status(500).json({ error: 'An error occurred while updating Travel Expense status.' });
   }
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 const otherExpenseSchema = Joi.object({
