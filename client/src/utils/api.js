@@ -175,16 +175,19 @@ export const postTravelPreference_API = async (tenantId, empId, formData) => {
 
 
 
-export const approveTravelRequestApi = async(tenantId,empId,travelRequestId,isCashAdvanceTaken)=>{
-  let url
-   if(isCashAdvanceTaken){
-     url = `${APPROVAL_BACKEND_API_URL}/api/fe/approvals/tr-ca/approve-tr/${tenantId}/${empId}/${travelRequestId}`
-  }else{
-    url = `${APPROVAL_BACKEND_API_URL}/api/fe/approvals/tr-ca/approve-tr-standalone/${tenantId}/${empId}/${travelRequestId}`
-  }
+export const approveTravelRequestApi = async(data)=>{
+  const {tenantId, empId, travelRequests} = data
+
+  // let url
+  //  if(isCashAdvanceTaken){
+  //    url = `${APPROVAL_BACKEND_API_URL}/api/fe/approvals/tr-ca/approve-tr/${tenantId}/${empId}/${travelRequestId}`
+  // }else{
+  //   url = `${APPROVAL_BACKEND_API_URL}/api/fe/approvals/tr-ca/approve-tr-standalone/${tenantId}/${empId}/${travelRequestId}`
+  // }
+  let url = `${APPROVAL_BACKEND_API_URL}/api/fe/dashboard/approval/${tenantId}/${empId}/approve`
   
     try{
-       const response = await axiosRetry(axios.patch,url)
+       const response = await axiosRetry(axios.patch,url,{travelRequests})
        return(response.data.message)
   
   
@@ -201,28 +204,26 @@ export const approveTravelRequestApi = async(tenantId,empId,travelRequestId,isCa
   
   ///reject for travelRequest
   
-  export const rejectTravelRequestApi = async(tenantId,empId,travelRequestId,isCashAdvanceTaken,rejectionReason)=>{
-  let url
-   if(isCashAdvanceTaken){
-     url = `${APPROVAL_BACKEND_API_URL}/api/fe/approvals/tr-ca/reject-tr/${tenantId}/${empId}/${travelRequestId}`
-  }else{
-    url = `${APPROVAL_BACKEND_API_URL}/api/fe/approvals/tr-ca/reject-tr-standalone/${tenantId}/${empId}/${travelRequestId}`
-  }
+  export const rejectTravelRequestApi = async(data)=>{
+    const {tenantId, empId, travelRequests,rejectionReason} = data
   
-    try{
-      const response= await axiosRetry(axios.patch,url,rejectionReason)
-  
-      return(response.data.message)
-    }catch(error){
-      handleRequestError(error);
-      const errorObject = {
-        status: error.response?.status || null,
-        message: error.message || 'Unknown error',
-      };
-      console.log('Post Error : ',errorObject);
-      return {  error: errorObject };
+    let url = `${APPROVAL_BACKEND_API_URL}/api/fe/dashboard/approval/${tenantId}/${empId}/reject`
+    
+      try{
+         const response = await axiosRetry(axios.patch,url,{travelRequests,rejectionReason})
+         return(response.data.message)
+    
+    
+      }catch(error){
+        handleRequestError(error);
+        const errorObject = {
+          status: error.response?.status || null,
+          message: error.message || 'Unknown error',
+        };
+        console.log('Post Error : ',errorObject);
+        return {  error: errorObject };
+      }
     }
-  }
 
 
 

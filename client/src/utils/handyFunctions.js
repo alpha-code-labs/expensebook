@@ -1,4 +1,7 @@
 function titleCase(str){
+  if(!str){
+    return '';
+  }
     str = str.toLowerCase().split(' ')
     str = str.map(word=>{
         if(word.length>0 && word){
@@ -257,26 +260,31 @@ function splitTripName(tripName){
     "-"
   }
 }
-// export const extractAndFormatDate = (inputString) => {
-//   const datePattern = /(\d{1,2})(st|nd|rd|th) (\w{3})/;
-//   const match = inputString.match(datePattern);
-
-//   if (match) {
-//     const [, day, suffix, month] = match;
-//     return (
-//       <>
-//         {day}
-//         <span className="align-super text-xs">{suffix}</span> {month}
-//       </>
-//     );
-//   }
-
-//   return null;
-// };
+// filterUtils.js
+ const filterByTimeRange = (data, range) => {
+  const now = new Date();
+  return data.filter(item => {
+    const startDate = new Date(item.tripStartDate);
+    switch (range) {
+      case "48 Hours":
+        return (startDate - now) <= 48 * 60 * 60 * 1000;
+      case "7 Days":
+        return (startDate - now) <= 7 * 24 * 60 * 60 * 1000;
+      case "30 Days":
+        return (startDate - now) <= 30 * 24 * 60 * 60 * 1000;
+      case "Beyond the month":
+        return (startDate - now) > 30 * 24 * 60 * 60 * 1000;
+      case "paid and cancelled":
+        return item.travelRequestStatus === "paid" || item.travelRequestStatus === "cancelled";
+      default:
+        return false;
+    }
+  });
+};
 
 
 
   
 
-export {extractTripNameStartDate, sortTripsByDate, splitTripName, titleCase, formatDate, filterTravelRequests,formatDate2 ,getStatusClass ,addOrdinalIndicator ,formatDate3 ,getCashAdvanceButtonText,urlRedirection,formatAmount}  
+export {filterByTimeRange,extractTripNameStartDate, sortTripsByDate, splitTripName, titleCase, formatDate, filterTravelRequests,formatDate2 ,getStatusClass ,addOrdinalIndicator ,formatDate3 ,getCashAdvanceButtonText,urlRedirection,formatAmount}  
 

@@ -10,7 +10,7 @@ import { filterTravelRequests } from '../utils/handyFunctions';
 
 
 
-const BookingAdmin = ({fetchData}) => {  
+const BookingAdminPreviousCode = ({fetchData}) => {  
 
   const { employeeData,employeeRoles  } = useData();
   const {tenantId , empId ,page}=useParams()
@@ -145,7 +145,7 @@ if(travelBookingData){
   );
 };
 
-export default BookingAdmin;
+export default BookingAdminPreviousCode;
 
 
 

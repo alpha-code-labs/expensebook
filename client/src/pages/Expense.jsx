@@ -137,10 +137,13 @@ const Expense = ({isLoading ,fetchData,loadingErrMsg}) => {
     {!isLoading && 
     <div className='min-h-screen'>
       <div className='flex-col w-full p-4 flex items-start gap-2'>
-      <div className='min-h-[120px] border border-slate-300 bg-white-100 rounded-md  w-full flex flex-col items-start px-2 py-2 gap-2'>
- <div className='flex flex-wrap  space-x-2 space-y-2  '>      
-<div className='flex items-center justify-center p-2 bg-slate-100 rounded-full border border-slate-300 '><img src={filter_icon} className='w-5 h-5'/></div>
-  {["draft","pending approval", "pending settlement", "paid","rejected", "cancelled", "paid and cancelled"].map((status) => {
+      <div className='min-h-[120px] border border-slate-300 bg-white-100 rounded-md  w-full flex flex-wrap items-start gap-2 px-2 py-2'>
+      <div className='flex  space-x-2 space-y-2  overflow-x-auto '>
+        <div className='flex gap-2  items-center justify-center p-2 bg-slate-100/50 rounded-full border border-slate-300 '>
+        <div className='px-4 '>
+        <img src={filter_icon} className='min-w-5 w-5 h-5 min-h-5'/>
+        </div>
+  {["draft","pending approval", "pending settlement", "paid","rejected",  "cancelled", "paid and cancelled"].map((status) => {
     const statusCount = getStatusCount(status, [...travelExpenses.flatMap(te => te?.travelExpenses ), ...nonTravelExpenses]);
     const isDisabled = statusCount === 0;
     
@@ -150,7 +153,7 @@ const Expense = ({isLoading ,fetchData,loadingErrMsg}) => {
           onClick={() => !isDisabled && handleStatusClick(status)}
           className={`ring-1 ring-white-100 flex py-1 pr-3 text-center rounded-sm ${selectedStatuses.includes(status) ? getStatusClass(status ?? "-") : "bg-slate-100 text-neutral-700 border border-slate-300"}`}
         >
-          <p className='px-1 py-1 text-sm text-center capitalize font-cabin'>{status ?? "-"}</p>
+          <p className='px-1 py-1 text-sm text-center capitalize font-cabin whitespace-nowrap '>{status ?? "-"}</p>
         </div>
         <div className={`shadow-md shadow-black/30 font-semibold -translate-x-3 ring-1 rounded-full ring-white-100 w-6 h-6 flex justify-center items-center text-center text-xs ${selectedStatuses.includes(status) ? getStatusClass(status ?? "-") : "bg-slate-100 text-neutral-700 border border-slate-300 "}`}>
           <p>{statusCount}</p>
@@ -158,8 +161,12 @@ const Expense = ({isLoading ,fetchData,loadingErrMsg}) => {
       </div>
     );
   })}
-<div className='text-neutral-700 text-base flex justify-center items-center hover:text-red-200 hover:font-semibold text-center w-auto h-[36px] font-cabin cursor-pointer' onClick={() => setSelectedStatuses([])}>Clear All</div>
-</div> 
+   </div>
+  <div className='text-neutral-700 text-base flex justify-center items-center hover:text-red-200 hover:font-semibold text-center w-auto h-[36px] font-cabin cursor-pointer whitespace-nowrap' onClick={() => setSelectedStatuses([])}>Clear All</div>
+  </div>
+ 
+ 
+
 <div className=''>
    
    <Input placeholder="Search Expense..." type="search" icon={search_icon} onChange={(value)=>setSearchQuery(value)}/>

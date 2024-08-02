@@ -111,7 +111,7 @@ const Sidebar = ({ fetchData }) => {
     }
 
     return (
-        <div className={`lg:w-full w-auto  min-h-screen h-full   bg-indigo-50   left-[0px] flex flex-col items-start justify-start  `}>
+        <div className={`lg:w-full border-r border-indigo-600  w-auto  min-h-screen h-full   bg-indigo-50   left-[0px] flex flex-col items-start justify-start  `}>
             <div>
             <img
                 className="w-[160px] pl-4 py-4 hidden sm:block  "

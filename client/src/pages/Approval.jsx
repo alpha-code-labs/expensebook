@@ -1,7 +1,7 @@
 /* eslint-disable no-unreachable */
 import React, { useEffect, useState } from 'react';
 import { briefcase, cancel, cancel_round, categoryIcons, check_tick, cross_icon, filter_icon, info_icon, modify, money, money1, plus_violet_icon, receipt, search_icon, violation_icon } from '../assets/icon';
-import { formatAmount, getStatusClass, splitTripName } from '../utils/handyFunctions';
+import { formatAmount, getStatusClass, sortTripsByDate, splitTripName } from '../utils/handyFunctions';
 import {TRCashadvance,NonTRCashAdvances, travelExpense, TrExpenseForApproval, NonTrExpenseForApproval} from '../utils/dummyData';
 import Modal from '../components/common/Modal1';
 import TripSearch from '../components/common/TripSearch';
@@ -14,7 +14,7 @@ import { useParams } from 'react-router-dom';
 import Input from '../components/common/SearchInput';
 import Select from '../components/common/Select';
 import Button from '../components/common/Button';
-import { approveTravelRequestApi } from '../utils/api';
+import { approveTravelRequestApi, rejectTravelRequestApi } from '../utils/api';
 import PopupMessage from "../components/common/PopupMessage";
 import TripMS from '../microservice/TripMS';
 import { TripName } from '../components/common/TinyComponent';
@@ -31,7 +31,7 @@ const Approval = ({isLoading, fetchData, loadingErrMsg}) => {
   const [textVisible,setTextVisible]=useState({cashAdvance:false});
   const [modalOpen , setModalOpen]=useState(false);
   const [searchQuery,setSearchQuery]= useState(false);
-  const [seleactAll , setSelectAll]=useState([]);
+  const [selectAll , setSelectAll]=useState([]); // for travelrequests
   const [selectedLineItems , setSelectedLineItems]=useState([]);
   const [modalContentTitle , setModalContentTitle]=useState(null);
   const [actionType, setActionType] = useState(true); 
@@ -96,44 +96,13 @@ const Approval = ({isLoading, fetchData, loadingErrMsg}) => {
 
 console.log('selected lineItems',selectedLineItems)
   
-  const handleSelectAll = ()=>{
 
-  if(TRCashadvance?.length !== seleactAll?.length || 0){
-      const data = TRCashadvance?.map((travel)=>({
-        travelRequestId:travel?.travelRequestId,
-        cashAdvanceData: travel?.cashAdvances?.map((cashadvance)=>({cashAdvanceId:cashadvance?.cashAdvanceId}))
-      }))
-      setSelectAll([...data])
-    }else{
-      setSelectAll([]);
-    }
-  }
-  
-  
-  const handleSelect = (obj) => {
-    setSelectAll(prevSelected => {
-      const isSelected = prevSelected.some(travel => travel.travelRequestId === obj?.travelRequestId);
-      if (isSelected) {
-        return prevSelected.filter(travel => travel.travelRequestId !== obj?.travelRequestId);
-      } else {
-        return [
-          ...prevSelected,
-          {
-            travelRequestId: obj?.travelRequestId,
-            cashAdvanceData: obj?.cashAdvances.map(cashadvance => ({
-              cashAdvanceId: cashadvance.cashAdvanceId
-            }))
-          }
-        ];
-      }
-    });
-  };
   
   const isTravelRequestSelected = (travelRequestId) => {
-    return seleactAll?.some(id => id.travelRequestId === travelRequestId);
+    return selectAll?.some(id => id.travelRequestId === travelRequestId);
   };
 
-  console.log('all selected data', seleactAll)
+  console.log('all selected data', selectAll)
 
 
   
@@ -156,8 +125,13 @@ console.log('selected lineItems',selectedLineItems)
     fetchData(tenantId,empId,page)
 
   },[])
+
+
+
+ 
   
   const travelAndCashAdvances = approvalData?.travelAndCash || []
+  sortTripsByDate(travelAndCashAdvances)
   const travelAndNonTravelExpenses = approvalData?.travelExpenseReports || []
   const dummyTrExpense = TrExpenseForApproval?.map((expense)=> ({...expense,expenseType:"Travel Expense"})) || []
   const dummyNonTravelExpense = NonTrExpenseForApproval?.map((expense)=>({...expense,expenseType:"Non Travel Expense"})) || []
@@ -167,7 +141,64 @@ console.log('selected lineItems',selectedLineItems)
   
   console.log('dummy expense for approval ', DummyExpenseData)
   
- 
+ const handleSelectAll = () => {
+  if (travelAndCashAdvances?.length !== (selectAll?.length || 0)) {
+    const data = travelAndCashAdvances?.map((travel) => {
+      const item = { travelRequestId: travel?.travelRequestId };
+      if (travel?.isCashAdvanceTaken) {
+        item.cashAdvanceData = travel?.cashAdvance?.map((item) => ({ cashAdvanceId: item?.cashAdvanceId }));
+      }
+      return item;
+    });
+    setSelectAll(data);
+  } else {
+    setSelectAll([]);
+  }
+};
+
+    
+const handleSelect = (obj) => {
+  setSelectAll((prevSelected) => {
+
+    const isSelected = prevSelected.some(travel => travel.travelRequestId === obj?.travelRequestId);
+    
+    if (isSelected) {
+      return prevSelected.filter(travel => travel.travelRequestId !== obj?.travelRequestId);
+    } else {
+     const newSelection = {
+  travelRequestId: obj?.travelRequestId,
+  ...(obj?.cashAdvance && {
+    cashAdvanceData: obj?.cashAdvance
+      .filter(item => item?.status === 'pending approval')
+      .map(item => ({
+        cashAdvanceId: item?.cashAdvanceId
+      }))
+  })
+};
+      return [...prevSelected, newSelection];
+    }
+  });
+};   
+
+    // const handleSelect = (obj) => {
+    //   setSelectAll(prevSelected => {
+    //     const isSelected = prevSelected.some(travel => travel.travelRequestId === obj?.travelRequestId);
+    //     if (isSelected) {
+    //       return prevSelected.filter(travel => travel.travelRequestId !== obj?.travelRequestId);
+    //     } else {
+    //       return [
+    //         ...prevSelected,
+    //         {
+    //           travelRequestId: obj?.travelRequestId,
+              
+    //           cashAdvanceData: obj?.cashAdvance.map(item => ({
+    //           cashAdvanceId: item.cashAdvanceId
+    //           }))
+    //         }
+    //       ];
+    //     }
+    //   });
+    // };
   
 
 
@@ -323,17 +354,20 @@ const handleVisible = (travelRequestId, action) => {
   }
 
   const handleConfirm = async( action)=>{
+    console.log('action from confirm ',action)
    
-    const rejectionReason = {rejectionReason :selectedRejReason}
+    const rejectionReason = selectedRejReason
      let api;
+     if (action === 'rejectTrip' ){
+      api = rejectTravelRequestApi({tenantId,empId,travelRequests:selectAll,rejectionReason})
+    }
+     if (action === "cashadvance-approve"){
+      api= approveTravelRequestApi(tenantId ,empId,travelRequestId )
+    }
       if(action==='approveTrip'){
-        api=approveTravelRequestApi(tenantId , empId, travelRequestId )
+        api=approveTravelRequestApi({tenantId , empId, travelRequests:selectAll} )
         console.log('travel api hit')
-      }else if (action === "cashadvance-approve"){
-        api= approveTravelRequestApi(tenantId ,empId,travelRequestId )
-      }else if (action === 'rejectTrip' && rejectionReason?.rejectionReason){
-        api = approveTravelRequestApi(tenantId,empId,travelRequestId,rejectionReason)
-      }else if (action === 'itinerary-reject' && rejectionReason?.rejectionReason ){
+      }if (action === 'itinerary-reject' && rejectionReason?.rejectionReason ){
         api = approveTravelRequestApi(tenantId,empId,travelRequestId,rejectionReason)
       }
 
@@ -344,6 +378,7 @@ let validConfirm = true
  }else{
   setError((prev)=>({...prev, rejectionReason:{set:false, message:""}}))
  }
+
 if(validConfirm){
   try {
      setIsUploading(true);
@@ -353,7 +388,9 @@ if(validConfirm){
    setIsUploading(false)
    setShowPopup(true)
    setMessage(response)
-    setTimeout(() => {setShowPopup(false);setIsUploading(false);setMessage(null),window.location.reload()},3000);
+    setTimeout(() => {setShowPopup(false);setIsUploading(false);setMessage(null);window.location.reload(); },3000);
+    //,window.location.reload()
+    
   } catch (error) {
     // setLoadingErrorMsg(`Please retry again : ${error.message}`); 
     setShowPopup(true)
@@ -477,7 +514,7 @@ if(validConfirm){
               </div>
               </div> */}
              </div>}
-             <div className='flex px-2 h-[36px] py-4  items-center justify-between gap-2'>
+    <div className='flex px-2 h-[36px] py-4  items-center justify-between gap-2'>
     <div className='flex justify-center items-center gap-2'>
     <input type='checkbox' checked={expenseLines?.length === selectedLineItems?.length ? true : false}  className='w-4 h-4 accent-indigo-600' onChange={handleAllLineItems}/>
     Select All
@@ -486,7 +523,7 @@ if(validConfirm){
     {selectedLineItems.length > 0 && <ActionButton onRejectClick={() => openModal('rejectTrip')} onApproveClick={() => openModal('approveTrip')} approve={"Approve"} reject={"Reject"}/>}
     </div>
   </div>
-              </div>
+  </div>
 
                     {/* {trip?.expenseType === "Travel Expense" &&
                      <div className='flex gap-2 items-center'>
@@ -627,18 +664,22 @@ Raise a Cash-Advance
     </div>
 </div>
 
-  <div className='flex px-2 h-[52px] py-4  items-center justify-start gap-2'>
-    <input type='checkbox' checked={TRCashadvance.length === seleactAll.length ? true : false}  className='w-4 h-4 accent-indigo-600' onChange={handleSelectAll}/>
+  <div className={` flex px-2 h-[52px] py-4  items-center justify-start gap-2`}>
+   {travelAndCashAdvances?.length > 0 &&
+   <>
+    <input type='checkbox' checked={travelAndCashAdvances?.length === selectAll.length ? true : false}  className='w-4 h-4 accent-indigo-600' onChange={handleSelectAll}/>
     Select All
     <div>
-    {seleactAll.length > 0 && <ActionButton onRejectClick={() => openModal('rejectTrip')} onApproveClick={() => openModal('approveTrip')} approve={"Approve"} reject={"Reject"}/>}
+    {selectAll.length > 0 && <ActionButton onRejectClick={() => openModal('rejectTrip')} onApproveClick={() => openModal('approveTrip')} approve={"Approve"} reject={"Reject"}/>}
     </div>
+   </>}
+   
   </div>
 
       <div className='w-full bg-white-100 xl:h-[570px] lg:h-[370px] md:[590px] overflow-y-auto px-2'>
           {filterCashadvances(travelAndCashAdvances).map((trip) => { 
             return (
-            <div key={trip.tripId} className='mb-4 rounded-md shadow-custom-light bg-white-100 p-4'>
+            <div key={trip?.tripId} className='mb-4 rounded-md shadow-custom-light bg-white-100 p-4'>
             <div className='flex gap-2 flex-col'> 
             <div className='flex flex-row justify-between'>
                 <div className='flex gap-2 items-center'>
@@ -650,7 +691,11 @@ Raise a Cash-Advance
               </div>
 
             <div className='flex items-center justify-center'>
-              <div className='flex flex-row gap-2 justify-center items-center text-neutral-700 font-cabin  text-sm'><img src={violation_icon} className='w-4 h-4'/><p>{trip?.violationsCounter?.total}</p></div>
+
+              <div className={`${trip?.violationsCounter?.total === 0 ? 'sr-only':'not-sr-only'}  flex flex-row gap-2 justify-center items-center text-yellow-200 font-cabin  text-sm`}>
+                <img src={violation_icon} className='w-4 h-4'/>
+                <p>{trip?.violationsCounter?.total} violation</p>
+            </div>
              
               <div className='text-sm font-cabin px-2 py-1 cursor-pointer' onClick={()=>{if(!disableButton(trip?.travelRequestStatus)){handleVisible(trip?.travelRequestId,  'travel-approval-view' )}}}>
                 <p className='text-indigo-600 font-semibold'>View Details</p>
@@ -669,8 +714,8 @@ Raise a Cash-Advance
              </div>
               </div>
               
-              {trip?.cashAdvances?.map((advance,index) => (
-                <div key={index} className={`px-2 py-2 ${index < trip?.cashAdvances.length-1 && 'border-b border-slate-400 '}`}>
+              {trip?.isCashAdvanceTaken && trip?.cashAdvance && trip?.cashAdvance?.map((advance,index) => (
+                <div key={index} className={`px-2 py-2 ${index < trip?.cashAdvance.length-1 && 'border-b border-slate-400 '}`}>
                   <div className='flex justify-between'>
                     <div className='flex flex-col justify-center max-w-[120px]'>
                     <div className='font-medium text-sm font-cabin text-neutral-400'>Advance Amount</div>

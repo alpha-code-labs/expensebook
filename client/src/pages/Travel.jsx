@@ -816,16 +816,16 @@ const tripBaseUrl = import.meta.env.VITE_TRIP_BASE_URL;
     const intransitTrips = data?.transitTrips || [];
     const upcomingTrips = data?.upcomingTrips || [];
     const completedTrips = employeeData?.dashboardViews?.employee?.expense?.completedTrips || [];
-    const travelRequests = data?.allTravelRequests?.allTravelRequests?.map(travel => ({
-      ...travel,
-      tripStartDate: extractTripNameStartDate(travel?.tripName)
-    })) || [];
+    const travelRequests = data?.allTravelRequests?.allTravelRequests || [];
     
     const travelRequestsAndTrips = [...intransitTrips, ...travelRequests,...completedTrips,...upcomingTrips];
 
-    sortTripsByDate(travelRequestsAndTrips)
+
+   
     const tripDataCopy = travelRequestsAndTrips?.map((trip)=>({...trip, travelRequestStatus:getTripStatus(trip?.travelRequestStatus,trip?.tripStartDate)}))
-    setTripData(tripDataCopy)}
+   
+    setTripData(tripDataCopy)
+  }
     else{
       console.error('Employee data is missing.');
     }
@@ -835,23 +835,33 @@ const tripBaseUrl = import.meta.env.VITE_TRIP_BASE_URL;
   const [visible, setVisible]=useState(false);
   const [iframeURL, setIframeURL] = useState(null); 
 
-  const handleVisible = (data) => {
-    const { urlName, tripId, travelRequestId } = data;
-    setVisible(!visible);
-  
-    let url = '';
-  
-    if (urlName === 'travel-url') {
-      url = `${travelBaseUrl}/create/${tenantId}/${empId}`;
-    } else if (tripId) {
-      url = `${tripBaseUrl}/${tenantId}/${empId}/modify/${tripId}/section1`;
-    } else {
-      url = `${travelBaseUrl}/modify/${travelRequestId}/`
-    }
-  
-    console.log('iframe url', url, urlName);
-    setIframeURL(url);
-  };
+const handleVisible = (data) => {
+  const { urlName, tripId, travelRequestId } = data;
+  setVisible(!visible);
+
+  let url = '';
+
+  if (urlName === 'travel-url') {
+    url = `${travelBaseUrl}/create/${tenantId}/${empId}`;
+  } else if (urlName === 'rejected') {
+    url = `${travelBaseUrl}/rejected/${travelRequestId}`;
+  } else if (["intransit","upcoming"].includes(urlName)) {
+    url = `${tripBaseUrl}/${tenantId}/${empId}/modify/${tripId}/section1`;
+  } else {
+    url = `${travelBaseUrl}/modify/${travelRequestId}/`;
+  }
+
+  console.log('iframe url', url, urlName);
+  setIframeURL(url);
+};
+
+
+
+
+
+
+
+
   
 
 
@@ -890,12 +900,9 @@ const tripBaseUrl = import.meta.env.VITE_TRIP_BASE_URL;
   }, []);
   
 
+sortTripsByDate(tripData)
    
-
-      console.log('trips and travel from travel screen', tripData)
-  
-  
-
+console.log('trips and travel from travel screen', tripData)
 
   const handleStatusClick = (status) => {
     setSelectedStatuses((prev) =>
@@ -906,6 +913,7 @@ const tripBaseUrl = import.meta.env.VITE_TRIP_BASE_URL;
   };
 
   const filterExpenses = (expenses) => {
+   
 
     return expenses?.filter((expense) =>
       selectedStatuses.length === 0 ||
@@ -954,20 +962,24 @@ const tripBaseUrl = import.meta.env.VITE_TRIP_BASE_URL;
     <div className='min-h-screen'>
       <TripMS visible={visible} setVisible={setVisible} src={iframeURL}/>
       <div className='flex-col w-full p-4 flex items-start gap-2'>
-      <div className='min-h-[120px] border border-slate-300 bg-white-100 rounded-md  w-full flex flex-col items-start px-2 py-2 gap-2'>
- <div className='flex flex-wrap   space-x-2 space-y-2 '>      
-<div className='flex items-center justify-center p-2 bg-slate-100 rounded-full border border-slate-300 '><img src={filter_icon} className='w-5 h-5'/></div>
-  {["draft","pending approval", "pending booking", "upcoming","intransit", "rejected","cancelled", "paid and cancelled"].map((status) => {
+      <div className='min-h-[120px] border border-slate-300 bg-white-100 rounded-md  w-full flex flex-wrap items-start gap-2 px-2 py-2'>
+ <div className='flex overflow-x-auto  space-x-2 space-y-2'>      
+<div className='flex items-center gap-2 justify-center p-2 bg-slate-100/50 rounded-full border border-slate-300  '> 
+<div className='px-4 '>
+          <img src={filter_icon} className='min-w-5 w-5 h-5 min-h-5'/>
+</div>
+
+{["draft","pending approval", "pending booking", "upcoming","intransit", "rejected","cancelled", "paid and cancelled"].map((status) => {
     const statusCount = getStatusCount(status, [...tripData]);
     const isDisabled = statusCount === 0;
     
     return (
-      <div key={status} className={`flex items-center  ${isDisabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
+      <div key={status} className={`flex  items-center  ${isDisabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
         <div
           onClick={() => !isDisabled && handleStatusClick(status)}
           className={`ring-1 ring-white-100 flex py-1 pr-3 text-center rounded-sm ${selectedStatuses.includes(status) ? getStatusClass(status ?? "-") : "bg-slate-100 text-neutral-700 border border-slate-300"}`}
         >
-          <p className='px-1 py-1 text-sm text-center capitalize font-cabin'>{status ?? "-"}</p>
+          <p className='px-1 py-1 text-sm text-center capitalize font-cabin whitespace-nowrap '>{status ?? "-"}</p>
         </div>
         <div className={`shadow-md shadow-black/30 font-semibold -translate-x-3 ring-1 rounded-full ring-white-100 w-6 h-6 flex justify-center items-center text-center text-xs ${selectedStatuses.includes(status) ? getStatusClass(status ?? "-") : "bg-slate-100 text-neutral-700 border border-slate-300 "}`}>
           <p>{statusCount}</p>
@@ -975,7 +987,9 @@ const tripBaseUrl = import.meta.env.VITE_TRIP_BASE_URL;
       </div>
     );
   })}
-<div className='text-neutral-700 text-base flex justify-center items-center hover:text-red-200 hover:font-semibold text-center w-auto h-[36px] font-cabin cursor-pointer' onClick={() => setSelectedStatuses([])}>Clear All</div>
+</div>
+  
+<div className='text-neutral-700 text-base flex justify-center items-center hover:text-red-200 hover:font-semibold text-center w-auto h-[36px] font-cabin cursor-pointer whitespace-nowrap ' onClick={() => setSelectedStatuses([])}>Clear All</div>
 </div> 
 <div className=''>
    
@@ -1028,98 +1042,26 @@ const tripBaseUrl = import.meta.env.VITE_TRIP_BASE_URL;
          </div>
           : 
           <TripName tripName={trip?.tripName}/>
-          
         }
-         
-
       </div>
       <div className='flex justify-center items-center gap-2'>
         <div className={`text-center rounded-sm ${getStatusClass(trip?.travelRequestStatus ?? "-")}`}>
             <p className='px-1 py-1 text-xs text-center capitalize font-cabin'>{(trip?.travelRequestStatus) ?? "-"}</p>
       </div>
-        <div onClick={()=>{if(!disableButton(trip?.travelRequestStatus)){handleVisible({tripId:trip?.tripId ,travelRequestId:trip?.travelRequestId,urlName:"travel-create"})}}}  className='cursor-pointer w-7 h-7 bg-indigo-100 rounded-full border border-white-100 flex items-center justify-center'>
+        <div onClick={()=>{if(!disableButton(trip?.travelRequestStatus)){handleVisible({tripId:trip?.tripId ,travelRequestId:trip?.travelRequestId,urlName: trip?.travelRequestStatus})}}}  className='cursor-pointer w-7 h-7 bg-indigo-100 rounded-full border border-white-100 flex items-center justify-center'>
         <img src={modify} className='w-4 h-4' alt="Add Icon" />
         </div>
       </div>
-                    {/* <div className='mt-2 space-y-2'>
-                      {filteredTripExpenses.map((trExpense, index) => (
-                        <div key={index} className='border border-slate-300 rounded-md px-2 py-1'>
-                          <div className='flex flex-row justify-between items-center py-1 border-b border-slate-300 font-cabin font-xs'>
-                            <div className={`text-center rounded-sm ${getStatusClass(trExpense?.expenseHeaderStatus ?? "-")}`}>
-                              <p className='px-1 py-1 text-xs text-center capitalize font-cabin'>{trExpense?.expenseHeaderStatus ?? "-"}</p>
-                            </div>
-                            <div onClick={()=>{handleTravelExpense(trip?.tripId, trExpense?.expenseHeaderId,  'trip-ex-modify' ,)}} className={`w-7 h-7 bg-indigo-100 rounded-full border border-white-100 flex items-center justify-center`}>
-                              <img src={modify} className='w-4 h-4' alt="modify_icon" />
-                            </div>
-                          </div>
-                          <div className='overflow-x-hidden overflow-y-auto max-h-[236px] py-1 pt-2 h-auto px-2 space-y-2'>
-                            {trExpense?.expenseLines.map((line, index) => (
-                              <div key={`${index}-line`} className='flex  text-neutral-700 flex-row justify-between items-center font-cabin text-sm'>
-                                <div className='bg-indigo-50 border-2 shadow-md shadow-slate-900/50 translate-x-4 border-white-100 p-2 rounded-full'>
-                                  <img src={categoryIcons?.[line?.["Category Name"]]} className='w-4 h-4' />
-                                </div>
-                                <div className='flex border-slate-400 border flex-row justify-between text-neutral-700 flex-1 items-center gap-2 py-4 px-4 pl-6 rounded-md bg-slate-200'>
-                                  <div>{line?.["Category Name"]}</div>
-                                  <div>{line?.["Currency"]?.shortName} {formatAmount(line?.["Total Amount"])}</div>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-                    </div> */}
+                 
                   </div>
                 );
               })}
             </div>
           </div>
 
-          {/* <div className='flex-1'>
-            <div className='flex justify-center items-center rounded-r-md font-inter text-md text-white-100 h-[52px] bg-indigo-600 text-center'>
-              <img src={receipt_icon1} className='w-6 h-6 mr-2' />
-              <p>Non-Travel Expenses</p>
-            </div>
-
-            <div className='w-full mt-4 xl:h-[570px] lg:h-[370px] md:[590px] overflow-y-auto px-2 bg-white-100 rounded-r-md'>
-              {filterExpenses(nonTravelExpenses)?.map((nonTravelExp, index) => (
-                <div key={`${index}-nonTr-expense`} className='mb-4 text-neutral-700 rounded-md shadow-custom-light bg-white-100 p-4'>
-                  <div className='flex flex-row justify-between'>
-                    <div className='flex gap-2 items-center'>
-                      <img src={receipt} className='w-5 h-5' />
-                      <div >
-                        <div className='header-title'>Expense Header No.</div>
-                        <p className='header-text'>{nonTravelExp?.expenseHeaderNumber}</p>
-                      </div>
-                    </div>
-                    <div className='flex flex-row gap-2 justify-between items-center font-cabin font-xs'>
-                      <div className={`text-center rounded-sm ${getStatusClass(nonTravelExp?.expenseHeaderStatus ?? "-")}`}>
-                        <p className='px-1 py-1 text-xs text-center capitalize font-cabin'>{nonTravelExp?.expenseHeaderStatus ?? "-"}</p>
-                      </div>
-                      <div onClick={() => { handleNonTravelExpense(nonTravelExp?.expenseHeaderId,"non-tr-ex-modify") }} className={`w-7 h-7 bg-indigo-100 rounded-full border border-white-100 flex items-center justify-center ${disableButton(nonTravelExp?.travelRequestStatus) ? ' cursor-not-allowed opacity-50' : ' cursor-pointer'}`}>
-                        <img src={modify} className='w-4 h-4' alt="modify_icon" />
-                      </div>
-                    </div>
-                  </div>
-                  <div className='border border-slate-300 rounded-md px-2 py-1 mt-2 overflow-x-hidden overflow-y-auto max-h-[242px]'>
-                    {nonTravelExp?.expenseLines.map((line, index) => (
-                      <div key={`${index}-line`} className='flex text-neutral-700 py-1 px-2 flex-row justify-between items-center font-cabin text-sm'>
-                        <div className='bg-indigo-50 border-2 shadow-md shadow-slate-900/50 translate-x-4 border-white-100 p-2 rounded-full'>
-                          <img src={categoryIcons?.[line?.["Category Name"]] ?? categoryIcons?.["Receipt"]} className='w-4 h-4' />
-                        </div>
-                        <div className='flex border-slate-400 border  flex-row justify-between text-neutral-700 flex-1 items-center gap-2 py-4 px-4 pl-6 rounded-md bg-slate-200'>
-                          <div>{line?.["Category Name"]}</div>
-                          <div>{line?.["Currency"]?.shortName} {formatAmount(line?.["Total Amount"])}</div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div> */}
+        
         </div>
       </div>
-
       <Modal 
         isOpen={modalOpen} 
         onClose={modalOpen} 
