@@ -1740,7 +1740,7 @@ const approvalsForManager = async (tenantId, empId) => {
                             'cashAdvanceSchema.travelRequestData.tenantId': tenantId,
                             'cashAdvanceSchema.travelRequestData.travelRequestStatus': 'pending approval',
                             'cashAdvanceSchema.travelRequestData.approvers':{
-                             $elemMatch :{'empId': empId,'status': 'pending approval',}
+                            $elemMatch :{'empId': empId,'status': 'pending approval',}
                             }
                         },
                         {
@@ -1749,7 +1749,7 @@ const approvalsForManager = async (tenantId, empId) => {
                             'cashAdvanceSchema.cashAdvancesData.cashAdvanceStatus': { $in: ['pending approval'] },
                             'cashAdvanceSchema.cashAdvancesData.approvers':{
                                 $elemMatch :{'empId': empId,'status': 'pending approval',}
-                               }
+                            }
                         },
                         // {
                         //     'tripSchema.travelRequestData.tenantId': tenantId,
@@ -1769,7 +1769,11 @@ const approvalsForManager = async (tenantId, empId) => {
                                 }
                               }
                             }
-                          }                          
+                        },
+                        {'reimbursementSchema.approvers':{
+                            $elemMatch :{empId,'status': 'pending approval'}
+                        }, 
+                        }
             ]
         }).lean().exec();
 
@@ -1953,6 +1957,53 @@ const approvalsForManager = async (tenantId, empId) => {
                 return []; // Return an empty array or handle the error accordingly
             }
         })();
+
+        const nonTravelExpenseReports = await (async () => {
+            try {
+                // Filter approvals based on criteria
+                const filteredApprovals = approvalDoc.filter(approval => {
+                    const schema = approval.reimbursementSchema;
+        
+                    // Ensure schema exists and meets criteria
+                    return schema &&
+                           schema.tenantId === tenantId &&
+                           schema.expenseHeaderStatus === 'pending approval' &&
+                           schema.approvers.some(approver => {
+                               return approver.empId === empId &&
+                                      approver.status === 'pending approval';
+                           });
+                });
+        
+                // Extract necessary data from filtered approvals
+                const nonTravelExpenseDataList = filteredApprovals.map(approval => {
+                    const schema = approval.reimbursementSchema;
+                    const {
+                        expenseHeaderNumber,
+                        expenseHeaderId,
+                        expenseHeaderStatus,
+                        createdBy,
+                        approvers,
+                        expenseLines
+                    } = schema;
+        
+                    return {
+                        expenseHeaderNumber,
+                        expenseHeaderId,
+                        expenseHeaderStatus,
+                        createdBy,
+                        approvers,
+                        expenseLines
+                    };
+                });
+        
+                return nonTravelExpenseDataList;
+            } catch (error) {
+                console.error('Error occurred:', error);
+                return []; // Handle the error by returning an empty array
+            }
+        })();
+        
+    console.log("nonTravelExpenseReports",nonTravelExpenseReports)
         
         const uniqueTravelWithCash = [...travel, ...travelWithCash]
         const filteredTravelWithCash = Object.values(uniqueTravelWithCash.reduce((uniqueItems, currentItem) => {
@@ -1971,6 +2022,7 @@ const approvalsForManager = async (tenantId, empId) => {
                 // travelAndCash: [...travelRequests, ...travelWithCash,cashAdvanceRaisedLater, addAleg],
                 travelAndCash: [ ...filteredTravelWithCash, ...cashAdvanceRaisedLater, ],
                 travelExpenseReports: travelExpenseReports,
+                nonTravelExpenseReports:nonTravelExpenseReports
         };
 
         return responseData;
