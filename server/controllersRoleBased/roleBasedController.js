@@ -2035,27 +2035,105 @@ const approvalsForManager = async (tenantId, empId) => {
 };
 
 //---------------------------------------------------------------------Travel admin
+// const extractItinerary = (itinerary) =>{
+//     try{
+//         const itineraryToSend = Object.fromEntries(
+//             Object.entries(itinerary)
+//                 .filter(([category]) => category !== 'formState')
+//                 .map(([category, items]) => {
+//                     let mappedItems;
+//                     if (category === 'hotels') {
+//                         mappedItems = items.map(({
+//                             itineraryId, status, bkd_location, bkd_class, bkd_checkIn, bkd_checkOut, bkd_violations, cancellationDate, cancellationReason,needBreakfast,needLunch,needDinner,needNonSmokingRoom
+//                         }) => ({
+//                             category,
+//                             itineraryId, status, bkd_location, bkd_class, bkd_checkIn, bkd_checkOut, bkd_violations, cancellationDate, cancellationReason,needBreakfast,needLunch,needDinner,needNonSmokingRoom
+//                         }));
+//                     } else if (category === 'cabs') {
+//                         mappedItems = items.map(({
+//                             itineraryId, status, bkd_date, bkd_returnDate, bkd_isFullDayCab, bkd_class, bkd_pickupAddress, bkd_dropAddress,
+//                         }) => ({
+//                             category,
+//                             itineraryId, status, bkd_date,bkd_returnDate, bkd_isFullDayCab, bkd_class, bkd_pickupAddress, bkd_dropAddress,
+//                         }));
+//                     } else {
+//                         mappedItems = items.map(({
+//                             itineraryId, status, bkd_from, bkd_to, bkd_date, bkd_time,bkd_returnTime, bkd_travelClass, bkd_violations,
+//                         }) => ({
+//                             category,
+//                             itineraryId, status, bkd_from, bkd_to, bkd_date, bkd_time,bkd_returnTime, bkd_travelClass, bkd_violations,
+//                         }));
+//                     }
+        
+//                     return [category, mappedItems];
+//                 })
+//         );
+//         return itineraryToSend;
+//     } catch(error){
+//         console.error("Error in extracting itinerary:", error);
+//         throw new Error(error)
+//     }
+// }
+const extractItinerary = (itinerary) => {
+    try {
+        // Define property lists for each category
+        const properties = {
+            hotels: ['itineraryId', 'status', 'bkd_location', 'bkd_class', 'bkd_checkIn', 'bkd_checkOut', 'bkd_violations', 'cancellationDate', 'cancellationReason', 'needBreakfast', 'needLunch', 'needDinner', 'needNonSmokingRoom'],
+            cabs: ['itineraryId', 'status', 'bkd_date', 'bkd_returnDate', 'bkd_isFullDayCab', 'bkd_class', 'bkd_pickupAddress', 'bkd_dropAddress'],
+            default: ['itineraryId', 'status', 'bkd_from', 'bkd_to', 'bkd_date', 'bkd_time', 'bkd_returnTime', 'bkd_travelClass', 'bkd_violations']
+        };
+
+        // Helper function to map and filter items based on the category
+        const mapAndFilterItems = (items, propertyList) => {
+            return items.reduce((acc, item) => {
+                if (item.status === 'pending booking') {
+                    const filteredItem = propertyList.reduce((result, prop) => {
+                        if (item.hasOwnProperty(prop)) result[prop] = item[prop];
+                        return result;
+                    }, {});
+                    acc.push(filteredItem);
+                }
+                return acc;
+            }, []);
+        };
+
+        // Map and filter the items for each category
+        const itineraryToSend = Object.entries(itinerary)
+            .filter(([category]) => category !== 'formState')
+            .reduce((acc, [category, items]) => {
+                const propertyList = properties[category] || properties.default;
+                acc[category] = mapAndFilterItems(items, propertyList);
+                return acc;
+            }, {});
+
+        return itineraryToSend;
+    } catch (error) {
+        console.error("Error in extracting itinerary:", error.message);
+        throw new Error(`Error in extracting itinerary: ${error.message}`);
+    }
+};
+
+
 const businessAdminLayout = async (tenantId, empId) => {
     try {
-// console.log("verified bussiness admin layout", tenantId, empId);
+// console.log("verified business admin layout", tenantId, empId);
 
             const bookingDoc = await dashboard.find({
+                tenantId,
                 $or: [
-                    { 'travelRequestSchema.tenantId': tenantId,
+                    { 
                     'travelRequestSchema.travelRequestStatus': 'pending booking',
                    },
-                    { 'cashAdvanceSchema.travelRequestData.tenantId': tenantId,
+                    { 
                     'cashAdvanceSchema.travelRequestData.travelRequestStatus': 'pending booking' 
                    },
                    {
-                    'tripSchema.travelRequestData.tenantId': tenantId,
                     'tripSchema.travelRequestData.isAddALeg': true,
                     'tripSchema.travelRequestData.travelRequestStatus': 'booked'
-                  },
+                    },
                     {
-                    'tripSchema.travelRequestData.tenantId': tenantId,
-                     'tripSchema.travelRequestData.tripStatus': {$nin:['paid and cancelled']}
-                 },
+                    'tripSchema.travelRequestData.tripStatus': {$nin:['paid and cancelled']}
+                },
                 ],
             })
             .lean()
@@ -2074,12 +2152,13 @@ const businessAdminLayout = async (tenantId, empId) => {
             
                 // console.log("filteredBooking for travel", filteredBooking)
                 return filteredBooking.map(booking => {
-                    const { travelRequestId, tripPurpose, travelRequestNumber, travelRequestStatus, isCashAdvanceTaken, assignedTo } = booking.travelRequestSchema;
-                    return { travelRequestId, tripPurpose, travelRequestNumber, travelRequestStatus, isCashAdvanceTaken, assignedTo };
+                    const { travelRequestId, tripPurpose, travelRequestNumber,tripName, travelRequestStatus, isCashAdvanceTaken, assignedTo, itinerary } = booking.travelRequestSchema;
+                    const itineraryToSend = extractItinerary(itinerary)
+                    return { travelRequestId, tripPurpose,tripName, itinerary:itineraryToSend, travelRequestNumber, travelRequestStatus, isCashAdvanceTaken, assignedTo };
                 }).filter(Boolean);
             })();
             
-            // console.log("travel booking .......", travel)
+         console.log("travel booking .......", travel)
             const travelWithCash = await (async () => {
                 const filteredBooking = bookingDoc.filter(booking => 
                     booking?.cashAdvanceSchema?.travelRequestData?.travelRequestStatus === 'pending booking'
@@ -2087,8 +2166,10 @@ const businessAdminLayout = async (tenantId, empId) => {
                             
                 return filteredBooking.map(booking => {
                     const { travelRequestData } = booking?.cashAdvanceSchema;
-                    const { travelRequestId, travelRequestNumber, tripPurpose, travelRequestStatus , isCashAdvanceTaken, assignedTo} = travelRequestData;
-                    return { travelRequestId, travelRequestNumber, tripPurpose, travelRequestStatus, isCashAdvanceTaken , assignedTo};
+                    const { travelRequestId, travelRequestNumber,itinerary, tripPurpose,tripName, travelRequestStatus , isCashAdvanceTaken, assignedTo} = travelRequestData;
+                    const itineraryToSend = extractItinerary(itinerary)
+
+                    return { travelRequestId, travelRequestNumber, tripPurpose,tripName,itinerary:itineraryToSend, travelRequestStatus, isCashAdvanceTaken , assignedTo};
                 }).filter(Boolean);
             })();
 
@@ -2115,7 +2196,7 @@ const businessAdminLayout = async (tenantId, empId) => {
                             tripPurpose: travelRequestData.tripPurpose,
                             assignedTo,
                             travelRequestStatus: travelRequestData.travelRequestStatus,
-                            itineraryKey: category,
+                            itineraryName: category,
                             itineraryId: item.itineraryId,
                             status: item.status
                         }));
@@ -2142,7 +2223,7 @@ const businessAdminLayout = async (tenantId, empId) => {
                             travelRequestNumber: travelRequestData.travelRequestNumber,
                             tripPurpose: travelRequestData.tripPurpose,
                             travelRequestStatus: travelRequestData.travelRequestStatus,
-                            itineraryKey: category,
+                            itineraryName: category,
                             itineraryId: item.itineraryId,
                             status: item.status
                         }));
@@ -2160,6 +2241,7 @@ const businessAdminLayout = async (tenantId, empId) => {
 
             const responseData = { pendingBooking, paidAndCancelledTrips, pendingItineraryLines };
 
+            console.log("responseData -- booking",responseData)
          const result = Object.values(responseData).some(value => value.length > 0) ? responseData : [];
 
       return result;
