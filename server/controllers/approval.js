@@ -250,11 +250,16 @@ const approveSchema = Joi.object({
 
 
 const bodySchema = Joi.object({
-    travelRequests: Joi.array().items(
+  travelRequests: Joi.array().items(
       Joi.object({
-        travelRequestId: Joi.string().required()
+          travelRequestId: Joi.string().required(),
+          cashAdvance: Joi.array().items(
+              Joi.object({
+                  cashAdvanceId: Joi.string().required()
+              })
+          ).optional() 
       })
-    ).required()
+  ).required()
 });
 
 const rejBodySchema = Joi.object({
