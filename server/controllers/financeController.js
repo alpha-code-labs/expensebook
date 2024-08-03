@@ -15,7 +15,7 @@ import Dashboard from "../models/dashboardSchema.js";
 export const financeLayout = async (tenantId, empId) => {
     try {
         const settlements = await Dashboard.find({
-            'travelRequestSchema.tenantId':tenantId,
+            tenantId,
             'cashAdvanceSchema.cashAdvancesData.cashAdvanceStatus': { $in: ['pending settlement', 'Paid and Cancelled'] },
             'tripSchema.travelExpenseData.expenseHeaderStatus':{$in: ['pending settlement', 'Paid']},
             'reimbursementSchema.expenseHeaderStatus':{$in: ['pending settlement']},
