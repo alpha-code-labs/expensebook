@@ -31,25 +31,53 @@ function App() {
   const {employeeRoles , setEmployeeRoles, setEmployeeData , employeeData } = useData(); 
 //  const [,setRouteData]=useState(null);
   
+    // const fetchData = async (tenantId, empId) => {
+    //   try {
+    //     const rolesResponse = await getEmployeeRoles_API(tenantId,empId)
+    //     const employeeResponse = await getEmployeeData_API(tenantId, empId);
+    //     localStorage.setItem('tenantId', tenantId);
+    //     localStorage.setItem('empId', empId);
+    //     console.log('employee data',rolesResponse)
+
+    //     setEmployeeData(employeeResponse);
+    //     setEmployeeRoles(rolesResponse)
+    //     setTenantId(tenantId)
+    //     setEmpId(empId)      
+    //     setIsLoading(false)
+    //   } catch (error) {       
+    //     console.error('Error fetching data:', error.message);
+    //     setLoadingErrMsg('Error danger',error.message);
+    //     setIsLoading(false)
+    //   }
+    // };
+
     const fetchData = async (tenantId, empId) => {
       try {
-        const rolesResponse = await getEmployeeRoles_API(tenantId,empId)
+        // Conditionally fetch employee roles only if employeeRoles is null
+        let rolesResponse = employeeRoles;
+        if (rolesResponse === null) {
+          rolesResponse = await getEmployeeRoles_API(tenantId, empId);
+          setEmployeeRoles(rolesResponse);
+        }
+    
         const employeeResponse = await getEmployeeData_API(tenantId, empId);
+    
+        // Store tenantId and empId in local storage
         localStorage.setItem('tenantId', tenantId);
         localStorage.setItem('empId', empId);
-        console.log('employee data',rolesResponse)
-
+        
+        // Set the state with the fetched data
         setEmployeeData(employeeResponse);
-        setEmployeeRoles(rolesResponse)
-        setTenantId(tenantId)
-        setEmpId(empId)      
-        setIsLoading(false)
-      } catch (error) {       
+        setTenantId(tenantId);
+        setEmpId(empId);
+        setIsLoading(false);
+      } catch (error) {
         console.error('Error fetching data:', error.message);
-        setLoadingErrMsg('Error danger',error.message);
-        setIsLoading(false)
+        setLoadingErrMsg('Error danger', error.message);
+        setIsLoading(false);
       }
     };
+    
 
 
     useEffect(() => {

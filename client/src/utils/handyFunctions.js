@@ -260,22 +260,35 @@ function splitTripName(tripName){
     "-"
   }
 }
+
+
 // filterUtils.js
- const filterByTimeRange = (data, range) => {
+// src/utils/filterData.js
+
+
+
+const filterByTimeRange = (data, range) => {
   const now = new Date();
+  const todayStart = new Date(now.setHours(0, 0, 0, 0));
+  const tomorrowEnd = new Date(todayStart);
+  tomorrowEnd.setDate(tomorrowEnd.getDate() + 2);
+  const sevenDaysEnd = new Date(todayStart);
+  sevenDaysEnd.setDate(sevenDaysEnd.getDate() + 7);
+  const thirtyDaysEnd = new Date(todayStart);
+  thirtyDaysEnd.setDate(thirtyDaysEnd.getDate() + 30);
+
   return data.filter(item => {
     const startDate = new Date(item.tripStartDate);
+
     switch (range) {
       case "48 Hours":
-        return (startDate - now) <= 48 * 60 * 60 * 1000;
+        return startDate >= todayStart && startDate < tomorrowEnd;
       case "7 Days":
-        return (startDate - now) <= 7 * 24 * 60 * 60 * 1000;
+        return startDate >= todayStart && startDate < sevenDaysEnd;
       case "30 Days":
-        return (startDate - now) <= 30 * 24 * 60 * 60 * 1000;
+        return startDate >= todayStart && startDate < thirtyDaysEnd;
       case "Beyond the month":
-        return (startDate - now) > 30 * 24 * 60 * 60 * 1000;
-      case "paid and cancelled":
-        return item.travelRequestStatus === "paid" || item.travelRequestStatus === "cancelled";
+        return startDate >= thirtyDaysEnd;
       default:
         return false;
     }

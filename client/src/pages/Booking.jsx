@@ -1,10 +1,7 @@
-
-
-
 import React, { useEffect, useState } from 'react';
 import { briefcase, modify, receipt, receipt_icon1, categoryIcons, filter_icon, plus_violet_icon, cancel, search_icon, info_icon, airplane_1, airplane_icon1, plus_icon } from '../assets/icon';
 import { extractTripNameStartDate, filterByTimeRange, formatAmount, getStatusClass, sortTripsByDate, splitTripName } from '../utils/handyFunctions';
-import {dummyTravelReqForBooking } from '../utils/dummyData';
+import {dummyTravelReqForBooking ,dummyPaidAndCancelledTrips} from '../utils/dummyData';
 import { handleNonTravelExpense, handleTravelExpense } from '../utils/actionHandler';
 import { CabCard, FlightCard, HotelCard, RentalCabCard } from '../components/itinerary/BookingItineraryCard';
 import Modal from '../components/common/Modal1';
@@ -15,13 +12,15 @@ import Button1 from '../components/common/Button1';
 import Error from '../components/common/Error';
 import SearchComponent from '../components/common/ExpenseSearch';
 import Input from '../components/common/SearchInput';
-import TripMS from '../microservice/TripMS';
 import { TripName } from '../components/common/TinyComponent';
 import TravelMS from '../microservice/TravelMS';
+import CurrencyInput from '../components/common/currency/CurrencyInput'
+import { currenciesList } from '../utils/data/currencyList';
 
 
 
 const Booking = ({isLoading ,fetchData,loadingErrMsg}) => {
+
 const travelBaseUrl  = import.meta.env.VITE_TRAVEL_PAGE_URL;
 const cashBaseUrl = import.meta.env.VITE_CASHADVANCE_PAGE_URL;
 const tripBaseUrl = import.meta.env.VITE_TRIP_BASE_URL;
@@ -31,7 +30,7 @@ const tripBaseUrl = import.meta.env.VITE_TRIP_BASE_URL;
  
   const [textVisible,setTextVisible]=useState({tripId:false}); 
   const [modalOpen , setModalOpen]=useState(false);
-  const [tripData, setTripData]=useState([]);
+  const [tripData, setTripData]=useState({tripsForBooking:[],tripsForRecover:[]});
   const {tenantId,empId,page}= useParams();
   const { employeeData } = useData();
   const [error , setError]= useState({
@@ -40,27 +39,30 @@ const tripBaseUrl = import.meta.env.VITE_TRIP_BASE_URL;
   const [searchQuery , setSearchQuery] = useState('');
   
 ///----------------------start---------------
-const [selectedStatuses, setSelectedStatuses] = useState([]);
+const [selectedDateRange, setSelectedDateRange] = useState("");
 
-const handleStatusClick = (status) => {
-  if (selectedStatuses.includes(status)) {
-    setSelectedStatuses(selectedStatuses.filter(s => s !== status));
-  } else {
-    setSelectedStatuses([...selectedStatuses, status]);
-  }
+const handleTabClick = (range) => {
+  setSelectedDateRange(selectedDateRange === range ? "" : range);
 };
 
-const getStatusCount = (status) => {
-  return filterByTimeRange(tripData, status).length;
-};
+
+
 
 const getStatusClass = (status) => {
   return 'bg-blue-500 text-white'; // Adjust this based on your styling requirements
 };
 
-const filteredData = selectedStatuses.length > 0
-  ? selectedStatuses.reduce((acc, status) => [...acc, ...filterByTimeRange(tripData, status)], [])
-  : tripData;
+
+function dataFilterByDate (data){
+if (selectedDateRange){
+  return filterByTimeRange(data, selectedDateRange)
+}
+return data
+
+}
+// const filteredData = selectedStatuses.length > 0
+//   ? selectedStatuses.reduce((acc, status) => [...acc, ...filterByTimeRange(tripData, status)], [])
+//   : tripData;
 ///----------------------end---------------
 
   
@@ -82,16 +84,29 @@ const filteredData = selectedStatuses.length > 0
 
     //const travelRequests = data?.allTravelRequests?.allTravelRequests || [];
     const travelRequests = [ ...dummyTravelReqForBooking];
+    const paidAndCancelledTrips = [...dummyPaidAndCancelledTrips]
 
     sortTripsByDate(travelRequests)
+    sortTripsByDate(paidAndCancelledTrips)
     
-    setTripData(travelRequests)}
+    setTripData((prev)=>({...prev, tripsForBooking:travelRequests || [], tripsForRecover:paidAndCancelledTrips || []}))}
     else{
       console.error('Employee data is missing.');
     }
   },[employeeData])
+
+  const travelRequestsForBooking  =[]
+  const tripsForRecover = []
   
- 
+  const getStatusCount = (status) => {
+    if(status === "paid and cancelled"){
+      const count = tripData?.tripsForRecover?.filter((trip) => trip?.travelRequestStatus === status).length;
+      return count;
+    }else{
+      return filterByTimeRange(tripData?.tripsForBooking, status).length;
+    }
+    
+  };
   const [visible, setVisible]=useState(false); 
   const [iframeURL, setIframeURL] = useState(null); 
 
@@ -152,27 +167,7 @@ const filteredData = selectedStatuses.length > 0
   
 
 
-  // const handleStatusClick = (status) => {
-  //   setSelectedStatuses((prev) =>
-  //     prev.includes(status)
-  //       ? prev.filter((s) => s !== status)
-  //       : [...prev, status]
-  //   );
-  // };
-
-  const filterTrips = (expenses) => {
-
-    return expenses?.filter((expense) =>
-      selectedStatuses.length === 0 ||
-      selectedStatuses.includes(expense?.travelRequestStatus)
-    ).filter(expense =>
-      JSON.stringify(expense).toLowerCase().includes(searchQuery)
-    );
-  };
-
-  // const getStatusCount = (status, trips) => {
-  //   return trips.filter((trip) => trip?.travelRequestStatus === status).length;
-  // };
+  
 
   const disableButton = (status) => {
     return [ 'cancelled'].includes(status);
@@ -201,6 +196,7 @@ const filteredData = selectedStatuses.length > 0
       handleNonTravelExpense('','non-tr-ex-create')
     }
   };
+ 
 
 
 
@@ -233,12 +229,12 @@ const filteredData = selectedStatuses.length > 0
         return (
           <div key={status} className={`flex items-center ${isDisabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
             <div
-              onClick={() => !isDisabled && handleStatusClick(status)}
-              className={`ring-1 ring-white-100 flex py-1 pr-3 text-center rounded-sm ${selectedStatuses.includes(status) ? "bg-indigo-100 text-indigo-600 border border-indigo-600" : "bg-slate-100 text-neutral-700 border border-slate-300"}`}
+              onClick={() => !isDisabled && handleTabClick(status)}
+              className={`ring-1 ring-white-100 flex py-1 pr-3 text-center rounded-sm ${selectedDateRange.includes(status) ? "bg-indigo-100 text-indigo-600 border border-indigo-600" : "bg-slate-100 text-neutral-700 border border-slate-300"}`}
             >
               <p className='px-1 py-1 text-sm text-center capitalize font-cabin whitespace-nowrap'>{status ?? "-"}</p>
             </div>
-            <div className={`shadow-md shadow-black/30 font-semibold -translate-x-3 ring-1 rounded-full ring-white-100 w-6 h-6 flex justify-center items-center text-center text-xs ${selectedStatuses.includes(status) ? "border border-indigo-600 bg-indigo-100 text-indigo-600"  : "bg-slate-100 text-neutral-700 border border-slate-300"}`}>
+            <div className={`shadow-md shadow-black/30 font-semibold -translate-x-3 ring-1 rounded-full ring-white-100 w-6 h-6 flex justify-center items-center text-center text-xs ${selectedDateRange.includes(status) ? "border border-indigo-600 bg-indigo-100 text-indigo-600"  : "bg-slate-100 text-neutral-700 border border-slate-300"}`}>
               <p>{statusCount}</p>
             </div>
           </div>
@@ -304,9 +300,20 @@ const filteredData = selectedStatuses.length > 0
               </div>
             </div>
             <div className='w-full mt-4 xl:h-[570px] lg:h-[370px] md:[590px] overflow-y-auto px-2 bg-white-100 rounded-l-md'>
-              {filteredData?.map((trip, index) => {
+              {selectedDateRange === "paid and cancelled" ? 
+                <div>
                 
+               {tripData?.tripsForRecover.map((trip)=>(
+                <>
+                 <TripRecoverCard/>
+                </>
+               ))}
                 
+                </div> : dataFilterByDate((tripData?.tripsForBooking))?.map((trip, index) => {
+
+                // if (trip?.travelRequestStatus === "paid and cancelled"){
+                //   return "hello"
+                // }
                 return (
                 <>
       <div key={`${index}-tr-expense`} className='flex border flex-col gap-y-2 w-full items-center hover:border hover:border-indigo-600 hover:bg-indigo-100 cursor-pointer  justify-between mb-4 text-neutral-700 rounded-md shadow-custom-light bg-white-100 p-4'>
@@ -319,6 +326,7 @@ const filteredData = selectedStatuses.length > 0
        <div className='font-cabin text-xs text-neutral-700'>
           
           <TripName tripName={trip?.tripName}/>
+          {/* <div>{trip?.tripStartDate}</div> */}
           
       </div>
       </div>
@@ -482,25 +490,11 @@ const filteredData = selectedStatuses.length > 0
  <div className='w-full'>
   <TripSearch placeholder={"Select the trip"} error={error?.tripId} title="Apply to trip" data={tripData} onSelect={handleSelect} />
  </div> }
-  
-
-
-{expenseType && <Button1 text={"Raise"} onClick={handleRaise} />}
-
-  
-   
-
-
+    {expenseType && <Button1 text={"Raise"} onClick={handleRaise} />}
 </div>   
+</div>     
 </div>
-
-
- 
-   
-            
-          </div>
-
-      </div>}
+</div>}
       />
     </div>}
     </>
@@ -509,26 +503,16 @@ const filteredData = selectedStatuses.length > 0
 
 export default Booking;
 
+const TripRecoverCard = ()=>{
+  const [filteredCurrencyOptions, setFilteredCurrencyOptions] = useState(currenciesList.map(item=>({currency:item, value:1})))
 
-const getTripStatus = (status,tripStartDate) => {
-  
-  
-  if(status !== "booked"){
-    return status
-  }
+  return(
+    <div>
+      <CurrencyInput
+      currencyOptions={currenciesList.map(cr=>({...cr, imageUrl:`https://hatscripts.github.io/circle-flags/flags/${cr.countryCode.toLowerCase()}.svg`}))} 
+      />
 
-  const currentStatus = status;
-  const tripStart = new Date(tripStartDate);
-  const currentDate = new Date();
-
-  // Check if the current status is 'booked'
-  if (currentStatus === 'booked') {
-    if (tripStart > currentDate) {
-      return 'upcoming';
-    } else if (tripStart <= currentDate) {
-      return 'intransit';
-    }
-  }
-
-  return currentStatus;
-};
+     
+    </div>
+  )
+}

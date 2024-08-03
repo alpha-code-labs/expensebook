@@ -938,18 +938,15 @@ const itinerary = {
         "personalVehicles": []
 };
 
-
-
-    
-const dummyTravelReq =[
+const dummyPaidAndCancelledTrips =[
 
   {
     "travelRequestId": "66a7891b419ebf1bfe780227",
     "travelRequestNumber": "TRAL000092",
     "tripPurposeDescription": "Investor",
-    "tripName": "LUC-MUM(30th Jul 2024)",
-    "tripStartDate": "2024-07-30T00:00:00.000Z",
-    "travelRequestStatus": "pending approval",
+    "tripName": "LUC-MUM(20th Jul 2024)",
+    "tripStartDate": "2024-08-05T00:00:00.000Z",
+    "travelRequestStatus": "paid and cancelled",
     "createdBy": {
                             "empId": "1002",
                             "name": "Emma Thompson",
@@ -962,7 +959,7 @@ const dummyTravelReq =[
     "travelRequestNumber": "TRAL000096",
     "tripPurposeDescription": "investors",
     "tripName": "LUC-DEL(29th Jul 2024)",
-    "tripStartDate": "2024-07-29T00:00:00.000Z",
+    "tripStartDate": "2024-08-02T00:00:00.000Z",
     "travelRequestStatus": "pending approval",
     "createdBy": {
                             "empId": "1002",
@@ -975,7 +972,7 @@ const dummyTravelReq =[
     "travelRequestNumber": "TRAL000098",
     "tripPurposeDescription": "for investor",
     "tripName": "JAI-KOL(30th Jul 2024)",
-    "tripStartDate": "2024-07-30T00:00:00.000Z",
+    "tripStartDate": "2024-07-28T00:00:00.000Z",
     "travelRequestStatus": "pending approval",
     "createdBy": {
                             "empId": "1002",
@@ -988,7 +985,7 @@ const dummyTravelReq =[
     "travelRequestNumber": "TRAL000099",
     "tripPurposeDescription": "investor",
     "tripName": "KOL-DEL(30th Jul 2024)",
-    "tripStartDate": "2024-07-30T00:00:00.000Z",
+    "tripStartDate": "2024-08-01T00:00:00.000Z",
     "travelRequestStatus": "pending approval",
     "createdBy": {
                             "empId": "1002",
@@ -1001,7 +998,7 @@ const dummyTravelReq =[
     "travelRequestNumber": "TRAL000093",
     "tripPurposeDescription": "meal",
     "tripName": "MUM-GOA(15th Aug 2024)",
-    "tripStartDate": "2024-08-15T00:00:00.000Z",
+    "tripStartDate": "2024-09-15T00:00:00.000Z",
     "travelRequestStatus": "pending approval",
     "createdBy": {
                             "empId": "1002",
@@ -1014,7 +1011,92 @@ const dummyTravelReq =[
     "travelRequestNumber": "TRAL000100",
     "tripPurposeDescription": "investors",
     "tripName": "LON-IND(30th Jul 2024)",
-    "tripStartDate": "2024-07-30T00:00:00.000Z",
+    "tripStartDate": "2024-09-08T00:00:00.000Z",
+    "travelRequestStatus": "pending approval",
+    "createdBy": {
+                            "empId": "1002",
+                            "name": "Rawbard Thompson",
+                            "_id": "66a878ab5839fcbbbc7b1707"
+                        },
+}
+
+]
+
+    
+const dummyTravelReq =[
+
+  {
+    "travelRequestId": "66a7891b419ebf1bfe780227",
+    "travelRequestNumber": "TRAL000092",
+    "tripPurposeDescription": "Investor",
+    "tripName": "LUC-MUM(20th Jul 2024)",
+    "tripStartDate": "2024-08-05T00:00:00.000Z",
+    "travelRequestStatus": "paid and cancelled",
+    "createdBy": {
+                            "empId": "1002",
+                            "name": "Emma Thompson",
+                            "_id": "66a878ab5839fcbbbc7b1707"
+                        },
+    
+},
+{
+    "travelRequestId": "66a793ee419ebf1bfe78087c",
+    "travelRequestNumber": "TRAL000096",
+    "tripPurposeDescription": "investors",
+    "tripName": "LUC-DEL(29th Jul 2024)",
+    "tripStartDate": "2024-08-02T00:00:00.000Z",
+    "travelRequestStatus": "pending approval",
+    "createdBy": {
+                            "empId": "1002",
+                            "name": "Emma Thompson",
+                            "_id": "66a878ab5839fcbbbc7b1707"
+                        },
+},
+{
+    "travelRequestId": "66a878ab5839fcbbbc7b1705",
+    "travelRequestNumber": "TRAL000098",
+    "tripPurposeDescription": "for investor",
+    "tripName": "JAI-KOL(30th Jul 2024)",
+    "tripStartDate": "2024-07-28T00:00:00.000Z",
+    "travelRequestStatus": "pending approval",
+    "createdBy": {
+                            "empId": "1002",
+                            "name": "Emma Thompson",
+                            "_id": "66a878ab5839fcbbbc7b1707"
+                        },
+},
+{
+    "travelRequestId": "66a87ba35839fcbbbc7b185d",
+    "travelRequestNumber": "TRAL000099",
+    "tripPurposeDescription": "investor",
+    "tripName": "KOL-DEL(30th Jul 2024)",
+    "tripStartDate": "2024-08-01T00:00:00.000Z",
+    "travelRequestStatus": "pending approval",
+    "createdBy": {
+                            "empId": "1002",
+                            "name": "Engine Thompson",
+                            "_id": "66a878ab5839fcbbbc7b1707"
+                        },
+},
+{
+    "travelRequestId": "66a78946419ebf1bfe780367",
+    "travelRequestNumber": "TRAL000093",
+    "tripPurposeDescription": "meal",
+    "tripName": "MUM-GOA(15th Aug 2024)",
+    "tripStartDate": "2024-09-15T00:00:00.000Z",
+    "travelRequestStatus": "pending approval",
+    "createdBy": {
+                            "empId": "1002",
+                            "name": "Benjamin Thompson",
+                            "_id": "66a878ab5839fcbbbc7b1707"
+                        },
+},
+{
+    "travelRequestId": "66a87c5e5839fcbbbc7b19a1",
+    "travelRequestNumber": "TRAL000100",
+    "tripPurposeDescription": "investors",
+    "tripName": "LON-IND(30th Jul 2024)",
+    "tripStartDate": "2024-09-08T00:00:00.000Z",
     "travelRequestStatus": "pending approval",
     "createdBy": {
                             "empId": "1002",
@@ -6317,4 +6399,4 @@ const tripArray = [
     },
   ];
 
-export {dummyTravelReqForBooking,NonTrExpenseForApproval, TrExpenseForApproval, nonTravelExpense, NonTRCashAdvances, tripArray, travelExpense, reimbursementExpense, dummytravelRequests, trips, TRCashadvance}
+export {dummyPaidAndCancelledTrips,  dummyTravelReqForBooking,NonTrExpenseForApproval, TrExpenseForApproval, nonTravelExpense, NonTRCashAdvances, tripArray, travelExpense, reimbursementExpense, dummytravelRequests, trips, TRCashadvance}
