@@ -253,9 +253,9 @@ const bodySchema = Joi.object({
   travelRequests: Joi.array().items(
       Joi.object({
           travelRequestId: Joi.string().required(),
-          cashAdvance: Joi.array().items(
+          cashAdvanceData: Joi.array().items(
               Joi.object({
-                  cashAdvanceId: Joi.string().required()
+                  cashAdvanceId: Joi.string()
               })
           ).optional() 
       })
@@ -274,64 +274,142 @@ const raisedLaterReqSchema = Joi.object({
     cashAdvanceId:Joi.string().required(),
 })
 
-async function  getReportsForApproval(tenantId,empId,travelRequestIds){
-    try{
-      console.log("i am here")
-       const getReports = await dashboard.find({
-        tenantId,
-        'travelRequestId':{$in:travelRequestIds},
-        $or:[
-          {
-            'travelRequestSchema.travelRequestStatus':'pending approval',
-            'travelRequestSchema.isCashAdvanceTaken':false,
-            'travelRequestSchema.approvers':{
-              $elemMatch:{
-                empId,
-                status:'pending approval'
+// async function  getReportsForApproval(tenantId,empId,travelRequestIds){
+//     try{
+//       console.log("i am here")
+//        const getReports = await dashboard.find({
+//         tenantId,
+//         'travelRequestId':{$in:travelRequestIds},
+//         $or:[
+//           {
+//             'travelRequestSchema.travelRequestStatus':'pending approval',
+//             'travelRequestSchema.isCashAdvanceTaken':false,
+//             'travelRequestSchema.approvers':{
+//               $elemMatch:{
+//                 empId,
+//                 status:'pending approval'
+//               }
+//             },
+//           },
+//           {
+//             'cashAdvanceSchema.travelRequestData.travelRequestStatus': { $in: ['pending approval','approved', 'booked'] },
+//             'cashAdvanceSchema.travelRequestData.isCashAdvanceTaken': true,
+//             'cashAdvanceSchema.cashAdvancesData.cashAdvanceStatus': { $in: ['pending approval','draft'] },
+//             'cashAdvanceSchema.cashAdvancesData.approvers': {
+//               $elemMatch: { 'empId': empId, 'status': 'pending approval' }
+//             }
+//           }
+//         ]
+//       })
+
+//       if(getReports?.length){
+//         console.log("hero",getReports)
+//         const cashReports = getReports.filter(reports =>
+//           reports?.cashAdvanceSchema &&
+//           ['pending approval'].includes(reports?.cashAdvanceSchema?.travelRequestData?.travelRequestStatus) &&
+//           reports?.cashAdvanceSchema?.travelRequestData.isCashAdvanceTaken === true &&
+//           reports?.cashAdvanceSchema.cashAdvancesData.cashAdvanceStatus.includes('pending approval') &&
+//           reports?.cashAdvanceSchema?.cashAdvancesData.approvers.some(approver =>
+//             approver.empId === empId && approver.status === 'pending approval'
+//           )
+//         )
+
+//         console.log("cashReports",cashReports)
+
+//         const travelReports = getReports.filter(report =>
+//             report?.travelRequestSchema &&
+//             report?.travelRequestSchema?.travelRequestStatus == 'pending approval' &&
+//             report?.travelRequestSchema?.isCashAdvanceTaken === false &&
+//             report?.travelRequestSchema?.approvers.some(approver => 
+//               approver.empId === empId && approver.status === 'pending approval'
+//           )
+//         )
+//         console.log("travelReports",travelReports)
+
+      
+//         const cashRaisedLaterReports = getReports.filter(reports =>
+//           reports?.cashAdvanceSchema &&
+//           ['approved', 'booked'].includes(reports?.cashAdvanceSchema?.travelRequestData?.travelRequestStatus) &&
+//           reports?.cashAdvanceSchema?.travelRequestData.isCashAdvanceTaken === true &&
+//           reports?.cashAdvanceSchema.cashAdvancesData.cashAdvanceStatus.includes('pending approval') &&
+//           reports?.cashAdvanceSchema?.cashAdvancesData.approvers.some(approver =>
+//             approver.empId === empId && approver.status === 'pending approval'
+//           )
+//         )
+
+//         console.log(travelReports, cashReports,cashRaisedLaterReports)
+//         return [travelReports, cashReports,cashRaisedLaterReports]
+//       } 
+//     } catch(error){
+//       throw new Error('Documents Not found for approval ...')
+//     }
+// }
+async function getReportsForApproval(tenantId, empId, travelRequestIds) {
+  try {
+      console.log("I am here");
+
+      // Query the database for reports
+      const getReports = await dashboard.find({
+          tenantId,
+          'travelRequestId': { $in: travelRequestIds },
+          $or: [
+              {
+                  'travelRequestSchema.travelRequestStatus': 'pending approval',
+                  'travelRequestSchema.isCashAdvanceTaken': false,
+                  'travelRequestSchema.approvers': {
+                      $elemMatch: {
+                          empId,
+                          status: 'pending approval'
+                      }
+                  }
+              },
+              {
+                  'cashAdvanceSchema.travelRequestData.travelRequestStatus': { $in: ['pending approval', 'approved', 'booked'] },
+                  'cashAdvanceSchema.travelRequestData.isCashAdvanceTaken': true,
+                  'cashAdvanceSchema.cashAdvancesData.cashAdvanceStatus': { $in: ['pending approval', 'draft'] },
+                  'cashAdvanceSchema.cashAdvancesData.approvers': {
+                      $elemMatch: { empId, status: 'pending approval' }
+                  }
               }
-            },
-          },
-          {
-            'cashAdvanceSchema.travelRequestData.travelRequestStatus': { $in: ['approved', 'booked'] },
-            'cashAdvanceSchema.travelRequestData.isCashAdvanceTaken': true,
-            'cashAdvanceSchema.cashAdvancesData.cashAdvanceStatus': { $in: ['pending approval'] },
-            'cashAdvanceSchema.cashAdvancesData.approvers': {
-              $elemMatch: { 'empId': empId, 'status': 'pending approval' }
-            }
-          }
-        ]
-      })
+          ]
+      });
 
-      // console.log("getREPORS", getReports)
+      if (getReports?.length) {
+          console.log("Hero", getReports);
 
-      if(getReports.length){
-        const travelReports = getReports.filter(reports =>
-            reports?.travelRequestSchema &&
-            reports?.travelRequestSchema?.travelRequestStatus === 'pending approval' &&
-            reports?.travelRequestSchema?.isCashAdvanceTaken === false &&
-            reports?.travelRequestSchema?.approvers.some(approver => 
-              approver.empId === empId && approver.status === 'pending approval'
-          )
-        )
 
-        const cashReports = getReports.filter(reports =>
-          reports?.cashAdvanceSchema &&
-          ['approved', 'booked'].includes(reports?.cashAdvanceSchema?.travelRequestData?.travelRequestStatus) &&
-          reports?.cashAdvanceSchema?.travelRequestData.isCashAdvanceTaken === true &&
-          reports?.cashAdvanceSchema.cashAdvancesData.cashAdvanceStatus.includes('pending approval') &&
-          reports?.cashAdvanceSchema?.cashAdvancesData.approvers.some(approver =>
-            approver.empId === empId && approver.status === 'pending approval'
-          )
-        )
+          // Filter reports for travel requests
+          const travelReports = getReports.filter(report =>
+              report?.travelRequestSchema &&
+              report?.travelRequestSchema?.travelRequestStatus == 'pending approval' &&
+              report?.travelRequestSchema?.approvers.some(approver =>
+                  approver.empId === empId && approver.status === 'pending approval'
+              )
+          );
 
-        return [travelReports, cashReports]
-      } else {
-        throw new Error('Documents Not found for approval')
+          console.log("Travel Reports", travelReports);
+
+          // Filter reports for cash raised later
+          const cashReports = getReports.filter(report =>
+              report?.cashAdvanceSchema &&
+              ['approved', 'booked','pending booking'].includes(report?.cashAdvanceSchema?.travelRequestData?.travelRequestStatus) &&
+              report?.cashAdvanceSchema?.travelRequestData.isCashAdvanceTaken === true &&
+              report?.cashAdvanceSchema.cashAdvancesData.cashAdvanceStatus.includes('pending approval') &&
+              report?.cashAdvanceSchema?.cashAdvancesData.approvers.some(approver =>
+                  approver.empId === empId && approver.status === 'pending approval'
+              )
+          );
+
+          console.log("Travel Reports", travelReports);
+          console.log("Cash Reports", cashReports);
+
+          return [travelReports, cashReports];
       }
-    } catch(error){
-      throw new Error('Documents Not found for approval')
-    }
+  } catch (error) {
+      throw new Error('Documents Not found for approval ...');
+  }
 }
+
 
 export async function approveAll(req,res){
     try{  
@@ -362,7 +440,7 @@ export async function approveAll(req,res){
 
     const approvalDocs = []
 
-    if(travelReports.length){
+    if(travelReports.length ){
       console.log("its travel ms")
       approvalDocs.push(approveAllTravelWithCash(tenantId, empId,travelReports))
     }
@@ -421,9 +499,6 @@ export const approveAllTravelWithCash = async (tenantId, empId, travelReports) =
           booking.status = 'approved';
         }
       }
-
-      
-
     );
 
       const updatedApprovers = approvers.map(approver => ({
@@ -535,8 +610,8 @@ export const approveAllTravelWithCash = async (tenantId, empId, travelReports) =
 
     if(allTravelRequests?.length > 0){
       console.log("allTravelRequests", payloadToTravel)
-      sendToOtherMicroservice(payloadToTravel,  'approve-reject-ca', 'travel', 'approve travelRequests', 'dashboard', 'online')
-      sendToOtherMicroservice(payloadToTravel,  'approve-reject-ca', 'approval', 'approve travelRequests', 'dashboard', 'online')
+      sendToOtherMicroservice(payloadToTravel,  'approve-reject-tr', 'travel', 'approve travelRequests', 'dashboard', 'online')
+      sendToOtherMicroservice(payloadToTravel,  'approve-reject-tr', 'approval', 'approve travelRequests', 'dashboard', 'online')
 
     } else if (allTravelRequestsWithCash?.length > 0){
       console.log("payloadToCash", payloadToCash)
