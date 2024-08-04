@@ -10,6 +10,7 @@ import { startConsumer } from './rabbitmq/consumer.js';
 import { mainRouter} from './routes/mainFrontendRoutes.js';
 import { consumeFromDashboardQueue } from './rabbitmq/dashboardConsumer.js';
 import { scheduleToFinanceBatchJob } from './schedulars/finance.js';
+import { gradeForEmployee } from './controllersRoleBased/roleBasedController.js';
 // import dashboard from "../models/dashboardSchema.js";
 
 const environment = process.env.NODE_ENV == 'production' ? '.env.prod' : '.env';
@@ -98,12 +99,7 @@ startConsumer('dashboard');
 
 //BatchJobs
 // scheduleToFinanceBatchJob()
-
 consumeFromDashboardQueue();
-
-
-
-
 
 
 
