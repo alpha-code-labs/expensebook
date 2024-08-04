@@ -2,7 +2,7 @@ import Joi from "joi";
 import { financeLayout } from "../controllers/financeController.js";
 import dashboard from "../models/dashboardSchema.js";
 import HRMaster from "../models/hrMasterSchema.js";
-import { earliestDate } from "../utils/date.js";
+import { earliestDate, extractStartDate } from "../utils/date.js";
 import { countViolations, extractValidViolations } from "../utils/count.js";
 
 export const employeeSchema = Joi.object({
@@ -2035,46 +2035,8 @@ const approvalsForManager = async (tenantId, empId) => {
 };
 
 //---------------------------------------------------------------------Travel admin
-// const extractItinerary = (itinerary) =>{
-//     try{
-//         const itineraryToSend = Object.fromEntries(
-//             Object.entries(itinerary)
-//                 .filter(([category]) => category !== 'formState')
-//                 .map(([category, items]) => {
-//                     let mappedItems;
-//                     if (category === 'hotels') {
-//                         mappedItems = items.map(({
-//                             itineraryId, status, bkd_location, bkd_class, bkd_checkIn, bkd_checkOut, bkd_violations, cancellationDate, cancellationReason,needBreakfast,needLunch,needDinner,needNonSmokingRoom
-//                         }) => ({
-//                             category,
-//                             itineraryId, status, bkd_location, bkd_class, bkd_checkIn, bkd_checkOut, bkd_violations, cancellationDate, cancellationReason,needBreakfast,needLunch,needDinner,needNonSmokingRoom
-//                         }));
-//                     } else if (category === 'cabs') {
-//                         mappedItems = items.map(({
-//                             itineraryId, status, bkd_date, bkd_returnDate, bkd_isFullDayCab, bkd_class, bkd_pickupAddress, bkd_dropAddress,
-//                         }) => ({
-//                             category,
-//                             itineraryId, status, bkd_date,bkd_returnDate, bkd_isFullDayCab, bkd_class, bkd_pickupAddress, bkd_dropAddress,
-//                         }));
-//                     } else {
-//                         mappedItems = items.map(({
-//                             itineraryId, status, bkd_from, bkd_to, bkd_date, bkd_time,bkd_returnTime, bkd_travelClass, bkd_violations,
-//                         }) => ({
-//                             category,
-//                             itineraryId, status, bkd_from, bkd_to, bkd_date, bkd_time,bkd_returnTime, bkd_travelClass, bkd_violations,
-//                         }));
-//                     }
-        
-//                     return [category, mappedItems];
-//                 })
-//         );
-//         return itineraryToSend;
-//     } catch(error){
-//         console.error("Error in extracting itinerary:", error);
-//         throw new Error(error)
-//     }
-// }
-const extractItinerary = (itinerary) => {
+
+const workingExtractItinerary = (itinerary) => {
     try {
         // Define property lists for each category
         const properties = {
@@ -2088,7 +2050,7 @@ const extractItinerary = (itinerary) => {
             return items.reduce((acc, item) => {
                 if (item.status === 'pending booking') {
                     const filteredItem = propertyList.reduce((result, prop) => {
-                        if (item.hasOwnProperty(prop)) result[prop] = item[prop];
+                        if (prop in item) result[prop] = item[prop];
                         return result;
                     }, {});
                     acc.push(filteredItem);
@@ -2097,12 +2059,21 @@ const extractItinerary = (itinerary) => {
             }, []);
         };
 
+        // Ensure 'itinerary' is an object and not null
+        if (typeof itinerary !== 'object' || itinerary === null) {
+            throw new Error('Invalid itinerary object');
+        }
+
         // Map and filter the items for each category
         const itineraryToSend = Object.entries(itinerary)
             .filter(([category]) => category !== 'formState')
             .reduce((acc, [category, items]) => {
                 const propertyList = properties[category] || properties.default;
-                acc[category] = mapAndFilterItems(items, propertyList);
+                if (Array.isArray(items)) {
+                    acc[category] = mapAndFilterItems(items, propertyList);
+                } else {
+                    console.warn(`Expected array for category '${category}', but found:`, items);
+                }
                 return acc;
             }, {});
 
@@ -2112,6 +2083,38 @@ const extractItinerary = (itinerary) => {
         throw new Error(`Error in extracting itinerary: ${error.message}`);
     }
 };
+
+const extractItinerary = (itinerary) => {
+    try {
+        // Ensure 'itinerary' is an object and not null
+        if (typeof itinerary !== 'object' || itinerary === null) {
+            throw new Error('Invalid itinerary object');
+        }
+
+        // Helper function to filter items based on status
+        const filterPendingBookings = (items) => {
+            return items.filter(item => item.status === 'pending booking');
+        };
+
+        // Extract and filter the items for each category
+        const itineraryToSend = Object.entries(itinerary)
+            .filter(([category]) => category !== 'formState') // Skip 'formState' if it exists
+            .reduce((acc, [category, items]) => {
+                if (Array.isArray(items)) {
+                    acc[category] = filterPendingBookings(items);
+                } else {
+                    console.warn(`Expected array for category '${category}', but found:`, items);
+                }
+                return acc;
+            }, {});
+
+        return itineraryToSend;
+    } catch (error) {
+        console.error("Error in extracting itinerary:", error.message);
+        throw new Error(`Error in extracting itinerary: ${error.message}`);
+    }
+};
+
 
 
 const businessAdminLayout = async (tenantId, empId) => {
@@ -2154,11 +2157,13 @@ const businessAdminLayout = async (tenantId, empId) => {
                 return filteredBooking.map(booking => {
                     const { travelRequestId, tripPurpose, travelRequestNumber,tripName, travelRequestStatus, isCashAdvanceTaken, assignedTo, itinerary } = booking.travelRequestSchema;
                     const itineraryToSend = extractItinerary(itinerary)
-                    return { travelRequestId, tripPurpose,tripName, itinerary:itineraryToSend, travelRequestNumber, travelRequestStatus, isCashAdvanceTaken, assignedTo };
+                    const tripStartDate = extractStartDate(itinerary)
+
+                    return { travelRequestId, tripPurpose,tripName,tripStartDate, itinerary:itineraryToSend, travelRequestNumber, travelRequestStatus, isCashAdvanceTaken, assignedTo };
                 }).filter(Boolean);
             })();
             
-         console.log("travel booking .......", travel)
+        // console.log("travel booking .......", travel)
             const travelWithCash = await (async () => {
                 const filteredBooking = bookingDoc.filter(booking => 
                     booking?.cashAdvanceSchema?.travelRequestData?.travelRequestStatus === 'pending booking'
@@ -2166,42 +2171,30 @@ const businessAdminLayout = async (tenantId, empId) => {
                             
                 return filteredBooking.map(booking => {
                     const { travelRequestData } = booking?.cashAdvanceSchema;
-                    const { travelRequestId, travelRequestNumber,itinerary, tripPurpose,tripName, travelRequestStatus , isCashAdvanceTaken, assignedTo} = travelRequestData;
+                    const { travelRequestId, travelRequestNumber,itinerary,tripPurpose,tripName, travelRequestStatus , isCashAdvanceTaken, assignedTo} = travelRequestData;
                     const itineraryToSend = extractItinerary(itinerary)
+                    const tripStartDate = extractStartDate(itinerary)
 
-                    return { travelRequestId, travelRequestNumber, tripPurpose,tripName,itinerary:itineraryToSend, travelRequestStatus, isCashAdvanceTaken , assignedTo};
+                    return { travelRequestId, travelRequestNumber,tripStartDate, tripPurpose,tripName,itinerary:itineraryToSend, travelRequestStatus, isCashAdvanceTaken , assignedTo};
                 }).filter(Boolean);
             })();
 
             // console.log("travel booking .......", travelWithCash)
-
-        
             const trips = await (async () => {
                 const filteredBooking = bookingDoc.filter(booking => 
                     booking?.tripSchema?.travelRequestData?.travelRequestStatus === 'booked' && 
                     booking?.tripSchema?.travelRequestData?.isAddALeg == true
                 );
             
-                return filteredBooking.flatMap(booking => {
-                    const { tripId, tripNumber, tripStatus, travelRequestData } = booking.tripSchema;
-                    const { itinerary, assignedTo } = travelRequestData;
-            
-                    return Object.entries(itinerary).flatMap(([category, items]) => {
-                        return items.filter(item => item.status === 'pending booking').map(item => ({
-                            tripId,
-                            tripNumber,
-                            tripStatus,
-                            travelRequestId: travelRequestData.travelRequestId,
-                            travelRequestNumber: travelRequestData.travelRequestNumber,
-                            tripPurpose: travelRequestData.tripPurpose,
-                            assignedTo,
-                            travelRequestStatus: travelRequestData.travelRequestStatus,
-                            itineraryName: category,
-                            itineraryId: item.itineraryId,
-                            status: item.status
-                        }));
-                    });
-                });
+                return filteredBooking.map(booking => {
+                    const { tripId, tripNumber, tripStatus,tripStartDate, travelRequestData } = booking.tripSchema;
+                    const { travelRequestId, travelRequestNumber,itinerary, tripPurpose,tripName, travelRequestStatus , isCashAdvanceTaken, assignedTo} = travelRequestData;
+                    const itineraryToSend = extractItinerary(itinerary)
+
+                    return { tripId,
+                        tripNumber,
+                        tripStatus,tripStartDate, travelRequestId, travelRequestNumber, tripPurpose,tripName,itinerary:itineraryToSend, travelRequestStatus, isCashAdvanceTaken , assignedTo};
+                }).filter(Boolean)
             })();
             
             const tripsPaidAndCancelled = await (async () => {
@@ -2233,13 +2226,12 @@ const businessAdminLayout = async (tenantId, empId) => {
             
             const pendingBooking = [ ...travel, ...travelWithCash];
             const paidAndCancelledTrips = [...tripsPaidAndCancelled];
-            const pendingItineraryLines = [...trips];
+            const pendingBookingTrips = [...trips];
 
-            // const responseData = {pendingBooking, paidAndCancelledTrips, pendingItineraryLines };
-    
-            // return responseData 
+            // const responseData = {pendingBooking, paidAndCancelledTrips, pendingBookingTrips };
+            // return responseData
 
-            const responseData = { pendingBooking, paidAndCancelledTrips, pendingItineraryLines };
+            const responseData = { pendingBooking, paidAndCancelledTrips, pendingBookingTrips };
 
             console.log("responseData -- booking",responseData)
          const result = Object.values(responseData).some(value => value.length > 0) ? responseData : [];

@@ -1,3 +1,4 @@
+import Joi from "joi";
 import dashboard from "../models/dashboardSchema.js";
 import HRMaster from "../models/hrMasterSchema.js";
 import { sendToOtherMicroservice } from "../rabbitmq/publisher.js";
@@ -258,47 +259,72 @@ export const cancelTripAtLineItemLevel = async (req, res) => {
     };
 
 
-
+    const recoverItinerarySchema = Joi.array().items(
+        Joi.object({
+        itineraryId: Joi.string().length(24).required().messages({
+            'string.base': `"itineraryId" should be a type of 'text'`,
+            'string.empty': `"itineraryId" cannot be an empty field`,
+            'string.length': `"itineraryId" should have a length of 24 characters`,
+            'any.required': `"itineraryId" is a required field`
+        }),
+        recoveredAmount: Joi.string().pattern(/^\d+$/).required().messages({
+            'string.base': `"recoveredAmount" should be a type of 'text'`,
+            'string.empty': `"recoveredAmount" cannot be an empty field`,
+            'string.pattern.base': `"recoveredAmount" must be a number`,
+            'any.required': `"recoveredAmount" is a required field`
+        })
+        })
+    );
 
 
 // 3) Define updateRecoverStatus function
 const updateRecoverStatus = (item) => {
     return item.status === 'paid and cancelled' ? 'recovered' : 'cancelled';
-  };
-  
+};
+
   // Update status fields conditionally
 const itineraryLineItem = async (trip, recoverItinerary) => {
     const updateItemDetails = (items) => {
-      items.forEach(item => {
+    items.forEach(item => {
         // Find the corresponding itinerary detail
         const detail = recoverItinerary.find(detail => detail.itineraryId === item.itineraryId.toString());
         
         if (detail) {
           // Update status and recovery amount if a matching itineraryId is found
-          item.status = updateRecoverStatus(item);
-          item.recoveredAmount = detail.recoveredAmount;
+        item.status = updateRecoverStatus(item);
+        item.recoveredAmount = detail.recoveredAmount;
         }
-      });
+    });
     };
-  
+
     // Update all item types
     updateItemDetails(trip.tripSchema.travelRequestData.itinerary.flights);
     updateItemDetails(trip.tripSchema.travelRequestData.itinerary.hotels);
     updateItemDetails(trip.tripSchema.travelRequestData.itinerary.cabs);
     updateItemDetails(trip.tripSchema.travelRequestData.itinerary.buses);
-  
+
     // Save changes
     await trip.save();
   
     return trip;
   };
-  
 
   // Recover done for Line item  
   export const recoveryAtLineItemLevel = async (req, res) => {
     try {
-      const { tenantId, tripId, empId } = req.params;
-      const { recoverItinerary } = req.body;
+     const { error:errorParams}   = employeeSchema.validate(req.params);
+
+        const { error : errorBody} = recoverItinerarySchema.validate(req.body.recoverItinerary);
+  
+        if (errorParams || errorBody) {
+          return res.status(400).json({
+            error: error.details.map(detail => detail.message).join(', ')
+          });
+        }
+
+      const { tenantId, tripId, empId }  = paramsValue
+
+      const { recoverItinerary } = bodyValue;
       const itineraryIds = recoverItinerary.map(item => item.itineraryId)
       console.log("hiiii", req.params, itineraryIds)
   
