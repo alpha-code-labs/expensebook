@@ -43,12 +43,12 @@ export default function Button1(props) {
         {loading && active ? (
           <div className='flex gap-1 text-center items-center'>
           <img src={loading_icon} className="animate-spin w-5 h-5" />
-          <div className="w-full h-5 text-center text-white-100 text-base font-medium font-cabin">
+          <div className="w-full h-5 text-center text-white text-base font-medium font-cabin">
             {text}
           </div>
           </div>
         ) : (
-          <div className="w-full h-5 text-center text-white-100 text-base font-medium font-cabin">
+          <div className="w-full h-5 text-center text-white text-base font-medium font-cabin">
             {text}
           </div>
         )}

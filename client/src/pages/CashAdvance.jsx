@@ -12,7 +12,7 @@ import Error from '../components/common/Error';
 import { useParams } from 'react-router-dom';
 import Input from '../components/common/SearchInput';
 import TripMS from '../microservice/TripMS';
-import { TripName } from '../components/common/TinyComponent';
+import { CardLayout, StatusFilter, TripName } from '../components/common/TinyComponent';
 
 const CashAdvance = ({isLoading, fetchData, loadingErrMsg}) => {
 
@@ -198,8 +198,8 @@ const handleVisible = (travelRequestId, action, cashadvanceId) => {
        <TripMS visible={visible} setVisible={setVisible} src={cashAdvanceUrl}/>
       <div className='flex-col w-full p-4 flex items-start gap-2'>
       
-      <div className='min-h-[120px] border border-slate-300 bg-white-100 rounded-md  w-full flex flex-wrap items-start gap-2 px-2 py-2'>
-       <div className='flex  space-x-2 space-y-2  overflow-x-auto '>
+      <div className='min-h-[120px] border border-slate-300 bg-white rounded-md  w-full flex flex-wrap items-start gap-2 px-2 py-2'>
+       {/* <div className='flex  space-x-2 space-y-2  overflow-x-auto '>
         <div className='flex gap-2  items-center justify-center p-2 bg-slate-100/50 rounded-full border border-slate-300 '>
         <div className='px-4 '>
         <img src={filter_icon} className='min-w-5 w-5 h-5 min-h-5'/>
@@ -212,11 +212,11 @@ const handleVisible = (travelRequestId, action, cashadvanceId) => {
       <div key={status} className={`flex items-center  ${isDisabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
         <div
           onClick={() => !isDisabled && handleStatusClick(status)}
-          className={`ring-1 ring-white-100 flex py-1 pr-3 text-center rounded-sm ${selectedStatuses.includes(status) ? getStatusClass(status ?? "-") : "bg-slate-100 text-neutral-700 border border-slate-300"}`}
+          className={`ring-1 ring-white flex py-1 pr-3 text-center rounded-sm ${selectedStatuses.includes(status) ? getStatusClass(status ?? "-") : "bg-slate-100 text-neutral-700 border border-slate-300"}`}
         >
           <p className='px-1 py-1 text-sm text-center capitalize font-cabin whitespace-nowrap '>{status ?? "-"}</p>
         </div>
-        <div className={`shadow-md shadow-black/30 font-semibold -translate-x-3 ring-1 rounded-full ring-white-100 w-6 h-6 flex justify-center items-center text-center text-xs ${selectedStatuses.includes(status) ? getStatusClass(status ?? "-") : "bg-slate-100 text-neutral-700 border border-slate-300 "}`}>
+        <div className={`shadow-md shadow-black/30 font-semibold -translate-x-3 ring-1 rounded-full ring-white w-6 h-6 flex justify-center items-center text-center text-xs ${selectedStatuses.includes(status) ? getStatusClass(status ?? "-") : "bg-slate-100 text-neutral-700 border border-slate-300 "}`}>
           <p>{statusCount}</p>
         </div>
       </div>
@@ -224,7 +224,17 @@ const handleVisible = (travelRequestId, action, cashadvanceId) => {
   })}
    </div>
   <div className='text-neutral-700 text-base flex justify-center items-center hover:text-red-200 hover:font-semibold text-center w-auto h-[36px] font-cabin cursor-pointer whitespace-nowrap' onClick={() => setSelectedStatuses([])}>Clear All</div>
-  </div>
+  </div> */}
+
+  <StatusFilter
+  statuses={["draft","pending approval", "pending settlement", "paid","rejected",  "cancelled", "paid and cancelled"]}
+  tripData={[...travelCashAdvances.flatMap(te => te?.cashAdvances), ...NonTRCashAdvances]}
+selectedStatuses={selectedStatuses}
+handleStatusClick={handleStatusClick}
+filter_icon={filter_icon}
+getStatusClass={getStatusClass}
+getStatusCount={getStatusCount}
+setSelectedStatuses={setSelectedStatuses}/>
   <div className=''>
    
    <Input placeholder="Search Cash Advance..." type="search" icon={search_icon} onChange={(value)=>setSearchQuery(value)}/>
@@ -233,13 +243,13 @@ const handleVisible = (travelRequestId, action, cashadvanceId) => {
         <div className='w-full flex md:flex-row flex-col '>
           <div className='flex-1 rounded-md justify-center items-center'>
          
-<div className='relative  flex justify-center items-center  rounded-l-md   font-inter text-md text-white-100 h-[52px] bg-indigo-600  text-center'>
+<div className='relative  flex justify-center items-center  rounded-l-md   font-inter text-md text-white h-[52px] bg-indigo-600  text-center'>
 
 <div
 onClick={()=>setModalOpen(!modalOpen)}
 onMouseEnter={() => setTextVisible({cashAdvance:true})}
 onMouseLeave={() => setTextVisible({cashAdvance:false})}
-className={`absolute  left-0 ml-4 hover:px-2 w-6 h-6 hover:overflow-hidden hover:w-auto group text-indigo-600 bg-indigo-100 border border-white-100 flex items-center justify-center  hover:gap-x-1 rounded-full cursor-pointer transition-all duration-300`}
+className={`absolute  left-0 ml-4 hover:px-2 w-6 h-6 hover:overflow-hidden hover:w-auto group text-indigo-600 bg-indigo-100 border border-white flex items-center justify-center  hover:gap-x-1 rounded-full cursor-pointer transition-all duration-300`}
 >
 <img src={plus_violet_icon} width={16} height={16} alt="Add Icon" />
 <p
@@ -263,12 +273,14 @@ Raise a Cash-Advance
 
 
             
-      <div className='w-full  mt-4 xl:h-[570px] lg:h-[370px] md:[590px] overflow-y-auto px-2 bg-white-100 rounded-l-md'>
+      <div className='w-full  mt-4 xl:h-[570px] lg:h-[370px] md:[590px] overflow-y-auto px-2 bg-white rounded-l-md'>
           {travelCashAdvances?.map((trip) => { 
             const filteredCashadvances = filterCashadvances(trip?.cashAdvances)
             if (filteredCashadvances.length === 0) return null;
             return(
-            <div key={trip?.tripId} className='mb-4 rounded-md shadow-custom-light bg-white-100 p-4'>
+              <>
+              <CardLayout index={trip?.tripId}>
+            <div key={trip?.tripId} className='py-2 w-full'>
           <TripName tripName={trip?.tripName}/>
               {filteredCashadvances?.map((advance,index) => ( 
                 <div key={index} className={`px-2 py-2 ${index < filteredCashadvances.length-1 && 'border-b border-slate-400 '}`}>
@@ -288,25 +300,31 @@ Raise a Cash-Advance
                     <div className={`text-center rounded-sm ${getStatusClass(advance?.cashAdvanceStatus ?? "-")}`}>
                        <p className='px-1 py-1 text-xs text-center capitalize font-cabin'>{advance?.cashAdvanceStatus ?? "-"}</p>
                     </div>
-                    <div onClick={()=>{if(!disableButton(trip?.travelRequestStatus)){handleVisible(trip?.travelRequestId,  'ca-modify' ,advance?.cashAdvanceId,)}}} className={`w-7 h-7 bg-indigo-100 rounded-full border border-white-100 flex items-center justify-center ${disableButton(trip?.travelRequestStatus)? ' cursor-not-allowed opacity-50' : ' cursor-pointer'}`}>
+                    <div onClick={()=>{if(!disableButton(trip?.travelRequestStatus)){handleVisible(trip?.travelRequestId,  'ca-modify' ,advance?.cashAdvanceId,)}}} className={`w-7 h-7 bg-indigo-100 rounded-full border border-white flex items-center justify-center ${disableButton(trip?.travelRequestStatus)? ' cursor-not-allowed opacity-50' : ' cursor-pointer'}`}>
                     <img src={modify} className='w-4 h-4' alt="modify_icon" />
                     </div>
                   </div>
       </div>
       </div>
 ))}
-</div>)
+</div>
+</CardLayout>
+</>
+
+)
            })}
         </div>
           </div>
           <div className='flex-1 rounded-md'>
-            <div className='flex justify-center items-center rounded-r-md font-inter text-md text-white-100 h-[52px] bg-indigo-600  text-center'>
+            <div className='flex justify-center items-center rounded-r-md font-inter text-md text-white h-[52px] bg-indigo-600  text-center'>
               <img src={money1} className='w-6 h-6 mr-2'/>
               <p>Non-Travel Cash-Advances</p>
             </div>
-<div className='w-full mt-4 xl:h-[570px] lg:h-[370px] md:[590px] overflow-y-auto px-2 bg-white-100 rounded-r-md'>
+<div className='w-full mt-4 xl:h-[570px] lg:h-[370px] md:[590px] overflow-y-auto px-2 bg-white rounded-r-md'>
             {filterCashadvances(NonTRCashAdvances)?.map((cashAdvance,index) => (
-              <div key={`${index}nonTr`} className='mb-4 rounded-md shadow-custom-light bg-white-100 p-4'>
+              <>
+              <CardLayout index={index}>
+              <div  className='py-2 w-full'>
               <div className='flex gap-2 items-center'>
               <img src={money} className='w-5 h-5'/>
               <div className=''>
@@ -332,7 +350,7 @@ Raise a Cash-Advance
         <div className={`text-center rounded-sm ${getStatusClass(cashAdvance?.cashAdvanceStatus ?? "-")}`}>
             <p className='px-1 py-1 text-xs text-center capitalize font-cabin'>{cashAdvance?.cashAdvanceStatus ?? "-"}</p>
       </div>
-        <div  className='cursor-pointer w-7 h-7 bg-indigo-100 rounded-full border border-white-100 flex items-center justify-center'>
+        <div  className='cursor-pointer w-7 h-7 bg-indigo-100 rounded-full border border-white flex items-center justify-center'>
         <img src={modify} className='w-4 h-4' alt="Add Icon" />
       </div>
       </div>
@@ -340,6 +358,8 @@ Raise a Cash-Advance
     </div>
               
             </div>
+            </CardLayout>
+            </>
           ))}
         </div>
           </div>
@@ -355,18 +375,18 @@ Raise a Cash-Advance
               <div className='flex gap-2 justify-between items-center bg-indigo-100 w-full p-4'>
                
                 <p className='font-inter text-base font-semibold text-indigo-600'>Raise a Cash-Advance</p>
-                <div onClick={()=>{setModalOpen(!modalOpen);setTravelRequestId(null);setAdvanceType(null)}} className='bg-red-100 cursor-pointer rounded-full border border-white-100'>
+                <div onClick={()=>{setModalOpen(!modalOpen);setTravelRequestId(null);setAdvanceType(null)}} className='bg-red-100 cursor-pointer rounded-full border border-white'>
                 <img src={cancel} className='w-5 h-5'/>
                 </div>
               </div>
 <div className='p-4'>
  <div className='flex md:flex-row flex-col justify-between gap-2 '>
-  <div onClick={()=>setAdvanceType("travel_Cash-Advance")} className={`cursor-pointer transition  duration-200 hover:bg-indigo-100 hover:rounded-md flex-1 flex gap-2 items-center justify-center ${advancetype === "travel_Cash-Advance" ? ' border-b-2 border-indigo-600 text-indigo-600' : 'border-b-2 border-white-100 '}  p-4`}>
+  <div onClick={()=>setAdvanceType("travel_Cash-Advance")} className={`cursor-pointer transition  duration-200 hover:bg-indigo-100 hover:rounded-md flex-1 flex gap-2 items-center justify-center ${advancetype === "travel_Cash-Advance" ? ' border-b-2 border-indigo-600 text-indigo-600' : 'border-b-2 border-white '}  p-4`}>
     <img src={money} className='w-5 h-5'/>
     <p className='truncate '>Travel Cash-Advance</p> 
   </div>
            
-  <div onClick={()=>setAdvanceType("non-Travel_Cash-Advance")} className={`min-w-fit cursor-pointer transition  duration-200 hover:bg-indigo-100 hover:rounded-md flex-1  flex items-center justify-center gap-2 p-4 ${advancetype === "non-Travel_Cash-Advance" ? 'border-b-2 border-indigo-600 text-indigo-600': "border-b-2 border-white-100"}  `}>
+  <div onClick={()=>setAdvanceType("non-Travel_Cash-Advance")} className={`min-w-fit cursor-pointer transition  duration-200 hover:bg-indigo-100 hover:rounded-md flex-1  flex items-center justify-center gap-2 p-4 ${advancetype === "non-Travel_Cash-Advance" ? 'border-b-2 border-indigo-600 text-indigo-600': "border-b-2 border-white"}  `}>
     <img src={money} className='w-5 h-5'/>
     <p className=' shrink'>Non-Travel Cash-Advance</p>
   </div>

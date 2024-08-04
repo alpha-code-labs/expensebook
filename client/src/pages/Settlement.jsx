@@ -145,14 +145,14 @@ console.log('Expense approval data',expApprovalData)
 
   return (
     <>
-      {/* <div className="bg-white-100 lg:flex"> */}
+      {/* <div className="bg-white lg:flex"> */}
       <div className="relative w-auto min-h-screen px-2 lg:px-10 xl:px-20 flex flex-col  items-center  bg-slate-100  ">
          <TravelMS visible={visible} setVisible={setVisible} src={approvalUrl}/>
 
           <div className=" flex flex-row items-center justify-start gap-2 sm:gap-4 font-cabin mb-2 mt-[50px]">
 
                 <div className='relative'>
-                {settlementData && filterTravelApprovalData?.length > 0 &&  <div className=' absolute right-[-1px] top-[-8px] w-fit p-[6px] bg-green-200 border border-white-100 rounded-full '/>}
+                {settlementData && filterTravelApprovalData?.length > 0 &&  <div className=' absolute right-[-1px] top-[-8px] w-fit p-[6px] bg-green-200 border border-white rounded-full '/>}
                 <div
                     className={`cursor-pointer py-1 px-2 text-center  w-auto min-w-[100px] truncate${
                       activeScreen === 'Cash-Advance Settlements' ? 'font-medium rounded-xl bg-purple-500 text-xs text-gray-900 w-auto min-w-[100px] truncate' : ' rounded-xl bg-white-200'
@@ -164,7 +164,7 @@ console.log('Expense approval data',expApprovalData)
                 </div>
                 
                 <div className='relative'>
-                {settlementData && filterTravelApprovalData?.length > 0 &&  <div className=' absolute right-[-1px] top-[-8px] w-fit p-[6px] bg-green-200 border border-white-100 rounded-full '/>}
+                {settlementData && filterTravelApprovalData?.length > 0 &&  <div className=' absolute right-[-1px] top-[-8px] w-fit p-[6px] bg-green-200 border border-white rounded-full '/>}
                 <div
                     className={`cursor-pointer py-1 px-2  w-auto min-w-[100px] truncate${
                       activeScreen === 'Travel-Expense Settlements' ? 'font-medium rounded-xl bg-purple-500 text-xs text-gray-900 w-auto min-w-[100px] truncate' : ' rounded-xl bg-white-200'
@@ -177,10 +177,10 @@ console.log('Expense approval data',expApprovalData)
                  
                 
                 <div className='relative'>
-                {expApprovalData && expApprovalData?.length > 0 &&  <div className=' absolute right-[-1px] top-[-8px] w-fit p-[6px] bg-green-200 border border-white-100 rounded-full '/>}
+                {expApprovalData && expApprovalData?.length > 0 &&  <div className=' absolute right-[-1px] top-[-8px] w-fit p-[6px] bg-green-200 border border-white rounded-full '/>}
                 <div
                   className={`cursor-pointer py-1 px-2 w-auto min-w-[100px] truncate ${
-                    activeScreen === 'Reimbursement Settlements' ? 'font-medium rounded-xl bg-purple-500 text-xs text-gray-900 w-auto min-w-[100px] truncate' : 'bg-white-100 rounded-xl'
+                    activeScreen === 'Reimbursement Settlements' ? 'font-medium rounded-xl bg-purple-500 text-xs text-gray-900 w-auto min-w-[100px] truncate' : 'bg-white rounded-xl'
                   }`}
                   onClick={() => handleScreenChange('Reimbursement Settlements')}
                 >
@@ -191,7 +191,7 @@ console.log('Expense approval data',expApprovalData)
           </div>
 
           {activeScreen === 'Cash-Advance Settlements' && 
-  <div className='px-4 xl:h-[600px] rounded-md h-[450px] border border-slate-400 w-full bg-white-100 mt-7'>
+  <div className='px-4 xl:h-[600px] rounded-md h-[450px] border border-slate-400 w-full bg-white mt-7'>
 
   <div className="w-full font-cabin   h-6 flex flex-row gap-3 mt-6 items-center sm:px-4 px-4">
     <img className="w-6 h-5" src={money} alt="travel" />
@@ -305,7 +305,7 @@ console.log('Expense approval data',expApprovalData)
 
       
   {activeScreen=== 'Travel-Expense Settlements' && 
-  <div className='px-4 xl:h-[600px] rounded-md h-[450px] border border-slate-400 w-full bg-white-100 mt-7'>
+  <div className='px-4 xl:h-[600px] rounded-md h-[450px] border border-slate-400 w-full bg-white mt-7'>
 
   <div className="w-full font-cabin   h-6 flex flex-row gap-3 mt-6 items-center sm:px-4 px-4">
     <img className="w-6 h-5" src={receipt} alt="travel" />
@@ -416,7 +416,7 @@ console.log('Expense approval data',expApprovalData)
 
   </div>}
   {activeScreen=== 'Reimbursement Settlements' && 
-  <div className='px-4 xl:h-[600px] rounded-md h-[450px] border border-slate-400 w-full bg-white-100 mt-7'>
+  <div className='px-4 xl:h-[600px] rounded-md h-[450px] border border-slate-400 w-full bg-white mt-7'>
 
   <div className="w-full font-cabin   h-6 flex flex-row gap-3 mt-6 items-center sm:px-4 px-4">
     <img className="w-6 h-5" src={receipt} alt="travel" />

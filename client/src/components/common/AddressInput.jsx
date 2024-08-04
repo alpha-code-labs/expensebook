@@ -13,7 +13,7 @@ export default function AddressInput({ title, address, onChange, error }) {
       >
         {address}
       </textarea>
-      <div className="absolute text-xs left-10 -top-1.5 bg-white-100 text-neutral-500 font-cabin px-2">
+      <div className="absolute text-xs left-10 -top-1.5 bg-white text-neutral-500 font-cabin px-2">
         {title}
       </div>
       {showError && (

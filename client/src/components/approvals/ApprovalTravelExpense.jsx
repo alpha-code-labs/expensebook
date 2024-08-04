@@ -20,7 +20,7 @@ const ApprovalTravelExpense = ({expenseApprovalData,handleApproval ,handleVisibl
              <div className="box w-full   font-cabin border border-b-gray rounded-xl hover:border-indigo-600">
    
              <div className='w-full  rounded-md'>
-     <div className="w-[900px] bg-white-100 h-auto max-h-[200px] lg:h-[52px] flex flex-col lg:flex-row items-start lg:items-center justify:start lg:justify-center border-b-[1px] m-2 border-b-gray">    
+     <div className="w-[900px] bg-white h-auto max-h-[200px] lg:h-[52px] flex flex-col lg:flex-row items-start lg:items-center justify:start lg:justify-center border-b-[1px] m-2 border-b-gray">    
      <div className='flex  flex-row w-full  gap-2'>
      <div className='flex flex-col md:flex-row '>
 

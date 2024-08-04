@@ -224,7 +224,7 @@ export default function Search(props){
                 <div
                     
                     ref={dropdownRef}
-                    className={`absolute z-10 w-[calc(100%-10px)] h-fit max-h-[230px] overflow-y-scroll scroll rounded-b left-[5px] top-11 bg-white-100 transition-all border-b  border-l border-r border-neutral-300 shadow-sm`}
+                    className={`absolute z-10 w-[calc(100%-10px)] h-fit max-h-[230px] overflow-y-scroll scroll rounded-b left-[5px] top-11 bg-white transition-all border-b  border-l border-r border-neutral-300 shadow-sm`}
                 >
                     {filteredOptionsList &&
                     filteredOptionsList.map((option, index) => (
@@ -477,7 +477,7 @@ export default function Search(props){
 //                 <div
                     
 //                     ref={dropdownRef}
-//                     className={`absolute z-10 w-[calc(100%-10px)] h-fit max-h-[230px] overflow-y-scroll scroll rounded-b left-[5px] top-11 bg-white-100 transition-all border-b  border-l border-r border-neutral-300 shadow-sm`}
+//                     className={`absolute z-10 w-[calc(100%-10px)] h-fit max-h-[230px] overflow-y-scroll scroll rounded-b left-[5px] top-11 bg-white transition-all border-b  border-l border-r border-neutral-300 shadow-sm`}
 //                 >
 //                     {filteredOptionsList &&
 //                     filteredOptionsList.map((option, index) => (

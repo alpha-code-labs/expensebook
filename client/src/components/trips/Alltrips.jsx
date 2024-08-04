@@ -22,7 +22,7 @@ export const Alltrips = ({ travelName, from, to, departureDate, returnDate ,stat
   return (
     <>
     <div className='w-932 overflow-auto overflow-x-hidden'>
-    <div className=" w-[932px] top-[73px] left-0 bg-white-100 h-[52px] flex flex-row items-center justify-start pl-2  border-b-[1px] border-gray-800">
+    <div className=" w-[932px] top-[73px] left-0 bg-white h-[52px] flex flex-row items-center justify-start pl-2  border-b-[1px] border-gray-800">
     
     {/* Trip Title */}
 

@@ -941,6 +941,7 @@ const itinerary = {
 const dummyPaidAndCancelledTrips =[
 
   {
+    "tripId":"66a789d1b419ebf1bfe780227",
     "travelRequestId": "66a7891b419ebf1bfe780227",
     "travelRequestNumber": "TRAL000092",
     "tripPurposeDescription": "Investor",
@@ -955,6 +956,7 @@ const dummyPaidAndCancelledTrips =[
     
 },
 {
+  "tripId":"6xa789d1b419ebf1bfe780227",
     "travelRequestId": "66a793ee419ebf1bfe78087c",
     "travelRequestNumber": "TRAL000096",
     "tripPurposeDescription": "investors",
@@ -968,6 +970,7 @@ const dummyPaidAndCancelledTrips =[
                         },
 },
 {
+  "tripId":"66a789d1b419ebf1bfe7802f7",
     "travelRequestId": "66a878ab5839fcbbbc7b1705",
     "travelRequestNumber": "TRAL000098",
     "tripPurposeDescription": "for investor",
@@ -981,6 +984,7 @@ const dummyPaidAndCancelledTrips =[
                         },
 },
 {
+    "tripId":"66a789dcxb419ebf1bfe780227",
     "travelRequestId": "66a87ba35839fcbbbc7b185d",
     "travelRequestNumber": "TRAL000099",
     "tripPurposeDescription": "investor",
@@ -994,6 +998,7 @@ const dummyPaidAndCancelledTrips =[
                         },
 },
 {
+    "tripId":"6uya789d1b419ebf1bfe780227",
     "travelRequestId": "66a78946419ebf1bfe780367",
     "travelRequestNumber": "TRAL000093",
     "tripPurposeDescription": "meal",
@@ -1007,6 +1012,7 @@ const dummyPaidAndCancelledTrips =[
                         },
 },
 {
+    "tripId":"66a789d1b419bvcebf1bfe780227",
     "travelRequestId": "66a87c5e5839fcbbbc7b19a1",
     "travelRequestNumber": "TRAL000100",
     "tripPurposeDescription": "investors",
@@ -1096,7 +1102,7 @@ const dummyTravelReq =[
     "travelRequestNumber": "TRAL000100",
     "tripPurposeDescription": "investors",
     "tripName": "LON-IND(30th Jul 2024)",
-    "tripStartDate": "2024-09-08T00:00:00.000Z",
+    "tripStartDate": "2024-08-04T00:00:00.000Z",
     "travelRequestStatus": "pending approval",
     "createdBy": {
                             "empId": "1002",

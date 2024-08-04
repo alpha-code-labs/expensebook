@@ -93,13 +93,13 @@ upComingTrip && upComingTrip?.map((item, index) => (
    <React.Fragment key={index}>
 <div className={`gap-4 h-[320px]  px-4 py-1 bg-[length:500px_322px] rounded-lg `} style={{backgroundImage: `url(${briefcaseMap})`, width: '500px',}}>
 {/* <img src={briefcaseMap} className='absolute h-[370px] w-full border border-red-500 z-20'></img> */}
-<div className='  mt-14  h-[250px] flex flex-col rounded-[12px] bg-white-100   ' >
+<div className='  mt-14  h-[250px] flex flex-col rounded-[12px] bg-white   ' >
 <div className=' flex flex-row justify-between w-full  pt-[3px] px-2'>
         <div className='flex gap-2 flex-row items-center justify-start text-center'>
-            <div className={`py-[2px] px-2 rounded-xl cursor-pointer hover:bg-purple-300 hover:text-white-100  ${activeTabs?.[index]=== "Trip" ? ' font-medium bg-purple-100  text-indigo-600 text-xs rounded-xl':"bg-white-100 font-medium  text-xs  "}`} onClick={() => handleTabChange(index, "Trip")}>
+            <div className={`py-[2px] px-2 rounded-xl cursor-pointer hover:bg-purple-300 hover:text-white  ${activeTabs?.[index]=== "Trip" ? ' font-medium bg-purple-100  text-indigo-600 text-xs rounded-xl':"bg-white font-medium  text-xs  "}`} onClick={() => handleTabChange(index, "Trip")}>
               <p>Trip</p>
             </div>
-            <div className={`py-1 px-2 rounded-xl  cursor-pointer hover:bg-purple-300 hover:text-white-100  ${activeTabs?.[index]=== "Cash Advance" ? 'font-medium bg-purple-100  text-indigo-600 text-xs ': "bg-white-100 font-medium  text-xs"}`} onClick={()=> handleTabChange(index,"Cash Advance" )}>
+            <div className={`py-1 px-2 rounded-xl  cursor-pointer hover:bg-purple-300 hover:text-white  ${activeTabs?.[index]=== "Cash Advance" ? 'font-medium bg-purple-100  text-indigo-600 text-xs ': "bg-white font-medium  text-xs"}`} onClick={()=> handleTabChange(index,"Cash Advance" )}>
             <p>Cash Advance</p> 
             </div>  
            
@@ -112,7 +112,7 @@ upComingTrip && upComingTrip?.map((item, index) => (
               onClick={() => handleDropdownToggle(item.tripStatus)}
               />
               {dropdownStates?.[item.tripStatus] && (
-        <div className="absolute top-3 right-3 z-10 bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700 bg-white-100">
+        <div className="absolute top-3 right-3 z-10 bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700 bg-white">
           <ul className="py-2 text-sm text-gray-700 dark:text-gray-200">
             <li>
               <a
@@ -351,7 +351,7 @@ upComingTrip && upComingTrip?.map((item, index) => (
 
 
 <div className='flex flex-row gap-2 px-2 pb-1'>
-  <div onClick={()=>{handleCashAdvance(item?.travelRequestId,"", 'ca-create')}} className="bg-white-100 mt-2 rounded-[32px] w-fit box-border h-[33px] flex flex-row items-center justify-center py-4 px-2  cursor-pointer border-[1px] border-solid border-purple-500">
+  <div onClick={()=>{handleCashAdvance(item?.travelRequestId,"", 'ca-create')}} className="bg-white mt-2 rounded-[32px] w-fit box-border h-[33px] flex flex-row items-center justify-center py-4 px-2  cursor-pointer border-[1px] border-solid border-purple-500">
     <div className="font-semibold text-[12px] w-fit h-[17px] text-purple-500">{getCashAdvanceButtonText(item?.tripStartDate)}</div>
 </div>
 
@@ -390,13 +390,13 @@ export default UpcomingTrip
 //  (upComingTrip && upComingTrip?.map((item, index) => (
 //     <React.Fragment key={index}>
 //  <div className={`bg-[500px] bg-cover  border border-slate-300 shadow-slate-300 shadow-lg rounded-lg`} style={{backgroundImage: `url(${briefcaseMap})`, width: '500px' }}>
-//  <div className='  mt-14  bg-white-100/30 flex flex-col' >
+//  <div className='  mt-14  bg-white/30 flex flex-col' >
 //  <div className=' flex flex-row justify-between w-full px-4'>
 //          <div className='flex gap-2 flex-row items-center justify-start text-center '>
-//              <div className={`py-1 px-2 rounded-xl cursor-pointer  ${activeTabs?.[index]=== "Trip" ? ' font-medium bg-purple-500  text-white-100 text-xs rounded-xl':"bg-white-100/70 border-[1px]  "}`} onClick={() => handleTabChange(index, "Trip")}>
+//              <div className={`py-1 px-2 rounded-xl cursor-pointer  ${activeTabs?.[index]=== "Trip" ? ' font-medium bg-purple-500  text-white text-xs rounded-xl':"bg-white/70 border-[1px]  "}`} onClick={() => handleTabChange(index, "Trip")}>
 //                Trip
 //              </div>
-//              <div className={`py-1 px-2 rounded-xl cursor-pointer   ${activeTabs?.[index]=== "Cash Advance" ? 'font-medium bg-purple-500 text-white-100 text-xs ': "bg-white-100/70   border-[1px]"}`} onClick={()=> handleTabChange(index,"Cash Advance" )}>
+//              <div className={`py-1 px-2 rounded-xl cursor-pointer   ${activeTabs?.[index]=== "Cash Advance" ? 'font-medium bg-purple-500 text-white text-xs ': "bg-white/70   border-[1px]"}`} onClick={()=> handleTabChange(index,"Cash Advance" )}>
 //                Cash Advance
 //              </div>  
           
@@ -409,7 +409,7 @@ export default UpcomingTrip
 //                onClick={() => handleDropdownToggle(item.tripStatus)}
 //                />
 //                {dropdownStates?.[item.tripStatus] && (
-//          <div className="absolute top-3 right-3 z-10 bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700 bg-white-100">
+//          <div className="absolute top-3 right-3 z-10 bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700 bg-white">
 //            <ul className="py-2 text-sm text-gray-700 dark:text-gray-200">
 //              <li>
 //                <a
@@ -448,10 +448,10 @@ export default UpcomingTrip
        
 //  {activeTabs?.[index] === 'Trip' && 
 //          <>
-//          <div className='w-full bg-white-100/50  items-center  flex flex-col h-auto min-h-[210px] gap-4'>
+//          <div className='w-full bg-white/50  items-center  flex flex-col h-auto min-h-[210px] gap-4'>
 //          <div className=' w-auto   max-w-[650px] flex flex-col h-auto min-h-[210px] '>
 //          <div className='flex flex-row justify-between items-center  font-cabin'>
-//          <div className='bg-white-100/80 w-full font-semibold  text-lg text-neutral-700'>
+//          <div className='bg-white/80 w-full font-semibold  text-lg text-neutral-700'>
 //            <p>{item?.tripPurpose}</p>
 //          </div>
               
@@ -459,7 +459,7 @@ export default UpcomingTrip
 //  <div>
   
    
-//  <div className='h-[160px] w-[400px] overflow-y-auto bg-white-100/80'>
+//  <div className='h-[160px] w-[400px] overflow-y-auto bg-white/80'>
 //   <div className=" flex flex-col">
 //        {Object.keys(item?.itinerary).map(key => (
 //          <React.Fragment key={key}>
@@ -577,7 +577,7 @@ export default UpcomingTrip
  
 //  </div>
 //  <div className='flex flex-row gap-2  '>
-//    <div onClick={()=>{handleCashAdvance(item?.travelRequestId,"", 'ca-create')}} className="bg-white-100 mt-2 rounded-[32px] w-fit box-border h-[33px] flex flex-row items-center justify-center py-4 px-2  cursor-pointer border-[1px] border-solid border-purple-500">
+//    <div onClick={()=>{handleCashAdvance(item?.travelRequestId,"", 'ca-create')}} className="bg-white mt-2 rounded-[32px] w-fit box-border h-[33px] flex flex-row items-center justify-center py-4 px-2  cursor-pointer border-[1px] border-solid border-purple-500">
 //        <div className="font-semibold text-[12px] w-fit h-[17px] text-purple-500">{getCashAdvanceButtonText(item?.tripStartDate)}</div>
 //  </div>
 
@@ -704,10 +704,10 @@ export default UpcomingTrip
 //            <div className=" w-auto max-w-[650px] border border-slate-300  h-[310px] rounded-lg bg-white-300 ">
 //         <div className='flex flex-row justify-between'>
 //         <div className='flex   flex-row items-center justify-start text-center p-4'>
-//             <div className={`py-1 px-2 rounded-xl   ${activeTabs[index]==="Trip" ? ' font-medium bg-purple-500  text-white-100 text-xs rounded-xl':""}`} onClick={() => handleTabChange(index, "Trip")}>
+//             <div className={`py-1 px-2 rounded-xl   ${activeTabs[index]==="Trip" ? ' font-medium bg-purple-500  text-white text-xs rounded-xl':""}`} onClick={() => handleTabChange(index, "Trip")}>
 //               Trip
 //             </div>
-//             <div className={`py-1 px-2 rounded-xl    ${activeTabs[index]==="Cash Advance" ? 'font-medium bg-purple-500 text-white-100 text-xs ': ""}`} onClick={()=> handleTabChange(index,"Cash Advance" )}>
+//             <div className={`py-1 px-2 rounded-xl    ${activeTabs[index]==="Cash Advance" ? 'font-medium bg-purple-500 text-white text-xs ': ""}`} onClick={()=> handleTabChange(index,"Cash Advance" )}>
 //               Cash Advance
 //             </div>  
 //         </div>
@@ -720,7 +720,7 @@ export default UpcomingTrip
 //   onClick={() => handleDropdownToggle(index)}
 // />
 // {dropdownStates[index] && (
-//         <div className="absolute top-10 right-3 z-10 bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700 bg-white-100">
+//         <div className="absolute top-10 right-3 z-10 bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700 bg-white">
 //           <ul className="py-2 text-sm text-gray-700 dark:text-gray-200">
 //             <li>
 //               <p
@@ -772,7 +772,7 @@ export default UpcomingTrip
 //               onClick={() => handleDropdownToggle(intransitDetails.tripStatus)}
 //               />
 //               {dropdownStates[intransitDetails.tripStatus] && (
-//         <div className="absolute top-6 right-3 z-10 bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700 bg-white-100">
+//         <div className="absolute top-6 right-3 z-10 bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700 bg-white">
 //           <ul className="py-2 text-sm text-gray-700 dark:text-gray-200">
 //             <li>
 //               <a
@@ -1008,13 +1008,13 @@ export default UpcomingTrip
 //            <div className=" w-auto  max-w-[458px] h-[287px] rounded-lg bg-white-300 shadow-[0px_12px_3px_rgba(0,_0,_0,_0),_0px_8px_3px_rgba(0,_0,_0,_0.01),_0px_4px_3px_rgba(0,_0,_0,_0.03),_0px_2px_2px_rgba(0,_0,_0,_0.05),_0px_0px_1px_rgba(0,_0,_0,_0.06)]">
 //         <div className='flex flex-row justify-between'>
 //         <div className='flex  flex-row items-center justify-start text-center p-4'>
-//             <div className={`py-1 px-2 rounded-xl   ${activeTabs[index]==="Trip" ? ' font-medium bg-purple-500  text-white-100 text-xs rounded-xl':""}`} onClick={() => handleTabChange(index, "Trip")}>
+//             <div className={`py-1 px-2 rounded-xl   ${activeTabs[index]==="Trip" ? ' font-medium bg-purple-500  text-white text-xs rounded-xl':""}`} onClick={() => handleTabChange(index, "Trip")}>
 //               Trip
 //             </div>
-//             <div className={`py-1 px-2 rounded-xl    ${activeTabs[index]==="Cash Advance" ? 'font-medium bg-purple-500 text-white-100 text-xs ': ""}`} onClick={()=> handleTabChange(index,"Cash Advance" )}>
+//             <div className={`py-1 px-2 rounded-xl    ${activeTabs[index]==="Cash Advance" ? 'font-medium bg-purple-500 text-white text-xs ': ""}`} onClick={()=> handleTabChange(index,"Cash Advance" )}>
 //               Cash Advance
 //             </div>  
-//             <div className={`py-1 px-2 rounded-xl    ${activeTabs[index]==="Expense" ? 'font-medium bg-purple-500 text-white-100 text-xs ': ""}`} onClick={()=> handleTabChange(index,"Expense" )}>
+//             <div className={`py-1 px-2 rounded-xl    ${activeTabs[index]==="Expense" ? 'font-medium bg-purple-500 text-white text-xs ': ""}`} onClick={()=> handleTabChange(index,"Expense" )}>
 //               Expense
 //             </div>  
 //         </div>
@@ -1027,7 +1027,7 @@ export default UpcomingTrip
 //   onClick={() => handleDropdownToggle(index)}
 // />
 // {dropdownStates[index] && (
-//         <div className="absolute top-10 right-3 z-10 bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700 bg-white-100">
+//         <div className="absolute top-10 right-3 z-10 bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700 bg-white">
 //           <ul className="py-2 text-sm text-gray-700 dark:text-gray-200">
 //             <li>
 //               <p

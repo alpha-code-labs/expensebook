@@ -23,7 +23,7 @@ console.log("local storage navbar", localStorage  )
       <div onClick={()=>setSidebarOpen(false)} className='md:hidden block hover:bg-indigo-100 rounded-full p-2'>
             <img src={hamburger_icon} className='w-4 h-4'/>
       </div>
-        <div className=' bg-white-100 p-1 rounded-md shadow-md shadow-black'>
+        <div className=' bg-white p-1 rounded-md shadow-md shadow-black'>
         <img src={company_icon} className='w-8 h-8' />
         </div>
       
@@ -33,17 +33,17 @@ console.log("local storage navbar", localStorage  )
       </div>
 
       <div className=" justify-center items-center cursor-pointer flex flex-row gap-2">
-        <div className='bg-white-100 rounded-full'>
+        <div className='bg-white rounded-full'>
         <Link to={`/${tenantId}/${empId}/profile`}>
           <img src={user_icon} className='w-8 h-8'/>
         </Link>
         </div>
       
       <div className="font-semibold  ">
-        <p className=' text-sm text-white-100'>{employeeInfo?.employeeDetails?.name}</p>
+        <p className=' text-sm text-white'>{employeeInfo?.employeeDetails?.name}</p>
         <p className=' text-xs text-indigo-100'>{employeeInfo?.email}</p>
       </div>
-      <div className='bg-white-100 p-2 shadow-sm shadow-neutral-600 rounded-md' onClick={() => {window.location.href = `${LOGIN_PAGE_URL}`,localStorage.removeItem("empId"),localStorage.removeItem("tenantId",localStorage.removeItem('pageNo'))}}>
+      <div className='bg-white p-2 shadow-sm shadow-neutral-600 rounded-md' onClick={() => {window.location.href = `${LOGIN_PAGE_URL}`,localStorage.removeItem("empId"),localStorage.removeItem("tenantId",localStorage.removeItem('pageNo'))}}>
         <img src={logout_icon} className='w-5 h-5'/>
       </div>
 

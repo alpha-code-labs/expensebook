@@ -18,7 +18,7 @@ const Modal = (props) => {
 
   return (
     <div className='fixed w-full h-full inset-0 flex justify-center items-center visible bg-black/20 backdrop-blur-sm'>
-      <div className="p-10 w-[1085px] bg-white-100 rounded-2xl">
+      <div className="p-10 w-[1085px] bg-white rounded-2xl">
         <div className='float-right cursor-pointer' onClick={onClose}>
           <img src={cancel} className='hover:via-black' />
         </div>
@@ -161,7 +161,7 @@ const Modal = (props) => {
           ()=>(handleSubmit(),
             onClose())
         }>
-          <Button text='Submit Request' textAndBgColor='text-white-100 bg-purple-500' />
+          <Button text='Submit Request' textAndBgColor='text-white bg-purple-500' />
         </div>
       </div>
     </div>

@@ -285,9 +285,9 @@ const filterByTimeRange = (data, range) => {
         return startDate >= todayStart && startDate < tomorrowEnd;
       case "7 Days":
         return startDate >= todayStart && startDate < sevenDaysEnd;
-      case "30 Days":
+      case "Within 30 Days":
         return startDate >= todayStart && startDate < thirtyDaysEnd;
-      case "Beyond the month":
+      case "Beyond 30 Days":
         return startDate >= thirtyDaysEnd;
       default:
         return false;
@@ -295,9 +295,26 @@ const filterByTimeRange = (data, range) => {
   });
 };
 
+//in 48 hours
+function checkUpcomingTrip(tripStartDate) {
+  const tripDate = new Date(tripStartDate);
+  const currentDate = new Date();
+
+  // Set hours to zero for comparison
+  currentDate.setHours(0, 0, 0, 0);
+  const tomorrowDate = new Date(currentDate);
+  tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+
+  // Also set trip date hours to zero for comparison
+  tripDate.setHours(0, 0, 0, 0);
+
+  if (tripDate.getTime() === currentDate.getTime() || tripDate.getTime() === tomorrowDate.getTime()) {
+      return `*The trip is scheduled to start within the next 48 hours`;
+  } 
+}
 
 
   
 
-export {filterByTimeRange,extractTripNameStartDate, sortTripsByDate, splitTripName, titleCase, formatDate, filterTravelRequests,formatDate2 ,getStatusClass ,addOrdinalIndicator ,formatDate3 ,getCashAdvanceButtonText,urlRedirection,formatAmount}  
+export {checkUpcomingTrip, filterByTimeRange,extractTripNameStartDate, sortTripsByDate, splitTripName, titleCase, formatDate, filterTravelRequests,formatDate2 ,getStatusClass ,addOrdinalIndicator ,formatDate3 ,getCashAdvanceButtonText,urlRedirection,formatAmount}  
 

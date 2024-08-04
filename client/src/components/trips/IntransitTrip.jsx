@@ -104,16 +104,16 @@ transitTripData && transitTripData?.map((item, index) => (
    <React.Fragment key={index}>
 <div className={`h-[320px] px-4 py-1 bg-[length:500px_322px]  rounded-lg `} style={{backgroundImage: `url(${briefcaseMap})`, width: '500px',}}>
 {/* <img src={briefcaseMap} className='absolute h-[370px] w-full border border-red-500 z-20'></img> */}
-<div className='  mt-14  h-[250px]      flex flex-col rounded-lg bg-white-100' >
+<div className='  mt-14  h-[250px]      flex flex-col rounded-lg bg-white' >
 <div className=' flex flex-row justify-between w-full  pt-[3px] px-2'>
         <div className='flex gap-2 flex-row items-center justify-start text-center'>
-            <div className={`py-[2px] px-2 rounded-xl cursor-pointer hover:bg-purple-300 hover:text-white-100  ${activeTabs?.[index]=== "Trip" ? ' font-medium bg-purple-100  text-indigo-600 text-xs rounded-xl':"bg-white-100 font-medium  text-xs  "}`} onClick={() => handleTabChange(index, "Trip")}>
+            <div className={`py-[2px] px-2 rounded-xl cursor-pointer hover:bg-purple-300 hover:text-white  ${activeTabs?.[index]=== "Trip" ? ' font-medium bg-purple-100  text-indigo-600 text-xs rounded-xl':"bg-white font-medium  text-xs  "}`} onClick={() => handleTabChange(index, "Trip")}>
               <p>Trip</p>
             </div>
-            <div className={`py-1 px-2 rounded-xl  cursor-pointer hover:bg-purple-300 hover:text-white-100  ${activeTabs?.[index]=== "Cash Advance" ? 'font-medium bg-purple-100  text-indigo-600 text-xs ': "bg-white-100 font-medium  text-xs"}`} onClick={()=> handleTabChange(index,"Cash Advance" )}>
+            <div className={`py-1 px-2 rounded-xl  cursor-pointer hover:bg-purple-300 hover:text-white  ${activeTabs?.[index]=== "Cash Advance" ? 'font-medium bg-purple-100  text-indigo-600 text-xs ': "bg-white font-medium  text-xs"}`} onClick={()=> handleTabChange(index,"Cash Advance" )}>
             <p>Cash Advance</p> 
             </div>  
-            <div className={`py-1 px-2 rounded-xl cursor-pointer hover:bg-purple-300 hover:text-white-100    ${activeTabs?.[index]=== "Expense" ? 'font-medium bg-purple-100  text-indigo-600 text-xs ': "bg-white-100  font-medium   text-xs" }`} onClick={()=> handleTabChange(index,"Expense" )}>
+            <div className={`py-1 px-2 rounded-xl cursor-pointer hover:bg-purple-300 hover:text-white    ${activeTabs?.[index]=== "Expense" ? 'font-medium bg-purple-100  text-indigo-600 text-xs ': "bg-white  font-medium   text-xs" }`} onClick={()=> handleTabChange(index,"Expense" )}>
              <p>Expense</p>
             </div>  
         </div>
@@ -125,7 +125,7 @@ transitTripData && transitTripData?.map((item, index) => (
                 onClick={() => handleDropdownToggle(item.tripStatus)}
               />
               {dropdownStates?.[item.tripStatus] && (
-        <div ref={cardModalRef} className="absolute top-3 right-3 z-10 bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700 bg-white-100">
+        <div ref={cardModalRef} className="absolute top-3 right-3 z-10 bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700 bg-white">
           <ul className="py-2 text-sm text-gray-700 dark:text-gray-200">
             <li>
               <a
@@ -374,10 +374,10 @@ handleTravelExpense={handleTravelExpense}
 } 
 
 <div className='flex flex-row gap-2 px-2 pb-1'>
-  <div onClick={()=>{handleCashAdvance(item?.travelRequestId,"", 'ca-create')}} className="bg-white-100 mt-2 rounded-[32px] w-fit box-border h-[33px] flex flex-row items-center justify-center py-4 px-2  cursor-pointer border-[1px] border-solid border-purple-500">
+  <div onClick={()=>{handleCashAdvance(item?.travelRequestId,"", 'ca-create')}} className="bg-white mt-2 rounded-[32px] w-fit box-border h-[33px] flex flex-row items-center justify-center py-4 px-2  cursor-pointer border-[1px] border-solid border-purple-500">
     <div className="font-semibold text-[12px] w-fit h-[17px] text-purple-500">{getCashAdvanceButtonText(item?.tripStartDate)}</div>
 </div>
-<div onClick={()=>{handleTravelExpense(item?.tripId,"", "trip-ex-create")}} className="bg-white-100 mt-2 rounded-[32px] w-fit  h-[33px] flex flex-row items-center justify-center py-4 px-2  cursor-pointer border-[1px]  border-purple-500">
+<div onClick={()=>{handleTravelExpense(item?.tripId,"", "trip-ex-create")}} className="bg-white mt-2 rounded-[32px] w-fit  h-[33px] flex flex-row items-center justify-center py-4 px-2  cursor-pointer border-[1px]  border-purple-500">
     <div className="font-semibold text-[12px] w-fit h-[17px] text-purple-500">Book Expense</div>
 </div>
 </div>

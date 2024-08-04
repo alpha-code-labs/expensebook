@@ -384,7 +384,7 @@ const ModeOfTransit = ({ handleOpenOverlay, onClose , selectedOption }) => {
       <div className="flex flex-row items-center justify-start text-center font-cabin">
         <div
           className={`py-1 px-2 rounded-xl ${
-            activeTab === 'One Way' ? 'font-medium bg-purple-500 text-white-100 text-xs rounded-xl' : ''
+            activeTab === 'One Way' ? 'font-medium bg-purple-500 text-white text-xs rounded-xl' : ''
           }`}
           onClick={() => handleTabChange('One Way')}
         >
@@ -392,7 +392,7 @@ const ModeOfTransit = ({ handleOpenOverlay, onClose , selectedOption }) => {
         </div>
         <div
           className={`py-1 px-2 rounded-xl ${
-            activeTab === 'Round Trip' ? 'font-medium bg-purple-500 text-white-100 text-xs ' : ''
+            activeTab === 'Round Trip' ? 'font-medium bg-purple-500 text-white text-xs ' : ''
           }`}
           onClick={() => handleTabChange('Round Trip')}
         >
@@ -457,7 +457,7 @@ const ModeOfTransit = ({ handleOpenOverlay, onClose , selectedOption }) => {
       )}
       </div>
       <div className="relative float-right mr-4 bg-gray-50 mt-8 w-[134px]">
-        <Button text={'Submit'} onClick={handleConfirm} textAndBgColor={'bg-purple-500 text-white-100'} />
+        <Button text={'Submit'} onClick={handleConfirm} textAndBgColor={'bg-purple-500 text-white'} />
       </div>
     </div>
   );
@@ -601,7 +601,7 @@ const ModeOfTransit = ({ handleOpenOverlay, onClose , selectedOption }) => {
 //       <div className="flex flex-row items-center justify-start text-center font-cabin">
 //         <div
 //           className={`py-1 px-2 rounded-xl ${
-//             activeTab === 'One Way' ? 'font-medium bg-purple-500 text-white-100 text-xs rounded-xl' : ''
+//             activeTab === 'One Way' ? 'font-medium bg-purple-500 text-white text-xs rounded-xl' : ''
 //           }`}
 //           onClick={() => handleTabChange('One Way')}
 //         >
@@ -609,7 +609,7 @@ const ModeOfTransit = ({ handleOpenOverlay, onClose , selectedOption }) => {
 //         </div>
 //         <div
 //           className={`py-1 px-2 rounded-xl ${
-//             activeTab === 'Round Trip' ? 'font-medium bg-purple-500 text-white-100 text-xs ' : ''
+//             activeTab === 'Round Trip' ? 'font-medium bg-purple-500 text-white text-xs ' : ''
 //           }`}
 //           onClick={() => handleTabChange('Round Trip')}
 //         >
@@ -674,7 +674,7 @@ const ModeOfTransit = ({ handleOpenOverlay, onClose , selectedOption }) => {
 //       )}
 //       </div>
 //       <div className="relative float-right mr-4 bg-gray-50 mt-8 w-[134px]">
-//         <Button text={'Submit'} onClick={handleConfirm} textAndBgColor={'bg-purple-500 text-white-100'} />
+//         <Button text={'Submit'} onClick={handleConfirm} textAndBgColor={'bg-purple-500 text-white'} />
 //       </div>
 //     </div>
 //   );
@@ -947,7 +947,7 @@ const Hotel = ({ onClose, handleOpenOverlay }) => {
         </div>
       </div>
       <div className="relative float-right mr-4 bg-gray-50 mt-8 w-[134px]">
-        <Button text={'Submit'} onClick={handleConfirm} textAndBgColor={'bg-purple-500 text-white-100'} />
+        <Button text={'Submit'} onClick={handleConfirm} textAndBgColor={'bg-purple-500 text-white'} />
       </div>
     </div>
   );
@@ -1048,7 +1048,7 @@ const Hotel = ({ onClose, handleOpenOverlay }) => {
   //         </div>
   //       </div>
   //       <div className="relative float-right mr-4 bg-gray-50 mt-8 w-[134px]">
-  //         <Button text={'Submit'} onClick={handleConfirm} textAndBgColor={'bg-purple-500 text-white-100'} />
+  //         <Button text={'Submit'} onClick={handleConfirm} textAndBgColor={'bg-purple-500 text-white'} />
   //       </div>
   //     </div>
   //   );
@@ -1251,7 +1251,7 @@ const Hotel = ({ onClose, handleOpenOverlay }) => {
         </div>
   
         <div className="relative float-right mr-4 bg-gray-50 mt-8 w-[134px]">
-          <Button text={'Submit'} onClick={handleConfirm} textAndBgColor={'bg-purple-500 text-white-100'} />
+          <Button text={'Submit'} onClick={handleConfirm} textAndBgColor={'bg-purple-500 text-white'} />
         </div>
       </div>
     );

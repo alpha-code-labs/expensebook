@@ -209,7 +209,7 @@ const Overview = () => {
 
 
   return (
-    <div className=" border border-black bg-white-100 min-h-screen flex items-center justify-center px-2 md:px-10">
+    <div className=" border border-black bg-white min-h-screen flex items-center justify-center px-2 md:px-10">
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 w-full overflow-hidden   ">
         {/* <Tilt className="min-w-[400px] h-[340px]"> */}
       <div className={`min-w-[400px] h-[340px] ${visibleDivs[0] ? 'opacity-100' : 'opacity-0'}`} >
@@ -253,7 +253,7 @@ const Overview = () => {
 <div
  className={`px-2 py-1 rounded-xl cursor-pointer delay-150  transition-colors ${
   expenseTabs === "travelExpense"
-    ? 'text-white-100 bg-indigo-600'
+    ? 'text-white bg-indigo-600'
     : 'text-xs'
 }`}
 
@@ -264,7 +264,7 @@ onClick={() => handleExpenseTabChange("travelExpense")}
 <div
 className={`px-2 py-1 rounded-xl cursor-pointer  delay-150  transition-colors ${
   expenseTabs === 'nonTravelExpense'
-    ? 'text-white-100 bg-indigo-600 border border-white-100'
+    ? 'text-white bg-indigo-600 border border-white'
     : 'text-xs'
 }`}
 onClick={() => handleExpenseTabChange("nonTravelExpense")}
@@ -276,7 +276,7 @@ onClick={() => handleExpenseTabChange("nonTravelExpense")}
 <div
 onMouseEnter={() => setVisible({expense:true})}
 onMouseLeave={() => setVisible({expense:false})}
-className={`relative  hover:px-2 w-6 h-6 hover:overflow-hidden hover:w-auto group text-indigo-600 bg-indigo-100 border border-white-100 flex items-center justify-center  hover:gap-x-1 rounded-full cursor-pointer transition-all duration-300`}
+className={`relative  hover:px-2 w-6 h-6 hover:overflow-hidden hover:w-auto group text-indigo-600 bg-indigo-100 border border-white flex items-center justify-center  hover:gap-x-1 rounded-full cursor-pointer transition-all duration-300`}
 >
 <img src={plus_violet_icon} width={16} height={16} alt="Add Icon" />
 <p
@@ -348,7 +348,7 @@ reimbursementExpense?.map((expense,index) => <NonTravelExpenses index={index} ex
         <div
       onMouseEnter={() => setVisible({createTravel:true})}
       onMouseLeave={() => setVisible({createTravel:false})}
-      className={`relative  hover:px-2 w-6 h-6 hover:overflow-hidden hover:w-auto group text-indigo-600 bg-indigo-100 border border-white-100 flex items-center justify-center  hover:gap-x-1 rounded-full cursor-pointer transition-all duration-300`}
+      className={`relative  hover:px-2 w-6 h-6 hover:overflow-hidden hover:w-auto group text-indigo-600 bg-indigo-100 border border-white flex items-center justify-center  hover:gap-x-1 rounded-full cursor-pointer transition-all duration-300`}
     >
       <img src={plus_violet_icon} width={16} height={16} alt="Add Icon" />
       <p
@@ -480,7 +480,7 @@ const [visible ,setVisible]=useState({addALeg:false})
         <div
            className={`px-2 py-1 rounded-xl cursor-pointer  delay-150  transition-colors ${
             activeTabs=== 'completed'
-              ? 'text-white-100 bg-indigo-600 border border-white-100 text-xs'
+              ? 'text-white bg-indigo-600 border border-white text-xs'
               : 'text-xs'
           }`}
 
@@ -492,7 +492,7 @@ const [visible ,setVisible]=useState({addALeg:false})
         <div
           className={`px-2 py-1 rounded-xl cursor-pointer delay-150 transition duration-300 ${
             activeTabs === 'upcoming'
-              ? 'text-white-100 bg-indigo-600 border border-white-100 text-xs'
+              ? 'text-white bg-indigo-600 border border-white text-xs'
               : 'text-xs'
           }`}
           onClick={() => handleTabChange('upcoming')}
@@ -510,7 +510,7 @@ const [visible ,setVisible]=useState({addALeg:false})
         <div
       onMouseEnter={() => setVisible({cancel:true})}
       onMouseLeave={() => setVisible({cancel:false})}
-      className={`relative  hover:px-2 w-6 h-6 hover:overflow-hidden hover:w-auto group text-indigo-600 bg-red-100 border border-white-100 flex items-center justify-center   rounded-full cursor-pointer transition-all duration-300`}
+      className={`relative  hover:px-2 w-6 h-6 hover:overflow-hidden hover:w-auto group text-indigo-600 bg-red-100 border border-white flex items-center justify-center   rounded-full cursor-pointer transition-all duration-300`}
     >
       <img src={cancel} width={20} height={20} alt="Add Icon" />
       <p
@@ -528,7 +528,7 @@ const [visible ,setVisible]=useState({addALeg:false})
         <div
       onMouseEnter={() => setVisible({addALeg:true})}
       onMouseLeave={() => setVisible({addALeg:false})}
-      className={`relative  hover:px-2 w-6 h-6 hover:overflow-hidden hover:w-auto group text-indigo-600 bg-indigo-100 border border-white-100 flex items-center justify-center  hover:gap-x-1 rounded-full cursor-pointer transition-all duration-300`}
+      className={`relative  hover:px-2 w-6 h-6 hover:overflow-hidden hover:w-auto group text-indigo-600 bg-indigo-100 border border-white flex items-center justify-center  hover:gap-x-1 rounded-full cursor-pointer transition-all duration-300`}
     >
       <img src={plus_violet_icon} width={16} height={16} alt="Add Icon" />
       <p
@@ -566,7 +566,7 @@ const [visible ,setVisible]=useState({addALeg:false})
               <div className="" >
                 {completedItinerary[key]?.map(item => (
                   <React.Fragment key={item._id} >
-                    <div className="bg-white-100  p-3 rounded shadow w-full border border-slate-300 bg-slate-50">
+                    <div className="bg-white  p-3 rounded shadow w-full border border-slate-300 bg-slate-50">
               {['flights','trains','buses'].includes(key)  && (
 
                    <div className='flex flex-col items-start gap-2   '>
@@ -835,7 +835,7 @@ const [visible ,setVisible]=useState(false)
         <div
       onMouseEnter={() => setVisible({cancel:true})}
       onMouseLeave={() => setVisible({cancel:false})}
-      className={`relative  hover:px-2 w-6 h-6 hover:overflow-hidden hover:w-auto group text-indigo-600 bg-red-100 border border-white-100 flex items-center justify-center   rounded-full cursor-pointer transition-all duration-300`}
+      className={`relative  hover:px-2 w-6 h-6 hover:overflow-hidden hover:w-auto group text-indigo-600 bg-red-100 border border-white flex items-center justify-center   rounded-full cursor-pointer transition-all duration-300`}
     >
       <img src={cancel} width={20} height={20} alt="Add Icon" />
       <p
@@ -853,7 +853,7 @@ const [visible ,setVisible]=useState(false)
         <div
       onMouseEnter={() => setVisible({addALeg:true})}
       onMouseLeave={() => setVisible({addALeg:false})}
-      className={`relative  hover:px-2 w-6 h-6 hover:overflow-hidden hover:w-auto group text-indigo-600 bg-indigo-100 border border-white-100 flex items-center justify-center  hover:gap-x-1 rounded-full cursor-pointer transition-all duration-300`}
+      className={`relative  hover:px-2 w-6 h-6 hover:overflow-hidden hover:w-auto group text-indigo-600 bg-indigo-100 border border-white flex items-center justify-center  hover:gap-x-1 rounded-full cursor-pointer transition-all duration-300`}
     >
       <img src={plus_violet_icon} width={16} height={16} alt="Add Icon" />
       <p
@@ -1224,7 +1224,7 @@ const TravelRequests = ({travel,index,lastIndex})=>{
 //      {isLoading && <Error message={loadingErrMsg}/>}
  
 //     {!isLoading &&
-//      <div className='w-auto min-h-screen pt-12 px-0 lg:px-20 bg-white-100 flex flex-col gap-4'> 
+//      <div className='w-auto min-h-screen pt-12 px-0 lg:px-20 bg-white flex flex-col gap-4'> 
 //      <div className=' overflow-x-auto'> 
 //    <IntransitTrip 
 //       handleCashAdvance={handleCashAdvance} 
