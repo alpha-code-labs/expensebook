@@ -42,7 +42,7 @@ const CurrencyInput = ({id, amount, currency, mode, onModeChange, currencyOption
                 <div className='w-6 h-6'>
                     <CircleFlag countryCode={currency?.countryCode.toLowerCase()??'in'} />
                 </div>
-                <p className="symbol w-6">{currency?.shortName}</p>
+                <p className="symbol w-6 text-neutral-700">{currency?.shortName??'INR'}</p>
               </div>
               {isDropdownOpen && 
 
@@ -60,7 +60,7 @@ const CurrencyInput = ({id, amount, currency, mode, onModeChange, currencyOption
                 //       </div>
                 //   </div>
                   
-                <div className='-left-[15px] top-[54px] absolute'>
+                <div className='-left-[15px] top-[54px] z-30  absolute'>
                     <Search
                       visible={isDropdownOpen}
                       setVisible={setIsDropdownOpen}
@@ -69,7 +69,7 @@ const CurrencyInput = ({id, amount, currency, mode, onModeChange, currencyOption
                       placeholder='Select Currency'
                       options={currencyOptions}
                       currentOption=''
-                      onSelect={(option) => { onCurrencyChange(option, id)} }
+                      onSelect={(option) => { onCurrencyChange(option)} }
                     />
                   </div>
                   }

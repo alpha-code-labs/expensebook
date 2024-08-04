@@ -80,7 +80,7 @@ const TripSearch = ({ data, onSelect, title, error, placeholder }) => {
         />
       </div>
       {isDropdownOpen && (
-        <ul className="absolute left-0 w-full bg-white-100 border border-slate-300 rounded-b-md shadow-lg max-h-60 overflow-y-auto mt-0 z-10">
+        <ul className="absolute left-0 w-full bg-white border border-slate-300 rounded-b-md shadow-lg max-h-60 overflow-y-auto mt-0 z-10">
           {loading ? (
             <li className="p-2 text-center text-gray-500">loading...</li>
           ) : (

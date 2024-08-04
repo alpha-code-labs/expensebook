@@ -224,6 +224,27 @@ export const approveTravelRequestApi = async(data)=>{
         return {  error: errorObject };
       }
     }
+    //recover paid and cancelled trips
+  export const travelAdminRecoverTripApi = async(data)=>{
+    const {tenantId, empId, tripId,itineraryIds,recoverAmount} = data
+  
+    let url = `${DASHBOARD_BACKEND_API_URL}/api/fe/dashboard/bookings/${tenantId}/${empId}/${tripId}`
+    
+      try{
+         const response = await axiosRetry(axios.patch,url,{itineraryIds,recoverAmount})
+         return(response.data.message)
+    
+    
+      }catch(error){
+        handleRequestError(error);
+        const errorObject = {
+          status: error.response?.status || null,
+          message: error.message || 'Unknown error',
+        };
+        console.log('Post Error : ',errorObject);
+        return {  error: errorObject };
+      }
+    }
 
     export const nonTravelExpenseApprovalActionApi = async(data,payload)=>{
       const {tenantId,empId,expenseHeaderId} = data

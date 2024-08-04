@@ -163,7 +163,7 @@ function App() {
        
         
         <div 
-       className={`fixed inset-0 z-0 md:static bg-indigo-50 min-h-screen w-64 transform transition-all duration-300 ease-in-out ${
+       className={`fixed inset-0 z-10 md:static bg-indigo-50 min-h-screen w-64 transform transition-all duration-300 ease-in-out ${
         sidebarOpen ? 'opacity-0 translate-x-[-100%]' : 'opacity-100 translate-x-0'
       }`}>
              <Sidebar setSidebarOpen={setSidebarOpen} fetchData={fetchData}  tenantId={tenantId} empId={empId}  />

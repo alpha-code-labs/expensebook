@@ -12,9 +12,9 @@ const Input = ({ title, placeholder, onChange ,error,initialValue, icon,type}) =
       <div className="text-zinc-600 text-sm font-cabin">{title}</div>
 
       {/* input */}
-      <div className="relative w-full h-full bg-white-100 items-center flex ">
+      <div className="relative w-full h-full bg-white items-center flex ">
         <div className="text-neutral-700 bg-indigo-100 rounded-md w-full h-full text-sm font-normal font-cabin justify-center items-center  flex flex-row border border-neutral-300 focus-within:border-indigo-600 fou ">
-        <img src={icon} className=" w-5 h-5 right-2 bg-white cursor-pointer m-2 mx-4" />
+        <img src={icon} className=" w-5 h-5 right-2  cursor-pointer m-2 mx-4" />
           <input
             ref={inputRef}
             onChange={(e) => {

@@ -19,14 +19,14 @@ const Modal = ({ isOpen, onClose, content }) => {
 
   return (
     <div
-      className={`fixed inset-0 flex items-start justify-center ${isOpen ? 'visible' : 'hidden'}`}
+      className={`fixed inset-0 flex items-start z-20 justify-center ${isOpen ? 'visible' : 'hidden'}`}
       onClick={handleClickOutside}
       aria-hidden="true"
     >
       <div className="absolute inset-0 bg-gray-500 opacity-75 z-10"></div>
       <div
         ref={modalRef}
-        className="relative border bg-white-100 h-auto rounded-b-lg text-left overflow-visible transform transition-all z-20 shadow-lg md:w-[60%] w-full xl:w-auto"
+        className="relative border bg-white h-auto rounded-b-lg text-left overflow-visible transform transition-all z-20 shadow-lg md:w-[60%] w-full xl:w-auto"
       >
         <div className="flex max-h-screen  justify-center items-start text-center font-inter w-full">
           {content}

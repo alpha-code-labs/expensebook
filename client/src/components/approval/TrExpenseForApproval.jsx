@@ -10,7 +10,7 @@ const TrExpenseForApproval = ({trId ,travelName ,from , to,departureDate, return
             <div className="box w-auto max-w-[896px] h-auto  mx-2 sm:mx-4 mb-2  font-cabin">
    
             <div className='w-auto max-w-[932px]  rounded-md'>
-    <div className="w-auto max-w-[900px] bg-white-100 h-auto max-h-[200px] lg:h-[52px] flex flex-col lg:flex-row items-start lg:items-center justify:start lg:justify-center border-b-[1px] m-2 border-b-gray">    
+    <div className="w-auto max-w-[900px] bg-white h-auto max-h-[200px] lg:h-[52px] flex flex-col lg:flex-row items-start lg:items-center justify:start lg:justify-center border-b-[1px] m-2 border-b-gray">    
     <div className='flex  flex-row w-full  gap-2'>
     <div className='flex flex-col md:flex-row '>
     
@@ -107,7 +107,7 @@ export default TrExpenseForApproval
 //             <div className="box w-auto max-w-[896px] h-auto  mx-2 sm:mx-4 mb-2  font-cabin">
    
 //             <div className='w-auto max-w-[932px]  rounded-md'>
-//     <div className="w-auto max-w-[900px] bg-white-100 h-auto max-h-[200px] lg:h-[52px] flex flex-col lg:flex-row items-start lg:items-center justify:start lg:justify-center border-b-[1px] m-2 border-b-gray">    
+//     <div className="w-auto max-w-[900px] bg-white h-auto max-h-[200px] lg:h-[52px] flex flex-col lg:flex-row items-start lg:items-center justify:start lg:justify-center border-b-[1px] m-2 border-b-gray">    
 //     <div className='flex  flex-row w-full  gap-2'>
 //     <div className='flex flex-col md:flex-row '>
     

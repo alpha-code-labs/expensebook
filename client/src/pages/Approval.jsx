@@ -17,7 +17,7 @@ import Button from '../components/common/Button';
 import { approveTravelRequestApi, nonTravelExpenseApprovalActionApi, rejectTravelRequestApi } from '../utils/api';
 import PopupMessage from "../components/common/PopupMessage";
 import TripMS from '../microservice/TripMS';
-import { TripName } from '../components/common/TinyComponent';
+import { CardLayout, ExpenseLine, TripName, Violation } from '../components/common/TinyComponent';
 
 
 const rejectionOptions=['Too Many Violations', 'Budget Constraints','Insufficient Documents','Upcoming Project Deadline']
@@ -351,16 +351,16 @@ const handleVisible = (travelRequestId, action) => {
     return(
     <div className='font-cabin text-xs flex gap-x-2 items-center justify-center '>
 
-        <div onClick={onApproveClick} className='w-fit hover:shadow-md hover:shadow-green-200/60 transition duration-300 cursor-pointer min-w-[70px] inline-flex gap-2 items-center justify-center  border border-green-200 rounded-sm text-center  text-white-100 px-2 py-1 bg-green-600'>
+        <div onClick={onApproveClick} className='w-fit hover:shadow-md hover:shadow-green-200/60 transition duration-300 cursor-pointer min-w-[70px] inline-flex gap-2 items-center justify-center  border border-green-200 rounded-sm text-center  text-white px-2 py-1 bg-green-600'>
           <p className='text-center'>{approve}</p>
-          <div className='border border-white-100 p-[2px] rounded-full '>
+          <div className='border border-white p-[2px] rounded-full '>
             <img src={check_tick} className='w-3 h-3'/>
           </div>
         </div>
 
-        <div onClick={onRejectClick} className='w-fit hover:shadow-md hover:shadow-red-200/60 transition duration-300 cursor-pointer min-w-[70px] inline-flex gap-2 items-center justify-center border border-red-200 rounded-sm text-center  text-white-100 px-2 py-1 bg-red-600'>
+        <div onClick={onRejectClick} className='w-fit hover:shadow-md hover:shadow-red-200/60 transition duration-300 cursor-pointer min-w-[70px] inline-flex gap-2 items-center justify-center border border-red-200 rounded-sm text-center  text-white px-2 py-1 bg-red-600'>
         <p className='text-center'>{reject}</p>
-        <div className='border border-white-100 p-[2px] rounded-full'>
+        <div className='border border-white p-[2px] rounded-full'>
           <img src={cross_icon} className='w-3 h-3'/>
         </div>
         </div>
@@ -576,7 +576,7 @@ const handleVisible = (travelRequestId, action) => {
 
       case 'expenseDetails':
         return (
-          <div  className='mb-4 xl:w-[500px] w-full grow text-neutral-700 rounded-md shadow-custom-light bg-white-100 p-4'>           
+          <div  className='mb-4 xl:w-[500px] w-full grow text-neutral-700 rounded-md shadow-custom-light bg-white p-4'>           
             <div className='flex gap-2 flex-col'> 
               
             <div className='flex flex-row justify-between'>
@@ -662,14 +662,14 @@ const handleVisible = (travelRequestId, action) => {
                             {/* <div className={`text-center rounded-sm ${getStatusClass(trip?.expenseHeaderStatus ?? "-")}`}>
                               <p className='px-1 py-1 text-xs text-center capitalize font-cabin'>{trip?.expenseHeaderStatus ?? "-"}</p>
                             </div> */}
-                            {/* <div onClick={()=>{if(!disableButton(trip?.travelRequestStatus)){handleTravelExpense(trip?.tripId, filteredTripExpenses?.expenseHeaderId,  'trip-ex-modify' ,)}}} className={`w-7 h-7 bg-indigo-100 rounded-full border border-white-100 flex items-center justify-center ${disableButton(trip?.travelRequestStatus) ? ' cursor-not-allowed opacity-50' : ' cursor-pointer'}`}>
+                            {/* <div onClick={()=>{if(!disableButton(trip?.travelRequestStatus)){handleTravelExpense(trip?.tripId, filteredTripExpenses?.expenseHeaderId,  'trip-ex-modify' ,)}}} className={`w-7 h-7 bg-indigo-100 rounded-full border border-white flex items-center justify-center ${disableButton(trip?.travelRequestStatus) ? ' cursor-not-allowed opacity-50' : ' cursor-pointer'}`}>
                               <img src={modify} className='w-4 h-4' alt="modify_icon" />
                             </div> */}
                           </div>
                           <div className='overflow-x-hidden overscroll-y-scroll py-1 pt-2 max-h-[525px] h-auto px-2 space-y-2'>
                             {sortByStatus(expenseDetails?.expenseLines)?.map((line, index) => (
                               <div key={`${index}-line`} className='flex  text-neutral-700 flex-row justify-between items-center font-cabin text-sm'>
-                                <div className='bg-indigo-50 border-2 shadow-md shadow-slate-900/50 translate-x-4 border-white-100 p-2 rounded-full'>
+                                <div className='bg-indigo-50 border-2 shadow-md shadow-slate-900/50 translate-x-4 border-white p-2 rounded-full'>
                                   <img src={categoryIcons?.[line?.["Category Name"]]} className='w-4 h-4' />
                                 </div>
                                 <div className='flex border-slate-400 border flex-row justify-between text-neutral-700 flex-1 items-center  py-4 px-4 pl-6 rounded-md bg-slate-200'>
@@ -711,7 +711,7 @@ const handleVisible = (travelRequestId, action) => {
        <TripMS visible={visible} setVisible={setVisible} src={approvalUrl}/>
       <div className='flex-col w-full p-4 flex items-start gap-2'>
       
-      <div className=' border border-slate-300 bg-white-100 rounded-md  w-full flex flex-col justify-center items-start px-2'>
+      <div className=' border border-slate-300 bg-white rounded-md  w-full flex flex-col justify-center items-start px-2'>
  {/* <div className='flex flex-wrap  space-x-2 '>      
 <div className='flex items-center justify-center p-2 bg-slate-100 rounded-full border border-slate-300 '><img src={filter_icon} className='w-5 h-5'/></div>
   {["draft","pending approval", "pending settlement", "paid",  "cancelled", "paid and cancelled"].map((status) => {
@@ -722,11 +722,11 @@ const handleVisible = (travelRequestId, action) => {
       <div key={status} className={`flex items-center  ${isDisabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
         <div
           onClick={() => !isDisabled && handleStatusClick(status)}
-          className={`ring-1 ring-white-100 flex py-1 pr-3 text-center rounded-sm ${selectedStatuses.includes(status) ? getStatusClass(status ?? "-") : "bg-slate-100 text-neutral-700 border border-slate-300"}`}
+          className={`ring-1 ring-white flex py-1 pr-3 text-center rounded-sm ${selectedStatuses.includes(status) ? getStatusClass(status ?? "-") : "bg-slate-100 text-neutral-700 border border-slate-300"}`}
         >
           <p className='px-1 py-1 text-sm text-center capitalize font-cabin'>{status ?? "-"}</p>
         </div>
-        <div className={`shadow-md shadow-black/30 font-semibold -translate-x-3 ring-1 rounded-full ring-white-100 w-6 h-6 flex justify-center items-center text-center text-xs ${selectedStatuses.includes(status) ? getStatusClass(status ?? "-") : "bg-slate-100 text-neutral-700 border border-slate-300 "}`}>
+        <div className={`shadow-md shadow-black/30 font-semibold -translate-x-3 ring-1 rounded-full ring-white w-6 h-6 flex justify-center items-center text-center text-xs ${selectedStatuses.includes(status) ? getStatusClass(status ?? "-") : "bg-slate-100 text-neutral-700 border border-slate-300 "}`}>
           <p>{statusCount}</p>
         </div>
       </div>
@@ -744,13 +744,13 @@ const handleVisible = (travelRequestId, action) => {
         <div className='w-full flex md:flex-row flex-col'>
         <div className='flex-1 rounded-md justify-center items-center'>
          
-<div className='relative  flex justify-center items-center  rounded-l-md   font-inter text-md text-white-100 h-[52px] bg-indigo-600  text-center'>
+<div className='relative  flex justify-center items-center  rounded-l-md   font-inter text-md text-white h-[52px] bg-indigo-600  text-center'>
 
 {/* <div
 onClick={()=>setModalOpen(!modalOpen)}
 onMouseEnter={() => setTextVisible({cashAdvance:true})}
 onMouseLeave={() => setTextVisible({cashAdvance:false})}
-className={`absolute left-0 ml-4 hover:px-2 w-6 h-6 hover:overflow-hidden hover:w-auto group text-indigo-600 bg-indigo-100 border border-white-100 flex items-center justify-center  hover:gap-x-1 rounded-full cursor-pointer transition-all duration-300`}
+className={`absolute left-0 ml-4 hover:px-2 w-6 h-6 hover:overflow-hidden hover:w-auto group text-indigo-600 bg-indigo-100 border border-white flex items-center justify-center  hover:gap-x-1 rounded-full cursor-pointer transition-all duration-300`}
 >
 <img src={plus_violet_icon} width={16} height={16} alt="Add Icon" />
 <div
@@ -780,11 +780,13 @@ Raise a Cash-Advance
    
   </div>
 
-      <div className='w-full bg-white-100 xl:h-[570px] lg:h-[370px] md:h-[590px] h-fit overflow-y-auto px-2'>
+      <div className='w-full bg-white xl:h-[570px] lg:h-[370px] md:h-[590px] h-fit overflow-y-auto px-2'>
           {filterCashadvances(travelAndCashAdvances).map((trip) => { 
             return (
-            <div key={trip?.tripId} className='mb-4 rounded-md shadow-custom-light bg-white-100 p-4'>
-            <div className='flex gap-2 flex-col'> 
+              <>
+              <CardLayout index={trip?.tripId}>
+            <div  className='w-full py-2'>
+            <div className='flex gap-2 flex-col '> 
             <div className='flex flex-row justify-between'>
                 <div className='flex gap-2 items-center'>
                 <input onChange={() => handleSelect(trip)} type='checkbox' className='w-4 h-4 accent-indigo-600' checked={isTravelRequestSelected(trip?.travelRequestId)}/>
@@ -797,14 +799,15 @@ Raise a Cash-Advance
             {/* / */}
             <div className='flex items-center justify-center'>
 
-              <div className={`${trip?.violationsCounter?.total === 0 ? 'hidden':'block'}  flex flex-row gap-2 justify-center items-center text-yellow-200 font-cabin  text-sm`}>
+              {/* <div className={`${trip?.violationsCounter?.total === 0 ? 'hidden':'block'}  flex flex-row gap-2 justify-center items-center text-yellow-200 font-cabin  text-sm`}>
                 <img src={violation_icon} className='w-4 h-4'/>
                 <p>
   {trip?.violationsCounter?.total} 
   {trip?.violationsCounter?.total === 1 ? ' violation' : ' violations'}
 </p>
 
-            </div>
+            </div> */}
+            <Violation violationCount={trip?.violationsCounter?.total}/>
              
               <div className='text-sm font-cabin px-2 py-1 cursor-pointer' onClick={()=>{if(!disableButton(trip?.travelRequestStatus)){handleVisible(trip?.travelRequestId,  'travel-approval-view' )}}}>
                 <p className='text-indigo-600 font-semibold'>View Details</p>
@@ -837,74 +840,46 @@ Raise a Cash-Advance
     </div>
   ))}
   </div>
+  
   </div>
-                    {/* <div className='flex justify-center items-center gap-2'>
-                    <div className={`text-center rounded-sm ${getStatusClass(advance?.cashAdvanceStatus ?? "-")}`}>
+                    <div className='flex justify-center items-center gap-2'>
+                    {/* <div className={`text-center rounded-sm ${getStatusClass(advance?.cashAdvanceStatus ?? "-")}`}>
                        <p className='px-1 py-1 text-xs text-center capitalize font-cabin'>{advance?.cashAdvanceStatus ?? "-"}</p>
-                    </div>
-                    <div onClick={()=>{if(!disableButton(trip?.travelRequestStatus)){handleVisible(trip?.travelRequestId,  'ca-modify' ,advance?.cashAdvanceId,)}}} className={`w-7 h-7 bg-indigo-100 rounded-full border border-white-100 flex items-center justify-center ${disableButton(trip?.travelRequestStatus)? ' cursor-not-allowed opacity-50' : ' cursor-pointer'}`}>
+                    </div> */}
+    
+            <Violation violationCount={advance?.cashViolationsCounter}/>
+                    {/* <div onClick={()=>{if(!disableButton(trip?.travelRequestStatus)){handleVisible(trip?.travelRequestId,  'ca-modify' ,advance?.cashAdvanceId,)}}} className={`w-7 h-7 bg-indigo-100 rounded-full border border-white flex items-center justify-center ${disableButton(trip?.travelRequestStatus)? ' cursor-not-allowed opacity-50' : ' cursor-pointer'}`}>
                     <img src={modify} className='w-4 h-4' alt="modify_icon" />
-                    </div>
-                  </div> */}
+                    </div> */}
+                  </div>
                   </div>
                 </div>
 ))}
             </div>
+            </CardLayout>
+            </>
             )
            })}
       </div>
 
           </div>
           <div className='flex-1 rounded-md'>
-            <div className='flex justify-center items-center rounded-r-md font-inter text-md text-white-100 h-[52px] bg-indigo-600  text-center'>
+            <div className='flex justify-center items-center rounded-r-md font-inter text-md text-white h-[52px] bg-indigo-600  text-center'>
               <img src={money1} className='w-6 h-6 mr-2'/>
               <p>Travel & Non-Travel Expenses</p>
             </div>
             <div className='flex px-2 h-[52px] py-4 items-center justify-start gap-2'/>
 
-{/* <div className='w-full bg-white-100 xl:h-[570px] lg:h-[370px] md:[590px] overflow-y-auto px-2'>
-{filterCashadvances(NonTRCashAdvances).map((cashAdvance,index) => (
-              <div key={`${index}nonTr`} className='mb-4 rounded-md shadow-custom-light bg-white-100 p-4'>
-              <div className='flex gap-2 items-center'>
-              <img src={money} className='w-5 h-5'/>
-              <div>
-               <div className='header-title'>Cash-Advance No.</div>
-               <p className='header-text'>{cashAdvance?.cashAdvanceNumber}</p>
-              </div>
-              </div>
-                <div className={`px-2 py-2`}>
-                  <div className='flex justify-between'>
-                    <div className='flex flex-col justify-center max-w-[120px]'>
-                      <div className='font-medium text-sm font-cabin text-neutral-400'>Advance Amount</div>
-<div className='font-medium text-sm font-cabin text-neutral-700'>
-{cashAdvance?.amountDetails.map((amount, index) => (
-    <div key={index}>
-      {`${amount?.currency?.shortName} ${formatAmount(amount.amount)}`}
-      {index < cashAdvance?.amountDetails.length - 1 && <span>, </span>}
-    </div>
-  ))}
-</div>
 
-                  </div>
-                    <div className='flex justify-center items-center gap-2 '>
-                    <div className={`text-center rounded-sm ${getStatusClass(cashAdvance?.cashAdvanceStatus ?? "-")}`}>
-                       <p className='px-1 py-1 text-xs text-center capitalize font-cabin'>{cashAdvance?.cashAdvanceStatus ?? "-"}</p>
-                  </div>
-                    <div  className='cursor-pointer w-7 h-7 bg-indigo-100 rounded-full border border-white-100 flex items-center justify-center'>
-                    <img src={modify} className='w-4 h-4' alt="Add Icon" />
-                  </div>
-                  </div>
-                  </div>
-                </div>
-   </div>))}
-</div> */}
- <div className='w-full xl:h-[570px] lg:h-[370px] md:[590px] overflow-y-auto px-2 bg-white-100 rounded-l-md'>
+ <div className='w-full xl:h-[570px] lg:h-[370px] md:[590px] overflow-y-auto px-2 bg-white rounded-l-md'>
               {filterExpenses(DummyExpenseData)?.map((trip, index) => {
                 // const filteredTripExpenses = filterExpenses(trip?.travelExpenseData);
                 // if (filteredTripExpenses?.length === 0) return null; 
 
             return (
-            <div key={`${index}-tr-expense`} className='mb-4 text-neutral-700 rounded-md shadow-custom-light bg-white-100 p-4'>           
+              <>
+              <CardLayout index={index}>
+            <div className='w-full py-2'>           
             <div className='flex gap-2 flex-col'> 
             <div className='flex flex-row justify-between'>
             <div className='flex gap-2 items-center'>
@@ -969,27 +944,30 @@ Raise a Cash-Advance
                             {/* <div className={`text-center rounded-sm ${getStatusClass(trip?.expenseHeaderStatus ?? "-")}`}>
                               <p className='px-1 py-1 text-xs text-center capitalize font-cabin'>{trip?.expenseHeaderStatus ?? "-"}</p>
                             </div> */}
-                            {/* <div onClick={()=>{if(!disableButton(trip?.travelRequestStatus)){handleTravelExpense(trip?.tripId, filteredTripExpenses?.expenseHeaderId,  'trip-ex-modify' ,)}}} className={`w-7 h-7 bg-indigo-100 rounded-full border border-white-100 flex items-center justify-center ${disableButton(trip?.travelRequestStatus) ? ' cursor-not-allowed opacity-50' : ' cursor-pointer'}`}>
+                            {/* <div onClick={()=>{if(!disableButton(trip?.travelRequestStatus)){handleTravelExpense(trip?.tripId, filteredTripExpenses?.expenseHeaderId,  'trip-ex-modify' ,)}}} className={`w-7 h-7 bg-indigo-100 rounded-full border border-white flex items-center justify-center ${disableButton(trip?.travelRequestStatus) ? ' cursor-not-allowed opacity-50' : ' cursor-pointer'}`}>
                               <img src={modify} className='w-4 h-4' alt="modify_icon" />
                             </div> */}
                           </div>
-                          <div className='overflow-x-hidden overflow-y-auto max-h-[236px] py-1 pt-2 h-auto px-2 space-y-2'>
+                          <ExpenseLine expenseLines={trip?.expenseLines}/>
+                          {/* <div className='overflow-x-hidden overflow-y-auto max-h-[236px] py-1 pt-2 h-auto px-2 space-y-2'>
                             {trip?.expenseLines?.map((line, index) => (
                               <div key={`${index}-line`} className='flex  text-neutral-700 flex-row justify-between items-center font-cabin text-sm'>
-                                <div className='bg-indigo-50 border-2 shadow-md shadow-slate-900/50 translate-x-4 border-white-100 p-2 rounded-full'>
+                                <div className='bg-indigo-50 border-2 shadow-md shadow-slate-900/50 translate-x-4 border-white p-2 rounded-full'>
                                   <img src={categoryIcons?.[line?.["Category Name"]]} className='w-4 h-4' />
                                 </div>
-                                <div className='flex border-slate-400 border flex-row justify-between text-neutral-700 flex-1 items-center gap-2 py-4 px-4 pl-6 rounded-md bg-slate-200'>
+                                <div className='flex border-slate-400 border flex-row justify-between text-neutral-700 flex-1 items-center gap-2 py-4 px-4 pl-6 rounded-md bg-slate-100'>
                                   <div>{line?.["Category Name"]}</div>
                                   <div>{line?.["Currency"]?.shortName} {formatAmount(line?.["Total Amount"])}</div>
                                 </div>
                               </div>
                             ))}
-                          </div>
+                          </div> */}
                         </div>
                       {/* // ))} */}
                     </div>
                   </div>
+                  </CardLayout>
+                  </>
                 );
               })}
             </div>
@@ -1010,7 +988,7 @@ Raise a Cash-Advance
                 {getTitle()}
               </p>
             </div>
-            <div onClick={() => setModalOpen(false)} className='bg-red-100 cursor-pointer rounded-full border border-white-100'>
+            <div onClick={() => setModalOpen(false)} className='bg-red-100 cursor-pointer rounded-full border border-white'>
               <img src={cancel} className='w-5 h-5' alt="Cancel icon"/>
             </div>
           </div>
@@ -1030,29 +1008,6 @@ Raise a Cash-Advance
 };
 
 export default Approval;
-
-
-
-const extractAndFormatDate = (inputString) => {
-  
-  if (!inputString){
-    return "-"
-  }
-  const datePattern = /(\d{1,2})(st|nd|rd|th) (\w{3})/;
-  const match = inputString.match(datePattern);
-
-  if (match) {
-    const [, day, suffix, month] = match;
-    return (
-      <>
-        {day}
-        <span className="align-super text-xs">{suffix}</span> {month}
-      </>
-    );
-  }
-
-  return null;
-};
 
 
 
@@ -1150,7 +1105,7 @@ const extractAndFormatDate = (inputString) => {
 
 //   return (
 //     <>
-//       {/* <div className="bg-white-100 lg:flex"> */}
+//       {/* <div className="bg-white lg:flex"> */}
 //       <div className="relative w-auto min-h-screen px-2 lg:px-10 xl:px-20 flex flex-col  items-center  bg-slate-100  ">
 //          <TravelMS visible={visible} setVisible={setVisible} src={approvalUrl}/>
        
@@ -1158,7 +1113,7 @@ const extractAndFormatDate = (inputString) => {
 //           <div className=" flex flex-row items-center justify-start gap-2 sm:gap-4 font-cabin mb-2 mt-[50px]">
 
 //                 <div className='relative'>
-//                 {trApprovalData && filterTravelApprovalData?.length > 0 &&  <div className=' absolute right-[-1px] top-[-8px] w-fit p-[6px] bg-green-200 border border-white-100 rounded-full '/>}
+//                 {trApprovalData && filterTravelApprovalData?.length > 0 &&  <div className=' absolute right-[-1px] top-[-8px] w-fit p-[6px] bg-green-200 border border-white rounded-full '/>}
 //                 <div
 //                     className={`cursor-pointer py-1 px-2  w-auto min-w-[100px] truncate${
 //                       activeScreen === 'Travel & Cash Adv. Requests' ? 'font-medium rounded-xl bg-purple-500 text-xs text-gray-900 w-auto min-w-[100px] truncate' : ' rounded-xl bg-white-200'
@@ -1171,10 +1126,10 @@ const extractAndFormatDate = (inputString) => {
                  
                 
 //                 <div className='relative'>
-//                 {expApprovalData && expApprovalData?.length > 0 &&  <div className=' absolute right-[-1px] top-[-8px] w-fit p-[6px] bg-green-200 border border-white-100 rounded-full '/>}
+//                 {expApprovalData && expApprovalData?.length > 0 &&  <div className=' absolute right-[-1px] top-[-8px] w-fit p-[6px] bg-green-200 border border-white rounded-full '/>}
 //                 <div
 //                   className={`cursor-pointer py-1 px-2 w-auto min-w-[100px] truncate ${
-//                     activeScreen === 'Travel Expenses' ? 'font-medium rounded-xl bg-purple-500 text-xs text-gray-900 w-auto min-w-[100px] truncate' : 'bg-white-100 rounded-xl'
+//                     activeScreen === 'Travel Expenses' ? 'font-medium rounded-xl bg-purple-500 text-xs text-gray-900 w-auto min-w-[100px] truncate' : 'bg-white rounded-xl'
 //                   }`}
 //                   onClick={() => handleScreenChange('Travel Expenses')}
 //                 >
@@ -1185,7 +1140,7 @@ const extractAndFormatDate = (inputString) => {
 //           </div>
 
 //           {activeScreen === 'Travel & Cash Adv. Requests' && 
-//   <div className='px-4 xl:h-[600px] rounded-md h-[450px] border border-slate-400 w-full bg-white-100 mt-7'>
+//   <div className='px-4 xl:h-[600px] rounded-md h-[450px] border border-slate-400 w-full bg-white mt-7'>
 
 //   <div className="w-full font-cabin   h-6 flex flex-row gap-3 mt-6 items-center sm:px-4 px-4">
 //     <img className="w-6 h-5" src={airplane_1} alt="travel" />
@@ -1285,7 +1240,7 @@ const extractAndFormatDate = (inputString) => {
 
       
 //   {activeScreen=== 'Travel Expenses' && 
-//   <div className='px-4 xl:h-[600px] rounded-md h-[450px] border border-slate-400 w-full bg-white-100 mt-7'>
+//   <div className='px-4 xl:h-[600px] rounded-md h-[450px] border border-slate-400 w-full bg-white mt-7'>
 
 //   <div className="w-full font-cabin   h-6 flex flex-row gap-3 mt-6 items-center sm:px-4 px-4">
 //     <img className="w-6 h-5" src={receipt} alt="travel" />
@@ -1412,7 +1367,7 @@ const extractAndFormatDate = (inputString) => {
 //             <div key={index} className="box w-full max-w-[896px]  h-auto  mx-2 sm:mx-4 mb-2  font-cabin">
 //             <div className="w-full   h-auto  lg:min-h-[56px] rounded-xl border-[1px] border-b-gray hover:border-indigo-600 ">
 //             <div className='w-full max-w-[932px]  rounded-md'>
-//     <div className={`w-auto max-w-[900px] bg-white-100 h-auto max-h-[180px] lg:h-[52px] flex flex-col lg:flex-row items-start lg:items-center justify:start lg:justify-center ${item?.isCashAdvanceTaken ?'border-b-[1px]  border-b-gray' :""} m-2`}>    
+//     <div className={`w-auto max-w-[900px] bg-white h-auto max-h-[180px] lg:h-[52px] flex flex-col lg:flex-row items-start lg:items-center justify:start lg:justify-center ${item?.isCashAdvanceTaken ?'border-b-[1px]  border-b-gray' :""} m-2`}>    
 //     <div className='flex flex-auto flex-row w-full justify-between gap-2'>
 //     <div className='flex flex-1 flex-col lg:flex-row gap-0 md:gap-2'>
 

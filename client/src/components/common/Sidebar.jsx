@@ -67,7 +67,8 @@ const Sidebar = ({setSidebarOpen, fetchData }) => {
             nonTrExpApproval :approvalData?.nonTravelExpenseReports?.length || 0,
 
             //business admin
-            pendingBooking: filteredPendingBookingData?.length || 0
+            pendingBooking: filteredPendingBookingData?.length || 0,
+            paidAndCancelledTrips: businessAdminData?.paidAndCancelled || 0
         }));
     }, [employeeData]);
 
@@ -100,7 +101,7 @@ const Sidebar = ({setSidebarOpen, fetchData }) => {
         }
 
         if (employeeRoles?.employeeRoles?.businessAdmin) {
-            sidebarItems.push({ label: 'Bookings', icon: businessAdmin_icon, icon1: businessAdmin1_icon, url: '', count: countData?.pendingBooking });
+            sidebarItems.push({ label: 'Bookings', icon: businessAdmin_icon, icon1: businessAdmin1_icon, url: '', count: (countData?.pendingBooking + countData?.paidAndCancelledTrips) });
         }
 
         if (employeeRoles?.employeeRoles?.finance) {
@@ -135,17 +136,17 @@ const Sidebar = ({setSidebarOpen, fetchData }) => {
                     to={`${tenantId}/${empId}/${item.label.toLowerCase().replace(' ', '-')}`}
                     key={index}
                     onClick={() => handleItemClick(index)}
-                    className={`w-full   ${activeIndex === index ? 'bg-purple-500 text-white-100' : ""} overflow-hidden flex flex-col items-start justify-start   box-border cursor-pointer`}
+                    className={`w-full   ${activeIndex === index ? 'bg-purple-500 text-white' : ""} overflow-hidden flex flex-col items-start justify-start   box-border cursor-pointer`}
                 >
                     <div className="flex flex-row items-center justify-between px-3 py-3 w-full ">
                         <div className='flex gap-2'>
                         <img src={activeIndex === index ? item.icon1 : item.icon} className='min-w-4 min-h-4 h-4 w-4' />
-                        <div className={` ${activeIndex === index ? 'text-white-100' : 'text-indigo-800'} relative  tracking-[0.02em] w-auto md:w-[140px] font-inter  font-medium`} >
+                        <div className={` ${activeIndex === index ? 'text-white' : 'text-indigo-800'} relative  tracking-[0.02em] w-auto md:w-[140px] font-inter  font-medium`} >
                             {item?.label}
                         </div>
                         </div>
                         {item?.count > 0 &&
-                            <div className={`${activeIndex === index ? 'text-purple-500 bg-white-100 font-semibold' : "text-white-100 "} w-6 h-6 flex font-inter rounded-full bg-indigo-600 items-center justify-center float-right text-xs font-medium `}>
+                            <div className={`${activeIndex === index ? 'text-purple-500 bg-white font-semibold' : "text-white "} w-6 h-6 flex font-inter rounded-full bg-indigo-600 items-center justify-center float-right text-xs font-medium `}>
                                 <p className=''> {item?.count}</p>
                         </div>} 
                     </div>

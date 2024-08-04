@@ -39,8 +39,7 @@ const BookingAdminPreviousCode = ({fetchData}) => {
   )
  
   
-  // const [DropdownOpen, setDropdownOpen] = useState(false);
-  const [dropdownStates, setDropdownStates] = useState({});
+
 
  
   
@@ -67,15 +66,15 @@ if(travelBookingData){
     
   return (
     <>
-      {/* <div className="bg-white-100 lg:flex"> */}
+      {/* <div className="bg-white lg:flex"> */}
       <div className="px-2 lg:px-10 xl:px-20 relative w-auto h-dvh  flex flex-col items-center  pt-[50px] bg-slate-100">
          
           <div className="  flex flex-row items-center justify-start gap-2 sm:gap-4 font-cabin mb-2">
 <div className='relative'>
-          {filteredData && filteredData.length > 0 &&  <div className=' absolute right-[-1px] top-[-8px] w-fit p-[6px] bg-green-200 border border-white-100 rounded-full '/>}
+          {filteredData && filteredData.length > 0 &&  <div className=' absolute right-[-1px] top-[-8px] w-fit p-[6px] bg-green-200 border border-white rounded-full '/>}
                   <div
                     className={`cursor-pointer rounded-xl  py-1 px-2 w-auto min-w-[100px] truncate${
-                      activeScreen === 'Pending Bookings' ? 'font-medium rounded-xl bg-purple-500 text-xs text-white-100 w-auto min-w-[100px] truncate' : 'rounded-xl bg-white-100 text-neutral-800'
+                      activeScreen === 'Pending Bookings' ? 'font-medium rounded-xl bg-purple-500 text-xs text-white w-auto min-w-[100px] truncate' : 'rounded-xl bg-white text-neutral-800'
                     }`}
                     onClick={() => handleScreenChange('Pending Bookings')}
                   >
@@ -85,7 +84,7 @@ if(travelBookingData){
                 {/* </div> */}
                 <div
                   className={` rounded-xl cursor-pointer py-1 px-2 w-auto min-w-[100px] truncate ${
-                    activeScreen === 'Cancelled Trips' ? 'font-medium rounded-xl bg-indigo-600 text-xs text-white-100 w-auto min-w-[100px] truncate' : 'bg-white-100 text-neutral-800'
+                    activeScreen === 'Cancelled Trips' ? 'font-medium rounded-xl bg-indigo-600 text-xs text-white w-auto min-w-[100px] truncate' : 'bg-white text-neutral-800'
                   }`}
                   onClick={() => handleScreenChange('Cancelled Trips')}
                 >
@@ -97,7 +96,7 @@ if(travelBookingData){
             {/* </div> */}
           </div>
 
-          <div className="w-full bg-white-100 h-[80%] rounded-lg  border-[1px] border-indigo-500 shrink-0 font-cabin mt-3 sm:mt-6 ">
+          <div className="w-full bg-white h-[80%] rounded-lg  border-[1px] border-indigo-500 shrink-0 font-cabin mt-3 sm:mt-6 ">
           
            {activeScreen=== 'Pending Bookings' && 
            <>
@@ -221,15 +220,15 @@ export default BookingAdminPreviousCode;
     
 //   return (
 //     <>
-//       {/* <div className="bg-white-100 lg:flex"> */}
+//       {/* <div className="bg-white lg:flex"> */}
 //       <div className="px-2 lg:px-10 xl:px-20 relative w-auto h-dvh  flex flex-col items-center  pt-[50px] bg-slate-100">
          
 //           <div className="  flex flex-row items-center justify-start gap-2 sm:gap-4 font-cabin mb-2">
 // <div className='relative'>
-//           {filteredData && filteredData.length > 0 &&  <div className=' absolute right-[-1px] top-[-8px] w-fit p-[6px] bg-green-200 border border-white-100 rounded-full '/>}
+//           {filteredData && filteredData.length > 0 &&  <div className=' absolute right-[-1px] top-[-8px] w-fit p-[6px] bg-green-200 border border-white rounded-full '/>}
 //                   <div
 //                     className={`cursor-pointer rounded-xl  py-1 px-2 w-auto min-w-[100px] truncate${
-//                       activeScreen === 'Pending Bookings' ? 'font-medium rounded-xl bg-purple-500 text-xs text-white-100 w-auto min-w-[100px] truncate' : 'rounded-xl bg-white-100 text-neutral-800'
+//                       activeScreen === 'Pending Bookings' ? 'font-medium rounded-xl bg-purple-500 text-xs text-white w-auto min-w-[100px] truncate' : 'rounded-xl bg-white text-neutral-800'
 //                     }`}
 //                     onClick={() => handleScreenChange('Pending Bookings')}
 //                   >
@@ -239,7 +238,7 @@ export default BookingAdminPreviousCode;
 //                 {/* </div> */}
 //                 <div
 //                   className={` rounded-xl cursor-pointer py-1 px-2 w-auto min-w-[100px] truncate ${
-//                     activeScreen === 'Cancelled Trips' ? 'font-medium rounded-xl bg-indigo-600 text-xs text-white-100 w-auto min-w-[100px] truncate' : 'bg-white-100 text-neutral-800'
+//                     activeScreen === 'Cancelled Trips' ? 'font-medium rounded-xl bg-indigo-600 text-xs text-white w-auto min-w-[100px] truncate' : 'bg-white text-neutral-800'
 //                   }`}
 //                   onClick={() => handleScreenChange('Cancelled Trips')}
 //                 >
@@ -251,7 +250,7 @@ export default BookingAdminPreviousCode;
 //             {/* </div> */}
 //           </div>
 
-//           <div className="w-full bg-white-100 h-[80%] rounded-lg  border-[1px] border-indigo-500 shrink-0 font-cabin mt-3 sm:mt-6 ">
+//           <div className="w-full bg-white h-[80%] rounded-lg  border-[1px] border-indigo-500 shrink-0 font-cabin mt-3 sm:mt-6 ">
           
 //            {activeScreen=== 'Pending Bookings' && 
 //            <>

@@ -148,7 +148,7 @@ const selectDivFocus = (e)=>{
         {/* title*/}
         <div className="text-zinc-600 text-sm font-cabin">{title}</div>
         <div className="self-stretch h-12 justify-start items-start gap-4 inline-flex">
-          <div className={`grow relative shrink basis-0 self-stretch px-6 py-2 bg-white-100-100 rounded-md border border-neutral-300 justify-between items-center flex`} >
+          <div className={`grow relative shrink basis-0 self-stretch px-6 py-2 bg-white-100 rounded-md border border-neutral-300 justify-between items-center flex`} >
             <div
               tabIndex={0}
               onKeyDown={selectKeyDown}
@@ -184,7 +184,7 @@ const selectDivFocus = (e)=>{
               <div
                 key='dropdown'
                 ref={dropdownRef}
-                className="absolute z-10 w-[calc(100%-10px)] h-fit max-h-[160px] overflow-y-scroll scroll rounded-b left-[5px] top-11 bg-white-100 transition-all border-b  border-l border-r border-neutral-300 shadow-sm"
+                className="absolute z-10 w-[calc(100%-10px)] h-fit max-h-[160px] overflow-y-scroll scroll rounded-b left-[5px] top-11 bg-white transition-all border-b  border-l border-r border-neutral-300 shadow-sm"
               >
                 {optionsList &&
                   optionsList.map((option, index) => (
@@ -279,7 +279,7 @@ const selectDivFocus = (e)=>{
 //               <div
 //                 key={index}
 //                 onClick={() => selectOption(value)}
-//                 className="px-4 py-2  text-sm text-gray-700 hover:bg-indigo-500 hover:text-white cursor-pointer bg-white-100"
+//                 className="px-4 py-2  text-sm text-gray-700 hover:bg-indigo-500 hover:text-white cursor-pointer bg-white"
 //                 role="menuitem"
 //               >
 //                 {titleCase(value)}

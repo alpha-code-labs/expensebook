@@ -97,6 +97,7 @@ export {default as cross_icon} from './icons8-close.svg';
 export {default as violation_icon} from './violation_icon.png';
 export {default as arrow1_icon} from './icons8-forward-100.png';
 export {default as hamburger_icon} from './icons8-hamburger.svg';
+export {default as grade_icon} from './grade.png';
 
 
 

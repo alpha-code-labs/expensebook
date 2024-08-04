@@ -164,10 +164,10 @@
 
 //  <div onClick={handleOutsideClick}  className="flex flex-row items-center justify-center gap-2 sm:gap-4 font-cabin mb-2 ">
 //           <div className='relative'>
-//           {filteredData && filteredData.length > 0 &&  <div className='absolute right-[-1px] top-[-8px] w-fit p-[6px] bg-green-200 border border-white-100 rounded-full '/>}
+//           {filteredData && filteredData.length > 0 &&  <div className='absolute right-[-1px] top-[-8px] w-fit p-[6px] bg-green-200 border border-white rounded-full '/>}
 //           <div
 //             className={` cursor-pointer py-1 px-2 w-auto  min-w-[100px] rounded-xl truncate${
-//             activeScreen === 'All Travel Requests' ? 'font-medium rounded-xl bg-purple-500 text-xs text-gray-900 w-auto min-w-[100px] truncate' : 'rounded-xl bg-white-100'
+//             activeScreen === 'All Travel Requests' ? 'font-medium rounded-xl bg-purple-500 text-xs text-gray-900 w-auto min-w-[100px] truncate' : 'rounded-xl bg-white'
 //                     }`}
 //             onClick={() => handleScreenChange('All Travel Requests')}
 //                   >
@@ -176,10 +176,10 @@
 //          </div>
 //          <div className='relative'>
 //         { travelData?.rejectedTravelRequests.length > 0 && 
-//          <div className=' absolute right-[-1px] top-[-8px] w-fit p-[6px] bg-green-200 border border-white-100 rounded-full '/> }
+//          <div className=' absolute right-[-1px] top-[-8px] w-fit p-[6px] bg-green-200 border border-white rounded-full '/> }
 //          <div
 //                     className={`cursor-pointer py-1 px-2 w-auto min-w-[100px] rounded-xl  truncate${
-//                       activeScreen === 'Rejected Travel Requests' ? 'font-medium rounded-xl bg-purple-500 text-xs text-gray-900 w-auto min-w-[100px] truncate' : 'rounded-xl bg-white-100'
+//                       activeScreen === 'Rejected Travel Requests' ? 'font-medium rounded-xl bg-purple-500 text-xs text-gray-900 w-auto min-w-[100px] truncate' : 'rounded-xl bg-white'
 //                     }`}
 //                     onClick={() => handleScreenChange('Rejected Travel Requests')}
 //                   >
@@ -189,7 +189,7 @@
 //   </div>
  
 
-//           <div className="w-full  bg-white-100 h-[80%] rounded-lg  border-[1px] border-indigo-500 shrink-0 font-cabin mt-3 sm:mt-6 ">
+//           <div className="w-full  bg-white h-[80%] rounded-lg  border-[1px] border-indigo-500 shrink-0 font-cabin mt-3 sm:mt-6 ">
 // {activeScreen=== 'All Travel Requests' && 
 //   <>
 //   <div className='flex flex-row justify-between items-end px-8'>
@@ -198,7 +198,7 @@
 //       <div className="text-base tracking-[0.02em] font-bold truncate">All Travel Requests</div>
 //     </div>
 //     <div className='lg:ml-4 mt-4 lg:mt-0'>
-//       <div className='inline-flex h-8 w-auto items-center justify-center bg-indigo-600 text-white-100 rounded-lg cursor-pointer'>
+//       <div className='inline-flex h-8 w-auto items-center justify-center bg-indigo-600 text-white rounded-lg cursor-pointer'>
 //         <div className='text-center p-4 font-medium text-xs truncate' onClick={handleVisible}>Create Travel Request</div>
 //       </div>
 //     </div>
@@ -502,10 +502,10 @@
 
 //  <div onClick={handleOutsideClick}  className="flex flex-row items-center justify-center gap-2 sm:gap-4 font-cabin mb-2 ">
 //           <div className='relative'>
-//           {filteredData && filteredData.length > 0 &&  <div className='absolute right-[-1px] top-[-8px] w-fit p-[6px] bg-green-200 border border-white-100 rounded-full '/>}
+//           {filteredData && filteredData.length > 0 &&  <div className='absolute right-[-1px] top-[-8px] w-fit p-[6px] bg-green-200 border border-white rounded-full '/>}
 //           <div
 //             className={` cursor-pointer py-1 px-2 w-auto  min-w-[100px] rounded-xl truncate${
-//             activeScreen === 'All Travel Requests' ? 'font-medium rounded-xl bg-purple-500 text-xs text-gray-900 w-auto min-w-[100px] truncate' : 'rounded-xl bg-white-100'
+//             activeScreen === 'All Travel Requests' ? 'font-medium rounded-xl bg-purple-500 text-xs text-gray-900 w-auto min-w-[100px] truncate' : 'rounded-xl bg-white'
 //                     }`}
 //             onClick={() => handleScreenChange('All Travel Requests')}
 //                   >
@@ -514,10 +514,10 @@
 //          </div>
 //          <div className='relative'>
 //         { travelData?.rejectedTravelRequests?.length > 0 && 
-//          <div className=' absolute right-[-1px] top-[-8px] w-fit p-[6px] bg-green-200 border border-white-100 rounded-full '/> }
+//          <div className=' absolute right-[-1px] top-[-8px] w-fit p-[6px] bg-green-200 border border-white rounded-full '/> }
 //          <div
 //                     className={`cursor-pointer py-1 px-2 w-auto min-w-[100px] rounded-xl  truncate${
-//                       activeScreen === 'Rejected Travel Requests' ? 'font-medium rounded-xl bg-purple-500 text-xs text-gray-900 w-auto min-w-[100px] truncate' : 'rounded-xl bg-white-100'
+//                       activeScreen === 'Rejected Travel Requests' ? 'font-medium rounded-xl bg-purple-500 text-xs text-gray-900 w-auto min-w-[100px] truncate' : 'rounded-xl bg-white'
 //                     }`}
 //                     onClick={() => handleScreenChange('Rejected Travel Requests')}
 //                   >
@@ -525,7 +525,7 @@
 //           </div>
 //           </div>               
 //   </div>
-//  <div className="w-full  bg-white-100    h-auto lg:h-[581px]  rounded-lg border-[1px] border-slate-300 shrink-0 font-cabin mt-3 sm:mt-6 ">
+//  <div className="w-full  bg-white    h-auto lg:h-[581px]  rounded-lg border-[1px] border-slate-300 shrink-0 font-cabin mt-3 sm:mt-6 ">
 
 // {activeScreen=== 'All Travel Requests' && 
 // <>
@@ -536,7 +536,7 @@
 //   </div>
 
 //   <div className='lg:ml-4 mt-4 lg:mt-0'>
-//     <div className='inline-flex h-8 w-auto  items-center justify-center bg-indigo-600 text-white-100 flex-shrink rounded-lg cursor-pointer'>
+//     <div className='inline-flex h-8 w-auto  items-center justify-center bg-indigo-600 text-white flex-shrink rounded-lg cursor-pointer'>
 //     <div className='text-center p-4 font-medium text-xs font-cabin truncate' onClick={handleVisible}>Create Travel Request</div>
 //     {/* onClick={()=>(handleTravelCreation(tenantId,empId,))} */}
     
@@ -617,7 +617,7 @@
 // </div> */}
 
 // <div className="flex h-[52px] px-2 py-2 w-fit">
-// <div onClick={() => { if (!disableButton(travelDetails.travelRequestStatus)) {handleCashAdvance(travelDetails.travelRequestId, "", 'ca-create') } }} className={`flex justify-center gap-1 items-center px-2 py-2  text-white-100 border-[1px] bg-purple-500 rounded-md text-[14px] font-medium tracking-[0.03em] truncate ${disableButton(travelDetails?.travelRequestStatus) ? 'cursor-not-allowed opacity-50' : ' cursor-pointer'}`}>
+// <div onClick={() => { if (!disableButton(travelDetails.travelRequestStatus)) {handleCashAdvance(travelDetails.travelRequestId, "", 'ca-create') } }} className={`flex justify-center gap-1 items-center px-2 py-2  text-white border-[1px] bg-purple-500 rounded-md text-[14px] font-medium tracking-[0.03em] truncate ${disableButton(travelDetails?.travelRequestStatus) ? 'cursor-not-allowed opacity-50' : ' cursor-pointer'}`}>
 //       <img src={plus_icon} className='w-4 h-4'/>
 //       <p>{getCashAdvanceButtonText(travelDetails.departureDate)}</p>
 // </div>
@@ -759,7 +759,7 @@ import Error from '../components/common/Error';
 import SearchComponent from '../components/common/ExpenseSearch';
 import Input from '../components/common/SearchInput';
 import TripMS from '../microservice/TripMS';
-import { TripName } from '../components/common/TinyComponent';
+import { CardLayout, StatusFilter, TripName } from '../components/common/TinyComponent';
 
 
 const Travel = ({isLoading ,fetchData,loadingErrMsg}) => {
@@ -962,35 +962,28 @@ console.log('trips and travel from travel screen', tripData)
     <div className='min-h-screen'>
       <TripMS visible={visible} setVisible={setVisible} src={iframeURL}/>
       <div className='flex-col w-full p-4 flex items-start gap-2'>
-      <div className='min-h-[120px] border border-slate-300 bg-white-100 rounded-md  w-full flex flex-wrap items-start gap-2 px-2 py-2'>
- <div className='flex overflow-x-auto  space-x-2 space-y-2'>      
-<div className='flex items-center gap-2 justify-center p-2 bg-slate-100/50 rounded-full border border-slate-300  '> 
-<div className='px-4 '>
-          <img src={filter_icon} className='min-w-5 w-5 h-5 min-h-5'/>
-</div>
+      <div className='min-h-[120px] border border-slate-300 bg-white rounded-md  w-full flex flex-col items-start gap-2 px-2 py-2'>
 
-{["draft","pending approval", "pending booking", "upcoming","intransit", "rejected","cancelled", "paid and cancelled"].map((status) => {
-    const statusCount = getStatusCount(status, [...tripData]);
-    const isDisabled = statusCount === 0;
-    
-    return (
-      <div key={status} className={`flex  items-center  ${isDisabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
-        <div
-          onClick={() => !isDisabled && handleStatusClick(status)}
-          className={`ring-1 ring-white-100 flex py-1 pr-3 text-center rounded-sm ${selectedStatuses.includes(status) ? getStatusClass(status ?? "-") : "bg-slate-100 text-neutral-700 border border-slate-300"}`}
-        >
-          <p className='px-1 py-1 text-sm text-center capitalize font-cabin whitespace-nowrap '>{status ?? "-"}</p>
-        </div>
-        <div className={`shadow-md shadow-black/30 font-semibold -translate-x-3 ring-1 rounded-full ring-white-100 w-6 h-6 flex justify-center items-center text-center text-xs ${selectedStatuses.includes(status) ? getStatusClass(status ?? "-") : "bg-slate-100 text-neutral-700 border border-slate-300 "}`}>
-          <p>{statusCount}</p>
-        </div>
-      </div>
-    );
-  })}
-</div>
-  
-<div className='text-neutral-700 text-base flex justify-center items-center hover:text-red-200 hover:font-semibold text-center w-auto h-[36px] font-cabin cursor-pointer whitespace-nowrap ' onClick={() => setSelectedStatuses([])}>Clear All</div>
-</div> 
+<StatusFilter
+ const statuses = {[
+  "draft",
+  "pending approval",
+  "pending booking",
+  "upcoming",
+  "intransit",
+  "rejected",
+  "cancelled",
+  "paid and cancelled"
+]}
+tripData={tripData}
+selectedStatuses={selectedStatuses}
+handleStatusClick={handleStatusClick}
+filter_icon={filter_icon}
+getStatusClass={getStatusClass}
+getStatusCount={getStatusCount}
+setSelectedStatuses={setSelectedStatuses}
+
+/>
 <div className=''>
    
    <Input placeholder="Search Trip..." type="search" icon={search_icon} onChange={(value)=>setSearchQuery(value)}/>
@@ -999,17 +992,14 @@ console.log('trips and travel from travel screen', tripData)
  
 </div>
 
-
-       
-
         <div className='w-full flex md:flex-row flex-col '>
           <div className='flex-1 justify-center items-center'>
-            <div className='relative flex justify-center items-center rounded-md font-inter text-md text-white-100 h-[52px] bg-indigo-600 text-center'>
+            <div className='relative flex justify-center items-center rounded-md font-inter text-md text-white h-[52px] bg-indigo-600 text-center'>
           <div
           onClick={()=>handleVisible({urlName:"travel-url"})}
           onMouseEnter={() => setTextVisible({cashAdvance:true})}
           onMouseLeave={() => setTextVisible({cashAdvance:false})}
-          className={`absolute  left-0 ml-4 hover:px-2 w-6 h-6 hover:overflow-hidden hover:w-auto group text-indigo-600 bg-indigo-100 border border-white-100 flex items-center justify-center  hover:gap-x-1 rounded-full cursor-pointer transition-all duration-300`}
+          className={`absolute  left-0 ml-4 hover:px-2 w-6 h-6 hover:overflow-hidden hover:w-auto group text-indigo-600 bg-indigo-100 border border-white flex items-center justify-center  hover:gap-x-1 rounded-full cursor-pointer transition-all duration-300`}
           >
           <img src={plus_violet_icon} width={16} height={16} alt="Add Icon" />
           <p
@@ -1026,14 +1016,16 @@ console.log('trips and travel from travel screen', tripData)
                 <p>Trips</p>
               </div>
             </div>
-            <div className='w-full mt-4 xl:h-[570px] lg:h-[370px] md:[590px] overflow-y-auto px-2 bg-white-100 rounded-l-md'>
+            <div className='w-full mt-4 xl:h-[570px] lg:h-[370px] md:[590px] overflow-y-auto px-2 bg-white rounded-l-md'>
               {filterExpenses(tripData)?.map((trip, index) => {
                 
                 const filteredTripExpenses = filterExpenses(tripData);
                 if (filteredTripExpenses.length === 0) return null; // Skip rendering if no expenses match the selected statuses
 
                 return (
-                  <div key={`${index}-tr-expense`} className='flex flex-row items-center hover:border hover:border-indigo-600 hover:bg-indigo-100 cursor-pointer  justify-between mb-4 text-neutral-700 rounded-md shadow-custom-light bg-white-100 p-4'>
+<>
+                  <CardLayout >
+                 <div className='flex flex-row justify-between w-full items-center py-2'>
                <div className='font-cabin text-xs text-neutral-700'>
           {trip?.travelRequestStatus === "draft" ?
            <div className='text-xs text-start'>
@@ -1048,12 +1040,15 @@ console.log('trips and travel from travel screen', tripData)
         <div className={`text-center rounded-sm ${getStatusClass(trip?.travelRequestStatus ?? "-")}`}>
             <p className='px-1 py-1 text-xs text-center capitalize font-cabin'>{(trip?.travelRequestStatus) ?? "-"}</p>
       </div>
-        <div onClick={()=>{if(!disableButton(trip?.travelRequestStatus)){handleVisible({tripId:trip?.tripId ,travelRequestId:trip?.travelRequestId,urlName: trip?.travelRequestStatus})}}}  className='cursor-pointer w-7 h-7 bg-indigo-100 rounded-full border border-white-100 flex items-center justify-center'>
+        <div onClick={()=>{if(!disableButton(trip?.travelRequestStatus)){handleVisible({tripId:trip?.tripId ,travelRequestId:trip?.travelRequestId,urlName: trip?.travelRequestStatus})}}}  className='cursor-pointer w-7 h-7 bg-indigo-100 rounded-full border border-white flex items-center justify-center'>
         <img src={modify} className='w-4 h-4' alt="Add Icon" />
         </div>
       </div>
+      </div>
                  
-                  </div>
+                  
+                  </CardLayout>
+                  </>
                 );
               })}
             </div>
@@ -1069,18 +1064,18 @@ console.log('trips and travel from travel screen', tripData)
           <div>
               <div className='flex gap-2 justify-between items-center bg-indigo-100 w-full p-4'>
                 <p className='font-inter text-base font-semibold text-indigo-600'>Raise an Expense</p>              
-                <div onClick={()=>{setModalOpen(!modalOpen);setTripId(null);setExpenseType(null)}} className='bg-red-100 cursor-pointer rounded-full border border-white-100'>
+                <div onClick={()=>{setModalOpen(!modalOpen);setTripId(null);setExpenseType(null)}} className='bg-red-100 cursor-pointer rounded-full border border-white'>
                 <img src={cancel} className='w-5 h-5'/>
                 </div>
               </div>
 <div className='p-4'>
 <div className='flex md:flex-row flex-col justify-between gap-2'>
- <div onClick={()=>setExpenseType("travel_Cash-Advance")} className={`min-w-fit cursor-pointer transition  duration-200 hover:bg-indigo-100 hover:rounded-md flex-1 flex gap-2 items-center justify-center ${expenseType === "travel_Cash-Advance" ? ' border-b-2 border-indigo-600 text-indigo-600' : 'border-b-2 border-white-100 '}  p-4`}>
+ <div onClick={()=>setExpenseType("travel_Cash-Advance")} className={`min-w-fit cursor-pointer transition  duration-200 hover:bg-indigo-100 hover:rounded-md flex-1 flex gap-2 items-center justify-center ${expenseType === "travel_Cash-Advance" ? ' border-b-2 border-indigo-600 text-indigo-600' : 'border-b-2 border-white '}  p-4`}>
     <img src={receipt} className='w-5 h-5'/>
     <p className='truncate '>Travel Expense</p> 
  </div> 
            
-  <div onClick={()=>setExpenseType("non-Travel_Cash-Advance")} className={`min-w-fit cursor-pointer transition  duration-200 hover:bg-indigo-100 hover:rounded-md flex-1  flex items-center justify-center gap-2 p-4 ${expenseType === "non-Travel_Cash-Advance" ? 'border-b-2 border-indigo-600 text-indigo-600': "border-b-2 border-white-100"}  `}>
+  <div onClick={()=>setExpenseType("non-Travel_Cash-Advance")} className={`min-w-fit cursor-pointer transition  duration-200 hover:bg-indigo-100 hover:rounded-md flex-1  flex items-center justify-center gap-2 p-4 ${expenseType === "non-Travel_Cash-Advance" ? 'border-b-2 border-indigo-600 text-indigo-600': "border-b-2 border-white"}  `}>
     <img src={receipt} className='w-5 h-5'/>
     <p className='truncate  shrink'>Non-Travel Expense</p>
   </div>

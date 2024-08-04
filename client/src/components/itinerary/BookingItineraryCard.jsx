@@ -145,7 +145,7 @@ export function HotelCard({ status,checkIn, checkOut, location, ratings='any', o
 
 function CardLayout({ children }) {
     return (
-        <div className="shadow-sm   bg-white-100 rounded-md border-x-4 border-x-indigo-600  border border-slate-300 w-full px-6 py-4 flex flex-col sm:flex-row gap-4 items-center sm:divide-x">
+        <div className="shadow-sm   bg-white rounded-md border-x-4 border-x-indigo-600  border border-slate-300 w-full px-6 py-4 flex flex-col sm:flex-row gap-4 items-center sm:divide-x">
             {children}
         </div>)
 }

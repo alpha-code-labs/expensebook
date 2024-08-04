@@ -202,7 +202,7 @@ const getInitials = (name) => {
     <>
       {isLoading && <Error message={loadingErrMsg} />}
       {!isLoading && 
-        <div className="w-full h-full relative bg-white-100 md:px-24 md:mx-0 sm:px-0 sm:mx-auto py-12 select-none">
+        <div className="w-full h-full relative bg-white md:px-24 md:mx-0 sm:px-0 sm:mx-auto py-12 select-none">
           <div className="flex flex-col h-full  ">
             <div className="flex rounded-t-[16px] bg-slate-50  border-[1px] border-slate-300 flex-row justify-between px-4 py-5">
             <div className="inline-flex gap-2 p-4 font-cabin text-base font-medium">
@@ -222,7 +222,7 @@ const getInitials = (name) => {
             </div>
 
             <div className="w-fit">
-              <Button onClick={handleSaveProfile} text='Save' textAndBgColor='bg-indigo-600 text-white-100' />
+              <Button onClick={handleSaveProfile} text='Save' textAndBgColor='bg-indigo-600 text-white' />
             </div>
             </div>
 
@@ -232,7 +232,7 @@ const getInitials = (name) => {
                 <img src='/image1.jpg' alt="profile-bg" />
               </div>
               <div className="translate-y-[-50px] bottom-[-50px]">
-                <div className=" rounded-full bg-indigo-100 flex shrink  w-[104px] h-[104px] items-center justify-center  mx-auto  shadow-md border-4 border-white-100 transition duration-200 transform hover:scale-110">
+                <div className=" rounded-full bg-indigo-100 flex shrink  w-[104px] h-[104px] items-center justify-center  mx-auto  shadow-md border-4 border-white transition duration-200 transform hover:scale-110">
                   <div className="relative w-full h-full">
       {formData ? (
         <img 
@@ -383,7 +383,7 @@ export default Profile;
 //   <>
 //     {isLoading && <Error message={loadingErrMsg} />}
 //     {!isLoading && 
-//       <div className="w-full h-full relative bg-white-100 md:px-24 md:mx-0 sm:px-0 sm:mx-auto py-12 select-none">
+//       <div className="w-full h-full relative bg-white md:px-24 md:mx-0 sm:px-0 sm:mx-auto py-12 select-none">
 //         <div className="flex flex-col h-full  ">
 //           <div className="flex rounded-t-[16px] bg-slate-50  border-[1px] border-slate-300 flex-row justify-between px-4 py-5">
 //           <div className="inline-flex gap-2 p-4 font-cabin text-base font-medium">
@@ -391,7 +391,7 @@ export default Profile;
 //             <p>Your Profile</p>
 //           </div>
 //           <div className="w-fit">
-//             <Button onClick={handleSaveProfile} text='Save' textAndBgColor='bg-indigo-600 text-white-100' />
+//             <Button onClick={handleSaveProfile} text='Save' textAndBgColor='bg-indigo-600 text-white' />
 //           </div>
 //           </div>
 //           <div className="flex justify-center items-center flex-col">
@@ -399,7 +399,7 @@ export default Profile;
 //               <img src={profile_bg} alt="profile-bg" />
 //             </div>
 //             <div className="translate-y-[-50px] bottom-[-50px]">
-//               <div className="  rounded-full bg-indigo-100 flex shrink  w-[104px] h-[104px] items-center justify-center  mx-auto  shadow-md border-4 border-white-100 transition duration-200 transform hover:scale-110">
+//               <div className="  rounded-full bg-indigo-100 flex shrink  w-[104px] h-[104px] items-center justify-center  mx-auto  shadow-md border-4 border-white transition duration-200 transform hover:scale-110">
 //                 <h2 className="text-white">K V</h2>
 //               </div>
 //               <div className="flex flex-col items-center">

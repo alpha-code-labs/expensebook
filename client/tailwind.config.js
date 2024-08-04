@@ -21,11 +21,11 @@ export default {
       },
       
       colors :{
-        white : {
-          100:'#FFF',
-          200:'#FDFCFC',
-          300:'#FDFDFD'
-        },
+        // white : {
+        //   100:'#FFF',
+        //   200:'#FDFCFC',
+        //   300:'#FDFDFD'
+        // },
         
         purple:{
           50:'#EAE7FD',

@@ -32,8 +32,8 @@ function CardLayout({cardSequence,icon,cardTitle,children}){
            <b className="tracking-[0.02em] font-cabin text-[16px] text-indigo-600 font-semibold">{cardTitle}</b>
          </div>
          <div className=' shadow-sm shadow-indigo-600 rounded-md'/>
-         {/* <div className="h-[285px] flex justify-center items-center  bg-white-100 overflow-hidden overflow-y-auto mt-2  border-[4px] border-gray-600  shadow-lg  shadow-black/60  rounded-3xl px-2"> */}
-         <div className="h-[285px] bg-white-100 overflow-hidden overflow-y-auto mt-2  border-[4px] border-gray-600    shadow-custom-light  rounded-3xl px-2">
+         {/* <div className="h-[285px] flex justify-center items-center  bg-white overflow-hidden overflow-y-auto mt-2  border-[4px] border-gray-600  shadow-lg  shadow-black/60  rounded-3xl px-2"> */}
+         <div className="h-[285px] bg-white overflow-hidden overflow-y-auto mt-2  border-[4px] border-gray-600    shadow-custom-light  rounded-3xl px-2">
          
           {children}
       
@@ -228,7 +228,7 @@ const handleRaise = () => {
 <div
  className={`px-2 py-1 rounded-xl cursor-pointer delay-150  transition-colors ${
   expenseTabs === "travelExpense"
-    ? 'text-white-100 bg-indigo-600'
+    ? 'text-white bg-indigo-600'
     : 'text-xs'
 }`}
 onClick={() => handleExpenseTabChange("travelExpense")}
@@ -238,7 +238,7 @@ onClick={() => handleExpenseTabChange("travelExpense")}
 <div
 className={`px-2 py-1 rounded-xl cursor-pointer delay-150 transition-colors ${
   expenseTabs === 'nonTravelExpense'
-    ? 'text-white-100 bg-indigo-600 border border-white-100'
+    ? 'text-white bg-indigo-600 border border-white'
     : 'text-xs'
 }`}
 onClick={() => handleExpenseTabChange("nonTravelExpense")}
@@ -251,7 +251,7 @@ onClick={() => handleExpenseTabChange("nonTravelExpense")}
 onClick={()=>setModalOpen(!modalOpen)}
 onMouseEnter={() => setTextVisible({expense:true})}
 onMouseLeave={() => setTextVisible({expense:false})}
-className={`relative hover:px-2 w-6 h-6 hover:overflow-hidden hover:w-auto group text-indigo-600 bg-indigo-100 border border-white-100 flex items-center justify-center  hover:gap-x-1 rounded-full cursor-pointer transition-all duration-300`}
+className={`relative hover:px-2 w-6 h-6 hover:overflow-hidden hover:w-auto group text-indigo-600 bg-indigo-100 border border-white flex items-center justify-center  hover:gap-x-1 rounded-full cursor-pointer transition-all duration-300`}
 >
 <img src={plus_violet_icon} width={16} height={16} alt="Add Icon" />
 <p
@@ -328,7 +328,7 @@ nonTravelExpenses?.map((expense,index) => <NonTravelExpenses index={index} expen
 onMouseEnter={() => setTextVisible({createTravel:true})}
 onMouseLeave={() => setTextVisible({createTravel:false})}
 onClick={()=>handleVisible({urlName:"travel-url"})}
-className={`relative  hover:px-2 w-6 h-6 hover:overflow-hidden hover:w-auto group text-indigo-600 bg-indigo-100 border border-white-100 flex items-center justify-center  hover:gap-x-1 rounded-full cursor-pointer transition-all duration-300`}
+className={`relative  hover:px-2 w-6 h-6 hover:overflow-hidden hover:w-auto group text-indigo-600 bg-indigo-100 border border-white flex items-center justify-center  hover:gap-x-1 rounded-full cursor-pointer transition-all duration-300`}
 >
 <img src={plus_violet_icon} width={16} height={16} alt="Add Icon" />
 <p
@@ -360,18 +360,18 @@ Raise Travel Request
           <div>
               <div className='flex gap-2 justify-between items-center bg-indigo-100 w-full p-4'>
                 <p className='font-inter text-base font-semibold text-indigo-600'>Raise an Expense</p>
-                <div onClick={()=>{setModalOpen(!modalOpen);setTripId(null);setExpenseType(null)}} className='bg-red-100 cursor-pointer rounded-full border border-white-100'>
+                <div onClick={()=>{setModalOpen(!modalOpen);setTripId(null);setExpenseType(null)}} className='bg-red-100 cursor-pointer rounded-full border border-white'>
                 <img src={cancel} className='w-5 h-5'/>
                 </div>
               </div>
 <div className='p-4'>
  <div className='flex md:flex-row flex-col justify-between gap-2 '>
- <div onClick={()=>setExpenseType("travel_Cash-Advance")} className={`cursor-pointer transition  duration-200 hover:bg-indigo-100 hover:rounded-md flex-1 flex gap-2 items-center justify-center ${expenseType === "travel_Cash-Advance" ? ' border-b-2 border-indigo-600 text-indigo-600' : 'border-b-2 border-white-100 '}  p-4`}>
+ <div onClick={()=>setExpenseType("travel_Cash-Advance")} className={`cursor-pointer transition  duration-200 hover:bg-indigo-100 hover:rounded-md flex-1 flex gap-2 items-center justify-center ${expenseType === "travel_Cash-Advance" ? ' border-b-2 border-indigo-600 text-indigo-600' : 'border-b-2 border-white '}  p-4`}>
     <img src={receipt} className='w-5 h-5'/>
     <p className='truncate '>Travel Expense</p> 
   </div>
            
-  <div onClick={()=>setExpenseType("non-Travel_Cash-Advance")} className={`min-w-fit cursor-pointer transition  duration-200 hover:bg-indigo-100 hover:rounded-md flex-1  flex items-center justify-center gap-2 p-4 ${expenseType === "non-Travel_Cash-Advance" ? 'border-b-2 border-indigo-600 text-indigo-600': "border-b-2 border-white-100"}  `}>
+  <div onClick={()=>setExpenseType("non-Travel_Cash-Advance")} className={`min-w-fit cursor-pointer transition  duration-200 hover:bg-indigo-100 hover:rounded-md flex-1  flex items-center justify-center gap-2 p-4 ${expenseType === "non-Travel_Cash-Advance" ? 'border-b-2 border-indigo-600 text-indigo-600': "border-b-2 border-white"}  `}>
     <img src={receipt} className='w-5 h-5'/>
     <p className='truncate  shrink'>Non-Travel Expense</p>
   </div>
@@ -484,18 +484,18 @@ const IntransitTrips = ({ index, trip, lastIndex,handleVisible }) => {
   const [textVisible, setTextVisible] = useState({ modify: false });
 
   return (
-    <div className={`h-[275px]  rounded-md border border-white-100  `}>
+    <div className={`h-[275px]  rounded-md border border-white  `}>
       <div className="flex gap-2 px-2 flex-row items-center justify-between text-center font-cabin border-b-2 border-slate-300 shadow-sm  py-2 text-neutral-700 text-xs">
         <div className='flex'>
         <div
-            className={`px-2 py-1 rounded-xl cursor-pointer ease-in-out ${activeTabs === 'upcoming' ? 'bg-indigo-100 font-semibold text-indigo-600 border border-white-100 text-xs shadow-md shadow-indigo-600' : 'text-xs'}`}
+            className={`px-2 py-1 rounded-xl cursor-pointer ease-in-out ${activeTabs === 'upcoming' ? 'bg-indigo-100 font-semibold text-indigo-600 border border-white text-xs shadow-md shadow-indigo-600' : 'text-xs'}`}
             onClick={() => handleTabChange('upcoming')}
             
           >
             <p>Upcoming</p>
           </div>
           <div
-            className={`px-2 py-1 rounded-xl cursor-pointer transition duration-150 ease-in-out ${activeTabs === 'completed' ? 'bg-indigo-100 font-semibold text-indigo-600 border border-white-100 text-xs shadow-md shadow-indigo-600' : 'text-xs'}`}
+            className={`px-2 py-1 rounded-xl cursor-pointer transition duration-150 ease-in-out ${activeTabs === 'completed' ? 'bg-indigo-100 font-semibold text-indigo-600 border border-white text-xs shadow-md shadow-indigo-600' : 'text-xs'}`}
             onClick={() => handleTabChange('completed')}
             
           >
@@ -510,7 +510,7 @@ const IntransitTrips = ({ index, trip, lastIndex,handleVisible }) => {
             onMouseEnter={() => setTextVisible({ modify: true })}
             onMouseLeave={() => setTextVisible({ modify: false })}
             
-            className={`relative shadow-md shadow-indigo-600 hover:px-2 w-6 h-6 hover:overflow-hidden hover:w-auto group text-indigo-600 bg-indigo-100 border border-white-100 flex items-center justify-center hover:gap-x-1 rounded-full cursor-pointer transition-all duration-300`}
+            className={`relative shadow-md shadow-indigo-600 hover:px-2 w-6 h-6 hover:overflow-hidden hover:w-auto group text-indigo-600 bg-indigo-100 border border-white flex items-center justify-center hover:gap-x-1 rounded-full cursor-pointer transition-all duration-300`}
 
           >
             <img src={modify} width={16} height={16} alt="Add Icon" />
@@ -531,7 +531,7 @@ const IntransitTrips = ({ index, trip, lastIndex,handleVisible }) => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <div className='h-[200px] space-y-2 min-w-max w-full bg-white-100 overflow-y-auto rounded-b-md py-1 px-2'>
+          <div className='h-[200px] space-y-2 min-w-max w-full bg-white overflow-y-auto rounded-b-md py-1 px-2'>
           {itineraryByTab && itineraryByTab.length == 0 && 
          <EmptyTrips icon={empty_itinerary_icon} text={"No upcoming itineraries."}/>
             }
@@ -686,7 +686,7 @@ const [textVisible ,setTextVisible]=useState(false)
             onClick={()=>handleVisible({urlName:'trip-url',tripId:trip?.tripId})}
             onMouseEnter={() => setTextVisible({ modify: true })}
             onMouseLeave={() => setTextVisible({ modify: false })}
-            className={`relative shadow-md shadow-indigo-600 hover:px-2 w-6 h-6 hover:overflow-hidden hover:w-auto group text-indigo-600 bg-indigo-100 border border-white-100 flex items-center justify-center hover:gap-x-1 rounded-full cursor-pointer transition-all duration-300`}
+            className={`relative shadow-md shadow-indigo-600 hover:px-2 w-6 h-6 hover:overflow-hidden hover:w-auto group text-indigo-600 bg-indigo-100 border border-white flex items-center justify-center hover:gap-x-1 rounded-full cursor-pointer transition-all duration-300`}
 
           >
             <img src={modify} width={16} height={16} alt="Add Icon" />
