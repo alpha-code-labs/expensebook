@@ -73,3 +73,40 @@ const formatDate = (dateString) => {
 
 
 
+export function extractStartDate(itinerary) {
+  try{
+      const allowedStatus = [  'draft', 
+          'pending approval', 
+          'approved', 
+          'rejected', 
+          'pending booking', 
+          'cancelled',
+          'paid and cancelled',
+          'paid and cancelled',
+          'recovered',]
+      const dateStrings=Object.entries(itinerary)
+          // .filter(([category]) => category !== 'formState')
+          .flatMap(([category, items]) => {
+              const dateFields = {
+                  hotels: 'checkIn_date',
+                  cabs: 'date',
+                  flights: 'date',
+                  buses: 'date',
+                  trains: 'date'
+              };
+              const dateField = dateFields[category];
+              return items
+                  .filter(item => allowedStatus.includes(item.status)  && item[dateField])
+                  .map(item => item[dateField]);
+          });
+  
+  const dates = dateStrings.map(dateStr => new Date(dateStr));
+  const dateString = dates.length ? new Date(Math.min(...dates)) : null;
+  return  dateString
+
+  } catch(error){
+      console.error(error)
+      throw new Error('Error in finding travel Request Date')
+  }
+  
+};
