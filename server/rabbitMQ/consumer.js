@@ -197,6 +197,18 @@ export default async function startConsumer(receiver) {
               console.log("update failed with error code", res.error);
           }
         }
+        if ((action == "approve-reject-ca")) {
+          const res = await approveRejectRequests(payload);
+          console.log(res);
+          if (res.success) {
+            //acknowledge message
+            channel.ack(msg);
+            console.log("message processed successfully");
+          } else {
+            //implement retry mechanism
+            console.log("update failed with error code", res.error);
+          }
+        }
       }
     },
     { noAck: false }

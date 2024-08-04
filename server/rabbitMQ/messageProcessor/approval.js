@@ -125,7 +125,7 @@ export async function approveRejectRequests(payload) {
             // Update cash advances
             cashAdvances.forEach(ca => {
                 cashAdvance.cashAdvancesData.forEach(existingCa => {
-                    if (existingCa.cashAdvanceId === ca.cashAdvanceId) {
+                    if (existingCa.cashAdvanceId.toString() === ca.cashAdvanceId) {
                         existingCa.cashAdvanceStatus = ca.cashAdvanceStatus;
                         existingCa.cashAdvanceRejectionReason = ca.cashAdvanceRejectionReason;
                         existingCa.approvers = ca.approvers;
