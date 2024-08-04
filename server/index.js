@@ -55,7 +55,7 @@ async function connectToMongoDB() {
 await connectToMongoDB();
 startConsumer('travel')
 
-//statusUpdateBatchJob()
-//createTripBatchJob()
+statusUpdateBatchJob()
+createTripBatchJob()
 
 

@@ -19,12 +19,10 @@ export async function approveRejectTravelRequest(payload){
                 }
             })
         })
-    
         const result = await travelRequest.save()
         return {success:true, error:null}
     }catch(e){
         return {success:false, error:e}
-        
     }
 }
 
@@ -32,7 +30,7 @@ export async function approveRejectTravelRequests(payload) {
     try {
         const results = [];
 
-        for (const request of payload.travel) {
+        for (const request of payload) {
             const { travelRequestId, travelRequestStatus, rejectionReason, approvers } = request;
             
             const travelRequest = await TravelRequest.findOne({ travelRequestId });
@@ -63,7 +61,6 @@ export async function approveRejectTravelRequests(payload) {
         return { success: false, error: e };
     }
 }
-
 
 
 export async function approveRejectLegItem(payload){

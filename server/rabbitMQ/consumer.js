@@ -158,9 +158,9 @@ export default async function startConsumer(receiver) {
                     else{
                         console.log("update failed with error code", res.error);
                     }
-                  }
+                }
 
-                  if(action == 'update-finance-admin'){
+                if(action == 'update-finance-admin'){
                     const res = await updateFinanceAdmin(payload)
                     if(res.success){
                         console.log('message consumed successfully')
@@ -169,7 +169,22 @@ export default async function startConsumer(receiver) {
                     else{
                         console.log("update failed with error code", res.error);
                     }
-                  }
+                }
+
+                if(action == 'approve-reject-tr'){
+                    console.log("i am in")
+                    const res = await approveRejectTravelRequests(payload)
+                    console.log(res);
+                    console.log(payload)
+                    if (res.success) {
+                        //acknowledge message
+                        channel.ack(msg);
+                        console.log("message processed successfully");
+                    } else {
+                        //implement retry mechanism
+                        console.log("update failed with error code", res.error);
+                    }
+                }
             }
             
           },
