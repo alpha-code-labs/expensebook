@@ -11,7 +11,7 @@ async function statusUpdateBatchJob(){
     try {
         //const results = await TravelRequest.find({travelRequestStatus: 'approved'})
         
-        const travelRequestsToUpdate = await TravelRequest.find({ travelRequestStatus: 'approved' });
+        const travelRequestsToUpdate = await TravelRequest.find({ travelRequestStatus: 'approved', isCashAdvanceTaken:false });
 
         const updatedTravelRequests = travelRequestsToUpdate.map((travelRequest) => {
           travelRequest.travelRequestStatus = 'pending booking';
