@@ -33,13 +33,14 @@ export const statusChangeBatchJob = async () => {
       }));
       
       const action = 'status-update';
-      const needConfirmation = false;
+      let needConfirmation = false;
       console.log("updatedTrips before rabbitMq", updatedTrips);
   
       // Send updatedTrips to RabbitMQ
       const sendResult = await sendToDashboardMicroservice(updatedTrips, action, 'Batch job trip status change from upcoming to transit', 'trip', 'batch', needConfirmation);
   
       if (sendResult) {
+        console.log('Updated trips sent to RabbitMQ successfully:', sendResult);
         // Update the database only if the message was successfully sent to RabbitMQ
         const updateResult = await Trip.updateMany(condition, { $set: { tripStatus: 'transit' } });
         console.log(`Updated ${updateResult.nModified} documents in the database.`);

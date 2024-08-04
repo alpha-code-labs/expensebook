@@ -14,6 +14,7 @@ import{transitToCompleteBatchJob} from './scheduler/transitToCompleteBatchJob.js
 import { filterFutureFlights } from './utils/dateUtils.js';
 import pino from 'pino';
 import PinoPretty from 'pino-pretty';
+import { lastDate } from './utils/date.js';
 
 // Load environment variables using dotenv
 config();
@@ -37,9 +38,9 @@ app.get('/get', (req,res) => res.status(200).json("hi from trips"))
 
 
 // Start the batch job
-// scheduleToExpenseBatchJob()
-// scheduleTripTransitBatchJob()
-// transitToCompleteBatchJob()
+scheduleToExpenseBatchJob()
+scheduleTripTransitBatchJob()
+transitToCompleteBatchJob()
 
 
 
@@ -65,7 +66,17 @@ app.listen(port, () => {
 
 startConsumer('trip');
 
-// const trip = await Trip.findOne({tripId:'658d602bcb8a8aefaacab9ae'})
+
+// const tripY = '66a87ecc38c376aa6a5a57cf'
+// const trip = await Trip.findOne({"tripId":tripY})
+// if(trip){
+//   const { itinerary} = trip.travelRequestData
+//   const getTripCompletionDate = await lastDate(itinerary)
+//   console.log("trip Completion Date",getTripCompletionDate)
+// } else {
+//   console.log("Trip not found")
+// }
+
 // const res = await sendTripsToDashboardQueue(trip, 'online', true)
 // const trip = await Trip.updateOne({tripId:'65df0d66aceac59a438079ad'})
 // console.log("trip ...", trip)

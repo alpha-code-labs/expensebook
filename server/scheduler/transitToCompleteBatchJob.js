@@ -21,10 +21,10 @@ const updateTransitTrips = async (transitTrips) => {
   const listOfClosedStandAloneTravelRequests = [];
 
   for (const trip of transitTrips) {
-    const lastLineItemDate = getLastLineItemDate(trip.travelRequestData.itinerary);
+    const {tripCompletionDate } = trip
 
-    if (todayDate > lastLineItemDate) {
-      await processCompletionIfApplicable(trip, todayDate, lastLineItemDate);
+    if (todayDate > tripCompletionDate) {
+      await processCompletionIfApplicable(trip, todayDate, tripCompletionDate);
       await processClosureIfApplicable(trip);
       
       if (
@@ -70,8 +70,8 @@ return {
 }
 };
 
-const processCompletionIfApplicable = async (trip, todayDate, lastLineItemDate) => {
-  const dateDifference = calculateDateDifferenceInDays(lastLineItemDate, todayDate);
+const processCompletionIfApplicable = async (trip, todayDate, tripCompletionDate) => {
+  const dateDifference = calculateDateDifferenceInDays(tripCompletionDate, todayDate);
 
   const {tripId} = trip
 
@@ -123,21 +123,21 @@ const updateDocumentsForCompletion = async (trip) => {
     tripStartDate: { $lte: new Date() },
   };
 
-  // Iterate over each transportation type within the itinerary
-  const transportationTypes = ['flights', 'buses', 'trains', 'hotels', 'cabs'];
-  const transportationQuery = [];
+  // // Iterate over each transportation type within the itinerary
+  // const transportationTypes = ['flights', 'buses', 'trains', 'hotels', 'cabs'];
+  // const transportationQuery = [];
 
-  transportationTypes.forEach(type => {
-    const query = {
-      [`itinerary.${type}.status`]: { $ne: 'cancelled' }, // Assuming status field indicates cancellation
-    };
-    query[`itinerary.${type}.cancellationDate`] = { $exists: false }; // If cancellationDate exists, it was cancelled
+  // transportationTypes.forEach(type => {
+  //   const query = {
+  //     [`itinerary.${type}.status`]: { $ne: ['cancelled','paid and cancelled'] }, 
+  //   };
+  //   query[`itinerary.${type}.cancellationDate`] = { $exists: false }; // If cancellationDate exists, it was cancelled
 
-    transportationQuery.push(query);
-  });
+  //   transportationQuery.push(query);
+  // });
 
-  // Combine the transportation queries using $or operator
-  updateConditions.$and = transportationQuery.map(query => ({ $or: [query] }));
+  // // Combine the transportation queries using $or operator
+  // updateConditions.$and = transportationQuery.map(query => ({ $or: [query] }));
 
   await Trip.updateMany(
     updateConditions,
@@ -162,7 +162,7 @@ const updateDocumentsForCompletion = async (trip) => {
 // Function to process close the trip, if trip last line item is more than 90 days
 const processClosureIfApplicable = async (trip) => {
 
-  if (trip.tripStatus === 'completed' && calculateDateDifferenceInDays(trip.lastLineItem.date, new Date()) > 90) {
+  if (trip.tripStatus === 'completed' && calculateDateDifferenceInDays(trip.tripCompletionDate, new Date()) > 90) {
     await updateDocumentsForClosure(trip);
 
     // Additional data processing for closure, if needed
