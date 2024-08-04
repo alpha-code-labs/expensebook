@@ -1,12 +1,13 @@
 import {BrowserRouter as Router, Routes, Route} from 'react-router-dom';
 import React ,{useState,useEffect}from "react"; 
 import './App.css'
-import CancelTrip from './pages/CancelTrip'
-import TripRecovery from './pages/TravelRecovery'
-import dummyForRecovery from './dummyData/dummyForRecovery'
+import CancelTrip from './pages/CancelTrip';
+import TripRecovery from './pages/TravelRecovery';
+import dummyForRecovery from './dummyData/dummyForRecovery';
 import { transformTripData } from './utils/transformer';
 import { logoutApi } from './utils/tripApi';
-import { urlRedirection } from './utils/handyFunctions';
+// import { urlRedirection } from './utils/handyFunctions';
+import ModifyTrip from './pages/ModifyTrip';
 
 function App() { 
  const LOGIN_PAGE_URL =import.meta.env.VITE_LOGIN_PAGE_URL
@@ -14,7 +15,7 @@ function App() {
 
   const handleLogout = async () => {
     logoutApi(authToken)
-    urlRedirection(LOGIN_PAGE_URL)
+    // urlRedirection(LOGIN_PAGE_URL)
     console.log('User logged out due to inactivity.');
   };
 
@@ -70,8 +71,8 @@ function App() {
     <>
     <Router>
       <Routes>
-        <Route path='/api/:tenantId/:empId/:tripId/trips' element={<CancelTrip />}/>
-        <Route path='/api/:tenantId/:empId/recovery/:tripId' element={<TripRecovery transformedRecoveryData={transformedRecoveryData}/>} />
+        <Route path='/:tenantId/:empId/modify/:tripId/*' element={<ModifyTrip />} />
+        <Route path='/:tenantId/:empId/recovery/:tripId' element={<TripRecovery transformedRecoveryData={transformedRecoveryData}/>} />
       </Routes>
     </Router>
     </>
