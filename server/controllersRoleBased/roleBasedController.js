@@ -2115,7 +2115,30 @@ const extractItinerary = (itinerary) => {
     }
 };
 
+export const gradeForEmployee = async (empId) => {
+    try {
+      const getEmployee = await HRMaster.findOne({
+        'employees': {
+          $elemMatch: {
+            'employeeDetails.employeeId': empId,
+          }
+        }
+      });
 
+      // console.log('verifiedEmployee:', verifyEmployee);
+    if (getEmployee) {
+        const employee = getEmployee.employees.find(employee => employee.employeeDetails.employeeId === empId);
+
+        const grade = employee.employeeDetails.grade;
+      console.log('jackpot', grade);
+
+      return grade
+
+    } }catch (error) {
+      console.error('Error in travelAdmin:', error);
+      throw error;
+    }
+};
 
 const businessAdminLayout = async (tenantId, empId) => {
     try {
@@ -2141,89 +2164,247 @@ const businessAdminLayout = async (tenantId, empId) => {
             })
             .lean()
             .exec();
-    
+
             if (bookingDoc?.length === 0){
                 return { error: 'Error in fetching data for business admin' };
             } 
             // console.log("booking from database .......................", bookingDoc)
 
+            // const travel = await (async () => {
+            //     // console.log("booking", bookingDoc)
+            //     const filteredBooking = bookingDoc.filter(booking =>
+            //         booking?.travelRequestSchema?.travelRequestStatus === 'pending booking'
+            //     );
+            
+            //     // console.log("filteredBooking for travel", filteredBooking)
+            //     return filteredBooking.map(booking => {
+            //         const { travelRequestId, tripPurpose,createdBy, travelRequestNumber,tripName, travelRequestStatus, isCashAdvanceTaken, assignedTo, itinerary } = booking.travelRequestSchema;
+            //         const {empId}= createdBy
+            //         const grade = await gradeForEmployee(empId)
+            //         const itineraryToSend = extractItinerary(itinerary)
+            //         const tripStartDate = extractStartDate(itinerary)
+
+            //         return { travelRequestId,grade, tripPurpose,tripName,tripStartDate, itinerary:itineraryToSend, travelRequestNumber, travelRequestStatus, isCashAdvanceTaken, assignedTo };
+            //     }).filter(Boolean);
+            // })();
             const travel = await (async () => {
-                // console.log("booking", bookingDoc)
+                // Filter bookings where the travelRequestStatus is 'pending booking'
                 const filteredBooking = bookingDoc.filter(booking =>
                     booking?.travelRequestSchema?.travelRequestStatus === 'pending booking'
                 );
-            
-                // console.log("filteredBooking for travel", filteredBooking)
-                return filteredBooking.map(booking => {
-                    const { travelRequestId, tripPurpose, travelRequestNumber,tripName, travelRequestStatus, isCashAdvanceTaken, assignedTo, itinerary } = booking.travelRequestSchema;
-                    const itineraryToSend = extractItinerary(itinerary)
-                    const tripStartDate = extractStartDate(itinerary)
+        
+                // Process each filtered booking
+                const results = await Promise.all(filteredBooking.map(async (booking) => {
+                    try {
+                        const { travelRequestId, tripPurpose, createdBy, travelRequestNumber, tripName, travelRequestStatus, isCashAdvanceTaken, assignedTo, itinerary } = booking.travelRequestSchema;
+                        const { empId } = createdBy;
+                        
+                        // Fetch the grade for the employee
+                        const grade = await gradeForEmployee(empId);
+        
+                        // Extract itinerary details
+                        const itineraryToSend = extractItinerary(itinerary);
+                        const tripStartDate = extractStartDate(itinerary);
+        
+                        // Return the processed booking
+                        return {
+                            travelRequestId,
+                            grade,
+                            createdBy,
+                            tripPurpose,
+                            tripName,
+                            tripStartDate,
+                            itinerary: itineraryToSend,
+                            travelRequestNumber,
+                            travelRequestStatus,
+                            isCashAdvanceTaken,
+                            assignedTo
+                        };
+                    } catch (error) {
+                        console.error(`Error processing booking ${booking.travelRequestSchema.travelRequestId}:`, error);
+                        return null;  // Ensure that errors don't break the whole map operation
+                    }
+                }));
 
-                    return { travelRequestId, tripPurpose,tripName,tripStartDate, itinerary:itineraryToSend, travelRequestNumber, travelRequestStatus, isCashAdvanceTaken, assignedTo };
-                }).filter(Boolean);
+                // Filter out any falsy values from the results array
+                return results.filter(Boolean);
             })();
-            
+
         // console.log("travel booking .......", travel)
+            // const travelWithCash = await (async () => {
+            //     const filteredBooking = bookingDoc.filter(booking => 
+            //         booking?.cashAdvanceSchema?.travelRequestData?.travelRequestStatus === 'pending booking'
+            //     );                
+                            
+            //     return filteredBooking.map(booking => {
+            //         const { travelRequestData } = booking?.cashAdvanceSchema;
+            //         const { travelRequestId,createdBy, travelRequestNumber,itinerary,tripPurpose,tripName, travelRequestStatus , isCashAdvanceTaken, assignedTo} = travelRequestData;
+            //         const { empId}= createdBy
+            //         const grade = await gradeForEmployee(empId);
+
+            //         const itineraryToSend = extractItinerary(itinerary)
+            //         const tripStartDate = extractStartDate(itinerary)
+
+            //         return { travelRequestId,grade, travelRequestNumber,tripStartDate, tripPurpose,tripName,itinerary:itineraryToSend, travelRequestStatus, isCashAdvanceTaken , assignedTo};
+            //     }).filter(Boolean);
+            // })();
             const travelWithCash = await (async () => {
+                // Filter bookings where the travelRequestStatus is 'pending booking'
                 const filteredBooking = bookingDoc.filter(booking => 
                     booking?.cashAdvanceSchema?.travelRequestData?.travelRequestStatus === 'pending booking'
-                );                
-                            
-                return filteredBooking.map(booking => {
+                ); 
+            
+                // Process each filtered booking with an async function
+                const results = await Promise.all(filteredBooking.map(async (booking) => {
                     const { travelRequestData } = booking?.cashAdvanceSchema;
-                    const { travelRequestId, travelRequestNumber,itinerary,tripPurpose,tripName, travelRequestStatus , isCashAdvanceTaken, assignedTo} = travelRequestData;
-                    const itineraryToSend = extractItinerary(itinerary)
-                    const tripStartDate = extractStartDate(itinerary)
-
-                    return { travelRequestId, travelRequestNumber,tripStartDate, tripPurpose,tripName,itinerary:itineraryToSend, travelRequestStatus, isCashAdvanceTaken , assignedTo};
-                }).filter(Boolean);
+                    const { travelRequestId, createdBy, travelRequestNumber, itinerary, tripPurpose, tripName, travelRequestStatus, isCashAdvanceTaken, assignedTo } = travelRequestData;
+                    const { empId } = createdBy;
+            
+                    try {
+                        // Fetch the grade for the employee
+                        const grade = await gradeForEmployee(empId);
+            
+                        // Extract itinerary details
+                        const itineraryToSend = extractItinerary(itinerary);
+                        const tripStartDate = extractStartDate(itinerary);
+            
+                        // Return the processed booking
+                        return {
+                            travelRequestId,
+                            grade,
+                            createdBy,
+                            travelRequestNumber,
+                            tripStartDate,
+                            tripPurpose,
+                            tripName,
+                            itinerary: itineraryToSend,
+                            travelRequestStatus,
+                            isCashAdvanceTaken,
+                            assignedTo
+                        };
+                    } catch (error) {
+                        console.error(`Error processing booking ${travelRequestId}:`, error);
+                        return null; // Return null for any booking that failed to process
+                    }
+                }));
+            
+                // Filter out any falsy values from the results array
+                return results.filter(Boolean);
             })();
+            
 
             // console.log("travel booking .......", travelWithCash)
+            // const trips = await (async () => {
+            //     const filteredBooking = bookingDoc.filter(booking => 
+            //         booking?.tripSchema?.travelRequestData?.travelRequestStatus === 'booked' && 
+            //         booking?.tripSchema?.travelRequestData?.isAddALeg == true
+            //     );
+            
+            //     return filteredBooking.map(booking => {
+            //         const { tripId, tripNumber, tripStatus,tripStartDate, travelRequestData } = booking.tripSchema;
+            //         const { travelRequestId,createdBy, travelRequestNumber,itinerary, tripPurpose,tripName, travelRequestStatus , isCashAdvanceTaken, assignedTo} = travelRequestData;
+            //         const { empId } = createdBy;
+            //         const grade = await gradeForEmployee(empId);
+
+            //         const itineraryToSend = extractItinerary(itinerary)
+
+            //         return { tripId,grade,
+            //             tripNumber,
+            //             tripStatus,tripStartDate, travelRequestId, travelRequestNumber, tripPurpose,tripName,itinerary:itineraryToSend, travelRequestStatus, isCashAdvanceTaken , assignedTo};
+            //     }).filter(Boolean)
+            // })();
             const trips = await (async () => {
+                // Filter bookings where the travelRequestStatus is 'booked' and isAddALeg is true
                 const filteredBooking = bookingDoc.filter(booking => 
                     booking?.tripSchema?.travelRequestData?.travelRequestStatus === 'booked' && 
-                    booking?.tripSchema?.travelRequestData?.isAddALeg == true
+                    booking?.tripSchema?.travelRequestData?.isAddALeg === true
                 );
             
-                return filteredBooking.map(booking => {
-                    const { tripId, tripNumber, tripStatus,tripStartDate, travelRequestData } = booking.tripSchema;
-                    const { travelRequestId, travelRequestNumber,itinerary, tripPurpose,tripName, travelRequestStatus , isCashAdvanceTaken, assignedTo} = travelRequestData;
-                    const itineraryToSend = extractItinerary(itinerary)
-
-                    return { tripId,
-                        tripNumber,
-                        tripStatus,tripStartDate, travelRequestId, travelRequestNumber, tripPurpose,tripName,itinerary:itineraryToSend, travelRequestStatus, isCashAdvanceTaken , assignedTo};
-                }).filter(Boolean)
+                const results = await Promise.all(filteredBooking.map(async (booking) => {
+                    const { tripId, tripNumber, tripStatus, tripStartDate, travelRequestData } = booking.tripSchema;
+                    const { travelRequestId, createdBy, travelRequestNumber, itinerary, tripPurpose, tripName, travelRequestStatus, isCashAdvanceTaken, assignedTo } = travelRequestData;
+                    const { empId } = createdBy;
+            
+                    try {
+                        const grade = await gradeForEmployee(empId);
+            
+                        // Extract itinerary details
+                        const itineraryToSend = extractItinerary(itinerary);
+            
+                        // Return the processed booking
+                        return {
+                            tripId,
+                            grade,
+                            createdBy,
+                            tripNumber,
+                            tripStatus,
+                            tripStartDate,
+                            travelRequestId,
+                            travelRequestNumber,
+                            tripPurpose,
+                            tripName,
+                            itinerary: itineraryToSend,
+                            travelRequestStatus,
+                            isCashAdvanceTaken,
+                            assignedTo
+                        };
+                    } catch (error) {
+                        console.error(`Error processing trip ${tripId}:`, error);
+                        return null; // Return null for any booking that failed to process
+                    }
+                }));
+            
+                // Filter out any falsy values from the results array
+                return results.filter(Boolean);
             })();
             
+            
             const tripsPaidAndCancelled = await (async () => {
+                // Filter bookings where the tripStatus is not 'cancelled' and travelRequestStatus is 'booked'
                 const filteredBooking = bookingDoc.filter(booking => 
                     booking?.tripSchema?.travelRequestData?.tripStatus !== 'cancelled' &&
                     booking?.tripSchema?.travelRequestData?.travelRequestStatus === 'booked'
                 );
             
-                return filteredBooking.flatMap(booking => {
-                    const { tripId, tripNumber, tripStatus, travelRequestData } = booking.tripSchema;
-                    const { itinerary } = travelRequestData;
+                // Process each filtered booking with an async function
+                const results = await Promise.all(filteredBooking.map(async (booking) => {
+                    const { tripId, tripNumber, tripStartDate, tripStatus, travelRequestData } = booking.tripSchema;
+                    const { travelRequestId, itinerary, createdBy, travelRequestNumber, tripPurpose, tripName, travelRequestStatus, isCashAdvanceTaken, assignedTo } = travelRequestData;
+                    const { empId } = createdBy;
             
-                    return Object.entries(itinerary).flatMap(([category, items]) => {
-                        return items.filter(item => item.status === 'paid and cancelled').map(item => ({
+                    try {
+                        // Fetch the grade for the employee
+                        const grade = await gradeForEmployee(empId);
+            
+                        // Extract itinerary details
+                        const itineraryToSend = extractItinerary(itinerary);
+            
+                        // Return the processed booking
+                        return {
                             tripId,
+                            grade,
                             tripNumber,
                             tripStatus,
-                            travelRequestId: travelRequestData.travelRequestId,
-                            travelRequestNumber: travelRequestData.travelRequestNumber,
-                            tripPurpose: travelRequestData.tripPurpose,
-                            travelRequestStatus: travelRequestData.travelRequestStatus,
-                            itineraryName: category,
-                            itineraryId: item.itineraryId,
-                            status: item.status
-                        }));
-                    });
-                });
-            })();
+                            tripStartDate,
+                            travelRequestId,
+                            travelRequestNumber,
+                            tripPurpose,
+                            tripName,
+                            itinerary: itineraryToSend,
+                            travelRequestStatus,
+                            isCashAdvanceTaken,
+                            assignedTo
+                        };
+                    } catch (error) {
+                        console.error(`Error processing trip ${tripId}:`, error);
+                        return null; // Return null for any booking that failed to process
+                    }
+                }));
             
+                // Flatten and filter out any falsy values from the results array
+                return results.filter(Boolean);
+            })();
+    
             const pendingBooking = [ ...travel, ...travelWithCash];
             const paidAndCancelledTrips = [...tripsPaidAndCancelled];
             const pendingBookingTrips = [...trips];
