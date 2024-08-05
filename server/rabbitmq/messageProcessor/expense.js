@@ -5,10 +5,13 @@ export const expenseReport = async(payload) => {
     try{
     console.log("Trying to update expense report for approval", payload);
     const { getExpenseReport: { tenantId, tripId, travelRequestData, expenseAmountStatus, travelExpenseData } } = payload;
+    const {travelRequestId} = travelRequestData
     const {getExpenseReport} = payload
 
-    const expenseReport = await Approval.findOneAndUpdate({'tripSchema.tenantId': tenantId, 'tripSchema.tripId': tripId}, 
-    {$set: {tripSchema: getExpenseReport}}, {upsert: true, new: true})
+    const expenseReport = await Approval.findOneAndUpdate({ tenantId,travelRequestId}, 
+    {$set: {
+        tripSchema: getExpenseReport
+    }}, {upsert: true, new: true})
 
     if(!expenseReport) {
         return res.status(404).json({message: "failed to update expense report for approval"})

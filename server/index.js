@@ -9,15 +9,17 @@ import travelExpenseApprovalRoutes from './routes/travelExpenseApprovalRoutes.js
 import cashAdvance from './routes/cashAdvance.js';
 import { errorHandler } from './errorHandler/errorHandler.js';
 import startConsumer from './rabbitmq/consumer.js'
+import { getTravelRequestDetails } from './controllers/travelApproval.js';
+import { Approval } from './models/approvalSchema.js';
 // Load environment variables using dotenv
-dotenv.config();
 
-const environment = process.env.NODE_ENV || 'development';
+const environment = process.env.NODE_ENV == 'prod' ? '.env.prod' :'.env';
+dotenv.config({path:environment});
+
 console.log(`Running in ${environment} environment`);
-console.log(`Database URI: ${config[environment].mongoURI}`);
-
 
 const MONGODB = process.env.MONGODB_URI;
+const port = process.env.PORT || 8085;
 
 const app = express();
 
@@ -42,6 +44,9 @@ const mongodb = async () => {
   try {
     await mongoose.connect(MONGODB);
     console.log('You are Connected to Mongodb');
+    app.listen(port, () => {
+      console.log(`Server is running on port ${port}`);
+    });
   } catch (error) {
     console.error('Error connecting to Mongodb:', error);
   }
@@ -56,10 +61,9 @@ startConsumer('approval')
 // Use the errorHandler middleware at the end
 app.use(errorHandler);
 
-const port = process.env.PORT || 8085;
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
-});
+
+
+
 
 
 

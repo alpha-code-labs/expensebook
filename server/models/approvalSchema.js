@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import {tripSchema} from './tripSchema.js';
+import { reimbursementSchema } from './reimbursementSchema.js';
 
 const travelRequestStatusEnums = [
   'draft', 
@@ -655,6 +656,10 @@ const approvalSchema = new mongoose.Schema({
         },
       ],    
     tripSchema: tripSchema, // used when expense sends expense for approval entire tripData is updated
+    reimbursementSchema:{
+      type:reimbursementSchema,
+      required:false,
+    },
     notificationSentToDashboardFlag: Boolean,
   });
   
@@ -698,8 +703,7 @@ approvalSchema.pre('save ', async function (next) {
   }
 });
   
-export const Approval = mongoose.model('ApprovalMonday', approvalSchema);
-  
+export const Approval = mongoose.model('Approval', approvalSchema);
 
 
 
