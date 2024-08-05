@@ -55,8 +55,9 @@ export {default as bus} from './bus.png'
 export {default as check_tick} from './check-tick.svg';
 export {default as user_icon} from './usericon.png';
 export {default as spinner_icon} from './spinner.gif';
-export {default as violation_ySym_icon} from './validation-sym copy.svg';
+export {default as violation_ySym_icon} from './violation_icon.png';
 export {default as loading_icon} from './loading2.svg';
 export {default as clock_icon} from './clock.svg';
+export {default as briefcase_icon} from './briefcase.svg';
 
 
