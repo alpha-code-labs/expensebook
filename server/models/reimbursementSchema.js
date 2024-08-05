@@ -3,6 +3,9 @@ import mongoose from 'mongoose';
 // Define constant enums for expenseStatus and expenseHeaderType
 const expenseHeaderStatusEnums = [
   'draft',
+  'pending approval',
+  'approved',
+  'rejected',
   'paid',
   'pending settlement',
   'cancelled',
@@ -11,12 +14,16 @@ const expenseHeaderStatusEnums = [
 
 const lineItemStatusEnums = [
   'draft',
-  'save',
+  'pending approval',
   'submit',
-  'delete'
+  'delete',
+  'approved',
+  'rejected'
 ]
 
 const expenseHeaderTypeEnums = ['reimbursement'];
+const approverStatusEnums = ["pending approval", "approved", "rejected"];
+
 
 const expenseLineSchema = new mongoose.Schema({
     lineItemId:mongoose.Schema.Types.ObjectId,
@@ -95,6 +102,16 @@ travelAllocationFlags:{ //Comes from HRMaster -Based on this expense booking scr
   level2:Boolean,
   level3:Boolean,
 },
+approvers: [
+  {
+    empId: String,
+    name: String,
+    status: {
+      type: String,
+      enum: approverStatusEnums,
+    },
+  },
+],
 expenseLines: [expenseLineSchema],
 expenseViolations: [String],
 actionedUpon:{

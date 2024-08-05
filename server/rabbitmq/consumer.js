@@ -4,6 +4,7 @@ import { TravelAndCashUpdate, cancelTravelWithCash, itineraryAddedToTravelReques
 import dotenv from 'dotenv';
 import { expenseReport } from './messageProcessor/expense.js';
 import { deleteReimbursement, updateReimbursement } from './messageProcessor/reimbursement.js';
+import { approveRejectTravelRequests, nonTravelApproval } from './messageProcessor/dashboard.js';
 
 dotenv.config();
   
@@ -67,8 +68,7 @@ export default async function startConsumer(receiver){
   
   console.log(`Asserting queue: ${queue}`);
   await channel.assertQueue(queue, { durable: true });
-   
-  
+
   console.log(`Binding queue ${queue} to exchange ${exchangeName}`);
   await channel.bindQueue(queue, exchangeName, routingKey);
   
@@ -203,7 +203,35 @@ export default async function startConsumer(receiver){
             console.log('update failed with error code', res.error)
           }
 
-        }}else if (source == 'expense'){
+        }
+        if(action == 'nte-full-update'){
+          const res = await nonTravelApproval(payload);
+          if(res.success){
+            //acknowledge message
+            channel.ack(msg)
+            console.log('message processed successfully')
+          }
+          else{
+            //implement retry mechanism
+            console.log('update failed with error code', res.error)
+          }
+
+        }
+        if(action == 'approve-reject-tr'){
+          console.log('approve-reject-tr')
+          const res = await approveRejectTravelRequests(payload)
+          console.log(res);
+          console.log(payload)
+          if (res.success) {
+              //acknowledge message
+              channel.ack(msg);
+              console.log("message processed successfully");
+          } else {
+              //implement retry mechanism
+              console.log("update failed with error code", res.error);
+          }
+      }
+      }else if (source == 'expense'){
           if(action == 'full-update'){
               console.log('expense report for approval', payload)
               const res = await expenseReport(payload);
