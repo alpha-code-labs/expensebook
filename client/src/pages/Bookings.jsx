@@ -464,7 +464,8 @@ export default function () {
 
         setTimeout(()=>{
             //window.location.href = `${DASHBOARD_URL}/${formData.tenantId}/${formData.createdBy.empId}/overview`
-            window.location.href = `${DASHBOARD_URL}/${formData.tenantId}/${formData.assignedTo.empId}/bookings`
+            //window.location.href = `${DASHBOARD_URL}/${formData.tenantId}/${formData.assignedTo.empId}/bookings`
+            window.parent.postMessage('closeIframe', DASHBOARD_URL);
         }, 3000)
         
     }
