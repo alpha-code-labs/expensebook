@@ -13,13 +13,14 @@ import Select from "../components/common/Select";
 import ActionButton from "../components/common/ActionButton";
 import { approveCashAdvanceApi, approveLineItemApi, approveTravelRequestApi, getTravelDataforApprovalApi, rejectCashAdvanceApi, rejectLineItemApi, rejectTravelRequestApi } from "../utils/api";
 import Modal from "../components/common/Modal";
+import { StatusBox, TripName } from "../components/common/TinyComponent";
 
 
 
 export default function () {
     const navigate = useNavigate()
     const DASHBOARD_PAGE_URL = import.meta.env.VITE_DASHBOARD_PAGE_URL
-    const REDIRECTION_URL = import.meta.env.VITE_REDIRECTION_URL
+
     
    
     const {travelRequestId ,empId,tenantId} = useParams()
@@ -47,7 +48,7 @@ export default function () {
             //handle approval
             console.log(itnId,action)
             approveLineItemApi("tenant123","emp123","trip123","iti123")
-            window.location.href= REDIRECTION_URL
+            window.location.href= DASHBOARD_PAGE_URL
         }
         if(action == 'rejected'){
             //handle rejection
@@ -55,7 +56,7 @@ export default function () {
             rejectLineItemApi("tenant123","emp123","trip123","iti123",{
                 reason:"test"
             })
-            window.location.href= REDIRECTION_URL
+            window.location.href= DASHBOARD_PAGE_URL
         }
     }
 
@@ -245,11 +246,14 @@ totalViolations = totalTravelViolations +  totalCashViolations || 0;
         </div>
 
        
-        <div className="w-full h-full mt-10 p-10 font-cabin tracking-tight ">
-            <div className='flex justify-between'>
+        <div className="w-full h-full mt-10 p-10 font-cabin tracking-tight">
+            <div className="flex justify-between">
+            <div className='flex flex-col justify-between py-2'>
                 <p className="text-2xl text-neutral-600 mb-5">{`${travelData?.tripPurpose}`}</p>
-                
-                {travelRequestStatus === 'pending approval' && 
+
+                    <TripName tripName={travelData?.tripName}/>
+
+                {/* {travelRequestStatus === 'pending approval' && 
                 <div className="flex gap-4">
                     <div >
                         <ActionButton text={titleCase('approve' )} onClick={()=>handleAction('','travel-approve')}/>
@@ -258,17 +262,25 @@ totalViolations = totalTravelViolations +  totalCashViolations || 0;
                         <ActionButton text={'Reject'}     onClick={()=>handleAction('','travel-reject')}/>
                     </div>
                     
-                </div>}
+                </div>} */}
+
                 
              
             </div>
+
+            <StatusBox status={travelData?.travelRequestStatus} />
+            </div>
+           
+           
             <div className="border-y-[1px] border-slate-300 py-4">
 <div className=" md:w-1/5 w-full  flex  border-[1px] border-slate-300 rounded-md flex-row items-center gap-2 p-2 ">
     <div className="bg-slate-200 rounded-full p-4 shrink-0 w-auto">
       <img src={user_icon} className="w-[22px] h-[22px] "/>
     </div>
    <div className='font-cabin '>
-      <p className=" text-neutral-600 text-xs ">Created By</p>
+      <p className=" text-neutral-600 text-xs ">
+        Created By
+        </p>
     
     <p className="text-purple-500 capitalize">
         {travelData?.createdBy?.name}
@@ -405,7 +417,7 @@ totalViolations = totalTravelViolations +  totalCashViolations || 0;
                 </div>
             } */}
 
-            <Modal showModal={showModal} setShowModal={setShowModal} >
+            <Modal showModal={showModal} setShowModal={setShowModal}>
             <div className="p-10 bg-white-100 rounded-md">
                         <p className="text-xl text-start font-cabin text-neutral-600 ">Click on confirm for <span className="capitalize text-indigo-600">{actionData?.action}!</span></p>
                         { (actionData?.action === 'travel-reject' || actionData?.action === 'cashadvance-reject' ||actionData?.action === 'itinerary-reject') &&
@@ -425,9 +437,8 @@ totalViolations = totalTravelViolations +  totalCashViolations || 0;
                            
                             <Button  text='Confirm' onClick={handleConfirm} />
                             
-                           
                         </div>
-                    </div>
+            </div>
 
             </Modal>
         </div>

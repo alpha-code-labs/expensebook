@@ -16,6 +16,15 @@ function titleCase(str){
   }
 }
 
+
+function splitTripName(tripName){
+  if(tripName){ 
+  return tripName?.split('(')[0];}
+  else{
+    "-"
+  }
+}
+
 // Example usage:
 // titleCase("hello world"); // replace with your own test cases
 
@@ -55,6 +64,8 @@ function formatDate(date=Date.now()) {
   function urlRedirection(url){
     window.location.href=(url)
   }
+
+  
 
   function addOrdinalIndicator(day) {
     if (day >= 11 && day <= 13) {
@@ -150,23 +161,34 @@ export function isoString(dateString){
 }
 
 
-  function getStatusClass(status){
-    switch(status){
-      case "approved":
-        return 'bg-green-100 text-green-200';
-      case "rejected":
-      case "cancelled":  
-        return 'bg-red-100 text-red-900';
-      case "pending settlement":
-      case "pending approval": 
-      case "pending": 
-        return 'bg-yellow-100 text-yellow-200';
-      default:
-        return " ";  
+function getStatusClass(status){
+  switch(status){
+    case "approved":
+      case "completed":
+      case "booked":
+      case "intransit":
+      case "upcoming":
+      case "save":
+      case "paid":
+      case "recovered":
+      return 'border border-green-200 bg-green-100 text-green-200 rounded-full';
+    case "rejected":
+    case "cancelled":  
+    case "paid and cancelled":  
+      return 'border border-red-900 bg-red-100 text-red-900 rounded-full';
+    case "pending settlement":
+    case "pending approval": 
+    case "pending booking": 
+    case "pending": 
+    case "transit":
+    case "draft":
+      return 'border border-yellow-200 bg-yellow-100 text-yellow-200 rounded-full';
+    default:
+      return " ";  
 
-    }
-  }  
+  }
+}   
   
 
-export {titleCase, formatDate, formatDate2 ,getStatusClass,urlRedirection,formatAmount}  
+export {splitTripName, titleCase, formatDate, formatDate2 ,getStatusClass,urlRedirection,formatAmount}  
 

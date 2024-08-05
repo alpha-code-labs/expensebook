@@ -3,6 +3,7 @@ import  {actionTitle} from '../components/common/titleText'
 import {validation_sym,cab_purple,double_arrow, violation_ySym_icon, calender, money} from '../assets/icon';
 import { formatAmount, formatDate, getStatusClass,titleCase } from '../utils/handyFunctions';
 import ActionButton from '../components/common/ActionButton';
+import { StatusBox } from '../components/common/TinyComponent';
 
 
 const CashAdvanceDetails = ({handleAction,cashAdvancesData,travelRequestStatus}) => {
@@ -29,22 +30,27 @@ const filterCashAdvance = cashAdvancesData?.filter(item => item?.cashAdvanceStat
   <div className='flex flex-col gap-4'>
  {filterCashAdvance?.map((item, index)=>(<React.Fragment key={index} >
   
-  <div className='h-auto w-auto rounded-md border-[1px] border-slate-300 bg-slate-50 hover:border-purple-500'>   
-    <div className='flex '>
+  <div className='relative h-auto w-auto rounded-md border-[1px] border-slate-300 bg-slate-50 hover:border-purple-500'>   
+  <div className='absolute '>
+  <StatusBox status={item.cashAdvanceStatus} />
+  </div>
+ 
+<div className='flex'>
   
-<div className='relative flex-1 flex flex-col justify-center items-center border py-2'>
+<div className='relative flex-1 flex flex-col justify-center items-center border-r py-2'>
 {['approved', 'paid'].includes(item.cashAdvanceStatus) &&<div className='absolute  rounded-sm right-0 top-0 px-2 py-1 bg-green-100'><p className='capitalize text-sm text-green-200'>{item.cashAdvanceStatus}</p></div>}
 <img src={money} className='w-8 h-8'/>
-<div className='inline-flex justify-center items-center gap-2 '>
+<div className='inline-flex justify-center items-center gap-2'>
   <img src={calender} className='w-4 h-4'/>
   <p className=' lg:text-[14px] text-[16px]  font-medium tracking-[0.03em] text-neutral-800 font-cabin lg:truncate '>{formatDate(item?.cashAdvanceRequestDate)}</p>
 </div>
-<div className='flex '>
+<div className='flex'>
         <p className='font-cabin font-normal text-md text-neutral-600'>{`Cash-Advance No. : ${item?.cashAdvanceNumber}`}</p>
 </div>
 
 
 </div>
+
 {/* <div className='flex-1'>
 
   <table className="text-xs border w-full">
@@ -70,30 +76,32 @@ const filterCashAdvance = cashAdvancesData?.filter(item => item?.cashAdvanceStat
 </table>
 
 </div> */}
-<div className='flex-1 '>
-  <table className="text-xs border-collapse border w-full min-h-[100px]">
-    <thead>
-      <tr className='font-cabin font-normal text-sm text-neutral-600 bg-slate-100'>
-        <th className="py-2 px-4">Advance Amount</th>
-        <th className="py-2 px-4">Preferred Mode</th>
-      </tr>
-    </thead>
-    <tbody className='text-center'>
+<div className='flex-1 rounded-md w-full   '>
+  <div className="text-xs  w-full min-h-[100px] rounded-md">
+   
+    <div className='w-full flex justify-between bg-slate-100 text-sm rounded-md'>
+      
+        <p className="py-2 px-4">Advance Amount</p>
+        <p className="py-2 px-4">Preferred Mode</p>
+    
+    </div>
+    
+    <div className=' flex flex-col text-center  justify-between'>
       {item.amountDetails.map((caItem, index) => (
         <React.Fragment key={index}>
-          <tr className='capitalize hover:bg-gray-50'>
-            <td className='py-2 px-4'>{caItem?.currency?.shortName ?? ""} {formatAmount(caItem?.amount)}</td>
-            <td className='py-2 px-4'>{caItem?.mode}</td>
-          </tr>
+          <div className='flex  justify-between items-center capitalize hover:bg-gray-50'>
+            <p className='py-2 flex-1  px-4'>{caItem?.currency?.shortName ?? ""} {formatAmount(caItem?.amount)}</p>
+            <p className='py-2 flex-1 px-4 text-center '>{caItem?.mode ?? "-"}</p>
+          </div>
         </React.Fragment>
       ))}
-    </tbody>
-  </table>
+    </div>
+  </div>
 </div>
 
 
-{/* cash advance detais */}
- {/* <div className='flex flex-1 h-[78px]  items-center justify-center border '>
+{/* cash advance details */}
+{/* <div className='flex flex-1 h-[78px] items-center justify-center border'>
 
   <div >
     <img src={money}/>
@@ -131,11 +139,13 @@ const filterCashAdvance = cashAdvancesData?.filter(item => item?.cashAdvanceStat
   </div>
       </div> */}
     {/* //action button */}
-    {item.cashAdvanceStatus === 'pending approval' &&
+    {/* {item.cashAdvanceStatus === 'pending approval' &&
      <div className='flex flex-1  h-auto md:h-[78px] justify-center items-center flex-col md:flex-row gap-2 py-2 px-3 '>
      <ActionButton disabled={travelRequestStatus === 'pending approval' ? true : false} text={titleCase('approve')} onClick={()=>handleAction(item?.cashAdvanceId ,'cashadvance-approve')}/>
       <ActionButton disabled={travelRequestStatus === 'pending approval' ? true : false} text={titleCase('reject')} onClick={()=>handleAction(item?.cashAdvanceId ,'cashadvance-reject')}/>
-     </div>}
+     </div>} */}
+
+    
    
 
     
@@ -144,10 +154,10 @@ const filterCashAdvance = cashAdvancesData?.filter(item => item?.cashAdvanceStat
 
 
     {item?.cashAdvanceViolations?.length > 0 && 
-        <div className="w-full h-auto bg-slate-100 rounded flex gap-2 text-yellow-500 px-4 py-2 ">
-        <img src={violation_ySym_icon} alt='validation'/>
+        <div className="w-full items-center justify-start border-t border-t-slate-300 h-auto bg-yellow-100  rounded-b-md flex gap-2 text-yellow-500 px-4 py-2 ">
+        <img src={violation_ySym_icon} className='w-4 h-4' alt='validation'/>
         
-        <p className="font-inter text-normal ">{item?.cashAdvanceViolations}</p>
+        <p className="font-inter text-sm ">{item?.cashAdvanceViolations}</p>
         </div>} 
     </div>
    
