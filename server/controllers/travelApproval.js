@@ -61,15 +61,16 @@ export const getTravelRequestDetails = async (req, res) => {
       console.log("approvals not found", res.status)
     }
     const { travelRequestData , cashAdvancesData} = approval
+    const {itinerary} = travelRequestData
     console.log("found approval", approval)
-   if (travelRequestData.isCashAdvanceTaken ) {
+  if (travelRequestData.isCashAdvanceTaken ) {
     console.error('CashAdvanceTaken:', travelRequestData.isCashAdvanceTaken);
-       return res.status(200).json({ success: true , travelRequestData, cashAdvancesData})
-   } else {
+      return res.status(200).json({ success: true , travelRequestData, cashAdvancesData})
+  } else {
     console.error('cashAdvance not taken ', travelRequestData.isCashAdvanceTaken);
     
-       return res.status(200).json({success: true, travelRequestData, cashAdvancesData:[]});
-   }
+      return res.status(200).json({success: true, travelRequestData, cashAdvancesData:[]});
+  }
 
     // Return the filtered travel request details
   } catch (error) {
