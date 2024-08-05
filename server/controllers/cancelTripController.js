@@ -2,6 +2,7 @@ import Trip from '../models/tripSchema.js';
 import { sendToDashboardMicroservice } from '../rabbitmq/dashboardMicroservice.js';
 import { sendToOtherMicroservice } from '../rabbitmq/publisher.js';
 import { filterFutureFlights } from '../utils/dateUtils.js';
+import { employeeSchema } from './modifyTrips.js';
 
 // 1) get trip details -- for cancellation 
 // Trip cancellation 
