@@ -2,7 +2,7 @@ import axios from 'axios';
 
 
 const DASHBOARD_BACKEND_API_URL = import.meta.env.VITE_DASHBOARD_BACKEND_API_URL;
-const APPROVAL_BACKEND_API_URL = import.meta.env.VITE_APPROVAL_BACKEND_API_URL;
+// const APPROVAL_BACKEND_API_URL = import.meta.env.VITE_DASHBOARD_BACKEND_API_URL;
 
 const retry = 2;
 const retryDelay = 3000;
@@ -184,7 +184,7 @@ export const approveTravelRequestApi = async(data)=>{
   // }else{
   //   url = `${APPROVAL_BACKEND_API_URL}/api/fe/approvals/tr-ca/approve-tr-standalone/${tenantId}/${empId}/${travelRequestId}`
   // }
-  let url = `${APPROVAL_BACKEND_API_URL}/api/fe/dashboard/approval/${tenantId}/${empId}/approve`
+  let url = `${DASHBOARD_BACKEND_API_URL}/api/fe/dashboard/approval/${tenantId}/${empId}/approve`
   
     try{
        const response = await axiosRetry(axios.patch,url,{travelRequests})
@@ -207,7 +207,7 @@ export const approveTravelRequestApi = async(data)=>{
   export const rejectTravelRequestApi = async(data)=>{
     const {tenantId, empId, travelRequests,rejectionReason} = data
   
-    let url = `${APPROVAL_BACKEND_API_URL}/api/fe/dashboard/approval/${tenantId}/${empId}/reject`
+    let url = `${DASHBOARD_BACKEND_API_URL}/api/fe/dashboard/approval/${tenantId}/${empId}/reject`
     
       try{
          const response = await axiosRetry(axios.patch,url,{travelRequests,rejectionReason})
@@ -249,7 +249,7 @@ export const approveTravelRequestApi = async(data)=>{
     export const nonTravelExpenseApprovalActionApi = async(data,payload)=>{
       const {tenantId,empId,expenseHeaderId} = data
     
-      let url = `${APPROVAL_BACKEND_API_URL}/api/fe/dashboard/approval/${tenantId}/${empId}/${expenseHeaderId}`
+      let url = `${DASHBOARD_BACKEND_API_URL}/api/fe/dashboard/approval/${tenantId}/${empId}/${expenseHeaderId}`
       
         try{
            const response = await axiosRetry(axios.patch,url,payload)

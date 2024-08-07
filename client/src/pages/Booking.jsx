@@ -1,29 +1,26 @@
 import React, { useEffect, useState } from 'react';
-import { briefcase, modify, receipt, receipt_icon1, categoryIcons, filter_icon, plus_violet_icon, cancel, search_icon, info_icon, airplane_1, airplane_icon1, plus_icon, grade_icon } from '../assets/icon';
-import { checkUpcomingTrip, extractTripNameStartDate, filterByTimeRange, formatAmount, getStatusClass, sortTripsByDate, splitTripName } from '../utils/handyFunctions';
-import {dummyTravelReqForBooking ,dummyPaidAndCancelledTrips} from '../utils/dummyData';
-import { handleNonTravelExpense, handleTravelExpense } from '../utils/actionHandler';
+import { filter_icon, cancel, search_icon, info_icon, airplane_icon1, plus_icon } from '../assets/icon';
+import { checkUpcomingTrip, filterByTimeRange,  sortTripsByDate, sortTripsForBooking, } from '../utils/handyFunctions';
+import {dummyTravelReqForBooking, dummyPaidAndCancelledTrips} from '../utils/dummyData';
 import { CabCard, FlightCard, HotelCard, RentalCabCard } from '../components/itinerary/BookingItineraryCard';
 import Modal from '../components/common/Modal1';
 import { useParams } from 'react-router-dom';
 import { useData } from '../api/DataProvider';
-import TripSearch from '../components/common/TripSearch';
 import Button1 from '../components/common/Button1';
 import Error from '../components/common/Error';
-import SearchComponent from '../components/common/ExpenseSearch';
 import Input from '../components/common/SearchInput';
 import { CardLayout, StatusFilter, TripName } from '../components/common/TinyComponent';
 import TravelMS from '../microservice/TravelMS';
-import CurrencyInput from '../components/common/currency/CurrencyInput'
+import CurrencyInput from '../components/common/currency/CurrencyInput';
 import { currenciesList } from '../utils/data/currencyList';
 import Button from '../components/common/Button';
-import { rejectTravelRequestApi, travelAdminRecoverTripApi } from '../utils/api';
+import { travelAdminRecoverTripApi } from '../utils/api';
 import PopupMessage from '../components/common/PopupMessage';
 import { motion } from 'framer-motion';
 
 
 
-const Booking = ({isLoading ,fetchData,loadingErrMsg}) => {
+const Booking = ({isLoading, fetchData, loadingErrMsg}) => {
 
 const travelBaseUrl  = import.meta.env.VITE_TRAVEL_PAGE_URL;
 const cashBaseUrl = import.meta.env.VITE_CASHADVANCE_PAGE_URL;
@@ -154,11 +151,12 @@ const handleConfirm = async (action) => {
     const data = employeeData?.dashboardViews?.businessAdmin || [];
 
     const travelRequests = data?.pendingBooking || [];
+    //const paidAndCancelledTrips = data?.paidAndCancelledTrips || []
     //const travelRequests = [ ...dummyTravelReqForBooking];
-    const paidAndCancelledTrips = [...dummyPaidAndCancelledTrips]
+    const paidAndCancelledTrips = [...dummyPaidAndCancelledTrips] || []
 
-    sortTripsByDate(travelRequests)
-    sortTripsByDate(paidAndCancelledTrips)
+    sortTripsForBooking(travelRequests)
+    sortTripsForBooking(paidAndCancelledTrips)
     
     setTripData((prev)=>({...prev, tripsForBooking:travelRequests || [], tripsForRecover:paidAndCancelledTrips || []}))}
     else{
@@ -259,6 +257,7 @@ const handleConfirm = async (action) => {
   console.log('sorted itn', sortedItnArray)
   return sortedItnArray
   }
+
   const getTitle = () => {
     switch (actionType) {
       case 'recoverTrip':
@@ -275,7 +274,7 @@ const handleConfirm = async (action) => {
           <>
           <p className="text-md px-4 text-start font-cabin text-neutral-600">
   {actionType === "recoverTrip"
-    && 'Once you recover this trip, the canceled trip amount will be recovered.'
+    && 'Once you recover this trip, the cancelled trip amount will be settled.'
     }
 </p>
 
@@ -292,6 +291,7 @@ const handleConfirm = async (action) => {
         return '';
     }
   };
+
   const [showItinerary, setShowItinerary] = useState(false);
 
   const toggleItineraryVisibility = (index) => {
@@ -303,6 +303,33 @@ const handleConfirm = async (action) => {
     // setShowItinerary(!showItinerary);
   };
 
+  useEffect(() => {
+    const handleMessage = event => {
+      console.log(event)
+      // Check if the message is coming from the iframe
+      if (event.origin === travelBaseUrl || event.origin === cashBaseUrl) {
+        console.log('event data from booking', event)
+        // Check the message content or identifier
+        if (event.data === 'closeIframe') {
+          setVisible(false)
+        }
+         // Check the message content or identifier
+         if (event.data === 'closeIframe') {
+          setVisible(false)
+          window.location.href = window.location.href;
+        }
+        
+      }
+    };
+    // Listen for messages from the iframe
+    window.addEventListener('message', handleMessage);
+  
+    return () => {
+      // Clean up event listener
+      window.removeEventListener('message', handleMessage);
+    };
+  }, []);
+
 
   
   return (
@@ -311,8 +338,9 @@ const handleConfirm = async (action) => {
     {!isLoading && 
     <div className='min-h-screen'>
       <TravelMS visible={visible} setVisible={setVisible} src={iframeURL}/>
-      <div className='flex flex-col w-full p-4  items-start gap-2'>
-      <div className='min-h-[120px]  flex-col border border-slate-300 bg-white rounded-md  w-full flex  items-start gap-2 px-2 py-2'>
+<div className='flex flex-col w-full p-4  items-start gap-2'>
+
+<div className='min-h-[120px] flex-col border border-slate-300 bg-white rounded-md  w-full flex  items-start gap-2 px-2 py-2'>
 
 <StatusFilter
 statuses={["48 Hours", "7 Days", "Within 30 Days", "Beyond 30 Days", "paid and cancelled"]}
@@ -323,8 +351,6 @@ filter_icon={filter_icon}
 getStatusClass={getStatusClass}
 getStatusCount={getStatusCount}
 setSelectedStatuses={setSelectedDateRange}
-
-
 />
 
 
@@ -345,27 +371,14 @@ setSelectedStatuses={setSelectedDateRange}
         <div className='w-full flex md:flex-row flex-col'>
           <div className='flex-1 justify-center items-center'>
           <div className='relative flex justify-center items-center rounded-md font-inter text-md text-white h-[52px] bg-indigo-600 text-center'>
-          {/* <div
-          onClick={()=>handleVisible({urlName:"travel-url"})}
-          onMouseEnter={() => setTextVisible({cashAdvance:true})}
-          onMouseLeave={() => setTextVisible({cashAdvance:false})}
-          className={`absolute  left-0 ml-4 hover:px-2 w-6 h-6 hover:overflow-hidden hover:w-auto group text-indigo-600 bg-indigo-100 border border-white flex items-center justify-center  hover:gap-x-1 rounded-full cursor-pointer transition-all duration-300`}
-          >
-          <img src={plus_violet_icon} width={16} height={16} alt="Add Icon" />
-          <p
-          className={`${
-          textVisible?.expense ? 'opacity-100' : 'opacity-0 w-0'
-          } whitespace-nowrap text-xs transition-all duration-300 group-hover:opacity-100 group-hover:w-auto`}
-          >
-          Raise a Travel Request
-          </p>
-          </div> */}
+          
               
               <div className='flex justify-center items-center'>
                 <img src={airplane_icon1} className='w-4 h-4 mr-2' />
                 <p>Trips</p>
               </div>
             </div>
+
             <div className='w-full mt-4 xl:h-[570px] lg:h-[370px] md:[590px] overflow-y-auto px-2 bg-white rounded-l-md'>
               {selectedDateRange === "paid and cancelled" ? 
                 <div>
@@ -383,8 +396,9 @@ setSelectedStatuses={setSelectedDateRange}
                 // }
                 return (
                 <>
-      <div key={index} className='flex border flex-col gap-y-2 w-full items-center hover:border hover:border-indigo-600 hover:bg-indigo-100 cursor-pointer justify-between mb-4 text-neutral-700 rounded-md shadow-custom-light bg-white p-4'>
-      <div onClick={toggleItineraryVisibility} className='flex flex-col sm:gap-0 gap-2 sm:flex-row w-full justify-between items-start sm:items-center'>
+    <CardLayout index={index}>
+      <div className='flex flex-col justify-between w-full py-2'>
+      <div onClick={(()=>toggleItineraryVisibility(index))} className='flex  flex-col sm:gap-0 gap-2 sm:flex-row w-full justify-between items-start sm:items-center'>
         <div className='flex flex-col w-full gap-2 items-start'>
           <div>
             <p className='header-title'>Created By</p>
@@ -396,13 +410,14 @@ setSelectedStatuses={setSelectedDateRange}
           </div>
         </div>
         <div className='flex w-full sm:justify-end justify-between gap-2 items-center'>
+        <div className='text-red-600 font-semibold font-inter text-sm'>{checkUpcomingTrip(trip?.tripStartDate)}</div>
           <div className='flex items-center justify-center space-x-2'>
-            {/* <img src={grade_icon} className='w-4 h-4'/> */}
+          
             <div className='w-fit bg-slate-100 px-2 py-1 flex gap-1 rounded-md border border-slate-300'>Grade
               <p className=''>{trip?.grade}</p>
             </div>
           </div>
-          <div className='text-red-600 font-semibold font-inter text-sm'>{checkUpcomingTrip(trip?.tripStartDate)}</div>
+
           <Button1 
             onClick={() => handleVisible({travelRequestId: trip?.travelRequestId, urlName: "bookingTravel"})} 
             text={
@@ -417,18 +432,18 @@ setSelectedStatuses={setSelectedDateRange}
 
       <motion.div
         initial={{ height: 0, opacity: 0 }}
-        animate={{ height: showItinerary ? 'auto' : 0, opacity: showItinerary ? 1 : 0 }}
+        animate={{ height: showItinerary === index ? 'auto' : 1, opacity: showItinerary ? 1 : 1 }}
         transition={{ duration: 0.3 }}
         className='w-full overflow-hidden'
       >
-        {showItinerary && (
+        {showItinerary === index && (
           <div className='flex flex-col gap-1'>
             {itineraryArray(trip?.itinerary).map((item, index) => {
               if (item?.category === "flights") {
                 return (
                   <FlightCard
                     status={item.status}
-                    key={index}
+                    key={index+1}
                     id={item.id}
                     from={item.from}
                     to={item.to}
@@ -445,7 +460,7 @@ setSelectedStatuses={setSelectedDateRange}
                 return (
                   <FlightCard
                     status={item.status}
-                    key={index}
+                    key={index+1}
                     id={item.id}
                     from={item.from}
                     to={item.to}
@@ -462,7 +477,7 @@ setSelectedStatuses={setSelectedDateRange}
                 return (
                   <FlightCard
                     status={item.status}
-                    key={index}
+                    key={index+1}
                     id={item.id}
                     from={item.from}
                     to={item.to}
@@ -479,7 +494,7 @@ setSelectedStatuses={setSelectedDateRange}
                 return (
                   <CabCard
                     status={item.status}
-                    key={index}
+                    key={index+1}
                     id={item.id}
                     from={item.pickupAddress}
                     to={item.dropAddress}
@@ -496,7 +511,7 @@ setSelectedStatuses={setSelectedDateRange}
                 return (
                   <RentalCabCard
                     status={item.status}
-                    key={index}
+                    key={index+1}
                     id={item.id}
                     from={item.pickupAddress}
                     to={item.dropAddress}
@@ -512,7 +527,7 @@ setSelectedStatuses={setSelectedDateRange}
                 return (
                   <HotelCard
                     status={item.status}
-                    key={index}
+                    key={index+1}
                     mode={"Hotel"}
                     id={item.id}
                     checkIn={item.checkIn}
@@ -531,6 +546,7 @@ setSelectedStatuses={setSelectedDateRange}
         )}
       </motion.div>
     </div>
+    </CardLayout>
                 
 
                 </>  
@@ -544,7 +560,7 @@ setSelectedStatuses={setSelectedDateRange}
 
          
         </div>
-      </div>
+</div>
 
       
 

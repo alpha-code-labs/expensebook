@@ -62,6 +62,7 @@ const Sidebar = ({setSidebarOpen, fetchData }) => {
             rejectedTravelRequests: data?.rejectedTravelRequests?.length || 0,
             rejectedCashAdvances: data?.rejectedCashAdvances?.length || 0,
             //employee manager
+            itineraryApproval:approvalData?.trips?.length || 0,
             trApproval: filteredTrApprovalData?.length || 0,
             trExpApproval: approvalData?.travelExpenseReports?.length || 0,
             nonTrExpApproval :approvalData?.nonTravelExpenseReports?.length || 0,
@@ -97,7 +98,7 @@ const Sidebar = ({setSidebarOpen, fetchData }) => {
     if (employeeRoles) {
 
         if (employeeRoles?.employeeRoles?.employeeManager) {
-            sidebarItems.push({ label: 'Approval', icon: approval_icon, icon1: approval_w_icon, url: '', count: (countData?.trApproval + countData?.trExpApproval + countData?.nonTrExpApproval) });
+            sidebarItems.push({ label: 'Approval', icon: approval_icon, icon1: approval_w_icon, url: '', count: (countData?.trApproval + countData?.trExpApproval + countData?.nonTrExpApproval + countData?.itineraryApproval || 0) });
         }
 
         if (employeeRoles?.employeeRoles?.businessAdmin) {

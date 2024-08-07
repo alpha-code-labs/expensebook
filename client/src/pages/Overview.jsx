@@ -116,7 +116,7 @@ console.log('travel request11', travelRequests)
     const handleMessage = event => {
       console.log(event)
       // Check if the message is coming from the iframe
-      if (event.origin === travelBaseUrl || event.origin === cashBaseUrl) {
+      if (event.origin === travelBaseUrl || event.origin === cashBaseUrl || event.origin === tripBaseUrl) {
         // Check the message content or identifier
         if (event.data === 'closeIframe') {
           setVisible(false)
@@ -197,10 +197,10 @@ const handleRaise = () => {
     <>
     {isLoading && <Error message={loadingErrMsg}/>}
     {!isLoading &&
-    <div className=" bg-indigo-50 min-h-screen flex items-center justify-center px-2 md:px-10">
+    <div className=" bg-indigo-50 min-h-screen flex items-start xl:items-center xl:pt-0 pt-4 justify-center px-2 md:px-10 ">
         {/* <TravelMS visible={visible} setVisible={setVisible} src={iframeURL}/> */}
-        <TripMS visible={visible} setVisible={setVisible} src={iframeURL}/>
-    <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 w-full overflow-hidden pb-2">
+        <TripMS visible={visible} setVisible={setVisible} src={iframeURL}/> 
+    <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 w-full overflow-x-auto pb-2">
     
      
 
@@ -504,7 +504,8 @@ const IntransitTrips = ({ index, trip, lastIndex,handleVisible }) => {
          
         </div>
         
-        {activeTabs === 'upcoming' &&
+        {activeTabs === 'upcoming' && upcomingItinerary.length >0 &&
+        // {upcomingItinerary.length >0 &&}
         <div
            onClick={()=>handleVisible({urlName:'trip-url',tripId:trip?.tripId})}
             onMouseEnter={() => setTextVisible({ modify: true })}

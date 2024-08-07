@@ -129,7 +129,9 @@ console.log('selected lineItems',selectedLineItems)
  
   
   const travelAndCashAdvances = approvalData?.travelAndCash || []
-  sortTripsByDate(travelAndCashAdvances)
+  const itineraries = approvalData?.trips || []
+  const travelAndItinerary =[ ...travelAndCashAdvances , ...itineraries]
+  sortTripsByDate(travelAndItinerary)
   const travelExpenses = approvalData?.travelExpenseReports || []
   const nonTravelExpenses = approvalData?.nonTravelExpenseReports || []
   const dummyTrExpense = TrExpenseForApproval?.map((expense)=> ({...expense,expenseType:"Travel Expense"})) || []
@@ -141,8 +143,8 @@ console.log('selected lineItems',selectedLineItems)
   console.log('dummy expense for approval ', DummyExpenseData)
   
  const handleSelectAll = () => {
-  if (travelAndCashAdvances?.length !== (selectAll?.length || 0)) {
-    const data = travelAndCashAdvances?.map((travel) => {
+  if (travelAndItinerary?.length !== (selectAll?.length || 0)) {
+    const data = travelAndItinerary?.map((travel) => {
       const item = { travelRequestId: travel?.travelRequestId };
       if (travel?.isCashAdvanceTaken) {
         item.cashAdvanceData = travel?.cashAdvance?.map((item) => ({ cashAdvanceId: item?.cashAdvanceId }));
@@ -769,9 +771,9 @@ Raise a Cash-Advance
 </div>
 
   <div className={` flex px-2 h-[52px] py-4  items-center justify-start gap-2`}>
-   {travelAndCashAdvances?.length > 0 &&
+   {travelAndItinerary?.length > 0 &&
    <>
-    <input type='checkbox' checked={travelAndCashAdvances?.length === selectAll.length ? true : false}  className='w-4 h-4 accent-indigo-600' onChange={handleSelectAll}/>
+    <input type='checkbox' checked={travelAndItinerary?.length === selectAll.length ? true : false}  className='w-4 h-4 accent-indigo-600' onChange={handleSelectAll}/>
     Select All
     <div>
     {selectAll.length > 0 && <ActionButton onRejectClick={() => openModal('rejectTrip')} onApproveClick={() => openModal('approveTrip')} approve={"Approve"} reject={"Reject"}/>}
@@ -781,7 +783,7 @@ Raise a Cash-Advance
   </div>
 
       <div className='w-full bg-white xl:h-[570px] lg:h-[370px] md:h-[590px] h-fit overflow-y-auto px-2'>
-          {filterCashadvances(travelAndCashAdvances).map((trip) => { 
+          {filterCashadvances(travelAndItinerary).map((trip) => { 
             return (
               <>
               <CardLayout index={trip?.tripId}>

@@ -1,6 +1,8 @@
 import { briefcase, categoryIcons, violation_icon } from "../../assets/icon";
 import { formatAmount, getStatusClass, splitTripName } from "../../utils/handyFunctions";
 
+
+
 const TripName = ({tripName})=>(
     <div className='flex gap-2 items-center '>
           <img src={briefcase} className='w-4 h-4'/>
