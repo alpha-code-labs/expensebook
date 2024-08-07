@@ -617,7 +617,7 @@ const TripRecoverCard = ({itineraryArray, tripId,tripName, createdBy, openModal,
        <div className='font-cabin text-xs text-neutral-700'>
           
           <TripName tripName={tripName}/>
-          {/* <div>{trip?.tripStartDate}</div> */}
+         
           
       </div>
       </div>
