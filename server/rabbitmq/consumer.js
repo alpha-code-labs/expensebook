@@ -3,7 +3,7 @@ import { updateHRMaster } from './messageProcessor/hrMaster.js';
 import { fullUpdateTravel, fullUpdateTravelBatchJob } from './messageProcessor/travel.js';
 import dotenv from 'dotenv';
 import { fullUpdateExpense } from './messageProcessor/travelExpenseProcessor.js';
-import { updateTrip, updateTripStatus, updateTripToCompleteOrClosed } from './messageProcessor/trip.js';
+import { addLeg, updateTrip, updateTripStatus, updateTripToCompleteOrClosed } from './messageProcessor/trip.js';
 import { fullUpdateCash, fullUpdateCashBatchJob } from './messageProcessor/cash.js';
 import { deleteReimbursement, updateReimbursement } from './messageProcessor/reimbursement.js';
 
@@ -221,6 +221,23 @@ export async function startConsumer(receiver) {
               if(payload){
                 const result = await updateTripToCompleteOrClosed(payload)
                 console.log("results after trip status updated to completed or closed  ", results)
+                if(result.success) {
+                    channel.ack(msg);
+                    console.log('Message processed successfully');
+                  } else {
+                    // Implement retry mechanism or handle error
+                    console.log('Update failed with error:', res.error);
+                  }
+                }
+              else{
+                console.error(Error,"Payload is not an array");
+              }
+            }
+            if(action == 'add-leg'){
+              if(payload){
+                "i am in add a leg"
+                const result = await addLeg(payload)
+                console.log("results after trip status updated to completed or closed  ", result)
                 if(result.success) {
                     channel.ack(msg);
                     console.log('Message processed successfully');

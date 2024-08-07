@@ -162,7 +162,7 @@ export const approveTravelWithCash = async (req, res) => {
     
       const approvedDoc = await cashApprovalDoc.save();
     
-      console.log("approvedDoc", JSON.stringify(approvedDoc, ' ', 2))
+      // console.log("approveTravelWithCash", JSON.stringify(approvedDoc, ' ', 2))
     const employee = cashApprovalDoc.cashAdvanceSchema.travelRequestData.createdBy.name;
     
    const payload = {
@@ -173,7 +173,7 @@ export const approveTravelWithCash = async (req, res) => {
       rejectionReason: cashApprovalDoc.cashAdvanceSchema.travelRequestData?.rejectionReason,
     };
     
-    console.log("payload",payload)
+    console.log(" approveTravelWithCash -payload",payload)
       } else {
         const { travelRequestSchema } = cashApprovalDoc;
         const { itinerary, approvers } = travelRequestSchema;
@@ -209,7 +209,7 @@ export const approveTravelWithCash = async (req, res) => {
     
        const approvedDoc = await cashApprovalDoc.save();
     
-       console.log("approvedDoc", JSON.stringify(approvedDoc, ' ', 2))
+       console.log("approveTravelWithCash", JSON.stringify(approvedDoc, ' ', 2))
     const employee = cashApprovalDoc.travelRequestSchema.createdBy.name;
     
     payload = {
@@ -220,7 +220,7 @@ export const approveTravelWithCash = async (req, res) => {
       rejectionReason: cashApprovalDoc.travelRequestSchema?.rejectionReason,
     };
     
-    console.log("payload",payload)
+    console.log("approveTravelWithCash payload",payload)
     }
 
 
@@ -346,7 +346,7 @@ const raisedLaterReqSchema = Joi.object({
 // }
 async function getReportsForApproval(tenantId, empId, travelRequestIds) {
   try {
-      console.log("I am here");
+      console.log("I am here", tenantId, empId, travelRequestIds);
 
       // Query the database for reports
       const getReports = await dashboard.find({
@@ -364,7 +364,7 @@ async function getReportsForApproval(tenantId, empId, travelRequestIds) {
                   }
               },
               {
-                  'cashAdvanceSchema.travelRequestData.travelRequestStatus': { $in: ['pending approval', 'approved', 'booked'] },
+                  'cashAdvanceSchema.travelRequestData.travelRequestStatus': { $in: ['pending approval', 'approved','pending booking', 'booked'] },
                   'cashAdvanceSchema.travelRequestData.isCashAdvanceTaken': true,
                   'cashAdvanceSchema.cashAdvancesData.cashAdvanceStatus': { $in: ['pending approval', 'draft'] },
                   'cashAdvanceSchema.cashAdvancesData.approvers': {
@@ -375,11 +375,10 @@ async function getReportsForApproval(tenantId, empId, travelRequestIds) {
       });
 
       if (getReports?.length) {
-          console.log("Hero", getReports);
-
+          // console.log("Hero", getReports);
 
           // Filter reports for travel requests
-          const travelReports = getReports.filter(report =>
+          const travelReports = getReports?.filter(report =>
               report?.travelRequestSchema &&
               report?.travelRequestSchema?.travelRequestStatus == 'pending approval' &&
               report?.travelRequestSchema?.approvers.some(approver =>
@@ -387,16 +386,18 @@ async function getReportsForApproval(tenantId, empId, travelRequestIds) {
               )
           );
 
-          console.log("Travel Reports", travelReports);
+          // console.log("Travel Reports", travelReports);
 
           // Filter reports for cash raised later
-          const cashReports = getReports.filter(report =>
+          const cashReports = getReports?.filter(report =>
               report?.cashAdvanceSchema &&
               ['approved', 'booked','pending booking'].includes(report?.cashAdvanceSchema?.travelRequestData?.travelRequestStatus) &&
               report?.cashAdvanceSchema?.travelRequestData.isCashAdvanceTaken === true &&
-              report?.cashAdvanceSchema.cashAdvancesData.cashAdvanceStatus.includes('pending approval') &&
-              report?.cashAdvanceSchema?.cashAdvancesData.approvers.some(approver =>
+              report?.cashAdvanceSchema.cashAdvancesData.some(advance =>
+                advance.cashAdvanceStatus.includes('pending approval') &&
+                advance.approvers.some(approver => 
                   approver.empId === empId && approver.status === 'pending approval'
+                )
               )
           );
 
@@ -405,6 +406,10 @@ async function getReportsForApproval(tenantId, empId, travelRequestIds) {
 
           return [travelReports, cashReports];
       }
+  //     else{
+  //       console.log("there are no documents")
+  //       return [[], []];
+  // }
   } catch (error) {
       throw new Error('Documents Not found for approval ...');
   }
@@ -442,7 +447,7 @@ export async function approveAll(req,res){
 
     if(travelReports.length ){
       console.log("its travel ms")
-      approvalDocs.push(approveAllTravelWithCash(tenantId, empId,travelReports))
+      // approvalDocs.push(approveAllTravelWithCash(tenantId, empId,travelReports))
     }
     if(cashReports.length){
       console.log("cash ms")
@@ -634,12 +639,23 @@ export const approveCashAdvance = async (tenantId, empId,cashReports) => {
   console.log("Starting cash advance approval process...");
   try {
 
-    const cashAdvanceIds = cashReports.flatMap(request =>
-      request.cashAdvanceData.map(cashAdvance => cashAdvance.cashAdvanceId)
+    // const cashAdvanceIds = cashReports.flatMap(request =>
+    //   request.cashAdvanceData.map(cashAdvance => cashAdvance.cashAdvanceId)
+    // );
+
+    const cashAdvanceIds = cashReports.flatMap(report =>
+      report.cashAdvanceSchema?.cashAdvancesData.map(cashAdvance => cashAdvance.cashAdvanceId) || []
     );
 
+    console.log(cashReports);
+console.log(cashAdvanceIds); 
+
+    
+
+    
+
     const getApproval = await updateCashAdvanceStatus(cashReports, cashAdvanceIds, empId,"approved");
-     
+
     console.log("getApproval", getApproval)
     const payload = getApproval.map(doc =>
       ({
@@ -667,13 +683,13 @@ export const approveCashAdvance = async (tenantId, empId,cashReports) => {
 
    if (sendReports) {
      console.log('Successfully updated cashAdvanceStatus',sendReports)
-     return res.status(200).json({ message: `Cash Advance approved for ${employee}` });
+     return ({ message: `Cash Advance approved for ${employee}` });
    } else {
      throw new Error('One or more microservices failed to process the request.');
    }    
  } catch (error) {
    console.error('An error occurred while updating approval:', error.message);
-   return res.status(500).json({ error: 'Failed to update approval.', error: error.message });
+   throw new Error({ error: 'Failed to update approval.', error: error.message });
  }
 };
 
@@ -1410,7 +1426,7 @@ export const rejectCashAdvance = async (tenantId, empId, cashApprovalDocs,reject
         console.error('An error occurred while updating approval:', error.message);
         return res.status(500).json({ error: 'Failed to update approval.', error: error.message });
       }
-  };
+};
 
 
 

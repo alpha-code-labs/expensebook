@@ -1777,7 +1777,8 @@ const approvalsForManager = async (tenantId, empId) => {
             
             const travel = await Promise.all(
                 approvalDoc
-                  .filter(approval =>
+                .filter(approval =>
+                    approval.travelRequestSchema.travelRequestStatus === 'pending approval'&&
                     approval.travelRequestSchema?.approvers &&
                     approval.travelRequestSchema.approvers.length > 0 &&
                     approval.travelRequestSchema.isCashAdvanceTaken === false &&
@@ -1794,8 +1795,8 @@ const approvalsForManager = async (tenantId, empId) => {
                     
                     // Await earliestDate if tripStartDate is not present
                     const tripStartDate = approval.travelRequestSchema.tripStartDate || await earliestDate(itinerary);
-                    
-                    const allBkdViolations = extractValidViolations(itinerary);
+                    const check= "preApproval"
+                    const allBkdViolations = extractValidViolations(itinerary, check);
                     const violationsCounter = countViolations(allBkdViolations);
                     
                     return {
@@ -1844,7 +1845,7 @@ const approvalsForManager = async (tenantId, empId) => {
                 )
 
 
-                console.log("approvalDoc", approvalDoc)
+                // console.log("approvalDoc", approvalDoc)
                 const cashAdvanceRaisedLater = await Promise.all(
                     approvalDoc
                         .filter(approval => {
@@ -1886,34 +1887,6 @@ const approvalsForManager = async (tenantId, empId) => {
                 );
                 
             console.log("cashAdvanceRaisedLater", cashAdvanceRaisedLater)
-
-            const addAleg = await (async() =>{
-                const filteredApprovals = approvalDoc.flatMap(approval => {
-                    return Object.entries(approval?.tripSchema?.travelRequestData?.itinerary || {}).map(([key, value]) => {
-                        if (Array.isArray(value) && value.length > 0 && value[0]?.approvers?.some(approver =>
-                            approver?.empId === empId && 
-                            approver?.status === 'pending approval'
-                        )) {
-                            const { travelRequestId, tripPurpose, createdBy,tripName,tripStartDate, itinerary,travelRequestNumber, travelRequestStatus } = approval.tripSchema.travelRequestData;
-                            const allBkdViolations = extractValidViolations(itinerary);
-                            const violationsCounter = countViolations(allBkdViolations);
-                            return {
-                                travelRequestId,
-                                tripPurpose,
-                                createdBy,
-                                tripName,
-                                travelRequestNumber,
-                                travelRequestStatus,
-                                tripStartDate,
-                                violationsCounter,
-                                [key]: value,
-                            };
-                        }
-                        return null;
-                    }).filter(item => item); // filter out null items
-                });
-                
-        })();
 
         const travelExpenseReports = await (async () => {
             try {
@@ -2000,6 +1973,49 @@ const approvalsForManager = async (tenantId, empId) => {
         })();
         
        // console.log("nonTravelExpenseReports",nonTravelExpenseReports)
+       const addALeg= await (async () => {
+        if (!Array.isArray(approvalDoc) || approvalDoc.length === 0) {
+            return {}; 
+        }
+    
+        const result = approvalDoc.map(approval => {
+        
+            const { tripStartDate, travelRequestData = {} } = approval.tripSchema || {};
+            const { itinerary = {} } = travelRequestData;
+    
+            const filteredItinerary = {};
+            ['flights', 'hotels', 'cabs', 'trains'].forEach(category => {
+                const items = itinerary[category] || [];
+                const pendingApprovalItems = items
+                .filter(item =>
+                    item?.approvers?.some(approver =>
+                        approver?.empId === empId && 
+                        approver?.status === 'pending approval'
+                    )
+                );
+    
+                if (pendingApprovalItems.length > 0) {
+                    filteredItinerary[category] = pendingApprovalItems;
+                }
+            });
+
+            console.log("here...",JSON.stringify(filteredItinerary,null,2))
+    
+            return {
+                travelRequestId: travelRequestData.travelRequestId,
+                tripPurpose: travelRequestData.tripPurpose,
+                createdBy: travelRequestData.createdBy,
+                tripName: travelRequestData.tripName ?? '',
+                travelRequestNumber: travelRequestData.travelRequestNumber,
+                travelRequestStatus: travelRequestData.travelRequestStatus,
+                tripStartDate:tripStartDate,
+                violationsCounter: countViolations(extractValidViolations(itinerary)),
+                itinerary: filteredItinerary
+            };
+        }).filter(item => Object.keys(item.itinerary).length > 0);
+    
+        return result;
+    })();
         
         const uniqueTravelWithCash = [...travel, ...travelWithCash]
         const filteredTravelWithCash = Object.values(uniqueTravelWithCash.reduce((uniqueItems, currentItem) => {
@@ -2014,11 +2030,13 @@ const approvalsForManager = async (tenantId, empId) => {
         // console.log("rule2"), travelWithCash
         // console.log("rule12", uniqueTravelWithCash)
     
+        // console.log("addAleg", addALeg)
         const responseData = {
                 // travelAndCash: [...travelRequests, ...travelWithCash,cashAdvanceRaisedLater, addAleg],
-                travelAndCash: [ ...filteredTravelWithCash, ...cashAdvanceRaisedLater, ],
+                travelAndCash: [ ...filteredTravelWithCash, ...cashAdvanceRaisedLater,],
                 travelExpenseReports: travelExpenseReports,
-                nonTravelExpenseReports:nonTravelExpenseReports
+                nonTravelExpenseReports:nonTravelExpenseReports,
+                trips:[...addALeg]
         };
 
         return responseData;
@@ -2126,7 +2144,7 @@ export const gradeForEmployee = async (empId) => {
         const employee = getEmployee.employees.find(employee => employee.employeeDetails.employeeId === empId);
 
         const grade = employee.employeeDetails.grade;
-      console.log('jackpot', grade);
+    //   console.log('jackpot', grade);
 
       return grade
 
@@ -2138,7 +2156,7 @@ export const gradeForEmployee = async (empId) => {
 
 const businessAdminLayout = async (tenantId, empId) => {
     try {
-// console.log("verified business admin layout", tenantId, empId);
+console.log("verified business admin layout", tenantId, empId);
 
             const bookingDoc = await dashboard.find({
                 tenantId,
@@ -2164,7 +2182,8 @@ const businessAdminLayout = async (tenantId, empId) => {
             if (bookingDoc?.length === 0){
                 return { error: 'Error in fetching data for business admin' };
             } 
-            // console.log("booking from database .......................", bookingDoc)
+
+            console.log("booking from database .......................", bookingDoc)
 
             // const travel = await (async () => {
             //     // console.log("booking", bookingDoc)
@@ -2226,7 +2245,7 @@ const businessAdminLayout = async (tenantId, empId) => {
                 return results.filter(Boolean);
             })();
 
-        // console.log("travel booking .......", travel)
+        console.log("travel booking .......", travel)
             // const travelWithCash = await (async () => {
             //     const filteredBooking = bookingDoc.filter(booking => 
             //         booking?.cashAdvanceSchema?.travelRequestData?.travelRequestStatus === 'pending booking'
@@ -2289,7 +2308,7 @@ const businessAdminLayout = async (tenantId, empId) => {
             })();
             
 
-            // console.log("travel booking .......", travelWithCash)
+            console.log("travel booking with cash .......", travelWithCash)
             // const trips = await (async () => {
             //     const filteredBooking = bookingDoc.filter(booking => 
             //         booking?.tripSchema?.travelRequestData?.travelRequestStatus === 'booked' && 
@@ -2402,7 +2421,7 @@ const businessAdminLayout = async (tenantId, empId) => {
                 return results.filter(Boolean);
             })();
     
-            const pendingBooking = [ ...travelWithCash];
+            const pendingBooking = [...travel, ...travelWithCash];
             const paidAndCancelledTrips = [...tripsPaidAndCancelled];
             const pendingBookingTrips = [...trips];
 
@@ -2411,8 +2430,7 @@ const businessAdminLayout = async (tenantId, empId) => {
 
             const responseData = { pendingBooking, paidAndCancelledTrips, pendingBookingTrips };
 
-            const hello = travelWithCash.find(cash => cash.travelRequestId.toString() ==='66b05e6c7b91bbf3a6de2fd0')
-            console.log("hello booking",hello)
+            
          const result = Object.values(responseData).some(value => value.length > 0) ? responseData : [];
 
       return result;
