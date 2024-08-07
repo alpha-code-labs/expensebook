@@ -128,10 +128,7 @@ const handleConfirm = async (action) => {
     
   }
 };
-// const filteredData = selectedStatuses.length > 0
-//   ? selectedStatuses.reduce((acc, status) => [...acc, ...filterByTimeRange(tripData, status)], [])
-//   : tripData;
-///----------------------end---------------
+
 
   
 
