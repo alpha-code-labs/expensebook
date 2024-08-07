@@ -11,19 +11,19 @@ const Entries = ({ employeeRole }) => {
   const [assignedEmployeeName, setAssignedEmployeeName] = useState(null);
   const [formData, setFormData] = useState({ fromDate: '', toDate: '' });
   const [selectedReportType, setSelectedReportType] = useState('expenseReports');
-  const [nonTravelData, setNonTravelData] = useState(null);
-  const [travelExpenseData, setTravelExpenseData] = useState([]);
+const [nonTravelData, setNonTravelData] = useState(null);
+const [travelExpenseData, setTravelExpenseData] = useState([]);
 
-  const { tenantId } = useParams();
+const { tenantId } = useParams();
 
-  useEffect(() => {
+useEffect(() => {
     setAssignedEmployeeName(employeeRole?.name);
-  }, [employeeRole]);
+}, [employeeRole]);
 
-  const handleCashAdvance = async () => {
+const handleCashAdvance = async () => {
     const data = {
-      fromDate: formData.fromDate,
-      toDate: formData.toDate,
+    fromDate: formData.fromDate,
+    toDate: formData.toDate,
     };
 
     const employee = {

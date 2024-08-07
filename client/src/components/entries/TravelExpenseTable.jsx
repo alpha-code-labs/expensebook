@@ -59,7 +59,7 @@ import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 
 const TravelExpenseTable = ({ travelExpense = [], nonTravelExpense = [] }) => {
-  const dataAvailable = travelExpense.length > 0 || nonTravelExpense.length > 0;
+const dataAvailable = travelExpense.length > 0 || nonTravelExpense.length > 0;
 
   const downloadExcel = () => {
     const formattedTravelData = travelExpense.map(expense => ({
@@ -71,7 +71,7 @@ const TravelExpenseTable = ({ travelExpense = [], nonTravelExpense = [] }) => {
 
     const formattedNonTravelData = nonTravelExpense.map(expense => ({
     'Employee Name': expense.createdBy.name,
-    'Expense To Settle': expense.expenseAmountStatus.totalRemainingCash || " ",
+    'Expense To Settle': " ",
     'Expense Header Status': expense.expenseHeaderStatus,
     'Expense Header ID': expense.expenseHeaderId,
     }));
@@ -83,9 +83,9 @@ const TravelExpenseTable = ({ travelExpense = [], nonTravelExpense = [] }) => {
     XLSX.utils.book_append_sheet(wb, ws, "Expenses");
     const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
     saveAs(new Blob([wbout], { type: "application/octet-stream" }), "expenses.xlsx");
-  };
+};
 
-  return (
+return (
     <div className="flex flex-col w-full">
       <div className="flex justify-between items-center py-2 text-zinc-500">
         <div className="flex w-full">
