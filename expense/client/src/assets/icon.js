@@ -49,6 +49,40 @@ export {default as plus_icon} from './plus.svg';
 
 
 
+export const categoryIcons = {
+    'Flight': '✈️', // Replace with your actual icons
+    'Train': '🚆',
+    'Bus': '🚌',
+    'Cab': '🚕',
+    'Cab Rental': '🚗',
+    'Hotel': '🏨',
+    'Meals': '🍽️',
+    'Travel Reimbursement': '🧾',
+    'Conference / Event': '🎤',
+    'Travel Insurance': '📋',
+    'Baggage': '🧳',
+    'Tips': '💰',
+    'Miscellaneous': '🔧',
+    'Office Supplies': '📂',
+    'Utilities': '💡',
+    'Insurance': '🛡️',
+    'Marketing and Advertising': '📢',
+    'Professional Fees': '💼',
+    'Software and Licenses': '💻',
+    'Equipment': '⚙️',
+    'Repairs and Maintenance': '🔨',
+    'Legal and Compliance': '⚖️',
+    'Communication': '📞',
+    'Research and Development': '🔬',
+    'Training': '📚',
+    'Software Subscriptions': '🖥️',
+    'Client Entertainment': '🎉',
+    'Client Gift': '🎁',
+  };
+  
+
+
+
 
 
 
