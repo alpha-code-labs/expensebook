@@ -962,7 +962,7 @@ const dummyPaidAndCancelledTrips =[
     "tripPurposeDescription": "investors",
     "tripName": "LUC-DEL(29th Jul 2024)",
     "tripStartDate": "2024-08-02T00:00:00.000Z",
-    "travelRequestStatus": "pending approval",
+    "travelRequestStatus": "paid and cancelled",
     "createdBy": {
                             "empId": "1002",
                             "name": "Emma Thompson",

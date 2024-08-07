@@ -109,6 +109,39 @@ function formatDate(date=Date.now()){
     return finalFormattedDate;
   }
 
+  const sortTripsForBooking = (trips) => {
+    const currentDate = new Date();
+    // Reset time to start of the day to compare only date values
+    currentDate.setHours(0, 0, 0, 0);
+  
+    return trips.sort((a, b) => {
+      const dateA = a.tripStartDate ? new Date(a.tripStartDate) : null;
+      const dateB = b.tripStartDate ? new Date(b.tripStartDate) : null;
+  
+      if (dateA === null && dateB === null) return 0;
+      if (dateA === null) return 1;
+      if (dateB === null) return -1;
+  
+      // Reset time to start of the day for comparison
+      dateA.setHours(0, 0, 0, 0);
+      dateB.setHours(0, 0, 0, 0);
+  
+      const isDateAUpcoming = dateA >= currentDate;
+      const isDateBUpcoming = dateB >= currentDate;
+  
+      if (isDateAUpcoming && isDateBUpcoming) {
+        return dateA - dateB; // Both dates are in the future or today, sort ascending
+      } else if (!isDateAUpcoming && !isDateBUpcoming) {
+        return dateA - dateB; // Both dates are in the past, sort ascending
+      } else if (isDateAUpcoming) {
+        return -1; // Date A is in the future or today, move it before Date B
+      } else {
+        return 1; // Date B is in the future or today, move it before Date A
+      }
+    });
+  };
+  
+  
   const sortTripsByDate = (trips) => {
     return trips.sort((a, b) => {
       const dateA = new Date(a.tripStartDate);
@@ -116,7 +149,7 @@ function formatDate(date=Date.now()){
       return dateA - dateB;
     });
   };
-
+  
   function extractTripNameStartDate(inputString) {
     // Regular expression to match the date part within parentheses
     const dateRegex = /\((\d{1,2})(?:st|nd|rd|th) (\w{3}) (\d{4})\)/;
@@ -158,7 +191,7 @@ function formatDate(date=Date.now()){
     } else {
       return "";
     }
-  }
+  } 
   
   function getStatusClass(status){
     switch(status){
@@ -187,7 +220,7 @@ function formatDate(date=Date.now()){
 
     }
   }  
-
+  
   function formatAmount(number) {
     // Convert to a number if it isn't already
     const amount = parseFloat(number) || 0;
@@ -236,7 +269,6 @@ function formatDate(date=Date.now()){
     window.location.href=(url)
   }
 
-
   function filterTravelRequests(travelRequests) {
     let map = new Map();
     
@@ -251,15 +283,15 @@ function formatDate(date=Date.now()){
     });
 
     return Array.from(map.values());
-}
+  }
 
-function splitTripName(tripName){
+  function splitTripName(tripName){
   if(tripName){ 
   return tripName?.split('(')[0];}
   else{
     "-"
   }
-}
+  }
 
 
 // filterUtils.js
@@ -309,12 +341,12 @@ function checkUpcomingTrip(tripStartDate) {
   tripDate.setHours(0, 0, 0, 0);
 
   if (tripDate.getTime() === currentDate.getTime() || tripDate.getTime() === tomorrowDate.getTime()) {
-      return `*The trip is scheduled to start within the next 48 hours`;
+      return `*Trip is scheduled to start within the next 48 hours.`;
   } 
 }
 
 
   
 
-export {checkUpcomingTrip, filterByTimeRange,extractTripNameStartDate, sortTripsByDate, splitTripName, titleCase, formatDate, filterTravelRequests,formatDate2 ,getStatusClass ,addOrdinalIndicator ,formatDate3 ,getCashAdvanceButtonText,urlRedirection,formatAmount}  
+export {sortTripsForBooking,checkUpcomingTrip, filterByTimeRange,extractTripNameStartDate, sortTripsByDate, splitTripName, titleCase, formatDate, filterTravelRequests,formatDate2 ,getStatusClass ,addOrdinalIndicator ,formatDate3 ,getCashAdvanceButtonText,urlRedirection,formatAmount}  
 
