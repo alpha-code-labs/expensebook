@@ -7,3 +7,7 @@ export function calculateDateDifferenceInDays(date1, date2) {
   
     return differenceInDays;
 }
+
+
+export const trimAndNormalize = str => str.trim().replace(/[:.]/g, '').toLowerCase();
+

@@ -1,7 +1,7 @@
-import HRCompany from '../models/hrCompanySchema.js';
 import { onSaveAsDraftExpenseHeaderToTrip, onSaveLineItemToTrip } from "../internalControllers/controllers/tripMicroservice.js";
 import { sendToDashboardMicroservice, sendTravelExpenseToDashboardQueue } from "../rabbitmq/dashboardMicroservice.js";
 import Expense from '../models/travelExpenseSchema.js';
+import HRMaster from '../models/hrCompanySchema.js';
 
 const generateIncrementalNumber = (tenantId, incrementalValue) => {
   const formattedTenant = (tenantId || '').toUpperCase().substring(0, 3);
@@ -9,7 +9,7 @@ const generateIncrementalNumber = (tenantId, incrementalValue) => {
 };
 
 // Total cash advance with status as 'paid' for a transit trip
-const calculateTotalCashAdvances = (cashAdvances) => {
+const calculateTotalCashAdvances = async(cashAdvances) => {
     const totalCashAdvances = { totalPaid: [], totalUnpaid: [] };
 
     cashAdvances.forEach(cashAdvance => {
@@ -105,7 +105,7 @@ const getExpenseRelatedHrData = async (req, res) => {
         const { tenantId, tenantName } = req.params;
 
         // Find the matching document in HRCompany based on tenantId and tenantName
-        const companyDetails = await HRCompany.findOne({ tenantId, tenantName });
+        const companyDetails = await HRMaster.findOne({ tenantId, tenantName });
 
         if (!companyDetails) {
             return res.status(404).json({ message: 'Company details not found' });

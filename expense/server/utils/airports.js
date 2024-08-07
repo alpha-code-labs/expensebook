@@ -1,5 +1,4 @@
 
-  
 
 export const indianAirports ={
     "CDP": "Kadapa Airport",
@@ -166,5 +165,3 @@ export const indianAirports ={
     "PNY": "Puducherry Airport",			
 }
 
-
-  

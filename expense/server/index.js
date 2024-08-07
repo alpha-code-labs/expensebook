@@ -12,6 +12,7 @@ import { travelPolicyValidation } from './controller/travelExpenseController.js'
 import { scheduleTripTransitBatchJob } from './batchJobs/upcomingToTransit.js';
 import Expense from './models/travelExpenseSchema.js';
 import Reimbursement from './models/reimbursementSchema.js';
+import { getExpenseCategoryFields } from './ocr/categoryFields.js';
 // import logger from './logger/logger.js';
 
 // test
@@ -43,8 +44,8 @@ app.use('/api/report', reportingRouter);
 
 
 // Start the batch job
-runApproveToNextState()
-scheduleTripTransitBatchJob()
+// runApproveToNextState()
+// scheduleTripTransitBatchJob()
 
 app.get('/test', (req,res) =>{
   res.send('welcome to alpha code labs ')
@@ -99,37 +100,41 @@ startConsumer("expense");
 // })();
 
 
-( async() =>{
-  try{
-    const tenantId = '660a58ac1a308ce97b32213f'
+// ( async() =>{
+//   try{
+//     const tenantId = '660a58ac1a308ce97b32213f'
 
-//    const res = await Reimbursement.find({tenantId})
-//     console.log("return from db", res);
-//     const maxIncrementalValue = await Reimbursement.findOne({ tenantId }, 'expenseReimbursementSchema.expenseHeaderNumber')
-//     .sort({ 'expenseReimbursementSchema.expenseHeaderNumber': -1 })
-//     .limit(1);
+// //    const res = await Reimbursement.find({tenantId})
+// //     console.log("return from db", res);
+// //     const maxIncrementalValue = await Reimbursement.findOne({ tenantId }, 'expenseReimbursementSchema.expenseHeaderNumber')
+// //     .sort({ 'expenseReimbursementSchema.expenseHeaderNumber': -1 })
+// //     .limit(1);
 
-// console.log("maxIncrementalValue from db", maxIncrementalValue);
-// const res = await Reimbursement.find({ tenantId });
-// console.log("return from db", res);
-// const maxIncrementalValue = await Reimbursement.findOne({ tenantId })
-//     .sort({ expenseHeaderNumber: -1 }) 
+// // console.log("maxIncrementalValue from db", maxIncrementalValue);
+// // const res = await Reimbursement.find({ tenantId });
+// // console.log("return from db", res);
+// // const maxIncrementalValue = await Reimbursement.findOne({ tenantId })
+// //     .sort({ expenseHeaderNumber: -1 }) 
+// //     .limit(1)
+// //     .select('expenseHeaderNumber');
+// const maxIncrementalValue = await Expense.findOne({tenantId}, 'travelExpenseData.expenseHeaderNumber')
+//     .sort({ 'travelExpenseData.expenseHeaderNumber': -1 })
 //     .limit(1)
-//     .select('expenseHeaderNumber');
-const maxIncrementalValue = await Expense.findOne({tenantId}, 'travelExpenseData.expenseHeaderNumber')
-    .sort({ 'travelExpenseData.expenseHeaderNumber': -1 })
-    .limit(1)
-    .select('travelExpenseData.expenseHeaderNumber'); 
+//     .select('travelExpenseData.expenseHeaderNumber'); 
 
-    console.log("maxIncrementalValue from db", maxIncrementalValue);
+//     console.log("maxIncrementalValue from db", maxIncrementalValue);
 
-const nextIncrementalValue = maxIncrementalValue?.expenseHeaderNumber ? parseInt(maxIncrementalValue.expenseHeaderNumber.substring(6), 10) : 0;
+// const nextIncrementalValue = maxIncrementalValue?.expenseHeaderNumber ? parseInt(maxIncrementalValue.expenseHeaderNumber.substring(6), 10) : 0;
 
 
-console.log("nextIncrementalValue", nextIncrementalValue);
-  }catch(error){
-    console.error(error)
-  }
-})()
+// console.log("nextIncrementalValue", nextIncrementalValue);
+//   }catch(error){
+//     console.error(error)
+//   }
+// })()
 
+const tenantId = '66794853c61cc24ba97b5b0f'
+const travelType = 'international'
+const expenseCategory = 'hotel'
+// getExpenseCategoryFields(tenantId, travelType, expenseCategory) 
 

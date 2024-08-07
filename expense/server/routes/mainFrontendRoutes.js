@@ -13,7 +13,7 @@ mainFrontendRoutes.use( '/travel', travelExpenseReport)
 //Non travel expense routes
 mainFrontendRoutes.use( '/non-travel', reimbursementRoutes);
 
-mainFrontendRoutes.post('/travel/upload', uploadMiddleware, handleFileUpload);
+mainFrontendRoutes.post('/upload/:tenantId/:travelType/:category', uploadMiddleware, handleFileUpload);
 
 mainFrontendRoutes.post('/travel/:tenantId/:empId/:tripId/:expenseHeaderId/draft', onSaveAsDraftExpenseHeader);
 
