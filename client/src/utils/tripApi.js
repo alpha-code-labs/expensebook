@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 
-const TRIP_BACKEND_API_URL = import.meta.env.VITE_TRIP_BACKEND_API_URL
+const TRIP_BACKEND_API_URL = import.meta.env.VITE_TRIP_API_URL
 
 const retry = 1;
 const retryDelay = 3000;

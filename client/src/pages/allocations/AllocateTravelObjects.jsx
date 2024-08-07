@@ -27,6 +27,7 @@ export default function({addedItineraries, bookedItineraryIds, modifiedTripsIds,
 
     //loader state
     const [isLoading, setIsLoading] = useState(false)
+    
     const [loadingErrMsg, setLoadingErrMsg] = useState(null)
     const cashAdvanceAllowed = onBoardingData.cashAdvanceAllowed
     
@@ -91,7 +92,7 @@ export default function({addedItineraries, bookedItineraryIds, modifiedTripsIds,
     }
 
     const handleSubmit = async()=>{
-       
+            setShowModal(true)
             console.log('sending call');
             
             const modifyTrip = {
@@ -113,7 +114,15 @@ export default function({addedItineraries, bookedItineraryIds, modifiedTripsIds,
                 return
             }
             else{
-                setRequestSubmitted(true)
+                console.log('response for modify',res?.data?.response?.message)
+                const resMsg = res?.data?.response?.message
+                setPopupMessage(`${resMsg}`)
+                setTimeout(()=>{
+                    
+                    setPopupMessage(null)
+                    window.parent.postMessage('closeIframe', DASHBOARD_URL);
+
+                },3000)
             }
             console.log(res)        
         
@@ -258,6 +267,7 @@ export default function({addedItineraries, bookedItineraryIds, modifiedTripsIds,
                     <div className='my-8 w-full flex justify-end items-center'>
                        
                         <Button 
+                           
                             variant='fit'
                             text='Submit' 
                             onClick={handleSubmit} />
