@@ -1,12 +1,13 @@
 
+import Joi from "joi";
 import HRMaster from "../models/hrMaster.js";
 import { getCashAdvanceToSettle, getPaidAndCancelledCash } from "./cashAdvanceController.js";
 import { getReimbursement } from "./reimbursementController.js";
 import { getTravelAndNonTravelExpenseData } from "./settlingAccountingEntries.js";
 import { getTravelExpenseData } from "./travelExpenseController.js";
+import { handleErrors } from "../errorHandler/errorHandler.js";
 
 const getEmployeeRoles = async (tenantId, empId) => {
-    const toString = empId.toString();
     const hrDocument = await HRMaster.findOne({
         'tenantId': tenantId,
         'employees.employeeDetails.employeeId': empId,
@@ -14,17 +15,29 @@ const getEmployeeRoles = async (tenantId, empId) => {
     if (!hrDocument) {
         throw new Error("HR document not found");
     }
+
     const employee = hrDocument?.employees.find(emp => emp.employeeDetails.employeeId === empId);
     if (!employee || !employee.employeeRoles) {
         throw new Error("Employee roles not found");
     }
-    return employee.employeeRoles;
+    console.log("employee", employee)
+    const employeeRoles = employee?.employeeRoles
+    const { employeeName,employeeId }= employee?.employeeDetails
+
+    const employeeData = { employeeName,empId:employeeId}
+    return {employeeRoles, employeeData}
 };
 
+const employeeSchema = Joi.object({
+  tenantId: Joi.string().required(),
+  empId: Joi.string().required()
+})
 
-export const roleBasedLayout = async (req, res) => {
+export const roleBasedLayout = async (req, res, next) => {
   try {
-    const { tenantId, empId } = req.params;
+    const { error, value} = employeeSchema.validate(req.params)
+    if(error) throw new Error(error.details[0].message)
+    const { tenantId, empId } = value;
 
     // Input validation
     if (!tenantId || !empId) {
@@ -32,80 +45,52 @@ export const roleBasedLayout = async (req, res) => {
     }
 
     // Get employee roles and execute layout functions
-    const dashboardViews = await getDashboardViews(tenantId, empId);
+    const dashboardViews = await getFinanceView(tenantId, empId);
 
     // Send response
     return res.status(200).json(dashboardViews);
   } catch (error) {
     console.error("Error:", error);
-    // Handle the error, but do not send another response
-    return;
+    next(error)
   }
 };
 
 
-const getDashboardViews = async (tenantId, empId) => {
+const getFinanceView = async (tenantId, empId) => {
   try {
-      const employeeRoles = await getEmployeeRoles(tenantId, empId);
-      const layoutFunctions = {
-          employee: async () => {},
-          employeeManager: async () => {},
-          finance: async () => financeLayout(tenantId, empId),
-          businessAdmin: async () => {},
-          superAdmin: async () => {}
-
-        //   employee: async () => employeeLayout(tenantId, empId),
-        //   employeeManager: async () => managerLayout(tenantId, empId),
-        //   finance: async () => financeLayout(tenantId, empId),
-        //   businessAdmin: async () => businessAdminLayout(tenantId, empId),
-        //   superAdmin: async () => superAdminLayout(tenantId, empId)
-      };
-
-      const applicableRoles = Object.keys(employeeRoles).filter(role => employeeRoles[role]);
-
-      const dashboardViews = await Promise.all(applicableRoles.map(async role => {
-          try {
-              const data = await layoutFunctions[role]();
-              return { [role]: data };
-          } catch (error) {
-              console.error("Error fetching data for role", role, "Error:", error);
-              return { [role]: null }; // Handle the error case as needed
-          }
-      }));
-
-      const formattedDashboardViews = dashboardViews.reduce((acc, curr) => ({ ...acc, ...curr }), {});
-
+      const {employeeRoles, employeeData}= await getEmployeeRoles(tenantId, empId);
+      // console.log("employeeRoles",employeeRoles)
+      const applicableRoles = Object.keys(employeeRoles).filter(role => role =='finance' && employeeRoles[role]);
+      const finance = applicableRoles.includes('finance') ? await financeLayout(tenantId,empId) : null
+  
       return {
-          dashboardViews: formattedDashboardViews,
+          finance,
+          employeeData,
           employeeRoles
       };
   } catch (error) {
       console.error("Error fetching dashboard views:", error);
-      throw error; // Propagate the error to the caller
+      throw error; 
   }
 };
 
 
-const financeLayout = async (tenantId, empId) => {
-    console.log("Entering financeLayout function...", tenantId, empId);
-  try {
-      const paidAndCancelledCash = await getPaidAndCancelledCash(tenantId, empId);
-    const cashAdvanceToSettle = await getCashAdvanceToSettle(tenantId, empId);
-    const nonTravelExpense = await getReimbursement(tenantId, empId);
-    const travelExpense = await getTravelExpenseData(tenantId, empId);
-    const entries= await getTravelAndNonTravelExpenseData(tenantId, empId);
+const financeLayout = async(tenantId,empId) => {
+  try{
+    const [paidAndCancelledCash,cashAdvanceToSettle,travelExpense,nonTravelExpense,entries]  = await Promise.all([
+      getPaidAndCancelledCash(tenantId,empId),
+      getCashAdvanceToSettle(tenantId,empId),
+      getTravelExpenseData(tenantId,empId),
+      getReimbursement(tenantId,empId),
+      getTravelAndNonTravelExpenseData(tenantId,empId)
+    ])
     const settlements = { cashAdvanceToSettle, paidAndCancelledCash, travelExpense, nonTravelExpense, entries}
-    return settlements;
-  } catch (error) {
-    console.error("Error:", error);
-    throw new Error({ message: 'Internal server error :Finance Layout' });
+    return settlements 
+  }catch(error){
+    console.error(error.message)
+    throw error
   }
-};
-
-
-
-
-
+}
 
 
 
