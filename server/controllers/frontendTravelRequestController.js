@@ -66,6 +66,7 @@ const createTravelRequest = async (req, res) => {
           present.push(field)
          }
   })
+
     // Check if all required fields are present in the request body
     const fieldsPresent = requiredFields.every((field) => field in req.body);
 
