@@ -37,11 +37,8 @@ try{
 
 connectToMongoDB()
 
-
-  
 // start consuming messages..
 startConsumer('finance');
-
 
 
 
