@@ -6,7 +6,7 @@ const expenseRouter = Router();
 
 expenseRouter.get("/find/:tenantId" , getTravelExpenseData);
 
-expenseRouter.put("/paid/:tenantId/:travelRequestId/:expenseHeaderId", paidExpenseReports)
+expenseRouter.patch("/paid/:tenantId/:travelRequestId/:expenseHeaderId", paidExpenseReports)
 
 expenseRouter.post("/filter/:tenantId/:empId", getTravelExpenseReports)
 

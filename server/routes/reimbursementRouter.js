@@ -6,7 +6,7 @@ const nonTravel = express.Router();
 
 nonTravel.get("/find/:tenantId" , getReimbursement);
 
-nonTravel.put("/paid/:tenantId/:expenseHeaderId", paidNonTravelExpenseReports)
+nonTravel.patch("/paid/:tenantId/:expenseHeaderId", paidNonTravelExpenseReports)
 
 nonTravel.post("/filter/:tenantId/:empId", getNonTravelExpenseReports)
 
