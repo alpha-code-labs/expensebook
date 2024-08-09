@@ -1,5 +1,38 @@
 import Finance from "../models/Finance.js";
 
+
+const extractCategoryAndTotalAmount = (expenseLines) => {
+  const fixedFields = [
+      'Total Amount', 
+      'Total Fare', 
+      'Premium Amount', 
+      'Total Cost', 
+      'License Cost', 
+      'Subscription Cost',  
+      'Premium Cost',
+      'Cost', 
+      'Tip Amount'
+  ];
+
+  const results = [];
+  let expenseTotalAmount = 0; 
+
+  expenseLines.forEach(expenseLine => {
+      if (expenseLine.lineItemStatus === 'save') {
+          const categoryName = expenseLine['Category Name'] || ''; 
+          const keyFound = Object.entries(expenseLine).find(([key]) =>
+              fixedFields.some(name => name.trim().toUpperCase() === key.trim().toUpperCase())
+          );
+          const totalAmount = keyFound ? Number(keyFound[1]) || 0 : 0; 
+          expenseTotalAmount += totalAmount; 
+          results.push({ categoryName, totalAmount });
+      }
+  });
+
+  return { results, expenseTotalAmount };
+};
+
+
 export const getReimbursement = async(tenantId, empId)=>{
     try {
       // const {tenantId}= req.params
@@ -24,19 +57,26 @@ export const getReimbursement = async(tenantId, empId)=>{
       
         const {
           expenseHeaderId,
+          expenseHeaderNumber,
           actionedUpon,
           settlementBy,
           expenseHeaderStatus,
+          expenseLines,
+          defaultCurrency,
           createdBy
         } = report.reimbursementSchema;
-      
-        const { expenseAmountStatus } = report;
+
+        const {expenseTotalAmount,results} = extractCategoryAndTotalAmount(expenseLines);
+      console.log("expenseTotalAmount",expenseTotalAmount, "results", results)
       
         return {
           expenseHeaderId,
+          expenseHeaderNumber,
           expenseHeaderStatus,
-          expenseAmountStatus,
+          expenseTotalAmount:expenseTotalAmount,
+          expenseLines:results,
           createdBy,
+          defaultCurrency,
           settlementBy,
           actionedUpon
         };
@@ -162,6 +202,8 @@ export const unSettlementReimbursement = async(req , res)=>{
        res.status(500).json(error);
      }
 };
+
+
 
 
 
