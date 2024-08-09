@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { travelRequestSchema } from './travelRequest.js';
 
 //---------------travel---------
 
@@ -628,102 +629,10 @@ const expenseLineSchema = new mongoose.Schema({
   },
     isSentToExpense: Boolean, 
     notificationSentToDashboardFlag: Boolean,
-    travelRequestData: {
-      tenantId: {
-      type: String,
-      required: true,
-      },
-      tenantName:{
-      type: String,
-      },
-      companyName:{
-      type: String,
-      },
-      travelRequestId: {
-      type: mongoose.Types.ObjectId, 
-      // unique: true,
-      },
-      travelRequestNumber:{
-        type: String,
-      },
-      travelType: {
-        type: String,
-      },
-      tripPurpose: {
-      type: String,
-      },
-      travelRequestStatus: { //initialize with status as 'draft'
-      type: String,
-      enum: travelRequestStatusEnums,
-      default: 'draft',
-      required: true,
-      },
-      travelRequestState: { //initialize with state as 'section 0'
-      type: String,
-      enum: travelRequestStateEnums,
-      default: 'section 0',
-      required: true,
-      },
-      createdBy:{
-      type: {empId: String, name: String}, //employee Id by whom TR is raised
-      required: true
-      },
-      createdFor: {
-      type: {empId: String, name: String}, //employee Id for whom TR is raised
-      required: false
-      },
-      teamMembers: [],
-      travelAllocationHeaders: [],
-      itinerary: itinerarySchema,
-      formData: formDataSchema,
-      tripType:{oneWayTrip:Boolean, roundTrip:Boolean, multiCityTrip:Boolean},
-      travelDocuments: [String],
-      bookings: [
-      {
-      itineraryReference:{},
-      docURL:String,
-      details:{},
-      status:{},
-      },
-      ],
-      approvers: [{
-      empId: String,
-      name: String,
-      status: {
-      type: String,
-      enum: approverStatusEnums,
-      },
-      },],
-      assignedTo:{empId: String, name: String},
-      bookedBy:{empId: String, name: String},
-      recoveredBy:{empId: String, name: String},
-      preferences: [String],
-      travelViolations: {},
-      travelRequestDate: {
-      type: String,
+    travelRequestData:{
+      type:travelRequestSchema,
       required:true
-      },
-      travelBookingDate: Date,
-      travelCompletionDate: Date,
-      cancellationDate:Date,
-      travelRequestRejectionReason: String,
-      isCancelled:Boolean,
-      cancellationReason:String,
-      isAddALeg:Boolean,
-      isCashAdvanceTaken: Boolean,
-      sentToTrip:Boolean,
-      travelType: String,
-      settlementFlag: {
-        type:Boolean,
-        required:true,
-        default:false,
-      },
-      actionedUpon:{
-        type:Boolean,
-        required:true,
-        default:false,
-      },
-      },
+    },
     cashAdvancesData: [
         {
           tenantId: {
@@ -889,6 +798,7 @@ const expenseLineSchema = new mongoose.Schema({
             name:{type: String, default:null}
           },
           submissionDate: Date,
+          settlementDate:Date,
           entriesFlag:{
           type:Boolean,
           required:true,

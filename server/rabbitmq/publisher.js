@@ -18,7 +18,7 @@ const connectToRabbitMQ = async () => {
 };
 
 
-export async function sendToOtherMicroservice(payload, action, destination, comments, source='dashboard', onlineVsBatch='online'){
+export async function sendToOtherMicroservice(payload, action, destination, comments, source='finance', onlineVsBatch='online'){
     try {
         console.log('Sending message to RabbitMQ...');
     
