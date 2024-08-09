@@ -1,6 +1,7 @@
 import Joi from "joi";
 import Finance from "../models/Finance.js";
-import { handleErrors } from "../errorHandler/errorHandler.js";
+import { handleErrors } from "../errorHandler/errorHandler.js"; 
+import { sendToOtherMicroservice } from "../rabbitmq/publisher.js";
 
 export const getPaidAndCancelledCash = async(tenantId, empId)=>{
     try { 
@@ -9,6 +10,9 @@ export const getPaidAndCancelledCash = async(tenantId, empId)=>{
         PAID_AND_CANCELLED :'paid and cancelled' 
       }
 
+      const filterStatus = [
+        status.PAID_AND_CANCELLED,
+      ]
       const cashAdvanceReports = await Finance.find({
         'cashAdvanceSchema.cashAdvancesData.recoveryFlag': false,
         'cashAdvanceSchema.cashAdvancesData.tenantId':tenantId,
@@ -19,27 +23,32 @@ export const getPaidAndCancelledCash = async(tenantId, empId)=>{
       if(!cashAdvanceReports){
         return { success:true, message: `All are settled` };
       } else {
-
         const recoverCash = cashAdvanceReports.flatMap((report) => {
           if (!report.cashAdvanceSchema || !Array.isArray(report.cashAdvanceSchema.cashAdvancesData)) {
             return [];
           }
-      
-          return report.cashAdvanceSchema.cashAdvancesData
-            .filter(cash => cash.cashAdvanceStatus === cashStatus.PAID_AND_CANCELLED)
-            .map(({ travelRequestId, cashAdvanceId, cashAdvanceStatus, createdBy, amountDetails, recoveredBy, paidBy, actionedUpon }) => ({
+      const travelRequestData = report?.cashAdvanceSchema.travelRequestData;
+
+const { tripName, travelRequestId, travelRequestNumber, createdBy } = travelRequestData || {};
+
+          const cashAdvance = report.cashAdvanceSchema.cashAdvancesData
+            .filter(cash => filterStatus.includes(cash.cashAdvanceStatus) )
+            .map(({ cashAdvanceId,cashAdvanceNumber, cashAdvanceStatus, amountDetails, recoveredBy, paidBy, actionedUpon }) => ({
               actionedUpon,
               travelRequestId,
+              cashAdvanceNumber,
               cashAdvanceId,
               createdBy,
               cashAdvanceStatus,
-              amountDetails:amountDetails[0],
+              amountDetails,
               recoveredBy,
               paidBy
             }));
-        });
-        // console.log("recoverCash", recoverCash)
-        return recoverCash;
+          return {tripName,travelRequestId,travelRequestNumber,createdBy,cashAdvance}
+          });
+          // console.log("recoverCash", recoverCash)
+
+          return recoverCash;
 
       }
     } catch (error) {
@@ -77,29 +86,30 @@ export const getCashAdvanceToSettle = async(tenantId, empId) => {
           if (!report.cashAdvanceSchema || !Array.isArray(report.cashAdvanceSchema.cashAdvancesData)) {
             return [];
           }
-      
-          return report.cashAdvanceSchema.cashAdvancesData
-            // .filter(cash => cash.cashAdvanceStatus === status.PENDING_SETTLEMENT || cash.cashAdvanceStatus === status.AWAITING_PENDING_SETTLEMENT)
+          const {tripName,travelRequestId,travelRequestNumber,createdBy} = report?.cashAdvanceSchema.travelRequestData
+          const cashAdvance = report.cashAdvanceSchema.cashAdvancesData
             .filter(cash => filterStatus.includes(cash.cashAdvanceStatus) )
-            .map(({ travelRequestId, cashAdvanceId, cashAdvanceStatus, createdBy, amountDetails, recoveredBy, paidBy, actionedUpon }) => ({
+            .map(({ cashAdvanceId,cashAdvanceNumber, cashAdvanceStatus, amountDetails, recoveredBy, paidBy, actionedUpon }) => ({
               actionedUpon,
               travelRequestId,
+              cashAdvanceNumber,
               cashAdvanceId,
               createdBy,
               cashAdvanceStatus,
-              amountDetails:amountDetails[0],
+              amountDetails,
               recoveredBy,
               paidBy
             }));
-        });
-        // console.log("settleCash", settleCash)
+           return {tripName,travelRequestId,travelRequestNumber,createdBy,cashAdvance}
+          });
+          // console.log("settleCash", settleCash)
+
         return settleCash;
     }
 
   } catch(error){
     console.error("Error in fetching cashAdvance to settle:", error);
     throw new Error({ error: 'Error in fetching cashAdvance to settle:', error });
-
   }
 }
 
@@ -198,7 +208,29 @@ const paidSchema = Joi.object({
   })
 })
 
-export const paidCashAdvance = async (req, res) => {
+const sendCashUpdate = async(payload,action,comments) => {
+  try{
+    const results = await Promise.allSettled([
+    sendToOtherMicroservice(payload, action, 'cash', comments),
+    sendToOtherMicroservice(payload, action, 'dashboard', comments),
+    sendToOtherMicroservice(payload, action, 'trip', comments),
+    sendToOtherMicroservice(payload, action, 'expense', comments)
+    ])
+    
+    results.forEach((result, index) => {
+      if (result.status === 'fulfilled') {
+          console.log(`Service ${index + 1} succeeded with:`, result.value);
+      } else {
+          console.error(`Service ${index + 1} failed with reason:`, result.reason);
+      }
+  });
+  } catch(error){
+    console.error(error)
+    throw new Error(error.message)
+  }
+}
+
+export const paidCashAdvance = async (req, res, next) => {
   const [params,body]=await Promise.all([
     cashSchema.validateAsync(req.params),
     paidSchema.validateAsync(req.body)
@@ -209,10 +241,6 @@ export const paidCashAdvance = async (req, res) => {
 
   console.log("Received Parameters:", { tenantId, travelRequestId, cashAdvanceId });
   console.log("Received Body Data:", { paidBy });
-
-  if (!tenantId || !travelRequestId || !cashAdvanceId || !paidBy) {
-    return res.status(400).json({ message: 'Missing required field' });
-  }
 
   const STATUS = {
     PENDING_SETTLEMENT: 'pending settlement',
@@ -249,7 +277,14 @@ export const paidCashAdvance = async (req, res) => {
       return res.status(404).json({ message: 'No matching document found for update' });
     }
 
+    const payload = {
+      tenantId, travelRequestId, cashAdvanceId,paidBy,paidFlag,cashAdvanceStatus:'paid'
+    }
     console.log("Update successful:", updateResult);
+
+    const action = 'settle-ca'
+    const comments = 'cash advance paid by finance'
+    await sendCashUpdate(payload,action,comments)
     return res.status(200).json({ message: 'Update successful', result: updateResult });
   } catch (error) {
     console.error("paidCashAdvance error",error.message)
@@ -400,6 +435,15 @@ export const recoverCashAdvance = async (req, res, next) => {
     }
 
     console.log("Update successful:", updatedTravelRequest);
+
+    const payload = {
+      tenantId, travelRequestId, cashAdvanceId,paidBy,paidFlag
+    }
+    console.log("Update successful:", updateResult);
+
+    const action = 'recover'
+    const comments = 'cash advance recovered by finance'
+    await sendCashUpdate(payload,action,comments)
     return res.status(200).json({ message: 'Update successful', result: updatedTravelRequest });
   } catch (error) {
     console.error('Error updating cash advance status:', error);
