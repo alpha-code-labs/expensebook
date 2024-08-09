@@ -24,7 +24,7 @@ const getEmployeeRoles = async (tenantId, empId) => {
     const employeeRoles = employee?.employeeRoles
     const { employeeName,employeeId }= employee?.employeeDetails
 
-    const employeeData = { employeeName,empId:employeeId}
+    const employeeData = { name:employeeName,empId:employeeId}
     return {employeeRoles, employeeData}
 };
 

@@ -197,12 +197,12 @@ export const getCashAdvanceToSettle = async(tenantId, empId) => {
 // };
 const cashSchema = Joi.object({
   tenantId:Joi.string().required(),
-  empId:Joi.string().required(),
+  travelRequestId:Joi.string().required(),
   cashAdvanceId: Joi.string().required(),
 })
 
-const paidSchema = Joi.object({
-  paidBy: Joi.object({
+export const financeSchema = Joi.object({
+  getFinance: Joi.object({
     empId: Joi.string().required(),
     name: Joi.string().required()
   })
@@ -231,23 +231,22 @@ const sendCashUpdate = async(payload,action,comments) => {
 }
 
 export const paidCashAdvance = async (req, res, next) => {
+try {
   const [params,body]=await Promise.all([
     cashSchema.validateAsync(req.params),
-    paidSchema.validateAsync(req.body)
+    financeSchema.validateAsync(req.body)
   ])
 
   const { tenantId, travelRequestId, cashAdvanceId } = params;
-  const { paidBy } = body;
+  const { getFinance } = body;
 
   console.log("Received Parameters:", { tenantId, travelRequestId, cashAdvanceId });
-  console.log("Received Body Data:", { paidBy });
+  console.log("Received Body Data:", { getFinance });
 
   const STATUS = {
     PENDING_SETTLEMENT: 'pending settlement',
     PAID: 'paid'
   };
-
-  try {
     const updateResult = await Finance.findOneAndUpdate(
       {
         tenantId,
@@ -256,13 +255,13 @@ export const paidCashAdvance = async (req, res, next) => {
           $elemMatch: {
             cashAdvanceId,
             cashAdvanceStatus: STATUS.PENDING_SETTLEMENT,
-            paidFlag: false
+            // paidFlag: false
           }
         }
       },
       {
         $set: {
-          'cashAdvanceSchema.cashAdvancesData.$[elem].paidBy': paidBy,
+          'cashAdvanceSchema.cashAdvancesData.$[elem].paidBy': getFinance,
           'cashAdvanceSchema.cashAdvancesData.$[elem].paidFlag': true,
           'cashAdvanceSchema.cashAdvancesData.$[elem].cashAdvanceStatus': STATUS.PAID
         }
@@ -278,14 +277,14 @@ export const paidCashAdvance = async (req, res, next) => {
     }
 
     const payload = {
-      tenantId, travelRequestId, cashAdvanceId,paidBy,paidFlag,cashAdvanceStatus:'paid'
+      tenantId, travelRequestId, cashAdvanceId,paidBy:getFinance,paidFlag:true,cashAdvanceStatus:'paid'
     }
     console.log("Update successful:", updateResult);
 
     const action = 'settle-ca'
     const comments = 'cash advance paid by finance'
-    await sendCashUpdate(payload,action,comments)
-    return res.status(200).json({ message: 'Update successful', result: updateResult });
+    // await sendCashUpdate(payload,action,comments)
+    return res.status(200).json({ message: 'cash Advance paid Successfully'});
   } catch (error) {
     console.error("paidCashAdvance error",error.message)
     next(error);
@@ -382,26 +381,17 @@ const recoverSchema = Joi.object({
   cashAdvanceId: Joi.string().required()
 })
 
-const recoverBodySchema = Joi.object({
-  paidBy: Joi.object({
-    empId: Joi.string().required(),
-    name: Joi.string().required()
-  })
-})
-
 export const recoverCashAdvance = async (req, res, next) => {
-  const [params, body] = await Promise.all([
-    recoverSchema.validateAsync(req.params),
-    recoverBodySchema.validateAsync(req.body)
-  ])
-  const { tenantId, travelRequestId, cashAdvanceId } = params;
-  const { recoveredBy } = body;
-
-  console.log("Received Parameters:", { tenantId, travelRequestId, cashAdvanceId });
-  console.log("Received Body Data:", { recoveredBy });
-
-
   try {
+    const [params, body] = await Promise.all([
+      recoverSchema.validateAsync(req.params),
+      financeSchema.validateAsync(req.body)
+    ])
+    const { tenantId, travelRequestId, cashAdvanceId } = params;
+    const { getFinance } = body;
+  
+    console.log("Received Parameters:", { tenantId, travelRequestId, cashAdvanceId });
+    console.log("Received Body Data:", { getFinance });
     // Find and update the cash advance
     const updatedTravelRequest = await Finance.findOneAndUpdate(
       {
@@ -417,7 +407,7 @@ export const recoverCashAdvance = async (req, res, next) => {
       },
       {
         $set: {
-          'cashAdvanceSchema.cashAdvancesData.$[elem].recoveredBy': recoveredBy,
+          'cashAdvanceSchema.cashAdvancesData.$[elem].recoveredBy': getFinance,
           'cashAdvanceSchema.cashAdvancesData.$[elem].recoveryFlag': true,
           'cashAdvanceSchema.cashAdvancesData.$[elem].cashAdvanceStatus': status.RECOVERED
         }
@@ -425,8 +415,6 @@ export const recoverCashAdvance = async (req, res, next) => {
       {
         arrayFilters: [{ 'elem.cashAdvanceId': cashAdvanceId }],
         new: true,
-        runValidators: true,
-        projection: { 'cashAdvanceSchema.cashAdvancesData.$': 1 } // Project only updated cash advance
       }
     );
 
@@ -437,19 +425,20 @@ export const recoverCashAdvance = async (req, res, next) => {
     console.log("Update successful:", updatedTravelRequest);
 
     const payload = {
-      tenantId, travelRequestId, cashAdvanceId,paidBy,paidFlag
+      tenantId, travelRequestId, cashAdvanceId,paidBy:getFinance
     }
-    console.log("Update successful:", updateResult);
+    console.log("Update successful:", payload);
 
-    const action = 'recover'
+    const action = "recover-ca"
     const comments = 'cash advance recovered by finance'
-    await sendCashUpdate(payload,action,comments)
-    return res.status(200).json({ message: 'Update successful', result: updatedTravelRequest });
+    // await sendCashUpdate(payload,action,comments)
+    return res.status(200).json({ message: 'Recovery successful'});
   } catch (error) {
     console.error('Error updating cash advance status:', error);
     next(error); // Pass the error to the error handling middleware
   }
 };
+
 
 
 
