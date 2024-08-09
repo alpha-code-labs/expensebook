@@ -208,7 +208,7 @@ const updateCashAdvance = async (req, res) => {
     const updatedCashAdvance = req.body.cashAdvance
     const draft = req.body?.draft??false
 
-    console.log(req.body, 'req.body')
+    console.log( 'req.body',req.body,"here")
 
     if(updatedCashAdvance==null || updatedCashAdvance==undefined){
       return res.status(400).json({message:'Bad Request. Missing required fields'})
@@ -255,9 +255,15 @@ const updateCashAdvance = async (req, res) => {
           // })
           
          // updatedCashAdvance.totalConvertedAmount = totalConvertedAmount;
-
           //check if approval is needed
           if(updatedCashAdvance.approvers.length>0){
+           const approvers = updatedCashAdvance.approvers.map(approver =>{ 
+            return{
+            ...approver,
+            status:'pending approval'
+           }})
+
+           updatedCashAdvance.approvers = approvers
             //send for approval
             updatedCashAdvance.cashAdvanceStatus = 'pending approval'
           }

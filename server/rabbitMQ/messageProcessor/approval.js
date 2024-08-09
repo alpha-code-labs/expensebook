@@ -90,6 +90,7 @@ export async function approveRejectLegItem(payload){
 export async function approveRejectRequests(payload) {
     try {
         const results = [];
+        console.log("payload",payload)
 
         for (const request of payload) {
             const {
@@ -135,6 +136,7 @@ export async function approveRejectRequests(payload) {
 
             // Save the updates
             await cashAdvance.save();
+            console.log("cashAdvance",cashAdvance)
             results.push({ travelRequestId, success: true, error: null });
         }
 

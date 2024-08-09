@@ -38,6 +38,6 @@ async function connectToMongoDB() {
 await connectToMongoDB();
 await startConsumer('cash')
 
-batchJobApprovedToNextCash();
 batchJobApprovedToNextTravel();
+batchJobApprovedToNextCash();
 batchJobCreateTrip();
