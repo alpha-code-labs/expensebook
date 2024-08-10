@@ -89,9 +89,6 @@ const cashSchema = Joi.object({
   expenseHeaderId: Joi.string().required(),
 })
 
-
-
-
 //Expense Header Reports with status as pending Settlement updated to paid(Full Trip).
 // export const paidExpenseReports = async (req, res, next) => {
 // const [params, body] = await Promise.all([
