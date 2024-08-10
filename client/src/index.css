@@ -13,18 +13,16 @@ body {
 ::after {
   border-width: 0;
 }
+
 /* width */
 ::-webkit-scrollbar {
-  width: 2px;
-  height: 2px;
+  width: 4px; /* Adjust the width to make it thin */
+  height: 4px;
 }
 
 /* Track */
 ::-webkit-scrollbar-track {
   background: #f1f1f1;
-}
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
 }
 
 /* Handle */
@@ -38,11 +36,38 @@ body {
   background: #f1f1f1;
 }
 
+/* Hide scrollbar */
 .scrollbar-hide {
   -ms-overflow-style: none;  /* IE and Edge */
   scrollbar-width: none;  /* Firefox */
 }
 
+/* Custom scrollbar class */
 .custom-scrollbar::-webkit-scrollbar {
   width: 4px; /* Width of the scrollbar */
 }
+
+
+
+.header-title {
+  @apply font-medium text-xs font-cabin text-neutral-400;
+}
+
+.header-text {
+  @apply font-medium text-xs font-cabin text-neutral-700;
+}
+
+.action-hover {
+  @apply hover:shadow-md hover:shadow-green-200/60 transition duration-300;
+}
+
+/* Specific to iframe */
+.iframe-container iframe {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+.iframe-container iframe::-webkit-scrollbar {
+  display: none; /* Safari and Chrome */
+}
+
