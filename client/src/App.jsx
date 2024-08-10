@@ -170,7 +170,7 @@ function App() {
         </div>
         
        
-        <div className='min-h-screen w-full max-h-fit'>
+        <div className='min-h-screen w-full max-h-fit p-4 bg-white'>
           <Routes>
             <Route
               exact
@@ -195,7 +195,7 @@ function App() {
             />
             <Route
               path="/:tenantId/:empId/settlement"
-              element={<Settlement fetchData={fetchData}loadingErrMsg={loadingErrMsg} isLoading={isLoading} setAuthToken={setAuthToken} />}
+              element={<Settlement  fetchData={fetchData}loadingErrMsg={loadingErrMsg} isLoading={isLoading} setAuthToken={setAuthToken} />}
             />
             <Route
               path="/:tenantId/:empId/bookings"

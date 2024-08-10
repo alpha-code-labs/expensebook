@@ -128,10 +128,7 @@ const handleConfirm = async (action) => {
     
   }
 };
-// const filteredData = selectedStatuses.length > 0
-//   ? selectedStatuses.reduce((acc, status) => [...acc, ...filterByTimeRange(tripData, status)], [])
-//   : tripData;
-///----------------------end---------------
+
 
   
 
@@ -620,7 +617,7 @@ const TripRecoverCard = ({itineraryArray, tripId,tripName, createdBy, openModal,
        <div className='font-cabin text-xs text-neutral-700'>
           
           <TripName tripName={tripName}/>
-          {/* <div>{trip?.tripStartDate}</div> */}
+         
           
       </div>
       </div>
