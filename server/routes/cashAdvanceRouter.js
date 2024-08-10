@@ -7,9 +7,9 @@ cashAdvance.get("/cancelled/:tenantId" , getPaidAndCancelledCash);
 
 cashAdvance.get('/settle/:tenantId', getCashAdvanceToSettle)
 
-cashAdvance.put('/recovery/:tenantId/:travelRequestId/:cashAdvanceId', recoverCashAdvance)
+cashAdvance.patch('/recovery/:tenantId/:travelRequestId/:cashAdvanceId', recoverCashAdvance)
 
-cashAdvance.put("/paid/:tenantId/:travelRequestId/:cashAdvanceId" , paidCashAdvance);
+cashAdvance.patch("/paid/:tenantId/:travelRequestId/:cashAdvanceId" , paidCashAdvance);
 
 export default cashAdvance;
 

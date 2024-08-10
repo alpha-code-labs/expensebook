@@ -20,9 +20,7 @@ app.use("/api/fe/finance", router)
 app.use((req,res,next) =>{
   res.status(404).json({success:false, message:"Wrong route. Please check the URL."})
 })
-app.use((err, req, res, next) => {
-    handleErrors(err, req, res, next);
-  });
+app.use(handleErrors);
 
 const connectToMongoDB = async () => {
 try{
@@ -37,11 +35,8 @@ try{
 
 connectToMongoDB()
 
-
-  
 // start consuming messages..
 startConsumer('finance');
-
 
 
 
