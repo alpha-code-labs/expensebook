@@ -793,10 +793,6 @@ const expenseLineSchema = new mongoose.Schema({
             empId:{type: String, default:null},
             name:{type: String, default:null}
           },
-          paidBy:{
-            empId:{type: String, default:null},
-            name:{type: String, default:null}
-          },
           submissionDate: Date,
           settlementDate:Date,
           entriesFlag:{
@@ -804,11 +800,6 @@ const expenseLineSchema = new mongoose.Schema({
           required:true,
           default:false,
           },
-          // paidFlag:{
-          // type:Boolean,
-          // required:true,
-          // default:false,
-          // },
         }
   ],
 }); 
