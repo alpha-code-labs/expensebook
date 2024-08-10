@@ -3,7 +3,7 @@ import Finance from "../models/Finance.js";
 import { financeSchema, sendUpdate } from "./cashAdvanceController.js";
 
 
-const extractCategoryAndTotalAmount = (expenseLines) => {
+export const extractCategoryAndTotalAmount = (expenseLines) => {
   const fixedFields = [
       'Total Amount', 
       'Total Fare', 

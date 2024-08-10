@@ -1,6 +1,7 @@
 import Finance from "../models/Finance.js";
 import { getWeekRange, getMonthRange, getQuarterRange, getYear } from '../helpers/dateHelpers.js';
 import Joi from 'joi';
+import { extractCategoryAndTotalAmount } from "./reimbursementController.js";
 
 
 export const getTravelAndNonTravelExpenseData = async(tenantId, empId)=>{
@@ -62,6 +63,7 @@ export const getTravelAndNonTravelExpenseData = async(tenantId, empId)=>{
 const nonTravelReportsSchema = Joi.object({
     tenantId: Joi.string().required(),
     empId: Joi.string().required(),
+    reportType:Joi.string().required(),
     filterBy: Joi.string().valid('date', 'week', 'month', 'quarter', 'year'),
     date: Joi.date().when('filterBy', {
       is: Joi.exist(),
@@ -148,15 +150,20 @@ try{
     }
 });
 
-const [travelExpense,nonTravelExpense,cash] = getEntries
-  console.log("getEntries", getEntries);
+// const [travelExpenseReports,nonTravel,cashReports] = getEntries
+// const travelExpense = travelExpenseReports?.value
+// const nonTravelExpense = nonTravel?.value
+// const cash = cashReports?.value ?? []
 
+const data = getEntries.filter(obj => obj.status === "fulfilled").map(obj=> obj.value)
+const [allTravel, allNonTravel, allCash] = data
 
+console.log("allTravel, allNonTravel, allCash", allTravel, allNonTravel, allCash)
   return res.status(200).json({
     success: true,
-    travelExpense,
-    nonTravelExpense,
-    cash,
+    travelExpense:allTravel,
+    nonTravelExpense:allNonTravel,
+    cash:allCash,
     message: `Reports retrieved Successfully`,
   });
 
@@ -169,6 +176,7 @@ const [travelExpense,nonTravelExpense,cash] = getEntries
 export const getTravelExpenseReports = async (value) => {
 try {
 
+  console.log("value", value)
     const { tenantId, empId, filterBy, date, startDate, endDate, travelType, tripStatus, travelAllocationHeaders, approvers } = value;
 
  console.log("what i got in travel exo", startDate, endDate, )
@@ -182,7 +190,7 @@ try {
     'tripSchema.travelExpenseData':{
         $elemMatch:{
             expenseHeaderStatus: status.PAID,
-            submissionDate: {
+            settlementDate: {
                 $gte: new Date(startDate),
                 $lte: new Date(endDate)
             },
@@ -237,13 +245,14 @@ try {
           default:
             break;
         }
-      } else if (startDate && endDate) {
-        filterCriteria['tripSchema.tripCompletionDate'] =  {
-            $gte: new Date(startDate),
-            $lte: new Date(endDate),
-        };
       }
-    }
+    } 
+    // else if (startDate && endDate) {
+    //   filterCriteria['tripSchema.tripCompletionDate'] =  {
+    //       $gte: new Date(startDate),
+    //       $lte: new Date(endDate),
+    //   };
+    // }
     //  else if (startDate && endDate) {
     //     filterCriteria['tripSchema.travelExpenseData.submissionDate'] = {
     //       $gte: new Date(startDate),
@@ -280,8 +289,8 @@ try {
     const trips = await Finance.find(filterCriteria);
 
     if (trips.length === 0) {
-      throw new Error({
-        success: false,
+      return({
+        success: true,
         message: 'No trips found matching the filter criteria',
       });
     }
@@ -394,7 +403,7 @@ export const getNonTravelExpenseReports = async (value) => {
   const expenseReports = await Finance.find(filterCriteria);
 
   if (expenseReports.length === 0) {
-    return res.status(200).json({
+    return ({
       success: true,
       message: 'All Non Travel Expense reports are settled for specified date range',
     });
@@ -408,10 +417,14 @@ export const getNonTravelExpenseReports = async (value) => {
       actionedUpon,
       settlementBy,
       expenseHeaderStatus,
-      createdBy
+      createdBy,
+      expenseLines,
     } = report.reimbursementSchema;
   
     const { expenseAmountStatus } = report;
+
+    const {expenseTotalAmount,results} = extractCategoryAndTotalAmount(expenseLines);
+    console.log("expenseTotalAmount",expenseTotalAmount, "results", results)
   
     return {
       expenseHeaderId,
@@ -419,7 +432,8 @@ export const getNonTravelExpenseReports = async (value) => {
       expenseAmountStatus,
       createdBy,
       settlementBy,
-      actionedUpon
+      actionedUpon,
+      expenseTotalAmount
     };
   });
   
@@ -521,7 +535,7 @@ export const getCashReports = async(value) => {
        if(tripStatus){
          filterCriteria['cashAdvanceSchema.cashAdvanceStatus']= tripStatus;
        }
-   
+
        if(approvers){
          filterCriteria['tripSchema.travelRequestData.approvers'] ={
            $elemMatch:{
@@ -530,41 +544,38 @@ export const getCashReports = async(value) => {
              }
              }
        }
-   
+
        const trips = await Finance.find(filterCriteria);
    
        if (trips.length === 0) {
-         throw new Error({
-           success: false,
+         return ({
+           success: true,
            message: 'No trips found matching the filter criteria',
          });
        }
-   
+
        const travelExpense = trips.flatMap((report) =>{
-           console.log("reports expense", JSON.stringify(report.tripSchema.travelExpenseData,null,2))
-           if(!report?.tripSchema || !report?.tripSchema?.travelExpenseData?.length > 1){
+           console.log("reports expense", JSON.stringify(report.cashAdvanceSchema.cashAdvancesData,null,2))
+           if(!report?.cashAdvanceSchema || !report?.cashAdvanceSchema?.cashAdvancesData?.length > 1){
              return []
          }
-   
-         const {travelRequestId, tripName} = report?.tripSchema.travelRequestData
-         const {expenseAmountStatus, createdBy, tripStartDate, tripCompletionDate} = report.tripSchema
-   
-         const getTravelExpenseData = report.tripSchema.travelExpenseData
-           .filter((expense) => expense.expenseHeaderStatus === status.PAID)
-           .map(({expenseHeaderId,actionedUpon,settlementBy, expenseLines, expenseHeaderStatus, SettlementDate})=>({
-             expenseHeaderStatus,
-             expenseAmountStatus,
-             expenseHeaderId,
-             createdBy,
-             settlementBy,
-             SettlementDate,
+
+         const {travelRequestId,travelRequestNumber, tripName, createdBy} = report?.cashAdvanceSchema.travelRequestData   
+         const getCashAdvanceData = report.cashAdvanceSchema.cashAdvancesData
+           .filter((cash) => cash.cashAdvanceStatus === status.PAID)
+           .map(({cashAdvanceId,actionedUpon,paidBy, recoveredBy, amountDetails, cashAdvanceStatus,approvers,cashAdvanceNumber})=>({
+             cashAdvanceStatus,
+             cashAdvanceId,
+             paidBy,
+             recoveredBy,
              actionedUpon,
-             expenseLines,
+             amountDetails,
+             approvers,
+             cashAdvanceNumber
              }))
-   
-           return{tripName,travelRequestId,expenseAmountStatus,createdBy,tripStartDate, tripCompletionDate, travelExpenseData:getTravelExpenseData}
+
+           return{tripName,travelRequestId,travelRequestNumber,createdBy, cashAdvancesData:getCashAdvanceData}
          })
-   
          console.log("Entries travelExpense",travelExpense)
          return travelExpense
 
@@ -572,7 +583,6 @@ export const getCashReports = async(value) => {
     console.error(error);
   }
 }
-
 
 
 //status update based on filter criteria
