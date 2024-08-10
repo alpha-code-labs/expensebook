@@ -1,6 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 /* eslint-disable react/display-name */
 /* eslint-disable react/prop-types */
+
 import { useState, useEffect, useRef } from "react";
 
 export default function (props){
@@ -17,7 +18,7 @@ export default function (props){
             document.body.style.overflow = 'hidden'
         }
         else{
-            document.body.style.overflow = 'auto'
+            document.body.style.overflow = 'visible'
         }
     }, [showPopup])
 

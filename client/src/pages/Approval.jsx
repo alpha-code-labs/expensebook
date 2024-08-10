@@ -38,8 +38,8 @@ const Approval = ({isLoading, fetchData, loadingErrMsg}) => {
   const [selectedRejReason, setSelectedRejReason]=useState(null);
   const [expenseDetails, setExpenseDetails]=useState(null);
   const [isUploading,setIsUploading]=useState(false);
-  const [showPopup, setShowPopup] = useState(false)
-  const [message, setMessage] = useState(null)
+  const [showPopup, setShowPopup] = useState(false);
+  const [message, setMessage] = useState(null);
   const [error , setError]= useState({
     travelRequestId: {set:false, message:""},
     rejectionReason:{set:false,message:""}
@@ -548,8 +548,8 @@ const handleVisible = (travelRequestId, action) => {
                 </div>}
          
                                 <div className="flex items-center gap-2 mt-10">
-                                <Button1 loading={isUploading} active={isUploading} text='Confirm' onClick={()=>handleConfirm(actionType)} />
-                                <Button   text='Cancel'  onClick={closeModal}/>
+                                  <Button1 loading={isUploading} active={isUploading} text='Confirm' onClick={()=>handleConfirm(actionType)} />
+                                  <Button   text='Cancel'  onClick={closeModal}/>
                                 </div>
                     </>
         );

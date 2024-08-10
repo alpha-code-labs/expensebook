@@ -2,7 +2,7 @@ import axios from 'axios';
 
 
 const DASHBOARD_BACKEND_API_URL = import.meta.env.VITE_DASHBOARD_BACKEND_API_URL;
-// const APPROVAL_BACKEND_API_URL = import.meta.env.VITE_DASHBOARD_BACKEND_API_URL;
+const SETTLEMENT_BACKEND_API_URL = import.meta.env.VITE_SETTLEMENT_BACKEND_API_URL;
 
 const retry = 2;
 const retryDelay = 3000;
@@ -14,6 +14,9 @@ const errorMessages = {
   'request': 'Network Error',
   'else': 'Something went wrong. Please try again later'
 };
+
+
+
 
 const handleRequestError = (e) =>{
   if (e.response) {
@@ -86,6 +89,8 @@ export const getEmployeeData_API = async (tenantId,empId) => {
     return { data: null, error: errorObject };
   }
 };
+
+
 const LOGINBASEURL = import.meta.env.VITE_LOGIN_LOGOUT_BACKEND_URL
 
 export const getEmployeeRoles_API = async (tenantId,empId) => {
@@ -174,7 +179,6 @@ export const postTravelPreference_API = async (tenantId, empId, formData) => {
 };
 
 
-
 export const approveTravelRequestApi = async(data)=>{
   const {tenantId, empId, travelRequests} = data
 
@@ -201,8 +205,8 @@ export const approveTravelRequestApi = async(data)=>{
       return {  error: errorObject };
     }
   }
-  
-  ///reject for travelRequest
+
+//reject for travelRequest
   
   export const rejectTravelRequestApi = async(data)=>{
     const {tenantId, empId, travelRequests,rejectionReason} = data
@@ -224,6 +228,7 @@ export const approveTravelRequestApi = async(data)=>{
         return {  error: errorObject };
       }
     }
+
     //recover paid and cancelled trips
   export const travelAdminRecoverTripApi = async(data)=>{
     const {tenantId, empId, tripId,itineraryIds,recoverAmount} = data
@@ -246,7 +251,7 @@ export const approveTravelRequestApi = async(data)=>{
       }
     }
 
-    export const nonTravelExpenseApprovalActionApi = async(data,payload)=>{
+  export const nonTravelExpenseApprovalActionApi = async(data,payload)=>{
       const {tenantId,empId,expenseHeaderId} = data
     
       let url = `${DASHBOARD_BACKEND_API_URL}/api/fe/dashboard/approval/${tenantId}/${empId}/${expenseHeaderId}`
@@ -266,6 +271,63 @@ export const approveTravelRequestApi = async(data)=>{
           return {  error: errorObject };
         }
       }    
+
+    //from settlement microservice
+
+  export const settleCashAdvanceApi = async(data)=>{
+        const {tenantId, empId,travelRequestId, cashAdvanceId, paidBy, action} = data
+        
+        let url
+        console.log(action)
+        
+          if (action === "settleCashAdvance" ) { 
+             url = `${SETTLEMENT_BACKEND_API_URL}/api/fe/finance/cash/paid/${tenantId}/${travelRequestId}/${cashAdvanceId}`
+          }
+          else { 
+             url = `${SETTLEMENT_BACKEND_API_URL}/api/fe/finance/cash/recovery/${tenantId}/${travelRequestId}/${cashAdvanceId}`
+          }
+          
+        
+        console.log('url from api.js',url)
+          try{
+             const response = await axiosRetry(axios.patch,url,{getFinance:paidBy})
+             return(response.data.message)
+          }catch(error){
+            handleRequestError(error);
+            const errorObject = {
+              status: error.response?.status || null,
+              message: error.message || 'Unknown error',
+            };
+            console.log('Post Error : ',errorObject);
+            return {  error: errorObject };
+          }
+        }  
+
+
+
+  export const settleExpenseApi = async(data)=>{
+        const {tenantId, empId,travelRequestId, expenseHeaderId, paidBy, action} = data
+        let url
+
+        if(action === "settleTravelExpense" ){
+           url = `${SETTLEMENT_BACKEND_API_URL}/api/fe/finance/expense/paid/${tenantId}/${travelRequestId}/${expenseHeaderId}`
+        }else{
+          url = `${SETTLEMENT_BACKEND_API_URL}/api/fe/finance/nontravel/paid/${tenantId}/${expenseHeaderId}`
+        }
+        
+          try{
+             const response = await axiosRetry(axios.patch,url,{getFinance:paidBy})
+             return(response.data.message)
+          }catch(error){
+            handleRequestError(error);
+            const errorObject = {
+              status: error.response?.status || null,
+              message: error.message || 'Unknown error',
+            };
+            console.log('Post Error : ',errorObject);
+            return {  error: errorObject };
+          }
+        }  
 
 
 

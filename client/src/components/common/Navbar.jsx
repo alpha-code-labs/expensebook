@@ -17,7 +17,7 @@ console.log("local storage navbar", localStorage  )
   let tenantId = localStorage.tenantId
   let empId = localStorage.empId
   return (
-    <div className="h-[56px] p-4 flex flex-row justify-between items-center bg-indigo-600">
+    <div className=" h-[56px] p-4 flex flex-row justify-between items-center bg-indigo-600">
 
       <div className="flex flex-row items-center space-x-2 ">
       <div onClick={()=>setSidebarOpen(false)} className='md:hidden block hover:bg-indigo-100 rounded-full p-2'>

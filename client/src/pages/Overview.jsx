@@ -44,6 +44,8 @@ function CardLayout({cardSequence,icon,cardTitle,children}){
 
 
 
+
+
 const Overview = ({fetchData ,isLoading,setIsLoading,loadingErrMsg, setLoadingErrMsg}) => {
 
   const { employeeData } = useData(); 
@@ -411,12 +413,6 @@ Raise Travel Request
 
 export default Overview;
 
-
-
-
-
-
-
 const IntransitTrips = ({ index, trip, lastIndex,handleVisible }) => {
   
   const [activeTabs, setActiveTabs] = useState("upcoming");
@@ -639,16 +635,6 @@ const IntransitTrips = ({ index, trip, lastIndex,handleVisible }) => {
     </div>
   );
 };
-
-
-
-
-
-
-
-
-
-
 
 const UpcomingTrips = ({ index, trip,lastIndex ,handleVisible}) => {
   
