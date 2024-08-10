@@ -60,7 +60,7 @@ export const fullUpdateCash = async (payload) => {
   console.log('full update cashAdvanceSchema', payload)
   const{ travelRequestData, cashAdvancesData} = payload
   const { tenantId, travelRequestId } = travelRequestData;
-console.log("whattt", tenantId, travelRequestId)
+console.log("fullUpdateCash --tenantId,travelRequestId", tenantId, travelRequestId)
   // Check if the tenantId is present
   if (!tenantId) {
     console.error('TenantId is missing');
@@ -128,6 +128,7 @@ export const fullUpdateCashBatchJob = async (payloadArray) => {
     return { success: false, error: error };
   }
 }
+
 
 
 

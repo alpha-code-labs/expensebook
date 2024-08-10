@@ -6,6 +6,7 @@ import { fullUpdateExpense } from './messageProcessor/travelExpenseProcessor.js'
 import { addLeg, updateTrip, updateTripStatus, updateTripToCompleteOrClosed } from './messageProcessor/trip.js';
 import { fullUpdateCash, fullUpdateCashBatchJob } from './messageProcessor/cash.js';
 import { deleteReimbursement, updateReimbursement } from './messageProcessor/reimbursement.js';
+import { settleCashAdvance } from './messageProcessor/finance.js';
 
 dotenv.config();
 export async function startConsumer(receiver) {
@@ -127,7 +128,7 @@ export async function startConsumer(receiver) {
               console.log('update failed with error code', res.error)
             }
             }
-          } else if (source == 'cash'){
+          } else if (source == 'cash'){ 
             if(action == 'full-update'){
               console.log('trying to update CashAdvanceSchema')
               const res = await fullUpdateCash(payload)
@@ -250,6 +251,34 @@ export async function startConsumer(receiver) {
                 console.error(Error,"Payload is not an array");
               }
             }
+          } else if (source == 'finance'){
+            if (action == 'settle-ca') {
+              console.log('settle-ca', payload);
+                const result = await settleCashAdvance(payload);
+                console.log("result for settle ca", result)
+                  if (res.success) {
+                    // Acknowledge message
+                    channel.ack(msg);
+                    console.log('Message processed successfully');
+                  } else {
+                    // Implement retry mechanism or handle error
+                    console.log('Update failed with error:', res.error);
+                  }
+            }
+            if(action == 'recover-ca'){
+                const result = await recoverCashAdvance(payload)
+                console.log("result for recoverCashAdvance ", result)
+                if(result.success) {
+                    channel.ack(msg);
+                    console.log('Message processed successfully');
+                  } else {
+                    // Implement retry mechanism or handle error
+                    console.log('Update failed with error:', res.error);
+                  }
+                }
+              else{
+                console.error(Error,"Payload is not an array");
+              }
           } 
       }
     }}, { noAck: false });

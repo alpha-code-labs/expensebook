@@ -859,6 +859,18 @@ export const tripSchema = new mongoose.Schema({
           paidBy:{empId:String, name:String},
           recoveredBy:{empId:String, name:String},
           submissionDate: Date,
+          settlementDate:Date,
+          settlementBy:{
+            empId:{type: String, default:null},
+            name:{type: String, default:null}
+          },
+          submissionDate: Date,
+          settlementDate:Date,
+          entriesFlag:{
+          type:Boolean,
+          required:true,
+          default:false,
+          },
         }
       ],
 }); 

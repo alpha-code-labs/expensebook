@@ -141,7 +141,9 @@ const getOverView = async(tenantId,empId) => {
  const getAllTravelRequests = await dashboard.find({
     tenantId,
     $or:[
-        {'travelRequestSchema.createdBy.empId':empId},
+        {'travelRequestSchema.createdBy.empId':empId,
+         'travelRequestSchema.isCashAdvanceTaken':false,
+        },
         {'cashAdvanceSchema.travelRequestData.createdBy.empId':empId}
     ]
 }) 
@@ -187,7 +189,8 @@ if(getAllTravelRequests.length > 0){
 
     const allTravelRequests = [...travelRequests, ...travelRequestWithCash]
 
-    // console.log("allTravelRequests kaboom", allTravelRequests);
+    console.log("travelRequests kaboom", travelRequests);
+    console.log("travelRequestWithCash kaboom", travelRequestWithCash);
 
     return {allTravelRequests}
 } else {
@@ -2183,7 +2186,7 @@ console.log("verified business admin layout", tenantId, empId);
                 return { error: 'Error in fetching data for business admin' };
             } 
 
-            console.log("booking from database .......................", bookingDoc)
+            // console.log("booking from database .......................", bookingDoc)
 
             // const travel = await (async () => {
             //     // console.log("booking", bookingDoc)
@@ -2245,7 +2248,7 @@ console.log("verified business admin layout", tenantId, empId);
                 return results.filter(Boolean);
             })();
 
-        console.log("travel booking .......", travel)
+        // console.log("travel booking .......", travel)
             // const travelWithCash = await (async () => {
             //     const filteredBooking = bookingDoc.filter(booking => 
             //         booking?.cashAdvanceSchema?.travelRequestData?.travelRequestStatus === 'pending booking'
@@ -2308,7 +2311,7 @@ console.log("verified business admin layout", tenantId, empId);
             })();
             
 
-            console.log("travel booking with cash .......", travelWithCash)
+            // console.log("travel booking with cash .......", travelWithCash)
             // const trips = await (async () => {
             //     const filteredBooking = bookingDoc.filter(booking => 
             //         booking?.tripSchema?.travelRequestData?.travelRequestStatus === 'booked' && 
