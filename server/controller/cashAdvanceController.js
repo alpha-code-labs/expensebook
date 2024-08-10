@@ -208,13 +208,16 @@ export const financeSchema = Joi.object({
   })
 })
 
-const sendCashUpdate = async(payload,action,comments) => {
+export const sendUpdate = async(payload,action,comments, includeCash=false) => {
   try{
+    const services = ['dashboard','trip','expense']
+
+    if(includeCash){
+      services.push('cash')
+    }
+
     const results = await Promise.allSettled([
-    sendToOtherMicroservice(payload, action, 'cash', comments),
-    sendToOtherMicroservice(payload, action, 'dashboard', comments),
-    sendToOtherMicroservice(payload, action, 'trip', comments),
-    sendToOtherMicroservice(payload, action, 'expense', comments)
+      services.map(service => sendToOtherMicroservice(payload,action,service,comments))
     ])
     
     results.forEach((result, index) => {
@@ -280,10 +283,13 @@ try {
       tenantId, travelRequestId, cashAdvanceId,paidBy:getFinance,paidFlag:true,cashAdvanceStatus:'paid'
     }
     console.log("Update successful:", updateResult);
-
-    const action = 'settle-ca'
-    const comments = 'cash advance paid by finance'
-    // await sendCashUpdate(payload,action,comments)
+    const options = {
+    action :'settle-ca',
+    comments:'cash advance paid by finance',
+    includeCash:true
+    }
+ 
+    // await sendUpdate({payload,...options})
     return res.status(200).json({ message: 'cash Advance paid Successfully'});
   } catch (error) {
     console.error("paidCashAdvance error",error.message)
@@ -429,9 +435,13 @@ export const recoverCashAdvance = async (req, res, next) => {
     }
     console.log("Update successful:", payload);
 
-    const action = "recover-ca"
-    const comments = 'cash advance recovered by finance'
-    // await sendCashUpdate(payload,action,comments)
+    const options = {
+      action :"recover-ca",
+      comments:'cash advance recovered by finance',
+      includeCash:true
+      }
+
+    // await sendUpdate(payload,...options)
     return res.status(200).json({ message: 'Recovery successful'});
   } catch (error) {
     console.error('Error updating cash advance status:', error);

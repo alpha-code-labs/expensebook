@@ -1,6 +1,6 @@
 import Joi from "joi";
 import Finance from "../models/Finance.js";
-import { financeSchema } from "./cashAdvanceController.js";
+import { financeSchema, sendUpdate } from "./cashAdvanceController.js";
 
 
 //All Expense Header Reports with status as pending Settlement(Full Trip).
@@ -60,28 +60,6 @@ export const getTravelExpenseData = async(tenantId, empId)=>{
       throw new Error({ error: 'Error in fetching travel expense reports:', error });
     }
 };
-
-const sendTravelExpenseUpdate = async(payload,action,comments) => {
-  try{
-    const results = await Promise.allSettled([
-    sendToOtherMicroservice(payload, action, 'cash', comments),
-    sendToOtherMicroservice(payload, action, 'dashboard', comments),
-    sendToOtherMicroservice(payload, action, 'trip', comments),
-    sendToOtherMicroservice(payload, action, 'expense', comments)
-    ])
-    
-    results.forEach((result, index) => {
-      if (result.status === 'fulfilled') {
-          console.log(`Service ${index + 1} succeeded with:`, result.value);
-      } else {
-          console.error(`Service ${index + 1} failed with reason:`, result.reason);
-      }
-  });
-  } catch(error){
-    console.error(error)
-    throw new Error(error.message)
-  }
-}
 
 const cashSchema = Joi.object({
   tenantId:Joi.string().required(),
@@ -183,7 +161,6 @@ const cashSchema = Joi.object({
 export const paidExpenseReports = async (req, res, next) => {
   try {
     // Validate request parameters and body
-    
     const [params, body] = await Promise.all([
       cashSchema.validateAsync(req.params),
       financeSchema.validateAsync(req.body)
@@ -240,7 +217,16 @@ export const paidExpenseReports = async (req, res, next) => {
       return res.status(404).json({ message: 'No matching document found or update failed' });
     }
 
-    // console.log("Update successful:", updatedExpenseReport);
+    // const payload = {
+    //   tenantId,travelRequestId, expenseHeaderId,settlementBy:getFinance , expenseHeaderStatus:newStatus.PAID
+    // }
+
+    // const options={
+    //  action:'expense-paid',
+    //  comments:'From Finance ms -travelExpenseReport status is updated to paid'
+    // }
+    // // console.log("Update successful:", updatedExpenseReport);
+    // await sendUpdate({payload,...options})
     return res.status(200).json({ message: 'Update successful', result: updatedExpenseReport });
   } catch (error) {
     console.error('Error updating expense report status:', error.message);
