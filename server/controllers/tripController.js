@@ -96,6 +96,14 @@ const tripFilterSchema = Joi.object({
   travelType: Joi.string().valid('domestic', 'international','local').optional(),
   tripStatus: Joi.string().valid('upcoming','modification',
   'transit','completed','paid and cancelled','cancelled','recovered').optional(),
+  travelAllocationHeaders: Joi.array().items(Joi.object().keys({
+    headerName: Joi.string().required(),
+    headerValue: Joi.string().required(),
+  })),
+  approvers: Joi.array().items(Joi.object().keys({
+    name:Joi.string().required(),
+    empId:Joi.string().required(),
+  }))
 });
 
 
@@ -107,10 +115,11 @@ export const filterTrips = async (req, res) => {
     });
 
     if (error) {
+      console.log("what is the error", error)
       return res.status(400).json({ message: error.details[0].message });
     }
 
-    const { tenantId, empId, filterBy, date, fromDate, toDate, travelType, tripStatus } = value;
+    const { tenantId, empId, filterBy, date, fromDate, toDate, travelType, tripStatus, travelAllocationHeaders, approvers } = value;
 
     let filterCriteria = {    
       tenantId: tenantId,
@@ -180,8 +189,24 @@ export const filterTrips = async (req, res) => {
       filterCriteria['tripSchema.tripStatus']= tripStatus;
     }
 
-    console.log('filterCriteria', filterCriteria);
+    if(travelAllocationHeaders){
+      filterCriteria['tripSchema.travelRequestData.travelAllocationHeaders'] = {
+        $elemMatch:{
+          headerName:{$in:travelAllocationHeaders.map((header)=> header.headerName)},
+          headerValue:{$in:travelAllocationHeaders.map((header)=> header.headerValue),}
+        }
+      };
+    }
 
+    if(approvers){
+      filterCriteria['tripSchema.travelRequestData.approvers'] ={
+        $elemMatch:{
+          name:{$in:approvers.map((approver)=> approver.name)},
+          empId:{$in:approvers.map((approver)=> approver.empId)}
+          }
+          }
+        }
+  
     const trips = await reporting.find(filterCriteria);
 
     if (trips.length === 0) {
