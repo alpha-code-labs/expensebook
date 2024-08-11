@@ -1,6 +1,11 @@
 export {default as reciept_icon} from './receipt copy.svg' 
 export {default as filter_icon} from './filter_icon.svg' 
 export {default as aeroplane1_icon} from './Airplane_1.svg' 
+export {default as airplane_icon1} from './Airplane_1 copy.svg';
+export {default as money} from './money.svg';
+export {default as money1} from './money copy.svg';
+export {default as receipt} from './receipt.svg';
+export {default as receipt_icon1} from './receipt copy.svg';
 export {default as loading_icon} from './loading.svg' 
 export {default as chevron_down_icon} from './loading.svg' 
 export {default as cancel_icon} from './cancel_icon.svg' 

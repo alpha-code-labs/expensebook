@@ -53,7 +53,7 @@ const axiosRetry = async (requestFunction, ...args) => {
 const REPORTING_BACKEND_API_URL = import.meta.env.VITE_BACKEND_REPORT_API_URL
 
 export const getReportDataAPI = async (tenantId,empId) => {
-  const url = `${REPORTING_BACKEND_API_URL}/api/fe/reporting/role/${tenantId}/${empId}`;
+  const url = `${REPORTING_BACKEND_API_URL}/api/fe/reporting/rol/${tenantId}/${empId}`;
 
   try {
     const response = await axiosRetry(axios.get, url);

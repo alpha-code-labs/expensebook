@@ -10,7 +10,7 @@ const countTripsByStatus = (data) => {
   }, {});
   
   // Ensure specific statuses are included
-  const requiredStatuses = ["upcoming", "transit", "completed", "cancelled"];
+  const requiredStatuses = ["upcoming", "transit", "completed", "cancelled","recovered"];
   return requiredStatuses.map(status => ({
     name: status,
     count: counts[status] || 0,

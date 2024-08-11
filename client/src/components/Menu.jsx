@@ -20,89 +20,82 @@ import ExpenseChart from './chart/ExpenseChart';
 import CashChart from './chart/CashChart';
 import CashReport from '../report/CashReport';
 import ReimbursementReport from '../report/ReimbursementReport';
+import {reimbursementHeaders, cashAdvanceHeaders, travelExpenseHeaders, tripHeaders} from '../data/miscellaneousData'
 
 
 
 const Menu = () => {
-  const tripHeaders= [
-    "start date",
-    "completion date",
-    "trip number",
-    "travel type",
-    "trip status",
-    "created by",
-    "approver",
-    "trip purpose",
-]
+  const employeeRoles ={
+    "employee": true,
+    "employeeManager": true,
+    "finance": true,
+    "businessAdmin": true,
+    "superAdmin": false
+}
+  const reportConfigInputs = {
+    trips: [
+      { name: 'tripStatus', type: 'dropdown', options: [...travelRequestStatus] },
+      { name: 'tripStartDate', type: 'date' },
+      { name: 'travelPurpose', type: 'dropdown' ,options:[...travelType] },
+    ],
+    cashAdvance: [
+      { name: 'advanceAmount', type: 'number' },
+      { name: 'requestDate', type: 'date' },
+    ],
+    expenses: [
+      { name: 'expenseType', type: 'dropdown', options: ['Travel', 'Food', 'Accommodation'] },
+      { name: 'expenseDate', type: 'date' },
+      { name: 'currencies', type: 'multisearch' },
+      { name: 'paymentMode', type: 'multisearch' },
+    ],
+    reimbursements: [
+      { name: 'expenseType', type: 'dropdown', options: ['Travel', 'Food', 'Accommodation'] },
+      { name: 'expenseDate', type: 'date' },
+      { name: 'currencies',  type: 'multisearch' },
+      { name: 'paymentMode', type: 'multisearch' },
+    ],
+    common: [
+      { name: 'fromDate', type: 'date' },
+      { name: 'toDate', type: 'date' },
+      { name: 'status', type: 'dropdown' },
+    ],
+  };
 
 
-const travelExpenseHeaders = [
-  "trip number",
-  "trip status",
-  "travel type",
-  "expense number",
-  "expense date",
-  "expense amount",
-  "created by",
-  "expense status",
-  "payment mode",
-  "paid by",
-  "included bills"
-]
-
-const cashAdvanceHeaders = [
-  "travel request number",
-  "travel request status",
-  "travel type",
-  "cash-advance number",
-  "requested date",
-  // "amount",
-  "created by",
-  "cash-advance status",
-  "payment mode",
-  "paid by",
   
-]
-
-const reimbursementHeaders=[
-
-  "reimbursement number",
-  "requested date",
-  "category",
-  "created by",
-  "expense amount",
-  "created by",
-  "expense status",
-  "payment mode",
-  "paid by",
-  "merchant"
-
-]
+  
 
 
 
-  const [reportingData , setReportingData]=useState(null)
-  const [isLoading , setIsLoading]=useState(true)
-  const [loadingErrorMsg, setLoadingErrorMsg]=useState(null)
+  const [activeView, setActiveView] = useState("myView");
+  const [reportingData , setReportingData]=useState(null);
+  const [tripData,setTripData]=useState([]);
+  const [isLoading , setIsLoading]=useState(true);
+  const [loadingErrorMsg, setLoadingErrorMsg]=useState(null);
   const [reportTab , setReportTab]= useState("trip");
   const [showModal , setShowModal]=useState(false);
-  const [modalTab , setModalTab]=useState("filterTab")
+  const [modalTab , setModalTab]=useState("filterTab");
   const [selectedOptions, setSelectedOptions] = useState([]);
   const [filterForm , setFilterForm]= useState({});
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+
+  if(activeView==="myTeamView"){
+
+    Object.keys(reportConfigInputs).forEach((key)=>{
+      if(key!=="common"){
+      reportConfigInputs[key].push({ name: "Employees", type: "multisearch", options: [] })
+      }
+    })
+    
+
+  }
 
 
   const handleModalTab =(tab)=>{
     setModalTab(tab)
   }
  
-
- const json = {"employees":[
-  {"firstName":"John", "lastName":"Doe"}, 
-  {"firstName":"Anna", "lastName":"Smith"},
-  {"firstName":"Peter", "lastName":"Jones"}
-]}
 
 
   useEffect(()=>{
@@ -212,6 +205,7 @@ const [hiddenHeaders, setHiddenHeaders] = useState([]);
 const [isModalOpen, setIsModalOpen] = useState(false);
 
 // Toggle modal visibility
+
 const toggleModal = () => {
   setIsModalOpen(!isModalOpen);
 };
@@ -232,9 +226,11 @@ const hideHeader = (header) => {
   const fetchData = async () => {
     try {
       setIsLoading(true);
-      const response = await getReportDataAPI('tenantId', 'empId');
-      setReportingData(response)
-      console.log('trip data fetched successfully', response)
+      const response = await getReportDataAPI('660a58ac1a308ce97b32213f', '1001');
+      // setReportingData(response)
+
+      console.log('trip data fetched successfully', response?.reportingViews?.employee?.trips);
+      setTripData(response?.reportingViews?.employee?.trips)
       setIsLoading(false);  
     } catch (error) {
       setLoadingErrorMsg(error.message);
@@ -247,23 +243,23 @@ const hideHeader = (header) => {
 
 //for generate customize report
 
+
 const handleRunReport =()=>{
   console.log(filterForm)
 }
 
+
 useEffect(()=>{
   setReportingData(requiredTripData)
   setIsLoading(false)
-  
-  
-  // setTimeout(()=>{
-    
-  //   setLoadingErrorMsg('Something went wrong')
-  //   setIsLoading(false)
-  //   },3000)
 
+  setTimeout(()=>{
+    setLoadingErrorMsg('Something went wrong')
+    setIsLoading(false)
+    },3000)
 
-  //fetchData();
+  fetchData();
+
 },[])
   
 
@@ -281,7 +277,7 @@ const handleDownloadfile=(file)=>{
 <div className='flex'>
 
     <div className='w-[20%]'>
-        <Sidebar handleReportTab={handleReportTab} reportTab={reportTab} />
+        <Sidebar activeView={activeView} setActiveView={setActiveView} handleReportTab={handleReportTab} reportTab={reportTab} />
     </div>  
 {isLoading && <Error message={loadingErrorMsg}/>}
 {!isLoading &&
@@ -331,9 +327,9 @@ const handleDownloadfile=(file)=>{
 {reportTab === "trip" && 
 <>
 <div className='flex items-center justify-center'>  
-  <TripChart data={reportingData}/>
+  <TripChart data={tripData}/>
 </div> 
-<TripReport toggleModal={toggleModal} tripData={reportingData} visibleHeaders={visibleHeaders}/>
+<TripReport toggleModal={toggleModal} tripData={tripData} visibleHeaders={visibleHeaders}/>
 </>} 
 
 
@@ -349,6 +345,7 @@ const handleDownloadfile=(file)=>{
 
 {reportTab === "expense" && 
 <>
+
 <div className='flex items-center justify-center'>  
   <ExpenseChart data={requiredExpenseData}/>
 </div> 
@@ -368,7 +365,7 @@ const handleDownloadfile=(file)=>{
   <Modal showModal={showModal} setShowModal={setShowModal} skipable={true}>  
     < >
     <div className='h-[48px] rounded-t-lg   bg-purple-100 px-5 flex justify-start items-center'>
-        <h1 className='text-start text-inter text-lg font-semibold text-purple-500'>Trips Report</h1>
+        <h1 className='text-start text-inter text-lg font-semibold text-purple-500 capitalize'>{`${reportTab}s Report`}</h1>
     </div>
     <div className='px-4 py-2'>
     <div className='h-[48px]  flex-row rounded-t-lg px-5 flex justify-between items-center border-b w-full'>
@@ -388,6 +385,7 @@ const handleDownloadfile=(file)=>{
       </div>
     <h1 className='text-start text-inter text-base font-cabin font-semibold text-purple-500 '>Reset Filters</h1>
     </div>
+
     {modalTab === "filterTab" &&
     <div>
       <div className='flex items items-center  justify-between'>
