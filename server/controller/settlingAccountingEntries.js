@@ -119,59 +119,53 @@ try{
   const { tenantId, empId, filterBy, date, startDate, endDate, reportType, tripStatus, travelAllocationHeaders, approvers } = value;
 
   const getReports = [];
-  const getReportType = [reportType]
 
-  if (getReportType.includes('all')) {
-    console.log("getReportType all", getReportType)
+  if (reportType === 'travel') {
+    console.log("reportType travel", reportType)
+
+    getReports.push(getTravelExpenseReports(value));
+  }else if (reportType ==='nonTravel') {
+    console.log("reportType nonTravel", reportType)
+    getReports.push(getNonTravelExpenseReports(value));
+  } else if (reportType ==='cash'){
+    console.log("reportType cash", reportType)
+
+    getReports.push(getCashReports(value));
+  }  else if (reportType ==='all') {
+    console.log("reportType all", reportType)
     getReports.push(getTravelExpenseReports(value),
     getNonTravelExpenseReports(value),
     getCashReports(value));
-  }
+  } 
   
-  if (getReportType.includes('travel')) {
-    console.log("getReportType travel", getReportType)
-
-    getReports.push(getTravelExpenseReports(value));
-  }
-  
-  if (getReportType.includes('cash')) {
-    console.log("getReportType cash", getReportType)
-
-    getReports.push(getCashReports(value));
-  }
-  
-  // Check if getReportType includes 'nonTravel'
-  if (getReportType.includes('nonTravel')) {
-    console.log("getReportType nonTravel", getReportType)
-
-    getReports.push(getNonTravelExpenseReports(value));
-  }
-  
-  console.log("before call - getReports", getReports)
   const getEntries = await Promise.allSettled(getReports);
+
+  function extractValues(entries) {
+    let result = {};
+    entries.forEach(entry => {
+      const valueObj = entry.value;
+      const key = Object.keys(valueObj)[0];
+      result[key] = valueObj[key];
+    });
+    return result;
+  }
+
+
+  const result = extractValues(getEntries);
 
   getEntries.forEach((result, index) => {
     if (result.status === 'fulfilled') {
-        console.log(`Service ${index + 1} succeeded with:`, result.value);
+      console.log(`Service ${index + 1} succeeded with:`, result.value);
     } else {
-        console.error(`Service ${index + 1} failed with reason:`, result.reason);
+      console.error(`Service ${index + 1} failed with reason:`, result.reason);
     }
-});
+  });
+  
+  
 
-// const [travelExpenseReports,nonTravel,cashReports] = getEntries
-// const travelExpense = travelExpenseReports?.value
-// const nonTravelExpense = nonTravel?.value
-// const cash = cashReports?.value ?? []
-
-const data = getEntries.filter(obj => obj.status === "fulfilled").map(obj=> obj.value)
-const [allTravel, allNonTravel, allCash] = data
-
-console.log("allTravel, allNonTravel, allCash", allTravel, allNonTravel, allCash)
   return res.status(200).json({
+    ...result,
     success: true,
-    travelExpense:allTravel,
-    nonTravelExpense:allNonTravel,
-    cash:allCash,
     message: `Reports retrieved Successfully`,
   });
 
@@ -297,7 +291,7 @@ try {
     const trips = await Finance.find(filterCriteria);
 
     if (trips.length === 0) {
-      return []
+      return {travelExpense:[]}
     }
 
     const travelExpense = trips.flatMap((report) =>{
@@ -328,7 +322,7 @@ try {
       })
 
       console.log("Entries travelExpense",travelExpense)
-      return travelExpense
+      return {travelExpense:travelExpense}
 } catch (error) {
     console.error(error);
     throw new Error({ error:error.message});
@@ -410,7 +404,7 @@ export const getNonTravelExpenseReports = async (value) => {
   const expenseReports = await Finance.find(filterCriteria);
 
   if (expenseReports.length === 0) {
-    return []
+    return {nonTravelExpense:[]}
   }
 
    const nonTravelExpense = expenseReports.map((report) => {
@@ -447,7 +441,7 @@ export const getNonTravelExpenseReports = async (value) => {
   
   console.log("nonTravelExpense", JSON.stringify(nonTravelExpense, null, 2));
   
-  return nonTravelExpense
+  return {nonTravelExpense:nonTravelExpense}
 } catch (error) {
 console.error(error);
 throw new Error({
@@ -562,7 +556,7 @@ export const getCashReports = async(value) => {
        const cashData = trips.flatMap((report) =>{
            console.log("reports expense", JSON.stringify(report.cashAdvanceSchema.cashAdvancesData,null,2))
            if(!report?.cashAdvanceSchema || !report?.cashAdvanceSchema?.cashAdvancesData?.length > 1){
-             return []
+             return {cash:[]}
          }
 
          const {travelRequestId,travelRequestNumber, tripName, createdBy} = report?.cashAdvanceSchema.travelRequestData   
@@ -582,7 +576,7 @@ export const getCashReports = async(value) => {
            return{tripName,travelRequestId,travelRequestNumber,createdBy, cashAdvancesData:getCashAdvanceData}
          })
          console.log("Entries cashData",cashData)
-         return cashData
+         return {cash:cashData}
 
   }catch(error){
     console.error(error);
