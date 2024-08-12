@@ -271,11 +271,12 @@ export const getAllPaidForEntries = async(req,res,next) => {
 
        const getTravelExpenseData =  report.tripSchema.travelExpenseData
         .filter((expense) => expense.expenseHeaderStatus === status.PENDING_SETTLEMENT)
-        .map(({expenseHeaderId,actionedUpon,settlementBy , expenseHeaderStatus})=>({
+        .map(({expenseHeaderId,expenseHeaderNumber,actionedUpon,settlementBy , expenseHeaderStatus})=>({
           expenseHeaderStatus,
           expenseAmountStatus,
           travelRequestId,
           expenseHeaderId,
+          expenseHeaderNumber,
           settlementBy,
           actionedUpon
           }))
