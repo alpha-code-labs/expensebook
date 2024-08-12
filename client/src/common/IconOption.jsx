@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { chevron_down_icon } from '../assets/icon';
 
 const IconOption = ({ buttonText, children }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -28,8 +29,9 @@ const IconOption = ({ buttonText, children }) => {
 
   return (
     <div className="relative inline-block">
-      <div onClick={handleToggle} className="px-4 py-2">
+      <div onClick={handleToggle} className="px-4 py-2 cursor-pointer inline-flex gap-2">
         {buttonText}
+        <img src={chevron_down_icon} className={`w-4 h-4 mt-[6px] transition ${isOpen && 'rotate-180'}`}/>
       </div>
       {isOpen && (
         <div

@@ -150,7 +150,7 @@ const selectDivFocus = (e)=>{
 
   return (
     <>
-      <div className={` ${variant } w-full h-[73px] flex-col justify-start items-start gap-2 inline-flex`}>
+      <div className={` ${variant } min-w-[150px] w-full h-[73px] flex-col justify-start items-start gap-2 inline-flex`}>
         {/* title*/}
         <div className="text-zinc-600 text-sm font-cabin">{title}</div>
         <div className="self-stretch h-12 justify-start items-start gap-4 inline-flex">
@@ -168,9 +168,9 @@ const selectDivFocus = (e)=>{
                   {placeholder}
                 </div>
               )}
-              {hidePlaceholder && <div className='text-neutral-700 text-sm font-normal capitalize font-cabin'>{selectedOption ?? ""}</div>}
-              <div className={`w-6 h-6 relative transition ${showDropdown && 'rotate-180'}`}>
-                <img src={chevron_down_icon} className="w-4 h-4"/>
+              {hidePlaceholder && <div className='text-neutral-700 text-sm whitespace-nowrap font-normal capitalize font-cabin'>{selectedOption ?? ""}</div>}
+              <div className={`w-6 h-6 flex items-center justify-center relative transition ${showDropdown && 'rotate-180'}`}>
+                <img src={chevron_down_icon} className="w-5 h-5 "/>
               </div>
 
               
@@ -202,7 +202,7 @@ const selectDivFocus = (e)=>{
                         onKeyDown={handleDropdownKeyDown}
                         ref={el => dropdownOptionsRef.current[index] = el} 
                         onClick={()=>{ handleOptionSelect(option, index) }}
-                        className={`text-xs ${'capitalize'} focus-visible:outline-0 focus-visible:bg-gray-100 font-medium font-cabin text-neutral-700 px-4 py-3 cursor-pointer transition-color hover:bg-gray-100`}
+                        className={`text-xs ${'capitalize'} whitespace-nowrap focus-visible:outline-0 focus-visible:bg-gray-100 font-medium font-cabin text-neutral-700 px-4 py-3 cursor-pointer transition-color hover:bg-gray-100`}
                       >
                         {(option || " ")}
                       </p>

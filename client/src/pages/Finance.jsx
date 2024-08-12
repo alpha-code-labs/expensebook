@@ -178,8 +178,8 @@ const Finance = () => {
     {isLoading ? 
     <Error message={errorMsg}/> :
     (<div className='bg-white min-h-screen border-slate-400 w-full h-[100%] flex-col  flex items-start gap-2  '>
-      <div className='static md:sticky top-0 w-full space-y-2 bg-white '>
-      <div className=' bg-white rounded-md flex border justify-start items-center overflow-x-auto w-full'>
+      <div className='static md:sticky border p-2 rounded-md top-0 w-full space-y-2 bg-white '>
+      <div className=' bg-white  flex  justify-start items-center overflow-x-auto w-full'>
           {
               tabs?.map((tab,index)=>(
                 <div
@@ -193,7 +193,7 @@ const Finance = () => {
               ))
           }
       </div>
-      <div className='min-h-[120px] border border-slate-300  rounded-md  w-full flex flex-wrap items-start gap-2 px-2 py-2'>
+      <div className=' border border-slate-300  rounded-md  w-full flex flex-wrap items-start gap-2 px-2 py-2'>
     {/* <div className='flex  space-x-2 space-y-2  overflow-x-auto '>
       <div className='flex gap-2  items-center justify-center p-2 bg-slate-100/50 rounded-full border border-slate-300 '>
       <div className='px-4 '>
@@ -286,18 +286,20 @@ const AccountEntryComponent = ({isLoading, handleConfirm,data}) => {
     const formattedToday = formatDateToYYYYMMDD(today);
     setFilterForm({
       startDate: formattedToday,
-      endDate: formattedToday
+      endDate: formattedToday,
+      reportType:'all'
     });
   }, []);
 
   const handlePresetChange = (label) => {
     const selectedRange = presetOptions.find(preset => preset.label === label).range;
-    setFilterForm({
+    setFilterForm(prevForm =>({...prevForm,
       startDate: formatDateToYYYYMMDD(selectedRange[0]),
       endDate: formatDateToYYYYMMDD(selectedRange[1])
-    });
+    }));
   };
   const reportTypes = [{title:'All',name:'all'},{ title:'Cash-Advances' ,name:"cash"}, {title:'Travel Expenses',name:'travel'},{title: 'Non-Travel Expenses', name:'nonTravel'}]
+  
   const handleFilterForm = (key, value) => {
     console.log('value', value);
     
@@ -355,7 +357,7 @@ const AccountEntryComponent = ({isLoading, handleConfirm,data}) => {
 
   return (
     <>
-    <div className='flex flex-col md:flex-row gap-2 md:gap-8 items-start border p-4 w-full '>
+    <div className='flex flex-col md:flex-row gap-2 md:gap-8 items-start border-b border-slate-300 p-4 w-full '>
     <div className='flex-1 w-full'>
       <Select
         variant='min-w-[200px] w-full'
@@ -409,7 +411,7 @@ const AccountEntryComponent = ({isLoading, handleConfirm,data}) => {
           <div className='cursor-pointer'>
             <p className='text-base text-indigo-600 font-semibold'>Export As</p>
           </div>
-          <img src={chevron_down_icon} className='w-4 h-4 translate-y-1'/>
+         
           </div>
         }
       >
