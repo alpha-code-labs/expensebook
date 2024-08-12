@@ -105,7 +105,6 @@ const tripFilterSchema = Joi.object({
 });
 
 
-
 export async function getAllEntries(req,res) {
 try{
   const { error, value } = nonTravelReportsSchema.validate({
@@ -120,26 +119,35 @@ try{
   const { tenantId, empId, filterBy, date, startDate, endDate, reportType, tripStatus, travelAllocationHeaders, approvers } = value;
 
   const getReports = [];
+  const getReportType = [reportType]
 
-  if (reportType.includes('all')) {
+  if (getReportType.includes('all')) {
+    console.log("getReportType all", getReportType)
     getReports.push(getTravelExpenseReports(value),
     getNonTravelExpenseReports(value),
     getCashReports(value));
   }
   
-  if (reportType.includes('travel')) {
+  if (getReportType.includes('travel')) {
+    console.log("getReportType travel", getReportType)
+
     getReports.push(getTravelExpenseReports(value));
   }
   
-  if (reportType.includes('cash')) {
+  if (getReportType.includes('cash')) {
+    console.log("getReportType cash", getReportType)
+
     getReports.push(getCashReports(value));
   }
   
-  // Check if reportType includes 'nonTravel'
-  if (reportType.includes('nonTravel')) {
+  // Check if getReportType includes 'nonTravel'
+  if (getReportType.includes('nonTravel')) {
+    console.log("getReportType nonTravel", getReportType)
+
     getReports.push(getNonTravelExpenseReports(value));
   }
   
+  console.log("before call - getReports", getReports)
   const getEntries = await Promise.allSettled(getReports);
 
   getEntries.forEach((result, index) => {
@@ -289,10 +297,7 @@ try {
     const trips = await Finance.find(filterCriteria);
 
     if (trips.length === 0) {
-      return({
-        success: true,
-        message: 'No trips found matching the filter criteria',
-      });
+      return []
     }
 
     const travelExpense = trips.flatMap((report) =>{
@@ -306,12 +311,14 @@ try {
 
       const getTravelExpenseData = report.tripSchema.travelExpenseData
         .filter((expense) => expense.expenseHeaderStatus === status.PAID)
-        .map(({expenseHeaderId,actionedUpon,settlementBy, expenseLines, expenseHeaderStatus, SettlementDate})=>({
+        .map(({expenseHeaderId,expenseHeaderNumber,actionedUpon,settlementBy,defaultCurrency, expenseLines, expenseHeaderStatus, SettlementDate})=>({
           expenseHeaderStatus,
           expenseAmountStatus,
           expenseHeaderId,
+          expenseHeaderNumber,
           createdBy,
           settlementBy,
+          defaultCurrency,
           SettlementDate,
           actionedUpon,
           expenseLines,
@@ -403,10 +410,7 @@ export const getNonTravelExpenseReports = async (value) => {
   const expenseReports = await Finance.find(filterCriteria);
 
   if (expenseReports.length === 0) {
-    return ({
-      success: true,
-      message: 'All Non Travel Expense reports are settled for specified date range',
-    });
+    return []
   }
 
    const nonTravelExpense = expenseReports.map((report) => {
@@ -414,6 +418,8 @@ export const getNonTravelExpenseReports = async (value) => {
   
     const {
       expenseHeaderId,
+      expenseHeaderNumber,
+      defaultCurrency,
       actionedUpon,
       settlementBy,
       expenseHeaderStatus,
@@ -428,6 +434,8 @@ export const getNonTravelExpenseReports = async (value) => {
   
     return {
       expenseHeaderId,
+      expenseHeaderNumber,
+      defaultCurrency,
       expenseHeaderStatus,
       expenseAmountStatus,
       createdBy,
@@ -457,7 +465,7 @@ export const getCashReports = async(value) => {
        const status ={
            PAID:'paid',
        }
-   
+
        let filterCriteria = {    
        tenantId,
        'cashAdvanceSchema.cashAdvancesData':{
@@ -548,13 +556,10 @@ export const getCashReports = async(value) => {
        const trips = await Finance.find(filterCriteria);
    
        if (trips.length === 0) {
-         return ({
-           success: true,
-           message: 'No trips found matching the filter criteria',
-         });
+         return []
        }
 
-       const travelExpense = trips.flatMap((report) =>{
+       const cashData = trips.flatMap((report) =>{
            console.log("reports expense", JSON.stringify(report.cashAdvanceSchema.cashAdvancesData,null,2))
            if(!report?.cashAdvanceSchema || !report?.cashAdvanceSchema?.cashAdvancesData?.length > 1){
              return []
@@ -576,8 +581,8 @@ export const getCashReports = async(value) => {
 
            return{tripName,travelRequestId,travelRequestNumber,createdBy, cashAdvancesData:getCashAdvanceData}
          })
-         console.log("Entries travelExpense",travelExpense)
-         return travelExpense
+         console.log("Entries cashData",cashData)
+         return cashData
 
   }catch(error){
     console.error(error);
