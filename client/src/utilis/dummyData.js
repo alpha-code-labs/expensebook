@@ -329,9 +329,451 @@ const TravelExpense = [
 
 ]  
 
-  export {TRCashadvance,TravelExpense}
+  export {TRCashadvance,TravelExpense,responseData}
 
 
 
-
+const responseData = {
+ 
+  "travelExpense": [
+      {
+          "tripName": "LUC-MUM(30th Jul 2024)",
+          "travelRequestId": "667a9e888daacf93aefcecbe",
+          "expenseAmountStatus": {
+              "totalCashAmount": 0,
+              "totalAlreadyBookedExpenseAmount": 24715,
+              "totalExpenseAmount": 34547,
+              "totalPersonalExpenseAmount": 0,
+              "totalRemainingCash": -9832
+          },
+          "createdBy": {
+              "empId": "1008",
+              "name": "Mia Harris",
+              "_id": "667a9ecc8daacf93aefced64"
+          },
+          "tripStartDate": "2024-06-25T00:00:00.000Z",
+          "tripCompletionDate": "2024-06-28T00:00:00.000Z",
+          "travelExpenseData": [
+              {
+                  "expenseHeaderStatus": "paid",
+                  "expenseAmountStatus": {
+                      "totalCashAmount": 0,
+                      "totalAlreadyBookedExpenseAmount": 24715,
+                      "totalExpenseAmount": 34547,
+                      "totalPersonalExpenseAmount": 0,
+                      "totalRemainingCash": -9832
+                  },
+                  "expenseHeaderId": "667a9fedb043bb2aadcb01db",
+                  "createdBy": {
+                      "empId": "1008",
+                      "name": "Mia Harris",
+                      "_id": "667a9ecc8daacf93aefced64"
+                  },
+                  "settlementBy": {
+                      "empId": null,
+                      "name": null
+                  },
+                  "actionedUpon": true,
+                  "expenseLines": [
+                      {
+                          "expenseLineId": "667aa050b043bb2aadcb02b0",
+                          "expenseLineAllocation": [],
+                          "isMultiCurrency": false,
+                          "isPersonalExpense": false,
+                          "billImageUrl": "",
+                          "_id": "667aa050b043bb2aadcb02b1",
+                          "Bill Date": "2024-06-25",
+                          "Hotel Name": "indian hotels",
+                          "Check-In Date": "2024-06-25",
+                          "Check-Out Date": "2024-06-28",
+                          "City": "chennai",
+                          "Room Rates": "8391",
+                          "Tax Amount": "838",
+                          "Total Amount": "9832",
+                          "Guest Name": "sumesh",
+                          "Booking Reference No": {
+                              "": "kjc399nc38"
+                          },
+                          "Mode of Payment": "Debit Card",
+                          "Currency": {
+                              "countryCode": "IN",
+                              "fullName": "Indian Rupee",
+                              "shortName": "INR",
+                              "symbol": "₹"
+                          },
+                          "Category Name": "Hotel",
+                          "convertedAmountDetails": null,
+                          "allocations": [
+                              {
+                                  "headerName": "department",
+                                  "headerValue": "HR"
+                              },
+                              {
+                                  "headerName": "legalEntity",
+                                  "headerValue": "Company ABC"
+                              },
+                              {
+                                  "headerName": "profitCenter",
+                                  "headerValue": "PC-102"
+                              },
+                              {
+                                  "headerName": "division",
+                                  "headerValue": "Corporate"
+                              }
+                          ],
+                          "policyValidation": [
+                              {
+                                  "success": false,
+                                  "message": "Group policies not found"
+                              }
+                          ]
+                      }
+                  ]
+              },
+              {
+                  "expenseHeaderStatus": "paid",
+                  "expenseAmountStatus": {
+                      "totalCashAmount": 0,
+                      "totalAlreadyBookedExpenseAmount": 24715,
+                      "totalExpenseAmount": 34547,
+                      "totalPersonalExpenseAmount": 0,
+                      "totalRemainingCash": -9832
+                  },
+                  "expenseHeaderId": "667a9fedb043bb2aadcb01db",
+                  "createdBy": {
+                      "empId": "1008",
+                      "name": "Mia Harris",
+                      "_id": "667a9ecc8daacf93aefced64"
+                  },
+                  "settlementBy": {
+                      "empId": null,
+                      "name": null
+                  },
+                  "actionedUpon": true,
+                  "expenseLines": [
+                      {
+                          "expenseLineId": "667aa050b043bb2aadcb02b0",
+                          "expenseLineAllocation": [],
+                          "isMultiCurrency": false,
+                          "isPersonalExpense": false,
+                          "billImageUrl": "",
+                          "_id": "667aa050b043bb2aadcb02b1",
+                          "Bill Date": "2024-06-25",
+                          "Hotel Name": "indian hotels",
+                          "Check-In Date": "2024-06-25",
+                          "Check-Out Date": "2024-06-28",
+                          "City": "chennai",
+                          "Room Rates": "8391",
+                          "Tax Amount": "838",
+                          "Total Amount": "9832",
+                          "Guest Name": "sumesh",
+                          "Booking Reference No": {
+                              "": "kjc399nc38"
+                          },
+                          "Mode of Payment": "Debit Card",
+                          "Currency": {
+                              "countryCode": "IN",
+                              "fullName": "Indian Rupee",
+                              "shortName": "INR",
+                              "symbol": "₹"
+                          },
+                          "Category Name": "Hotel",
+                          "convertedAmountDetails": null,
+                          "allocations": [
+                              {
+                                  "headerName": "department",
+                                  "headerValue": "HR"
+                              },
+                              {
+                                  "headerName": "legalEntity",
+                                  "headerValue": "Company ABC"
+                              },
+                              {
+                                  "headerName": "profitCenter",
+                                  "headerValue": "PC-102"
+                              },
+                              {
+                                  "headerName": "division",
+                                  "headerValue": "Corporate"
+                              }
+                          ],
+                          "policyValidation": [
+                              {
+                                  "success": false,
+                                  "message": "Group policies not found"
+                              }
+                          ]
+                      }
+                  ]
+              }
+          ]
+      },
+      {
+          "travelRequestId": "667955dbb2e14ac28c9ec056",
+          "expenseAmountStatus": {
+              "totalCashAmount": 0,
+              "totalAlreadyBookedExpenseAmount": 15000,
+              "totalExpenseAmount": 15136,
+              "totalPersonalExpenseAmount": 0,
+              "totalRemainingCash": -136
+          },
+          "createdBy": {
+              "empId": "1001",
+              "name": "Benjamin Clark",
+              "_id": "66795e09b2e14ac28c9ed0b8"
+          },
+          "tripStartDate": "2024-07-25T00:00:00.000Z",
+          "tripCompletionDate": "2024-08-27T00:00:00.000Z",
+          "travelExpenseData": [
+              {
+                  "expenseHeaderStatus": "paid",
+                  "expenseAmountStatus": {
+                      "totalCashAmount": 0,
+                      "totalAlreadyBookedExpenseAmount": 15000,
+                      "totalExpenseAmount": 15136,
+                      "totalPersonalExpenseAmount": 0,
+                      "totalRemainingCash": -136
+                  },
+                  "expenseHeaderId": "667a393fb043bb2aadca3017",
+                  "createdBy": {
+                      "empId": "1001",
+                      "name": "Benjamin Clark",
+                      "_id": "66795e09b2e14ac28c9ed0b8"
+                  },
+                  "settlementBy": {
+                      "name": "Emma Thompson",
+                      "empId": "1002"
+                  },
+                  "actionedUpon": true,
+                  "expenseLines": [
+                      {
+                          "expenseLineId": "667a3951b043bb2aadca304e",
+                          "expenseLineAllocation": [],
+                          "isMultiCurrency": false,
+                          "isPersonalExpense": false,
+                          "billImageUrl": "",
+                          "_id": "667a3951b043bb2aadca304f",
+                          "Bill Date": "2024-01-19",
+                          "Bill Number": "5497579396",
+                          "Vendor Name": "Hotel New FOODS",
+                          "Description": "",
+                          "Quantity": "1",
+                          "Unit Cost": "209",
+                          "Tax Amount": "50.99",
+                          "Total Amount": "7890",
+                          "Mode of Payment": "Cash",
+                          "Currency": {
+                              "countryCode": "IN",
+                              "fullName": "Indian Rupee",
+                              "shortName": "INR",
+                              "symbol": "₹"
+                          },
+                          "Category Name": "Meals",
+                          "convertedAmountDetails": null,
+                          "allocations": [
+                              {
+                                  "headerName": "department",
+                                  "headerValue": "Finance"
+                              },
+                              {
+                                  "headerName": "legalEntity",
+                                  "headerValue": "Company XYZ"
+                              },
+                              {
+                                  "headerName": "profitCenter",
+                                  "headerValue": "PC-101"
+                              },
+                              {
+                                  "headerName": "division",
+                                  "headerValue": "Corporate"
+                              }
+                          ],
+                          "policyValidation": [
+                              {
+                                  "success": true,
+                                  "greenFlag": true,
+                                  "currencyName": "INR",
+                                  "amountAllowed": 5000,
+                                  "violationMessage": "Total amount is under the policy limit"
+                              },
+                              {
+                                  "success": false,
+                                  "message": "Group policies not found"
+                              }
+                          ]
+                      }
+                  ]
+              }
+          ]
+      },
+     
+  ],
+  "nonTravelExpense": [
+      {
+          "expenseHeaderId": "667aa183b043bb2aadcb066e",
+          "expenseHeaderNumber": "00005464",
+          "expenseHeaderStatus": "paid",
+          "createdBy": {
+              "empId": "1008",
+              "name": "Benjamin Clark",
+              "_id": "667aa1d4b043bb2aadcb0719"
+          },
+          "settlementBy": {
+              "empId": "1002",
+              "name": "Emma Thompson"
+          },
+          "actionedUpon": true,
+          "expenseTotalAmount": 2692
+      },
+      {
+          "expenseHeaderId": "667cf60fb043bb2aadcfcbeb",
+          "expenseHeaderNumber": "00005464",
+          "expenseHeaderStatus": "paid",
+          "createdBy": {
+              "empId": "1008",
+              "name": "Benjamin Clark",
+              "_id": "667cf64ab043bb2aadcfcc69"
+          },
+          "settlementBy": {
+              "empId": "1002",
+              "name": "Emma Thompson"
+          },
+          "actionedUpon": true,
+          "expenseTotalAmount": 9232
+      },
+      {
+          "expenseHeaderId": "667aa304b043bb2aadcb0dea",
+          "expenseHeaderNumber": "00005487",
+          "expenseHeaderStatus": "paid",
+          "createdBy": {
+              "empId": "1002",
+              "name": "Benjamin Clark",
+              "_id": "667aa336b043bb2aadcb0e56"
+          },
+          "settlementBy": {
+              "empId": "1002",
+              "name": "Emma Thompson"
+          },
+          "actionedUpon": true,
+          "expenseTotalAmount": 3791
+      },
+      {
+          "expenseHeaderId": "667aa304b043bb2aadcb0dea",
+          "expenseHeaderNumber": "00005487",
+          "expenseHeaderStatus": "paid",
+          "createdBy": {
+              "empId": "1002",
+              "name": "Benjamin Clark",
+              "_id": "667aa336b043bb2aadcb0e56"
+          },
+          "settlementBy": {
+              "empId": "1002",
+              "name": "Emma Thompson"
+          },
+          "actionedUpon": true,
+          "expenseTotalAmount": 3791
+      },
+      {
+          "expenseHeaderId": "667aa304b043bb2aadcb0dea",
+          "expenseHeaderNumber": "00005487",
+          "expenseHeaderStatus": "paid",
+          "createdBy": {
+              "empId": "1002",
+              "name": "Benjamin Clark",
+              "_id": "667aa336b043bb2aadcb0e56"
+          },
+          "settlementBy": {
+              "empId": "1002",
+              "name": "Emma Thompson"
+          },
+          "actionedUpon": true,
+          "expenseTotalAmount": 3791
+      },
+      {
+          "expenseHeaderId": "667aa304b043bb2aadcb0dea",
+          "expenseHeaderNumber": "00005487",
+          "expenseHeaderStatus": "paid",
+          "createdBy": {
+              "empId": "1002",
+              "name": "Benjamin Clark",
+              "_id": "667aa336b043bb2aadcb0e56"
+          },
+          "settlementBy": {
+              "empId": "1002",
+              "name": "Emma Thompson"
+          },
+          "actionedUpon": true,
+          "expenseTotalAmount": 3791
+      },
+      {
+          "expenseHeaderId": "667aa304b043bb2aadcb0dea",
+          "expenseHeaderNumber": "00005487",
+          "expenseHeaderStatus": "paid",
+          "createdBy": {
+              "empId": "1002",
+              "name": "Benjamin Clark",
+              "_id": "667aa336b043bb2aadcb0e56"
+          },
+          "settlementBy": {
+              "empId": "1002",
+              "name": "Emma Thompson"
+          },
+          "actionedUpon": true,
+          "expenseTotalAmount": 3791
+      },
+      
+      
+  ],
+  "cash": [
+      {
+          "tripName": "DEL-HYD(17th Jul 2024)",
+          "travelRequestId": "66796b3bb2e14ac28c9eebb8",
+          "travelRequestNumber": "TRAL000002",
+          "createdBy": {
+              "empId": "1001",
+              "name": "Benjamin Clark",
+              "_id": "66796b3bb2e14ac28c9eebba"
+          },
+          "cashAdvancesData": [
+              {
+                  "cashAdvanceStatus": "paid",
+                  "cashAdvanceId": "667a39e4a1b88232721397fb",
+                  "paidBy": {
+                      "name": "Emma Thompson",
+                      "empId": "1002"
+                  },
+                  "recoveredBy": {
+                      "empId": null,
+                      "name": null
+                  },
+                  "actionedUpon": false,
+                  "amountDetails": [
+                      {
+                          "amount": 4000,
+                          "currency": {
+                              "countryCode": "IN",
+                              "fullName": "Indian Rupee",
+                              "shortName": "INR",
+                              "symbol": "₹"
+                          },
+                          "mode": null,
+                          "_id": "667a39e4a1b8823272139809"
+                      }
+                  ],
+                  "totalCashAmount": 5000,
+                  "approvers": [
+                      {
+                          "empId": "1002",
+                          "name": "Emma Thompson",
+                          "status": "approved",
+                          "_id": "66796b3bb2e14ac28c9eebbb"
+                      }
+                  ],
+                  "cashAdvanceNumber": "CA0001"
+              }
+          ]
+      }
+  ],
+  "message": "Reports retrieved Successfully"
+}
  

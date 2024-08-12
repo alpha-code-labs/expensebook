@@ -11,6 +11,7 @@ export default function Select(props) {
   const selectDivRef = useRef(null);
   const optionsList = props.options;
   const onSelect = props.onSelect || null
+  const variant = props.variant 
   // const currentOption = 'Hello'
   const currentOption = props.currentOption || optionsList[0]
   const [selectedOption, setSelectedOption] = useState("");
@@ -149,7 +150,7 @@ const selectDivFocus = (e)=>{
 
   return (
     <>
-      <div className="min-w-[200px] w-full  h-[73px] flex-col justify-start items-start gap-2 inline-flex">
+      <div className={` ${variant } w-full h-[73px] flex-col justify-start items-start gap-2 inline-flex`}>
         {/* title*/}
         <div className="text-zinc-600 text-sm font-cabin">{title}</div>
         <div className="self-stretch h-12 justify-start items-start gap-4 inline-flex">

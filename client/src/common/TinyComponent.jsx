@@ -130,7 +130,7 @@ const TripName = ({tripName})=>(
   function SettleNowBtn ({text,onClick}){
 
     return(
-      <div onClick={onClick} className='px-2 py-1 font-cabin text-xs bg-indigo-600 rounded-md text-white'>
+      <div onClick={onClick} className=' cursor-pointer px-2 py-1 font-cabin text-xs bg-indigo-600 rounded-md text-white'>
         <p className=' whitespace-nowrap'>{text}</p>
     </div>
     )
