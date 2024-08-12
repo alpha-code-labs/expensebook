@@ -1,17 +1,81 @@
-function titleCase(str){
-  if(!str){
+function titleCase(str) {
+  // Handle cases where str is null, undefined, or empty
+  if (!str || typeof str !== 'string') {
     return '';
   }
-    str = str.toLowerCase().split(' ')
-    str = str.map(word=>{
-        if(word.length>0 && word){
-            return word.trim()
-        }
-    })
-   str = str.filter(word=>word!=undefined)
-    str= str.map(word=>word.replace(word[0],word[0].toUpperCase()))
-    return str.join(' ')
-  }
+
+  // Convert the string to lowercase, split it into words, and trim each word
+  let words = str.toLowerCase().split(' ').map(word => word.trim());
+
+  // Remove any empty elements that may exist due to multiple spaces
+  words = words.filter(word => word);
+
+  // Capitalize the first letter of each word
+  words = words.map(word => word.charAt(0).toUpperCase() + word.slice(1));
+
+  // Join the words back into a single string and return
+  return words.join(' ');
+}
+
+
+const calculateDateRanges = (date, daysToSubtract = 0) => {
+  const resultDate = new Date(date);
+  
+  // Subtract Days
+  const subtractedDate = new Date(resultDate);
+  subtractedDate.setDate(subtractedDate.getDate() - daysToSubtract);
+  
+  // Start of the Week
+  const startWeek = new Date(resultDate);
+  const dayOfWeek = startWeek.getDay();
+  const diff = startWeek.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
+  startWeek.setDate(diff);
+  
+  // End of the Week
+  const endWeek = new Date(startWeek);
+  endWeek.setDate(endWeek.getDate() + 6);
+  
+  // Start of the Month
+  const startMonth = new Date(resultDate.getFullYear(), resultDate.getMonth(), 1);
+  
+  // End of the Month
+  const endMonth = new Date(resultDate.getFullYear(), resultDate.getMonth() + 1, 0);
+  
+  return {
+      subtractedDate,
+      startWeek,
+      endWeek,
+      startMonth,
+      endMonth
+  };
+};
+
+const convertJsonToCsv = (jsonData) => {
+  const array = [Object.keys(jsonData[0])].concat(jsonData);
+
+  return array.map(row => {
+    return Object.values(row)
+      .map(value => 
+        typeof value === 'string' && value.includes(',')
+          ? `"${value}"`
+          : value
+      )
+      .join(',');
+  }).join('\n');
+};
+
+const handleCSVDownload = (jsonData) => {
+  const csvData = convertJsonToCsv(jsonData);
+  const blob = new Blob([csvData], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.setAttribute('hidden', '');
+  a.setAttribute('href', url);
+  a.setAttribute('download', 'employees.csv');
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+};
 
   
 function formatDate(date=Date.now()){
@@ -299,6 +363,10 @@ function formatDate(date=Date.now()){
 // src/utils/filterData.js
 
 
+const formatFullDate = (date) => {
+  return new Date(date).toString();
+};
+
 
 const filterByTimeRange = (data, range) => {
   const now = new Date();
@@ -349,5 +417,5 @@ function checkUpcomingTrip(tripStartDate) {
 
   
 
-export {sortTripsForBooking,checkUpcomingTrip, filterByTimeRange,extractTripNameStartDate, sortTripsByDate, splitTripName, titleCase, formatDate, filterTravelRequests,formatDate2 ,getStatusClass ,addOrdinalIndicator ,formatDate3 ,getCashAdvanceButtonText,urlRedirection,formatAmount}  
+export {handleCSVDownload, calculateDateRanges,formatFullDate, sortTripsForBooking, checkUpcomingTrip, filterByTimeRange,extractTripNameStartDate, sortTripsByDate, splitTripName, titleCase, formatDate, filterTravelRequests,formatDate2 ,getStatusClass ,addOrdinalIndicator ,formatDate3 ,getCashAdvanceButtonText,urlRedirection,formatAmount}  
 

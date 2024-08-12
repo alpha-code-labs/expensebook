@@ -98,7 +98,10 @@ export {default as violation_icon} from './violation_icon.png';
 export {default as arrow1_icon} from './icons8-forward-100.png';
 export {default as hamburger_icon} from './icons8-hamburger.svg';
 export {default as grade_icon} from './grade.png';
-export {default as chevron_down_icon} from './down_icon.svg'
+export {default as chevron_down_icon} from './down_icon.svg';
+export {default as pdf_icon} from './icons8-pdf-80.png';
+export {default as csv_icon} from './icons8-csv-80.png';
+export {default as export_icon} from './export_icon.svg';
 
 
 

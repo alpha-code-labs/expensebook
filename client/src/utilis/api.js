@@ -87,3 +87,22 @@ export const getFinanceData_API = async (tenantId,empId) => {
   }
 };
 
+
+export const getAccountEntriesData_API = async ({tenantId,empId,data}) => {
+  
+  const url = `${financeBaseUrl}/api/fe/finance/expense/${tenantId}/${empId}`;
+
+  try {
+    const response = await axiosRetry(axios.post, url,data);
+    return response.data
+  } catch (error) {
+    handleRequestError(error);
+    const errorObject = {
+      status: error.response?.status || null,
+      message: error.message || 'Unknown error',
+    };
+
+    return { data: null, error: errorObject };
+  }
+};
+

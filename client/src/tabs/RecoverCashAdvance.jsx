@@ -5,7 +5,7 @@ import { formatAmount } from '../utilis/handyFunctions'
 const RecoverCashAdvance = ({trip,handleActionConfirm}) => {
   return (
     <CardLayout index={trip?.tripId}>
-    <div  className='w-full py-2 '>
+    <div  className='w-full py-1 '>
     <div className='flex gap-2 flex-col '> 
     <div className='flex flex-row justify-between'>
         <div className='flex gap-2 items-center'>
