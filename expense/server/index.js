@@ -40,7 +40,6 @@ app.use(cors());
 
 //Routes
 app.use('/api/fe/expense', mainFrontendRoutes);
-app.use('/api/report', reportingRouter);
 
 
 // Start the batch job
