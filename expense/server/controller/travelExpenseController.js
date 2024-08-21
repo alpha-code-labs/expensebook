@@ -52,12 +52,20 @@ const getExpenseRelatedHrData = async (tenantId,res = {}) => {
             expenseSettlementOptions = {},
         } = companyDetails;
 
+        let getTravelExpenseCategories = {};
+
+  travelExpenseCategories.forEach(obj => {
+  let key = Object.keys(obj)[0];
+  getTravelExpenseCategories[key] = obj[key];
+  });
+
+
         // const { expenseAllocation, expenseAllocation_accountLine} =travelAllocations
         const isLevel3 = travelAllocationFlags?.level3
     if(isLevel3){
-      return {POLICY_SETUP_FLAG, defaultCurrency, travelAllocationFlags, travelExpenseCategories: travelAllocations, expenseSettlementOptions}
+      return {POLICY_SETUP_FLAG, defaultCurrency, travelAllocationFlags, travelExpenseCategories:getTravelExpenseCategories, travelAllocations, expenseSettlementOptions}
     }
-      return {POLICY_SETUP_FLAG, defaultCurrency, travelAllocationFlags, travelExpenseCategories, travelAllocations, expenseSettlementOptions};
+      return {POLICY_SETUP_FLAG, defaultCurrency, travelAllocationFlags, travelExpenseCategories:getTravelExpenseCategories, travelAllocations, expenseSettlementOptions};
     } catch (error) {
         console.error('Error in getExpenseRelatedHrData:', error);
         // logger.error('Error in getExpenseRelatedHrData:', error);
