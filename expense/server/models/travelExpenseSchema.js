@@ -848,7 +848,8 @@ const expenseLineSchema = new mongoose.Schema({
           rejectionReason: String,
           paidBy:{empId:String, name:String},
           recoveredBy:{empId:String, name:String},
-          submissionDate: Date,
+          expenseSubmissionDate: Date,
+          settlementDate:Date,
         }
       ],
 }); 
@@ -860,7 +861,7 @@ expenseSchema.pre('validate', function(next) {
   }
   next(); // Call 'next' to proceed with the save operation
 })
-  
+
 const Expense = mongoose.model('travelExpenseMonday', expenseSchema);
 
 export default Expense;
