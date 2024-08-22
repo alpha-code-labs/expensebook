@@ -145,3 +145,44 @@ export async function approveRejectRequests(payload) {
         return { success: false, error: e };
     }
 }
+
+export async function approveRejectCashRaisedLater(payload) {
+    try {
+        const results = [];
+        console.log("payload",payload)
+
+        for (const request of payload) {
+            const {
+                travelRequestId,
+                cashAdvances
+            } = request;
+
+            // Find the cash advance based on the travel request ID
+            const cashAdvance = await CashAdvance.findOne({ 'travelRequestData.travelRequestId': travelRequestId });
+            if (!cashAdvance) {
+                results.push({ travelRequestId, success: false, error: 'Travel Request not found' });
+                continue;
+            }
+
+            // Update cash advances
+            cashAdvances.forEach(ca => {
+                cashAdvance.cashAdvancesData.forEach(existingCa => {
+                    if (existingCa.cashAdvanceId.toString() === ca.cashAdvanceId) {
+                        existingCa.cashAdvanceStatus = ca.cashAdvanceStatus;
+                        existingCa.cashAdvanceRejectionReason = ca.cashAdvanceRejectionReason;
+                        existingCa.approvers = ca.approvers;
+                    }
+                });
+            });
+
+            // Save the updates
+            await cashAdvance.save();
+            console.log("cashAdvance",cashAdvance)
+            results.push({ travelRequestId, success: true, error: null });
+        }
+
+        return {success: true, error: null};
+    } catch (e) {
+        return { success: false, error: e };
+    }
+}

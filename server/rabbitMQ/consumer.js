@@ -5,6 +5,7 @@ import {
   approveRejectCashAdvance,
   approveRejectRequests,
   approveRejectLegItem,
+  approveRejectCashRaisedLater,
 } from "./messageProcessor/approval.js";
 
 import amqp from "amqplib";
@@ -199,6 +200,18 @@ export default async function startConsumer(receiver) {
         }
         if ((action == "approve-reject-ca")) {
           const res = await approveRejectRequests(payload);
+          console.log(res);
+          if (res.success) {
+            //acknowledge message
+            channel.ack(msg);
+            console.log("message processed successfully");
+          } else {
+            //implement retry mechanism
+            console.log("update failed with error code", res.error);
+          }
+        }
+        if ((action == "approve-reject-ca-later")) {
+          const res = await approveRejectCashRaisedLater(payload);
           console.log(res);
           if (res.success) {
             //acknowledge message
