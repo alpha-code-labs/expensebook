@@ -330,7 +330,7 @@ const updateTravelRequest = async (req, res) =>{
     const {travelRequestId} = req.params
     const {travelRequest, submitted} = req.body
 
-    console.log(submitted)
+    console.log("submitted",submitted)
 
     let sendToApproval = false
     let needApproval = false
@@ -364,7 +364,6 @@ const updateTravelRequest = async (req, res) =>{
 
       //update travel request status to draft
       travelRequestData.travelRequestStatus = 'draft'
-
 
       //save the structre
       const result = await travelRequestData.save()
@@ -405,12 +404,16 @@ const updateTravelRequest = async (req, res) =>{
         items.forEach(item=>{
           travelRequestData.itinerary[item].forEach(subItem=>{
               subItem.status = needApproval? 'pending approval' : 'pending booking'
+              subItem.approvers.forEach(approver => {
+                approver.status= needApproval? 'pending approval':''
+              })
           })
         })
 
       if(needApproval){
         //update travel request to pending approval
         travelRequestData.travelRequestStatus = 'pending approval'
+        travelRequestData.approvers.forEach(approver => approver.status = 'pending approval')
     
         const result = await travelRequestData.save()
 
@@ -457,7 +460,6 @@ const updateTravelRequest = async (req, res) =>{
           });  
         }
 
- 
         //send data to rabbitmq
         await sendToOtherMicroservice(result, 'To update entire travelRequestData in dashboard microservice', 'dashboard')
 
