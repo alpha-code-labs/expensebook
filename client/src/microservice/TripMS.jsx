@@ -25,6 +25,8 @@ const TripMS = ({ visible, setVisible, src }) => {
       </div>
      
         <iframe
+         
+        
           src={src}
           className="rounded-lg w-[100%] h-[100%]"
           title="Embedded Content"

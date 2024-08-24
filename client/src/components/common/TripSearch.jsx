@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { briefcase } from '../../assets/icon';
 import { splitTripName } from '../../utils/handyFunctions';
+import { TripName } from './TinyComponent';
 
 const TripSearch = ({ data, onSelect, title, error, placeholder }) => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -91,13 +92,13 @@ const TripSearch = ({ data, onSelect, title, error, placeholder }) => {
                 <li
                   key={option.travelRequestId || option.tripId}
                   onClick={() => handleSelect(option)}
-                  className={`flex justify-between p-2 px-4 border-b border-slate-300 cursor-pointer ${highlightedIndex === index ? 'bg-gray-200' : 'hover:bg-gray-100'}`}
+                  className={`flex flex-col-reverse gap-y-2 justify-between  p-2 px-4 border-b border-slate-300 cursor-pointer ${highlightedIndex === index ? 'bg-gray-200' : 'hover:bg-gray-100'}`}
                 >
                   
             
-                  <div className='flex-1 flex gap-2 items-center'>
+                  <div className='  flex  items-center whitespace-nowrap'>
                    
-                    <div className='flex min-w-max gap-2 items-center '>
+                    {/* <div className='flex min-w-max gap-2 items-center '>
               <img src={briefcase} className='w-4 h-4'/>
               <div className='font-medium font-cabin  text-sm uppercase text-neutral-700 '>
                {splitTripName(option?.tripName)}
@@ -105,10 +106,11 @@ const TripSearch = ({ data, onSelect, title, error, placeholder }) => {
               <div className='font-medium font-cabin  text-sm  text-neutral-700 '>
                {extractAndFormatDate(option?.tripName)}
               </div>
-              </div>
+              </div> */}
+              <TripName tripName={option?.tripName}/>
                   </div>
-                  <div className='flex-1 flex flex-col justify-center items-start'>
-                    <div className='font-medium text-sm font-cabin text-neutral-400'>
+                  <div className='     flex flex-col justify-center items-start'>
+                    <div className='font-medium   text-sm font-cabin text-neutral-400'>
                       {option.tripNumber ? "Trip No." : "Travel Request No."}
                     </div>
                     <div className='text-sm font-cabin text-start text-neutral-700'>

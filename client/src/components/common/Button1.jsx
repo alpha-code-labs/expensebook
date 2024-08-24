@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
 import { loading_icon } from '../../assets/icon';
 
+
+
+
 export default function Button1(props) {
-  
 
   const text = props.text;
   const onClick = props.onClick;
   const variant = props.variant ?? 'fit';
   const disabled = props.disabled ?? false;
   const active = props.active ?? false;
-  const loading = props.loading ?? false
+  const loading = props.loading ?? false;
 
   const handleClick = (e) => {
     if ( !disabled && !loading) {

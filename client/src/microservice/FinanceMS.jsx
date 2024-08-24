@@ -35,7 +35,7 @@ const FinanceMS = ({ visible, setVisible, src }) => {
   };
 
 
-  const handleConfirm = async (action) => {
+ const handleConfirm = async (action) => {
     console.log('action from confirm ', action);
     const {travelRequestId,cashAdvanceId,paidBy,expenseHeaderId}= apiData
 
@@ -86,7 +86,7 @@ const FinanceMS = ({ visible, setVisible, src }) => {
   
       
     }
-  };
+  }; 
   
 
 
@@ -104,10 +104,20 @@ const FinanceMS = ({ visible, setVisible, src }) => {
       // Check if the message is coming from the iframe
       if (event.origin === settlementBaseUrl ) {
         // Check the message content or identifier
+        if(event.data.popupMsg){
+          setShowPopup(true)
+          setMessage(event.data.popupMsg)
+          setTimeout(()=>(
+            setShowPopup(false),
+             setMessage(null)
+          ),5000)
+        }else{
+
         console.log('settlement data',event.data.payload)
         const action = event.data.action
         openModal(action)
         setApiData(event.data.payload)
+      }
         
       }
     };
@@ -176,7 +186,7 @@ const FinanceMS = ({ visible, setVisible, src }) => {
    <iframe
    ref={iframeRef}
   src={src}
-  className="w-[100%] h-[100%] "
+  className="w-[100%] max-h-screen h-full overflow-hidden "
   title="Embedded Content"
   
   

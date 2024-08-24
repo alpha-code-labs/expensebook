@@ -199,7 +199,7 @@ const handleRaise = () => {
     <>
     {isLoading && <Error message={loadingErrMsg}/>}
     {!isLoading &&
-    <div className=" bg-indigo-50 min-h-screen flex items-start xl:items-center xl:pt-0 pt-4 justify-center px-2 md:px-10 ">
+    <div className="  min-h-screen flex items-start xl:items-center xl:pt-0 pt-4 justify-center px-2 md:px-10 ">
         {/* <TravelMS visible={visible} setVisible={setVisible} src={iframeURL}/> */}
         <TripMS visible={visible} setVisible={setVisible} src={iframeURL}/> 
     <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 w-full overflow-x-auto pb-2">

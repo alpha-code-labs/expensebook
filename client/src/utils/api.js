@@ -272,7 +272,7 @@ export const approveTravelRequestApi = async(data)=>{
         }
       }    
 
-    //from settlement microservice
+//finance microservice api
 
   export const settleCashAdvanceApi = async(data)=>{
         const {tenantId, empId,travelRequestId, cashAdvanceId, paidBy, action} = data
@@ -303,8 +303,6 @@ export const approveTravelRequestApi = async(data)=>{
           }
         }  
 
-
-
   export const settleExpenseApi = async(data)=>{
         const {tenantId, empId,travelRequestId, expenseHeaderId, paidBy, action} = data
         let url
@@ -329,7 +327,7 @@ export const approveTravelRequestApi = async(data)=>{
           }
         }  
 
-
+//finance microservice api end
 
 
 

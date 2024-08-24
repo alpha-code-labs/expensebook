@@ -1092,11 +1092,6 @@ setSelectedStatuses={setSelectedStatuses}
 {expenseType && <Button1 text={"Raise"} onClick={handleRaise} />}
 </div>   
 </div>
-
-
- 
-   
-            
           </div>
 
       </div>}
