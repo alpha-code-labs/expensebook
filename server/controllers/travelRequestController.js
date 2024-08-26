@@ -225,6 +225,7 @@ const updateTravelRequest = async (req, res) =>{
           travelRequest.itinerary[item].forEach(subItem=>{
             if((subItem.date??false)){
               subItem.status = needApproval? 'pending approval' : 'pending booking'
+              needApproval && subItem?.approvers?.forEach(approver=>approver.status = 'pending approval');
             }
           })
         })
@@ -237,13 +238,16 @@ const updateTravelRequest = async (req, res) =>{
       if(needApproval){
         //update travel request to pending approval
         cashAdvance.travelRequestData.travelRequestStatus = 'pending approval'
+        cashAdvance.travelRequestData.approvers.forEach(ap=>ap.status = 'pending approval');
+
         //chage status of cash advances with status 'awaiting pending settlement' || 'approved' || ' to pending approval
 
         const applicableStatuses = ['awaiting pending settlement', 'approved', 'pending settlement'];
-        
+
         cashAdvance.cashAdvancesData.forEach(cashAdvance=>{
           if(applicableStatuses.includes(cashAdvance.cashAdvanceStatus)){
-            cashAdvance.cashAdvanceStatus = 'pending approval'
+            cashAdvance.cashAdvanceStatus = 'pending approval',
+            cashAdvance.approvers.forEach(ap=>ap.status = 'pending approval');
           }
         })
 
