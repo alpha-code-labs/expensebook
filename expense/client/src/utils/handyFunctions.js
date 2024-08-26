@@ -118,20 +118,30 @@ function formatDate(date=Date.now()) {
   function getStatusClass(status){
     switch(status){
       case "approved":
-        return 'bg-green-100 text-green-200';
+        case "completed":
+        case "booked":
+        case "intransit":
+        case "upcoming":
+        case "save":
+        case "paid":
+        case "recovered":
+        return 'border border-green-200 bg-green-100 text-green-200 rounded-full whitespace-nowrap';
       case "rejected":
       case "cancelled":  
-        return 'bg-red-100 text-red-900';
+      case "paid and cancelled":  
+        return 'border border-red-900 bg-red-100 text-red-900 rounded-full whitespace-nowrap';
       case "pending settlement":
       case "pending approval": 
+      case "pending booking": 
       case "pending": 
-      case "draft": 
-        return 'bg-yellow-100 text-yellow-200';
+      case "transit":
+      case "draft":
+        return 'border border-yellow-200 bg-yellow-100 text-yellow-200 rounded-full whitespace-nowrap ';
       default:
         return " ";  
 
     }
-  }  
+  }    
 
 
   const generateRandomId = () => {
@@ -141,7 +151,56 @@ function formatDate(date=Date.now()) {
   
     return randomId;
   };  
+
+  function camelCaseToTitleCase(inputString) {
+    // Use a regular expression to split words at capital letters
+    const words = inputString.split(/(?=[A-Z])/);
+  
+    // Capitalize the first letter of each word and join them with spaces
+    const titleCaseString = words.map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+  
+    return titleCaseString;
+  }
+
+  function initializeFormFields(fields,data) {
+    const {defaultCurrency,travelType, categoryName} = data
+
+    const initialData = {};
+    fields.forEach((field) => {
+      initialData[field.name] = ""; // Initialize each field with an empty string
+    });
+  initialData.isPersonalExpense = false;
+  initialData.personalExpenseAmount = "";
+  initialData.isMultiCurrency = false;
+  initialData.billImageUrl = "";
+  initialData.convertedAmountDetails = null;
+  initialData.Currency = defaultCurrency;
+  // initialData.travelType = travelType;
+  initialData["Category Name"] = categoryName;
+    return initialData;
+  }
+
+
+  function initializenonTravelFormFields(fields,data) {
+    const {defaultCurrency,travelType, categoryName,group} = data
+
+    const initialData = {};
+    fields.forEach((field) => {
+      initialData[field.name] = ""; // Initialize each field with an empty string
+    });
+  // initialData.isPersonalExpense = false;
+  // initialData.personalExpenseAmount = "";
+  initialData.isMultiCurrency = false;
+  initialData.billImageUrl = "";
+  initialData.multiCurrencyDetails = null;
+  initialData["Mode of Payment"]= ""
+  initialData.Currency = defaultCurrency;
+  initialData.group= group || {}
+  // initialData.travelType = travelType;
+  initialData["Category Name"] = categoryName;
+    return initialData;
+  }
   
 
-export {titleCase, formatDate, formatDate2 ,getStatusClass ,generateRandomId,urlRedirection}  
+export {initializenonTravelFormFields, initializeFormFields, camelCaseToTitleCase, titleCase, formatDate, formatDate2 ,getStatusClass ,generateRandomId,urlRedirection}  
 

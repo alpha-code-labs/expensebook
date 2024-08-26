@@ -11,20 +11,22 @@ import { getStatusClass, titleCase, urlRedirection } from "../utils/handyFunctio
 import Button from "../components/common/Button";
 import Error from "../components/common/Error";
 import PopupMessage from "../components/common/PopupMessage";
-import { cab_purple as cab_icon, airplane_1 as airplane_icon ,house_simple , chevron_down,  cancel_icon, modify, check_tick, file_icon, validation_sym, validation_symb_icon, upcoming_trip, briefcase, money, user_icon, arrow_left} from "../assets/icon";
+import { cab_purple as cab_icon, airplane_1 as airplane_icon , cancel_icon, modify_icon, check_tick, file_icon, validation_sym, validation_symb_icon, upcoming_trip, briefcase, money, user_icon, arrow_left} from "../assets/icon";
 import { tripDummyData, tripDummyDataLevel2 } from "../dummyData/tripDummyData.js";
 import { hrDummyData } from "../dummyData/requiredDummy";
 import Select from "../components/common/Select"; 
 import ActionButton from "../components/common/ActionButton";
 import Input from "../components/common/Input";
 import Upload from "../components/common/Upload";
-import { cancelTravelExpenseHeaderApi, cancelTravelExpenseLineItemApi, getTravelExpenseApi, ocrScanApi, postMultiCurrencyForNonTravelExpenseApi, postMultiCurrencyForTravelExpenseApi, postTravelExpenseLineItemApi, submitOrSaveAsDraftApi, updateTravelExpenseLineItemApi } from "../utils/api.js";
+import { cancelTravelExpenseHeaderApi, cancelTravelExpenseLineItemApi, getTravelExpenseApi, ocrScanApi, postMultiCurrencyForNonTravelExpenseApi, TravelExpenseCurrencyConversionApi , postTravelExpenseLineItemApi, submitOrSaveAsDraftApi, updateTravelExpenseLineItemApi } from "../utils/api.js";
 import Search from "../components/common/Search.jsx";
-import GoogleMapsSearch from "./GoogleMapsSearch.jsx";
+
 import { classDropdown } from "../utils/data.js";
 import Toggle from "../components/common/Toggle.jsx";
 import AddMore from "../components/common/AddMore.jsx";
 import { BlobServiceClient } from "@azure/storage-blob";
+import Button1 from "../Components/common/Button1.jsx";
+import CancelButton from "../Components/common/CancelButton.jsx";
 
 const currencyDropdown = [
   { fullName: "Argentine Peso", shortName: "ARS", symbol: "$", countryCode: "AR" },
@@ -113,7 +115,6 @@ const ocrValues = {
   
 
   // Get the last object
-  
 
   const [onboardingData, setOnboadingData] = useState(null);
   const [travelAllocationFlag, setTravelAllocationFlag] = useState(null);
@@ -257,6 +258,8 @@ const ocrValues = {
   const handleItemClick = (index) => {
     setActiveIndex(index === activeIndex ? null : index);
   };
+
+  const dashboardBaseUrl = `${import.meta.env.VITE_DASHBOARD_URL}`
   useEffect(() => {
     if (onboardingData) {
        // const onboardingData = tripDummyData;
@@ -264,7 +267,8 @@ const ocrValues = {
        // const onboardingData = tripDummyDataLevel2; //    level 2 dummy data
        // const onboardingData = bookAnExpenseDatalevel; // level 2 dummy data
 
-      const travelAllocationFlags = onboardingData?.companyDetails?.travelAllocationFlags;
+      const travelAllocationFlags = onboardingData?.companyDetails?.travelAllocationFlags; // for level
+
       const onboardingLevel = Object.keys(travelAllocationFlags).find((level) => travelAllocationFlags[level] === true);
       setDefaultCurrency(onboardingData?.companyDetails?.defaultCurrency)
       
@@ -323,6 +327,7 @@ const ocrValues = {
       if(['level1','level2'].includes(onboardingLevel)){
         setSelectedTravelType(findExpenseHeaderId?.travelType)
       }
+
       if(onboardingLevel === 'level3'){
         setSelectedTravelType(findExpenseHeaderId?.travelType)
       }
@@ -346,12 +351,13 @@ const ocrValues = {
       setIsLoading(false);
     }
   }, [onboardingData]);
-  console.log('get expense data', getExpenseData)
+  
+  console.log('get expense data', getExpenseData);
   console.log('approvers', approversList);
   console.log('onboardingData', onboardingData);
-  console.log('approvers',approversList)
-  console.log('expenseAmountStatus',expenseAmountStatus)
-  console.log('selected Allocations',selectedAllocations)
+  console.log('approvers',approversList);
+  console.log('expenseAmountStatus',expenseAmountStatus);
+  console.log('selected Allocations',selectedAllocations);
 
   const [categoriesList , setCategoriesList] = useState([]);
   const [selectedCategory,setSelectedCategory]=useState(null)
@@ -384,23 +390,7 @@ const ocrValues = {
       }
     }
     
-    //   if(['level3'].includes(travelAllocationFlag)){
-    //   const expenseAllocation= onboardingData?.companyDetails?.travelAllocations?.[selectedTravelType]?.expenseAllocation
-    //   console.log('travel allocation level 2', expenseAllocation)
-    //   setTravelExpenseAllocation(expenseAllocation)
-    //   // for same with empty sting
-    //   if(getSavedAllocations.length>0){
-    //     setSelectedAllocations(getSavedAllocations)
-    //   }else{
-    //     const initialExpenseAllocation = expenseAllocation && expenseAllocation.map(({ headerValues, ...rest }) => ({
-    //       ...rest,
-    //       headerValue: "" // Add "headerValue" and set it to an empty string
-    //     }));
-    //     setSelectedAllocations( initialExpenseAllocation)
-
-    //   }
-    // }
-      
+   
       //level2
       const categories = categoryfields.find(category => category.hasOwnProperty(selectedTravelType)); 
       
@@ -521,9 +511,7 @@ const ocrValues = {
     }, [selectedCategory]);
   //get travel request Id from params
 
-const handlePersonalFlag=()=>{
-  setPersonalFlag((prev)=>(!prev))
-}
+
 
 
 useEffect(()=>{
@@ -648,14 +636,7 @@ console.log('selected Currency',selectDropdown)
     if(dateForms.includes(name)){
       setDate({[name] : value})
     }
-// if(totalAmountNames.includes(name)){
-// const limit = groupLimit?.limit 
-// if(value>limit){
-// setErrorMsg((prevErrors)=>({...prevErrors,totalAmount:{set:true,msg:groupLimit?.message}}))
-// }else{
-// setErrorMsg((prevErrors)=>({...prevErrors,totalAmount:{set:false,msg:groupLimit?.message}}))
-// }
-// } 
+
   }
  
 // Handle Convert
@@ -681,7 +662,7 @@ console.log('selected Currency',selectDropdown)
 
     const nonPersonalAmount = (totalAmount || 0) - personalExpenseAmount;
     
-    const validPersonalAmount =( totalAmount ||0 ) - personalExpenseAmount
+    const validPersonalAmount =( totalAmount ||0 ) - personalExpenseAmount;
     if (validPersonalAmount <=0 ) {
       setErrorMsg((prevErrors) => ({ ...prevErrors, personalAmount: { set: true, msg: "Personal Expense amount should be less than Total Expenditure" } }));
       allowForm = false;
@@ -691,12 +672,10 @@ console.log('selected Currency',selectDropdown)
       personalAmount: personalExpenseAmount || "",
       nonPersonalAmount: nonPersonalAmount || "",
       totalAmount: totalAmount 
-     
     };
 
     console.log('convert details', convertDetails)
     console.log(`total amount is ${totalAmount} and personal amount is ${personalExpenseAmount} ${selectDropdown?.shortName}`)
-    
   
     if (allowForm) {
      
@@ -712,7 +691,7 @@ console.log('selected Currency',selectDropdown)
       ///api 
           try {
             setActive(prevState => ({ ...prevState, convert: true }));
-            const response = await postMultiCurrencyForTravelExpenseApi(tenantId,convertDetails);
+            const response = await TravelExpenseCurrencyConversionApi (tenantId,convertDetails);
            
             setCurrencyTableData(response?.currencyConverterData || {})
             setActive(prevState => ({ ...prevState, convert: false }));
@@ -732,10 +711,6 @@ console.log('selected Currency',selectDropdown)
           }
     }
   };
-
-
-
-
 // console.log('headerdata',headerReport)
 // console.log("formdata",formData)
       
@@ -770,10 +745,9 @@ console.log('selected Currency',selectDropdown)
       }
         console.log("cancel header")
         try{
-          setIsUploading(true)
-          setActive(prevState => ({ ...prevState, deleteHeader: true }))
-          const response = await cancelTravelExpenseHeaderApi(tenantId,empId,tripId,expenseHeaderId,data)
-        
+         setIsUploading(true)
+         setActive(prevState => ({ ...prevState, deleteHeader: true }))
+         const response = await cancelTravelExpenseHeaderApi(tenantId,empId,tripId,expenseHeaderId,data)
          setIsLoading(false)
          setShowPopup(true)
          setMessage(response.message)
@@ -798,13 +772,8 @@ console.log('selected Currency',selectDropdown)
  
      }
 
-
-
-    // console.log("getExpenseData",getExpenseData)
+// console.log("getExpenseData",getExpenseData)
 ///----------------------------------------  
-
-
-
 
 // Handle Submit Draft
 const handleSubmitOrDraft=async(action)=>{
@@ -849,10 +818,8 @@ const handleSubmitOrDraft=async(action)=>{
           else{
             window.location.reload()
           }
-         
         },5000)
-       
-  
+
       }catch(error){
         setIsUploading(false)
         if(action === "draft"){
@@ -889,7 +856,6 @@ const handleSaveLineItemDetails = async() => {
       }
       
     }
-
     setErrorMsg(newErrorMsg);
     const anyErrorSet = Object.values(newErrorMsg).some(error => error.set);
 
@@ -960,8 +926,7 @@ if (selectDropdown?.shortName !== defaultCurrency?.shortName && !currencyTableDa
   setErrorMsg((prevErrors) => ({ ...prevErrors, currencyFlag: { set: false, msg: "" } }));
 }
 
-      
-      // Create a new object with the updated category
+// Create a new object with the updated category
       
       let expenseLines 
 
@@ -993,10 +958,11 @@ if (selectDropdown?.shortName !== defaultCurrency?.shortName && !currencyTableDa
            }
       }
      if(['level2','level3'].includes(travelAllocationFlag)){
-      dataWithCompanyDetails = {...dataWithCompanyDetails ,travelType:selectedTravelType}
+      dataWithCompanyDetails = {...dataWithCompanyDetails, travelType:selectedTravelType}
      }
       console.log('save line item', dataWithCompanyDetails)
       const data = dataWithCompanyDetails
+
       if(allowForm){
       try {
         setIsUploading(true)
@@ -1030,6 +996,14 @@ if (selectDropdown?.shortName !== defaultCurrency?.shortName && !currencyTableDa
       } }
       // setSelectedCategory(null)
     };
+
+
+
+
+
+
+
+
     console.log('error message for allocation', errorMsg?.allocations)
 
 // Handle Edit
@@ -1092,12 +1066,8 @@ const [editFields, setEditFields]= useState({});
     }
     
   }
-  
 
-
-  
     //Handle Delete
- 
     const handleDeleteLineItem=async(lineItem)=>{
       console.log('expense data1' , onboardingData?.expenseAmountStatus)
      const data = { expenseAmountStatus: onboardingData?.expenseAmountStatus, expenseLine:lineItem}
@@ -1166,9 +1136,6 @@ const handleModifyLineItem = () => {
 };
 
 
-
-
-
 const handleOcrScan = async () => {
   // console.log('ocrfile from handle', ocrSelectedFile);
 
@@ -1212,6 +1179,7 @@ const handleOcrScan = async () => {
 };
 
 /////////-------------------google search start---------------------
+
 const autocompleteRefs = {};
 const handlePlaceSelect = (name, place) => {
   const formattedAddress = place.formatted_address;
@@ -1298,229 +1266,291 @@ async function uploadFileToAzure(file) {
 ////---------------------------google search end--------------------------
 
 console.log('categoryfields by selected', categoryFieldBySelect)
+
+const handleDashboardRedirection=()=>{
+  console.log(dashboardBaseUrl)
+  window.parent.postMessage('closeIframe', dashboardBaseUrl);
+}
   return <>
 {/* <Error message={loadingErrMsg}/> */}
-    {isLoading && <Error  message={loadingErrMsg}/>}
-      {!isLoading && 
-        <div className="w-full h-full  relative bg-white-100  py-12 select-none">
-        {/* app icon */}
-        {/* <div className='w-full flex justify-center pl-10  md:justify-start lg:justify-start'>
-            <Icon/>
-        </div> */}
-         <div className='w-full flex justify-center pl-10  md:justify-start lg:justify-start'>
-        <div className="flex items-center cursor-pointer" onClick={()=>urlRedirection(DASHBOARD_URL)}>
-        <img src={arrow_left} className="w-6 h-6"/>
-       </div>
-            <Icon/>
-        </div>
-
+    {isLoading ? <Error  message={loadingErrMsg}/>:
+    <> <div className="w-full h-full  relative bg-white  py-12 select-none">
        
-
-        {/* Rest of the section */}
-        <div className="w-full h-full xl:px-32 lg:px-16 md:px-4 px-4 font-cabin tracking-tight">
-    {/* {travelAllocationFlag === 'level1' &&  <div className="font-cabin font-medium">Expense Type: {travelType}</div>} */}
-       
+    {/* Rest of the section */}
+    <div className="w-full h-full xl:px-32 lg:px-16 md:px-4 px-4 font-cabin tracking-tight">
+{/* {travelAllocationFlag === 'level1' &&  <div className="font-cabin font-medium">Expense Type: {travelType}</div>} */}
 
 {/* ///-level2 - */}
-{['level1','level2','level3'].includes(travelAllocationFlag) && <div className="flex flex-col md:flex-row gap-4 justify-evenly items-center mt-10">  
-   
-   <div onClick={() => !travelType && handleTravelType('international')} className={`flex-1 gap-x-4 ${travelType && travelType !== 'international' ? 'cursor-not-allowed bg-white-100 opacity-30' : 'cursor-pointer'}  inline-flex items-center ${selectedTravelType === 'international' ? 'border border-indigo-600' : 'border border-neutral-400'} max-w-[250px] accent-indigo-600 px-6 py-2 rounded h-[65px]`}>
-     <div className={`w-[20px] h-[20px] ${selectedTravelType === 'international' ? 'bg-indigo-600 border border-indigo-600' : 'border border-neutral-400'} flex items-center justify-center rounded-sm`}>
-       {selectedTravelType === 'international' && <img src={check_tick} alt="Check Icon" className='w-[20px] h-[20px] rounded-sm' />}
-     </div>
+{/* {['level1','level2','level3'].includes(travelAllocationFlag) && 
+<div className="flex flex-col md:flex-row gap-4 justify-evenly items-center mt-10">  
 
-     <div>
-       <p className='font-Cabin text-neutral-800 text-lg tracking-wider'> International </p>
-       <p className='font-Cabin -mt-1 text-neutral-600 text-sm tracking-tight truncate'>Travelling out of country</p>
-     </div>
-   </div>
+<div onClick={() => !travelType && handleTravelType('international')} className={`flex-1 gap-x-4 ${travelType && travelType !== 'international' ? 'cursor-not-allowed bg-white opacity-30' : 'cursor-pointer'}  inline-flex items-center ${selectedTravelType === 'international' ? 'border border-indigo-600' : 'border border-neutral-400'} max-w-[250px] accent-indigo-600 px-6 py-2 rounded h-[65px]`}>
+ <div className={`w-[20px] h-[20px] ${selectedTravelType === 'international' ? 'bg-indigo-600 border border-indigo-600' : 'border border-neutral-400'} flex items-center justify-center rounded-sm`}>
+   {selectedTravelType === 'international' && <img src={check_tick} alt="Check Icon" className='w-[20px] h-[20px] rounded-sm' />}
+ </div>
 
-   <div onClick={() => !travelType && handleTravelType('domestic')} className={`  flex-1 gap-x-4 ${travelType && travelType !== 'domestic'? 'cursor-not-allowed bg-white-100 opacity-30' : 'cursor-pointer'} inline-flex items-center ${selectedTravelType === 'domestic' ? 'border border-indigo-600' : 'border border-neutral-400'} max-w-[250px] accent-indigo-600 px-6 py-2 rounded h-[65px]`}>
-     <div className={`w-[20px] h-[20px] ${selectedTravelType === 'domestic' ? 'bg-indigo-600 border border-indigo-600' : 'border border-neutral-400'} flex items-center justify-center rounded-sm`}>
-       {selectedTravelType === 'domestic' && <img src={check_tick} alt="Check Icon" className='w-[20px] h-[20px] rounded-sm' />}
-     </div>
-
-     <div>
-       <p className='font-Cabin text-neutral-800 text-lg tracking-wider'> Domestic </p>
-       <p className='font-Cabin -mt-1 text-neutral-600 text-sm tracking-tight  truncate'>Travelling within the country</p>
-     </div>
-   </div>
-
-   <div onClick={() => !travelType && handleTravelType('local')}  className={`flex-1 gap-x-4 ${travelType && travelType !== 'local'? 'cursor-not-allowed bg-white-100 opacity-30' : 'cursor-pointer'} inline-flex items-center ${selectedTravelType === 'local' ? 'border border-indigo-600' : 'border border-neutral-400'} max-w-[250px] accent-indigo-600 px-6 py-2 rounded h-[65px]`}>
-     <div className={`w-[20px] h-[20px] ${selectedTravelType === 'local' ? 'bg-indigo-600 border border-indigo-600' : 'border border-neutral-400'} flex items-center justify-center rounded-sm`}>
-       {selectedTravelType === 'local' && <img src={check_tick} alt="Check Icon" className='w-[20px] h-[20px] rounded-sm' />}
-     </div>
-
-     <div>
-       <p className='font-Cabin text-neutral-800 text-lg tracking-wider'> Local </p>
-       <p className='font-Cabin -mt-1 text-neutral-600 text-sm tracking-tight truncate'>Travelling nearby</p>
-     </div>
-   </div>
-</div> 
- }
-        {/* ///-level2- */}
-        {['level1','level2'].includes(travelAllocationFlag) && 
-                <div>
-                  <AllocationComponent 
-                     errorMsg={errorMsg} 
-                    getSavedAllocations={getSavedAllocations} 
-                    travelAllocationFlag={travelAllocationFlag} 
-                    travelExpenseAllocation={travelExpenseAllocation}
-                    onAllocationSelection={onAllocationSelection}
-                  />
-                </div>
-        }
-        
-        <div>
-          <ExpenseHeader 
-              selectedExpenseSettlement={selectedExpenseSettlement}
-              errorMsg={errorMsg} 
-              expenseHeaderStatus={flagExpenseHeaderStatus} 
-              tripPurpose={formData?.tripPurpose} 
-              tripNumber={formData?.tripNumber} 
-              name={formData?.createdBy?.name} 
-              expenseAmountStatus={expenseAmountStatus} 
-              isUploading={isUploading}
-              active={active}
-              cancel={cancel}
-              handleCancelExpenseHeader={handleCancelExpenseHeader}
-              handleSubmitOrDraft={handleSubmitOrDraft}
-              formData={formData} 
-              approversList={approversList} 
-              onReasonSelection={onReasonSelection} 
-              settlementOptions={settlementOptions} 
-              defaultCurrency={defaultCurrency} 
-          />
-        </div>
-
-
-           
-            <hr/>
-
-            <div className="form mt-5">
-
-            <div className="w-fit">
-            {/* <Button disabled={(formVisible === true || (travelAllocationFlag=== 'level2' || travelAllocationFlag=== 'level3'? !selectedTravelType : !travelType) ? true : false )} onClick={()=>handleOpenModal('category')} text={"Add Line Item"}/> */}
-            <AddMore text={'Add Line Item'} disabled={(formVisible === true || (travelAllocationFlag=== 'level2' || travelAllocationFlag=== 'level3'? !selectedTravelType : !travelType) ? true : false )} onClick={()=>handleOpenModal('category')} text={"Add Line Item"}/>
-            </div>
-  
-  <div className=" w-full flex flex-row mt-5">         
-  <div className="flex flex-col w-full">       
-      <div className="container mx-auto ">
-      <h1 className="text-2xl font-bold mb-4">Header Report</h1>
-      {getExpenseData && getExpenseData.map((item,index)=>(
-       <React.Fragment key={index} >
-        <div className="mb-4">
-          <div
-            className="flex w-full justify-between items-center bg-indigo-50 py-2 px-6 border-[1px] rounded-xl border-indigo-600 cursor-pointer"
-            onClick={() => handleItemClick(index)}
-          >
-           
-           
-<div className="max-w-full overflow-hidden whitespace-nowrap text-indigo-600 ">
-  <p className="overflow-hidden text-ellipsis ">
-    {`Header Report Number : ${item?.expenseHeaderNumber ?? 'N/a'}`}
-  </p>
+ <div>
+   <p className='font-Cabin text-neutral-800 text-lg tracking-wider'> International </p>
+   <p className='font-Cabin -mt-1 text-neutral-600 text-sm tracking-tight truncate'>Travelling out of country</p>
+ </div>
 </div>
 
-            <div className="flex gap-4 items-center  text-indigo-600">
-              <div className={`${getStatusClass(item?.expenseHeaderStatus)} rounded-xl px-4 py-2 text-sm capitalize font-medium font-cabin`}><p>{item?.expenseHeaderStatus}</p></div>
-            <div >{activeIndex === index ? '▲' : '▼'}</div>
+<div onClick={() => !travelType && handleTravelType('domestic')} className={`  flex-1 gap-x-4 ${travelType && travelType !== 'domestic'? 'cursor-not-allowed bg-white opacity-30' : 'cursor-pointer'} inline-flex items-center ${selectedTravelType === 'domestic' ? 'border border-indigo-600' : 'border border-neutral-400'} max-w-[250px] accent-indigo-600 px-6 py-2 rounded h-[65px]`}>
+ <div className={`w-[20px] h-[20px] ${selectedTravelType === 'domestic' ? 'bg-indigo-600 border border-indigo-600' : 'border border-neutral-400'} flex items-center justify-center rounded-sm`}>
+   {selectedTravelType === 'domestic' && <img src={check_tick} alt="Check Icon" className='w-[20px] h-[20px] rounded-sm' />}
+ </div>
+
+ <div>
+   <p className='font-Cabin text-neutral-800 text-lg tracking-wider'> Domestic </p>
+   <p className='font-Cabin -mt-1 text-neutral-600 text-sm tracking-tight  truncate'>Travelling within the country</p>
+ </div>
+</div>
+
+<div onClick={() => !travelType && handleTravelType('local')}  className={`flex-1 gap-x-4 ${travelType && travelType !== 'local'? 'cursor-not-allowed bg-white opacity-30' : 'cursor-pointer'} inline-flex items-center ${selectedTravelType === 'local' ? 'border border-indigo-600' : 'border border-neutral-400'} max-w-[250px] accent-indigo-600 px-6 py-2 rounded h-[65px]`}>
+ <div className={`w-[20px] h-[20px] ${selectedTravelType === 'local' ? 'bg-indigo-600 border border-indigo-600' : 'border border-neutral-400'} flex items-center justify-center rounded-sm`}>
+   {selectedTravelType === 'local' && <img src={check_tick} alt="Check Icon" className='w-[20px] h-[20px] rounded-sm' />}
+ </div>
+
+ <div>
+   <p className='font-Cabin text-neutral-800 text-lg tracking-wider'> Local </p>
+   <p className='font-Cabin -mt-1 text-neutral-600 text-sm tracking-tight truncate'>Travelling nearby</p>
+ </div>
+</div>
+</div> 
+} */}
+<div className="flex md:flex-row flex-col gap-4  justify-between md:items-center items-center mb-10">
+<fieldset className='flex flex-col sm:flex-row gap-4'>
+                        <div>
+                            <div className={`flex gap-4 border border-indigo-400 max-w-[300px] accent-indigo-600 px-6 py-2 rounded   ${travelType && travelType !== 'international' ? 'cursor-not-allowed bg-white opacity-30' : 'cursor-pointer'} ${selectedTravelType === 'international' ? 'border border-indigo-600' : 'border border-neutral-400'}`}  onClick={()=>!travelType &&  handleTravelType('international')}>
+                                <input type="radio" id="International" name="travelType" value="traveltype" checked={selectedTravelType == 'international'} readOnly />
+                                <div>
+                                    <p className='font-cabin text-neutral-800 text-normal tracking-wider'> International </p>
+                                    <p className='font-cabin -mt-1 text-neutral-600 text-xs tracking-tight'>Travelling out of country</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div className={`flex gap-4 border border-indigo-400 max-w-[300px] accent-indigo-600 px-6 py-2 rounded   ${travelType && travelType !== 'domestic' ? 'cursor-not-allowed ' : 'cursor-pointer'}${selectedTravelType === 'domestic' ? 'border border-indigo-600' : 'border border-neutral-400'} `}   onClick={()=> !travelType && handleTravelType('domestic')}>
+                                <input type="radio" id="Domestic" name="travelType" value="traveltype" checked={selectedTravelType == 'domestic'} readOnly />
+                                <div>
+                                    <p className='font-cabin text-neutral-800 text-normal tracking-wider'> Domestic </p>
+                                    <p className='font-cabin -mt-1 text-neutral-600 text-xs tracking-tight'>Travelling within country</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div className={`flex gap-4 border border-indigo-400 max-w-[300px] accent-indigo-600 px-6 py-2 rounded   ${travelType && travelType !== 'local' ? 'cursor-not-allowed ' : 'cursor-pointer'}  ${selectedTravelType === 'local' ? 'border border-indigo-600' : 'border border-neutral-400'}`}   onClick={()=>!travelType &&  handleTravelType('local')} >
+                                <input type="radio" id="Local" name="travelType" value="traveltype" checked={selectedTravelType == 'local'} readOnly />
+                                <div>
+                                    <p className='font-cabin text-neutral-800 text-normal tracking-wider'> Local </p>
+                                    <p className='font-cabin -mt-1 text-neutral-600 text-xs tracking-tight'>Travelling nearby</p>
+                                </div>
+                            </div>
+                        </div>
+
+</fieldset> 
+
+<div className="flex gap-2 flex-row">
+            {cancel ? (
+                <Button1 loading={isUploading} active={active.deleteHeader} variant='fit' text='Cancel' onClick={handleCancelExpenseHeader} />
+            ) : (
+                <>
+                <Button1 loading={isUploading} active={active.submit} variant='fit' text='Submit' onClick={() => handleSubmitOrDraft("submit")} />
+                    {['draft', 'new'].includes(flagExpenseHeaderStatus) && (
+                        <Button1 loading={isUploading} active={active.saveAsDraft} text='Save as Draft' onClick={() => handleSubmitOrDraft("draft")} />
+                    )}
+                    
+                    <CancelButton   text='Close'  onClick={()=>handleDashboardRedirection()}/>  
+                </>
+            )}
+</div>
+</div>
+{/* <div className='flex flex-col md:flex-row mb-2 justify-end items-center'>
+              
+                <div className="inline-flex gap-4 justify-center items-center">
+                    {cancel ?
+                    
+                    (<div className="flex mt-10 flex-row-reverse">
+                    <Button1 loading={isUploading} active={active.deleteHeader} variant='fit' text='Cancel' onClick={()=>handleCancelExpenseHeader()}/>
+                   </div>):
+                  
+                    (<>
+                    {['draft','new'].includes(flagExpenseHeaderStatus) && 
+                    <div className="flex mt-10 flex-row-reverse">
+                    <Button1 loading={isUploading} active={active.saveAsDraft} text='Save as Draft' onClick={()=>handleSubmitOrDraft("draft")}/>
+                   </div>}
+                    <div className="flex mt-10 flex-row-reverse">
+                    <Button1 loading={isUploading} active={active.submit} variant='fit' text='Submit' onClick={()=>handleSubmitOrDraft("submit")}/>
+                   </div>
+                   </>)}   
+                </div>
+      </div> */}
+     
+   
+        
+ 
+
+
+    {/* ///-level2- */}
+    {['level1','level2'].includes(travelAllocationFlag) && 
+            <div>
+              <AllocationComponent 
+                 errorMsg={errorMsg} 
+                getSavedAllocations={getSavedAllocations} 
+                travelAllocationFlag={travelAllocationFlag} 
+                travelExpenseAllocation={travelExpenseAllocation}
+                onAllocationSelection={onAllocationSelection}
+              />
             </div>
-          
-           
-          </div>
-          {activeIndex === index && (
-            <div className="bg-white py-2 px-4 ">
+    }
+    
+    <div>
+      <ExpenseHeader 
+          selectedExpenseSettlement={selectedExpenseSettlement}
+          errorMsg={errorMsg} 
+          expenseHeaderStatus={flagExpenseHeaderStatus} 
+          tripPurpose={formData?.tripPurpose} 
+          tripNumber={formData?.tripNumber} 
+          name={formData?.createdBy?.name} 
+          expenseAmountStatus={expenseAmountStatus} 
+          isUploading={isUploading}
+          active={active}
+          cancel={cancel}
+          handleCancelExpenseHeader={handleCancelExpenseHeader}
+          handleSubmitOrDraft={handleSubmitOrDraft}
+          formData={formData} 
+          approversList={approversList} 
+          onReasonSelection={onReasonSelection} 
+          settlementOptions={settlementOptions} 
+          defaultCurrency={defaultCurrency} 
+      />
+    </div>
+
+
+       
+     
+
+        <div className="form mt-5">
+
+     
+<div className=" w-full flex flex-row mt-5">         
+<div className="flex flex-col w-full">       
+  <div className="container mx-auto ">
+  {/* <h1 className="text-2xl font-bold mb-4">Header Report</h1> */}
+  {getExpenseData && getExpenseData.map((item,index)=>(
+   <React.Fragment key={index} >
+    <div className="mb-4">
+      <div
+        className="flex w-full justify-between items-center bg-indigo-50 py-2 px-6 border-[1px] rounded-sm border-indigo-600 cursor-pointer"
+        onClick={() => handleItemClick(index)}
+      >
+       
+       
+<div className="max-w-full overflow-hidden whitespace-nowrap text-indigo-600 ">
+<p className="overflow-hidden text-ellipsis ">
+{`Header Report Number : ${item?.expenseHeaderNumber ?? 'N/a'}`}
+</p>
+</div>
+
+        <div className="flex gap-4 items-center  text-indigo-600">
+          <div className={`${getStatusClass(item?.expenseHeaderStatus)} px-2 py-1 rounded-sm ring-1 ring-white  text-sm capitalize font-normal font-cabin`}><p>{item?.expenseHeaderStatus}</p></div>
+        <div >{activeIndex === index ? '▲' : '▼'}</div>
+        </div>
+      
+       
+      </div>
+      {activeIndex === index && (
+        <div className="bg-white py-2 px-4 ">
 {/* ///already booked travel details */}
 <div className="mt-5 flex flex-col gap-4">
 
- 
 {['flights', 'trains', 'buses', 'cabs', 'hotels']
 .filter(it=> item?.alreadyBookedExpenseLines && item.alreadyBookedExpenseLines[it]?.length > 0)
 .map((itnItem, itnItemIndex) => 
-      (
-      <React.Fragment key={itnItemIndex}>
-        <details>
-          <summary>
-            <p className="inline-flex text-xl text-neutral-700 capitalize">
-              {`${itnItem} `}
-            </p>
-          </summary>
-          <div className='flex flex-col gap-1'>
-            {/* {item.alreadyBookedExpenseLines[itnItem].map((item, itemIndex) => {
-              if (['flights', 'trains', 'buses'].includes(itnItem)) {
-                return (
-                  <div key={itemIndex}>
-                    <FlightCard
-                      // onClick={()=>handleCancel(itnItem.slice(0, -1), itemIndex, item.formId, item.isReturnTravel)} 
-                      from={item.from} 
-                      to={item.to} 
-                      itnId={item.itineraryId}
-                      // handleLineItemAction={handleLineItemAction}
-                      key={`flights_${itemIndex}_${Math.random()}`}
-                      showActionButtons={travelRequestStatus !== 'pending approval' && item.status == 'pending approval'}
-                      date={item.date} time={item.time} travelClass={item.travelClass} mode={titleCase(itnItem.slice(0, -1) ?? "")} />
-                  </div>
-                );
-              } else if (itnItem === 'cabs') {
-                return (
-                  <div key={itemIndex}>
-                    <CabCard 
-                    key={`cabs_${itemIndex}_${Math.random()}`}
-                      itnId={item.itineraryId}
-                      from={item.pickupAddress} to={item.dropAddress} date={item.date} time={item.time} travelClass={item.travelClass} isTransfer={item.type !== 'regular'} />
-                  </div>
-                );
-
-              } else if (itnItem === 'hotels') {
-                return (
-                  <div key={itemIndex}>
-                    <HotelCard 
-                      key={`hotels_${itemIndex}_${Math.random()}`}
-                      itnId={item.itineraryId}        
-                      checkIn={item.checkIn} checkOut={item.checkOut} date={item.data} time={item.time} travelClass={item.travelClass} mode='Train' />
-                  </div>
-                );
-              }
-            })} */}
-            {item.alreadyBookedExpenseLines[itnItem].map((item, itemIndex) => {
-    if (['flights', 'trains', 'buses'].includes(itnItem)) {
-        return (
-            <React.Fragment key={`flight_${itemIndex}`}>
+  (
+  <React.Fragment key={itnItemIndex}>
+    <details>
+      <summary>
+        <p className="inline-flex text-xl text-neutral-700 capitalize">
+          {`${itnItem} `}
+        </p>
+      </summary>
+      <div className='flex flex-col gap-1'>
+        {/* {item.alreadyBookedExpenseLines[itnItem].map((item, itemIndex) => {
+          if (['flights', 'trains', 'buses'].includes(itnItem)) {
+            return (
+              <div key={itemIndex}>
                 <FlightCard
-                    from={item.from}
-                    to={item.to}
-                    itnId={item.itineraryId}
-                    showActionButtons={travelRequestStatus !== 'pending approval' && item.status === 'pending approval'}
-                    date={item.date} time={item.time} travelClass={item.travelClass} mode={titleCase(itnItem.slice(0, -1) ?? "")} />
-            </React.Fragment>
-        );
-    } else if (itnItem === 'cabs') {
-        return (
-            <React.Fragment key={`cab_${itemIndex}`}>
-                <CabCard
-                    itnId={item.itineraryId}
-                    from={item.pickupAddress} to={item.dropAddress} date={item.date} time={item.time} travelClass={item.travelClass} isTransfer={item.type !== 'regular'} />
-            </React.Fragment>
-        );
-    } else if (itnItem === 'hotels') {
-        return (
-            <React.Fragment key={`hotel_${itemIndex}`}>
-                <HotelCard
-                    itnId={item.itineraryId}
-                    checkIn={item.checkIn} checkOut={item.checkOut} date={item.data} time={item.time} travelClass={item.travelClass} mode='Train' />
-            </React.Fragment>
-        );
-    }
+                  // onClick={()=>handleCancel(itnItem.slice(0, -1), itemIndex, item.formId, item.isReturnTravel)} 
+                  from={item.from} 
+                  to={item.to} 
+                  itnId={item.itineraryId}
+                  // handleLineItemAction={handleLineItemAction}
+                  key={`flights_${itemIndex}_${Math.random()}`}
+                  showActionButtons={travelRequestStatus !== 'pending approval' && item.status == 'pending approval'}
+                  date={item.date} time={item.time} travelClass={item.travelClass} mode={titleCase(itnItem.slice(0, -1) ?? "")} />
+              </div>
+            );
+          } else if (itnItem === 'cabs') {
+            return (
+              <div key={itemIndex}>
+                <CabCard 
+                key={`cabs_${itemIndex}_${Math.random()}`}
+                  itnId={item.itineraryId}
+                  from={item.pickupAddress} to={item.dropAddress} date={item.date} time={item.time} travelClass={item.travelClass} isTransfer={item.type !== 'regular'} />
+              </div>
+            );
+
+          } else if (itnItem === 'hotels') {
+            return (
+              <div key={itemIndex}>
+                <HotelCard 
+                  key={`hotels_${itemIndex}_${Math.random()}`}
+                  itnId={item.itineraryId}        
+                  checkIn={item.checkIn} checkOut={item.checkOut} date={item.data} time={item.time} travelClass={item.travelClass} mode='Train' />
+              </div>
+            );
+          }
+        })} */}
+{item.alreadyBookedExpenseLines[itnItem].map((item, itemIndex) => {
+if (['flights', 'trains', 'buses'].includes(itnItem)) {
+    return (
+        <React.Fragment key={`flight_${itemIndex}`}>
+            <FlightCard
+                from={item.from}
+                to={item.to}
+                itnId={item.itineraryId}
+                showActionButtons={travelRequestStatus !== 'pending approval' && item.status === 'pending approval'}
+                date={item.date} time={item.time} travelClass={item.travelClass} mode={titleCase(itnItem.slice(0, -1) ?? "")} />
+        </React.Fragment>
+    );
+} else if (itnItem === 'cabs') {
+    return (
+        <React.Fragment key={`cab_${itemIndex}`}>
+            <CabCard
+                itnId={item.itineraryId}
+                from={item.pickupAddress} to={item.dropAddress} date={item.date} time={item.time} travelClass={item.travelClass} isTransfer={item.type !== 'regular'} />
+        </React.Fragment>
+    );
+} else if (itnItem === 'hotels') {
+    return (
+        <React.Fragment key={`hotel_${itemIndex}`}>
+            <HotelCard
+                itnId={item.itineraryId}
+                checkIn={item.checkIn} checkOut={item.checkOut} date={item.data} time={item.time} travelClass={item.travelClass} mode='Train' />
+        </React.Fragment>
+    );
+}
 })}
 
-          </div>
-        </details>
-      </React.Fragment>
-    )
-  
-   )}
+      </div>
+    </details>
+  </React.Fragment>
+)
+
+)}
 
 </div>
 {/* ///alreadybooked travel details */}
@@ -1530,35 +1560,35 @@ console.log('categoryfields by selected', categoryFieldBySelect)
 
 {item.expenseLines.map((lineItem, index) => (
 
-    lineItem.expenseLineId === editLineItemById ? 
-    (
-    <EditForm
-    setExpenseAmountStatus={setExpenseAmountStatus}
-    setGetExpenseData={setGetExpenseData}
-    setEditLineItemById={setEditLineItemById}
-    setIsUploading={setIsUploading}
-    isUploading={isUploading} 
-    companyDetails={onboardingData?.companyDetails}
-    selectedAllocations= {selectedAllocations}
-     expenseAmountStatus={onboardingData?.expenseAmountStatus}
-     travelType={travelType}
-    // tenantId={tenantId}
-    routeData={{tenantId,empId,tripId,expenseHeaderId}}
-    active ={active}
-    setActive= {setActive}
-    setShowPopup={setShowPopup}
-    setMessage={setMessage}
+lineItem.expenseLineId === editLineItemById ? 
+(
+<EditForm
+setExpenseAmountStatus={setExpenseAmountStatus}
+setGetExpenseData={setGetExpenseData}
+setEditLineItemById={setEditLineItemById}
+setIsUploading={setIsUploading}
+isUploading={isUploading} 
+companyDetails={onboardingData?.companyDetails}
+selectedAllocations= {selectedAllocations}
+ expenseAmountStatus={onboardingData?.expenseAmountStatus}
+ travelType={travelType}
+// tenantId={tenantId}
+routeData={{tenantId,empId,tripId,expenseHeaderId}}
+active ={active}
+setActive= {setActive}
+setShowPopup={setShowPopup}
+setMessage={setMessage}
 
-    editFields={editFields}   
-    travelAllocationFlag={travelAllocationFlag} 
-    selectedCategory={selectedCategory} 
-    categoryfields={categoryfields} 
-    lineItemDetails={lineItemDetails} 
-    classDropdownValues ={classDropdownValues} 
-    lineItem={lineItem} 
-    defaultCurrency={defaultCurrency}/>
-    
-    )  :
+editFields={editFields}   
+travelAllocationFlag={travelAllocationFlag} 
+selectedCategory={selectedCategory} 
+categoryfields={categoryfields} 
+lineItemDetails={lineItemDetails} 
+classDropdownValues ={classDropdownValues} 
+lineItem={lineItem} 
+defaultCurrency={defaultCurrency}/>
+
+)  :
 <>
 <div className="flex flex-col lg:flex-row border">
 
@@ -1576,7 +1606,7 @@ newExpenseReport={item.newExpenseReport}
 handleDeleteLineItem={handleDeleteLineItem}/>
 </div>
 </>
-  ))}
+))}
 {/* </div> */}
 
 {/* get lineItem data from backend end*/}
@@ -1586,132 +1616,126 @@ handleDeleteLineItem={handleDeleteLineItem}/>
 
 
 
- </div>
-          )}
-       </div>
-        </React.Fragment>))}
-      
- </div>
+</div>
+      )}
+   </div>
+    </React.Fragment>))}
+  
+</div>
 
 {/*start new //lineItemform */}
- {formVisible &&  
+{formVisible &&  
 <div className=" w-full flex flex-col  lg:flex-row">
 
 <div className="border w-full lg:w-1/2">
- <DocumentPreview selectedFile={ocrSelectedFile ||selectedFile}/>
+<DocumentPreview selectedFile={ocrSelectedFile || selectedFile}/>
 </div>
 <div className="border w-full lg:w-1/2 lg:h-[710px] overflow-y-auto scrollbar-hide">
-<div className="w-full flex items-center justify-start h-[52px] border-b-[1px] px-4 ">
-  <p className="text-zinc-600 text-medium font-semibold font-cabin capitalize">   Category -{selectedCategory}</p>
+<div className="w-full flex items-center justify-start h-[52px] border-b-[1px] px-4">
+<p className="text-zinc-600 text-medium font-semibold font-cabin capitalize">   Category -{selectedCategory}</p>
 </div>
-    <>
-    
+<>
 <div className=" w-full flex-wrap flex flex-col justify-center items-center p-2">
-
-  <div className="w-full flex-row">
- <div className="w-full  flex-wrap flex items-center justify-center ">
- {travelAllocationFlag=== 'level3' &&
- <div>
-          <AllocationComponent 
-            errorMsg={errorMsg} 
-            getSavedAllocations={getSavedAllocations} 
-            travelAllocationFlag={travelAllocationFlag} 
-            travelExpenseAllocation={travelExpenseAllocation}
-            onAllocationSelection={onAllocationSelection}
-          />
-  </div>}
-  {/* <div className="w-full border flex flex-wrap items-center justify-center"> */}
-{selectedCategory&&categoryFieldBySelect && categoryFieldBySelect.map((field)=>(
-          <React.Fragment key={field.name}>
-  <div key={field.name} className="sm:w-1/2 w-full flex justify-center  items-center px-2 py-1 ">
-          {field.name === 'From' || field.name === 'To' || field.name === 'Departure' || field.name === 'Pickup Location' ||field.name === 'DropOff Location' || field.name === 'Arrival' ? ( 
-       <>       
-        <Input
-        // inputRef={''}
-        // inputRef={autocompleteRefs[field.name] || (autocompleteRefs[field.name] = useRef())}
-        title={field.name}
-        name={field.name}
-        type={'text'}
-        initialValue={lineItemDetails[field.name]}
-        placeholder={`Enter ${field.name}`}
-        value={lineItemDetails[field.name  ||""]}
-        onChange={(value)=>handleInputChange(field.name,value)}
+<div className="w-full flex-row">
+<div className="w-full  flex-wrap flex items-center justify-center">
+{travelAllocationFlag=== 'level3' &&
+<div>
+      <AllocationComponent 
+        errorMsg={errorMsg} 
+        getSavedAllocations={getSavedAllocations} 
+        travelAllocationFlag={travelAllocationFlag} 
+        travelExpenseAllocation={travelExpenseAllocation}
+        onAllocationSelection={onAllocationSelection}
       />
-      </>
-      ) : (field.name ==='Class' || field.name ==='Class of Service') ? (
-          <div className="  w-full translate-y-[-6px] z-20">
-        <Select
-          title={field.name}
-          name={field.name}
-          placeholder={`Select ${field.name}`}
-          options={classDropdownValues || []} // Define your class options here
-          currentOption={lineItemDetails[field.name] || ''}
-          onSelect={(value)=>handleInputChange(field.name, value)}
-          // violationMessage={`Your violation message for ${field.name}`}
-          // error={{ set: true, message: `Your error message for ${field.name}` }}
-        />
-        </div>
-      ) :(
-        // Otherwise, render a regular input field
-        <Input
-          initialValue={lineItemDetails[field.name]}
-          // error={field.name=== 'Total Amount' ? errorMsg.totalAmount : null}
-          // error={totalAmountNames.includes(field?.name) ? errorMsg.totalAmount : null}
-          error={(totalAmountNames.includes(field?.name) && errorMsg.totalAmount) || (dateForms.includes(field?.name) && errorMsg.dateErr )}
-          title={field.name}
-          name={field.name}
-          // type={field.type === 'date' ? 'date' : field.type === 'numeric' ? 'number' : 'text'}
-          type={field.type === 'date' ? 'date' : field.type === 'numeric' ? 'number' : field.type === 'time' ? 'time' : 'text'}
+</div>}
+{/* <div className="w-full border flex flex-wrap items-center justify-center"> */}
+{selectedCategory&&categoryFieldBySelect && categoryFieldBySelect.map((field)=>(
+      <React.Fragment key={field.name}>
+<div key={field.name} className="sm:w-1/2 w-full flex justify-center  items-center px-2 py-1 ">
+      {field.name === 'From' || field.name === 'To' || field.name === 'Departure' || field.name === 'Pickup Location' ||field.name === 'DropOff Location' || field.name === 'Arrival' ? ( 
+   <>       
+    <Input
+    // inputRef={''}
+    // inputRef={autocompleteRefs[field.name] || (autocompleteRefs[field.name] = useRef())}
+    title={field.name}
+    name={field.name}
+    type={'text'}
+    initialValue={lineItemDetails[field.name]}
+    placeholder={`Enter ${field.name}`}
+    value={lineItemDetails[field.name  ||""]}
+    onChange={(value)=>handleInputChange(field.name,value)}
+  />
+  </>
+  ) : (field.name ==='Class' || field.name ==='Class of Service') ? (
+      <div className="  w-full translate-y-[-6px] z-20">
+    <Select
+      title={field.name}
+      name={field.name}
+      placeholder={`Select ${field.name}`}
+      options={classDropdownValues || []} // Define your class options here
+      currentOption={lineItemDetails[field.name] || ''}
+      onSelect={(value)=>handleInputChange(field.name, value)}
+      // violationMessage={`Your violation message for ${field.name}`}
+      // error={{ set: true, message: `Your error message for ${field.name}` }}
+    />
+    </div>
+  ) :(
+    // Otherwise, render a regular input field
+    <Input
+      initialValue={lineItemDetails[field.name]}
+      // error={field.name=== 'Total Amount' ? errorMsg.totalAmount : null}
+      // error={totalAmountNames.includes(field?.name) ? errorMsg.totalAmount : null}
+      error={(totalAmountNames.includes(field?.name) && errorMsg.totalAmount) || (dateForms.includes(field?.name) && errorMsg.dateErr )}
+      title={field.name}
+      name={field.name}
+      // type={field.type === 'date' ? 'date' : field.type === 'numeric' ? 'number' : 'text'}
+      type={field.type === 'date' ? 'date' : field.type === 'numeric' ? 'number' : field.type === 'time' ? 'time' : 'text'}
 
-          placeholder={`Enter ${field.name}`}
-          value={lineItemDetails[field.name || '']}
-          // inputRef={autocompleteRefs[field.name] || (autocompleteRefs[field.name] = useRef())}
-          onChange={(value)=>handleInputChange(field.name , value)}
-        />
-      )}     
-          </div>        
-          </React.Fragment>
-         ))}
+      placeholder={`Enter ${field.name}`}
+      value={lineItemDetails[field.name || '']}
+      // inputRef={autocompleteRefs[field.name] || (autocompleteRefs[field.name] = useRef())}
+      onChange={(value)=>handleInputChange(field.name , value)}
+    />
+  )}     
+      </div>        
+      </React.Fragment>
+     ))}
 
-  </div>
+</div>
 
 {/* //personal expense */}
-
-
-
-
 <div className='flex flex-col px-2 justify-between'>
 <div className="flex flex-row justify-evenly items-center h-[73px]"> 
-<div className="flex-1 bg-white-100">
+{/* <div className="flex-1 bg-white">
 <Toggle label={'Personal Flag'} initialValue={false}  onClick={handlePersonalFlag}/>
-</div>
+</div> */}
 {console.log('perosnal amount error',errorMsg.personalAmount)}
 <div className=" flex-1 pl-2 justify-end">
-  <div className="w-full ">
-  {personalFlag &&
-  <Input
-  title='Personal Amount'
-  error={errorMsg?.personalAmount}
-  name='personalExpenseAmount'
-  type={'text'}
-  onChange={(value)=>handleInputChange( ['personalExpenseAmount'],value)}
-  />}
+<div className="w-full ">
+{personalFlag &&
+<Input
+title='Personal Amount'
+error={errorMsg?.personalAmount}
+name='personalExpenseAmount'
+type={'text'}
+onChange={(value)=>handleInputChange( ['personalExpenseAmount'],value)}
+/>}
 </div>
 </div>
 </div> 
 
 <div className="relative">
 <div className=" h-[48px] w-full sm:w-[200px]  mb-10 mr-28 mt-[-10px] ">
-   <Select
-       title='Currency'
-       currentOption={currencyDropdown[0].shortName}
-       placeholder="Select Currency"
-       options={currencyDropdown.map(currency => currency.shortName)} 
-       onSelect={(value)=>handleCurrenctySelect(value)}
-      //  onSelect={(value)=>{setLineItemDetails({...lineItemDetails,['Currency']:value}),setSelectDropdown(value)}}
-       violationMessage="Your violation message" 
-       error={errorMsg.currencyFlag} 
-       />
+<Select
+   title='Currency'
+   currentOption={currencyDropdown[0].shortName}
+   placeholder="Select Currency"
+   options={currencyDropdown.map(currency => currency.shortName)} 
+   onSelect={(value)=>handleCurrenctySelect(value)}
+  //  onSelect={(value)=>{setLineItemDetails({...lineItemDetails,['Currency']:value}),setSelectDropdown(value)}}
+   violationMessage="Your violation message" 
+   error={errorMsg.currencyFlag} 
+   />
 </div>  
 {/* ////-------- */}
 <div className='absolute top-6 left-[210px] w-fit'>
@@ -1726,45 +1750,45 @@ handleDeleteLineItem={handleDeleteLineItem}/>
 <div className="min-w-[200px] w-full  h-auto flex-col justify-start items-start gap-2 inline-flex mb-3">
 <div className="text-zinc-600 text-sm font-cabin">Coverted Amount Details :</div>
 <div className="text-neutral-700 w-full h-full text-sm font-normal font-cabin  ">
-  <div className="w-full h-full decoration:none  rounded-md border placeholder:text-zinc-400 border-neutral-300 focus-visible:outline-0 focus-visible:border-indigo-600">
-    <div className={`sm:px-6 px-4  py-2  flex sm:flex-row flex-col  sm:items-center items-start justify-between  min-h-12 bg-slate-100  border  ${currencyTableData?.convertedPersonalAmount == undefined ? "rounded-md" :"rounded-t-md"}`}>
-      <div className="text-[16px] font-semibold text-neutral-600">Total Amount </div> 
-      <div className="text-neutral-600 font-cabin">{currencyTableData?.defaultCurrencyName} {currencyTableData?.convertedTotalAmount?.toFixed(2)}</div>
-  </div>
+<div className="w-full h-full decoration:none  rounded-md border placeholder:text-zinc-400 border-neutral-300 focus-visible:outline-0 focus-visible:border-indigo-600">
+<div className={`sm:px-6 px-4  py-2  flex sm:flex-row flex-col  sm:items-center items-start justify-between  min-h-12 bg-slate-100  border  ${currencyTableData?.convertedPersonalAmount == undefined ? "rounded-md" :"rounded-t-md"}`}>
+  <div className="text-[16px] font-semibold text-neutral-600">Total Amount </div> 
+  <div className="text-neutral-600 font-cabin">{currencyTableData?.defaultCurrencyName} {currencyTableData?.convertedTotalAmount?.toFixed(2)}</div>
+</div>
 {currencyTableData?.convertedPersonalAmount !== undefined &&
 <>
-    <div className="sm:px-6 px-4  py-2  flex sm:flex-row flex-col  sm:items-center items-start justify-between  min-h-12 bg-slate-100 ">
-      <div className=" text-[16px] font-semibold text-neutral-600">Personal Amount </div> 
-      <div className="text-neutral-600 font-cabin">{currencyTableData?.defaultCurrencyName} {currencyTableData?.convertedPersonalAmount?.toFixed(2)}</div>
-  </div>
-    <div className="sm:px-6 px-4  py-2  flex sm:flex-row flex-col  sm:items-center items-start justify-between  min-h-12 bg-slate-200 rounded-b-md border">
-      <div className="  text-[16px] font-semibold text-neutral-600">Final Reimbursement Amount </div> 
-      <div className="text-neutral-600 font-cabin">{currencyTableData?.defaultCurrencyName} {currencyTableData?.convertedBookableTotalAmount?.toFixed(2)}</div>
-  </div>
-  </>}
-  </div>
-
+<div className="sm:px-6 px-4  py-2  flex sm:flex-row flex-col  sm:items-center items-start justify-between  min-h-12 bg-slate-100 ">
+  <div className=" text-[16px] font-semibold text-neutral-600">Personal Amount </div> 
+  <div className="text-neutral-600 font-cabin">{currencyTableData?.defaultCurrencyName} {currencyTableData?.convertedPersonalAmount?.toFixed(2)}</div>
+</div>
+<div className="sm:px-6 px-4  py-2  flex sm:flex-row flex-col  sm:items-center items-start justify-between  min-h-12 bg-slate-200 rounded-b-md border">
+  <div className="  text-[16px] font-semibold text-neutral-600">Final Reimbursement Amount </div> 
+  <div className="text-neutral-600 font-cabin">{currencyTableData?.defaultCurrencyName} {currencyTableData?.convertedBookableTotalAmount?.toFixed(2)}</div>
+</div>
+</>}
 </div>
 
 </div>
+
 </div>
-   : 
-  currencyTableData?.message !== undefined &&
-  <div className={`flex items-center justify-center gap-2 border-[1px] px-4 py-2 rounded border-yellow-600  text-yellow-600 mt-6`} >
-    <img src={validation_symb_icon} className='w-5 h-5'/>
-  <h2 className=''>{currencyTableData?.message}</h2>
-  </div>
- } 
+</div>
+: 
+currencyTableData?.message !== undefined &&
+<div className={`flex items-center justify-center gap-2 border-[1px] px-4 py-2 rounded border-yellow-600  text-yellow-600 mt-6`} >
+<img src={validation_symb_icon} className='w-5 h-5'/>
+<h2 className=''>{currencyTableData?.message}</h2>
+</div>
+} 
 </div>
 
 <div className='flex w-fit mb-4'>
-  <Select 
-  //currentOption={defaultCurrency}
-   title="Paid Through"
-   name="mode of payment"
-   placeholder="Select MOD"
-   options={['Credit Card',"Cash",'Debit Card','NEFT']}
-   onSelect={(value)=>handleInputChange( ['Mode of Payment'],value)}/>
+<Select 
+//currentOption={defaultCurrency}
+title="Paid Through"
+name="mode of payment"
+placeholder="Select MOD"
+options={['Credit Card',"Cash",'Debit Card','NEFT']}
+onSelect={(value)=>handleInputChange( ['Mode of Payment'],value)}/>
 </div>
 
 
@@ -1773,157 +1797,151 @@ handleDeleteLineItem={handleDeleteLineItem}/>
 
 <div className="w-full mt-4 flex items-center justify-center border-[1px] border-gray-50 ">
 <Upload  
-  selectedFile={selectedFile}
-  setSelectedFile={ setSelectedFile}
-  fileSelected={fileSelected}
-  setFileSelected={setFileSelected}
-  />
+selectedFile={selectedFile}
+setSelectedFile={ setSelectedFile}
+fileSelected={fileSelected}
+setFileSelected={setFileSelected}
+/>
 </div>
 </div>
 <div className="w-full mt-5 px-4">
- <Button text="Save" 
- disabled={isUploading} 
- loading={isUploading} 
- active={active.saveLineItem}
- onClick={handleSaveLineItemDetails} />
+<Button text="Save" 
+disabled={isUploading} 
+loading={isUploading} 
+active={active.saveLineItem}
+onClick={handleSaveLineItemDetails} />
 </div>   
 
-{/* -------------------- */}
-
-
-     
-     </div>
+{/* -------------------- */}     
 </div>
-   
-  
-    </>
- 
- 
+</div>
+
+
+</>
+
+
 </div>
 
 </div>}
 
-   
+
 {/* end //lineItemform */}
 
 
-           </div>              
+       </div>              
+        </div>
+        </div>
+        {openModal =='category' && 
+        <div className="fixed overflow-hidden max-h-4/5 flex justify-center items-center inset-0 backdrop-blur-sm w-full h-full left-0 top-0 bg-gray-800/60 " >
+            <div className='z-20  min-h-4/5 max-h-4/5 scroll-none bg-white  rounded-lg shadow-md'>
+            <div onClick={()=>{setOpenModal(null);}} className=' w-10 h-10 flex translate-y-[-15px] translate-x-[-10px] mt-5 justify-center items-center float-right   hover:bg-red-300 rounded-full'>
+                  <img src={cancel_icon} className='w-8 h-8'/>
+              </div>
+                <div className="p-10">
+                  <div className="flex flex-col justify-center items-center">
+                    <p className="text-xl font-cabin">Select the expense  category for this line item:</p>
+                              <div className="w-fit">
+                                <Search 
+                                title='.'
+                                placeholder='Search Category' 
+                                options={categoriesList}
+                                onSelect={(category)=>handleCategorySelection(category)}/>
+                              </div>   
+                    <div className="flex w-full mt-10 justify-evenly">
+                        <Button variant='fit' text='Scan Bill' onClick={()=>handleOpenModal('upload')} disabled={selectedCategory== null? true : false}/>
+                        <Button variant='fit' text='Manually' onClick={()=>{setOpenLineItemForm(true);setOpenModal(false);setFormVisible(true)}} disabled={selectedCategory== null}/>
+                    </div>
+                    </div>
+
+                </div>
             </div>
             </div>
-            {openModal =='category' && 
-            <div className="fixed overflow-hidden max-h-4/5 flex justify-center items-center inset-0 backdrop-blur-sm w-full h-full left-0 top-0 bg-gray-800/60 " >
-                <div className='z-20  min-h-4/5 max-h-4/5 scroll-none bg-white-100  rounded-lg shadow-md'>
-                <div onClick={()=>{setOpenModal(null);}} className=' w-10 h-10 flex translate-y-[-15px] translate-x-[-10px] mt-5 justify-center items-center float-right   hover:bg-red-300 rounded-full'>
-                      <img src={cancel_icon} className='w-8 h-8'/>
+        }
+
+        {openModal==='upload' && 
+        <div className="fixed overflow-hidden max-h-4/5 flex justify-center items-center inset-0 backdrop-blur-sm w-full h-full left-0 top-0 bg-gray-800/60 scroll-none " >
+            <div className='z-10  md:w-3/5 w-full mx-8  min-h-4/5 max-h-4/5 scroll-none bg-white  rounded-lg shadow-md'>
+            <div onClick={()=>{setOpenModal(null);setOcrSelectedFile(null);setOcrFileSelected(false);setSelectedCategory(null)}} className=' w-10 h-10 flex justify-center items-center float-right  mr-5 mt-5 hover:bg-red-300 rounded-full'>
+                  <img src={cancel_icon} className='w-8 h-8'/>
                   </div>
-                    <div className="p-10">
-                      <div className="flex flex-col justify-center items-center">
-                        <p className="text-xl font-cabin">Select the expense  category for this line item:</p>
-                                  <div className="w-fit">
-                                    <Search 
-                                    title='.'
-                                    placeholder='Search Category' 
-                                    options={categoriesList}
-                                    onSelect={(category)=>handleCategorySelection(category)}/>
-                                  </div>   
-                        <div className="flex w-full mt-10 justify-evenly">
-                            <Button variant='fit' text='Scan Bill' onClick={()=>handleOpenModal('upload')} disabled={selectedCategory== null? true : false}/>
-                            <Button variant='fit' text='Manually' onClick={()=>{setOpenLineItemForm(true);setOpenModal(false);setFormVisible(true)}} disabled={selectedCategory== null}/>
-                        </div>
-                        </div>
+                <div className="p-10">
+                
+                  <div className="flex flex-col justify-center items-center">
+                   
 
-                    </div>
-                </div>
-                </div>
-            }
-
-            {openModal==='upload' && 
-            <div className="fixed overflow-hidden max-h-4/5 flex justify-center items-center inset-0 backdrop-blur-sm w-full h-full left-0 top-0 bg-gray-800/60 scroll-none " >
-                <div className='z-10  md:w-3/5 w-full mx-8  min-h-4/5 max-h-4/5 scroll-none bg-white-100  rounded-lg shadow-md'>
-                <div onClick={()=>{setOpenModal(null);setOcrSelectedFile(null);setOcrFileSelected(false);setSelectedCategory(null)}} className=' w-10 h-10 flex justify-center items-center float-right  mr-5 mt-5 hover:bg-red-300 rounded-full'>
-                      <img src={cancel_icon} className='w-8 h-8'/>
-                      </div>
-                    <div className="p-10">
+                   
+                    {ocrFileSelected ? 
                     
-                      <div className="flex flex-col justify-center items-center">
-                       
-
-                       
-                        {ocrFileSelected ? 
-                        
-                        <div className="w-full  flex flex-col justify-center gap-4   ">
-                        <p>Document Name: {ocrSelectedFile.name}</p>
-                        <div className={` w-fit`}>
-                        <Button disabled={isUploading}  text='reupload' onClick={()=>{setOcrFileSelected(false);setOcrSelectedFile(null)}}/>
-                        </div>
-                        {/* <p>Size: {selectedFile.size} bytes</p>
-                        <p>Last Modified: {selectedFile.lastModifiedDate.toString()}</p> */}
-                        <div className="w-full  px-4 h-[500px]">
-                        {ocrSelectedFile.type.startsWith('image/') ? (
-                          
-                          <img
-                            src={URL.createObjectURL(ocrSelectedFile)}
-                            alt="Preview"
-                            width="100%"
-                            height="100%"
-                            
-                          />
-                          
-                        ) : ocrSelectedFile.type === 'application/pdf' ? (
-                          <embed
-                            src={URL.createObjectURL(ocrSelectedFile)}
-                            type="application/pdf"
-                            width="100%"
-                            height="100%"
-                            onScroll={false}
-                          />
-                        ) : (
-
-                          <p>Preview not available for this file type.</p>
-
-                        )}
-                        </div>
-
-                         <Button loading={isUploading?.scan} active={isUploading?.scan} variant='fit' text='Scan' onClick={handleOcrScan} disabled={selectedCategory== null ? true : false}/>
-                      </div>:
-                      <>
-                       <p className="text-xl font-cabin">Upload the document for scan the fields.</p>
-                                  <div className="w-fit">
-                                   <Upload
-                                   selectedFile={ocrSelectedFile}
-                                   setSelectedFile={setOcrSelectedFile}
-                                   fileSelected={ocrFileSelected}
-                                   setFileSelected={setOcrFileSelected}/>
-                                  </div>
-                                  </> }
-                        
-                           
-                        
-                        </div>
-
+                    <div className="w-full  flex flex-col justify-center gap-4   ">
+                    <p>Document Name: {ocrSelectedFile.name}</p>
+                    <div className={` w-fit`}>
+                    <Button disabled={isUploading}  text='reupload' onClick={()=>{setOcrFileSelected(false);setOcrSelectedFile(null)}}/>
                     </div>
+                    {/* <p>Size: {selectedFile.size} bytes</p>
+                    <p>Last Modified: {selectedFile.lastModifiedDate.toString()}</p> */}
+                    <div className="w-full  px-4 h-[500px]">
+                    {ocrSelectedFile.type.startsWith('image/') ? (
+                      
+                      <img
+                        src={URL.createObjectURL(ocrSelectedFile)}
+                        alt="Preview"
+                        width="100%"
+                        height="100%"
+                        
+                      />
+                      
+                    ) : ocrSelectedFile.type === 'application/pdf' ? (
+                      <embed
+                        src={URL.createObjectURL(ocrSelectedFile)}
+                        type="application/pdf"
+                        width="100%"
+                        height="100%"
+                        onScroll={false}
+                      />
+                    ) : (
+
+                      <p>Preview not available for this file type.</p>
+
+                    )}
+                    </div>
+
+                     <Button loading={isUploading?.scan} active={isUploading?.scan} variant='fit' text='Scan' onClick={handleOcrScan} disabled={selectedCategory== null ? true : false}/>
+                  </div>:
+                  <>
+                   <p className="text-xl font-cabin">Upload the document for scan the fields.</p>
+                              <div className="w-fit">
+                               <Upload
+                               selectedFile={ocrSelectedFile}
+                               setSelectedFile={setOcrSelectedFile}
+                               fileSelected={ocrFileSelected}
+                               setFileSelected={setOcrFileSelected}/>
+                              </div>
+                              </> }
+                    
+                       
+                    
+                    </div>
+
                 </div>
-                </div>
-            }
+            </div>
+            </div>
+        }
 
 
-        </div>
+    </div>
 
 
-        <div>
-
-        </div>
-        </div>
-      }
+    
+    </div>
+    
+    
+    </>}
+      
 
       <PopupMessage showPopup={showPopup} setShowPopup={setShowPopup} message={message}/>
 
   </>;
 }
-
-
-
-
 
 //expense allocation
 function AllocationComponent ({errorMsg, getSavedAllocations,travelExpenseAllocation ,travelAllocationFlag , onAllocationSelection}) {
@@ -1973,81 +1991,43 @@ function ExpenseHeader({
    }){
   return(
     <>
-    <div className='flex flex-col md:flex-row mb-2 justify-between items-center'>
-              <div>
-                <p className="text-2xl text-neutral-600 mb-5">{`${tripPurpose?? "N/A"}`}</p>
-              </div>
-                <div className="inline-flex gap-4 justify-center items-center">
-                    {cancel ?
-                    
-                    (<div className="flex mt-10 flex-row-reverse">
-                    <Button loading={isUploading} active={active.deleteHeader} variant='fit' text='Cancel' onClick={()=>handleCancelExpenseHeader()}/>
-                   </div>):
-                  
-                    (<>
-                    {['draft','new'].includes(expenseHeaderStatus) && 
-                    <div className="flex mt-10 flex-row-reverse">
-                    <Button loading={isUploading} active={active.saveAsDraft} text='Save as Draft' onClick={()=>handleSubmitOrDraft("draft")}/>
-                   </div>}
-                    <div className="flex mt-10 flex-row-reverse">
-                    <Button loading={isUploading} active={active.submit} variant='fit' text='Submit' onClick={()=>handleSubmitOrDraft("submit")}/>
-                   </div>
-                   </>)}   
-                </div>
-            </div>
+    
 
-   
-<div className="flex md:flex-row flex-col gap-2 justify-between w-full  ">
-  <div className=" md:w-1/5 w-full  flex  border-[1px] border-slate-300 rounded-md flex-row items-center gap-2 p-2 ">
-    <div className="bg-slate-200 rounded-full p-4 shrink-0 w-auto">
-      <img src={user_icon} className="w-4 h-4 "/>
-      </div>
-      <div className='font-cabin '>
-      <p className=" text-neutral-600 text-xs ">Created By</p>
-      <p className="text-purple-500 text-medium font-medium">{name?? "not available"}</p>
-      </div>
-  </div>
-  <div className="   flex md:w-1/5 w-full border-[1px] border-slate-300 rounded-md flex-row items-center gap-2 p-2 ">
+<div className="flex flex-col sm:flex-row gap-2 justify-between w-full ">
+  {[
+    { icon: user_icon, label: "Created By", value: name ?? "not available" },
+    { icon: briefcase, label: "Trip Number", value: tripNumber ?? "not available" },
 
-    <div className="bg-slate-200 rounded-full p-4 shrink-0 w-auto">
-      <img src={briefcase} className="w-4 h-4 "/>
+  ].map((item, index) => (
+    <div key={index} className="flex items-center gap-2 p-2 w-full md:w-1/5 border border-slate-300 rounded-md">
+      <div className="bg-slate-200 rounded-full p-2 shrink-0">
+        <img src={item.icon} className="w-4 h-4" />
       </div>
-  
-      <div className='font-cabin '>
-      <p className=" text-neutral-600 text-xs ">Trip Number</p>
-      <p className="text-purple-500 text-medium font-medium">{tripNumber?? "not available"}</p>
+      <div className="font-cabin">
+        <p className="text-neutral-600 text-xs">{item.label}</p>
+        <p className="text-purple-500 text-sm ">{item.value}</p>
       </div>
+    </div>
+  ))}
+  <div className="flex  flex-row gap-2 p-2 w-full md:w-3/5 border border-slate-300 rounded-md items-center">
+  <div className="bg-slate-200 rounded-full p-2 shrink-0">
+        <img src={money} className="w-4 h-4" />
+      </div>
+    {[
+      { label: "Total Cash Advance", value: expenseAmountStatus?.totalCashAmount?.toFixed(2) ?? "not available" },
+      { label: "Remaining Cash Advance", value: expenseAmountStatus?.totalRemainingCash?.toFixed(2) ?? "not available" },
+      { label: "Default Currency", value: defaultCurrency?.shortName ?? "not available" },
+    ].map((item, index) => (
+      <div key={index} className="flex-1 px-2 font-cabin">
+        <p className="text-neutral-600 text-xs line-clamp-1">{item.label}</p>
+        <p className="text-purple-500 text-sm">{item.value}</p>
+      </div>
+    ))}
   </div>
-  <div className="   flex md:w-3/5 w-full border-[1px] border-slate-300 rounded-md flex-row items-center gap-2 p-2 ">
-    <div className="bg-slate-200 rounded-full p-4 shrink-0 w-auto ">
-      <img src={money} className="w-4 h-4  "/>
-      </div>
-  <div className="flex flex-row justify-between w-full gap-2 ">
-      <div className='flex-1 font-cabin flex-grow '>
-      <p className=" text-neutral-600 text-xs line-clamp-1">Total CashAdvance</p>
-      <p className="text-purple-500 text-medium font-medium">{expenseAmountStatus?.totalCashAmount?.toFixed(2)??"not available"}</p>
-      </div>
-      <div className='flex-1 font-cabin  px-2 '>
-      <p className=" text-neutral-600 text-xs line-clamp-1   ">Remaining  CashAdvance</p>
-      <p className="text-purple-500 text-medium font-medium">{expenseAmountStatus?.totalRemainingCash?.toFixed(2)??"not available"}</p>
-      </div>
-      <div className=' flex-1 font-cabin  px-2 '>
-      <p className=" text-neutral-600 text-xs line-clamp-1">Default Currency</p>
-      <p className="text-purple-500 text-medium font-medium">{defaultCurrency?.shortName ?? "not available"}</p>
-      </div>
-      </div>  
-  </div>
- 
-   
-        
-   
-       
-   
 </div>
 
 
-
-<div className=" flex flex-col gap-2 lg:flex-row">
+<div className=" flex flex-col gap-2 lg:flex-row border-b-2  py-4">
 {approversList?.length>0 && <div className="h-[48px]">
 <Select 
   
@@ -2246,10 +2226,10 @@ function EditView({expenseHeaderStatus,isUploading,active,flagToOpen,expenseHead
   {/* {lineItem.Document} */}
   <DocumentPreview initialFile={lineItem.Document}/>
 </div>
-<div className="border w-full lg:w-1/2 flex justify-between flex-col h-[710px] overflow-y-auto scrollbar-hide">
-    <div className="w-full flex-row   ">
+<div className="border relative w-full lg:w-1/2 flex justify-between flex-col">
+    <div className="w-full flex-row pb-[56px] h-[710px] overflow-y-auto scrollbar-hide">
      
-     <div className="w-full flex justify-between items-center h-12  px-4 border-dashed border-b-[1px]">
+     <div className="w-full flex justify-between items-center h-12  px-4 border-dashed border-b-[1px] ">
       <p className="text-zinc-600 text-medium font-semibold font-cabin">Sr. {index+1} </p>
       <p className="text-zinc-600 text-medium font-semibold font-cabin capitalize">   Category -{lineItem?.['Category Name']}</p>
     </div>   
@@ -2340,10 +2320,10 @@ function EditView({expenseHeaderStatus,isUploading,active,flagToOpen,expenseHead
    
     
     </div>
-    <div className='p-2 border-dashed border-t-[1px]'>
+    <div className='absolute p-2 bg-indigo-50 inset-x-0 bottom-0 border-t-[1px]'>
     {  !['paid', 'paid and distribute'].includes(expenseHeaderStatus) &&<div className="w-full flex sm:justify-start justify-center gap-4" >
-            <Button text="Edit"   onClick={()=>handleEdit(lineItem?.expenseLineId,lineItem?.['Category Name'],lineItem.travelType)} />
-            <Button  loading={isUploading} active={(active?.delete?.id === lineItem?.expenseLineId ? active?.delete?.visible : false)}  text="Delete" onClick={()=>(handleDeleteLineItem(lineItem))} />
+            <Button1 text="Edit"   onClick={()=>handleEdit(lineItem?.expenseLineId,lineItem?.['Category Name'],lineItem.travelType)} />
+            <Button1  loading={(active?.delete?.id === lineItem?.expenseLineId ? active?.delete?.visible : false)}   text="Delete" onClick={()=>(handleDeleteLineItem(lineItem))} />
           </div>}
     </div>      
 </div>
@@ -2515,7 +2495,7 @@ console.log('currency for edit ',selectedCurrency)
             try {
               setIsUploading(true)
               setActive(prevState => ({ ...prevState, convert: true }));
-              const response = await postMultiCurrencyForTravelExpenseApi(tenantId,convertDetails);
+              const response = await TravelExpenseCurrencyConversionApi (tenantId,convertDetails);
               setCurrencyTableData(response?.currencyConverterData || {})
               setEditFormData({...editFormData,convertedAmountDetails:response?.currencyConverterData || {}})
             
@@ -2708,7 +2688,7 @@ console.log('currency for edit ',selectedCurrency)
 <div className="w-[100px] flex flex-col items-center">
 <div>
 {/* <ActionButton variant='red' text={personalFlag ? "NO"  : "YES" } onClick={handlePersonalFlag}/> */}
-<Toggle initialValue={personalFlag} label={'Personal Flag'}  checked={personalFlag} onClick={handlePersonalFlag}/>
+<Toggle initialValue={false} label={'Personal Flag'} setChecked={setPersonalFlag}  checked={personalFlag} onClick={handlePersonalFlag}/>
 </div>
 </div>
 </div>
@@ -2882,7 +2862,7 @@ function DocumentPreview({selectedFile , initialFile}){
         </div>
       ) : 
       !initialFile ?
-      <div className='w-full h-[700px] flex justify-center items-center bg-white-100 opacity-30'>
+      <div className='w-full h-[700px] flex justify-center items-center bg-white opacity-30'>
         <img src={!initialFile && file_icon|| initialFile} className='w-40 h-40'/>
       </div> :
       <div className='w-full h-[700px] flex justify-center items-center '>

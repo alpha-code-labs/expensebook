@@ -30,7 +30,7 @@ export {default as frame_341} from './frame-341.svg';
 export {default as validation_sym} from './validation-sym.svg';
 export {default as three_dot} from './three-dot.png';
 export {default as down_left_arrow} from './down-left-arrow.svg';
-export {default as modify} from './modify.svg'
+export {default as modify_icon} from './icons8-modify.svg'
 export {default as cab_purple} from './cab-purple.svg';
 export {default as train} from './train.png';
 export {default as bus} from './bus.png';
@@ -46,39 +46,78 @@ export {default as loading_icon} from './loading2.svg';
 export {default as upload_icon} from './upload.png';
 export {default as validation_symb_icon} from './validation_sym_c.svg';
 export {default as plus_icon} from './plus.svg';
+export {default as scan_icon }  from './scan-doc.png';
+export {default as info_icon }  from './icons8-info.svg';
 
+
+
+
+
+
+
+
+import flight_icon from './expense_icon/flight_icon.svg';
+import train_icon from './expense_icon/train.svg';
+import bus_icon from './expense_icon/bus.svg';
+import cab_icon from './expense_icon/cab.svg';
+import cabRental_icon from './expense_icon/cab_rental.svg';
+import hotel_icon from './expense_icon/hotel.svg';
+import meals_icon from './expense_icon/meals.svg';
+import travelReimbursement_icon from './expense_icon/travel_reimbursement.svg'
+import conferenceAndEvent_icon from './expense_icon/conference.svg'
+import travelInsurance_icon from './expense_icon/travel_insurance.svg'
+import baggage_icon from './expense_icon/luggage.svg'
+import tips_icon from './expense_icon/tips.svg'
+import miscellaneous_icon from './expense_icon/miscellaneous.svg'
+import officeSupplies_icon from './expense_icon/officeSupllies.svg'
+import utilities_icon from './expense_icon/utilities.svg'
+import insurance_icon from './expense_icon/insurance.svg'
+import marketingAndAdvertising_icon from './expense_icon/marketting_advertisement.svg'
+import professionalFees_icon from './expense_icon/professional_fees.svg'
+import softwareAndLicense_icon from './expense_icon/software_license.svg'
+import equipment_icon from './expense_icon/equipment.svg'
+import repairAndMaintenance_icon from './expense_icon/maintenance.svg'
+import legalCompliance_icon from './expense_icon/legal_compliance.svg'
+import communication_icon from './expense_icon/communication.svg'
+import researchAndDevelopment_icon from './expense_icon/research_development.svg'
+import training_icon from './expense_icon/traning.svg'
+import softwareSubscription_icon from './expense_icon/subscriptions.svg'
+import clientEntertainment_icon from './expense_icon/insurance.svg'
+import clientGift_icon from './expense_icon/gift.svg'
+import receipt_icon from './expense_icon/receipt.svg'
 
 
 export const categoryIcons = {
-    'Flight': '✈️', // Replace with your actual icons
-    'Train': '🚆',
-    'Bus': '🚌',
-    'Cab': '🚕',
-    'Cab Rental': '🚗',
-    'Hotel': '🏨',
-    'Meals': '🍽️',
-    'Travel Reimbursement': '🧾',
-    'Conference / Event': '🎤',
-    'Travel Insurance': '📋',
-    'Baggage': '🧳',
-    'Tips': '💰',
-    'Miscellaneous': '🔧',
-    'Office Supplies': '📂',
-    'Utilities': '💡',
-    'Insurance': '🛡️',
-    'Marketing and Advertising': '📢',
-    'Professional Fees': '💼',
-    'Software and Licenses': '💻',
-    'Equipment': '⚙️',
-    'Repairs and Maintenance': '🔨',
-    'Legal and Compliance': '⚖️',
-    'Communication': '📞',
-    'Research and Development': '🔬',
-    'Training': '📚',
-    'Software Subscriptions': '🖥️',
-    'Client Entertainment': '🎉',
-    'Client Gift': '🎁',
-  };
+  'Flight': flight_icon, 
+  'Train': train_icon,
+  'Bus': bus_icon,
+  'Cab': cab_icon,
+  'Cab Rental': cabRental_icon,
+  'Hotel': hotel_icon,
+  'Meals': meals_icon,
+  'Travel Reimbursement': travelReimbursement_icon,
+  'Conference / Event': conferenceAndEvent_icon,
+  'Travel Insurance': travelInsurance_icon,
+  'Baggage': baggage_icon,
+  'Tips': tips_icon,
+  'Miscellaneous': miscellaneous_icon,
+  'Office Supplies': officeSupplies_icon,
+  'Utilities': utilities_icon,
+  'Insurance': insurance_icon,
+  'Marketing and Advertising': marketingAndAdvertising_icon,
+  'Professional Fees': professionalFees_icon,
+  'Software and Licenses': softwareAndLicense_icon,
+  'Equipment': equipment_icon,
+  'Repairs and Maintenance': repairAndMaintenance_icon,
+  'Legal and Compliance': legalCompliance_icon,
+  'Communication': communication_icon,
+  'Research and Development': researchAndDevelopment_icon,
+  'Training': training_icon,
+  'Software Subscriptions': softwareSubscription_icon,
+  'Client Entertainment': clientEntertainment_icon,
+  'Client Gift': clientGift_icon,
+  'Receipt': receipt_icon
+};
   
 
 

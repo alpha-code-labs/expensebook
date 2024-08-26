@@ -6,15 +6,18 @@ import Button from '../components/common/Button';
 import PopupMessage from '../components/common/PopupMessage';
 import Icon from '../components/common/Icon';
 import Input from '../components/common/Input';
-import { arrow_left, briefcase, cancel_icon, cancel_round, chevron_down, file_icon, money, receipt, user_icon, validation_sym, validation_symb_icon } from '../assets/icon';
+import { arrow_left, briefcase, cancel_icon, cancel_round, categoryIcons, chevron_down, file_icon, modify_icon, money, receipt, scan_icon, user_icon, validation_sym, validation_symb_icon } from '../assets/icon';
 import {nonTravelExpenseData} from '../dummyData/nonTravelExpens';
-import { titleCase, urlRedirection } from '../utils/handyFunctions';
+import { initializenonTravelFormFields, titleCase, urlRedirection } from '../utils/handyFunctions';
 import Upload from '../components/common/Upload';
 import Select from '../components/common/Select';
 import ActionButton from '../components/common/ActionButton';
 import Modal from '../components/common/Modal';
 import AddMore from "../components/common/AddMore.jsx";
 import { BlobServiceClient } from "@azure/storage-blob";
+import Button1 from '../Components/common/Button1.jsx';
+import FileUpload from '../Components/common/FileUpload.jsx';
+import Search from '../Components/common/Index.jsx';
 
 ///Cuurency on Save you have to save object of currency
 const currencyDropdown = [
@@ -33,7 +36,7 @@ const totalAmountNames = ['Total Fare','Total Amount',  'Subscription cost', 'Co
 const dateForms = ['Invoice Date', 'Date', 'Visited Date', 'Booking Date','Bill Date','Check-In Date'];
 
 const CreateNonTraveExpense = () => {
-  const [reimbursementHeaderId, setReimbursementHeaderId]=useState('')
+ 
   
   const {tenantId,empId,expenseHeaderId,cancel} =useParams()
   const dashboard_url = import.meta.env.VITE_DASHBOARD_URL
@@ -66,7 +69,17 @@ const CreateNonTraveExpense = () => {
 }
   
 
+ const [requiredObj, setRequiredObj]=useState({
+  "groupLimit":{
+    group:'',
+    limit: 0,
+    message:''}
+ });
+ const [formData, setFormData] = useState({
+  fields:{}
+ })
  
+  
   const [headerDetails , setHeaderDetails]=useState(null)
   const [categoryList , setCategoryList]=useState(null);
       //this is for miscellaneous data
@@ -78,6 +91,7 @@ const CreateNonTraveExpense = () => {
         try {
           const response = await getNonTravelExpenseMiscellaneousDataApi(tenantId, empId,);
           setCategoryList(response?.reimbursementExpenseCategory || [])
+          setRequiredObj(prev=>({...prev,expenseCategories:response?.reimbursementExpenseCategory || []}))
           setHeaderDetails({
             name: response?.employeeName,
             defaultCurrency : response?.defaultCurrency
@@ -104,7 +118,7 @@ const CreateNonTraveExpense = () => {
 
  
 
-    const formData = [
+    const editData = [
               // { name:'Bill Date',type:'date'},
               // { name:'Bill Number',type:'numeric'},
               // { name:'Vendor Name',type:'text'},
@@ -129,17 +143,11 @@ const CreateNonTraveExpense = () => {
           
     }
 
-    const [expenseHeaderId1 , setExpenseHeaderId1]=useState(null); //from miscellaneous data
+
     const [expenseLineAllocation ,setExpenseLineAllocation]=useState(null)
-    //const [categoryElement , setCategoryElement]=useState([...formData]); // this is for dummy
+    //const [categoryElement , setCategoryElement]=useState([...editData]); // this is for dummy
     const [categoryElement , setCategoryElement]=useState([]); //
-
-    const [groupLimit,setGroupLimit]= useState({
-      group:'',
-      limit: 0,
-      message:''
-    })
-
+    const [categorySearchVisible, setCategorySearchVisible] = useState(false);
     const [totalAmount, setTotalAmount] = useState(''); ///for handling convert 
     const [date ,setDate]= useState('')
     const [currencyTableData, setCurrencyTableData] = useState(null);
@@ -163,13 +171,14 @@ const CreateNonTraveExpense = () => {
     
     const [loadingErrorMsg, setLoadingErrorMsg]=useState(null)
     const [errorMsg,setErrorMsg]=useState({
+      category:{set:false,msg:""},
       dateErr:{set:false,msg:""},
       currencyFlag:{set:false,msg:""},
       totalAmount:{set:false,msg:""},
       allocations: { set: false, msg: "" }
     })
 
-    const [openLineItemForm,setOpenLineItemForm]=useState(false)
+    const [showForm,setShowForm]=useState(false)
     const [openModal,setOpenModal]=useState(null);
     const [showPopup ,setShowPopup]=useState(false);
     const [message,setMessage]=useState(null)  
@@ -179,6 +188,15 @@ const CreateNonTraveExpense = () => {
 
 const handleModalVisible=()=>{
   setShowModal(!showModal)
+}
+
+const handleMannualBtn=()=>{
+  if(requiredObj.category){
+    setShowForm(true)
+    setErrorMsg(prev => ({...prev,category:{ set: false, msg: "" },}))
+  }else{
+    setErrorMsg(prev => ({...prev,category:{ set: true, msg: "Select the category" },}))
+  }
 }
 
 
@@ -237,7 +255,7 @@ const [defaultCurrency , setDefaultCurrency]=useState(null)
   //Handle Delete
 
   const handleDelete=async(lineItemId)=>{
-    const expenseHeaderIds = expenseHeaderId || expenseHeaderId1 || reimbursementHeaderId
+    const expenseHeaderIds = expenseHeaderId || requiredObj?.expenseHeaderId
     const lineItemIds = {lineItemIds :[lineItemId]}
 
     try {
@@ -266,21 +284,18 @@ const [defaultCurrency , setDefaultCurrency]=useState(null)
   //console.log('expenseHeaderId by session',expenseHeaderIdBySession)
 //Handle Generate    
 const [miscellaneousData , setMiscellaneousData]=useState(null)
+
     const handleGenerateExpense = async (category) => {
-      // const category1 = 
       console.log('generate category',category)   
       let expenseHeaderId 
       let api
 
-      
-
       try {
         setIsUploading(true)
         setActive(true)
-        if(reimbursementHeaderId){
-          expenseHeaderId =reimbursementHeaderId
-          api = await getCategoryFormElementApi(tenantId,empId,category,expenseHeaderId )
-  
+        if(requiredObj?.expenseHeaderId){
+          expenseHeaderId =requiredObj?.expenseHeaderId
+          api = await getCategoryFormElementApi(tenantId,empId,category,expenseHeaderId)
         }
         else{
           api = await getCategoryFormElementApi(tenantId,empId,category)
@@ -288,24 +303,28 @@ const [miscellaneousData , setMiscellaneousData]=useState(null)
         const response = api
         setMiscellaneousData(response || {})
         setDefaultCurrency(response?.defaultCurrency)
-        setCategoryElement(response?.fields || [])
+        //setCategoryElement(response?.fields || [])
         setExpenseLineAllocation(response?.newExpenseAllocation) || []
         const allocation1 = response?.newExpenseAllocation
-        const initialExpenseAllocation = allocation1 && allocation1.map(({ headerValues, headerName }) => ({
+        const initialExpenseAllocation = allocation1 && allocation1.map(({  headerName }) => ({
           headerName,
           headerValue: "" // Add "headerValue" and set it to an empty string
         }));
         console.log('intial allocation',initialExpenseAllocation)
 
+        setRequiredObj(prev => ({...prev,
+          "defaultCurrency":response?.defaultCurrency,
+          "fields":response?.fields || [],
+          "expenseHeaderId":response?.expenseHeaderId ?? null,
+          "expenseHeaderNumber":response?.expenseHeaderNumber,
+          "category":response?.categoryName,
+          "groupLimit":response?.group || {}
+        }))
+
         setSelectedAllocations(initialExpenseAllocation) 
-        if(response?.expenseHeaderId){
-        setExpenseHeaderId1(response?.expenseHeaderId)
-       }
         
-        setGroupLimit(response?.group)
-        console.log('group limit 1',response?.group)
         // sessionStorage.setItem("expenseHeaderId", response?.expenseHeaderId);
-        setReimbursementHeaderId(response?.expenseHeaderId)
+        //setReimbursementHeaderId(response?.expenseHeaderId)
         setIsUploading(false);
         setActive(false)
         
@@ -322,8 +341,9 @@ const [miscellaneousData , setMiscellaneousData]=useState(null)
     //for add line item
     const handleModal=()=>{
         setOpenModal((prevState)=>(!prevState))
-        // setCategoryElement(formData)
+      
     }
+
     console.log('miscellaneous data',miscellaneousData)
 
 
@@ -358,10 +378,10 @@ const [miscellaneousData , setMiscellaneousData]=useState(null)
 // }, []);
 
      /// Get Line Items
-     const [expenseDataByGet , setExpenseDataByGet]= useState(null)
+  const [expenseDataByGet , setExpenseDataByGet]= useState(null)
 
   useEffect(() => {
-    const expenseHeaderIds = expenseHeaderId || expenseHeaderId1 || reimbursementHeaderId
+    const expenseHeaderIds = expenseHeaderId || requiredObj?.expenseHeaderId 
     console.log('expense header id1',expenseHeaderIds)
   
     const fetchData = async () => {
@@ -384,7 +404,7 @@ const [miscellaneousData , setMiscellaneousData]=useState(null)
 
     fetchData(); 
 
-  }, [expenseHeaderId || expenseHeaderId1 || reimbursementHeaderId])
+  }, [expenseHeaderId || requiredObj?.expenseHeaderId ])
 
   
   console.log('line items data ',lineItemsData)
@@ -458,7 +478,7 @@ useEffect(()=>{
     //     setTotalAmount(value);
     //   }
     // };
-   console.log('groupline',groupLimit)
+   console.log('grouplimit',requiredObj?.groupLimit)
 
       console.log('initial values',formDataValues)
 
@@ -493,11 +513,11 @@ useEffect(()=>{
       }    
 
       if(totalAmountNames.includes(name)){
-        const limit = groupLimit?.limit 
+        const limit = requiredObj?.groupLimit?.limit 
         if(value>limit){
-          setErrorMsg((prevErrors)=>({...prevErrors,totalAmount:{set:true,msg:groupLimit?.message}}))
+          setErrorMsg((prevErrors)=>({...prevErrors,totalAmount:{set:true,msg:requiredObj?.groupLimit?.message}}))
         }else{
-          setErrorMsg((prevErrors)=>({...prevErrors,totalAmount:{set:false,msg:groupLimit?.message}}))
+          setErrorMsg((prevErrors)=>({...prevErrors,totalAmount:{set:false,msg:requiredObj?.groupLimit?.message}}))
         }
       }
 
@@ -543,14 +563,14 @@ console.log('selected category',selectedCategory)
 
      
 const [selectedFile  , setSelectedFile]=useState(null)
-const [fileSelected ,setFileSelected]= useState(false)
+const [isFileSelected ,setIsFileSelected]= useState(false)
 
 
 
       
       console.log('total amount', totalAmount)
       console.log("expense line",lineItemsData)
-      console.log('category element',categoryElement)
+      console.log('category element',requiredObj.fields)
 
 // Handle Converter
 const handleConverter =async ( totalAmount , selectedCurrency) => { 
@@ -664,7 +684,7 @@ console.log("All Errors Filled:", !anyErrorSet);
           expenseHeaderNumber,
           defaultCurrency,
           lineItem :{
-            group:groupLimit,
+            group:requiredObj?.groupLimit,
             'Category Name':selectedCategory || "",
             ...formDataValues,
             'Document': "",
@@ -709,7 +729,7 @@ console.log("All Errors Filled:", !anyErrorSet);
          setLineItemsData([...lineItemsData, newLine]);   
          setIsUploading(false)
          setActive(prevState => ({...prevState,saveLineItem:false}))
-         setOpenLineItemForm(false)
+         setShowForm(false)
          setTimeout(() => {setShowPopup(false);setMessage(null);},5000)
          setCurrencyTableData(null)
 
@@ -725,7 +745,7 @@ console.log("All Errors Filled:", !anyErrorSet);
 
         // Clear the selected file and reset the form data
         setSelectedFile(null);
-        setFileSelected(false);
+        setIsFileSelected(false);
         // setFormDataValues({});
       };
 
@@ -789,7 +809,7 @@ if(allowForm){
   try {
     setIsUploading(true)
     setActive(prevState => ({ ...prevState, saveLineItem: true }));
-    const response = await editNonTravelExpenseLineItemsApi(tenantId,empId,expenseHeaderId1,lineItemId,data1);
+    const response = await editNonTravelExpenseLineItemsApi(tenantId,empId,(requiredObj?.expenseHeaderId),lineItemId,data1);
     setShowPopup(true)
     setMessage(response?.message)
    console.log('line item saved successfully',response?.message)
@@ -797,7 +817,7 @@ if(allowForm){
    setLineItemsData([...lineItemsData]);   
    setIsUploading(false)
    setActive(prevState => ({ ...prevState, saveLineItem: false }));
-   setOpenLineItemForm(false)
+   setShowForm(false)
    setSelectedLineItemId(null)
    setTimeout(() => {setShowPopup(false);setMessage(null);},5000)
 
@@ -811,7 +831,7 @@ if(allowForm){
   
   // Clear the selected file and reset the form data
   setSelectedFile(null);
-  setFileSelected(false);
+  setIsFileSelected(false);
   setFormDataValues({});
 };      
 
@@ -819,6 +839,7 @@ if(allowForm){
 
 /// Submit Expense || Draft Expense || Delete
       const handleSubmitOrDraft = async(action)=>{
+        
         
         const expenseHeaderId1= expenseHeaderId || miscellaneousData?.expenseHeaderId ||expenseDataByGet?.expenseHeaderId
        let api ;
@@ -889,7 +910,7 @@ if(allowForm){
            setIsUploading(prevState =>({...prevState, scan: true}));
           
           setTimeout(() => {
-            setOpenLineItemForm(true) ;setOpenModal(null); setShowPopup(false);setIsUploading(false);
+            setShowForm(true) ;setOpenModal(null); setShowPopup(false);setIsUploading(false);
           }, 5000);
         // try {
         //   setIsUploading(prevState =>({...prevState, scan: true}));
@@ -922,17 +943,17 @@ if(allowForm){
       // const handleOcrScan = async () => {
       //   // console.log('ocrfile from handle', ocrSelectedFile);
       
-      //   const formData = new FormData();
-      //     formData.append('file', ocrSelectedFile);
+      //   const editData = new FormData();
+      //     editData.append('file', ocrSelectedFile);
       
-      //   console.log('ocrfile from handle',formData)
+      //   console.log('ocrfile from handle',editData)
       
       //   try {
 
       //     setIsUploading(true);
           
       //     // Assuming ocrScanApi is an asynchronous function
-      //     const response = await nonTravelOcrApi(formData);
+      //     const response = await nonTravelOcrApi(editData);
       
       //     if (response.error) {
       //       loadingErrorMsg(response.error.message);
@@ -961,37 +982,118 @@ if(allowForm){
       //     setIsUploading(false);
       //   }
       // };
+      const handleSelectCategory = async(option) => {
+        console.log('handle category',option)
+        
+        // setRequiredObj((prev) => ({
+        //   ...prev,
+        //   category: option,
+        // }));
+        let expenseHeaderId 
+        let api
+  
+        try {
+          setIsUploading(true)
+          setActive(true)
+          if(requiredObj?.reimbursementHeaderId){
+            expenseHeaderId =requiredObj?.reimbursementHeaderId
+            api = await getCategoryFormElementApi(tenantId,empId,option,expenseHeaderId)
+          }
+          else{
+            api = await getCategoryFormElementApi(tenantId,empId,option)
+          }
+          const response = api
+          setMiscellaneousData(response || {})
+          setDefaultCurrency(response?.defaultCurrency)
+          //setCategoryElement(response?.fields || [])
+          setExpenseLineAllocation(response?.newExpenseAllocation) || []
+          const allocation1 = response?.newExpenseAllocation
+          const initialExpenseAllocation = allocation1 && allocation1.map(({  headerName }) => ({
+            headerName,
+            headerValue: "" // Add "headerValue" and set it to an empty string
+          }));
+
+          console.log('intial allocation', initialExpenseAllocation)
+  
+          setRequiredObj(prev => ({...prev,
+            "defaultCurrency":response?.defaultCurrency,
+            "fields":response?.fields || [],
+            "expenseHeaderId":response?.expenseHeaderId ?? null,
+            "expenseHeaderNumber":response?.expenseHeaderNumber,
+            "category":response?.categoryName,
+            "groupLimit":response?.group || {}
+          }))
+  
+          setSelectedAllocations(initialExpenseAllocation) 
+          
+          // sessionStorage.setItem("expenseHeaderId", response?.expenseHeaderId);
+          //setReimbursementHeaderId(response?.expenseHeaderId)
+          setIsUploading(false);
+          setActive(false)
+          console.log('expense data for approval fetched.',response);
+
+          let updatedFields = initializenonTravelFormFields(response?.fields, {
+            defaultCurrency: requiredObj.defaultCurrency || "", // or any other logic to set default values
+            travelType: requiredObj.travelType || "",
+            categoryName: option.categoryName || "",
+            group:response?.group || {}
+          });
+          
+          // Only add allocations if level3 is present
+          if (requiredObj.level === 'level3') {
+            const allocations = (option.expenseAllocation || []).map((allocation) => ({
+              headerName: allocation.headerName,
+              headerValue: "",
+            }));
+            setSelectedAllocations(allocations)
+          }
+          
+          setFormData((prevData) => ({
+            ...prevData,
+            fields: updatedFields,
+          }));
+          // setSelectedCategory(null)
+        } catch (error) {
+          console.log('Error in fetching expense data for approval:', error.message);
+          setLoadingErrorMsg('message',error.message);
+          setTimeout(() => {setLoadingErrorMsg(null);setIsLoading(false)},5000);
+        }
+        
+        
+      
+
+      };
+
+    console.log('required object', requiredObj) 
+    console.log('form data', formData) 
 
   return (
     <div>
         {isLoading && <Error message={loadingErrorMsg}/>}
         {!isLoading  && 
-        <div className=" w-full h-full relative bg-white-100 md:px-24 md:mx-0 sm:px-0 sm:mx-auto py-12 ">
+        <div className="w-full h-full relative bg-white  py-12     ">
         
-         <div className='w-full flex justify-center pl-10  md:justify-start lg:justify-start '>
-        <div className="flex items-center cursor-pointer " onClick={()=>(urlRedirection(`${DASHBOARD_URL}/expense`))}>
-        <img src={arrow_left} className="w-6 h-6"/>
-       </div>
-            <Icon/>
-        </div>
+      
+       
 
         {/* Rest of the section */}
-        <div className="w-full h-full mt-10 p-10 font-cabin tracking-tight">
+        <div className="w-full h-full xl:px-32 lg:px-16 md:px-4 px-4  font-cabin tracking-tight">
         <div className='inline-flex p-2 gap-2 border-[1px] w-full rounded-md border-indigo-600 bg-indigo-50'> 
         <img src={validation_sym} width={16} height={16} alt='validation'/> 
-        <span className='text-indigo-600'> If require category are unavailable, please contact the administrator.</span>
+        <span className='text-indigo-600'> If required category are unavailable, please contact the administrator.</span>
         </div>           
         <div className="flex flex-col lg:flex-row justify-between  items-center lg:items-end my-5 gap-2">
         {/* {categoryList?.length >=0  &&miscellaneousData?.categoryName ==  undefined&& */}
-         <div className='  inline-flex gap-4'>
+         {/* <div className='  inline-flex gap-4'>
          <div className="h-[48px] w-[200px]">
+
        <Select
            title="Category"
            placeholder="Select Category"
            options={categoryList || []}
            currentOption={categoryList && categoryList[0]}
            // violationMessage="Your violation message" 
-         //   error={{ set: true, message: "Your error message" }} 
+           // error={{ set: true, message: "Your error message" }} 
            required={true} 
            submitAttempted={false}
            icon={chevron_down}
@@ -1002,14 +1104,44 @@ if(allowForm){
            </div>
  
            <div className='mt-7'>
-             <Button loading={isUploading} active={active} text="Generate" onClick={()=>handleGenerateExpense(selectedCategory)} disabled={!selectedCategory}/>
-         </div>
-       </div>
+             <Button1 loading={isUploading} active={active} text="Generate" onClick={()=>handleGenerateExpense(selectedCategory)} disabled={!selectedCategory}/>
+           </div>
+       </div> */}
+<div className='flex md:flex-row flex-col items-start gap-2'> 
+<div className='relative flex flex-col h-[73px] justify-start item-start gap-2'>
+      <div className="text-zinc-600 text-sm font-cabin select-none mt-2">Categories</div>
+      <div onClick={(e)=>{e.stopPropagation(); setCategorySearchVisible(pre=>!pre)}} className={`min-h-[50px] h-fit min-w-[200px] w-fit px-2 py-2 border  flex gap-2 bg-gray-100 ${errorMsg?.category?.set ? 'border-red-600' : 'border-slate-300'}  hover:bg-gray-200 rounded-sm items-center transition ease-out hover:ease-in cursor-pointer`}>
+                                         {requiredObj.category && <div className="bg-white p-2 rounded-full " >                            
+                                         <img src={categoryIcons[requiredObj.category]} className='w-4 h-4 rounded-full'/>
+                                         </div>}
+                                        <div className="text-neutral-700 text-normal text-sm sm:text-[14.5px] font-cabin -mt-1 sm:mt-0">{!requiredObj.category ? 'Select Category' : requiredObj?.category }</div>
+                                        </div>
+      
+      {categorySearchVisible &&
+      <div className='absolute top-[84px]'>
+       <Search
+       visible={categorySearchVisible}
+       setVisible={setCategorySearchVisible}
+       searchChildren={'categoryName'}
+       onSelect={(option) => { handleSelectCategory(option)}}
+       options={requiredObj?.expenseCategories} 
+       title='Select the requied category.'
+       />
+       </div>}
+     
+
+</div>
+
+<div className='mt-12 inline-flex space-x-2'>
+    <FileUpload selectedFile={selectedFile} setSelectedFile={setSelectedFile} isFileSelected={isFileSelected} setIsFileSelected={setIsFileSelected}  text={<div className='inline-flex items-center space-x-1'><img src={scan_icon} className='w-5 h-5'/> <p>Auto Scan</p></div>}/>
+    <Button1 onClick={handleMannualBtn} text={<div className='inline-flex items-center space-x-1'><img src={modify_icon} className='w-5 h-5'/> <p>Manually</p></div>}/>
+</div>
+</div>  
       {/* //  }   */}
        
 
 {lineItemsData.length!=0 &&
-  <div className="flex gap-4 ">
+  <div className="flex gap-4">
                     {cancel ?
                     (<div className="flex  flex-row-reverse">
                     <Button variant='fit' text='Cancel' onClick={()=>{setShowModal(true);setAction("delete")}}/>
@@ -1036,15 +1168,15 @@ if(allowForm){
             <HeaderComponent headerDetails={headerDetails} miscellaneousData={ miscellaneousData} expenseDataByGet={expenseDataByGet && expenseDataByGet}/>
            
      <hr/>
-     {categoryElement.length>0 && <div className="w-fit my-5" >
+     {/* {categoryElement.length>0 && <div className="w-fit my-5" >
            <AddMore text={"Add Line Item"} onClick={()=>handleOpenModal('form')}/>
-     </div>}
+     </div>} */}
     
 
 {/* //----------- edit line item--start---------------------- */}
 
 {lineItemsData && lineItemsData?.map((lineItem , index)=>(
-   (lineItem.lineItemId === selectedLineItemId && categoryElement.length>0) ?
+   (lineItem.lineItemId === selectedLineItemId && requiredObj?.fields.length>0) ?
    
  <React.Fragment key={index}>
 
@@ -1058,7 +1190,7 @@ if(allowForm){
    setErrorMsg={setErrorMsg}
    errorMsg={errorMsg}
    expenseLineAllocation={expenseLineAllocation}
-   categoryElement={categoryElement}
+   categoryElement={requiredObj.fields}
    key={index}
    lineItem={lineItem}
    handleSave={(updatedData) => handleSaveLineItem(updatedData, index)}
@@ -1093,7 +1225,7 @@ if(allowForm){
         
 {/* //---------save line item form----------------------- */}
 
-{openLineItemForm &&
+{showForm &&
 <div className='flex flex-col lg:flex-row border  mt-4'>
   <div className='w-full lg:w-1/2 border h-full flex justify-center items-center '>
   {/* <div className=' border-[5px] min-w-[100%] h-fit min-h-[713px] flex justify-center items-center'>
@@ -1122,7 +1254,7 @@ if(allowForm){
           )}
         </div>
       ) : 
-       <div className='w-full  flex justify-center items-center bg-white-100 opacity-30'>
+       <div className='w-full  flex justify-center items-center bg-white opacity-30'>
         <img src={file_icon} className='w-40 h-40'/>
       </div>
       }
@@ -1130,7 +1262,7 @@ if(allowForm){
   <DocumentPreview selectedFile={ocrSelectedFile ||selectedFile}/>
   </div>
   <div className='w-full lg:w-1/2 border lg:h-[710px] overflow-y-auto scrollbar-hide'>
-  {openLineItemForm &&
+  {showForm &&
   <> 
   <div className="w-full flex items-center justify-start h-[52px] border-slate-500 border-dashed border-b-[1px] px-4 ">
       <p className="text-zinc-600 text-medium font-semibold font-cabin capitalize">   Category -{selectedCategory}</p>
@@ -1148,7 +1280,7 @@ if(allowForm){
     </div> 
   ))}
 
-{categoryElement && categoryElement.map((element, index) => {
+{requiredObj.fields && (requiredObj.fields)?.map((element, index) => {
     return (
 <React.Fragment key={index}>
  <div className='h-[73px] my-2'>        
@@ -1237,8 +1369,8 @@ if(allowForm){
 <Upload 
   selectedFile={selectedFile}
   setSelectedFile={setSelectedFile}
-  fileSelected={fileSelected}
-  setFileSelected={setFileSelected}
+  isFileSelected={isFileSelected}
+  setIsFileSelected={setIsFileSelected}
 />
 </div>
 </div>         
@@ -1258,7 +1390,7 @@ if(allowForm){
 {/* //---------save line item form end----------------------- */}
 
            {openModal==='form' && <div className="fixed overflow-hidden max-h-4/5 flex justify-center items-center inset-0 backdrop-blur-sm w-full h-full left-0 top-0 bg-gray-800/60 " >
-                <div className='z-10 max-w-4/5  md:mx-0 mx-4   sm:w-2/5 w-full min-h-4/5 max-h-4/5  bg-white-100  rounded-lg shadow-md'>
+                <div className='z-10 max-w-4/5  md:mx-0 mx-4   sm:w-2/5 w-full min-h-4/5 max-h-4/5  bg-white  rounded-lg shadow-md'>
                 <div onClick={()=>setOpenModal(null)} className=' w-10 h-10 flex mr-5 mt-5 justify-center items-center float-right   hover:bg-red-300 rounded-full'>
                       <img src={cancel_icon} className='w-8 h-8'/>
                   </div>
@@ -1269,7 +1401,7 @@ if(allowForm){
                             <Button className='fit' variant='' text='Scan' onClick={()=>handleOpenModal('upload')}  />
                             </div>
                             <div className='w-full'> 
-                            <Button variant='' text='Manually' onClick={()=>{setOpenLineItemForm(true);handleModal()}} />
+                            <Button variant='' text='Manually' onClick={()=>{setShowForm(true);handleModal()}} />
                             </div>
                         </div>
                     </div>
@@ -1278,7 +1410,7 @@ if(allowForm){
             }
 
 {openModal==='upload' && <div className="fixed overflow-hidden max-h-4/5 flex justify-center items-center inset-0 backdrop-blur-sm w-full h-full left-0 top-0 bg-gray-800/60 scroll-none " >
-                <div className='z-10  md:w-3/5 w-full mx-8  min-h-4/5 max-h-4/5 scroll-none bg-white-100  rounded-lg shadow-md'>
+                <div className='z-10  md:w-3/5 w-full mx-8  min-h-4/5 max-h-4/5 scroll-none bg-white  rounded-lg shadow-md'>
                 <div onClick={()=>{setOpenModal(null);setOcrSelectedFile(null);setOcrFileSelected(false);setSelectedCategory(null)}} className=' w-10 h-10 flex justify-center items-center float-right  mr-5 mt-5 hover:bg-red-300 rounded-full'>
                       <img src={cancel_icon} className='w-8 h-8'/>
                       </div>
@@ -1330,8 +1462,8 @@ if(allowForm){
                                    <Upload
                                    selectedFile={ocrSelectedFile}
                                    setSelectedFile={setOcrSelectedFile}
-                                   fileSelected={ocrFileSelected}
-                                   setFileSelected={setOcrFileSelected}/>
+                                   isFileSelected={ocrFileSelected}
+                                   setIsFileSelected={setOcrFileSelected}/>
                                   </div>
                                   </> }
                         
@@ -1467,7 +1599,7 @@ function EditComponent({index, lineItem, handleEdit ,handleDelete,isUploading,ac
 
 function  EditFormComponent ({index,setCurrencyTableData,active,isUploading,handleUpdateLineItem ,currencyTableData ,errorMsg,setErrorMsg, lineItem, categoryElement, handleSave,expenseLineAllocation,handleConverter ,defaultCurrency}) {
   const [selectedFile  , setSelectedFile]=useState(null)
-  const [fileSelected ,setFileSelected]= useState(false)
+  const [isFileSelected ,setIsFileSelected]= useState(false)
   const [selectedAllocations , setSelectedAllocations]=useState([])
   const [selectedCurrency, setSelectedCurrency]=useState(null)
   const [initialFile , setInitialFile]=useState(null)
@@ -1477,7 +1609,7 @@ function  EditFormComponent ({index,setCurrencyTableData,active,isUploading,hand
   
 const groupLimit = lineItem?.group
   console.log('lineitem', lineItem.expenseLineAllocation)
-const [formData, setFormData] = useState(lineItem);
+const [editData, setEditData] = useState(lineItem);
  console.log('object',categoryElement)
  console.log('line item from edit form compoent', lineItem)
 
@@ -1488,7 +1620,7 @@ const [formData, setFormData] = useState(lineItem);
   setSelectedCurrency(selectedCurrencyObject)
   if(shortName === defaultCurrency?.shortName){
     setCurrencyTableData(null)
-    setFormData((prevState)=>({...prevState,multiCurrencyDetails:null}))
+    setEditData((prevState)=>({...prevState,multiCurrencyDetails:null}))
   }
   handleChange( 'Currency' , selectedCurrencyObject)
 
@@ -1502,7 +1634,7 @@ const [formData, setFormData] = useState(lineItem);
   }
 }
   const handleChange = (key, value) => {
-    setFormData((prevData) => ({
+    setEditData((prevData) => ({
       ...prevData,
       [key]: value,
     }));
@@ -1537,8 +1669,8 @@ const [formData, setFormData] = useState(lineItem);
       }
       return item;
     });
-    setFormData(({
-          ...formData,
+    setEditData(({
+          ...editData,
           expenseLineAllocation: updatedExpenseAllocation,
         }))
     setSelectedAllocations(updatedExpenseAllocation);
@@ -1547,23 +1679,23 @@ const [formData, setFormData] = useState(lineItem);
   
 
   useEffect(()=>{
-    if (fileSelected) {
-      setFormData({
-        ...formData,
+    if (isFileSelected) {
+      setEditData({
+        ...editData,
         ['Document']: selectedFile,
       });
     }
-  },[(fileSelected)])
+  },[(isFileSelected)])
 
   useEffect(()=>{
-    setFormData({
-      ...formData,
+    setEditData({
+      ...editData,
       ['multiCurrencyDetails']: currencyTableData,
     });
   },[currencyTableData])
 
 
-const lineItemData= {...formData}
+const lineItemData= {...editData}
   
   useEffect(() => {
     // Set the initial file when the component is mounted
@@ -1618,7 +1750,7 @@ const lineItemData= {...formData}
             placeholder={titleCase(`Enter ${field.name}`)}
             type={field.type === 'date' ? 'date' : 'text'}
             name={field.name}
-            initialValue={formData[field.name]}
+            initialValue={editData[field.name]}
             onChange={(value) => handleChange(field.name, value)}
             // error={field.name === "Total Amount" ? errorMsg.totalAmount : null}
             error={(totalAmountNames.includes(field?.name) && errorMsg.totalAmount) || (dateForms.includes(field?.name) && errorMsg.dateErr )}
@@ -1731,8 +1863,8 @@ const lineItemData= {...formData}
 <Upload 
   selectedFile={selectedFile}
   setSelectedFile={setSelectedFile}
-  fileSelected={fileSelected}
-  setFileSelected={setFileSelected}
+  isFileSelected={isFileSelected}
+  setIsFileSelected={setIsFileSelected}
   />
 </div>
 
@@ -1788,7 +1920,7 @@ function DocumentPreview({selectedFile , initialFile}){
         </div>
       ) : 
       !initialFile ?
-      <div className='w-full h-[700px] flex justify-center items-center bg-white-100 opacity-30'>
+      <div className='w-full h-[700px] flex justify-center items-center bg-white opacity-30'>
         <img src={!initialFile && file_icon || initialFile} className='w-40 h-40'/>
       </div> :
       <div className='w-full h-[700px] flex justify-center items-center '>

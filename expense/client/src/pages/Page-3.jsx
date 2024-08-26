@@ -122,7 +122,7 @@ export default function () {
   return <>
         {isLoading && <Error message={loadingErrMsg}/>}
       {!isLoading && 
-        <div className="w-full h-full relative bg-white-100 md:px-24 md:mx-0 sm:px-0 sm:mx-auto py-12 select-none">
+        <div className="w-full h-full relative bg-white md:px-24 md:mx-0 sm:px-0 sm:mx-auto py-12 select-none">
         {/* app icon */}
         <div className='w-full flex justify-center  md:justify-start lg:justify-start'>
             <Icon/>
@@ -222,7 +222,7 @@ export default function () {
             
 {/*             
             {showCancelModal && <div className="fixed overflow-hidden max-h-4/5 flex justify-center items-center inset-0 backdrop-blur-sm w-full h-full left-0 top-0 bg-gray-800/60 scroll-none">
-                <div className='z-10 max-w-4/5 w-2/5 min-h-4/5 max-h-4/5 scroll-none bg-white-100 rounded-lg shadow-md'>
+                <div className='z-10 max-w-4/5 w-2/5 min-h-4/5 max-h-4/5 scroll-none bg-white rounded-lg shadow-md'>
                     <div className="p-10">
                         <p className="text-xl font-cabin">Are you sure you want to cancel?</p>
                         <div className="flex mt-10 justify-between">
@@ -234,7 +234,7 @@ export default function () {
             </div>}  */}
 
             {showConfimationForCancllingTR && <div className="fixed overflow-hidden max-h-4/5 flex justify-center items-center inset-0 backdrop-blur-sm w-full h-full left-0 top-0 bg-gray-800/60 scroll-none">
-                <div className='z-10 max-w-4/5 w-2/5 min-h-4/5 max-h-4/5 scroll-none bg-white-100  rounded-lg shadow-md'>
+                <div className='z-10 max-w-4/5 w-2/5 min-h-4/5 max-h-4/5 scroll-none bg-white  rounded-lg shadow-md'>
                     <div className="p-10">
                         <p className="text-xl font-cabin">Please select reasons for cancelling this travel Request</p>
                         <Select 

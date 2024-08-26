@@ -172,7 +172,7 @@ export default function Search(props){
             {/* input */}
             <div
                  
-                className="relative w-full h-full bg-white-100 items-center flex">
+                className="relative w-full h-full bg-white items-center flex">
                 
                 <div className="text-neutral-700 w-full  h-full text-sm font-normal font-cabin">
                     <input
@@ -195,7 +195,7 @@ export default function Search(props){
                 {showDropdown && 
                 <div
                     ref={dropdownRef}
-                    className={`absolute z-10 w-[calc(100%-10px)] h-fit max-h-[230px] overflow-y-scroll scroll rounded-b left-[5px] top-11 bg-white-100 transition-all border-b  border-l border-r border-neutral-300 shadow-sm`}
+                    className={`absolute z-10 w-[calc(100%-10px)] h-fit max-h-[230px] overflow-y-scroll scroll rounded-b left-[5px] top-11 bg-white transition-all border-b  border-l border-r border-neutral-300 shadow-sm`}
                 >
                     {filteredOptionsList &&
                     filteredOptionsList.map((option, index) => (

@@ -26,7 +26,7 @@ const Dropdown = ({icon , label , options,htmlFor,id ,name , onChange,defaultOpt
       <label htmlFor={htmlFor} className="font-medium text-gray-400 font-cabin  leading-normal text-[14px]">
         {label}
       </label>
-      <div className="flex w-full h-full mt-[6px] bg-white-100 rounded-md">
+      <div className="flex w-full h-full mt-[6px] bg-white rounded-md">
         <button
           onClick={toggleDropdown}
           type="button"
@@ -57,7 +57,7 @@ const Dropdown = ({icon , label , options,htmlFor,id ,name , onChange,defaultOpt
               <div
                 key={index}
                 onClick={() => selectOption(value)}
-                className="px-4 py-2  text-sm text-gray-700 hover:bg-indigo-500 hover:text-white cursor-pointer bg-white-100 "
+                className="px-4 py-2  text-sm text-gray-700 hover:bg-indigo-500 hover:text-white cursor-pointer bg-white "
                 role="menuitem"
               >
                 {titleCase(value)}

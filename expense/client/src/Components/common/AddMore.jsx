@@ -40,7 +40,7 @@ export default function Button(props) {
         //     ? 'hover:bg-indigo-400  hover:text-gray-400 bg-indigo-400 text-gray-400  cursor-not-allowed '
         //     : 'hover:bg-indigo-500  text-white cursor-pointer'
         // }
-        //  h-12 px-8 py-4 bg-white-100 border border-indigo-600 rounded-[32px] justify-center items-center gap-2 inline-flex`}
+        //  h-12 px-8 py-4 bg-white border border-indigo-600 rounded-[32px] justify-center items-center gap-2 inline-flex`}
       className='h-12 cursor-pointer px-6 py-4 rounded-[32px] border border-indigo-600 justify-center items-center gap-2 inline-flex'
       >
         {loading && active ? (

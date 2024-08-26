@@ -4,6 +4,7 @@ import {  chevron_down } from "../../assets/icon";
 
 export default function Select(props) {
   const placeholder = props.placeholder || "Placeholder Text";
+  const variant = props.variant
   const title = props.title || "Title";
   const [hidePlaceholder, setHidePlaceholder] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -149,11 +150,11 @@ const selectDivFocus = (e)=>{
 
   return (
     <>
-      <div className="min-w-[200px] w-full max-w-[403px] h-[73px] flex-col justify-start items-start gap-2 inline-flex">
+      <div className={`min-w-[200px] w-full ${variant  ? variant : 'max-w-[403px]'} h-[73px] flex-col justify-start items-start gap-2 inline-flex`}>
         {/* title*/}
         <div className="text-zinc-600 text-sm font-cabin">{title}</div>
         <div className="self-stretch h-12 justify-start items-start gap-4 inline-flex">
-          <div className={`grow relative shrink basis-0 self-stretch px-6 py-2 bg-white-100 rounded-md border border-neutral-300 justify-between items-center flex`} >
+          <div className={`grow relative shrink basis-0 self-stretch px-6 py-2 bg-white rounded-md border border-neutral-300 justify-between items-center flex`} >
             <div
               tabIndex={0}
               onKeyDown={selectKeyDown}
@@ -178,7 +179,7 @@ const selectDivFocus = (e)=>{
             </div>} */}
             
             
-            { error?.set && <div className="absolute top-[35px] w-full text-xs text-red-600 font-cabin">
+            { error?.set && <div className="absolute -left-5 top-[35px] w-full text-xs text-red-600 font-cabin">
               {error?.msg}
             </div>}
             {/* {!showDropdown && !hidePlaceholder && error?.set && <div className="absolute top-[35px] w-full text-xs text-red-600 font-cabin">
@@ -191,7 +192,7 @@ const selectDivFocus = (e)=>{
               <div
                 key='dropdown'
                 ref={dropdownRef}
-                className="absolute z-10 w-[calc(100%-10px)] h-fit max-h-[230px] overflow-y-scroll scroll rounded-b left-[5px] top-11 bg-white-100 transition-all border-b  border-l border-r border-neutral-300 shadow-sm"
+                className="absolute z-20 w-[calc(100%-10px)] h-fit max-h-[230px] overflow-y-scroll scroll rounded-b left-[5px] top-11 bg-white transition-all border-b  border-l border-r border-neutral-300 shadow-sm"
               >
                 {optionsList &&
                   optionsList.map((option, index) => (

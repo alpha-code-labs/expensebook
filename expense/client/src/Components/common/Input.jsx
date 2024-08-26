@@ -44,16 +44,19 @@
 // export default Input;
 
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 
 
-const Input = ({ title, placeholder, onChange ,error,initialValue,type,inputRef}) => {
+const Input = ({ title, placeholder, onChange ,error,initialValue,type,inputRef , variant}) => {
 
   const [inputValue, setInputValue] = useState("");
-  const showError = error?.set && !inputValue.trim();
+  useEffect(()=>{
+    setInputValue(initialValue || "")
+  },[inputValue])
+  
 
   return (
-    <div className="min-w-[200px] w-full h-[73px] flex-col justify-start items-start gap-2 inline-flex mb-3">
+    <div className={`${variant ? variant : 'w-full'} min-w-[200px]  h-[73px] flex-col justify-start items-start gap-2 inline-flex mb-3`}>
       {/* title */}
       <div className="text-zinc-600 text-sm font-cabin">{title}</div>
 
@@ -67,8 +70,8 @@ const Input = ({ title, placeholder, onChange ,error,initialValue,type,inputRef}
               onChange && onChange(e.target.value);
             }}
             type={type}
-            className="w-full h-full placeholder:normal-case capitalize decoration:none px-6 py-2 rounded-md border placeholder:text-zinc-400 border-neutral-300 focus-visible:outline-0 focus-visible:border-indigo-600 "
-            value={initialValue || inputValue}
+            className="w-full h-full placeholder:normal-case decoration:none px-6 py-2 rounded-md border placeholder:text-zinc-400 border-neutral-300 focus-visible:outline-0 focus-visible:border-indigo-600 "
+            value={inputValue}
             placeholder={placeholder}
           />
         </div>

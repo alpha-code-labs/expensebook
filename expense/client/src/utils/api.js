@@ -148,11 +148,12 @@ export const getTravelExpenseForModifyApi= async(tenantId,empId,tripId,expenseHe
 }
 
 
-export const postTravelExpenseLineItemApi = async(tenantId,empId,tripId,expenseHeaderId,data)=>{
-
+export const postTravelExpenseLineItemApi = async(params,payload)=>{
+  const {tenantId,empId,tripId,expenseHeaderId}= params
+  
   const url = `${EXPENSE_BACKEND_API_URL}/api/fe/expense/travel/${tenantId}/${empId}/${tripId}/${expenseHeaderId}/save`
   try{
-     const response = await axiosRetry(axios.post,url,data)
+     const response = await axiosRetry(axios.post,url,payload)
      return response.data
 
   } catch(error){
@@ -222,7 +223,7 @@ let url;
 
 ///check in require data
 
-export const postMultiCurrencyForTravelExpenseApi = async(tenantId,data)=>{
+export const TravelExpenseCurrencyConversionApi = async(tenantId,data)=>{
 
 
   const url = `${EXPENSE_BACKEND_API_URL}/api/fe/expense/travel/${tenantId}/currency-converter`

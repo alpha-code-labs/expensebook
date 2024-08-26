@@ -15,21 +15,15 @@ export default {
   theme: {
     extend: {
       colors :{
-        white : {
-          100:'#FFF',
-          200:'#FDFCFC',
-          300:'#FDFDFD'
-
-        },
+        
 
         purple:{
           50:'#EAE7FD',
           500: '#4C36F1',
           300:'#7F70F5'
         },
-        gray:{
-          100:"#848484",
-        },
+        
+        
         //border
         "b-gray":'#E3E4E8',
         green:{
