@@ -138,16 +138,27 @@ const updateTravelRequest = async (req, res) =>{
     let needApproval = false
 
     let lastTravelRequestStatus = null
+    let lastTravelRequestApprovers = null;
+
     //find ca
     const cashAdvance = await CashAdvance.findOne({'travelRequestData.travelRequestId': travelRequestId})
     if(!cashAdvance) return res.status(404).json({message: 'Can not find the requested resource'})
     lastTravelRequestStatus = cashAdvance.travelRequestData.travelRequestStatus 
+    lastTravelRequestApprovers = cashAdvance?.travelRequestData?.approvers??[];
     //update travel request data
     cashAdvance.travelRequestData.travelRequestDate = Date.now()
     if(cashAdvance.travelRequestData.approvers.length > 0){
       sendToApproval = true
       needApproval = true
     }
+
+    if(travelRequest?.approvers?.length != lastTravelRequestApprovers?.length || travelRequest?.approvers?.some(approver=> !lastTravelRequestApprovers.map(ap=>ap.empId).includes(approver.empId) )){
+      //update approvers in cashadvance
+      cashAdvance?.cashAdvancesData.forEach(ca=>{
+        ca.approvers = travelRequest?.approvers??[];
+      })
+    }
+
     //cash advance record is present go ahead
     if(!submitted){
       //save everything in draft state
@@ -226,9 +237,12 @@ const updateTravelRequest = async (req, res) =>{
       if(needApproval){
         //update travel request to pending approval
         cashAdvance.travelRequestData.travelRequestStatus = 'pending approval'
-        //chage status of cash advances with status 'awaiting pending settlement' to pending approval
+        //chage status of cash advances with status 'awaiting pending settlement' || 'approved' || ' to pending approval
+
+        const applicableStatuses = ['awaiting pending settlement', 'approved', 'pending settlement'];
+        
         cashAdvance.cashAdvancesData.forEach(cashAdvance=>{
-          if(cashAdvance.cashAdvanceStatus == 'awaiting pending settlement'){
+          if(applicableStatuses.includes(cashAdvance.cashAdvanceStatus)){
             cashAdvance.cashAdvanceStatus = 'pending approval'
           }
         })
