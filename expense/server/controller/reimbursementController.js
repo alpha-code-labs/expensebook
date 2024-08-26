@@ -177,7 +177,7 @@ export const getHighestLimitGroupPolicy = async (req, res) => {
       }
 
       // Extract additional information from the selected expense category
-      const { categoryName, fields, expenseAllocation } = selectedExpenseCategory;
+      const { categoryName, fields,  expenseAllocation } = selectedExpenseCategory;
       const { defaultCurrency = '' } = companyDetails;
 
       // Find the updated expense header
@@ -235,8 +235,7 @@ export const getHighestLimitGroupPolicy = async (req, res) => {
         newExpenseAllocation,
         newExpenseAllocation_accountLine,
         group,
-        categoryName,
-        fields,
+        ...selectedExpenseCategory
       }); 
     } catch (error) {
       console.error('Error fetching highest limit group policy:', error);
@@ -467,18 +466,17 @@ export const saveReimbursementExpenseLine = async (req, res) => {
       }
 
        const {name} = createdBy
-      const expenseLineData ={}
       const expenseLineId = new mongoose.Types.ObjectId().toString();
       // Output the generated ObjectId and its type
      console.log('Generated ObjectId:', expenseLineId);
      console.log('Type of expenseLineId:', typeof expenseLineId);
-      const lineItemFields = {
-        lineItemId:expenseLineId,
-        lineItemStatus: 'save',
-      };
-      
-      Object.assign(expenseLineData,lineItem, lineItemFields);
-     
+
+      const expenseLineData ={
+      ...lineItem,
+      lineItemId:expenseLineId,
+      lineItemStatus:'save',
+      }
+
       const filter = { tenantId, expenseHeaderId };
       const update = {
           $set: {

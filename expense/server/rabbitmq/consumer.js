@@ -4,7 +4,7 @@ import {  tripArrayFullUpdate, tripFullUpdate } from './messageProcessor.js/trip
 import { recoverCashAdvance, settleCashAdvance, settleExpenseReport, settleExpenseReportPaidAndDistributed } from './messageProcessor.js/finance.js';
 import { addALegToTravelRequestData } from '../controller/travelExpenseController.js';
 import dotenv from 'dotenv';
-import { expenseReportApproval } from './messageProcessor.js/approval.js';
+import { approveRejectCashRaisedLater, expenseReportApproval } from './messageProcessor.js/approval.js';
 
 dotenv.config();
 
@@ -185,6 +185,19 @@ export async function startConsumer(receiver) {
               }
     
             }
+            if(action == 'approve-reject-ca-later'){
+              const res = await approveRejectCashRaisedLater(payload);
+              console.log(res)
+              if(res.success){
+                //acknowledge message
+                channel.ack(msg)
+                console.log('message processed successfully')
+              }
+              else{
+                //implement retry mechanism
+                console.log('update failed with error code', res.error)
+              }
+            } 
           } else if (source == 'travel'){
             if(action == 'add-leg'){
               console.log('add-leg from travel microservice to expense microservice')
@@ -233,68 +246,7 @@ export async function startConsumer(receiver) {
       }}, { noAck: false });
 }
 
-  
 
-
-  export async function startConsume(receiver) {
-    const rabbitMQUrl = process.env.rabbitMQUrl;
-  
-    const connectToRabbitMQ = async () => {
-      try {
-        console.log('Connecting to RabbitMQ...');
-        const connection = await amqp.connect(rabbitMQUrl);
-        const channel = await connection.createConfirmChannel();
-        console.log('Connected to RabbitMQ.');
-        return channel;
-      } catch (error) {
-        console.log('Error connecting to RabbitMQ:', error);
-        throw error; // Throw the error to signal the failure of connection attempt
-      }
-    };
-  
-    const setupQueue = async () => {
-      const channel = await connectToRabbitMQ();
-      const exchangeName = 'amqp.dashboard';
-      const queue = `q.${receiver}`;
-      const routingKey = `rk.${receiver}`;
-  
-      console.log(`Asserting exchange: ${exchangeName}`);
-      await channel.assertExchange(exchangeName, 'direct', { durable: true });
-  
-      console.log(`Asserting queue: ${queue}`);
-      await channel.assertQueue(queue, { durable: true });
-  
-      console.log(`Binding queue ${queue} to exchange ${exchangeName}`);
-      await channel.bindQueue(queue, exchangeName, routingKey);
-  
-      console.log('Listening for messages. To exit, press CTRL+C');
-  
-      // Listen for response
-      channel.consume(queue, async (msg) => {
-        if (msg && msg.content) {
-          const content = JSON.parse(msg.content.toString());
-  
-          console.log(`Coming from ${content.headers?.source} meant for ${content.headers?.destination}`);
-          // ... rest of the code ...
-        }
-      }, { noAck: false });
-  
-      // Handle channel closure
-      channel.on('close', async (err) => {
-        console.error('Channel closed:', err);
-        // Attempt to reconnect
-        try {
-          const newChannel = await connectToRabbitMQ();
-          setupQueue(); // Re-setup the queue on the new channel
-        } catch (reconnectError) {
-          console.error('Error reconnecting to RabbitMQ:', reconnectError);
-          // Handle the reconnection error as needed
-        }
-      });
-    };
-  
-    await setupQueue(); 
-  }
 
 
 

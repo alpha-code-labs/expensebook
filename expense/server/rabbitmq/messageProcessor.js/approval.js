@@ -36,3 +36,50 @@ export const expenseReportApproval = async (payload) => {
         return { success: false, error: error };
     }
 };
+
+
+export async function approveRejectCashRaisedLater(payload) {
+    try {
+        console.log("payload", payload);
+
+        const results = await Promise.all(payload.map(handleRequest));
+
+        return { success: true, results };
+    } catch (e) {
+        return { success: false, error: e.message || e };
+    }
+}
+
+async function handleRequest(request) {
+    const { travelRequestId, cashAdvances } = request;
+
+    const cashAdvance = await Expense.findOne({ 'travelRequestData.travelRequestId': travelRequestId });
+    if (!cashAdvance) {
+        return { travelRequestId, success: false, error: 'Travel Request not found' };
+    }
+
+    // Update cash advances
+    const updatedCashAdvancesData = updateCashAdvances(cashAdvance.cashAdvancesData, cashAdvances);
+
+    // Save the updates
+    cashAdvance.cashAdvancesData = updatedCashAdvancesData;
+    await cashAdvance.save();
+
+    console.log("cashAdvance", cashAdvance);
+    return { travelRequestId, success: true, error: null };
+}
+
+function updateCashAdvances(existingCashAdvances, newCashAdvances) {
+    return existingCashAdvances.map(existingCa => {
+        const matchingCa = newCashAdvances.find(ca => ca.cashAdvanceId === existingCa.cashAdvanceId.toString());
+        if (matchingCa) {
+            return {
+                ...existingCa,
+                cashAdvanceStatus: matchingCa.cashAdvanceStatus,
+                cashAdvanceRejectionReason: matchingCa.cashAdvanceRejectionReason,
+                approvers: matchingCa.approvers,
+            };
+        }
+        return existingCa; 
+    });
+}

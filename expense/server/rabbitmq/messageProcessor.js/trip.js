@@ -1,7 +1,7 @@
 import Expense from "../../models/travelExpenseSchema.js"
 
 
-  
+
 // trip cancelled at header line or line item level is updated using this route
 export const tripFullUpdate = async (payload) => {
   console.log("full update from trip", payload)
