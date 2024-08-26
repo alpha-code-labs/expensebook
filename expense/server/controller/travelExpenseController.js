@@ -4,6 +4,7 @@ import Expense from "../models/travelExpenseSchema.js";
 import { calculateHaversineDistance } from "../utils/haversine.js";
 import { sendToOtherMicroservice } from "../rabbitmq/publisher.js";
 import { sendToDashboardMicroservice } from "../rabbitmq/dashboardMicroservice.js";
+import Joi from "joi";
 
 const formatTenantId = (tenantName) => {
     return tenantName.toUpperCase(); 
@@ -39,25 +40,32 @@ const getExpenseRelatedHrData = async (tenantId,res = {}) => {
             return res.status(404).json({ message: 'Company details not found, please check the req details' });
         }
 
-       
         // const { travelExpenseCategories = [],  } = companyDetails 
         // const expenseCategoryNames = travelExpenseCategories.map(category => category.categoryName);
 
         let {
-            flags:{policyFlag} = {}, // the name need to be cross-checked with HRMaster later --
+            flags:{POLICY_SETUP_FLAG} = {}, // the name need to be cross-checked with HRMaster later --
             companyDetails: { defaultCurrency } = {},
             travelAllocationFlags = {}, // 3 types
             travelAllocations = {},
-            travelExpenseCategories = {},
+            travelExpenseCategories = [],
             expenseSettlementOptions = {},
         } = companyDetails;
 
+        let getTravelExpenseCategories = {};
+
+  travelExpenseCategories.forEach(obj => {
+  let key = Object.keys(obj)[0];
+  getTravelExpenseCategories[key] = obj[key];
+  });
+
+
         // const { expenseAllocation, expenseAllocation_accountLine} =travelAllocations
         const isLevel3 = travelAllocationFlags?.level3
-     if(isLevel3){
-      return { defaultCurrency, travelAllocationFlags, travelExpenseCategories: travelAllocations, expenseSettlementOptions}
-     }
-        return { defaultCurrency, travelAllocationFlags, travelExpenseCategories, travelAllocations, expenseSettlementOptions};
+    if(isLevel3){
+      return {POLICY_SETUP_FLAG, defaultCurrency, travelAllocationFlags, travelExpenseCategories:getTravelExpenseCategories, travelAllocations, expenseSettlementOptions}
+    }
+      return {POLICY_SETUP_FLAG, defaultCurrency, travelAllocationFlags, travelExpenseCategories:getTravelExpenseCategories, travelAllocations, expenseSettlementOptions};
     } catch (error) {
         console.error('Error in getExpenseRelatedHrData:', error);
         // logger.error('Error in getExpenseRelatedHrData:', error);
@@ -65,7 +73,7 @@ const getExpenseRelatedHrData = async (tenantId,res = {}) => {
     }
 };
 
-//Calculate total cash advnace
+//Calculate total cash advance
 export const calculateTotalCashAdvances = async (cashAdvanceData) => {
     const totalCashAdvances = { totalPaid: [], totalUnpaid: [] };
 
@@ -102,19 +110,17 @@ const allExpenseReports = async (expenseReport) => {
   try {
       const { tenantId, tenantName, companyName, travelRequestData, travelExpenseData } = expenseReport;
       const { travelRequestId, travelRequestNumber, approvers } = travelRequestData;
-      let { travelType , createdBy} = travelRequestData
+      let { travelType , createdBy,travelAllocationHeaders} = travelRequestData
       // console.log("req params for all expense reports", travelRequestId, travelRequestNumber, approvers, travelType)
       const { travelAllocationFlags } = travelExpenseData[0];
       const approverNames = approvers.map(({ empId, name }) => ({ empId, name }));
       //console.log("travelType..........", travelType)
       let flagToOpen;
-      let expenseHeaderStatus; // Declare expenseHeaderStatus here
-
-
+      let expenseHeaderStatus; 
       const validPaidStatuses = ['paid', 'paid and distributed'];
       const validStatuses = ['draft', 'pending approval', 'approved', 'pending settlement', 'new', 'rejected'];
       
-      if (Array.isArray(travelExpenseData)) {
+  if (Array.isArray(travelExpenseData)) {
         // console.log(" i am in travelExpenseData array with expenseHeaderStatus ",travelExpenseData )
           const areAllExpenseReportsPaid = travelExpenseData.every(report =>
               validPaidStatuses.includes(report.expenseHeaderStatus)
@@ -125,41 +131,18 @@ const allExpenseReports = async (expenseReport) => {
           .every(report =>
               validStatuses.includes(report.expenseHeaderStatus) 
           );
-      
           console.log("areAllExpenseReportsValid", areAllExpenseReportsValid)
 
-      // if (Array.isArray(travelExpenseData)) {
-      //     for (const travelExpenseReport of travelExpenseData) {
-      //         expenseHeaderStatus = travelExpenseReport.expenseHeaderStatus;
-      //         if (expenseHeaderStatus === 'paid' || expenseHeaderStatus === 'paid and distributed') 
 if (areAllExpenseReportsPaid) {
-  // console.log("i am in areAllExpenseReportsPaid ", areAllExpenseReportsPaid)
-// const maxIncrementalValue = await Expense.findOne({tenantId}, 'travelExpenseData.expenseHeaderNumber')
-//     .sort({ 'travelExpenseData.expenseHeaderNumber': -1 })
-//     .limit(1)
-//     .select('expenseHeaderNumber');
-
-//     console.log("maxIncrementalValue from database", maxIncrementalValue)
-
-    let nextIncrementalValue = 0;
-
-// if (maxIncrementalValue && maxIncrementalValue.travelExpenseData && maxIncrementalValue.travelExpenseData.expenseHeaderNumber) {
-//     const numericPart = maxIncrementalValue.travelExpenseData.expenseHeaderNumber.match(/\d+$/);
-//     if (numericPart) {
-//         nextIncrementalValue = parseInt(numericPart[0], 10) + 1;
-//     }
-// }
-console.log("Numeric Part:", numericPart);
-
+let nextIncrementalValue = 0;
 console.log("nextIncrementalValue ..", nextIncrementalValue)
-
 let expenseHeaderNumber = generateIncrementalNumber(tenantName, nextIncrementalValue);
 let newExpenseHeaderId = new mongoose.Types.ObjectId();
 flagToOpen = newExpenseHeaderId;
 console.log("flagToOpen-- newExpenseHeaderId",newExpenseHeaderId,"new expenseHeaderNumber---", expenseHeaderNumber)
 
-//based on travelAllocationFlags
-travelType = travelAllocationFlags.level1 ? travelType : "";
+//based on travelAllocationFlags --temporary commented
+// travelType = travelAllocationFlags.level1 ? travelType : "";
 
 // Creating newTravelExpenseData object
 const newTravelExpenseData = {
@@ -181,7 +164,7 @@ expenseReport.travelExpenseData.push(newTravelExpenseData);
 
 // Saving the updated document
 await expenseReport.save();
-} // } else if (Array.isArray(travelExpenseData) && areAllExpenseReportsValid){
+} 
 else if (areAllExpenseReportsValid) {
   console.log("i am in areAllExpenseReportsValid", areAllExpenseReportsValid)
     // const matchingExpenseReport = travelExpenseData.find(item => item.expenseHeaderStatus === expenseHeaderStatus);
@@ -196,7 +179,7 @@ else if (areAllExpenseReportsValid) {
     throw new Error("No expense reports found");
   }
 // console.log("Returning from Array:", { expenseReport, flagToOpen });
-  return { entireExpenseReport : expenseReport,  createdBy, flagToOpen };
+  return { entireExpenseReport : expenseReport,  createdBy,travelAllocationHeaders, flagToOpen };
 }
   catch (error) {
       console.error("An error occurred in allExpenseReports:", error.message);
@@ -205,31 +188,30 @@ else if (areAllExpenseReportsValid) {
   }
 };
 
+const employeeSchema = Joi.object({
+  tenantId: Joi.string().required(),
+  empId: Joi.string().required(),
+  tripId:Joi.string().required(),
+})
 
 // Exporting the async function named BookExpenseReport
 export const BookExpense = async (req, res) => {
     try {
-      // Destructuring the parameters from the request object
-      const { tenantId, empId, tripId } = req.params;
+      const {error, value} = employeeSchema.validate(req.params)
+      if (error) return res.status(404).json(error.details[0].message)
+
+      const { tenantId, empId, tripId } = value;
       console.log('Params:', tenantId, empId, tripId);
 
-      const bookExpenseParams = ['tenantId', 'empId', 'tripId']
-      const missingExpenseFields = bookExpenseParams.filter(field => !req.params[field])
-      if(missingExpenseFields.length > 0){
-         return res.status(404).json({message: `missing required fields:${missingExpenseFields.join(", ")}`})
-      }
-     // Retrieving the expense report based on specified conditions
-     const expenseReport = await Expense.findOne({
+    const expenseReport = await Expense.findOne({
       tenantId,
       tripId,
       $or: [
-        {'createdBy.empId': empId},
         { 'travelRequestData.createdBy.empId': empId },
         { 'travelRequestData.createdFor.empId': empId },
       ],
-     });
-  
-      // Handling the case when no expense report is found
+    });
+
       if (!expenseReport) {
         return res.status(404).json({ message: 'expenseReport not found' });
       }
@@ -249,7 +231,7 @@ export const BookExpense = async (req, res) => {
       const { defaultCurrency, travelAllocationFlags,expenseAllocation, expenseAllocation_accountLine,  expenseCategoryNames, expenseSettlementOptions } = additionalDetails;
   
       // Destructuring properties from the expense report
-      const { tripNumber, tenantName, companyName, travelRequestData: { travelRequestId, travelRequestNumber, tripPurpose, approvers } } = expenseReport;
+      const { tripNumber, tenantName, companyName, travelRequestData: { travelRequestId, travelRequestNumber, tripPurpose, approvers,travelAllocationHeaders, } } = expenseReport;
       let { travelRequestData:{ travelType, createdBy}} = expenseReport
 
       let expenseHeaderNumber = expenseReport?.travelExpenseData?.[0]?.expenseHeaderNumber;
@@ -258,8 +240,8 @@ export const BookExpense = async (req, res) => {
   
       // Handling the case when expenseHeaderNumber is present
       if (expenseHeaderNumber) {
-       const allExpenseReportsList = await allExpenseReports(expenseReport);
-    //    console.log(" all expense reports", allExpenseReportsList)
+      const allExpenseReportsList = await allExpenseReports(expenseReport);
+    // console.log(" all expense reports", allExpenseReportsList)
        let {  entireExpenseReport, flagToOpen} = allExpenseReportsList
        const{expenseAmountStatus,travelExpenseData } =  entireExpenseReport
         return res.status(200).json({
@@ -270,6 +252,7 @@ export const BookExpense = async (req, res) => {
           createdBy,
           newExpenseReport: false, 
           flagToOpen:flagToOpen ? flagToOpen : undefined,
+          travelAllocationHeaders,
           expenseAmountStatus,
           travelExpenseData,
           companyDetails: additionalDetails,
@@ -326,7 +309,6 @@ const currentTotalExpenseAmount = Object.values(alreadyBookedExpenseLines)
   // Set the total already booked expense amount outside the loop
 const currentTotalAlreadyBookedExpense = currentTotalExpenseAmount;
 
-
         // Handling cash advance details
         let currentTotalcashAdvance = 0;
         let currentRemainingCash = 0;
@@ -348,14 +330,13 @@ const currentTotalAlreadyBookedExpense = currentTotalExpenseAmount;
         expenseReport.expenseAmountStatus.totalCashAmount = isCashAdvanceTaken ? currentTotalcashAdvance : 0 ;
         expenseReport.expenseAmountStatus.totalAlreadyBookedExpenseAmount = currentTotalAlreadyBookedExpense;
         expenseReport.expenseAmountStatus.totalExpenseAmount = currentTotalExpenseAmount;
-        // expenseReport.expenseAmountStatus.totalRemainingCash = isCashAdvanceTaken ? currentRemainingCash : 0;
         expenseReport.expenseAmountStatus.totalRemainingCash = isCashAdvanceTaken ? currentTotalcashAdvance : 0;
 
         //create a expenseHeaderId
         const newExpenseHeaderId = new mongoose.Types.ObjectId();
 
         //based on travelAllocationFlags
-        travelType = travelAllocationFlags.level1 ? travelType : "";
+        // travelType = travelAllocationFlags.level1 ? travelType : "";
 
         // Creating newTravelExpenseData object
         const newTravelExpenseData = {
@@ -378,7 +359,7 @@ const currentTotalAlreadyBookedExpense = currentTotalExpenseAmount;
 
         // Saving the updated document
         await expenseReport.save();
-         const {expenseAmountStatus,travelExpenseData} = expenseReport
+        const {expenseAmountStatus,travelExpenseData} = expenseReport
 
         //  console.log("travelType.........ONE.", travelType)
 
@@ -391,6 +372,7 @@ const currentTotalAlreadyBookedExpense = currentTotalExpenseAmount;
           createdBy,
           newExpenseReport: true,
           expenseHeaderNumber,
+          travelAllocationHeaders,
           expenseHeaderId:newExpenseHeaderId,
           flagToOpen:newExpenseHeaderId,
           expenseAmountStatus,
@@ -561,10 +543,10 @@ export const onSaveExpenseLine = async (req, res) => {
     console.log("its available ", categoryName ,"travelType", travelType,"totalAmount", totalAmount )
 
 
-   const policyValidation = await travelPolicyValidation(tenantId, empId, travelType, categoryName, totalAmount)
+  const policyValidation = await travelPolicyValidation(tenantId, empId, travelType, categoryName, totalAmount)
 
    //policy voilation added to expense Line
-   expenseLine.policyValidation = policyValidation;
+  expenseLine.policyValidation = policyValidation;
 
     console.log("policyValidation results for line item ........", policyValidation)
     // Handle personal expenses and multicurrency
@@ -715,7 +697,7 @@ export const onSaveExpenseLine = async (req, res) => {
   }
 };
 
-// on edit expensemLine
+// on edit expense Line
 export const onEditExpenseLine = async (req, res) => {
   try {
     const {tenantId,tripId,empId,expenseHeaderId} = req.params;
@@ -1564,20 +1546,16 @@ export const policyValidationHr = async (tenantId, empId, categoryName, travelTy
           tenantId,
           empId,
           travelDistance,
-          vehicleType
+          categoryName
         );
 
-        return res.status(200).json({
+        return ({
           success: true,
           message: 'Successfully processed travelDistance and policy validation.',
           data: { policyValidation },
         });
       } else {
-        return res.status(400).json({
-          success: false,
-          message: 'Invalid travelDistance value.',
-          error: 'Travel distance must be a valid value.',
-        });
+        throw new Error('Travel distance must be a valid value.');
       }
     } else {
       const policyValidationForAll = await travelPolicyValidation(
@@ -1590,7 +1568,7 @@ export const policyValidationHr = async (tenantId, empId, categoryName, travelTy
         res
       );
 
-      return res.status(200).json({
+      return ({
         success: true,
         message: 'Successfully processed travelDistance and policy validation.',
         data: policyValidationForAll,
@@ -1598,7 +1576,7 @@ export const policyValidationHr = async (tenantId, empId, categoryName, travelTy
     }
   } catch (error) {
     console.error('Error processing travelDistance and policy validation:', error);
-    return res.status(500).json({
+    throw new Error({
       success: false,
       message: 'Error processing travelDistance and policy validation.',
       error: error.message,
@@ -1706,7 +1684,7 @@ export const currencyConverter = async (req, res) => {
         res.status(500).json({success: false,  message: 'Internal server error' });
     }
 };
- 
+
 export const getModifyExpenseReport = async (req, res) => {
     try {
         const { tenantId, empId, expenseHeaderId } = req.params;
@@ -1842,7 +1820,10 @@ export const onSubmitExpenseHeader = async (req, res) => {
             },
           },
         },
-        {$set:{'travelExpenseData.$.expenseSettlement': expenseSettlement}}
+        {$set:{
+          'travelExpenseData.$.expenseSettlement': expenseSettlement,
+          'travelExpenseData.$.expenseSubmissionDate': new Date(),
+        }}
       );
       
   
@@ -1853,7 +1834,7 @@ export const onSubmitExpenseHeader = async (req, res) => {
         const { travelExpenseData} = expenseReport
         // console.log("travelExpenseData ", travelExpenseData)
         let { expenseHeaderStatus} = travelExpenseData
-         const matchingIndex = travelExpenseData.findIndex(data => data.expenseHeaderId.toString() === expenseHeaderId.toString());
+        const matchingIndex = travelExpenseData.findIndex(data => data.expenseHeaderId.toString() === expenseHeaderId.toString());
 
         //  console.log("Matching index:", matchingIndex);
 
@@ -2409,7 +2390,7 @@ export const getTripDetails = async (req,res) => {
     })
 
     if(tripDetails){
-        res.status(200).json({ message :'tripDetails fetched successully', tripDetails})
+        res.status(200).json({ message :'tripDetails fetched successfully', tripDetails})
     }
  } catch(error){
     return res.status(500).json({ message: 'server error', error: error.message})
@@ -2418,33 +2399,6 @@ export const getTripDetails = async (req,res) => {
 }
 
 //Policy validation for personal fuel or cab rentals we use km calculation
-// export const calculateKilometers = async (from_lat, from_long, to_lat, to_long, res) => {
-//     try {
-//       const fromLat = parseFloat(from_lat);
-//       const fromLong = parseFloat(from_long);
-//       const toLat = parseFloat(to_lat);
-//       const toLong = parseFloat(to_long);
-  
-//       if (isNaN(fromLat) || isNaN(fromLong) || isNaN(toLat) || isNaN(toLong)) {
-//         return res.status(400).json({ message: 'Invalid latitude or longitude values' });
-//       }
-  
-//       try {
-//         const distanceInKilometers = await calculateHaversineDistance(fromLat, fromLong, toLat, toLong);
-//         if(res && res.status == 200){
-//             return res.json({ distanceInKilometers});
-//         } else{
-//             return res.status(500).json({error:"internal server error"});
-// }
-//   } catch (error) {
-//   console.error(error);
-//   return res.status(404).json({ error: 'Error fetching details of travel policy' });
-// }
-// } catch (error) {
-// console.error(error);
-// return res.status(500).json({ message: 'Internal server error' });
-// }
-// };
 export const calculateKilometers = async (from_lat, from_long, to_lat, to_long, res) => {
     try {
       const fromLat = parseFloat(from_lat);
@@ -2460,7 +2414,7 @@ export const calculateKilometers = async (from_lat, from_long, to_lat, to_long, 
       try {
         const distanceInKilometers = await calculateHaversineDistance(fromLat, fromLong, toLat, toLong);
         if (res && res.status && res.status === 200) {
-          console.log('Response object:', res); // Log the response object
+          console.log('Response object:', res); 
           return res.json({ distanceInKilometers });
         } else {
           console.log('Invalid response status:', res?.status); // Log the status for debugging
@@ -2475,15 +2429,12 @@ export const calculateKilometers = async (from_lat, from_long, to_lat, to_long, 
       return res?.status(500).json({ message: 'Internal server error' });
     }
   };
-  
-  
-  
 
 
 // policy for personal vehicle or cab rentals
-export const policyValidationForVehicle = async (req, res) => {
+export const policyValidationForVehicle = async (tenantId,empId,travelDistance,categoryName) => {
     try {
-        const { tenantId, empId, travelDistance, categoryName } = req.params;
+        console.log("policyValidationForVehicle",tenantId, empId, travelDistance, categoryName)
 
         // Find company details based on tenantId and empId
         const companyDetails = await HRMaster.findOne({ tenantId, empId });
@@ -2496,7 +2447,7 @@ export const policyValidationForVehicle = async (req, res) => {
         const employee = employees.find((emp) => emp.employeeDetails.employeeId === empId);
 
         if (!employee) {
-            return res.status(404).json({ message: 'Employee not found' });
+            throw new Error('Employee not found');
         }
 
         // Get the groups associated with the employee
@@ -2523,7 +2474,7 @@ export const policyValidationForVehicle = async (req, res) => {
             // Determine the specific policy based on categoryName
             const specificPolicy = categoryName === 'personal vehicle' ? groupPolicies.personalVehicle : groupPolicies.cabRentals;
 
-            // Assuming totalLimit, perKmLimit, and travelDistance are defined somewhere in your code
+            //get totalLimit, perKmLimit, and travelDistance 
             const totalLimit = specificPolicy.limit.amount;
             const perKmLimit = specificPolicy.perKmLimit.amount;
 
@@ -2534,34 +2485,23 @@ export const policyValidationForVehicle = async (req, res) => {
             if (travelDistance > totalLimit / perKmLimit) {
                 // Create a yellowFlag object with the violation message
                 const yellowFlag = { violationMessage: `Travel distance exceeds the specified limit for ${categoryName}. Violation message sent.` };
-
-                // Append the yellowFlag to the specificPolicy object
                 specificPolicy.yellowFlag = yellowFlag;
-
-                // Update the response with the yellowFlag
                 response.yellowFlag.push(specificPolicy);
-                hasAllowedLimit = true; // Set the flag to true since there is a violation
+                hasAllowedLimit = true; // Set the flag to true if there is a violation
             }
         }
 
         if (hasAllowedLimit) {
-            return res.status(200).json(response);
+            return response;
         } else {
-            return res.status(200).json(response);
+            return response;
         }
     } catch (error) {
         console.error(error);
-        return res.status(500).json({ message: 'Internal server error' });
+        throw new Error({ message: 'Internal server error', error: error.message });
     }
 };
 
-
-// step1, onsavelineitem , if(isPersonalVehical || isCarRentals){
-// const travelDistance = await calculateKilometrs() and const policyValidation = await policyValidationForVehicle (tenantId, empId, travelDistance) }
-
-// get per/km limit and calculate the -- const result = calculateTravelCost(perKmLimit, totalLimit, travelDistance);
-
-// Function to calculate travel cost and check for violation
 
 
 

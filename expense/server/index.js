@@ -6,7 +6,6 @@ import dotenv from 'dotenv';
 import { mainFrontendRoutes } from './routes/mainFrontendRoutes.js';
 import { handleErrors } from './errorHandler/errorHandler.js';
 import { startConsumer } from './rabbitmq/consumer.js';
-import { reportingRouter } from './routes/reportingRoutes.js';
 import {runApproveToNextState} from './scheduler/approvedToNextState.js';
 import { travelPolicyValidation } from './controller/travelExpenseController.js';
 import { scheduleTripTransitBatchJob } from './batchJobs/upcomingToTransit.js';
@@ -40,7 +39,6 @@ app.use(cors());
 
 //Routes
 app.use('/api/fe/expense', mainFrontendRoutes);
-app.use('/api/report', reportingRouter);
 
 
 // Start the batch job
