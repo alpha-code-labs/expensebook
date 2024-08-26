@@ -120,7 +120,7 @@ export const getHighestLimitGroupPolicy = async (req, res) => {
       }
 
       // Extract relevant information from the employee document
-      const { companyDetails: { companyName }, employees: [employee], policies: { nonTravelPolicies } } = employeeDocument;
+      const { companyDetails: { companyName }, employees: [employee], policies: { nonTravelPolicies },travelAllocationFlags } = employeeDocument;
       const groups = employee.group || [];
 
       // Initializing variables to find the group with the highest limit
@@ -230,6 +230,7 @@ export const getHighestLimitGroupPolicy = async (req, res) => {
           empId,
           name: employeeName,
         },
+        levels:travelAllocationFlags,
         defaultCurrency: defaultCurrency || '',
         currencyTable: currencyTable || '',
         newExpenseAllocation,
@@ -620,7 +621,7 @@ export const draftReimbursementExpenseLine = async (req, res) => {
     return res.status(500).json({ message: 'Failed to process non_Travel expense LINE' });
   }
 };
-   
+
 /**
  * Handles the submission of an expense report.
  * Updates the status of the expense report to "pending settlement" and returns a success message if the update is successful.
