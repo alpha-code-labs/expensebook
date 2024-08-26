@@ -404,9 +404,7 @@ const updateTravelRequest = async (req, res) =>{
         items.forEach(item=>{
           travelRequestData.itinerary[item].forEach(subItem=>{
               subItem.status = needApproval? 'pending approval' : 'pending booking'
-              subItem.approvers.forEach(approver => {
-                approver.status= needApproval? 'pending approval':''
-              })
+              needApproval && subItem.approvers.forEach(approver => approver.status = 'pending approval')
           })
         })
 
