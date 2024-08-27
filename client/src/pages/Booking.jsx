@@ -179,13 +179,19 @@ const handleConfirm = async (action) => {
   const [iframeURL, setIframeURL] = useState(null); 
 
   const handleVisible = (data) => {
-    const { urlName, tripId, travelRequestId } = data;
+    const { urlName, tripId, travelRequestId, isCashAdvanceTaken } = data;
     setVisible(!visible);
   
     let url = '';
   
     if (urlName === 'bookingTravel') {
-      url = `${travelBaseUrl}/bookings/${travelRequestId}`;
+      if(isCashAdvanceTaken){
+        url = `${cashBaseUrl}/bookings/travel/${travelRequestId}`
+
+      }else{
+        url = `${travelBaseUrl}/bookings/${travelRequestId}`;
+      }
+      
     } if (urlName === 'recoverTrip') {
       url = `${tripBaseUrl}/${tenantId}/${empId}/modify/${tripId}/section1`;
     } 
@@ -416,7 +422,7 @@ setSelectedStatuses={setSelectedDateRange}
           </div>
 
           <Button1 
-            onClick={() => handleVisible({travelRequestId: trip?.travelRequestId, urlName: "bookingTravel"})} 
+            onClick={() => handleVisible({travelRequestId: trip?.travelRequestId, isCashAdvanceTaken:trip?.isCashAdvanceTaken, urlName: "bookingTravel"})} 
             text={
               <div className='flex justify-center items-center space-x-2 -translate-x-1 whitespace-nowrap'>
                 <img src={plus_icon} className='w-5 h-5'/>

@@ -12,7 +12,7 @@ import { CabCard, FlightCard, HotelCard, RentalCabCard } from '../components/iti
 import Modal from '../components/common/Modal1';
 import TripSearch from '../components/common/TripSearch';
 import Button1 from '../components/common/Button1';
-import { handleNonTravelExpense, handleTravelExpense } from '../utils/actionHandler';
+import { handleNonTravelExpense, handleTravelExpense} from '../utils/actionHandler';
 import TripMS from '../microservice/TripMS';
 import { TripName } from '../components/common/TinyComponent';
 import ExpenseMS from '../microservice/Expense';
@@ -96,7 +96,7 @@ console.log('travel request11', travelRequests);
   const handleVisible = (data) => {
     let { urlName, tripId } = data;
 
-    if(urlName==="addExpense-url"){
+    if(urlName==="addExpense-url" || urlName === "addNonTravelExpense-url"){
       setExpenseVisible(!expenseVisible)
     }else{
       setVisible(!visible);
@@ -114,6 +114,9 @@ console.log('travel request11', travelRequests);
       case "addExpense-url":
         url = `${expenseBaseUrl}/${tenantId}/${empId}/${tripId}/new/line-item`;
         break;
+      case "addNonTravelExpense-url":
+      url =`${expenseBaseUrl}/${tenantId}/${empId}/non-travel-expense/new`
+      break;
       default:
         console.log('Unknown urlName:', urlName);
     }
@@ -185,7 +188,7 @@ const handleRaise = () => {
   } else {
     setExpenseType(null)
     setModalOpen(false)
-    handleNonTravelExpense('','non-tr-ex-create')
+    handleVisible({urlName:"addNonTravelExpense-url"})
   }
 };
   
