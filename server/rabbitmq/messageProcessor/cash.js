@@ -74,7 +74,7 @@ console.log("fullUpdateCash --tenantId,travelRequestId", tenantId, travelRequest
         "travelRequestId": travelRequestId,
       },
       {
-        "travelRequestSchema.isCashAdvanceTaken": true,
+        "travelRequestSchema": travelRequestData,
         "cashAdvanceSchema.travelRequestData": travelRequestData,
         "cashAdvanceSchema.cashAdvancesData": cashAdvancesData,
       },
@@ -106,7 +106,7 @@ export const fullUpdateCashBatchJob = async (payloadArray) => {
           "travelRequestId": travelRequestId,
         },
         {
-          "travelRequestSchema.isCashAdvanceTaken": true,
+          "travelRequestSchema": travelRequestData,
           "cashAdvanceSchema.travelRequestData": travelRequestData,
           "cashAdvanceSchema.cashAdvancesData": cashAdvancesData,
         },

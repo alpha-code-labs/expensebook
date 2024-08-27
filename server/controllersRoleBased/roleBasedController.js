@@ -131,20 +131,22 @@ const { nonTravelCashAdvance = [], travelCashAdvance = [] } = allCashAdvance || 
 } catch (error) {
     console.error("Error:", error);
     throw new Error({ message: 'Internal server error' });
-  }
+}
 };
 
 const getOverView = async(tenantId,empId) => {
     console.log("getOverView",tenantId,empId)
- try{
+try{
 
- const getAllTravelRequests = await dashboard.find({
+const getAllTravelRequests = await dashboard.find({
     tenantId,
     $or:[
         {'travelRequestSchema.createdBy.empId':empId,
-         'travelRequestSchema.isCashAdvanceTaken':false,
+        'travelRequestSchema.isCashAdvanceTaken':false,
         },
-        {'cashAdvanceSchema.travelRequestData.createdBy.empId':empId}
+        {
+        'travelRequestSchema.isCashAdvanceTaken':true,
+        'cashAdvanceSchema.travelRequestData.createdBy.empId':empId}
     ]
 }) 
 
@@ -173,7 +175,7 @@ if(getAllTravelRequests.length > 0){
     
 
     const travelRequestWithCash = await Promise.all(getAllTravelRequests
-    .filter(travelRequest => travelRequest?.cashAdvanceSchema?.travelRequestData?.createdBy?.empId == empId
+    .filter(travelRequest => travelRequest?.cashAdvanceSchema?.travelRequestData?.createdBy?.empId == empId && travelRequest?.travelRequestSchema?.isCashAdvanceTaken === true
         && travelRequest?.cashAdvanceSchema?.travelRequestData?.travelRequestStatus !== status.BOOKED
     )
     .map( async travelRequest => {
@@ -2166,9 +2168,11 @@ console.log("verified business admin layout", tenantId, empId);
                 $or: [
                     { 
                     'travelRequestSchema.travelRequestStatus': 'pending booking',
+                    'travelRequestSchema.isCashAdvanceTaken':false,
                    },
                     { 
-                    'cashAdvanceSchema.travelRequestData.travelRequestStatus': 'pending booking' 
+                    'cashAdvanceSchema.travelRequestData.travelRequestStatus': 'pending booking',
+                    'travelRequestSchema.isCashAdvanceTaken':true,
                    },
                    {
                     'tripSchema.travelRequestData.isAddALeg': true,
@@ -2208,7 +2212,8 @@ console.log("verified business admin layout", tenantId, empId);
             const travel = await (async () => {
                 // Filter bookings where the travelRequestStatus is 'pending booking'
                 const filteredBooking = bookingDoc.filter(booking =>
-                    booking?.travelRequestSchema?.travelRequestStatus === 'pending booking'
+                    booking?.travelRequestSchema?.travelRequestStatus === 'pending booking' &&
+                    booking?.travelRequestSchema?.isCashAdvanceTaken === false
                 );
         
                 // Process each filtered booking
@@ -2248,7 +2253,7 @@ console.log("verified business admin layout", tenantId, empId);
                 return results.filter(Boolean);
             })();
 
-        // console.log("travel booking .......", travel)
+     console.log("travel booking .......", travel)
             // const travelWithCash = await (async () => {
             //     const filteredBooking = bookingDoc.filter(booking => 
             //         booking?.cashAdvanceSchema?.travelRequestData?.travelRequestStatus === 'pending booking'
@@ -2269,7 +2274,8 @@ console.log("verified business admin layout", tenantId, empId);
             const travelWithCash = await (async () => {
                 // Filter bookings where the travelRequestStatus is 'pending booking'
                 const filteredBooking = bookingDoc.filter(booking => 
-                    booking?.cashAdvanceSchema?.travelRequestData?.travelRequestStatus === 'pending booking'
+                    booking?.cashAdvanceSchema?.travelRequestData?.travelRequestStatus === 'pending booking' &&
+                    booking?.cashAdvanceSchema?.travelRequestData?.isCashAdvanceTaken === true
                 ); 
             
                 // Process each filtered booking with an async function
@@ -2311,7 +2317,7 @@ console.log("verified business admin layout", tenantId, empId);
             })();
             
 
-            // console.log("travel booking with cash .......", travelWithCash)
+            console.log("travel booking with cash .......", travelWithCash)
             // const trips = await (async () => {
             //     const filteredBooking = bookingDoc.filter(booking => 
             //         booking?.tripSchema?.travelRequestData?.travelRequestStatus === 'booked' && 
