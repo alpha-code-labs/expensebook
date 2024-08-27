@@ -22,7 +22,7 @@ const travelRequestStateEnums = [
   "section 3",
 ];
 
-const approverStatusEnums = ["pending approval", "approved", "rejected"];
+export const approverStatusEnums = ["pending approval", "approved", "rejected"];
 
 const itineraryStatusEnums = [
   'draft', 
@@ -37,11 +37,10 @@ const itineraryStatusEnums = [
   'upcoming', 
   'paid and cancelled',
   'recovered',
-  ];
+];
 
 
-
-const itinerarySchema = {
+export const itinerarySchema = {
   flights: [
     {
       itineraryId: mongoose.Schema.ObjectId,

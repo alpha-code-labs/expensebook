@@ -1,12 +1,7 @@
 import express from "express";
-import {  approveAll, approveExpenseLines, approveExpenseReports,  approveTravelWithCash, nonTravelReportApproval, rejectAll, rejectExpenseLines, rejectExpenseReports,  rejectTravelWithCash, travelWithCashApproveCashAdvance, travelWithCashRejectCashAdvance } from "../controllers/approval.js";
+import {  approveAll, approveExpenseLines, approveExpenseReports, nonTravelReportApproval, rejectAll, rejectExpenseLines, rejectExpenseReports, travelWithCashApproveCashAdvance, travelWithCashRejectCashAdvance } from "../controllers/approval.js";
 
 export const approvalRouter = express.Router()
-
-// approve travel Request with/without cash advance
-approvalRouter.patch('/:tenantId/:empId/:travelRequestId/approve', approveTravelWithCash)
-
-approvalRouter.patch('/:tenantId/:empId/reject/:travelRequestId', rejectTravelWithCash)
 
 approvalRouter.patch('/:tenantId/:empId/approve', approveAll)
 

@@ -310,7 +310,7 @@ const itineraryLineItem = async (trip, recoverItinerary) => {
   };
 
   // Recover done for Line item  
-  export const recoveryAtLineItemLevel = async (req, res) => {
+export const recoveryAtLineItemLevel = async (req, res) => {
     try {
      const { error:errorParams}   = employeeSchema.validate(req.params);
 
@@ -413,4 +413,4 @@ const itineraryLineItem = async (trip, recoverItinerary) => {
       console.error(error);
       return res.status(500).json({ error: 'Internal Server Error' });
     }
-  };
+};

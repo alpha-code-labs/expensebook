@@ -6,89 +6,88 @@ import { sendToOtherMicroservice } from '../rabbitmq/publisher.js';
 dotenv.config();
 
 
-const getSettlements = async () => {
-  return await Dashboard.find({
-    $or: [
-      {
-        // 'cashAdvanceSchema.cashAdvancesData.isSentToFinance': false,
-        'cashAdvanceSchema.cashAdvancesData.cashAdvanceStatus': {
-          $in: ['pending settlement', 'Paid and Cancelled'],
-        },
-      },
-      {
-        // 'tripSchema.travelExpenseData.isSentToFinance': false,
-        'tripSchema.travelExpenseData.expenseHeaderStatus': {
-          $in: ['pending settlement', 'Paid'],
-        },
-      },
-      {
-        // 'reimbursementSchema.isSentToFinance': false,
-        'reimbursementSchema.expenseHeaderStatus': {
-          $in: ['pending settlement'],
-        },
-      },
-    ],
-  });
+const getSettlements = async (settlementsFilter) => {
+  return await Dashboard.find(settlementsFilter);
 };
 
+const setSettlements = async (settlementsFilter) => {
+  return await Dashboard.updateMany(settlementsFilter,{
+    $set: {
+      'cashAdvanceSchema.cashAdvancesData.$[].actionedUpon':true,
+      'tripSchema.travelExpenseData.$[].actionedUpon':true,
+      'reimbursementSchema.actionedUpon':true,
+    }
+  })
+}
 
-// export const financeBatchjob = async () => {
-//     try {
-//         const settlements = await getSettlements()
-
-//         let result;
-//         result = {success:true,message: 'All are settled.'}
-//         if (!settlements || settlements.length === 0) {
-//             return result
+// const setSettlements = async (settlementsFilter) => {
+//   return await Dashboard.updateMany(
+//     {
+//       $or: [
+//         {
+//           'cashAdvanceSchema.cashAdvancesData': { $exists: true },
+//           'cashAdvanceSchema.cashAdvancesData.actionedUpon': false,
+//           'cashAdvanceSchema.cashAdvancesData.cashAdvanceStatus': {
+//             $in: ['pending settlement', 'Paid and Cancelled']
+//           }
+//         },
+//         {
+//           'tripSchema.travelExpenseData': { $exists: true },
+//           'tripSchema.travelExpenseData.actionedUpon': false,
+//           'tripSchema.travelExpenseData.expenseHeaderStatus': {
+//             $in: ['pending settlement', 'Paid']
+//           }
+//         },
+//         {
+//           'reimbursementSchema': { $exists: true },
+//           'reimbursementSchema.actionedUpon': false,
+//           'reimbursementSchema.expenseHeaderStatus': {
+//             $in: ['pending settlement']
+//           }
 //         }
-//        let pendingCashAdvanceSettlements = []
-//        let pendingTravelExpenseSettlements = []
-//        let pendingReimbursementSettlements = []
-
-// if(settlements){
-//     console.log("finance doc's ", settlements)
-//     pendingCashAdvanceSettlements = settlements.filter(doc => {
-//         return doc?.cashAdvanceSchema?.cashAdvancesData.some(
-//             data =>
-//                 data.cashAdvanceStatus === 'pending settlement' ||
-//                 data.cashAdvanceStatus === 'Paid and Cancelled'
-//         );
-//     });
-
-//     pendingTravelExpenseSettlements = settlements.filter(doc => {
-//         return doc?.tripSchema?.travelExpenseData.some(
-//             data =>
-//                 data.expenseHeaderStatus === 'pending settlement' ||
-//                 data.expenseHeaderStatus === 'Paid'
-//         );
-//     });
-
-//     pendingReimbursementSettlements = settlements.filter(doc => {
-//         return doc?.reimbursementSchema.some(
-//             data =>
-//                 data.expenseHeaderStatus === 'pending settlement' 
-//         );
-//     });
-
-//     const payload= result
-//     const action = 'full-update'
-//     const destination = 'finance'
-//     const comments = 'all finance settlements sent from dashboard microservice to finance microservice'
-//     await sendToOtherMicroservice(payload, action, destination, comments, source='dashboard', onlineVsBatch='batch')
-//     await processSettlements(pendingCashAdvanceSettlements, pendingTravelExpenseSettlements, pendingReimbursementSettlements);
-//     console.log("finance ", result)
-//     return result ={ pendingCashAdvanceSettlements,pendingTravelExpenseSettlements, pendingReimbursementSettlements}
-   
-// } else{
-//     return result ={}
-// }} catch (error) {
-//         console.error("Error in fetching employee Dashboard:", error);
-//         throw new Error('Error in fetching employee Dashboard');
+//       ]
+//     },
+//     {
+//       $set: {
+//         'cashAdvanceSchema.cashAdvancesData.$[].actionedUpon': true,
+//         'tripSchema.travelExpenseData.$[].actionedUpon': true,
+//         'reimbursementSchema.actionedUpon': true
+//       }
+//     },
+//     {
+//       arrayFilters: [
+//         { 'elem.actionedUpon': false }
+//       ]
 //     }
+//   );
 // };
+
+
 export const financeBatchjob = async () => {
     try {
-        const settlements = await getSettlements();
+      const settlementsFilter = {
+        $or: [
+          {
+            'cashAdvanceSchema.cashAdvancesData.actionedUpon': false,
+            'cashAdvanceSchema.cashAdvancesData.cashAdvanceStatus': {
+              $in: ['pending settlement', 'Paid and Cancelled'],
+            },
+          },
+          {
+            'tripSchema.travelExpenseData.actionedUpon': false,
+            'tripSchema.travelExpenseData.expenseHeaderStatus': {
+              $in: ['pending settlement', 'Paid'],
+            },
+          },
+          {
+            'reimbursementSchema.actionedUpon': false,
+            'reimbursementSchema.expenseHeaderStatus': {
+              $in: ['pending settlement'],
+            },
+          },
+        ],
+      }
+        const settlements = await getSettlements(settlementsFilter);
 
         let result;
         result = { success: true, message: 'All are settled.' };
@@ -134,6 +133,7 @@ export const financeBatchjob = async () => {
             const comments = 'all finance settlements sent from dashboard microservice to finance microservice';
             await sendToOtherMicroservice(payload, action, destination, comments, 'dashboard', 'batch');
             console.log("finance ", result);
+            await setSettlements(settlementsFilter)
             result = { pendingCashAdvanceSettlements, pendingTravelExpenseSettlements, pendingReimbursementSettlements };
             return result;
         } else {
