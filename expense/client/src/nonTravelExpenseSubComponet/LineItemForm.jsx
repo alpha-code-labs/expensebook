@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import Allocations from './Allocations'
+import Allocations from '../travelExpenseSubcomponent/Allocations'
 import Input from '../components/common/Input'
 import Select from '../components/common/Select'
 import Toggle from '../components/common/Toggle'
@@ -8,7 +8,8 @@ import { currenciesList } from '../utils/data/currencyList'
 import {  TravelExpenseCurrencyConversionApi } from '../utils/api'
 import { categoryIcons } from '../assets/icon'
 
-const LineItemForm = ({categoryName,setErrorMsg,isUploading,defaultCurrency, currencyConversion, setCurrencyConversion, handleCurrencyConversion, formData,setFormData, onboardingLevel, categoryFields = [], classOptions, currencyTableData, allocationsList, handleAllocations, lineItemDetails, errorMsg}) => {
+const LineItemForm = ({categoryName, setErrorMsg,isUploading,defaultCurrency, currencyConversion, setCurrencyConversion, handleCurrencyConversion, formData,setFormData, onboardingLevel, categoryFields = [], classOptions, currencyTableData, allocationsList, handleAllocations, lineItemDetails, errorMsg}) => {
+
   const totalAmountKeys = ['Total Fare','Total Amount',  'Subscription Cost', 'Cost', 'Premium Cost'];
   const dateKeys = ['Invoice Date', 'Date', 'Visited Date', 'Booking Date',"Bill Date"];
 
@@ -98,8 +99,8 @@ console.log('error mgs',errorMsg.conversion)
     
 
   return (
-    <div className="w-full flex-row ">
-       <div className="sticky top-0 bg-white z-20 w-full flex items-center h-12 px-4 border-dashed  border-y border-slate-300 py-4 scroll-hide">
+ <div className="w-full flex-row ">
+   <div className="sticky top-0 bg-white z-20 w-full flex items-center h-12 px-4 border-dashed  border-y border-slate-300 py-4">
         <div className="flex items-center justify-center gap-2">
           <div className="bg-slate-100 p-2 rounded-full">
             <img src={categoryIcons[categoryName]} className="w-4 h-4 rounded-full" />
@@ -107,8 +108,8 @@ console.log('error mgs',errorMsg.conversion)
           <p>{categoryName}</p>
         </div>
       </div>
-
  <div className="w-full  flex-wrap flex items-center justify-center">
+
  {onboardingLevel=== 'level3' &&
 ( <>
 <p className='text-start w-full  px-2 py-2 text-base text-neutral-700 font-inter'>Allocations</p>
@@ -120,7 +121,8 @@ console.log('error mgs',errorMsg.conversion)
             onAllocationSelection={handleAllocations} 
           />
   </div>
-  </>)}
+  </>)
+   }
   {/* <div className="w-full border flex flex-wrap items-center justify-center"> */}
   {categoryFields.map((field) => {
   const isLocationOrDateField = ['From', 'To', 'Departure', 'Pickup Location', 'DropOff Location', 'Arrival'].includes(field.name);
@@ -141,7 +143,7 @@ console.log('error mgs',errorMsg.conversion)
             onChange={(value) => handleInputChange(field.name, value)}
           />
         ) : isClassField ? (
-          <div className="w-full translate-y-[-6px] z-10">
+          <div className="w-full translate-y-[-6px] z-20">
             <Select
              variant={true}
              error={errorMsg.class}
@@ -156,7 +158,7 @@ console.log('error mgs',errorMsg.conversion)
         ) : isTotalAmountField ? (
           <div className='w-full'>
           <CurrencyInput
-          error={errorMsg.conversion}
+          error={errorMsg?.conversion}
           title={field.name}
           uploading={isUploading.conversion}
           currencyOptions={currenciesList.map(cr=>({...cr, imageUrl:`https://hatscripts.github.io/circle-flags/flags/${cr.countryCode.toLowerCase()}.svg`}))} 
@@ -245,7 +247,7 @@ console.log('error mgs',errorMsg.conversion)
 
 
 <div className='px-2'>
-<div className="flex flex-col md:flex-row  items-start gap-x-2 w-full"> 
+{/* <div className="flex flex-col md:flex-row  items-start gap-x-2 w-full"> 
 
 <div >
 <Toggle 
@@ -269,7 +271,7 @@ onClick={(flag)=>handleInputChange("isPersonalExpense",flag)}/>
   />
 </div>
 
-</div> 
+</div>  */}
 
 
 {/* <div className="relative">
@@ -350,6 +352,7 @@ onClick={(flag)=>handleInputChange("isPersonalExpense",flag)}/>
   />
 </div> */}
 </div>
+
 {/* <div className="w-full mt-5 px-4">
  <Button text="Save" 
  disabled={isUploading} 

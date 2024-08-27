@@ -182,7 +182,7 @@ function formatDate(date=Date.now()) {
 
 
   function initializenonTravelFormFields(fields,data) {
-    const {defaultCurrency,travelType, categoryName,group} = data
+    const {defaultCurrency, categoryName,group} = data
 
     const initialData = {};
     fields.forEach((field) => {
@@ -200,7 +200,28 @@ function formatDate(date=Date.now()) {
   initialData["Category Name"] = categoryName;
     return initialData;
   }
+
+  function allocationLevel(levels) {
+    try {
+      // Ensure levels and travelAllocationFlags are valid objects
+      if (!levels  || typeof levels !== 'object') {
+        throw new Error('Invalid levels or travelAllocationFlags data');
+      }
+  
+      // Find the first key where the value is true
+      const array = Object.keys(levels).find(
+        (level) => levels[level] === true
+      );
+  
+      // If no key is found, return an empty array
+      return array|| [] ;
+    } catch (error) {
+      console.error('Error in allocationLevel function:', error.message);
+      // Handle the error gracefully, possibly returning an empty array or a default value
+      return [];
+    }
+  }
   
 
-export {initializenonTravelFormFields, initializeFormFields, camelCaseToTitleCase, titleCase, formatDate, formatDate2 ,getStatusClass ,generateRandomId,urlRedirection}  
+export {allocationLevel,initializenonTravelFormFields, initializeFormFields, camelCaseToTitleCase, titleCase, formatDate, formatDate2 ,getStatusClass ,generateRandomId,urlRedirection}  
 

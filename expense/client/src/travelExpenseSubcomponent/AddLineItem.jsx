@@ -7,7 +7,7 @@ import Search from '../Components/common/Index';
 import Button1 from '../Components/common/Button1';
 import FileUpload from '../Components/common/FileUpload';
 import { DocumentPreview } from './BillPreview';
-import { initializeFormFields, urlRedirection } from '../utils/handyFunctions';
+import { allocationLevel, initializeFormFields, urlRedirection } from '../utils/handyFunctions';
 import LineItemForm from './LineItemForm';
 import { getTravelExpenseApi, postTravelExpenseLineItemApi, TravelExpenseCurrencyConversionApi } from '../utils/api';
 import { useParams,useNavigate } from 'react-router-dom';
@@ -44,26 +44,7 @@ const dashboardBaseUrl = `${import.meta.env.VITE_DASHBOARD_URL}`
 
   
 
-function allocationLevel(levels) {
-  try {
-    // Ensure levels and travelAllocationFlags are valid objects
-    if (!levels  || typeof levels !== 'object') {
-      throw new Error('Invalid levels or travelAllocationFlags data');
-    }
 
-    // Find the first key where the value is true
-    const array = Object.keys(levels).find(
-      (level) => levels[level] === true
-    );
-
-    // If no key is found, return an empty array
-    return array ;
-  } catch (error) {
-    console.error('Error in allocationLevel function:', error.message);
-    // Handle the error gracefully, possibly returning an empty array or a default value
-    return [];
-  }
-}
 const [requiredObj, setRequiredObj] = useState(
     {"allocationsList":[],
         'travelExpenseCategories':[],
@@ -102,7 +83,6 @@ useEffect(() => {
           allocationsList,
           travelExpenseCategories,
           level:travelAllocationFlag
-  
         }))
 
         //level1 or level 2 allocation will save with empty string
@@ -120,7 +100,7 @@ useEffect(() => {
         const openedExpenseObj = (response?.travelExpenseData)?.find(expense => expense.expenseHeaderId === flagToOpen)
         const travelType = openedExpenseObj?.travelType
         console.log('travelType',travelAllocationFlag,travelType,flagToOpen, openedExpenseObj)
-        const travelExpenseCategories = response?.companyDetails?.travelExpenseCategories[travelType]
+        const travelExpenseCategories = response?.companyDetails?.travelAllocations[travelType]
         setRequiredObj(prev=>({
           ...prev,
           travelExpenseCategories,
@@ -170,6 +150,9 @@ const [errorMsg,setErrorMsg] = useState({
     conversion:{ set: false, msg: "" },
     date:{ set: false, msg: "" },
   })
+
+
+
 
 const handleAllocations = (headerName, headerValue) => {
     console.log('allocation handle', headerName, headerValue);
@@ -571,6 +554,7 @@ const handleSaveLineItem = async (action) => {
        lineItemDetails={formData.fields}
        categoryFields={requiredObj?.selectedCategoryData?.fields || []}
        classOptions={requiredObj?.selectedCategoryData?.class}
+       categoryName={requiredObj?.category}
        />
     </div>
     <div className='absolute -left-4 mx-4 inset-x-0 w-full  z-20 bg-slate-100   h-16 border border-slate-300 bottom-0'>

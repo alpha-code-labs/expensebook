@@ -410,13 +410,14 @@ export const getCategoryFormElementApi=async(tenantId,empId,categoryName, expens
 
 
 ///save line item details for non travel expense 
-export const postNonTravelExpenseLineItems = async(tenantId,empId,expenseHeaderId,data)=>{
+export const postNonTravelExpenseLineItemApi = async(params,payload)=>{
+  const {tenantId,empId,expenseHeaderId}=params
 
   // this is the real api route
   const url = `${EXPENSE_BACKEND_API_URL}/api/fe/expense/non-travel/${tenantId}/${empId}/${expenseHeaderId}/save`
   
   try{
-    const response = await axiosRetry(axios.post,url,data)
+    const response = await axiosRetry(axios.post,url,payload)
      return response.data
     
 

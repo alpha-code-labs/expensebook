@@ -1,5 +1,5 @@
 import React ,{useState,useEffect,useRef}from 'react';
-import { cancelNonTravelExpenseHeaderApi, cancelNonTravelExpenseLineItemApi,  editNonTravelExpenseLineItemsApi, getCategoryFormElementApi, getNonTravelExpenseLineItemsApi, getNonTravelExpenseMiscellaneousDataApi, nonTravelOcrApi, postMultiCurrencyForNonTravelExpenseApi, postNonTravelExpenseLineItems, saveAsDraftNonTravelExpense, submitNonTravelExpenseApi, submitOrSaveAsDraftApi } from '../utils/api'
+import { cancelNonTravelExpenseHeaderApi, cancelNonTravelExpenseLineItemApi,  editNonTravelExpenseLineItemsApi, getCategoryFormElementApi, getNonTravelExpenseLineItemsApi, getNonTravelExpenseMiscellaneousDataApi, nonTravelOcrApi, postMultiCurrencyForNonTravelExpenseApi, postNonTravelExpenseLineItemApi, saveAsDraftNonTravelExpense, submitNonTravelExpenseApi, submitOrSaveAsDraftApi } from '../utils/api'
 import { useParams } from 'react-router-dom';
 import Error from '../components/common/Error';
 import Button from '../components/common/Button';
@@ -8,7 +8,7 @@ import Icon from '../components/common/Icon';
 import Input from '../components/common/Input';
 import { arrow_left, briefcase, cancel_icon, cancel_round, categoryIcons, chevron_down, file_icon, modify_icon, money, receipt, scan_icon, user_icon, validation_sym, validation_symb_icon } from '../assets/icon';
 import {nonTravelExpenseData} from '../dummyData/nonTravelExpens';
-import { initializenonTravelFormFields, titleCase, urlRedirection } from '../utils/handyFunctions';
+import { allocationLevel, initializenonTravelFormFields, titleCase, urlRedirection } from '../utils/handyFunctions';
 import Upload from '../components/common/Upload';
 import Select from '../components/common/Select';
 import ActionButton from '../components/common/ActionButton';
@@ -18,6 +18,10 @@ import { BlobServiceClient } from "@azure/storage-blob";
 import Button1 from '../Components/common/Button1.jsx';
 import FileUpload from '../Components/common/FileUpload.jsx';
 import Search from '../Components/common/Index.jsx';
+import LineItemForm from '../nonTravelExpenseSubComponet/LineItemForm.jsx';
+import { DocumentPreview } from '../travelExpenseSubcomponent/BillPreview.jsx';
+import CancelButton from '../Components/common/CancelButton.jsx';
+import { dateKeys, isClassField, totalAmountKeys } from '../utils/data/keyList.js';
 
 ///Cuurency on Save you have to save object of currency
 const currencyDropdown = [
@@ -39,11 +43,10 @@ const CreateNonTraveExpense = () => {
  
   
   const {tenantId,empId,expenseHeaderId,cancel} =useParams()
-  const dashboard_url = import.meta.env.VITE_DASHBOARD_URL
+  const dashboardBaseUrl = `${import.meta.env.VITE_DASHBOARD_URL}`
   const az_blob_container = import.meta.env.VITE_AZURE_BLOB_CONTAINER
-   const blob_endpoint = import.meta.env.VITE_AZURE_BLOB_CONNECTION_URL
-  const DASHBOARD_URL=`${dashboard_url}/${tenantId}/${empId}`
-
+  const blob_endpoint = import.meta.env.VITE_AZURE_BLOB_CONNECTION_URL
+  
 
   async function uploadFileToAzure(file) {
     try {
@@ -68,7 +71,15 @@ const CreateNonTraveExpense = () => {
     }
 }
   
-
+const [currencyConversion, setCurrencyConversion]=useState({
+  payload:{
+     'currencyName':"",
+      personalAmount:"",
+          totalAmount:"",
+          nonPersonalAmount: ""
+  },
+  response:{}
+})
  const [requiredObj, setRequiredObj]=useState({
   "groupLimit":{
     group:'',
@@ -118,16 +129,7 @@ const CreateNonTraveExpense = () => {
 
  
 
-    const editData = [
-              // { name:'Bill Date',type:'date'},
-              // { name:'Bill Number',type:'numeric'},
-              // { name:'Vendor Name',type:'text'},
-              // { name: 'Description', type: 'text' },
-              // { name: 'Quantity', type: 'numeric' },
-              // { name: 'Unit Cost', type: 'numeric' },
-              // { name: 'Tax Amount', type: 'numeric' },
-              // { name: 'Total Amount', type: 'numeric' },        
-    ];
+    
 
     ///now this is dummy after data will set by ocr
     const ocrValue = {
@@ -155,7 +157,8 @@ const CreateNonTraveExpense = () => {
     const [formDataValues, setFormDataValues] = useState(); 
 
     const [selectedLineItemId, setSelectedLineItemId]=useState(null)
-    const [showModal , setShowModal]= useState(false)
+    const [modalOpen , setModalOpen]= useState(false)
+    const [actionType, setActionType]=useState(false)
     const [action1 , setAction] = useState(null)
     const [isLoading,setIsLoading]=useState(true)
     const [isUploading , setIsUploading]=useState(false)
@@ -187,13 +190,14 @@ const CreateNonTraveExpense = () => {
 
 
 const handleModalVisible=()=>{
-  setShowModal(!showModal)
+  setModalOpen(!modalOpen)
 }
 
 const handleMannualBtn=()=>{
   if(requiredObj.category){
     setShowForm(true)
     setErrorMsg(prev => ({...prev,category:{ set: false, msg: "" },}))
+    document.getElementById('newLineItem').scrollIntoView({ behavior: 'smooth' });
   }else{
     setErrorMsg(prev => ({...prev,category:{ set: true, msg: "Select the category" },}))
   }
@@ -229,8 +233,8 @@ const onAllocationSelection = (option, headerName) => {
 };
 
 const [selectedCategory , setSelectedCategory]= useState(null)   
-const [selectedCurrency , setSelectedCurrency]= useState(null)   
-const [defaultCurrency , setDefaultCurrency]=useState(null)      
+ 
+
 
     // const handleCategoryChange=(value)=>{
     
@@ -250,7 +254,7 @@ const [defaultCurrency , setDefaultCurrency]=useState(null)
       handleGenerateExpense (category)
       setIsUploading(false)
       setActive(prevState => ({ ...prevState, edit: { visible:false,id:null}}));
-  }
+    }
 
   //Handle Delete
 
@@ -267,10 +271,11 @@ const [defaultCurrency , setDefaultCurrency]=useState(null)
       console.log('line item deleted successfully',response);
       setIsUploading(false);
       setActive(prevState => ({ ...prevState, delete: { visible:false,id:null}}));
-      const updatedLineItems = lineItemsData.filter(
+      const updatedLineItems = requiredObj?.expenseLines?.filter(
         (item) => item.lineItemId !== lineItemId
       );
-      setLineItemsData(updatedLineItems)
+      setRequiredObj(prev =>({...prev, "expenseLines":updatedLineItems}))
+      //setLineItemsData(updatedLineItems)
       setTimeout(() => {setShowPopup(false);setMessage(null)},5000);
     } catch (error) {
       console.log('Error in deleting line item', error.message);
@@ -301,8 +306,8 @@ const [miscellaneousData , setMiscellaneousData]=useState(null)
           api = await getCategoryFormElementApi(tenantId,empId,category)
         }
         const response = api
-        setMiscellaneousData(response || {})
-        setDefaultCurrency(response?.defaultCurrency)
+        //setMiscellaneousData(response || {})
+        //setDefaultCurrency(response?.defaultCurrency)
         //setCategoryElement(response?.fields || [])
         setExpenseLineAllocation(response?.newExpenseAllocation) || []
         const allocation1 = response?.newExpenseAllocation
@@ -312,13 +317,17 @@ const [miscellaneousData , setMiscellaneousData]=useState(null)
         }));
         console.log('intial allocation',initialExpenseAllocation)
 
+
         setRequiredObj(prev => ({...prev,
           "defaultCurrency":response?.defaultCurrency,
           "fields":response?.fields || [],
           "expenseHeaderId":response?.expenseHeaderId ?? null,
           "expenseHeaderNumber":response?.expenseHeaderNumber,
+          "expenseHeaderStatus": response?.expenseHeaderStatus,
+          "createdBy":response?.createdBy,
           "category":response?.categoryName,
-          "groupLimit":response?.group || {}
+          "groupLimit":response?.group || {},
+          "allocation":response?.newExpenseAllocation || []
         }))
 
         setSelectedAllocations(initialExpenseAllocation) 
@@ -344,7 +353,7 @@ const [miscellaneousData , setMiscellaneousData]=useState(null)
       
     }
 
-    console.log('miscellaneous data',miscellaneousData)
+    //console.log('miscellaneous data',miscellaneousData)
 
 
     
@@ -381,19 +390,36 @@ const [miscellaneousData , setMiscellaneousData]=useState(null)
   const [expenseDataByGet , setExpenseDataByGet]= useState(null)
 
   useEffect(() => {
-    const expenseHeaderIds = expenseHeaderId || requiredObj?.expenseHeaderId 
+    const sessionId = sessionStorage.getItem('sessionExpenseHeaderId');
+    const expenseHeaderIds = sessionId || expenseHeaderId || requiredObj?.expenseHeaderId 
     console.log('expense header id1',expenseHeaderIds)
   
     const fetchData = async () => {
       try {
-        const response = await getNonTravelExpenseLineItemsApi(tenantId, empId,expenseHeaderIds);
-        setExpenseDataByGet(response?.expenseReport)
-        setLineItemsData(response?.expenseReport?.expenseLines)
+        const response = await getNonTravelExpenseLineItemsApi(tenantId, empId, expenseHeaderIds);
+
+        //setExpenseDataByGet(response?.expenseReport)
+        
+        setRequiredObj(prev => ({...prev,
+          "defaultCurrency":response?.expenseReport?.defaultCurrency,
+          "fields":response?.expenseReport?.fields || [],
+          "expenseHeaderId":response?.expenseReport?.expenseHeaderId ?? null,
+          "expenseHeaderNumber":response?.expenseReport?.expenseHeaderNumber,
+          "expenseHeaderStatus": response?.expenseReport?.expenseHeaderStatus,
+          "createdBy":response?.expenseReport?.createdBy,
+          "category":response?.expenseReport?.categoryName,
+          "groupLimit":response?.expenseReport?.group || {},
+          //"allocation":response?.expenseReport?.newExpenseAllocation || [],
+          "expenseLines":response?.expenseReport?.expenseLines
+        }))
+
+        //setLineItemsData(response?.expenseReport?.expenseLines)
         setIsLoading(false);
         if(response.expenseReport===null){
-        setDefaultCurrency(response?.expenseReport?.defaultCurrency)
+          setRequiredObj(prev => ({...prev,defaultCurrency:response?.expenseReport?.defaultCurrency}))
+        //setDefaultCurrency(response?.expenseReport?.defaultCurrency)
       }
-        console.log(response.data)
+        
         console.log('expense line items fetched successfully.',response);
       } catch (error) {
         console.log('Error in fetching expense data for approval:', error.message);
@@ -407,8 +433,8 @@ const [miscellaneousData , setMiscellaneousData]=useState(null)
   }, [expenseHeaderId || requiredObj?.expenseHeaderId ])
 
   
-  console.log('line items data ',lineItemsData)
-  console.log('data by report ', expenseDataByGet)
+  //console.log('line items data ',lineItemsData)
+  //console.log('data by report ', expenseDataByGet)
 
 
     
@@ -479,53 +505,118 @@ useEffect(()=>{
     //   }
     // };
    console.log('grouplimit',requiredObj?.groupLimit)
+   console.log('initial values',formDataValues)
 
-      console.log('initial values',formDataValues)
-
-    const handleInputChange = (name, value) => {
-
-      
-      console.log(`Updating ${name} with value:`, value);
-      const sample = JSON.parse(JSON.stringify(formDataValues))
-      console.log(sample, 'before chaning input')
+    // const handleInputChange = (name, value) => {
+    //   console.log(`Updating ${name} with value:`, value);
 
      
 
-      setFormDataValues(prevState=>({...prevState, [name]: value}))
-      // setFormDataValues((prevState) => ({ ...prevState, [name]: value || "" }));
-      console.log('onChange lineitem',formDataValues)
+    //   setFormDataValues(prevState=>({...prevState, [name]: value}))
+    //   // setFormDataValues((prevState) => ({ ...prevState, [name]: value || "" }));
+    //   console.log('onChange lineitem',formDataValues)
       
-      if (totalAmountNames.includes(name)) {
-        setTotalAmount(value);
-        setErrorMsg(prevErrors => ({
-          ...prevErrors,
-          totalAmount: { set: !name, msg: name ? "" : `Enter ${name}` }
-        }));
-      }
+    //   if (totalAmountNames.includes(name)) {
+    //     setTotalAmount(value);
+    //     setErrorMsg(prevErrors => ({
+    //       ...prevErrors,
+    //       totalAmount: { set: !name, msg: name ? "" : `Enter ${name}` }
+    //     }));
+    //   }
 
 
-      if(dateForms.includes(name)){
-        setDate({[name] : value})
-        setErrorMsg(prevErrors => ({
-          ...prevErrors,
-          dateErr: { set: !name, msg: name ? "" : `Enter ${name}` }
-        }));
-      }    
+    //   if(dateForms.includes(name)){
+    //     setDate({[name] : value})
+    //     setErrorMsg(prevErrors => ({
+    //       ...prevErrors,
+    //       dateErr: { set: !name, msg: name ? "" : `Enter ${name}` }
+    //     }));
+    //   }    
 
-      if(totalAmountNames.includes(name)){
-        const limit = requiredObj?.groupLimit?.limit 
-        if(value>limit){
-          setErrorMsg((prevErrors)=>({...prevErrors,totalAmount:{set:true,msg:requiredObj?.groupLimit?.message}}))
-        }else{
-          setErrorMsg((prevErrors)=>({...prevErrors,totalAmount:{set:false,msg:requiredObj?.groupLimit?.message}}))
+    //   if(totalAmountNames.includes(name)){
+    //     const limit = requiredObj?.groupLimit?.limit 
+    //     if(value>limit){
+    //       setErrorMsg((prevErrors)=>({...prevErrors,totalAmount:{set:true,msg:requiredObj?.groupLimit?.message}}))
+    //     }else{
+    //       setErrorMsg((prevErrors)=>({...prevErrors,totalAmount:{set:false,msg:requiredObj?.groupLimit?.message}}))
+    //     }
+    //   }
+
+      
+      
+    // };
+
+
+    const handleInputChange = (key, value) => {
+      console.log(`Updating ${key} with value:`, value);
+    
+      setFormData((prevData) => {
+        const updatedFields = {
+          ...prevData.fields,
+          [key]: value,
+        };
+    
+       
+
+        
+       
+        ///for conversion stop
+
+        return {
+          ...prevData,
+          fields: updatedFields,
+        };
+      });
+
+       if(totalAmountKeys.includes(key) ){
+          setCurrencyConversion(prev =>({...prev,payload:{
+            ...prev.payload,
+           ["totalAmount"]:value
+          }
+          }))
         }
-      }
 
-      
-      
+        if(key === "personalExpenseAmount"){
+          setCurrencyConversion(prev =>({...prev,payload:{
+            ...prev.payload,
+           ["personalAmount"]:value
+          }
+          }))
+        }
+        setCurrencyConversion(prev =>({...prev,payload:{
+          ...prev.payload,
+          'currencyName':formData?.Currency?.shortName,
+         
+          ///nonPersonalAmount: Number(prev.payload.totalAmount) - Number(formData.personalExpenseAmount)
+        }
+        }))
+
+        if(key==='Currency' && value.shortName !== requiredObj?.defaultCurrency.shortName){
+          setFormData(prev => ({
+            ...prev,
+            fields: {
+              ...prev.fields, // Spread the existing fields object
+              isMultiCurrency: true // Update the isMultiCurrency flag to true
+            }
+          }));
+          handleCurrencyConversion()
+        }else{
+          if(key==='Currency'){
+            setErrorMsg((prevErrors) => ({ ...prevErrors, conversion: { set: false, msg: "" } }));
+          }
+          
+          setFormData(prev => ({
+            ...prev,
+            fields: {
+              ...prev.fields, // Spread the existing fields object
+              isMultiCurrency: false // Update the isMultiCurrency flag to true
+            }
+          }));
+          
+         
+          //setErrorMsg((prevErrors) => ({ ...prevErrors, personalAmount: { set: true, msg: "Enter the amount" } }));
+        }
     };
-
-    console.log('form data update ',formDataValues)
     // const handleInputChange = (name, value) => {
     //   console.log(`Updating ${name} with value:`, value);
     //   setFormDataValues((prevState) => ({ ...prevState, [name]: value || "" }));
@@ -569,7 +660,7 @@ const [isFileSelected ,setIsFileSelected]= useState(false)
 
       
       console.log('total amount', totalAmount)
-      console.log("expense line",lineItemsData)
+      //console.log("expense line",lineItemsData)
       console.log('category element',requiredObj.fields)
 
 // Handle Converter
@@ -608,7 +699,7 @@ const handleConverter =async ( totalAmount , selectedCurrency) => {
       
 
   
-console.log('categoryname;',miscellaneousData?.categoryName)
+//console.log('categoryname;',miscellaneousData?.categoryName)
 
 
 
@@ -619,135 +710,243 @@ console.log('categoryname;',miscellaneousData?.categoryName)
 
 /// Save Line Item
      
-      const handleSaveLineItem = async () => {
-        console.log('lineitem on save',formDataValues )
-        const expenseHeaderId= miscellaneousData?.expenseHeaderId
-        const expenseHeaderNumber = miscellaneousData?.expenseHeaderNumber
-        const companyName = miscellaneousData?. companyName
-        const createdBy  = miscellaneousData?.createdBy
-        const defaultCurrency = miscellaneousData?.defaultCurrency
-        console.log('nearby save' ,formDataValues ,expenseHeaderNumber)
+//       const handleSaveLineItem = async () => {
+//         console.log('lineitem on save',formDataValues )
+//         const expenseHeaderId= miscellaneousData?.expenseHeaderId
+//         const expenseHeaderNumber = miscellaneousData?.expenseHeaderNumber
+//         const companyName = miscellaneousData?. companyName
+//         const createdBy  = miscellaneousData?.createdBy
+//         const defaultCurrency = miscellaneousData?.defaultCurrency
+//         console.log('nearby save' ,formDataValues ,expenseHeaderNumber)
 
-        let  allowForm = true
+//         let  allowForm = true
 
-        ///for date validation
-  const newErrorMsg = { ...errorMsg };
+//         ///for date validation
+//   const newErrorMsg = { ...errorMsg };
 
-    // Reset all error messages
-    Object.keys(newErrorMsg).forEach(key => {
-      newErrorMsg[key] = { set: false, msg: "" };
-    });
+//     // Reset all error messages
+//     Object.keys(newErrorMsg).forEach(key => {
+//       newErrorMsg[key] = { set: false, msg: "" };
+//     });
 
-    // for (const allocation of selectedAllocations) {
-    //   if (allocation.headerValue.trim() === '') {
-    //     newErrorMsg[allocation.headerName] = { set: true, msg: "Select the Allocation" };
-    //   }
+//     // for (const allocation of selectedAllocations) {
+//     //   if (allocation.headerValue.trim() === '') {
+//     //     newErrorMsg[allocation.headerName] = { set: true, msg: "Select the Allocation" };
+//     //   }
       
-    // }
+//     // }
 
-    setErrorMsg(newErrorMsg);
-    const anyErrorSet = Object.values(newErrorMsg).some(error => error.set);
+//     setErrorMsg(newErrorMsg);
+//     const anyErrorSet = Object.values(newErrorMsg).some(error => error.set);
 
-// Update allowForm based on whether any error is set
-allowForm = !anyErrorSet;
+// // Update allowForm based on whether any error is set
+// allowForm = !anyErrorSet;
 
-console.log("All Errors Filled:", !anyErrorSet);
+// console.log("All Errors Filled:", !anyErrorSet);
 
-        const firstKey = Object.keys(date)[0]
-        if(selectedCurrency?.shortName !== defaultCurrency.shortName &&( !currencyTableData?.currencyFlag || currencyTableData ===null)){
-          setErrorMsg((prevErrors) => ({ ...prevErrors, currencyFlag: { set: true, msg: `conversion not available!` } }));
-          allowForm = false;
-        }else {
-          setErrorMsg((prevErrors) => ({ ...prevErrors, currencyFlag: { set: false, msg: "" } }));
-        }  
+//         const firstKey = Object.keys(date)[0]
+//         if(selectedCurrency?.shortName !== defaultCurrency.shortName &&( !currencyTableData?.currencyFlag || currencyTableData ===null)){
+//           setErrorMsg((prevErrors) => ({ ...prevErrors, currencyFlag: { set: true, msg: `conversion not available!` } }));
+//           allowForm = false;
+//         }else {
+//           setErrorMsg((prevErrors) => ({ ...prevErrors, currencyFlag: { set: false, msg: "" } }));
+//         }  
 
-      if(!['Travel Insurance','Hotel'].includes(formDataValues?.['Category Name']) && (!date[firstKey] || date[firstKey]=== "")){
-        setErrorMsg((prevErrors) => ({ ...prevErrors, dateErr: { set: true, msg: `Enter the ${firstKey}` } }));
-        allowForm = false;
-        console.log('date  is empty1' , date[firstKey])
-      }else {
-        setErrorMsg((prevErrors) => ({ ...prevErrors, dateErr: { set: false, msg: "" } }));
-      }
-        if(totalAmount=="" ||totalAmount==undefined){
-          setErrorMsg((prevErrors)=>({...prevErrors,totalAmount:{set:true,msg:"Enter Total Amount"}}))
-          console.log('total amount', totalAmount)
-          allowForm = false
-        }else{
-          setErrorMsg((prevErrors)=>({...prevErrors,totalAmount:{set:false,msg:""}}))
-        }
+//       if(!['Travel Insurance','Hotel'].includes(formDataValues?.['Category Name']) && (!date[firstKey] || date[firstKey]=== "")){
+//         setErrorMsg((prevErrors) => ({ ...prevErrors, dateErr: { set: true, msg: `Enter the ${firstKey}` } }));
+//         allowForm = false;
+//         console.log('date  is empty1' , date[firstKey])
+//       }else {
+//         setErrorMsg((prevErrors) => ({ ...prevErrors, dateErr: { set: false, msg: "" } }));
+//       }
+//         if(totalAmount=="" ||totalAmount==undefined){
+//           setErrorMsg((prevErrors)=>({...prevErrors,totalAmount:{set:true,msg:"Enter Total Amount"}}))
+//           console.log('total amount', totalAmount)
+//           allowForm = false
+//         }else{
+//           setErrorMsg((prevErrors)=>({...prevErrors,totalAmount:{set:false,msg:""}}))
+//         }
      
-        handleEmptyValues(); // Ensure that any undefined or null values in formDataValues are set to ""
+//         handleEmptyValues(); // Ensure that any undefined or null values in formDataValues are set to ""
       
-        const updatedFormData = {
-          companyName,
-          createdBy,
-          expenseHeaderNumber,
-          defaultCurrency,
-          lineItem :{
-            group:requiredObj?.groupLimit,
-            'Category Name':selectedCategory || "",
-            ...formDataValues,
-            'Document': "",
-            // 'Document': selectedFile || "",
-            'Currency': selectedCurrency || defaultCurrency || "",
-            multiCurrencyDetails :currencyTableData,
-            expenseLineAllocation :selectedAllocations,
-          }
-        } 
+//         const updatedFormData = {
+//           companyName,
+//           createdBy,
+//           expenseHeaderNumber,
+//           defaultCurrency,
+//           lineItem :{
+//             group:requiredObj?.groupLimit,
+//             'Category Name':selectedCategory || "",
+//             ...formDataValues,
+//             'Document': "",
+//             // 'Document': selectedFile || "",
+//             'Currency': selectedCurrency || defaultCurrency || "",
+//             multiCurrencyDetails :currencyTableData,
+//             expenseLineAllocation :selectedAllocations,
+//           }
+//         } 
     
-        // setFormDataValues(updatedFormData);
-        let azureUploadSuccess = false;
-        let fileUrl = "";
-        if(selectedFile && allowForm ){
-        console.log('filledLineItemDetails', updatedFormData);
+//         // setFormDataValues(updatedFormData);
+//         let azureUploadSuccess = false;
+//         let fileUrl = "";
+//         if(selectedFile && allowForm ){
+//         console.log('filledLineItemDetails', updatedFormData);
        
-    try {
-        const azureUploadResponse = await uploadFileToAzure(selectedFile);
-        if (azureUploadResponse.success) {
-            azureUploadSuccess = true;
-            fileUrl = azureUploadResponse.fileUrl;
-        } else {
-            console.error("Failed to upload file to Azure Blob Storage.");
-        }
-    } catch (error) {
-        console.error("Error uploading file to Azure Blob Storage:", error);
-    }
-  }
+//     try {
+//         const azureUploadResponse = await uploadFileToAzure(selectedFile);
+//         if (azureUploadResponse.success) {
+//             azureUploadSuccess = true;
+//             fileUrl = azureUploadResponse.fileUrl;
+//         } else {
+//             console.error("Failed to upload file to Azure Blob Storage.");
+//         }
+//     } catch (error) {
+//         console.error("Error uploading file to Azure Blob Storage:", error);
+//     }
+//   }
     
-       if(selectedFile ? (allowForm && azureUploadSuccess) : allowForm){   
-        updatedFormData.lineItem.Document = fileUrl;
-        try {
-          setIsUploading(true)
-          setActive(prevState => ({...prevState,saveLineItem:true}))
+//        if(selectedFile ? (allowForm && azureUploadSuccess) : allowForm){   
+//         updatedFormData.lineItem.Document = fileUrl;
+//         try {
+//           setIsUploading(true)
+//           setActive(prevState => ({...prevState,saveLineItem:true}))
           
           
-          const response = await postNonTravelExpenseLineItems(tenantId,empId,expenseHeaderId,updatedFormData);
-          setShowPopup(true)
-          setMessage(response?.message)
-         console.log('line item saved successfully',response?.message )
-         const newLine = {...updatedFormData?.lineItem , lineItemId : response?.lineItemId}
-         setLineItemsData([...lineItemsData, newLine]);   
-         setIsUploading(false)
-         setActive(prevState => ({...prevState,saveLineItem:false}))
-         setShowForm(false)
-         setTimeout(() => {setShowPopup(false);setMessage(null);},5000)
-         setCurrencyTableData(null)
+//           const response = await postNonTravelExpenseLineItemApi(tenantId,empId,expenseHeaderId,updatedFormData);
+//           setShowPopup(true)
+//           setMessage(response?.message)
+//          console.log('line item saved successfully',response?.message )
+//          const newLine = {...updatedFormData?.lineItem , lineItemId : response?.lineItemId}
+//          setLineItemsData([...lineItemsData, newLine]);   
+//          setIsUploading(false)
+//          setActive(prevState => ({...prevState,saveLineItem:false}))
+//          setShowForm(false)
+//          setTimeout(() => {setShowPopup(false);setMessage(null);},5000)
+//          setCurrencyTableData(null)
 
-        } catch (error) {
-          console.log('Error in fetching expense data for approval:', error.message);
-          setIsUploading(false)
-          setActive(prevState => ({...prevState,saveLineItem:false}))
-          setLoadingErrorMsg(error.message);
+//         } catch (error) {
+//           console.log('Error in fetching expense data for approval:', error.message);
+//           setIsUploading(false)
+//           setActive(prevState => ({...prevState,saveLineItem:false}))
+//           setLoadingErrorMsg(error.message);
         
-          setTimeout(() => {setLoadingErrorMsg(null);setIsLoading(false)},5000);
-        }}
+//           setTimeout(() => {setLoadingErrorMsg(null);setIsLoading(false)},5000);
+//         }}
  
 
-        // Clear the selected file and reset the form data
-        setSelectedFile(null);
-        setIsFileSelected(false);
-        // setFormDataValues({});
-      };
+//         // Clear the selected file and reset the form data
+//         setSelectedFile(null);
+//         setIsFileSelected(false);
+//         // setFormDataValues({});
+//       };
+
+const handleSaveLineItem = async (action) => {
+  console.log('line item action',action)
+  let allowForm = true;
+
+  // Reset error messages
+  const newErrorMsg = {
+    currencyFlag: { set: false, msg: "" },
+    totalAmount: { set: false, msg: "" },
+    personalAmount: { set: false, msg: "" },
+    data: { set: false, msg: "" },
+    expenseSettlement: { set: false, msg: "" },
+    allocations: { set: false, msg: "" },
+    category: { set: false, msg: "" },
+    conversion: { set: false, msg: "" },
+    date: { set: false, msg: "" }
+  };
+
+  // Check total amount keys
+  for (const key of totalAmountKeys) {
+    if (formData.fields[key] === "") {
+      newErrorMsg.conversion = { set: true, msg: `${key} cannot be empty` };
+      allowForm = false;
+    }
+  }
+
+  // Check date keys
+  for (const key of dateKeys) {
+    if (formData.fields[key] === "") {
+      newErrorMsg.date = { set: true, msg: `${key} cannot be empty` };
+      allowForm = false;
+    }
+  }
+
+  // Check if Class is empty
+  for (const key of isClassField) {
+    if (formData.fields[key] === "") {
+      newErrorMsg.class = { set: true, msg: "Class cannot be empty" };
+      allowForm = false;
+    }
+  }
+
+  
+  
+
+  // Validate allocations
+  for (const allocation of selectedAllocations) {
+    if (allocation.headerValue.trim() === '') {
+      newErrorMsg[allocation.headerName] = { set: true, msg: "Select the Allocation" };
+      allowForm = false;
+    }
+  }
+
+  
+
+  // Set the error messages only if there are any errors
+  setErrorMsg(newErrorMsg);
+
+  if (allowForm) {
+    // No errors, proceed with the save operation
+    setIsUploading((prev) => ({ ...prev, [action]: { set: true, msg: "" } }));
+    const params = {tenantId,empId,expenseHeaderId:requiredObj.expenseHeaderId}
+    const payload = {
+      "companyName":requiredObj?.companyName,
+      "createdBy": requiredObj?.createdBy,
+      "expenseHeaderNumber":requiredObj?.expenseHeaderNumber,
+      "defaultCurrency": requiredObj?.defaultCurrency,
+      "lineItem": {
+        ...formData.fields,
+        ...(requiredObj.level === 'level3' ? { allocations: selectedAllocations } : {})
+      }
+    };
+    
+    // If level is not 'level3', move selectedAllocations to allocations
+    if (requiredObj.level !== 'level3') {
+      payload.allocations = selectedAllocations;
+    }
+
+    try {
+      const response = await postNonTravelExpenseLineItemApi(params,payload);
+      setIsUploading((prev) => ({ ...prev, [action]: { set: false, msg: "" } }));
+      setShowPopup(true);
+      setMessage(response?.message);
+      setTimeout(() => {
+        setShowPopup(false);
+        setMessage(null);
+        switch(action) {
+          case "saveAndSubmit":
+            return 'add logic for modal open warning then submit';
+          case "saveAndNew":
+            return window.location.reload(); // Reload the page
+          default:
+            break;
+        }
+        
+        
+      }, 5000);
+    } catch (error) {
+      setIsUploading((prev) => ({ ...prev, [action]: { set: false, msg: "" } }));
+      setMessage(error.message);
+      setShowPopup(true);
+      setTimeout(() => {
+        setShowPopup(false);
+      }, 3000);
+    }
+  }
+};
+
 
 
 /// Update Line Item
@@ -757,7 +956,7 @@ const handleUpdateLineItem = async (lineItem ,data,totalAmount,date) => {
   const lineItemId= lineItem.lineItemId;
   let allowForm = true
   const foundTotalAmtKey = totalAmountNames.find(key => Object.keys(lineItem).includes(key));
-  const expenseHeaderId1= expenseHeaderId || miscellaneousData?.expenseHeaderId
+  const expenseHeaderId1= expenseHeaderId || requiredObj?.expenseHeaderId
   console.log('update line item ',data ,lineItem)
   const data1 = {lineItem:data}
 
@@ -814,7 +1013,8 @@ if(allowForm){
     setMessage(response?.message)
    console.log('line item saved successfully',response?.message)
   //  const newLine = {...updatedFormData?.lineItem , lineItemId : response?.lineItemId}
-   setLineItemsData([...lineItemsData]);   
+   //setLineItemsData([...lineItemsData]);
+   setRequiredObj(prev => ({...prev, "expenseLines": [...requiredObj]})) 
    setIsUploading(false)
    setActive(prevState => ({ ...prevState, saveLineItem: false }));
    setShowForm(false)
@@ -833,15 +1033,52 @@ if(allowForm){
   setSelectedFile(null);
   setIsFileSelected(false);
   setFormDataValues({});
-};      
+};     
+
+const handleCurrencyConversion = async ( ) => { 
+  let allowForm = true;
+  
+  if (currencyConversion.payload.totalAmount==="" || currencyConversion.payload.totalAmount===undefined){
+    setErrorMsg((prevErrors) => ({ ...prevErrors, conversion: { set: true, msg: "Enter the amount" } }));
+    allowForm = false;
+  } else {
+    setErrorMsg((prevErrors) => ({ ...prevErrors, conversion: { set: false, msg: "" } }));
+  }
 
 
+  if (allowForm) {
+    ///api 
+    setErrorMsg((prev) => ({ ...prev, conversion: { set: false, msg: "" } }));
+    setIsUploading(prev=>({...prev,conversion:{set:true,msg:'fetching exchange rates...'}}))
+        try {
+         
+          const response = await postMultiCurrencyForNonTravelExpenseApi(tenantId,currencyConversion.payload);
+          if(response.currencyConverterData.currencyFlag){
+            setCurrencyConversion(prev=>({...prev,response:response.currencyConverterData}))
+          }else{
+            setErrorMsg((prev) => ({ ...prev, conversion: { set: true, msg: "Exchange rates not available. Kindly contact your administrator." } }));
+          }
+          setIsUploading(prev=>({...prev,conversion:{set:false,msg:''}}))
+        } catch (error) {
+          console.log('Error in fetching expense data for approval:', error.message);
+          setIsUploading(prev=>({...prev,conversion:{set:false,msg:''}}))
+          setShowPopup(true)
+          setMessage(error.message);
+          setTimeout(() => {setMessage(null);setShowPopup(false)},5000);
+        }
+  }
+};
+
+const handleDashboardRedirection=()=>{
+  console.log(dashboardBaseUrl)
+  window.parent.postMessage('closeIframe', dashboardBaseUrl);
+}
 
 /// Submit Expense || Draft Expense || Delete
       const handleSubmitOrDraft = async(action)=>{
         
         
-        const expenseHeaderId1= expenseHeaderId || miscellaneousData?.expenseHeaderId ||expenseDataByGet?.expenseHeaderId
+        const expenseHeaderId1= expenseHeaderId || requiredObj?.expenseHeaderId 
        let api ;
        if(action === "submit") {
         api =submitNonTravelExpenseApi(tenantId,empId,expenseHeaderId1)
@@ -862,7 +1099,8 @@ if(allowForm){
        setTimeout(() => {setShowPopup(false);setMessage(null)
         if(action === "submit" ||action === "delete" ){
           // sessionStorage.removeItem("expenseHeaderId")
-          urlRedirection(`${DASHBOARD_URL}/expense`)}
+          handleDashboardRedirection()
+        }
 
           else{
             window.location.reload()
@@ -884,15 +1122,15 @@ if(allowForm){
         }
        }
 
-       const handleCurrency = (value)=>{
-        const selectedCurrencyObject = currencyDropdown.find(currency => currency.shortName === value);
-        setSelectedCurrency(selectedCurrencyObject)
+      //  const handleCurrency = (value)=>{
+      //   const selectedCurrencyObject = currencyDropdown.find(currency => currency.shortName === value);
+      //   setSelectedCurrency(selectedCurrencyObject)
 
-        if(value === defaultCurrency?.shortName){
-          setCurrencyTableData(null)
-        }
+      //   if(value === requiredObj?.defaultCurrency?.shortName){
+      //     setCurrencyTableData(null)
+      //   }
         
-       }
+      //  }
 
 
       const [ocrFileSelected , setOcrFileSelected]=useState(false)
@@ -1003,8 +1241,8 @@ if(allowForm){
             api = await getCategoryFormElementApi(tenantId,empId,option)
           }
           const response = api
-          setMiscellaneousData(response || {})
-          setDefaultCurrency(response?.defaultCurrency)
+          //setMiscellaneousData(response || {})
+          //setDefaultCurrency(response?.defaultCurrency)
           //setCategoryElement(response?.fields || [])
           setExpenseLineAllocation(response?.newExpenseAllocation) || []
           const allocation1 = response?.newExpenseAllocation
@@ -1014,14 +1252,21 @@ if(allowForm){
           }));
 
           console.log('intial allocation', initialExpenseAllocation)
-  
+          const travelAllocationFlag = allocationLevel(response?.travelAllocationFlags)
+          sessionStorage.setItem('sessionExpenseHeaderId', (response?.expenseHeaderId ?? null));
+
           setRequiredObj(prev => ({...prev,
+            "companyName":response?.companyName,
             "defaultCurrency":response?.defaultCurrency,
             "fields":response?.fields || [],
+            "class":response?.class || [],
             "expenseHeaderId":response?.expenseHeaderId ?? null,
             "expenseHeaderNumber":response?.expenseHeaderNumber,
+            "createdBy":response?.createdBy,
             "category":response?.categoryName,
-            "groupLimit":response?.group || {}
+            "groupLimit":response?.group || {},
+            "allocation":response?.newExpenseAllocation || [],
+            "level":travelAllocationFlag
           }))
   
           setSelectedAllocations(initialExpenseAllocation) 
@@ -1031,11 +1276,9 @@ if(allowForm){
           setIsUploading(false);
           setActive(false)
           console.log('expense data for approval fetched.',response);
-
           let updatedFields = initializenonTravelFormFields(response?.fields, {
-            defaultCurrency: requiredObj.defaultCurrency || "", // or any other logic to set default values
-            travelType: requiredObj.travelType || "",
-            categoryName: option.categoryName || "",
+            "defaultCurrency": response.defaultCurrency || "", // or any other logic to set default values
+            categoryName: option || "",
             group:response?.group || {}
           });
           
@@ -1063,50 +1306,45 @@ if(allowForm){
       
 
       };
+      const handleAllocations = (headerName, headerValue) => {
+        console.log('allocation handle', headerName, headerValue);
+      
+        const updatedExpenseAllocation = selectedAllocations.map(item => {
+          if (item.headerName === headerName) {
+            return {
+              ...item,
+              headerValue: headerValue
+            };
+          }
+          return item;
+        });
+      
+        // Assuming `setSelectedAllocations` is updating the `allocations` key in the state
+        setSelectedAllocations(updatedExpenseAllocation)
+        
+      };
 
     console.log('required object', requiredObj) 
     console.log('form data', formData) 
 
   return (
     <div>
-        {isLoading && <Error message={loadingErrorMsg}/>}
-        {!isLoading  && 
-        <div className="w-full h-full relative bg-white  py-12     ">
+        {isLoading ? <Error message={loadingErrorMsg}/> :
+        <>
+     
         
       
        
 
-        {/* Rest of the section */}
-        <div className="w-full h-full xl:px-32 lg:px-16 md:px-4 px-4  font-cabin tracking-tight">
-        <div className='inline-flex p-2 gap-2 border-[1px] w-full rounded-md border-indigo-600 bg-indigo-50'> 
+      
+        <div className="w-full h-full  font-cabin tracking-tight">
+          <div className='p-4'>
+        <div className='inline-flex p-2 gap-2 border-[1px] w-full  border-indigo-600 bg-indigo-50'> 
         <img src={validation_sym} width={16} height={16} alt='validation'/> 
-        <span className='text-indigo-600'> If required category are unavailable, please contact the administrator.</span>
+        <span className='text-indigo-600'> 
+If the required category is unavailable, Kindly contact the administrator.</span>
         </div>           
         <div className="flex flex-col lg:flex-row justify-between  items-center lg:items-end my-5 gap-2">
-        {/* {categoryList?.length >=0  &&miscellaneousData?.categoryName ==  undefined&& */}
-         {/* <div className='  inline-flex gap-4'>
-         <div className="h-[48px] w-[200px]">
-
-       <Select
-           title="Category"
-           placeholder="Select Category"
-           options={categoryList || []}
-           currentOption={categoryList && categoryList[0]}
-           // violationMessage="Your violation message" 
-           // error={{ set: true, message: "Your error message" }} 
-           required={true} 
-           submitAttempted={false}
-           icon={chevron_down}
-           onSelect={(value)=>setSelectedCategory(value)}
-           />
-          
- 
-           </div>
- 
-           <div className='mt-7'>
-             <Button1 loading={isUploading} active={active} text="Generate" onClick={()=>handleGenerateExpense(selectedCategory)} disabled={!selectedCategory}/>
-           </div>
-       </div> */}
 <div className='flex md:flex-row flex-col items-start gap-2'> 
 <div className='relative flex flex-col h-[73px] justify-start item-start gap-2'>
       <div className="text-zinc-600 text-sm font-cabin select-none mt-2">Categories</div>
@@ -1140,42 +1378,37 @@ if(allowForm){
       {/* //  }   */}
        
 
-{lineItemsData.length!=0 &&
-  <div className="flex gap-4">
-                    {cancel ?
-                    (<div className="flex  flex-row-reverse">
-                    <Button variant='fit' text='Cancel' onClick={()=>{setShowModal(true);setAction("delete")}}/>
-                   </div>):
-                    (<>
-                    {expenseDataByGet?.expenseHeaderStatus !== 'pending settlement'  &&
-                    <>
-                     <div className="flex  flex-row-reverse">
-                     <Button text='Save as Draft' onClick={()=>{handleSubmitOrDraft("save as draft")}}/>
-                    </div>
-                   
-                    <div className="flex  flex-row-reverse">
-                    <Button variant='fit' text='Submit' onClick={()=>{handleSubmitOrDraft("submit")}}/>
-                   </div>
-                   </>}
-                   </>)}                                 
-</div>
-} 
+{requiredObj?.expenseLines?.length > 0 && (
+  <div className="flex gap-2">
+    {requiredObj?.expenseHeaderStatus !== 'pending settlement' && (
+      <>
+        <Button1 variant="fit" text="Submit" onClick={() => handleSubmitOrDraft("submit")} />
+        <Button1 text="Save as Draft" onClick={() => handleSubmitOrDraft("save as draft")} />
+      </>
+    )}
+    <CancelButton variant="fit" text="Cancel" onClick={() => { setModalOpen(true); setAction("delete"); }} />
+  </div>
+)}
 
-            </div>
-           
-        
-            <hr/>
-            <HeaderComponent headerDetails={headerDetails} miscellaneousData={ miscellaneousData} expenseDataByGet={expenseDataByGet && expenseDataByGet}/>
-           
-     <hr/>
+
+        </div>
+        <HeaderComponent 
+        createdBy={requiredObj?.createdBy}
+        expenseHeaderNumber={requiredObj?.expenseHeaderNumber}
+        expenseHeaderStatus={requiredObj?.expenseHeaderStatus}
+        defaultCurrency={requiredObj?.defaultCurrency}
+  
+        />
+        </div>
+    
      {/* {categoryElement.length>0 && <div className="w-fit my-5" >
            <AddMore text={"Add Line Item"} onClick={()=>handleOpenModal('form')}/>
      </div>} */}
     
 
 {/* //----------- edit line item--start---------------------- */}
-
-{lineItemsData && lineItemsData?.map((lineItem , index)=>(
+<div className=''>
+{(requiredObj?.expenseLines)?.map((lineItem , index)=>(
    (lineItem.lineItemId === selectedLineItemId && requiredObj?.fields.length>0) ?
    
  <React.Fragment key={index}>
@@ -1194,24 +1427,25 @@ if(allowForm){
    key={index}
    lineItem={lineItem}
    handleSave={(updatedData) => handleSaveLineItem(updatedData, index)}
-   defaultCurrency={defaultCurrency}
+   defaultCurrency={requiredObj?.defaultCurrency}
    handleConverter={handleConverter}/>
 
  </React.Fragment>
    :
 <>
-<div className='flex flex-col lg:flex-row border mb-4'>
-  <div className='w-full lg:w-1/2 border'>
+<div className='w-full flex flex-col lg:flex-row h-screen px-4 '>
+  <div className='w-full lg:w-3/5 h-full '>
     <DocumentPreview initialFile={lineItem.Document}/>
   </div>
-  <div className='w-full lg:w-1/2 border h-full' key={index}>  
-     <div className=' h-[710px]'>
-     <EditComponent index={index} lineItem={lineItem} handleEdit={handleEdit} isUploading={isUploading} active={active} handleDelete={handleDelete}/>
+  <div className='w-full lg:w-2/5 h-full' key={index}>  
+     <div className=''>
+     <LineItemView index={index} lineItem={lineItem} handleEdit={handleEdit} isUploading={isUploading} active={active} handleDelete={handleDelete}/>
      </div> 
   </div>
-  </div> 
+</div> 
 </>  
    ))}
+</div>   
  
 
 
@@ -1226,166 +1460,156 @@ if(allowForm){
 {/* //---------save line item form----------------------- */}
 
 {showForm &&
-<div className='flex flex-col lg:flex-row border  mt-4'>
-  <div className='w-full lg:w-1/2 border h-full flex justify-center items-center '>
-  {/* <div className=' border-[5px] min-w-[100%] h-fit min-h-[713px] flex justify-center items-center'>
-    {selectedFile ? 
-    (
-        <div className="w-full  flex flex-col justify-center">
-          <p>Selected File: {selectedFile.name}</p>
-          
-          {selectedFile.type.startsWith('image/') ? (
-            
-            <img
-              src={URL.createObjectURL(selectedFile)}
-              alt="Preview"
-              className=' h-[700px] w-full'
-              
-            />
-          ) : selectedFile.type === 'application/pdf' ? (
-            <embed
-              src={URL.createObjectURL(selectedFile)}
-              type="application/pdf"
-              width="100%"
-              height="700px"
-            />
-          ) : (
-            <p>Preview not available for this file type.</p>
-          )}
-        </div>
-      ) : 
-       <div className='w-full  flex justify-center items-center bg-white opacity-30'>
-        <img src={file_icon} className='w-40 h-40'/>
-      </div>
-      }
-    </div> */}
-  <DocumentPreview selectedFile={ocrSelectedFile ||selectedFile}/>
+<div id='newLineItem' className='w-full border flex flex-col md:flex-row relative border-t-2 border-slate-300 h-screen p-4 pb-16 '>
+<div className='w-full md:w-3/5 md:block hidden h-full overflow-auto'>
+    <DocumentPreview isFileSelected={isFileSelected} setIsFileSelected={setIsFileSelected} selectedFile={selectedFile} setSelectedFile={setSelectedFile} initialFile=""/>
   </div>
-  <div className='w-full lg:w-1/2 border lg:h-[710px] overflow-y-auto scrollbar-hide'>
-  {showForm &&
-  <> 
-  <div className="w-full flex items-center justify-start h-[52px] border-slate-500 border-dashed border-b-[1px] px-4 ">
-      <p className="text-zinc-600 text-medium font-semibold font-cabin capitalize">   Category -{selectedCategory}</p>
+  <div className='w-full md:w-2/5 h-full overflow-auto'>
+  
+  <LineItemForm 
+  categoryName={requiredObj.category}
+  setErrorMsg={setErrorMsg} 
+  isUploading={isUploading}
+  defaultCurrency={requiredObj.defaultCurrency}
+  setCurrencyConversion={setCurrencyConversion}
+  handleCurrencyConversion={handleCurrencyConversion}
+  setFormData={setFormData}
+  formData={formData.fields}
+  handleAllocations={handleAllocations}
+  allocationsList={requiredObj.allocation}
+  errorMsg={errorMsg}
+  onboardingLevel={requiredObj.level}
+  lineItemDetails={formData.fields}
+  categoryFields={requiredObj?.fields}
+  classOptions={requiredObj?.class}
+  />
+
+{/* //   <> 
+//   <div className="w-full flex items-center justify-start h-[52px] border-slate-500 border-dashed border-b-[1px] px-4 ">
+//       <p className="text-zinc-600 text-medium font-semibold font-cabin capitalize">   Category -{selectedCategory}</p>
+//     </div>
+          
+// <div  className="w-full  flex flex-wrap items-start justify-between  px-2">
+//   {expenseLineAllocation?.length>0 && expenseLineAllocation?.map((allItem , allIndex )=>(
+//     <div className='w-full px-2 flex justify-center py-2' key={allIndex}>
+//     <Select
+//     error={errorMsg[allItem?.headerName]}
+//     title={titleCase(allItem.headerName ?? "")}
+//     options={allItem.headerValues}
+//     placeholder='Select Allocations'
+//     onSelect={(value)=>onAllocationSelection(value,allItem.headerName)}/>  
+//     </div> 
+//   ))}
+
+// {requiredObj.fields && (requiredObj.fields)?.map((element, index) => {
+//     return (
+// <React.Fragment key={index}>
+//  <div className='h-[73px] my-2'>        
+//     <Input 
+//       placeholder={titleCase(`Enter ${element.name}`)}
+//       initialValue={formDataValues[element.name]}
+//       // initialValue={ocrValue[element.name]}
+//       title={element.name}
+//       // error={totalAmountNames.includes(element?.name)? errorMsg.totalAmount : null}
+//       error={(totalAmountNames.includes(element?.name) && errorMsg.totalAmount) || (dateForms.includes(element?.name) && errorMsg.dateErr )}
+//       // error={element.name === "Total Amount" || element.name === "Total Fare" ? errorMsg.totalAmount : null}
+//       type={element.type === 'date' ? 'date' : element.type === 'amount' ? 'number' : 'text'}
+//       onChange={(value) => handleInputChange(element.name,value)}
+//     />
+// </div>  
+// </React.Fragment>);
+//   })}
+// </div>  
+
+// <div className='flex flex-col px-2 py-2 justify-between'>
+//   <div className={`flex justify-between ${currencyTableData?.message !== undefined ? 'md:flex-col' : 'md:flex-row'}   flex-col`}>
+// <div className='flex flex-row items-center'>
+// <div className="h-[48px] w-[100px]  mb-10 mr-28 mt-[-10px] ">
+//            <Select
+//            currentOption={defaultCurrency?.shortName}
+//            title="Currency"
+//            error={errorMsg.currencyFlag}
+//            placeholder="Select Currency"
+//            options={currencyDropdown.map(item=>item.shortName)}
+//            onSelect={(value)=>{handleCurrency(value)}}
+//            />
+// </div>
+
+
+// <div className='w-fit' >
+// { selectedCurrency == null || selectedCurrency?.shortName !== defaultCurrency?.shortName &&
+
+
+// <ActionButton disabled={active?.convert} loading={active?.convert} active={active.convert} text='Convert' onClick={()=>handleConverter(totalAmount , selectedCurrency)}/>
+
+// }
+// </div>
+
+// </div>
+
+
+
+// </div>
+// <div >
+// {currencyTableData?.currencyFlag  ? 
+// <div className=''>
+// <div className="min-w-[200px] w-full  h-auto flex-col justify-start items-start gap-2 inline-flex mb-3">
+// <div className="text-zinc-600 text-sm font-cabin">Coverted Amount Details :</div>
+// <div className="text-neutral-700 w-full h-full text-sm font-normal font-cabin  ">
+//   <div className="w-full h-full decoration:none  rounded-md border placeholder:text-zinc-400 border-neutral-300 focus-visible:outline-0 focus-visible:border-indigo-600">
+//     <div className={`sm:px-6 px-4  py-2  flex sm:flex-row flex-col  sm:items-center items-start justify-between  min-h-12 bg-slate-100  border rounded-md`}>
+//       <div className="text-[16px] font-semibold text-neutral-600">Total Amount </div> 
+//       <div className="text-neutral-600 font-cabin">{currencyTableData?.convertedCurrency} {currencyTableData?.convertedAmount.toFixed(2)}</div>
+//   </div>
+//   </div>
+// </div>
+// </div>
+// </div> 
+
+// //--------
+//   : 
+//   currencyTableData?.message !== undefined &&
+//   <div className=' flex   items-center justify-center gap-2 border-[1px] px-4 py-2 rounded border-yellow-600  text-yellow-600'>
+//     <img src={validation_symb_icon} className='w-5 h-5'/>
+//   <h2 className=''>{currencyTableData?.message}</h2>
+//   </div>
+// }
+// </div>
+
+
+// <div className='flex w-fit mb-4'>
+//   <Select 
+//   //currentOption={defaultCurrency}
+//    title="Mode of Payment"
+//    name="mode of payment"
+//    placeholder="Select MOD"
+//    options={['Credit Card',"Cash",'Debit Card','NEFT']}
+//    onSelect={(value)=>{setFormDataValues({...formDataValues,['Mode of Payment']:value})}}/>
+// </div>
+// <div className="w-full   flex items-center justify-center border-slate-500">
+// <Upload 
+//   selectedFile={selectedFile}
+//   setSelectedFile={setSelectedFile}
+//   isFileSelected={isFileSelected}
+//   setIsFileSelected={setIsFileSelected}
+// />
+// </div>
+// </div>         
+// <div className="w-full px-2 py-2 border-t-[1px] border-dashed border-slate-500">
+//   <Button 
+//    disabled={isUploading} 
+//    loading={isUploading} 
+//    active={active.saveLineItem}
+//    text="Save" onClick={handleSaveLineItem} />
+// </div>
+// </>    */}
+
+
+</div>
+<div className='absolute -left-4 mx-4 inset-x-0 w-full  z-20 bg-slate-100   h-16 border border-slate-300 bottom-0'>
+      <ActionBoard handleClick={handleSaveLineItem} isUploading={isUploading} setModalOpen={setModalOpen} setActionType={setActionType}/>
     </div>
-          
-<div  className="w-full  flex flex-wrap items-start justify-between  px-2">
-  {expenseLineAllocation?.length>0 && expenseLineAllocation?.map((allItem , allIndex )=>(
-    <div className='w-full px-2 flex justify-center py-2' key={allIndex}>
-    <Select
-    error={errorMsg[allItem?.headerName]}
-    title={titleCase(allItem.headerName ?? "")}
-    options={allItem.headerValues}
-    placeholder='Select Allocations'
-    onSelect={(value)=>onAllocationSelection(value,allItem.headerName)}/>  
-    </div> 
-  ))}
-
-{requiredObj.fields && (requiredObj.fields)?.map((element, index) => {
-    return (
-<React.Fragment key={index}>
- <div className='h-[73px] my-2'>        
-    <Input 
-      placeholder={titleCase(`Enter ${element.name}`)}
-      initialValue={formDataValues[element.name]}
-      // initialValue={ocrValue[element.name]}
-      title={element.name}
-      // error={totalAmountNames.includes(element?.name)? errorMsg.totalAmount : null}
-      error={(totalAmountNames.includes(element?.name) && errorMsg.totalAmount) || (dateForms.includes(element?.name) && errorMsg.dateErr )}
-      // error={element.name === "Total Amount" || element.name === "Total Fare" ? errorMsg.totalAmount : null}
-      type={element.type === 'date' ? 'date' : element.type === 'amount' ? 'number' : 'text'}
-      onChange={(value) => handleInputChange(element.name,value)}
-    />
-</div>  
-</React.Fragment>);
-  })}
-</div>  
-
-<div className='flex flex-col px-2 py-2 justify-between'>
-  <div className={`flex justify-between ${currencyTableData?.message !== undefined ? 'md:flex-col' : 'md:flex-row'}   flex-col`}>
-<div className='flex flex-row items-center'>
-<div className="h-[48px] w-[100px]  mb-10 mr-28 mt-[-10px] ">
-           <Select
-           currentOption={defaultCurrency?.shortName}
-           title="Currency"
-           error={errorMsg.currencyFlag}
-           placeholder="Select Currency"
-           options={currencyDropdown.map(item=>item.shortName)}
-           onSelect={(value)=>{handleCurrency(value)}}
-           />
-</div>
-
-
-<div className='w-fit' >
-{ selectedCurrency == null || selectedCurrency?.shortName !== defaultCurrency?.shortName &&
-
-
-<ActionButton disabled={active?.convert} loading={active?.convert} active={active.convert} text='Convert' onClick={()=>handleConverter(totalAmount , selectedCurrency)}/>
-
-}
-</div>
-
-</div>
-
-
-
-</div>
-<div >
-{currencyTableData?.currencyFlag  ? 
-<div className=''>
-<div className="min-w-[200px] w-full  h-auto flex-col justify-start items-start gap-2 inline-flex mb-3">
-<div className="text-zinc-600 text-sm font-cabin">Coverted Amount Details :</div>
-<div className="text-neutral-700 w-full h-full text-sm font-normal font-cabin  ">
-  <div className="w-full h-full decoration:none  rounded-md border placeholder:text-zinc-400 border-neutral-300 focus-visible:outline-0 focus-visible:border-indigo-600">
-    <div className={`sm:px-6 px-4  py-2  flex sm:flex-row flex-col  sm:items-center items-start justify-between  min-h-12 bg-slate-100  border rounded-md`}>
-      <div className="text-[16px] font-semibold text-neutral-600">Total Amount </div> 
-      <div className="text-neutral-600 font-cabin">{currencyTableData?.convertedCurrency} {currencyTableData?.convertedAmount.toFixed(2)}</div>
-  </div>
-  </div>
-</div>
-</div>
-</div> 
-
-//--------
-  : 
-  currencyTableData?.message !== undefined &&
-  <div className=' flex   items-center justify-center gap-2 border-[1px] px-4 py-2 rounded border-yellow-600  text-yellow-600'>
-    <img src={validation_symb_icon} className='w-5 h-5'/>
-  <h2 className=''>{currencyTableData?.message}</h2>
-  </div>
-}
-</div>
-
-
-<div className='flex w-fit mb-4'>
-  <Select 
-  //currentOption={defaultCurrency}
-   title="Mode of Payment"
-   name="mode of payment"
-   placeholder="Select MOD"
-   options={['Credit Card',"Cash",'Debit Card','NEFT']}
-   onSelect={(value)=>{setFormDataValues({...formDataValues,['Mode of Payment']:value})}}/>
-</div>
-<div className="w-full   flex items-center justify-center border-slate-500">
-<Upload 
-  selectedFile={selectedFile}
-  setSelectedFile={setSelectedFile}
-  isFileSelected={isFileSelected}
-  setIsFileSelected={setIsFileSelected}
-/>
-</div>
-</div>         
-<div className="w-full px-2 py-2 border-t-[1px] border-dashed border-slate-500">
-  <Button 
-   disabled={isUploading} 
-   loading={isUploading} 
-   active={active.saveLineItem}
-   text="Save" onClick={handleSaveLineItem} />
-</div>
-</>   
-}
-</div>
 </div>}
-
 
 {/* //---------save line item form end----------------------- */}
 
@@ -1409,7 +1633,7 @@ if(allowForm){
                 </div>
             }
 
-{openModal==='upload' && <div className="fixed overflow-hidden max-h-4/5 flex justify-center items-center inset-0 backdrop-blur-sm w-full h-full left-0 top-0 bg-gray-800/60 scroll-none " >
+{/* {openModal==='upload' && <div className="fixed overflow-hidden max-h-4/5 flex justify-center items-center inset-0 backdrop-blur-sm w-full h-full left-0 top-0 bg-gray-800/60 scroll-none " >
                 <div className='z-10  md:w-3/5 w-full mx-8  min-h-4/5 max-h-4/5 scroll-none bg-white  rounded-lg shadow-md'>
                 <div onClick={()=>{setOpenModal(null);setOcrSelectedFile(null);setOcrFileSelected(false);setSelectedCategory(null)}} className=' w-10 h-10 flex justify-center items-center float-right  mr-5 mt-5 hover:bg-red-300 rounded-full'>
                       <img src={cancel_icon} className='w-8 h-8'/>
@@ -1427,8 +1651,8 @@ if(allowForm){
                         <div className={` w-fit`}>
                         <Button disabled={isUploading}  text='reupload' onClick={()=>{setOcrFileSelected(false);setOcrSelectedFile(null)}}/>
                         </div>
-                        {/* <p>Size: {selectedFile.size} bytes</p>
-                        <p>Last Modified: {selectedFile.lastModifiedDate.toString()}</p> */}
+                        <p>Size: {selectedFile.size} bytes</p>
+                        <p>Last Modified: {selectedFile.lastModifiedDate.toString()}</p>
                         <div className="w-full  px-4 h-[500px]">
                         {ocrSelectedFile.type.startsWith('image/') ? (
                           
@@ -1474,19 +1698,21 @@ if(allowForm){
                     </div>
                 </div>
                 </div>
-            }
+            } */}
            
         </div>
         
        
-        </div>
-      }
+        
+        </>
+         }
+      
       <PopupMessage showPopup={showPopup} setShowPopup={setShowPopup} message={message}/>
 
       <Modal 
       skipable={true}
-      showModal={showModal} 
-      setShowModal={setShowModal}
+      modalOpen={modalOpen} 
+      setModalOpen={setModalOpen}
       handleConfirm={handleSubmitOrDraft} 
       handleModalVisible={handleModalVisible}
       content={<div> Are you sure about deleting it? </div>}/>
@@ -1497,101 +1723,72 @@ if(allowForm){
 export default CreateNonTraveExpense
 
 
-function EditComponent({index, lineItem, handleEdit ,handleDelete,isUploading,active}) {
-  const excludedKeys = ['Category Name','expenseLineId','Currency', 'Document', 'expenseLineAllocation', 'multiCurrencyDetails', 'lineItemStatus','lineItemId', '_id'];
-  const includedKeys =['Total Fair','Total Fare','Total Amount',  'Subscription Cost', 'Cost', 'Premium Cost'];
-  
+function LineItemView({ index, lineItem, handleEdit, handleDelete, isUploading, active }) {
+  const excludedKeys = ['isMultiCurrency', 'Category Name', 'expenseLineId', 'Currency', 'billImageUrl', 'group', 'expenseLineAllocation', 'multiCurrencyDetails', 'lineItemStatus', 'lineItemId', '_id'];
+
   return (
-    <>
-    <div className='flex flex-col  justify-between  h-[710px] overflow-y-auto scrollbar-hide'>
-    <div className="w-full flex justify-between items-center h-12  px-4 border-dashed border-b-[1px] border-slate-500 py-4">
-      <p className="text-zinc-600 text-medium font-semibold font-cabin">Sr. {index + 1} </p>
-      <p className="text-zinc-600 text-medium font-semibold font-cabin capitalize">   Category -{lineItem?.['Category Name']}</p>
-    </div>  
-    <div className=''>
-     <div className=" px-4 py-2">
-     {lineItem?.expenseLineAllocation &&
-        lineItem?.expenseLineAllocation?.map((allocation, index) => (
-          <div key={index} className="min-w-[200px] min-h-[52px] ">
+    <div className="flex flex-col justify-between h-screen overflow-y-auto scrollbar-hide ">
+      <div className="sticky top-0 bg-white z-20 w-full flex items-center h-12 px-4 border-dashed  border-y border-slate-300 py-4">
+        <div className="flex items-center justify-center gap-2">
+          <div className="bg-slate-100 p-2 rounded-full">
+            <img src={categoryIcons[lineItem?.['Category Name']]} className="w-4 h-4 rounded-full" />
+          </div>
+          <p>{index + 1}. {lineItem?.['Category Name']}</p>
+        </div>
+      </div>
+
+      <div className="px-4">
+        {lineItem?.expenseLineAllocation?.map((allocation, i) => (
+          <div key={i} className="w-full min-h-[52px]">
             <div className="text-zinc-600 text-sm font-cabin capitalize">{allocation.headerName}</div>
-            <div className="w-full h-12 bg-white items-center flex border border-neutral-300 rounded-md">
-              <div>
-                <div className="text-neutral-700 w-full h-full text-sm font-normal font-cabin px-6 py-2">
-                  {allocation.headerValue}
+            <div className="w-full h-12 bg-white flex items-center border border-neutral-300 rounded-md">
+              <div className="text-neutral-700 w-full h-full text-sm font-cabin px-6 py-2">{allocation.headerValue}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="w-full flex flex-col items-start py-4 px-4 gap-y-4">
+        {Object.entries(lineItem).map(([key, value]) => (
+          !excludedKeys.includes(key) && (
+            <div key={key} className="w-full min-h-[52px]">
+              {key !== 'Currency' && <div className="text-zinc-600 text-sm font-cabin">{titleCase(key)}</div>}
+              <div className="w-full h-[48px] bg-white flex items-center border border-neutral-300 rounded-md">
+                <div className="text-neutral-700 w-full h-10 text-sm font-cabin px-6 py-2">
+                  {totalAmountKeys.includes(key)
+                    ? `${lineItem['Currency']?.shortName} ${value}`
+                    : `${key === 'group' ? value?.group : value}`}
+                </div>
+              </div>
+              {totalAmountKeys.includes(key) && (lineItem?.multiCurrencyDetails?.convertedAmount > (lineItem?.group?.limit || 0)) && (
+                <div className="w-[200px] text-xs text-yellow-600 font-cabin line-clamp-2">{lineItem?.group?.message}</div>
+              )}
+            </div>
+          )
+        ))}
+
+        {lineItem?.multiCurrencyDetails && (
+          <div className="px-4 mb-3">
+            <div className="min-w-[200px] w-full h-auto flex flex-col gap-2">
+              <div className="text-zinc-600 text-sm font-cabin">Converted Amount Details:</div>
+              <div className="w-full h-full text-sm font-cabin border border-neutral-300 rounded-md">
+                <div className="sm:px-6 px-4 py-2 flex sm:flex-row flex-col justify-between bg-slate-100 rounded-md">
+                  <div className="text-[16px] font-semibold text-neutral-600">Total Amount</div>
+                  <div className="text-neutral-600">{lineItem?.multiCurrencyDetails?.defaultCurrency} {lineItem?.multiCurrencyDetails?.convertedAmount?.toFixed(2)}</div>
                 </div>
               </div>
             </div>
-
-          </div> 
-        ))}
-     </div>
-      <div className="w-full  flex flex-wrap items-start justify-between py-4 px-4 gap-y-4">
-         {/* Mapping lineItemAllocation */}
-        
-      
-    
-   
-{Object.entries(lineItem).map(([key, value]) => (
-  !excludedKeys.includes(key) && (
-    <React.Fragment key={key}>
-      <div className='min-w-[200px] min-h-[52px] relative '>
-        {key !== 'Currency' && (
-          <div className="text-zinc-600 text-sm font-cabin">
-            {titleCase(key)}
           </div>
         )}
-
-        {/* Div with border styling */}
-        <div className="w-full h-[48px]  items-center bg-white justify-start flex border border-neutral-300 rounded-md">
-          {/* Displaying key and value */}
-          <div key={key} className="text-neutral-700 w-full h-10 text-sm font-normal font-cabin px-6 py-2">
-            {includedKeys.includes(key) ? `${lineItem['Currency']?.shortName} ${value} ` : ` ${key === 'group' ? value?.group : value}`}
-          </div>
-        </div>
-        {includedKeys.includes(key) && ((lineItem?.multiCurrencyDetails?.convertedAmount || value) >( lineItem?.group?.limit || 0) ) && <div  className=" w-[200px] h-full line-clamp-2 text-xs text-yellow-600 font-cabin">{lineItem?.group?.message}</div>}
       </div>
-    </React.Fragment>
-  )
-))}
-</div>
-      <div>
-      {lineItem?.multiCurrencyDetails &&
-<div className='px-4'>
 
-<div className="min-w-[200px] w-full  h-auto flex-col justify-start items-start gap-2 inline-flex mb-3">
-<div className="text-zinc-600 text-sm font-cabin">Coverted Amount Details :</div>
-<div className="text-neutral-700 w-full h-full text-sm font-normal font-cabin  ">
-  <div className="w-full h-full decoration:none  rounded-md border placeholder:text-zinc-400 border-neutral-300 focus-visible:outline-0 focus-visible:border-indigo-600">
-    <div className={`sm:px-6 px-4  py-2  flex sm:flex-row flex-col  sm:items-center items-start justify-between  min-h-12 bg-slate-100  border rounded-md`}>
-      <div className="text-[16px] font-semibold text-neutral-600">Total Amount </div> 
-      <div className="text-neutral-600 font-cabin">{lineItem?.multiCurrencyDetails?.defaultCurrency} {lineItem?.multiCurrencyDetails?.convertedAmount?.toFixed(2)}</div>
-  </div>
-
-  </div>
-
-</div>
-
-
-</div>
-</div>}
-        </div>
-        </div>
- <div className='flex flex-row gap-4 items-center px-4 py-2 border-dashed border-slate-500 border-t-[1px] '>
-      <div className="w-fit">
-        <Button text="Edit" disabled={isUploading} loading={isUploading} active={(active?.edit?.id === lineItem?.lineItemId ? active?.edit?.visible : false)} onClick={() => handleEdit(lineItem?.lineItemId , lineItem?.['Category Name'])} />
+      <div className="sticky bottom-0 bg-white flex flex-row gap-4 items-center px-4 py-2 border-t border-t-slate-300 ">
+        <Button1 text="Edit" disabled={isUploading} loading={isUploading} active={active?.edit?.id === lineItem?.lineItemId && active?.edit?.visible} onClick={() => handleEdit(lineItem?.lineItemId, lineItem?.['Category Name'])} />
+        <Button1 text="Delete" disabled={isUploading} loading={isUploading} active={active?.delete?.id === lineItem?.lineItemId && active?.delete?.visible} onClick={() => handleDelete(lineItem?.lineItemId)} />
       </div>
-      <div className="w-fit  ">
-        <Button text="Delete"  disabled={isUploading} loading={isUploading} active={(active?.delete?.id === lineItem?.lineItemId ? active?.delete?.visible : false)} onClick={() => handleDelete(lineItem?.lineItemId)} />
-      </div>
-  </div>   
-  </div> 
-    </>
+    </div>
   );
 }
-
-
-
-
 
 
 
@@ -1715,11 +1912,11 @@ const lineItemData= {...editData}
 
   return (
    <>
- <div className='flex flex-col lg:flex-row border '>
-  <div className='w-full lg:w-1/2 border  flex justify-center items-center  '>
+ <div className='flex flex-col lg:flex-row h-f-full'>
+  <div className='w-full lg:w-3/5 border  flex justify-center items-center  '>
    <DocumentPreview selectedFile={selectedFile} initialFile={initialFile || ""} />
   </div>
-  <div className='w-full lg:w-1/2 border lg:h-[710px] overflow-y-auto scrollbar-hide'>     
+  <div className='w-full lg:w-2/5 border lg:h-[710px] overflow-y-auto scrollbar-hide'>     
   <div className="w-full flex justify-between items-center h-12  px-4 border-dashed border-b-[1px] border-slate-500 py-4">
       <p className="text-zinc-600 text-medium font-semibold font-cabin">Sr. {index +1} </p>
       <p className="text-zinc-600 text-medium font-semibold font-cabin capitalize">   Category -{lineItem?.['Category Name']}</p>
@@ -1869,87 +2066,75 @@ const lineItemData= {...editData}
 </div>
 
 </div>  
-
-
     </div>
       <div className="w-full px-4 py-2">
         <Button loading={isUploading}  active={active.saveLineItem} text="Update" onClick={()=>handleUpdateLineItem(lineItem, lineItemData,totalAmount,date)} />
       </div>
     </div>
 </div>
-    
       </>
    
   );
 }
+// function DocumentPreview({selectedFile , initialFile}){
 
 
-
-
-
-function DocumentPreview({selectedFile , initialFile}){
-
-
-  return(
-    <div className=' border-[5px] min-w-[100%] h-fit flex justify-center items-center'>
-    {selectedFile ? 
-    (
-        <div className="w-full  flex flex-col justify-center">
-          {/* <p>Selected File: {selectedFile.name}</p> */}
-          {/* <p>Size: {selectedFile.size} bytes</p>
-          <p>Last Modified: {selectedFile.lastModifiedDate.toString()}</p> */}
-          {selectedFile.type.startsWith('image/') ? (
+//   return(
+//     <div className=' border-[5px] min-w-[100%] h-fit flex justify-center items-center'>
+//     {selectedFile ? 
+//     (
+//         <div className="w-full  flex flex-col justify-center">
+//           {/* <p>Selected File: {selectedFile.name}</p> */}
+//           {/* <p>Size: {selectedFile.size} bytes</p>
+//           <p>Last Modified: {selectedFile.lastModifiedDate.toString()}</p> */}
+//           {selectedFile.type.startsWith('image/') ? (
             
-            <img
-              src={URL.createObjectURL(selectedFile)}
-              alt="Preview"
-              className=' h-[700px] w-full'
+//             <img
+//               src={URL.createObjectURL(selectedFile)}
+//               alt="Preview"
+//               className=' h-[700px] w-full'
               
-            />
+//             />
             
-          ) : selectedFile.type === 'application/pdf' ? (
-            <embed
-              src={URL.createObjectURL(selectedFile)}
-              type="application/pdf"
-              width="100%"
-              height="700px"
-            />
-          ) : (
-            <p>Preview not available for this file type.</p>
-          )}
-        </div>
-      ) : 
-      !initialFile ?
-      <div className='w-full h-[700px] flex justify-center items-center bg-white opacity-30'>
-        <img src={!initialFile && file_icon || initialFile} className='w-40 h-40'/>
-      </div> :
-      <div className='w-full h-[700px] flex justify-center items-center '>
-       { initialFile && initialFile.toLowerCase().endsWith('.pdf') ? (
-        // Display a default PDF icon or text for PDF files
-        <div className='w-full'>
-          <embed
-            src={initialFile}
-            type="application/pdf"
-            width="100%"
-            height="700px"
-          />
-        </div>
-      ) : (
-        // Display the image preview for other file types
-        <embed src={initialFile} alt="Initial Document Preview" className='w-full h-[700px]' />
-      )}
-      </div>
-      }
-    </div>
-  )
-}
+//           ) : selectedFile.type === 'application/pdf' ? (
+//             <embed
+//               src={URL.createObjectURL(selectedFile)}
+//               type="application/pdf"
+//               width="100%"
+//               height="700px"
+//             />
+//           ) : (
+//             <p>Preview not available for this file type.</p>
+//           )}
+//         </div>
+//       ) : 
+//       !initialFile ?
+//       <div className='w-full h-[700px] flex justify-center items-center bg-white opacity-30'>
+//         <img src={!initialFile && file_icon || initialFile} className='w-40 h-40'/>
+//       </div> :
+//       <div className='w-full h-[700px] flex justify-center items-center '>
+//        { initialFile && initialFile.toLowerCase().endsWith('.pdf') ? (
+//         // Display a default PDF icon or text for PDF files
+//         <div className='w-full'>
+//           <embed
+//             src={initialFile}
+//             type="application/pdf"
+//             width="100%"
+//             height="700px"
+//           />
+//         </div>
+//       ) : (
+//         // Display the image preview for other file types
+//         <embed src={initialFile} alt="Initial Document Preview" className='w-full h-[700px]' />
+//       )}
+//       </div>
+//       }
+//     </div>
+//   )
+// }
 
-const  HeaderComponent =({headerDetails ,miscellaneousData , expenseDataByGet}) =>{
-  const miscellaneousData1 = miscellaneousData
-  console.log(miscellaneousData1)
-  console.log(expenseDataByGet)
+const  HeaderComponent =({createdBy, expenseHeaderNumber, expenseHeaderStatus ,defaultCurrency }) =>(
 
-  return(
     <div className='my-5'>
     <div className="flex md:flex-row flex-col gap-2 justify-between w-full  ">
   <div className=" md:w-1/5 w-full  flex  border-[1px] border-slate-300 rounded-md flex-row items-center gap-2 p-2 ">
@@ -1958,11 +2143,11 @@ const  HeaderComponent =({headerDetails ,miscellaneousData , expenseDataByGet}) 
       </div>
 <div className='font-cabin '>
       <p className=" text-neutral-600 text-xs ">Created By</p>
-     {((miscellaneousData1?.createdBy?.name || expenseDataByGet?.createdBy?.name) !== null) && (
+
   <p className="text-purple-500 capitalize">
-    {headerDetails?.name  ||miscellaneousData1?.createdBy?.name || expenseDataByGet?.createdBy?.name}
+    { createdBy?.name ?? "-"}
   </p>
-)}
+
 </div>
   </div>
   <div className="   flex md:w-3/5 w-full border-[1px] border-slate-300 rounded-md flex-row items-center gap-2 p-2 ">
@@ -1974,13 +2159,13 @@ const  HeaderComponent =({headerDetails ,miscellaneousData , expenseDataByGet}) 
       <div className=' flex-1 font-cabin  px-2 '>
       <p className=" text-neutral-600 text-xs line-clamp-1">Expense Header No.</p>
      
-      <p className="text-purple-500 text-medium font-medium">{(miscellaneousData1?.expenseHeaderNumber || expenseDataByGet?.expenseHeaderNumber) ?? 'not available'}</p>
+      <p className="text-purple-500 text-medium font-medium">{expenseHeaderNumber}</p>
       </div>
 
       <div className=' flex-1 font-cabin  px-2  '>
       <p className=" text-neutral-600 text-xs line-clamp-1">Status</p>
      
-      <p className="text-purple-500   text-medium font-medium capitalize">{(miscellaneousData1?.expenseHeaderStatus || expenseDataByGet?.expenseHeaderStatus) ?? <div className='pl-3'> - </div>}</p>
+      <p className="text-purple-500   text-medium font-medium capitalize">{expenseHeaderStatus}</p>
       
       </div>
       
@@ -1995,7 +2180,7 @@ const  HeaderComponent =({headerDetails ,miscellaneousData , expenseDataByGet}) 
   
       <div className='font-cabin '>
       <p className=" text-neutral-600 text-xs ">Default Currency</p>
-      <p className="text-purple-500 text-medium font-medium">{(headerDetails?.defaultCurrency?.shortName||miscellaneousData1?.defaultCurrency?.shortName || expenseDataByGet?.defaultCurrency?.shortName) ??  "not available"}</p>
+      <p className="text-purple-500 text-medium font-medium">{defaultCurrency?.shortName}</p>
       </div>
      
       
@@ -2009,6 +2194,24 @@ const  HeaderComponent =({headerDetails ,miscellaneousData , expenseDataByGet}) 
    
 </div>   
             
-           </div>
+    </div> 
+  
+)
+
+const ActionBoard = ({handleClick,isUploading,setModalOpen, setActionType})=>{
+
+  return(
+    <div className='flex justify-end px-4 items-center h-full w-full'>
+      {/* <div>
+      <Button1 loading={isUploading?.saveLineItem?.set} text='Submit' onClick={()=>handleClick()}/>
+      </div> */}
+    <div className='flex gap-1'>
+      <Button1  loading={isUploading?.saveAndNew?.set}      text='Save and New'    onClick={()=>handleClick("saveAndNew")}/>
+      <Button1  loading={isUploading?.saveAndSubmit?.set}      text='Save and Submit' onClick={()=>handleClick("saveAndSubmit")}/>
+      <CancelButton  loading={isUploading?.saveLineItem?.set} text='Cancel'          onClick={()=>{setModalOpen(true);setActionType("closeAddExpense")}}/>
+    </div>
+
+    
+    </div>
   )
 }
