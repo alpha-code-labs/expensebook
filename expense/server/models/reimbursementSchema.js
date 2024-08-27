@@ -95,10 +95,32 @@ travelAllocationFlags:{ //Comes from HRMaster -Based on this expense booking scr
   level2:Boolean,
   level3:Boolean,
 },
+actionedUpon:{
+  type:Boolean,
+  required:true,
+  default:false,
+},
+paidBy:{
+  empId:{type: String, default: null},
+  name: {type:String, default: null},
+},
+settlementBy:{
+  empId:{type: String, default:null},
+  name:{type: String, default:null}
+},
+entriesFlag:{
+type:Boolean,
+required:true,
+default:false,
+},
+defaultCurrency:{
+  type: Object,
+},
 expenseLines: [expenseLineSchema],
 expenseViolations: [String],
 expenseCancelledReason: String,
 expenseSubmissionDate: Date,
+expenseSettledDate: Date,
 });
 
 

@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import HRCompany from "../models/hrCompanySchema.js";
 import Reimbursement from "../models/reimbursementSchema.js";
 import { sendToOtherMicroservice } from "../rabbitmq/publisher.js";
+import Joi from "joi";
 
 /**
  * Generates an incremental number for a given tenant ID and incremental value.
@@ -15,6 +16,12 @@ import { sendToOtherMicroservice } from "../rabbitmq/publisher.js";
 const formatTenant = (companyName) => {
   return companyName.toUpperCase(); 
 };
+
+const nonTravelSchema = Joi.object({
+  expenseHeaderId: Joi.string().required(),
+  tenantId: Joi.string().required(),
+  empId:Joi.string().required()
+})
 
 // to generate and add expense report number
 const generateIncrementalNumber = (companyName, incrementalValue) => {
@@ -31,6 +38,10 @@ const generateIncrementalNumber = (companyName, incrementalValue) => {
 }
 
 
+const employeeSchema = Joi.object({
+  empId: Joi.string().required(),
+  tenantId: Joi.string().required(),
+})
 /**
  * Retrieves expense categories for a given employee ID.
  * @param {Object} req - The request object.
@@ -39,7 +50,11 @@ const generateIncrementalNumber = (companyName, incrementalValue) => {
  */
 export const getExpenseCategoriesForEmpId = async (req, res) => {
   try {
-    const { tenantId, empId } = req.params;
+    const {error,params} = employeeSchema.validate(req.params)
+    if (error) {
+      return res.status(400).send({ message: error.details[0].message });
+    }
+    const { tenantId, empId } = params;
 
     const employeeDocument = await HRCompany.findOne({
       tenantId,
@@ -92,19 +107,23 @@ export const getExpenseCategoriesForEmpId = async (req, res) => {
 };
 
 
-
+const expenseCatSchema = Joi.object({
+  expenseCategory: Joi.string().required(),
+  tenantId: Joi.string().required(),
+  empId: Joi.string().required(),
+})
 // 2) group limit, policies, expense header number
 export const getHighestLimitGroupPolicy = async (req, res) => {
     try {
-      const { tenantId, empId, expenseCategory } = req.params;
+      const {error, params} = expenseCatSchema.validate(req,params)
+      if (error) {
+        return res.status(400).json({success: false, message: error.details[0].message})
+      }
+      const { tenantId, empId, expenseCategory } = params;
        let{expenseHeaderId} = req.body;
        let expenseHeaderNumber;
 
        console.log("expenseHeaderId from req.body",expenseHeaderId)
-
-      if (!expenseCategory || !empId || !tenantId) {
-        return res.status(404).json({ message: 'error params are missing' });
-      }
 
       const employeeDocument = await HRCompany.findOne({
         tenantId,
@@ -248,7 +267,11 @@ export const getHighestLimitGroupPolicy = async (req, res) => {
     }
 };
 
-
+const currencySchema = Joi.object({
+  tenantId:Joi.string().required(),
+  amount:Joi.string().required,
+  currencyName:Joi.string().required,
+})
 
 // export const getHighestLimitGroupPolicy = async (req, res) => {
 //   try {
@@ -379,7 +402,10 @@ export const getHighestLimitGroupPolicy = async (req, res) => {
 //3) currency converter for non travel expense 
 export const reimbursementCurrencyConverter = async (req, res) => {
   try {
-    const { tenantId, amount, currencyName } = req.params;
+    const {error, params} = currencySchema.validate(req.params)
+    if (error) return res.status(400).json({success: false, message: error.details[0].message})
+
+    const { tenantId, amount, currencyName } = params;
     console.log("params", req.params)
     const hrDocument = await HRCompany.findOne({ tenantId});
 
@@ -438,16 +464,32 @@ export const reimbursementCurrencyConverter = async (req, res) => {
   }
 };
 
+const saveSchema = Joi.object({
+  employeeName:Joi.string().required(),
+  companyName:Joi.string().required(),
+  createdBy: Joi.object({
+    empId: Joi.string().required(),
+    name: Joi.string().required(),
+  }).required(),
+  expenseHeaderNumber:Joi.string().required(),
+  defaultCurrency:Joi.object().required(),
+  lineItem:Joi.array().required(),
+})
 
 // 4) save line item 
 export const saveReimbursementExpenseLine = async (req, res) => {
     try {
-      const { tenantId, empId, expenseHeaderId } = req.params;
-       console.log("params", req.params)
-       
-      if (!expenseHeaderId || ! empId || !tenantId) {
-        return res.status(404).json({ message: 'error params are missing' });
-      }
+      const {error, params} = nonTravelSchema.validate(req.params)
+      if (error) {
+          return res.status(400).json({success: false, message: error.message})
+        }
+
+        const { errorBody , valueBody} = saveSchema.validate(req.body)
+        if(errorBody){
+          return res.status(400).json({success: false, message: errorBody.message})
+        }
+      const { tenantId, empId, expenseHeaderId } = params;
+      console.log("params", req.params)
 
       const {
         employeeName,
@@ -456,7 +498,7 @@ export const saveReimbursementExpenseLine = async (req, res) => {
         expenseHeaderNumber,
         defaultCurrency,
         lineItem,
-      } = req.body;
+      } = valueBody;
   
        console.log("req body", req.body)
        console.log("lineItem ......", lineItem)
@@ -632,11 +674,11 @@ export const draftReimbursementExpenseLine = async (req, res) => {
 
 export const submitReimbursementExpenseReport = async (req, res) => {
   try {
-    const { tenantId, empId, expenseHeaderId } = req.params;
-
-    if (!expenseHeaderId || !empId || !tenantId) {
-      return res.status(400).json({ message: 'Error: Required parameters are missing.' });
-    }
+    const {error, params} = nonTravelSchema.validate(req.params)
+    if (error) {
+        return res.status(400).json({success: false, message: error.message})
+      }
+    const { tenantId, empId, expenseHeaderId } = params;
 
     const EXPENSE_HEADER_STATUS_PS = 'pending settlement';
 
