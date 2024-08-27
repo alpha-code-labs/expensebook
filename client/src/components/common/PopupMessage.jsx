@@ -5,7 +5,7 @@
 import { useState, useEffect, useRef } from "react";
 
 export default function (props){
-
+    
     const modalRef = useRef(null)
     const [showPopup, setshowPopup] = [props.showPopup, props.setshowPopup]
     const { message , skipable} = props
@@ -29,7 +29,6 @@ export default function (props){
             setshowPopup(false)
         }
     }
-
     return(
         <>
             {showPopup && <div onClick={handleOutsideClick} className="z-20 fixed overflow-hidden flex justify-center items-center inset-0 backdrop-blur-sm w-full h-full left-0 top-0 bg-gray-800/60 scroll-none">
@@ -42,8 +41,9 @@ export default function (props){
         </>)
 }
 
-// import { useState, useEffect, useRef } from "react";
 
+
+// import { useState, useEffect, useRef } from "react";
 // export default function (props){
 
 //     const modalRef = useRef(null)

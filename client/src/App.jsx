@@ -170,7 +170,7 @@ function App() {
         </div>
         
        
-        <div className='min-h-screen w-full max-h-fit p-4 bg-white'>
+        <div className='min-h-screen w-full max-h-fit bg-white'>
           <Routes>
             <Route
               exact

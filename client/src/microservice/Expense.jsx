@@ -9,11 +9,11 @@ import { useParams } from 'react-router-dom';
 
 
 
-const FinanceMS = ({ visible, setVisible, src }) => {
+const ExpenseMS = ({ visible, setVisible, src }) => {
 
   const  iframeRef = useRef(null);
 
-  const settlementBaseUrl = import.meta.env.VITE_SETTLEMENT_PAGE_URL
+  const expenseBaseUrl = import.meta.env.VITE_EXPENSE_PAGE_URL
   const {tenantId, empId} = useParams()
   const [modalOpen , setModalOpen]=useState(false);
   const [actionType, setActionType] = useState(true); 
@@ -25,7 +25,6 @@ const FinanceMS = ({ visible, setVisible, src }) => {
 
   const closeModal=()=>{
     setModalOpen(!modalOpen);
-    
   }
 
 
@@ -88,6 +87,8 @@ const FinanceMS = ({ visible, setVisible, src }) => {
     }
   }; 
   
+
+
   useEffect(() => {
     if (modalOpen) {
       document.body.style.overflow = 'hidden';
@@ -100,7 +101,7 @@ const FinanceMS = ({ visible, setVisible, src }) => {
     const handleMessage = event => {
       console.log(event)
       // Check if the message is coming from the iframe
-      if (event.origin === settlementBaseUrl ) {
+      if (event.origin === expenseBaseUrl ) {
         // Check the message content or identifier
         if(event.data.popupMsg){
           setShowPopup(true)
@@ -150,6 +151,7 @@ const FinanceMS = ({ visible, setVisible, src }) => {
       case 'recoverCashAdvance':
       case 'settleTravelExpense':
       case 'settleNonTravelExpense':
+
         return (
           <>
           <p className="text-md px-4 text-start font-cabin text-neutral-600">
@@ -184,7 +186,7 @@ const FinanceMS = ({ visible, setVisible, src }) => {
    <iframe
    ref={iframeRef}
   src={src}
-  className="w-[100%] max-h-screen h-full overflow-hidden "
+  className="w-[100%] max-h-screen h-full overflow-hidden"
   title="Embedded Content"
   
   
@@ -222,6 +224,6 @@ const FinanceMS = ({ visible, setVisible, src }) => {
   );
 };
 
-export default FinanceMS;
+export default ExpenseMS;
 
 

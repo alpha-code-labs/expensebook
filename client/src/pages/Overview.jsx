@@ -15,10 +15,12 @@ import Button1 from '../components/common/Button1';
 import { handleNonTravelExpense, handleTravelExpense } from '../utils/actionHandler';
 import TripMS from '../microservice/TripMS';
 import { TripName } from '../components/common/TinyComponent';
+import ExpenseMS from '../microservice/Expense';
 
 const travelBaseUrl  = import.meta.env.VITE_TRAVEL_PAGE_URL;
 const cashBaseUrl    = import.meta.env.VITE_CASHADVANCE_PAGE_URL;
 const tripBaseUrl    = import.meta.env.VITE_TRIP_BASE_URL;
+const expenseBaseUrl = import.meta.env.VITE_EXPENSE_PAGE_URL;
 
 function CardLayout({cardSequence,icon,cardTitle,children}){
   return(
@@ -43,9 +45,6 @@ function CardLayout({cardSequence,icon,cardTitle,children}){
 }
 
 
-
-
-
 const Overview = ({fetchData ,isLoading,setIsLoading,loadingErrMsg, setLoadingErrMsg}) => {
 
   const { employeeData } = useData(); 
@@ -55,7 +54,7 @@ const Overview = ({fetchData ,isLoading,setIsLoading,loadingErrMsg, setLoadingEr
   const [tripId , setTripId]=useState(null); 
   const [expenseType , setExpenseType]=useState(null); 
   const [error , setError]= useState({
-    tripId: {set:false, message:""}
+    tripId: {set:false, message:""} 
   }); 
 
   useEffect(()=>{
@@ -76,25 +75,33 @@ const upcomingTrips      = overviewData?.upcomingTrips || [];
 const completedTrips     = employeeData?.dashboardViews?.employee?.expense?.completedTrips || [];
 const travelExpenses     = overviewData?.expense?.allTripExpenseReports || [];
 const nonTravelExpenses  = overviewData?.expense?.allNonTravelReports || [];
-const travelRequests = overviewData?.allTravelRequests?.allTravelRequests?.map(travel => ({
+const travelRequests     = overviewData?.allTravelRequests?.allTravelRequests?.map(travel => ({
   ...travel,
   tripStartDate: extractTripNameStartDate(travel?.tripName)
 })) || [];
+
 
 sortTripsByDate(travelRequests)
 sortTripsByDate(intransitTrips)
 sortTripsByDate(upcomingTrips)
 
 
-console.log('travel request11', travelRequests)
+console.log('travel request11', travelRequests);
 
 
   const [visible, setVisible]=useState(false);
+  const [expenseVisible, setExpenseVisible]=useState(false);
   const [iframeURL, setIframeURL] = useState(null); 
 
   const handleVisible = (data) => {
     let { urlName, tripId } = data;
-    setVisible(!visible);
+
+    if(urlName==="addExpense-url"){
+      setExpenseVisible(!expenseVisible)
+    }else{
+      setVisible(!visible);
+    }
+   
     let url = "";
   
     switch (urlName) {
@@ -103,6 +110,9 @@ console.log('travel request11', travelRequests)
         break;
       case "trip-url":
         url = `${tripBaseUrl}/${tenantId}/${empId}/modify/${tripId}/section1`;
+        break;
+      case "addExpense-url":
+        url = `${expenseBaseUrl}/${tenantId}/${empId}/${tripId}/new/line-item`;
         break;
       default:
         console.log('Unknown urlName:', urlName);
@@ -116,17 +126,22 @@ console.log('travel request11', travelRequests)
 
   useEffect(() => {
     const handleMessage = event => {
-      console.log(event)
+      console.log('event',event)
       // Check if the message is coming from the iframe
-      if (event.origin === travelBaseUrl || event.origin === cashBaseUrl || event.origin === tripBaseUrl) {
+      if (event.origin === travelBaseUrl || event.origin === cashBaseUrl || event.origin === tripBaseUrl || event.origin === expenseBaseUrl) {
         // Check the message content or identifier
         if (event.data === 'closeIframe') {
           setVisible(false)
+          setExpenseVisible(false)
+         
         }
          // Check the message content or identifier
          if (event.data === 'closeIframe') {
           setVisible(false)
+          setExpenseVisible(false)
           window.location.href = window.location.href;
+         
+          
         }else if(event.data.split(' ')[0] == 'raiseAdvance'){
           //we have to open an Iframe to raise cash advance
           setVisible(false)
@@ -148,6 +163,7 @@ console.log('travel request11', travelRequests)
     };
   }, []);
 
+
 const handleSelect=(option)=>{
   console.log(option)
   setTripId(option?.tripId)
@@ -164,7 +180,8 @@ const handleRaise = () => {
     setTripId(null)
     setExpenseType(null)
     setModalOpen(false)
-    handleTravelExpense(tripId, '','trip-ex-create')
+    handleVisible({urlName:"addExpense-url",tripId})
+    // handleTravelExpense(tripId, '','trip-ex-create')
   } else {
     setExpenseType(null)
     setModalOpen(false)
@@ -172,6 +189,8 @@ const handleRaise = () => {
   }
 };
   
+
+
   const [textVisible , setTextVisible]=useState({expense:false,createTravel:false});
   const [expenseTabs , setExpenseTabs]=useState("travelExpense");
   
@@ -199,162 +218,173 @@ const handleRaise = () => {
     <>
     {isLoading && <Error message={loadingErrMsg}/>}
     {!isLoading &&
-    <div className="  min-h-screen flex items-start xl:items-center xl:pt-0 pt-4 justify-center px-2 md:px-10 ">
-        {/* <TravelMS visible={visible} setVisible={setVisible} src={iframeURL}/> */}
-        <TripMS visible={visible} setVisible={setVisible} src={iframeURL}/> 
-    <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 w-full overflow-x-auto pb-2">
-    
-     
-
-<CardLayout cardSequence={visibleDivs[0]} icon={briefcase} cardTitle={"Activities for On-going Trips"}>
-{intransitTrips.length === 0 ? (
-  <EmptyTrips icon={empty_itinerary_icon} text="No in-transit trips." />
-) : (
-  intransitTrips.map((trip, index) => (
-    <IntransitTrips 
-    handleVisible={handleVisible}
-      key={index} 
-      index={index} 
-      trip={trip} 
-      lastIndex={intransitTrips.length - 1} 
-    />
-  ))
-)}
-</CardLayout>
-
-     
- <CardLayout cardSequence={visibleDivs[0]} icon={receipt} cardTitle={"Expenses"}>    
-
-<div className="flex gap-x-2 h-[40px] px-2 flex-row items-center justify-between text-center font-cabin border-b-2  border-slate-300  text-neutral-700 text-xs">
-<div className='flex'>
-<div
- className={`px-2 py-1 rounded-xl cursor-pointer delay-150  transition-colors ${
-  expenseTabs === "travelExpense"
-    ? 'text-white bg-indigo-600'
-    : 'text-xs'
-}`}
-onClick={() => handleExpenseTabChange("travelExpense")}
->
-<p>Travel Expense</p>
-</div>
-<div
-className={`px-2 py-1 rounded-xl cursor-pointer delay-150 transition-colors ${
-  expenseTabs === 'nonTravelExpense'
-    ? 'text-white bg-indigo-600 border border-white'
-    : 'text-xs'
-}`}
-onClick={() => handleExpenseTabChange("nonTravelExpense")}
->
-<p>Non-Travel Expense</p>
-</div>
-</div>     
-
-<div
-onClick={()=>setModalOpen(!modalOpen)}
-onMouseEnter={() => setTextVisible({expense:true})}
-onMouseLeave={() => setTextVisible({expense:false})}
-className={`relative hover:px-2 w-6 h-6 hover:overflow-hidden hover:w-auto group text-indigo-600 bg-indigo-100 border border-white flex items-center justify-center  hover:gap-x-1 rounded-full cursor-pointer transition-all duration-300`}
->
-<img src={plus_violet_icon} width={16} height={16} alt="Add Icon" />
-<p
-className={`${
-textVisible?.expense ? 'opacity-100 ' : 'opacity-0 w-0'
-} whitespace-nowrap text-xs transition-all duration-300 group-hover:opacity-100 group-hover:w-auto`}
->
-Add an Expense
-</p>
-</div>
-</div>
-
-<div className='h-[236px] overflow-y-auto px-2'>
-{expenseTabs === "travelExpense" && (
-  travelExpenses?.length ===0 ? <EmptyTrips icon={empty_travelExpense_icon} text="No travel expenses." /> :
-  
-   travelExpenses?.map((expense,index) => <TravelExpenses key={index} index={`${index}-TravelExpense`} expense={expense} lastIndex={travelExpenses?.length-1} />)
-)
-}
-
-{expenseTabs === "nonTravelExpense" && (
-   nonTravelExpenses?.length ===0 ? <EmptyTrips icon={empty_nonTravelExpense_icon} text="No non-travel expenses." /> :
-nonTravelExpenses?.map((expense,index) => <NonTravelExpenses index={index} expense={expense} lastIndex={nonTravelExpenses?.length-1}/>)
-)
-}
-</div>
-
-
-</CardLayout>  
+    <>
+    {expenseVisible ?  ( <ExpenseMS visible={expenseVisible} setVisible={setExpenseVisible} src={iframeURL} /> ) :
+    <div className="min-h-screen flex items-start xl:items-center p-4 justify-center px-2 md:px-10 ">
+       
+      
+       
+               <TripMS visible={visible} setVisible={setVisible} src={iframeURL} /> 
        
 
-
-
-
-
-
-<CardLayout cardSequence={visibleDivs[2]} icon={briefcase} cardTitle={"Upcoming Trips"}>
- 
- {  upcomingTrips?.length === 0 ? (
-  <EmptyTrips icon={empty_itinerary_icon} text="No upcoming trips" />
-) : (
-  <div className='mt-2'>
- {  upcomingTrips?.map((trip, index) => (
-    <UpcomingTrips 
-      handleVisible={handleVisible}
-      key={index} 
-      index={index} 
-      trip={trip} 
-      lastIndex={upcomingTrips?.length - 1} 
-    />
+       <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 w-full overflow-x-auto pb-2">
+       
+        
    
-  ))}
-  </div>
-)}
+   <CardLayout cardSequence={visibleDivs[0]} icon={briefcase} cardTitle={"Activities for On-going Trips"}>
+   {intransitTrips.length === 0 ? (
+     <EmptyTrips icon={empty_itinerary_icon} text="No in-transit trips." />
+   ) : (
+     intransitTrips.map((trip, index) => (
+       <IntransitTrips 
+       handleVisible={handleVisible}
+         key={index} 
+         index={index} 
+         trip={trip} 
+         lastIndex={intransitTrips.length - 1} 
+       />
+     ))
+   )}
+   </CardLayout>
+   
+        
+    <CardLayout cardSequence={visibleDivs[0]} icon={receipt} cardTitle={"Expenses"}>    
+   
+   <div className="flex gap-x-2 h-[40px] px-2 flex-row items-center justify-between text-center font-cabin border-b-2  border-slate-300  text-neutral-700 text-xs">
+   <div className='flex'>
+   <div
+    className={`px-2 py-1 rounded-xl cursor-pointer delay-150  transition-colors ${
+     expenseTabs === "travelExpense"
+       ? 'text-white bg-indigo-600'
+       : 'text-xs'
+   }`}
+   onClick={() => handleExpenseTabChange("travelExpense")}
+   >
+   <p>Travel Expense</p>
+   </div>
+   <div
+   className={`px-2 py-1 rounded-xl cursor-pointer delay-150 transition-colors ${
+     expenseTabs === 'nonTravelExpense'
+       ? 'text-white bg-indigo-600 border border-white'
+       : 'text-xs'
+   }`}
+   onClick={() => handleExpenseTabChange("nonTravelExpense")}
+   >
+   <p>Non-Travel Expense</p>
+   </div>
+   </div>     
+   
+   <div
+   onClick={()=>setModalOpen(!modalOpen)}
+   onMouseEnter={() => setTextVisible({expense:true})}
+   onMouseLeave={() => setTextVisible({expense:false})}
+   className={`relative hover:px-2 w-6 h-6 hover:overflow-hidden hover:w-auto group text-indigo-600 bg-indigo-100 border border-white flex items-center justify-center  hover:gap-x-1 rounded-full cursor-pointer transition-all duration-300`}
+   >
+   <img src={plus_violet_icon} width={16} height={16} alt="Add Icon" />
+   <p
+   className={`${
+   textVisible?.expense ? 'opacity-100 ' : 'opacity-0 w-0'
+   } whitespace-nowrap text-xs transition-all duration-300 group-hover:opacity-100 group-hover:w-auto`}
+   >
+   Add an Expense
+   </p>
+   </div>
+   </div>
+   
+   <div className='h-[236px] overflow-y-auto px-2'>
+   {expenseTabs === "travelExpense" && (
+     travelExpenses?.length ===0 ? <EmptyTrips icon={empty_travelExpense_icon} text="No travel expenses." /> :
+     
+      travelExpenses?.map((expense,index) => <TravelExpenses key={index} index={`${index}-TravelExpense`} expense={expense} lastIndex={travelExpenses?.length-1} />)
+   )
+   }
+   
+   {expenseTabs === "nonTravelExpense" && (
+      nonTravelExpenses?.length ===0 ? <EmptyTrips icon={empty_nonTravelExpense_icon} text="No non-travel expenses." /> :
+   nonTravelExpenses?.map((expense,index) => <NonTravelExpenses index={index} expense={expense} lastIndex={nonTravelExpenses?.length-1}/>)
+   )
+   }
+   </div>
+   
+   
+   </CardLayout>  
+          
+   
+   
+   
+   
+   
+   
+   <CardLayout cardSequence={visibleDivs[2]} icon={briefcase} cardTitle={"Upcoming Trips"}>
+    
+    {  upcomingTrips?.length === 0 ? (
+     <EmptyTrips icon={empty_itinerary_icon} text="No upcoming trips" />
+   ) : (
+     <div className='mt-2'>
+    {  upcomingTrips?.map((trip, index) => (
+       <UpcomingTrips 
+         handleVisible={handleVisible}
+         key={index} 
+         index={index} 
+         trip={trip} 
+         lastIndex={upcomingTrips?.length - 1} 
+       />
+      
+     ))}
+     </div>
+   )}
+    
+   </CardLayout>
+   
+   
+   
+   <CardLayout cardSequence={visibleDivs[2]} icon={briefcase} cardTitle={"Travel Requests"}>
+     {/* <div className="border-b-2 border-indigo-600 flex flex-row items-center justify-start gap-2 overflow-hidden py-2">
+       <img
+         className="w-5 h-5 shrink-0"
+         alt="briefcase_icon"
+         src={airplane_1}
+       />
+       <b className="tracking-[0.02em] text-indigo-600 font-cabin text-[16px] font-semibold">Travel Requests</b>
+     </div> */}
+     
+     {/* <div className="h-[288px] mt-2 border-4 border-indigo-600 rounded-md px-2"> */}
+     <div className="flex gap-x-2 h-[40px]   px-2 flex-row items-center justify-end text-center font-cabin border-b-2  border-slate-300  text-neutral-700 text-xs">
+   
+   <div
+   onMouseEnter={() => setTextVisible({createTravel:true})}
+   onMouseLeave={() => setTextVisible({createTravel:false})}
+   onClick={()=>handleVisible({urlName:"travel-url"})}
+   className={`relative  hover:px-2 w-6 h-6 hover:overflow-hidden hover:w-auto group text-indigo-600 bg-indigo-100 border border-white flex items-center justify-center  hover:gap-x-1 rounded-full cursor-pointer transition-all duration-300`}
+   >
+   <img src={plus_violet_icon} width={16} height={16} alt="Add Icon" />
+   <p
+   className={`${
+     textVisible?.createTravel ? 'opacity-100 ' : 'opacity-0 w-0'
+   } whitespace-nowrap text-xs transition-all duration-300 group-hover:opacity-100 group-hover:w-auto`}
+   >
+   Raise Travel Request
+   </p>
+   </div>
+     
+   </div>
+   
+   <div className="h-[236px] overflow-y-auto px-2">
+     {
+       travelRequests.length === 0 ? <EmptyTrips icon={empty_itinerary_icon} text="No travel requests." /> :
+     travelRequests?.map((travel, index)=>(
+       <TravelRequests key={index} travel={travel} index={index} lastIndex={travelRequests?.length-1}/>
+     ))}
+   </div>
+     {/* </div> */}
+   </CardLayout>
+   
+         </div>
+      
+        
+        
  
-</CardLayout>
 
-
-
-<CardLayout cardSequence={visibleDivs[2]} icon={briefcase} cardTitle={"Travel Requests"}>
-  {/* <div className="border-b-2 border-indigo-600 flex flex-row items-center justify-start gap-2 overflow-hidden py-2">
-    <img
-      className="w-5 h-5 shrink-0"
-      alt="briefcase_icon"
-      src={airplane_1}
-    />
-    <b className="tracking-[0.02em] text-indigo-600 font-cabin text-[16px] font-semibold">Travel Requests</b>
-  </div> */}
-  
-  {/* <div className="h-[288px] mt-2 border-4 border-indigo-600 rounded-md px-2"> */}
-  <div className="flex gap-x-2 h-[40px]   px-2 flex-row items-center justify-end text-center font-cabin border-b-2  border-slate-300  text-neutral-700 text-xs">
-
-<div
-onMouseEnter={() => setTextVisible({createTravel:true})}
-onMouseLeave={() => setTextVisible({createTravel:false})}
-onClick={()=>handleVisible({urlName:"travel-url"})}
-className={`relative  hover:px-2 w-6 h-6 hover:overflow-hidden hover:w-auto group text-indigo-600 bg-indigo-100 border border-white flex items-center justify-center  hover:gap-x-1 rounded-full cursor-pointer transition-all duration-300`}
->
-<img src={plus_violet_icon} width={16} height={16} alt="Add Icon" />
-<p
-className={`${
-  textVisible?.createTravel ? 'opacity-100 ' : 'opacity-0 w-0'
-} whitespace-nowrap text-xs transition-all duration-300 group-hover:opacity-100 group-hover:w-auto`}
->
-Raise Travel Request
-</p>
-</div>
-  
-</div>
-
-<div className="h-[236px] overflow-y-auto px-2">
-  {
-    travelRequests.length === 0 ? <EmptyTrips icon={empty_itinerary_icon} text="No travel requests." /> :
-  travelRequests?.map((travel, index)=>(
-    <TravelRequests key={index} travel={travel} index={index} lastIndex={travelRequests?.length-1}/>
-  ))}
-</div>
-  {/* </div> */}
-</CardLayout>
-
-      </div>
       <Modal
         isOpen={modalOpen} 
         onClose={modalOpen} 
@@ -382,6 +412,7 @@ Raise Travel Request
   
 
 <div className='flex gap-4 flex-col items-start justify-start w-full py-2'>
+
 { expenseType=== "travel_Cash-Advance" &&
  <div className='w-full'>
   <TripSearch placeholder={"Select the trip"} error={error?.tripId} title="Apply to trip" data={[...intransitTrips, ...completedTrips]} onSelect={handleSelect} />
@@ -407,6 +438,8 @@ Raise Travel Request
       </div>}
       />
     </div>}
+    
+    </>}
     </>
   );
 };

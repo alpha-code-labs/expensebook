@@ -16,7 +16,7 @@ const Settlement = ({isLoading,loadingErrMsg,fetchData}) => {
   return (
 <>
     {isLoading ? <Error message={loadingErrMsg}/>:
-    <div className='h-full'>
+    <div className='h-full p-4'>
       <FinanceMS  src={`${settlementBaseUrl}/${tenantId}/${empId}/settlement`}/>
     </div>}
 </>    

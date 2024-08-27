@@ -9,12 +9,13 @@ import { useData } from '../api/DataProvider';
 import TripSearch from '../components/common/TripSearch';
 import Button1 from '../components/common/Button1';
 import Error from '../components/common/Error';
-
 import Input from '../components/common/SearchInput';
 import { CardLayout, ExpenseLine, StatusFilter, TripName } from '../components/common/TinyComponent';
+import ExpenseMS from '../microservice/Expense';
 
 
 const Expense = ({isLoading ,fetchData,loadingErrMsg}) => {
+  const expenseBaseUrl = import.meta.env.VITE_EXPENSE_PAGE_URL;
 
   const [tripId , setTripId]=useState(null);
   const [expenseType , setExpenseType]=useState(null);
@@ -28,7 +29,11 @@ const Expense = ({isLoading ,fetchData,loadingErrMsg}) => {
     tripId: {set:false, message:""}
   }); 
   const [searchQuery , setSearchQuery] = useState('');
-  const [expenseData , setExpenseData] = useState({})
+  const [expenseData , setExpenseData] = useState({});
+  const [expenseVisible, setExpenseVisible]=useState(false);
+  const [iframeURL, setIframeURL] = useState(null); 
+
+
 
 
   
@@ -110,6 +115,16 @@ const Expense = ({isLoading ,fetchData,loadingErrMsg}) => {
     setTripId(option?.tripId)
   }
 
+
+
+  const handleVisible = (data) => {
+    let { urlName} = data;
+    setExpenseVisible(!expenseVisible)
+    console.log('iframe url',  urlName);
+    setIframeURL(urlName);
+    
+  };
+
   const handleRaise = () => {
     if (expenseType=== "travel_Cash-Advance") {
       if (!tripId) {
@@ -121,18 +136,48 @@ const Expense = ({isLoading ,fetchData,loadingErrMsg}) => {
       setTripId(null)
       setExpenseType(null)
       setModalOpen(false)
-      handleTravelExpense(tripId, '','trip-ex-create')
+      handleVisible({urlName:handleTravelExpense(tripId, '','trip-ex-create')})
+      //handleTravelExpense(tripId, '','trip-ex-create')
     } else {
       setExpenseType(null)
       setModalOpen(false)
-      handleNonTravelExpense('','non-tr-ex-create')
+      handleVisible({urlName:handleNonTravelExpense('','non-tr-ex-create')})
+     // handleNonTravelExpense('','non-tr-ex-create')
     }
   };
+
+  useEffect(() => {
+    const handleMessage = event => {
+      console.log('event',event)
+      // Check if the message is coming from the iframe
+      if (event.origin === expenseBaseUrl) {
+        // Check the message content or identifier
+
+         // Check the message content or identifier
+         if (event.data === 'closeIframe') {
+          setExpenseVisible(false)
+          window.location.href = window.location.href;
+         
+          
+        }
+        
+      }
+    };
+    // Listen for messages from the iframe
+    window.addEventListener('message', handleMessage);
+  
+    return () => {
+      // Clean up event listener
+      window.removeEventListener('message', handleMessage);
+    };
+  }, []);
 
   return (
     <>
     {isLoading && <Error message={loadingErrMsg}/>}
     {!isLoading && 
+    <>
+    {expenseVisible ?   ( <ExpenseMS visible={expenseVisible} setVisible={setExpenseVisible} src={iframeURL} /> ) :
     <div className='min-h-screen'>
       <div className='flex-col w-full p-4 flex items-start gap-2'>
       <div className='min-h-[120px] border border-slate-300 bg-white rounded-md  w-full flex flex-wrap items-start gap-2 px-2 py-2'>
@@ -236,7 +281,7 @@ setSelectedStatuses={setSelectedStatuses}
                             <div className={`text-center rounded-sm ${getStatusClass(trExpense?.expenseHeaderStatus ?? "-")}`}>
                               <p className='px-1 py-1 text-xs text-center capitalize font-cabin'>{trExpense?.expenseHeaderStatus ?? "-"}</p>
                             </div>
-                            <div onClick={()=>{handleTravelExpense(trip?.tripId, trExpense?.expenseHeaderId,  'trip-ex-modify' ,)}} className={`w-7 h-7 bg-indigo-100 rounded-full border border-white flex items-center justify-center cursor-pointer`}>
+                            <div onClick={()=>handleVisible({urlName:handleTravelExpense(trip?.tripId, trExpense?.expenseHeaderId,  'trip-ex-modify' ,)})} className={`w-7 h-7 bg-indigo-100 rounded-full border border-white flex items-center justify-center cursor-pointer`}>
                               <img src={modify} className='w-4 h-4' alt="modify_icon" />
                             </div>
                           </div>
@@ -288,7 +333,7 @@ setSelectedStatuses={setSelectedStatuses}
                       <div className={`text-center rounded-sm ${getStatusClass(nonTravelExp?.expenseHeaderStatus ?? "-")}`}>
                         <p className='px-1 py-1 text-xs text-center capitalize font-cabin'>{nonTravelExp?.expenseHeaderStatus ?? "-"}</p>
                       </div>
-                      <div onClick={() => { handleNonTravelExpense(nonTravelExp?.expenseHeaderId,"non-tr-ex-modify") }} className={`w-7 h-7 bg-indigo-100 rounded-full border border-white flex items-center justify-center ${disableButton(nonTravelExp?.travelRequestStatus) ? ' cursor-not-allowed opacity-50' : ' cursor-pointer'}`}>
+                      <div onClick={() => handleVisible({urlName:handleNonTravelExpense(nonTravelExp?.expenseHeaderId,"non-tr-ex-modify")})} className={`w-7 h-7 bg-indigo-100 rounded-full border border-white flex items-center justify-center ${disableButton(nonTravelExp?.travelRequestStatus) ? ' cursor-not-allowed opacity-50' : ' cursor-pointer'}`}>
                         <img src={modify} className='w-4 h-4' alt="modify_icon" />
                       </div>
                     </div>
@@ -368,6 +413,7 @@ setSelectedStatuses={setSelectedStatuses}
       </div>}
       />
     </div>}
+    </>}
     </>
   );
 };

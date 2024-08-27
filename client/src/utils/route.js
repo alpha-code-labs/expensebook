@@ -95,11 +95,11 @@ booking_tr_with_ca:{
 export const expenseRoutes={  
   create:{
     path:'travel/book-expense/:tenantId/:empId/:tripId',
-    getUrl:(tripId)=>`${expenseBaseUrl}/${tenantId}/${empId}/${tripId}/book/travel-expense`
+    getUrl:(tripId)=>`${expenseBaseUrl}/${tenantId}/${empId}/${tripId}/new/line-item`
   },
   modify:{
     path:'tr-ex-modify/:tenantId/:empId/:tripId/:cashAdvanceId',
-    getUrl:(tripId,expenseHeaderId,)=>`${expenseBaseUrl}/${tenantId}/${empId}/${tripId}/book/travel-expense`
+    getUrl:(tripId,expenseHeaderId,)=>`${expenseBaseUrl}/${tenantId}/${empId}/${tripId}/view/travel-expense`
   },
   cancel:{
     path:'/tr-ex-cancel/:tenantId/:empId/:tripId/:expenseHeaderId',
@@ -120,11 +120,11 @@ export const expenseRoutes={
 export const nonExpenseRoutes={  
   create:{
     path:'/non-tr-ex-create/:tenantId/:empId',
-    getUrl:()=>`${expenseBaseUrl}/${tenantId}/${empId}/book/reimbursement`
+    getUrl:()=>`${expenseBaseUrl}/${tenantId}/${empId}/non-travel-expense/new`
   },
   modify:{
     path:'/non-tr-ex-modify/:tenantId/:empId/:cashAdvanceId',
-    getUrl:(expenseHeaderId,)=>`${expenseBaseUrl}/non-tr-ex-modify/${tenantId}/${empId}/${expenseHeaderId}`
+    getUrl:(expenseHeaderId,)=>`${expenseBaseUrl}/${tenantId}/${empId}/non-travel-expense/${expenseHeaderId}/view`
   },
   cancel:{
     path:'/non-tr-ex-cancel/:tenantId/:empId/:expenseHeaderId',

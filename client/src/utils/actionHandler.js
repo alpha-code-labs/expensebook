@@ -74,7 +74,8 @@ export const handleTravelExpense=(tripId,expenseHeaderId,action)=>{
       throw new Error('Invalid action');
     }
     
-    urlRedirection(url);
+    //urlRedirection(url);
+    return url
    }
 
 
@@ -110,7 +111,7 @@ export const handleNonTravelExpense=(expenseHeaderId,action)=>{
     else {
       throw new Error('Invalid action');
     }
-    urlRedirection(url);
+    return (url);
    }
 
     
