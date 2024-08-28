@@ -20,13 +20,15 @@ import Input from "../components/common/Input";
 import Upload from "../components/common/Upload";
 import { cancelTravelExpenseHeaderApi, cancelTravelExpenseLineItemApi, getTravelExpenseApi, ocrScanApi, postMultiCurrencyForNonTravelExpenseApi, TravelExpenseCurrencyConversionApi , postTravelExpenseLineItemApi, submitOrSaveAsDraftApi, updateTravelExpenseLineItemApi } from "../utils/api.js";
 import Search from "../components/common/Search.jsx";
-
 import { classDropdown } from "../utils/data.js";
 import Toggle from "../components/common/Toggle.jsx";
 import AddMore from "../components/common/AddMore.jsx";
 import { BlobServiceClient } from "@azure/storage-blob";
 import Button1 from "../Components/common/Button1.jsx";
 import CancelButton from "../Components/common/CancelButton.jsx";
+import { LineItemView } from "../travelExpenseSubcomponent/LineItemView.jsx";
+import { DocumentPreview } from "../travelExpenseSubcomponent/BillPreview.jsx";
+
 
 const currencyDropdown = [
   { fullName: "Argentine Peso", shortName: "ARS", symbol: "$", countryCode: "AR" },
@@ -46,11 +48,9 @@ const currencyDropdown = [
   },
   {"countryCode": "IN","fullName": "Indian Rupee","shortName": "INR","symbol": "₹"}
 ];
+
 const totalAmountNames = ['Total Fare','Total Amount',  'Subscription cost', 'Cost', 'Premium Cost'];
 const dateForms = ['Invoice Date', 'Date', 'Visited Date', 'Booking Date',"Bill Date"];
-
-
-
 
 export default function () {
   const {cancel , tenantId,empId,tripId} = useParams() ///these has to send to backend get api
@@ -58,7 +58,7 @@ export default function () {
   const az_blob_container = import.meta.env.VITE_AZURE_BLOB_CONTAINER
    const blob_endpoint = import.meta.env.VITE_AZURE_BLOB_CONNECTION_URL
    const dashboard_url = import.meta.env.VITE_DASHBOARD_URL
-   const DASHBOARD_URL=`${dashboard_url}/${tenantId}/${empId}/overview`
+   
  
    async function uploadFileToAzure(file) {
     try {
@@ -260,6 +260,7 @@ const ocrValues = {
   };
 
   const dashboardBaseUrl = `${import.meta.env.VITE_DASHBOARD_URL}`
+
   useEffect(() => {
     if (onboardingData) {
        // const onboardingData = tripDummyData;
@@ -814,7 +815,9 @@ const handleSubmitOrDraft=async(action)=>{
           setMessage(null)
          
           if(action === "submit"){
-          urlRedirection(`${dashboard_url}/${tenantId}/${empId}/overview`)}
+          // urlRedirection(`${dashboard_url}/${tenantId}/${empId}/overview`)}
+          handleDashboardRedirection()
+          }
           else{
             window.location.reload()
           }
@@ -1274,10 +1277,10 @@ const handleDashboardRedirection=()=>{
   return <>
 {/* <Error message={loadingErrMsg}/> */}
     {isLoading ? <Error  message={loadingErrMsg}/>:
-    <> <div className="w-full h-full  relative bg-white  py-12 select-none">
+    <> <div className="w-full h-full  relative bg-white   select-none p-4">
        
     {/* Rest of the section */}
-    <div className="w-full h-full xl:px-32 lg:px-16 md:px-4 px-4 font-cabin tracking-tight">
+    <div className="w-full h-full  font-cabin tracking-tight">
 {/* {travelAllocationFlag === 'level1' &&  <div className="font-cabin font-medium">Expense Type: {travelType}</div>} */}
 
 {/* ///-level2 - */}
@@ -1353,18 +1356,20 @@ const handleDashboardRedirection=()=>{
 </fieldset> 
 
 <div className="flex gap-2 flex-row">
-            {cancel ? (
-                <Button1 loading={isUploading} active={active.deleteHeader} variant='fit' text='Cancel' onClick={handleCancelExpenseHeader} />
-            ) : (
-                <>
+         
+              
+           
+                
                 <Button1 loading={isUploading} active={active.submit} variant='fit' text='Submit' onClick={() => handleSubmitOrDraft("submit")} />
                     {['draft', 'new'].includes(flagExpenseHeaderStatus) && (
                         <Button1 loading={isUploading} active={active.saveAsDraft} text='Save as Draft' onClick={() => handleSubmitOrDraft("draft")} />
                     )}
-                    
-                    <CancelButton   text='Close'  onClick={()=>handleDashboardRedirection()}/>  
-                </>
-            )}
+                      <CancelButton loading={isUploading} active={active.deleteHeader} variant='fit' text='Cancel' onClick={handleCancelExpenseHeader} />
+                    <div className="flex items-center justify-center rounded-sm hover:bg-slate-100 p-1 cursor-pointer" onClick={()=>handleDashboardRedirection()}>
+                    <img src={cancel_icon} className="w-5 h-5"/> 
+                    </div> 
+                
+            
 </div>
 </div>
 {/* <div className='flex flex-col md:flex-row mb-2 justify-end items-center'>
@@ -1432,18 +1437,17 @@ const handleDashboardRedirection=()=>{
        
      
 
-        <div className="form mt-5">
+      
 
-     
-<div className=" w-full flex flex-row mt-5">         
-<div className="flex flex-col w-full">       
-  <div className="container mx-auto ">
+        
+
+  <div className="w-full mt-4">
   {/* <h1 className="text-2xl font-bold mb-4">Header Report</h1> */}
   {getExpenseData && getExpenseData.map((item,index)=>(
    <React.Fragment key={index} >
     <div className="mb-4">
       <div
-        className="flex w-full justify-between items-center bg-indigo-50 py-2 px-6 border-[1px] rounded-sm border-indigo-600 cursor-pointer"
+        className="flex w-full justify-between  items-center bg-indigo-50 py-2 px-6 border-[1px] rounded-sm border-indigo-600 cursor-pointer"
         onClick={() => handleItemClick(index)}
       >
        
@@ -1462,7 +1466,7 @@ const handleDashboardRedirection=()=>{
        
       </div>
       {activeIndex === index && (
-        <div className="bg-white py-2 px-4 ">
+        <div className="bg-white  w-full  ">
 {/* ///already booked travel details */}
 <div className="mt-5 flex flex-col gap-4">
 
@@ -1514,6 +1518,7 @@ const handleDashboardRedirection=()=>{
             );
           }
         })} */}
+
 {item.alreadyBookedExpenseLines[itnItem].map((item, itemIndex) => {
 if (['flights', 'trains', 'buses'].includes(itnItem)) {
     return (
@@ -1557,9 +1562,8 @@ if (['flights', 'trains', 'buses'].includes(itnItem)) {
 
 {/* ///saved lineItem */}
 {/* get lineitem data from backend start*/}
-
+<div className="space-y-2">
 {item.expenseLines.map((lineItem, index) => (
-
 lineItem.expenseLineId === editLineItemById ? 
 (
 <EditForm
@@ -1590,10 +1594,9 @@ defaultCurrency={defaultCurrency}/>
 
 )  :
 <>
-<div className="flex flex-col lg:flex-row border">
+<div className="flex flex-col lg:flex-row  w-full h-screen">
 
 <EditView 
-
 expenseHeaderStatus={item?.expenseHeaderStatus}
 isUploading={isUploading} 
 active={active}
@@ -1603,10 +1606,12 @@ lineItem={lineItem}
 index={index} 
 handleEdit={handleEdit}
 newExpenseReport={item.newExpenseReport} 
-handleDeleteLineItem={handleDeleteLineItem}/>
+handleDeleteLineItem={handleDeleteLineItem}
+/>
 </div>
 </>
 ))}
+</div>
 {/* </div> */}
 
 {/* get lineItem data from backend end*/}
@@ -1655,8 +1660,8 @@ handleDeleteLineItem={handleDeleteLineItem}/>
       {field.name === 'From' || field.name === 'To' || field.name === 'Departure' || field.name === 'Pickup Location' ||field.name === 'DropOff Location' || field.name === 'Arrival' ? ( 
    <>       
     <Input
-    // inputRef={''}
-    // inputRef={autocompleteRefs[field.name] || (autocompleteRefs[field.name] = useRef())}
+    inputRef={''}
+    
     title={field.name}
     name={field.name}
     type={'text'}
@@ -1823,15 +1828,12 @@ onClick={handleSaveLineItemDetails} />
 </div>
 
 </div>}
-
-
 {/* end //lineItemform */}
 
-
-       </div>              
-        </div>
-        </div>
-        {openModal =='category' && 
+                 
+       
+       
+        {/* {openModal =='category' && 
         <div className="fixed overflow-hidden max-h-4/5 flex justify-center items-center inset-0 backdrop-blur-sm w-full h-full left-0 top-0 bg-gray-800/60 " >
             <div className='z-20  min-h-4/5 max-h-4/5 scroll-none bg-white  rounded-lg shadow-md'>
             <div onClick={()=>{setOpenModal(null);}} className=' w-10 h-10 flex translate-y-[-15px] translate-x-[-10px] mt-5 justify-center items-center float-right   hover:bg-red-300 rounded-full'>
@@ -1856,9 +1858,9 @@ onClick={handleSaveLineItemDetails} />
                 </div>
             </div>
             </div>
-        }
+        } */}
 
-        {openModal==='upload' && 
+        {/* {openModal==='upload' && 
         <div className="fixed overflow-hidden max-h-4/5 flex justify-center items-center inset-0 backdrop-blur-sm w-full h-full left-0 top-0 bg-gray-800/60 scroll-none " >
             <div className='z-10  md:w-3/5 w-full mx-8  min-h-4/5 max-h-4/5 scroll-none bg-white  rounded-lg shadow-md'>
             <div onClick={()=>{setOpenModal(null);setOcrSelectedFile(null);setOcrFileSelected(false);setSelectedCategory(null)}} className=' w-10 h-10 flex justify-center items-center float-right  mr-5 mt-5 hover:bg-red-300 rounded-full'>
@@ -1877,8 +1879,7 @@ onClick={handleSaveLineItemDetails} />
                     <div className={` w-fit`}>
                     <Button disabled={isUploading}  text='reupload' onClick={()=>{setOcrFileSelected(false);setOcrSelectedFile(null)}}/>
                     </div>
-                    {/* <p>Size: {selectedFile.size} bytes</p>
-                    <p>Last Modified: {selectedFile.lastModifiedDate.toString()}</p> */}
+                 
                     <div className="w-full  px-4 h-[500px]">
                     {ocrSelectedFile.type.startsWith('image/') ? (
                       
@@ -1925,7 +1926,7 @@ onClick={handleSaveLineItemDetails} />
                 </div>
             </div>
             </div>
-        }
+        } */}
 
 
     </div>
@@ -1964,7 +1965,7 @@ function AllocationComponent ({errorMsg, getSavedAllocations,travelExpenseAlloca
               </div>
               </React.Fragment>
        ))}       
-     </div> )}
+</div> )}
 
 
 
@@ -2218,114 +2219,16 @@ function CabCard({amount,from, to, date, time, travelClass, onClick, mode, isTra
 
 function EditView({expenseHeaderStatus,isUploading,active,flagToOpen,expenseHeaderId,lineItem, index ,newExpenseReport ,handleEdit, handleDeleteLineItem}){
   console.log('lineItems for edit view', lineItem)
-  const excludedKeys=["policyValidation" , "lineItemStatus","expenseLineId","alreadySaved","isPersonalExpense","isMultiCurrency","expenseLineAllocation","billImageUrl","_id",'travelType','Category Name','Currency','allocations' ,'isPersonalExpense' ,'policyViolation','billImageUrl']
-  const includedKeys =['Total Fair','Total Fare','Total Amount',  'Subscription Cost', 'Cost', 'Premium Cost','personalExpenseAmount'];
+ 
   return(
     <>
-<div className="border w-full lg:w-1/2">
+<div className=" w-full lg:w-3/5">
   {/* {lineItem.Document} */}
   <DocumentPreview initialFile={lineItem.Document}/>
 </div>
-<div className="border relative w-full lg:w-1/2 flex justify-between flex-col">
-    <div className="w-full flex-row pb-[56px] h-[710px] overflow-y-auto scrollbar-hide">
-     
-     <div className="w-full flex justify-between items-center h-12  px-4 border-dashed border-b-[1px] ">
-      <p className="text-zinc-600 text-medium font-semibold font-cabin">Sr. {index+1} </p>
-      <p className="text-zinc-600 text-medium font-semibold font-cabin capitalize">   Category -{lineItem?.['Category Name']}</p>
-    </div>   
-    <div className="pb-4 px-4">
-    {lineItem?.allocations ? 
-        lineItem?.allocations?.map((allocation, index) => (
-          <div key={index} className="min-w-[200px] min-h-[52px] ">
-            <div className="text-zinc-600 text-sm font-cabin capitalize py-1">{allocation.headerName}</div>
-            <div className="w-full h-12 bg-white items-center flex border border-neutral-300 rounded-md">
-              <div>
-                <div className="text-neutral-700 w-full h-full text-sm font-normal font-cabin px-6 py-2">
-                  {allocation.headerValue}
-                </div>
-              </div>
-            </div>
-            {/* <div className="w-full text-xs text-yellow-600 font-cabin">{['policyViolation']}</div> */}
-          </div> 
-        )): ""}
-    </div>
 
-    <div key={index} className="w-full  flex flex-wrap items-start gap-y-8  justify-between py-4 px-4">
-        {Object.entries(lineItem).map(([key, value]) => (
-
-     !excludedKeys.includes(key)  && value !== null && value !== 0 &&(
-
-  <React.Fragment key={key}>
-   {key !== 'convertedAmountDetails'&& 
-      <div className="min-w-[180px] w-full md:w-fit  h-[48px]  flex-col justify-start items-start ">
-                        
-            <div className="text-zinc-600 text-sm font-cabin capitalize"> {(key !== 'convertedAmountDetails' && key === 'personalExpenseAmount') ? 'Personal Expense' : key}</div>
-            <div className=" w-auto md:max-w-[180px] overflow-x-scroll  overflow-hidden scrollbar-hide h-full bg-white items-center flex border border-neutral-300 rounded-md ">
-            
-            
-                  <div key={key}>
-                    <div className="text-neutral-700  truncate  w-full h-full text-sm font-normal font-cabin px-6 py-2 ">
-                      
-                    {includedKeys.includes(key) ? `${(lineItem['Currency']?.shortName)} ${parseFloat(value).toFixed(2)}` : `${key === 'group' ? value?.group : value}`}
-                    </div>
-                    
-                  </div>
-                  
-                
-            </div> 
-            
-            {/* <div className=" w-full text-xs text-yellow-600 font-cabin">{['policyViolation']}</div> */}
-      </div>}
-
-  {key === 'convertedAmountDetails' &&   
-<div className="min-w-[200px] w-full  h-auto flex-col justify-start items-start gap-2 inline-flex my-6">
-<div className="text-zinc-600 text-sm font-cabin">Coverted Amount Details :</div>
-<div className="text-neutral-700 w-full h-full text-sm font-normal font-cabin  ">
-  <div className="w-full h-full decoration:none  rounded-md border placeholder:text-zinc-400 border-neutral-300 focus-visible:outline-0 focus-visible:border-indigo-600">
-    <div className={`sm:px-6 px-4  py-2  flex sm:flex-row flex-col  sm:items-center items-start min-h-12  justify-between bg-slate-100 rounded-t-md ${!value?.convertedPersonalAmount ? "rounded-md" :"rounded-t-md" }`}>
-      <div className="text-[16px] font-medium text-neutral-600">Total Amount </div> 
-      <div className="text-neutral-600 font-cabin">{value?.defaultCurrencyName} {value?.convertedTotalAmount && parseFloat(value?.convertedTotalAmount).toFixed(2)}</div>
-  </div>
-
-{value?.convertedPersonalAmount && (
-  <>
-    <div className="sm:px-6 px-4  py-2 flex sm:flex-row flex-col  sm:items-center items-start justify-between  min-h-12 bg-slate-100">
-      <div className="text-[16px] font-medium text-neutral-600">Personal Amount </div>
-      <div className="text-neutral-600 font-cabin">
-        {value?.defaultCurrencyName} {parseFloat(value?.convertedPersonalAmount ?? 0).toFixed(2)}
-      </div>
-    </div>
-    <div className="sm:px-6 px-4 py-2 flex sm:flex-row flex-col  sm:items-center items-start justify-between min-h-12 bg-slate-200 rounded-b-md">
-      <div className="text-[16px] font-medium text-neutral-600 max-w-full  whitespace-nowrap"><p className=" text-ellipsis">Final Reimbursement Amount </p></div>
-      <div className="text-neutral-600 font-cabin">
-        {value?.defaultCurrencyName} {parseFloat(value?.convertedBookableTotalAmount ?? 0).toFixed(2)}
-      </div>
-    </div>
-  </>
-)}
-
-  </div>
-
-</div>
-
-</div>} 
-        </React.Fragment>
-         )
-         ))}
-         
-    
-         
-       
-    </div>
-   
-    
-    </div>
-    <div className='absolute p-2 bg-indigo-50 inset-x-0 bottom-0 border-t-[1px]'>
-    {  !['paid', 'paid and distribute'].includes(expenseHeaderStatus) &&<div className="w-full flex sm:justify-start justify-center gap-4" >
-            <Button1 text="Edit"   onClick={()=>handleEdit(lineItem?.expenseLineId,lineItem?.['Category Name'],lineItem.travelType)} />
-            <Button1  loading={(active?.delete?.id === lineItem?.expenseLineId ? active?.delete?.visible : false)}   text="Delete" onClick={()=>(handleDeleteLineItem(lineItem))} />
-          </div>}
-    </div>      
+<div className="w-full lg:w-2/5">
+  <LineItemView expenseHeaderId={expenseHeaderStatus} lineItem={lineItem} active={active} index={index} handleEdit={handleEdit} handleDeleteLineItem={handleDeleteLineItem}/>
 </div>
 
 </>
@@ -2616,7 +2519,7 @@ console.log('currency for edit ',selectedCurrency)
     <div className="flex flex-col lg:flex-row border">
     <div className="border w-full lg:w-1/2">
     <div className='w-full  border  flex justify-center items-center '>
-       <DocumentPreview selectedFile={selectedFile} initialFile={initialFile}/>
+       <DocumentPreview selectedFile={selectedFile}  initialFile={initialFile}/>
     </div>
     </div>
     <div className="border w-full lg:w-1/2 h-[710px] scrollbar-hide overflow-hidden overflow-y-auto">
@@ -2829,60 +2732,60 @@ onChange={(value)=>handleEditChange('personalExpenseAmount',value)}
   )
 }
 
-function DocumentPreview({selectedFile , initialFile}){
+// function DocumentPreview({selectedFile , initialFile}){
 
 
-  return(
-    <div className=' border-[5px] min-w-[100%] h-fit flex justify-center items-center'>
-    {selectedFile ? 
-    (
-        <div className="w-full  flex flex-col justify-center">
-          {/* <p>Selected File: {selectedFile.name}</p> */}
-          {/* <p>Size: {selectedFile.size} bytes</p>
-          <p>Last Modified: {selectedFile.lastModifiedDate.toString()}</p> */}
-          {selectedFile.type.startsWith('image/') ? (
+//   return(
+//     <div className=' border-[5px] min-w-[100%] h-fit flex justify-center items-center'>
+//     {selectedFile ? 
+//     (
+//         <div className="w-full  flex flex-col justify-center">
+//           {/* <p>Selected File: {selectedFile.name}</p> */}
+//           {/* <p>Size: {selectedFile.size} bytes</p>
+//           <p>Last Modified: {selectedFile.lastModifiedDate.toString()}</p> */}
+//           {selectedFile.type.startsWith('image/') ? (
             
-            <img
-              src={URL.createObjectURL(selectedFile)}
-              alt="Preview"
-              className=' h-[700px] w-full'
+//             <img
+//               src={URL.createObjectURL(selectedFile)}
+//               alt="Preview"
+//               className=' h-[700px] w-full'
               
-            />
+//             />
             
-          ) : selectedFile.type === 'application/pdf' ? (
-            <embed
-              src={URL.createObjectURL(selectedFile)}
-              type="application/pdf"
-              width="100%"
-              height="700px"
-            />
-          ) : (
-            <p>Preview not available for this file type.</p>
-          )}
-        </div>
-      ) : 
-      !initialFile ?
-      <div className='w-full h-[700px] flex justify-center items-center bg-white opacity-30'>
-        <img src={!initialFile && file_icon|| initialFile} className='w-40 h-40'/>
-      </div> :
-      <div className='w-full h-[700px] flex justify-center items-center '>
-       {initialFile.toLowerCase().endsWith('.pdf') ? (
-        // Display a default PDF icon or text for PDF files
-        <div className='w-full'>
-          <embed
-            src={initialFile}
-            type="application/pdf"
-            width="100%"
-            height="700px"
-          />
-        </div>
-      ) : (
-        // Display the image preview for other file types
-        <img src={initialFile ? initialFile : file_icon} alt="Initial Document Preview" className='w-40 h-40' />
-      )}
-      </div>
-      }
-    </div>
+//           ) : selectedFile.type === 'application/pdf' ? (
+//             <embed
+//               src={URL.createObjectURL(selectedFile)}
+//               type="application/pdf"
+//               width="100%"
+//               height="700px"
+//             />
+//           ) : (
+//             <p>Preview not available for this file type.</p>
+//           )}
+//         </div>
+//       ) : 
+//       !initialFile ?
+//       <div className='w-full h-[700px] flex justify-center items-center bg-white opacity-30'>
+//         <img src={!initialFile && file_icon|| initialFile} className='w-40 h-40'/>
+//       </div> :
+//       <div className='w-full h-[700px] flex justify-center items-center '>
+//        {initialFile.toLowerCase().endsWith('.pdf') ? (
+//         // Display a default PDF icon or text for PDF files
+//         <div className='w-full'>
+//           <embed
+//             src={initialFile}
+//             type="application/pdf"
+//             width="100%"
+//             height="700px"
+//           />
+//         </div>
+//       ) : (
+//         // Display the image preview for other file types
+//         <img src={initialFile ? initialFile : file_icon} alt="Initial Document Preview" className='w-40 h-40' />
+//       )}
+//       </div>
+//       }
+//     </div>
 
-  )
-}
+//   )
+// }

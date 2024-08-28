@@ -108,11 +108,30 @@ function formatDate(date=Date.now()) {
   
     return finalFormattedDate;
   }
+
   
 
-  function formatDate3(inputDate){
+  function rearrangeKeyForLineItem(data, includedKeys) {
+    const rearrangedData = {};
+    let personalExpenseAdded = false;
 
-  }
+    Object.keys(data).forEach(key => {
+        rearrangedData[key] = data[key];
+        
+        if (includedKeys.includes(key) && !personalExpenseAdded) {
+            rearrangedData['personalExpenseAmount'] = data['personalExpenseAmount'];
+            personalExpenseAdded = true;
+        }
+    });
+
+    if (!personalExpenseAdded) {
+        rearrangedData['personalExpenseAmount'] = data['personalExpenseAmount'];
+    }
+
+    return rearrangedData;
+}
+
+
   
   
   function getStatusClass(status){
@@ -169,12 +188,13 @@ function formatDate(date=Date.now()) {
     fields.forEach((field) => {
       initialData[field.name] = ""; // Initialize each field with an empty string
     });
-  initialData.isPersonalExpense = false;
-  initialData.personalExpenseAmount = "";
+
   initialData.isMultiCurrency = false;
   initialData.billImageUrl = "";
   initialData.convertedAmountDetails = null;
   initialData.Currency = defaultCurrency;
+  initialData.isPersonalExpense = false;
+  initialData.personalExpenseAmount = "";
   // initialData.travelType = travelType;
   initialData["Category Name"] = categoryName;
     return initialData;
@@ -223,5 +243,5 @@ function formatDate(date=Date.now()) {
   }
   
 
-export {allocationLevel,initializenonTravelFormFields, initializeFormFields, camelCaseToTitleCase, titleCase, formatDate, formatDate2 ,getStatusClass ,generateRandomId,urlRedirection}  
+export {rearrangeKeyForLineItem, allocationLevel,initializenonTravelFormFields, initializeFormFields, camelCaseToTitleCase, titleCase, formatDate, formatDate2 ,getStatusClass ,generateRandomId,urlRedirection}  
 

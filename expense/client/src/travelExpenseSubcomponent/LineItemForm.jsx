@@ -18,8 +18,6 @@ console.log('error mgs',errorMsg.conversion)
 
   
   const [personalExpFlag , setPersonalExpFlag]=useState(false)
-  
-
     console.log('categoryFields', categoryFields)
 
     const handleInputChange = (key, value) => {
@@ -33,6 +31,7 @@ console.log('error mgs',errorMsg.conversion)
     
         if (key === 'isPersonalExpense' && value === false) {
           updatedFields.personalExpenseAmount = "";  // Clear the input value
+          setCurrencyConversion(prev => ({...prev,payload:{...prev.payload,personalAmount:""}}))
         }
 
         
@@ -60,6 +59,7 @@ console.log('error mgs',errorMsg.conversion)
           }
           }))
         }
+        
         setCurrencyConversion(prev =>({...prev,payload:{
           ...prev.payload,
           'currencyName':formData?.Currency?.shortName,
@@ -77,9 +77,11 @@ console.log('error mgs',errorMsg.conversion)
             }
           }));
           handleCurrencyConversion()
-        }else{
+        }else if(key==='Currency' && value.shortName === defaultCurrency.shortName)
+        {
           if(key==='Currency'){
             setErrorMsg((prevErrors) => ({ ...prevErrors, conversion: { set: false, msg: "" } }));
+            
           }
           
           setFormData(prev => ({
