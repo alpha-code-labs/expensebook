@@ -1584,13 +1584,38 @@ export const policyValidationHr = async (tenantId, empId, categoryName, travelTy
   }
 };
 
+const currencySchema = Joi.object({
+  currencyName: Joi.string().required().messages({
+    'string.empty': 'Currency name is required.',
+    'any.required': 'Currency name is required.'
+  }),
+  totalAmount: Joi.number().positive().required().messages({
+    'number.base': 'Total amount must be a number.',
+    'number.positive': 'Total amount must be a positive number.',
+    'any.required': 'Total amount is required.'
+  }),
+  personalAmount: Joi.number().positive().required().messages({
+    'number.base': 'Personal amount must be a number.',
+    'number.positive': 'Personal amount must be a positive number.',
+    'any.required': 'Personal amount is required.'
+  }),
+  nonPersonalAmount: Joi.number().positive().required().messages({
+    'number.base': 'Non-personal amount must be a number.',
+    'number.positive': 'Non-personal amount must be a positive number.',
+    'any.required': 'Non-personal amount is required.'
+  })
+});
 
 export const currencyConverter = async (req, res) => {
     try {
         const { tenantId} = req.params;
         console.log("params", req.params)
-        const { currencyName, totalAmount, personalAmount, nonPersonalAmount } = req.body;
-        console.log("req. body",currencyName, totalAmount, personalAmount, nonPersonalAmount)
+        const {error, value} = currencySchema.validate(req.params);
+        
+        if (error) return res.status(400).json(error);
+
+        const { currencyName, totalAmount, personalAmount, nonPersonalAmount } = value;
+        console.log("value",currencyName, totalAmount, personalAmount, nonPersonalAmount)
         if (!currencyName ||!totalAmount ) {
             return res.status(400).json({ message: 'Currency name, total amount are required' });
         }
@@ -1616,7 +1641,7 @@ export const currencyConverter = async (req, res) => {
         if (foundDefaultCurrency && !nonPersonalAmount && !personalAmount) {
             const currencyConverterData = {
                 currencyFlag: true,
-                companyName: hrDocument?.companyDetails?.companyName || 'Dummy Company',
+                companyName: hrDocument?.companyDetails?.companyName || 'Company',
                 defaultCurrency: defaultCurrency.shortName,
                 convertedCurrency: currencyName.toUpperCase(),
                 message: 'This is your company default currency, no need to do conversion',
@@ -1647,6 +1672,7 @@ export const currencyConverter = async (req, res) => {
                 currencyFlag: true,
                 companyName: hrDocument?.companyDetails?.companyName || 'Dummy Company',
                 defaultCurrencyName: defaultCurrency.shortName,
+                conversionRate: conversionPrice,
                 convertedCurrencyName: currencyName,
                 convertedTotalAmount: convertedTotalAmount,
                 convertedPersonalAmount: personalAmountInDefaultCurrency,
