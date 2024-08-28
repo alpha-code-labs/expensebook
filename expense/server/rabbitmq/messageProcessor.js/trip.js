@@ -115,5 +115,139 @@ export const tripArrayFullUpdate = async (payload) => {
 };
 
 
+//Add a leg - flights,cabs,trains,buses, hotels,public transportation
+export const addALegToTravelRequestData = async (payload) => {
+  const { tenantId, travelRequestId, isAddALeg, itineraryType, itineraryDetails: itinerary } = payload;
+
+  const processArray = async (currentArray, targetArray) => {
+      let newAlreadyBookedAmount = 0;
+
+      itinerary.forEach(item => {
+          const foundItemIndex = currentArray.findIndex(entry => entry.bookingDetails.billDetails.totalAmount === item.bookingDetails.billDetails.totalAmount);
+
+          if (foundItemIndex !== -1) {
+              const foundItem = currentArray.splice(foundItemIndex, 1)[0];
+              targetArray.push(foundItem);
+
+              newAlreadyBookedAmount += foundItem.bookingDetails.billDetails.totalAmount;
+          }
+      });
+
+      try {
+          const expenseReport = await Expense.findOneAndUpdate(
+              { 'tenantId': tenantId, 'travelRequestData.travelRequestId': travelRequestId },
+              {
+                  $set: {
+                      'travelRequestData.isAddALeg': isAddALeg
+                  },
+                  $push: { [`travelRequestData.itinerary.${itineraryType}`]: { $each: targetArray } },
+                  $inc: {
+                      'expenseAmountStatus.totalAlreadyBookedExpenseAmount': newAlreadyBookedAmount,
+                      'expenseAmountStatus.totalExpenseAmount': newAlreadyBookedAmount
+                  }
+              },
+              { new: true }
+          );
+
+          if (!expenseReport) {
+              return {
+                  success: false,
+                  message: 'Expense report not found'
+              };
+          }
+
+          return {
+              success: true,
+              message: 'Expense report updated successfully',
+              expenseReport
+          };
+      } catch (err) {
+          return {
+              success: false,
+              message: err.message 
+          };
+      }
+  };
+
+  // Call the processArray function with the correct target array based on the itinerary type
+  try {
+      const targetArray = req.body.travelRequestData.itinerary[itineraryType] || [];
+      const result = await processArray(targetArray, targetArray);
+      return result;
+  } catch (error) {
+      return {
+          success: false,
+          message: 'Failed to add leg: ' + error.message
+      };
+  }
+};
+
+//delete add a leg
+export const deleteALegFromTravelRequestData = async (payload) => {
+  const { tenantId, travelRequestId, isAddALeg, itineraryType, itineraryDetails: itinerary } = payload;
+
+  const processArray = async (currentArray, targetArray) => {
+      let newAlreadyBookedAmount = 0;
+
+      itinerary.forEach(item => {
+          const foundItemIndex = currentArray.findIndex(entry => entry.bookingDetails.billDetails.totalAmount === item.bookingDetails.billDetails.totalAmount);
+
+          if (foundItemIndex !== -1) {
+              const foundItem = currentArray.splice(foundItemIndex, 1)[0];
+              targetArray.push(foundItem);
+
+              newAlreadyBookedAmount += foundItem.bookingDetails.billDetails.totalAmount;
+          }
+      });
+
+      try {
+          const expenseReport = await Expense.findOneAndUpdate(
+              { 'tenantId': tenantId, 'travelRequestData.travelRequestId': travelRequestId },
+              {
+                  $set: {
+                      'travelRequestData.isAddALeg': isAddALeg
+                  },
+                  $push: { [`travelRequestData.itinerary.${itineraryType}`]: { $each: targetArray } },
+                  $inc: {
+                      'expenseAmountStatus.totalAlreadyBookedExpenseAmount': -newAlreadyBookedAmount,
+                      'expenseAmountStatus.totalExpenseAmount': -newAlreadyBookedAmount
+                  }
+              },
+              { new: true }
+          );
+
+          if (!expenseReport) {
+              return {
+                  success: false,
+                  message: 'Expense report not found'
+              };
+          }
+
+          return {
+              success: true,
+              message: 'Expense report updated successfully',
+              expenseReport
+          };
+      } catch (err) {
+          return {
+              success: false,
+              message: err.message 
+          };
+      }
+  };
+
+  // Call the processArray function with the correct target array based on the itinerary type
+  try {
+      const targetArray = req.body.travelRequestData.itinerary[itineraryType] || [];
+      const result = await processArray(targetArray, targetArray);
+      return result;
+  } catch (error) {
+      return {
+          success: false,
+          message: 'Failed to add leg: ' + error.message
+      };
+  }
+};
+
 
 

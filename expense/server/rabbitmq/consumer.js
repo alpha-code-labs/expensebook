@@ -1,8 +1,7 @@
 import amqp from 'amqplib';
 import { updateHRMaster, updatePreferences } from './messageProcessor.js/onboardingMessage.js';
-import {  tripArrayFullUpdate, tripFullUpdate } from './messageProcessor.js/trip.js';
-import { recoverCashAdvance, settleCashAdvance, settleExpenseReport, settleExpenseReportPaidAndDistributed } from './messageProcessor.js/finance.js';
-import { addALegToTravelRequestData } from '../controller/travelExpenseController.js';
+import {  addALegToTravelRequestData, deleteALegFromTravelRequestData, tripArrayFullUpdate, tripFullUpdate } from './messageProcessor.js/trip.js';
+import { settleExpenseReport, settleExpenseReportPaidAndDistributed, settleOrRecoverCashAdvance } from './messageProcessor.js/finance.js';
 import dotenv from 'dotenv';
 import { approveRejectCashRaisedLater, expenseReportApproval } from './messageProcessor.js/approval.js';
 
@@ -71,14 +70,13 @@ export async function startConsumer(receiver) {
   console.log(`Binding queue ${queue} to exchange ${exchangeName}`);
   await channel.bindQueue(queue, exchangeName, routingKey);
   
-  
   console.log('listening for messages. To exit press CTRL+C');
         // Listen for response
         channel.consume(queue, async (msg) => {
           if (msg && msg.content) {
   
         const content = JSON.parse(msg.content.toString());
-    
+
         console.log(`coming from ${content.headers?.source} meant for ${content.headers?.destination}`)
         //console.log('payload', content?.payload)
         const payload = content?.payload
@@ -114,7 +112,7 @@ export async function startConsumer(receiver) {
                   console.log('update failed with error code', res.error)
                 }
               }
-               if(action == 'full-update'){
+              if(action == 'full-update'){
                 console.log('trying to update Travel and cash after cancellation ')
                 const response = await tripFullUpdate(payload)
                 console.log(res)
@@ -128,46 +126,36 @@ export async function startConsumer(receiver) {
                 }
                }
           } else if(source == 'finance'){
-            if(action == 'settle-expense-paid') {
-              console.log(" expenseheaderstatus paid")
+          if(action == 'settle-ca' || action == 'recover-ca') {
+              console.log("settle-ca or recover-ca ")
+              const res = await settleOrRecoverCashAdvance(payload);
+              if(res.success){
+                  channel.ack(msg)
+                  console.log('cash update successful ')
+              }else{
+                  console.log('error updating travel and cash')
+              }
+          }
+          if(action == 'settle-expense-paid') {
+              console.log(" expense header status paid")
               const res = await settleExpenseReport(payload);
               if(res.success){
                   channel.ack(msg)
-                  console.log('expenseheaderstatus paid- successful ')
+                  console.log('expense header status paid- successful ')
               }else{
                   console.log('error updating travel and cash')
               }
           }
           if(action == 'settle-expense-Paid-and-distributed') {
-            console.log(" expenseheaderstatus paid and distributed")
+            console.log(" expense header status paid and distributed")
             const res = await settleExpenseReportPaidAndDistributed(payload);
             if(res.success){
                 channel.ack(msg)
-                console.log('expenseheaderstatus paid- successful ')
+                console.log('expense header status paid- successful ')
             }else{
                 console.log('error updating travel and cash')
             }
-        }
-          if(action == 'settle-cash') {
-            console.log(" ")
-            const res = await settleCashAdvance(payload);
-            if(res.success){
-                channel.ack(msg)
-                console.log('cash update successful ')
-            }else{
-                console.log('error updating travel and cash')
-            }
-        }
-        if(action == 'recover-cash') {
-          console.log(" ")
-          const res = await recoverCashAdvance(payload);
-          if(res.success){
-              channel.ack(msg)
-              console.log('cash update successful ')
-          }else{
-              console.log('error updating travel and cash')
           }
-      }
           } else if (source == 'dashboard'){
             if(action == 'profile-update'){
               const res = await updatePreferences(payload);
@@ -200,6 +188,20 @@ export async function startConsumer(receiver) {
             if(action == 'add-leg'){
               console.log('add-leg from travel microservice to expense microservice')
               const res = await addALegToTravelRequestData(payload);
+              console.log(res)
+              if(res.success){
+                //acknowledge message
+                channel.ack(msg)
+                console.log('message processed successfully')
+              }
+              else{
+                //implement retry mechanism
+                console.log('update failed with error code', res.error)
+              }
+            } 
+            if(action == 'remove-leg'){
+              console.log('add-leg from travel microservice to expense microservice')
+              const res = await deleteALegFromTravelRequestData(payload);
               console.log(res)
               if(res.success){
                 //acknowledge message
