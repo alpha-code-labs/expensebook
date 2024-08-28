@@ -10,22 +10,22 @@ const getSettlements = async (settlementsFilter) => {
   return await Dashboard.find(settlementsFilter);
 };
 
-const setSettlements = async (settlementsFilter) => {
+const updateSentToFinanceStatus = async (settlementsFilter) => {
   return await Dashboard.updateMany(settlementsFilter,{
     $set: {
-      'cashAdvanceSchema.cashAdvancesData.$[].actionedUpon':true,
-      'tripSchema.travelExpenseData.$[].actionedUpon':true,
-      'reimbursementSchema.actionedUpon':true,
+      'cashAdvanceSchema.cashAdvancesData.$[].actionedUpon':false,
+      'tripSchema.travelExpenseData.$[].actionedUpon':false,
+      'reimbursementSchema.actionedUpon':false,
     }
   })
 }
 
-// const setSettlements = async (settlementsFilter) => {
+// const updateSentToFinanceStatus = async (settlementsFilter) => {
 //   return await Dashboard.updateMany(
 //     {
 //       $or: [
 //         {
-//           'cashAdvanceSchema.cashAdvancesData': { $exists: true },
+//           'cashAdvanceSchema.cashAdvancesData': { $exists: false },
 //           'cashAdvanceSchema.cashAdvancesData.actionedUpon': false,
 //           'cashAdvanceSchema.cashAdvancesData.cashAdvanceStatus': {
 //             $in: ['pending settlement', 'Paid and Cancelled']
@@ -66,6 +66,7 @@ const setSettlements = async (settlementsFilter) => {
 export const financeBatchjob = async () => {
     try {
       const settlementsFilter = {
+        "tenantId":"66cdb6e7f392d19df00bd1dc",
         $or: [
           {
             'cashAdvanceSchema.cashAdvancesData.actionedUpon': false,
@@ -89,6 +90,7 @@ export const financeBatchjob = async () => {
       }
         const settlements = await getSettlements(settlementsFilter);
 
+        console.log("settlements",settlements.length)
         let result;
         result = { success: true, message: 'All are settled.' };
         if (!settlements || settlements.length === 0) {
@@ -133,19 +135,17 @@ export const financeBatchjob = async () => {
             const comments = 'all finance settlements sent from dashboard microservice to finance microservice';
             await sendToOtherMicroservice(payload, action, destination, comments, 'dashboard', 'batch');
             console.log("finance ", result);
-            await setSettlements(settlementsFilter)
+            await updateSentToFinanceStatus(settlementsFilter)
             result = { pendingCashAdvanceSettlements, pendingTravelExpenseSettlements, pendingReimbursementSettlements };
             return result;
         } else {
-            return {};
+          return {};
         }
     } catch (error) {
         console.error("Error in fetching employee Dashboard:", error);
         throw new Error('Error in fetching employee Dashboard');
     }
 };
-
-
 
 
 export const scheduleToFinanceBatchJob = () => {
