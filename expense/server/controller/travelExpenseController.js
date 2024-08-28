@@ -1607,11 +1607,11 @@ export const currencyConverter = async (req, res) => {
     try {
         const { tenantId} = req.params;
         console.log("params", req.params)
-        const {error, value} = currencySchema.validate(req.params);
+        // const {error, value} = currencySchema.validate(req.params);
         
-        if (error) return res.status(400).json(error);
+        // if (error) return res.status(400).json(error);
 
-        const { currencyName, totalAmount, personalAmount, nonPersonalAmount } = value;
+        const { currencyName, totalAmount, personalAmount, nonPersonalAmount } = req.params;
         console.log("value",currencyName, totalAmount, personalAmount, nonPersonalAmount)
         if (!currencyName ||!totalAmount ) {
             return res.status(400).json({ message: 'Currency name, total amount are required' });
