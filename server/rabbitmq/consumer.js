@@ -5,7 +5,8 @@ import { processTravelRequests } from './messageProcessor/travelMessageProcessor
 import dotenv from 'dotenv';
 import { processTravelRequestsWithCash } from './messageProcessor/cashAdvanceProcessor.js';
 import { fullUpdateExpense } from './messageProcessor/expense.js';
-import { expenseReportApproval } from './messageProcessor/approval.js';
+import { approveRejectCashRaisedLater, expenseReportApproval } from './messageProcessor/approval.js';
+import { settleExpenseReportPaidAndDistributed, settleOrRecoverCashAdvance } from './messageProcessor/finance.js';
 
 dotenv.config();
 
@@ -146,10 +147,30 @@ export async function startConsumer(receiver) {
                     console.log('error updating travel and cash')
                 }
             }
-          } else if (source == 'finance'){
-        if(action == 'settle-cash') {
-            console.log("trying to update cash partially")
-            // const res = await settleCashStatus(payload);
+          } else if(source == 'finance'){
+            if(action == 'settle-expense-paid') {
+              console.log(" expenseheaderstatus paid")
+              const res = await settleExpenseReport(payload);
+              if(res.success){
+                  channel.ack(msg)
+                  console.log('expenseheaderstatus paid- successful ')
+              }else{
+                  console.log('error updating travel and cash')
+              }
+           }
+          if(action == 'settle-expense-Paid-and-distributed') {
+            console.log(" expenseheaderstatus paid and distributed")
+            const res = await settleExpenseReportPaidAndDistributed(payload);
+            if(res.success){
+                channel.ack(msg)
+                console.log('expenseheaderstatus paid- successful ')
+            }else{
+                console.log('error updating travel and cash')
+            }
+          }
+          if(action == 'settle-ca') {
+            console.log("settle-ca")
+            const res = await settleOrRecoverCashAdvance(payload);
             if(res.success){
                 channel.ack(msg)
                 console.log('cash update successful ')
@@ -157,16 +178,6 @@ export async function startConsumer(receiver) {
                 console.log('error updating travel and cash')
             }
         }
-        if(action == 'settle-expense') {
-          console.log(" expenseheaderstatus paid")
-          const res = await settleExpenseReport(payload);
-          if(res.success){
-              channel.ack(msg)
-              console.log('cash update successful ')
-          }else{
-              console.log('error updating travel and cash')
-          }
-      }
           } else if (source == 'dashboard'){
           if(action == 'profile-update'){
             const res = await updatePreferences(payload);
@@ -181,6 +192,19 @@ export async function startConsumer(receiver) {
               console.log('update failed with error code', res.error)
             }
           }
+          if(action == 'approve-reject-ca-later'){
+            const res = await approveRejectCashRaisedLater(payload);
+            console.log(res)
+            if(res.success){
+              //acknowledge message
+              channel.ack(msg)
+              console.log('message processed successfully')
+            }
+            else{
+              //implement retry mechanism
+              console.log('update failed with error code', res.error)
+            }
+          } 
           } else if (source == 'expense'){
             if(action == 'full-update'){
             console.log('trying to update travelExpense Data')
@@ -214,4 +238,3 @@ export async function startConsumer(receiver) {
       }}
     },{ noAck: false }
 )}
-  
