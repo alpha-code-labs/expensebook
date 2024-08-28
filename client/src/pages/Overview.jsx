@@ -459,39 +459,86 @@ const IntransitTrips = ({ index, trip, lastIndex,handleVisible }) => {
   console.log(activeTabs);
 
 
+  // function separateItineraryByDate(currentDate, itinerary) {
+  //   let completedItinerary = [];
+  //   let upcomingItinerary = [];
+  
+  //   function checkAndPush(item, dateField, category , timeField) {
+  //     const itemDate = new Date(item[dateField]);
+  //     const itemWithCategory = { ...item, category };
+  //     if (category === "hotels") {
+  //       if (itemDate < currentDate) {
+  //         completedItinerary.push(itemWithCategory);
+  //       } else {
+  //         upcomingItinerary.push(itemWithCategory);
+  //       }
+  //     } else {
+  //       if (itemDate >= currentDate) {
+  //         upcomingItinerary.push(itemWithCategory);
+  //       } else {
+  //         completedItinerary.push(itemWithCategory);
+  //       }
+  //     }
+  //   }
+  
+  //   itinerary.flights.forEach(flight => checkAndPush(flight, 'bkd_date', 'flights','bkd_time'));
+  //   itinerary.hotels.forEach(hotel => checkAndPush(hotel, 'bkd_checkOut', 'hotels'));
+  //   itinerary.buses.forEach(bus => checkAndPush(bus, 'bkd_date', 'buses' ,'bkd_time'));
+  //   itinerary.trains.forEach(train => checkAndPush(train, 'bkd_date', 'trains','bkd_time'));
+  //   itinerary.cabs.forEach(cab => checkAndPush(cab, 'bkd_date', 'cabs','bkd_time'));
+  
+
+  //   completedItinerary = completedItinerary.sort((a,b)=>(a.sequence - b.sequence));
+  //   upcomingItinerary = upcomingItinerary.sort((a,b)=>(a.sequence - b.sequence));
+  //   return { completedItinerary, upcomingItinerary };
+  // }
   function separateItineraryByDate(currentDate, itinerary) {
     let completedItinerary = [];
     let upcomingItinerary = [];
-  
-    function checkAndPush(item, dateField, category) {
-      const itemDate = new Date(item[dateField]);
-      const itemWithCategory = { ...item, category };
-      if (category === "hotels") {
-        if (itemDate < currentDate) {
-          completedItinerary.push(itemWithCategory);
-        } else {
-          upcomingItinerary.push(itemWithCategory);
-        }
-      } else {
-        if (itemDate >= currentDate) {
-          upcomingItinerary.push(itemWithCategory);
-        } else {
-          completedItinerary.push(itemWithCategory);
-        }
-      }
-    }
-  
-    itinerary.flights.forEach(flight => checkAndPush(flight, 'bkd_date', 'flights'));
-    itinerary.hotels.forEach(hotel => checkAndPush(hotel, 'bkd_checkOut', 'hotels'));
-    itinerary.buses.forEach(bus => checkAndPush(bus, 'bkd_date', 'buses'));
-    itinerary.trains.forEach(train => checkAndPush(train, 'bkd_date', 'trains'));
-    itinerary.cabs.forEach(cab => checkAndPush(cab, 'bkd_date', 'cabs'));
-  
 
-    completedItinerary = completedItinerary.sort((a,b)=>(a.sequence - b.sequence));
-    upcomingItinerary = upcomingItinerary.sort((a,b)=>(a.sequence - b.sequence));
+    function combineDateTime(dateStr, timeStr) {
+        return new Date(`${dateStr}T${timeStr}`);
+    }
+
+    function checkAndPush(item, dateField, category, timeField) {
+        // Combine date and time into a single Date object
+        const itemDateTime = timeField ? combineDateTime(item[dateField], item[timeField]) : new Date(item[dateField]);
+        const currentDateTime = timeField ? combineDateTime(currentDate.toISOString().split('T')[0], "00:00") : currentDate;
+
+        const itemWithCategory = { ...item, category };
+
+        if (category === "hotels") {
+            if (itemDateTime < currentDateTime) {
+                completedItinerary.push(itemWithCategory);
+            } else {
+                upcomingItinerary.push(itemWithCategory);
+            }
+        } else {
+            if (itemDateTime >= currentDateTime) {
+                upcomingItinerary.push(itemWithCategory);
+            } else {
+                completedItinerary.push(itemWithCategory);
+            }
+        }
+    }
+
+    // Ensure currentDate is a Date object
+    currentDate = new Date(currentDate);
+
+    // Process each category with the appropriate date and time fields
+    itinerary.flights.forEach(flight => checkAndPush(flight, 'bkd_date', 'flights', 'bkd_time'));
+    itinerary.hotels.forEach(hotel => checkAndPush(hotel, 'bkd_checkOut', 'hotels'));
+    itinerary.buses.forEach(bus => checkAndPush(bus, 'bkd_date', 'buses', 'bkd_time'));
+    itinerary.trains.forEach(train => checkAndPush(train, 'bkd_date', 'trains', 'bkd_time'));
+    itinerary.cabs.forEach(cab => checkAndPush(cab, 'bkd_date', 'cabs', 'bkd_time'));
+
+    // Sort itineraries by sequence
+    completedItinerary = completedItinerary.sort((a, b) => (a.sequence - b.sequence));
+    upcomingItinerary = upcomingItinerary.sort((a, b) => (a.sequence - b.sequence));
+
     return { completedItinerary, upcomingItinerary };
-  }
+}
+
   const currentDate = new Date();
   const { completedItinerary, upcomingItinerary } = separateItineraryByDate(currentDate, trip?.itinerary);
   

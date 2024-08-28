@@ -6,7 +6,7 @@ import {TRCashadvance,NonTRCashAdvances, travelExpense, TrExpenseForApproval, No
 import Modal from '../components/common/Modal1';
 import TripSearch from '../components/common/TripSearch';
 import Button1 from '../components/common/Button1';
-import { handleApproval, handleCashAdvance } from '../utils/actionHandler';
+import { handleApproval, handleCashAdvance, handleTravelExpense } from '../utils/actionHandler';
 import TravelMS from '../microservice/TravelMS';
 import { useData } from '../api/DataProvider';
 import Error from '../components/common/Error';
@@ -134,7 +134,7 @@ console.log('selected lineItems',selectedLineItems)
   sortTripsByDate(travelAndItinerary)
   const travelExpenses = approvalData?.travelExpenseReports || []
   const nonTravelExpenses = approvalData?.nonTravelExpenseReports || []
-  const dummyTrExpense = TrExpenseForApproval?.map((expense)=> ({...expense,expenseType:"Travel Expense"})) || []
+  const dummyTrExpense = travelExpenses?.map((expense)=> ({...expense,expenseType:"Travel Expense"})) || []
   const dummyNonTravelExpense = nonTravelExpenses?.map((expense)=>({...expense,expenseType:"Non Travel Expense"})) || []
   const DummyExpenseData = [...dummyTrExpense, ...dummyNonTravelExpense]
   
@@ -226,7 +226,7 @@ const handleSelect = (obj) => {
 
 //cashadvance iframe
 
-const handleVisible = (travelRequestId, action) => {
+const handleVisible = ({travelRequestId,tripId,expenseHeaderId, action}) => {
 
   setVisible(!visible);
   let url ;
@@ -236,7 +236,8 @@ const handleVisible = (travelRequestId, action) => {
     
   }
   else if (action==="travelExpense-approval-view"){
-    url=handleCashAdvance("", action);
+    // url=handleCashAdvance("", action);
+    url = handleApproval({tenantId,empId,tripId,expenseHeaderId,action})
    
   }
   else {
@@ -656,7 +657,7 @@ const handleVisible = (travelRequestId, action) => {
                         </div>
                 <div className='flex items-center justify-center'>
                 <img src={info_icon} className='w-4 h-4'/>
-                <div className='text-sm font-cabin px-2 py-1 cursor-pointer' onClick={()=>{if(!disableButton(expenseDetails?.travelRequestStatus)){handleVisible(expenseDetails?.travelRequestId,  'travel-approval-view' )}}}>
+                <div className='text-sm font-cabin px-2 py-1 cursor-pointer' onClick={()=>{if(!disableButton(expenseDetails?.travelRequestStatus)){handleVisible({travelRequestId:expenseDetails?.travelRequestId,  "action":'travel-approval-view'} )}}}>
                   <p className='text-indigo-600 font-semibold'>View Details</p>
                 </div>
                 </div>
@@ -811,7 +812,7 @@ Raise a Cash-Advance
             </div> */}
             <Violation violationCount={trip?.violationsCounter?.total}/>
              
-              <div className='text-sm font-cabin px-2 py-1 cursor-pointer' onClick={()=>{if(!disableButton(trip?.travelRequestStatus)){handleVisible(trip?.travelRequestId,  'travel-approval-view' )}}}>
+              <div className='text-sm font-cabin px-2 py-1 cursor-pointer' onClick={()=>{if(!disableButton(trip?.travelRequestStatus)){handleVisible({travelRequestId:trip?.travelRequestId,  action:'travel-approval-view' })}}}>
                 <p className='text-indigo-600 font-semibold'>View Details</p>
               </div>
               </div>
@@ -939,7 +940,7 @@ Raise a Cash-Advance
                     </div>
                     <div className='flex items-center justify-center'>
               <img src={info_icon} className='w-4 h-4'/>
-                <div className='text-sm font-cabin px-2 py-1 cursor-pointer' onClick={()=>{if(!disableButton(trip?.travelRequestStatus)){handleVisible(trip?.travelRequestId,  'travel-approval-view' )}}}>
+                <div className='text-sm font-cabin px-2 py-1 cursor-pointer' onClick={()=>{if(!disableButton(trip?.travelRequestStatus)){handleVisible({tripId:trip?.tripId, expenseHeaderId:trip?.expenseHeaderId,  action:'travelExpense-approval-view' })}}}>
                   <p className='text-indigo-600 font-semibold'>View Details</p>
                 </div>
                 </div>

@@ -115,18 +115,18 @@ export const handleNonTravelExpense=(expenseHeaderId,action)=>{
    }
 
     
- export const handleApproval=(tenantId,empId,travelRequestId , expenseHeaderId ,action, )=>{
+ export const handleApproval=({tenantId,empId,travelRequestId ,tripId, expenseHeaderId ,action} )=>{
   let url ;
   if (action==="travel-approval-view"){
     return url=approvalViewRoutes.viewDetails.viewDetails_tr_standalone.getUrl(tenantId,empId,travelRequestId)
   }
   else if (action==="travelExpense-approval-view"){
-    url=approvalViewRoutes.viewDetails.viewDetails_tr_expense.getUrl(tenantId,empId,expenseHeaderId)
+    url=approvalViewRoutes.viewDetails.viewDetails_tr_expense.getUrl(tenantId,empId,tripId,expenseHeaderId)
   }
   else {
     throw new Error('Invalid action');
   }
-  urlRedirection(url)
+  return(url)
  }
 
 
