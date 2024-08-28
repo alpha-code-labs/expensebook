@@ -5,6 +5,44 @@ import HRMaster from "../models/hrMasterSchema.js";
 import { earliestDate, extractStartDate } from "../utils/date.js";
 import { countViolations, extractValidViolations } from "../utils/count.js";
 
+
+function getItinerary(itinerary){
+    const itineraryToSend = Object.fromEntries(
+        Object.entries(itinerary)
+            .filter(([category]) => category !== 'formState')
+            .map(([category, items]) => {
+                let mappedItems;
+                if (category === 'hotels') {
+                    mappedItems = items.map(({
+                        itineraryId, status, bkd_location, bkd_class, bkd_checkIn, bkd_checkOut, bkd_violations, cancellationDate, cancellationReason,
+                    }) => ({
+                        category,
+                        itineraryId, status, bkd_location, bkd_class, bkd_checkIn, bkd_checkOut, bkd_violations, cancellationDate, cancellationReason,
+                    }));
+                } else if (category === 'cabs') {
+                    mappedItems = items.map(({
+                        itineraryId, status, bkd_date, bkd_class, bkd_pickupAddress, bkd_dropAddress,
+                    }) => ({
+                        category,
+                        itineraryId, status, bkd_date, bkd_class, bkd_pickupAddress, bkd_dropAddress,
+                    }));
+                } else {
+                    mappedItems = items.map(({
+                        itineraryId, status, bkd_from, bkd_to, bkd_date, bkd_time, bkd_travelClass, bkd_violations,
+                    }) => ({
+                        category,
+                        itineraryId, status, bkd_from, bkd_to, bkd_date, bkd_time, bkd_travelClass, bkd_violations,
+                    }));
+                }
+    
+                return [category, mappedItems];
+            })
+    );
+    return itineraryToSend;
+}
+
+
+
 export const employeeSchema = Joi.object({
     tenantId: Joi.string().required(),
     empId:Joi.string().required()
@@ -931,10 +969,10 @@ const getTripForEmployee = async (tenantId, empId) => {
 
 const getAllExpensesForEmployee = async (tenantId, empId) => {
     // console.log("entering trips db")
-  try {
-      const tripDocs = await dashboard.find({
+try {
+    const tripDocs = await dashboard.find({
         $or: [
-          { 
+        { 
             'tripSchema.tenantId': tenantId,
             'tripSchema.travelRequestData.createdBy.empId': empId,
             $or: [
@@ -966,37 +1004,38 @@ const status ={
         // const { totalCashAmount, totalRemainingCash } = expenseAmountStatus ||  {};
         const {travelRequestId,travelRequestNumber,travelRequestStatus,tripName,tripPurpose, isCashAdvanceTaken, itinerary} = travelRequestData || {};
 
-        const itineraryToSend = Object.fromEntries(
-            Object.entries(itinerary)
-                .filter(([category]) => category !== 'formState')
-                .map(([category, items]) => {
-                    let mappedItems;
-                    if (category === 'hotels') {
-                        mappedItems = items.map(({
-                            itineraryId, status, bkd_location, bkd_class, bkd_checkIn, bkd_checkOut, bkd_violations, cancellationDate, cancellationReason,
-                        }) => ({
-                            category,
-                            itineraryId, status, bkd_location, bkd_class, bkd_checkIn, bkd_checkOut, bkd_violations, cancellationDate, cancellationReason,
-                        }));
-                    } else if (category === 'cabs') {
-                        mappedItems = items.map(({
-                            itineraryId, status, bkd_date, bkd_class, bkd_pickupAddress, bkd_dropAddress,
-                        }) => ({
-                            category,
-                            itineraryId, status, bkd_date, bkd_class, bkd_pickupAddress, bkd_dropAddress,
-                        }));
-                    } else {
-                        mappedItems = items.map(({
-                            itineraryId, status, bkd_from, bkd_to, bkd_date, bkd_time, bkd_travelClass, bkd_violations,
-                        }) => ({
-                            category,
-                            itineraryId, status, bkd_from, bkd_to, bkd_date, bkd_time, bkd_travelClass, bkd_violations,
-                        }));
-                    }
+        // const itineraryToSend = Object.fromEntries(
+        //     Object.entries(itinerary)
+        //         .filter(([category]) => category !== 'formState')
+        //         .map(([category, items]) => {
+        //             let mappedItems;
+        //             if (category === 'hotels') {
+        //                 mappedItems = items.map(({
+        //                     itineraryId, status, bkd_location, bkd_class, bkd_checkIn, bkd_checkOut, bkd_violations, cancellationDate, cancellationReason,
+        //                 }) => ({
+        //                     category,
+        //                     itineraryId, status, bkd_location, bkd_class, bkd_checkIn, bkd_checkOut, bkd_violations, cancellationDate, cancellationReason,
+        //                 }));
+        //             } else if (category === 'cabs') {
+        //                 mappedItems = items.map(({
+        //                     itineraryId, status, bkd_date, bkd_class, bkd_pickupAddress, bkd_dropAddress,
+        //                 }) => ({
+        //                     category,
+        //                     itineraryId, status, bkd_date, bkd_class, bkd_pickupAddress, bkd_dropAddress,
+        //                 }));
+        //             } else {
+        //                 mappedItems = items.map(({
+        //                     itineraryId, status, bkd_from, bkd_to, bkd_date, bkd_time, bkd_travelClass, bkd_violations,
+        //                 }) => ({
+        //                     category,
+        //                     itineraryId, status, bkd_from, bkd_to, bkd_date, bkd_time, bkd_travelClass, bkd_violations,
+        //                 }));
+        //             }
         
-                    return [category, mappedItems];
-                })
-        );
+        //             return [category, mappedItems];
+        //         })
+        // );
+        const itineraryToSend = getItinerary(itinerary)
 
         const travelExpenseReports = travelExpenseData.map(expense => ({
             expenseHeaderId: expense?.expenseHeaderId ?? '',
@@ -1121,7 +1160,7 @@ const status ={
               expenseHeaderStatus,
               expenseLines
             }];
-          });
+        });
         
         // console.log("allNonTravelReports reports:", allNonTravelReports);
         
@@ -1129,13 +1168,11 @@ const status ={
             allTripExpenseReports,
             allNonTravelReports,
             completedTrips
-         }
-
-    
-  } catch (error) {
+        }
+} catch (error) {
       console.error("Error in fetching employee Dashboard:", error);
       throw new Error ( { error: 'Error in fetching employee Dashboard' });
-  }
+}
 };
 
 
@@ -1525,201 +1562,11 @@ const status ={
 const managerLayout = async (tenantId,empId) => {
     try{
        const approvals = await approvalsForManager(tenantId,empId);
-
-      //  res.status.status(200).json({ success: true,
-      //  approvals,if
-
         return approvals
-       } catch(error){
-          throw new Error({message:'internal server error'});
-   }
+    } catch(error){
+        throw new Error({message:'internal server error'});
 }
-
-
-// travel, cash for approval
-const oldprocessApproval = async (approvalDoc, status, empId, res) => {
-    const travelRequestForApproval = [];
-    const travelWithCashForApproval = [];
-
-    approvalDoc.forEach((approval) => {
-        const { cashAdvanceSchema } = approval;
-        const { travelRequestData, cashAdvanceData } = cashAdvanceSchema;
-
-        const keysToExtract = ['travelRequestId', 'approvers', 'travelRequestNumber', 'travelRequestStatus', 'isCashAdvanceTaken'];
-        const isValidStatus = keysToExtract.includes('travelRequestStatus') && travelRequestSchema.travelRequestStatus === status;
-        const isValidApprover = keysToExtract.includes('approvers') && travelRequestSchema.approvers.empId === empId;
-
-        // Extract from travelRequestSchema
-        Object.entries(travelRequestSchema).forEach(([key, value]) => {
-            if (keysToExtract.includes(key) && isValidStatus && isValidApprover) {
-                travelRequestForApproval.push({ [key]: value });
-            }
-        });
-
-        // Extract from travelRequestData using KeysToExtractCash
-        const KeysToExtractCash = ['travelRequestId', 'approvers', 'travelRequestNumber', 'travelRequestStatus'];
-        Object.entries(travelRequestData).forEach(([key, value]) => {
-            if (KeysToExtractCash.includes(key)) {
-                const isValidTravelStatus = key === 'travelRequestStatus' && value === 'pending approval';
-                if (isValidTravelStatus) {
-                    travelWithCashForApproval.push({ [key]: value });
-                }
-            }
-        });
-
-        // Extract from cashAdvanceData (assuming it's an array)
-        const isValidCashStatus = cashAdvanceData.some(cashAdvance => cashAdvance.cashAdvanceStatus === 'pending approval');
-        if (isValidCashStatus) {
-            const currentTrWithCash = { cashAdvance: [] };
-            cashAdvanceData.forEach((cashAdvance) => {
-                const { travelRequestNumber, cashAdvanceNumber, cashAdvanceId } = cashAdvance;
-                currentTrWithCash.cashAdvance.push({ travelRequestNumber, cashAdvanceNumber, cashAdvanceId });
-            });
-            travelWithCashForApproval.push(currentTrWithCash);
-        }
-    });
-
-    if (travelRequestForApproval.length > 0) {
-        return { [empId]: travelRequestForApproval };
-    } else if (travelWithCashForApproval.length > 0) {
-        return { travelWithCashForApproval };
-    } else {
-        return {}; // Handle the case when both arrays are empty
-    }
-};
-
-const processApproval = async (approvalDoc, status, empId) => {
-    const travelRequestForApproval = approvalDoc.map(approval => {
-        const { travelRequestSchema, cashAdvanceSchema } = approval;
-        const { travelRequestData, cashAdvanceData } = cashAdvanceSchema;
-
-        const keysToExtract = ['travelRequestId', 'approvers', 'travelRequestNumber', 'travelRequestStatus', 'isCashAdvanceTaken'];
-        const isValidStatus = keysToExtract.includes('travelRequestStatus') && travelRequestSchema.travelRequestStatus === status;
-        const isValidApprover = keysToExtract.includes('approvers') && travelRequestSchema.approvers.empId === empId;
-
-        const extractedTravelRequest = Object.entries(travelRequestSchema)
-            .filter(([key, value]) => keysToExtract.includes(key) && isValidStatus && isValidApprover)
-            .reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {});
-
-        return extractedTravelRequest;
-    });
-
-    const travelWithCashForApproval = approvalDoc.map(approval => {
-        const { travelRequestData, cashAdvanceData } = approval.cashAdvanceSchema;
-        const isValidCashStatus = cashAdvanceData.some(cashAdvance => cashAdvance.cashAdvanceStatus === 'pending approval');
-
-        if (isValidCashStatus) {
-            const cashAdvanceDetails = cashAdvanceData.map(cashAdvance => ({
-                travelRequestNumber: cashAdvance.travelRequestNumber,
-                cashAdvanceNumber: cashAdvance.cashAdvanceNumber,
-                cashAdvanceId: cashAdvance.cashAdvanceId
-            }));
-
-            return { cashAdvance: cashAdvanceDetails };
-        }
-        return null;
-    }).filter(Boolean);
-
-    const addALegForApproval = approvalDoc.map(approval => {
-        const { travelRequestData, cashAdvanceData} = approval.cashAdvanceSchema;
-        const isAddALeg = travelRequestData.filter(travelRequest => travelRequest.isAddALeg);
-
-        if (isAddALeg) {
-            const cashAdvanceDetails = cashAdvanceData.map(cashAdvance => ({
-                travelRequestNumber: cashAdvance.travelRequestNumber,
-                cashAdvanceNumber: cashAdvance.cashAdvanceNumber,
-                cashAdvanceId: cashAdvance.cashAdvanceId
-            }));
-
-            return { cashAdvance: cashAdvanceDetails };
-        }
-        return null;
-    }).filter(Boolean);
-
-    if (travelRequestForApproval.length > 0) {
-        return { [empId]: travelRequestForApproval };
-    } else if (travelWithCashForApproval.length > 0) {
-        return { travelWithCashForApproval };
-    } else {
-        return {}; // Handle the case when both arrays are empty
-    }
-};
-
-
-//approver- cash raised later
-const processApprovalCashRaisedLater = async (approvalDoc, status, empId) => {
-    const travelWithCashRaisedLater = [];
-
-    approvalDoc.forEach((approval) => {
-        const { cashAdvanceSchema } = approval;
-        const { travelRequestData, cashAdvanceData } = cashAdvanceSchema;
-
-        // Extract from travelRequestData for cash raised later
-        const KeysToExtractCash = ['travelRequestId', 'approvers', 'travelRequestNumber', 'travelRequestStatus'];
-        Object.entries(travelRequestData).forEach(([key, value]) => {
-            if (KeysToExtractCash.includes(key)) {
-                const isValidTravelStatus = key === 'travelRequestStatus' && value === status;
-                if (isValidTravelStatus && travelRequestData.approvers.empId === empId) {
-                    travelWithCashRaisedLater.push({ [key]: value });
-                }
-            }
-        });
-
-        // Extract from cashAdvanceData 
-        const isValidCashStatus = cashAdvanceData.some(cashAdvance => cashAdvance.cashAdvanceStatus === status && cashAdvance.approvers.empId === empId); 
-        if (isValidCashStatus) {
-            const currentTrWithCash = { cashAdvance: [] };
-            cashAdvanceData.forEach((cashAdvance) => {
-                if (cashAdvance.approvers.empId === empId) {
-                    const { travelRequestNumber, cashAdvanceNumber, cashAdvanceId } = cashAdvance;
-                    currentTrWithCash.cashAdvance.push({ travelRequestNumber, cashAdvanceNumber, cashAdvanceId });
-                }
-            });
-            travelWithCashRaisedLater.push(currentTrWithCash);
-        }
-    });
-
-    if (travelWithCashRaisedLater.length > 0) {
-        return { travelWithCashRaisedLater };
-    } else {
-        return { message: 'No cash raised later approvals found for the user' };
-    }
-};
-
-// for travel expense reports
-const processApprovaltravelExpenseReports = async (approvalDoc, status, empId) => {
-    const travelExpenseReportsApproval = [];
-
-    approvalDoc.forEach((approval) => {
-        const { tripSchema } = approval;
-        const { travelExpenseData } = tripSchema;
-
-        travelExpenseData.forEach((expenseDataItem) => {
-            const KeysToExtractCash = ['tripId', 'approvers', 'expenseHeaderNumber', 'expenseHeaderStatus'];
-            const { approvers, expenseHeaderStatus } = expenseDataItem;
-
-            if (
-                expenseHeaderStatus === status &&
-                approvers && approvers.empId === empId
-            ) {
-                const filteredExpenseData = {};
-                KeysToExtractCash.forEach((key) => {
-                    if (expenseDataItem.hasOwnProperty(key)) {
-                        filteredExpenseData[key] = expenseDataItem[key];
-                    }
-                });
-                travelExpenseReportsApproval.push(filteredExpenseData);
-            }
-        });
-    });
-
-    if (travelExpenseReportsApproval.length > 0) {
-        return { travelExpenseReportsApproval };
-    } else {
-        return { message: 'No travel expense reports found for the user' };
-    }
-};
-
+}
 
 
 /**
@@ -1757,7 +1604,7 @@ const approvalsForManager = async (tenantId, empId) => {
                         },
                         {
                             'tripSchema.travelExpenseData': {
-                              $elemMatch: {
+                            $elemMatch: {
                                 tenantId: tenantId,
                                 expenseHeaderStatus: 'pending approval',
                                 'approvers': {
@@ -1766,7 +1613,7 @@ const approvalsForManager = async (tenantId, empId) => {
                                     status: 'pending approval'
                                   }
                                 }
-                              }
+                            }
                             }
                         },
                         {'reimbursementSchema.approvers':{
@@ -1809,7 +1656,7 @@ const approvalsForManager = async (tenantId, empId) => {
                       travelRequestNumber, createdBy, travelRequestStatus, isCashAdvanceTaken, violationsCounter
                     };
                   })
-              );
+            );
 
 
             const travelWithCash = await Promise.all (approvalDoc
@@ -1848,7 +1695,6 @@ const approvalsForManager = async (tenantId, empId) => {
                         }
                     })
                 )
-
 
                 // console.log("approvalDoc", approvalDoc)
                 const cashAdvanceRaisedLater = await Promise.all(
@@ -1896,21 +1742,16 @@ const approvalsForManager = async (tenantId, empId) => {
         const travelExpenseReports = await (async () => {
             try {
                 const filteredApprovals = approvalDoc.filter(approval => {
-                    // console.log("Checking approval:", approval);
                     return approval?.tripSchema?.travelExpenseData?.some(expense => {
-                        // console.log("Checking expense:", expense);
                         return expense.tenantId === tenantId &&
                             expense.expenseHeaderStatus === 'pending approval' &&
                             expense.approvers.some(approver => {
-                                // console.log("Checking approver:", approver);
                                 return approver.empId === empId &&
                                     approver.status === 'pending approval';
                             });
                     });
                 });
-        
                 // console.log("Filtered approvals:", filteredApprovals);
-        
                 const travelExpenseDataList = filteredApprovals.flatMap(approval => {
                     // console.log("Processing approval:", approval);
                     return approval.tripSchema.travelExpenseData.map(expense => {
@@ -1918,12 +1759,11 @@ const approvalsForManager = async (tenantId, empId) => {
                         const {tripName} = approval.travelRequestSchema
                         const { tripId, tripNumber, tripStatus, tripStartDate } = approval.tripSchema;
                         const { tripPurpose, createdBy} = approval.tripSchema.travelRequestData
-                        const { expenseHeaderNumber,expenseHeaderId, expenseHeaderStatus, approvers } = expense;
-                        return { tripId,tripName,tripNumber,tripPurpose,createdBy,tripStatus,tripStartDate, expenseHeaderNumber,expenseHeaderId, expenseHeaderStatus, approvers };
+                        const { expenseHeaderNumber,expenseHeaderId, expenseHeaderStatus, approvers, expenseLines,} = expense;
+                        return { tripId,tripName,tripNumber,tripPurpose,createdBy,tripStatus,tripStartDate, expenseHeaderNumber,expenseHeaderId, expenseHeaderStatus, approvers, expenseLines };
                     });
                 });
-        
-                // console.log(" expense reports for approval:", travelExpenseDataList);
+                console.log(" expense reports for approval:", travelExpenseDataList);
         
                 return travelExpenseDataList;
             } catch (error) {
@@ -2253,7 +2093,7 @@ console.log("verified business admin layout", tenantId, empId);
                 return results.filter(Boolean);
             })();
 
-     console.log("travel booking .......", travel)
+    console.log("travel booking .......", travel)
             // const travelWithCash = await (async () => {
             //     const filteredBooking = bookingDoc.filter(booking => 
             //         booking?.cashAdvanceSchema?.travelRequestData?.travelRequestStatus === 'pending booking'

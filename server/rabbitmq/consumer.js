@@ -256,7 +256,7 @@ export async function startConsumer(receiver) {
               console.log('settle-ca', payload);
                 const result = await settleCashAdvance(payload);
                 console.log("result for settle ca", result)
-                  if (res.success) {
+                  if (result.success) {
                     // Acknowledge message
                     channel.ack(msg);
                     console.log('Message processed successfully');
