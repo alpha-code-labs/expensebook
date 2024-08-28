@@ -61,13 +61,4 @@ body {
   @apply hover:shadow-md hover:shadow-green-200/60 transition duration-300;
 }
 
-/* Specific to iframe */
-.iframe-container iframe {
-  -ms-overflow-style: none; /* IE and Edge */
-  scrollbar-width: none; /* Firefox */
-}
-
-.iframe-container iframe::-webkit-scrollbar {
-  display: none; /* Safari and Chrome */
-}
 

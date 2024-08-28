@@ -170,7 +170,7 @@ function App() {
         </div>
         
        
-        <div className='min-h-screen w-full max-h-fit bg-white'>
+        <div className='h-screen overflow-auto scrollbar-hide w-full max-h-fit bg-white'>
           <Routes>
             <Route
               exact

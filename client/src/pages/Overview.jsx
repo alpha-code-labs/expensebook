@@ -219,11 +219,11 @@ const handleRaise = () => {
 
   return (
     <>
-    {isLoading && <Error message={loadingErrMsg}/>}
-    {!isLoading &&
+    {isLoading ? <Error message={loadingErrMsg}/>
+   :
     <>
     {expenseVisible ?  ( <ExpenseMS visible={expenseVisible} setVisible={setExpenseVisible} src={iframeURL} /> ) :
-    <div className="min-h-screen flex items-start xl:items-center p-4 justify-center px-2 md:px-10 ">
+    <div className="p-4 ">
        
       
        
