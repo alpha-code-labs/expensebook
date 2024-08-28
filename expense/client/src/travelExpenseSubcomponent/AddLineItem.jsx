@@ -14,11 +14,38 @@ import { useParams,useNavigate } from 'react-router-dom';
 import Error from '../components/common/Error';
 import PopupMessage from '../components/common/PopupMessage';
 import CancelButton from '../Components/common/CancelButton';
+import { BlobServiceClient } from "@azure/storage-blob";
 
 
 
 
 const AddLineItem = () => {
+  const az_blob_container = import.meta.env.VITE_AZURE_BLOB_CONTAINER
+  const blob_endpoint = import.meta.env.VITE_AZURE_BLOB_CONNECTION_URL
+
+  async function uploadFileToAzure(file) {
+    console.log('file name', file.name)
+    try {
+        const blobServiceClient = new BlobServiceClient(blob_endpoint);
+        const containerClient = blobServiceClient.getContainerClient(az_blob_container);
+        const blobClient = containerClient.getBlobClient(file.name);
+        const blockBlobClient = blobClient.getBlockBlobClient();
+
+        const result = await blockBlobClient.uploadBrowserData(file, {
+            blobHTTPHeaders: { blobContentType: file.type },
+            blockSize: 4 * 1024 * 1024,
+            concurrency: 20,
+            onProgress: ev => console.log(ev)
+        });
+
+        const fileUrl = blobClient.url;
+        console.log(`File uploaded to Azure Blob Storage. URL: ${fileUrl}`);
+        return { success: true, fileUrl };
+    } catch (e) {
+        console.error("Error uploading file to Azure Blob Storage:", e);
+        return { success: false, fileUrl: null };
+    }
+}
  
   const navigate = useNavigate()
   
@@ -302,7 +329,9 @@ const handleSaveLineItem = async (action) => {
     allocations: { set: false, msg: "" },
     category: { set: false, msg: "" },
     conversion: { set: false, msg: "" },
-    date: { set: false, msg: "" }
+    date: { set: false, msg: "" },
+    
+    
   };
 
   // Check total amount keys
@@ -331,14 +360,25 @@ const handleSaveLineItem = async (action) => {
 
   // Check if personalExpenseAmount is empty when isPersonalExpense is true
   if (formData.fields.isPersonalExpense) {
-    if (formData.fields.personalExpenseAmount === "") {
+    const personalAmount = parseFloat(formData.fields.personalExpenseAmount);
+    const totalAmount = parseFloat(currencyConversion.payload.totalAmount);
+  
+    if (isNaN(personalAmount)) {
       newErrorMsg.personalAmount = { set: true, msg: "Personal Expense Amount cannot be empty" };
       allowForm = false;
-    } else if (currencyConversion.payload.personalAmount > currencyConversion.payload.totalAmount) {
+    } else if (personalAmount > totalAmount) {
       newErrorMsg.personalAmount = { set: true, msg: "Personal Expense Amount cannot exceed Total Amount" };
       allowForm = false;
+    } else {
+      newErrorMsg.personalAmount = { set: false, msg: "" }; // Clear error if everything is valid
     }
   }
+
+  if((formData.fields.isMultiCurrency) && (formData.fields.convertedAmountDetails===null)){
+    newErrorMsg.conversion = { set: true, msg: `Exchange rates not available. Kindly contact your administrator.` };
+    allowForm = false
+  }
+  
   
   
 
@@ -349,11 +389,35 @@ const handleSaveLineItem = async (action) => {
       allowForm = false;
     }
   }
+  
+  
+
 
   
 
   // Set the error messages only if there are any errors
   setErrorMsg(newErrorMsg);
+//   try {
+//     const azureUploadResponse = await uploadFileToAzure(selectedFile);
+//     if (azureUploadResponse.success) {
+//         allowForm = true;
+//         const billImageUrl = azureUploadResponse.fileUrl;
+//         setFormData(prev => ({
+//           ...prev,
+//           fields: {
+//               ...prev.fields,
+//               billImageUrl
+//           }
+//       }));
+      
+//     } else {
+//         console.error("Failed to upload file to Azure Blob Storage.");
+//     }
+// } catch (error) {
+//     allowForm=false
+//     console.error("Error uploading file to Azure Blob Storage:", error);
+// }
+
 
   if (allowForm) {
     // No errors, proceed with the save operation
