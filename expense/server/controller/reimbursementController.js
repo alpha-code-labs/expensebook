@@ -50,11 +50,13 @@ const employeeSchema = Joi.object({
  */
 export const getExpenseCategoriesForEmpId = async (req, res) => {
   try {
-    const {error,params} = employeeSchema.validate(req.params)
+    const {error,value} = employeeSchema.validate(req.params)
     if (error) {
       return res.status(400).send({ message: error.details[0].message });
     }
-    const { tenantId, empId } = params;
+    const { tenantId, empId } = value;
+
+    console.log("manchester",tenantId, empId)
 
     const employeeDocument = await HRCompany.findOne({
       tenantId,
@@ -115,11 +117,11 @@ const expenseCatSchema = Joi.object({
 // 2) group limit, policies, expense header number
 export const getHighestLimitGroupPolicy = async (req, res) => {
     try {
-      const {error, params} = expenseCatSchema.validate(req,params)
+      const {error, value} = expenseCatSchema.validate(req,params)
       if (error) {
         return res.status(400).json({success: false, message: error.details[0].message})
       }
-      const { tenantId, empId, expenseCategory } = params;
+      const { tenantId, empId, expenseCategory } = value;
        let{expenseHeaderId} = req.body;
        let expenseHeaderNumber;
 
@@ -479,7 +481,7 @@ const saveSchema = Joi.object({
 // 4) save line item 
 export const saveReimbursementExpenseLine = async (req, res) => {
     try {
-      const {error, params} = nonTravelSchema.validate(req.params)
+      const {error, value} = nonTravelSchema.validate(req.params)
       if (error) {
           return res.status(400).json({success: false, message: error.message})
         }
@@ -488,7 +490,7 @@ export const saveReimbursementExpenseLine = async (req, res) => {
         if(errorBody){
           return res.status(400).json({success: false, message: errorBody.message})
         }
-      const { tenantId, empId, expenseHeaderId } = params;
+      const { tenantId, empId, expenseHeaderId } = value;
       console.log("params", req.params)
 
       const {

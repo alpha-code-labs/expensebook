@@ -67,7 +67,6 @@ export async function startConsumer(receiver) {
   
   console.log(`Asserting queue: ${queue}`);
   await channel.assertQueue(queue, { durable: true });
-   
   
   console.log(`Binding queue ${queue} to exchange ${exchangeName}`);
   await channel.bindQueue(queue, exchangeName, routingKey);
@@ -85,7 +84,6 @@ export async function startConsumer(receiver) {
         const payload = content?.payload
         const source = content?.headers?.source
         const action = content?.headers?.action
-    
         
         if(content.headers.destination == 'expense'){
     
