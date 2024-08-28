@@ -1589,19 +1589,16 @@ const currencySchema = Joi.object({
     'string.empty': 'Currency name is required.',
     'any.required': 'Currency name is required.'
   }),
-  totalAmount: Joi.number().positive().required().messages({
-    'number.base': 'Total amount must be a number.',
-    'number.positive': 'Total amount must be a positive number.',
+  totalAmount: Joi.string().required().messages({
+    'string.empty': 'Total amount must be a string.',
     'any.required': 'Total amount is required.'
   }),
-  personalAmount: Joi.number().positive().required().messages({
-    'number.base': 'Personal amount must be a number.',
-    'number.positive': 'Personal amount must be a positive number.',
+  personalAmount: Joi.string().messages({
+    'string.empty': 'Personal amount must be a string.',
     'any.required': 'Personal amount is required.'
   }),
-  nonPersonalAmount: Joi.number().positive().required().messages({
-    'number.base': 'Non-personal amount must be a number.',
-    'number.positive': 'Non-personal amount must be a positive number.',
+  nonPersonalAmount: Joi.string().messages({
+    'string.empty': 'Non-personal amount must be a string.',
     'any.required': 'Non-personal amount is required.'
   })
 });
