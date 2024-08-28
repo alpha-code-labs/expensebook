@@ -1607,11 +1607,11 @@ export const currencyConverter = async (req, res) => {
     try {
         const { tenantId} = req.params;
         console.log("params", req.params)
-        // const {error, value} = currencySchema.validate(req.params);
+        const {error, value} = currencySchema.validate(req.body);
         
-        // if (error) return res.status(400).json(error);
+        if (error) return res.status(400).json(error);
 
-        const { currencyName, totalAmount, personalAmount, nonPersonalAmount } = req.params;
+        const { currencyName, totalAmount, personalAmount, nonPersonalAmount } = value;
         console.log("value",currencyName, totalAmount, personalAmount, nonPersonalAmount)
         if (!currencyName ||!totalAmount ) {
             return res.status(400).json({ message: 'Currency name, total amount are required' });
@@ -1901,7 +1901,7 @@ await sendToOtherMicroservice(payload, action, 'approval', comments, source, 'on
       return res.status(500).json({ error: 'An error occurred while updating the expense header.' });
     }
 };
-  
+
 
 export const cancelAtHeaderLevelForAReport = async (req, res) => {
     const { tenantId, tripId, empId, expenseHeaderId } = req.params;
