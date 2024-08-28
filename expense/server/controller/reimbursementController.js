@@ -117,7 +117,7 @@ const expenseCatSchema = Joi.object({
 // 2) group limit, policies, expense header number
 export const getHighestLimitGroupPolicy = async (req, res) => {
     try {
-      const {error, value} = expenseCatSchema.validate(req,params)
+      const {error, value} = expenseCatSchema.validate(req.params)
       if (error) {
         return res.status(400).json({success: false, message: error.details[0].message})
       }
