@@ -9,7 +9,7 @@ import { startConsumer } from './rabbitmq/consumer.js';
 import {runApproveToNextState} from './scheduler/approvedToNextState.js';
 import { travelPolicyValidation } from './controller/travelExpenseController.js';
 import { scheduleTripTransitBatchJob } from './batchJobs/upcomingToTransit.js';
-import Expense from './models/travelExpenseSchema.js';
+import Expense from './models/tripSchema.js';
 import Reimbursement from './models/reimbursementSchema.js';
 import { getExpenseCategoryFields } from './ocr/categoryFields.js';
 // import logger from './logger/logger.js';

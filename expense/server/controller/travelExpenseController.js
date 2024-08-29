@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import HRMaster from "../models/hrCompanySchema.js";
-import Expense from "../models/travelExpenseSchema.js";
+import Expense from "../models/tripSchema.js";
 import { calculateHaversineDistance } from "../utils/haversine.js";
 import { sendToOtherMicroservice } from "../rabbitmq/publisher.js";
 import { sendToDashboardMicroservice } from "../rabbitmq/dashboardMicroservice.js";
@@ -201,7 +201,8 @@ export const BookExpense = async (req, res) => {
       if (error) return res.status(404).json(error.details[0].message)
 
       const { tenantId, empId, tripId } = value;
-      console.log('Params:', tenantId, empId, tripId);
+      console.log('Params:',
+        "tenantId", tenantId, empId,"tripId", tripId);
 
     const expenseReport = await Expense.findOne({
       tenantId,
@@ -506,10 +507,11 @@ export const onSaveExpenseLine = async (req, res) => {
       expenseAmountStatus,
       defaultCurrency,
       expenseLine,
-      allocations
+      allocations,
+      approvers
     } = req.body;
     console.log("req.body for save line", req.body)
-    // Destructuring for better readability
+
     let {
       isPersonalExpense,
       isMultiCurrency,
@@ -517,6 +519,8 @@ export const onSaveExpenseLine = async (req, res) => {
       Class:travelClass,
     } = expenseLine;
 
+    console.log("approvers in on save line item", approvers)
+    const isApproval = approvers.length
     const isLineUpdate = expenseLine?.expenseLineId
     // Validate required fields
     const requiredFields = ['expenseAmountStatus', 'expenseLine', 'travelType', 'allocations'];
@@ -545,7 +549,7 @@ export const onSaveExpenseLine = async (req, res) => {
 
   const policyValidation = await travelPolicyValidation(tenantId, empId, travelType, categoryName, totalAmount)
 
-   //policy voilation added to expense Line
+   //policy violation added to expense Line
   expenseLine.policyValidation = policyValidation;
 
     console.log("policyValidation results for line item ........", policyValidation)
@@ -632,6 +636,7 @@ export const onSaveExpenseLine = async (req, res) => {
     if (isLineUpdate) {
       console.log("edit expense Line", isLineUpdate)
       // If expenseLineId is present, find and update matching expenseLine
+      expenseLine.lineItemStatus = isApproval ? 'pending approval' : 'save'
 
       let updateAddOn = {
         $set:{
@@ -665,6 +670,7 @@ export const onSaveExpenseLine = async (req, res) => {
         console.log("checking hasOwnProperty")
         const expenseLineId = new mongoose.Types.ObjectId();
         expenseLine.expenseLineId = expenseLineId;
+        expenseLine.lineItemStatus = isApproval ? 'pending approval' : 'save'
         console.log("added expense Line", expenseLine)
         let updateAddOn = {
           $push:{
@@ -1020,10 +1026,10 @@ const currencySchema = Joi.object({
     'string.empty': 'Total amount must be a string.',
     'any.required': 'Total amount is required.'
   }),
-  personalAmount: Joi.string().messages({
-    'string.empty': 'Personal amount must be a string.',
-    'any.required': 'Personal amount is required.'
-  }),
+  // personalAmount: Joi.string().messages({
+  //   'string.empty': 'Personal amount must be a string.',
+  //   'any.required': 'Personal amount is required.'
+  // }),
   nonPersonalAmount: Joi.string().messages({
     'string.empty': 'Non-personal amount must be a string.',
     'any.required': 'Non-personal amount is required.'

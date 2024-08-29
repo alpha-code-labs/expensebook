@@ -1,6 +1,6 @@
 import amqp from 'amqplib';
 import { generateUniqueIdentifier } from '../utils/uuid.js';
-import Expense from '../models/travelExpenseSchema.js';
+import Expense from '../models/tripSchema.js';
 
 const rabbitMQUrl = process.env.rabbitMQUrl
 
