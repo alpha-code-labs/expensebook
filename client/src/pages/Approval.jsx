@@ -14,7 +14,7 @@ import { useParams } from 'react-router-dom';
 import Input from '../components/common/SearchInput';
 import Select from '../components/common/Select';
 import Button from '../components/common/Button';
-import { approveTravelRequestApi, nonTravelExpenseApprovalActionApi, rejectTravelRequestApi } from '../utils/api';
+import { approveTravelRequestApi, nonTravelExpenseApprovalActionApi ,rejectTravelExpenseApi, approveTravelExpenseApi, rejectTravelRequestApi } from '../utils/api';
 import PopupMessage from "../components/common/PopupMessage";
 import TripMS from '../microservice/TripMS';
 import { CardLayout, ExpenseLine, TripName, Violation } from '../components/common/TinyComponent';
@@ -24,6 +24,8 @@ const rejectionOptions=['Too Many Violations', 'Budget Constraints','Insufficien
 
 const Approval = ({isLoading, fetchData, loadingErrMsg}) => {
 
+
+  const approvalBaseUrl    = import.meta.env.VITE_APPROVAL_PAGE_URL;
   const [approvalUrl , setApprovalUrl]=useState(null);
   const [visible, setVisible]=useState(false); 
   const [travelRequestId , setTravelRequestId]=useState(null); 
@@ -80,6 +82,8 @@ const Approval = ({isLoading, fetchData, loadingErrMsg}) => {
       setSelectedLineItems([]);
     }
   };
+
+  console.log('expense details',expenseDetails)
   
 
   const handleLineItem = (lineItemId)=>{
@@ -251,10 +255,11 @@ const handleVisible = ({travelRequestId,tripId,expenseHeaderId, action}) => {
     const handleMessage = event => {
       console.log(event)
       // Check if the message is coming from the iframe
-      if (event.origin === approvalUrl ) {
+      if (event.origin === approvalBaseUrl ) {
         // Check the message content or identifier
         if (event.data === 'closeIframe') {
           setVisible(false)
+          window.location.reload()
         }
       }
     };
@@ -387,20 +392,33 @@ const handleVisible = ({travelRequestId,tripId,expenseHeaderId, action}) => {
     
     const rejectionReason = selectedRejReason;
     const expenseHeaderId = expenseDetails?.expenseHeaderId;
+    const expenseType = expenseDetails?.expenseType
+    const tripId = expenseDetails?.tripId ?? ""
+    
+
     let api;
   
     if (action === 'rejectTrip') {
       api = rejectTravelRequestApi({ tenantId, empId, travelRequests: selectAll, rejectionReason });
     }
     if (action === 'approveTrip') {
+      
       api = approveTravelRequestApi({ tenantId, empId, travelRequests: selectAll });
     }
     if (action === 'approveExpense') {
-      api = nonTravelExpenseApprovalActionApi({ tenantId, empId, expenseHeaderId }, { approve, reject });
+      if (expenseType=== "Travel Expense"){
+        api = approveTravelExpenseApi({ tenantId, empId,tripId, expenseHeaderId }, { approve, reject , rejectionReason:"" });
+      }else{
+        api = nonTravelExpenseApprovalActionApi({ tenantId, empId, expenseHeaderId }, { approve, reject });
+      }
     }
     if ((action === 'rejectExpense')) {
       console.log('rejectExpense hitted');
-      api = nonTravelExpenseApprovalActionApi({ tenantId, empId, expenseHeaderId }, { approve, reject, rejectionReason});
+      if(expenseType === "Travel Expense"){
+        api = approveTravelExpenseApi({ tenantId, empId,tripId, expenseHeaderId }, { approve, reject, rejectionReason });
+      }else{
+        api = nonTravelExpenseApprovalActionApi({ tenantId, empId, expenseHeaderId }, { approve, reject, rejectionReason});
+      }
     }
   
     let validConfirm = true;
@@ -657,7 +675,7 @@ const handleVisible = ({travelRequestId,tripId,expenseHeaderId, action}) => {
                         </div>
                 <div className='flex items-center justify-center'>
                 <img src={info_icon} className='w-4 h-4'/>
-                <div className='text-sm font-cabin px-2 py-1 cursor-pointer' onClick={()=>{if(!disableButton(expenseDetails?.travelRequestStatus)){handleVisible({travelRequestId:expenseDetails?.travelRequestId,  "action":'travel-approval-view'} )}}}>
+                <div className='text-sm font-cabin px-2 py-1 cursor-pointer' onClick={()=>{if(!disableButton(expenseDetails?.travelRequestStatus)){handleVisible({"tripId":expenseDetails?.tripId,expenseHeaderId:expenseDetails?.expenseHeaderId,  "action":'travelExpense-approval-view'} )}}}>
                   <p className='text-indigo-600 font-semibold'>View Details</p>
                 </div>
                 </div>
@@ -892,7 +910,7 @@ Raise a Cash-Advance
                 <p className='header-text'>{trip?.createdBy?.name ?? <span className='text-center'>-</span>}</p>
               </div>
               </div>
-              <Button1 text="Take Action" variant="fit" onClick={() => {openModal("expenseDetails");setExpenseDetails(trip)}}/>
+              <Button1 text="Take Action" variant="fit" onClick={() => {openModal("expenseDetails");setExpenseDetails({...trip,expenseType:trip?.expenseType})}}/>
               {/* <ActionButton approve={"Approve"} reject={"Reject"}/> */}
 
             {/* <div className='flex items-center justify-center'>

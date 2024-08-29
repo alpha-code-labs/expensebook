@@ -3,6 +3,7 @@ import axios from 'axios';
 
 const DASHBOARD_BACKEND_API_URL = import.meta.env.VITE_DASHBOARD_BACKEND_API_URL;
 const SETTLEMENT_BACKEND_API_URL = import.meta.env.VITE_SETTLEMENT_BACKEND_API_URL;
+const APPROVAL_BACKEND_API_URL = import.meta.env.VITE_APPROVAL_BACKEND_API_URL
 
 const retry = 2;
 const retryDelay = 3000;
@@ -251,8 +252,53 @@ export const approveTravelRequestApi = async(data)=>{
       }
     }
 
-  export const nonTravelExpenseApprovalActionApi = async(data,payload)=>{
-      const {tenantId,empId,expenseHeaderId} = data
+
+    export const approveTravelExpenseApi=async(params,payload)=>{
+      const {tenantId,empId,tripId,expenseHeaderId} = params
+
+      const url = `${DASHBOARD_BACKEND_API_URL}/api/fe/dashboard/approval/${tenantId}/${empId}/${tripId}/${expenseHeaderId}`
+      try{
+        const response = await axiosRetry(axios.patch,url,payload)
+        return(response.data.message)
+   
+   
+     }catch(error){
+       handleRequestError(error);
+       const errorObject = {
+         status: error.response?.status || null,
+         message: error.message || 'Unknown error',
+       };
+       console.log('Post Error : ',errorObject);
+       return {  error: errorObject };
+     }
+      
+    }
+    
+    
+    //for expense rejection
+    
+    export const rejectTravelExpenseApi=async(params,payload)=>{
+      const {tenantId,empId,tripId,expenseHeaderId} = params
+      const url = `${APPROVAL_BACKEND_API_URL}/api/fe/approvals/expense/${tenantId}/${empId}/${tripId}/${expenseHeaderId}/reject`
+      try{
+        const response = await axiosRetry(axios.patch,url,payload)
+        return(response.data.message)
+   
+   
+     }catch(error){
+       handleRequestError(error);
+       const errorObject = {
+         status: error.response?.status || null,
+         message: error.message || 'Unknown error',
+       };
+       console.log('Post Error : ',errorObject);
+       return {  error: errorObject };
+     }
+      
+    }
+
+  export const nonTravelExpenseApprovalActionApi = async(params,payload)=>{
+      const {tenantId,empId,expenseHeaderId} = params
     
       let url = `${DASHBOARD_BACKEND_API_URL}/api/fe/dashboard/approval/${tenantId}/${empId}/${expenseHeaderId}`
       
