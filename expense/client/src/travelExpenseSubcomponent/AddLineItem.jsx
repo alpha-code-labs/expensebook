@@ -60,8 +60,8 @@ const [currencyConversion, setCurrencyConversion]=useState({
   payload:{
      'currencyName':"",
       personalAmount:"",
-          totalAmount:"",
-          nonPersonalAmount: ""
+      totalAmount:"",
+      nonPersonalAmount: ""
   },
   response:{}
 }) 
@@ -110,6 +110,7 @@ useEffect(() => {
           allocationsList,
           travelExpenseCategories,
           level:travelAllocationFlag
+
         }))
 
         //level1 or level 2 allocation will save with empty string
@@ -121,10 +122,11 @@ useEffect(() => {
     
       }
 
-      if(travelAllocationFlag==='level3'){
-        const flagToOpen = response?.flagToOpen
 
-        const openedExpenseObj = (response?.travelExpenseData)?.find(expense => expense.expenseHeaderId === flagToOpen)
+      const flagToOpen = response?.flagToOpen
+      const openedExpenseObj = (response?.travelExpenseData)?.find(expense => expense.expenseHeaderId === flagToOpen)
+     
+      if(travelAllocationFlag==='level3'){
         const travelType = openedExpenseObj?.travelType
         console.log('travelType',travelAllocationFlag,travelType,flagToOpen, openedExpenseObj)
         const travelExpenseCategories = response?.companyDetails?.travelAllocations[travelType]
@@ -144,7 +146,9 @@ useEffect(() => {
         level:travelAllocationFlag,
         defaultCurrency:response?.companyDetails?.defaultCurrency,
         expenseHeaderId:response?.flagToOpen,
-        expenseAmountStatus:response?.expenseAmountStatus
+        expenseAmountStatus:response?.expenseAmountStatus,
+        approvers: openedExpenseObj?.approvers
+        
       }))
 
       console.log('trip data fetched successfully', response)
@@ -240,7 +244,15 @@ const handleMannualBtn=()=>{
 }
 
 
-const handleCurrencyConversion = async ( ) => { 
+const handleCurrencyConversion = async ( {currencyName}) => { 
+  
+  
+  
+  const payload = {
+    ...currencyConversion.payload,
+    currencyName
+  }
+  
   let allowForm = true;
   
   if (currencyConversion.payload.totalAmount==="" || currencyConversion.payload.totalAmount===undefined){
@@ -267,11 +279,17 @@ const handleCurrencyConversion = async ( ) => {
     setIsUploading(prev=>({...prev,conversion:{set:true,msg:'fetching exchange rates...'}}))
         try {
          
-          const response = await TravelExpenseCurrencyConversionApi(tenantId,currencyConversion.payload);
+          const response = await TravelExpenseCurrencyConversionApi(tenantId,payload);
           if(response.currencyConverterData.currencyFlag){
             setCurrencyConversion(prev=>({...prev,response:response.currencyConverterData}))
+            if(response.success){
+              setFormData(prev => ({...prev,fields:{...prev.fields, convertedAmountDetails: response?.currencyConverterData}}))
+            }
           }else{
+            
             setErrorMsg((prev) => ({ ...prev, conversion: { set: true, msg: "Exchange rates not available. Kindly contact your administrator." } }));
+            setCurrencyConversion(prev=>({...prev,response:{}}))
+            setFormData(prev => ({...prev,fields:{...prev.fields, convertedAmountDetails: null}}))
           }
           setIsUploading(prev=>({...prev,conversion:{set:false,msg:''}}))
         } catch (error) {
@@ -284,6 +302,7 @@ const handleCurrencyConversion = async ( ) => {
   }
 };
 
+console.log('converted data',currencyConversion)
 
 // const handleSaveLineItem = ()=>{
 
@@ -315,88 +334,88 @@ const handleDashboardRedirection=()=>{
 }
 
 
-const handleSaveLineItem = async (action) => {
-  console.log('line item action',action)
-  let allowForm = true;
+// const handleSaveLineItem = async (action) => {
+//   console.log('line item action',action)
+//   let allowForm = true;
 
-  // Reset error messages
-  const newErrorMsg = {
-    currencyFlag: { set: false, msg: "" },
-    totalAmount: { set: false, msg: "" },
-    personalAmount: { set: false, msg: "" },
-    data: { set: false, msg: "" },
-    expenseSettlement: { set: false, msg: "" },
-    allocations: { set: false, msg: "" },
-    category: { set: false, msg: "" },
-    conversion: { set: false, msg: "" },
-    date: { set: false, msg: "" },
+//   // Reset error messages
+//   const newErrorMsg = {
+//     currencyFlag: { set: false, msg: "" },
+//     totalAmount: { set: false, msg: "" },
+//     personalAmount: { set: false, msg: "" },
+//     data: { set: false, msg: "" },
+//     expenseSettlement: { set: false, msg: "" },
+//     allocations: { set: false, msg: "" },
+//     category: { set: false, msg: "" },
+//     conversion: { set: false, msg: "" },
+//     date: { set: false, msg: "" },
     
     
-  };
+//   };
 
-  // Check total amount keys
-  for (const key of totalAmountKeys) {
-    if (formData.fields[key] === "") {
-      newErrorMsg.conversion = { set: true, msg: `${key} cannot be empty` };
-      allowForm = false;
-    }
-  }
+//   // Check total amount keys
+//   for (const key of totalAmountKeys) {
+//     if (formData.fields[key] === "") {
+//       newErrorMsg.conversion = { set: true, msg: `${key} cannot be empty` };
+//       allowForm = false;
+//     }
+//   }
 
-  // Check date keys
-  for (const key of dateKeys) {
-    if (formData.fields[key] === "") {
-      newErrorMsg.date = { set: true, msg: `${key} cannot be empty` };
-      allowForm = false;
-    }
-  }
+//   // Check date keys
+//   for (const key of dateKeys) {
+//     if (formData.fields[key] === "") {
+//       newErrorMsg.date = { set: true, msg: `${key} cannot be empty` };
+//       allowForm = false;
+//     }
+//   }
 
-  // Check if Class is empty
-  for (const key of isClassField) {
-    if (formData.fields[key] === "") {
-      newErrorMsg.class = { set: true, msg: "Class cannot be empty" };
-      allowForm = false;
-    }
-  }
+//   // Check if Class is empty
+//   for (const key of isClassField) {
+//     if (formData.fields[key] === "") {
+//       newErrorMsg.class = { set: true, msg: "Class cannot be empty" };
+//       allowForm = false;
+//     }
+//   }
 
-  // Check if personalExpenseAmount is empty when isPersonalExpense is true
-  if (formData.fields.isPersonalExpense) {
-    const personalAmount = parseFloat(formData.fields.personalExpenseAmount);
-    const totalAmount = parseFloat(currencyConversion.payload.totalAmount);
+//   // Check if personalExpenseAmount is empty when isPersonalExpense is true
+//   if (formData.fields.isPersonalExpense) {
+//     const personalAmount = parseFloat(formData.fields.personalExpenseAmount);
+//     const totalAmount = parseFloat(currencyConversion.payload.totalAmount);
   
-    if (isNaN(personalAmount)) {
-      newErrorMsg.personalAmount = { set: true, msg: "Personal Expense Amount cannot be empty" };
-      allowForm = false;
-    } else if (personalAmount > totalAmount) {
-      newErrorMsg.personalAmount = { set: true, msg: "Personal Expense Amount cannot exceed Total Amount" };
-      allowForm = false;
-    } else {
-      newErrorMsg.personalAmount = { set: false, msg: "" }; // Clear error if everything is valid
-    }
-  }
+//     if (isNaN(personalAmount)) {
+//       newErrorMsg.personalAmount = { set: true, msg: "Personal Expense Amount cannot be empty" };
+//       allowForm = false;
+//     } else if (personalAmount > totalAmount) {
+//       newErrorMsg.personalAmount = { set: true, msg: "Personal Expense Amount cannot exceed Total Amount" };
+//       allowForm = false;
+//     } else {
+//       newErrorMsg.personalAmount = { set: false, msg: "" }; // Clear error if everything is valid
+//     }
+//   }
 
-  if((formData.fields.isMultiCurrency) && (formData.fields.convertedAmountDetails===null)){
-    newErrorMsg.conversion = { set: true, msg: `Exchange rates not available. Kindly contact your administrator.` };
-    allowForm = false
-  }
+//   if((formData.fields.isMultiCurrency) && (formData.fields.convertedAmountDetails===null)){
+//     newErrorMsg.conversion = { set: true, msg: `Exchange rates not available. Kindly contact your administrator.` };
+//     allowForm = false
+//   }
   
-  
-  
-
-  // Validate allocations
-  for (const allocation of selectedAllocations) {
-    if (allocation.headerValue.trim() === '') {
-      newErrorMsg[allocation.headerName] = { set: true, msg: "Select the Allocation" };
-      allowForm = false;
-    }
-  }
   
   
 
+//   // Validate allocations
+//   for (const allocation of selectedAllocations) {
+//     if (allocation.headerValue.trim() === '') {
+//       newErrorMsg[allocation.headerName] = { set: true, msg: "Select the Allocation" };
+//       allowForm = false;
+//     }
+//   }
+  
+  
+
 
   
 
-  // Set the error messages only if there are any errors
-  setErrorMsg(newErrorMsg);
+//   // Set the error messages only if there are any errors
+//   setErrorMsg(newErrorMsg);
 //   try {
 //     const azureUploadResponse = await uploadFileToAzure(selectedFile);
 //     if (azureUploadResponse.success) {
@@ -419,12 +438,140 @@ const handleSaveLineItem = async (action) => {
 // }
 
 
+//   if (allowForm) {
+//     // No errors, proceed with the save operation
+//     setIsUploading((prev) => ({ ...prev, [action]: { set: true, msg: "" } }));
+//     const params = {tenantId,empId,tripId,expenseHeaderId:requiredObj.expenseHeaderId}
+//     const payload = {
+//       "approvers":requiredObj?.approvers,
+//       allocations: [], // Default to an empty array
+//       defaultCurrency: requiredObj?.defaultCurrency,
+//       expenseAmountStatus: requiredObj.expenseAmountStatus,
+//       travelType: requiredObj?.travelType,
+//       expenseLine: {
+//         ...formData.fields,
+//         ...(requiredObj.level === 'level3' ? { allocations: selectedAllocations } : {})
+//       }
+//     };
+    
+//     // If level is not 'level3', move selectedAllocations to allocations
+//     if (requiredObj.level !== 'level3') {
+//       payload.allocations = selectedAllocations;
+//     }
+
+//     try {
+//       const response = await postTravelExpenseLineItemApi(params,payload);
+//       setIsUploading((prev) => ({ ...prev, [action]: { set: false, msg: "" } }));
+//       setShowPopup(true);
+//       setMessage(response?.message);
+//       setTimeout(() => {
+//         setShowPopup(false);
+//         setMessage(null);
+//         switch(action) {
+//           case "saveAndSubmit":
+//             return navigate(`/${tenantId}/${empId}/${tripId}/view/travel-expense`);
+//           case "saveAndNew":
+//             return window.location.reload(); // Reload the page
+//           default:
+//             break;
+//         }
+        
+        
+//       }, 5000);
+//     } catch (error) {
+//       setIsUploading((prev) => ({ ...prev, [action]: { set: false, msg: "" } }));
+//       setMessage(error.message);
+//       setShowPopup(true);
+//       setTimeout(() => {
+//         setShowPopup(false);
+//       }, 3000);
+//     }
+//   }
+// };
+
+
+const handleSaveLineItem = async (action) => {
+  console.log('line item action', action);
+  let allowForm = true;
+
+  // Reset error messages
+  const newErrorMsg = {
+    currencyFlag: { set: false, msg: "" },
+    totalAmount: { set: false, msg: "" },
+    personalAmount: { set: false, msg: "" },
+    data: { set: false, msg: "" },
+    expenseSettlement: { set: false, msg: "" },
+    allocations: { set: false, msg: "" },
+    category: { set: false, msg: "" },
+    conversion: { set: false, msg: "" },
+    date: { set: false, msg: "" },
+  };
+
+  const validateFields = (keys, errorKey, errorMsg) => {
+    for (const key of keys) {
+      if (formData.fields[key] === "") {
+        newErrorMsg[errorKey] = { set: true, msg: `${errorMsg} cannot be empty` };
+        allowForm = false;
+      }
+    }
+  };
+
+  // Validate fields
+  validateFields(totalAmountKeys, 'conversion', 'Amount');
+  validateFields(dateKeys, 'date', 'Date');
+  validateFields(isClassField, 'class', 'Class');
+
+  if (formData.fields.isPersonalExpense) {
+    const personalAmount = parseFloat(formData.fields.personalExpenseAmount);
+    const totalAmount = parseFloat(currencyConversion.payload.totalAmount);
+
+    if (isNaN(personalAmount) || personalAmount === "") {
+      newErrorMsg.personalAmount = { set: true, msg: "Personal Expense Amount cannot be empty" };
+      allowForm = false;
+    } else if (personalAmount > totalAmount) {
+      newErrorMsg.personalAmount = { set: true, msg: "Personal Expense Amount cannot exceed Total Amount" };
+      allowForm = false;
+    }
+  }
+
+  if (formData.fields.isMultiCurrency && !formData.fields.convertedAmountDetails) {
+    newErrorMsg.conversion = { set: true, msg: `Exchange rates not available. Kindly contact your administrator.` };
+    allowForm = false;
+  }
+
+  for (const allocation of selectedAllocations) {
+    if (allocation.headerValue.trim() === '') {
+      newErrorMsg[allocation.headerName] = { set: true, msg: "Select the Allocation" };
+      allowForm = false;
+    }
+  }
+
+  setErrorMsg(newErrorMsg);
+
+  if (allowForm && selectedFile) {
+    try {
+      const azureUploadResponse = await uploadFileToAzure(selectedFile);
+      if (azureUploadResponse.success) {
+        setFormData(prev => ({
+          ...prev,
+          fields: { ...prev.fields, billImageUrl: azureUploadResponse.fileUrl }
+        }));
+      } else {
+        console.error("Failed to upload file to Azure Blob Storage.");
+        allowForm = false;
+      }
+    } catch (error) {
+      console.error("Error uploading file to Azure Blob Storage:", error);
+      allowForm = false;
+    }
+  }
+
   if (allowForm) {
-    // No errors, proceed with the save operation
-    setIsUploading((prev) => ({ ...prev, [action]: { set: true, msg: "" } }));
-    const params = {tenantId,empId,tripId,expenseHeaderId:requiredObj.expenseHeaderId}
+    setIsUploading(prev => ({ ...prev, [action]: { set: true, msg: "" } }));
+    const params = { tenantId, empId, tripId, expenseHeaderId: requiredObj.expenseHeaderId };
     const payload = {
-      allocations: [], // Default to an empty array
+      approvers: requiredObj?.approvers,
+      allocations: requiredObj.level === 'level3' ? [] : selectedAllocations,
       defaultCurrency: requiredObj?.defaultCurrency,
       expenseAmountStatus: requiredObj.expenseAmountStatus,
       travelType: requiredObj?.travelType,
@@ -433,41 +580,58 @@ const handleSaveLineItem = async (action) => {
         ...(requiredObj.level === 'level3' ? { allocations: selectedAllocations } : {})
       }
     };
-    
-    // If level is not 'level3', move selectedAllocations to allocations
-    if (requiredObj.level !== 'level3') {
-      payload.allocations = selectedAllocations;
-    }
 
     try {
-      const response = await postTravelExpenseLineItemApi(params,payload);
-      setIsUploading((prev) => ({ ...prev, [action]: { set: false, msg: "" } }));
+      const response = await postTravelExpenseLineItemApi(params, payload);
+      setIsUploading(prev => ({ ...prev, [action]: { set: false, msg: "" } }));
       setShowPopup(true);
       setMessage(response?.message);
       setTimeout(() => {
         setShowPopup(false);
         setMessage(null);
-        switch(action) {
-          case "saveAndSubmit":
-            return navigate(`/${tenantId}/${empId}/${tripId}/view/travel-expense`);
-          case "saveAndNew":
-            return window.location.reload(); // Reload the page
-          default:
-            break;
+        if (action === "saveAndSubmit") {
+          navigate(`/${tenantId}/${empId}/${tripId}/view/travel-expense`);
+        } else if (action === "saveAndNew") {
+          window.location.reload(); // Reload the page
         }
-        
-        
       }, 5000);
     } catch (error) {
-      setIsUploading((prev) => ({ ...prev, [action]: { set: false, msg: "" } }));
+      setIsUploading(prev => ({ ...prev, [action]: { set: false, msg: "" } }));
       setMessage(error.message);
       setShowPopup(true);
-      setTimeout(() => {
-        setShowPopup(false);
-      }, 3000);
+      setTimeout(() => setShowPopup(false), 3000);
     }
   }
 };
+
+const handleOCRScan=()=>{
+  if(requiredObj.category=== 'Flight'){
+    setFormData(prev => ({...prev,fields:{
+      ...prev.fields,
+      
+        "Invoice Date": "2024-08-29",
+        "Departure": "Delhi",
+        "Arrival": "Mumbai",
+        "Airlines name": "Air India",
+        "Travelers Name": "John Doe",
+        "Class": "Economy",
+        "Booking Reference Number": "BRN456789",
+        "Total Amount": "15000",
+        "Tax Amount": "1800",
+        
+        "Currency": {
+            "countryCode": "IN",
+            "fullName": "Indian Rupee",
+            "shortName": "INR",
+            "symbol": "₹"
+        },
+        "Category Name": "Flight"
+    
+    
+    }}))
+    setShowForm(true)
+  }
+}
 
   console.log(selectedAllocations,'selected allocations')
   console.log('form data',formData)
@@ -586,9 +750,10 @@ const handleSaveLineItem = async (action) => {
 </div>
 
 <div className='mt-12 inline-flex space-x-2'>
-    <FileUpload selectedFile={selectedFile} setSelectedFile={setSelectedFile} isFileSelected={isFileSelected} setIsFileSelected={setIsFileSelected}  text={<div className='inline-flex items-center space-x-1'><img src={scan_icon} className='w-5 h-5'/> <p>Auto Scan</p></div>}/>
+    <FileUpload onClick={handleOCRScan} selectedFile={selectedFile} setSelectedFile={setSelectedFile} isFileSelected={isFileSelected} setIsFileSelected={setIsFileSelected}  text={<div className='inline-flex items-center space-x-1'><img src={scan_icon} className='w-5 h-5'/> <p>Auto Scan</p></div>}/>
     <Button1 onClick={handleMannualBtn} text={<div className='inline-flex items-center space-x-1'><img src={modify_icon} className='w-5 h-5'/> <p>Manually</p></div>}/>
 </div>
+
 </div>    
 
 
@@ -604,6 +769,7 @@ const handleSaveLineItem = async (action) => {
     </div>
     <div className='w-full md:w-2/5 h-full overflow-auto'>
        <LineItemForm 
+       currencyConversion={currencyConversion}
        setErrorMsg={setErrorMsg}
        isUploading={isUploading}
        defaultCurrency={requiredObj.defaultCurrency}
