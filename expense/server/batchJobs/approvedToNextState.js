@@ -1,5 +1,5 @@
 import cron from 'node-cron';
-import Expense from '../models/expenseSchema.js';
+import Expense from '../models/tripSchema.js';
 // import { sendToTripMicroservice } from '../internalControllers/controllers/tripMicroservice.js';
 // import { sendToApprovalMicroservice } from '../internalControllers/controllers/approvalMicroservice.js';
 

@@ -1,7 +1,7 @@
 import cron from 'node-cron';
 // import { sendNotificationToDashboard, sendNotificationToEmployee } from './notificationService.js';
 import { calculateDateDifferenceInDays } from './dateUtils.js';
-import Expense from '../models/travelExpenseSchema.js';
+import Expense from '../models/tripSchema.js';
 
 // Define the schedule time for the batch job (e.g., daily at midnight)
 const scheduleTime = '* * * * * *';

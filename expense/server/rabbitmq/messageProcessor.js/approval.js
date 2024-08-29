@@ -1,4 +1,4 @@
-import Expense from "../../models/travelExpenseSchema.js";
+import Expense from "../../models/tripSchema.js";
 
 export const expenseReportApproval = async (payload) => {
     const { tenantId, expenseHeaderId, expenseHeaderStatus, expenseRejectionReason, approvers } = payload;

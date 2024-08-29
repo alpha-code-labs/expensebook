@@ -1,4 +1,4 @@
-import Expense from "../../models/travelExpenseSchema.js";
+import Expense from "../../models/tripSchema.js";
 
 //travel expense header 'paid'
 export const settleExpenseReport= async (payload) => {

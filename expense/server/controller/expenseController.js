@@ -1,6 +1,6 @@
 import { onSaveAsDraftExpenseHeaderToTrip, onSaveLineItemToTrip } from "../internalControllers/controllers/tripMicroservice.js";
 import { sendToDashboardMicroservice, sendTravelExpenseToDashboardQueue } from "../rabbitmq/dashboardMicroservice.js";
-import Expense from '../models/travelExpenseSchema.js';
+import Expense from '../models/tripSchema.js';
 import HRMaster from '../models/hrCompanySchema.js';
 
 const generateIncrementalNumber = (tenantId, incrementalValue) => {
