@@ -1,5 +1,5 @@
 import cron from 'node-cron';
-import Expense from '../models/travelExpenseSchema';
+import Expense from '../models/tripSchema.js';
 
 //To update status from upcoming to transit on the day of travel.
 //important!! - A batch job is run to update status from upcoming to transit on the day of travel and 

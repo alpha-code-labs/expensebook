@@ -1,5 +1,5 @@
 import cron from 'node-cron';
-import Expense from '../models/travelExpenseSchema.js';
+import Expense from '../models/tripSchema.js';
 import { config } from 'dotenv';
 
 config()

@@ -1,4 +1,4 @@
-import Expense from "../../models/travelExpenseSchema.js";
+import Expense from "../../models/tripSchema.js";
 
 //priority cash update-
 /**

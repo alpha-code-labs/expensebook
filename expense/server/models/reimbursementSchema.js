@@ -13,7 +13,12 @@ const lineItemStatusEnums = [
   'draft',
   'save',
   'submit',
-  'delete'
+  'delete',
+  'pending approval',
+  'approved',
+  'rejected',
+  'pending settlement',
+  'paid and distributed',
 ]
 
 const expenseHeaderTypeEnums = ['reimbursement'];
