@@ -4,33 +4,11 @@ import { travelExpenseSchema } from './travelExpenseSchema.js';
 
 //---------------travel---------
 
-
-const itineraryStatusEnums = [
-'draft', 
-'pending approval', 
-'approved', 
-'rejected', 
-'pending booking', 
-'booked',
-'cancelled',
-'paid and cancelled',
-'intransit',
-'upcoming', 
-'paid and cancelled',
-'recovered',
-];
-
 const approverStatusEnums = [
   'pending approval',
   'approved',
   'rejected',
 ];
-
-const transferEnums = [
-'regular',
-'pickup',
-'drop',
-] 
 
 
 //---------------------cash---------
