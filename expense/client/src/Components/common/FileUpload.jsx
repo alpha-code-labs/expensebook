@@ -7,7 +7,6 @@ export default function FileUpload(props) {
     onClick,
     variant = 'fit',
     disabled = false,
-    active = false,
     loading = false,
     onFileSelect, 
     selectedFile, 
@@ -37,6 +36,7 @@ export default function FileUpload(props) {
       setSelectedFile(file); // Store the uploaded file in state
       setIsFileSelected(true); // Set the flag to true
       onFileSelect && onFileSelect(file); // Trigger the callback with the selected file
+    
     } else {
       setIsFileSelected(false); // If no file is selected, reset the flag
     }
@@ -52,7 +52,7 @@ export default function FileUpload(props) {
             : 'hover:bg-indigo-500 text-white cursor-pointer'
         } h-8 px-4 py-4 bg-indigo-600 rounded-md justify-center items-center gap-2 inline-flex`}
       >
-        {loading && active ? (
+        {loading  ? (
           <div className='flex gap-1 text-center items-center'>
             <img src={loading_icon} className="animate-spin w-5 h-5" alt="Loading" />
             <div className="w-full h-5 text-center text-white text-base font-medium font-cabin">

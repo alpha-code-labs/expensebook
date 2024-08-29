@@ -21,31 +21,31 @@ import { BlobServiceClient } from "@azure/storage-blob";
 
 const AddLineItem = () => {
   const az_blob_container = import.meta.env.VITE_AZURE_BLOB_CONTAINER
-  const blob_endpoint = import.meta.env.VITE_AZURE_BLOB_CONNECTION_URL
+
+  const storage_sas_token = import.meta.env.VITE_AZURE_BLOB_SAS_TOKEN
+  const storage_account = import.meta.env.VITE_AZURE_BLOB_ACCOUNT
+  const blob_endpoint = `https://${storage_account}.blob.core.windows.net/?${storage_sas_token}`
 
   async function uploadFileToAzure(file) {
-    console.log('file name', file.name)
-    try {
+    try{
         const blobServiceClient = new BlobServiceClient(blob_endpoint);
         const containerClient = blobServiceClient.getContainerClient(az_blob_container);
         const blobClient = containerClient.getBlobClient(file.name);
         const blockBlobClient = blobClient.getBlockBlobClient();
-
+      
         const result = await blockBlobClient.uploadBrowserData(file, {
-            blobHTTPHeaders: { blobContentType: file.type },
+            blobHTTPHeaders: {blobContentType: file.type},
             blockSize: 4 * 1024 * 1024,
             concurrency: 20,
             onProgress: ev => console.log(ev)
         });
-
-        const fileUrl = blobClient.url;
-        console.log(`File uploaded to Azure Blob Storage. URL: ${fileUrl}`);
-        return { success: true, fileUrl };
-    } catch (e) {
-        console.error("Error uploading file to Azure Blob Storage:", e);
-        return { success: false, fileUrl: null };
+        console.log(`Upload of file '${file.name}' completed`);
+        return {success:true}
+    }catch(e){
+        console.error(e)
+        return {success:false}   
     }
-}
+  }
  
   const navigate = useNavigate()
   
@@ -84,7 +84,8 @@ const [modalOpen, setModalOpen]=useState(false)
 const [isLoading, setIsLoading] = useState(true);
 const [isUploading,setIsUploading]=useState({
   conversion:{set:false,msg:""},
-  saveLineItem:{set:false,msg:""}
+  saveLineItem:{set:false,msg:""},
+  autoScan:false
 })
 const [showPopup, setShowPopup] = useState(false);
 const [message, setMessage] = useState(null);
@@ -181,8 +182,6 @@ const [errorMsg,setErrorMsg] = useState({
     conversion:{ set: false, msg: "" },
     date:{ set: false, msg: "" },
   })
-
-
 
 
 const handleAllocations = (headerName, headerValue) => {
@@ -547,21 +546,33 @@ const handleSaveLineItem = async (action) => {
   }
 
   setErrorMsg(newErrorMsg);
-
+  let previewUrl = ""
   if (allowForm && selectedFile) {
+    setIsUploading(prev => ({ ...prev, [action]: { set: true, msg: "" } }));
     try {
       const azureUploadResponse = await uploadFileToAzure(selectedFile);
+      
       if (azureUploadResponse.success) {
-        setFormData(prev => ({
-          ...prev,
-          fields: { ...prev.fields, billImageUrl: azureUploadResponse.fileUrl }
-        }));
+        
+         previewUrl = `https://${storage_account}.blob.core.windows.net/${az_blob_container}/${selectedFile.name}`;
+        console.log('bill url',previewUrl)
+        // setFormData(prev => ({
+        //   ...prev,
+        //   fields: { ...prev.fields, billImageUrl }
+        // }));
       } else {
         console.error("Failed to upload file to Azure Blob Storage.");
-        allowForm = false;
+        setMessage("Failed to upload file to Azure Blob Storage.");
+      setShowPopup(true);
+      setTimeout(() => setShowPopup(false), 3000);
+      allowForm = false;
+        
       }
     } catch (error) {
       console.error("Error uploading file to Azure Blob Storage:", error);
+      setMessage(error.message);
+      setShowPopup(true);
+      setTimeout(() => setShowPopup(false), 3000);
       allowForm = false;
     }
   }
@@ -577,6 +588,7 @@ const handleSaveLineItem = async (action) => {
       travelType: requiredObj?.travelType,
       expenseLine: {
         ...formData.fields,
+        "billImageUrl":previewUrl,
         ...(requiredObj.level === 'level3' ? { allocations: selectedAllocations } : {})
       }
     };
@@ -609,14 +621,14 @@ const handleOCRScan=()=>{
     setFormData(prev => ({...prev,fields:{
       ...prev.fields,
       
-        "Invoice Date": "2024-08-29",
-        "Departure": "Delhi",
-        "Arrival": "Mumbai",
-        "Airlines name": "Air India",
-        "Travelers Name": "John Doe",
-        "Class": "Economy",
-        "Booking Reference Number": "BRN456789",
-        "Total Amount": "15000",
+        "Invoice Date": "2023-08-04",
+        "Departure": "DEL",
+        "Arrival": "BLR",
+        "Airlines name": "",
+        "Travelers Name": "kurpath S Sumesh kurpath S Sumesh",
+        "Class": "",
+        "Booking Reference Number": "NF7TKQXJLD1PSQCM0529",
+        "Total Amount": "4713",
         "Tax Amount": "1800",
         
         "Currency": {
@@ -629,9 +641,23 @@ const handleOCRScan=()=>{
     
     
     }}))
-    setShowForm(true)
+
   }
 }
+
+///for demo purpose
+useEffect(()=>{
+  if(isFileSelected){
+    setIsUploading(prev=> ({...prev,autoScan:true}))
+    setTimeout(()=>{
+      setIsUploading(prev=> ({...prev,autoScan:false}))
+      setShowForm(true)
+    },5000)}
+  
+
+},[isFileSelected])
+///for demo purpose
+
 
   console.log(selectedAllocations,'selected allocations')
   console.log('form data',formData)
@@ -750,7 +776,7 @@ const handleOCRScan=()=>{
 </div>
 
 <div className='mt-12 inline-flex space-x-2'>
-    <FileUpload onClick={handleOCRScan} selectedFile={selectedFile} setSelectedFile={setSelectedFile} isFileSelected={isFileSelected} setIsFileSelected={setIsFileSelected}  text={<div className='inline-flex items-center space-x-1'><img src={scan_icon} className='w-5 h-5'/> <p>Auto Scan</p></div>}/>
+    <FileUpload loading={isUploading.autoScan} onClick={handleOCRScan} selectedFile={selectedFile} setSelectedFile={setSelectedFile} isFileSelected={isFileSelected} setIsFileSelected={setIsFileSelected}  text={<div className='inline-flex items-center space-x-1'><img src={scan_icon} className='w-5 h-5'/> <p>Auto Scan</p></div>}/>
     <Button1 onClick={handleMannualBtn} text={<div className='inline-flex items-center space-x-1'><img src={modify_icon} className='w-5 h-5'/> <p>Manually</p></div>}/>
 </div>
 

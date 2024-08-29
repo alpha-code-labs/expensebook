@@ -62,7 +62,7 @@ export function DocumentPreview({ selectedFile, setIsFileSelected, initialFile, 
         </div>
       
       ) : (
-        <div className=''>
+        <div className='h-full w-full overflow-y-auto flex items-center justify-center'>
           {initialFile.toLowerCase().endsWith('.pdf') ? (
             <div className='w-full h-full'>
               <embed
@@ -72,7 +72,8 @@ export function DocumentPreview({ selectedFile, setIsFileSelected, initialFile, 
               />
             </div>
           ) : (
-            <img src={initialFile} alt="Initial Document Preview" className='w-40 h-40' />
+            
+            <img src={initialFile} alt="Initial Document Preview" className='' />
           )}
         </div>
       )}

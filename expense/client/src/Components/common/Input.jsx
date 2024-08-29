@@ -47,7 +47,7 @@
 import React, { useState, useRef, useEffect } from "react";
 
 
-const Input = ({ title, placeholder, onChange ,error,initialValue,type,inputRef , variant}) => {
+const Input = ({conversionAmount, title, placeholder, onChange ,error,initialValue,type,inputRef , variant}) => {
 
   const [inputValue, setInputValue] = useState("");
   useEffect(()=>{
@@ -78,6 +78,12 @@ const Input = ({ title, placeholder, onChange ,error,initialValue,type,inputRef 
         {error?.set && (
         <div className="absolute  top-[48px] w-full text-xs text-red-500 font-cabin">
           {error?.msg}
+        </div>
+      )} 
+        {conversionAmount?.currencyFlag && (
+        <div className="absolute  top-[48px] w-full text-xs text-neutral-900 font-cabin">
+         
+      {`Amount in ${conversionAmount?.defaultCurrencyName} ${conversionAmount?.convertedPersonalAmount} | 1 ${conversionAmount?.convertedCurrencyName} = ${conversionAmount?.defaultCurrencyName} ${conversionAmount?.conversionRate}`}
         </div>
       )} 
       </div>

@@ -137,9 +137,7 @@ const ocrValues = {
   const [message, setMessage] = useState(null)
   // const [ocrField , setOcrField]=useState(null)
   const [travelRequestStatus, setTravelRequestStatus] = useState('pending approval')
-  const [isUploading , setIsUploading]=useState(false)
-
-  const [active , setActive]=useState({
+  const [isUploading , setIsUploading]=useState({
     scan:false,
     edit:false,
     saveLineItem:false,
@@ -148,6 +146,11 @@ const ocrValues = {
     deleteHeader:false,
     saveAsDraft:false,
     submit:false
+
+  })
+
+  const [active , setActive]=useState({
+    
   })
 
   const [isLoading, setIsLoading] = useState(true)
@@ -791,11 +794,11 @@ const handleSubmitOrDraft=async(action)=>{
     console.log('submit',data)
     if(allowForm){
     try{
-         setIsUploading(true)
+         
          if(action === "draft"){
-          setActive(prevState => ({ ...prevState, saveAsDraft: true }));
+          setIsUploading(prevState => ({ ...prevState, saveAsDraft: true }));
          }else if (action === "submit"){
-          setActive(prevState => ({ ...prevState, submit: true }))
+          setIsUploading(prevState => ({ ...prevState, submit: true }))
          }
          
         
@@ -1110,7 +1113,7 @@ const [editFields, setEditFields]= useState({});
       } 
     }
     console.log('expense lines before deleting', headerReport)
-    console.log('deletions',active.delete.visible,active.delete.id);
+    // console.log('deletions',active.delete.visible,active.delete.id);
 
 console.log('all categoryfields',categoryfields)
 
@@ -1360,9 +1363,9 @@ const handleDashboardRedirection=()=>{
               
            
                 
-                <Button1 loading={isUploading} active={active.submit} variant='fit' text='Submit' onClick={() => handleSubmitOrDraft("submit")} />
+                <Button1 loading={isUploading.submit}  variant='fit' text='Submit' onClick={() => handleSubmitOrDraft("submit")} />
                     {['draft', 'new'].includes(flagExpenseHeaderStatus) && (
-                        <Button1 loading={isUploading} active={active.saveAsDraft} text='Save as Draft' onClick={() => handleSubmitOrDraft("draft")} />
+                        <Button1 loading={isUploading.saveAsDraft} text='Save as Draft' onClick={() => handleSubmitOrDraft("draft")} />
                     )}
                       <CancelButton loading={isUploading} active={active.deleteHeader} variant='fit' text='Cancel' onClick={handleCancelExpenseHeader} />
                     <div className="flex items-center justify-center rounded-sm hover:bg-slate-100 p-1 cursor-pointer" onClick={()=>handleDashboardRedirection()}>
@@ -2016,7 +2019,7 @@ function ExpenseHeader({
       </div>
     {[
       { label: "Total Cash Advance", value: expenseAmountStatus?.totalCashAmount?.toFixed(2) ?? "not available" },
-      { label: "Remaining Cash Advance", value: expenseAmountStatus?.totalRemainingCash?.toFixed(2) ?? "not available" },
+      { label: "Remaining Cash Advance", value: (expenseAmountStatus?.totalRemainingCash?.toFixed(2)) > 0 ? expenseAmountStatus?.totalRemainingCash?.toFixed(2) :"0.00" ?? "not available" },
       { label: "Default Currency", value: defaultCurrency?.shortName ?? "not available" },
     ].map((item, index) => (
       <div key={index} className="flex-1 px-2 font-cabin">
@@ -2223,8 +2226,7 @@ function EditView({expenseHeaderStatus,isUploading,active,flagToOpen,expenseHead
   return(
     <>
 <div className=" w-full lg:w-3/5">
-  {/* {lineItem.Document} */}
-  <DocumentPreview initialFile={lineItem.Document}/>
+  <DocumentPreview initialFile={lineItem?.billImageUrl}/>
 </div>
 
 <div className="w-full lg:w-2/5">

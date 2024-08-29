@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState,useEffect } from 'react'
 import Allocations from './Allocations'
 import Input from '../components/common/Input'
 import Select from '../components/common/Select'
@@ -8,13 +8,14 @@ import { currenciesList } from '../utils/data/currencyList'
 import {  TravelExpenseCurrencyConversionApi } from '../utils/api'
 import { categoryIcons } from '../assets/icon'
 
-const LineItemForm = ({categoryName,setErrorMsg,isUploading,defaultCurrency, currencyConversion, setCurrencyConversion, handleCurrencyConversion, formData,setFormData, onboardingLevel, categoryFields = [], classOptions, currencyTableData, allocationsList, handleAllocations, lineItemDetails, errorMsg}) => {
+const LineItemForm = ({ categoryName,setErrorMsg,isUploading,defaultCurrency, currencyConversion, setCurrencyConversion, handleCurrencyConversion, formData,setFormData, onboardingLevel, categoryFields = [], classOptions, currencyTableData, allocationsList, handleAllocations, lineItemDetails, errorMsg}) => {
   const totalAmountKeys = ['Total Fare','Total Amount',  'Subscription Cost', 'Cost', 'Premium Cost'];
   const dateKeys = ['Invoice Date', 'Date', 'Visited Date', 'Booking Date',"Bill Date"];
 
-  
+  const conversionAmount= currencyConversion?.response || {}
 
 console.log('error mgs',errorMsg.conversion)
+console.log('converted amount',currencyConversion)
 
   
   const [personalExpFlag , setPersonalExpFlag]=useState(false)
@@ -43,15 +44,16 @@ console.log('error mgs',errorMsg.conversion)
           fields: updatedFields,
         };
       });
-
+       
        if(totalAmountKeys.includes(key) ){
           setCurrencyConversion(prev =>({...prev,payload:{
             ...prev.payload,
            ["totalAmount"]:value
           }
           }))
+          
         }
-
+          
         if(key === "personalExpenseAmount"){
           setCurrencyConversion(prev =>({...prev,payload:{
             ...prev.payload,
@@ -59,36 +61,36 @@ console.log('error mgs',errorMsg.conversion)
           }
           }))
         }
-        
-        setCurrencyConversion(prev =>({...prev,payload:{
-          ...prev.payload,
-          'currencyName':formData?.Currency?.shortName,
+        // if(key === 'Currency'){  setCurrencyConversion(prev =>({...prev,payload:{
+        //   ...prev.payload,
+        //   'currencyName':value.shortName,
          
-          ///nonPersonalAmount: Number(prev.payload.totalAmount) - Number(formData.personalExpenseAmount)
-        }
-        }))
+        //  // nonPersonalAmount: Number(prev.payload.totalAmount) - Number(formData.personalExpenseAmount)
+        // }
+        // }))}
 
         if(key==='Currency' && value.shortName !== defaultCurrency.shortName){
           setFormData(prev => ({
             ...prev,
             fields: {
               ...prev.fields, // Spread the existing fields object
-              isMultiCurrency: true // Update the isMultiCurrency flag to true
+              isMultiCurrency: true ,// Update the isMultiCurrency flag to true
+
             }
           }));
-          handleCurrencyConversion()
-        }else if(key==='Currency' && value.shortName === defaultCurrency.shortName)
-        {
+          
+          handleCurrencyConversion({currencyName:value.shortName})
+        }else if(key==='Currency' && value.shortName === defaultCurrency.shortName) {
           if(key==='Currency'){
             setErrorMsg((prevErrors) => ({ ...prevErrors, conversion: { set: false, msg: "" } }));
-            
           }
           
           setFormData(prev => ({
             ...prev,
             fields: {
               ...prev.fields, // Spread the existing fields object
-              isMultiCurrency: false // Update the isMultiCurrency flag to true
+              isMultiCurrency: false ,// Update the isMultiCurrency flag to true
+              convertedAmountDetails: null
             }
           }));
           
@@ -97,6 +99,20 @@ console.log('error mgs',errorMsg.conversion)
         }
     };
 
+    useEffect(() => {
+      const totalAmount = Number(currencyConversion?.payload?.totalAmount);
+      const personalExpenseAmount = Number(currencyConversion?.payload?.personalAmount);
+    
+      setCurrencyConversion(prev => ({
+        ...prev,
+        payload: {
+          ...prev.payload,
+          nonPersonalAmount: (`${totalAmount - personalExpenseAmount}`) ?? "",
+        }
+      }));
+    }, [currencyConversion?.payload?.totalAmount, currencyConversion?.payload?.personalAmount]);
+
+   
     
 
   return (
@@ -158,6 +174,7 @@ console.log('error mgs',errorMsg.conversion)
         ) : isTotalAmountField ? (
           <div className='w-full'>
           <CurrencyInput
+          conversionAmount={conversionAmount}
           error={errorMsg.conversion}
           title={field.name}
           uploading={isUploading.conversion}
@@ -261,6 +278,7 @@ onClick={(flag)=>handleInputChange("isPersonalExpense",flag)}/>
   className={`w-full transition-all ease-in-out duration-300 ${personalExpFlag ? 'opacity-100 max-h-full' : 'opacity-0 max-h-0 overflow-hidden'}`}
 >
 <Input
+    conversionAmount={conversionAmount}
     title='Personal Amount'
     error={errorMsg?.personalAmount}
     name='personalExpenseAmount'

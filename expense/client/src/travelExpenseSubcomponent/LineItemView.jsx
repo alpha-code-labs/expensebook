@@ -6,7 +6,7 @@ import { lineItems } from "../utils/dummyData";
 
 export function LineItemView({ expenseHeaderStatus, isUploading, active, flagToOpen, expenseHeaderId, lineItem, index, newExpenseReport, handleEdit, handleDeleteLineItem }) {
 
-  const excludedKeys = ['isMultiCurrency', 'isPersonalExpense', 'Tax Amount', 'personalExpenseAmount','policyValidation', 'Category Name', 'expenseLineId', 'billImageUrl', 'group', 'expenseLineAllocation', 'allocations', 'multiCurrencyDetails', 'lineItemStatus', 'lineItemId', '_id',];
+  const excludedKeys = ['isMultiCurrency','convertedAmountDetails', 'isPersonalExpense', 'Tax Amount', 'personalExpenseAmount','policyValidation', 'Category Name', 'expenseLineId', 'billImageUrl', 'group', 'expenseLineAllocation', 'allocations', 'multiCurrencyDetails', 'lineItemStatus', 'lineItemId', '_id',];
   const includedKeys = ['Total Fair', 'Total Fare','personalExpenseAmount','Tax Amount', 'Total Amount', 'Subscription Cost', 'Cost', 'Premium Cost'];
   
 
@@ -45,48 +45,131 @@ export function LineItemView({ expenseHeaderStatus, isUploading, active, flagToO
         <div>
         { 
 
-Object.entries(arrangedItems)
-  .filter(([key, value]) => !excludedKeys.includes(key) && !includedKeys.includes(key) && value !== null)
-  .map(([key, value]) => {
-    if (key === 'Currency' && value && typeof value === 'object') {
-      const currencyShortName = value.shortName;
-      console.log('currency name 11',currencyShortName)
-      return includedKeys.map((includedKey) => {
-        if (arrangedItems[includedKey]) {
-          return (
-            <div key={includedKey} className="w-full h-[84px] px-4 ">
-              <p className="capitalize text-zinc-600 truncate whitespace-nowrap text-sm font-normal font-cabin pb-1">{`${camelCaseToTitleCase(includedKey)}`}</p>
-              <div className="border rounded-md inline-flex justify-start items-center h-[48px] w-full border-slate-300 text-neutral-700 truncate text-sm font-normal font-cabin px-4 py-2">
-                <p>{currencyShortName} {String(arrangedItems[includedKey])}</p>
+// Object.entries(arrangedItems)
+//   .filter(([key, value]) => !excludedKeys.includes(key) && !includedKeys.includes(key) && value !== null)
+//   .map(([key, value]) => {
+//     if (key === 'Currency' && value && typeof value === 'object') {
+//       const currencyShortName = value.shortName;
+//       console.log('currency name 11',currencyShortName)
+//       return includedKeys.map((includedKey) => {
+//         if (arrangedItems[includedKey]) {
+//           return (
+//             <div key={includedKey} className="w-full h-[84px] px-4 ">
+//               <p className="capitalize text-zinc-600 truncate whitespace-nowrap text-sm font-normal font-cabin pb-1">{`${camelCaseToTitleCase(includedKey)}`}</p>
+//               <div className="border rounded-md inline-flex justify-start items-center h-[48px] w-full border-slate-300 text-neutral-700 truncate text-sm font-normal font-cabin px-4 py-2">
+//                 <p>{currencyShortName} {String(arrangedItems[includedKey])}</p>
+//               </div>
+//               <p>{key=== 'convertedAmountDetails' ? value.amount : ""}</p>
+//             </div>
+//           );
+
+//         }
+//         return null;
+//       });
+//     }
+    
+
+//     // if (includedKeys.includes(key)) {
+//     //   return (
+//     //     <div key={key} className="w-full h-[73px] px-4">
+//     //       <p className="capitalize text-zinc-600 truncate whitespace-nowrap text-sm font-normal font-cabin pb-1">{camelCaseToTitleCase(key)}:</p>
+//     //       <div className="border rounded-md inline-flex justify-start items-center h-[48px] w-full border-slate-300 text-neutral-700 truncate text-sm font-normal font-cabin px-4 py-2">
+//     //         <p>{String(value)}</p>
+//     //       </div>
+//     //     </div>
+//     //   );
+//     // }
+
+//     return (
+//       <div key={key} className="w-full h-[84px] px-4">
+//         <p className="capitalize text-zinc-600 truncate whitespace-nowrap text-sm font-normal font-cabin pb-1">{camelCaseToTitleCase(key)}</p>
+//         <div className="border rounded-md inline-flex justify-start items-center h-[48px] w-full border-slate-300 text-neutral-700 truncate text-sm font-normal font-cabin px-4 py-2">
+//           <p>{String(value)}</p>
+//         </div>
+//       </div>
+//     );
+//   })
+//   .flat()
+
+
+  Object.entries(arrangedItems)
+    .filter(([key, value]) => !excludedKeys.includes(key) && !includedKeys.includes(key) && value !== null)
+    .map(([key, value]) => {
+      if (key === 'Currency' && value && typeof value === 'object') {
+        const currencyShortName = value.shortName;
+        return includedKeys.map((includedKey) => {
+          if (arrangedItems[includedKey]) {
+            return (
+              <div key={includedKey} className="relative w-full h-[84px] px-4 mb-2">
+                <p className="capitalize text-zinc-600 truncate whitespace-nowrap text-sm font-normal font-cabin pb-1">{`${camelCaseToTitleCase(includedKey)}`}</p>
+                <div className="border rounded-md inline-flex justify-start items-center h-[48px] w-full border-slate-300 text-neutral-700 truncate text-sm font-normal font-cabin px-4 py-2">
+                  <p>{currencyShortName} {String(arrangedItems[includedKey])}</p>
+                </div>
+                {/* Check for 'convertedAmountDetails' and display its amount */}
+                {arrangedItems.convertedAmountDetails&& includedKey !== 'Tax Amount'  && (
+                  <p className=" text-sm text-neutral-600  pl-2  ">
+                   {arrangedItems.convertedAmountDetails.amount}
+                    {`Amount in ${arrangedItems.convertedAmountDetails?.defaultCurrencyName} ${arrangedItems.convertedAmountDetails?.convertedTotalAmount} | 1 ${arrangedItems.convertedAmountDetails?.convertedCurrencyName} = ${arrangedItems.convertedAmountDetails?.defaultCurrencyName} ${arrangedItems.convertedAmountDetails?.conversionRate}`}
+                  </p>
+                )}
               </div>
-            </div>
-          );
-        }
-        return null;
-      });
-    }
+            );
+          }
+          return null;
+        });
+      }
 
-    // if (includedKeys.includes(key)) {
-    //   return (
-    //     <div key={key} className="w-full h-[73px] px-4">
-    //       <p className="capitalize text-zinc-600 truncate whitespace-nowrap text-sm font-normal font-cabin pb-1">{camelCaseToTitleCase(key)}:</p>
-    //       <div className="border rounded-md inline-flex justify-start items-center h-[48px] w-full border-slate-300 text-neutral-700 truncate text-sm font-normal font-cabin px-4 py-2">
-    //         <p>{String(value)}</p>
-    //       </div>
-    //     </div>
-    //   );
-    // }
-
-    return (
-      <div key={key} className="w-full h-[84px] px-4">
-        <p className="capitalize text-zinc-600 truncate whitespace-nowrap text-sm font-normal font-cabin pb-1">{camelCaseToTitleCase(key)}</p>
-        <div className="border rounded-md inline-flex justify-start items-center h-[48px] w-full border-slate-300 text-neutral-700 truncate text-sm font-normal font-cabin px-4 py-2">
-          <p>{String(value)}</p>
+      return (
+        <div key={key} className="w-full h-[84px] px-4 mt-2">
+          <p className="capitalize text-zinc-600 truncate whitespace-nowrap text-sm font-normal font-cabin pb-1">{camelCaseToTitleCase(key)}</p>
+          <div className="border rounded-md inline-flex justify-start items-center h-[48px] w-full border-slate-300 text-neutral-700 truncate text-sm font-normal font-cabin px-4 py-2">
+            <p>{String(value)}</p>
+          </div>
         </div>
-      </div>
-    );
-  })
-  .flat()
+      );
+    })
+    .flat()
+  
+    // Object.entries(arrangedItems)
+    //   .filter(([key, value]) => !excludedKeys.includes(key) && !includedKeys.includes(key) && value !== null)
+    //   .map(([key, value]) => {
+    //     if (key === 'Currency' && value && typeof value === 'object') {
+    //       const currencyShortName = value.shortName;
+    //       return includedKeys.map((includedKey) => {
+    //         if (arrangedItems[includedKey]) {
+    //           return (
+    //             <div key={includedKey} className="w-full h-[84px] px-4">
+    //               <p className="capitalize text-zinc-600 truncate whitespace-nowrap text-sm font-normal font-cabin pb-1">{`${camelCaseToTitleCase(includedKey)}`}</p>
+    //               <div className="border rounded-md inline-flex justify-start items-center h-[48px] w-full border-slate-300 text-neutral-700 truncate text-sm font-normal font-cabin px-4 py-2">
+    //                 <p>{currencyShortName} {String(arrangedItems[includedKey])}</p>
+    //               </div>
+    //               {/* Show 'convertedAmountDetails' except below 'Tax Amount' */}
+    //               {arrangedItems.convertedAmountDetails && includedKey !== 'Tax Amount' && (
+    //                 <p className="text-sm text-neutral-600 mt-1">
+    //                   Converted Amount: {currencyShortName} {arrangedItems.convertedAmountDetails.amount}
+    //                 </p>
+    //               )}
+    //             </div>
+    //           );
+    //         }
+    //         return null;
+    //       });
+    //     }
+  
+    //     return (
+    //       <div key={key} className="w-full h-[84px] px-4">
+    //         <p className="capitalize text-zinc-600 truncate whitespace-nowrap text-sm font-normal font-cabin pb-1">{camelCaseToTitleCase(key)}</p>
+    //         <div className="border rounded-md inline-flex justify-start items-center h-[48px] w-full border-slate-300 text-neutral-700 truncate text-sm font-normal font-cabin px-4 py-2">
+    //           <p>{String(value)}</p>
+    //         </div>
+    //       </div>
+    //     );
+    //   })
+    //   .flat()
+  
+  
+
+
 }
 
         </div>

@@ -11,7 +11,6 @@
     scrollbar-width: none;  /* Firefox */
 }
 
-
 /* width */
 ::-webkit-scrollbar {
     width: 4px; /* Adjust the width to make it thin */
@@ -34,12 +33,7 @@
     background: #f1f1f1;
   }
   
-  /* Hide scrollbar */
-  .scrollbar-hide {
-    -ms-overflow-style: none;  /* IE and Edge */
-    scrollbar-width: none;  /* Firefox */
-  }
-  
+ 
   /* Custom scrollbar class */
   .custom-scrollbar::-webkit-scrollbar {
     width: 4px; /* Width of the scrollbar */

@@ -3,7 +3,7 @@ import { CircleFlag } from 'react-circle-flags';
 import { useRef, useEffect, useState } from 'react';
 import Search from './Index';
 
-const CurrencyInput = ({dataMsg,uploading,title,id,placeholder, onChange ,error,initialValue,type,inputRef, amount, currency, mode, onModeChange, currencyOptions, cashAdvanceOptions, onAmountChange, onCurrencyChange, setSearchParam, removeItem })=>{
+const CurrencyInput = ({conversionAmount,dataMsg,uploading,title,id,placeholder, onChange ,error,initialValue,type,inputRef, amount, currency, mode, onModeChange, currencyOptions, cashAdvanceOptions, onAmountChange, onCurrencyChange, setSearchParam, removeItem })=>{
   const [inputValue, setInputValue] = useState("");
 
   console.log('selected currency',currency)
@@ -87,6 +87,14 @@ const CurrencyInput = ({dataMsg,uploading,title,id,placeholder, onChange ,error,
            {error?.set && (
         <div className="absolute  top-[48px] w-full text-xs text-red-500 font-cabin">
           {error?.msg}
+        </div>
+      )} 
+           {conversionAmount?.currencyFlag && (
+        <div className="absolute  top-[48px] w-full text-xs text-neutral-900 font-cabin">
+          {/* {error?.msg} */}
+          {/* Amount in INR: Rs.310212.19
+1 CAD = 62.042437 INR */}
+      {`Amount in ${conversionAmount?.defaultCurrencyName} ${conversionAmount?.convertedTotalAmount} | 1 ${conversionAmount?.convertedCurrencyName} = ${conversionAmount?.defaultCurrencyName} ${conversionAmount?.conversionRate}`}
         </div>
       )} 
            {uploading?.set && (

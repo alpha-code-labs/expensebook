@@ -935,7 +935,8 @@ export const currenciesList = [
       shortName: "AWG",
       symbol: "ƒ",
       countryCode: "AW"
-    },
+    }
+    ,
     {
       fullName: "Bahamian Dollar",
       shortName: "BSD",

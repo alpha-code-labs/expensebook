@@ -393,8 +393,8 @@ const [miscellaneousData , setMiscellaneousData]=useState(null)
   const [expenseDataByGet , setExpenseDataByGet]= useState(null)
 
   useEffect(() => {
-    const sessionId = sessionStorage.getItem('sessionExpenseHeaderId');
-    const expenseHeaderIds = sessionId || expenseHeaderId || requiredObj?.expenseHeaderId 
+   
+    const expenseHeaderIds =  expenseHeaderId || requiredObj?.expenseHeaderId 
     console.log('expense header id1',expenseHeaderIds)
   
     const fetchData = async () => {
@@ -1256,7 +1256,7 @@ const handleDashboardRedirection=()=>{
 
           console.log('intial allocation', initialExpenseAllocation)
           const travelAllocationFlag = allocationLevel(response?.travelAllocationFlags)
-          sessionStorage.setItem('sessionExpenseHeaderId', (response?.expenseHeaderId ?? null));
+         // sessionStorage.setItem('sessionExpenseHeaderId', (response?.expenseHeaderId ?? null));
 
           setRequiredObj(prev => ({...prev,
             "companyName":response?.companyName,
