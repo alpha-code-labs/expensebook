@@ -57,18 +57,18 @@ export const handleCashAdvance = ( travelRequestId, cashAdvanceId, action) => {
 
 
 //travel expense
-export const handleTravelExpense=(tripId,expenseHeaderId,action)=>{
+export const handleTravelExpense=({tenantId,empId,tripId,expenseHeaderId,action})=>{
   console.log('route data', tripId,expenseHeaderId,action)
     let url ;
     if (action==="trip-ex-create"){
-      url=expenseRoutes.create.getUrl(tripId)
+      url=expenseRoutes.create.getUrl({tenantId,empId,tripId})
     }
     else if(action==="trip-ex-modify"){
-      url= expenseRoutes.modify.getUrl(tripId,expenseHeaderId);
+      url= expenseRoutes.modify.getUrl({tenantId,empId,tripId,expenseHeaderId});
     } else if (action==="trip-ex-cancel"){
-      url =expenseRoutes.cancel.getUrl(tripId,expenseHeaderId)
+      url =expenseRoutes.cancel.getUrl({tenantId,empId,tripId,expenseHeaderId})
     }else if (action=="trip-ex-clear-rejected"){
-        url=expenseRoutes.clearRejected.getUrl(tripId,expenseHeaderId)
+        url=expenseRoutes.clearRejected.getUrl({tenantId,empId,tripId,expenseHeaderId})
     }
     else {
       throw new Error('Invalid action');

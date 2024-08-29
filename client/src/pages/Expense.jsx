@@ -136,7 +136,7 @@ const Expense = ({isLoading ,fetchData,loadingErrMsg}) => {
       setTripId(null)
       setExpenseType(null)
       setModalOpen(false)
-      handleVisible({urlName:handleTravelExpense(tripId, '','trip-ex-create')})
+      handleVisible({urlName:handleTravelExpense({tenantId,empId,tripId, action:'trip-ex-create'})})
       //handleTravelExpense(tripId, '','trip-ex-create')
     } else {
       setExpenseType(null)
@@ -281,7 +281,7 @@ setSelectedStatuses={setSelectedStatuses}
                             <div className={`text-center rounded-sm ${getStatusClass(trExpense?.expenseHeaderStatus ?? "-")}`}>
                               <p className='px-1 py-1 text-xs text-center capitalize font-cabin'>{trExpense?.expenseHeaderStatus ?? "-"}</p>
                             </div>
-                            <div onClick={()=>handleVisible({urlName:handleTravelExpense(trip?.tripId, trExpense?.expenseHeaderId,  'trip-ex-modify' ,)})} className={`w-7 h-7 bg-indigo-100 rounded-full border border-white flex items-center justify-center cursor-pointer`}>
+                            <div onClick={()=>handleVisible({urlName:handleTravelExpense({tenantId,empId,tripId:trip?.tripId,expenseHeaderId: trExpense?.expenseHeaderId, action: 'trip-ex-modify' })})} className={`w-7 h-7 bg-indigo-100 rounded-full border border-white flex items-center justify-center cursor-pointer`}>
                               <img src={modify} className='w-4 h-4' alt="modify_icon" />
                             </div>
                           </div>

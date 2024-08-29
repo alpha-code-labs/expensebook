@@ -947,7 +947,7 @@ console.log('trips and travel from travel screen', tripData)
       setTripId(null)
       setExpenseType(null)
       setModalOpen(false)
-      handleTravelExpense(tripId, '','trip-ex-create')
+      handleTravelExpense({tripId, "action":'trip-ex-create'})
     } else {
       setExpenseType(null)
       setModalOpen(false)

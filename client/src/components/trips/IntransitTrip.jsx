@@ -377,7 +377,7 @@ handleTravelExpense={handleTravelExpense}
   <div onClick={()=>{handleCashAdvance(item?.travelRequestId,"", 'ca-create')}} className="bg-white mt-2 rounded-[32px] w-fit box-border h-[33px] flex flex-row items-center justify-center py-4 px-2  cursor-pointer border-[1px] border-solid border-purple-500">
     <div className="font-semibold text-[12px] w-fit h-[17px] text-purple-500">{getCashAdvanceButtonText(item?.tripStartDate)}</div>
 </div>
-<div onClick={()=>{handleTravelExpense(item?.tripId,"", "trip-ex-create")}} className="bg-white mt-2 rounded-[32px] w-fit  h-[33px] flex flex-row items-center justify-center py-4 px-2  cursor-pointer border-[1px]  border-purple-500">
+<div onClick={()=>{handleTravelExpense({"tripId":item?.tripId, "action": "trip-ex-create"})}} className="bg-white mt-2 rounded-[32px] w-fit  h-[33px] flex flex-row items-center justify-center py-4 px-2  cursor-pointer border-[1px]  border-purple-500">
     <div className="font-semibold text-[12px] w-fit h-[17px] text-purple-500">Book Expense</div>
 </div>
 </div>

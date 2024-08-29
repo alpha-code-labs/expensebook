@@ -50,10 +50,10 @@ const TravelCard = ({tripId,travelExpense,handleTravelExpense})=>{
   </div>  
      </div> 
    <div className='flex flex-1 justify-end items-end gap-4 py-2 px-3'>
-       <div  className='flex items-center  justify-center w-6 h-6 bg-[#FFC2C6] rounded-full cursor-pointer' onClick={()=>handleTravelExpense(tripId,item.expenseHeaderId,"trip-ex-cancel")}>
+       <div  className='flex items-center  justify-center w-6 h-6 bg-[#FFC2C6] rounded-full cursor-pointer' onClick={()=>handleTravelExpense({"tripId":tripId,"expenseHeaderId":item.expenseHeaderId,action:"trip-ex-cancel"})}>
          <img src={cancel} alt='cancel' width={20} height={20} />
        </div>
-       <div  className='flex cursor-pointer items-center justify-center w-6 h-6 bg-purple-50 rounded-full' onClick={()=>handleTravelExpense(tripId,item.expenseHeaderId,"trip-ex-modify")}>
+       <div  className='flex cursor-pointer items-center justify-center w-6 h-6 bg-purple-50 rounded-full' onClick={()=>handleTravelExpense({tripId,"expenseHeaderId":item.expenseHeaderId,action:"trip-ex-modify"})}>
          <img src={modify} alt='modify' width={12} height={12} />
        </div>
     </div>
