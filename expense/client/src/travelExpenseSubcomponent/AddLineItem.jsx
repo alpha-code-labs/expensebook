@@ -9,7 +9,7 @@ import FileUpload from '../Components/common/FileUpload';
 import { DocumentPreview } from './BillPreview';
 import { allocationLevel, initializeFormFields, urlRedirection } from '../utils/handyFunctions';
 import LineItemForm from './LineItemForm';
-import { getTravelExpenseApi, postTravelExpenseLineItemApi, TravelExpenseCurrencyConversionApi } from '../utils/api';
+import { getTravelExpenseApi, postTravelExpenseLineItemApi, currencyConversionApi } from '../utils/api';
 import { useParams,useNavigate } from 'react-router-dom';
 import Error from '../components/common/Error';
 import PopupMessage from '../components/common/PopupMessage';
@@ -235,7 +235,9 @@ const handleSelectCategory = (option) => {
 
 const handleMannualBtn=()=>{
   if(requiredObj.category){
+
     setShowForm(true)
+    document.getElementById('newLineItem').scrollIntoView({ behavior: 'smooth' });
     setErrorMsg(prev => ({...prev,category:{ set: false, msg: "" },}))
   }else{
     setErrorMsg(prev => ({...prev,category:{ set: true, msg: "Select the category" },}))
@@ -278,7 +280,7 @@ const handleCurrencyConversion = async ( {currencyName}) => {
     setIsUploading(prev=>({...prev,conversion:{set:true,msg:'fetching exchange rates...'}}))
         try {
          
-          const response = await TravelExpenseCurrencyConversionApi(tenantId,payload);
+          const response = await currencyConversionApi(tenantId,payload);
           if(response.currencyConverterData.currencyFlag){
             setCurrencyConversion(prev=>({...prev,response:response.currencyConverterData}))
             if(response.success){
@@ -629,7 +631,10 @@ const handleOCRScan=()=>{
         "Class": "",
         "Booking Reference Number": "NF7TKQXJLD1PSQCM0529",
         "Total Amount": "4713",
-        "Tax Amount": "1800",
+        "Tax Amount": "",
+        "Flight Number": ""
+        ,
+        
         
         "Currency": {
             "countryCode": "IN",
@@ -641,6 +646,28 @@ const handleOCRScan=()=>{
     
     
     }}))
+    setCurrencyConversion(prev=>({...prev,payload:{...prev.payload,totalAmount:"4713"}}))
+  }if (requiredObj.category=== 'Meals' ){
+    setFormData(prev => ({...prev,fields:{
+      ...prev.fields,
+      
+      
+        "Bill Date": "2024-07-21",
+        "Bill Number": "24VHMPXU00013373",
+        "Category Name": "Meals",
+        "Currency": {
+            countryCode: 'IN',
+            fullName: 'Indian Rupee',
+            shortName: 'INR',
+            symbol: '₹'
+        },
+        
+        "Quantity": "5",
+        "Tax Amount": "7.575",
+        "Total Amount": "318.15",
+        "Vendor Name": "The Burger Club",
+    }}))
+    setCurrencyConversion(prev=>({...prev,payload:{...prev.payload,totalAmount:"318.15"}}))
 
   }
 }
@@ -788,6 +815,7 @@ useEffect(()=>{
 
 
       </div>
+     
       {showForm &&
 <div className='w-full flex flex-col md:flex-row relative border-t-2 border-slate-300 h-screen p-4 pb-16 '>
     <div className='w-full md:w-3/5 md:block hidden  h-full overflow-auto'>
@@ -813,11 +841,13 @@ useEffect(()=>{
        categoryName={requiredObj?.category}
        />
     </div>
-    <div className='absolute -left-4 mx-4 inset-x-0 w-full  z-20 bg-slate-100   h-16 border border-slate-300 bottom-0'>
+    <div className='absolute -left-4 mx-4 inset-x-0 w-full  z-20 bg-slate-100  h-fit border border-slate-300 bottom-0'>
       <ActionBoard handleClick={handleSaveLineItem} isUploading={isUploading} setModalOpen={setModalOpen} setActionType={setActionType}/>
     </div>
 </div>}
+
     </div>}
+    <div id='newLineItem'/>
     
     <Modal 
         isOpen={modalOpen} 
@@ -854,10 +884,11 @@ export default AddLineItem
 const ActionBoard = ({handleClick,isUploading,setModalOpen, setActionType})=>{
 
   return(
-    <div className='flex justify-end px-4 items-center h-full w-full'>
+    <div className='flex flex-col-reverse py-2 sm:flex-row justify-between px-4 items-center h-full w-full'>
       {/* <div>
       <Button1 loading={isUploading?.saveLineItem?.set} text='Submit' onClick={()=>handleClick()}/>
       </div> */}
+       <p className='text-start whitespace-nowrap left-14 top-8 text-red-600 text-sm font-inter'><sup>*</sup>Kindly check the fields before saving the line item.</p>
     <div className='flex gap-1'>
       <Button1  loading={isUploading?.saveAndNew?.set}      text='Save and New'    onClick={()=>handleClick("saveAndNew")}/>
       <Button1  loading={isUploading?.saveAndSubmit?.set}      text='Save and Submit' onClick={()=>handleClick("saveAndSubmit")}/>

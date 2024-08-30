@@ -1,13 +1,12 @@
 import React ,{useState,useEffect,useRef}from 'react';
-import { cancelNonTravelExpenseHeaderApi, cancelNonTravelExpenseLineItemApi,  editNonTravelExpenseLineItemsApi, getCategoryFormElementApi, getNonTravelExpenseLineItemsApi, getNonTravelExpenseMiscellaneousDataApi, nonTravelOcrApi, postMultiCurrencyForNonTravelExpenseApi, postNonTravelExpenseLineItemApi, saveAsDraftNonTravelExpense, submitNonTravelExpenseApi, submitOrSaveAsDraftApi } from '../utils/api'
+import { cancelNonTravelExpenseHeaderApi, cancelNonTravelExpenseLineItemApi,  currencyConversionApi,  editNonTravelExpenseLineItemsApi, getCategoryFormElementApi, getNonTravelExpenseLineItemsApi, getNonTravelExpenseMiscellaneousDataApi, nonTravelOcrApi, postMultiCurrencyForNonTravelExpenseApi, postNonTravelExpenseLineItemApi, saveAsDraftNonTravelExpense, submitNonTravelExpenseApi, submitOrSaveAsDraftApi, submitOrSaveAsDraftNonTravelExpenseApi } from '../utils/api'
 import { useParams } from 'react-router-dom';
 import Error from '../components/common/Error';
 import Button from '../components/common/Button';
 import PopupMessage from '../components/common/PopupMessage';
 import Icon from '../components/common/Icon';
 import Input from '../components/common/Input';
-import { arrow_left, briefcase, cancel_icon, cancel_round, categoryIcons, chevron_down, file_icon, modify_icon, money, receipt, scan_icon, user_icon, validation_sym, validation_symb_icon } from '../assets/icon';
-import {nonTravelExpenseData} from '../dummyData/nonTravelExpens';
+import { arrow_left, briefcase, cancel_icon, cancel_round, categoryIcons, chevron_down, file_icon, info_icon, modify_icon, money, receipt, scan_icon, user_icon, validation_sym, validation_symb_icon } from '../assets/icon';
 import { allocationLevel, initializenonTravelFormFields, titleCase, urlRedirection } from '../utils/handyFunctions';
 import Upload from '../components/common/Upload';
 import Select from '../components/common/Select';
@@ -43,7 +42,7 @@ const dateForms = ['Invoice Date', 'Date', 'Visited Date', 'Booking Date','Bill 
 const CreateNonTraveExpense = () => {
  
   
-  const {tenantId,empId,expenseHeaderId,cancel} =useParams()
+  const {tenantId,empId,expenseHeaderId} =useParams()
   const dashboardBaseUrl = `${import.meta.env.VITE_DASHBOARD_URL}`
   const az_blob_container = import.meta.env.VITE_AZURE_BLOB_CONTAINER
   const blob_endpoint = import.meta.env.VITE_AZURE_BLOB_CONNECTION_URL
@@ -76,8 +75,8 @@ const [currencyConversion, setCurrencyConversion]=useState({
   payload:{
      'currencyName':"",
       personalAmount:"",
-          totalAmount:"",
-          nonPersonalAmount: ""
+      totalAmount:"",
+      nonPersonalAmount: ""
   },
   response:{}
 })
@@ -105,7 +104,10 @@ const [currencyConversion, setCurrencyConversion]=useState({
         try {
           const response = await getNonTravelExpenseMiscellaneousDataApi(tenantId, empId,);
           setCategoryList(response?.reimbursementExpenseCategory || [])
-          setRequiredObj(prev=>({...prev,expenseCategories:response?.reimbursementExpenseCategory || []}))
+          const travelAllocationFlag = allocationLevel(response?.travelAllocationFlags)
+          setRequiredObj(prev=>({...prev,
+            "expenseCategories":response?.reimbursementExpenseCategory || [],
+           "level":travelAllocationFlag}))
           setHeaderDetails({
             name: response?.employeeName,
             defaultCurrency : response?.defaultCurrency
@@ -158,13 +160,22 @@ const [currencyConversion, setCurrencyConversion]=useState({
     const [currencyTableData, setCurrencyTableData] = useState(null);
     const [lineItemsData,setLineItemsData]=useState([]) //for get all line item
     const [formDataValues, setFormDataValues] = useState(); 
-
+    const [selectedAllocations , setSelectedAllocations]=useState([])
     const [selectedLineItemId, setSelectedLineItemId]=useState(null)
     const [modalOpen , setModalOpen]= useState(false)
     const [actionType, setActionType]=useState(false)
     const [action1 , setAction] = useState(null)
     const [isLoading,setIsLoading]=useState(true)
-    const [isUploading , setIsUploading]=useState(false)
+    const [isUploading , setIsUploading]=useState({
+        edit:{visible:false,id:null},
+        saveLineItem:false,
+        convert:false,
+        delete:{visible:false,id:null},
+        deleteHeader:false,
+        saveAsDraft:false,
+        submit:false,
+        autoScan:false
+    })
     const [active , setActive]=useState({
       edit:{visible:false,id:null},
       saveLineItem:false,
@@ -172,7 +183,8 @@ const [currencyConversion, setCurrencyConversion]=useState({
       delete:{visible:false,id:null},
       deleteHeader:false,
       saveAsDraft:false,
-      submit:false
+      submit:false,
+      autoScan:false
     })
     
     const [loadingErrorMsg, setLoadingErrorMsg]=useState(null)
@@ -208,32 +220,10 @@ const handleMannualBtn=()=>{
 
 
 //for save selected expenseLineAllocation allocation in array
-const [selectedAllocations , setSelectedAllocations]=useState([])//for saving expenseLineAllocation on  line item   
+//for saving expenseLineAllocation on  line item   
 
 
-const onAllocationSelection = (option, headerName) => {
-  // Check if an allocation with the same headerName already exists
-  const existingAllocationIndex = selectedAllocations.findIndex(allocation => allocation.headerName === headerName);
 
-  // Create a new allocation object
-  const newAllocation = { headerName: headerName, headerValue: option || "" };
-
-  const newErrorMsg = { ...errorMsg };
-  newErrorMsg[headerName] = { set: false, msg: "" };
-  setErrorMsg(newErrorMsg);
-
-  if (existingAllocationIndex !== -1) {
-    // If allocation with the same headerName exists, replace it
-    setSelectedAllocations(prevAllocations => {
-      const updatedAllocations = [...prevAllocations];
-      updatedAllocations.splice(existingAllocationIndex, 1, newAllocation);
-      return updatedAllocations;
-    });
-  } else {
-    // Otherwise, add the new allocation
-    setSelectedAllocations(prevAllocations => [...prevAllocations, newAllocation]);
-  }
-};
 
 const [selectedCategory , setSelectedCategory]= useState(null)   
  
@@ -291,7 +281,7 @@ const [selectedCategory , setSelectedCategory]= useState(null)
   //let expenseHeaderIdBySession = sessionStorage.getItem("expenseHeaderId");
   //console.log('expenseHeaderId by session',expenseHeaderIdBySession)
 //Handle Generate    
-const [miscellaneousData , setMiscellaneousData]=useState(null)
+
 
     const handleGenerateExpense = async (category) => {
       console.log('generate category',category)   
@@ -323,7 +313,7 @@ const [miscellaneousData , setMiscellaneousData]=useState(null)
 
         setRequiredObj(prev => ({...prev,
           "defaultCurrency":response?.defaultCurrency,
-          "fields":response?.fields || [],
+         // "fields":response?.fields || [],
           "expenseHeaderId":response?.expenseHeaderId ?? null,
           "expenseHeaderNumber":response?.expenseHeaderNumber,
           "expenseHeaderStatus": response?.expenseHeaderStatus,
@@ -333,7 +323,6 @@ const [miscellaneousData , setMiscellaneousData]=useState(null)
           "allocation":response?.newExpenseAllocation || []
         }))
 
-        setSelectedAllocations(initialExpenseAllocation) 
         
         // sessionStorage.setItem("expenseHeaderId", response?.expenseHeaderId);
         //setReimbursementHeaderId(response?.expenseHeaderId)
@@ -361,36 +350,36 @@ const [miscellaneousData , setMiscellaneousData]=useState(null)
 
     
 
-// Function to save the expenseHeaderId in local storage
-
-// const saveExpenseHeaderIdToLocalstorage = () => {
-//   localStorage.setItem('expenseHeaderId', expenseHeaderId1);
-
-//   console.log('expense header id stored in ')
-// };
-
-// // Call the function when the component mounts
-// useEffect(() => {
-//   saveExpenseHeaderIdToLocalstorage();
-// }, [miscellaneousData]);
-
-
-
-
-
-// Call the function when the component mounts
-// useEffect(() => {
+    const getTitle = () => {
+      switch (actionType) {
+        case 'closeAddExpense':
+          return 'Leave this Page';
+        case 'cancelExpense':
+          return 'Leave this Page';
+        default:
+          return '';
+      }
+    };
   
-//     const storedExpenseHeaderId = localStorage.getItem('expenseHeaderId');
-//     if (storedExpenseHeaderId) {
-//       setExpenseHeaderId1(storedExpenseHeaderId);
-//     }
-//     console.log('expense header id from storage', storedExpenseHeaderId)
+    const getContent = () => {
+      switch (actionType) {
+        case 'closeAddExpense':
+          return (
+            <>
+            <p className="text-md px-4 text-start font-cabin text-neutral-600">
+              If you leave this page, unsaved changes will be lost. Are you sure you want to leave this page?
+            </p>
   
-// }, []);
-
-     /// Get Line Items
-  const [expenseDataByGet , setExpenseDataByGet]= useState(null)
+                                  <div className="flex items-center gap-2 mt-10">
+                                    <Button1  text='Stay on this Page' onClick={()=>setModalOpen(false)} />
+                                    <CancelButton   text='Leave this Page'  onClick={()=>handleDashboardRedirection()}/>
+                                  </div>
+                      </>
+          );  
+        default:
+          return '';
+      }
+    };
 
   useEffect(() => {
    
@@ -405,12 +394,12 @@ const [miscellaneousData , setMiscellaneousData]=useState(null)
         
         setRequiredObj(prev => ({...prev,
           "defaultCurrency":response?.expenseReport?.defaultCurrency,
-          "fields":response?.expenseReport?.fields || [],
+          //"fields":response?.expenseReport?.fields || [],
           "expenseHeaderId":response?.expenseReport?.expenseHeaderId ?? null,
           "expenseHeaderNumber":response?.expenseReport?.expenseHeaderNumber,
           "expenseHeaderStatus": response?.expenseReport?.expenseHeaderStatus,
           "createdBy":response?.expenseReport?.createdBy,
-          "category":response?.expenseReport?.categoryName,
+          //"category":response?.expenseReport?.categoryName,
           "groupLimit":response?.expenseReport?.group || {},
           //"allocation":response?.expenseReport?.newExpenseAllocation || [],
           "expenseLines":response?.expenseReport?.expenseLines
@@ -431,13 +420,15 @@ const [miscellaneousData , setMiscellaneousData]=useState(null)
       }
     };
 
-    fetchData(); 
+    if(expenseHeaderId || requiredObj?.expenseHeaderId){
+      fetchData(); 
+    }
+    
 
   }, [expenseHeaderId || requiredObj?.expenseHeaderId ])
 
   
-  //console.log('line items data ',lineItemsData)
-  //console.log('data by report ', expenseDataByGet)
+
 
 
     
@@ -679,22 +670,28 @@ const handleConverter =async ( totalAmount , selectedCurrency) => {
         if (totalAmount !== undefined && totalAmount !== "") {
           console.log('convertbutton clicked',totalAmount,selectedCurrency)
       
-        try {
-          setIsUploading(true)
-          setActive(prevState => ({...prevState,convert:true}))
-          const response = await postMultiCurrencyForNonTravelExpenseApi(tenantId,totalAmount,selectedCurrency.shortName);
-          setCurrencyTableData(response?.currencyConverterData || {})
-          setIsUploading(false);
-          setActive(prevState => ({...prevState,convert:false}))
-          console.log('converted amount fetched',response.currencyConverterData);
-
-        } catch (error) {
-          console.log('Error in fetching expense data for approval:', error.message);
-          setIsUploading(false)
-          setActive(prevState => ({...prevState,convert:false}))
-          setLoadingErrorMsg(error.message);
-          setTimeout(() => {setLoadingErrorMsg(null);setIsLoading(false)},5000);
-        }
+          try {
+         
+            const response = await currencyConversionApi(tenantId,currencyConversion.payload);
+            if(response.currencyConverterData.currencyFlag){
+              setCurrencyConversion(prev=>({...prev,response:response.currencyConverterData}))
+              if(response.success){
+                setFormData(prev => ({...prev,fields:{...prev.fields, convertedAmountDetails: response?.currencyConverterData}}))
+              }
+            }else{
+              
+              setErrorMsg((prev) => ({ ...prev, conversion: { set: true, msg: "Exchange rates not available. Kindly contact your administrator." } }));
+              setCurrencyConversion(prev=>({...prev,response:{}}))
+              setFormData(prev => ({...prev,fields:{...prev.fields, convertedAmountDetails: null}}))
+            }
+            setIsUploading(prev=>({...prev,conversion:{set:false,msg:''}}))
+          } catch (error) {
+            console.log('Error in fetching expense data for approval:', error.message);
+            setIsUploading(prev=>({...prev,conversion:{set:false,msg:''}}))
+            setShowPopup(true)
+            setMessage(error.message);
+            setTimeout(() => {setMessage(null);setShowPopup(false)},5000);
+          }
       
       }
       };
@@ -842,7 +839,7 @@ const handleConverter =async ( totalAmount , selectedCurrency) => {
 //         setIsFileSelected(false);
 //         // setFormDataValues({});
 //       };
-
+console.log('selected allocations',selectedAllocations)
 const handleSaveLineItem = async (action) => {
   console.log('line item action',action)
   let allowForm = true;
@@ -888,13 +885,15 @@ const handleSaveLineItem = async (action) => {
   
 
   // Validate allocations
+  
   for (const allocation of selectedAllocations) {
     if (allocation.headerValue.trim() === '') {
       newErrorMsg[allocation.headerName] = { set: true, msg: "Select the Allocation" };
       allowForm = false;
     }
   }
-
+  console.log('allowform', allowForm ,selectedAllocations)
+// 
   
 
   // Set the error messages only if there are any errors
@@ -950,7 +949,75 @@ const handleSaveLineItem = async (action) => {
   }
 };
 
+const handleOCRScan=()=>{
+  
+  if(requiredObj.category){
+    setShowForm(true)
+    setErrorMsg(prev => ({...prev,category:{ set: false, msg: "" },}))
+    if(requiredObj.category=== 'Flight'){
+      setFormData(prev => ({...prev,fields:{
+        ...prev.fields,
+        
+          "Invoice Date": "2023-08-04",
+          "Departure": "DEL",
+          "Arrival": "BLR",
+          "Airlines name": "",
+          "Travelers Name": "kurpath S Sumesh kurpath S Sumesh",
+          "Class": "",
+          "Booking Reference Number": "NF7TKQXJLD1PSQCM0529",
+          "Total Amount": "4713",
+          "Tax Amount": "",
+          "Flight Number": ""
+          ,
+          
+          
+          "Currency": {
+              "countryCode": "IN",
+              "fullName": "Indian Rupee",
+              "shortName": "INR",
+              "symbol": "₹"
+          },
+          "Category Name": "Flight"
+      
+      
+      }}))
+      setCurrencyConversion(prev=>({...prev,payload:{...prev.payload,totalAmount:"4713"}}))
+    }if (requiredObj.category=== 'Meals' ){
+      setFormData(prev => ({...prev,fields:{
+        ...prev.fields,
+          "Bill Date": "2024-07-21",
+          "Bill Number": "24VHMPXU00013373",
+          "Category Name": "Meals",
+          "Currency": {
+              countryCode: 'IN',
+              fullName: 'Indian Rupee',
+              shortName: 'INR',
+              symbol: '₹'
+          },
+          "Quantity": "5",
+          "Tax Amount": "7.575",
+          "Total Amount": "318.15",
+          "Vendor Name": "The Burger Club",
+      }}))
+  
+    }
+    setCurrencyConversion(prev=>({...prev,payload:{...prev.payload,totalAmount:"318.15"}}))
+    
+  }else{
+    setErrorMsg(prev => ({...prev,category:{ set: true, msg: "Select the category" },}))
+  }
+ 
+}
 
+useEffect(
+  ()=>{
+  if(isFileSelected){
+    setIsUploading(prev=> ({...prev,autoScan:true}))
+    setTimeout(()=>{
+      setIsUploading(prev=> ({...prev,autoScan:false}))
+      setShowForm(true)
+      document.getElementById('newLineItem').scrollIntoView({ behavior: 'smooth' });
+    },5000)}},[selectedFile])
 
 /// Update Line Item
       
@@ -1037,8 +1104,12 @@ if(allowForm){
   setIsFileSelected(false);
   setFormDataValues({});
 };     
-
-const handleCurrencyConversion = async ( ) => { 
+console.log('currency conversion',currencyConversion)
+const handleCurrencyConversion = async ( {currencyName}) => { 
+  const payload = {
+    ...currencyConversion.payload,
+    currencyName
+  }
   let allowForm = true;
   
   if (currencyConversion.payload.totalAmount==="" || currencyConversion.payload.totalAmount===undefined){
@@ -1048,27 +1119,33 @@ const handleCurrencyConversion = async ( ) => {
     setErrorMsg((prevErrors) => ({ ...prevErrors, conversion: { set: false, msg: "" } }));
   }
 
-
   if (allowForm) {
     ///api 
     setErrorMsg((prev) => ({ ...prev, conversion: { set: false, msg: "" } }));
     setIsUploading(prev=>({...prev,conversion:{set:true,msg:'fetching exchange rates...'}}))
-        try {
+    try {
          
-          const response = await postMultiCurrencyForNonTravelExpenseApi(tenantId,currencyConversion.payload);
-          if(response.currencyConverterData.currencyFlag){
-            setCurrencyConversion(prev=>({...prev,response:response.currencyConverterData}))
-          }else{
-            setErrorMsg((prev) => ({ ...prev, conversion: { set: true, msg: "Exchange rates not available. Kindly contact your administrator." } }));
-          }
-          setIsUploading(prev=>({...prev,conversion:{set:false,msg:''}}))
-        } catch (error) {
-          console.log('Error in fetching expense data for approval:', error.message);
-          setIsUploading(prev=>({...prev,conversion:{set:false,msg:''}}))
-          setShowPopup(true)
-          setMessage(error.message);
-          setTimeout(() => {setMessage(null);setShowPopup(false)},5000);
+      const response = await currencyConversionApi(tenantId,payload);
+      if(response.currencyConverterData.currencyFlag){
+        setCurrencyConversion(prev=>({...prev,response:response.currencyConverterData}))
+        if(response.success){
+          setFormData(prev => ({...prev,fields:{...prev.fields,isMultiCurrency:true, convertedAmountDetails: response?.currencyConverterData}}))
         }
+      }else{
+        
+        setErrorMsg((prev) => ({ ...prev, conversion: { set: true, msg: "Exchange rates not available. Kindly contact your administrator." } }));
+        setCurrencyConversion(prev=>({...prev,response:{}}))
+        setFormData(prev => ({...prev,fields:{...prev.fields,
+           isMultiCurrency:false, convertedAmountDetails: null}}))
+      }
+      setIsUploading(prev=>({...prev,conversion:{set:false,msg:''}}))
+    } catch (error) {
+      console.log('Error in fetching expense data for approval:', error.message);
+      setIsUploading(prev=>({...prev,conversion:{set:false,msg:''}}))
+      setShowPopup(true)
+      setMessage(error.message);
+      setTimeout(() => {setMessage(null);setShowPopup(false)},5000);
+    }
   }
 };
 
@@ -1078,43 +1155,119 @@ const handleDashboardRedirection=()=>{
 }
 
 /// Submit Expense || Draft Expense || Delete
-      const handleSubmitOrDraft = async(action)=>{
-        
-        
-        const expenseHeaderId1= expenseHeaderId || requiredObj?.expenseHeaderId 
-       let api ;
-       if(action === "submit") {
-        api =submitNonTravelExpenseApi(tenantId,empId,expenseHeaderId1)
-       }else if (action === "save as draft"){
-        api =saveAsDraftNonTravelExpense(tenantId,empId, expenseHeaderId1)
-       }else if (action1 === "delete"){
-         api = cancelNonTravelExpenseHeaderApi(tenantId, empId ,expenseHeaderId1)
-       }
+// const handleSubmitOrDraft = async (action) => {
+//   const expenseHeaderId1 = expenseHeaderId || requiredObj?.expenseHeaderId;
+//   let api;
+//   let uploadingState = { saveAsDraft: false, submit: false };
 
-       try {
-        setIsLoading(true);
-       const response = await api
-       console.log('responsemessage',response)
-      
-       setShowPopup(true)
-       setMessage(response?.message)
-       setIsLoading(false)
-       setTimeout(() => {setShowPopup(false);setMessage(null)
-        if(action === "submit" ||action === "delete" ){
-          // sessionStorage.removeItem("expenseHeaderId")
+//   switch (action) {
+//       case "submit":
+//           api = submitNonTravelExpenseApi(tenantId, empId, expenseHeaderId1);
+//           uploadingState = { submit: true };
+//           break;
+//       case "save as draft":
+//           api = saveAsDraftNonTravelExpense(tenantId, empId, expenseHeaderId1);
+//           uploadingState = { saveAsDraft: true };
+//           break;
+//       case "delete":
+//           api = cancelNonTravelExpenseHeaderApi(tenantId, empId, expenseHeaderId1);
+//           break;
+//       default:
+//           console.error("Invalid action");
+//           return;
+//   }
+
+//   setIsUploading(prev => ({ ...prev, ...uploadingState }));
+
+//   try {
+//       const response = await api;
+//       setShowPopup(true);
+//       setMessage(response?.message);
+//       setIsUploading(prev => ({ ...prev, saveAsDraft: false, submit: false }));
+
+//       setTimeout(() => {
+//           setShowPopup(false);
+//           setMessage(null);
+//           if (action === "submit" || action === "delete") {
+//             handleDashboardRedirection();
+//           } else {
+//               window.location.reload();
+//           }
+//       }, 5000);
+//       console.log('reponse',response)
+//   } catch (error) {
+//       setIsUploading(prev => ({ ...prev, saveAsDraft: false, submit: false }));
+//       setLoadingErrorMsg(`Please retry again: `);
+//       setTimeout(() => setLoadingErrorMsg(null), 2000);
+//   }
+
+//   setAction(null);
+// };
+
+const handleSubmitOrDraft=async(action)=>{
+  let allowForm = true
+  // const data ={ expenseSettlement: selectedExpenseSettlement}
+  // if(!selectedExpenseSettlement){
+  //   setErrorMsg((prevErrors)=>({...prevErrors,expenseSettlement:{set:true, msg:'Select Expense Settlement'}}))
+  //   allowForm= false
+  // }else{
+  //   setErrorMsg((prevErrors)=>({...prevErrors,expenseSettlement:{set:false, msg:''}}))
+  //   allowForm = true
+  // }
+  
+   
+    if(allowForm){
+    try{
+         
+         if(action === "draft"){
+          setIsUploading(prevState => ({ ...prevState, saveAsDraft: true }));
+         }else if (action === "submit"){
+          setIsUploading(prevState => ({ ...prevState, submit: true }))
+         }
+         
+        
+        const response = await submitOrSaveAsDraftNonTravelExpenseApi({action,tenantId,empId,expenseHeaderId})
+        setIsLoading(false)
+        setShowPopup(true)
+        setMessage(response.message)
+
+        setIsUploading(false)
+        if(action === "draft"){
+          setActive(prevState => ({ ...prevState, saveAsDraft: false }));
+         }else if (action === "submit"){
+          setActive(prevState => ({ ...prevState, submit: false }))
+         }
+        setTimeout(()=>{
+          setShowPopup(false)
+          setMessage(null)
+         
+          if(action === "submit"){
+          // urlRedirection(`${dashboard_url}/${tenantId}/${empId}/overview`)}
           handleDashboardRedirection()
-        }
-
+          }
           else{
             window.location.reload()
-          }}
-       ,5000);
-         } catch (error) {
-        setLoadingErrorMsg(`Please retry again : ${error.message}`); 
-        setTimeout(() => {setIsLoading(false);setLoadingErrorMsg(null)},2000);
-      }
-      setAction(null)
-      }
+          }
+        },5000)
+
+      }catch(error){
+        setIsUploading(false)
+        if(action === "draft"){
+          setActive(prevState => ({ ...prevState, saveAsDraft:false }));
+         }else if (action === "submit"){
+          setActive(prevState => ({ ...prevState, submit:false }))
+         }
+        setShowPopup(true)
+        setMessage(error.message)
+        setTimeout(()=>{
+          setShowPopup(false)
+          setMessage(null)
+        },3000)
+        console.error('Error confirming trip:', error.message);
+      }  }
+
+    }
+
 
       const handleOpenModal=(id)=>{
         if(id==='upload'){
@@ -1136,9 +1289,9 @@ const handleDashboardRedirection=()=>{
       //  }
 
 
-      const [ocrFileSelected , setOcrFileSelected]=useState(false)
+      
       const [ocrSelectedFile , setOcrSelectedFile]=useState(null)
-      const [ocrField , setOcrField]=useState(null)
+   
       const handleOcrScan = async () => {
         // console.log('ocrfile from handle', ocrSelectedFile);
       
@@ -1254,10 +1407,11 @@ const handleDashboardRedirection=()=>{
             headerValue: "" // Add "headerValue" and set it to an empty string
           }));
 
-          console.log('intial allocation', initialExpenseAllocation)
-          const travelAllocationFlag = allocationLevel(response?.travelAllocationFlags)
+          console.log('intial allocation on category11', initialExpenseAllocation)
+          setSelectedAllocations(initialExpenseAllocation)
+          
          // sessionStorage.setItem('sessionExpenseHeaderId', (response?.expenseHeaderId ?? null));
-
+         console.log('required fields',response?.fields)
           setRequiredObj(prev => ({...prev,
             "companyName":response?.companyName,
             "defaultCurrency":response?.defaultCurrency,
@@ -1269,10 +1423,10 @@ const handleDashboardRedirection=()=>{
             "category":response?.categoryName,
             "groupLimit":response?.group || {},
             "allocation":response?.newExpenseAllocation || [],
-            "level":travelAllocationFlag
+           
           }))
   
-          setSelectedAllocations(initialExpenseAllocation) 
+          
           
           // sessionStorage.setItem("expenseHeaderId", response?.expenseHeaderId);
           //setReimbursementHeaderId(response?.expenseHeaderId)
@@ -1285,20 +1439,12 @@ const handleDashboardRedirection=()=>{
             group:response?.group || {}
           });
           
-          // Only add allocations if level3 is present
-          if (requiredObj.level === 'level3') {
-            const allocations = (option.expenseAllocation || []).map((allocation) => ({
-              headerName: allocation.headerName,
-              headerValue: "",
-            }));
-            setSelectedAllocations(allocations)
-          }
           
           setFormData((prevData) => ({
             ...prevData,
             fields: updatedFields,
           }));
-          // setSelectedCategory(null)
+         
         } catch (error) {
           console.log('Error in fetching expense data for approval:', error.message);
           setLoadingErrorMsg('message',error.message);
@@ -1309,6 +1455,7 @@ const handleDashboardRedirection=()=>{
       
 
       };
+      console.log('my allocations',selectedAllocations)
       const handleAllocations = (headerName, headerValue) => {
         console.log('allocation handle', headerName, headerValue);
       
@@ -1329,6 +1476,7 @@ const handleDashboardRedirection=()=>{
 
     console.log('required object', requiredObj) 
     console.log('form data', formData) 
+    console.log('selected allocation', selectedAllocations) 
 
   return (
     <div>
@@ -1347,8 +1495,8 @@ const handleDashboardRedirection=()=>{
         <span className='text-indigo-600'> 
 If the required category is unavailable, Kindly contact the administrator.</span>
         </div>           
-        <div className="flex flex-col lg:flex-row justify-between  items-center lg:items-end my-5 gap-2">
-<div className='flex md:flex-row flex-col items-start gap-2'> 
+        <div className="flex flex-col lg:flex-row justify-between  items-start lg:items-end my-5 gap-2">
+<div className='flex sm:flex-row flex-col items-start gap-2'> 
 <div className='relative flex flex-col h-[73px] justify-start item-start gap-2'>
       <div className="text-zinc-600 text-sm font-cabin select-none mt-2">Categories</div>
       <div onClick={(e)=>{e.stopPropagation(); setCategorySearchVisible(pre=>!pre)}} className={`min-h-[50px] h-fit min-w-[200px] w-fit px-2 py-2 border  flex gap-2 bg-gray-100 ${errorMsg?.category?.set ? 'border-red-600' : 'border-slate-300'}  hover:bg-gray-200 rounded-sm items-center transition ease-out hover:ease-in cursor-pointer`}>
@@ -1373,23 +1521,24 @@ If the required category is unavailable, Kindly contact the administrator.</span
 
 </div>
 
-<div className='mt-12 inline-flex space-x-2'>
-    <FileUpload selectedFile={selectedFile} setSelectedFile={setSelectedFile} isFileSelected={isFileSelected} setIsFileSelected={setIsFileSelected}  text={<div className='inline-flex items-center space-x-1'><img src={scan_icon} className='w-5 h-5'/> <p>Auto Scan</p></div>}/>
+<div className='mt-4 sm:mt-12 inline-flex space-x-2'>
+    <FileUpload loading={isUploading.autoScan} onClick={handleOCRScan} selectedFile={selectedFile} setSelectedFile={setSelectedFile} isFileSelected={isFileSelected} setIsFileSelected={setIsFileSelected}  text={<div className='inline-flex items-center space-x-1'><img src={scan_icon} className='w-5 h-5'/> <p>Auto Scan</p></div>}/>
     <Button1 onClick={handleMannualBtn} text={<div className='inline-flex items-center space-x-1'><img src={modify_icon} className='w-5 h-5'/> <p>Manually</p></div>}/>
 </div>
-</div>  
+</div>
+
       {/* //  }   */}
        
 
 {requiredObj?.expenseLines?.length > 0 && (
-  <div className="flex gap-2">
+  <div className="flex gap-2 flex-col sm:flex-row">
     {requiredObj?.expenseHeaderStatus !== 'pending settlement' && (
       <>
-        <Button1 variant="fit" text="Submit" onClick={() => handleSubmitOrDraft("submit")} />
-        <Button1 text="Save as Draft" onClick={() => handleSubmitOrDraft("save as draft")} />
+        <Button1 loading={isUploading.submit} variant="fit" text="Submit" onClick={() => handleSubmitOrDraft("submit")} />
+        <Button1 loading={isUploading.saveAsDraft} text="Save as Draft" onClick={() => handleSubmitOrDraft("draft")} />
       </>
     )}
-    <CancelButton variant="fit" text="Cancel" onClick={() => { setModalOpen(true); setAction("delete"); }} />
+    <CancelButton variant="fit" text="Cancel" onClick={()=>{setModalOpen(true);setActionType("cancelExpense")}} />
   </div>
 )}
 
@@ -1436,11 +1585,11 @@ If the required category is unavailable, Kindly contact the administrator.</span
  </React.Fragment>
    :
 <>
-<div className='w-full flex flex-col lg:flex-row h-screen px-4'>
-  <div className='w-full lg:w-3/5 h-full '>
+<div className='w-full flex flex-col sm:flex-row h-screen px-4'>
+  <div className='w-full sm:w-3/5 h-full '>
     <DocumentPreview initialFile={lineItem.Document}/>
   </div>
-  <div className='w-full lg:w-2/5 h-full' key={index}>  
+  <div className='w-full sm:w-2/5 h-full' key={index}>  
      <div className=''>
      <LineItemView index={index} lineItem={lineItem} handleEdit={handleEdit} isUploading={isUploading} active={active} handleDelete={handleDelete}/>
      </div> 
@@ -1463,13 +1612,15 @@ If the required category is unavailable, Kindly contact the administrator.</span
 {/* //---------save line item form----------------------- */}
 
 {showForm &&
-<div id='newLineItem' className='w-full border flex flex-col md:flex-row relative border-t-2 border-slate-300 h-screen p-4 pb-16 '>
+
+<div  className='w-full border flex flex-col md:flex-row relative border-t-2 border-slate-300 h-screen p-4 pb-16 '>
 <div className='w-full md:w-3/5 md:block hidden h-full overflow-auto'>
     <DocumentPreview isFileSelected={isFileSelected} setIsFileSelected={setIsFileSelected} selectedFile={selectedFile} setSelectedFile={setSelectedFile} initialFile=""/>
   </div>
   <div className='w-full md:w-2/5 h-full overflow-auto'>
   
   <LineItemForm 
+  currencyConversion={currencyConversion}
   categoryName={requiredObj.category}
   setErrorMsg={setErrorMsg} 
   isUploading={isUploading}
@@ -1481,7 +1632,7 @@ If the required category is unavailable, Kindly contact the administrator.</span
   handleAllocations={handleAllocations}
   allocationsList={requiredObj.allocation}
   errorMsg={errorMsg}
-  onboardingLevel={requiredObj.level}
+  onboardingLevel={requiredObj.level ?? "level3"}
   lineItemDetails={formData.fields}
   categoryFields={requiredObj?.fields}
   classOptions={requiredObj?.class}
@@ -1613,6 +1764,7 @@ If the required category is unavailable, Kindly contact the administrator.</span
       <ActionBoard handleClick={handleSaveLineItem} isUploading={isUploading} setModalOpen={setModalOpen} setActionType={setActionType}/>
     </div>
 </div>}
+<div id='newLineItem'/>
 
 {/* //---------save line item form end----------------------- */}
 
@@ -1711,14 +1863,29 @@ If the required category is unavailable, Kindly contact the administrator.</span
          }
       
       <PopupMessage showPopup={showPopup} setShowPopup={setShowPopup} message={message}/>
-
       <Modal 
-      skipable={true}
-      modalOpen={modalOpen} 
-      setModalOpen={setModalOpen}
-      handleConfirm={handleSubmitOrDraft} 
-      handleModalVisible={handleModalVisible}
-      content={<div> Are you sure about deleting it? </div>}/>
+        isOpen={modalOpen} 
+        onClose={()=>setModalOpen(!modalOpen)}
+        content={
+          <div className='w-full h-auto'>
+          <div className='flex gap-2 justify-between items-center bg-indigo-100 w-auto p-4'>
+            <div className='flex gap-2'>
+              <img src={info_icon} className='w-5 h-5' alt="Info icon"/>
+              <p className='font-inter text-base font-semibold text-indigo-600'>
+                {getTitle()}
+              </p>
+            </div>
+            <div onClick={() => setModalOpen(false)} className='bg-red-100 cursor-pointer rounded-full border border-white'>
+              <img src={cancel_icon} className='w-5 h-5' alt="Cancel icon"/>
+            </div>
+          </div>
+
+          <div className="p-4">
+           {getContent()}
+            
+          </div>
+        </div>}
+      />  
     </div>
   )
 }
@@ -1800,7 +1967,7 @@ export default CreateNonTraveExpense
 function  EditFormComponent ({index,setCurrencyTableData,active,isUploading,handleUpdateLineItem ,currencyTableData ,errorMsg,setErrorMsg, lineItem, categoryElement, handleSave,expenseLineAllocation,handleConverter ,defaultCurrency}) {
   const [selectedFile  , setSelectedFile]=useState(null)
   const [isFileSelected ,setIsFileSelected]= useState(false)
-  const [selectedAllocations , setSelectedAllocations]=useState([])
+  const [editAllocations , setEditAllocations]=useState([])
   const [selectedCurrency, setSelectedCurrency]=useState(null)
   const [initialFile , setInitialFile]=useState(null)
   const [totalAmount , setTotalAmount]=useState(0)
@@ -1820,7 +1987,7 @@ const [editData, setEditData] = useState(lineItem);
   setSelectedCurrency(selectedCurrencyObject)
   if(shortName === defaultCurrency?.shortName){
     setCurrencyTableData(null)
-    setEditData((prevState)=>({...prevState,multiCurrencyDetails:null}))
+    setEditData((prevState)=>({...prevState,convertedAmountDetails:null}))
   }
   handleChange( 'Currency' , selectedCurrencyObject)
 
@@ -1857,10 +2024,10 @@ const [editData, setEditData] = useState(lineItem);
       }));
     }
   };
-  console.log('selected allocation from update',selectedAllocations)
+  console.log('selected allocation from update',editAllocations)
   const onAllocationSelection = (option, headerName) => {
     // Create a new allocation object
-    const updatedExpenseAllocation = selectedAllocations.map(item => {
+    const updatedExpenseAllocation = editAllocations.map(item => {
       if (item.headerName === headerName) {
         return {
           ...item,
@@ -1873,7 +2040,7 @@ const [editData, setEditData] = useState(lineItem);
           ...editData,
           expenseLineAllocation: updatedExpenseAllocation,
         }))
-    setSelectedAllocations(updatedExpenseAllocation);
+    setEditAllocations(updatedExpenseAllocation);
   };
 
   
@@ -1907,7 +2074,7 @@ const lineItemData= {...editData}
     const foundDateKey = dateForms.find(key => Object.keys(lineItem).includes(key));
     const dateValue = foundDateKey ? lineItem[foundDateKey] : undefined;
     setDate({[foundDateKey]:dateValue})
-    setSelectedAllocations(lineItem?.expenseLineAllocation)
+    setEditAllocations(lineItem?.expenseLineAllocation)
 
     
     // setTotalAmount(lineItem?.['Total Amount'] || lineItem?.['Total Fair'])

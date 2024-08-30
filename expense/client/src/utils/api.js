@@ -223,13 +223,13 @@ let url;
 
 ///check in require data
 
-export const TravelExpenseCurrencyConversionApi = async(tenantId,data)=>{
+export const currencyConversionApi = async(tenantId,payload)=>{
 
 
   const url = `${EXPENSE_BACKEND_API_URL}/api/fe/expense/travel/${tenantId}/currency-converter`
 
   try{
-    const response = await axiosRetry(axios.post,url,data)
+    const response = await axiosRetry(axios.post,url,payload)
      return response.data
   }catch(error){
     handleRequestError(error);
@@ -344,9 +344,9 @@ export const travelPolicyViolationApi = async(data)=>{
  
 
 
-export const postMultiCurrencyForNonTravelExpenseApi = async(tenantId,amount,currencyName)=>{
+export const postMultiCurrencyForNonTravelExpenseApi = async({tenantId,totalAmount,currencyName})=>{
 
-  const url = `${EXPENSE_BACKEND_API_URL}/api/fe/expense/non-travel/currency/${tenantId}/${amount}/${currencyName}`
+  const url = `${EXPENSE_BACKEND_API_URL}/api/fe/expense/non-travel/currency/${tenantId}/${totalAmount}/${currencyName}`
   try{
     const response = await axiosRetry(axios.get,url)
      return response.data
@@ -459,6 +459,36 @@ export const editNonTravelExpenseLineItemsApi = async(tenantId,empId,expenseHead
 
 }
 
+
+
+
+export const submitOrSaveAsDraftNonTravelExpenseApi = async(
+  {action,
+  tenantId,
+  empId,
+  expenseHeaderId,
+  data})=>{
+let url;
+    if(action==="submit"){
+       url = `${EXPENSE_BACKEND_API_URL}/api/fe/expense/non-travel/${tenantId}/${empId}/${expenseHeaderId}/submit`
+    }else if (action === "draft"){
+       url = `${EXPENSE_BACKEND_API_URL}/api/fe/expense/non-travel/${tenantId}/${empId}/${expenseHeaderId}/draft`
+    }else if (action === "delete"){
+      url = `${EXPENSE_BACKEND_API_URL}/api/fe/expense/non-travel/${tenantId}/${empId}/${expenseHeaderId}/delete`
+    }
+  try{
+    const response = await axiosRetry(axios.patch,url,data)
+    return response.data
+  }catch(error){
+    handleRequestError(error);
+    const errorObject = {
+      status: error.response?.status || null,
+      message: error.message || 'Unknown error',
+    };
+    console.log('Post Error : ',errorObject);
+    return { error: errorObject };
+  }
+}
 
 
 export const saveAsDraftNonTravelExpense = async(tenantId,empId,expenseHeaderId)=>{

@@ -49,7 +49,7 @@ export default function Button1(props) {
           </div>
           </div>
         ) : (
-          <div className="w-full max-w-[75px] sm:max-w-full whitespace-nowrap truncate h-5 text-center text-white text-base font-medium font-cabin">
+          <div className="w-auto  whitespace-nowrap truncate h-5 text-center text-white text-base font-medium font-cabin">
             {text}
           </div>
         )}

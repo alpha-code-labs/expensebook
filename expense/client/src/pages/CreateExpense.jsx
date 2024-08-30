@@ -18,7 +18,7 @@ import Select from "../components/common/Select";
 import ActionButton from "../components/common/ActionButton";
 import Input from "../components/common/Input";
 import Upload from "../components/common/Upload";
-import { cancelTravelExpenseHeaderApi, cancelTravelExpenseLineItemApi, getTravelExpenseApi, ocrScanApi, postMultiCurrencyForNonTravelExpenseApi, TravelExpenseCurrencyConversionApi , postTravelExpenseLineItemApi, submitOrSaveAsDraftApi, updateTravelExpenseLineItemApi } from "../utils/api.js";
+import { cancelTravelExpenseHeaderApi, cancelTravelExpenseLineItemApi, getTravelExpenseApi, ocrScanApi, postMultiCurrencyForNonTravelExpenseApi, currencyConversionApi , postTravelExpenseLineItemApi, submitOrSaveAsDraftApi, updateTravelExpenseLineItemApi } from "../utils/api.js";
 import Search from "../components/common/Search.jsx";
 import { classDropdown } from "../utils/data.js";
 import Toggle from "../components/common/Toggle.jsx";
@@ -695,7 +695,7 @@ console.log('selected Currency',selectDropdown)
       ///api 
           try {
             setActive(prevState => ({ ...prevState, convert: true }));
-            const response = await TravelExpenseCurrencyConversionApi (tenantId,convertDetails);
+            const response = await currencyConversionApi (tenantId,convertDetails);
            
             setCurrencyTableData(response?.currencyConverterData || {})
             setActive(prevState => ({ ...prevState, convert: false }));
@@ -2400,7 +2400,7 @@ console.log('currency for edit ',selectedCurrency)
             try {
               setIsUploading(true)
               setActive(prevState => ({ ...prevState, convert: true }));
-              const response = await TravelExpenseCurrencyConversionApi (tenantId,convertDetails);
+              const response = await currencyConversionApi (tenantId,convertDetails);
               setCurrencyTableData(response?.currencyConverterData || {})
               setEditFormData({...editFormData,convertedAmountDetails:response?.currencyConverterData || {}})
             

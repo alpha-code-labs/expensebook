@@ -1,11 +1,11 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Allocations from '../travelExpenseSubcomponent/Allocations'
 import Input from '../components/common/Input'
 import Select from '../components/common/Select'
 import Toggle from '../components/common/Toggle'
 import CurrencyInput from '../Components/common/currency/CurrencyInput'
 import { currenciesList } from '../utils/data/currencyList'
-import {  TravelExpenseCurrencyConversionApi } from '../utils/api'
+import {  currencyConversionApi } from '../utils/api'
 import { categoryIcons } from '../assets/icon'
 
 const LineItemForm = ({categoryName, setErrorMsg,isUploading,defaultCurrency, currencyConversion, setCurrencyConversion, handleCurrencyConversion, formData,setFormData, onboardingLevel, categoryFields = [], classOptions, currencyTableData, allocationsList, handleAllocations, lineItemDetails, errorMsg}) => {
@@ -13,12 +13,12 @@ const LineItemForm = ({categoryName, setErrorMsg,isUploading,defaultCurrency, cu
   const totalAmountKeys = ['Total Fare','Total Amount',  'Subscription Cost', 'Cost', 'Premium Cost'];
   const dateKeys = ['Invoice Date', 'Date', 'Visited Date', 'Booking Date',"Bill Date"];
 
+  const conversionAmount= currencyConversion?.response || {}
   
 
 console.log('error mgs',errorMsg.conversion)
 
   
-  const [personalExpFlag , setPersonalExpFlag]=useState(false)
   
 
     console.log('categoryFields', categoryFields)
@@ -36,8 +36,6 @@ console.log('error mgs',errorMsg.conversion)
           updatedFields.personalExpenseAmount = "";  // Clear the input value
         }
 
-        
-       
         ///for conversion stop
 
         return {
@@ -70,14 +68,14 @@ console.log('error mgs',errorMsg.conversion)
         }))
 
         if(key==='Currency' && value.shortName !== defaultCurrency.shortName){
-          setFormData(prev => ({
-            ...prev,
-            fields: {
-              ...prev.fields, // Spread the existing fields object
-              isMultiCurrency: true // Update the isMultiCurrency flag to true
-            }
-          }));
-          handleCurrencyConversion()
+          // setFormData(prev => ({
+          //   ...prev,
+          //   fields: {
+          //     ...prev.fields, // Spread the existing fields object
+          //     isMultiCurrency: true // Update the isMultiCurrency flag to true
+          //   }
+          // }));
+          handleCurrencyConversion({currencyName:value.shortName})
         }else{
           if(key==='Currency'){
             setErrorMsg((prevErrors) => ({ ...prevErrors, conversion: { set: false, msg: "" } }));
@@ -87,14 +85,18 @@ console.log('error mgs',errorMsg.conversion)
             ...prev,
             fields: {
               ...prev.fields, // Spread the existing fields object
-              isMultiCurrency: false // Update the isMultiCurrency flag to true
+              isMultiCurrency: false, // Update the isMultiCurrency flag to true
+              convertedAmountDetails:null
             }
+            
           }));
+         // setCurrencyConversion(prev =>({...prev, response:null}))
           
          
           //setErrorMsg((prevErrors) => ({ ...prevErrors, personalAmount: { set: true, msg: "Enter the amount" } }));
         }
     };
+
 
     
 
@@ -110,18 +112,19 @@ console.log('error mgs',errorMsg.conversion)
       </div>
  <div className="w-full  flex-wrap flex items-center justify-center">
 
- {onboardingLevel=== 'level3' &&
+ {onboardingLevel=== 'level3' && allocationsList.length >0 &&
 ( <>
 <p className='text-start w-full  px-2 py-2 text-base text-neutral-700 font-inter'>Allocations</p>
  <div className='border-y flex items-center justify-center w-full  border-slate-300 px-2  pb-2'>
           <Allocations 
-          errorMsg={errorMsg}
+            errorMsg={errorMsg}
             onboardingLevel={onboardingLevel} 
             travelExpenseAllocation={allocationsList} 
             onAllocationSelection={handleAllocations} 
           />
   </div>
-  </>)
+  </>
+  )
    }
   {/* <div className="w-full border flex flex-wrap items-center justify-center"> */}
   {categoryFields.map((field) => {
@@ -158,6 +161,8 @@ console.log('error mgs',errorMsg.conversion)
         ) : isTotalAmountField ? (
           <div className='w-full'>
           <CurrencyInput
+          conversionAmount={conversionAmount}
+          initialValue={lineItemDetails[field.name]}
           error={errorMsg?.conversion}
           title={field.name}
           uploading={isUploading.conversion}

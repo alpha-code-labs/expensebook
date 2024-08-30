@@ -5,7 +5,7 @@ import Select from '../components/common/Select'
 import Toggle from '../components/common/Toggle'
 import CurrencyInput from '../Components/common/currency/CurrencyInput'
 import { currenciesList } from '../utils/data/currencyList'
-import {  TravelExpenseCurrencyConversionApi } from '../utils/api'
+import {  currencyConversionApi } from '../utils/api'
 import { categoryIcons } from '../assets/icon'
 
 const LineItemForm = ({ categoryName,setErrorMsg,isUploading,defaultCurrency, currencyConversion, setCurrencyConversion, handleCurrencyConversion, formData,setFormData, onboardingLevel, categoryFields = [], classOptions, currencyTableData, allocationsList, handleAllocations, lineItemDetails, errorMsg}) => {
@@ -112,22 +112,26 @@ console.log('converted amount',currencyConversion)
       }));
     }, [currencyConversion?.payload?.totalAmount, currencyConversion?.payload?.personalAmount]);
 
-   
+
     
 
   return (
     <div className="w-full flex-row ">
-       <div className="sticky top-0 bg-white z-20 w-full flex items-center h-12 px-4 border-dashed  border-y border-slate-300 py-4 scroll-hide">
+       <div className=" sticky top-0 bg-white z-20 w-full flex  items-center h-12 px-4 border-dashed  border-y border-slate-300 py-4 scroll-hide">
         <div className="flex items-center justify-center gap-2">
           <div className="bg-slate-100 p-2 rounded-full">
             <img src={categoryIcons[categoryName]} className="w-4 h-4 rounded-full" />
           </div>
+         
           <p>{categoryName}</p>
+         
+        
         </div>
+        
       </div>
 
  <div className="w-full  flex-wrap flex items-center justify-center">
- {onboardingLevel=== 'level3' &&
+ {onboardingLevel=== 'level3'&& allocationsList.length > 0 && 
 ( <>
 <p className='text-start w-full  px-2 py-2 text-base text-neutral-700 font-inter'>Allocations</p>
  <div className='border-y flex items-center justify-center w-full  border-slate-300 px-2  pb-2'>
@@ -179,7 +183,7 @@ console.log('converted amount',currencyConversion)
           title={field.name}
           uploading={isUploading.conversion}
           currencyOptions={currenciesList.map(cr=>({...cr, imageUrl:`https://hatscripts.github.io/circle-flags/flags/${cr.countryCode.toLowerCase()}.svg`}))} 
-
+          initialValue={lineItemDetails[field.name]}
             //for amount input---
              name={field.name}
             // placeholder={`Enter ${field.name}`}

@@ -6,7 +6,7 @@ import { lineItems } from "../utils/dummyData";
 
 export function LineItemView({ expenseHeaderStatus, isUploading, active, flagToOpen, expenseHeaderId, lineItem, index, newExpenseReport, handleEdit, handleDeleteLineItem }) {
 
-  const excludedKeys = ['isMultiCurrency','convertedAmountDetails', 'isPersonalExpense', 'Tax Amount', 'personalExpenseAmount','policyValidation', 'Category Name', 'expenseLineId', 'billImageUrl', 'group', 'expenseLineAllocation', 'allocations', 'multiCurrencyDetails', 'lineItemStatus', 'lineItemId', '_id',];
+  const excludedKeys = ['isMultiCurrency','convertedAmountDetails', 'isPersonalExpense', 'Tax Amount', 'personalExpenseAmount','policyValidation', 'Category Name', 'expenseLineId', 'billImageUrl', 'group', 'expenseLineAllocation', 'allocations', 'multiCurrencyDetails', 'lineItemStatus', 'lineItemId', '_id','approvers'];
   const includedKeys = ['Total Fair', 'Total Fare','personalExpenseAmount','Tax Amount', 'Total Amount', 'Subscription Cost', 'Cost', 'Premium Cost'];
   
 
@@ -14,7 +14,7 @@ export function LineItemView({ expenseHeaderStatus, isUploading, active, flagToO
      const arrangedItems=rearrangeKeyForLineItem(lineItem,includedKeys)
      console.log('arranged lineitem', arrangedItems)
   return (
-    <div className="flex justify-between flex-col h-screen">
+    <div className="flex justify-between flex-col h-[600px] sm:h-screen">
       <div className="w-full flex-row   overflow-y-auto scrollbar-hide">
 
         <div className="sticky top-0 bg-white z-20 w-full flex items-center h-12 px-4 border-dashed  border-y border-slate-300 py-4">
@@ -100,18 +100,25 @@ export function LineItemView({ expenseHeaderStatus, isUploading, active, flagToO
         return includedKeys.map((includedKey) => {
           if (arrangedItems[includedKey]) {
             return (
-              <div key={includedKey} className="relative w-full h-[84px] px-4 mb-2">
+              <div key={includedKey} className=" w-full h-fit px-4 ">
                 <p className="capitalize text-zinc-600 truncate whitespace-nowrap text-sm font-normal font-cabin pb-1">{`${camelCaseToTitleCase(includedKey)}`}</p>
                 <div className="border rounded-md inline-flex justify-start items-center h-[48px] w-full border-slate-300 text-neutral-700 truncate text-sm font-normal font-cabin px-4 py-2">
                   <p>{currencyShortName} {String(arrangedItems[includedKey])}</p>
+                
                 </div>
                 {/* Check for 'convertedAmountDetails' and display its amount */}
+                <div>   
                 {arrangedItems.convertedAmountDetails&& includedKey !== 'Tax Amount'  && (
-                  <p className=" text-sm text-neutral-600  pl-2  ">
+                  <p className=" text-sm text-neutral-600  pl-2 ">
                    {arrangedItems.convertedAmountDetails.amount}
                     {`Amount in ${arrangedItems.convertedAmountDetails?.defaultCurrencyName} ${arrangedItems.convertedAmountDetails?.convertedTotalAmount} | 1 ${arrangedItems.convertedAmountDetails?.convertedCurrencyName} = ${arrangedItems.convertedAmountDetails?.defaultCurrencyName} ${arrangedItems.convertedAmountDetails?.conversionRate}`}
                   </p>
                 )}
+                {
+                  (arrangedItems?.policyValidation[0]?.greenFlag) === false && !['Tax Amount','personalExpenseAmount'].includes(includedKey) &&
+                  <p className="text-xs  pl-2  text-yellow-600 ">{`Expense exceeds the allowed limit of ${arrangedItems?.policyValidation[0]?.currencyName} ${arrangedItems?.policyValidation[0]?.amountAllowed}`}</p>
+                }
+                </div>
               </div>
             );
           }
@@ -120,7 +127,7 @@ export function LineItemView({ expenseHeaderStatus, isUploading, active, flagToO
       }
 
       return (
-        <div key={key} className="w-full h-[84px] px-4 mt-2">
+        <div key={key} className="w-full h-[84px] px-4 ">
           <p className="capitalize text-zinc-600 truncate whitespace-nowrap text-sm font-normal font-cabin pb-1">{camelCaseToTitleCase(key)}</p>
           <div className="border rounded-md inline-flex justify-start items-center h-[48px] w-full border-slate-300 text-neutral-700 truncate text-sm font-normal font-cabin px-4 py-2">
             <p>{String(value)}</p>

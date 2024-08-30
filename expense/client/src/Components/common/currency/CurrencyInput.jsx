@@ -8,7 +8,7 @@ const CurrencyInput = ({conversionAmount,dataMsg,uploading,title,id,placeholder,
 
   console.log('selected currency',currency)
   useEffect(()=>{
-    setInputValue(initialValue)
+    setInputValue(initialValue|| "")
 
   },[inputValue])
 
