@@ -430,6 +430,7 @@ const saveSchema = Joi.object({
   createdBy: Joi.object({
     empId: Joi.string().required(),
     name: Joi.string().required(),
+    _id: Joi.string().optional(),
   }).required(),
   expenseHeaderNumber:Joi.string().required(),
   defaultCurrency:Joi.object().required(),
@@ -437,12 +438,13 @@ const saveSchema = Joi.object({
 })
 
 const validateRequest = (schema, data) => {
-  const { error, value } = schema.validate(data);
+  const { error, value } = schema.validate(data, { abortEarly: false });
   if (error) {
     throw new Error(error.message);
   }
   return value;
 };
+
 
 // 4) save line item 
 export const saveReimbursementExpenseLine = async (req, res) => {
@@ -466,14 +468,11 @@ export const saveReimbursementExpenseLine = async (req, res) => {
 
       const {name} = createdBy
       const expenseLineId = new mongoose.Types.ObjectId().toString();
-      // Output the generated ObjectId and its type
-     console.log('Generated ObjectId:', expenseLineId);
-     console.log('Type of expenseLineId:', typeof expenseLineId);
 
       const expenseLineData ={
       ...lineItem,
       lineItemId:expenseLineId,
-      lineItemStatus:'save',
+      lineItemStatus:'save'
       }
 
       const filter = { tenantId, expenseHeaderId };
@@ -484,6 +483,7 @@ export const saveReimbursementExpenseLine = async (req, res) => {
               companyName: companyName ?? '',
               expenseHeaderId,
               expenseHeaderNumber,
+              expenseHeaderStatus: 'new',
               createdBy,
               expenseHeaderType: 'reimbursement',
               defaultCurrency,
@@ -511,7 +511,7 @@ export const saveReimbursementExpenseLine = async (req, res) => {
   
       return res.status(200).json({
         success: true,
-        message: `expense line saved successfully `,
+        message: `expense line saved successfully by ${name} `,
         lineItemId:lastLineItemId,
       });
     } catch (error) {
@@ -628,25 +628,50 @@ export const draftReimbursementExpenseLine = async (req, res) => {
  * @returns {object} - If the update is successful, a response object with a success message is returned. If the update fails or the expense report is not found or unauthorized, an error message is returned.
  */
 
+const submitExpense = Joi.object({
+  approvers: Joi.object({
+    empId: Joi.string().optional(),
+    name: Joi.string().optional(),
+   }).optional(),
+})
 export const submitReimbursementExpenseReport = async (req, res) => {
   try {
-    const {error, value} = nonTravelSchema.validate(req.params)
-    if (error) {
-        return res.status(400).json({success: false, message: error.message})
-      }
-    const { tenantId, empId, expenseHeaderId } = value;
+    const params = validateRequest(nonTravelSchema,req.params)
+    const body = validateRequest(submitExpense, req.body)
 
-    const EXPENSE_HEADER_STATUS_PS = 'pending settlement';
+    const { tenantId, empId, expenseHeaderId } = params;
+    const { approvers } = body;
+    const status ={
+      PENDING_SETTLEMENT :'pending settlement',
+      PENDING_APPROVAL:'pending approval'
+    }
 
-    const updatedExpense = await Reimbursement.findOneAndUpdate(
-      { tenantId, expenseHeaderId, 'createdBy.empId': empId },
-      { $set: { expenseHeaderStatus: EXPENSE_HEADER_STATUS_PS } },
-      { new: true }
-    );
+    const isApproval = (approvers?.length ?? 0) > 0
+    approvers?.forEach(approver => {
+      if(isApproval) approver.status = status.PENDING_SETTLEMENT
+    })
 
-    if (!updatedExpense) {
+   const getStatus =  isApproval ? status.PENDING_APPROVAL :  status.PENDING_SETTLEMENT
+
+   console.log('isApproval:', isApproval);
+    console.log('getExpenseHeaderStatus:', getExpenseHeaderStatus);
+    const report = await Reimbursement.findOne({
+    tenantId, expenseHeaderId, 'createdBy.empId': empId
+  });
+
+    if (!report) {
       return res.status(404).json({ message: 'Expense Report not found or unauthorized.' });
-    } else{
+    }
+
+    report.expenseLines.map(lineItem => ({
+    ...lineItem,
+    lineItemStatus: getStatus,
+    approvers: approvers
+    }))
+
+    report.expenseHeaderStatus = getStatus
+    report.approvers = approvers
+    const updatedExpense = await report.save()
 
       const { name } = updatedExpense.createdBy ?? { name: 'user' };
       const payload = { reimbursementReport : updatedExpense };
@@ -656,7 +681,11 @@ export const submitReimbursementExpenseReport = async (req, res) => {
       const action = 'full-update';
       const comments = 'expense report submitted';
   
-     await  sendToOtherMicroservice(payload, action, 'dashboard', comments, source, onlineVsBatch)     
+    if(isApproval){
+      await  sendToOtherMicroservice(payload, action, 'approval', comments, source, onlineVsBatch) 
+    }     
+    await  sendToOtherMicroservice(payload, action, 'dashboard', comments, source, onlineVsBatch)   
+
 
     const response = {
       success: true,
@@ -664,7 +693,7 @@ export const submitReimbursementExpenseReport = async (req, res) => {
     };
 
     return res.status(200).json(response);
-    } } catch (error) {
+    } catch (error) {
     console.error(error);
     return res.status(500).json({ message: 'Failed to submit expense report.' });
   }
