@@ -54,8 +54,7 @@ export const settleExpenseReportPaidAndDistributed= async (payload) => {
       return { success: false, error: error };
     }
 };
-  
-  
+
   //settle cashAdvance
   export const settleOrRecoverCashAdvance = async (payload) => {
     try {
@@ -63,6 +62,7 @@ export const settleExpenseReportPaidAndDistributed= async (payload) => {
           recoveredBy,recoveredFlag,
       } = payload;
   
+      console.log("settle ca payload", payload)
       const updateCashDoc = {
           'cashAdvanceData.$.cashAdvanceStatus': cashAdvanceStatus, 
       }
