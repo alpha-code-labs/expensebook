@@ -75,6 +75,16 @@ const expenseLineSchema = new mongoose.Schema({
       return this.isPersonalExpense === true;
     },
   },
+  approvers: [
+    {
+      empId: String,
+      name: String,
+      status: {
+        type: String,
+        enum: approverStatusEnums,
+      },
+    },
+  ],
   billImageUrl: String,
   billRejectionReason: String,
 },{ strict: false });

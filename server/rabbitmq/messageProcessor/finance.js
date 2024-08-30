@@ -62,6 +62,7 @@ export const settleExpenseReportPaidAndDistributed= async (payload) => {
           recoveredBy,recoveredFlag,
       } = payload;
   
+      console.log("settle ca ", payload)
       const updateCashDoc = {
           'cashAdvanceData.$.cashAdvanceStatus': cashAdvanceStatus, 
       }
