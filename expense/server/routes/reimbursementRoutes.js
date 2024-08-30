@@ -9,7 +9,9 @@ reimbursementRoutes.get( '/:tenantId/:empId/expensecategories', getExpenseCatego
 //get expense category values and policy limit
 reimbursementRoutes.put( '/:tenantId/:empId/:expenseCategory/policy', getHighestLimitGroupPolicy);
 
-// non travel currency converter
+/*  ------IMPORTANT ---
+---------------This is removed and currency converter is same for both travel and non travel expense.
+*/
 reimbursementRoutes.get('/currency/:tenantId/:amount/:currencyName', reimbursementCurrencyConverter);
 
 // on save line item

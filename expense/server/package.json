@@ -31,6 +31,8 @@
     "@babel/core": "^7.22.17",
     "@babel/preset-env": "^7.22.15",
     "@babel/register": "^7.22.15",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
     "chai": "^4.3.8",
     "chai-as-promised": "^7.1.1",
     "mocha": "^10.2.0",
