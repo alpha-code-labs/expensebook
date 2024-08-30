@@ -1,12 +1,18 @@
 import mongoose from 'mongoose';
+import { approverStatusEnums} from "./travelSchema.js";
 
 // Define constant enums for expenseStatus and expenseHeaderType
 const expenseHeaderStatusEnums = [
+  'new',
   'draft',
+  'pending approval', 
+  'approved',
+  'rejected',
   'paid',
   'pending settlement',
+  'paid and distributed',
   'cancelled',
-   null
+  null
 ];
 
 const lineItemStatusEnums = [
@@ -24,38 +30,63 @@ const lineItemStatusEnums = [
 const expenseHeaderTypeEnums = ['reimbursement'];
 
 const expenseLineSchema = new mongoose.Schema({
-    lineItemId:mongoose.Schema.Types.ObjectId,
-    lineItemStatus: { 
-      type: String,
-      enum: lineItemStatusEnums,
+  expenseLineId:mongoose.Schema.Types.ObjectId,
+  travelType: String,
+  lineItemStatus: {
+    type: String,
+    enum: lineItemStatusEnums,
+  },
+  expenseLineAllocation : [{ //Travel expense allocation comes here
+    headerName: String,
+    headerValues: String,
+  }],
+  expenseAllocation_accountLine: String,
+  alreadySaved: Boolean, // when saving a expense line , make sure this field marked as true
+  expenseCategory: {
+    // categoryName: String,
+    // fields:[],
+    // travelClass: String,
+  }, //expense category comes here, ex- flights, cabs for travel ,etc
+  modeOfPayment: String,
+  isMultiCurrency: {
+    type: Boolean,
+    default: false,
+  },// if currency is part of multiCurrency Table
+  multiCurrencyDetails: {
+    type: {
+      nonDefaultCurrencyType: String,
+      originalAmountInNonDefaultCurrency: Number,
+      conversionRateToDefault: Number,
+      convertedAmountToDefaultCurrency: Number,
     },
-    expenseLineAllocation : [{ //Travel expense allocation comes here
-      headerName: String,
-      headerValues: String,
-    }],
-    expenseAllocation_accountLine: String,
-    alreadySaved: Boolean, // when saving a expense line , make sure this field marked as true
-    // expenseCategory: {
-    //   categoryName: String,
-    //   fields:[],
-    //   travelClass: String,
+    // required: function() {
+    //   return this.isMultiCurrency === true;
     // },
-    modeOfPayment: String,
-    isInMultiCurrency: Boolean, // if currency is part of multiCurrency Table
-    multiCurrencyDetails: {
-      type: {
-        convertedCurrencyType: String,
-        totalAmountInConvertedCurrency: Number,
-        conversionRateToDefaultCurrency: Number,
-        convertedTotalAmountToDefaultCurrency: Number,
-      },
-      required: function() {
-        return this.isInMultiCurrency === true;
+  },
+  isPersonalExpense:{
+    type:Boolean,
+    default: false
+  }, //if bill has personal expense, can be partially or entire bill.
+  personalExpenseAmount: {
+    type: Number,
+    // This field is required if 'isPersonalExpense' is true
+    required: function() {
+      return this.isPersonalExpense === true;
+    },
+  },
+  approvers: [
+    {
+      empId: String,
+      name: String,
+      status: {
+        type: String,
+        enum: approverStatusEnums,
       },
     },
-    billImageUrl: String,
-    billRejectionReason: String,
-},{strict: false});
+  ],
+  billImageUrl: String,
+  billRejectionReason: String,
+},{ strict: false });
 
 const expenseReimbursementSchema = new mongoose.Schema({
 tenantId: {
@@ -121,6 +152,16 @@ default:false,
 defaultCurrency:{
   type: Object,
 },
+approvers: [
+    {
+      empId: String,
+      name: String,
+      status: {
+        type: String,
+        enum: approverStatusEnums,
+      },
+    },
+  ],
 expenseLines: [expenseLineSchema],
 expenseViolations: [String],
 expenseCancelledReason: String,
@@ -165,7 +206,7 @@ const generateIncrementalNumber = (tenantName, incrementalValue) => {
 
 
 
-const Reimbursement = mongoose.model('ReimbursementFriday', expenseReimbursementSchema);
+const Reimbursement = mongoose.model('Reimbursement', expenseReimbursementSchema);
 
 
 export default Reimbursement
