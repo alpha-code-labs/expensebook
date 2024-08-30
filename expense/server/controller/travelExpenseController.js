@@ -73,6 +73,124 @@ const getExpenseRelatedHrData = async (tenantId,res = {}) => {
     }
 };
 
+const currencySchema = Joi.object({
+  currencyName: Joi.string().required().messages({
+    'string.empty': 'Currency name is required.',
+    'any.required': 'Currency name is required.'
+  }),
+  totalAmount: Joi.string().required().messages({
+    'string.empty': 'Total amount must be a string.',
+    'any.required': 'Total amount is required.'
+  }),
+  personalAmount: Joi.string().optional().allow(''),
+  nonPersonalAmount: Joi.string().optional().allow('')
+});
+
+export const currencyConverter = async (req, res) => {
+    try {
+        const { tenantId} = req.params;
+        console.log("params", req.params)
+        const {error, value} = currencySchema.validate(req.body);
+        
+        if (error) return res.status(400).json(error);
+
+        const { currencyName, totalAmount, personalAmount, nonPersonalAmount } = value;
+        console.log("value","currencyName",currencyName,"totalAmount", totalAmount, "personalAmount",personalAmount, "nonPersonalAmount", nonPersonalAmount)
+        if (!currencyName ||!totalAmount ) {
+            return res.status(400).json({ message: 'Currency name, total amount are required' });
+        }
+        const hrDocument = await HRMaster.findOne({tenantId});
+
+        if (!hrDocument) {
+            return res.status(404).json({ message: 'Tenant not found' });
+        }
+
+        const { multiCurrencyTable } = hrDocument;
+        const { defaultCurrency, exchangeValue } = multiCurrencyTable;
+        const currencyNameInUpperCase = currencyName?.toUpperCase();
+        const foundDefaultCurrency = defaultCurrency?.shortName?.toUpperCase() === currencyNameInUpperCase;
+        const foundCurrency = exchangeValue.find(currency => currency.currency.shortName.toUpperCase() === currencyNameInUpperCase);
+
+        const currencyConverterData ={
+        currencyFlag: false, message: 'Currency not available for conversion'
+        }
+        if (!foundCurrency) {
+          return res.status(200).json({success: false, currencyConverterData});
+      }
+
+        if (foundDefaultCurrency && !nonPersonalAmount && !personalAmount) {
+            const currencyConverterData = {
+                currencyFlag: true,
+                companyName: hrDocument?.companyDetails?.companyName || 'Company',
+                defaultCurrency: defaultCurrency.shortName,
+                convertedCurrency: currencyName.toUpperCase(),
+                message: 'This is your company default currency, no need to do conversion',
+                originalAmount: totalAmount,
+                originalPersonalAmount: personalAmount,
+                originalNonPersonalAmount: nonPersonalAmount,
+                originalCurrencyName: currencyName,
+            };
+            return res.status(200).json({ success: true , currencyConverterData });
+        } else if(nonPersonalAmount && personalAmount) {
+            // const foundCurrency = exchangeValue.find(currency => currency?.currency?.shortName?.toUpperCase() === currencyNameInUpperCase);
+
+            // if (!foundCurrency) {
+            //     return res.status(202).json({ success: false, currencyFlag: false, message: 'Currency not available for conversion' });
+            // }
+
+            const conversionPrice = foundCurrency.value;
+            const convertedTotalAmount = totalAmount * conversionPrice;
+
+            let personalAmountInDefaultCurrency, convertedBookableTotalAmount;
+
+            if (personalAmount !== undefined && nonPersonalAmount !== undefined) {
+                personalAmountInDefaultCurrency = personalAmount * conversionPrice;
+                convertedBookableTotalAmount = nonPersonalAmount * conversionPrice;
+            }
+
+            const currencyConverterData = {
+                currencyFlag: true,
+                companyName: hrDocument?.companyDetails?.companyName || 'Dummy Company',
+                defaultCurrencyName: defaultCurrency.shortName,
+                conversionRate: conversionPrice,
+                convertedCurrencyName: currencyName,
+                convertedTotalAmount: convertedTotalAmount,
+                convertedPersonalAmount: personalAmountInDefaultCurrency,
+                convertedBookableTotalAmount: convertedBookableTotalAmount,
+            };
+            return res.status(200).json({ success: true, currencyConverterData });
+        } else if(totalAmount && currencyName) {
+          const foundCurrency = exchangeValue.find(currency => currency.currency.shortName.toUpperCase() === currencyNameInUpperCase);
+
+          if (!foundCurrency) {
+              return res.status(202).json({ success: false, currencyFlag: false,message: 'Currency not available for conversion' });
+          }
+
+          const conversionPrice = foundCurrency.value;
+          const convertedTotalAmount = totalAmount * conversionPrice;
+
+          const currencyConverterData = {
+              currencyFlag: true,
+              companyName: hrDocument?.companyDetails?.companyName || 'Dummy Company',
+              defaultCurrencyName: defaultCurrency.shortName,
+              convertedCurrencyName: currencyName,
+              conversionRate: conversionPrice,
+              convertedTotalAmount: convertedTotalAmount,
+          };
+          return res.status(200).json({ success: true,  currencyConverterData });
+        } else{
+        const currencyConverterData ={
+          success: false,
+          message: 'Invalid request',
+        }
+        return res.status(400).json({success: false, currencyConverterData});
+      }
+      } catch (error) {
+        console.error(error);
+        res.status(500).json({success: false,  message: 'Internal server error' });
+    }
+};
+
 //Calculate total cash advance
 export const calculateTotalCashAdvances = async (cashAdvanceData) => {
     const totalCashAdvances = { totalPaid: [], totalUnpaid: [] };
@@ -519,8 +637,11 @@ export const onSaveExpenseLine = async (req, res) => {
       Class:travelClass,
     } = expenseLine;
 
+    const isApproval = approvers?.length
+    isApproval && approvers.forEach(approver => approver.status = 'pending approval')
+    
     console.log("approvers in on save line item", approvers)
-    const isApproval = approvers.length
+
     const isLineUpdate = expenseLine?.expenseLineId
     // Validate required fields
     const requiredFields = ['expenseAmountStatus', 'expenseLine', 'travelType', 'allocations'];
@@ -555,7 +676,7 @@ export const onSaveExpenseLine = async (req, res) => {
     console.log("policyValidation results for line item ........", policyValidation)
     // Handle personal expenses and multicurrency
     if (isPersonalExpense) {
-      console.log("is personal expoense", isPersonalExpense)
+      console.log("is personal expense", isPersonalExpense)
       const personalExpenseAmount = expenseLine?.personalExpenseAmount || 0;
 
       if (!isMultiCurrency) {
@@ -609,7 +730,6 @@ export const onSaveExpenseLine = async (req, res) => {
       totalExpenseAmount += totalAmountField;
     }
 
-
     const filter = { 
       tenantId, 
       tripId,
@@ -637,6 +757,7 @@ export const onSaveExpenseLine = async (req, res) => {
       console.log("edit expense Line", isLineUpdate)
       // If expenseLineId is present, find and update matching expenseLine
       expenseLine.lineItemStatus = isApproval ? 'pending approval' : 'save'
+      expenseLine.approvers = isApproval ? approvers : []
 
       let updateAddOn = {
         $set:{
@@ -654,6 +775,17 @@ export const onSaveExpenseLine = async (req, res) => {
     } else {
           const { travelExpenseData, expenseAmountStatus } = updatedExpenseReport;
       console.log("expenseLine edited...........",travelExpenseData )
+      
+      const payload = { getExpenseReport: updatedExpenseReport};
+      const needConfirmation = false;
+      const source = 'expense'
+      const onlineVsBatch = 'online';
+      const action = 'full-update';
+      const comments = 'on Save expense line';
+  
+await  sendToOtherMicroservice(payload, action, 'dashboard', comments, source, 'online')
+await sendToOtherMicroservice(payload, action, 'trip', comments, source, 'online')
+
       return res.status(200).json({
         message: 'Expense line updated successfully.',
         travelExpenseData,
@@ -671,6 +803,9 @@ export const onSaveExpenseLine = async (req, res) => {
         const expenseLineId = new mongoose.Types.ObjectId();
         expenseLine.expenseLineId = expenseLineId;
         expenseLine.lineItemStatus = isApproval ? 'pending approval' : 'save'
+        expenseLine.approvers = isApproval ? approvers : []
+
+        
         console.log("added expense Line", expenseLine)
         let updateAddOn = {
           $push:{
@@ -686,6 +821,18 @@ export const onSaveExpenseLine = async (req, res) => {
       } else {
             const { travelExpenseData, expenseAmountStatus } = updatedExpenseReport;
         console.log("expenseLine saved ...........",expenseLine )
+
+
+        const payload = { getExpenseReport: updatedExpenseReport};
+        const needConfirmation = false;
+        const source = 'expense'
+        const onlineVsBatch = 'online';
+        const action = 'full-update';
+        const comments = 'on Save expense line';
+    
+  await  sendToOtherMicroservice(payload, action, 'dashboard', comments, source, 'online')
+  await sendToOtherMicroservice(payload, action, 'trip', comments, source, 'online')
+
         return res.status(200).json({
           message: 'Expense line added successfully.',
           expenseLineId,
@@ -694,7 +841,7 @@ export const onSaveExpenseLine = async (req, res) => {
         })
       }
       }
-      }
+    }
   } catch (error) {
     console.error('An error occurred while saving the expense line items:', error);
     return res.status(500).json({
@@ -749,12 +896,12 @@ export const onEditExpenseLine = async (req, res) => {
   } = expenseAmountStatus;
 
   const policyValidation = await travelPolicyValidation(tenantId, empId, travelType, categoryName, totalAmountNew, travelClass)
-  //policy voilation added to expense Line
+  //policy violation added to expense Line
   expenseLineEdited.policyValidation = policyValidation;
 
-    // Handle personal expenses and multicurrency
+    // personal expenses and multicurrency
     if (isPersonalExpense) {
-      console.log("is personal expoense", isPersonalExpense)
+      console.log("is personal expense", isPersonalExpense)
       const personalExpenseAmount = expenseLine?.personalExpenseAmount || 0;
   
       if (!isMultiCurrency) {
@@ -812,7 +959,7 @@ export const onEditExpenseLine = async (req, res) => {
       const removeAtLineItem = await Expense.findOneAndUpdate(
         { 
           tenantId,
-          'tripId': tripId,
+          tripId,
           $or: [
             { 'travelRequestData.createdBy.empId': empId }, 
             { 'travelRequestData.createdFor.empId': empId }
@@ -932,16 +1079,27 @@ export const onEditExpenseLine = async (req, res) => {
           'travelExpenseData.$[header].expenseLines.$[elem]':expenseLineEdited
         }
       }
-     let totalUpdate = { ...update, ...updateAddOn}
+    let totalUpdate = { ...update, ...updateAddOn}
       const arrayFilters = [
         {'header.expenseHeaderId': expenseHeaderId},
         { 'elem.expenseLineId': expenseLineEdited.expenseLineId }];
-     const updatedExpenseReport = await Expense.findOneAndUpdate(filter, totalUpdate, { arrayFilters, ...options });
+    const updatedExpenseReport = await Expense.findOneAndUpdate(filter, totalUpdate, { arrayFilters, ...options });
 
-       if (!updatedExpenseReport) {
+    if (!updatedExpenseReport) {
       return res.status(404).json({ message: "Expense report not found" });
     } else {
           const { travelExpenseData, expenseAmountStatus } = updatedExpenseReport;
+
+          const payload = { getExpenseReport: updatedExpenseReport};
+          const needConfirmation = false;
+          const source = 'expense'
+          const onlineVsBatch = 'online';
+          const action = 'full-update';
+          const comments = 'on Save expense line';
+      
+    await  sendToOtherMicroservice(payload, action, 'dashboard', comments, source, 'online')
+    await sendToOtherMicroservice(payload, action, 'trip', comments, source, 'online')
+    
       console.log("expenseLineEdited edited...........",travelExpenseData )
       return res.status(200).json({
         message: 'Expense line updated successfully.',
@@ -1015,130 +1173,6 @@ export const policyValidationHr = async (tenantId, empId, categoryName, travelTy
       error: error.message,
     });
   }
-};
-
-const currencySchema = Joi.object({
-  currencyName: Joi.string().required().messages({
-    'string.empty': 'Currency name is required.',
-    'any.required': 'Currency name is required.'
-  }),
-  totalAmount: Joi.string().required().messages({
-    'string.empty': 'Total amount must be a string.',
-    'any.required': 'Total amount is required.'
-  }),
-  // personalAmount: Joi.string().messages({
-  //   'string.empty': 'Personal amount must be a string.',
-  //   'any.required': 'Personal amount is required.'
-  // }),
-  nonPersonalAmount: Joi.string().messages({
-    'string.empty': 'Non-personal amount must be a string.',
-    'any.required': 'Non-personal amount is required.'
-  })
-});
-
-export const currencyConverter = async (req, res) => {
-    try {
-        const { tenantId} = req.params;
-        console.log("params", req.params)
-        const {error, value} = currencySchema.validate(req.body);
-        
-        if (error) return res.status(400).json(error);
-
-        const { currencyName, totalAmount, personalAmount, nonPersonalAmount } = value;
-        console.log("value",currencyName, totalAmount, personalAmount, nonPersonalAmount)
-        if (!currencyName ||!totalAmount ) {
-            return res.status(400).json({ message: 'Currency name, total amount are required' });
-        }
-        const hrDocument = await HRMaster.findOne({tenantId});
-
-        if (!hrDocument) {
-            return res.status(404).json({ message: 'Tenant not found' });
-        }
-
-        const { multiCurrencyTable } = hrDocument;
-        const { defaultCurrency, exchangeValue } = multiCurrencyTable;
-        const currencyNameInUpperCase = currencyName?.toUpperCase();
-        const foundDefaultCurrency = defaultCurrency?.shortName?.toUpperCase() === currencyNameInUpperCase;
-        const foundCurrency = exchangeValue.find(currency => currency.currency.shortName.toUpperCase() === currencyNameInUpperCase);
-
-        const currencyConverterData ={
-        currencyFlag: false, message: 'Currency not available for conversion'
-        }
-        if (!foundCurrency) {
-          return res.status(200).json({success: false, currencyConverterData});
-      }
-
-        if (foundDefaultCurrency && !nonPersonalAmount && !personalAmount) {
-            const currencyConverterData = {
-                currencyFlag: true,
-                companyName: hrDocument?.companyDetails?.companyName || 'Company',
-                defaultCurrency: defaultCurrency.shortName,
-                convertedCurrency: currencyName.toUpperCase(),
-                message: 'This is your company default currency, no need to do conversion',
-                originalAmount: totalAmount,
-                originalPersonalAmount: personalAmount,
-                originalNonPersonalAmount: nonPersonalAmount,
-                originalCurrencyName: currencyName,
-            };
-            return res.status(200).json({ success: true , currencyConverterData });
-        } else if(nonPersonalAmount && personalAmount) {
-            // const foundCurrency = exchangeValue.find(currency => currency?.currency?.shortName?.toUpperCase() === currencyNameInUpperCase);
-
-            // if (!foundCurrency) {
-            //     return res.status(202).json({ success: false, currencyFlag: false, message: 'Currency not available for conversion' });
-            // }
-
-            const conversionPrice = foundCurrency.value;
-            const convertedTotalAmount = totalAmount * conversionPrice;
-
-            let personalAmountInDefaultCurrency, convertedBookableTotalAmount;
-
-            if (personalAmount !== undefined && nonPersonalAmount !== undefined) {
-                personalAmountInDefaultCurrency = personalAmount * conversionPrice;
-                convertedBookableTotalAmount = nonPersonalAmount * conversionPrice;
-            }
-
-            const currencyConverterData = {
-                currencyFlag: true,
-                companyName: hrDocument?.companyDetails?.companyName || 'Dummy Company',
-                defaultCurrencyName: defaultCurrency.shortName,
-                conversionRate: conversionPrice,
-                convertedCurrencyName: currencyName,
-                convertedTotalAmount: convertedTotalAmount,
-                convertedPersonalAmount: personalAmountInDefaultCurrency,
-                convertedBookableTotalAmount: convertedBookableTotalAmount,
-            };
-            return res.status(200).json({ success: true, currencyConverterData });
-        } else if(totalAmount && currencyName) {
-          const foundCurrency = exchangeValue.find(currency => currency.currency.shortName.toUpperCase() === currencyNameInUpperCase);
-
-          if (!foundCurrency) {
-              return res.status(202).json({ success: false, currencyFlag: false,message: 'Currency not available for conversion' });
-          }
-
-          const conversionPrice = foundCurrency.value;
-          const convertedTotalAmount = totalAmount * conversionPrice;
-
-          const currencyConverterData = {
-              currencyFlag: true,
-              companyName: hrDocument?.companyDetails?.companyName || 'Dummy Company',
-              defaultCurrencyName: defaultCurrency.shortName,
-              convertedCurrencyName: currencyName,
-              conversionRate: conversionPrice,
-              convertedTotalAmount: convertedTotalAmount,
-          };
-          return res.status(200).json({ success: true,  currencyConverterData });
-      } else{
-        const currencyConverterData ={
-          success: false,
-          message: 'Invalid request',
-        }
-        return res.status(400).json({success: false, currencyConverterData});
-      }
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({success: false,  message: 'Internal server error' });
-    }
 };
 
 export const getModifyExpenseReport = async (req, res) => {

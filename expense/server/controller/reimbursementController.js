@@ -37,11 +37,23 @@ const generateIncrementalNumber = (companyName, incrementalValue) => {
   return `RE${formattedTenant}${paddedIncrementalValue}`;
 }
 
+const getPolicy = (group, policy, travelType, policies)=>{
+  let result = null
+  policies.forEach(groupPolicy=>{
+    if(groupPolicy[group]!=null && groupPolicy[group]!=undefined){
+        result = groupPolicy[group][travelType][policy] 
+        return
+    }
+  })
+  return result
+}
 
 const employeeSchema = Joi.object({
   empId: Joi.string().required(),
   tenantId: Joi.string().required(),
 })
+
+
 /**
  * Retrieves expense categories for a given employee ID.
  * @param {Object} req - The request object.
@@ -55,8 +67,6 @@ export const getExpenseCategoriesForEmpId = async (req, res) => {
       return res.status(400).send({ message: error.details[0].message });
     }
     const { tenantId, empId } = value;
-
-    console.log("manchester",tenantId, empId)
 
     const employeeDocument = await HRCompany.findOne({
       tenantId,
@@ -72,6 +82,7 @@ export const getExpenseCategoriesForEmpId = async (req, res) => {
 
     const { employeeName, employeeId } = employeeDocument?.employees[0]?.employeeDetails;
 
+    console.log("employeeName, employeeId", employeeName, employeeId)
     if (!employeeId) {
       return res.status(404).json({
         success: false,
@@ -83,11 +94,13 @@ export const getExpenseCategoriesForEmpId = async (req, res) => {
       companyDetails: { defaultCurrency } = {},
       companyName,
       reimbursementExpenseCategories,
+      travelAllocationFlags,
     } = employeeDocument || {};
 
     const reimbursementExpenseCategory = Array.isArray(reimbursementExpenseCategories)
       ? reimbursementExpenseCategories.map(category => category?.categoryName)
       : [];
+
 
     return res.status(200).json({
       success: true,
@@ -95,6 +108,7 @@ export const getExpenseCategoriesForEmpId = async (req, res) => {
       employeeName,
       companyName,
       reimbursementExpenseCategory,
+      travelAllocationFlags,
     });
   } catch (error) {
     console.error('Error finding expense categories:', error);
@@ -109,11 +123,66 @@ export const getExpenseCategoriesForEmpId = async (req, res) => {
 };
 
 
+const getApproversFromOnboarding = (employeeDocument,empId) => {
+try{
+  const travelType='international'
+  let approvalFlow = null
+  let APPROVAL_FLAG = false
+
+  const flags = employeeDocument.flags
+  const isPolicy = flags.POLICY_SETUP_FLAG
+  const tenantPolicies = employeeDocument?.policies.travelPolicies??[]
+  const employeeData = employeeDocument.employees.find(emp => emp.employeeDetails.employeeId.toString() === empId.toString());
+  const employeeRoles = employeeData.employeeRoles
+  const employeeGroups = employeeData.group
+  const MANAGER_FLAG = employeeRoles.employeeManager
+  const listOfManagers = employeeDocument.employees.filter(employee=>employee.employeeRoles.employeeManager).map(emp=> ({...emp.employeeDetails, imageUrl:emp?.imageUrl??getRandomAvatarUrl()}));
+  
+  if(isPolicy){
+    employeeGroups.forEach(group=>{
+      const res = getPolicy(group, 'Approval Flow', travelType, tenantPolicies)
+      console.log(res, 'Approval flow...')
+
+      if(res.approval.approvers){
+        if(approvalFlow == null){
+          approvalFlow = res.approval.approvers
+          if(res.approval.approvers.length>0){
+            APPROVAL_FLAG = true
+          }
+          else APPROVAL_FLAG = false
+        }
+
+        else if(approvalFlow.length > res.approval.approvers.length){
+            approvalFlow = res.approval.approvers
+            if(res.approval.approvers.length>0){
+              APPROVAL_FLAG = true
+            }
+            else APPROVAL_FLAG = false
+        }
+      }
+
+    })
+  }
+
+  return {
+    APPROVAL_FLAG,
+    approvalFlow,
+    MANAGER_FLAG,
+    listOfManagers
+  }
+} catch(error){
+  console.error('Error finding approvers from onboarding:', error);
+  throw new Error(error.message)
+}
+}
+
+
 const expenseCatSchema = Joi.object({
   expenseCategory: Joi.string().required(),
   tenantId: Joi.string().required(),
   empId: Joi.string().required(),
 })
+
 // 2) group limit, policies, expense header number
 export const getHighestLimitGroupPolicy = async (req, res) => {
     try {
@@ -124,6 +193,8 @@ export const getHighestLimitGroupPolicy = async (req, res) => {
       const { tenantId, empId, expenseCategory } = value;
        let{expenseHeaderId} = req.body;
        let expenseHeaderNumber;
+       let approvers
+       let expenseHeaderStatus
 
        console.log("expenseHeaderId from req.body",expenseHeaderId)
 
@@ -201,18 +272,25 @@ export const getHighestLimitGroupPolicy = async (req, res) => {
       const { categoryName, fields,  expenseAllocation } = selectedExpenseCategory;
       const { defaultCurrency = '' } = companyDetails;
 
+      const getExpenseHeaderStatus = [
+        'new',
+        'draft',
+        'pending approval', 
+        null
+      ];
+
       // Find the updated expense header
       const updatedExpense = await Reimbursement.findOne(
         {
           tenantId,
           'createdBy.empId': empId,
-          expenseHeaderStatus: { $in: [null, 'draft'] },
+          expenseHeaderStatus: { $in: getExpenseHeaderStatus },
         },
       );
 
       if (updatedExpense) {
         console.log('Updated expense', updatedExpense);
-        ({ expenseHeaderNumber, expenseHeaderId } = updatedExpense);
+        ({ expenseHeaderNumber, expenseHeaderId, approvers=[],expenseHeaderStatus  } = updatedExpense);
       }
     
       if(!expenseHeaderId){
@@ -236,6 +314,9 @@ export const getHighestLimitGroupPolicy = async (req, res) => {
       // Create a new expense headerId
       expenseHeaderId = new mongoose.Types.ObjectId()
       }
+      expenseHeaderStatus = 'new'
+      approvers = []
+      const getApprovers = getApproversFromOnboarding(employeeDocument,empId)
 
       const message = `${employeeName} is part of ${groupName}. Highest limit found: ${highestLimit}`;
       const group = { limit: highestLimit, group: groupName, message };
@@ -246,18 +327,21 @@ export const getHighestLimitGroupPolicy = async (req, res) => {
         tenantId,
         expenseHeaderId,
         expenseHeaderNumber,
+        expenseHeaderStatus,
         companyName,
         createdBy: {
           empId,
           name: employeeName,
         },
+        approvers:updatedExpense ? approvers : [],
+        getApprovers,
         levels:travelAllocationFlags,
         defaultCurrency: defaultCurrency || '',
         currencyTable: currencyTable || '',
         newExpenseAllocation,
         newExpenseAllocation_accountLine,
         group,
-        ...selectedExpenseCategory
+        ...selectedExpenseCategory,
       }); 
     } catch (error) {
       console.error('Error fetching highest limit group policy:', error);
@@ -275,139 +359,14 @@ const currencySchema = Joi.object({
   currencyName:Joi.string().required,
 })
 
-// export const getHighestLimitGroupPolicy = async (req, res) => {
-//   try {
-//       const { tenantId, empId, expenseCategory } = req.params;
-//       let { expenseHeaderId } = req.body;
-
-//       console.log("expenseHeaderId", expenseHeaderId);
-
-//       if (!expenseCategory || !empId || !tenantId) {
-//           return res.status(404).json({ message: 'Required params are missing' });
-//       }
-
-//       const employeeDocument = await HRCompany.findOne({
-//           tenantId,
-//           'employees.employeeDetails.employeeId': empId,
-//       });
-
-//       if (!employeeDocument) {
-//           return res.status(404).json({
-//               success: false,
-//               message: 'Employee not found for the given IDs',
-//           });
-//       }
-
-//       const { companyDetails: { companyName }, employees: [employee], policies: { nonTravelPolicies } } = employeeDocument;
-//       const groups = employee.group || [];
-
-//       let highestGroup = { limit: -Infinity, group: null };
-
-//       const getHighestLimitGroupPolicy = (nonTravelPolicies, groups, expenseCategory) => {
-//           groups.forEach(groupName => {
-//               const groupPolicy = nonTravelPolicies.find(policy => Object.keys(policy)[0] == groupName);
-//               if (groupPolicy) {
-//                   const currentLimit = +groupPolicy[groupName]?.[expenseCategory]?.limit?.amount;
-//                   if (currentLimit > highestGroup.limit) {
-//                       highestGroup = { limit: currentLimit, group: groupName };
-//                   }
-//               } else {
-//                   console.error(`No policy found for group: ${groupName}`);
-//               }
-//           });
-//           return highestGroup;
-//       };
-
-//       let { limit: highestLimit, group: groupName } = getHighestLimitGroupPolicy(nonTravelPolicies, groups, expenseCategory) || {};
-
-//       const { reimbursementExpenseCategories = [], companyDetails = {}, reimbursementAllocations = [], multiCurrencyTable = [] } = employeeDocument;
-//       const employeeName = employee.employeeDetails.employeeName;
-//       const currencyTable = multiCurrencyTable?.exchangeValue.map(item => item.currency);
-//       const selectedExpenseCategory = reimbursementExpenseCategories?.find(category => category.categoryName == expenseCategory);
-//       const selectedReimbursementAllocations = reimbursementAllocations?.find(allocation => allocation.categoryName == expenseCategory);
-//       let newExpenseAllocation, newExpenseAllocation_accountLine;
-//       if (selectedReimbursementAllocations) {
-//           ({ expenseAllocation: newExpenseAllocation, expenseAllocation_accountLine: newExpenseAllocation_accountLine } = selectedReimbursementAllocations);
-//       }
-
-//       if (!selectedExpenseCategory) {
-//           return res.status(404).json({
-//               success: false,
-//               message: 'Expense category not found for the employee',
-//           });
-//       }
-
-//       const { categoryName, fields, expenseAllocation } = selectedExpenseCategory;
-//       const { defaultCurrency = '' } = companyDetails;
-//       let expenseHeaderNumber;
-
-//       if (expenseHeaderId == null || expenseHeaderId == undefined) {
-//           const maxIncrementalValue = await Reimbursement.findOne({ tenantId }, 'expenseReimbursementSchema?.expenseHeaderNumber')
-//               .sort({ 'expenseReimbursementSchema?.expenseHeaderNumber': -1 })
-//               .limit(1);
-
-//           console.log("maxIncrementalValue from db", maxIncrementalValue);
-
-//           const nextIncrementalValue = (maxIncrementalValue ? parseInt(maxIncrementalValue.expenseReimbursementSchema?.expenseHeaderNumber.substring(6), 10) : 0);
-//           expenseHeaderNumber = generateIncrementalNumber(companyName, nextIncrementalValue);
-
-//           expenseHeaderId = new mongoose.Types.ObjectId();
-
-//           const updatedExpense = await Reimbursement.findOneAndUpdate(
-//               {
-//                   tenantId,
-//                   'createdBy.empId': empId,
-//                   expenseHeaderStatus: { $in: ['null', 'draft'] },
-//               },
-//               {
-//                   expenseHeaderId: expenseHeaderId,
-//                   expenseHeaderNumber: expenseHeaderNumber
-//               },
-//               { new: true, upsert: true },
-//           );
-
-//           if (updatedExpense) {
-//               ({ expenseHeaderNumber, expenseHeaderId } = updatedExpense);
-//           }
-
-//           console.log("updatedExpense", updatedExpense);
-
-//           const message = `${employeeName} is part of ${groupName}. Highest limit found: ${highestLimit}`;
-//           const group = { limit: highestLimit, group: groupName, message };
-
-//           return res.status(200).json({
-//               success: true,
-//               tenantId,
-//               expenseHeaderId,
-//               expenseHeaderNumber,
-//               companyName,
-//               createdBy: { empId, name: employeeName },
-//               defaultCurrency: defaultCurrency || '',
-//               currencyTable: currencyTable || '',
-//               newExpenseAllocation,
-//               newExpenseAllocation_accountLine,
-//               group,
-//               categoryName,
-//               fields,
-//           });
-//       }
-//   } catch (error) {
-//       console.error('Error fetching highest limit group policy:', error);
-//       return res.status(500).json({
-//           success: false,
-//           message: 'Internal Server Error',
-//           error: error.message || 'Something went wrong',
-//       });
-//   }
-// };
 
 //3) currency converter for non travel expense 
 export const reimbursementCurrencyConverter = async (req, res) => {
   try {
-    const {error, params} = currencySchema.validate(req.params)
+    const {error, value} = currencySchema.validate(req.params)
     if (error) return res.status(400).json({success: false, message: error.details[0].message})
 
-    const { tenantId, amount, currencyName } = params;
+    const { tenantId, amount, currencyName } = value;
     console.log("params", req.params)
     const hrDocument = await HRCompany.findOne({ tenantId});
 
@@ -467,7 +426,6 @@ export const reimbursementCurrencyConverter = async (req, res) => {
 };
 
 const saveSchema = Joi.object({
-  employeeName:Joi.string().required(),
   companyName:Joi.string().required(),
   createdBy: Joi.object({
     empId: Joi.string().required(),
@@ -475,32 +433,28 @@ const saveSchema = Joi.object({
   }).required(),
   expenseHeaderNumber:Joi.string().required(),
   defaultCurrency:Joi.object().required(),
-  lineItem:Joi.array().required(),
+  lineItem:Joi.object().required(),
 })
+
+const validateRequest = (schema, data) => {
+  const { error, value } = schema.validate(data);
+  if (error) {
+    throw new Error(error.message);
+  }
+  return value;
+};
 
 // 4) save line item 
 export const saveReimbursementExpenseLine = async (req, res) => {
     try {
-      const {error, value} = nonTravelSchema.validate(req.params)
-      if (error) {
-          return res.status(400).json({success: false, message: error.message})
-        }
-
-        const { errorBody , valueBody} = saveSchema.validate(req.body)
-        if(errorBody){
-          return res.status(400).json({success: false, message: errorBody.message})
-        }
-      const { tenantId, empId, expenseHeaderId } = value;
-      console.log("params", req.params)
-
-      const {
-        employeeName,
-        companyName,
-        createdBy,
-        expenseHeaderNumber,
-        defaultCurrency,
-        lineItem,
-      } = valueBody;
+      const params = validateRequest(nonTravelSchema, req.params);
+      const body = validateRequest(saveSchema, req.body);
+  
+      console.log("Request Body for save:", req.body);
+      console.log("Params:", req.params);
+  
+      const { tenantId, empId, expenseHeaderId } = params;
+      const { companyName, createdBy, expenseHeaderNumber, defaultCurrency, lineItem } = body;
   
        console.log("req body", req.body)
        console.log("lineItem ......", lineItem)
@@ -510,7 +464,7 @@ export const saveReimbursementExpenseLine = async (req, res) => {
         return res.status(404).json({ message: 'error expenseHeaderNumber is missing' });
       }
 
-       const {name} = createdBy
+      const {name} = createdBy
       const expenseLineId = new mongoose.Types.ObjectId().toString();
       // Output the generated ObjectId and its type
      console.log('Generated ObjectId:', expenseLineId);
@@ -557,12 +511,12 @@ export const saveReimbursementExpenseLine = async (req, res) => {
   
       return res.status(200).json({
         success: true,
-        message: `expense line saved successfully by ${name}`,
+        message: `expense line saved successfully `,
         lineItemId:lastLineItemId,
       });
     } catch (error) {
       console.error(error);
-      return res.status(500).json({ message: 'Failed to process non_Travel expense LINE' });
+      return res.status(500).json({ message: 'Failed to process non_Travel expense LINE' , error:error.message});
     }
 };
 
@@ -676,11 +630,11 @@ export const draftReimbursementExpenseLine = async (req, res) => {
 
 export const submitReimbursementExpenseReport = async (req, res) => {
   try {
-    const {error, params} = nonTravelSchema.validate(req.params)
+    const {error, value} = nonTravelSchema.validate(req.params)
     if (error) {
         return res.status(400).json({success: false, message: error.message})
       }
-    const { tenantId, empId, expenseHeaderId } = params;
+    const { tenantId, empId, expenseHeaderId } = value;
 
     const EXPENSE_HEADER_STATUS_PS = 'pending settlement';
 
