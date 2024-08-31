@@ -21,7 +21,6 @@ import { BlobServiceClient } from "@azure/storage-blob";
 
 const AddLineItem = () => {
   const az_blob_container = import.meta.env.VITE_AZURE_BLOB_CONTAINER
-
   const storage_sas_token = import.meta.env.VITE_AZURE_BLOB_SAS_TOKEN
   const storage_account = import.meta.env.VITE_AZURE_BLOB_ACCOUNT
   const blob_endpoint = `https://${storage_account}.blob.core.windows.net/?${storage_sas_token}`
@@ -606,7 +605,11 @@ const handleSaveLineItem = async (action) => {
         if (action === "saveAndSubmit") {
           navigate(`/${tenantId}/${empId}/${tripId}/view/travel-expense`);
         } else if (action === "saveAndNew") {
+          setShowForm(false)
+          setFormData({approvers:[],fields:{}})
+          setRequiredObj((prev)=>({...prev,"category":""}))
           window.location.reload(); // Reload the page
+          
         }
       }, 5000);
     } catch (error) {

@@ -462,22 +462,18 @@ export const editNonTravelExpenseLineItemsApi = async(tenantId,empId,expenseHead
 
 
 
-export const submitOrSaveAsDraftNonTravelExpenseApi = async(
-  {action,
-  tenantId,
-  empId,
-  expenseHeaderId,
-  data})=>{
+export const submitOrSaveAsDraftNonTravelExpenseApi = async({action,tenantId,empId,expenseHeaderId,payload})=>{
 let url;
+
     if(action==="submit"){
        url = `${EXPENSE_BACKEND_API_URL}/api/fe/expense/non-travel/${tenantId}/${empId}/${expenseHeaderId}/submit`
     }else if (action === "draft"){
        url = `${EXPENSE_BACKEND_API_URL}/api/fe/expense/non-travel/${tenantId}/${empId}/${expenseHeaderId}/draft`
-    }else if (action === "delete"){
+    }else if (action === "deleteHeader"){
       url = `${EXPENSE_BACKEND_API_URL}/api/fe/expense/non-travel/${tenantId}/${empId}/${expenseHeaderId}/delete`
     }
   try{
-    const response = await axiosRetry(axios.patch,url,data)
+    const response = action === "deleteHeader" ?  await axiosRetry(axios.patch,url,payload) : await axiosRetry(axios.post,url,payload)
     return response.data
   }catch(error){
     handleRequestError(error);

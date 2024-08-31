@@ -6,7 +6,7 @@ import Button from '../components/common/Button';
 import PopupMessage from '../components/common/PopupMessage';
 import Icon from '../components/common/Icon';
 import Input from '../components/common/Input';
-import { arrow_left, briefcase, cancel_icon, cancel_round, categoryIcons, chevron_down, file_icon, info_icon, modify_icon, money, receipt, scan_icon, user_icon, validation_sym, validation_symb_icon } from '../assets/icon';
+import { arrow_left, briefcase, cancel_icon, cancel_round, categoryIcons, chevron_down, close_gray_icon, file_icon, info_icon, modify_icon, money, receipt, scan_icon, user_icon, validation_sym, validation_symb_icon } from '../assets/icon';
 import { allocationLevel, initializenonTravelFormFields, titleCase, urlRedirection } from '../utils/handyFunctions';
 import Upload from '../components/common/Upload';
 import Select from '../components/common/Select';
@@ -22,6 +22,7 @@ import { DocumentPreview } from '../travelExpenseSubcomponent/BillPreview.jsx';
 import CancelButton from '../Components/common/CancelButton.jsx';
 import { dateKeys, isClassField, totalAmountKeys } from '../utils/data/keyList.js';
 import { LineItemView } from '../nonTravelExpenseSubComponet/LineItemView.jsx';
+import uploadFileToAzure from '../utils/azureBlob.js';
 
 ///Cuurency on Save you have to save object of currency
 const currencyDropdown = [
@@ -44,32 +45,15 @@ const CreateNonTraveExpense = () => {
   
   const {tenantId,empId,expenseHeaderId} =useParams()
   const dashboardBaseUrl = `${import.meta.env.VITE_DASHBOARD_URL}`
+
   const az_blob_container = import.meta.env.VITE_AZURE_BLOB_CONTAINER
-  const blob_endpoint = import.meta.env.VITE_AZURE_BLOB_CONNECTION_URL
+  const storage_sas_token = import.meta.env.VITE_AZURE_BLOB_SAS_TOKEN
+  const storage_account = import.meta.env.VITE_AZURE_BLOB_ACCOUNT
+  const blob_endpoint = `https://${storage_account}.blob.core.windows.net/?${storage_sas_token}`
   
 
-  async function uploadFileToAzure(file) {
-    try {
-        const blobServiceClient = new BlobServiceClient(blob_endpoint);
-        const containerClient = blobServiceClient.getContainerClient(az_blob_container);
-        const blobClient = containerClient.getBlobClient(file.name);
-        const blockBlobClient = blobClient.getBlockBlobClient();
 
-        const result = await blockBlobClient.uploadBrowserData(file, {
-            blobHTTPHeaders: { blobContentType: file.type },
-            blockSize: 4 * 1024 * 1024,
-            concurrency: 20,
-            onProgress: ev => console.log(ev)
-        });
-
-        const fileUrl = blobClient.url;
-        console.log(`File uploaded to Azure Blob Storage. URL: ${fileUrl}`);
-        return { success: true, fileUrl };
-    } catch (e) {
-        console.error("Error uploading file to Azure Blob Storage:", e);
-        return { success: false, fileUrl: null };
-    }
-}
+  
   
 const [currencyConversion, setCurrencyConversion]=useState({
   payload:{
@@ -89,6 +73,7 @@ const [currencyConversion, setCurrencyConversion]=useState({
  });
 
  const [formData, setFormData] = useState({
+  approvers:[],
   fields:{}
  })
  
@@ -104,10 +89,16 @@ const [currencyConversion, setCurrencyConversion]=useState({
         try {
           const response = await getNonTravelExpenseMiscellaneousDataApi(tenantId, empId,);
           setCategoryList(response?.reimbursementExpenseCategory || [])
+          const expenseSettlementOptions = Object.keys(response?.expenseSettlementOptions).filter((option) => response?.expenseSettlementOptions[option]) || [];
           const travelAllocationFlag = allocationLevel(response?.travelAllocationFlags)
           setRequiredObj(prev=>({...prev,
             "expenseCategories":response?.reimbursementExpenseCategory || [],
-           "level":travelAllocationFlag}))
+           "level":travelAllocationFlag,
+          "listOfAllManagers":response?.getApprovers?.listOfManagers || [],
+            "APPROVAL_FLAG":response?.getApprovers?.APPROVAL_FLAG, //boolean
+             "approvalFlow":response?.getApprovers?.approvalFlow ||[],
+             "MANAGER_FLAG"  :response?.getApprovers?.MANAGER_FLAG, //boolean
+             expenseSettlementOptions}))
           setHeaderDetails({
             name: response?.employeeName,
             defaultCurrency : response?.defaultCurrency
@@ -155,6 +146,7 @@ const [currencyConversion, setCurrencyConversion]=useState({
     //const [categoryElement , setCategoryElement]=useState([...editData]); // this is for dummy
     const [categoryElement , setCategoryElement]=useState([]); //
     const [categorySearchVisible, setCategorySearchVisible] = useState(false);
+    const [approversSearchVisible, setApproversSearchVisible] = useState(false);
     const [totalAmount, setTotalAmount] = useState(''); ///for handling convert 
     const [date ,setDate]= useState('')
     const [currencyTableData, setCurrencyTableData] = useState(null);
@@ -193,7 +185,8 @@ const [currencyConversion, setCurrencyConversion]=useState({
       dateErr:{set:false,msg:""},
       currencyFlag:{set:false,msg:""},
       totalAmount:{set:false,msg:""},
-      allocations: { set: false, msg: "" }
+      allocations: { set: false, msg: "" },
+      approversError:{set:false,msg:""}
     })
 
     const [showForm,setShowForm]=useState(false)
@@ -208,11 +201,11 @@ const handleModalVisible=()=>{
   setModalOpen(!modalOpen)
 }
 
-const handleMannualBtn=()=>{
+const handleMannualBtn=async()=>{
   if(requiredObj.category){
     setShowForm(true)
-    setErrorMsg(prev => ({...prev,category:{ set: false, msg: "" },}))
-    document.getElementById('newLineItem').scrollIntoView({ behavior: 'smooth' });
+    await setErrorMsg(prev => ({...prev,category:{ set: false, msg: "" },}))
+     document.getElementById('newLineItem').scrollIntoView({ behavior: 'smooth' });
   }else{
     setErrorMsg(prev => ({...prev,category:{ set: true, msg: "Select the category" },}))
   }
@@ -355,7 +348,7 @@ const [selectedCategory , setSelectedCategory]= useState(null)
         case 'closeAddExpense':
           return 'Leave this Page';
         case 'cancelExpense':
-          return 'Leave this Page';
+          return 'Delete Expense';
         default:
           return '';
       }
@@ -376,7 +369,21 @@ const [selectedCategory , setSelectedCategory]= useState(null)
                                   </div>
                       </>
           );  
-        default:
+          case 'cancelExpense':
+            return (
+              <>
+              <p className="text-md px-4 text-start font-cabin text-neutral-600">
+              If you delete this expense, you cannot retrieve it. Are you sure you want to delete?
+              </p>
+    
+                                    <div className="flex items-center gap-2 mt-10">
+                                      <Button1 loading={isUploading.deleteHeader}  text='Delete' onClick={()=>handleSubmitOrDraft("deleteHeader")} />
+                                      <CancelButton   text='Cancel'  onClick={()=>setModalOpen(false)}/>
+                                    </div>
+                        </>
+            );  
+       
+          default:
           return '';
       }
     };
@@ -404,6 +411,7 @@ const [selectedCategory , setSelectedCategory]= useState(null)
           //"allocation":response?.expenseReport?.newExpenseAllocation || [],
           "expenseLines":response?.expenseReport?.expenseLines
         }))
+        setFormData(prev=>({...prev,"approvers":response?.expenseReport?.approvers}))
 
         //setLineItemsData(response?.expenseReport?.expenseLines)
         setIsLoading(false);
@@ -437,24 +445,24 @@ const [selectedCategory , setSelectedCategory]= useState(null)
 
 //intial form value with empty string
 
-useEffect(()=>{
-  const initialFormValues = Object.fromEntries(
-    categoryElement && categoryElement?.map((field) => [
-       field.name,
-        ocrValue?.[field.name] || '',
-     ])
-   );
-   setFormDataValues(initialFormValues)
-   const foundDateKey = dateForms.find(key => Object.keys(initialFormValues).includes(key));
-        const foundTotalAmtKey = totalAmountNames.find(key => Object.keys(initialFormValues).includes(key));
-        const dateValue = foundDateKey ? initialFormValues[foundDateKey] : undefined;
-        const totalAmountValue = foundTotalAmtKey ? initialFormValues[foundTotalAmtKey] : undefined;
-        setDate({[foundDateKey]:dateValue})
-        setTotalAmount(totalAmountValue)
-  console.log('intialFormValues',initialFormValues)
-  console.log('expense line allocation',expenseLineAllocation)
+// useEffect(()=>{
+//   const initialFormValues = Object.fromEntries(
+//     categoryElement && categoryElement?.map((field) => [
+//        field.name,
+//         ocrValue?.[field.name] || '',
+//      ])
+//    );
+//    setFormDataValues(initialFormValues)
+//    const foundDateKey = dateForms.find(key => Object.keys(initialFormValues).includes(key));
+//         const foundTotalAmtKey = totalAmountNames.find(key => Object.keys(initialFormValues).includes(key));
+//         const dateValue = foundDateKey ? initialFormValues[foundDateKey] : undefined;
+//         const totalAmountValue = foundTotalAmtKey ? initialFormValues[foundTotalAmtKey] : undefined;
+//         setDate({[foundDateKey]:dateValue})
+//         setTotalAmount(totalAmountValue)
+//   console.log('intialFormValues',initialFormValues)
+//   console.log('expense line allocation',expenseLineAllocation)
 
-},[categoryElement])
+// },[categoryElement])
 
 
 
@@ -541,76 +549,76 @@ useEffect(()=>{
     // };
 
 
-    const handleInputChange = (key, value) => {
-      console.log(`Updating ${key} with value:`, value);
+    // const handleInputChange = (key, value) => {
+    //   console.log(`Updating ${key} with value:`, value);
     
-      setFormData((prevData) => {
-        const updatedFields = {
-          ...prevData.fields,
-          [key]: value,
-        };
+    //   setFormData((prevData) => {
+    //     const updatedFields = {
+    //       ...prevData.fields,
+    //       [key]: value,
+    //     };
     
        
 
         
        
-        ///for conversion stop
+    //     ///for conversion stop
 
-        return {
-          ...prevData,
-          fields: updatedFields,
-        };
-      });
+    //     return {
+    //       ...prevData,
+    //       fields: updatedFields,
+    //     };
+    //   });
 
-       if(totalAmountKeys.includes(key) ){
-          setCurrencyConversion(prev =>({...prev,payload:{
-            ...prev.payload,
-           ["totalAmount"]:value
-          }
-          }))
-        }
+    //    if(totalAmountKeys.includes(key) ){
+    //       setCurrencyConversion(prev =>({...prev,payload:{
+    //         ...prev.payload,
+    //        ["totalAmount"]:value
+    //       }
+    //       }))
+    //     }
 
-        if(key === "personalExpenseAmount"){
-          setCurrencyConversion(prev =>({...prev,payload:{
-            ...prev.payload,
-           ["personalAmount"]:value
-          }
-          }))
-        }
-        setCurrencyConversion(prev =>({...prev,payload:{
-          ...prev.payload,
-          'currencyName':formData?.Currency?.shortName,
+    //     if(key === "personalExpenseAmount"){
+    //       setCurrencyConversion(prev =>({...prev,payload:{
+    //         ...prev.payload,
+    //        ["personalAmount"]:value
+    //       }
+    //       }))
+    //     }
+    //     setCurrencyConversion(prev =>({...prev,payload:{
+    //       ...prev.payload,
+    //       'currencyName':formData?.Currency?.shortName,
          
-          ///nonPersonalAmount: Number(prev.payload.totalAmount) - Number(formData.personalExpenseAmount)
-        }
-        }))
+    //       ///nonPersonalAmount: Number(prev.payload.totalAmount) - Number(formData.personalExpenseAmount)
+    //     }
+    //     }))
 
-        if(key==='Currency' && value.shortName !== requiredObj?.defaultCurrency.shortName){
-          setFormData(prev => ({
-            ...prev,
-            fields: {
-              ...prev.fields, // Spread the existing fields object
-              isMultiCurrency: true // Update the isMultiCurrency flag to true
-            }
-          }));
-          handleCurrencyConversion()
-        }else{
-          if(key==='Currency'){
-            setErrorMsg((prevErrors) => ({ ...prevErrors, conversion: { set: false, msg: "" } }));
-          }
+    //     if(key==='Currency' && value.shortName !== requiredObj?.defaultCurrency.shortName){
+    //       setFormData(prev => ({
+    //         ...prev,
+    //         fields: {
+    //           ...prev.fields, // Spread the existing fields object
+    //           isMultiCurrency: true // Update the isMultiCurrency flag to true
+    //         }
+    //       }));
+    //       handleCurrencyConversion()
+    //     }else{
+    //       if(key==='Currency'){
+    //         setErrorMsg((prevErrors) => ({ ...prevErrors, conversion: { set: false, msg: "" } }));
+    //       }
           
-          setFormData(prev => ({
-            ...prev,
-            fields: {
-              ...prev.fields, // Spread the existing fields object
-              isMultiCurrency: false // Update the isMultiCurrency flag to true
-            }
-          }));
+    //       setFormData(prev => ({
+    //         ...prev,
+    //         fields: {
+    //           ...prev.fields, // Spread the existing fields object
+    //           isMultiCurrency: false // Update the isMultiCurrency flag to true
+    //         }
+    //       }));
           
          
-          //setErrorMsg((prevErrors) => ({ ...prevErrors, personalAmount: { set: true, msg: "Enter the amount" } }));
-        }
-    };
+    //       //setErrorMsg((prevErrors) => ({ ...prevErrors, personalAmount: { set: true, msg: "Enter the amount" } }));
+    //     }
+    // };
     // const handleInputChange = (name, value) => {
     //   console.log(`Updating ${name} with value:`, value);
     //   setFormDataValues((prevState) => ({ ...prevState, [name]: value || "" }));
@@ -710,138 +718,156 @@ const handleConverter =async ( totalAmount , selectedCurrency) => {
 
 /// Save Line Item
      
-//       const handleSaveLineItem = async () => {
-//         console.log('lineitem on save',formDataValues )
-//         const expenseHeaderId= miscellaneousData?.expenseHeaderId
-//         const expenseHeaderNumber = miscellaneousData?.expenseHeaderNumber
-//         const companyName = miscellaneousData?. companyName
-//         const createdBy  = miscellaneousData?.createdBy
-//         const defaultCurrency = miscellaneousData?.defaultCurrency
-//         console.log('nearby save' ,formDataValues ,expenseHeaderNumber)
 
-//         let  allowForm = true
+console.log('selected allocations',selectedAllocations)
+// const handleSaveLineItem = async (action) => {
+//   console.log('line item action',action)
+//   let allowForm = true;
 
-//         ///for date validation
-//   const newErrorMsg = { ...errorMsg };
+//   // Reset error messages
+//   const newErrorMsg = {
+//     currencyFlag: { set: false, msg: "" },
+//     totalAmount: { set: false, msg: "" },
+//     personalAmount: { set: false, msg: "" },
+//     data: { set: false, msg: "" },
+//     expenseSettlement: { set: false, msg: "" },
+//     allocations: { set: false, msg: "" },
+//     category: { set: false, msg: "" },
+//     conversion: { set: false, msg: "" },
+//     date: { set: false, msg: "" }
+//   };
 
-//     // Reset all error messages
-//     Object.keys(newErrorMsg).forEach(key => {
-//       newErrorMsg[key] = { set: false, msg: "" };
-//     });
-
-//     // for (const allocation of selectedAllocations) {
-//     //   if (allocation.headerValue.trim() === '') {
-//     //     newErrorMsg[allocation.headerName] = { set: true, msg: "Select the Allocation" };
-//     //   }
-      
-//     // }
-
-//     setErrorMsg(newErrorMsg);
-//     const anyErrorSet = Object.values(newErrorMsg).some(error => error.set);
-
-// // Update allowForm based on whether any error is set
-// allowForm = !anyErrorSet;
-
-// console.log("All Errors Filled:", !anyErrorSet);
-
-//         const firstKey = Object.keys(date)[0]
-//         if(selectedCurrency?.shortName !== defaultCurrency.shortName &&( !currencyTableData?.currencyFlag || currencyTableData ===null)){
-//           setErrorMsg((prevErrors) => ({ ...prevErrors, currencyFlag: { set: true, msg: `conversion not available!` } }));
-//           allowForm = false;
-//         }else {
-//           setErrorMsg((prevErrors) => ({ ...prevErrors, currencyFlag: { set: false, msg: "" } }));
-//         }  
-
-//       if(!['Travel Insurance','Hotel'].includes(formDataValues?.['Category Name']) && (!date[firstKey] || date[firstKey]=== "")){
-//         setErrorMsg((prevErrors) => ({ ...prevErrors, dateErr: { set: true, msg: `Enter the ${firstKey}` } }));
-//         allowForm = false;
-//         console.log('date  is empty1' , date[firstKey])
-//       }else {
-//         setErrorMsg((prevErrors) => ({ ...prevErrors, dateErr: { set: false, msg: "" } }));
-//       }
-//         if(totalAmount=="" ||totalAmount==undefined){
-//           setErrorMsg((prevErrors)=>({...prevErrors,totalAmount:{set:true,msg:"Enter Total Amount"}}))
-//           console.log('total amount', totalAmount)
-//           allowForm = false
-//         }else{
-//           setErrorMsg((prevErrors)=>({...prevErrors,totalAmount:{set:false,msg:""}}))
-//         }
-     
-//         handleEmptyValues(); // Ensure that any undefined or null values in formDataValues are set to ""
-      
-//         const updatedFormData = {
-//           companyName,
-//           createdBy,
-//           expenseHeaderNumber,
-//           defaultCurrency,
-//           lineItem :{
-//             group:requiredObj?.groupLimit,
-//             'Category Name':selectedCategory || "",
-//             ...formDataValues,
-//             'Document': "",
-//             // 'Document': selectedFile || "",
-//             'Currency': selectedCurrency || defaultCurrency || "",
-//             multiCurrencyDetails :currencyTableData,
-//             expenseLineAllocation :selectedAllocations,
-//           }
-//         } 
-    
-//         // setFormDataValues(updatedFormData);
-//         let azureUploadSuccess = false;
-//         let fileUrl = "";
-//         if(selectedFile && allowForm ){
-//         console.log('filledLineItemDetails', updatedFormData);
-       
-//     try {
-//         const azureUploadResponse = await uploadFileToAzure(selectedFile);
-//         if (azureUploadResponse.success) {
-//             azureUploadSuccess = true;
-//             fileUrl = azureUploadResponse.fileUrl;
-//         } else {
-//             console.error("Failed to upload file to Azure Blob Storage.");
-//         }
-//     } catch (error) {
-//         console.error("Error uploading file to Azure Blob Storage:", error);
+//   // Check total amount keys
+//   for (const key of totalAmountKeys) {
+//     if (formData.fields[key] === "") {
+//       newErrorMsg.conversion = { set: true, msg: `${key} cannot be empty` };
+//       allowForm = false;
 //     }
 //   }
+
+//   // Check date keys
+//   for (const key of dateKeys) {
+//     if (formData.fields[key] === "") {
+//       newErrorMsg.date = { set: true, msg: `${key} cannot be empty` };
+//       allowForm = false;
+//     }
+//   }
+
+//   // Check if Class is empty
+//   for (const key of isClassField) {
+//     if (formData.fields[key] === "") {
+//       newErrorMsg.class = { set: true, msg: "Class cannot be empty" };
+//       allowForm = false;
+//     }
+//   }
+
+//   // Validate allocations
+  
+//   for (const allocation of selectedAllocations) {
+//     if (allocation.headerValue.trim() === '') {
+//       newErrorMsg[allocation.headerName] = { set: true, msg: "Select the Allocation" };
+//       allowForm = false;
+//     }
+//   }
+
+//   console.log('allowform', allowForm ,selectedAllocations)
+// // 
+  
+
+//   // Set the error messages only if there are any errors
+//   setErrorMsg(newErrorMsg);
+//   let previewUrl = ""
+
+//   if (allowForm && selectedFile) {
+//     // Update the upload status to indicate that the upload has started
+//     setIsUploading(prev => ({ ...prev, [action]: { set: true, msg: "" } }));
     
-//        if(selectedFile ? (allowForm && azureUploadSuccess) : allowForm){   
-//         updatedFormData.lineItem.Document = fileUrl;
-//         try {
-//           setIsUploading(true)
-//           setActive(prevState => ({...prevState,saveLineItem:true}))
-          
-          
-//           const response = await postNonTravelExpenseLineItemApi(tenantId,empId,expenseHeaderId,updatedFormData);
-//           setShowPopup(true)
-//           setMessage(response?.message)
-//          console.log('line item saved successfully',response?.message )
-//          const newLine = {...updatedFormData?.lineItem , lineItemId : response?.lineItemId}
-//          setLineItemsData([...lineItemsData, newLine]);   
-//          setIsUploading(false)
-//          setActive(prevState => ({...prevState,saveLineItem:false}))
-//          setShowForm(false)
-//          setTimeout(() => {setShowPopup(false);setMessage(null);},5000)
-//          setCurrencyTableData(null)
-
-//         } catch (error) {
-//           console.log('Error in fetching expense data for approval:', error.message);
-//           setIsUploading(false)
-//           setActive(prevState => ({...prevState,saveLineItem:false}))
-//           setLoadingErrorMsg(error.message);
+//     try {
+//         // Await the Azure upload response
+//         const azureUploadResponse = await uploadFileToAzure(selectedFile, blob_endpoint, az_blob_container);
         
-//           setTimeout(() => {setLoadingErrorMsg(null);setIsLoading(false)},5000);
-//         }}
- 
+//         if (azureUploadResponse.success) {
+//             console.log('File uploaded successfully');
+            
+//             // Construct the preview URL for the uploaded file
+//             previewUrl = `https://${storage_account}.blob.core.windows.net/${az_blob_container}/${selectedFile.name}`;
+//             console.log('bill url', previewUrl);
+//         } else {
+//             // Handle the failure of the file upload
+//             console.error("Failed to upload file to Azure Blob Storage.");
+//             setMessage("Failed to upload file to Azure Blob Storage.");
+//             setShowPopup(true);
+//             setTimeout(() => setShowPopup(false), 3000);
+//             allowForm = false;
+//         }
+//     } catch (error) {
+//         // Catch any unexpected errors during the file upload process
+//         console.error("Error uploading file to Azure Blob Storage:", error);
+//         setMessage(error.message);
+//         setShowPopup(true);
+//         setTimeout(() => setShowPopup(false), 3000);
+//         allowForm = false;
+//     }
+// }
 
-//         // Clear the selected file and reset the form data
-//         setSelectedFile(null);
-//         setIsFileSelected(false);
-//         // setFormDataValues({});
-//       };
-console.log('selected allocations',selectedAllocations)
+
+//   if (allowForm) {
+//     // No errors, proceed with the save operation
+//     setIsUploading((prev) => ({ ...prev, [action]: { set: true, msg: "" } }));
+//     const params = {tenantId,empId,expenseHeaderId:requiredObj.expenseHeaderId}
+//     const payload = {
+//       ...formData?.approvers||[] ,
+//       "companyName":requiredObj?.companyName,
+//       "createdBy": requiredObj?.createdBy,
+//       "expenseHeaderNumber":requiredObj?.expenseHeaderNumber,
+//       "defaultCurrency": requiredObj?.defaultCurrency,
+//       "lineItem": {
+//         "billImageUrl":previewUrl,
+//         ...formData.fields,
+//         ...(requiredObj.level === 'level3' ? { allocations: selectedAllocations } : {})
+//       }
+//     };
+    
+//     // If level is not 'level3', move selectedAllocations to allocations
+//     if (requiredObj.level !== 'level3') {
+//       payload.allocations = selectedAllocations;
+//     }
+
+//     try {
+//       const response = await postNonTravelExpenseLineItemApi(params,payload);
+//       setIsUploading((prev) => ({ ...prev, [action]: { set: false, msg: "" } }));
+//       setShowPopup(true);
+//       setMessage(response?.message);
+//       setTimeout(() => {
+//         setShowPopup(false);
+//         setMessage(null);
+//         setShowForm(false)
+//         setLineItemsData(prev=>({...prev,fields:{}}))
+//         switch(action) {
+//           case "saveAndSubmit":
+//             return 'add logic for modal open warning then submit';
+//           case "saveAndNew":
+//             return window.location.reload(); // Reload the page
+//           default:
+//             break;
+//         }
+        
+        
+//       }, 5000);
+//     } catch (error) {
+//       setIsUploading((prev) => ({ ...prev, [action]: { set: false, msg: "" } }));
+//       setMessage(error.message);
+//       setShowPopup(true);
+//       setTimeout(() => {
+//         setShowPopup(false);
+//       }, 3000);
+//     }
+//   }
+// };
+
+
 const handleSaveLineItem = async (action) => {
-  console.log('line item action',action)
+  console.log('line item action', action);
   let allowForm = true;
 
   // Reset error messages
@@ -854,10 +880,11 @@ const handleSaveLineItem = async (action) => {
     allocations: { set: false, msg: "" },
     category: { set: false, msg: "" },
     conversion: { set: false, msg: "" },
-    date: { set: false, msg: "" }
+    date: { set: false, msg: "" },
+    class: { set: false, msg: "" }
   };
 
-  // Check total amount keys
+  // Validate total amount keys
   for (const key of totalAmountKeys) {
     if (formData.fields[key] === "") {
       newErrorMsg.conversion = { set: true, msg: `${key} cannot be empty` };
@@ -865,7 +892,7 @@ const handleSaveLineItem = async (action) => {
     }
   }
 
-  // Check date keys
+  // Validate date keys
   for (const key of dateKeys) {
     if (formData.fields[key] === "") {
       newErrorMsg.date = { set: true, msg: `${key} cannot be empty` };
@@ -873,7 +900,7 @@ const handleSaveLineItem = async (action) => {
     }
   }
 
-  // Check if Class is empty
+  // Validate class field
   for (const key of isClassField) {
     if (formData.fields[key] === "") {
       newErrorMsg.class = { set: true, msg: "Class cannot be empty" };
@@ -881,78 +908,159 @@ const handleSaveLineItem = async (action) => {
     }
   }
 
-  
-  
+  if (formData.fields.isMultiCurrency && !formData.fields.convertedAmountDetails) {
+    newErrorMsg.conversion = { set: true, msg: `Exchange rates not available. Kindly contact your administrator.` };
+    allowForm = false;
+  }
 
   // Validate allocations
-  
   for (const allocation of selectedAllocations) {
     if (allocation.headerValue.trim() === '') {
       newErrorMsg[allocation.headerName] = { set: true, msg: "Select the Allocation" };
       allowForm = false;
     }
   }
-  console.log('allowform', allowForm ,selectedAllocations)
-// 
-  
 
-  // Set the error messages only if there are any errors
+  // Set error messages if validation fails
   setErrorMsg(newErrorMsg);
 
-  if (allowForm) {
-    // No errors, proceed with the save operation
+  if (!allowForm) return;
+
+  let previewUrl = "";
+
+  if (selectedFile) {
     setIsUploading((prev) => ({ ...prev, [action]: { set: true, msg: "" } }));
-    const params = {tenantId,empId,expenseHeaderId:requiredObj.expenseHeaderId}
-    const payload = {
-      "companyName":requiredObj?.companyName,
-      "createdBy": requiredObj?.createdBy,
-      "expenseHeaderNumber":requiredObj?.expenseHeaderNumber,
-      "defaultCurrency": requiredObj?.defaultCurrency,
-      "lineItem": {
-        ...formData.fields,
-        ...(requiredObj.level === 'level3' ? { allocations: selectedAllocations } : {})
-      }
-    };
-    
-    // If level is not 'level3', move selectedAllocations to allocations
-    if (requiredObj.level !== 'level3') {
-      payload.allocations = selectedAllocations;
-    }
 
     try {
-      const response = await postNonTravelExpenseLineItemApi(params,payload);
-      setIsUploading((prev) => ({ ...prev, [action]: { set: false, msg: "" } }));
-      setShowPopup(true);
-      setMessage(response?.message);
-      setTimeout(() => {
-        setShowPopup(false);
-        setMessage(null);
-        switch(action) {
-          case "saveAndSubmit":
-            return 'add logic for modal open warning then submit';
-          case "saveAndNew":
-            return window.location.reload(); // Reload the page
-          default:
-            break;
-        }
-        
-        
-      }, 5000);
+      // Upload the file to Azure
+      const azureUploadResponse = await uploadFileToAzure(selectedFile, blob_endpoint, az_blob_container);
+
+      if (azureUploadResponse.success) {
+        previewUrl = `https://${storage_account}.blob.core.windows.net/${az_blob_container}/${selectedFile.name}`;
+        console.log('File uploaded successfully, bill url:', previewUrl);
+      } else {
+        throw new Error("Failed to upload file to Azure Blob Storage.");
+      }
     } catch (error) {
-      setIsUploading((prev) => ({ ...prev, [action]: { set: false, msg: "" } }));
+      console.error("Error uploading file to Azure Blob Storage:", error);
       setMessage(error.message);
       setShowPopup(true);
-      setTimeout(() => {
-        setShowPopup(false);
-      }, 3000);
+      setTimeout(() => setShowPopup(false), 3000);
+      setIsUploading((prev) => ({ ...prev, [action]: { set: false, msg: "" } }));
+      return;
     }
   }
+
+  // Prepare payload
+  const params = { tenantId, empId, expenseHeaderId: requiredObj.expenseHeaderId };
+  const payload = {
+    companyName: requiredObj?.companyName,
+    createdBy: requiredObj?.createdBy,
+    expenseHeaderNumber: requiredObj?.expenseHeaderNumber,
+    defaultCurrency: requiredObj?.defaultCurrency,
+    lineItem: {
+      ...formData.fields,
+      billImageUrl: previewUrl || undefined,
+      ...(requiredObj.level === 'level3' ? { allocations: selectedAllocations } : {})
+    }
+  };
+
+  if (requiredObj.level !== 'level3') {
+    payload.allocations = selectedAllocations;
+  }
+
+  // Save the data
+  setIsUploading((prev) => ({ ...prev, [action]: { set: true, msg: "" } }));
+
+  // try {
+  //   const response = await postNonTravelExpenseLineItemApi(params, payload);
+  //   setShowPopup(true);
+  //   setMessage(response?.message);
+
+  //   setTimeout(() => {
+  //     setShowPopup(false);
+  //     setMessage(null);
+  //     setShowForm(false);
+  //     setLineItemsData((prev) => ({ ...prev, fields: {} }));
+
+  //     const res =  getNonTravelExpenseLineItemsApi(tenantId, empId, requiredObj.expenseHeaderId);
+  //      setRequiredObj(prev=>({
+  //       ...prev,
+  //       "expenseLines":res.expenseLines
+  //      }))
+
+
+  //     switch (action) {
+  //       case "saveAndSubmit":
+  //         return 'add logic for modal open warning then submit';
+  //       case "saveAndNew":
+  //         return window.location.reload(); // Reload the page
+  //       default:
+  //         break;
+  //     }
+  //   }, 5000);
+  // } catch (error) {
+  //   console.error("Error saving line item:", error);
+  //   setIsUploading((prev) => ({ ...prev, [action]: { set: false, msg: "" } }));
+  //   setMessage(error.message);
+  //   setShowPopup(true);
+  //   setTimeout(() => setShowPopup(false), 3000);
+  // } finally {
+  //   setIsUploading((prev) => ({ ...prev, [action]: { set: false, msg: "" } }));
+  // }
+
+  try {
+    const response = await postNonTravelExpenseLineItemApi(params, payload);
+    setShowPopup(true);
+    setMessage(response?.message);
+    setShowForm(false)
+    setFormData({approvers:[],fields:{}})
+    setRequiredObj((prev)=>({...prev,"category":""}))
+    setTimeout(async () => {
+        setShowPopup(false);
+        setMessage(null);
+        setShowForm(false);
+        
+        
+
+        try {
+            const res = await getNonTravelExpenseLineItemsApi(tenantId, empId, requiredObj.expenseHeaderId);
+            setRequiredObj((prev) => ({
+                ...prev,
+                "expenseLines": res?.expenseReport?.expenseLines||[],
+            }));
+        } catch (fetchError) {
+            console.error("Error fetching expense line items:", fetchError);
+            setMessage("Failed to update expense lines. Please try again.");
+            setShowPopup(true);
+            setTimeout(() => setShowPopup(false), 3000);
+        }
+
+        switch (action) {
+            case "saveAndSubmit":
+                return 'add logic for modal open warning then submit';
+            case "saveAndNew":
+                return window.location.reload(); // Reload the page
+            default:
+                break;
+        }
+    }, 5000);
+} catch (error) {
+    console.error("Error saving line item:", error);
+    setIsUploading((prev) => ({ ...prev, [action]: { set: false, msg: "" } }));
+    setMessage(error.message);
+    setShowPopup(true);
+    setTimeout(() => setShowPopup(false), 3000);
+} finally {
+    setIsUploading((prev) => ({ ...prev, [action]: { set: false, msg: "" } }));
+}
+
 };
 
 const handleOCRScan=()=>{
   
   if(requiredObj.category){
-    setShowForm(true)
+   
     setErrorMsg(prev => ({...prev,category:{ set: false, msg: "" },}))
     if(requiredObj.category=== 'Flight'){
       setFormData(prev => ({...prev,fields:{
@@ -1009,15 +1117,25 @@ const handleOCRScan=()=>{
  
 }
 
-useEffect(
-  ()=>{
-  if(isFileSelected){
-    setIsUploading(prev=> ({...prev,autoScan:true}))
-    setTimeout(()=>{
-      setIsUploading(prev=> ({...prev,autoScan:false}))
-      setShowForm(true)
-      document.getElementById('newLineItem').scrollIntoView({ behavior: 'smooth' });
-    },5000)}},[selectedFile])
+useEffect(() => {
+  if (isFileSelected) {
+    setIsUploading((prev) => ({ ...prev, autoScan: true }));
+
+    setTimeout(() => {
+      setIsUploading((prev) => ({ ...prev, autoScan: false }));
+      setShowForm(true);
+
+      // Ensure that scroll happens after the form is shown
+      setTimeout(() => {
+        const element = document.getElementById('newLineItem');
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 0); // Immediate timeout to allow DOM update
+    }, 5000);
+  }
+}, [isFileSelected]);
+
 
 /// Update Line Item
       
@@ -1154,58 +1272,15 @@ const handleDashboardRedirection=()=>{
   window.parent.postMessage('closeIframe', dashboardBaseUrl);
 }
 
-/// Submit Expense || Draft Expense || Delete
-// const handleSubmitOrDraft = async (action) => {
-//   const expenseHeaderId1 = expenseHeaderId || requiredObj?.expenseHeaderId;
-//   let api;
-//   let uploadingState = { saveAsDraft: false, submit: false };
-
-//   switch (action) {
-//       case "submit":
-//           api = submitNonTravelExpenseApi(tenantId, empId, expenseHeaderId1);
-//           uploadingState = { submit: true };
-//           break;
-//       case "save as draft":
-//           api = saveAsDraftNonTravelExpense(tenantId, empId, expenseHeaderId1);
-//           uploadingState = { saveAsDraft: true };
-//           break;
-//       case "delete":
-//           api = cancelNonTravelExpenseHeaderApi(tenantId, empId, expenseHeaderId1);
-//           break;
-//       default:
-//           console.error("Invalid action");
-//           return;
-//   }
-
-//   setIsUploading(prev => ({ ...prev, ...uploadingState }));
-
-//   try {
-//       const response = await api;
-//       setShowPopup(true);
-//       setMessage(response?.message);
-//       setIsUploading(prev => ({ ...prev, saveAsDraft: false, submit: false }));
-
-//       setTimeout(() => {
-//           setShowPopup(false);
-//           setMessage(null);
-//           if (action === "submit" || action === "delete") {
-//             handleDashboardRedirection();
-//           } else {
-//               window.location.reload();
-//           }
-//       }, 5000);
-//       console.log('reponse',response)
-//   } catch (error) {
-//       setIsUploading(prev => ({ ...prev, saveAsDraft: false, submit: false }));
-//       setLoadingErrorMsg(`Please retry again: `);
-//       setTimeout(() => setLoadingErrorMsg(null), 2000);
-//   }
-
-//   setAction(null);
-// };
-
 const handleSubmitOrDraft=async(action)=>{
   let allowForm = true
+  const payload = {
+    approvers:formData.approvers || [],
+    expenseSettlement: formData.expenseSettlement || "",
+  }
+
+
+ 
   // const data ={ expenseSettlement: selectedExpenseSettlement}
   // if(!selectedExpenseSettlement){
   //   setErrorMsg((prevErrors)=>({...prevErrors,expenseSettlement:{set:true, msg:'Select Expense Settlement'}}))
@@ -1214,19 +1289,33 @@ const handleSubmitOrDraft=async(action)=>{
   //   setErrorMsg((prevErrors)=>({...prevErrors,expenseSettlement:{set:false, msg:''}}))
   //   allowForm = true
   // }
-  
+  const expenseHeaderIds = requiredObj?.expenseHeaderId  ||  expenseHeaderId
+  console.log('main action ',expenseHeaderIds)
+if(action === "submit"){ 
+  if (requiredObj?.approvalFlow != null && formData?.approvers?.length != requiredObj?.approvalFlow?.length) {
+    setErrorMsg(pre => {
+        return { ...pre, approversError: { ...pre.approversError, message: `Please select ${requiredObj?.approvalFlow?.length} approver/s`, set: true } }
+    })
+    allowForm = false
+}
+else {
+  setErrorMsg(pre => {
+        return { ...pre, approversError: { ...pre.approversError, set: false } }
+    })
+    allowForm = true
+
+}}
    
     if(allowForm){
     try{
-         
          if(action === "draft"){
           setIsUploading(prevState => ({ ...prevState, saveAsDraft: true }));
          }else if (action === "submit"){
           setIsUploading(prevState => ({ ...prevState, submit: true }))
+         }else if (action === "deleteHeader"){
+          setIsUploading(prevState => ({ ...prevState, deleteHeader: true }))
          }
-         
-        
-        const response = await submitOrSaveAsDraftNonTravelExpenseApi({action,tenantId,empId,expenseHeaderId})
+        const response = await submitOrSaveAsDraftNonTravelExpenseApi({action,tenantId,empId,expenseHeaderId:expenseHeaderIds,payload})
         setIsLoading(false)
         setShowPopup(true)
         setMessage(response.message)
@@ -1236,17 +1325,16 @@ const handleSubmitOrDraft=async(action)=>{
           setActive(prevState => ({ ...prevState, saveAsDraft: false }));
          }else if (action === "submit"){
           setActive(prevState => ({ ...prevState, submit: false }))
+         }else if (action === "deleteHeader"){
+          setActive(prevState => ({ ...prevState, deleteHeader: false }))
          }
         setTimeout(()=>{
           setShowPopup(false)
           setMessage(null)
          
-          if(action === "submit"){
+          if(action === "submit" || action === "deleteHeader"){
           // urlRedirection(`${dashboard_url}/${tenantId}/${empId}/overview`)}
           handleDashboardRedirection()
-          }
-          else{
-            window.location.reload()
           }
         },5000)
 
@@ -1256,6 +1344,8 @@ const handleSubmitOrDraft=async(action)=>{
           setActive(prevState => ({ ...prevState, saveAsDraft:false }));
          }else if (action === "submit"){
           setActive(prevState => ({ ...prevState, submit:false }))
+         }else if (action === "deleteHeader"){
+          setActive(prevState => ({ ...prevState, deleteHeader:false }))
          }
         setShowPopup(true)
         setMessage(error.message)
@@ -1269,14 +1359,14 @@ const handleSubmitOrDraft=async(action)=>{
     }
 
 
-      const handleOpenModal=(id)=>{
-        if(id==='upload'){
-          setOpenModal('upload')
-        }
-        if(id==='form'){
-          setOpenModal('form')
-        }
-       }
+      // const handleOpenModal=(id)=>{
+      //   if(id==='upload'){
+      //     setOpenModal('upload')
+      //   }
+      //   if(id==='form'){
+      //     setOpenModal('form')
+      //   }
+      //  }
 
       //  const handleCurrency = (value)=>{
       //   const selectedCurrencyObject = currencyDropdown.find(currency => currency.shortName === value);
@@ -1290,49 +1380,49 @@ const handleSubmitOrDraft=async(action)=>{
 
 
       
-      const [ocrSelectedFile , setOcrSelectedFile]=useState(null)
+     
    
-      const handleOcrScan = async () => {
-        // console.log('ocrfile from handle', ocrSelectedFile);
+      // const handleOcrScan = async () => {
+      //   // console.log('ocrfile from handle', ocrSelectedFile);
       
-        const ocrData = new FormData();
-          ocrData.append('categoryName', selectedCategory);
-          ocrData.append('file', ocrSelectedFile);
+      //   const ocrData = new FormData();
+      //     ocrData.append('categoryName', selectedCategory);
+      //     ocrData.append('file', ocrSelectedFile);
       
-        console.log('ocrfile from handle',ocrData)
+      //   console.log('ocrfile from handle',ocrData)
       
-           setIsUploading(prevState =>({...prevState, scan: true}));
+      //      setIsUploading(prevState =>({...prevState, scan: true}));
           
-          setTimeout(() => {
-            setShowForm(true) ;setOpenModal(null); setShowPopup(false);setIsUploading(false);
-          }, 5000);
-        // try {
-        //   setIsUploading(prevState =>({...prevState, scan: true}));
+      //     setTimeout(() => {
+      //       setShowForm(true) ;setOpenModal(null); setShowPopup(false);setIsUploading(false);
+      //     }, 5000);
+      //   // try {
+      //   //   setIsUploading(prevState =>({...prevState, scan: true}));
       
-        //  // Assuming ocrScanApi is an asynchronous function
-        //   const response = await ocrScanApi(ocrData); important 
+      //   //  // Assuming ocrScanApi is an asynchronous function
+      //   //   const response = await ocrScanApi(ocrData); important 
       
          
       
           
       
-        //   setIsUploading(prevState =>({...prevState, scan: false}));
+      //   //   setIsUploading(prevState =>({...prevState, scan: false}));
           
-        //   setTimeout(() => {
-        //     setFormVisible(true) ;setOpenModal(null); setShowPopup(false);
-        //   }, 3000);
+      //   //   setTimeout(() => {
+      //   //     setFormVisible(true) ;setOpenModal(null); setShowPopup(false);
+      //   //   }, 3000);
           
-        // } catch (error) {
-        //   setIsUploading(prevState =>({...prevState, scan: false}));
-        //   setLoadingErrMsg(error.message);
-        //   setMessage(error.message);
-        //   setShowPopup(true);
+      //   // } catch (error) {
+      //   //   setIsUploading(prevState =>({...prevState, scan: false}));
+      //   //   setLoadingErrMsg(error.message);
+      //   //   setMessage(error.message);
+      //   //   setShowPopup(true);
       
-        //   setTimeout(() => {
-        //     setShowPopup(false);
-        //   }, 3000);
-        // } 
-      };
+      //   //   setTimeout(() => {
+      //   //     setShowPopup(false);
+      //   //   }, 3000);
+      //   // } 
+      // };
       
       // const handleOcrScan = async () => {
       //   // console.log('ocrfile from handle', ocrSelectedFile);
@@ -1376,13 +1466,16 @@ const handleSubmitOrDraft=async(action)=>{
       //     setIsUploading(false);
       //   }
       // };
+      const handleSettlementMethod = (option)=>{
+        setFormData(prev => ({...prev,expenseSettlement:option}))
+       }
       const handleSelectCategory = async(option) => {
         console.log('handle category',option)
         
-        // setRequiredObj((prev) => ({
-        //   ...prev,
-        //   category: option,
-        // }));
+        setRequiredObj((prev) => ({
+          ...prev,
+          category: option,
+        }));
         let expenseHeaderId 
         let api
   
@@ -1397,9 +1490,7 @@ const handleSubmitOrDraft=async(action)=>{
             api = await getCategoryFormElementApi(tenantId,empId,option)
           }
           const response = api
-          //setMiscellaneousData(response || {})
-          //setDefaultCurrency(response?.defaultCurrency)
-          //setCategoryElement(response?.fields || [])
+          
           setExpenseLineAllocation(response?.newExpenseAllocation) || []
           const allocation1 = response?.newExpenseAllocation
           const initialExpenseAllocation = allocation1 && allocation1.map(({  headerName }) => ({
@@ -1412,18 +1503,28 @@ const handleSubmitOrDraft=async(action)=>{
           
          // sessionStorage.setItem('sessionExpenseHeaderId', (response?.expenseHeaderId ?? null));
          console.log('required fields',response?.fields)
+         //const expenseSettlementOptions = Object.keys(response?.expenseSettlementOptions).filter((option) => response?.expenseSettlementOptions[option]) || [];
+         console.log('expense settlement options', response?.expenseSettlementOptions)
+
           setRequiredObj(prev => ({...prev,
             "companyName":response?.companyName,
             "defaultCurrency":response?.defaultCurrency,
             "fields":response?.fields || [],
             "class":response?.class || [],
+            "expenseHeaderStatus":response?.expenseHeaderStatus?? "-",
             "expenseHeaderId":response?.expenseHeaderId ?? null,
             "expenseHeaderNumber":response?.expenseHeaderNumber,
             "createdBy":response?.createdBy,
             "category":response?.categoryName,
             "groupLimit":response?.group || {},
             "allocation":response?.newExpenseAllocation || [],
-           
+            //---approvers data
+            // "listOfAllManagers":response?.getApprovers?.listOfManagers || [],
+            // "APPROVAL_FLAG":response?.getApprovers?.APPROVAL_FLAG, //boolean
+            //  "approvalFlow":response?.getApprovers?.approvalFlow ||[],
+            //  "MANAGER_FLAG"  :response?.getApprovers?.MANAGER_FLAG, //boolean
+            //  expenseSettlementOptions
+           //---approvers data --end
           }))
   
           
@@ -1444,6 +1545,7 @@ const handleSubmitOrDraft=async(action)=>{
             ...prevData,
             fields: updatedFields,
           }));
+          console.log('Updated FormData:', updatedFields);
          
         } catch (error) {
           console.log('Error in fetching expense data for approval:', error.message);
@@ -1455,7 +1557,8 @@ const handleSubmitOrDraft=async(action)=>{
       
 
       };
-      console.log('my allocations',selectedAllocations)
+      console.log('both state',requiredObj,formData)
+      
       const handleAllocations = (headerName, headerValue) => {
         console.log('allocation handle', headerName, headerValue);
       
@@ -1477,17 +1580,31 @@ const handleSubmitOrDraft=async(action)=>{
     console.log('required object', requiredObj) 
     console.log('form data', formData) 
     console.log('selected allocation', selectedAllocations) 
+    const updateApprovers = (option) => {
+      // Create a deep copy of formData
+      const formData_copy = JSON.parse(JSON.stringify(formData));
+      
+      // Push the new approver to the approvers array
+      formData_copy.approvers.push({
+          name: option.employeeName,
+          empId: option.employeeId,
+          status: 'pending approval',
+          imageUrl: option.imageUrl
+      });
+      
+      // Update the formData state with the modified copy
+      setFormData(formData_copy);
+  };
+  
+
+     const listOfAllManagers = requiredObj?.listOfAllManagers
+    const APPROVAL_FLAG = requiredObj?.APPROVAL_FLAG
+    
 
   return (
     <div>
         {isLoading ? <Error message={loadingErrorMsg}/> :
-        <>
-     
-        
-      
-       
-
-      
+        <>      
         <div className="w-full h-full  font-cabin tracking-tight">
           <div className='p-4'>
         <div className='inline-flex p-2 gap-2 border-[1px] w-full  border-indigo-600 bg-indigo-50'> 
@@ -1507,7 +1624,7 @@ If the required category is unavailable, Kindly contact the administrator.</span
                                         </div>
       
       {categorySearchVisible &&
-      <div className='absolute top-[84px]'>
+      <div className='absolute top-[84px] z-10'>
        <Search
        visible={categorySearchVisible}
        setVisible={setCategorySearchVisible}
@@ -1527,6 +1644,7 @@ If the required category is unavailable, Kindly contact the administrator.</span
 </div>
 </div>
 
+
       {/* //  }   */}
        
 
@@ -1539,23 +1657,80 @@ If the required category is unavailable, Kindly contact the administrator.</span
       </>
     )}
     <CancelButton variant="fit" text="Cancel" onClick={()=>{setModalOpen(true);setActionType("cancelExpense")}} />
+    <div className="flex items-center justify-center rounded-sm hover:bg-slate-100 p-1 cursor-pointer" onClick={()=>handleDashboardRedirection()}>
+          <img src={cancel_icon} className="w-5 h-5"/> 
+    </div> 
   </div>
 )}
 
 
         </div>
-        <HeaderComponent 
-        createdBy={requiredObj?.createdBy}
-        expenseHeaderNumber={requiredObj?.expenseHeaderNumber}
-        expenseHeaderStatus={requiredObj?.expenseHeaderStatus}
-        defaultCurrency={requiredObj?.defaultCurrency}
-  
-        />
+        <div className='flex flex-col sm:flex-row gap-2 gap-y-2'>
+        {APPROVAL_FLAG && <div className='flex items-center relative '>
+                            <div className='flex flex-col h-[73px] justify-start item-start gap-2'>
+                                <div className="text-zinc-600 text-sm font-cabin select-none">Approvers</div>
+                                <div className='flex gap-2 flex-wrap'>
+                                    {formData.approvers && formData.approvers.length>0 && formData.approvers.map((approver, index)=>
+                                    <div
+                                        key={index}
+                                        onClick={()=>setFormData(pre=>({...pre, approvers:pre.approvers.filter(emp=>emp.employeeId != approver.employeeId)}))}
+                                        className={`max-h-12 h-fit min-w-[200px] w-fit px-2 py-2 border  flex gap-2 bg-gray-100 ${errorMsg?.approversError?.set ? 'border-red-600' : 'border-slate-300'}  hover:bg-gray-200 rounded-sm items-center transition ease-out hover:ease-in cursor-pointer`}>
+                                        <img src={approver?.imageUrl??'https://blobstorage0401.blob.core.windows.net/avatars/IDR_PROFILE_AVATAR_27@1x.png'} className='w-8 h-8 rounded-full' />
+                                        <div className="text-neutral-700 text-normal text-sm sm:text-[14.5px] font-cabin -mt-1 sm:mt-0">{approver.name}</div>
+                                        <div className='-mt-1'>
+                                            <img src={close_gray_icon} className='w-4 h-4'/>
+                                        </div>
+                                    </div>)}
+                                    {formData?.approvers?.length < requiredObj?.approvalFlow?.length && formData?.approvers?.length != 0 && <p onClick={()=>setApproversSearchVisible(pre=>!pre)} className='text-sm text-blue-700 hover:text-blue-800 underline cursor-pointer'>Add More</p>}
+                                    {formData.approvers && formData.approvers.length == 0 && <p onClick={(e)=>{e.stopPropagation(); setApproversSearchVisible(pre=>!pre)}} className={`min-h-12 h-fit min-w-[200px] w-fit px-2 py-2 border  flex gap-2 bg-gray-100 ${errorMsg?.approversError?.set ? 'border-red-600' : 'border-slate-300'}  hover:bg-gray-200 rounded-sm items-center transition ease-out hover:ease-in cursor-pointer`}>{'Unassigned'}</p>}
+                                    {errorMsg?.approversError?.set && formData?.approvers?.length < requiredObj?.approvalFlow?.length  && <p className='absolute top-[72px] text-red-600 font-cabin text-sm whitespace-nowrap'>{errorMsg?.approversError?.message}</p>}
+                                </div>
+                            </div>
+
+                            {approversSearchVisible && <div className='absolute'>
+                                <Search
+                                    visible={approversSearchVisible}
+                                    setVisible={setApproversSearchVisible}
+                                    searchChildren={'employeeName'}
+                                    title='Who will Approve this?'
+                                    placeholder="Name's of managers approving this"
+                                    onSelect={(option) => { updateApprovers(option) }}
+                                    error={errorMsg.approversError}
+                                    currentOption={formData.approvers && formData.approvers.length > 0 ? formData.approvers : []}
+                                    options={listOfAllManagers} />
+                                </div>}
+                        </div>}
+                        <Select 
+                        variant="max-w-[200px]"
+                        currentOption={requiredObj?.expenseSettlement}
+                        options={requiredObj?.expenseSettlementOptions}
+                        onSelect={handleSettlementMethod}
+                        error={errorMsg?.expenseSettlement}
+                        placeholder='Select Travel Expense '
+                        title="Expense Settlement"
+                      />
+</div>
+
+
+{requiredObj?.createdBy && 
+ requiredObj?.expenseHeaderNumber && 
+ requiredObj?.expenseHeaderStatus && 
+ requiredObj?.defaultCurrency && (
+  <HeaderComponent 
+    createdBy={requiredObj.createdBy}
+    expenseHeaderNumber={requiredObj.expenseHeaderNumber}
+    expenseHeaderStatus={requiredObj.expenseHeaderStatus}
+    defaultCurrency={requiredObj.defaultCurrency}
+  />
+)}
+
         </div>
     
      {/* {categoryElement.length>0 && <div className="w-fit my-5" >
            <AddMore text={"Add Line Item"} onClick={()=>handleOpenModal('form')}/>
      </div>} */}
+
+
     
 
 {/* //----------- edit line item--start---------------------- */}
@@ -1563,7 +1738,7 @@ If the required category is unavailable, Kindly contact the administrator.</span
 {(requiredObj?.expenseLines)?.map((lineItem , index)=>(
    (lineItem.lineItemId === selectedLineItemId && requiredObj?.fields.length>0) ?
    
- <React.Fragment key={index}>
+ <React.Fragment key={index} >
 
   <EditFormComponent
   index={index}
@@ -1585,9 +1760,9 @@ If the required category is unavailable, Kindly contact the administrator.</span
  </React.Fragment>
    :
 <>
-<div className='w-full flex flex-col sm:flex-row h-screen px-4'>
+<div className='w-full flex flex-col sm:flex-row h-screen px-4 mt-2'>
   <div className='w-full sm:w-3/5 h-full '>
-    <DocumentPreview initialFile={lineItem.Document}/>
+    <DocumentPreview initialFile={lineItem.billImageUrl}/>
   </div>
   <div className='w-full sm:w-2/5 h-full' key={index}>  
      <div className=''>
@@ -1610,9 +1785,8 @@ If the required category is unavailable, Kindly contact the administrator.</span
          
         
 {/* //---------save line item form----------------------- */}
-
+<div id='newLineItem'>
 {showForm &&
-
 <div  className='w-full border flex flex-col md:flex-row relative border-t-2 border-slate-300 h-screen p-4 pb-16 '>
 <div className='w-full md:w-3/5 md:block hidden h-full overflow-auto'>
     <DocumentPreview isFileSelected={isFileSelected} setIsFileSelected={setIsFileSelected} selectedFile={selectedFile} setSelectedFile={setSelectedFile} initialFile=""/>
@@ -1764,11 +1938,11 @@ If the required category is unavailable, Kindly contact the administrator.</span
       <ActionBoard handleClick={handleSaveLineItem} isUploading={isUploading} setModalOpen={setModalOpen} setActionType={setActionType}/>
     </div>
 </div>}
-<div id='newLineItem'/>
+</div>
 
 {/* //---------save line item form end----------------------- */}
 
-           {openModal==='form' && <div className="fixed overflow-hidden max-h-4/5 flex justify-center items-center inset-0 backdrop-blur-sm w-full h-full left-0 top-0 bg-gray-800/60 " >
+           {/* {openModal==='form' && <div className="fixed overflow-hidden max-h-4/5 flex justify-center items-center inset-0 backdrop-blur-sm w-full h-full left-0 top-0 bg-gray-800/60 " >
                 <div className='z-10 max-w-4/5  md:mx-0 mx-4   sm:w-2/5 w-full min-h-4/5 max-h-4/5  bg-white  rounded-lg shadow-md'>
                 <div onClick={()=>setOpenModal(null)} className=' w-10 h-10 flex mr-5 mt-5 justify-center items-center float-right   hover:bg-red-300 rounded-full'>
                       <img src={cancel_icon} className='w-8 h-8'/>
@@ -1786,7 +1960,7 @@ If the required category is unavailable, Kindly contact the administrator.</span
                     </div>
                 </div>
                 </div>
-            }
+            } */}
 
 {/* {openModal==='upload' && <div className="fixed overflow-hidden max-h-4/5 flex justify-center items-center inset-0 backdrop-blur-sm w-full h-full left-0 top-0 bg-gray-800/60 scroll-none " >
                 <div className='z-10  md:w-3/5 w-full mx-8  min-h-4/5 max-h-4/5 scroll-none bg-white  rounded-lg shadow-md'>
