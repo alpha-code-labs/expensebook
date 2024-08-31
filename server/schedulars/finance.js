@@ -25,13 +25,13 @@ const updateSentToFinanceStatus = async (settlementsFilter) => {
   const bulkOps = documents.map((doc) => {
     const update = { $set: {} };
 
-    if (doc.cashAdvanceSchema?.cashAdvancesData) {
+    if (doc?.cashAdvanceSchema?.cashAdvancesData) {
       update.$set['cashAdvanceSchema.cashAdvancesData.$[elem].actionedUpon'] = true;
     }
-    if (doc.tripSchema?.travelExpenseData) {
-      update.$set['tripSchema.travelExpenseData.actionedUpon'] = true;
+    if (doc?.tripSchema?.travelExpenseData) {
+      update.$set['tripSchema.travelExpenseData.$[elem].actionedUpon'] = true;
     }
-    if (doc.reimbursementSchema) {
+    if (doc?.reimbursementSchema) {
       update.$set['reimbursementSchema.actionedUpon'] = true;
     }
 
@@ -87,7 +87,7 @@ export const financeBatchJob = async () => {
         let pendingTravelExpenseSettlements = [];
         let pendingReimbursementSettlements = [];
 
-        if (settlements) {
+        if (settlements?.length > 0) {
             pendingCashAdvanceSettlements = settlements
             .filter(doc => {
                 return doc?.cashAdvanceSchema?.cashAdvancesData.some(
@@ -124,9 +124,9 @@ export const financeBatchJob = async () => {
             await updateSentToFinanceStatus(settlementsFilter)
             result = { pendingCashAdvanceSettlements, pendingTravelExpenseSettlements, pendingReimbursementSettlements };
             return result;
-        } else {
+        } 
           return {};
-        }
+      
     } catch (error) {
         console.error("Error in fetching employee Dashboard:", error);
         throw new Error('Error in fetching employee Dashboard');

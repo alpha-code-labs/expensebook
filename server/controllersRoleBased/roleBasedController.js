@@ -1605,10 +1605,10 @@ const approvalsForManager = async (tenantId, empId) => {
             const travel = await Promise.all(
                 approvalDoc
                 .filter(approval =>
-                    approval.travelRequestSchema.travelRequestStatus === 'pending approval'&&
+                    approval.travelRequestSchema?.travelRequestStatus === 'pending approval'&&
                     approval.travelRequestSchema?.approvers &&
-                    approval.travelRequestSchema.approvers.length > 0 &&
-                    approval.travelRequestSchema.isCashAdvanceTaken === false &&
+                    approval.travelRequestSchema?.approvers.length > 0 &&
+                    approval.travelRequestSchema?.isCashAdvanceTaken === false &&
                     approval.travelRequestSchema.approvers.some(approver =>
                       approver.empId === empId &&
                       approver.status === 'pending approval'

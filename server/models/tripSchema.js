@@ -627,86 +627,106 @@ export const tripSchema = new mongoose.Schema({
       default: 0,
     },
   },
-    isSentToExpense: Boolean, 
-    notificationSentToDashboardFlag: Boolean,
-      travelRequestData:  {
-        type: travelRequestSchema,
+  travelRequestData:  {
+    type: travelRequestSchema,
+     required: true,
+  },
+  cashAdvancesData: [
+    {
+      tenantId: {
+        type: String,
         required: true,
       },
-    cashAdvancesData: [
+      travelRequestId: {
+        type: String,
+        // required: true,
+      },
+      travelRequestNumber:{
+        type: String,
+        required: true,
+      },
+      cashAdvanceId: {
+        type: String,
+        // unique: true,
+        required: true,
+      },
+      cashAdvanceNumber:{
+        type: String,
+        required: true,
+      },
+      createdBy: {
+          empId: String,
+          name: String,
+      },
+      cashAdvanceStatus: {
+        type: String,
+        enum: cashAdvanceStatusEnum,
+        required: true,
+        default: 'draft',
+      },
+      cashAdvanceState: {
+        type: String,
+        enum: cashAdvanceStateEnums,
+        default: 'section 0',
+        required: true,
+      },
+      amountDetails: [
         {
-          tenantId: {
-            type: String,
-            required: true,
-          },
-          travelRequestId: {
-            type: mongoose.Types.ObjectId, 
-            required: true,
-          },
-          travelRequestNumber:{
-            type: String,
-            required: true,
-          },
-          cashAdvanceId: {
-            type: mongoose.Types.ObjectId, 
-            required: true,
-          },
-          cashAdvanceNumber:{
-            type: String,
-            required: true,
-          },
-          createdBy: {
-              empId: String,
-              name: String,
-          },
-          cashAdvanceStatus: {
-            type: String,
-            enum: cashAdvanceStatusEnum,
-            required: true,
-            default: 'draft',
-          },
-          cashAdvanceState: {
-            type: String,
-            enum: cashAdvanceStateEnums,
-            default: 'section 0',
-            required: true,
-          },
-          amountDetails: [
-            {
-              amount: Number,
-              currency: {},
-              mode: String,
-            },
-          ],
-          approvers: [
-            {
-              empId: String,
-              name: String,
-              status: {
-                type: String,
-                enum: approverStatusEnums,
-              },
-            },
-          ],
-          actionedUpon:{
-            type:Boolean,
-            default:false
-          },
-          assignedTo:{empId:String, name:String},
-          paidBy:{empId:String, name:String},
-          recoveredBy:{empId:String, name:String},
-          cashAdvanceRequestDate: Date,
-          cashAdvanceApprovalDate: Date,
-          cashAdvanceSettlementDate: Date,
-          cashAdvanceViolations: String,
-          cashAdvanceRejectionReason: String,
+          amount: Number,
+          currency: {},
+          mode: String,
         },
       ],
-    travelExpenseData:[
+      approvers: [
         {
-          type: travelExpenseSchema,
-        }
+          empId: String,
+          name: String,
+          status: {
+            type: String,
+            enum: approverStatusEnums,
+          },
+        },
       ],
+      assignedTo:{
+        empId:{type:String, default:null},
+        name:{type:String, default:null},
+      },
+      paidBy:{
+        empId:{type: String, default: null},
+        name: {type:String, default: null},
+      },
+      recoveredBy:{
+        empId:{type: String, default: null},
+       name:{type: String, default: null},
+      },
+      actionedUpon:{
+        type:Boolean,
+        default:false
+      },
+      recoveryFlag:{
+        type:Boolean,
+        required:true,
+        default:false,
+      },
+      paidFlag:{
+        type:Boolean,
+        required:true,
+        default:false,
+      },
+      cashAdvanceRequestDate: Date,
+      cashAdvanceApprovalDate: Date,
+      cashAdvanceSettlementDate: Date,
+      cashAdvanceViolations: String,
+      cashAdvanceRejectionReason: String,
+    },
+  ],
+  travelExpenseData:[
+  {
+    type: travelExpenseSchema,
+  }
+  ],
+  isSentToExpense: Boolean, 
+  notificationSentToDashboardFlag: Boolean,
 }); 
 
 

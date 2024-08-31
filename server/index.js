@@ -98,7 +98,7 @@ app.use((err, req, res, next) => {
 startConsumer('dashboard');
 
 //BatchJobs
-// scheduleToFinanceBatchJob()
+scheduleToFinanceBatchJob()
 consumeFromDashboardQueue();
 
 

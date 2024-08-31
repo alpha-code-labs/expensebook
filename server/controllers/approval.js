@@ -499,13 +499,13 @@ console.log(cashAdvanceIds);
 
     // send Rejected cash advance to Cash microservice
     const promises = [
-      sendToOtherMicroservice(payload, 'approve-reject-ca-later', 'cash', 'To update cashAdvanceStatus to rejected in cash microservice'),
-      sendToOtherMicroservice(payload, 'approve-reject-ca-later', 'approval', 'To update cashAdvanceStatus to rejected in cash microservice'),
+      sendToOtherMicroservice(payload, 'approve-reject-ca-later', 'cash', 'To update cashAdvanceStatus to approved in cash microservice'),
+      sendToOtherMicroservice(payload, 'approve-reject-ca-later', 'approval', 'To update cashAdvanceStatus to approved in approval microservice'),
      ]
     await Promise.all(promises)
 
    // Send updated travel to the dashboard synchronously
- //  const dashboardResponse = await sendToDashboardMicroservice(payload, 'approve-reject-ca',  'To update cashAdvanceStatus to rejected in cash microservice')
+ //  const dashboardResponse = await sendToDashboardMicroservice(payload, 'approve-reject-ca',  'To update cashAdvanceStatus to approved in cash microservice')
 
 
   return ({ message: `Cash Advance approved` });
@@ -1059,8 +1059,8 @@ export const rejectCashAdvance = async (tenantId, empId, cashApprovalDocs,reject
           const isBooked = payload.filter(trip => trip.travelRequestStatus === 'booked')
 
           if(isBooked && isBooked.length){
-            await sendToOtherMicroservice(isBooked,'approve-reject-ca-later','trip', 'To update cashAdvanceStatus to approved -cash advance raised later')
-            await sendToOtherMicroservice(isBooked,'approve-reject-ca-later','expense', 'To update cashAdvanceStatus to approved -cash advance raised later')
+            await sendToOtherMicroservice(isBooked,'approve-reject-ca-later','trip', 'To update cashAdvanceStatus to rejected -cash advance raised later')
+            await sendToOtherMicroservice(isBooked,'approve-reject-ca-later','expense', 'To update cashAdvanceStatus to rejected -cash advance raised later')
           }
 
           // send Rejected cash advance to Cash microservice
@@ -1231,7 +1231,7 @@ export const travelExpenseApproval = async (req, res) => {
 
        if(approver && isAllApproved && isPendingApproval ){
         approver.status = 'approved'
-        expenseReportFound.expenseHeaderStatus = 'approved'
+        expenseReportFound.expenseHeaderStatus = 'pending settlement'
        } else if(approver && isPendingApproval && isRejected ){
         approver.status = 'rejected'
         expenseReportFound.expenseHeaderStatus = 'rejected';

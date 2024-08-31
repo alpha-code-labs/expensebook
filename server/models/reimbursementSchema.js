@@ -111,6 +111,7 @@ approvers: [
       type: String,
       enum: approverStatusEnums,
     },
+    imageUrl: String,
   },
 ],
 expenseLines: [expenseLineSchema],
@@ -121,21 +122,6 @@ actionedUpon:{
 },
 expenseCancelledReason: String,
 expenseSubmissionDate: Date,
+expenseSettlementOptions:String,
 rejectionReason: String,
 });
-
-
-// Pre hook to generate and assign an ObjectId to expenseHeaderId before saving the document
-reimbursementSchema.pre('validate', function(next) {
-  if(!this.expenseHeaderId) {
-    this.expenseHeaderId = new mongoose.Types.ObjectId(); 
-  }
-  next(); // Call 'next' to proceed with the save operation
-})
-
-// Function to generate the incremental number
-const generateIncrementalNumber = (tenantName, incrementalValue) => {
-  const formattedTenant = (tenantName || '').toUpperCase().substring(0, 3);
-  return `NTER${formattedTenant}${incrementalValue.toString().padStart(6, '0')}`;
-};
-

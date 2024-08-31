@@ -6,7 +6,7 @@ import { fullUpdateExpense } from './messageProcessor/travelExpenseProcessor.js'
 import { addLeg, updateTrip, updateTripStatus, updateTripToCompleteOrClosed } from './messageProcessor/trip.js';
 import { fullUpdateCash, fullUpdateCashBatchJob } from './messageProcessor/cash.js';
 import { deleteReimbursement, updateReimbursement } from './messageProcessor/reimbursement.js';
-import { settleCashAdvance } from './messageProcessor/finance.js';
+import {  settleOrRecoverCashAdvance } from './messageProcessor/finance.js';
 
 dotenv.config();
 export async function startConsumer(receiver) {
@@ -252,9 +252,9 @@ export async function startConsumer(receiver) {
               }
             }
           } else if (source == 'finance'){
-            if (action == 'settle-ca') {
+            if (action == 'settle-ca' ) {
               console.log('settle-ca', payload);
-                const result = await settleCashAdvance(payload);
+                const result = await settleOrRecoverCashAdvance(payload);
                 console.log("result for settle ca", result)
                   if (result.success) {
                     // Acknowledge message
@@ -266,7 +266,7 @@ export async function startConsumer(receiver) {
                   }
             }
             if(action == 'recover-ca'){
-                const result = await recoverCashAdvance(payload)
+                const result = await settleOrRecoverCashAdvance(payload)
                 console.log("result for recoverCashAdvance ", result)
                 if(result.success) {
                     channel.ack(msg);

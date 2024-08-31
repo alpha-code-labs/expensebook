@@ -422,6 +422,7 @@ export const itinerarySchema = {
             type: String,
             enum: approverStatusEnums,
           },
+          imageUrl: String,
         },
       ],
       type: {
@@ -540,6 +541,7 @@ export const travelRequestSchema = new mongoose.Schema({
         type: String,
         enum: approverStatusEnums,
       },
+      imageUrl: String,
     },
   ],
   assignedTo: {

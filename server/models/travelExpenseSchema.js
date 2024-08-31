@@ -83,6 +83,7 @@ const expenseLineSchema = new mongoose.Schema({
         type: String,
         enum: approverStatusEnums,
       },
+      imageUrl: String,
     },
   ],
   billImageUrl: String,
@@ -147,8 +148,8 @@ export const travelExpenseSchema = new mongoose.Schema({
         status: {
           type: String,
           enum: approverStatusEnums,
-          default: 'pending approval'
         },
+        imageUrl: String,
       }
     ],
     expenseSettlement:{
