@@ -1292,31 +1292,45 @@ const getExpenseHeaderStatus = (travelExpenseData) => {
 export const onSubmitExpenseHeader = async (req, res) => {
     const {tenantId, empId, tripId, expenseHeaderId } = req.params;
   console.log("params----onSubmitExpenseHeader", req.params)
-  const { expenseSettlement} = req.body;
+  let {approvers=[], expenseSettlement} = req.body;
+
+  const filter =  {
+    'tenantId': tenantId,
+    'tripId': tripId,
+    $or: [
+      { 'travelRequestData.createdBy.empId': empId },
+      { 'travelRequestData.createdFor.empId': empId },
+    ],
+    'travelExpenseData': {
+      $elemMatch: {
+        'expenseHeaderId': expenseHeaderId,
+        'expenseHeaderStatus': { $in: ['new', 'draft', 'pending approval', 'approved', 'pending settlement'] },
+      },
+    },
+  }
+
+  const update = {
+    $set:{
+    'travelExpenseData.$.expenseSettlement': expenseSettlement,
+    'travelExpenseData.$.expenseSubmissionDate': new Date(),
+  }
+}
+
+console.log("update approvers - before ", approvers)
+
+if(approvers?.length > 0){
+  approvers.forEach(a=> a.status = 'pending approval')
+  update.$set['travelExpenseData.$.approvers'] = approvers
+}
+
+console.log("update approvers - after ", approvers)
   console.log("expenseSettlement", expenseSettlement)
     try {
       const expenseReport = await Expense.findOneAndUpdate(
-        {
-          'tenantId': tenantId,
-          'tripId': tripId,
-          $or: [
-            { 'travelRequestData.createdBy.empId': empId },
-            { 'travelRequestData.createdFor.empId': empId },
-          ],
-          'travelExpenseData': {
-            $elemMatch: {
-              'expenseHeaderId': expenseHeaderId,
-              'expenseHeaderStatus': { $in: ['new', 'draft', 'pending approval', 'approved', 'pending settlement'] },
-            },
-          },
-        },
-        {$set:{
-          'travelExpenseData.$.expenseSettlement': expenseSettlement,
-          'travelExpenseData.$.expenseSubmissionDate': new Date(),
-        }}
+      filter,
+      update
       );
       
-  
       // Check if the expense report is not found
       if (!expenseReport) {
         return res.status(404).json({ message: 'Expense report not found' });
@@ -1349,7 +1363,7 @@ if (matchingIndex !== -1) {
       const action = 'full-update';
       const comments = 'expense report submitted';
 
-      console.log("the payload expense report submitted direct ..", getExpenseReport)
+      // console.log("the payload expense report submitted direct ..", getExpenseReport)
 
 await  sendToOtherMicroservice(payload, action, 'dashboard', comments, source, 'online')
 await sendToOtherMicroservice(payload, action, 'trip', comments, source, 'online')

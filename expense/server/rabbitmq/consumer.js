@@ -184,6 +184,19 @@ export async function startConsumer(receiver) {
                 console.log('update failed with error code', res.error)
               }
             } 
+            if(action == 'expense-approval'){
+              const res = await expenseReportApproval(payload);
+              console.log(res)
+              if(res.success){
+                //acknowledge message
+                channel.ack(msg)
+                console.log('message processed successfully')
+              }
+              else{
+                //implement retry mechanism
+                console.log('update failed with error code', res.error)
+              }
+            }
           } else if (source == 'travel'){
             if(action == 'add-leg'){
               console.log('add-leg from travel microservice to expense microservice')
