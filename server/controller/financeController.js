@@ -20,7 +20,7 @@ const getEmployeeRoles = async (tenantId, empId) => {
     if (!employee || !employee.employeeRoles) {
         throw new Error("Employee roles not found");
     }
-    console.log("employee", employee)
+    // console.log("employee", employee)
     const employeeRoles = employee?.employeeRoles
     const { employeeName,employeeId }= employee?.employeeDetails
 

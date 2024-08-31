@@ -1,28 +1,7 @@
 import mongoose from 'mongoose';
-import { travelRequestSchema } from './travelRequest.js';
+import { travelRequestSchema } from './travelSchema.js';
+import { travelExpenseSchema } from './travelExpenseData.js';
 
-//---------------travel---------
-
-const travelRequestStatusEnums = [
-  'draft', 
-  'pending approval', 
-  'approved', 
-  'rejected', 
-  'pending booking', 
-  'booked',
-  'transit', 
-  'paid and cancelled', 
-  'recovered',
-  'cancelled', 
-  'paid and distributed' 
-] 
-
-const travelRequestStateEnums = [
-  'section 0', 
-  'section 1', 
-  'section 2', 
-  'section 3', 
-]
 
 const approverStatusEnums = [
   'pending approval',
@@ -512,8 +491,14 @@ const lineItemStatusEnums = [
   'draft',
   'save',
   'submit',
-  'delete'
+  'delete',
+  'pending approval',
+  'approved',
+  'rejected',
+  'pending settlement',
+  'paid and distributed',
 ]
+
 
 //it is dynamic, any expense lines fields can be added
 const expenseLineSchema = new mongoose.Schema({
@@ -704,102 +689,106 @@ const expenseLineSchema = new mongoose.Schema({
         },
       ],
     travelExpenseData:[
+        // {
+        //   tenantId: {
+        //     type: String,
+        //     required: true,
+        //   },
+        //   tenantName: {
+        //     type: String,
+        //     // required: true,
+        //   },
+        //   companyName: {
+        //     type: String,
+        //     // required: true,
+        //   },
+        //   travelRequestId: {
+        //     type: mongoose.Types.ObjectId, 
+        //     // required: true,
+        //   },
+        //   travelRequestNumber:{
+        //     type: String,
+        //     // required: true,
+        //   },
+        //   expenseHeaderNumber:{
+        //     type: String,
+        //   },
+        //   expenseHeaderId: { 
+        //     type: mongoose.Schema.Types.ObjectId,
+        //     required: true,
+        //   },
+        //   expenseHeaderType: { 
+        //     type: String,
+        //     enum: expenseHeaderTypeEnums,
+        //   },
+        //   createdBy:{
+        //     type: {empId: String, name: String}, //employee Id by whom TR is raised
+        //     // required: true
+        //     },
+        //   travelAllocationFlags:{ //Comes from HRMaster -Based on this expense booking screen changes
+        //     level1:Boolean,
+        //     level2:Boolean,
+        //     level3:Boolean,
+        //   },
+        //   expenseHeaderStatus: { 
+        //     type: String,
+        //     enum: expenseHeaderStatusEnums,
+        //     default: "new",
+        //   },
+        //   alreadyBookedExpenseLines: {
+        //     type: itinerarySchema,
+        //     default: undefined,
+        //   },
+        //   expenseLines: [expenseLineSchema],
+        //   approvers: [ // added directly from travel request approvers
+        //     {
+        //       empId: String,
+        //       name: String,
+        //       status: {
+        //         type: String,
+        //         enum: approverStatusEnums,
+        //         default: 'pending approval'
+        //       },
+        //     }
+        //   ],
+        //   expenseSettlement:{
+        //     type:String,
+        //   },
+        //   defaultCurrency:{
+        //     type: Object,
+        //   },
+        //   allocations:[],
+        //   violations: [String],
+        //   travelType: String,
+        //   rejectionReason: String,
+        //   paidBy:{
+        //     empId:String, 
+        //     name:String
+        //   },
+        //   recoveredBy:{
+        //     empId:String, 
+        //     name:String
+        //   },
+        //   actionedUpon:{
+        //     type:Boolean,
+        //     required:true,
+        //     default:false
+        //   },
+        //   settlementBy:{
+        //     empId:{type: String, default:null},
+        //     name:{type: String, default:null}
+        //   },
+        //   submissionDate: Date,
+        //   settlementDate:Date,
+        //   entriesFlag:{
+        //   type:Boolean,
+        //   required:true,
+        //   default:false,
+        //   },
+        // }
         {
-          tenantId: {
-            type: String,
-            required: true,
-          },
-          tenantName: {
-            type: String,
-            // required: true,
-          },
-          companyName: {
-            type: String,
-            // required: true,
-          },
-          travelRequestId: {
-            type: mongoose.Types.ObjectId, 
-            // required: true,
-          },
-          travelRequestNumber:{
-            type: String,
-            // required: true,
-          },
-          expenseHeaderNumber:{
-            type: String,
-          },
-          expenseHeaderId: { 
-            type: mongoose.Schema.Types.ObjectId,
-            required: true,
-          },
-          expenseHeaderType: { 
-            type: String,
-            enum: expenseHeaderTypeEnums,
-          },
-          createdBy:{
-            type: {empId: String, name: String}, //employee Id by whom TR is raised
-            // required: true
-            },
-          travelAllocationFlags:{ //Comes from HRMaster -Based on this expense booking screen changes
-            level1:Boolean,
-            level2:Boolean,
-            level3:Boolean,
-          },
-          expenseHeaderStatus: { 
-            type: String,
-            enum: expenseHeaderStatusEnums,
-            default: "new",
-          },
-          alreadyBookedExpenseLines: {
-            type: itinerarySchema,
-            default: undefined,
-          },
-          expenseLines: [expenseLineSchema],
-          approvers: [ // added directly from travel request approvers
-            {
-              empId: String,
-              name: String,
-              status: {
-                type: String,
-                enum: approverStatusEnums,
-                default: 'pending approval'
-              },
-            }
-          ],
-          expenseSettlement:{
-            type:String,
-          },
-          defaultCurrency:{
-            type: Object,
-          },
-          allocations:[],
-          violations: [String],
-          travelType: String,
-          rejectionReason: String,
-          paidBy:{
-            empId:String, 
-            name:String
-          },
-          recoveredBy:{
-            empId:String, 
-            name:String
-          },
-          actionedUpon:{
-            type:Boolean,
-            required:true,
-            default:false
-          },
-          settlementBy:{
-            empId:{type: String, default:null},
-            name:{type: String, default:null}
-          },
-          submissionDate: Date,
-          settlementDate:Date,
-          entriesFlag:{
-          type:Boolean,
-          required:true,
-          default:false,
-          },
+          type: travelExpenseSchema,
+          required: true,
         }
   ],
 }); 

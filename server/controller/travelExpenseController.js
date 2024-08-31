@@ -217,16 +217,16 @@ export const paidExpenseReports = async (req, res, next) => {
       return res.status(404).json({ message: 'No matching document found or update failed' });
     }
 
-    // const payload = {
-    //   tenantId,travelRequestId, expenseHeaderId,settlementBy:getFinance , expenseHeaderStatus:newStatus.PAID
-    // }
+    const payload = {
+      tenantId,travelRequestId, expenseHeaderId,settlementBy:getFinance , expenseHeaderStatus:newStatus.PAID
+    }
 
-    // const options={
-    //  action:'expense-paid',
-    //  comments:'From Finance ms -travelExpenseReport status is updated to paid'
-    // }
-    // // console.log("Update successful:", updatedExpenseReport);
-    // await sendUpdate({payload,...options})
+    const options={
+     action:'expense-paid',
+     comments:'From Finance ms -travelExpenseReport status is updated to paid'
+    }
+    console.log("Update successful:", updatedExpenseReport);
+    await sendUpdate(payload,options)
     return res.status(200).json({ message: 'Update successful', result: updatedExpenseReport });
   } catch (error) {
     console.error('Error updating expense report status:', error.message);

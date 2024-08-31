@@ -208,14 +208,16 @@ export const financeSchema = Joi.object({
   })
 })
 
-export const sendUpdate = async(payload,action,comments, includeCash=false) => {
+export const sendUpdate = async(payload,options) => {
   try{
-    const services = ['dashboard','trip','expense']
+    const {action,comments, includeTrip=false} = options
+    const services = ['dashboard','cash']
 
-    if(includeCash){
-      services.push('cash')
+    if(includeTrip){
+      services.push('trip','expense')
     }
 
+    console.log("payload sent for other ms ....",payload)
     const results = await Promise.allSettled([
       services.map(service => sendToOtherMicroservice(payload,action,service,comments))
     ])
@@ -266,7 +268,8 @@ try {
         $set: {
           'cashAdvanceSchema.cashAdvancesData.$[elem].paidBy': getFinance,
           'cashAdvanceSchema.cashAdvancesData.$[elem].paidFlag': true,
-          'cashAdvanceSchema.cashAdvancesData.$[elem].cashAdvanceStatus': STATUS.PAID
+          'cashAdvanceSchema.cashAdvancesData.$[elem].cashAdvanceStatus': STATUS.PAID,
+          'cashAdvanceSchema.cashAdvancesData.$[elem].actionedUpon': true
         }
       },
       {
@@ -279,17 +282,28 @@ try {
       return res.status(404).json({ message: 'No matching document found for update' });
     }
 
-    const payload = {
-      tenantId, travelRequestId, cashAdvanceId,paidBy:getFinance,paidFlag:true,cashAdvanceStatus:'paid'
+    const { travelRequestStatus} = updateResult.cashAdvanceSchema.travelRequestData
+
+    let includeTrip = false
+    if(travelRequestStatus =='booked'){
+      includeTrip = true
     }
-    console.log("Update successful:", updateResult);
+
+    const payload = {
+      tenantId, travelRequestId, cashAdvanceId,paidBy:getFinance,paidFlag:true,cashAdvanceStatus:STATUS.PAID, 
+    }
+
+    console.log("Update successful:paidCashAdvance-", updateResult);
+
+    // const { travelRequestData:{travelRequestStatus}} = updateResult?.cashAdvanceSchema
+
     const options = {
     action :'settle-ca',
     comments:'cash advance paid by finance',
-    includeCash:true
+    includeTrip
     }
- 
-    // await sendUpdate({payload,...options})
+
+    await sendUpdate(payload,options)
     return res.status(200).json({ message: 'cash Advance paid Successfully'});
   } catch (error) {
     console.error("paidCashAdvance error",error.message)
@@ -428,20 +442,26 @@ export const recoverCashAdvance = async (req, res, next) => {
       return res.status(404).json({ message: 'No matching travel request found or update failed' });
     }
 
+    const { travelRequestStatus } = updatedTravelRequest.cashAdvanceSchema.travelRequestData
+
+    let includeTrip = false
+    if(travelRequestStatus =='booked'){
+      includeTrip = true
+    }
     console.log("Update successful:", updatedTravelRequest);
 
     const payload = {
-      tenantId, travelRequestId, cashAdvanceId,paidBy:getFinance
+      tenantId, travelRequestId, cashAdvanceId,recoveredBy:getFinance,recoveryFlag, cashAdvanceStatus: status.RECOVERED,
     }
-    console.log("Update successful:", payload);
+    console.log("Update successful:recoverCashAdvance:", payload);
 
     const options = {
       action :"recover-ca",
       comments:'cash advance recovered by finance',
-      includeCash:true
+      includeTrip,
       }
 
-    // await sendUpdate(payload,...options)
+    await sendUpdate(payload,options)
     return res.status(200).json({ message: 'Recovery successful'});
   } catch (error) {
     console.error('Error updating cash advance status:', error);
