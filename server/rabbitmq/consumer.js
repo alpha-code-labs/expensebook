@@ -205,6 +205,19 @@ export async function startConsumer(receiver) {
               console.log('update failed with error code', res.error)
             }
           } 
+          if(action == 'expense-approval'){
+            const res = await expenseReportApproval(payload);
+            console.log(res)
+            if(res.success){
+              //acknowledge message
+              channel.ack(msg)
+              console.log('message processed successfully')
+            }
+            else{
+              //implement retry mechanism
+              console.log('update failed with error code', res.error)
+            }
+          }
           } else if (source == 'expense'){
             if(action == 'full-update'){
             console.log('trying to update travelExpense Data')
