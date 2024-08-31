@@ -153,7 +153,7 @@ const selectDivFocus = (e)=>{
       <div className={`min-w-[200px] w-full ${variant  ? variant : 'max-w-[403px]'} h-[73px] flex-col justify-start items-start gap-2 inline-flex`}>
         {/* title*/}
         <div className="text-zinc-600 text-sm font-cabin">{title}</div>
-        <div className="self-stretch h-12 justify-start items-start gap-4 inline-flex">
+        <div className="self-stretch   h-12 justify-start items-start gap-4 inline-flex">
           <div className={`grow relative shrink basis-0 self-stretch px-6 py-2 bg-white rounded-md border border-neutral-300 justify-between items-center flex`} >
             <div
               tabIndex={0}

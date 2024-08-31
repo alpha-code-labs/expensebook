@@ -76,21 +76,22 @@ console.log('error mgs',errorMsg.conversion)
           //   }
           // }));
           handleCurrencyConversion({currencyName:value.shortName})
-        }else{
-          if(key==='Currency'){
+        }else if (key==='Currency' && value.shortName === defaultCurrency.shortName){
+          
             setErrorMsg((prevErrors) => ({ ...prevErrors, conversion: { set: false, msg: "" } }));
-          }
           
           setFormData(prev => ({
             ...prev,
             fields: {
-              ...prev.fields, // Spread the existing fields object
-              isMultiCurrency: false, // Update the isMultiCurrency flag to true
+              ...prev.fields, 
+              isMultiCurrency: false, 
               convertedAmountDetails:null
             }
             
+            
           }));
-         // setCurrencyConversion(prev =>({...prev, response:null}))
+         
+         setCurrencyConversion(prev =>({...prev, response:null}))
           
          
           //setErrorMsg((prevErrors) => ({ ...prevErrors, personalAmount: { set: true, msg: "Enter the amount" } }));

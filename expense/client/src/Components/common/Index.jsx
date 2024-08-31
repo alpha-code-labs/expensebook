@@ -211,7 +211,7 @@ export default function Search(props){
                             className="flex gap-4 items-center pl-4 text-neutral-600 px-4 py-3 cursor-pointer transition-color hover:bg-gray-200 group focus-visible:outline-0 focus-visible:bg-gray-100">
                         { 
                             <div className="bg-slate-100 group-hover:bg-white p-2 rounded-full ">
-                                <img src={categoryIcons[option?.categoryName || option] } className="w-4 h-4 rounded-full"/>
+                                <img src={categoryIcons[option?.categoryName || option] || option?.imageUrl} className="w-4 h-4 rounded-full"/>
                                 </div>}
                         {/* {option.imageUrl && <img src={option.imageUrl} className="w-6 h-6 rounded-full"/>} */}
                         <p className="text-sm font-medium font-cabin">

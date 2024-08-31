@@ -48,6 +48,7 @@ export {default as validation_symb_icon} from './validation_sym_c.svg';
 export {default as plus_icon} from './plus.svg';
 export {default as scan_icon }  from './scan-doc.png';
 export {default as info_icon }  from './icons8-info.svg';
+export {default as close_gray_icon} from './close.svg'
 
 
 

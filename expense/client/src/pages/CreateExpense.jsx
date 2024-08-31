@@ -11,7 +11,7 @@ import { getStatusClass, titleCase, urlRedirection } from "../utils/handyFunctio
 import Button from "../components/common/Button";
 import Error from "../components/common/Error";
 import PopupMessage from "../components/common/PopupMessage";
-import { cab_purple as cab_icon, airplane_1 as airplane_icon , cancel_icon, modify_icon, check_tick, file_icon, validation_sym, validation_symb_icon, upcoming_trip, briefcase, money, user_icon, arrow_left} from "../assets/icon";
+import { cab_purple as cab_icon, airplane_1 as airplane_icon , cancel_icon, modify_icon, check_tick, file_icon, validation_sym, validation_symb_icon, upcoming_trip, briefcase, money, user_icon, arrow_left, info_icon} from "../assets/icon";
 import { tripDummyData, tripDummyDataLevel2 } from "../dummyData/tripDummyData.js";
 import { hrDummyData } from "../dummyData/requiredDummy";
 import Select from "../components/common/Select"; 
@@ -28,6 +28,7 @@ import Button1 from "../Components/common/Button1.jsx";
 import CancelButton from "../Components/common/CancelButton.jsx";
 import { LineItemView } from "../travelExpenseSubcomponent/LineItemView.jsx";
 import { DocumentPreview } from "../travelExpenseSubcomponent/BillPreview.jsx";
+import Modal from "../components/common/Modal.jsx";
 
 
 const currencyDropdown = [
@@ -97,7 +98,7 @@ const ocrValues = {
  'Total Amount':"136"
  }
 
-  const [ocrFileSelected , setOcrFileSelected]=useState(false)
+  
   const [ocrSelectedFile , setOcrSelectedFile]=useState(null)
   const [ocrField , setOcrField]=useState(ocrValues)
 
@@ -170,7 +171,8 @@ const ocrValues = {
   const [formData, setFormData] = useState(null); //this is for get expense data
   const [getExpenseData, setGetExpenseData]=useState(); //to get data header level 
   const [getSavedAllocations,setGetSavedAllocations]=useState()  ///after save the allocation then i will get next time from here 
-  const [openModal,setOpenModal]=useState(null);
+  const [modalOpen,setModalOpen]=useState(false);
+  const [actionType, setActionType]=useState(null)
   const [openLineItemForm,setOpenLineItemForm]=useState(true)
   const [headerReport,setHeaderReport]=useState(null)
   const [editLineItemById, setEditLineItemById]=useState(null)
@@ -210,52 +212,7 @@ const ocrValues = {
   }, [tenantId, empId, tripId]);
  
 
- 
 
-  // useEffect(() => {
-
-  //     // const onboardingData = tripDummyData;
-  //     // setOnboadingData(onboardingData);
-  //   // const onboardingData = tripDummyDataLevel2; //level 2 dummy data
-  //   // const onboardingData = bookAnExpenseDatalevel; //level 2 dummy data
-
-  //   const travelAllocationFlags = onboardingData?.companyDetails?.travelAllocationFlags;
-   
-  //   const onboardingLevel = Object.keys(travelAllocationFlags).find((level) => travelAllocationFlags[level] === true);
-    
-  //   const settlementOptionArray =onboardingData?.companyDetails?.expenseSettlementOptions
-  //   const settlementOptions = Object.keys(settlementOptionArray).filter((option) => settlementOptionArray[option]);
-  //   const approversList1 = onboardingData?.approvers && onboardingData?.approvers?.map((approver)=>(approver?.name))
-  //   setApproversList( approversList1)
-  //   setSettlementOptions(settlementOptions)
-    
-  //   setTravelAllocationFlag(onboardingLevel);
-   
-  //   const expenseCategoryAndFields = onboardingData?.companyDetails?.travelExpenseCategories
-   
-  //   setCategoryFields(expenseCategoryAndFields) //this is for get form fields
-  //   //for get level
-    
-  //    if(onboardingLevel=== 'level1'){
-  //     const expenseAllocation= onboardingData?.companyDetails?.expenseAllocation
-  //     setTravelExpenseAllocation(expenseAllocation) 
-  //    }
-
-  //    //-------------------------------------------------
-
-  //    // const hrData= hrDummyData
-  //    const expenseData= onboardingData.travelExpenseData //get line items
-  //    console.log('expenseData',expenseData)   
-  //    ///where is newExpenseReport = true
-  //    const headerReportData = expenseData.find((expense) => expense.newExpenseReport);
-  //    setHeaderReport(headerReportData)
-  //    setFormData({...onboardingData})
-  //    // setGetSavedAllocations({...hrData});
-  //    setGetExpenseData([...expenseData]);
-  //    setTravelRequestStatus(onboardingData)
-  //    setIsLoading(false)
-     
-  // }, [onboardingData]);
   const [activeIndex, setActiveIndex] = useState();
 
   const handleItemClick = (index) => {
@@ -263,6 +220,7 @@ const ocrValues = {
   };
 
   const dashboardBaseUrl = `${import.meta.env.VITE_DASHBOARD_URL}`
+
 
   useEffect(() => {
     if (onboardingData) {
@@ -416,6 +374,7 @@ const ocrValues = {
   console.log('initial allocation',selectedAllocations)
   console.log('expense allocation',travelExpenseAllocation)
   console.log('expenseLine',headerReport?.expenseLines)
+  
   // console.log('onboardingData',onboardingData)
   // console.log('categoryViseFields',categoryfields)
   //categories array for search the category to get fields
@@ -431,66 +390,66 @@ const ocrValues = {
     },[travelAllocationFlag])
 
       
-    useEffect(()=>{
-      //this is for set intialvalue in categoryfield
-      if(travelAllocationFlag==='level1'){
-        const categoryFields1 = selectedCategory && categoryfields.find((category) => category.categoryName === selectedCategory).fields.map((field) => field);
-        console.log('categoryFieds',categoryFields1)
-        setCategoryFieldBySelect(categoryFields1)
+    // useEffect(()=>{
+    //   //this is for set intialvalue in categoryfield
+    //   if(travelAllocationFlag==='level1'){
+    //     const categoryFields1 = selectedCategory && categoryfields.find((category) => category.categoryName === selectedCategory).fields.map((field) => field);
+    //     console.log('categoryFieds',categoryFields1)
+    //     setCategoryFieldBySelect(categoryFields1)
         
-        const initialFormValues =selectedCategory &&  Object.fromEntries(categoryFields1.map((field)=>[field.name , ocrField?.[field.name] || '']))
-        console.log('initial value',{...initialFormValues})
-        setLineItemDetails({...initialFormValues})
-        //level1 for set values
-        if(initialFormValues){
-          const foundDateKey = dateForms?.find(key => Object.keys(initialFormValues).includes(key));
-          const foundTotalAmtKey = totalAmountNames.find(key => Object.keys(initialFormValues).includes(key));
-          const dateValue = foundDateKey ? initialFormValues[foundDateKey] : undefined;
-          const totalAmountValue = foundTotalAmtKey ? initialFormValues[foundTotalAmtKey] : undefined;
-          setDate({[foundDateKey]:dateValue})
-          setTotalAmount(totalAmountValue)
+    //     const initialFormValues =selectedCategory &&  Object.fromEntries(categoryFields1.map((field)=>[field.name , ocrField?.[field.name] || '']))
+    //     console.log('initial value',{...initialFormValues})
+    //     setLineItemDetails({...initialFormValues})
+    //     //level1 for set values
+    //     if(initialFormValues){
+    //       const foundDateKey = dateForms?.find(key => Object.keys(initialFormValues).includes(key));
+    //       const foundTotalAmtKey = totalAmountNames.find(key => Object.keys(initialFormValues).includes(key));
+    //       const dateValue = foundDateKey ? initialFormValues[foundDateKey] : undefined;
+    //       const totalAmountValue = foundTotalAmtKey ? initialFormValues[foundTotalAmtKey] : undefined;
+    //       setDate({[foundDateKey]:dateValue})
+    //       setTotalAmount(totalAmountValue)
          
-        }
+    //     }
         
-      }
-      //this has to do
-      if(['level2','level3'].includes(travelAllocationFlag)){
-        const categories = categoryfields.find(category => category.hasOwnProperty(selectedTravelType)); 
-        const desiredCategory =categories && categories?.[selectedTravelType].find(category => category.categoryName === selectedCategory);
-      const categoryFields1 = desiredCategory?.fields?.map(field => ({ ...field })) || [];
-      console.log('categoryFieds',categoryFields1)
-      console.log('desired category',desiredCategory)
-      const selectedCategoryAllocation = desiredCategory?.expenseAllocation
-      if(travelAllocationFlag=== 'level3'){
-      setTravelExpenseAllocation(selectedCategoryAllocation)}
-       //For level three
-       if(['level3'].includes(travelAllocationFlag)){
-        // for same with empty sting
-        if(getSavedAllocations?.length>0){
-          setSelectedAllocations(getSavedAllocations)
-        }else{
-          const initialExpenseAllocation = selectedCategoryAllocation && selectedCategoryAllocation.map(({ headerValues, ...rest }) => ({
-            ...rest,
-            headerValue: "" // Add "headerValue" and set it to an empty string
-          }));
-          setSelectedAllocations( initialExpenseAllocation)
-        }
-      }
-        //For level three
-      setCategoryFieldBySelect(categoryFields1)        
-        const initialFormValues = selectedCategory &&  Object.fromEntries(categoryFields1.map((field)=>[field.name , ocrValues?.[field.name] || '']))
-        //for get data
-        if(initialFormValues){
-        const foundDateKey = dateForms?.find(key => Object.keys(initialFormValues).includes(key));
-        const foundTotalAmtKey = totalAmountNames.find(key => Object.keys(initialFormValues).includes(key));
-        const dateValue = foundDateKey ? initialFormValues[foundDateKey] : undefined;
-        const totalAmountValue = foundTotalAmtKey ? initialFormValues[foundTotalAmtKey] : undefined;
-        setDate({[foundDateKey]:dateValue})
-        setTotalAmount(totalAmountValue)
-        console.log('initial value',{...initialFormValues},dateValue)
-        setLineItemDetails({...initialFormValues})}
-      }
-    },[selectedCategory ])
+    //   }
+    //   //this has to do
+    //   if(['level2','level3'].includes(travelAllocationFlag)){
+    //     const categories = categoryfields.find(category => category.hasOwnProperty(selectedTravelType)); 
+    //     const desiredCategory =categories && categories?.[selectedTravelType].find(category => category.categoryName === selectedCategory);
+    //   const categoryFields1 = desiredCategory?.fields?.map(field => ({ ...field })) || [];
+    //   console.log('categoryFieds',categoryFields1)
+    //   console.log('desired category',desiredCategory)
+    //   const selectedCategoryAllocation = desiredCategory?.expenseAllocation
+    //   if(travelAllocationFlag=== 'level3'){
+    //   setTravelExpenseAllocation(selectedCategoryAllocation)}
+    //    //For level three
+    //    if(['level3'].includes(travelAllocationFlag)){
+    //     // for same with empty sting
+    //     if(getSavedAllocations?.length>0){
+    //       setSelectedAllocations(getSavedAllocations)
+    //     }else{
+    //       const initialExpenseAllocation = selectedCategoryAllocation && selectedCategoryAllocation.map(({ headerValues, ...rest }) => ({
+    //         ...rest,
+    //         headerValue: "" // Add "headerValue" and set it to an empty string
+    //       }));
+    //       setSelectedAllocations( initialExpenseAllocation)
+    //     }
+    //   }
+    //     //For level three
+    //   setCategoryFieldBySelect(categoryFields1)        
+    //     const initialFormValues = selectedCategory &&  Object.fromEntries(categoryFields1.map((field)=>[field.name , ocrValues?.[field.name] || '']))
+    //     //for get data
+    //     if(initialFormValues){
+    //     const foundDateKey = dateForms?.find(key => Object.keys(initialFormValues).includes(key));
+    //     const foundTotalAmtKey = totalAmountNames.find(key => Object.keys(initialFormValues).includes(key));
+    //     const dateValue = foundDateKey ? initialFormValues[foundDateKey] : undefined;
+    //     const totalAmountValue = foundTotalAmtKey ? initialFormValues[foundTotalAmtKey] : undefined;
+    //     setDate({[foundDateKey]:dateValue})
+    //     setTotalAmount(totalAmountValue)
+    //     console.log('initial value',{...initialFormValues},dateValue)
+    //     setLineItemDetails({...initialFormValues})}
+    //   }
+    // },[selectedCategory ])
 
 
     console.log('selected category',selectedCategory)
@@ -727,17 +686,7 @@ console.log('selected Currency',selectDropdown)
         }
     },[showCancelModal])
 
-     const handleOpenModal=(id)=>{
-      if(id==='upload'){
-        setOpenModal('upload')
-      }
-      if(id==='category'){
-        setOpenModal('category')
-      }
-     }
-//  const handleOpenModal=()=>{
-//    setOpenModal((prevState)=>(!prevState))
-//  }
+ 
 //Handle Delete header
 
      const handleCancelExpenseHeader=async()=>{
@@ -749,22 +698,22 @@ console.log('selected Currency',selectDropdown)
       }
         console.log("cancel header")
         try{
-         setIsUploading(true)
-         setActive(prevState => ({ ...prevState, deleteHeader: true }))
+         
+          setIsUploading(prevState => ({ ...prevState, deleteHeader: true }))
          const response = await cancelTravelExpenseHeaderApi(tenantId,empId,tripId,expenseHeaderId,data)
-         setIsLoading(false)
+         
          setShowPopup(true)
          setMessage(response.message)
-         setIsUploading(false)
-        setActive(prevState => ({ ...prevState, deleteHeader: false }))
+         
+        setIsUploading(prevState => ({ ...prevState, deleteHeader: false }))
          setTimeout(()=>{
            setShowPopup(false)
            setMessage(null)
-           urlRedirection(`${dashboard_url}/${tenantId}/${empId}/overview`)
+           handleDashboardRedirection()
          },5000)
        }catch(error){
-         setIsUploading(false)
-        setActive(prevState => ({ ...prevState, deleteHeader:false }))
+         
+        setIsUploading(prevState => ({ ...prevState, deleteHeader:false }))
          setShowPopup(true)
          setMessage(error.message)
          setTimeout(()=>{
@@ -782,7 +731,7 @@ console.log('selected Currency',selectDropdown)
 // Handle Submit Draft
 const handleSubmitOrDraft=async(action)=>{
   let allowForm = true
-  const data ={ expenseSettlement: selectedExpenseSettlement}
+  const data ={ expenseSettlement: selectedExpenseSettlement ||"", "approvers":getExpenseData?.[0]?.approvers || []}
   // if(!selectedExpenseSettlement){
   //   setErrorMsg((prevErrors)=>({...prevErrors,expenseSettlement:{set:true, msg:'Select Expense Settlement'}}))
   //   allowForm= false
@@ -1124,65 +1073,7 @@ console.log('all categoryfields',categoryfields)
 
 
 
-const handleModifyLineItem = () => {
-  const expenseLines = { ...lineItemDetails, category: selectedCategory ,isPersonalExpense:personalFlag , billImageUrl : fileSelected ? selectedFile : ""};  
-  // Set the updated line item details
-  // setLineItemDetails((prevState)=>({...prevState ,expenseLines}));
-  
-  
-  //for companyDetails
-  const companyDetails = onboardingData?.companyDetails
-  // Log the updated details
-  const dataWithCompanyDetails={
-    companyDetails:companyDetails,
-    expenseLines:[{...expenseLines}],
-    allocations: selectedAllocations
-  }
-  console.log('save line item', dataWithCompanyDetails)
-};
 
-
-const handleOcrScan = async () => {
-  // console.log('ocrfile from handle', ocrSelectedFile);
-
-  const ocrData = new FormData();
-    ocrData.append('categoryName', selectedCategory);
-    ocrData.append('file', ocrSelectedFile);
-
-  console.log('ocrfile from handle',ocrData)
-
-     setIsUploading(prevState =>({...prevState, scan: true}));
-    
-    setTimeout(() => {
-      setFormVisible(true) ;setOpenModal(null); setShowPopup(false);setIsUploading(false);
-    }, 5000);
-  // try {
-  //   setIsUploading(prevState =>({...prevState, scan: true}));
-
-  //  // Assuming ocrScanApi is an asynchronous function
-  //   const response = await ocrScanApi(ocrData); important 
-
-   
-
-    
-
-  //   setIsUploading(prevState =>({...prevState, scan: false}));
-    
-  //   setTimeout(() => {
-  //     setFormVisible(true) ;setOpenModal(null); setShowPopup(false);
-  //   }, 3000);
-    
-  // } catch (error) {
-  //   setIsUploading(prevState =>({...prevState, scan: false}));
-  //   setLoadingErrMsg(error.message);
-  //   setMessage(error.message);
-  //   setShowPopup(true);
-
-  //   setTimeout(() => {
-  //     setShowPopup(false);
-  //   }, 3000);
-  // } 
-};
 
 /////////-------------------google search start---------------------
 
@@ -1277,6 +1168,53 @@ const handleDashboardRedirection=()=>{
   console.log(dashboardBaseUrl)
   window.parent.postMessage('closeIframe', dashboardBaseUrl);
 }
+
+
+const getTitle = () => {
+  switch (actionType) {
+    case 'closeAddExpense':
+      return 'Leave this Page';
+    case 'cancelExpense':
+      return 'Delete Expense';
+    default:
+      return '';
+  }
+};
+const getContent = () => {
+  switch (actionType) {
+    case 'closeAddExpense':
+      return (
+        <>
+        <p className="text-md px-4 text-start font-cabin text-neutral-600">
+          If you leave this page, unsaved changes will be lost. Are you sure you want to leave this page?
+        </p>
+
+                              <div className="flex items-center gap-2 mt-10">
+                                <Button1  text='Stay on this Page' onClick={()=>setModalOpen(false)} />
+                                <CancelButton   text='Leave this Page'  onClick={()=>handleDashboardRedirection()}/>
+                              </div>
+                  </>
+      );  
+      case 'cancelExpense':
+        return (
+          <>
+          <p className="text-md px-4 text-start font-cabin text-neutral-600">
+          If you delete this expense, you cannot retrieve it. Are you sure you want to delete?
+          </p>
+
+                                <div className="flex items-center gap-2 mt-10">
+                                  <Button1 loading={isUploading.deleteHeader}  text='Delete' onClick={handleCancelExpenseHeader} />
+                                  <CancelButton   text='Cancel'  onClick={()=>setModalOpen(false)}/>
+                                </div>
+                    </>
+        );  
+   
+      default:
+      return '';
+  }
+};
+
+ 
   return <>
 {/* <Error message={loadingErrMsg}/> */}
     {isLoading ? <Error  message={loadingErrMsg}/>:
@@ -1367,7 +1305,7 @@ const handleDashboardRedirection=()=>{
                     {['draft', 'new'].includes(flagExpenseHeaderStatus) && (
                         <Button1 loading={isUploading.saveAsDraft} text='Save as Draft' onClick={() => handleSubmitOrDraft("draft")} />
                     )}
-                      <CancelButton loading={isUploading} active={active.deleteHeader} variant='fit' text='Cancel' onClick={handleCancelExpenseHeader} />
+                      <CancelButton loading={isUploading} active={active.deleteHeader} variant='fit' text='Cancel' onClick={()=>{setModalOpen(true);setActionType("cancelExpense")}} />
                     <div className="flex items-center justify-center rounded-sm hover:bg-slate-100 p-1 cursor-pointer" onClick={()=>handleDashboardRedirection()}>
                     <img src={cancel_icon} className="w-5 h-5"/> 
                     </div> 
@@ -1836,10 +1774,10 @@ onClick={handleSaveLineItemDetails} />
                  
        
        
-        {/* {openModal =='category' && 
+        {/* {modalOpen =='category' && 
         <div className="fixed overflow-hidden max-h-4/5 flex justify-center items-center inset-0 backdrop-blur-sm w-full h-full left-0 top-0 bg-gray-800/60 " >
             <div className='z-20  min-h-4/5 max-h-4/5 scroll-none bg-white  rounded-lg shadow-md'>
-            <div onClick={()=>{setOpenModal(null);}} className=' w-10 h-10 flex translate-y-[-15px] translate-x-[-10px] mt-5 justify-center items-center float-right   hover:bg-red-300 rounded-full'>
+            <div onClick={()=>{setModalOpen(null);}} className=' w-10 h-10 flex translate-y-[-15px] translate-x-[-10px] mt-5 justify-center items-center float-right   hover:bg-red-300 rounded-full'>
                   <img src={cancel_icon} className='w-8 h-8'/>
               </div>
                 <div className="p-10">
@@ -1854,7 +1792,7 @@ onClick={handleSaveLineItemDetails} />
                               </div>   
                     <div className="flex w-full mt-10 justify-evenly">
                         <Button variant='fit' text='Scan Bill' onClick={()=>handleOpenModal('upload')} disabled={selectedCategory== null? true : false}/>
-                        <Button variant='fit' text='Manually' onClick={()=>{setOpenLineItemForm(true);setOpenModal(false);setFormVisible(true)}} disabled={selectedCategory== null}/>
+                        <Button variant='fit' text='Manually' onClick={()=>{setOpenLineItemForm(true);setModalOpen(false);setFormVisible(true)}} disabled={selectedCategory== null}/>
                     </div>
                     </div>
 
@@ -1863,10 +1801,10 @@ onClick={handleSaveLineItemDetails} />
             </div>
         } */}
 
-        {/* {openModal==='upload' && 
+        {/* {modalOpen==='upload' && 
         <div className="fixed overflow-hidden max-h-4/5 flex justify-center items-center inset-0 backdrop-blur-sm w-full h-full left-0 top-0 bg-gray-800/60 scroll-none " >
             <div className='z-10  md:w-3/5 w-full mx-8  min-h-4/5 max-h-4/5 scroll-none bg-white  rounded-lg shadow-md'>
-            <div onClick={()=>{setOpenModal(null);setOcrSelectedFile(null);setOcrFileSelected(false);setSelectedCategory(null)}} className=' w-10 h-10 flex justify-center items-center float-right  mr-5 mt-5 hover:bg-red-300 rounded-full'>
+            <div onClick={()=>{setModalOpen(null);setOcrSelectedFile(null);setOcrFileSelected(false);setSelectedCategory(null)}} className=' w-10 h-10 flex justify-center items-center float-right  mr-5 mt-5 hover:bg-red-300 rounded-full'>
                   <img src={cancel_icon} className='w-8 h-8'/>
                   </div>
                 <div className="p-10">
@@ -1943,6 +1881,29 @@ onClick={handleSaveLineItemDetails} />
       
 
       <PopupMessage showPopup={showPopup} setShowPopup={setShowPopup} message={message}/>
+      <Modal 
+        isOpen={modalOpen} 
+        onClose={()=>setModalOpen(!modalOpen)}
+        content={
+          <div className='w-full h-auto'>
+          <div className='flex gap-2 justify-between items-center bg-indigo-100 w-auto p-4'>
+            <div className='flex gap-2'>
+              <img src={info_icon} className='w-5 h-5' alt="Info icon"/>
+              <p className='font-inter text-base font-semibold text-indigo-600'>
+                {getTitle()}
+              </p>
+            </div>
+            <div onClick={() => setModalOpen(false)} className='bg-red-100 cursor-pointer rounded-full border border-white'>
+              <img src={cancel_icon} className='w-5 h-5' alt="Cancel icon"/>
+            </div>
+          </div>
+
+          <div className="p-4">
+           {getContent()}
+            
+          </div>
+        </div>}
+      />  
 
   </>;
 }
