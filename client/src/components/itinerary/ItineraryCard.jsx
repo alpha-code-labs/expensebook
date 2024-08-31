@@ -38,7 +38,7 @@ export function FlightCard({ from, to, date, returnDate, time, travelClass, onCl
                     </div>
                 </div>
                 <CardItemLayout title="Departure Date" imageSource={calender_icon} value={isoString(date)}  />
-                <CardItemLayout title="Preferred Time" imageSource={clock_icon} value={formattedTime(time)}  />
+                <CardItemLayout title="Time" imageSource={clock_icon} value={formattedTime(time)}  />
             </CardItemsLayout>
             {/* <ActionButtons id={id} handleDelete={handleDelete} handleEdit={handleEdit} /> */}
         </CardLayout>
@@ -65,7 +65,7 @@ export function CabCard({ from, to, date, returnDate, time, isFullDayCab, travel
                     <div className="flex flex-col gap-2  sm:flex-row sm:gap-6 ">
                         {!isFullDayCab && <CardItemLayout title={`Cab Date`} imageSource={calender_icon} value={isoString(date)}  />}
                         {isFullDayCab && <CardItemLayout title={`Cab Dates`} imageSource={calender_icon} value={`${isoString(date)} - ${isoString(returnDate)}`} whitespace='nowrap' />}
-                        <CardItemLayout title="Preferred Time" imageSource={clock_icon} value={formattedTime(time)}  />
+                        <CardItemLayout title="Time" imageSource={clock_icon} value={formattedTime(time)}  />
                         <CardItemLayout title="Cab Type" imageSource={null} value={travelClass}  />
                     </div>
                 </div>
@@ -94,7 +94,7 @@ export function RentalCabCard({ from, to, date, returnDate, time, travelClass, m
 
                     <div className="flex flex-col gap-2  sm:flex-row sm:gap-6 ">
                         <CardItemLayout title={`Cab Dates`} imageSource={calender_icon} value={`${isoString(date)} - ${isoString(returnDate)}`} whitespace='nowrap' />
-                        <CardItemLayout title="Preferred Time" imageSource={clock_icon} value={formattedTime(time)}  />
+                        <CardItemLayout title="Time" imageSource={clock_icon} value={formattedTime(time)}  />
                         <CardItemLayout title="Cab Type" imageSource={null} value={travelClass}  />
                     </div>
                 </div>

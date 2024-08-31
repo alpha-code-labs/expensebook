@@ -2,7 +2,6 @@
 import React, { useState,useEffect } from 'react';
 import { airplane_1, briefcase, calender_icon, double_arrow,cab_purple,  house_simple, train, bus, cancel_round, cancel, modify, plus_icon, plus_violet_icon, receipt, down_arrow, chevron_down, down_left_arrow, calender_2_icon, airplane, material_flight_black_icon, material_cab_black_icon, material_hotel_black_icon, city_icon, empty_itinerary_icon, empty_travelExpense_icon, empty_nonTravelExpense_icon } from '../assets/icon';
 import {  extractTripNameStartDate, formatAmount,  getStatusClass, sortTripsByDate, splitTripName } from '../utils/handyFunctions';
-import { travelExpense,reimbursementExpense, dummytravelRequests, trips } from '../utils/dummyData';
 import { useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import TravelMS from '../microservice/TravelMS';
@@ -253,24 +252,16 @@ const handleRaise = () => {
         
     <CardLayout cardSequence={visibleDivs[0]} icon={receipt} cardTitle={"Expenses"}>    
    
-   <div className="flex gap-x-2 h-[40px] px-2 flex-row items-center justify-between text-center font-cabin border-b-2  border-slate-300  text-neutral-700 text-xs">
+   <div className="flex gap-x-2 h-[45px] px-2 flex-row items-center justify-between text-center font-cabin border-b-2  border-slate-300  text-neutral-700 text-xs">
    <div className='flex'>
    <div
-    className={`px-2 py-1 rounded-xl cursor-pointer delay-150  transition-colors ${
-     expenseTabs === "travelExpense"
-       ? 'text-white bg-indigo-600'
-       : 'text-xs'
-   }`}
+className={`px-2 py-1 rounded-xl cursor-pointer ease-in-out ${expenseTabs === 'travelExpense' ? 'bg-indigo-100 font-semibold text-indigo-600 border border-white text-xs shadow-md shadow-indigo-600' : 'text-xs'}`}
    onClick={() => handleExpenseTabChange("travelExpense")}
    >
    <p>Travel Expense</p>
    </div>
    <div
-   className={`px-2 py-1 rounded-xl cursor-pointer delay-150 transition-colors ${
-     expenseTabs === 'nonTravelExpense'
-       ? 'text-white bg-indigo-600 border border-white'
-       : 'text-xs'
-   }`}
+className={`px-2 py-1 rounded-xl cursor-pointer ease-in-out ${expenseTabs === 'nonTravelExpense' ? 'bg-indigo-100 font-semibold text-indigo-600 border border-white text-xs shadow-md shadow-indigo-600' : 'text-xs'}`}
    onClick={() => handleExpenseTabChange("nonTravelExpense")}
    >
    <p>Non-Travel Expense</p>
@@ -294,7 +285,7 @@ const handleRaise = () => {
    </div>
    </div>
    
-   <div className='h-[236px] overflow-y-auto px-2'>
+   <div className='h-[224px] overflow-y-auto px-2 mt-2 '>
    {expenseTabs === "travelExpense" && (
      travelExpenses?.length ===0 ? <EmptyTrips icon={empty_travelExpense_icon} text="No travel expenses." /> :
      
@@ -372,7 +363,7 @@ const handleRaise = () => {
      
    </div>
    
-   <div className="h-[236px] overflow-y-auto px-2">
+   <div className="h-[224px] overflow-y-auto px-2 mt-2">
      {
        travelRequests.length === 0 ? <EmptyTrips icon={empty_itinerary_icon} text="No travel requests." /> :
      travelRequests?.map((travel, index)=>(
