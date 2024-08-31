@@ -115,7 +115,7 @@ export const tripSchema = new mongoose.Schema({
           },
           travelRequestId: {
             type: mongoose.Types.ObjectId, 
-            required: true,
+            // required: true,
           },
           travelRequestNumber:{
             type: String,

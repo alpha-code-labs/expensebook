@@ -205,7 +205,7 @@ export const expenseReportApproval = async (payload) => {
     
         if(approver && isAllApproved && isPendingApproval ){
         approver.status = 'approved'
-        expenseReportFound.expenseHeaderStatus = 'approved'
+        expenseReportFound.expenseHeaderStatus = 'pending settlement'
         } else if(approver && isPendingApproval && isRejected ){
         approver.status = 'rejected'
           expenseReportFound.expenseHeaderStatus = 'rejected';

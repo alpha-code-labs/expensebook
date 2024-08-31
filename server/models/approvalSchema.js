@@ -45,10 +45,14 @@ const approvalSchema = new mongoose.Schema({
     approvalId:{
       type: mongoose.Schema.Types.ObjectId,
     },
-    travelRequestId:{
+    travelRequestId: {
       type: mongoose.Schema.Types.ObjectId,
-      required:true,
-      unique:true,
+      unique: function() {
+        return !this.reimbursementSchema; // Ensure uniqueness only if reimbursementSchema is not present
+      },
+      required: function() {
+        return !this.reimbursementSchema; // Make required only if reimbursementSchema is not present
+      },
     },
     approvalNumber:{
       type: String,

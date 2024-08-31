@@ -39,10 +39,13 @@ app.use((req,res,next) => {
 app.get('/get',(req,res) => res.status(200).json({message:"Approval microservice is live"}))
 
 
-
+const options = {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+};
 const mongodb = async () => {
   try {
-    await mongoose.connect(MONGODB);
+    await mongoose.connect(MONGODB,options)
     console.log('You are Connected to Mongodb');
     app.listen(port, () => {
       console.log(`Server is running on port ${port}`);
