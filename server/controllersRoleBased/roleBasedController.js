@@ -183,7 +183,7 @@ const getAllTravelRequests = await dashboard.find({
         'travelRequestSchema.isCashAdvanceTaken':false,
         },
         {
-        'travelRequestSchema.isCashAdvanceTaken':true,
+        'cashAdvanceSchema.travelRequestData.isCashAdvanceTaken':true,
         'cashAdvanceSchema.travelRequestData.createdBy.empId':empId}
     ]
 }) 
@@ -194,6 +194,7 @@ BOOKED:'booked'
 
 
 if(getAllTravelRequests.length > 0){
+    // console.log("getAllTravelRequests - total", getAllTravelRequests.length)
     const travelRequests = await Promise.all(getAllTravelRequests
     .filter(travelRequest => travelRequest?.travelRequestSchema?.createdBy?.empId === empId
         && travelRequest?.travelRequestSchema?.isCashAdvanceTaken === false && travelRequest?.travelRequestSchema?.travelRequestStatus !== status.BOOKED
@@ -770,41 +771,43 @@ const getTripForEmployee = async (tenantId, empId) => {
     .map(trip => {
     //   console.log("each trip", trip)
         const { tripSchema} = trip
-        const {travelRequestData, cashAdvancesData, travelExpenseData, expenseAmountStatus, tripId, tripNumber, tripStartDate='',tripCompletionDate} = tripSchema || {};
+        const {travelRequestData, cashAdvancesData, travelExpenseData, expenseAmountStatus, tripId, tripNumber,tripStatus, tripStartDate='',tripCompletionDate} = tripSchema || {};
         const { totalCashAmount, totalRemainingCash } = expenseAmountStatus ||  {};
         const {travelRequestId,travelRequestNumber, tripName, travelRequestStatus,tripPurpose, isCashAdvanceTaken, itinerary} = travelRequestData || {};
 
-        const itineraryToSend = Object.fromEntries(
-            Object.entries(itinerary)
-                .filter(([category]) => category !== 'formState')
-                .map(([category, items]) => {
-                    let mappedItems;
-                    if (category === 'hotels') {
-                        mappedItems = items.map(({
-                            itineraryId, status, bkd_location, bkd_class, bkd_checkIn, bkd_checkOut, bkd_violations, cancellationDate, cancellationReason,needBreakfast,needLunch,needDinner,needNonSmokingRoom
-                        }) => ({
-                            category,
-                            itineraryId, status, bkd_location, bkd_class, bkd_checkIn, bkd_checkOut, bkd_violations, cancellationDate, cancellationReason,needBreakfast,needLunch,needDinner,needNonSmokingRoom
-                        }));
-                    } else if (category === 'cabs') {
-                        mappedItems = items.map(({
-                            itineraryId, status, bkd_date, bkd_returnDate, bkd_isFullDayCab, bkd_class, bkd_pickupAddress, bkd_dropAddress,
-                        }) => ({
-                            category,
-                            itineraryId, status, bkd_date,bkd_returnDate, bkd_isFullDayCab, bkd_class, bkd_pickupAddress, bkd_dropAddress,
-                        }));
-                    } else {
-                        mappedItems = items.map(({
-                            itineraryId, status, bkd_from, bkd_to, bkd_date, bkd_time,bkd_returnTime, bkd_travelClass, bkd_violations,
-                        }) => ({
-                            category,
-                            itineraryId, status, bkd_from, bkd_to, bkd_date, bkd_time,bkd_returnTime, bkd_travelClass, bkd_violations,
-                        }));
-                    }
+        // const itineraryToSend = Object.fromEntries(
+        //     Object.entries(itinerary)
+        //         .filter(([category]) => category !== 'formState')
+        //         .map(([category, items]) => {
+        //             let mappedItems;
+        //             if (category === 'hotels') {
+        //                 mappedItems = items.map(({
+        //                     itineraryId, status, bkd_location, bkd_class, bkd_checkIn, bkd_checkOut, bkd_violations, cancellationDate, cancellationReason,needBreakfast,needLunch,needDinner,needNonSmokingRoom
+        //                 }) => ({
+        //                     category,
+        //                     itineraryId, status, bkd_location, bkd_class, bkd_checkIn, bkd_checkOut, bkd_violations, cancellationDate, cancellationReason,needBreakfast,needLunch,needDinner,needNonSmokingRoom
+        //                 }));
+        //             } else if (category === 'cabs') {
+        //                 mappedItems = items.map(({
+        //                     itineraryId, status, bkd_date, bkd_returnDate, bkd_isFullDayCab, bkd_class, bkd_pickupAddress, bkd_dropAddress,
+        //                 }) => ({
+        //                     category,
+        //                     itineraryId, status, bkd_date,bkd_returnDate, bkd_isFullDayCab, bkd_class, bkd_pickupAddress, bkd_dropAddress,
+        //                 }));
+        //             } else {
+        //                 mappedItems = items.map(({
+        //                     itineraryId, status, bkd_from, bkd_to, bkd_date, bkd_time,bkd_returnTime, bkd_travelClass, bkd_violations,
+        //                 }) => ({
+        //                     category,
+        //                     itineraryId, status, bkd_from, bkd_to, bkd_date, bkd_time,bkd_returnTime, bkd_travelClass, bkd_violations,
+        //                 }));
+        //             }
         
-                    return [category, mappedItems];
-                })
-        );
+        //             return [category, mappedItems];
+        //         })
+        // );
+
+        const itineraryToSend = getItinerary(itinerary)
 
         // console.log("itineraryTosend.........................................", itineraryToSend)
         return {
@@ -816,6 +819,7 @@ const getTripForEmployee = async (tenantId, empId) => {
             tripPurpose,
             tripStartDate,
             tripCompletionDate,
+            tripStatus,
             travelRequestStatus,
             isCashAdvanceTaken,
             totalCashAmount,
@@ -837,41 +841,43 @@ const getTripForEmployee = async (tenantId, empId) => {
           .map(trip => {
             // console.log("each trip", trip)
             const { tripSchema} = trip
-              const {travelRequestData, cashAdvancesData, travelExpenseData, expenseAmountStatus,  tripId, tripNumber, tripStartDate,tripCompletionDate} = tripSchema || {};
+              const {travelRequestData, cashAdvancesData, travelExpenseData, expenseAmountStatus,  tripId, tripNumber,tripStatus, tripStartDate,tripCompletionDate} = tripSchema || {};
               const { totalCashAmount, totalRemainingCash } = expenseAmountStatus ||  {};
               const {travelRequestId,travelRequestNumber,travelRequestStatus,tripName,tripPurpose, isCashAdvanceTaken, itinerary} = travelRequestData || {};
         
-              const itineraryToSend = Object.fromEntries(
-                Object.entries(itinerary)
-                    .filter(([category]) => category !== 'formState')
-                    .map(([category, items]) => {
-                        let mappedItems;
-                        if (category === 'hotels') {
-                            mappedItems = items.map(({
-                                itineraryId, status, bkd_location, bkd_class, bkd_checkIn, bkd_checkOut, bkd_violations, cancellationDate, cancellationReason,needBreakfast,needLunch,needDinner,needNonSmokingRoom
-                            }) => ({
-                                category,
-                                itineraryId, status, bkd_location, bkd_class, bkd_checkIn, bkd_checkOut, bkd_violations, cancellationDate, cancellationReason,needBreakfast,needLunch,needDinner,needNonSmokingRoom
-                            }));
-                        } else if (category === 'cabs') {
-                            mappedItems = items.map(({
-                                itineraryId, status, bkd_date, bkd_returnDate, bkd_isFullDayCab, bkd_class, bkd_pickupAddress, bkd_dropAddress,
-                            }) => ({
-                                category,
-                                itineraryId, status, bkd_date,bkd_returnDate, bkd_isFullDayCab, bkd_class, bkd_pickupAddress, bkd_dropAddress,
-                            }));
-                        } else {
-                            mappedItems = items.map(({
-                                itineraryId, status, bkd_from, bkd_to, bkd_date, bkd_time,bkd_returnTime, bkd_travelClass, bkd_violations,
-                            }) => ({
-                                category,
-                                itineraryId, status, bkd_from, bkd_to, bkd_date, bkd_time,bkd_returnTime, bkd_travelClass, bkd_violations,
-                            }));
-                        }
+            //   const itineraryToSend = Object.fromEntries(
+            //     Object.entries(itinerary)
+            //         .filter(([category]) => category !== 'formState')
+            //         .map(([category, items]) => {
+            //             let mappedItems;
+            //             if (category === 'hotels') {
+            //                 mappedItems = items.map(({
+            //                     itineraryId, status, bkd_location, bkd_class, bkd_checkIn, bkd_checkOut, bkd_violations, cancellationDate, cancellationReason,needBreakfast,needLunch,needDinner,needNonSmokingRoom
+            //                 }) => ({
+            //                     category,
+            //                     itineraryId, status, bkd_location, bkd_class, bkd_checkIn, bkd_checkOut, bkd_violations, cancellationDate, cancellationReason,needBreakfast,needLunch,needDinner,needNonSmokingRoom
+            //                 }));
+            //             } else if (category === 'cabs') {
+            //                 mappedItems = items.map(({
+            //                     itineraryId, status, bkd_date, bkd_returnDate, bkd_isFullDayCab, bkd_class, bkd_pickupAddress, bkd_dropAddress,
+            //                 }) => ({
+            //                     category,
+            //                     itineraryId, status, bkd_date,bkd_returnDate, bkd_isFullDayCab, bkd_class, bkd_pickupAddress, bkd_dropAddress,
+            //                 }));
+            //             } else {
+            //                 mappedItems = items.map(({
+            //                     itineraryId, status, bkd_from, bkd_to, bkd_date, bkd_time,bkd_returnTime, bkd_travelClass, bkd_violations,
+            //                 }) => ({
+            //                     category,
+            //                     itineraryId, status, bkd_from, bkd_to, bkd_date, bkd_time,bkd_returnTime, bkd_travelClass, bkd_violations,
+            //                 }));
+            //             }
             
-                        return [category, mappedItems];
-                    })
-            );
+            //             return [category, mappedItems];
+            //         })
+            // );
+
+            const itineraryToSend = getItinerary(itinerary)
 
             return {
                 tripId: tripId ?? '',
@@ -882,6 +888,7 @@ const getTripForEmployee = async (tenantId, empId) => {
                 tripPurpose: tripPurpose ?? '',
                 tripStartDate: tripStartDate ?? '',
                 tripCompletionDate: tripCompletionDate ?? '',
+                tripStatus,
                 travelRequestStatus: travelRequestStatus ?? '',
                 isCashAdvanceTaken: isCashAdvanceTaken ?? false,
                 // cashAdvances: isCashAdvanceTaken
@@ -1001,40 +1008,8 @@ const status ={
     //   console.log("each trip", trip)
     const { tripSchema} = trip
         const {travelRequestData, cashAdvancesData, travelExpenseData, expenseAmountStatus, tripId, tripNumber, tripStartDate,tripCompletionDate} = tripSchema || {};
-        // const { totalCashAmount, totalRemainingCash } = expenseAmountStatus ||  {};
         const {travelRequestId,travelRequestNumber,travelRequestStatus,tripName,tripPurpose, isCashAdvanceTaken, itinerary} = travelRequestData || {};
 
-        // const itineraryToSend = Object.fromEntries(
-        //     Object.entries(itinerary)
-        //         .filter(([category]) => category !== 'formState')
-        //         .map(([category, items]) => {
-        //             let mappedItems;
-        //             if (category === 'hotels') {
-        //                 mappedItems = items.map(({
-        //                     itineraryId, status, bkd_location, bkd_class, bkd_checkIn, bkd_checkOut, bkd_violations, cancellationDate, cancellationReason,
-        //                 }) => ({
-        //                     category,
-        //                     itineraryId, status, bkd_location, bkd_class, bkd_checkIn, bkd_checkOut, bkd_violations, cancellationDate, cancellationReason,
-        //                 }));
-        //             } else if (category === 'cabs') {
-        //                 mappedItems = items.map(({
-        //                     itineraryId, status, bkd_date, bkd_class, bkd_pickupAddress, bkd_dropAddress,
-        //                 }) => ({
-        //                     category,
-        //                     itineraryId, status, bkd_date, bkd_class, bkd_pickupAddress, bkd_dropAddress,
-        //                 }));
-        //             } else {
-        //                 mappedItems = items.map(({
-        //                     itineraryId, status, bkd_from, bkd_to, bkd_date, bkd_time, bkd_travelClass, bkd_violations,
-        //                 }) => ({
-        //                     category,
-        //                     itineraryId, status, bkd_from, bkd_to, bkd_date, bkd_time, bkd_travelClass, bkd_violations,
-        //                 }));
-        //             }
-        
-        //             return [category, mappedItems];
-        //         })
-        // );
         const itineraryToSend = getItinerary(itinerary)
 
         const travelExpenseReports = travelExpenseData.map(expense => ({

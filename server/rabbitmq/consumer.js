@@ -262,7 +262,7 @@ export async function startConsumer(receiver) {
                     console.log('Message processed successfully');
                   } else {
                     // Implement retry mechanism or handle error
-                    console.log('Update failed with error:', res.error);
+                    console.log('Update failed with error:', result.error);
                   }
             }
             if(action == 'recover-ca'){
@@ -273,7 +273,7 @@ export async function startConsumer(receiver) {
                     console.log('Message processed successfully');
                   } else {
                     // Implement retry mechanism or handle error
-                    console.log('Update failed with error:', res.error);
+                    console.log('Update failed with error:', result.error);
                   }
                 }
               else{

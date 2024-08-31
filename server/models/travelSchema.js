@@ -483,7 +483,7 @@ export const travelRequestSchema = new mongoose.Schema({
   },
   tripPurposeDescription: {
     type: String,
-    required: true,
+    // required: true,
   },
   tripName:{
     type: String,

@@ -1,3 +1,4 @@
+import { getExpenseReport, updateExpenseLineStatus } from "../../controllers/approval.js";
 import dashboard from "../../models/dashboardSchema.js";
 
 
@@ -57,7 +58,7 @@ export const travelWithCashTravelApproval = async(payload) =>{
  } catch (error){
      return {success: false, message:"failed to update travelWithCashTravel ", error}
  }
- }
+}
 
 export const travelWithCashApproval = async(payload) =>{
     try{
@@ -88,48 +89,58 @@ export const travelWithCashApproval = async(payload) =>{
  } catch (error){
      return {success: false, message:"failed to update travel ", error}
  }
- }
+}
 
 
+//Approve or reject travel expense report at header level or line item level
 export const expenseReportApproval = async (payload) => {
-    const { tenantId, expenseHeaderId, expenseHeaderStatus, expenseRejectionReason, approvers } = payload;
-
-    console.log("Payload for travelExpenseData - expense report approval", payload);
-
     try {
-        const updated = await dashboard.findOneAndUpdate(
-            { 
-                tenantId,
-                'tripSchema.tenantId': tenantId,
-                'tripSchema.travelExpenseData': {
-                    $elemMatch: {
-                        'expenseHeaderId': expenseHeaderId
-                    }
-                }
-            },
-            {
-                $set: {
-                    'tripSchema.travelExpenseData.$.expenseHeaderStatus': expenseHeaderStatus,
-                    'tripSchema.travelExpenseData.$.expenseRejectionReason': expenseRejectionReason,
-                    'tripSchema.travelExpenseData.$.approvers': approvers
-                }
-            },
-            { upsert: true, new: true }
-        );
+      const { tenantId,tripId, expenseHeaderId, empId ,approve, reject, rejectionReason} = payload
+      const approvalDocument = await getExpenseReport(tenantId,empId,tripId,expenseHeaderId)
+  
+       if (!approvalDocument) {
+         throw new Error('No matching approval document found for updating travel expenses status.');
+       }
+       const { travelExpenseData} = approvalDocument.tripSchema
+       const expenseReportFound = travelExpenseData.find(expense => expense.expenseHeaderId.toString() == expenseHeaderId);
 
-        if(updated){
-            
-            console.log('Saved to dashboard: TravelExpenseData updated successfully', updated);
-            return { success: true, error: null };
-        }
- 
-    } catch (error) {
-        console.error('Failed to update dashboard: TravelExpenseData updation failed', error);
-        return { success: false, error: error };
+       if (expenseReportFound) {
+       const {expenseLines = []} =expenseReportFound
+  
+        const updatedExpenseLines = updateExpenseLineStatus(expenseLines, approve, reject,empId)
+
+        expenseReportFound.expenseLines = updatedExpenseLines
+        const isPendingApproval = expenseReportFound.expenseHeaderStatus === 'pending approval'
+
+         const approver = expenseReportFound.approvers.find(approver =>
+          approver.empId === empId && approver.status === 'pending approval'
+         )
+  
+         const isAllApproved = expenseReportFound.expenseLines.every(line => line.lineItemStatus === 'approved')
+         const isRejected = expenseReportFound.expenseLines.some(line => line.lineItemStatus === 'rejected')
+    
+         if(approver && isAllApproved && isPendingApproval ){
+          approver.status = 'approved'
+          expenseReportFound.expenseHeaderStatus = 'approved'
+         } else if(approver && isPendingApproval && isRejected ){
+          approver.status = 'rejected'
+          expenseReportFound.expenseHeaderStatus = 'rejected';
+          expenseReportFound.rejectionReason = rejectionReason
+         }
+  
+         // Save the updated approvalDocument document
+         const expenseApproved = await approvalDocument.save();
+  
+         if(!expenseApproved){
+           throw new Error(`error occurred while updating expense report `)
+         }
+  
+         console.log('Saved to dashboard: TravelExpenseData updated successfully');
+         return { success: true, error: null };
+    }} catch (error) {
+       console.error('An error occurred while updating Travel Expense status:', error.message);
+       return { success: false, error: error.message };
     }
 };
-
-
-
 
 

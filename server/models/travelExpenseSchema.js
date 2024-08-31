@@ -20,8 +20,14 @@ const lineItemStatusEnums = [
   'draft',
   'save',
   'submit',
-  'delete'
+  'delete',
+  'pending approval',
+  'approved',
+  'rejected',
+  'pending settlement',
+  'paid and distributed',
 ]
+
 
 //it is dynamic, any expense lines fields can be added
 const expenseLineSchema = new mongoose.Schema({
@@ -69,6 +75,16 @@ const expenseLineSchema = new mongoose.Schema({
       return this.isPersonalExpense === true;
     },
   },
+  approvers: [
+    {
+      empId: String,
+      name: String,
+      status: {
+        type: String,
+        enum: approverStatusEnums,
+      },
+    },
+  ],
   billImageUrl: String,
   billRejectionReason: String,
 },{ strict: false });

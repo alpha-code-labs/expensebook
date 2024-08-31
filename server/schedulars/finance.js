@@ -10,63 +10,49 @@ const getSettlements = async (settlementsFilter) => {
   return await Dashboard.find(settlementsFilter);
 };
 
-const updateSentToFinanceStatus = async (settlementsFilter) => {
-  return await Dashboard.updateMany(settlementsFilter,{
-    $set: {
-      'cashAdvanceSchema.cashAdvancesData.$[].actionedUpon':false,
-      'tripSchema.travelExpenseData.$[].actionedUpon':false,
-      'reimbursementSchema.actionedUpon':false,
-    }
-  })
-}
-
 // const updateSentToFinanceStatus = async (settlementsFilter) => {
-//   return await Dashboard.updateMany(
-//     {
-//       $or: [
-//         {
-//           'cashAdvanceSchema.cashAdvancesData': { $exists: false },
-//           'cashAdvanceSchema.cashAdvancesData.actionedUpon': false,
-//           'cashAdvanceSchema.cashAdvancesData.cashAdvanceStatus': {
-//             $in: ['pending settlement', 'Paid and Cancelled']
-//           }
-//         },
-//         {
-//           'tripSchema.travelExpenseData': { $exists: true },
-//           'tripSchema.travelExpenseData.actionedUpon': false,
-//           'tripSchema.travelExpenseData.expenseHeaderStatus': {
-//             $in: ['pending settlement', 'Paid']
-//           }
-//         },
-//         {
-//           'reimbursementSchema': { $exists: true },
-//           'reimbursementSchema.actionedUpon': false,
-//           'reimbursementSchema.expenseHeaderStatus': {
-//             $in: ['pending settlement']
-//           }
-//         }
-//       ]
-//     },
-//     {
-//       $set: {
-//         'cashAdvanceSchema.cashAdvancesData.$[].actionedUpon': true,
-//         'tripSchema.travelExpenseData.$[].actionedUpon': true,
-//         'reimbursementSchema.actionedUpon': true
-//       }
-//     },
-//     {
-//       arrayFilters: [
-//         { 'elem.actionedUpon': false }
-//       ]
+//   return await Dashboard.updateMany(settlementsFilter,{
+//     $set: {
+//       'cashAdvanceSchema?.cashAdvancesData?.$.actionedUpon':false,
+//       'tripSchema?.travelExpenseData?.$.actionedUpon':false,
+//       'reimbursementSchema?.actionedUpon':false,
 //     }
-//   );
-// };
+//   })
+// }
+const updateSentToFinanceStatus = async (settlementsFilter) => {
+  const documents = await Dashboard.find(settlementsFilter);
+
+  const bulkOps = documents.map((doc) => {
+    const update = { $set: {} };
+
+    if (doc.cashAdvanceSchema?.cashAdvancesData) {
+      update.$set['cashAdvanceSchema.cashAdvancesData.$[elem].actionedUpon'] = true;
+    }
+    if (doc.tripSchema?.travelExpenseData) {
+      update.$set['tripSchema.travelExpenseData.actionedUpon'] = true;
+    }
+    if (doc.reimbursementSchema) {
+      update.$set['reimbursementSchema.actionedUpon'] = true;
+    }
+
+    return {
+      updateOne: {
+        filter: { _id: doc._id },
+        update,
+        arrayFilters: [{ 'elem.actionedUpon': false }],
+      },
+    };
+  });
+
+  const result = await Dashboard.bulkWrite(bulkOps);
+  console.log('Modified documents:', result.modifiedCount);
+};
 
 
-export const financeBatchjob = async () => {
+
+export const financeBatchJob = async () => {
     try {
       const settlementsFilter = {
-        "tenantId":"66cdb6e7f392d19df00bd1dc",
         $or: [
           {
             'cashAdvanceSchema.cashAdvancesData.actionedUpon': false,
@@ -151,15 +137,15 @@ export const financeBatchjob = async () => {
 export const scheduleToFinanceBatchJob = () => {
     const schedule = process.env.SCHEDULE_TIME??'* * * * *';
     cron.schedule(schedule, async () => {
-      console.log('Running Finance batchjob...');
+      console.log('Running Finance batchJob...');
       try {
-        await financeBatchjob();
-        console.log('Finance batchjob completed successfully.');
+        await financeBatchJob();
+        console.log('Finance batchJob completed successfully.');
       } catch (error) {
-        console.error('Error running Finance batchjob :', error);
+        console.error('Error running Finance batchJob :', error);
       }
     });
-    console.log('scheduled Send to Finance batchjob ')
+    console.log('scheduled Send to Finance batchJob ')
 }
 
 
