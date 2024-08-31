@@ -29,10 +29,10 @@ reimbursementRoutes.post('/:tenantId/:empId/:expenseHeaderId/submit', submitReim
 // get non travel expense report
 reimbursementRoutes.get('/:tenantId/:empId/:expenseHeaderId/report', getReimbursementExpenseReport);
 
-// delete non travel expense report at headerlevel
+// delete non travel expense report at header level
 reimbursementRoutes.patch('/:tenantId/:empId/:expenseHeaderId/delete', cancelReimbursementReport);
 
-// delete non travel expense report at linelevel
+// delete non travel expense report at line level
 reimbursementRoutes.patch('/:tenantId/:empId/:expenseHeaderId/delete-line', cancelReimbursementReportLine);
 
 

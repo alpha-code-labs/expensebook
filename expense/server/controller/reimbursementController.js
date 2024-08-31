@@ -48,6 +48,60 @@ const getPolicy = (group, policy, travelType, policies)=>{
   return result
 }
 
+
+const getApproversFromOnboarding = (employeeDocument,empId) => {
+  try{
+    const travelType='international'
+    let approvalFlow = null
+    let APPROVAL_FLAG = false
+  
+    const flags = employeeDocument.flags
+    const isPolicy = flags.POLICY_SETUP_FLAG
+    const tenantPolicies = employeeDocument?.policies.travelPolicies??[]
+    const employeeData = employeeDocument.employees.find(emp => emp.employeeDetails.employeeId.toString() === empId.toString());
+    const employeeRoles = employeeData.employeeRoles
+    const employeeGroups = employeeData.group
+    const MANAGER_FLAG = employeeRoles.employeeManager
+    const listOfManagers = employeeDocument.employees.filter(employee=>employee.employeeRoles.employeeManager).map(emp=> ({...emp.employeeDetails, imageUrl:emp?.imageUrl??getRandomAvatarUrl()}));
+    
+    if(isPolicy){
+      employeeGroups.forEach(group=>{
+        const res = getPolicy(group, 'Approval Flow', travelType, tenantPolicies)
+        console.log(res, 'Approval flow...')
+  
+        if(res.approval.approvers){
+          if(approvalFlow == null){
+            approvalFlow = res.approval.approvers
+            if(res.approval.approvers.length>0){
+              APPROVAL_FLAG = true
+            }
+            else APPROVAL_FLAG = false
+          }
+  
+          else if(approvalFlow.length > res.approval.approvers.length){
+              approvalFlow = res.approval.approvers
+              if(res.approval.approvers.length>0){
+                APPROVAL_FLAG = true
+              }
+              else APPROVAL_FLAG = false
+          }
+        }
+  
+      })
+    }
+  
+    return {
+      APPROVAL_FLAG,
+      approvalFlow,
+      MANAGER_FLAG,
+      listOfManagers
+    }
+  } catch(error){
+    console.error('Error finding approvers from onboarding:', error);
+    throw new Error(error.message)
+  }
+  }
+
 const employeeSchema = Joi.object({
   empId: Joi.string().required(),
   tenantId: Joi.string().required(),
@@ -95,11 +149,14 @@ export const getExpenseCategoriesForEmpId = async (req, res) => {
       companyName,
       reimbursementExpenseCategories,
       travelAllocationFlags,
+      expenseSettlementOptions
     } = employeeDocument || {};
 
     const reimbursementExpenseCategory = Array.isArray(reimbursementExpenseCategories)
       ? reimbursementExpenseCategories.map(category => category?.categoryName)
       : [];
+
+      const getApprovers = getApproversFromOnboarding(employeeDocument,empId)
 
 
     return res.status(200).json({
@@ -109,6 +166,8 @@ export const getExpenseCategoriesForEmpId = async (req, res) => {
       companyName,
       reimbursementExpenseCategory,
       travelAllocationFlags,
+      getApprovers,
+      expenseSettlementOptions,     
     });
   } catch (error) {
     console.error('Error finding expense categories:', error);
@@ -122,59 +181,6 @@ export const getExpenseCategoriesForEmpId = async (req, res) => {
   }
 };
 
-
-const getApproversFromOnboarding = (employeeDocument,empId) => {
-try{
-  const travelType='international'
-  let approvalFlow = null
-  let APPROVAL_FLAG = false
-
-  const flags = employeeDocument.flags
-  const isPolicy = flags.POLICY_SETUP_FLAG
-  const tenantPolicies = employeeDocument?.policies.travelPolicies??[]
-  const employeeData = employeeDocument.employees.find(emp => emp.employeeDetails.employeeId.toString() === empId.toString());
-  const employeeRoles = employeeData.employeeRoles
-  const employeeGroups = employeeData.group
-  const MANAGER_FLAG = employeeRoles.employeeManager
-  const listOfManagers = employeeDocument.employees.filter(employee=>employee.employeeRoles.employeeManager).map(emp=> ({...emp.employeeDetails, imageUrl:emp?.imageUrl??getRandomAvatarUrl()}));
-  
-  if(isPolicy){
-    employeeGroups.forEach(group=>{
-      const res = getPolicy(group, 'Approval Flow', travelType, tenantPolicies)
-      console.log(res, 'Approval flow...')
-
-      if(res.approval.approvers){
-        if(approvalFlow == null){
-          approvalFlow = res.approval.approvers
-          if(res.approval.approvers.length>0){
-            APPROVAL_FLAG = true
-          }
-          else APPROVAL_FLAG = false
-        }
-
-        else if(approvalFlow.length > res.approval.approvers.length){
-            approvalFlow = res.approval.approvers
-            if(res.approval.approvers.length>0){
-              APPROVAL_FLAG = true
-            }
-            else APPROVAL_FLAG = false
-        }
-      }
-
-    })
-  }
-
-  return {
-    APPROVAL_FLAG,
-    approvalFlow,
-    MANAGER_FLAG,
-    listOfManagers
-  }
-} catch(error){
-  console.error('Error finding approvers from onboarding:', error);
-  throw new Error(error.message)
-}
-}
 
 
 const expenseCatSchema = Joi.object({
@@ -212,7 +218,7 @@ export const getHighestLimitGroupPolicy = async (req, res) => {
       }
 
       // Extract relevant information from the employee document
-      const { companyDetails: { companyName }, employees: [employee], policies: { nonTravelPolicies },travelAllocationFlags } = employeeDocument;
+      const { companyDetails: { companyName }, employees: [employee], policies: { nonTravelPolicies },travelAllocationFlags, expenseSettlementOptions } = employeeDocument;
       const groups = employee.group || [];
 
       // Initializing variables to find the group with the highest limit
@@ -274,8 +280,6 @@ export const getHighestLimitGroupPolicy = async (req, res) => {
 
       const getExpenseHeaderStatus = [
         'new',
-        'draft',
-        'pending approval', 
         null
       ];
 
@@ -340,6 +344,7 @@ export const getHighestLimitGroupPolicy = async (req, res) => {
         currencyTable: currencyTable || '',
         newExpenseAllocation,
         newExpenseAllocation_accountLine,
+        expenseSettlementOptions,  
         group,
         ...selectedExpenseCategory,
       }); 
@@ -579,82 +584,22 @@ export const editReimbursementExpenseLine = async (req, res) => {
 
 export const draftReimbursementExpenseLine = async (req, res) => {
   try {
-    const { tenantId, empId, expenseHeaderId } = req.params;
-
-    if (!expenseHeaderId) {
-      return res.status(404).json({ message: 'error expenseHeaderId is missing' });
-    }
-
-    const EXPENSE_HEADER_STATUS_D = 'draft';
-
-    const updatedExpense = await Reimbursement.findOneAndUpdate(
-      { tenantId, expenseHeaderId, 'createdBy.empId': empId },
-      { $set: { expenseHeaderStatus: EXPENSE_HEADER_STATUS_D } },
-      { new: true }
-    );
-
-    if (!updatedExpense) {
-      return res.status(404).json({ message: 'Reimbursement document not found or unauthorized' });
-    } else{
-
-    const { name } = updatedExpense.createdBy;
-    const payload = { reimbursementReport:updatedExpense };
-    console.log("payload", payload)
-    const needConfirmation = false;
-    const source = 'reimbursement';
-    const onlineVsBatch = 'online';
-    const action = 'full-update';
-    const comments = 'expense report submitted';
-
-   await  sendToOtherMicroservice(payload, action, 'dashboard', comments, source, onlineVsBatch)
-   
-     // Process the updated expenseReport if needed
-     return res.status(200).json({
-      success: true,
-      message: `Expense report status has been updated to draft by ${name}`,
-      updatedExpense,
-    }); 
-  } }catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: 'Failed to process non_Travel expense LINE' });
-  }
-};
-
-/**
- * Handles the submission of an expense report.
- * Updates the status of the expense report to "pending settlement" and returns a success message if the update is successful.
- * @param {object} req - The request object containing the parameters `tenantId`, `empId`, and `expenseHeaderId`.
- * @param {object} res - The response object used to send the response back to the client.
- * @returns {object} - If the update is successful, a response object with a success message is returned. If the update fails or the expense report is not found or unauthorized, an error message is returned.
- */
-
-const submitExpense = Joi.object({
-  approvers: Joi.object({
-    empId: Joi.string().optional(),
-    name: Joi.string().optional(),
-   }).optional(),
-})
-export const submitReimbursementExpenseReport = async (req, res) => {
-  try {
     const params = validateRequest(nonTravelSchema,req.params)
     const body = validateRequest(submitExpense, req.body)
 
     const { tenantId, empId, expenseHeaderId } = params;
-    const { approvers } = body;
+    const { approvers=[] , expenseSettlement} = body;
     const status ={
       PENDING_SETTLEMENT :'pending settlement',
-      PENDING_APPROVAL:'pending approval'
+      PENDING_APPROVAL:'pending approval',
+      DRAFT: 'draft'
     }
 
-    const isApproval = (approvers?.length ?? 0) > 0
-    approvers?.forEach(approver => {
-      if(isApproval) approver.status = status.PENDING_SETTLEMENT
-    })
+    console.log("approvers", approvers)
+    const isApproval = approvers?.length > 0
 
-   const getStatus =  isApproval ? status.PENDING_APPROVAL :  status.PENDING_SETTLEMENT
+   const getStatus = status.DRAFT
 
-   console.log('isApproval:', isApproval);
-    console.log('getExpenseHeaderStatus:', getExpenseHeaderStatus);
     const report = await Reimbursement.findOne({
     tenantId, expenseHeaderId, 'createdBy.empId': empId
   });
@@ -671,6 +616,93 @@ export const submitReimbursementExpenseReport = async (req, res) => {
 
     report.expenseHeaderStatus = getStatus
     report.approvers = approvers
+    report.expenseSettlement = expenseSettlement
+    const updatedExpense = await report.save()
+
+      const { name } = updatedExpense.createdBy ?? { name: 'user' };
+      const payload = { reimbursementReport : updatedExpense };
+      const needConfirmation = false;
+      const source = 'reimbursement';
+      const onlineVsBatch = 'online';
+      const action = 'full-update';
+      const comments = 'expense report saved as Draft';
+  
+    if(isApproval){
+      await  sendToOtherMicroservice(payload, action, 'approval', comments, source, onlineVsBatch) 
+    }     
+    await  sendToOtherMicroservice(payload, action, 'dashboard', comments, source, onlineVsBatch)   
+
+
+    const response = {
+      success: true,
+      message: `${name}, your expense report is submitted.`
+    };
+
+    return res.status(200).json(response);
+    } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Failed to submit expense report.' });
+  }
+};
+
+/**
+ * Handles the submission of an expense report.
+ * Updates the status of the expense report to "pending settlement" and returns a success message if the update is successful.
+ * @param {object} req - The request object containing the parameters `tenantId`, `empId`, and `expenseHeaderId`.
+ * @param {object} res - The response object used to send the response back to the client.
+ * @returns {object} - If the update is successful, a response object with a success message is returned. If the update fails or the expense report is not found or unauthorized, an error message is returned.
+ */
+
+const submitExpense = Joi.object({
+  approvers: Joi.array().items(
+    Joi.object({
+      empId: Joi.string().optional(),
+      name: Joi.string().optional(),
+      status: Joi.string().optional(),
+      imageUrl: Joi.string().optional(),
+      _id: Joi.string().optional()
+    })
+  ).optional(),
+  expenseSettlement: Joi.string().optional()
+})
+
+export const submitReimbursementExpenseReport = async (req, res) => {
+  try {
+    const params = validateRequest(nonTravelSchema,req.params)
+    const body = validateRequest(submitExpense, req.body)
+
+    const { tenantId, empId, expenseHeaderId } = params;
+    const { approvers , expenseSettlement} = body;
+    const status ={
+      PENDING_SETTLEMENT :'pending settlement',
+      PENDING_APPROVAL:'pending approval'
+    }
+
+    console.log("approvers", approvers)
+    const isApproval = approvers?.length > 0
+    approvers?.forEach(approver => {
+      if(isApproval) approver.status = status.PENDING_APPROVAL
+    })
+
+   const getStatus =  isApproval ? status.PENDING_APPROVAL :  status.PENDING_SETTLEMENT
+
+    const report = await Reimbursement.findOne({
+    tenantId, expenseHeaderId, 'createdBy.empId': empId
+  });
+
+    if (!report) {
+      return res.status(404).json({ message: 'Expense Report not found or unauthorized.' });
+    }
+
+    report.expenseLines.map(lineItem => ({
+    ...lineItem,
+    lineItemStatus: getStatus,
+    approvers: approvers
+    }))
+
+    report.expenseHeaderStatus = getStatus
+    report.approvers = approvers
+    report.expenseSettlement = expenseSettlement
     const updatedExpense = await report.save()
 
       const { name } = updatedExpense.createdBy ?? { name: 'user' };

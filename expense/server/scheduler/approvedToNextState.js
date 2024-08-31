@@ -1,6 +1,7 @@
 import cron from 'node-cron';
 import Expense from '../models/tripSchema.js';
 import { config } from 'dotenv';
+import { sendToOtherMicroservice } from '../rabbitmq/publisher.js';
 
 config()
 
@@ -108,8 +109,7 @@ const sendToApprovalMicroservice = async (documents) => {
 const SendForApprovalAndTripWithPS = async () => {
   try {
     const expensesToUpdate = await Expense.find({
-      'expenseHeaderStatus': 'pending settlement',
-      'expenseHeaderType': 'travel',
+      'travelExpenseData.expenseHeaderStatus': 'pending settlement',
     });
 
     const documentsToSendForApprovalAndTripWithPS = expensesToUpdate.filter(
@@ -128,11 +128,50 @@ const SendForApprovalAndTripWithPS = async () => {
   }
 };
 
+
+const getExpenseReports = async () => {
+  try {
+    // Fetch reports with the given status
+    const reports = await Expense.find({
+      'travelExpenseData.expenseHeaderStatus': 'pending settlement',
+    });
+
+    if (reports.length === 0) {
+      console.log('No reports found with status pending settlement');
+      return { success: true, reports: [] };
+    }
+
+    const payload = reports.flatMap(report => {
+      const { tripId, travelExpenseData } = report;
+
+      return travelExpenseData
+        .filter(expense => expense.expenseHeaderStatus === 'pending settlement')
+        .map(expense => ({
+          tripId,
+          expenseHeaderStatus: expense.expenseHeaderStatus,
+          expenseHeaderId: expense.expenseHeaderId
+        }));
+    });
+
+    console.log('Pending settlement reports:', payload);
+    await sendToOtherMicroservice()
+
+    return { success: true, reports: payload };
+
+  } catch (error) {
+    console.error('Error fetching pending settlement expense reports:', error.message);
+    throw new Error(error.message);
+  }
+};
+
+
+
 // Cron job to run SendForApprovalAndTripWithPS every day at midnight
-cron.schedule(SCHEDULE, () => {
-  console.log('Running SendForApprovalAndTripWithPS for travel expense report...');
-  SendForApprovalAndTripWithPS();
-});
+// cron.schedule('*/5 * * * * *', () => {
+//   console.log('Running SendForApprovalAndTripWithPS for travel expense report...');
+//   // SendForApprovalAndTripWithPS();
+//   getExpenseReports()
+// });
 
 export { SendForApprovalAndTripWithPS };
 
