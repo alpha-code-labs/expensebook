@@ -10,44 +10,73 @@ const getSettlements = async (settlementsFilter) => {
   return await Dashboard.find(settlementsFilter);
 };
 
+
 // const updateSentToFinanceStatus = async (settlementsFilter) => {
-//   return await Dashboard.updateMany(settlementsFilter,{
-//     $set: {
-//       'cashAdvanceSchema?.cashAdvancesData?.$.actionedUpon':false,
-//       'tripSchema?.travelExpenseData?.$.actionedUpon':false,
-//       'reimbursementSchema?.actionedUpon':false,
+//   const documents = await Dashboard.find(settlementsFilter);
+
+//   const bulkOps = documents.map((doc) => {
+//     const update = { $set: {} };
+
+//     if (doc?.cashAdvanceSchema?.cashAdvancesData) {
+//       update.$set['cashAdvanceSchema.cashAdvancesData.$[elem].actionedUpon'] = true;
 //     }
-//   })
-// }
+//     if (doc?.tripSchema?.travelExpenseData) {
+//       update.$set['tripSchema.travelExpenseData.$[elem].actionedUpon'] = true;
+//     }
+//     if (doc?.reimbursementSchema) {
+//       update.$set['reimbursementSchema.actionedUpon'] = true;
+//     }
+
+//     return {
+//       updateOne: {
+//         filter: { _id: doc._id },
+//         update,
+//         arrayFilters: [{ 'elem.actionedUpon': false }],
+//       },
+//     };
+//   });
+
+//   const result = await Dashboard.bulkWrite(bulkOps);
+//   console.log('Modified documents:', result.modifiedCount);
+// };
+
 const updateSentToFinanceStatus = async (settlementsFilter) => {
-  const documents = await Dashboard.find(settlementsFilter);
+  try {
+    const documents = await Dashboard.find(settlementsFilter);
 
-  const bulkOps = documents.map((doc) => {
-    const update = { $set: {} };
+    const bulkOps = documents.map((doc) => {
+      const update = { $set: {} };
+      const arrayFilters = [];
 
-    if (doc?.cashAdvanceSchema?.cashAdvancesData) {
-      update.$set['cashAdvanceSchema.cashAdvancesData.$[elem].actionedUpon'] = true;
-    }
-    if (doc?.tripSchema?.travelExpenseData) {
-      update.$set['tripSchema.travelExpenseData.$[elem].actionedUpon'] = true;
-    }
-    if (doc?.reimbursementSchema) {
-      update.$set['reimbursementSchema.actionedUpon'] = true;
-    }
+      // Check if we need to update an array field
+      if (doc?.cashAdvanceSchema?.cashAdvancesData) {
+        update.$set['cashAdvanceSchema.cashAdvancesData.$[elem].actionedUpon'] = true;
+        arrayFilters.push({ 'elem.actionedUpon': false });
+      }
+      if (doc?.tripSchema?.travelExpenseData) {
+        update.$set['tripSchema.travelExpenseData.$[elem].actionedUpon'] = true;
+        arrayFilters.push({ 'elem.actionedUpon': false });
+      }
+      // For non-array fields, no arrayFilters are needed
+      if (doc?.reimbursementSchema) {
+        update.$set['reimbursementSchema.actionedUpon'] = true;
+      }
 
-    return {
-      updateOne: {
-        filter: { _id: doc._id },
-        update,
-        arrayFilters: [{ 'elem.actionedUpon': false }],
-      },
-    };
-  });
+      return {
+        updateOne: {
+          filter: { _id: doc._id },
+          update,
+          arrayFilters: arrayFilters.length > 0 ? arrayFilters : undefined,
+        },
+      };
+    });
 
-  const result = await Dashboard.bulkWrite(bulkOps);
-  console.log('Modified documents:', result.modifiedCount);
+    const result = await Dashboard.bulkWrite(bulkOps);
+    console.log('Modified documents:', result.modifiedCount);
+  } catch (error) {
+    console.error('Error updating documents:', error);
+  }
 };
-
 
 
 export const financeBatchJob = async () => {
