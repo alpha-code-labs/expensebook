@@ -478,7 +478,7 @@ export const onSaveAsDraftExpenseHeader = async (req, res) => {
 };
 
 
-// pending settlemet 
+// pending settlement 
 // To update expense header status
 const updateExpenseHeaderStatus = (expenseReport) => {
   if (expenseReport.travelExpenseData.approvers && expenseReport.travelExpenseData.approvers.length > 0) {

@@ -7,29 +7,38 @@ import { sendToDashboardMicroservice } from "../rabbitmq/dashboardMicroservice.j
 import Joi from "joi";
 
 const formatTenantId = (tenantName) => {
-    return tenantName.toUpperCase(); 
+  return tenantName.replace(/\s+/g, '').toUpperCase();
 };
 
 // to generate and add expense report number
-const generateIncrementalNumber = (tenantName, incrementalValue) => {
-    try {
-    if (typeof tenantName !== 'string' || typeof incrementalValue !== 'number') {
-        throw new Error('Invalid input parameters');
-    }
-    const formattedTenant = formatTenantId(tenantName).substring(0,2);
-    console.log("formattedTenant .................................", formattedTenant)
-    // return `ER${formattedTenant}${incrementalValue.toString().padStart(6, '0')}`;
-    console.log("incrementalValue", incrementalValue)
-    // const paddedIncrementalValue = incrementalValue !== null && incrementalValue !== undefined ? incrementalValue.toString().padStart(6, '0') : '00001';
-    const paddedIncrementalValue = (incrementalValue !== null && incrementalValue !== undefined && incrementalValue !== 0) ? incrementalValue.toString().padStart(6, '0') : '000001';
+const generateIncrementalNumber = (tenantName, incrementalValue = 1) => {
+  try {
+    console.log("generateIncrementalNumber",tenantName, incrementalValue )
+      // Validate tenantName
+      if (typeof tenantName !== 'string' || tenantName.trim() === '') {
+          throw new Error('Invalid tenantName parameter');
+      }
 
-    console.log("paddedIncrementalValue.............", paddedIncrementalValue)
-    return `ER${formattedTenant}${paddedIncrementalValue}`;
-} catch (error) {
-    console.error(error);
-    throw new Error('An error occurred while generating the incremental number.');
-}
-}
+      if (typeof incrementalValue !== 'number' || incrementalValue < 0 || !Number.isFinite(incrementalValue)) {
+          throw new Error('Invalid incrementalValue parameter');
+      }
+
+      // Format tenantName
+      const formattedTenant = formatTenantId(tenantName).substring(0, 2).toUpperCase();
+      console.log("formattedTenant:", formattedTenant);
+
+      // Ensure incrementalValue is a valid number
+      const paddedIncrementalValue = incrementalValue.toString().padStart(6, '0');
+      console.log("paddedIncrementalValue:", paddedIncrementalValue);
+
+      return `ER${formattedTenant}${paddedIncrementalValue}`;
+  } catch (error) {
+      console.error('Error in generateIncrementalNumber:', error);
+      throw new Error('An error occurred while generating the incremental number.');
+  }
+};
+
+
 
 // to get expense report related company details
 const getExpenseRelatedHrData = async (tenantId,res = {}) => {
@@ -254,6 +263,16 @@ const allExpenseReports = async (expenseReport) => {
 if (areAllExpenseReportsPaid) {
 let nextIncrementalValue = 0;
 console.log("nextIncrementalValue ..", nextIncrementalValue)
+const maxIncrementalValue = await Expense.findOne({}, 'travelExpenseData.expenseHeaderNumber')
+.sort({ 'travelExpenseData.expenseHeaderNumber': -1 })
+.limit(1);
+
+if (maxIncrementalValue && maxIncrementalValue.travelExpenseData && maxIncrementalValue.travelExpenseData.expenseHeaderNumber) {
+nextIncrementalValue = parseInt(maxIncrementalValue.travelExpenseData.expenseHeaderNumber.substring(3), 10) + 1;
+}
+
+console.log("nextIncrementalValue", nextIncrementalValue)
+expenseHeaderNumber = generateIncrementalNumber(tenantName, nextIncrementalValue);
 let expenseHeaderNumber = generateIncrementalNumber(tenantName, nextIncrementalValue);
 let newExpenseHeaderId = new mongoose.Types.ObjectId();
 flagToOpen = newExpenseHeaderId;
@@ -377,16 +396,17 @@ export const BookExpense = async (req, res) => {
           companyDetails: additionalDetails,
         });
       } else {
-        // const maxIncrementalValue = await Expense.findOne({}, 'travelExpenseData.expenseHeaderNumber')
-        //   .sort({ 'travelExpenseData.expenseHeaderNumber': -1 })
-        //   .limit(1);
+        const maxIncrementalValue = await Expense.findOne({}, 'travelExpenseData.expenseHeaderNumber')
+          .sort({ 'travelExpenseData.expenseHeaderNumber': -1 })
+          .limit(1);
 
         let nextIncrementalValue = 0;
 
-        // if (maxIncrementalValue && maxIncrementalValue.travelExpenseData && maxIncrementalValue.travelExpenseData.expenseHeaderNumber) {
-        //   nextIncrementalValue = parseInt(maxIncrementalValue.travelExpenseData.expenseHeaderNumber.substring(3), 10) + 1;
-        // }
+        if (maxIncrementalValue && maxIncrementalValue.travelExpenseData && maxIncrementalValue.travelExpenseData.expenseHeaderNumber) {
+          nextIncrementalValue = parseInt(maxIncrementalValue.travelExpenseData.expenseHeaderNumber.substring(3), 10) + 1;
+        }
 
+        console.log("nextIncrementalValue", nextIncrementalValue)
         expenseHeaderNumber = generateIncrementalNumber(tenantName, nextIncrementalValue);
 
         // Updating the expense header number in the travelExpenseData
@@ -677,7 +697,10 @@ export const onSaveExpenseLine = async (req, res) => {
     // Handle personal expenses and multicurrency
     if (isPersonalExpense) {
       console.log("is personal expense", isPersonalExpense)
-      const personalExpenseAmount = expenseLine?.personalExpenseAmount || 0;
+      const real = expenseLine?.personalExpenseAmount || 0;
+      const personalExpenseAmount = +expenseLine?.personalExpenseAmount || 0;
+      console.log("personalExpenseAmount", typeof personalExpenseAmount, personalExpenseAmount)
+      console.log("personalExpenseAmount real",typeof real, real )
 
       if (!isMultiCurrency) {
         // Logic for non-multicurrency personal expenses
@@ -777,14 +800,11 @@ export const onSaveExpenseLine = async (req, res) => {
       console.log("expenseLine edited...........",travelExpenseData )
       
       const payload = { getExpenseReport: updatedExpenseReport};
-      const needConfirmation = false;
-      const source = 'expense'
-      const onlineVsBatch = 'online';
       const action = 'full-update';
       const comments = 'on Save expense line';
   
-await  sendToOtherMicroservice(payload, action, 'dashboard', comments, source, 'online')
-await sendToOtherMicroservice(payload, action, 'trip', comments, source, 'online')
+await  sendToOtherMicroservice(payload, action, 'dashboard', comments)
+await sendToOtherMicroservice(payload, action, 'trip', comments)
 
       return res.status(200).json({
         message: 'Expense line updated successfully.',
@@ -793,7 +813,7 @@ await sendToOtherMicroservice(payload, action, 'trip', comments, source, 'online
       })
     }
     } else {
-      console.log("adding a new expense LiNE")
+      console.log("adding a new expense Line")
       // If expenseLineId is not present, push the new expenseLine to the array
       // expenseLine.alreadySaved = true;
       // expenseLine.lineItemStatus = 'save';
@@ -822,16 +842,12 @@ await sendToOtherMicroservice(payload, action, 'trip', comments, source, 'online
             const { travelExpenseData, expenseAmountStatus } = updatedExpenseReport;
         console.log("expenseLine saved ...........",expenseLine )
 
-
         const payload = { getExpenseReport: updatedExpenseReport};
-        const needConfirmation = false;
-        const source = 'expense'
-        const onlineVsBatch = 'online';
         const action = 'full-update';
         const comments = 'on Save expense line';
     
-  await  sendToOtherMicroservice(payload, action, 'dashboard', comments, source, 'online')
-  await sendToOtherMicroservice(payload, action, 'trip', comments, source, 'online')
+  await  sendToOtherMicroservice(payload, action, 'dashboard', comments)
+  await sendToOtherMicroservice(payload, action, 'trip', comments)
 
         return res.status(200).json({
           message: 'Expense line added successfully.',
@@ -1020,7 +1036,7 @@ export const onEditExpenseLine = async (req, res) => {
     
          // Handle personal expenses and multicurrency
     if (isPersonalExpense) {
-      // console.log("is personal expoense", isPersonalExpense)
+      // console.log("is personal expense", isPersonalExpense)
       const personalExpenseAmount = expenseLineEdited?.personalExpenseAmount || 0;
 
       if (!isMultiCurrency) {
@@ -1091,14 +1107,11 @@ export const onEditExpenseLine = async (req, res) => {
           const { travelExpenseData, expenseAmountStatus } = updatedExpenseReport;
 
           const payload = { getExpenseReport: updatedExpenseReport};
-          const needConfirmation = false;
-          const source = 'expense'
-          const onlineVsBatch = 'online';
           const action = 'full-update';
           const comments = 'on Save expense line';
       
-    await  sendToOtherMicroservice(payload, action, 'dashboard', comments, source, 'online')
-    await sendToOtherMicroservice(payload, action, 'trip', comments, source, 'online')
+    await  sendToOtherMicroservice(payload, action, 'dashboard', comments)
+    await sendToOtherMicroservice(payload, action, 'trip', comments)
     
       console.log("expenseLineEdited edited...........",travelExpenseData )
       return res.status(200).json({
@@ -1250,14 +1263,11 @@ export const onSaveAsDraftExpenseReport = async (req, res) => {
       // await onSaveAsDraftExpenseHeaderToTrip(draftExpenseReport);
 
       const payload = { getExpenseReport: draftExpenseReport};
-      const needConfirmation = false;
-      const source = 'expense'
-      const onlineVsBatch = 'online';
       const action = 'full-update';
       const comments = 'expense report saved as Draft';
   
-await  sendToOtherMicroservice(payload, action, 'dashboard', comments, source, 'online')
-await sendToOtherMicroservice(payload, action, 'trip', comments, source, 'online')
+await  sendToOtherMicroservice(payload, action, 'dashboard', comments)
+await sendToOtherMicroservice(payload, action, 'trip', comments)
 
   // Process the updated expenseReport if needed
       return  res.status(200).json({ message: 'Expense report status updated as draft' });
@@ -1318,7 +1328,8 @@ export const onSubmitExpenseHeader = async (req, res) => {
 
 console.log("update approvers - before ", approvers)
 
-if(approvers?.length > 0){
+const isApproval = approvers?.length > 0
+if(isApproval){
   approvers.forEach(a=> a.status = 'pending approval')
   update.$set['travelExpenseData.$.approvers'] = approvers
 }
@@ -1341,7 +1352,6 @@ console.log("update approvers - after ", approvers)
         const matchingIndex = travelExpenseData.findIndex(data => data.expenseHeaderId.toString() === expenseHeaderId.toString());
 
         //  console.log("Matching index:", matchingIndex);
-
 // console.log("Matching index:", matchingIndex);
 
 if (matchingIndex !== -1) {
@@ -1357,25 +1367,21 @@ if (matchingIndex !== -1) {
    } else {
       // await onSaveLineItemToTrip(updatedExpenseReport);
       const payload = {getExpenseReport};
-      const needConfirmation = false;
-      const source = 'expense'
-      const onlineVsBatch = 'online';
       const action = 'full-update';
       const comments = 'expense report submitted';
-
       // console.log("the payload expense report submitted direct ..", getExpenseReport)
 
-await  sendToOtherMicroservice(payload, action, 'dashboard', comments, source, 'online')
-await sendToOtherMicroservice(payload, action, 'trip', comments, source, 'online')
-await sendToOtherMicroservice(payload, action, 'approval', comments, source, 'online')
+      if(isApproval){
+        await sendToOtherMicroservice(payload, action, 'approval', comments)
+      }
+      await  sendToOtherMicroservice(payload, action, 'dashboard', comments)
+      await sendToOtherMicroservice(payload, action, 'trip', comments)
 
   // Process the updated expenseReport if needed
   return res.status(200).json({ message: 'Your Expense report submitted successfully' });
     } 
-     
     }
    }
-       
 } catch (error) {
       // Handle errors in a consistent manner
       console.error('An error occurred while updating the expense header:', error);
@@ -1384,18 +1390,44 @@ await sendToOtherMicroservice(payload, action, 'approval', comments, source, 'on
 };
 
 
+function parseNumericFields(object, fields) {
+  const result = {};
+
+  fields.forEach(field => {
+    if (object.hasOwnProperty(field)) {
+      result[field] = parseNumber(object[field]);
+    } else {
+      throw new Error(`Field "${field}" is missing from the source object.`);
+    }
+  });
+
+  return result;
+}
+
+function parseNumber(value){
+  const parsed = parseFloat(value)
+  if (isNaN(parsed)) {
+    throw new Error(`Invalid number format: "${parsed}".`);
+  }
+  return parsed
+}
+
 export const cancelAtHeaderLevelForAReport = async (req, res) => {
+  try {
     const { tenantId, tripId, empId, expenseHeaderId } = req.params;
     const { expenseAmountStatus, travelExpenseReport } = req.body;
  console.log("req.body on header level cancel", req.body)
  let totalExpenseAmount;
  let totalPersonalExpenseAmount;
  let totalRemainingCash;
-    if(expenseAmountStatus){
-      ({ totalExpenseAmount, totalPersonalExpenseAmount, totalRemainingCash } = expenseAmountStatus);
-    }
   
-  try {
+    if(expenseAmountStatus){
+      totalExpenseAmount = parseNumber(expenseAmountStatus.totalExpenseAmount)
+      totalPersonalExpenseAmount = parseNumber(expenseAmountStatus.totalPersonalExpenseAmount)
+      totalRemainingCash = parseNumber(expenseAmountStatus.totalRemainingCash)
+    }
+
+
   // const hasAlreadyBookedExpense = travelExpenseReport && travelExpenseReport.alreadyBookedExpenseLines && Array.isArray(travelExpenseReport.alreadyBookedExpenseLines) && travelExpenseReport.alreadyBookedExpenseLines.length > 0;
   const hasAlreadyBookedExpense = !!(travelExpenseReport?.alreadyBookedExpenseLines &&
     Object.values(travelExpenseReport.alreadyBookedExpenseLines)
@@ -1404,7 +1436,11 @@ export const cancelAtHeaderLevelForAReport = async (req, res) => {
   );  
   
   const isMatchingExpenseHeaderId = travelExpenseReport && travelExpenseReport.expenseHeaderId === expenseHeaderId;
-  const {expenseLines} = travelExpenseReport
+  const {expenseLines, approvers=[]} = travelExpenseReport
+
+  const isApproval = approvers?.length > 0
+
+
   console.log("hasAlreadyBookedExpense , isMatchingExpenseHeaderId",hasAlreadyBookedExpense , isMatchingExpenseHeaderId )
   if (hasAlreadyBookedExpense && isMatchingExpenseHeaderId){
         const getExpenseReport = await Expense.findOneAndUpdate(
@@ -1426,13 +1462,15 @@ export const cancelAtHeaderLevelForAReport = async (req, res) => {
 
         if(getExpenseReport){
         const payload = {getExpenseReport};
-        const needConfirmation = true;
         const action = 'full-update';
         const comments = 'All expenseReports are deleted'
-        const source = 'expense';
         
-        await  sendToOtherMicroservice(payload, action, 'dashboard', comments, source, 'online')
-        await  sendToOtherMicroservice(payload, action, 'trip', comments, source,'online')
+        await  sendToOtherMicroservice(payload, action, 'dashboard', comments)
+        await  sendToOtherMicroservice(payload, action, 'trip', comments)
+
+        if(isApproval){
+          await  sendToOtherMicroservice(payload, action, 'approval', comments)
+        }
 
         // Process the updated expenseReport if needed
         return res.status(200).json({ success: true, message:"Your expense Report deleted Successfully" });
@@ -1457,11 +1495,13 @@ const fixedFields = ['Total Amount', 'Date',  'Tax Amount', 'Tip Amount', 'Premi
       if (isPersonalExpense) {
           if (isMultiCurrency) {
               const { convertedPersonalAmount } = expenseLine.convertedAmountDetails;
-              totalPersonalExpenseAmount -= convertedPersonalAmount;
-              totalRemainingCash += totalAmount - convertedPersonalAmount;
+                 const convertedPersonalAmountNo= parseNumber(convertedPersonalAmount)
+              totalPersonalExpenseAmount -= convertedPersonalAmountNo;
+              totalRemainingCash += totalAmount - convertedPersonalAmountNo;
           } else {
-              totalPersonalExpenseAmount -= expenseLine.personalExpenseAmount;
-              totalRemainingCash += totalAmount - expenseLine.personalExpenseAmount;
+            const personalExpenseAmountNo = parseNumber(expenseLine.personalExpenseAmount)
+              totalPersonalExpenseAmount -= personalExpenseAmountNo;
+              totalRemainingCash += totalAmount - personalExpenseAmountNo;
           }
       } else {
           if (isMultiCurrency) {
@@ -1502,13 +1542,14 @@ const fixedFields = ['Total Amount', 'Date',  'Tax Amount', 'Tip Amount', 'Premi
   if(updatedExpenseReport){
     
 const payload = {getExpenseReport:updatedExpenseReport};
-const needConfirmation = true;
-const source = 'expense'
-const onlineVsBatch = 'online';
 const action = 'full-update';
+const comments = 'expense report cancelled at headerLevel'
 
-await sendToOtherMicroservice(payload, action, 'dashboard', 'expense report cancelled at headerLevel', source, 'online')
-await sendToDashboardMicroservice(payload, action, 'expense report cancelled at headerLevel', source, 'batch', true)
+await sendToOtherMicroservice(payload, action, 'dashboard',comments )
+await sendToDashboardMicroservice(payload, action, comments)
+if(isApproval){
+  await  sendToOtherMicroservice(payload, action, 'approval', comments)
+}
 
 // Process the updated expenseReport if needed
 return res.status(200).json({ success: true, message: 'Expense Report canceled successfully.' });
@@ -1636,15 +1677,11 @@ export const cancelAtLine = async (req, res) => {
       if(cancelExpenseAtLineItem){
         const { travelExpenseData, expenseAmountStatus} = cancelExpenseAtLineItem
         const payload = {getExpenseReport :cancelExpenseAtLineItem};
-        const needConfirmation = true;
-        let source = 'travel-expense'
-        let onlineVsBatch = 'online';
         const action = 'full-update';
-        const destination = 'dashboard';
         const comments = 'Expense line is deleted from expenseReport'
 
-        await sendToDashboardMicroservice(payload, action, comments, 'expense', 'online', true)
-        await  sendToOtherMicroservice(payload, action, 'trip', comments, 'expense', 'online')
+        await sendToDashboardMicroservice(payload, action, comments)
+        await  sendToOtherMicroservice(payload, action, 'trip', comments)
   
         // Process the updated expenseReport if needed
         return res.status(200).json({ success: true, travelExpenseData, expenseAmountStatus, message:"Your expense deleted Successfully" });

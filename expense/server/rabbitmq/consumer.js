@@ -136,7 +136,7 @@ export async function startConsumer(receiver) {
                   console.log('error updating travel and cash')
               }
           }
-          if(action == 'settle-expense-paid') {
+          if(action == 'expense-paid') {
               console.log(" expense header status paid")
               const res = await settleExpenseReport(payload);
               if(res.success){
