@@ -218,13 +218,16 @@ export const paidExpenseReports = async (req, res, next) => {
     }
 
     const payload = {
-      tenantId,travelRequestId, expenseHeaderId,settlementBy:getFinance , expenseHeaderStatus:newStatus.PAID
+      tenantId,travelRequestId, expenseHeaderId, settlementBy:getFinance , expenseHeaderStatus:newStatus.PAID , 
+      settlementDate: new Date(),
     }
 
     const options={
      action:'expense-paid',
-     comments:'From Finance ms -travelExpenseReport status is updated to paid'
+     comments:'travelExpenseReport status is updated to paid',
+     includeTrip:true,
     }
+
     console.log("Update successful:", updatedExpenseReport);
     await sendUpdate(payload,options)
     return res.status(200).json({ message: 'Update successful', result: updatedExpenseReport });
