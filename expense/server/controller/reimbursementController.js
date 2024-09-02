@@ -582,13 +582,26 @@ export const editReimbursementExpenseLine = async (req, res) => {
  * @throws {object} - The response object with an error message if expenseHeaderId is missing or the expense document is not found or unauthorized.
  */
 
+const draftExpense = Joi.object({
+  approvers: Joi.array().items(
+    Joi.object({
+      empId: Joi.string().optional(),
+      name: Joi.string().optional(),
+      status: Joi.string().optional(),
+      imageUrl: Joi.string().optional(),
+      _id: Joi.string().optional()
+    })
+  ).default([]),
+  expenseSettlement: Joi.string().allow('').default('')
+})
+
 export const draftReimbursementExpenseLine = async (req, res) => {
   try {
     const params = validateRequest(nonTravelSchema,req.params)
-    const body = validateRequest(submitExpense, req.body)
+    const body = validateRequest(draftExpense, req.body)
 
     const { tenantId, empId, expenseHeaderId } = params;
-    const { approvers=[] , expenseSettlement} = body;
+    const { approvers=[] , expenseSettlement=''} = body;
     const status ={
       PENDING_SETTLEMENT :'pending settlement',
       PENDING_APPROVAL:'pending approval',
@@ -611,17 +624,16 @@ export const draftReimbursementExpenseLine = async (req, res) => {
     report.expenseLines.map(lineItem => ({
     ...lineItem,
     lineItemStatus: getStatus,
-    approvers: approvers
+    approvers: approvers ?? []
     }))
 
     report.expenseHeaderStatus = getStatus
-    report.approvers = approvers
-    report.expenseSettlement = expenseSettlement
+    report.approvers = approvers ?? []
+    report.expenseSettlement = expenseSettlement ?? null
     const updatedExpense = await report.save()
 
       const { name } = updatedExpense.createdBy ?? { name: 'user' };
       const payload = { reimbursementReport : updatedExpense };
-      const needConfirmation = false;
       const source = 'reimbursement';
       const onlineVsBatch = 'online';
       const action = 'full-update';
@@ -632,16 +644,15 @@ export const draftReimbursementExpenseLine = async (req, res) => {
     }     
     await  sendToOtherMicroservice(payload, action, 'dashboard', comments, source, onlineVsBatch)   
 
-
     const response = {
       success: true,
-      message: `${name}, your expense report is submitted.`
+      message: `${name}, your expense report is saved as draft.`
     };
 
     return res.status(200).json(response);
     } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: 'Failed to submit expense report.' });
+    return res.status(500).json({ message: 'Error Occurred' });
   }
 };
 
@@ -673,6 +684,8 @@ export const submitReimbursementExpenseReport = async (req, res) => {
 
     const { tenantId, empId, expenseHeaderId } = params;
     const { approvers , expenseSettlement} = body;
+
+    console.log("on submit reim", approvers, "expenseSettlement" , expenseSettlement )
     const status ={
       PENDING_SETTLEMENT :'pending settlement',
       PENDING_APPROVAL:'pending approval'
@@ -694,20 +707,21 @@ export const submitReimbursementExpenseReport = async (req, res) => {
       return res.status(404).json({ message: 'Expense Report not found or unauthorized.' });
     }
 
-    report.expenseLines.map(lineItem => ({
-    ...lineItem,
-    lineItemStatus: getStatus,
-    approvers: approvers
+    console.log("the report 0", JSON.stringify(report.expenseLines, '',2))
+    report.expenseLines = report.expenseLines.map(lineItem => ({
+      ...lineItem,
+      lineItemStatus:getStatus,
+      approver:approvers
     }))
 
     report.expenseHeaderStatus = getStatus
     report.approvers = approvers
     report.expenseSettlement = expenseSettlement
+
     const updatedExpense = await report.save()
 
       const { name } = updatedExpense.createdBy ?? { name: 'user' };
       const payload = { reimbursementReport : updatedExpense };
-      const needConfirmation = false;
       const source = 'reimbursement';
       const onlineVsBatch = 'online';
       const action = 'full-update';
@@ -717,7 +731,6 @@ export const submitReimbursementExpenseReport = async (req, res) => {
       await  sendToOtherMicroservice(payload, action, 'approval', comments, source, onlineVsBatch) 
     }     
     await  sendToOtherMicroservice(payload, action, 'dashboard', comments, source, onlineVsBatch)   
-
 
     const response = {
       success: true,
@@ -807,17 +820,24 @@ export const cancelReimbursementReport = async (req, res) => {
 
     console.log('expense report failed to delete', expenseReport)
 
-    const { name } = expenseReport.createdBy;
+    const { approver, createdBy} = expenseReport
+    const { name } = createdBy;
+
+    const isApproval = approvers?.length > 0
     const payload = {  tenantId, empId, expenseHeaderId };
     const needConfirmation = false;
     const source = 'reimbursement';
     const onlineVsBatch = 'online';
 
     // await sendTravelExpenseToDashboardQueue(payload, needConfirmation, onlineVsBatch, source);
-         const action = 'delete';
-         const comments = 'reimbursment expense report deleted';
+    const action = 'delete';
+    const comments = 'reimbursement expense report deleted';
 
-   await  sendToOtherMicroservice(payload, action, 'dashboard', comments, source, onlineVsBatch)
+    if(isApproval){
+      await  sendToOtherMicroservice(payload, action, 'approval', comments, source, onlineVsBatch)
+    }
+    await  sendToOtherMicroservice(payload, action, 'dashboard', comments, source, onlineVsBatch)
+
     return res.status(200).json({ success: true, message: `Expense report deleted successfully ${name}` });
   } catch (error) {
     return res.status(500).json({ success: false, message: 'Internal server error' });
@@ -851,8 +871,10 @@ export const cancelReimbursementReportLine = async (req, res) => {
       });
     }
 
-    const { createdBy } = expenseReport;
+    const { createdBy , approvers } = expenseReport;
     const { name } = createdBy;
+
+    const isApproval = approvers?.length > 0
 
     lineItemIds.forEach((expenseLineId) => {
       const indexToRemove = expenseReport.expenseLines.findIndex(
@@ -869,10 +891,14 @@ export const cancelReimbursementReportLine = async (req, res) => {
     const needConfirmation = false;
     const source = 'reimbursement';
     const onlineVsBatch = 'online';
-         const action = 'full-update';
-         const comments = 'reimbursement expense line deleted';
+    const action = 'full-update';
+    const comments = 'reimbursement expense line deleted';
 
-   await  sendToOtherMicroservice(payload, action, 'dashboard', comments, source, onlineVsBatch)
+    if(isApproval){
+      await  sendToOtherMicroservice(payload, action, 'approval', comments, source, onlineVsBatch)
+    }
+      await  sendToOtherMicroservice(payload, action, 'dashboard', comments, source, onlineVsBatch)
+
     return res.status(200).json({
       success: true,
       message: `Expense lines deleted successfully by ${name}`,
