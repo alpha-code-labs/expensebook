@@ -242,6 +242,11 @@ function formatDate(date=Date.now()) {
     }
   }
   
+  function formatAmount(number) {
+    // Convert to a number if it isn't already
+    const amount = parseFloat(number) || 0;
+    return amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  }
 
-export {rearrangeKeyForLineItem, allocationLevel,initializenonTravelFormFields, initializeFormFields, camelCaseToTitleCase, titleCase, formatDate, formatDate2 ,getStatusClass ,generateRandomId,urlRedirection}  
+export {rearrangeKeyForLineItem, allocationLevel,initializenonTravelFormFields, initializeFormFields, camelCaseToTitleCase, titleCase, formatDate, formatDate2 ,getStatusClass ,generateRandomId,urlRedirection,formatAmount}  
 

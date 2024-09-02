@@ -7,7 +7,7 @@
 import React,{ useState, useEffect , useRef} from "react";
 import {BrowserRouter as Router, useParams} from 'react-router-dom';
 import Icon from "../components/common/Icon";
-import { getStatusClass, titleCase, urlRedirection } from "../utils/handyFunctions";
+import { formatAmount, getStatusClass, titleCase, urlRedirection } from "../utils/handyFunctions";
 import Button from "../components/common/Button";
 import Error from "../components/common/Error";
 import PopupMessage from "../components/common/PopupMessage";
@@ -131,6 +131,7 @@ const ocrValues = {
   const [totalAmount, setTotalAmount] = useState(0); ///for handling convert 
   const [date , setDate]=useState(null)
   const [flagExpenseHeaderStatus,setFlagExpenseHeaderStatus]=useState(null)
+  const [selectedLineItemId,setSelectedLineItemId]=useState(null)
 
 
   
@@ -146,8 +147,8 @@ const ocrValues = {
     delete:{visible:false,id:null},
     deleteHeader:false,
     saveAsDraft:false,
-    submit:false
-
+    submit:false,
+    deleteLineItem:false
   })
 
   const [active , setActive]=useState({
@@ -169,6 +170,7 @@ const ocrValues = {
   
   const [selectedTravelType, setSelectedTravelType] = useState(null); /// for level 2 
   const [formData, setFormData] = useState(null); //this is for get expense data
+  const [requiredObj, setRequiredObj] = useState({})
   const [getExpenseData, setGetExpenseData]=useState(); //to get data header level 
   const [getSavedAllocations,setGetSavedAllocations]=useState()  ///after save the allocation then i will get next time from here 
   const [modalOpen,setModalOpen]=useState(false);
@@ -732,13 +734,13 @@ console.log('selected Currency',selectDropdown)
 const handleSubmitOrDraft=async(action)=>{
   let allowForm = true
   const data ={ expenseSettlement: selectedExpenseSettlement ||"", "approvers":getExpenseData?.[0]?.approvers || []}
-  // if(!selectedExpenseSettlement){
-  //   setErrorMsg((prevErrors)=>({...prevErrors,expenseSettlement:{set:true, msg:'Select Expense Settlement'}}))
-  //   allowForm= false
-  // }else{
-  //   setErrorMsg((prevErrors)=>({...prevErrors,expenseSettlement:{set:false, msg:''}}))
-  //   allowForm = true
-  // }
+  if(!selectedExpenseSettlement){
+    setErrorMsg((prevErrors)=>({...prevErrors,expenseSettlement:{set:true, msg:'Select the settlement mode'}}))
+    allowForm= false
+  }else{
+    setErrorMsg((prevErrors)=>({...prevErrors,expenseSettlement:{set:false, msg:''}}))
+    allowForm = true
+  }
   
     console.log('submit',data)
     if(allowForm){
@@ -1023,36 +1025,34 @@ const [editFields, setEditFields]= useState({});
   }
 
     //Handle Delete
-    const handleDeleteLineItem=async(lineItem)=>{
-      console.log('expense data1' , onboardingData?.expenseAmountStatus)
-     const data = { expenseAmountStatus: onboardingData?.expenseAmountStatus, expenseLine:lineItem}
+    const handleDeleteLineItem=async()=>{
+     
+     const data = { expenseAmountStatus: onboardingData?.expenseAmountStatus, expenseLine:selectedLineItemId} // stored whole lineItem
       try{
-        setIsUploading(true)
-        setActive(prevState => ({ ...prevState, delete: { visible:true,id:lineItem?.expenseLineId}}));
-        console.log('deletions',active.delete.visible,active.delete.id);
+        setIsUploading(prev=>({...prev, deleteLineItem:true}))
+       
+       
         const response= await cancelTravelExpenseLineItemApi(tenantId,empId,tripId,expenseHeaderId,data) 
         const updatedExpenseData = getExpenseData.map(expense => {
           if (expense.expenseHeaderId === expenseHeaderId) {
             const updatedExpenseLines = expense.expenseLines.filter(
-              line => line.expenseLineId !== lineItem?.expenseLineId
+              line => line.expenseLineId !== selectedLineItemId?.expenseLineId
             );
             return { ...expense, expenseLines: updatedExpenseLines };
           }
           return expense;
         });
         setGetExpenseData(updatedExpenseData);
+        setModalOpen(false)
         setShowPopup(true)
         setMessage(response?.message)
-        setIsUploading(false)
-        setActive(prevState => ({ ...prevState, delete: { visible:false,id:null}}));
-
+        setIsUploading(prev=>({...prev, deleteLineItem:false}))
         setTimeout(()=>{
           setShowPopup(false);setMessage(null);
         },5000)
       }catch(error){
         // setLoadingErrMsg(error.message)
-        setIsUploading(false)
-        setActive(prevState => ({ ...prevState, delete: { visible:false,id:null}}));
+        setIsUploading(prev=>({...prev, deleteLineItem:false}))
         setMessage(error.message)
         setShowPopup(true)
         setTimeout(() => {
@@ -1140,26 +1140,7 @@ useEffect(() => {
 
 console.log('blob storage', az_blob_container,blob_endpoint)
 
-async function uploadFileToAzure(file) {
-  try{
-      const blobServiceClient = new BlobServiceClient(blob_endpoint);
-      const containerClient = blobServiceClient.getContainerClient(az_blob_container);
-      const blobClient = containerClient.getBlobClient(file.name);
-      const blockBlobClient = blobClient.getBlockBlobClient();
-    
-      const result = await blockBlobClient.uploadBrowserData(file, {
-          blobHTTPHeaders: {blobContentType: file.type},
-          blockSize: 4 * 1024 * 1024,
-          concurrency: 20,
-          onProgress: ev => console.log(ev)
-      });
-      console.log(`Upload of file '${file.name}' completed`);
-      return {success:true}
-  }catch(e){
-      console.error(e)
-      return {success:false}   
-  }
-}
+
 ////---------------------------google search end--------------------------
 
 console.log('categoryfields by selected', categoryFieldBySelect)
@@ -1170,16 +1151,63 @@ const handleDashboardRedirection=()=>{
 }
 
 
+// const getTitle = () => {
+//   switch (actionType) {
+//     case 'closeAddExpense':
+//       return 'Leave this Page';
+//     case 'cancelExpense':
+//       return 'Delete Expense';
+//     default:
+//       return '';
+//   }
+// };
+// const getContent = () => {
+//   switch (actionType) {
+//     case 'closeAddExpense':
+//       return (
+//         <>
+//         <p className="text-md px-4 text-start font-cabin text-neutral-600">
+//           If you leave this page, unsaved changes will be lost. Are you sure you want to leave this page?
+//         </p>
+
+//                               <div className="flex items-center gap-2 mt-10">
+//                                 <Button1  text='Stay on this Page' onClick={()=>setModalOpen(false)} />
+//                                 <CancelButton   text='Leave this Page'  onClick={()=>handleDashboardRedirection()}/>
+//                               </div>
+//                   </>
+//       );  
+//       case 'cancelExpense':
+//         return (
+//           <>
+//           <p className="text-md px-4 text-start font-cabin text-neutral-600">
+//           If you delete this expense, you cannot retrieve it. Are you sure you want to delete?
+//           </p>
+
+//                                 <div className="flex items-center gap-2 mt-10">
+//                                   <Button1 loading={isUploading.deleteHeader}  text='Delete' onClick={handleCancelExpenseHeader} />
+//                                   <CancelButton   text='Cancel'  onClick={()=>setModalOpen(false)}/>
+//                                 </div>
+//                     </>
+//         );  
+   
+//       default:
+//       return '';
+//   }
+// };
+
 const getTitle = () => {
   switch (actionType) {
     case 'closeAddExpense':
       return 'Leave this Page';
     case 'cancelExpense':
       return 'Delete Expense';
+    case 'deleteLineItem':
+      return 'Delete Line-Item';
     default:
       return '';
   }
 };
+
 const getContent = () => {
   switch (actionType) {
     case 'closeAddExpense':
@@ -1196,17 +1224,19 @@ const getContent = () => {
                   </>
       );  
       case 'cancelExpense':
+      case 'deleteLineItem': 
+     
         return (
+          
           <>
           <p className="text-md px-4 text-start font-cabin text-neutral-600">
-          If you delete this expense, you cannot retrieve it. Are you sure you want to delete?
+          If you delete this {actionType==="cancelExpense" ? 'expense': 'line-item'}, you cannot retrieve it. Are you sure you want to delete?
           </p>
-
                                 <div className="flex items-center gap-2 mt-10">
-                                  <Button1 loading={isUploading.deleteHeader}  text='Delete' onClick={handleCancelExpenseHeader} />
+                                  <Button1 loading={isUploading.deleteHeader || isUploading.deleteLineItem}  text='Delete' onClick={()=>{actionType==="deleteExpense" ?handleCancelExpenseHeader(): handleDeleteLineItem()}} />
                                   <CancelButton   text='Cancel'  onClick={()=>setModalOpen(false)}/>
                                 </div>
-                    </>
+          </>
         );  
    
       default:
@@ -1354,7 +1384,7 @@ const getContent = () => {
     
     <div>
       <ExpenseHeader 
-          selectedExpenseSettlement={selectedExpenseSettlement}
+          selectedExpenseSettlement={selectedExpenseSettlement} 
           errorMsg={errorMsg} 
           expenseHeaderStatus={flagExpenseHeaderStatus} 
           tripPurpose={formData?.tripPurpose} 
@@ -1364,8 +1394,8 @@ const getContent = () => {
           isUploading={isUploading}
           active={active}
           cancel={cancel}
-          handleCancelExpenseHeader={handleCancelExpenseHeader}
-          handleSubmitOrDraft={handleSubmitOrDraft}
+          handleCancelExpenseHeader={handleCancelExpenseHeader} 
+          handleSubmitOrDraft={handleSubmitOrDraft} 
           formData={formData} 
           approversList={approversList} 
           onReasonSelection={onReasonSelection} 
@@ -1409,7 +1439,7 @@ const getContent = () => {
       {activeIndex === index && (
         <div className="bg-white  w-full  ">
 {/* ///already booked travel details */}
-<div className="mt-5 flex flex-col gap-4">
+<div className=" flex flex-col gap-4 py-2">
 
 {['flights', 'trains', 'buses', 'cabs', 'hotels']
 .filter(it=> item?.alreadyBookedExpenseLines && item.alreadyBookedExpenseLines[it]?.length > 0)
@@ -1422,51 +1452,18 @@ const getContent = () => {
           {`${itnItem} `}
         </p>
       </summary>
-      <div className='flex flex-col gap-1'>
-        {/* {item.alreadyBookedExpenseLines[itnItem].map((item, itemIndex) => {
-          if (['flights', 'trains', 'buses'].includes(itnItem)) {
-            return (
-              <div key={itemIndex}>
-                <FlightCard
-                  // onClick={()=>handleCancel(itnItem.slice(0, -1), itemIndex, item.formId, item.isReturnTravel)} 
-                  from={item.from} 
-                  to={item.to} 
-                  itnId={item.itineraryId}
-                  // handleLineItemAction={handleLineItemAction}
-                  key={`flights_${itemIndex}_${Math.random()}`}
-                  showActionButtons={travelRequestStatus !== 'pending approval' && item.status == 'pending approval'}
-                  date={item.date} time={item.time} travelClass={item.travelClass} mode={titleCase(itnItem.slice(0, -1) ?? "")} />
-              </div>
-            );
-          } else if (itnItem === 'cabs') {
-            return (
-              <div key={itemIndex}>
-                <CabCard 
-                key={`cabs_${itemIndex}_${Math.random()}`}
-                  itnId={item.itineraryId}
-                  from={item.pickupAddress} to={item.dropAddress} date={item.date} time={item.time} travelClass={item.travelClass} isTransfer={item.type !== 'regular'} />
-              </div>
-            );
-
-          } else if (itnItem === 'hotels') {
-            return (
-              <div key={itemIndex}>
-                <HotelCard 
-                  key={`hotels_${itemIndex}_${Math.random()}`}
-                  itnId={item.itineraryId}        
-                  checkIn={item.checkIn} checkOut={item.checkOut} date={item.data} time={item.time} travelClass={item.travelClass} mode='Train' />
-              </div>
-            );
-          }
-        })} */}
+      <div className='flex flex-col gap-1 '>
+       
 
 {item.alreadyBookedExpenseLines[itnItem].map((item, itemIndex) => {
 if (['flights', 'trains', 'buses'].includes(itnItem)) {
     return (
         <React.Fragment key={`flight_${itemIndex}`}>
             <FlightCard
-                from={item.from}
-                to={item.to}
+                defaultCurrency={defaultCurrency}
+                amount={item?.bookingDetails?.billDetails?.totalAmount}
+                from={item.bkd_from}
+                to={item.bkd_to}
                 itnId={item.itineraryId}
                 showActionButtons={travelRequestStatus !== 'pending approval' && item.status === 'pending approval'}
                 date={item.date} time={item.time} travelClass={item.travelClass} mode={titleCase(itnItem.slice(0, -1) ?? "")} />
@@ -1476,16 +1473,26 @@ if (['flights', 'trains', 'buses'].includes(itnItem)) {
     return (
         <React.Fragment key={`cab_${itemIndex}`}>
             <CabCard
+            defaultCurrency={defaultCurrency}
+                amount={item?.bookingDetails?.billDetails?.totalAmount}
                 itnId={item.itineraryId}
-                from={item.pickupAddress} to={item.dropAddress} date={item.date} time={item.time} travelClass={item.travelClass} isTransfer={item.type !== 'regular'} />
+                from={item.bkd_pickupAddress} to={item.bkd_dropAddress} date={item.date} time={item.time} travelClass={item.travelClass} isTransfer={item.type !== 'regular'} />
         </React.Fragment>
     );
 } else if (itnItem === 'hotels') {
     return (
         <React.Fragment key={`hotel_${itemIndex}`}>
             <HotelCard
-                itnId={item.itineraryId}
-                checkIn={item.checkIn} checkOut={item.checkOut} date={item.data} time={item.time} travelClass={item.travelClass} mode='Train' />
+              location={item?.bkd_location}
+              defaultCurrency={defaultCurrency}
+              amount={item?.bookingDetails?.billDetails?.totalAmount}
+              itnId={item.itineraryId}
+              checkIn={item.bkd_checkIn} 
+              checkOut={item.checkOut} 
+              date={item.data} 
+              time={item.time} 
+              travelClass={item.travelClass} 
+              mode='Train' />
         </React.Fragment>
     );
 }
@@ -1499,10 +1506,7 @@ if (['flights', 'trains', 'buses'].includes(itnItem)) {
 )}
 
 </div>
-{/* ///alreadybooked travel details */}
 
-{/* ///saved lineItem */}
-{/* get lineitem data from backend start*/}
 <div className="space-y-2">
 {item.expenseLines.map((lineItem, index) => (
 lineItem.expenseLineId === editLineItemById ? 
@@ -1535,20 +1539,18 @@ defaultCurrency={defaultCurrency}/>
 
 )  :
 <>
-<div className="flex flex-col lg:flex-row  w-full h-screen">
+<div className="flex flex-col lg:flex-row  w-full ">
 
-<EditView 
-expenseHeaderStatus={item?.expenseHeaderStatus}
-isUploading={isUploading} 
-active={active}
-flagToOpen={onboardingData?.flagToOpen} 
-expenseHeaderId={item?.expenseHeaderId} 
-lineItem={lineItem} 
-index={index} 
-handleEdit={handleEdit}
-newExpenseReport={item.newExpenseReport} 
-handleDeleteLineItem={handleDeleteLineItem}
-/>
+
+
+<div className=" w-full lg:w-3/5 ">
+  <DocumentPreview initialFile={lineItem?.billImageUrl}/>
+</div>
+
+<div className="w-full lg:w-2/5 h-full">
+  <LineItemView expenseHeaderId={item?.expenseHeaderStatus} lineItem={lineItem} isUploading={isUploading} index={index} handleEdit={handleEdit} handleDeleteLineItem={()=>{setModalOpen(true);setActionType("deleteLineItem");setSelectedLineItemId(lineItem)}}/>
+</div>
+
 </div>
 </>
 ))}
@@ -2042,7 +2044,7 @@ function spitImageSource(modeOfTransit){
 
 
 
-function FlightCard({amount,from, mode='Flight', showActionButtons, itnId, handleLineItemAction}){
+function FlightCard({defaultCurrency,amount,from,to, mode='Flight', showActionButtons, itnId, handleLineItemAction}){
     return(
     <div className="shadow-sm min-h-[76px] bg-slate-50 rounded-md border border-slate-300 w-full px-6 py-4 flex flex-col sm:flex-row gap-4 items-center sm:divide-x">
     <img src={spitImageSource(mode)} className='w-4 h-4' />
@@ -2060,16 +2062,15 @@ function FlightCard({amount,from, mode='Flight', showActionButtons, itnId, handl
         </div>
 
         <div className="mx-2 text-sm w-full flex justify-between flex-col sm:flex-row">
-            <div className="flex-1 capitalize">
-                {from}     
+            <div className="flex-1 capitalize ">
+            {from??'not provided'} <span className="  lowercase">to</span>  {to??'not provided'}   
             </div>
             
             <div className="flex-1">
-                {amount??'N/A'}
+              {defaultCurrency?.shortName ?? "-"} {formatAmount(amount)??'N/A'}
             </div>
             <div className='flex-1'>
-                <input type="checkbox" defaultChecked/>
-              
+                <input type="checkbox" checked={true}/>
             </div>
         </div>
     </div>
@@ -2089,14 +2090,14 @@ function FlightCard({amount,from, mode='Flight', showActionButtons, itnId, handl
 
 
 
-function HotelCard({amount, hotelClass, onClick, preference='close to airport,'}){
+function HotelCard({defaultCurrency,amount,location, hotelClass, onClick, preference='close to airport,'}){
     return(
     <div className="shadow-sm min-h-[76px] bg-slate-50 rounded-md border border-slate-300 w-full px-6 py-4 flex flex-col sm:flex-row gap-4 items-center sm:divide-x">
     <p className='font-semibold text-base text-neutral-600'>Hotel</p>
     <div className="w-full flex sm:block">
         <div className='mx-2 text-xs text-neutral-600 flex justify-between flex-col sm:flex-row'>
            <div className="flex-1">
-           Travel Allocation   
+                Location
             </div>
             <div className="flex-1">
                 Amount
@@ -2109,14 +2110,14 @@ function HotelCard({amount, hotelClass, onClick, preference='close to airport,'}
 
         <div className="mx-2 text-sm w-full flex justify-between flex-col sm:flex-row">
             <div className="flex-1">
-                {/* {checkIn}      */}
-                Deparment
+                {location}     
+                
             </div>
             <div className="flex-1">
-                {hotelClass??'N/A'}
+              {defaultCurrency?.shortName ?? "-"} {formatAmount(amount)??'N/A'}
             </div>
             <div className='flex-1'>
-                <input type="checkbox" defaultChecked/>
+                <input type="checkbox" checked={true}/>
             </div>
         </div>
 
@@ -2127,7 +2128,7 @@ function HotelCard({amount, hotelClass, onClick, preference='close to airport,'}
     </div>)
 }
 
-function CabCard({amount,from, to, date, time, travelClass, onClick, mode, isTransfer=false, showActionButtons, itnId, handleLineItemAction}){
+function CabCard({defaultCurrency, amount,from, to, date, time, travelClass, onClick, mode, isTransfer=false, showActionButtons, itnId, handleLineItemAction}){
     return(
     <div className="shadow-sm min-h-[76px] bg-slate-50 rounded-md border border-slate-300 w-full px-6 py-4 flex flex-col sm:flex-row gap-4 items-center sm:divide-x">
     <div className='font-semibold text-base text-neutral-600'>
@@ -2136,12 +2137,12 @@ function CabCard({amount,from, to, date, time, travelClass, onClick, mode, isTra
     </div>
     <div className="w-full flex sm:block">
         <div className='mx-2 text-xs text-neutral-600 flex justify-between flex-col sm:flex-row'>
-            {/* <div className="flex-1">
+            <div className="flex-1">
                 Pickup     
-            </div> */}
-            <div className="flex-1" >
-            Travel Allocation   
             </div>
+            {/* <div className="flex-1" >
+            Travel Allocation   
+            </div> */}
             {/* <div className="flex-1">
                     Date
             </div> */}
@@ -2158,20 +2159,18 @@ function CabCard({amount,from, to, date, time, travelClass, onClick, mode, isTra
                 {from??'not provided'}     
             </div> */}
             <div className="flex-1">
-                {/* {to??'not provided'}      */}
-                Legal Entity
+            {from??'not provided'}     
+                
             </div>
             {/* <div className="flex-1">
                 {date??'not provided'}
             </div> */}
             <div className="flex-1">
-                {amount??'N/A'}
+              {defaultCurrency?.shortName ?? "-"} {formatAmount(amount)??'N/A'}
             </div>
-           {/* {!isTransfer && <div className="flex-1">
-                {travelClass??'N/A'}
-            </div>} */}
+          
              <div className='flex-1'>
-                <input type="checkbox" defaultChecked/>
+                <input type="checkbox" checked={true}/>
             </div>
         </div>
     </div>
@@ -2191,7 +2190,7 @@ function EditView({expenseHeaderStatus,isUploading,active,flagToOpen,expenseHead
 </div>
 
 <div className="w-full lg:w-2/5">
-  <LineItemView expenseHeaderId={expenseHeaderStatus} lineItem={lineItem} active={active} index={index} handleEdit={handleEdit} handleDeleteLineItem={handleDeleteLineItem}/>
+  <LineItemView expenseHeaderId={expenseHeaderStatus} lineItem={lineItem} active={active} index={index} handleEdit={handleEdit} handleDeleteLineItem={()=>{setModalOpen(true);setActionType("deleteLineItem");setSelectedLineItemId(lineItem?.lineItemId)}}/>
 </div>
 
 </>

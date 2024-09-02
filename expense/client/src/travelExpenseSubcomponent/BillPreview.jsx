@@ -27,7 +27,7 @@ export function DocumentPreview({ selectedFile, setIsFileSelected, initialFile, 
 
   return (
     
-    <div className='border border-slate-300 rounded-md h-full w-full'>
+    <div className='border border-slate-300 rounded-md h-[600px] sm:h-screen w-full'>
         
       {selectedFile ? (
         <div className="w-full h-full  overflow-auto flex justify-center">

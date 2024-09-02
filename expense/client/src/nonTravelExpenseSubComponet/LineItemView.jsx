@@ -188,7 +188,8 @@ export function LineItemView({ expenseHeaderStatus, isUploading, active, flagToO
         {!['paid', 'paid and distribute'].includes(expenseHeaderStatus) && (
           <div className="w-full flex sm:justify-start justify-center gap-4">
             <Button1 text="Edit" onClick={() => handleEdit(arrangedItems?.expenseLineId, arrangedItems?.['Category Name'], arrangedItems.travelType)} />
-            <Button1 loading={(active?.delete?.id === arrangedItems?.expenseLineId ? active?.delete?.visible : false)} text="Delete" onClick={() => (handleDeleteLineItem(arrangedItems))} />
+            <Button1 loading={false} text="Delete" onClick={()=>handleDeleteLineItem()} />
+           
           </div>
         )}
       </div>

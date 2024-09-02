@@ -8,7 +8,7 @@ export function LineItemView({ expenseHeaderStatus, isUploading, active, flagToO
 
   const excludedKeys = ['isMultiCurrency','convertedAmountDetails', 'isPersonalExpense', 'Tax Amount', 'personalExpenseAmount','policyValidation', 'Category Name', 'expenseLineId', 'billImageUrl', 'group', 'expenseLineAllocation', 'allocations', 'multiCurrencyDetails', 'lineItemStatus', 'lineItemId', '_id','approvers'];
   const includedKeys = ['Total Fair', 'Total Fare','personalExpenseAmount','Tax Amount', 'Total Amount', 'Subscription Cost', 'Cost', 'Premium Cost'];
-  
+  const totalAmountKeys = includedKeys.filter(key => key !== 'personalExpenseAmount');
 
 
      const arrangedItems=rearrangeKeyForLineItem(lineItem,includedKeys)
@@ -108,10 +108,16 @@ export function LineItemView({ expenseHeaderStatus, isUploading, active, flagToO
                 </div>
                 {/* Check for 'convertedAmountDetails' and display its amount */}
                 <div>   
-                {arrangedItems.convertedAmountDetails&& includedKey !== 'Tax Amount'  && (
+                {arrangedItems.convertedAmountDetails&& !['Tax Amount','personalExpenseAmount'].includes(includedKey)  && (
                   <p className=" text-sm text-neutral-600  pl-2 ">
                    {arrangedItems.convertedAmountDetails.amount}
                     {`Amount in ${arrangedItems.convertedAmountDetails?.defaultCurrencyName} ${arrangedItems.convertedAmountDetails?.convertedTotalAmount} | 1 ${arrangedItems.convertedAmountDetails?.convertedCurrencyName} = ${arrangedItems.convertedAmountDetails?.defaultCurrencyName} ${arrangedItems.convertedAmountDetails?.conversionRate}`}
+                  </p>
+                )}
+                {arrangedItems.convertedAmountDetails&&  !['Tax Amount',...totalAmountKeys].includes(includedKey)  && (
+                  <p className=" text-sm text-neutral-600  pl-2 ">
+                   {arrangedItems.convertedAmountDetails.amount}
+                    {`Amount in ${arrangedItems.convertedAmountDetails?.defaultCurrencyName} ${arrangedItems.convertedAmountDetails?.convertedPersonalAmount} | 1 ${arrangedItems.convertedAmountDetails?.convertedCurrencyName} = ${arrangedItems.convertedAmountDetails?.defaultCurrencyName} ${arrangedItems.convertedAmountDetails?.conversionRate}`}
                   </p>
                 )}
                 {
@@ -188,7 +194,7 @@ export function LineItemView({ expenseHeaderStatus, isUploading, active, flagToO
         {!['paid', 'paid and distribute'].includes(expenseHeaderStatus) && (
           <div className="w-full flex sm:justify-start justify-center gap-4">
             <Button1 text="Edit" onClick={() => handleEdit(arrangedItems?.expenseLineId, arrangedItems?.['Category Name'], arrangedItems.travelType)} />
-            <Button1 loading={(active?.delete?.id === arrangedItems?.expenseLineId ? active?.delete?.visible : false)} text="Delete" onClick={() => (handleDeleteLineItem(arrangedItems))} />
+            <Button1 loading={false} text="Delete" onClick={() => handleDeleteLineItem()} />
           </div>
         )}
       </div>
