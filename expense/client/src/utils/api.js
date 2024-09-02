@@ -577,7 +577,7 @@ export const cancelNonTravelExpenseHeaderApi = async(tenantId,empId,expenseHeade
 
 //cancel non travel expense  array of lineItemId
 
-export const cancelNonTravelExpenseLineItemApi = async(tenantId,empId,expenseHeaderId,data)=>{
+export const deleteNonTravelExpenseLineItemApi = async(tenantId,empId,expenseHeaderId,data)=>{
 
   const url = `${EXPENSE_BACKEND_API_URL}/api/fe/expense/non-travel/${tenantId}/${empId}/${expenseHeaderId}/delete-line`
   
