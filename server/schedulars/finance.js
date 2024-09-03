@@ -40,7 +40,7 @@ const getSettlements = async (settlementsFilter) => {
 //   console.log('Modified documents:', result.modifiedCount);
 // };
 
-const updateSentToFinanceStatus = async (settlementsFilter) => {
+const oldupdateSentToFinanceStatus = async (settlementsFilter) => {
   try {
     const documents = await Dashboard.find(settlementsFilter);
 
@@ -78,6 +78,57 @@ const updateSentToFinanceStatus = async (settlementsFilter) => {
   }
 };
 
+const updateSentToFinanceStatus = async (settlementsFilter) => {
+  try {
+    const documents = await Dashboard.find(settlementsFilter);
+
+    const bulkOps = documents.map((doc) => {
+      const update = { $set: {} };
+      const arrayFilters = [];
+      const arrayFilterNames = {}; // To keep track of array filter names
+
+      // Helper function to get a unique array filter name
+      const getUniqueArrayFilterName = (baseName) => {
+        let filterName = baseName;
+        let index = 1;
+        while (arrayFilterNames[filterName]) {
+          filterName = `${baseName}_${index++}`;
+        }
+        arrayFilterNames[filterName] = true;
+        return filterName;
+      };
+
+      // Check if we need to update an array field
+      if (doc?.cashAdvanceSchema?.cashAdvancesData) {
+        const filterName = getUniqueArrayFilterName('cashAdvancesDataElem');
+        update.$set[`cashAdvanceSchema.cashAdvancesData.$[${filterName}].actionedUpon`] = true;
+        arrayFilters.push({ [`${filterName}.actionedUpon`]: false });
+      }
+      if (doc?.tripSchema?.travelExpenseData) {
+        const filterName = getUniqueArrayFilterName('travelExpenseDataElem');
+        update.$set[`tripSchema.travelExpenseData.$[${filterName}].actionedUpon`] = true;
+        arrayFilters.push({ [`${filterName}.actionedUpon`]: false });
+      }
+      // For non-array fields, no arrayFilters are needed
+      if (doc?.reimbursementSchema) {
+        update.$set['reimbursementSchema.actionedUpon'] = true;
+      }
+
+      return {
+        updateOne: {
+          filter: { _id: doc._id },
+          update,
+          arrayFilters: arrayFilters.length > 0 ? arrayFilters : undefined,
+        },
+      };
+    });
+
+    const result = await Dashboard.bulkWrite(bulkOps);
+    console.log('Modified documents:', result.modifiedCount);
+  } catch (error) {
+    console.error('Error updating documents:', error);
+  }
+};
 
 export const financeBatchJob = async () => {
     try {

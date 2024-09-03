@@ -1416,8 +1416,8 @@ export const nonTravelReportApproval = async (req, res) => {
           tenantId,
           expenseHeaderId,
           approvers,
+          empId,
           expenseHeaderStatus: expenseHeaderStatus,
-          reimbursement:reimbursementSchema,
           approve, 
           reject, 
           rejectionReason
@@ -1442,4 +1442,10 @@ export const nonTravelReportApproval = async (req, res) => {
     res.status(500).json({ error: 'An error occurred while updating Travel Expense status.' });
   }
 }
+
+
+
+
+
+
 
