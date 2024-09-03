@@ -1,10 +1,11 @@
 import {BrowserRouter as Router, Routes, Route} from 'react-router-dom';
 import './App.css';
-import Page3 from './pages/Page-3';
+import TravelApproval from './pages/Page-3';
 import { useEffect, useState } from 'react';
-import ExpenseApproval from './pages/ExpenseApproval';
+import TravelExpenseApproval from './pages/Page-3';
 import { urlRedirection } from './utils/handyFunctions';
 import { logoutApi } from './utils/api';
+import NonTravelTravelExpenseApproval from './pages/NonTravelApproval';
 
 
 
@@ -61,12 +62,14 @@ function App() {
 
   return (
     <>
-    {/* //http://localhost:5173/page3/65c5c3bef21cc9ab3038e21f/1004/65c5dec8cf52af3ac3026c46 */}
+    {/* //http://localhost:5173/TravelApproval/65c5c3bef21cc9ab3038e21f/1004/65c5dec8cf52af3ac3026c46 */}
     
     <Router>
       <Routes>
-       <Route path='/:tenantId/:empId/:tripId/:expenseHeaderId/travel-expense-approval' element={<ExpenseApproval/>}/>
-       <Route path='/:tenantId/:empId/:travelRequestId/travel-approval' element={<Page3/>}/>
+        
+       <Route path='/:tenantId/:empId/:tripId/:expenseHeaderId/travel-expense-approval' element={<TravelExpenseApproval/>}/>
+       <Route path='/:tenantId/:empId/:travelRequestId/travel-approval' element={<TravelApproval/>}/>
+       <Route path='/:tenantId/:empId/:expenseHeaderId/approval/non-travel' element={<NonTravelTravelExpenseApproval/>}/>
 
       </Routes>
     </Router>

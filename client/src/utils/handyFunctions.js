@@ -156,8 +156,11 @@ export function isoString(dateString){
   console.log(isoDateString);
   return isoDateString
 }
-  function formatAmount(number) {
-    return number.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+
+function formatAmount(number) {
+  // Convert to a number if it isn't already
+  const amount = parseFloat(number) || 0;
+  return amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
 

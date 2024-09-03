@@ -12,12 +12,14 @@ import { dummyExpenseData } from "../dummyData/travelExpenseHeader";
 import Select from "../components/common/Select";
 import ActionButton from "../components/common/ActionButton";
 import { approveTravelExpense, getTravelExpenseDataApi, rejectTravelExpense } from "../utils/api";
+import { ExpenseHeader, ExpenseLine, TripName } from "../components/common/TinyComponent";
 
 
 const rejectionOptions=['Too Many Violations', 'Budget Constraints','Insufficient Documents','Upcoming Project Deadline']
 
 export default function () {
   //get travel request Id from params
+  const dashboardBaseUrl = `${import.meta.env.VITE_DASHBOARD_URL}`
     const {tenantId,empId,tripId ,expenseHeaderId} = useParams()
     
     const [showPopup, setShowPopup] = useState(false)
@@ -52,6 +54,7 @@ const [actionData , setActionData]= useState({})
    
 
    const handleConfirm=async()=>{
+    
     const {action,tenantId,empId,tripId,expenseHeaderId} = actionData
     console.log('action data ', actionData)
     let api;
@@ -80,7 +83,9 @@ const [actionData , setActionData]= useState({})
        setShowPopup(true) 
        setMessage(response)
        setTimeout(() => {setIsUploading(false);setMessage(null);setShowPopup(false)},5000);
-    //   window.location.reload()
+      
+    window.parent.postMessage('closeIframe', dashboardBaseUrl);
+      
       } catch (error) {
         console.log('error',error.message)
         setShowPopup(true)
@@ -184,11 +189,11 @@ const [actionData , setActionData]= useState({})
 
       if (!accumulator[categoryName]) {
         accumulator[categoryName] = {
-          categoryName,
-          totalAmount: total,
+          'Category Name':categoryName,
+          'Total Amount': total,
         };
       } else {
-        accumulator[categoryName].totalAmount += total;
+        accumulator[categoryName]['Total Amount'] += total;
       }
 
       return accumulator;
@@ -196,7 +201,7 @@ const [actionData , setActionData]= useState({})
 
     setGroupedExpenses(grouped);
     // Calculate the grand total
-  const allTotals = Object.values(grouped).map(category => category.totalAmount);
+  const allTotals = Object.values(grouped).map(category => category['Total Amount']);
   const grandTotal = allTotals.reduce((sum, total) => sum + total, 0);
   setGrandTotal(grandTotal);
   };
@@ -204,6 +209,7 @@ const [actionData , setActionData]= useState({})
   //Call groupExpenses when the component mounts
   useEffect(() => {
    lineItems &&  groupExpenses();
+   console.log('grouped expense',Object.values(groupedExpenses),lineItems)
   }, [lineItems]);
 
       
@@ -218,7 +224,7 @@ const [actionData , setActionData]= useState({})
 
 
 
-      
+    
   
       
  
@@ -229,28 +235,18 @@ const [actionData , setActionData]= useState({})
   return <>
       {isLoading && <Error message={loadingErrMsg}/>}
       {!isLoading && 
-        <div className="w-full h-full relative bg-white-100 sm:px-[120px] px-6   py-12 select-none custom-scrollbar">
+        <div className="w-full h-full relative bg-white-100 px-4 py-4 select-none custom-scrollbar">
         {/* app icon */}
-        <div className='w-full flex justify-center  md:justify-start lg:justify-start'>
+        {/* <div className='w-full flex justify-center  md:justify-start lg:justify-start'>
             <Icon/>
-        </div>
+        </div> */}
 
         {/* Rest of the section */}
-        <div className="w-full h-full mt-10  font-cabin tracking-tight">
-            <div className='flex justify-between items-center sm:flex-row flex-col py-4'>
-                <p className="text-2xl text-start text-neutral-600 capitalize mb-5">{expenseData?.tripPurpose}</p>
-                
-                {travelRequestStatus === 'pending approval' && <div className="flex  gap-4">
-                    <div>
-                        <ActionButton loading={isUploading} disabled={isUploading} text={'Approve'} onClick={()=>handleModalVisible("approve-expense")}/>
-                    </div>
-                    <div>
-                        <ActionButton loading={isUploading} disabled={isUploading} text={'Reject'}  onClick={()=>handleModalVisible("reject-expense")}/>
-                    </div>
-                    
-                </div>}
-             
+        <div className="w-full h-full  font-cabin tracking-tight  ">
+            <div className="py-2 px-4">
+            <TripName tripName={expenseData?.tripName}/>
             </div>
+          
             {/* <div className="flex flex-row justify-between">
             <div>
                 <div className="flex gap-2 font-cabin text-xs tracking-tight">
@@ -309,7 +305,7 @@ const [actionData , setActionData]= useState({})
             </div>
             </div> */}
 
-            <div className="flex md:flex-row flex-col gap-2 justify-between w-full  ">
+            {/* <div className="flex md:flex-row flex-col gap-2 justify-between w-full  ">
   <div className=" md:w-1/5 w-full  flex  border-[1px] border-slate-300 rounded-md flex-row items-center gap-2 p-2 ">
     <div className="bg-slate-200 rounded-full p-4 shrink-0 w-auto">
       <img src={user_icon} className="w-[22px] h-[22px] "/>
@@ -348,9 +344,17 @@ const [actionData , setActionData]= useState({})
       </div>  
   </div>
 
-</div>
-<div className="bg-slate-300 px-4 py-2 rounded-md mt-2 text-start flex  items-center">
-  <p className="text-neutral-600">Header Report No.{expenseData?.expenseReport?.expenseHeaderNumber}</p>
+</div> */}
+
+<ExpenseHeader 
+name={expenseData?.createdBy?.name?? "not available"}
+tripNumber={expenseData?.tripNumber?? "not available"}
+defaultCurrency={defaultCurrency}
+expenseAmountStatus={expenseAmtDetails}
+/>
+
+<div className="flex w-full justify-between  items-center bg-indigo-50 py-2 px-6 mt-2 border-[1px] rounded-sm border-indigo-600 cursor-pointer">
+  <p className=" whitespace-nowrap text-indigo-600">Header Report No.{expenseData?.expenseReport?.expenseHeaderNumber}</p>
 
   </div>
            
@@ -366,9 +370,9 @@ const [actionData , setActionData]= useState({})
     if (parseFloat(totalAmount) > 0) {
       totalAllCategories += parseFloat(totalAmount);
       return (
-        <div key={category} className="p-2 border-b-[1px] border-neutral-300">
-          <div className="text-lg text-Inter font-medium mb-1 text-neutral-600">{titleCase(category)}</div>
-          <div className="text-base text-neutral-400 ">{`${defaultCurrency?.shortName} ${totalAmount}`}</div>
+        <div key={category} className="px-4 py-2  flex text-Inter justify-between items-center border-b-[1px] text-neutral-700 border-neutral-300">
+          <p className="text-sm  font-medium ">{titleCase(category)}</p>
+          <p className="text-sm font-medium  ">{`${defaultCurrency?.shortName} ${totalAmount}`}</p>
         </div>
       );
     }
@@ -376,42 +380,54 @@ const [actionData , setActionData]= useState({})
   })}
   
   {totalAllCategories > 0 && (
-    <div className="px-4 py-2 border-b-[1px] border-neutral-300 flex flex-row justify-between items-center bg-slate-100">
-      <div className="text-lg text-Inter font-semibold mb-1 text-neutral-600">Total Already Booked Amount</div>
-      <div className="text-base text-gray-600 font-medium pl-4">{`${defaultCurrency?.shortName} ${totalAllCategories.toFixed(2)}`}</div>
+    <div className="px-4 py-2 border-b-[1px] border-neutral-300 text-neutral-900 flex flex-row justify-between items-center bg-slate-100">
+      <div className="text-sm text-Inter font-medium mb-1 ">Total Already Booked Amount</div>
+      <div className="text-sm font-medium pl-4">{`${defaultCurrency?.shortName} ${totalAllCategories.toFixed(2)}`}</div>
     </div>
   )} 
 </div> 
 <div>
-  {Object.values(groupedExpenses).map((category) => (
+  {/* {Object.values(groupedExpenses).map((category) => (
     <div key={category.categoryName} className="p-2 border-b">
       <div className="text-lg text-Inter font-medium mb-1 text-neutral-600 capitalize">{(category.categoryName)}</div>
       <div className="text-base text-neutral-400 ">{`${defaultCurrency?.shortName} ${category.totalAmount.toFixed(2)}`}</div>
     </div>
-  ))}
+  ))} */}
+  <ExpenseLine expenseLines={Object.values(groupedExpenses)} defaultCurrency={defaultCurrency}/>
 
 </div>  
-<div className="px-4 py-2 border-b-[1px] border-neutral-300 flex flex-row justify-between items-center bg-slate-100">
-      <div className="text-lg text-Inter font-semibold mb-1 text-neutral-600">Total Travel Expense Amount</div>
-      {/* <div className="text-base text-gray-600 font-medium pl-4">{`${(expenseAmtDetails?.totalExpenseAmount-expenseAmtDetails?.totalAlreadyBookedExpenseAmount+expenseAmtDetails?.totalPersonalExpenseAmount)?.toFixed(2)}`}</div> */}
-      <div className="text-base text-gray-600 font-medium pl-4">{`${defaultCurrency?.shortName} ${grandTotal.toFixed(2)}`}</div>
-    </div>      
-{expenseAmtDetails?.totalCashAmount > 0 && <div className="px-4 py-2 border-b-[1px] border-neutral-300 flex flex-row justify-between items-center ">
-      <div className="text-lg text-Inter font-medium mb-1 text-neutral-600">Issued Cash Advance Amount</div>
-      <div className="text-base text-gray-600 font-medium pl-4 w-auto "> {`${defaultCurrency?.shortName} ${expenseAmtDetails?.totalCashAmount.toFixed(2) ?? "-"}`}</div>
-</div>  }    
-{expenseAmtDetails?.totalPersonalExpenseAmount > 0 && <div className="px-4 py-2 border-b-[1px] border-neutral-300 flex flex-row justify-between items-center ">
-      <div className="text-lg text-Inter font-medium mb-1 text-neutral-600">Personal Expense Amount</div>
-      <div className="text-base text-gray-600 font-medium pl-4">- {`${defaultCurrency?.shortName} ${expenseAmtDetails?.totalPersonalExpenseAmount?.toFixed(2)}` ?? "-"}</div>
-</div>  }    
- <div className={`px-4 py-2 border-b-[1px] border-neutral-300 flex flex-row justify-between items-center  ${expenseAmtDetails?.totalRemainingCash<0 ? 'text-green-200 bg-green-50': 'text-red-500 bg-red-50'}`}>
-            <div className={`text-lg text-Inter font-medium mb-1  `}>
-            {expenseAmtDetails?.totalRemainingCash<0
-            ? `No recovery needed. Amount has to Reimburse.`
-            : 'Remaining Amount has to Recover'}
-            </div>
-      <div className="text-base  font-medium pl-4"> {`${defaultCurrency?.shortName} ${(Math.abs(expenseAmtDetails?.totalRemainingCash)?.toFixed(2)) ?? "-"}`}</div>
-</div>     
+<div className="px-4 py-2  border-neutral-300 text-neutral-900 flex flex-row justify-between items-center bg-slate-100 mt-1">
+  <div className="text-sm text-Inter font-medium mb-1">Total Expense Amount</div>
+  <div className="text-sm font-medium pl-4">{`${defaultCurrency?.shortName} ${grandTotal.toFixed(2)}`}</div>
+</div>
+
+{expenseAmtDetails?.totalPersonalExpenseAmount > 0 && (
+  <div className="px-4 py-2 border-b-[1px] border-neutral-300 flex flex-row justify-between items-center">
+    <div className="text-sm text-Inter font-medium mb-1 text-neutral-600">Personal Expense Amount</div>
+    <div className="text-sm font-medium pl-4">- {`${defaultCurrency?.shortName} ${expenseAmtDetails?.totalPersonalExpenseAmount?.toFixed(2)}`}</div>
+  </div>
+)}
+
+{expenseAmtDetails?.totalPersonalExpenseAmount > 0 && (
+  <div className="px-4 py-2 border-b-[1px] border-neutral-300 text-neutral-900 flex flex-row justify-between items-center">
+    <div className="text-sm text-Inter font-medium mb-1">Final Expense Amount</div>
+    <div className="text-sm font-medium pl-4">
+      {`${defaultCurrency?.shortName} ${(grandTotal - expenseAmtDetails.totalPersonalExpenseAmount).toFixed(2)}`}
+    </div>
+  </div>
+)}
+
+<div className={`px-4 py-2  border-neutral-300 flex flex-row justify-between items-center ${expenseAmtDetails?.totalRemainingCash < 0 ? 'text-green-200' : 'text-red-500'}`}>
+  <div className={`text-sm text-Inter font-semibold mb-1`}>
+    {expenseAmtDetails?.totalRemainingCash < 0
+      ? 'No recovery needed. Amount to be Reimbursed.'
+      : 'Recovery needed. Amount to be Recovered.'}
+  </div>
+  <div className="text-sm font-medium pl-4">
+    {`${defaultCurrency?.shortName} ${Math.abs(expenseAmtDetails?.totalRemainingCash)?.toFixed(2) ?? "-"}`}
+  </div>
+</div>
+   
       </div>
 
 

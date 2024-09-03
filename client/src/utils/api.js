@@ -71,6 +71,23 @@ export const getTravelDataforApprovalApi= async (tenantId,empId,travelRequestId)
   }
 }
 
+export const getnonTravelExpenseApi= async (tenantId,empId,expenseHeaderId)=>{
+    const url = `${APPROVAL_BACKEND_API_URL}/api/fe/approvals/expense/${tenantId}/${empId}/${expenseHeaderId}`
+  try{
+    const response = await axiosRetry(axios.get,url);
+    return {data: response.data , error : null}
+    
+  }catch(error){
+    const errorMessage = handleRequestError(error);  
+    const errorObject = {
+      status: error.response?.status || null,
+      message: errorMessage || 'Unknown error', 
+    };
+      console.log(errorObject)
+    return { data: null, error: errorObject };
+  }
+}
+
 
 
 ///approval for travelRequest

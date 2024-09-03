@@ -19,7 +19,8 @@ import { StatusBox, TripName } from "../components/common/TinyComponent";
 
 export default function () {
     const navigate = useNavigate()
-    const DASHBOARD_PAGE_URL = import.meta.env.VITE_DASHBOARD_PAGE_URL
+    
+     const dashboardBaseUrl = `${import.meta.env.VITE_DASHBOARD_URL}`
 
     
    
@@ -48,7 +49,7 @@ export default function () {
             //handle approval
             console.log(itnId,action)
             approveLineItemApi("tenant123","emp123","trip123","iti123")
-            window.location.href= DASHBOARD_PAGE_URL
+            window.location.href= dashboardBaseUrl
         }
         if(action == 'rejected'){
             //handle rejection
@@ -56,7 +57,7 @@ export default function () {
             rejectLineItemApi("tenant123","emp123","trip123","iti123",{
                 reason:"test"
             })
-            window.location.href= DASHBOARD_PAGE_URL
+            window.location.href= dashboardBaseUrl
         }
     }
 
@@ -236,7 +237,7 @@ totalViolations = totalTravelViolations +  totalCashViolations || 0;
         <div className="w-full h-full relative bg-white-100 lg:px-24 md:mx-0 sm:px-0 sm:mx-auto py-12 select-none custom-scrollbar">
        
         <div className='w-full flex gap-2 justify-start lg:justify-start px-8 md:px-0 '>
-        {/* <div className="flex items-center cursor-pointer " onClick={()=>(urlRedirection(`${DASHBOARD_PAGE_URL}/${tenantId}/${empId}/approval`))}>
+        {/* <div className="flex items-center cursor-pointer " onClick={()=>(urlRedirection(`${dashboardBaseUrl}/${tenantId}/${empId}/approval`))}>
         <img src={arrow_left} className="w-6 h-6"/>
       
       
