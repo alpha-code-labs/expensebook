@@ -3,20 +3,28 @@ import mongoose from 'mongoose';
 // Define constant enums for expenseStatus and expenseHeaderType
 const expenseHeaderStatusEnums = [
   'draft',
+  'pending approval',
+  'approved',
+  'rejected',
   'paid',
   'pending settlement',
   'cancelled',
-  'null'
+  null
 ];
 
 const lineItemStatusEnums = [
   'draft',
-  'save',
+  'pending approval',
   'submit',
-  'delete'
+  'delete',
+  'approved',
+  'rejected'
 ]
 
 const expenseHeaderTypeEnums = ['reimbursement'];
+
+const approverStatusEnums = ["pending approval", "approved", "rejected"];
+
 
 const expenseLineSchema = new mongoose.Schema({
     lineItemId:mongoose.Schema.Types.ObjectId,
@@ -52,7 +60,7 @@ const expenseLineSchema = new mongoose.Schema({
     billRejectionReason: String,
 },{strict: false});
 
-export const reimbursementSchema = new mongoose.Schema({
+export const   reimbursementSchema = new mongoose.Schema({
 tenantId: {
   type: String,
   required: true,
@@ -95,32 +103,27 @@ travelAllocationFlags:{ //Comes from HRMaster -Based on this expense booking scr
   level2:Boolean,
   level3:Boolean,
 },
-actionedUpon:{
-  type:Boolean,
-  required:true,
-  default:false,
-},
-paidBy:{
-  empId:{type: String, default: null},
-  name: {type:String, default: null},
-},
-settlementBy:{
-  empId:{type: String, default:null},
-  name:{type: String, default:null}
-},
-entriesFlag:{
-type:Boolean,
-required:true,
-default:false,
-},
-defaultCurrency:{
-  type: Object,
-},
+approvers: [
+  {
+    empId: String,
+    name: String,
+    status: {
+      type: String,
+      enum: approverStatusEnums,
+    },
+    imageUrl: String,
+  },
+],
 expenseLines: [expenseLineSchema],
 expenseViolations: [String],
+actionedUpon:{
+  type:Boolean,
+  default:false
+},
 expenseCancelledReason: String,
 expenseSubmissionDate: Date,
-expenseSettledDate: Date,
+expenseSettlementOptions:String,
+rejectionReason: String,
 });
 
 
@@ -137,7 +140,4 @@ const generateIncrementalNumber = (tenantName, incrementalValue) => {
   const formattedTenant = (tenantName || '').toUpperCase().substring(0, 3);
   return `NTER${formattedTenant}${incrementalValue.toString().padStart(6, '0')}`;
 };
-
-
-
 

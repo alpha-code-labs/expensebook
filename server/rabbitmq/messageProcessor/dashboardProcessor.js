@@ -78,11 +78,9 @@ export const fullUpdateCashBatchJob = async (payloadArray) => {
         { 
           "tenantId": tenantId,
           "travelRequestId": travelRequestId,
-          "cashAdvanceSchema.cashAdvancesData.actionedUpon":false,
         },
         { 
           $set:{
-          "travelRequestSchema.isCashAdvanceTaken": true,
           "cashAdvanceSchema.travelRequestData": travelRequestData,
           "cashAdvanceSchema.cashAdvancesData": cashAdvancesData,
           }

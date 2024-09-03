@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { travelRequestSchema } from './travelRequest.js';
+import { travelRequestSchema } from './travelSchema.js';
 
 
 const cashAdvanceStatusEnum = [
