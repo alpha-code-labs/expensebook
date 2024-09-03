@@ -1,9 +1,9 @@
 import amqp from 'amqplib';
 import { updateHRMaster, updatePreferences } from './messageProcessor.js/onboardingMessage.js';
 import {  addALegToTravelRequestData, deleteALegFromTravelRequestData, tripArrayFullUpdate, tripFullUpdate } from './messageProcessor.js/trip.js';
-import { settleExpenseReport, settleExpenseReportPaidAndDistributed, settleOrRecoverCashAdvance } from './messageProcessor.js/finance.js';
+import { settleExpenseReport, settleExpenseReportPaidAndDistributed, settleNonTravelExpenseReport, settleOrRecoverCashAdvance } from './messageProcessor.js/finance.js';
 import dotenv from 'dotenv';
-import { approveRejectCashRaisedLater, expenseReportApproval } from './messageProcessor.js/approval.js';
+import { approveRejectCashRaisedLater, expenseReportApproval, nonTravelReportApproval } from './messageProcessor.js/approval.js';
 
 dotenv.config();
 
@@ -156,6 +156,16 @@ export async function startConsumer(receiver) {
                 console.log('error updating travel and cash')
             }
           }
+          if(action ==  'non-travel-paid') {
+            console.log(" expense header status paid - 'non-travel-paid'")
+            const res = await settleNonTravelExpenseReport(payload);
+            if(res.success){
+                channel.ack(msg)
+                console.log('expense header status paid- successful ')
+            }else{
+                console.log('error updating travel and cash')
+            }
+        }
           } else if (source == 'dashboard'){
             if(action == 'profile-update'){
               const res = await updatePreferences(payload);
@@ -186,6 +196,19 @@ export async function startConsumer(receiver) {
             } 
             if(action == 'expense-approval'){
               const res = await expenseReportApproval(payload);
+              console.log(res)
+              if(res.success){
+                //acknowledge message
+                channel.ack(msg)
+                console.log('message processed successfully')
+              }
+              else{
+                //implement retry mechanism
+                console.log('update failed with error code', res.error)
+              }
+            }
+            if(action == 'nte-full-update'){
+              const res = await nonTravelReportApproval(payload);
               console.log(res)
               if(res.success){
                 //acknowledge message

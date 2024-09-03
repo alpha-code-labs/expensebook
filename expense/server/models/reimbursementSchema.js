@@ -25,6 +25,7 @@ const lineItemStatusEnums = [
   'rejected',
   'pending settlement',
   'paid and distributed',
+  'paid',
 ]
 
 const expenseHeaderTypeEnums = ['reimbursement'];
@@ -85,6 +86,11 @@ const expenseLineSchema = new mongoose.Schema({
       imageUrl: String,
     },
   ],
+  expenseSettledDate: Date,
+  settlementBy:{
+  empId:{type: String, default:null},
+  name:{type: String, default:null}
+},
   billImageUrl: String,
   billRejectionReason: String,
 },{ strict: false });
