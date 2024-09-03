@@ -321,7 +321,8 @@ Raise a Cash-Advance
               <p>Non-Travel Cash-Advances</p>
             </div>
 <div className='w-full mt-4 xl:h-[570px] lg:h-[370px] md:[590px] overflow-y-auto px-2 bg-white rounded-r-md'>
-            {filterCashadvances(NonTRCashAdvances)?.map((cashAdvance,index) => (
+            {/* THIS WILL BE USE AFTER IMPLEMENT THE NON TRAVEL CASH */}
+            {/* {filterCashadvances(NonTRCashAdvances)?.map((cashAdvance,index) => (
               <>
               <CardLayout index={index}>
               <div  className='py-2 w-full'>
@@ -360,7 +361,7 @@ Raise a Cash-Advance
             </div>
             </CardLayout>
             </>
-          ))}
+          ))} */}
         </div>
           </div>
         </div>

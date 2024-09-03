@@ -123,6 +123,9 @@ export const handleNonTravelExpense=(expenseHeaderId,action)=>{
   else if (action==="travelExpense-approval-view"){
     url=approvalViewRoutes.viewDetails.viewDetails_tr_expense.getUrl(tenantId,empId,tripId,expenseHeaderId)
   }
+  else if (action==="nontravelExpense-approval-view"){
+    url=approvalViewRoutes.viewDetails.viewDetails_nonTr_expense.getUrl(tenantId,empId,expenseHeaderId)
+  }
   else {
     throw new Error('Invalid action');
   }

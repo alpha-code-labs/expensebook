@@ -150,6 +150,10 @@ export const approvalViewRoutes={
     viewDetails_tr_expense:{  
       path:'/expense/:tenantId/:empId/:tripId/:expenseHeaderId/travel-expense',
       getUrl:(tenantId, empId, tripId,expenseHeaderId) => `${approvalBaseUrl}/${tenantId}/${empId}/${tripId}/${expenseHeaderId}/travel-expense-approval`,
+    }, 
+    viewDetails_nonTr_expense:{  
+      path:'/expense/:tenantId/:empId/:tripId/:expenseHeaderId/travel-expense',
+      getUrl:(tenantId, empId,expenseHeaderId) => `${approvalBaseUrl}/${tenantId}/${empId}/${expenseHeaderId}/approval/non-travel`,
     } 
   }
 } 
