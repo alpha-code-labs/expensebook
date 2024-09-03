@@ -1,5 +1,6 @@
 import express from 'express';
-import {  getExpenseDetails, saveDataInApprovalContainer, TravelExpenseHeaderStatusApproved, TravelExpenseHeaderStatusRejected, viewTravelExpenseDetails } from '../controllers/travelExpenseApproval.js';
+import {  getExpenseDetails, saveDataInApprovalContainer, travelExpenseApproval, TravelExpenseHeaderStatusApproved, TravelExpenseHeaderStatusRejected, viewTravelExpenseDetails } from '../controllers/travelExpenseApproval.js';
+import { nonTravelReportApproval } from '../controllers/reimbursementController.js';
 
 const router = express.Router();
 
@@ -11,11 +12,15 @@ router.get('/list/:empId', getExpenseDetails);
 
 router.get('/:tenantId/:empId/:tripId/:expenseHeaderId', viewTravelExpenseDetails);
 
-//To approve travel expense
-router.patch('/:tenantId/:empId/:tripId/:expenseHeaderId/approve',TravelExpenseHeaderStatusApproved);
+//Approve or reject travel expense report
+router.patch('/:tenantId/:empId/:tripId/:expenseHeaderId', travelExpenseApproval)
 
-//To reject travel expense
-router.patch('/:tenantId/:empId/:tripId/:expenseHeaderId/reject', TravelExpenseHeaderStatusRejected);
+router.get('/:tenantId/:empId/:expenseHeaderId', nonTravelReportApproval)
+// //To approve travel expense -- old
+// router.patch('/:tenantId/:empId/:tripId/:expenseHeaderId/approve',TravelExpenseHeaderStatusApproved); 
+
+// //To reject travel expense -- old
+// router.patch('/:tenantId/:empId/:tripId/:expenseHeaderId/reject', TravelExpenseHeaderStatusRejected);
 
 // Export the router
 export default router;

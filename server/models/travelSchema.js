@@ -11,6 +11,8 @@ const travelRequestStatusEnums = [
   "cancelled",
   "recovered",
   "paid and cancelled",
+  "closed",
+  "completed"
 ];
 
 const travelRequestStateEnums = [
@@ -20,28 +22,25 @@ const travelRequestStateEnums = [
   "section 3",
 ];
 
-const approverStatusEnums = ["pending approval", "approved", "rejected"];
+export const approverStatusEnums = ["pending approval", "approved", "rejected"];
 
 const itineraryStatusEnums = [
-  "draft",
-  "pending approval",
-  "approved",
-  "rejected",
-  "pending booking",
-  "booked",
-  "cancelled",
-  "paid and cancelled",
-  "intransit",
-  "upcoming",
+  'draft', 
+  'pending approval', 
+  'approved', 
+  'rejected', 
+  'pending booking', 
+  'booked',
+  'cancelled',
+  'paid and cancelled',
+  'intransit',
+  'upcoming', 
+  'paid and cancelled',
+  'recovered',
 ];
 
-const transferEnums = [
-  "regular",
-  "pickup",
-  "drop",
-];
 
-const itinerarySchema = {
+export const itinerarySchema = {
   flights: [
     {
       itineraryId: mongoose.Schema.ObjectId,
@@ -225,8 +224,13 @@ const itinerarySchema = {
       class: String,
       checkIn: Date,
       checkOut: Date,
+      time: String,
       checkInTime: String,
       checkOutTime: String,
+      needBreakFast: Boolean,
+      needLunch: Boolean,
+      needDinner: Boolean,
+      needNonSmokingRoom : Boolean,
       violations: {
         class: String,
         amount: String,
@@ -285,10 +289,14 @@ const itinerarySchema = {
       formId: String,
       sequence: Number,
       date: Date,
+      returnDate: String,
+      selectedDates: [String],
       class: String,
       time: String,
       pickupAddress: String,
       dropAddress: String,
+      isFullDayCab: Boolean,
+
       violations: {
         class: String,
         amount: String,
@@ -304,6 +312,8 @@ const itinerarySchema = {
         },
       ],
       bkd_date: Date,
+      bkd_returnDate: String,
+      bkd_isFullDayCab: String,
       bkd_class: String,
       bkd_time: String,
       bkd_pickupAddress: String,
@@ -325,10 +335,6 @@ const itinerarySchema = {
           taxAmount: String,
           totalAmount: String,
         },
-      },
-      type: {
-        type: String,
-        enum: transferEnums,
       },
     },
   ],
@@ -339,6 +345,8 @@ const itinerarySchema = {
       formId: String,
       sequence: Number,
       date: Date,
+      returnDate: String,
+      selectedDates: [String],
       class: String,
       time: String,
       pickupAddress: String,
@@ -379,10 +387,6 @@ const itinerarySchema = {
           taxAmount: String,
           totalAmount: String,
         },
-      },
-      type: {
-        type: String,
-        enum: transferEnums,
       },
     },
   ],
@@ -446,15 +450,14 @@ const formDataSchema = {
       returnDateError:{set: Boolean, message:String},
       fromError: {set: Boolean, message:String},
       toError: {set: Boolean, message:String},
-   },
+  },
 ],
 };
-
 
 export const travelRequestSchema = new mongoose.Schema({
   tenantId: {
     type: String,
-    required: true,
+    // required: true,
   },
   tenantName: {
     type: String,
@@ -464,40 +467,48 @@ export const travelRequestSchema = new mongoose.Schema({
   },
   travelRequestId: {
     type: mongoose.Schema.Types.ObjectId, // tenantId_createdBy_tr_#(tr number) | tentative | not fixed
-    required: true,
+    // unique: true,
+    // required: true,
   },
   travelRequestNumber: {
     type: String,
-    required: true,
+    // required: true,
   },
   travelType: {
     type: String,
   },
   tripPurpose: {
     type: String,
-    required: true,
+    // required: true,
+  },
+  tripPurposeDescription: {
+    type: String,
+    // required: true,
+  },
+  tripName:{
+    type: String,
   },
   travelRequestStatus: {
     //initialize with status as 'draft'
     type: String,
     enum: travelRequestStatusEnums,
     default: "draft",
-    required: true,
+    // required: true,
   },
   travelRequestState: {
     //initialize with state as 'section 0'
     type: String,
     enum: travelRequestStateEnums,
     default: "section 0",
-    required: true,
+    // required: true,
   },
   createdBy: {
     type: { empId: String, name: String }, //employee Id by whom TR is raised
-    required: true,
+    // required: true,
   },
   createdFor: {
     type: { empId: String, name: String }, //employee Id for whom TR is raised
-    required: false,
+    // required: false,
   },
   teamMembers: [],
   travelAllocationHeaders: [
@@ -531,9 +542,18 @@ export const travelRequestSchema = new mongoose.Schema({
       },
     },
   ],
-  assignedTo: { empId: String, name: String },
-  bookedBy: { empId: String, name: String },
-  recoveredBy: { empId: String, name: String },
+  assignedTo: {
+    empId: { type: String, default: null },
+    name: { type: String, default: null }
+},
+  bookedBy: { 
+    empId: { type: String, default: null },
+    name: { type: String, default: null }
+   },
+  recoveredBy: {
+    empId: { type: String, default: null },
+    name: { type: String, default: null }
+    },
   preferences: [String],
   travelViolations: {},
   travelRequestDate: {
@@ -541,10 +561,14 @@ export const travelRequestSchema = new mongoose.Schema({
     default: Date.now(),
     required: true,
   },
+  actionedUpon:{
+    type:Boolean,
+    default:false
+  },
   travelBookingDate: Date,
   travelCompletionDate: Date,
   cancellationDate: Date,
-  travelRequestRejectionReason: String,
+  rejectionReason: String,
   isCancelled: Boolean,
   cancellationReason: String,
   isCashAdvanceTaken: Boolean,
@@ -597,4 +621,3 @@ travelRequestSchema.pre("validate", function (next) {
     next();
   }
 });
-

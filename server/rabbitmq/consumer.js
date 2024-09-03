@@ -4,10 +4,10 @@ import { TravelAndCashUpdate, cancelTravelWithCash, itineraryAddedToTravelReques
 import dotenv from 'dotenv';
 import { expenseReport } from './messageProcessor/expense.js';
 import { deleteReimbursement, updateReimbursement } from './messageProcessor/reimbursement.js';
-import { approveRejectTravelRequests, nonTravelApproval } from './messageProcessor/dashboard.js';
+import { approveRejectCashRaisedLater, approveRejectRequests, approveRejectTravelRequests, expenseReportApproval, nonTravelApproval } from './messageProcessor/dashboard.js';
 
 dotenv.config();
-  
+
 export default async function startConsumer(receiver){
     const rabbitMQUrl = process.env.rabbitMQUrl ;
     let retryCount = 0;
@@ -231,6 +231,46 @@ export default async function startConsumer(receiver){
               console.log("update failed with error code", res.error);
           }
       }
+      if(action == 'approve-reject-ca'){
+        console.log('approve-reject-ca')
+        const res = await approveRejectRequests(payload)
+        console.log(res);
+        console.log(payload)
+        if (res.success) {
+            //acknowledge message
+            channel.ack(msg);
+            console.log("message processed successfully");
+        } else {
+            //implement retry mechanism
+            console.log("update failed with error code", res.error);
+        }
+     }
+     if ((action == "approve-reject-ca-later")) {
+      const res = await approveRejectCashRaisedLater(payload);
+      console.log(res);
+      if (res.success) {
+        //acknowledge message
+        channel.ack(msg);
+        console.log("message processed successfully");
+      } else {
+        //implement retry mechanism
+        console.log("update failed with error code", res.error);
+      }
+    }   
+    if(action == 'expense-approval'){
+      console.log('expense-approval')
+      const res = await expenseReportApproval(payload)
+      console.log(res);
+      console.log(payload)
+      if (res.success) {
+          //acknowledge message
+          channel.ack(msg);
+          console.log("message processed successfully");
+      } else {
+          //implement retry mechanism
+          console.log("update failed with error code", res.error);
+      }
+   }
       }else if (source == 'expense'){
           if(action == 'full-update'){
               console.log('expense report for approval', payload)
