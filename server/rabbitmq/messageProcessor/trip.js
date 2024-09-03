@@ -481,6 +481,7 @@ export const addLeg = async (payload) => {
 
     const { travelRequestId } = payload;
 
+    console.log("payload - add leg", payload)
     if (!travelRequestId) {
       throw new Error('Travel Request ID is required.');
     }

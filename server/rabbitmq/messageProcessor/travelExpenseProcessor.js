@@ -1,5 +1,53 @@
 import dashboard from "../../models/dashboardSchema.js";
 
+//travel expense header 'paid'
+export const settleExpenseReport= async (payload) => {
+  try {
+      const {  tenantId,travelRequestId, expenseHeaderId, settlementBy, expenseHeaderStatus, 
+        settlementDate } = payload;
+  
+    const trip = await dashboard.findOneAndUpdate(
+      { 
+        tenantId,
+         
+        'tripSchema.travelExpenseData': { $elemMatch: { travelRequestId, expenseHeaderId } }
+      },
+      { 
+        $set: { 
+          'tripSchema.travelExpenseData.$.expenseHeaderStatus': expenseHeaderStatus, 
+          'tripSchema.travelExpenseData.$.settlementDate': settlementDate,
+          'tripSchema.travelExpenseData.$.settlementBy': settlementBy,
+        }
+      },
+      { new: true }
+    );
+
+    console.log('Travel request status updated in approval microservice:', trip);
+    return { success: true, error: null };
+  } catch (error) {
+    console.error('Failed to update travel request status in approval microservice:', error);
+    return { success: false, error: error };
+  }
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 export const processTravelExpense = async (message,correlationId) => {
     const failedUpdates = [];
     const successMessage = {

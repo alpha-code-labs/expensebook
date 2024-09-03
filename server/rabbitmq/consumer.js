@@ -2,11 +2,12 @@ import amqp from 'amqplib';
 import { updateHRMaster } from './messageProcessor/hrMaster.js';
 import { fullUpdateTravel, fullUpdateTravelBatchJob } from './messageProcessor/travel.js';
 import dotenv from 'dotenv';
-import { fullUpdateExpense } from './messageProcessor/travelExpenseProcessor.js';
+import { fullUpdateExpense, settleExpenseReport } from './messageProcessor/travelExpenseProcessor.js';
 import { addLeg, updateTrip, updateTripStatus, updateTripToCompleteOrClosed } from './messageProcessor/trip.js';
 import { fullUpdateCash, fullUpdateCashBatchJob } from './messageProcessor/cash.js';
 import { deleteReimbursement, updateReimbursement } from './messageProcessor/reimbursement.js';
 import {  settleOrRecoverCashAdvance } from './messageProcessor/finance.js';
+import { settleNonTravelExpenseReport } from './messageProcessor/nonTravelExpenseProcessor.js';
 
 dotenv.config();
 export async function startConsumer(receiver) {
@@ -265,7 +266,27 @@ export async function startConsumer(receiver) {
                     console.log('Update failed with error:', result.error);
                   }
             }
-            if(action == 'recover-ca'){
+            if(action == 'expense-paid') {
+              console.log(" expense header status paid")
+              const res = await settleExpenseReport(payload);
+              if(res.success){
+                  channel.ack(msg)
+                  console.log('expense header status paid- successful ')
+              }else{
+                  console.log('error updating travel and cash')
+              }
+          }
+          if(action ==  'non-travel-paid') {
+            console.log(" expense header status paid - 'non-travel-paid'")
+            const res = await settleNonTravelExpenseReport(payload);
+            if(res.success){
+                channel.ack(msg)
+                console.log('expense header status paid- successful ')
+            }else{
+                console.log('error updating travel and cash')
+            }
+          }
+          if(action == 'recover-ca'){
                 const result = await settleOrRecoverCashAdvance(payload)
                 console.log("result for recoverCashAdvance ", result)
                 if(result.success) {

@@ -1158,7 +1158,11 @@ export async function getExpenseReport(tenantId,empId,tripId,expenseHeaderId){
 export function updateExpenseLineStatus(expenseLines, approve = [], reject = [], empId) {
 
   return expenseLines.map(expenseLine => {
-    const expenseLineIdStr = expenseLine.expenseLineId.toString();
+    const expenseLineIdStr = ( expenseLine.expenseLineId ?? expenseLine.lineItemId)?.toString()
+
+    if (expenseLineIdStr === undefined) {
+      throw new Error("Both expenseLineId and lineItemId are undefined or null while updating -updateExpenseLineStatus");
+    }
 
     if (approve.includes(expenseLineIdStr)) {
       expenseLine.approvers.forEach(approver => {
@@ -1348,9 +1352,9 @@ export const nonTravelReportApproval = async (req, res) => {
     }
      const { tenantId, expenseHeaderId, empId } = valueParams;
 
-     console.log("expense report - params -- approve", req.params);
+     console.log("non travel expense report - params -- approve", req.params);
 
-     const {error: errorBody, value : valueBody} = expenseValidSchema.validate(req.body)
+     const {error: errorBody, value : valueBody} = expenseBodySchema.validate(req.body)
 
      if(errorBody){
       return res.status(400).json({error: errorBody.details[0].message})
@@ -1361,64 +1365,59 @@ export const nonTravelReportApproval = async (req, res) => {
  
      console.log("approvalDocument",approvalDocument)
      if (!approvalDocument) {
-       return res.status(404).json({ message: 'No matching approval document found for updating travel expenses status.' });
+       return res.status(404).json({ message: 'No matching approval document found for updating expenses status.' });
      }
 
-     const { reimbursementSchema} = approvalDocument
-     const { createdBy:{name = ''} = {}} = reimbursementSchema
+      const { reimbursementSchema} = approvalDocument
+      const { createdBy:{name = ''} = {}} = reimbursementSchema
+ 
+      const {expenseLines = []} =reimbursementSchema
 
-     const {expenseLines = []} =reimbursementSchema
+    //  console.log("valid expenseReport", expenseReportFound);
 
       const updatedExpenseLines = updateExpenseLineStatus(expenseLines, approve, reject,empId)
 
-      console.log("updatedExpenseLines",updatedExpenseLines)
+      // console.log("updatedExpenseLines", JSON.stringify(updatedExpenseLines,'',2))
       reimbursementSchema.expenseLines = updatedExpenseLines
-      const expenseLinesApproved = updatedExpenseLines.some(line => line.lineItemStatus === 'approved')
-      const isRejected = updatedExpenseLines.some(line => line.lineItemStatus === 'rejected')
-      const isPendingApproval = updatedExpenseLines.some(line => line.lineItemStatus === 'pending approval')
+      const isPendingApproval = reimbursementSchema.expenseHeaderStatus === 'pending approval'
 
+      // console.log("isPendingApproval", isPendingApproval)
        const approver = reimbursementSchema.approvers.find(approver =>
         approver.empId === empId && approver.status === 'pending approval'
        )
 
-       if(approver && expenseLinesApproved && !isPendingApproval && !isRejected){
+      //  console.log("approver", isPendingApproval)
+
+       const isAllApproved = reimbursementSchema.expenseLines.every(line => line.lineItemStatus === 'approved')
+       const isRejected = reimbursementSchema.expenseLines.some(line => line.lineItemStatus === 'rejected')
+
+      //  console.log("isAllApproved, isRejected", isAllApproved, isRejected)
+
+       if(approver && isAllApproved && isPendingApproval ){
         approver.status = 'approved'
-       } else if(approver && expenseLinesApproved && !isPendingApproval && isRejected ){
+        reimbursementSchema.expenseHeaderStatus = 'pending settlement'
+       } else if(approver && isPendingApproval && isRejected ){
         approver.status = 'rejected'
-       }
-
-       const allApproved = reimbursementSchema.approvers.every(approver => approver.status == 'approved');
-
-       if (allApproved && expenseLinesApproved && !isPendingApproval)  {
-        reimbursementSchema.expenseHeaderStatus = 'approved';
-       } else if (!allApproved && !isPendingApproval && isRejected){
-        reimbursementSchema.expenseHeaderStatus = 'rejected';
-       }
-
-       if(approver && isRejected && !isPendingApproval){
-        approver.status = 'rejected';
         reimbursementSchema.expenseHeaderStatus = 'rejected';
         reimbursementSchema.rejectionReason = rejectionReason
        }
 
        // Save the updated approvalDocument document
-      const expenseApproved = await approvalDocument.save();
+       const expenseApproved = await approvalDocument.save();
 
-      console.log("expenseApproved",expenseApproved)
-      if(!expenseApproved){
-        return res.status(404).json({message:`error occurred while updating expense report for ${name}`})
-      } else {
-        const { name } = expenseApproved?.reimbursementSchema?.createdBy;
+       if(!expenseApproved){
+         return res.status(404).json({message:`error occurred while updating expense report `})
+       }
 
-        const { reimbursementSchema } = expenseApproved;
-        const { expenseHeaderStatus} = reimbursementSchema
+     const {  expenseHeaderStatus, approvers } = expenseApproved.reimbursementSchema;
 
         // Create the payload object
         const payload = {
           tenantId,
           expenseHeaderId,
+          approvers,
+          empId,
           expenseHeaderStatus: expenseHeaderStatus,
-          reimbursement:reimbursementSchema,
           approve, 
           reject, 
           rejectionReason
@@ -1438,9 +1437,15 @@ export const nonTravelReportApproval = async (req, res) => {
     await Promise.all(promises);
       return res.status(200).json({ message: `expense Report ${expenseHeaderStatus} for ${name}` });
       }
-    } catch (error) {
+    catch (error) {
     console.error('An error occurred while updating Travel Expense status:', error.message);
     res.status(500).json({ error: 'An error occurred while updating Travel Expense status.' });
   }
-};
+}
+
+
+
+
+
+
 
