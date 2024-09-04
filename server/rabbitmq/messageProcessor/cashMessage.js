@@ -142,18 +142,19 @@ export const recoverCashAdvance = async (payload) => {
 //travel expense header 'paid'
 export const settleExpenseReport= async (payload) => {
   try {
-    const { tenantId, expenseHeaderId, tripId, paidBy, } = payload;
-
+      const {  tenantId,travelRequestId, expenseHeaderId, settlementBy, expenseHeaderStatus, 
+        settlementDate } = payload;
+  
     const trip = await Trip.findOneAndUpdate(
       { 
         'tenantId': tenantId,
-         
-        'travelexpenseData': { $elemMatch: { 'tripId': tripId, 'expenseHeaderId': expenseHeaderId } }
+        'travelExpenseData': { $elemMatch: { travelRequestId, expenseHeaderId } }
       },
       { 
         $set: { 
-          'travelexpenseData.$.expenseHeaderStatus': 'paid', 
-          'travelexpenseData.$.paidBy': paidBy, 
+          'travelExpenseData.$.expenseHeaderStatus': expenseHeaderStatus, 
+          'travelExpenseData.$.settlementDate': settlementDate,
+          'travelExpenseData.$.settlementBy': settlementBy,
         }
       },
       { new: true }

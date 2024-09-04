@@ -56,7 +56,7 @@ export const settleExpenseReportPaidAndDistributed= async (payload) => {
 };
 
   //settle cashAdvance or recover CashAdvance
-  export const settleOrRecoverCashAdvance = async (payload) => {
+export const settleOrRecoverCashAdvance = async (payload) => {
     try {
       const { tenantId, travelRequestId, cashAdvanceId, paidBy ,cashAdvanceStatus,paidFlag,
           recoveredBy,recoveredFlag,
@@ -64,23 +64,23 @@ export const settleExpenseReportPaidAndDistributed= async (payload) => {
   
       console.log("settle ca ", payload)
       const updateCashDoc = {
-          'cashAdvanceData.$.cashAdvanceStatus': cashAdvanceStatus, 
+          'cashAdvancesData.$.cashAdvanceStatus': cashAdvanceStatus, 
       }
 
       if(paidBy !== undefined && paidFlag !== undefined){
-        updateCashDoc['cashAdvanceData.$.paidBy'] = paidBy,
-        updateCashDoc['cashAdvanceData.$.paidFlag'] = paidFlag
+        updateCashDoc['cashAdvancesData.$.paidBy'] = paidBy,
+        updateCashDoc['cashAdvancesData.$.paidFlag'] = paidFlag
       }
 
       if(recoveredBy !== undefined && recoveredFlag !== undefined){
-        updateCashDoc['cashAdvanceData.$.recoveredBy'] = recoveredBy,
-        updateCashDoc['cashAdvanceData.$.recoveredFlag'] = recoveredFlag
+        updateCashDoc['cashAdvancesData.$.recoveredBy'] = recoveredBy,
+        updateCashDoc['cashAdvancesData.$.recoveredFlag'] = recoveredFlag
       }
 
       const trip = await Trip.findOneAndUpdate(
         { 
           tenantId,
-          'cashAdvanceData': { $elemMatch: { 'cashAdvanceId': cashAdvanceId, 'travelRequestId': travelRequestId } }
+          'cashAdvancesData': { $elemMatch: { 'cashAdvanceId': cashAdvanceId, 'travelRequestId': travelRequestId } }
         },
         { 
           $set: updateCashDoc
@@ -88,6 +88,9 @@ export const settleExpenseReportPaidAndDistributed= async (payload) => {
         { new: true }
       );
   
+      if(!trip){
+        throw new Error('cash advance failed in ')
+      }
       console.log('Travel request status updated in trip microservice:',"settleOrRecoverCashAdvance");
       return { success: true, error: null };
     } catch (error) {
@@ -108,8 +111,8 @@ export const settleExpenseReportPaidAndDistributed= async (payload) => {
 //         },
 //         { 
 //           $set: { 
-//             'cashAdvanceData.$.cashAdvanceStatus': 'recovered', 
-//             'cashAdvanceData.$.recoveredBy': recoveredBy 
+//             'cashAdvancesData.$.cashAdvanceStatus': 'recovered', 
+//             'cashAdvancesData.$.recoveredBy': recoveredBy 
 //           }
 //         },
 //         { new: true }

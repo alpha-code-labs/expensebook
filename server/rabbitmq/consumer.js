@@ -148,12 +148,12 @@ export async function startConsumer(receiver) {
                 }
             }
           } else if(source == 'finance'){
-            if(action == 'settle-expense-paid') {
-              console.log(" expenseheaderstatus paid")
+            if(action == 'expense-paid') {
+              console.log('expense-paid')
               const res = await settleExpenseReport(payload);
               if(res.success){
                   channel.ack(msg)
-                  console.log('expenseheaderstatus paid- successful ')
+                  console.log('expense header status paid- successful ')
               }else{
                   console.log('error updating travel and cash')
               }
