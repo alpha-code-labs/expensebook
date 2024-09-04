@@ -281,9 +281,11 @@ setSelectedStatuses={setSelectedStatuses}
                             <div className={`text-center rounded-sm ${getStatusClass(trExpense?.expenseHeaderStatus ?? "-")}`}>
                               <p className='px-1 py-1 text-xs text-center capitalize font-cabin'>{trExpense?.expenseHeaderStatus ?? "-"}</p>
                             </div>
+                            {!['paid'].includes(trExpense?.expenseHeaderStatus) &&
                             <div onClick={()=>handleVisible({urlName:handleTravelExpense({tenantId,empId,tripId:trip?.tripId,expenseHeaderId: trExpense?.expenseHeaderId, action: 'trip-ex-modify' })})} className={`w-7 h-7 bg-indigo-100 rounded-full border border-white flex items-center justify-center cursor-pointer`}>
-                              <img src={modify} className='w-4 h-4' alt="modify_icon" />
-                            </div>
+                            <img src={modify} className='w-4 h-4' alt="modify_icon" />
+                          </div>}
+                            
                           </div>
                           <ExpenseLine expenseLines={trExpense?.expenseLines}/>
                           {/* <div className='overflow-x-hidden overflow-y-auto max-h-[236px] py-1 pt-2 h-auto px-2 space-y-2'>

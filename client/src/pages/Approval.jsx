@@ -244,6 +244,11 @@ const handleVisible = ({travelRequestId,tripId,expenseHeaderId, action}) => {
     url = handleApproval({tenantId,empId,tripId,expenseHeaderId,action})
    
   }
+  else if (action==="nontravelExpense-approval-view"){
+    // url=handleCashAdvance("", action);
+    url = handleApproval({tenantId,empId,expenseHeaderId,action})
+   
+  }
   else {
     throw new Error('Invalid action');
   }
@@ -884,7 +889,7 @@ Raise a Cash-Advance
       </div>
 
           </div>
-          <div className='flex-1 rounded-md'>
+           <div className='flex-1 rounded-md'>
             <div className='flex justify-center items-center rounded-r-md font-inter text-md text-white h-[52px] bg-indigo-600  text-center'>
               <img src={money1} className='w-6 h-6 mr-2'/>
               <p>Travel & Non-Travel Expenses</p>
@@ -958,7 +963,7 @@ Raise a Cash-Advance
                     </div>
                     <div className='flex items-center justify-center'>
               <img src={info_icon} className='w-4 h-4'/>
-                <div className='text-sm font-cabin px-2 py-1 cursor-pointer' onClick={()=>{if(!disableButton(trip?.travelRequestStatus)){handleVisible({tripId:trip?.tripId, expenseHeaderId:trip?.expenseHeaderId,  action:'travelExpense-approval-view' })}}}>
+                <div className='text-sm font-cabin px-2 py-1 cursor-pointer' onClick={()=>{if(!disableButton(trip?.travelRequestStatus)){handleVisible(trip?.expenseType ==="Non Travel Expense" ? { expenseHeaderId:trip?.expenseHeaderId,  action:'nontravelExpense-approval-view' }:{tripId:trip?.tripId, expenseHeaderId:trip?.expenseHeaderId,  action:'travelExpense-approval-view' })}}}>
                   <p className='text-indigo-600 font-semibold'>View Details</p>
                 </div>
                 </div>
