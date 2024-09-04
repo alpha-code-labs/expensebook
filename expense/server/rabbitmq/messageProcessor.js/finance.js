@@ -69,23 +69,30 @@ export const settleOrRecoverCashAdvance = async (payload) => {
   
       console.log("settle ca payload", payload)
       const updateCashDoc = {
-          'cashAdvanceData.$.cashAdvanceStatus': cashAdvanceStatus, 
+          'cashAdvancesData.$.cashAdvanceStatus': cashAdvanceStatus, 
       }
 
       if(paidBy !== undefined && paidFlag !== undefined){
-        updateCashDoc['cashAdvanceData.$.paidBy'] = paidBy,
-        updateCashDoc['cashAdvanceData.$.paidFlag'] = paidFlag
+        updateCashDoc['cashAdvancesData.$.paidBy'] = paidBy,
+        updateCashDoc['cashAdvancesData.$.paidFlag'] = paidFlag
       }
 
       if(recoveredBy !== undefined && recoveredFlag !== undefined){
-        updateCashDoc['cashAdvanceData.$.recoveredBy'] = recoveredBy,
-        updateCashDoc['cashAdvanceData.$.recoveredFlag'] = recoveredFlag
+        updateCashDoc['cashAdvancesData.$.recoveredBy'] = recoveredBy,
+        updateCashDoc['cashAdvancesData.$.recoveredFlag'] = recoveredFlag
       }
 
+      const isFound = await Expense.findOne(
+        { 
+          tenantId,
+          'cashAdvancesData': { $elemMatch: { cashAdvanceId,travelRequestId } }
+        },)
+
+        console.log("isFound", JSON.stringify(isFound,'',2))
       const trip = await Expense.findOneAndUpdate(
         { 
           tenantId,
-          'cashAdvanceData': { $elemMatch: { 'cashAdvanceId': cashAdvanceId, 'travelRequestId': travelRequestId } }
+          'cashAdvancesData': { $elemMatch: { cashAdvanceId,travelRequestId } }
         },
         { 
           $set: updateCashDoc
@@ -93,63 +100,76 @@ export const settleOrRecoverCashAdvance = async (payload) => {
         { new: true }
       );
   
+      if(!trip){
+      throw new Error('cash advance status change to paid failed : while updating db')
+      }
       console.log('Travel request status updated in approval microservice:', trip);
       return { success: true, error: null };
     } catch (error) {
-      console.error('Failed to update travel request status in approval microservice:', error);
-      return { success: false, error: error };
+      console.error('Failed to update travel request status in approval microservice:', error.message);
+      return { success: false, error: error.message };
     }
 };
 
 
 export const settleNonTravelExpenseReport= async (payload) => {
   try {
-      const { tenantId, expenseHeaderId, settlementBy,expenseHeaderStatus, expenseSettledDate} = payload;
+      const {  tenantId, expenseHeaderId, settlementBy, expenseHeaderStatus, 
+        settlementDate } = payload;
 
-      const status = {
-        PENDING_SETTLEMENT: 'pending settlement',
-        PAID: 'paid',
-      };
-  
-      const filter = {
-        tenantId,
-        expenseHeaderId,
-        'expenseHeaderStatus': status.PENDING_SETTLEMENT,
-        'actionedUpon': false
-      };
-  
-      // Use findOneAndUpdate to find and update in one operation
-      const updateResult = await Reimbursement.findOneAndUpdate(
-        filter,
-        {
-          $set: {
-            'settlementBy': settlementBy,
-            'actionedUpon': true,
-            'expenseHeaderStatus': status.PAID,
-            'expenseSettledDate': expenseSettledDate,
-          },
-          $set:{
-            'expenseLines.$[elem].lineItemStatus':status.PAID,
-            'expenseLines.$[elem].settlementBy':settlementBy,
-            'expenseLines.$[elem].expenseSettledDate':expenseSettledDate
+        console.log("non travel settlement", payload)
+        const status = {
+          PENDING_SETTLEMENT: 'pending settlement',
+          PAID: 'paid',
+          APPROVED:'approved'
+        };
+        
+        const filter = {
+          tenantId,
+          expenseHeaderId,
+          'expenseHeaderStatus': status.PENDING_SETTLEMENT,
+        };
+        
+        // Use findOneAndUpdate to find and update in one operation
+        const updateResult = await Reimbursement.findOne(
+          filter,
+        );
+
+        if(!updateResult){
+          throw new Error('non travel expense report not found in dashboard ms')
+        }
+
+        const {expenseLines} = updateResult
+
+        const updatedExpenseLines = expenseLines.map((line) => {
+          if(line.lineItemStatus == status.APPROVED){
+            return{
+              ...line,
+              lineItemStatus: status.PAID,
+              actionedUpon:true,
+              settlementBy: settlementBy,
+              expenseSettledDate:settlementDate,
+            }
           }
-        },
-        { new: true, runValidators: true,
-          arrayFilters:[
-            {'elem.lineItemStatus':status.PENDING_SETTLEMENT}
-          ]
-        } 
-      );
-      if (!updateResult) {
-        throw new Error({ message: 'No matching document found for update' });
-      }
-  
-    console.log('Travel request status updated in approval microservice:', trip);
-    return { success: true, error: null };
+          return line
+        })
+
+        updateResult.expenseLines = updatedExpenseLines
+        updateResult.settlementBy = settlementBy
+        updateResult.expenseHeaderStatus = expenseHeaderStatus
+        updateResult.settlementDate = settlementDate
+        updateResult.actionedUpon = true
+        
+      const report =  await updateResult.save()
+    console.log('Travel request status updated in expense microservice:', JSON.stringify(report,'',2));
+    const {expenseHeaderStatus:getStatus} = report
+
+    if(getStatus === status.PAID){
+      return { success: true, error: null };
+    }
+    return { success: false, error:`non Travel expense report has ${getStatus} as expenseHeaderStatus` };
   } catch (error) {
-    console.error('Failed to update travel request status in approval microservice:', error);
-    return { success: false, error: error };
+    console.error('Failed to update travel request status in expense microservice:', error);
+    return { success: false, error: error.message };
   }
 };
-
-

@@ -1,5 +1,16 @@
 import Expense from "../../models/tripSchema.js";
 
+
+
+export const cashStatusUpdate = async(payload){
+  try{
+    console.log("cash status update batchJob", JSON.stringify(payload,'',2))
+  } catch(error){
+    console.log("error", error)
+  }
+}
+
+
 //priority cash update-
 /**
  * 

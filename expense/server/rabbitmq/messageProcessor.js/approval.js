@@ -161,38 +161,35 @@ export const nonTravelReportApproval = async (payload) => {
       throw new Error('No matching approval document found for updating expenses status.');
      }
 
-      const { reimbursementSchema} = approvalDocument
-      const { createdBy:{name = ''} = {}} = reimbursementSchema
- 
-      const {expenseLines = []} =reimbursementSchema
+      const {expenseLines = []} =approvalDocument
 
     //  console.log("valid expenseReport", expenseReportFound);
 
       const updatedExpenseLines = updateExpenseLineStatus(expenseLines, approve, reject,empId)
 
       // console.log("updatedExpenseLines", JSON.stringify(updatedExpenseLines,'',2))
-      reimbursementSchema.expenseLines = updatedExpenseLines
-      const isPendingApproval = reimbursementSchema.expenseHeaderStatus === 'pending approval'
+      approvalDocument.expenseLines = updatedExpenseLines
+      const isPendingApproval = approvalDocument.expenseHeaderStatus === 'pending approval'
 
       // console.log("isPendingApproval", isPendingApproval)
-       const approver = reimbursementSchema.approvers.find(approver =>
+       const approver = approvalDocument.approvers.find(approver =>
         approver.empId === empId && approver.status === 'pending approval'
        )
 
       //  console.log("approver", isPendingApproval)
 
-       const isAllApproved = reimbursementSchema.expenseLines.every(line => line.lineItemStatus === 'approved')
-       const isRejected = reimbursementSchema.expenseLines.some(line => line.lineItemStatus === 'rejected')
+       const isAllApproved = approvalDocument.expenseLines.every(line => line.lineItemStatus === 'approved')
+       const isRejected = approvalDocument.expenseLines.some(line => line.lineItemStatus === 'rejected')
 
       //  console.log("isAllApproved, isRejected", isAllApproved, isRejected)
 
        if(approver && isAllApproved && isPendingApproval ){
         approver.status = 'approved'
-        reimbursementSchema.expenseHeaderStatus = 'pending settlement'
+        approvalDocument.expenseHeaderStatus = 'pending settlement'
        } else if(approver && isPendingApproval && isRejected ){
         approver.status = 'rejected'
-        reimbursementSchema.expenseHeaderStatus = 'rejected';
-        reimbursementSchema.rejectionReason = rejectionReason
+        approvalDocument.expenseHeaderStatus = 'rejected';
+        approvalDocument.rejectionReason = rejectionReason
        }
 
        // Save the updated approvalDocument document
@@ -205,7 +202,7 @@ export const nonTravelReportApproval = async (payload) => {
        return { success: true, error: null };
 
   } catch (error) {
-      console.error('Failed to update Expense: TravelExpenseData update failed', error);
+      console.error('Failed to update Expense: Non TravelExpenseData update failed', error);
       return { success: false, error: error };
   }
 };

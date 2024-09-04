@@ -4,6 +4,7 @@ import {  addALegToTravelRequestData, deleteALegFromTravelRequestData, tripArray
 import { settleExpenseReport, settleExpenseReportPaidAndDistributed, settleNonTravelExpenseReport, settleOrRecoverCashAdvance } from './messageProcessor.js/finance.js';
 import dotenv from 'dotenv';
 import { approveRejectCashRaisedLater, expenseReportApproval, nonTravelReportApproval } from './messageProcessor.js/approval.js';
+import { cashStatusUpdate } from './messageProcessor.js/cashAdvanceMessage.js';
 
 dotenv.config();
 
@@ -264,6 +265,20 @@ export async function startConsumer(receiver) {
                 console.log('update failed with error code', res.error)
               }
             }  
+            if(action == 'status-update-batch-job'){
+              console.log('status-update-batch-job')
+              const res = await cashStatusUpdate(payload);
+              console.log(res)
+              if(res.success){
+                //acknowledge message
+                channel.ack(msg)
+                console.log('message processed successfully')
+              }
+              else{
+                //implement retry mechanism
+                console.log('update failed with error code', res.error)
+              }
+            } 
           }else if ( source == 'approval'){
             if(action == 'expense-approval'){
               const res = await expenseReportApproval(payload);
