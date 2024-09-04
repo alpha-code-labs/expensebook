@@ -10,14 +10,16 @@ cashAdvanceStatus,
 export async function settleCashAdvance(payload /* */){
     try{
         const {travelRequestId, cashAdvanceId, cashAdvanceStatus, paidBy} = payload
-        
+        console.log(JSON.stringify(payload));
         const cashAdvance = await CashAdvance.findOne({'travelRequestData.travelRequestId' : travelRequestId}) 
         if(!cashAdvance) return {success:false, error: 'Travel Request not found', dashBoardPayload:{}}
         
         cashAdvance.cashAdvancesData.forEach(ca=>{
             if(ca.cashAdvanceId == cashAdvanceId){
-                cashAdvance.cashAdvancesData.cashAdvanceStatus = cashAdvanceStatus
-                cashAdvance.cashAdvancesData.paidBy = paidBy
+                ca.cashAdvanceStatus = cashAdvanceStatus
+                ca.paidBy = paidBy
+
+                console.log(cashAdvance.cashAdvancesData, 'advances data after processing')
             }
         })
 
@@ -39,8 +41,8 @@ export async function recoveryCashAdvance(payload /* */){
 
         cashAdvance.cashAdvancesData.forEach(ca=>{
             if(ca.cashAdvanceId == cashAdvanceId){
-                cashAdvance.cashAdvancesData.cashAdvanceStatus = cashAdvanceStatus
-                cashAdvance.cashAdvancesData.paidBy = paidBy
+                ca.cashAdvanceStatus = cashAdvanceStatus
+                ca.paidBy = paidBy
             }
         })
 

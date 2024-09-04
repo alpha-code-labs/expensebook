@@ -149,7 +149,7 @@ export async function approveRejectRequests(payload) {
 export async function approveRejectCashRaisedLater(payload) {
     try {
         const results = [];
-        console.log("payload",payload)
+        console.log("payload for advance raised later...", JSON.stringify(payload))
 
         for (const request of payload) {
             const {
