@@ -569,33 +569,33 @@ const expenseLineSchema = new mongoose.Schema({
 export const tripSchema = new mongoose.Schema({
   tenantId: {
     type: String,
-    required: true,
+    //required: true,
   },
   tenantName: {
     type: String,
-    // required: true,
+    // //required: true,
   },
   companyName: {
     type: String,
-    // required: true,
+    // //required: true,
   },
   tripId:{
     type: mongoose.Types.ObjectId, 
     // unique: true,
-    // required: true,
+    // //required: true,
   },
   tripNumber:{
     type: String,
-    // required: true,
+    // //required: true,
   },
   tripStatus: {
     type: String,
     enum: tripStatusEnum,
-    required: true,
+    //required: true,
   },
   tripStartDate: {
     type: Date,
-    required: true,
+    //required: true,
   },
   createdBy:{
     type: {empId: String, name: String},
@@ -603,7 +603,7 @@ export const tripSchema = new mongoose.Schema({
     },
   tripCompletionDate: {
     type: Date,
-    required: true,
+    //required: true,
   },
   expenseAmountStatus: {
     totalCashAmount: {
@@ -629,30 +629,30 @@ export const tripSchema = new mongoose.Schema({
   },
   travelRequestData:  {
     type: travelRequestSchema,
-     required: true,
+     //required: true,
   },
   cashAdvancesData: [
     {
       tenantId: {
         type: String,
-        required: true,
+        //required: true,
       },
       travelRequestId: {
         type: String,
-        // required: true,
+        // //required: true,
       },
       travelRequestNumber:{
         type: String,
-        required: true,
+        //required: true,
       },
       cashAdvanceId: {
         type: String,
         // unique: true,
-        required: true,
+        //required: true,
       },
       cashAdvanceNumber:{
         type: String,
-        required: true,
+        //required: true,
       },
       createdBy: {
           empId: String,
@@ -661,14 +661,14 @@ export const tripSchema = new mongoose.Schema({
       cashAdvanceStatus: {
         type: String,
         enum: cashAdvanceStatusEnum,
-        required: true,
+        //required: true,
         default: 'draft',
       },
       cashAdvanceState: {
         type: String,
         enum: cashAdvanceStateEnums,
         default: 'section 0',
-        required: true,
+        // //required: true,
       },
       amountDetails: [
         {

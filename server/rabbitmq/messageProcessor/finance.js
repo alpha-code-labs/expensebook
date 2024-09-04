@@ -8,17 +8,18 @@ export const settleOrRecoverCashAdvance = async (payload) => {
         recoveredBy,recoveredFlag,
     } = payload;
 
-    const getTrip = await dashboard.findOne(
-      { 
-        tenantId,
-        'cashAdvanceData': { $elemMatch: { 'cashAdvanceId': cashAdvanceId, 'travelRequestId': travelRequestId } }
-      },
-    );
+    const filter =  { 
+      tenantId,
+      'cashAdvanceSchema.cashAdvancesData': { $elemMatch: { 'cashAdvanceId': cashAdvanceId, 'travelRequestId': travelRequestId } }
+    }
+    const getTrip = await dashboard.findOne(filter);
 
-    
-    console.log("settle ca payload", payload)
+    if(!getTrip){
+     throw new Error('cash document not found in dashboard db')
+    }
+    console.log("settle ca payload", payload , "getTrip", JSON.stringify(getTrip,'',2))
     const updateCashDoc = {
-        'cashAdvanceData.$.cashAdvanceStatus': cashAdvanceStatus, 
+        'cashAdvanceSchema.cashAdvancesData.$.cashAdvanceStatus': cashAdvanceStatus, 
     }
 
     const isPaidBy = paidBy !== undefined && paidFlag !== undefined
@@ -27,14 +28,14 @@ export const settleOrRecoverCashAdvance = async (payload) => {
     const isRecoveredBy = recoveredBy !== undefined && recoveredFlag !== undefined
     const isTripRecoveredBy = getTrip?.cashAdvanceSchema && getTrip?.tripSchema?.cashAdvancesData?.length > 0
 
-    if(isPaidBy){
-      updateCashDoc['cashAdvanceData.$.paidBy'] = paidBy,
-      updateCashDoc['cashAdvanceData.$.paidFlag'] = paidFlag
+    if(isPaidBy && !isTripPaidBy){
+      updateCashDoc['cashAdvanceSchema.cashAdvancesData.$.paidBy'] = paidBy,
+      updateCashDoc['cashAdvanceSchema.cashAdvancesData.$.paidFlag'] = paidFlag
     }
 
-    if(isRecoveredBy){
-      updateCashDoc['cashAdvanceData.$.recoveredBy'] = recoveredBy,
-      updateCashDoc['cashAdvanceData.$.recoveredFlag'] = recoveredFlag
+    if(isRecoveredBy && !isTripRecoveredBy){
+      updateCashDoc['cashAdvanceSchema.cashAdvancesData.$.recoveredBy'] = recoveredBy,
+      updateCashDoc['cashAdvanceSchema.cashAdvancesData.$.recoveredFlag'] = recoveredFlag
     }
 
     if (isPaidBy && isTripPaidBy) {
@@ -48,10 +49,7 @@ export const settleOrRecoverCashAdvance = async (payload) => {
     }
 
     const trip = await dashboard.findOneAndUpdate(
-      { 
-        tenantId,
-        'cashAdvanceData': { $elemMatch: { 'cashAdvanceId': cashAdvanceId, 'travelRequestId': travelRequestId } }
-      },
+     filter,
       { 
         $set: updateCashDoc
       },
@@ -59,7 +57,9 @@ export const settleOrRecoverCashAdvance = async (payload) => {
     );
 
     console.log('Travel request status updated in Dashboard microservice:', trip);
-    return { success: true, error: null };
+    // return { success: true, error: null };
+    return { success: false, error: null };
+
   } catch (error) {
     console.error('Failed to update travel request status in Dashboard microservice:', error);
     return { success: false, error: error };

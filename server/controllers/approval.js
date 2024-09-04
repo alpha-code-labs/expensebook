@@ -189,7 +189,7 @@ async function getReportsForApproval(tenantId, empId, travelRequestIds) {
       });
 
       if (getReports?.length) {
-          console.log("Hero", getReports);
+          // console.log("Hero", getReports);
 
           // Filter reports for travel requests
           const travelReports = getReports?.filter(report =>
@@ -238,7 +238,13 @@ export async function approveAll(req,res){
       const { tenantId, empId,} = paramsValue
       const { travelRequests } = bodyValue;
       const travelRequestIds = travelRequests.map(obj => obj.travelRequestId);
+      console.log("the data with travel and cash req.body", JSON.stringify(travelRequests,'',2))
 
+      const cashAdvanceIds = travelRequests.flatMap(item =>
+        item.cashAdvanceData.map(cash => cash.cashAdvanceId)
+      )
+      
+      console.log("cashAdvanceIds",cashAdvanceIds)
     //   const { payloadCash, payloadTravel } = travelRequests.reduce((acc, travelRequest) => {
     //     if (travelRequest?.cashAdvances?.length > 0) {
     //         acc.payloadCash.push(travelRequest);
@@ -263,7 +269,7 @@ export async function approveAll(req,res){
     }
     if(cashReports.length){
       console.log("cash ms")
-      approvalDocs.push(approveCashAdvance(tenantId,empId,cashReports))
+      approvalDocs.push(approveCashAdvance(tenantId,empId,cashReports,cashAdvanceIds))
     }
 
     if(!approvalDocs?.length){
@@ -451,37 +457,31 @@ export const approveAllTravelWithCash = async (tenantId, empId, travelReports) =
 }
 
 // travel with cash advance -- approve cashAdvance raised later
-export const approveCashAdvance = async (tenantId, empId,cashReports) => {
+export const approveCashAdvance = async (tenantId, empId,cashReports,getCashAdvanceIds) => {
   console.log("Starting cash advance approval process...");
   try {
-
-    // const cashAdvanceIds = cashReports.flatMap(request =>
-    //   request.cashAdvanceData.map(cashAdvance => cashAdvance.cashAdvanceId)
-    // );
     const travelRequestIds = cashReports.map(report => report.cashAdvanceSchema.travelRequestData.travelRequestId.toString())
 
+    const pendingApprovalIds = []
 
-    const cashAdvanceIds = cashReports.flatMap(report =>
-      report.cashAdvanceSchema?.cashAdvancesData.map(cashAdvance => cashAdvance.cashAdvanceId) || []
-    );
+    // console.log(cashReports);
+console.log("should match cash ids ", getCashAdvanceIds)
 
-    console.log(cashReports);
-console.log(cashAdvanceIds); 
-
-
-    await updateCashAdvanceStatus(cashReports, cashAdvanceIds, empId,"approved");
+    await updateCashAdvanceStatus(cashReports, getCashAdvanceIds, empId,"approved");
 
     const getApproval = await dashboard.find({ travelRequestId: { $in: travelRequestIds } });   
-    console.log("what will be returned -------", getApproval)
+    // console.log("what will be returned -------", getApproval)
 
-    console.log("getApproval", getApproval)
+    // console.log("getApproval", getApproval)
     const payload = getApproval.map(doc =>
       ({
         tenantId:doc.tenantId,
         travelRequestId:doc.travelRequestId,
         travelRequestStatus:doc.cashAdvanceSchema.travelRequestData.travelRequestStatus,
         rejectionReason:doc?.cashAdvanceSchema.travelRequestData.rejectionReason || null,
-        cashAdvances:doc?.cashAdvanceSchema.cashAdvancesData.map(cash =>({
+        cashAdvances:doc?.cashAdvanceSchema.cashAdvancesData
+        .filter(cash => getCashAdvanceIds.includes(cash?.cashAdvanceId.toString()))
+        .map(cash =>({
           cashAdvanceId: cash?.cashAdvanceId,
           cashAdvanceStatus: cash?.cashAdvanceStatus,
           approvers:cash.approvers,
@@ -489,6 +489,8 @@ console.log(cashAdvanceIds);
         }))
       })
       )
+
+      console.log("payload for cash raised later - approved", JSON.stringify(payload,'',2))
 
       const isBooked = payload.filter(trip => trip.travelRequestStatus === 'booked')
 
@@ -503,10 +505,6 @@ console.log(cashAdvanceIds);
       sendToOtherMicroservice(payload, 'approve-reject-ca-later', 'approval', 'To update cashAdvanceStatus to approved in approval microservice'),
      ]
     await Promise.all(promises)
-
-   // Send updated travel to the dashboard synchronously
- //  const dashboardResponse = await sendToDashboardMicroservice(payload, 'approve-reject-ca',  'To update cashAdvanceStatus to approved in cash microservice')
-
 
   return ({ message: `Cash Advance approved` });
 
@@ -829,7 +827,7 @@ export const travelWithCashApproveCashAdvance = async (req, res) => {
   
         // console.log("is payload updated save()....", payload);
 
-      // await   sendToOtherMicroservice(payload, 'approve-reject-ca', 'cash', 'To update cashAdvanceStatus to approved in cash microservice');
+      await   sendToOtherMicroservice(payload, 'approve-reject-ca', 'cash', 'To update cashAdvanceStatus to approved in cash microservice');
         if (payload) {
           console.log("payload",payload)
           return res.status(200).json({ message: `Cash Advance Approved for ${employee}` });

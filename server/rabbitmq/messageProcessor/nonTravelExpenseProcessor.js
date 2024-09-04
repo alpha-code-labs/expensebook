@@ -1,3 +1,4 @@
+import { get } from "mongoose";
 import dashboard from "../../models/dashboardSchema.js";
 
 
@@ -7,9 +8,11 @@ export const settleNonTravelExpenseReport= async (payload) => {
       const {  tenantId, expenseHeaderId, settlementBy, expenseHeaderStatus, 
         settlementDate } = payload;
 
+        console.log("non travel settlement", payload)
         const status = {
           PENDING_SETTLEMENT: 'pending settlement',
           PAID: 'paid',
+          APPROVED:'approved'
         };
         
         const filter = {
@@ -24,13 +27,13 @@ export const settleNonTravelExpenseReport= async (payload) => {
         );
 
         if(!updateResult){
-          return { success: false, error: null };
+          throw new Error('non travel expense report not found in dashboard ms')
         }
 
         const {expenseLines} = updateResult.reimbursementSchema
 
         const updatedExpenseLines = expenseLines.map((line) => {
-          if(line.lineItemStatus == status.PENDING_SETTLEMENT){
+          if(line.lineItemStatus == status.APPROVED){
             return{
               ...line,
               lineItemStatus: status.PAID,
@@ -48,11 +51,17 @@ export const settleNonTravelExpenseReport= async (payload) => {
         updateResult.reimbursementSchema.settlementDate = settlementDate
         updateResult.reimbursementSchema.actionedUpon = true
         
-    console.log('Travel request status updated in approval microservice:', trip);
-    return { success: true, error: null };
+      const report =  await updateResult.save()
+    console.log('Travel request status updated in Dashboard microservice:', JSON.stringify(report,'',2));
+    const {expenseHeaderStatus:getStatus} = report.reimbursementSchema
+
+    if(getStatus === status.PAID){
+      return { success: true, error: null };
+    }
+    return { success: false, error:`non Travel expense report has ${getStatus} as expenseHeaderStatus` };
   } catch (error) {
-    console.error('Failed to update travel request status in approval microservice:', error);
-    return { success: false, error: error };
+    console.error('Failed to update travel request status in Dashboard microservice:', error);
+    return { success: false, error: error.message };
   }
 };
 
