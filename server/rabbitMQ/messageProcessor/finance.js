@@ -21,7 +21,7 @@ export async function settleCashAdvance(payload /* */){
             }
         })
 
-        const result = cashAdvance.save()
+        const result = await cashAdvance.save()
 
         return {success:true, error:null, dashBoardPayload:result}
     }catch(e){
@@ -44,7 +44,7 @@ export async function recoveryCashAdvance(payload /* */){
             }
         })
 
-        const result = cashAdvance.save()
+        const result = await cashAdvance.save()
 
         return {success:true, error:null, dashBoardPayload:result}
     }catch(e){

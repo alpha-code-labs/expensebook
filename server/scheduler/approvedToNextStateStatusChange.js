@@ -33,13 +33,13 @@ export async function batchJob(){
                     // if(cashAdvance.approvers.length>0){
                     //     updatedCashAdvances_approval.push(cashAdvance.cashAdvanceId)
                     // }
-                    if(result.travelRequestData?.sentToTrip){
-                        ca_ids.push(cashAdvance.cashAdvanceId)
-                    }    
+                    // if(result.travelRequestData?.sentToTrip){
+                    //     ca_ids.push(cashAdvance.cashAdvanceId)
+                    // }    
                 }
             })
 
-            travelRequestData.travelRequestStatus = 'pending booking';
+            //travelRequestData.travelRequestStatus = 'pending booking';
 
             return result.save()
         })
