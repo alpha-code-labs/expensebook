@@ -16,7 +16,7 @@ async function statusUpdateBatchJob(){
         const updatedTravelRequests = travelRequestsToUpdate.map((travelRequest) => {
           travelRequest.travelRequestStatus = 'pending booking';
           
-          ['flights', 'trains', 'cabs', 'carRentals', 'buses'].map(itineraryType=>{
+          ['flights', 'trains', 'cabs', 'carRentals', 'buses','hotels','personalVehicles'].map(itineraryType=>{
             travelRequest.itinerary[itineraryType].forEach(item=>{
               if(item.status == 'approved'){
                 item.status = 'pending booking'

@@ -447,7 +447,7 @@ const formDataSchema = {
       returnDateError:{set: Boolean, message:String},
       fromError: {set: Boolean, message:String},
       toError: {set: Boolean, message:String},
-   },
+  },
 ],
 };
 
@@ -549,6 +549,10 @@ export const travelRequestSchema = new mongoose.Schema({
     type: String,
     default: Date.now(),
     required: true,
+  },
+  actionedUpon:{
+    type:Boolean,
+    default:false
   },
   travelBookingDate: String,
   travelCompletionDate: String,
