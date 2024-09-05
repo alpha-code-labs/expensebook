@@ -30,7 +30,6 @@ const [requestSubmitted, setRequestSubmitted] = useState(false)
 const [showPopup, setShowPopup] = useState(false)
 const [loadingErrMsg, setLoadingErrMsg] = useState(false)
 const cashAdvanceAllowed = onBoardingData.cashAdvanceAllowed
-const allowCashAdvance = false;
 const [showConfirm, setShowConfirm] = useState(false);
 const [deleteId, setDeleteId] = useState()
 
@@ -472,7 +471,7 @@ useEffect(()=>{
                   </div>}
                 {requestSubmitted && <div className='p-10'>
                     <p className='text-2xl text-neutral-700 font-semibold font-cabin'>Travel Request Submitted !</p>
-                    { cashAdvanceAllowed && allowCashAdvance && <> 
+                    { cashAdvanceAllowed && <> 
                         <p className='text-zinc-800 text-base font-medium font-cabin mt-4'>Would you like to raise a cash advance request for this trip?</p>
                         <div className='flex gap-10 justify-between mt-10'>
                             <Button text='Yes' onClick={()=>handleCashAdvance(true)} />
@@ -481,7 +480,7 @@ useEffect(()=>{
                       </>
                     }
 
-                    {(!cashAdvanceAllowed || !allowCashAdvance) && <div className='flex gap-10 justify-between mt-10'>
+                    {!cashAdvanceAllowed && <div className='flex gap-10 justify-between mt-10'>
                             <Button text='Ok' onClick={()=>handleCashAdvance(false)} />
                         </div>}
 
@@ -1209,14 +1208,14 @@ const Modal = ({ visible, setVisible, children }) => {
         <div className='fixed  w-[100%] h-[100%] left-0 top-0 bg-black/30 z-10' onClick={()=>setVisible(false)}>
         </div>
 
-        <div className="fixed w-[90%] sm:w-fit max-w-[100%] h-fit max-h-[90%] overflow-y-scroll sm:overflow-y-hidden left-[50%] translate-x-[-50%] top-[5%] sm:top-[10%] rounded-lg shadow-lg z-[100] bg-white">
+        <div className="fixed w-[90%] sm:w-fit max-w-[100%] h-fit max-h-[96%] xl:max-h-[80%] overflow-y-scroll left-[50%] translate-x-[-50%] top-[2%] xl:top-[10%] rounded-lg shadow-lg z-[100] bg-white">
             {/* close icon */}
-            <div onClick={()=>setVisible(false)} className='cursor-pointer absolute right-0 hover:bg-red-100 p-2 rounded-full mt-2 mr-4'>
+            <div onClick={()=>setVisible(false)} className='cursor-pointer fixed right-0 hover:bg-red-100 p-2 rounded-full mt-2 mr-4'>
                 <img src={closeIcon} alt="" className='w-6 h-6' />
             </div>
             
             {/* childrens */}
-            <div className='p-4 sm:p-10 max-w-[100%] rounded-md'>
+            <div className='p-4 sm:p-10 max-w-[100%] rounded-md overflow-y-scroll'>
                 {children}
             </div>
         </div>
