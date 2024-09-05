@@ -145,7 +145,9 @@ const selectDivFocus = (e)=>{
 
   return (
     <>
-      <div className={`min-w-[${maxWidth??'300px'}] ${maxWidth? `w-[${maxWidth}]` : 'w-full'} max-w-[${maxWidth??'403px'}] h-[73px] flex-col justify-start items-start gap-2 inline-flex`}>
+      <div
+        style={{minWidth: `${maxWidth??'300px'}`, width: `${maxWidth??'100%'}`, maxWidth: `${maxWidth??'403px'}`}} 
+        className={`h-[73px] flex-col justify-start items-start gap-2 inline-flex`}>
         {/* title*/}
         <div className="text-zinc-600 text-sm font-cabin select-none">{title}</div>
         <div className="self-stretch h-12 justify-start items-start gap-4 inline-flex">
