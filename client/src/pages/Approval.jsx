@@ -235,7 +235,7 @@ const handleVisible = ({travelRequestId,tripId,expenseHeaderId, action}) => {
   setVisible(!visible);
   let url ;
   if (action==="travel-approval-view"){
-    url=handleApproval(tenantId , empId ,travelRequestId, "", action)
+    url=handleApproval({tenantId , empId ,travelRequestId,action})
     console.log('url',url)
     
   }
@@ -617,12 +617,7 @@ const handleVisible = ({travelRequestId,tripId,expenseHeaderId, action}) => {
               {/* <Button1 text="Take Action" variant="fit" onClick={() => {openModal("expenseDetails");}}/> */}
               {/* <ActionButton approve={"Approve"} reject={"Reject"}/> */}
 
-            {/* <div className='flex items-center justify-center'>
-             <img src={info_icon} className='w-4 h-4'/>
-              <div className='text-sm font-cabin px-2 py-1 cursor-pointer' onClick={()=>{if(!disableButton(trip?.travelRequestStatus)){handleVisible(trip?.travelRequestId,  'travel-approval-view' )}}}>
-                <p className='text-indigo-600 font-semibold'>View Details</p>
-              </div>
-              </div> */}
+
 
               </div>  
             {expenseDetails?.expenseType === "Travel Expense" &&
@@ -844,12 +839,7 @@ Raise a Cash-Advance
              <div className='flex flex-row justify-between'>
               
              <TripName tripName={trip?.tripName} />
-             {/* <div className='flex items-center justify-center'>
-             <img src={info_icon} className='w-4 h-4'/>
-              <div className='text-sm font-cabin px-2 py-1 cursor-pointer' onClick={()=>{if(!disableButton(trip?.travelRequestStatus)){handleVisible(trip?.travelRequestId,  'travel-approval-view' )}}}>
-                <p className='text-indigo-600 font-semibold'>View Details</p>
-              </div>
-              </div> */}
+             
              </div>
               </div>
               
@@ -916,25 +906,13 @@ Raise a Cash-Advance
               </div>
               </div>
               <Button1 text="Take Action" variant="fit" onClick={() => {openModal("expenseDetails");setExpenseDetails({...trip,expenseType:trip?.expenseType})}}/>
-              {/* <ActionButton approve={"Approve"} reject={"Reject"}/> */}
-
-            {/* <div className='flex items-center justify-center'>
-             <img src={info_icon} className='w-4 h-4'/>
-              <div className='text-sm font-cabin px-2 py-1 cursor-pointer' onClick={()=>{if(!disableButton(trip?.travelRequestStatus)){handleVisible(trip?.travelRequestId,  'travel-approval-view' )}}}>
-                <p className='text-indigo-600 font-semibold'>View Details</p>
-              </div>
-              </div> */}
+            
               </div>  
               {trip?.expenseType === "Travel Expense" &&
              <div className='flex flex-row justify-between'>
               
               <TripName tripName={trip?.tripName}/>
-             {/* <div className='flex items-center justify-center'>
-             <img src={info_icon} className='w-4 h-4'/>
-              <div className='text-sm font-cabin px-2 py-1 cursor-pointer' onClick={()=>{if(!disableButton(trip?.travelRequestStatus)){handleVisible(trip?.travelRequestId,  'travel-approval-view' )}}}>
-                <p className='text-indigo-600 font-semibold'>View Details</p>
-              </div>
-              </div> */}
+            
              </div>}
               </div>
 
