@@ -59,6 +59,7 @@ export {default as violation_ySym_icon} from './violation_icon.png';
 export {default as loading_icon} from './loading2.svg';
 export {default as clock_icon} from './clock.svg';
 export {default as briefcase_icon} from './briefcase.svg';
+export {default as delete_icon} from './delete.svg';
 
 
 

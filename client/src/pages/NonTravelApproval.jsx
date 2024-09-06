@@ -244,10 +244,7 @@ expenseAmountStatus={expenseAmtDetails}
            
         
             <hr/>
-
             <div className=' '>
-
-
 <div>
 
   <ExpenseLine expenseLines={Object.values(groupedExpenses)} defaultCurrency={expenseData?.defaultCurrency ||{}}/>

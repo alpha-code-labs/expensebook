@@ -234,23 +234,23 @@ totalViolations = totalTravelViolations +  totalCashViolations || 0;
   return <>
       {isLoading && <Error message={loadingErrorMsg}/>}
       {!isLoading && 
-        <div className="w-full h-full relative bg-white-100 lg:px-24 md:mx-0 sm:px-0 sm:mx-auto py-12 select-none custom-scrollbar">
+        <div className="w-full h-full relative bg-white-100 lg:px-24 md:mx-0 sm:px-0 sm:mx-auto select-none custom-scrollbar">
        
-        <div className='w-full flex gap-2 justify-start lg:justify-start px-8 md:px-0 '>
-        {/* <div className="flex items-center cursor-pointer " onClick={()=>(urlRedirection(`${dashboardBaseUrl}/${tenantId}/${empId}/approval`))}>
+        {/* <div className='w-full flex gap-2 justify-start lg:justify-start px-8 md:px-0 '>
+        <div className="flex items-center cursor-pointer " onClick={()=>(urlRedirection(`${dashboardBaseUrl}/${tenantId}/${empId}/approval`))}>
         <img src={arrow_left} className="w-6 h-6"/>
       
       
       
-       </div> */}
+       </div>
             <Icon/>
-        </div>
+        </div> */}
 
        
         <div className="w-full h-full mt-10 p-10 font-cabin tracking-tight">
             <div className="flex justify-between">
             <div className='flex flex-col justify-between py-2'>
-                <p className="text-2xl text-neutral-600 mb-5">{`${travelData?.tripPurpose}`}</p>
+                {/* <p className="text-2xl text-neutral-600 mb-5">{`${travelData?.tripPurpose}`}</p> */}
 
                     <TripName tripName={travelData?.tripName}/>
 
