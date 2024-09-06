@@ -57,9 +57,7 @@ export const settleOrRecoverCashAdvance = async (payload) => {
     );
 
     console.log('Travel request status updated in Dashboard microservice:', trip);
-    // return { success: true, error: null };
-    return { success: false, error: null };
-
+    return { success: true, error: null };
   } catch (error) {
     console.error('Failed to update travel request status in Dashboard microservice:', error);
     return { success: false, error: error };

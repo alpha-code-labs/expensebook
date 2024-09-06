@@ -4,7 +4,7 @@ import { fullUpdateTravel, fullUpdateTravelBatchJob } from './messageProcessor/t
 import dotenv from 'dotenv';
 import { fullUpdateExpense, settleExpenseReport } from './messageProcessor/travelExpenseProcessor.js';
 import { addLeg, updateTrip, updateTripStatus, updateTripToCompleteOrClosed } from './messageProcessor/trip.js';
-import { fullUpdateCash, fullUpdateCashBatchJob } from './messageProcessor/cash.js';
+import { cashStatusUpdatePaid, fullUpdateCash, fullUpdateCashBatchJob } from './messageProcessor/cash.js';
 import { deleteReimbursement, updateReimbursement } from './messageProcessor/reimbursement.js';
 import {  settleOrRecoverCashAdvance } from './messageProcessor/finance.js';
 import { settleNonTravelExpenseReport } from './messageProcessor/nonTravelExpenseProcessor.js';
@@ -91,10 +91,11 @@ export async function startConsumer(receiver) {
        if (msg && msg.content) {
 
      const content = JSON.parse(msg.content.toString());
- 
+
      console.log(`coming from ${content.headers?.source} meant for ${content.headers?.destination}`)
      //console.log('payload', content?.payload)
      console.log('payload', content?.payload)
+     console.log('action', content?.headers?.action)
      const payload = content?.payload
      const source = content?.headers?.source
      const action = content?.headers?.action
@@ -128,6 +129,11 @@ export async function startConsumer(receiver) {
               const res = await fullUpdateCashBatchJob(payload)
               handleMessageAcknowledgment(channel, msg, res);
             }
+            if(action == 'status-update-batch-job'){
+              console.log('trying to update CashAdvanceSchema')
+              const res = await cashStatusUpdatePaid(payload)
+              handleMessageAcknowledgment(channel, msg, res);
+            }
           } else if (source == 'expense'){
             if(action == 'full-update'){
             console.log('trying to update travelExpense Data', payload)
@@ -137,7 +143,7 @@ export async function startConsumer(receiver) {
           } else if (source == 'reimbursement'){
             if (action == 'full-update') {
               console.log('Trying to update reimbursement Data');
-                const results = await updateReimbursement(payload);
+                const res = await updateReimbursement(payload);
                 handleMessageAcknowledgment(channel, msg, res);
                 } 
             if( action == 'delete'){    

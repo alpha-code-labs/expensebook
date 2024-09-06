@@ -230,8 +230,8 @@ if(getAllTravelRequests.length > 0){
 
     const allTravelRequests = [...travelRequests, ...travelRequestWithCash]
 
-    console.log("travelRequests kaboom", travelRequests);
-    console.log("travelRequestWithCash kaboom", travelRequestWithCash);
+    // console.log("travelRequests kaboom", travelRequests);
+    // console.log("travelRequestWithCash kaboom", travelRequestWithCash);
 
     return {allTravelRequests}
 } else {
@@ -1712,7 +1712,7 @@ const approvalsForManager = async (tenantId, empId) => {
                         })
                 );
                 
-            console.log("cashAdvanceRaisedLater", cashAdvanceRaisedLater)
+            // console.log("cashAdvanceRaisedLater", cashAdvanceRaisedLater)
 
         const travelExpenseReports = await (async () => {
             try {
@@ -1792,7 +1792,7 @@ const approvalsForManager = async (tenantId, empId) => {
             }
         })();
         
-       // console.log("nonTravelExpenseReports",nonTravelExpenseReports)
+       console.log("nonTravelExpenseReports",nonTravelExpenseReports)
        const addALeg= await (async () => {
         if (!Array.isArray(approvalDoc) || approvalDoc.length === 0) {
             return {}; 
@@ -1819,7 +1819,7 @@ const approvalsForManager = async (tenantId, empId) => {
                 }
             });
 
-            console.log("here...",JSON.stringify(filteredItinerary,null,2))
+            // console.log("here...",JSON.stringify(filteredItinerary,null,2))
     
             return {
                 travelRequestId: travelRequestData.travelRequestId,
@@ -2068,7 +2068,7 @@ console.log("verified business admin layout", tenantId, empId);
                 return results.filter(Boolean);
             })();
 
-    console.log("travel booking .......", travel)
+    // console.log("travel booking .......", travel)
             // const travelWithCash = await (async () => {
             //     const filteredBooking = bookingDoc.filter(booking => 
             //         booking?.cashAdvanceSchema?.travelRequestData?.travelRequestStatus === 'pending booking'
@@ -2132,7 +2132,7 @@ console.log("verified business admin layout", tenantId, empId);
             })();
             
 
-            console.log("travel booking with cash .......", travelWithCash)
+            // console.log("travel booking with cash .......", travelWithCash)
             // const trips = await (async () => {
             //     const filteredBooking = bookingDoc.filter(booking => 
             //         booking?.tripSchema?.travelRequestData?.travelRequestStatus === 'booked' && 
