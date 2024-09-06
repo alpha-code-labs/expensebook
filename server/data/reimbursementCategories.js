@@ -24,7 +24,7 @@ const reimbursementExpenseCategories = [
       { name: 'Destination', type: 'text' },
       { name: 'Travelers Name', type: 'text' },
       { name: 'Class', type: 'text' },
-      { name: 'Booking Reference No.', type: 'text' },
+      { name: 'Booking Reference No', type: 'text' },
       { name: 'Total Amount', type: 'amount' },
       { name: 'Tax Amount', type: 'amount' }
     ],
@@ -40,7 +40,7 @@ const reimbursementExpenseCategories = [
       { name: 'Destination', type: 'text' },
       { name: 'Travelers Name', type: 'text' },
       { name: 'Class', type: 'text' },
-      { name: 'Booking Reference No.', type: 'text' },
+      { name: 'Booking Reference No', type: 'text' },
       { name: 'Total Amount', type: 'amount' },
       { name: 'Tax Amount', type: 'amount' }
     ],
@@ -58,7 +58,7 @@ const reimbursementExpenseCategories = [
       { name: 'Total Amount', type: 'amount' },
       { name: 'Tax Amount', type: 'amount' },
       
-      { name: 'Receipt No.', type: 'text' },
+      { name: 'Receipt No', type: 'text' },
       { name: 'Ride Distance', type: 'text' }
     ],
     modeOfTranfer:true,
@@ -75,7 +75,7 @@ const reimbursementExpenseCategories = [
       { name: 'Total Amount', type: 'amount' },
       { name: 'Tax Amount', type: 'amount' },
       
-      { name: 'Receipt No.', type: 'text' },
+      { name: 'Receipt No', type: 'text' },
       { name: 'Ride Distance', type: 'text' }
     ],
     modeOfTranfer:true,
@@ -93,7 +93,7 @@ const reimbursementExpenseCategories = [
       { name: 'Tax Amount', type: 'amount' },
       {name: 'Total Amount', type: 'amount'},
       { name: 'Guest Name', type: 'text' },
-      { name: 'Booking Reference No.', type: 'text' },
+      { name: 'Booking Reference No', type: 'text' },
     ],
     modeOfTranfer:false,
     class: ['Motel', '3 star', '4 star', '5 star'],
@@ -156,7 +156,7 @@ const reimbursementExpenseCategories = [
     categoryName: 'Baggage',
     fields: [
       { name: 'Airline name', type: 'text' },
-      { name: 'Bill no.', type: 'text' },
+      { name: 'Bill No', type: 'text' },
       { name: 'Total Amount', type: 'amount' },
       { name: 'Tax Amount', type: 'amount' }
     ],
@@ -284,7 +284,7 @@ const reimbursementExpenseCategories = [
   {
     categoryName: 'Communication',
     fields: [
-      { name: 'Bill no. service provider', type: 'text' },
+      { name: 'Bill No service provider', type: 'text' },
       { name: 'Bill date', type: 'date' },
       { name: 'Tax Amount', type: 'amount' },
       { name: 'Total Amount', type: 'amount' }
