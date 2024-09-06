@@ -48,15 +48,15 @@ export async function batchJob(){
         
         if(res.length >0){
             //send update to dashboard
-            await sendToOtherMicroservice(res, 'full-update-batchjob', 'dashboard', 'To update cashadvance records after batch job that changes status from approved to next'  )
+            await sendToOtherMicroservice(res, 'full-update-batch-job', 'dashboard', 'To update cash advance records after batch job that changes status from approved to next'  )
         }
         
         //see if some records are already sent to trip 
         const sentToTripRecords = res.filter(record=>record.travelRequestData.sentToTrip)
 
         if(sentToTripRecords.length>0){
-            await sendToOtherMicroservice(sentToTripRecords, 'stauts-update-batch-job', 'trip', 'To update cashAdvance records in trip', 'cash', 'batch')
-            await sendToOtherMicroservice(sentToTripRecords, 'stauts-update-batch-job', 'expense', 'To update cashAdvance records in expense', 'cash', 'batch')
+            await sendToOtherMicroservice(sentToTripRecords, 'status-update-batch-job', 'trip', 'To update cashAdvance records in trip', 'cash', 'batch')
+            await sendToOtherMicroservice(sentToTripRecords, 'status-update-batch-job', 'expense', 'To update cashAdvance records in expense', 'cash', 'batch')
         }
 
         console.log(`BJ: MOV CA from approved to next state :: modified count ${res.length} sentToTrip Count: ${sentToTripRecords.length}`)

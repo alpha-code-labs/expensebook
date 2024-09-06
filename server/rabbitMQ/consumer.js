@@ -116,7 +116,16 @@ export default async function startConsumer(receiver) {
                   console.log("update failed with error code", res.error);
           }
         }
-        
+        if(action == 'add-leg'){
+          const res = await addALeg(payload)
+          if(res.success){
+              console.log('message consumed successfully')
+              channel.ack(msg)
+          }
+          else{
+              console.log("update failed with error code", res.error);
+          }
+      }
       } else if (source == "approval") {
         if ((action == "approve-reject-ca")) {
           const res = await approveRejectRequests(payload);
