@@ -25,6 +25,7 @@ const lineItemStatusEnums = [
   'rejected',
   'pending settlement',
   'paid and distributed',
+  'paid',
 ]
 
 const expenseHeaderTypeEnums = ['reimbursement'];
@@ -85,6 +86,11 @@ const expenseLineSchema = new mongoose.Schema({
       imageUrl: String,
     },
   ],
+  expenseSettledDate: Date,
+  settlementBy:{
+  empId:{type: String, default:null},
+  name:{type: String, default:null}
+},
   billImageUrl: String,
   billRejectionReason: String,
 },{ strict: false });
@@ -92,23 +98,23 @@ const expenseLineSchema = new mongoose.Schema({
 export const reimbursementSchema = new mongoose.Schema({
 tenantId: {
   type: String,
-  required: true,
+  //required: true,
 },
 tenantName: {
   type: String,
-  required: true,
+  // required: true,
 },
 companyName: {
   type: String,
-  required: true,
+ //required: true,
 },
 expenseHeaderId: {
   type: String,
-  required: true,
+ //required: true,
 },
 expenseHeaderNumber: {
   type: String,
-  required: true,
+ //required: true,
 //   unique: true
 },
 expenseHeaderType: {
@@ -173,7 +179,21 @@ expenseSettledDate: Date,
 });
 
 
-// expenseReimbursementSchema.pre('validate', async function (next) {
+// Pre hook to generate and assign an ObjectId to expenseHeaderId before saving the document
+reimbursementSchema.pre('validate', function(next) {
+  if(!this.expenseHeaderId) {
+    this.expenseHeaderId = new mongoose.Types.ObjectId(); 
+  }
+  next(); // Call 'next' to proceed with the save operation
+})
+
+// Function to generate the incremental number
+const generateIncrementalNumber = (tenantName, incrementalValue) => {
+  const formattedTenant = (tenantName || '').toUpperCase().substring(0, 3);
+  return `NTER${formattedTenant}${incrementalValue.toString().padStart(6, '0')}`;
+};
+
+// reimbursementSchema.pre('validate', async function (next) {
 //   if (!this.expenseHeaderNumber) {
 //     // Query to find the maximum incremental value
 //     const maxIncrementalValue = await this.constructor.findOne({}, 'expenseHeaderNumber')
@@ -194,6 +214,10 @@ expenseSettledDate: Date,
 
 
 
+// const Reimbursement = mongoose.model('Reimbursement', expenseReimbursementSchema);
+
+
+// export default Reimbursement
 
 
 // // Pre-save hook to generate and assign expenseHeaderNumber if it doesn't exist

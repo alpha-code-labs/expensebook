@@ -64,7 +64,9 @@ const approvalSchema = new mongoose.Schema({
     },
       travelRequestData:  {
         type: travelRequestSchema,
-        required: true,
+        required: function() {
+          return !this.reimbursementSchema;
+        },
       },
       cashAdvancesData: [
         {

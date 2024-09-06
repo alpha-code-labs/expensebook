@@ -104,7 +104,7 @@ export async function getExpenseReport(tenantId,empId,tripId,expenseHeaderId){
 export function updateExpenseLineStatus(expenseLines, approve = [], reject = [], empId) {
 
   return expenseLines.map(expenseLine => {
-    const expenseLineIdStr = expenseLine.expenseLineId.toString();
+    const expenseLineIdStr = (expenseLine.expenseLineId ?? expenseLine.lineItemId).toString();
 
     if (approve.includes(expenseLineIdStr)) {
       expenseLine.approvers.forEach(approver => {
