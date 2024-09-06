@@ -100,114 +100,266 @@ export async function startConsumer(receiver) {
         const action = content?.headers?.action
         // console.log("source", source,"action", action)
         if(content.headers.destination == 'expense'){
-    
-          if(source == 'onboarding' || source == 'system-config'){
-            console.log('trying to update HR Master')
-            const res = await updateHRMaster(payload)
-            console.log(res)
-            handleMessageAcknowledgment(channel, msg, res);
-          } else if(source == 'trip'){
-              if(action == 'full-update-array'){
-                console.log('trying to batch job -  trip to expense 1st time ')
-                const res = await tripArrayFullUpdate(payload)
-                console.log(res)
-                handleMessageAcknowledgment(channel, msg, res);
-              }
-              if(action == 'full-update'){
-                console.log('trying to update Travel and cash after cancellation ')
-                const response = await tripFullUpdate(payload)
-                console.log(res)
-                handleMessageAcknowledgment(channel, msg, res);
-               }else {
+          let res;
+          switch(source){
+            case 'onboarding':
+            case 'system-config':
+              console.log('trying to update HR Master')
+              res = await updateHRMaster(payload)
+              console.log(res)
+              handleMessageAcknowledgment(channel, msg, res);
+              break;
+            
+            case 'trip':
+              switch(action){
+                case 'full-update-array':
+                  console.log('trying to batch job -  trip to expense 1st time ')
+                  res = await tripArrayFullUpdate(payload)
+                  console.log(res)
+                  handleMessageAcknowledgment(channel, msg, res);
+                  break;
+
+                case 'full-update':
+                  console.log('trying to update Travel and cash after cancellation ')
+                  const res = await tripFullUpdate(payload)
+                  console.log(res)
+                  handleMessageAcknowledgment(channel, msg, res);
+                  break;
+
+                default:
                 console.warn(`Unknown action '${action}' for source ${source}`);
+                break;
               }
-          } else if(source == 'finance'){
-          if(action == 'settle-ca' || action == 'recover-ca') {
-              console.log("settle-ca or recover-ca ")
-              const res = await settleOrRecoverCashAdvance(payload);
-              handleMessageAcknowledgment(channel, msg, res);
+              break;
+
+            case 'finance':
+              switch(action){
+                case 'settle-ca':
+                case 'recover-ca':
+                  console.log("settle-ca or recover-ca ")
+                  res = await settleOrRecoverCashAdvance(payload);
+                  handleMessageAcknowledgment(channel, msg, res);
+                  break;
+
+                case 'expense-paid':
+                  console.log(" expense header status paid")
+                  res = await settleExpenseReport(payload);
+                  handleMessageAcknowledgment(channel, msg, res);
+                  break;
+    
+                case 'settle-expense-Paid-and-distributed':
+                  console.log(" expense header status paid and distributed")
+                  res = await settleExpenseReportPaidAndDistributed(payload);
+                  handleMessageAcknowledgment(channel, msg, res);
+                  break;
+                
+                case 'non-travel-paid':
+                  console.log(" expense header status paid - 'non-travel-paid'")
+                  res = await settleNonTravelExpenseReport(payload);
+                  handleMessageAcknowledgment(channel, msg, res);
+                  break;
+
+                
+                default:
+                  console.warn(`unknown action ${action} for source ${source}`)
+                  break;
+              }
+              break;
+
+            case 'dashboard':
+              switch(action){
+                case 'profile-update':
+                  res = await updatePreferences(payload);
+                  console.log(res)
+                  handleMessageAcknowledgment(channel, msg, res);
+                  break;
+                
+                case 'approve-reject-ca-later':
+                  res = await approveRejectCashRaisedLater(payload);
+                  console.log(res)
+                  handleMessageAcknowledgment(channel, msg, res);
+                  break;
+
+                case 'expense-approval':
+                  res = await expenseReportApproval(payload);
+                  console.log(res)
+                  handleMessageAcknowledgment(channel, msg, res);
+                  break;
+
+                case 'nte-full-update':
+                  res = await nonTravelReportApproval(payload);
+                  console.log(res)
+                  handleMessageAcknowledgment(channel, msg, res);
+                  break;
+
+                default:
+                  console.warn(`j -Unknown action '${action}' for source ${source}`);
+                  break;
+              }
+              break;
+
+            case 'travel':
+              switch(action){
+                case 'add-leg':
+                  console.log('add-leg from travel microservice to expense microservice')
+                  res = await addALegToTravelRequestData(payload);
+                  console.log(res)
+                  handleMessageAcknowledgment(channel, msg, res);
+                  break;
+                
+                case 'remove-leg':
+                    console.log('add-leg from travel microservice to expense microservice')
+                    res = await deleteALegFromTravelRequestData(payload);
+                    console.log(res)
+                    handleMessageAcknowledgment(channel, msg, res);
+                    break;
+
+                default:
+                  console.warn(`Unknown action '${action}' for source ${source}`);
+                break;
+              }
+              break;
+            
+            case 'cash':
+              switch(action){
+                case 'add-leg':
+                  console.log('add-leg from cash microservice to expense microservice')
+                  res = await addALegToTravelRequestData(payload);
+                  handleMessageAcknowledgment(channel, msg, res);
+                  break;
+
+                case 'status-update-batch-job':
+                  console.log('status-update-batch-job')
+                  res = await cashStatusUpdatePaid(payload);
+                  handleMessageAcknowledgment(channel, msg, res);
+                  break;
+
+                default:
+                  console.warn(`Unknown action '${action}' for source ${source}`);
+                  break;
+              }
+              break;
+
+            case 'approval':
+              switch(action){
+                case 'expense-approval':
+                  res = await expenseReportApproval(payload);
+                  console.log(res)
+                  handleMessageAcknowledgment(channel, msg, res);
+                  break;
+                
+                default:
+                  console.warn(`Unknown action ${action} for source ${source}`)
+                  break;
+              }
+              break;
+            
+
+            default:
+              console.warn(`Unknown source '${source}' for action ${action}`)
+              break;
           }
-          if(action == 'expense-paid') {
-              console.log(" expense header status paid")
-              const res = await settleExpenseReport(payload);
-              handleMessageAcknowledgment(channel, msg, res);
-          }
-          if(action == 'settle-expense-Paid-and-distributed') {
-            console.log(" expense header status paid and distributed")
-            const res = await settleExpenseReportPaidAndDistributed(payload);
-            handleMessageAcknowledgment(channel, msg, res);
-          }
-          if(action ==  'non-travel-paid') {
-            console.log(" expense header status paid - 'non-travel-paid'")
-            const res = await settleNonTravelExpenseReport(payload);
-            handleMessageAcknowledgment(channel, msg, res);
-        } else {
-          console.warn(`Unknown action '${action}' for source ${source}`);
-        }
-          } else if (source == 'dashboard'){
-            if(action == 'profile-update'){
-              const res = await updatePreferences(payload);
-              console.log(res)
-              handleMessageAcknowledgment(channel, msg, res);
-            }
-            if(action == 'approve-reject-ca-later'){
-              const res = await approveRejectCashRaisedLater(payload);
-              console.log(res)
-              handleMessageAcknowledgment(channel, msg, res);
-            } 
-            if(action == 'expense-approval'){
-              const res = await expenseReportApproval(payload);
-              console.log(res)
-              handleMessageAcknowledgment(channel, msg, res);
-            }
-            if(action == 'nte-full-update'){
-              const res = await nonTravelReportApproval(payload);
-              console.log(res)
-              handleMessageAcknowledgment(channel, msg, res);
-            } else {
-              console.warn(`j -Unknown action '${action}' for source ${source}`);
-            }
-          } else if (source == 'travel'){
-            if(action == 'add-leg'){
-              console.log('add-leg from travel microservice to expense microservice')
-              const res = await addALegToTravelRequestData(payload);
-              console.log(res)
-              handleMessageAcknowledgment(channel, msg, res);
-            } 
-            if(action == 'remove-leg'){
-              console.log('add-leg from travel microservice to expense microservice')
-              const res = await deleteALegFromTravelRequestData(payload);
-              console.log(res)
-              handleMessageAcknowledgment(channel, msg, res);
-            }
-            else {
-              console.warn(`Unknown action '${action}' for source ${source}`);
-            }  
-          } else if ( source == 'cash'){
-            if(action == 'add-leg'){
-              console.log('add-leg from cash microservice to expense microservice')
-              const res = await addALegToTravelRequestData(payload);
-              handleMessageAcknowledgment(channel, msg, res);
-            }  
-            if(action == 'status-update-batch-job'){
-              console.log('status-update-batch-job')
-              const res = await cashStatusUpdatePaid(payload);
-              handleMessageAcknowledgment(channel, msg, res);
-            } else {
-              console.warn(`Unknown action '${action}' for source ${source}`);
-            }
-          }else if ( source == 'approval'){
-            if(action == 'expense-approval'){
-              const res = await expenseReportApproval(payload);
-              console.log(res)
-              handleMessageAcknowledgment(channel, msg, res);
-            }else {
-              console.warn(`Unknown action '${action}' for source ${source}`);
-            }
-        } }
+      }
       }}, { noAck: false });
 }
 
+
+//old code 
+// if(source == 'onboarding' || source == 'system-config'){
+//   console.log('trying to update HR Master')
+//   const res = await updateHRMaster(payload)
+//   console.log(res)
+//   handleMessageAcknowledgment(channel, msg, res);
+// } else if(source == 'trip'){
+//     if(action == 'full-update-array'){
+//       console.log('trying to batch job -  trip to expense 1st time ')
+//       const res = await tripArrayFullUpdate(payload)
+//       console.log(res)
+//       handleMessageAcknowledgment(channel, msg, res);
+//     }else if(action == 'full-update'){
+//       console.log('trying to update Travel and cash after cancellation ')
+//       const response = await tripFullUpdate(payload)
+//       console.log(res)
+//       handleMessageAcknowledgment(channel, msg, res);
+//     } else {
+//       console.warn(`Unknown action '${action}' for source ${source}`);
+//     }
+// } else if(source == 'finance'){
+// if(action == 'settle-ca' || action == 'recover-ca') {
+//     console.log("settle-ca or recover-ca ")
+//     const res = await settleOrRecoverCashAdvance(payload);
+//     handleMessageAcknowledgment(channel, msg, res);
+// }else if(action == 'expense-paid') {
+//     console.log(" expense header status paid")
+//     const res = await settleExpenseReport(payload);
+//     handleMessageAcknowledgment(channel, msg, res);
+// }else if(action == 'settle-expense-Paid-and-distributed') {
+//   console.log(" expense header status paid and distributed")
+//   const res = await settleExpenseReportPaidAndDistributed(payload);
+//   handleMessageAcknowledgment(channel, msg, res);
+// }else if(action ==  'non-travel-paid') {
+//   console.log(" expense header status paid - 'non-travel-paid'")
+//   const res = await settleNonTravelExpenseReport(payload);
+//   handleMessageAcknowledgment(channel, msg, res);
+// } else {
+// console.warn(`Unknown action '${action}' for source ${source}`);
+// }
+// } else if (source == 'dashboard'){
+//   if(action == 'profile-update'){
+//     const res = await updatePreferences(payload);
+//     console.log(res)
+//     handleMessageAcknowledgment(channel, msg, res);
+//   }else if(action == 'approve-reject-ca-later'){
+//     const res = await approveRejectCashRaisedLater(payload);
+//     console.log(res)
+//     handleMessageAcknowledgment(channel, msg, res);
+//   }else if(action == 'expense-approval'){
+//     const res = await expenseReportApproval(payload);
+//     console.log(res)
+//     handleMessageAcknowledgment(channel, msg, res);
+//   }else if(action == 'nte-full-update'){
+//     const res = await nonTravelReportApproval(payload);
+//     console.log(res)
+//     handleMessageAcknowledgment(channel, msg, res);
+//   }else {
+//     console.warn(`j -Unknown action '${action}' for source ${source}`);
+//   }
+// } else if (source == 'travel'){
+//   if(action == 'add-leg'){
+//     console.log('add-leg from travel microservice to expense microservice')
+//     const res = await addALegToTravelRequestData(payload);
+//     console.log(res)
+//     handleMessageAcknowledgment(channel, msg, res);
+//   }else if(action == 'remove-leg'){
+//     console.log('add-leg from travel microservice to expense microservice')
+//     const res = await deleteALegFromTravelRequestData(payload);
+//     console.log(res)
+//     handleMessageAcknowledgment(channel, msg, res);
+//   }else {
+//     console.warn(`Unknown action '${action}' for source ${source}`);
+//   }  
+// } else if ( source == 'cash'){
+//   if(action == 'add-leg'){
+//     console.log('add-leg from cash microservice to expense microservice')
+//     const res = await addALegToTravelRequestData(payload);
+//     handleMessageAcknowledgment(channel, msg, res);
+//   }  
+//   if(action == 'status-update-batch-job'){
+//     console.log('status-update-batch-job')
+//     const res = await cashStatusUpdatePaid(payload);
+//     handleMessageAcknowledgment(channel, msg, res);
+//   } else {
+//     console.warn(`Unknown action '${action}' for source ${source}`);
+//   }
+// } else if ( source == 'approval'){
+//   if(action == 'expense-approval'){
+//     const res = await expenseReportApproval(payload);
+//     console.log(res)
+//     handleMessageAcknowledgment(channel, msg, res);
+//   } else {
+//     console.warn(`Unknown action '${action}' for source ${source}`);
+//   }
+// } 
 
 
 
