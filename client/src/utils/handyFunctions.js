@@ -210,6 +210,7 @@ function formatDate(date=Date.now()){
         return 'border border-red-900 bg-red-100 text-red-900 rounded-full';
       case "pending settlement":
       case "pending approval": 
+      case "new":
       case "pending booking": 
       case "pending": 
       case "transit":

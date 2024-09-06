@@ -208,7 +208,6 @@ export const approveTravelRequestApi = async(data)=>{
   }
 
 //reject for travelRequest
-  
   export const rejectTravelRequestApi = async(data)=>{
     const {tenantId, empId, travelRequests,rejectionReason} = data
   
@@ -252,7 +251,6 @@ export const approveTravelRequestApi = async(data)=>{
       }
     }
 
-
     export const approveTravelExpenseApi=async(params,payload)=>{
       const {tenantId,empId,tripId,expenseHeaderId} = params
 
@@ -273,7 +271,6 @@ export const approveTravelRequestApi = async(data)=>{
      }
       
     }
-    
     
     //for expense rejection
     
