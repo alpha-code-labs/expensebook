@@ -1,4 +1,3 @@
-import { getExpenseReport, updateExpenseLineStatus } from "../../controllers/travelExpenseApproval.js";
 import { Approval } from "../../models/approvalSchema.js";
 
 
@@ -98,13 +97,9 @@ export const approveRejectTravelRequests = async(payload) => {
 
 export const nonTravelApproval = async (payload) => {
     try {
-        console.log("nonTravelApproval ---payload",JSON.stringify(payload,'',2))
-      const {
-        tenantId,
-        expenseHeaderId,
-        reimbursementSchema,
-        empId, 
-      } = payload;
+      console.log("nonTravelApproval ---payload", JSON.stringify(payload, null, 2));
+  
+      const { tenantId, expenseHeaderId, reimbursementSchema, empId } = payload;
   
       // Update the reimbursement report
       const report = await Approval.findOneAndUpdate(
@@ -112,24 +107,22 @@ export const nonTravelApproval = async (payload) => {
           tenantId,
           expenseHeaderId,
           approvers: {
-            $elemMatch: {
-              empId: empId, 
-            },
+            $elemMatch: { empId: empId },
           },
         },
         { ...reimbursementSchema },
-        { new: true } 
+        { new: true }
       );
-
+  
       if (report) {
-        console.log("report", JSON.stringify(report,'',2))
-        return { success: true , error: null }; 
+        console.log("Updated report:", JSON.stringify(report, null, 2));
+        return { success: true, error: null };
       } else {
-        return { success: false, error: error.message};
+        throw new Error('Non-travel expense report not found');
       }
     } catch (error) {
-      console.error('Error in nonTravelApproval:', error); 
-      return { success: false, message: error.message }; 
+      console.error('Error in nonTravelApproval:', error.message);
+      return { success: false, error: error.message };
     }
 };
 
@@ -175,54 +168,123 @@ export async function approveRejectCashRaisedLater(payload) {
     }
 }
 
+//Travel Expense Report Approval
+export function updateExpenseLineStatus(expenseLines, approve = [], reject = [], empId) {
+
+    return expenseLines.map(expenseLine => {
+      const expenseLineIdStr = ( expenseLine.expenseLineId ?? expenseLine.lineItemId)?.toString()
+  
+      if (expenseLineIdStr === undefined) {
+        throw new Error("Both expenseLineId and lineItemId are undefined or null while updating -updateExpenseLineStatus");
+      }
+  
+      if (approve.includes(expenseLineIdStr)) {
+        expenseLine.approvers.forEach(approver => {
+          if (approver.empId === empId && approver.status === 'pending approval') {
+            console.log(`Approver ${approver.empId} status changing from pending approval to approved`);
+            approver.status = 'approved';
+          }
+        });
+  
+        const isAllApproved = expenseLine.approvers.every(approver => approver.status === 'approved');
+        const lineItemStatus = isAllApproved ? 'approved' : 'pending approval';
+  
+        return { ...expenseLine, lineItemStatus };
+      } else if (reject.includes(expenseLineIdStr)) {
+        expenseLine.approvers.forEach(approver => {
+          if (approver.empId === empId && approver.status === 'pending approval') {
+            console.log(`Approver ${approver.empId} status changing from pending approval to rejected`);
+            approver.status = 'rejected';
+          }
+        });
+        const isRejected = expenseLine.approvers.some(approver => approver.status === 'rejected');
+        const lineItemStatus = isRejected ? 'rejected' : 'pending approval';
+        return { ...expenseLine, lineItemStatus };
+      }
+      return expenseLine;
+    });
+}
+
+async function getExpenseReport(tenantId,empId,tripId,expenseHeaderId){
+    try{
+      const expenseReport = await Approval.findOne({
+        tenantId,
+        tripId,
+        'travelExpenseData':{
+         $elemMatch:{
+           'expenseHeaderId':expenseHeaderId,
+           'approvers':{
+             $elemMatch:{
+               'empId':empId,
+             }
+           }
+         }
+        },
+     }).exec();
+  
+     if(!expenseReport){
+       throw new Error('expense Report not Found')
+     } 
+  
+     return expenseReport
+    } catch (error){
+      throw new Error( error)
+    }
+}
 
 
 export const expenseReportApproval = async (payload) => {
+    const { tenantId,tripId, expenseHeaderId, approve, empId,
+        reject,  rejectionReason,} = payload;
+
+    console.log("Payload for travelExpenseData - expense report approval", payload);
+
     try {
-    const { tenantId,tripId, expenseHeaderId, empId ,approve, reject, rejectionReason} = payload
-    const approvalDocument = await getExpenseReport(tenantId,empId,tripId,expenseHeaderId)
+        const approvalDocument = await getExpenseReport(tenantId,empId,tripId,expenseHeaderId)
 
-    if (!approvalDocument) {
-        throw new Error('No matching approval document found for updating travel expenses status.');
-    }
-    const { travelExpenseData} = approvalDocument.tripSchema
-    const expenseReportFound = travelExpenseData.find(expense => expense.expenseHeaderId.toString() == expenseHeaderId);
+        if(approvalDocument){
+            const { travelExpenseData} = approvalDocument
+            const expenseReportFound = travelExpenseData.find(expense => expense.expenseHeaderId.toString() == expenseHeaderId);
+       
+           //  console.log("valid expenseReport", expenseReportFound);
+            if (expenseReportFound) {
+            const {expenseLines = []} =expenseReportFound
+       
+             const updatedExpenseLines = updateExpenseLineStatus(expenseLines, approve, reject,empId)
+       
+             // console.log("updatedExpenseLines", JSON.stringify(updatedExpenseLines,'',2))
+             expenseReportFound.expenseLines = updatedExpenseLines
+             const isPendingApproval = expenseReportFound.expenseHeaderStatus === 'pending approval'
+       
+             // console.log("isPendingApproval", isPendingApproval)
+              const approver = expenseReportFound.approvers.find(approver =>
+               approver.empId === empId && approver.status === 'pending approval'
+              )
+       
+             //  console.log("approver", isPendingApproval)
+       
+              const isAllApproved = expenseReportFound.expenseLines.every(line => line.lineItemStatus === 'approved')
+              const isRejected = expenseReportFound.expenseLines.some(line => line.lineItemStatus === 'rejected')
+       
+             //  console.log("isAllApproved, isRejected", isAllApproved, isRejected)
+       
+              if(approver && isAllApproved && isPendingApproval ){
+               approver.status = 'approved'
+               expenseReportFound.expenseHeaderStatus = 'pending settlement'
+              } else if(approver && isPendingApproval && isRejected ){
+               approver.status = 'rejected'
+               expenseReportFound.expenseHeaderStatus = 'rejected';
+               expenseReportFound.rejectionReason = rejectionReason
+              }
+              // Save the updated approvalDocument document
+              const expenseApproved = await approvalDocument.save();
 
-    if (expenseReportFound) {
-    const {expenseLines = []} =expenseReportFound
-
-        const updatedExpenseLines = updateExpenseLineStatus(expenseLines, approve, reject,empId)
-
-        expenseReportFound.expenseLines = updatedExpenseLines
-        const isPendingApproval = expenseReportFound.expenseHeaderStatus === 'pending approval'
-
-        const approver = expenseReportFound.approvers.find(approver =>
-        approver.empId === empId && approver.status === 'pending approval'
-        )
-
-        const isAllApproved = expenseReportFound.expenseLines.every(line => line.lineItemStatus === 'approved')
-        const isRejected = expenseReportFound.expenseLines.some(line => line.lineItemStatus === 'rejected')
-    
-        if(approver && isAllApproved && isPendingApproval ){
-        approver.status = 'approved'
-        expenseReportFound.expenseHeaderStatus = 'pending settlement'
-        } else if(approver && isPendingApproval && isRejected ){
-        approver.status = 'rejected'
-          expenseReportFound.expenseHeaderStatus = 'rejected';
-          expenseReportFound.rejectionReason = rejectionReason
-         }
-  
-         // Save the updated approvalDocument document
-         const expenseApproved = await approvalDocument.save();
-  
-         if(!expenseApproved){
-           throw new Error(`error occurred while updating expense report `)
-         }
-  
-         console.log('Saved to dashboard: TravelExpenseData updated successfully');
-         return { success: true, error: null };
+            console.log('Saved to Expense: TravelExpenseData updated successfully');
+            return { success: true, error: null };
+        }
+ 
     }} catch (error) {
-       console.error('An error occurred while updating Travel Expense status:', error.message);
-       return { success: false, error: error.message };
+        console.error('Failed to update Expense: TravelExpenseData update failed', error);
+        return { success: false, error: error };
     }
 };
