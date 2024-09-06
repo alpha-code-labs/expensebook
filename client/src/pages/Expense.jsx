@@ -281,7 +281,7 @@ setSelectedStatuses={setSelectedStatuses}
                             <div className={`text-center rounded-sm ${getStatusClass(trExpense?.expenseHeaderStatus ?? "-")}`}>
                               <p className='px-1 py-1 text-xs text-center capitalize font-cabin'>{trExpense?.expenseHeaderStatus ?? "-"}</p>
                             </div>
-                            {!['paid'].includes(trExpense?.expenseHeaderStatus) &&
+                            {!['paidAndDistributed'].includes(trExpense?.expenseHeaderStatus) &&
                             <div onClick={()=>handleVisible({urlName:handleTravelExpense({tenantId,empId,tripId:trip?.tripId,expenseHeaderId: trExpense?.expenseHeaderId, action: 'trip-ex-modify' })})} className={`w-7 h-7 bg-indigo-100 rounded-full border border-white flex items-center justify-center cursor-pointer`}>
                             <img src={modify} className='w-4 h-4' alt="modify_icon" />
                           </div>}
@@ -335,9 +335,9 @@ setSelectedStatuses={setSelectedStatuses}
                       <div className={`text-center rounded-sm ${getStatusClass(nonTravelExp?.expenseHeaderStatus ?? "-")}`}>
                         <p className='px-1 py-1 text-xs text-center capitalize font-cabin'>{nonTravelExp?.expenseHeaderStatus ?? "-"}</p>
                       </div>
-                      <div onClick={() => handleVisible({urlName:handleNonTravelExpense((nonTravelExp?.expenseHeaderId),"non-tr-ex-modify")})} className={`w-7 h-7 bg-indigo-100 rounded-full border border-white flex items-center justify-center ${disableButton(nonTravelExp?.travelRequestStatus) ? ' cursor-not-allowed opacity-50' : ' cursor-pointer'}`}>
+                      {!['paidAndDistributed'].includes(nonTravelExp?.expenseHeaderStatus) &&<div onClick={() => handleVisible({urlName:handleNonTravelExpense((nonTravelExp?.expenseHeaderId),"non-tr-ex-modify")})} className={`w-7 h-7 bg-indigo-100 rounded-full border border-white flex items-center justify-center ${disableButton(nonTravelExp?.travelRequestStatus) ? ' cursor-not-allowed opacity-50' : ' cursor-pointer'}`}>
                         <img src={modify} className='w-4 h-4' alt="modify_icon" />
-                      </div>
+                      </div>}
                     </div>
                   </div>
                   <ExpenseLine expenseLines={nonTravelExp?.expenseLines}/>
