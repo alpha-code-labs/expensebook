@@ -34,21 +34,19 @@ export const flattenData = (data) => {
     // Flatten cash data
     data.cash.forEach((cashItem) => {
       cashItem.cashAdvancesData.forEach((cashAdvance) => {
-        flattenedData.push({
-          tripName: cashItem.tripName || "-",
-          createdBy: cashItem.createdBy.name,
-          type: "Cash Advance",
-          'expense/cash-advance no.': cashAdvance.cashAdvanceNumber,
-          paidBy: cashAdvance.paidBy.name || "N/A",
-          totalAmount: 
-          `${cashAdvance?.defaultCurrency?.shortName ?? "N/A"} ${
-            formatAmount(cashAdvance.amountDetails.reduce(
-            (sum, item) => sum + item.amount,
-            0
-          ))}`,
+        cashAdvance.amountDetails.forEach((amountDetail) => {
+          flattenedData.push({
+            tripName: cashItem.tripName || "-",
+            createdBy: cashItem.createdBy.name,
+            type: "Cash Advance",
+            'expense/cash-advance no.': cashAdvance.cashAdvanceNumber,
+            paidBy: cashAdvance.paidBy.name || "N/A",
+            totalAmount: `${amountDetail?.currency?.shortName} ${formatAmount(amountDetail?.amount)}`,
+          });
         });
       });
     });
+    
   
     return flattenedData;
   };

@@ -60,6 +60,14 @@ const Finance = () => {
  const settleTravelExpenseData = financeData?.travelExpense || []
  const settleNonTravelExpenseData = financeData?.nonTravelExpense || []
 
+ const settleCashAdvanceCount = financeData?.cashAdvanceToSettle?.length || 0;
+const recoverCashAdvanceCount = financeData?.paidAndCancelledCash?.length || 0;
+const settleTravelExpenseCount = financeData?.travelExpense?.length || 0;
+const settleNonTravelExpenseCount = financeData?.nonTravelExpense?.length || 0;
+
+
+
+
   const handleSwitchTab = (value)=>{
     setActiveTab(value)
   }
@@ -123,7 +131,7 @@ const Finance = () => {
   function Tab () {
     switch (activeTab) {
       case "Settle Cash-Advances":
-        return dataFilterByDate(settleCashAdvanceData).map((trip, index)=>(<SettleCashAdvance trip={trip} key={index} handleActionConfirm={handleActionConfirm}/>));
+        return dataFilterByDate(settleCashAdvanceData).map((trip, index)=>(<SettleCashAdvance trip={trip} key={index} handleActionConfirm={handleActionConfirm}  />));
       case "Recover Cash-Advances":
         return dataFilterByDate(recoverCashAdvanceData).map((trip, index)=>(<RecoverCashAdvance trip={trip} key={index} handleActionConfirm={handleActionConfirm}/>));
       case "Settle Travel Expenses":
@@ -172,7 +180,15 @@ const Finance = () => {
       return filteredData;
     }
 
-    const tabs = ["Settle Cash-Advances","Recover Cash-Advances" , "Settle Travel Expenses" , "Settle Non-Travel Expenses", "Account Entries"]
+    
+
+    const tabs = [
+      { name: "Settle Cash-Advances", count: settleCashAdvanceData.length },
+      { name: "Recover Cash-Advances", count: recoverCashAdvanceData.length },
+      { name: "Settle Travel Expenses", count: settleTravelExpenseData.length },
+      { name: "Settle Non-Travel Expenses", count: settleNonTravelExpenseData.length },
+      { name: "Account Entries", count: 0 } // assuming no count for this
+    ];
   return (
     <>
     {isLoading ? 
@@ -180,18 +196,24 @@ const Finance = () => {
     (<div className='bg-white min-h-screen border-slate-400 w-full h-[100%] flex-col  flex items-start gap-2  '>
       <div className='static md:sticky border p-2 rounded-md top-0 w-full space-y-2 bg-white '>
       <div className=' bg-white  flex  justify-start items-center overflow-x-auto w-full'>
-          {
-              tabs?.map((tab,index)=>(
-                <div
-                onClick={() => handleSwitchTab(tab)}
-                key={index}
-                className={`text-sm min-w-44 font-cabin text-center truncate h-10 px-2 py-2 ${activeTab === tab ? 'border-b-2 border-indigo-600 hover:border-0' : ' '} hover:border-slate-300 hover:border-b-2 hover:text-neutral-500 text-neutral-700 cursor-pointer `}
-              >
-                <p>{tab}</p>
-              </div>
-              
-              ))
-          }
+      {
+  tabs?.map((tab, index) => (
+    <div
+      onClick={() => handleSwitchTab(tab.name)}
+      key={index}
+      className={`text-sm shrink-0 flex justify-center items-center font-cabin text-center truncate h-10 px-2 py-2 ${activeTab === tab.name ? 'border-b-2 border-indigo-600 hover:border-0' : ' '} hover:border-slate-300 hover:border-b-2 hover:text-neutral-500 text-neutral-700 cursor-pointer `}
+    >
+      <p className="flex items-center justify-center gap-1">
+        {tab.name}
+        {tab.count > 0 && (
+          <div className={`shadow-sm shadow-black/30 font-semibold ring-1 rounded-full ring-white min-w-6 min-h-6 flex justify-center items-center text-center text-xs bg-slate-100 text-neutral-700 border border-slate-300 ml-2`}>
+            <p>{tab.count}</p>
+          </div>
+        )}
+      </p>
+    </div>
+  ))
+}
       </div>
       <div className=' border border-slate-300  rounded-md  w-full flex flex-wrap items-start gap-2 px-2 py-2'>
     {/* <div className='flex  space-x-2 space-y-2  overflow-x-auto '>
@@ -275,6 +297,7 @@ export default Finance
 
 const AccountEntryComponent = ({isLoading, handleConfirm,data}) => {
   const tableData = flattenData(data)
+  
   const [filterForm, setFilterForm] = useState({
     startDate: '',
     endDate: '',
@@ -346,11 +369,16 @@ const AccountEntryComponent = ({isLoading, handleConfirm,data}) => {
   const presetOptions = presets();
 
   const handleDownloadfile=(file)=>{
-    if(file === 'PDF'){
-      //handleCSVDownload(json.employees)
-    }else if (file === 'CSV'){
-      console.log('CSV data',tableData)
-      handleCSVDownload(tableData)
+    const fileName = `Account_Entry(${filterForm.startDate}-${filterForm.endDate})`
+    if(tableData.length===0){
+      console.log('table data not available')
+    }else{
+      if(file === 'PDF'){
+        //handleCSVDownload(json.employees)
+      }else if (file === 'CSV'){
+        console.log('CSV data',tableData)
+        handleCSVDownload(tableData,fileName)
+      }
     }
   }
   
