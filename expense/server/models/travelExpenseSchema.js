@@ -25,6 +25,7 @@ const lineItemStatusEnums = [
   'approved',
   'rejected',
   'pending settlement',
+  'paid',
   'paid and distributed',
 ]
 

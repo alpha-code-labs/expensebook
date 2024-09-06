@@ -114,7 +114,7 @@ export const expenseReportApproval = async (payload) => {
             console.log('Saved to Expense: TravelExpenseData updated successfully');
             return { success: true, error: null };
         }
- 
+
     }} catch (error) {
         console.error('Failed to update Expense: TravelExpenseData update failed', error);
         return { success: false, error: error };
@@ -184,10 +184,20 @@ export const nonTravelReportApproval = async (payload) => {
       //  console.log("isAllApproved, isRejected", isAllApproved, isRejected)
 
        if(approver && isAllApproved && isPendingApproval ){
-        approver.status = 'approved'
+        const setApprover = approvalDocument.approvers.map(approver =>{
+          if(approver.empId === empId && approver.status === 'pending approval'){
+            return { ...approver, status: 'approved' }
+          }
+        })
+        approvalDocument.approvers = setApprover
         approvalDocument.expenseHeaderStatus = 'pending settlement'
        } else if(approver && isPendingApproval && isRejected ){
-        approver.status = 'rejected'
+        const setApprover = approvalDocument.approvers.map(approver =>{
+          if(approver.empId === empId && approver.status === 'pending approval'){
+            return { ...approver, status: 'rejected' }
+          }
+        })
+        approvalDocument.approvers = setApprover
         approvalDocument.expenseHeaderStatus = 'rejected';
         approvalDocument.rejectionReason = rejectionReason
        }

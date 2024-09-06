@@ -711,7 +711,7 @@ export const submitReimbursementExpenseReport = async (req, res) => {
     report.expenseLines = report.expenseLines.map(lineItem => ({
       ...lineItem,
       lineItemStatus:getStatus,
-      approver:approvers
+      approvers:approvers
     }))
 
     report.expenseHeaderStatus = getStatus
@@ -728,9 +728,11 @@ export const submitReimbursementExpenseReport = async (req, res) => {
       const comments = 'expense report submitted';
   
     if(isApproval){
+      console.log("sending reim payload - approval")
       await  sendToOtherMicroservice(payload, action, 'approval', comments, source, onlineVsBatch) 
     }     
     await  sendToOtherMicroservice(payload, action, 'dashboard', comments, source, onlineVsBatch)   
+    console.log("sending reim payload - dashboard")
 
     const response = {
       success: true,
@@ -820,7 +822,7 @@ export const cancelReimbursementReport = async (req, res) => {
 
     console.log('expense report failed to delete', expenseReport)
 
-    const { approver, createdBy} = expenseReport
+    const { approvers, createdBy} = expenseReport
     const { name } = createdBy;
 
     const isApproval = approvers?.length > 0

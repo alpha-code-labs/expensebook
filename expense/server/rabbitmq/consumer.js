@@ -4,7 +4,7 @@ import {  addALegToTravelRequestData, deleteALegFromTravelRequestData, tripArray
 import { settleExpenseReport, settleExpenseReportPaidAndDistributed, settleNonTravelExpenseReport, settleOrRecoverCashAdvance } from './messageProcessor.js/finance.js';
 import dotenv from 'dotenv';
 import { approveRejectCashRaisedLater, expenseReportApproval, nonTravelReportApproval } from './messageProcessor.js/approval.js';
-import { cashStatusUpdate } from './messageProcessor.js/cashAdvanceMessage.js';
+import { cashStatusUpdatePaid } from './messageProcessor.js/cashAdvanceMessage.js';
 
 dotenv.config();
 
@@ -51,6 +51,21 @@ export async function startConsumer(receiver) {
     }
   };
 
+  
+  const handleMessageAcknowledgment = (channel, msg, res) => {
+    try{
+      if (res.success) {
+        channel.ack(msg);
+        console.log('Message acknowledged successfully');
+      } else {
+        // channel.nack(msg, false, true);
+        console.log('Error processing message, requeuing');
+      }
+    } catch(error){
+      console.error('Error handling message acknowledgment:', error);
+    }
+  };
+
   // Start initial connection attempt
   const channel = await connectToRabbitMQ();
   if (!channel) {
@@ -79,219 +94,115 @@ export async function startConsumer(receiver) {
         const content = JSON.parse(msg.content.toString());
 
         console.log(`coming from ${content.headers?.source} meant for ${content.headers?.destination}`)
-        //console.log('payload', content?.payload)
+        // console.log('payload', content?.payload)
         const payload = content?.payload
         const source = content?.headers?.source
         const action = content?.headers?.action
-        
+        // console.log("source", source,"action", action)
         if(content.headers.destination == 'expense'){
     
           if(source == 'onboarding' || source == 'system-config'){
             console.log('trying to update HR Master')
             const res = await updateHRMaster(payload)
             console.log(res)
-            if(res.success){
-              //acknowledge message
-              channel.ack(msg)
-              console.log('message processed successfully')
-            }
-            else{
-              //implement retry mechanism
-              console.log('update failed with error code', res.error)
-            }
+            handleMessageAcknowledgment(channel, msg, res);
           } else if(source == 'trip'){
               if(action == 'full-update-array'){
                 console.log('trying to batch job -  trip to expense 1st time ')
                 const res = await tripArrayFullUpdate(payload)
                 console.log(res)
-                if(res.success){
-                  //acknowledge message
-                  channel.ack(msg)
-                  console.log('message processed successfully')
-                } else{
-                  //implement retry mechanism
-                  console.log('update failed with error code', res.error)
-                }
+                handleMessageAcknowledgment(channel, msg, res);
               }
               if(action == 'full-update'){
                 console.log('trying to update Travel and cash after cancellation ')
                 const response = await tripFullUpdate(payload)
                 console.log(res)
-                if(res.success){
-                  //acknowledge message
-                  channel.ack(msg)
-                  console.log('message processed successfully')
-                } else{
-                  //implement retry mechanism
-                  console.log('update failed with error code', res.error)
-                }
-               }
+                handleMessageAcknowledgment(channel, msg, res);
+               }else {
+                console.warn(`Unknown action '${action}' for source ${source}`);
+              }
           } else if(source == 'finance'){
           if(action == 'settle-ca' || action == 'recover-ca') {
               console.log("settle-ca or recover-ca ")
               const res = await settleOrRecoverCashAdvance(payload);
-              if(res.success){
-                  channel.ack(msg)
-                  console.log('cash update successful ')
-              }else{
-                  console.log('error updating travel and cash')
-              }
+              handleMessageAcknowledgment(channel, msg, res);
           }
           if(action == 'expense-paid') {
               console.log(" expense header status paid")
               const res = await settleExpenseReport(payload);
-              if(res.success){
-                  channel.ack(msg)
-                  console.log('expense header status paid- successful ')
-              }else{
-                  console.log('error updating travel and cash')
-              }
+              handleMessageAcknowledgment(channel, msg, res);
           }
           if(action == 'settle-expense-Paid-and-distributed') {
             console.log(" expense header status paid and distributed")
             const res = await settleExpenseReportPaidAndDistributed(payload);
-            if(res.success){
-                channel.ack(msg)
-                console.log('expense header status paid- successful ')
-            }else{
-                console.log('error updating travel and cash')
-            }
+            handleMessageAcknowledgment(channel, msg, res);
           }
           if(action ==  'non-travel-paid') {
             console.log(" expense header status paid - 'non-travel-paid'")
             const res = await settleNonTravelExpenseReport(payload);
-            if(res.success){
-                channel.ack(msg)
-                console.log('expense header status paid- successful ')
-            }else{
-                console.log('error updating travel and cash')
-            }
+            handleMessageAcknowledgment(channel, msg, res);
+        } else {
+          console.warn(`Unknown action '${action}' for source ${source}`);
         }
           } else if (source == 'dashboard'){
             if(action == 'profile-update'){
               const res = await updatePreferences(payload);
               console.log(res)
-              if(res.success){
-                //acknowledge message
-                channel.ack(msg)
-                console.log('message processed successfully')
-              }
-              else{
-                //implement retry mechanism
-                console.log('update failed with error code', res.error)
-              }
-    
+              handleMessageAcknowledgment(channel, msg, res);
             }
             if(action == 'approve-reject-ca-later'){
               const res = await approveRejectCashRaisedLater(payload);
               console.log(res)
-              if(res.success){
-                //acknowledge message
-                channel.ack(msg)
-                console.log('message processed successfully')
-              }
-              else{
-                //implement retry mechanism
-                console.log('update failed with error code', res.error)
-              }
+              handleMessageAcknowledgment(channel, msg, res);
             } 
             if(action == 'expense-approval'){
               const res = await expenseReportApproval(payload);
               console.log(res)
-              if(res.success){
-                //acknowledge message
-                channel.ack(msg)
-                console.log('message processed successfully')
-              }
-              else{
-                //implement retry mechanism
-                console.log('update failed with error code', res.error)
-              }
+              handleMessageAcknowledgment(channel, msg, res);
             }
             if(action == 'nte-full-update'){
               const res = await nonTravelReportApproval(payload);
               console.log(res)
-              if(res.success){
-                //acknowledge message
-                channel.ack(msg)
-                console.log('message processed successfully')
-              }
-              else{
-                //implement retry mechanism
-                console.log('update failed with error code', res.error)
-              }
+              handleMessageAcknowledgment(channel, msg, res);
+            } else {
+              console.warn(`j -Unknown action '${action}' for source ${source}`);
             }
           } else if (source == 'travel'){
             if(action == 'add-leg'){
               console.log('add-leg from travel microservice to expense microservice')
               const res = await addALegToTravelRequestData(payload);
               console.log(res)
-              if(res.success){
-                //acknowledge message
-                channel.ack(msg)
-                console.log('message processed successfully')
-              }
-              else{
-                //implement retry mechanism
-                console.log('update failed with error code', res.error)
-              }
+              handleMessageAcknowledgment(channel, msg, res);
             } 
             if(action == 'remove-leg'){
               console.log('add-leg from travel microservice to expense microservice')
               const res = await deleteALegFromTravelRequestData(payload);
               console.log(res)
-              if(res.success){
-                //acknowledge message
-                channel.ack(msg)
-                console.log('message processed successfully')
-              }
-              else{
-                //implement retry mechanism
-                console.log('update failed with error code', res.error)
-              }
+              handleMessageAcknowledgment(channel, msg, res);
+            }
+            else {
+              console.warn(`Unknown action '${action}' for source ${source}`);
             }  
           } else if ( source == 'cash'){
             if(action == 'add-leg'){
               console.log('add-leg from cash microservice to expense microservice')
               const res = await addALegToTravelRequestData(payload);
-              console.log(res)
-              if(res.success){
-                //acknowledge message
-                channel.ack(msg)
-                console.log('message processed successfully')
-              }
-              else{
-                //implement retry mechanism
-                console.log('update failed with error code', res.error)
-              }
+              handleMessageAcknowledgment(channel, msg, res);
             }  
             if(action == 'status-update-batch-job'){
               console.log('status-update-batch-job')
-              const res = await cashStatusUpdate(payload);
-              console.log(res)
-              if(res.success){
-                //acknowledge message
-                channel.ack(msg)
-                console.log('message processed successfully')
-              }
-              else{
-                //implement retry mechanism
-                console.log('update failed with error code', res.error)
-              }
-            } 
+              const res = await cashStatusUpdatePaid(payload);
+              handleMessageAcknowledgment(channel, msg, res);
+            } else {
+              console.warn(`Unknown action '${action}' for source ${source}`);
+            }
           }else if ( source == 'approval'){
             if(action == 'expense-approval'){
               const res = await expenseReportApproval(payload);
               console.log(res)
-              if(res.success){
-                //acknowledge message
-                channel.ack(msg)
-                console.log('message processed successfully')
-              }
-              else{
-                //implement retry mechanism
-                console.log('update failed with error code', res.error)
-              }
+              handleMessageAcknowledgment(channel, msg, res);
+            }else {
+              console.warn(`Unknown action '${action}' for source ${source}`);
             }
         } }
       }}, { noAck: false });

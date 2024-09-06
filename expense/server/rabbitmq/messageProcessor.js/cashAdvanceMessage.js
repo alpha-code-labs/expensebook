@@ -2,11 +2,45 @@ import Expense from "../../models/tripSchema.js";
 
 
 
-export const cashStatusUpdate = async(payload){
+export const cashStatusUpdatePaid = async(payloadArray)=>{
   try{
-    console.log("cash status update batchJob", JSON.stringify(payload,'',2))
+    // console.log("cash status update batchJob", JSON.stringify(payloadArray,'',2))
+    // console.log("payload length",payloadArray.length)
+
+    const results =[]
+
+    for(const payload of payloadArray){
+      const {travelRequestData,cashAdvancesData} = payload
+      const {travelRequestId} = travelRequestData
+        const updateCashStatus = Expense.findOneAndUpdate(
+          { 'travelRequestData.travelRequestId':travelRequestId},
+          { $set:{ 'cashAdvancesData':cashAdvancesData}},
+          {new: true}
+        );
+
+        if(!updateCashStatus){
+          console.log("updateCashStatus",updateCashStatus)
+          results.push({
+            travelRequestId,
+            success:false,
+            message:'failed to update cash'
+          })
+        } else {
+          console.log("updateCashStatus",updateCashStatus)
+          results.push({
+            travelRequestId,
+            success:true,
+            message:'cash'
+          })
+        }
+    }
+
+    console.log("updateCashStatus", JSON.stringify(updateCashStatus,'',2))
+    return {success: true, error: null, message: 'cash status updated successfully'}
+
   } catch(error){
     console.log("error", error)
+    return { success:false, error:error.message}
   }
 }
 

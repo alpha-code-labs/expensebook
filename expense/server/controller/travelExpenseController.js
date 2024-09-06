@@ -244,6 +244,7 @@ const allExpenseReports = async (expenseReport) => {
       //console.log("travelType..........", travelType)
       let flagToOpen;
       let expenseHeaderStatus; 
+      let expenseHeaderNumber;
       const validPaidStatuses = ['paid', 'paid and distributed'];
       const validStatuses = ['draft', 'pending approval', 'approved', 'pending settlement', 'new', 'rejected'];
       
@@ -271,9 +272,8 @@ if (maxIncrementalValue && maxIncrementalValue.travelExpenseData && maxIncrement
 nextIncrementalValue = parseInt(maxIncrementalValue.travelExpenseData.expenseHeaderNumber.substring(3), 10) + 1;
 }
 
-console.log("nextIncrementalValue", nextIncrementalValue)
+console.log("nextIncrementalValue - areAllExpenseReportsPaid", nextIncrementalValue)
 expenseHeaderNumber = generateIncrementalNumber(tenantName, nextIncrementalValue);
-let expenseHeaderNumber = generateIncrementalNumber(tenantName, nextIncrementalValue);
 let newExpenseHeaderId = new mongoose.Types.ObjectId();
 flagToOpen = newExpenseHeaderId;
 console.log("flagToOpen-- newExpenseHeaderId",newExpenseHeaderId,"new expenseHeaderNumber---", expenseHeaderNumber)

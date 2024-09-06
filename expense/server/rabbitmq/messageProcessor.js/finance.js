@@ -8,6 +8,16 @@ export const settleExpenseReport= async (payload) => {
       const {  tenantId,travelRequestId, expenseHeaderId, settlementBy, expenseHeaderStatus, 
         settlementDate } = payload;
   
+        const status = {
+          PENDING_SETTLEMENT: 'pending settlement',
+          PAID: 'paid',
+          APPROVED:'approved'
+        };
+
+        const arrayFilters = [
+          {'elem.expenseHeaderId': expenseHeaderId },
+          {'lineItem.lineItemStatus':status.APPROVED}
+        ];
     const trip = await Expense.findOneAndUpdate(
       { 
         'tenantId': tenantId,
@@ -16,15 +26,17 @@ export const settleExpenseReport= async (payload) => {
       },
       { 
         $set: { 
-          'travelExpenseData.$.expenseHeaderStatus': expenseHeaderStatus, 
-          'travelExpenseData.$.settlementDate': settlementDate,
-          'travelExpenseData.$.settlementBy': settlementBy,
+          'travelExpenseData.$[elem].expenseHeaderStatus': expenseHeaderStatus, 
+          'travelExpenseData.$[elem].settlementDate': settlementDate,
+          'travelExpenseData.$[elem].settlementBy': settlementBy,
+          'travelExpenseData.$[elem].settlementDate': new Date(),
+          'travelExpenseData.$[elem].expenseLines.$[lineItem].lineItemStatus': status.PAID,
         }
       },
-      { new: true }
+      { arrayFilters,new: true }
     );
 
-    console.log('Travel request status updated in approval microservice:', trip);
+    console.log('Travel request status updated in approval microservice:', JSON.stringify(trip,'',2));
     return { success: true, error: null };
   } catch (error) {
     console.error('Failed to update travel request status in approval microservice:', error);
@@ -173,3 +185,8 @@ export const settleNonTravelExpenseReport= async (payload) => {
     return { success: false, error: error.message };
   }
 };
+
+
+
+
+
