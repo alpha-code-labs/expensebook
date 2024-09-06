@@ -210,12 +210,22 @@ export const financeSchema = Joi.object({
 
 export const sendUpdate = async(payload,options) => {
   try{
-    const {action,comments, includeTrip=false} = options
-    const services = ['dashboard','cash']
+    const {action,comments, includeTrip=false,includeCash=false, includeNonTravel=false} = options
+    const services = ['dashboard']
 
     if(includeTrip){
       services.push('trip','expense')
     }
+
+    if(includeCash){
+      services.push('cash')
+    }
+
+    if(includeNonTravel){
+      services.push('expense')
+    }
+
+    console.log("non travel - services", services)
 
     console.log("payload sent for other ms ....",payload)
     const results = await Promise.allSettled([
@@ -300,6 +310,7 @@ try {
     const options = {
     action :'settle-ca',
     comments:'cash advance paid by finance',
+    includeCash:'true',
     includeTrip
     }
 
@@ -458,6 +469,7 @@ export const recoverCashAdvance = async (req, res, next) => {
     const options = {
       action :"recover-ca",
       comments:'cash advance recovered by finance',
+      includeCash:'true',
       includeTrip,
       }
 

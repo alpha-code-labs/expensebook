@@ -13,14 +13,14 @@ export const extractCategoryAndTotalAmount = (expenseLines) => {
       'Subscription Cost',  
       'Premium Cost',
       'Cost', 
-      'Tip Amount'
+      'Tip Amount',
   ];
 
   const results = [];
   let expenseTotalAmount = 0; 
 
   expenseLines.forEach(expenseLine => {
-      if (expenseLine.lineItemStatus === 'save') {
+      if (expenseLine.lineItemStatus === 'approved') {
           const categoryName = expenseLine['Category Name'] || ''; 
           const keyFound = Object.entries(expenseLine).find(([key]) =>
               fixedFields.some(name => name.trim().toUpperCase() === key.trim().toUpperCase())
@@ -53,7 +53,7 @@ export const getReimbursement = async(tenantId, empId)=>{
           return {success:true, message: `All are settled` };
         } else{
 
-      console.log("non travel",getNonTravelExpenseReports )
+      console.log("non travel", getNonTravelExpenseReports )
       const nonTravelExpense = getNonTravelExpenseReports.map((report) => {
         // console.log("reports expense", JSON.stringify(report, null, 2)); 
       
@@ -69,7 +69,7 @@ export const getReimbursement = async(tenantId, empId)=>{
         } = report.reimbursementSchema;
 
         const {expenseTotalAmount,results} = extractCategoryAndTotalAmount(expenseLines);
-      console.log("expenseTotalAmount",expenseTotalAmount, "results", results)
+      console.log("expenseTotalAmount - result",expenseTotalAmount, "results", results)
       
         return {
           expenseHeaderId,
@@ -109,14 +109,13 @@ export const paidNonTravelExpenseReports = async (req, res, next) => {
     const { tenantId, expenseHeaderId } = params;
     const { getFinance } = body;
 
+    const {name, empId} = getFinance
     console.log("Received Parameters:", { tenantId, expenseHeaderId });
     console.log("Received Body Data: non travel", { getFinance });
 
     const status = {
-      PENDING_SETTLEMENT: 'pending settlement'
-    };
-
-    const newStatus = {
+      APPROVED:'approved',
+      PENDING_SETTLEMENT: 'pending settlement',
       PAID: 'paid',
     };
 
@@ -128,34 +127,53 @@ export const paidNonTravelExpenseReports = async (req, res, next) => {
     };
 
     // Use findOneAndUpdate to find and update in one operation
-    const updateResult = await Finance.findOneAndUpdate(
+    const updateResult = await Finance.findOne(
       filter,
-      {
-        $set: {
-          'reimbursementSchema.settlementBy': getFinance,
-          'reimbursementSchema.actionedUpon': true,
-          'reimbursementSchema.expenseHeaderStatus': newStatus.PAID,
-          'reimbursementSchema.expenseSettledDate': new Date(),
-        }
-      },
-      { new: true, runValidators: true } // Options: return the updated document and run validations
     );
 
     if (!updateResult) {
       return res.status(404).json({ message: 'No matching document found for update' });
     }
+  
+    const {expenseLines,settlementBy, expenseHeaderStatus } = updateResult.reimbursementSchema
 
-    console.log("Update successful:", updateResult);
+    const updatedExpenseLines = expenseLines.map((line) =>{
+      const isPendingSettlement = line.lineItemStatus == status.APPROVED
+     if(isPendingSettlement){
+      return{
+        ...line,
+        lineItemStatus :status.PAID,
+        settlementBy :{name, empId},
+        expenseSettledDate: new Date(),
+      }
+     }
+     return line
+    })
 
-    // const payload={
-    //   tenantId, expenseHeaderId, settlementBy:getFinance,expenseHeaderStatus:status.PAID
-    // }
-    // const options={
-    //   action:'nonTravel-paid',
-    //   comments:'From Finance ms - status update to paid for non travel expense report '
-    // }
-    // await sendUpdate(payload,...options)
-    return res.status(200).json({ message: 'Update successful', result: updateResult });
+    console.log("updatedExpenseLines", JSON.stringify(updatedExpenseLines, '', 2))
+
+    updateResult.reimbursementSchema.expenseLines = updatedExpenseLines
+    updateResult.reimbursementSchema.settlementBy = {name,empId}
+    updateResult.reimbursementSchema.expenseHeaderStatus = status.PAID
+    updateResult.reimbursementSchema.actionedUpon = true
+    updateResult.reimbursementSchema.expenseSettledDate = new Date()
+
+    const report = await updateResult.save()
+
+    console.log("Update successful:", report);
+
+    const payload={
+      tenantId, expenseHeaderId, settlementBy:getFinance,expenseHeaderStatus:status.PAID, expenseSettledDate: new Date()
+    }
+
+    const options={
+      action:'non-travel-paid',
+      comments:'status update to paid for non travel expense report ',
+      includeNonTravel:true
+    }
+
+    await sendUpdate(payload,options)
+    return res.status(200).json({ message: 'Expense Paid successfully', result: updateResult });
 
   } catch (error) {
     console.error('Error updating non travel expense report status:', error.message);

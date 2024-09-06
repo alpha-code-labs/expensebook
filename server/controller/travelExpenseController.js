@@ -173,7 +173,9 @@ export const paidExpenseReports = async (req, res, next) => {
     // console.log("Received Body Data:", { getFinance });
 
     const status = {
-      PENDING_SETTLEMENT: 'pending settlement'
+      PENDING_SETTLEMENT: 'pending settlement',
+      PAID: 'paid',
+      APPROVED:'approved'
     };
 
     const newStatus = {
@@ -197,11 +199,15 @@ export const paidExpenseReports = async (req, res, next) => {
         'tripSchema.travelExpenseData.$[elem].settlementBy': getFinance,
         'tripSchema.travelExpenseData.$[elem].actionedUpon': true,
         'tripSchema.travelExpenseData.$[elem].expenseHeaderStatus': newStatus.PAID,
-        'tripSchema.travelExpenseData.$[elem].settlementDate': new Date() // Renaming this to paidDate is required
+        'tripSchema.travelExpenseData.$[elem].settlementDate': new Date(), // Renaming this to paidDate is required
+        'tripSchema.travelExpenseData.$[elem].expenseLines.$[lineItem].lineItemStatus': newStatus.PAID
       }
     };
 
-    const arrayFilters = [{ 'elem.expenseHeaderId': expenseHeaderId }];
+    const arrayFilters = [
+      {'elem.expenseHeaderId': expenseHeaderId },
+      {'lineItem.lineItemStatus':status.APPROVED}
+    ];
 
     const updatedExpenseReport = await Finance.findOneAndUpdate(
       filter,
