@@ -101,125 +101,192 @@ export async function startConsumer(receiver) {
      const action = content?.headers?.action
   
       if(content.headers.destination == 'dashboard'){
-  
-        if(source == 'onboarding' || source == 'system-config'){
-          console.log('trying to update HR Master')
-          const res = await updateHRMaster(payload)
-          handleMessageAcknowledgment(channel, msg, res);
 
-          } else if (source == 'travel'){
-            if(action == 'full-update'){
-            console.log('trying to update Travel')
-            const res = await fullUpdateTravel(payload)
+        let res;
+        switch (source) {
+          case 'onboarding':
+          case 'system-config':
+            console.log('trying to update HR Master')
+            const res = await updateHRMaster(payload)
             handleMessageAcknowledgment(channel, msg, res);
+            break;
+        
+          case 'travel':
+            switch (action) {
+              case 'full-update':
+                console.log('trying to update Travel')
+                const res1 = await fullUpdateTravel(payload)
+                handleMessageAcknowledgment(channel, msg, res1);
+                break;
+              
+              case 'full-update-batchjob':
+                console.log('trying to update Travel BatchJob - Booking')
+                const res2 = await fullUpdateTravelBatchJob(payload)
+                handleMessageAcknowledgment(channel, msg, res2);
+                break;
+            
+              default:
+                console.warn(`Unknown action '${action}' for source ${source}`);
+                break;
             }
-            if(action=='full-update-batchjob'){
-            console.log('trying to update Travel BatchJob - Booking')
-             const res = await fullUpdateTravelBatchJob(payload)
-             handleMessageAcknowledgment(channel, msg, res);
+            break;
+
+          case 'cash':
+            switch (action) {
+              case 'full-update':
+                console.log('trying to update CashAdvanceSchema')
+              const res1 = await fullUpdateCash(payload)
+              handleMessageAcknowledgment(channel, msg, res1);
+                break;
+            
+              case 'full-update-batchjob':
+                console.log('trying to update CashAdvanceSchema')
+                const res2 = await fullUpdateCashBatchJob(payload)
+                handleMessageAcknowledgment(channel, msg, res2);
+                break;
+              
+              case 'status-update-batch-job':
+                console.log('trying to update CashAdvanceSchema')
+                const res3 = await cashStatusUpdatePaid(payload)
+                handleMessageAcknowledgment(channel, msg, res3);
+                break;
+              
+
+                default:
+                  console.warn(`Unknown action '${action}' for source ${source}`);
+                  break;
             }
-          } else if (source == 'cash'){ 
-            if(action == 'full-update'){
-              console.log('trying to update CashAdvanceSchema')
-              const res = await fullUpdateCash(payload)
-              handleMessageAcknowledgment(channel, msg, res);
-            }
-            if(action == 'full-update-batchjob'){
-              console.log('trying to update CashAdvanceSchema')
-              const res = await fullUpdateCashBatchJob(payload)
-              handleMessageAcknowledgment(channel, msg, res);
-            }
-            if(action == 'status-update-batch-job'){
-              console.log('trying to update CashAdvanceSchema')
-              const res = await cashStatusUpdatePaid(payload)
-              handleMessageAcknowledgment(channel, msg, res);
-            }
-          } else if (source == 'expense'){
-            if(action == 'full-update'){
-            console.log('trying to update travelExpense Data', payload)
-            const res = await fullUpdateExpense(payload)
-            handleMessageAcknowledgment(channel, msg, res);
-          }
-          } else if (source == 'reimbursement'){
-            if (action == 'full-update') {
-              console.log('Trying to update reimbursement Data');
-                const res = await updateReimbursement(payload);
+            break;
+          
+          case 'expense':
+            switch (key) {
+              case 'full-update':
+                console.log('trying to update travelExpense Data', payload)
+                const res = await fullUpdateExpense(payload)
                 handleMessageAcknowledgment(channel, msg, res);
-                } 
-            if( action == 'delete'){    
-              console.log('Trying to update reimbursement Data');
-              const res = await deleteReimbursement(payload);
-              handleMessageAcknowledgment(channel, msg, res);
+                break;
+            
+                default:
+                console.warn(`Unknown action '${action}' for source ${source}`);
+                break;
             }
-          } else if (source == 'trip'){
-            if (action == 'trip-creation') {
-              console.log('Trying to update trip Data ...............', payload);
-              if(Array.isArray(payload)){
-                const results = await updateTrip(payload);
-                console.log("results is iterable bbb", results)
-                for (const res of results) {
-                  if (res.success) {
-                    // Acknowledge message
-                    channel.ack(msg);
-                    console.log('Message processed successfully');
-                  } else {
-                    // Implement retry mechanism or handle error
-                    console.log('Update failed with error:', res.error);
+            break;
+
+
+          case 'reimbursement':
+            switch (action) {
+              case 'full-update':
+                console.log('Trying to update reimbursement Data');
+                const res1 = await updateReimbursement(payload);
+                handleMessageAcknowledgment(channel, msg, res1);
+                break;
+            
+              case 'delete':
+                console.log('Trying to update reimbursement Data');
+                const res2 = await deleteReimbursement(payload);
+                handleMessageAcknowledgment(channel, msg, res2);
+                break;
+
+
+                default:
+                console.warn(`Unknown action '${action}' for source ${source}`);
+                break;
+            }
+            break;
+
+          case 'trip':
+            switch (action) {
+              case 'trip-creation':
+                console.log('Trying to update trip Data ...............', payload);
+                if(Array.isArray(payload)){
+                  const results = await updateTrip(payload);
+                  console.log("results is iterable bbb", results)
+                  for (const res of results) {
+                    if (res.success) {
+                      // Acknowledge message
+                      channel.ack(msg);
+                      console.log('Message processed successfully');
+                    } else {
+                      // Implement retry mechanism or handle error
+                      console.log('Update failed with error:', res.error);
+                    }
                   }
+                } else{
+                  console.error(Error,"Payload is not an array");
                 }
-              } else{
-                console.error(Error,"Payload is not an array");
-              }
-            }
-            if(action == 'status-completed-closed'){
-              if(payload){
-                const result = await updateTripToCompleteOrClosed(payload)
-                console.log("results after trip status updated to completed or closed  ", results)
-                if(result.success) {
-                    channel.ack(msg);
-                    console.log('Message processed successfully');
-                  } else {
-                    // Implement retry mechanism or handle error
-                    console.log('Update failed with error:', res.error);
+              break;
+            
+              case 'status-completed-closed':
+                if(payload){
+                  const result = await updateTripToCompleteOrClosed(payload)
+                  console.log("results after trip status updated to completed or closed  ", results)
+                  if(result.success) {
+                      channel.ack(msg);
+                      console.log('Message processed successfully');
+                    } else {
+                      // Implement retry mechanism or handle error
+                      console.log('Update failed with error:', res.error);
+                    }
                   }
+                else{
+                  console.error(Error,"Payload is not an array");
                 }
-              else{
-                console.error(Error,"Payload is not an array");
-              }
-            }
-            if(action == 'add-leg'){
-              if(payload){
-                "i am in add a leg"
-                const res = await addLeg(payload)
-                handleMessageAcknowledgment(channel, msg, res);
+                break;
+
+              case 'add-leg':
+                if(payload){
+                  "i am in add a leg"
+                  const res = await addLeg(payload)
+                  handleMessageAcknowledgment(channel, msg, res);
+                  }
+                else{
+                  console.error(Error,"Payload is not an array");
                 }
-              else{
-                console.error(Error,"Payload is not an array");
-              }
+
+              default:
+                  console.warn(`Unknown action '${action}' for source ${source}`);
+              break;
             }
-          } else if (source == 'finance'){
-            if (action == 'settle-ca' ) {
-              console.log('settle-ca', payload);
-                const res = await settleOrRecoverCashAdvance(payload);
+            break;
+
+          case 'finance':
+            switch (action) {
+              case 'settle-ca':
+                console.log('settle-ca', payload);
+                const res1 = await settleOrRecoverCashAdvance(payload);
                 console.log("result for settle ca", res)
-                handleMessageAcknowledgment(channel, msg, res);
+                handleMessageAcknowledgment(channel, msg, res1);
+                break;
+              
+              case 'expense-paid':
+                console.log(" expense header status paid")
+              const res2 = await settleExpenseReport(payload);
+              handleMessageAcknowledgment(channel, msg, res2);
+              break;
+
+              case 'non-travel-paid':
+                console.log(" expense header status paid - 'non-travel-paid'")
+                const res3 = await settleNonTravelExpenseReport(payload);
+                handleMessageAcknowledgment(channel, msg, res3);
+            
+                case 'recover-ca':
+                  const res = await settleOrRecoverCashAdvance(payload)
+                  console.log("result for recoverCashAdvance ", res)
+                  handleMessageAcknowledgment(channel, msg, res);
+                  break;
+
+
+                default:
+                  console.warn(`Unknown action '${action}' for source ${source}`);
+                  break;
             }
-            if(action == 'expense-paid') {
-              console.log(" expense header status paid")
-              const res = await settleExpenseReport(payload);
-              handleMessageAcknowledgment(channel, msg, res);
-          }
-          if(action ==  'non-travel-paid') {
-            console.log(" expense header status paid - 'non-travel-paid'")
-            const res = await settleNonTravelExpenseReport(payload);
-            handleMessageAcknowledgment(channel, msg, res);
-          }
-          if(action == 'recover-ca'){
-                const res = await settleOrRecoverCashAdvance(payload)
-                console.log("result for recoverCashAdvance ", res)
-                handleMessageAcknowledgment(channel, msg, res);
-          }
-          } 
+            break;
+
+
+          default:
+            console.warn(`Unknown source ${source} for action ${action}`)
+            break;
+        }
       }
     }}, { noAck: false });
 }
@@ -248,32 +315,127 @@ export async function startConsumer(receiver) {
 
 
 
-// const handleMessageAcknowledgment = async (channel, msg, res) => {
-//   try {
-//     if (res.success) {
-//       // Attempt to acknowledge the message
-//       channel.ack(msg);
-//       console.log('Message acknowledged successfully');
-//     } else {
-//       // Optionally, handle retry logic or send to a dead-letter queue
-//       const retryLimit = 5; 
-//       const retryCount = msg.properties.headers['x-retry-count'] || 0;
 
-//       if (retryCount < retryLimit) {
-//         // Increment retry count and requeue the message
-//         msg.properties.headers['x-retry-count'] = retryCount + 1;
-//         channel.nack(msg, false, true);
-//         console.log(`Requeued message, retry count: ${retryCount + 1}`);
-//       } else {
-//         // Send to a dead-letter queue after max retries
-//         channel.nack(msg, false, false); 
-//         console.log('Message sent to dead-letter queue after max retries');
+
+
+//old code
+// if(source == 'onboarding' || source == 'system-config'){
+//   console.log('trying to update HR Master')
+//   const res = await updateHRMaster(payload)
+//   handleMessageAcknowledgment(channel, msg, res);
+
+//   } else if (source == 'travel'){
+//     if(action == 'full-update'){
+//     console.log('trying to update Travel')
+//     const res = await fullUpdateTravel(payload)
+//     handleMessageAcknowledgment(channel, msg, res);
+//     }
+//     if(action=='full-update-batchjob'){
+//     console.log('trying to update Travel BatchJob - Booking')
+//      const res = await fullUpdateTravelBatchJob(payload)
+//      handleMessageAcknowledgment(channel, msg, res);
+//     }
+//   } else if (source == 'cash'){ 
+//     if(action == 'full-update'){
+//       console.log('trying to update CashAdvanceSchema')
+//       const res = await fullUpdateCash(payload)
+//       handleMessageAcknowledgment(channel, msg, res);
+//     }
+//     if(action == 'full-update-batchjob'){
+//       console.log('trying to update CashAdvanceSchema')
+//       const res = await fullUpdateCashBatchJob(payload)
+//       handleMessageAcknowledgment(channel, msg, res);
+//     }
+//     if(action == 'status-update-batch-job'){
+//       console.log('trying to update CashAdvanceSchema')
+//       const res = await cashStatusUpdatePaid(payload)
+//       handleMessageAcknowledgment(channel, msg, res);
+//     }
+//   } else if (source == 'expense'){
+//     if(action == 'full-update'){
+//     console.log('trying to update travelExpense Data', payload)
+//     const res = await fullUpdateExpense(payload)
+//     handleMessageAcknowledgment(channel, msg, res);
+//   }
+//   } else if (source == 'reimbursement'){
+//     if (action == 'full-update') {
+//       console.log('Trying to update reimbursement Data');
+//         const res = await updateReimbursement(payload);
+//         handleMessageAcknowledgment(channel, msg, res);
+//         } 
+//     if( action == 'delete'){    
+//       console.log('Trying to update reimbursement Data');
+//       const res = await deleteReimbursement(payload);
+//       handleMessageAcknowledgment(channel, msg, res);
+//     }
+
+//   } else if (source == 'trip'){
+//     if (action == 'trip-creation') {
+//       console.log('Trying to update trip Data ...............', payload);
+//       if(Array.isArray(payload)){
+//         const results = await updateTrip(payload);
+//         console.log("results is iterable bbb", results)
+//         for (const res of results) {
+//           if (res.success) {
+//             // Acknowledge message
+//             channel.ack(msg);
+//             console.log('Message processed successfully');
+//           } else {
+//             // Implement retry mechanism or handle error
+//             console.log('Update failed with error:', res.error);
+//           }
+//         }
+//       } else{
+//         console.error(Error,"Payload is not an array");
 //       }
 //     }
-//   } catch (error) {
-//     console.error('Failed to acknowledge message:', error);
+//     if(action == 'status-completed-closed'){
+//       if(payload){
+//         const result = await updateTripToCompleteOrClosed(payload)
+//         console.log("results after trip status updated to completed or closed  ", results)
+//         if(result.success) {
+//             channel.ack(msg);
+//             console.log('Message processed successfully');
+//           } else {
+//             // Implement retry mechanism or handle error
+//             console.log('Update failed with error:', res.error);
+//           }
+//         }
+//       else{
+//         console.error(Error,"Payload is not an array");
+//       }
+//     }
+//     if(action == 'add-leg'){
+//       if(payload){
+//         "i am in add a leg"
+//         const res = await addLeg(payload)
+//         handleMessageAcknowledgment(channel, msg, res);
+//         }
+//       else{
+//         console.error(Error,"Payload is not an array");
+//       }
+//     }
+//   } else if (source == 'finance'){
+//     if (action == 'settle-ca' ) {
+//         console.log('settle-ca', payload);
+//         const res = await settleOrRecoverCashAdvance(payload);
+//         console.log("result for settle ca", res)
+//         handleMessageAcknowledgment(channel, msg, res);
+//     }
+//     if(action == 'expense-paid') {
+//       console.log(" expense header status paid")
+//       const res = await settleExpenseReport(payload);
+//       handleMessageAcknowledgment(channel, msg, res);
 //   }
-// };
-
-
+//   if(action ==  'non-travel-paid') {
+//     console.log(" expense header status paid - 'non-travel-paid'")
+//     const res = await settleNonTravelExpenseReport(payload);
+//     handleMessageAcknowledgment(channel, msg, res);
+//   }
+//   if(action == 'recover-ca'){
+//         const res = await settleOrRecoverCashAdvance(payload)
+//         console.log("result for recoverCashAdvance ", res)
+//         handleMessageAcknowledgment(channel, msg, res);
+//   }
+//   } 
 

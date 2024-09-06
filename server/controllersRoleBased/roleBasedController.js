@@ -7,27 +7,37 @@ import { countViolations, extractValidViolations } from "../utils/count.js";
 
 
 function getItinerary(itinerary){
+    const status={
+        PENDING_BOOKING :'pending booking',
+        BOOKED:'booked'
+    }
     const itineraryToSend = Object.fromEntries(
         Object.entries(itinerary)
             .filter(([category]) => category !== 'formState')
             .map(([category, items]) => {
                 let mappedItems;
                 if (category === 'hotels') {
-                    mappedItems = items.map(({
+                    mappedItems = items
+                    .filter(item => item.status === status.BOOKED)
+                    .map(({
                         itineraryId, status, bkd_location, bkd_class, bkd_checkIn, bkd_checkOut, bkd_violations, cancellationDate, cancellationReason,
                     }) => ({
                         category,
                         itineraryId, status, bkd_location, bkd_class, bkd_checkIn, bkd_checkOut, bkd_violations, cancellationDate, cancellationReason,
                     }));
                 } else if (category === 'cabs') {
-                    mappedItems = items.map(({
+                    mappedItems = items
+                    .filter(item => item.status === status.BOOKED)
+                    .map(({
                         itineraryId, status, bkd_date, bkd_class, bkd_pickupAddress, bkd_dropAddress,
                     }) => ({
                         category,
                         itineraryId, status, bkd_date, bkd_class, bkd_pickupAddress, bkd_dropAddress,
                     }));
                 } else {
-                    mappedItems = items.map(({
+                    mappedItems = items
+                    .filter(item => item.status === status.BOOKED)
+                    .map(({
                         itineraryId, status, bkd_from, bkd_to, bkd_date, bkd_time, bkd_travelClass, bkd_violations,
                     }) => ({
                         category,
@@ -41,6 +51,66 @@ function getItinerary(itinerary){
     return itineraryToSend;
 }
 
+
+function getAddALegItinerary(itinerary) {
+    const status={
+        PENDING_BOOKING :'pending booking'
+    }
+    const itineraryToSend = Object.fromEntries(
+        Object.entries(itinerary)
+            .filter(([category]) => category !== 'formState')
+            .map(([category, items]) => {
+                let mappedItems;
+
+                if (category === 'hotels') {
+                    mappedItems = items
+                    .filter(item =>item.status === status.PENDING_BOOKING)
+                    .map(item => ({
+                        category,
+                        itineraryId: item.itineraryId,
+                        status: item.status,
+                        location: item.location,
+                        class: item['class'],
+                        checkIn: item.checkIn,
+                        checkOut: item.checkOut,
+                        violations: item.violations,
+                        cancellationDate: item.cancellationDate,
+                        cancellationReason: item.cancellationReason,
+                    }));
+                } else if (category === 'cabs') {
+                    mappedItems = items
+                    .filter(item => item.status === status.PENDING_BOOKING)
+                    .map(item => ({
+                        category,
+                        itineraryId: item.itineraryId,
+                        status: item.status,
+                        date: item.date,
+                        class: item['class'], 
+                        pickupAddress: item.pickupAddress,
+                        dropAddress: item.dropAddress,
+                    }));
+                } else {
+                    mappedItems = items
+                    .filter(item => item.status === status.PENDING_BOOKING)
+                    .map(item => ({
+                        category,
+                        itineraryId: item.itineraryId,
+                        status: item.status,
+                        from: item.from,
+                        to: item.to,
+                        date: item.date,
+                        time: item.time,
+                        travelClass: item.travelClass,
+                        violations: item.violations,
+                    }));
+                }
+
+                return [category, mappedItems];
+            })
+    );
+
+    return itineraryToSend;
+}
 
 
 export const employeeSchema = Joi.object({
@@ -808,6 +878,8 @@ const getTripForEmployee = async (tenantId, empId) => {
         // );
 
         const itineraryToSend = getItinerary(itinerary)
+        const addALegItinerary = getAddALegItinerary(itinerary) 
+
 
         // console.log("itineraryTosend.........................................", itineraryToSend)
         return {
@@ -831,7 +903,8 @@ const getTripForEmployee = async (tenantId, empId) => {
             //     cashAdvanceStatus
             // })) : []) : [], 
             // travelExpenses: travelExpenseData,
-            itinerary: itineraryToSend
+            itinerary: itineraryToSend,
+            addALegItinerary,
         };
     });
     // console.log("upcomingTrips", upcomingTrips)
@@ -878,6 +951,7 @@ const getTripForEmployee = async (tenantId, empId) => {
             // );
 
             const itineraryToSend = getItinerary(itinerary)
+            const addALegItinerary = getAddALegItinerary(itinerary) 
 
             return {
                 tripId: tripId ?? '',
@@ -909,6 +983,7 @@ const getTripForEmployee = async (tenantId, empId) => {
                 //     }))
                 //   : [],
                 itinerary: itineraryToSend,
+                addALegItinerary,
               };
               
           });
