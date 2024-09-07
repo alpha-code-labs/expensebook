@@ -193,7 +193,7 @@ export async function startConsumer(receiver) {
               handleMessageAcknowledgment(channel, msg, res3);
                 break;
             
-              case 'full-update-batchjob':
+              case 'full-update-batch-job':
                 console.log('trying to update CashAdvanceSchema')
                 const res4 = await fullUpdateCashBatchJob(payload)
                 handleMessageAcknowledgment(channel, msg, res4);
@@ -204,7 +204,6 @@ export async function startConsumer(receiver) {
                 const res5 = await cashStatusUpdatePaid(payload)
                 handleMessageAcknowledgment(channel, msg, res5);
                 break;
-              
 
                 default:
                   console.warn(`Unknown action '${action}' for source ${source}`);
