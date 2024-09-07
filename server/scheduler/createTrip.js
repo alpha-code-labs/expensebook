@@ -42,7 +42,7 @@ async function createTrip(){
             //send to trip
             await sendToOtherMicroservice(updatedResults, 'trip-creation', 'trip', 'full update for all newly booked travel requests from cash', 'cash','batch')
             //send to dashboard
-            await sendToOtherMicroservice(updatedResults, 'full-update-batchjob', 'dashboard', 'To update cashadvance data after running trip creation batch job', 'cash', 'batch')
+            await sendToOtherMicroservice(updatedResults, 'full-update-batch-job', 'dashboard', 'To update cashadvance data after running trip creation batch job', 'cash', 'batch')
 
             //update  sentToTrip flag to true 
             console.log(`BJ: SEND booked requests to trip and dashboard :: match count: ${updatedResults.length}`)
