@@ -1,21 +1,19 @@
-import React from 'react';
-import Button from './Button';
+
 // import { LOGIN_PAGE_URL, logoutApi } from '../../utils/api';
-import { handleLoginPageUrl } from '../../utils/actionHandler';
-import { alert_circle, arrow1_icon, cancel_round, company_icon, hamburger_icon, logout_icon, user_icon } from '../../assets/icon';
-import { Link } from 'react-router-dom';
+import { useData } from '../../api/DataProvider';
+import { company_icon, hamburger_icon, logout_icon, user_icon } from '../../assets/icon';
+import { NavLink } from 'react-router-dom';
 
-const Navbar = ({setSidebarOpen, employeeRole,employeeInfo }) => {
+const Navbar = ({setSidebarOpen }) => {
 
-
+  const {employeeRoles  } = useData(); 
+  const employeeInfo = employeeRoles?.employeeInfo
 const LOGIN_PAGE_URL = import.meta.env.VITE_LOGIN_PAGE_URL
   console.log('employee info from navbar',employeeInfo)
-console.log("local storage navbar", localStorage  )
 
-  const authToken = "helloworld whel" 
+
   
-  let tenantId = localStorage.tenantId
-  let empId = localStorage.empId
+ 
   return (
     <div className=" h-[56px] p-4 flex flex-row justify-between items-center bg-indigo-600">
 
@@ -34,9 +32,9 @@ console.log("local storage navbar", localStorage  )
 
       <div className=" justify-center items-center cursor-pointer flex flex-row gap-2">
         <div className='bg-white rounded-full'>
-        <Link to={`/${tenantId}/${empId}/profile`}>
+        <NavLink to={`profile`}>
           <img src={user_icon} className='w-8 h-8'/>
-        </Link>
+        </NavLink>
         </div>
       
       <div className="font-semibold  ">

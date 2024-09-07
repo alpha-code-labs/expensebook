@@ -1,29 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation, useParams } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { useData } from '../../api/DataProvider';
-import { Link } from 'react-router-dom';
+import {  NavLink } from 'react-router-dom';
 import { filterTravelRequests} from '../../utils/handyFunctions';
 
 import {arrow1_icon, receipt, house_simple, airplane_1, money, logo_with_text, airplane, house_simple_1, money1, airplane_icon1, receipt_icon1, setting_icon, setting_icon1, businessAdmin_icon, businessAdmin1_icon, approval_icon, approval_w_icon, cancel_round, cancel, down_arrow, arrow_left, up_arrow, straight_arrow_icon } from '../../assets/icon';
 
 
-const Sidebar = ({setSidebarOpen, fetchData }) => {
-    const [open, setOpen] = useState(true);
-    let tenantId;
-    let empId;
-    const getPageNo = localStorage.getItem('pageNo');
-    console.log('page', getPageNo);
-    if (!tenantId && !empId) {
-        const retrievedTenantId = localStorage.getItem('tenantId');
-        const retrievedEmpId = localStorage.getItem('empId');
-        tenantId = retrievedTenantId;
-        empId = retrievedEmpId;
-    }
-
-    const { employeeRoles, employeeData } = useData();
-    console.log('employee roles from sidebar', employeeRoles?.employeeRoles);
-
+const Sidebar = ({setSidebarOpen }) => {
+   
     const location = useLocation();
+    const pathname = location?.pathname?.split('/').pop()
+    console.log('path name', location?.pathname?.split('/').pop())
+    const { employeeRoles, employeeData } = useData();
+
+
     const [countData, setCountData] = useState({
         travelRequests: 0,
         rejectedTravelRequests: 0,
@@ -42,14 +33,14 @@ const Sidebar = ({setSidebarOpen, fetchData }) => {
         if (data) {
             let filteredTravelRequests = filterTravelRequests(data?.travelRequests);
             filteredData = filteredTravelRequests;
-            console.log('filter travel requests sidebar', filteredTravelRequests);
+            
         }
         //business admin > pending booking
         let filteredPendingBookingData;
         if (businessAdminData) {
             let filteredPendingBookings = filterTravelRequests(businessAdminData?.pendingBooking);
             filteredPendingBookingData = filteredPendingBookings;
-            console.log('filter pending booking sidebar', filteredPendingBookings);
+           
         }
         let filteredTrApprovalData;
         if (approvalData) {
@@ -80,40 +71,35 @@ const Sidebar = ({setSidebarOpen, fetchData }) => {
     console.log('approvalExpenseCount', countData?.expApproval);
     console.log('pendingBookingCount', countData?.pendingBooking);
 
-    const [activeIndex, setActiveIndex] = useState(getPageNo ? parseInt(getPageNo) : 0);
-    console.log('activeindex', activeIndex);
-
-    const handleItemClick = (index) => {
-        setActiveIndex(index);
-        localStorage.setItem('pageNo', index);
-    };
+   
 
     const sidebarItems = [
-        { label: 'Overview', icon: house_simple, icon1: house_simple_1, url: '', count: '' },
-        { label: 'Trip', icon: airplane_1, icon1: airplane_icon1, url: '', count: countData?.rejectedTravelRequests },
-        { label: 'Cash-Advance', icon: money, icon1: money1, url: '', count: countData?.rejectedCashAdvances },
-        { label: 'Expense', icon: receipt, icon1: receipt_icon1, url: '', count: "" },
+        { label: 'Overview', icon: house_simple, icon1: house_simple_1, url: 'overview', count: '' },
+        { label: 'Trip', icon: airplane_1, icon1: airplane_icon1, url: 'trip', count: countData?.rejectedTravelRequests },
+        { label: 'Cash-Advance', icon: money, icon1: money1, url: 'cash-advance', count: countData?.rejectedCashAdvances },
+        { label: 'Expense', icon: receipt, icon1: receipt_icon1, url: 'expense', count: "" },
     ];
 
     if (employeeRoles) {
 
         if (employeeRoles?.employeeRoles?.employeeManager) {
-            sidebarItems.push({ label: 'Approval', icon: approval_icon, icon1: approval_w_icon, url: '', count: (countData?.trApproval + countData?.trExpApproval + countData?.nonTrExpApproval + countData?.itineraryApproval || 0) });
+            sidebarItems.push({ label: 'Approval', icon: approval_icon, icon1: approval_w_icon, url: 'approval', count: (countData?.trApproval + countData?.trExpApproval + countData?.nonTrExpApproval + countData?.itineraryApproval || 0) });
         }
 
         if (employeeRoles?.employeeRoles?.businessAdmin) {
-            sidebarItems.push({ label: 'Bookings', icon: businessAdmin_icon, icon1: businessAdmin1_icon, url: '', count: (countData?.pendingBooking + countData?.paidAndCancelledTrips) });
+            sidebarItems.push({ label: 'Bookings', icon: businessAdmin_icon, icon1: businessAdmin1_icon, url: 'bookings', count: (countData?.pendingBooking + countData?.paidAndCancelledTrips) });
         }
 
         if (employeeRoles?.employeeRoles?.finance) {
-            sidebarItems.push({ label: 'Settlement', icon: money, icon1: money1, url: '', count: "" });
+            sidebarItems.push({ label: 'Settlement', icon: money, icon1: money1, url: 'settlement', count: "" });
         }
 
         if (employeeRoles?.employeeRoles?.superAdmin) {
-            sidebarItems.push({ label: 'Configure', icon: setting_icon, icon1: setting_icon1, url: '', count: "" });
+            sidebarItems.push({ label: 'Configure', icon: setting_icon, icon1: setting_icon1, url: 'configure', count: "" });
         }
         
     }
+   
 
     return (
         <div className={` border-r border-indigo-600    min-h-screen h-full   bg-indigo-50   left-[0px] flex flex-col items-start justify-start`}>
@@ -131,30 +117,37 @@ const Sidebar = ({setSidebarOpen, fetchData }) => {
             </div>
             
             </div>
-            
+            <nav className='w-full'>
             {sidebarItems.map((item, index) => (
-                <Link
-                    to={`${tenantId}/${empId}/${item.label.toLowerCase().replace(' ', '-')}`}
+                
+                <NavLink
+                   
+                    to={`${item.url.toLowerCase()}`}
                     key={index}
-                    onClick={() => handleItemClick(index)}
-                    className={`w-full   ${activeIndex === index ? 'bg-purple-500 text-white' : ""} overflow-hidden flex flex-col items-start justify-start   box-border cursor-pointer`}
+                    
+                    className={`w-full   ${pathname === item.url ? 'bg-purple-500 text-white' : "text-indigo-600"} overflow-hidden flex flex-col items-start justify-start   box-border cursor-pointer`}
                 >
                     <div className="flex flex-row items-center justify-between px-3 py-3 w-full ">
                         <div className='flex gap-2'>
-                        <img src={activeIndex === index ? item.icon1 : item.icon} className='min-w-4 min-h-4 h-4 w-4' />
-                        <div className={` ${activeIndex === index ? 'text-white' : 'text-indigo-800'} relative  tracking-[0.02em] w-auto md:w-[140px] font-inter  font-medium`} >
+                       
+                        <img src={pathname === item.url ? item.icon1 : item.icon} alt={item.label} className='min-w-4 min-h-4 h-4 w-4' />
+                        <div className={`   relative  tracking-[0.02em] w-auto md:w-[140px] font-inter  font-medium`} >
                             {item?.label}
                         </div>
                         </div>
                         {item?.count > 0 &&
-                            <div className={`${activeIndex === index ? 'text-purple-500 bg-white font-semibold' : "text-white "} w-6 h-6 flex font-inter rounded-full bg-indigo-600 items-center justify-center float-right text-xs font-medium `}>
-                                <p className=''> {item?.count}</p>
-                        </div>} 
+                             <div className={`${pathname === item.url ? 'text-purple-500 bg-white font-semibold' : "text-white "} w-6 h-6 flex font-inter rounded-full bg-indigo-600 items-center justify-center float-right text-xs font-medium `}>
+                                 <p className=''> {item?.count}</p>
+                         </div>} 
                     </div>
-                </Link>
+                </NavLink>
+       
+                
             ))}
+            </nav>
         </div>
     );
 }
 
 export default Sidebar;
+

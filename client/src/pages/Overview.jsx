@@ -57,7 +57,7 @@ const Overview = ({fetchData ,isLoading,setIsLoading,loadingErrMsg, setLoadingEr
   }); 
 
   useEffect(()=>{
-    fetchData(tenantId,empId,page)
+    fetchData()
   },[])
 
 
