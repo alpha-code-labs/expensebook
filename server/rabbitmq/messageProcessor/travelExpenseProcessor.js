@@ -6,20 +6,30 @@ export const settleExpenseReport= async (payload) => {
       const {  tenantId,travelRequestId, expenseHeaderId, settlementBy, expenseHeaderStatus, 
         settlementDate } = payload;
   
+        const status = {
+          PENDING_SETTLEMENT: 'pending settlement',
+          PAID: 'paid',
+          APPROVED:'approved'
+        };
+
+        const arrayFilters = [
+          {'elem.expenseHeaderId':expenseHeaderId},
+          {'lineItem.lineItemStatus':status.APPROVED}
+        ]
     const trip = await dashboard.findOneAndUpdate(
       { 
         tenantId,
-         
         'tripSchema.travelExpenseData': { $elemMatch: { travelRequestId, expenseHeaderId } }
       },
       { 
         $set: { 
-          'tripSchema.travelExpenseData.$.expenseHeaderStatus': expenseHeaderStatus, 
-          'tripSchema.travelExpenseData.$.settlementDate': settlementDate,
-          'tripSchema.travelExpenseData.$.settlementBy': settlementBy,
+          'tripSchema.travelExpenseData.$[elem].expenseHeaderStatus': expenseHeaderStatus, 
+          'tripSchema.travelExpenseData.$[elem].settlementDate': settlementDate,
+          'tripSchema.travelExpenseData.$[elem].settlementBy': settlementBy,
+          'tripSchema.travelExpenseData.$[elem].expenseLines.$[lineItem].lineItemStatus':status.PAID
         }
       },
-      { new: true }
+      { arrayFilters,new: true, runValidators:true }
     );
 
     console.log('Travel request status updated in approval microservice:', trip);

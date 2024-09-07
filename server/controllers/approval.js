@@ -240,9 +240,9 @@ export async function approveAll(req,res){
       const travelRequestIds = travelRequests.map(obj => obj.travelRequestId);
       console.log("the data with travel and cash req.body", JSON.stringify(travelRequests,'',2))
 
-      const cashAdvanceIds = travelRequests.flatMap(item =>
-        item.cashAdvanceData.map(cash => cash.cashAdvanceId)
-      )
+      const cashAdvanceIds = travelRequests?.flatMap(item =>
+        item.cashAdvanceData?.map(cash => cash.cashAdvanceId) || []
+      ) || []
       
       console.log("cashAdvanceIds",cashAdvanceIds)
     //   const { payloadCash, payloadTravel } = travelRequests.reduce((acc, travelRequest) => {
@@ -1158,6 +1158,7 @@ export function updateExpenseLineStatus(expenseLines, approve = [], reject = [],
   return expenseLines.map(expenseLine => {
     const expenseLineIdStr = ( expenseLine.expenseLineId ?? expenseLine.lineItemId)?.toString()
 
+    console.log("updateExpenseLineStatus - expenseLineIdStr", expenseLineIdStr)
     if (expenseLineIdStr === undefined) {
       throw new Error("Both expenseLineId and lineItemId are undefined or null while updating -updateExpenseLineStatus");
     }
@@ -1232,10 +1233,22 @@ export const travelExpenseApproval = async (req, res) => {
       //  console.log("isAllApproved, isRejected", isAllApproved, isRejected)
 
        if(approver && isAllApproved && isPendingApproval ){
-        approver.status = 'approved'
+        const setApprover = expenseReportFound.approvers.map(approver =>{
+          if(approver.empId === empId && approver.status === 'pending approval'){
+            return { ...approver, status: 'approved' }
+          }
+         }
+           )
+           expenseReportFound.approvers = setApprover
         expenseReportFound.expenseHeaderStatus = 'pending settlement'
        } else if(approver && isPendingApproval && isRejected ){
-        approver.status = 'rejected'
+        const setApprover = expenseReportFound.approvers.map(approver =>{
+          if(approver.empId === empId && approver.status === 'pending approval'){
+            return { ...approver, status: 'rejected' }
+          }
+         }
+           )
+           expenseReportFound.approvers = setApprover
         expenseReportFound.expenseHeaderStatus = 'rejected';
         expenseReportFound.rejectionReason = rejectionReason
        }
@@ -1361,7 +1374,7 @@ export const nonTravelReportApproval = async (req, res) => {
 
      const approvalDocument = await getNonTravelExpenseReport(tenantId,empId,expenseHeaderId)
  
-     console.log("approvalDocument",approvalDocument)
+    //  console.log("approvalDocument",approvalDocument)
      if (!approvalDocument) {
        return res.status(404).json({ message: 'No matching approval document found for updating expenses status.' });
      }
@@ -1371,31 +1384,41 @@ export const nonTravelReportApproval = async (req, res) => {
  
       const {expenseLines = []} =reimbursementSchema
 
-    //  console.log("valid expenseReport", expenseReportFound);
-
       const updatedExpenseLines = updateExpenseLineStatus(expenseLines, approve, reject,empId)
 
-      // console.log("updatedExpenseLines", JSON.stringify(updatedExpenseLines,'',2))
+       console.log("updatedExpenseLines", JSON.stringify(updatedExpenseLines,'',2))
       reimbursementSchema.expenseLines = updatedExpenseLines
       const isPendingApproval = reimbursementSchema.expenseHeaderStatus === 'pending approval'
 
-      // console.log("isPendingApproval", isPendingApproval)
-       const approver = reimbursementSchema.approvers.find(approver =>
-        approver.empId === empId && approver.status === 'pending approval'
-       )
-
-      //  console.log("approver", isPendingApproval)
+      console.log("isPendingApproval", isPendingApproval)
 
        const isAllApproved = reimbursementSchema.expenseLines.every(line => line.lineItemStatus === 'approved')
        const isRejected = reimbursementSchema.expenseLines.some(line => line.lineItemStatus === 'rejected')
 
-      //  console.log("isAllApproved, isRejected", isAllApproved, isRejected)
+     console.log("isAllApproved, isRejected", isAllApproved, isRejected)
 
-       if(approver && isAllApproved && isPendingApproval ){
-        approver.status = 'approved'
+     const getApprover = reimbursementSchema.approvers.find(approver =>
+      approver.empId === empId && approver.status === 'pending approval'
+     )
+
+    console.log("approver", getApprover)
+
+       if(getApprover && isAllApproved && isPendingApproval ){
+       const setApprover = reimbursementSchema.approvers.map(approver =>{
+        if(approver.empId === empId && approver.status === 'pending approval'){
+          return { ...approver, status: 'approved' }
+        }
+       }
+         )
+        reimbursementSchema.approvers = setApprover
         reimbursementSchema.expenseHeaderStatus = 'pending settlement'
-       } else if(approver && isPendingApproval && isRejected ){
-        approver.status = 'rejected'
+       } else if(getApprover && isPendingApproval && isRejected ){
+        const setApprover = reimbursementSchema.approvers.map(approver =>{
+          if(approver.empId === empId && approver.status === 'pending approval'){
+            return { ...approver, status: 'rejected' }
+          }
+        })
+        reimbursementSchema.status = setApprover
         reimbursementSchema.expenseHeaderStatus = 'rejected';
         reimbursementSchema.rejectionReason = rejectionReason
        }
@@ -1409,7 +1432,9 @@ export const nonTravelReportApproval = async (req, res) => {
 
      const {  expenseHeaderStatus, approvers } = expenseApproved.reimbursementSchema;
 
-        // Create the payload object
+     const validStatus = ['approved','rejected','pending settlement']
+     if(validStatus.includes(expenseHeaderStatus)){
+              // Create the payload object
         const payload = {
           tenantId,
           expenseHeaderId,
@@ -1433,7 +1458,11 @@ export const nonTravelReportApproval = async (req, res) => {
     ]
     
     await Promise.all(promises);
-      return res.status(200).json({ message: `expense Report ${expenseHeaderStatus} for ${name}` });
+      return res.status(200).json({ success: true, message: `expense Report ${expenseHeaderStatus} for ${name}` });
+     } 
+
+     return res.status(400).json({ success: false ,message: `expense Report ${expenseHeaderStatus} for ${name}` });
+    
       }
     catch (error) {
     console.error('An error occurred while updating Travel Expense status:', error.message);

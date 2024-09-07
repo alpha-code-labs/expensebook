@@ -130,6 +130,63 @@ export const fullUpdateCashBatchJob = async (payloadArray) => {
 }
 
 
+export const cashStatusUpdatePaid = async (payloadArray) => {
+  try {
+    // Initialize an array to keep track of results
+    const results = [];
+
+    // Iterate over each object in the payload array
+    for (const payload of payloadArray) {
+      const { travelRequestData, cashAdvancesData } = payload;
+      const { travelRequestId } = travelRequestData;
+
+      // Initialize update object
+      const update = {
+        'cashAdvancesData': cashAdvancesData,
+      };
+
+      // Check if the status is 'booked'
+      const isBooked = travelRequestData?.travelRequestStatus === 'booked';
+
+      if (isBooked) {
+        update['tripSchema.cashAdvancesData'] = cashAdvancesData;
+      }
+
+      // Perform the update operation
+      const updateCashStatus = await dashboard.findOneAndUpdate(
+        { 'travelRequestData.travelRequestId': travelRequestId },
+        { $set: update },
+        { new: true }
+      );
+
+      // Check if update was successful
+      if (!updateCashStatus) {
+        console.log(`Failed to update cash status for ${travelRequestId}`);
+        results.push({
+          travelRequestId,
+          success: false,
+          message: 'Failed to update cash status'
+        });
+      } else {
+        console.log(`Successfully updated cash status for ${travelRequestId}`);
+        results.push({
+          travelRequestId,
+          success: true,
+          message: 'Cash status updated successfully'
+        });
+      }
+    }
+
+    // Log the results of the batch update
+    console.log("Update results:", JSON.stringify(results, '', 2));
+
+    return { success: true, error: null, results };
+
+  } catch (error) {
+    console.log("Error occurred:", error);
+    return { success: false, error: error.message, results };
+  }
+};
 
 
 

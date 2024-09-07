@@ -39,7 +39,7 @@ export const deleteReimbursement = async (payload) => {
 
         console.log("deleteReimbursement....", payload);
     const deleteReimbursementReport = await dashboard.findOneAndDelete({ 
-        'reimbursementSchema.tenantId': tenantId, 'reimbursementSchema.createdBy.empId': empId, 'reimbursementSchema.expenseHeaderId': expenseHeaderId })
+        'reimbursementSchema.tenantId': tenantId, 'reimbursementSchema.expenseHeaderId': expenseHeaderId })
 
         if(!deleteReimbursementReport){
             return {success: false, error: "Failed to delete reimbursement expense in dashboard."}
