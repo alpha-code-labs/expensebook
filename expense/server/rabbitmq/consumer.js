@@ -100,12 +100,11 @@ export async function startConsumer(receiver) {
         const action = content?.headers?.action
         // console.log("source", source,"action", action)
         if(content.headers.destination == 'expense'){
-          let res;
           switch(source){
             case 'onboarding':
             case 'system-config':
               console.log('trying to update HR Master')
-              res = await updateHRMaster(payload)
+              const res = await updateHRMaster(payload)
               console.log(res)
               handleMessageAcknowledgment(channel, msg, res);
               break;
@@ -114,16 +113,16 @@ export async function startConsumer(receiver) {
               switch(action){
                 case 'full-update-array':
                   console.log('trying to batch job -  trip to expense 1st time ')
-                  res = await tripArrayFullUpdate(payload)
-                  console.log(res)
-                  handleMessageAcknowledgment(channel, msg, res);
+                  const res1 = await tripArrayFullUpdate(payload)
+                  console.log(res1)
+                  handleMessageAcknowledgment(channel, msg, res1);
                   break;
 
                 case 'full-update':
                   console.log('trying to update Travel and cash after cancellation ')
-                  const res = await tripFullUpdate(payload)
-                  console.log(res)
-                  handleMessageAcknowledgment(channel, msg, res);
+                  const res2 = await tripFullUpdate(payload)
+                  console.log(res2)
+                  handleMessageAcknowledgment(channel, msg, res2);
                   break;
 
                 default:
@@ -137,26 +136,26 @@ export async function startConsumer(receiver) {
                 case 'settle-ca':
                 case 'recover-ca':
                   console.log("settle-ca or recover-ca ")
-                  res = await settleOrRecoverCashAdvance(payload);
-                  handleMessageAcknowledgment(channel, msg, res);
+                 const res3 = await settleOrRecoverCashAdvance(payload);
+                  handleMessageAcknowledgment(channel, msg, res3);
                   break;
 
                 case 'expense-paid':
                   console.log(" expense header status paid")
-                  res = await settleExpenseReport(payload);
-                  handleMessageAcknowledgment(channel, msg, res);
+                  const res4 = await settleExpenseReport(payload);
+                  handleMessageAcknowledgment(channel, msg, res4);
                   break;
     
                 case 'settle-expense-Paid-and-distributed':
                   console.log(" expense header status paid and distributed")
-                  res = await settleExpenseReportPaidAndDistributed(payload);
-                  handleMessageAcknowledgment(channel, msg, res);
+                 const res5 = await settleExpenseReportPaidAndDistributed(payload);
+                  handleMessageAcknowledgment(channel, msg, res5);
                   break;
                 
                 case 'non-travel-paid':
                   console.log(" expense header status paid - 'non-travel-paid'")
-                  res = await settleNonTravelExpenseReport(payload);
-                  handleMessageAcknowledgment(channel, msg, res);
+                  const res6 = await settleNonTravelExpenseReport(payload);
+                  handleMessageAcknowledgment(channel, msg, res6);
                   break;
 
                 
@@ -169,31 +168,31 @@ export async function startConsumer(receiver) {
             case 'dashboard':
               switch(action){
                 case 'profile-update':
-                  res = await updatePreferences(payload);
-                  console.log(res)
-                  handleMessageAcknowledgment(channel, msg, res);
+                  const res7 = await updatePreferences(payload);
+                  console.log(res7)
+                  handleMessageAcknowledgment(channel, msg, res7);
                   break;
                 
                 case 'approve-reject-ca-later':
-                  res = await approveRejectCashRaisedLater(payload);
-                  console.log(res)
-                  handleMessageAcknowledgment(channel, msg, res);
+                  const res8 = await approveRejectCashRaisedLater(payload);
+                  console.log(res8)
+                  handleMessageAcknowledgment(channel, msg, res8);
                   break;
 
                 case 'expense-approval':
-                  res = await expenseReportApproval(payload);
-                  console.log(res)
-                  handleMessageAcknowledgment(channel, msg, res);
+                  const res9 = await expenseReportApproval(payload);
+                  console.log(res9)
+                  handleMessageAcknowledgment(channel, msg, res9);
                   break;
 
                 case 'nte-full-update':
-                  res = await nonTravelReportApproval(payload);
-                  console.log(res)
-                  handleMessageAcknowledgment(channel, msg, res);
+                  const res10 = await nonTravelReportApproval(payload);
+                  console.log(res10)
+                  handleMessageAcknowledgment(channel, msg, res10);
                   break;
 
                 default:
-                  console.warn(`j -Unknown action '${action}' for source ${source}`);
+                  console.warn(`Unknown action '${action}' for source ${source}`);
                   break;
               }
               break;
@@ -202,16 +201,16 @@ export async function startConsumer(receiver) {
               switch(action){
                 case 'add-leg':
                   console.log('add-leg from travel microservice to expense microservice')
-                  res = await addALegToTravelRequestData(payload);
-                  console.log(res)
-                  handleMessageAcknowledgment(channel, msg, res);
+                  const res11 = await addALegToTravelRequestData(payload);
+                  console.log(res11)
+                  handleMessageAcknowledgment(channel, msg, res11);
                   break;
                 
                 case 'remove-leg':
                     console.log('add-leg from travel microservice to expense microservice')
-                    res = await deleteALegFromTravelRequestData(payload);
-                    console.log(res)
-                    handleMessageAcknowledgment(channel, msg, res);
+                    const res12 = await deleteALegFromTravelRequestData(payload);
+                    console.log(res12)
+                    handleMessageAcknowledgment(channel, msg, res12);
                     break;
 
                 default:
@@ -224,14 +223,14 @@ export async function startConsumer(receiver) {
               switch(action){
                 case 'add-leg':
                   console.log('add-leg from cash microservice to expense microservice')
-                  res = await addALegToTravelRequestData(payload);
-                  handleMessageAcknowledgment(channel, msg, res);
+                  const res12 = await addALegToTravelRequestData(payload);
+                  handleMessageAcknowledgment(channel, msg, res12);
                   break;
 
                 case 'status-update-batch-job':
                   console.log('status-update-batch-job')
-                  res = await cashStatusUpdatePaid(payload);
-                  handleMessageAcknowledgment(channel, msg, res);
+                  const res13 = await cashStatusUpdatePaid(payload);
+                  handleMessageAcknowledgment(channel, msg, res13);
                   break;
 
                 default:
@@ -243,9 +242,9 @@ export async function startConsumer(receiver) {
             case 'approval':
               switch(action){
                 case 'expense-approval':
-                  res = await expenseReportApproval(payload);
-                  console.log(res)
-                  handleMessageAcknowledgment(channel, msg, res);
+                  const res14 = await expenseReportApproval(payload);
+                  console.log(res14)
+                  handleMessageAcknowledgment(channel, msg, res14);
                   break;
                 
                 default:
