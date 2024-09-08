@@ -4,7 +4,7 @@ import { fullUpdateTravel, fullUpdateTravelBatchJob } from './messageProcessor/t
 import dotenv from 'dotenv';
 import { fullUpdateExpense, settleExpenseReport } from './messageProcessor/travelExpenseProcessor.js';
 import { addLeg, updateTrip, updateTripStatus, updateTripToCompleteOrClosed } from './messageProcessor/trip.js';
-import { cashStatusUpdatePaid, fullUpdateCash, fullUpdateCashBatchJob } from './messageProcessor/cash.js';
+import { cashStatusUpdatePaid, fullUpdateCash, fullUpdateCashBatchJob, onceCash } from './messageProcessor/cash.js';
 import { deleteReimbursement, updateReimbursement } from './messageProcessor/reimbursement.js';
 import {  settleOrRecoverCashAdvance } from './messageProcessor/finance.js';
 import { settleNonTravelExpenseReport } from './messageProcessor/nonTravelExpenseProcessor.js';
@@ -135,13 +135,13 @@ export async function startConsumer(receiver) {
               case 'status-completed-closed':
                 if(payload){
                   const result = await updateTripToCompleteOrClosed(payload)
-                  console.log("results after trip status updated to completed or closed  ", results)
+                  console.log("results after trip status updated to completed or closed  ", result)
                   if(result.success) {
                       channel.ack(msg);
                       console.log('Message processed successfully');
                     } else {
                       // Implement retry mechanism or handle error
-                      console.log('Update failed with error:', res.error);
+                      console.log('Update failed with error:', result.error);
                     }
                   }
                 else{
@@ -205,6 +205,15 @@ export async function startConsumer(receiver) {
                 handleMessageAcknowledgment(channel, msg, res5);
                 break;
 
+
+                case 'onceCash':
+                  console.log('trying to update CashAdvanceSchema')
+                  const res51 = await onceCash(payload)
+                  handleMessageAcknowledgment(channel, msg, res51);
+                  break;
+
+                
+
                 default:
                   console.warn(`Unknown action '${action}' for source ${source}`);
                   break;
@@ -212,7 +221,7 @@ export async function startConsumer(receiver) {
             break;
           
           case 'expense':
-            switch (key) {
+            switch (action) {
               case 'full-update':
                 console.log('trying to update travelExpense Data', payload)
                 const res6 = await fullUpdateExpense(payload)
