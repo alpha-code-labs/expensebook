@@ -7,22 +7,18 @@
 import React,{ useState, useEffect , useRef} from "react";
 import {BrowserRouter as Router, useParams} from 'react-router-dom';
 import Icon from "../components/common/Icon";
-import { formatAmount, getStatusClass, titleCase, urlRedirection } from "../utils/handyFunctions";
+import { formatAmount, getStatusClass, removeSuffix, titleCase, urlRedirection } from "../utils/handyFunctions";
 import Button from "../components/common/Button";
 import Error from "../components/common/Error";
 import PopupMessage from "../components/common/PopupMessage";
 import { cab_purple as cab_icon, airplane_1 as airplane_icon , cancel_icon, modify_icon, check_tick, file_icon, validation_sym, validation_symb_icon, upcoming_trip, briefcase, money, user_icon, arrow_left, info_icon} from "../assets/icon";
-import { tripDummyData, tripDummyDataLevel2 } from "../dummyData/tripDummyData.js";
-import { hrDummyData } from "../dummyData/requiredDummy";
 import Select from "../components/common/Select"; 
 import ActionButton from "../components/common/ActionButton";
 import Input from "../components/common/Input";
 import Upload from "../components/common/Upload";
 import { cancelTravelExpenseHeaderApi, cancelTravelExpenseLineItemApi, getTravelExpenseApi, ocrScanApi, postMultiCurrencyForNonTravelExpenseApi, currencyConversionApi , postTravelExpenseLineItemApi, submitOrSaveAsDraftApi, updateTravelExpenseLineItemApi } from "../utils/api.js";
-import Search from "../components/common/Search.jsx";
 import { classDropdown } from "../utils/data.js";
 import Toggle from "../components/common/Toggle.jsx";
-import AddMore from "../components/common/AddMore.jsx";
 import { BlobServiceClient } from "@azure/storage-blob";
 import Button1 from "../Components/common/Button1.jsx";
 import CancelButton from "../Components/common/CancelButton.jsx";
@@ -61,46 +57,13 @@ export default function () {
    const dashboard_url = import.meta.env.VITE_DASHBOARD_URL
    
  
-   async function uploadFileToAzure(file) {
-    try {
-        const blobServiceClient = new BlobServiceClient(blob_endpoint);
-        const containerClient = blobServiceClient.getContainerClient(az_blob_container);
-        const blobClient = containerClient.getBlobClient(file.name);
-        const blockBlobClient = blobClient.getBlockBlobClient();
 
-        const result = await blockBlobClient.uploadBrowserData(file, {
-            blobHTTPHeaders: { blobContentType: file.type },
-            blockSize: 4 * 1024 * 1024,
-            concurrency: 20,
-            onProgress: ev => console.log(ev)
-        });
-
-        const fileUrl = blobClient.url;
-        console.log(`File uploaded to Azure Blob Storage. URL: ${fileUrl}`);
-        return { success: true, fileUrl };
-    } catch (e) {
-        console.error("Error uploading file to Azure Blob Storage:", e);
-        return { success: false, fileUrl: null };
-    }
-}
   
 
- 
-//if ocr data will be there
-const ocrValues = {
-  'Bill Date' : "2024-01-19",
-  'Bill Number': '5497579396',
-  'Vendor Name' :"Uncle Jack's",
-  'Description': '', 
-  'Quantity': "1",
-  'Unit Cost' : "209", 
- 'Tax Amount': "5.99", 
- 'Total Amount':"136"
- }
 
   
   const [ocrSelectedFile , setOcrSelectedFile]=useState(null)
-  const [ocrField , setOcrField]=useState(ocrValues)
+ 
 
   const [errorMsg,setErrorMsg] = useState({
     currencyFlag:{set:false,msg:""},
@@ -196,6 +159,10 @@ const ocrValues = {
         
         setOnboadingData(response)
         console.log('trip data fetched successfully', response)
+        const levelArray = response?.companyDetails?.travelAllocationFlags;
+        const onboardingLevel = Object.keys(levelArray).find((level) => levelArray[level] === true);
+        setRequiredObj(prev =>({...prev,"level":onboardingLevel,"travelAllocations":response?.travelAllocationHeaders || []}));
+
         setIsLoading(false);  
       } catch (error) {
         setLoadingErrMsg(error.message);
@@ -232,7 +199,6 @@ const ocrValues = {
        // const onboardingData = bookAnExpenseDatalevel; // level 2 dummy data
 
       const travelAllocationFlags = onboardingData?.companyDetails?.travelAllocationFlags; // for level
-
       const onboardingLevel = Object.keys(travelAllocationFlags).find((level) => travelAllocationFlags[level] === true);
       setDefaultCurrency(onboardingData?.companyDetails?.defaultCurrency)
       
@@ -270,7 +236,7 @@ const ocrValues = {
         }
         console.log('expense Allocation level -1',expenseAllocation)
       }
-
+      
       const expenseData = onboardingData?.travelExpenseData; //get line items
       setGetExpenseData(expenseData);
       console.log('expenseData', expenseData);
@@ -282,7 +248,7 @@ const ocrValues = {
       if(['level1','level2'].includes(onboardingLevel)){
         setGetSavedAllocations(findExpenseHeaderId?.allocations || [])
       }
-
+       setRequiredObj(prev =>({...prev,travelAllocations:onboardingData?.travelAllocationHeaders || []}))
       // if(['level3'].includes(onboardingLevel)){
       //   setGetSavedAllocations(findExpenseHeaderId?.allocations || [])
       // }
@@ -322,14 +288,13 @@ const ocrValues = {
   console.log('approvers',approversList);
   console.log('expenseAmountStatus',expenseAmountStatus);
   console.log('selected Allocations',selectedAllocations);
-
+  console.log('requiredObj',requiredObj)
+  
   const [categoriesList , setCategoriesList] = useState([]);
   const [selectedCategory,setSelectedCategory]=useState(null)
   const [categoryFieldBySelect, setCategoryFieldBySelect]=useState([])
 
-  const handleCategorySelection = (selectedCategory) => {
-    setSelectedCategory(selectedCategory);
-  };
+
   
  // this is handling travel categories name  arrya for level 1 and level 2
 ///for level 2 allocation & categories list after select the travel type
@@ -375,6 +340,7 @@ const ocrValues = {
   console.log(travelAllocationFlag)
   console.log('initial allocation',selectedAllocations)
   console.log('expense allocation',travelExpenseAllocation)
+  console.log('travel allocations', requiredObj?.travelAllocations)
   console.log('expenseLine',headerReport?.expenseLines)
   
   // console.log('onboardingData',onboardingData)
@@ -1326,21 +1292,15 @@ const getContent = () => {
 
 </fieldset> 
 
-<div className="flex gap-2 flex-row">
-         
-              
-           
-                
-                <Button1 loading={isUploading.submit}  variant='fit' text='Submit' onClick={() => handleSubmitOrDraft("submit")} />
-                    {['draft', 'new'].includes(flagExpenseHeaderStatus) && (
-                        <Button1 loading={isUploading.saveAsDraft} text='Save as Draft' onClick={() => handleSubmitOrDraft("draft")} />
-                    )}
-                      <CancelButton loading={isUploading} active={active.deleteHeader} variant='fit' text='Cancel' onClick={()=>{setModalOpen(true);setActionType("cancelExpense")}} />
-                    <div className="flex items-center justify-center rounded-sm hover:bg-slate-100 p-1 cursor-pointer" onClick={()=>handleDashboardRedirection()}>
-                    <img src={cancel_icon} className="w-5 h-5"/> 
-                    </div> 
-                
-            
+<div className="flex gap-2 flex-row">             
+    <Button1 loading={isUploading.submit}  variant='fit' text='Submit' onClick={() => handleSubmitOrDraft("submit")} />
+    {['draft', 'new'].includes(flagExpenseHeaderStatus) && (
+        <Button1 loading={isUploading.saveAsDraft} text='Save as Draft' onClick={() => handleSubmitOrDraft("draft")} />
+    )}
+    <CancelButton loading={isUploading} active={active.deleteHeader} variant='fit' text='Delete' onClick={()=>{setModalOpen(true);setActionType("cancelExpense")}} />
+    <div className="flex items-center justify-center rounded-sm hover:bg-slate-100 p-1 cursor-pointer" onClick={()=>handleDashboardRedirection()}>
+      <img src={cancel_icon} className="w-5 h-5"/> 
+    </div>       
 </div>
 </div>
 {/* <div className='flex flex-col md:flex-row mb-2 justify-end items-center'>
@@ -1460,6 +1420,7 @@ if (['flights', 'trains', 'buses'].includes(itnItem)) {
     return (
         <React.Fragment key={`flight_${itemIndex}`}>
             <FlightCard
+                allocations={requiredObj?.travelAllocations?.find((header)=>header?.categoryName === removeSuffix(itnItem))?.allocations ||[]}
                 defaultCurrency={defaultCurrency}
                 amount={item?.bookingDetails?.billDetails?.totalAmount}
                 from={item.bkd_from}
@@ -1473,7 +1434,8 @@ if (['flights', 'trains', 'buses'].includes(itnItem)) {
     return (
         <React.Fragment key={`cab_${itemIndex}`}>
             <CabCard
-            defaultCurrency={defaultCurrency}
+                allocations={requiredObj?.travelAllocations?.find((header)=>header?.categoryName === removeSuffix(itnItem))?.allocations ||[]}
+                defaultCurrency={defaultCurrency}
                 amount={item?.bookingDetails?.billDetails?.totalAmount}
                 itnId={item.itineraryId}
                 from={item.bkd_pickupAddress} to={item.bkd_dropAddress} date={item.date} time={item.time} travelClass={item.travelClass} isTransfer={item.type !== 'regular'} />
@@ -1483,6 +1445,7 @@ if (['flights', 'trains', 'buses'].includes(itnItem)) {
     return (
         <React.Fragment key={`hotel_${itemIndex}`}>
             <HotelCard
+              allocations={requiredObj?.travelAllocations?.find((header)=>header?.categoryName === removeSuffix(itnItem))?.allocations ||[]}
               location={item?.bkd_location}
               defaultCurrency={defaultCurrency}
               amount={item?.bookingDetails?.billDetails?.totalAmount}
@@ -1543,12 +1506,12 @@ defaultCurrency={defaultCurrency}/>
 
 
 
-<div className=" w-full lg:w-3/5 ">
+<div className=" w-full lg:w-3/5 border border-slate-300 rounded-md">
   <DocumentPreview initialFile={lineItem?.billImageUrl}/>
 </div>
 
 <div className="w-full lg:w-2/5 h-full">
-  <LineItemView expenseHeaderId={item?.expenseHeaderStatus} lineItem={lineItem} isUploading={isUploading} index={index} handleEdit={handleEdit} handleDeleteLineItem={()=>{setModalOpen(true);setActionType("deleteLineItem");setSelectedLineItemId(lineItem)}}/>
+  <LineItemView expenseHeaderStatus={item?.expenseHeaderStatus} lineItem={lineItem} isUploading={isUploading} index={index} handleEdit={handleEdit} handleDeleteLineItem={()=>{setModalOpen(true);setActionType("deleteLineItem");setSelectedLineItemId(lineItem)}}/>
 </div>
 
 </div>
@@ -1575,7 +1538,7 @@ defaultCurrency={defaultCurrency}/>
 {formVisible &&  
 <div className=" w-full flex flex-col  lg:flex-row">
 
-<div className="border w-full lg:w-1/2">
+<div className="border w-full lg:w-1/2  border-slate-300 rounded-md">
 <DocumentPreview selectedFile={ocrSelectedFile || selectedFile}/>
 </div>
 <div className="border w-full lg:w-1/2 lg:h-[710px] overflow-y-auto scrollbar-hide">
@@ -2044,14 +2007,18 @@ function spitImageSource(modeOfTransit){
 
 
 
-function FlightCard({defaultCurrency,amount,from,to, mode='Flight', showActionButtons, itnId, handleLineItemAction}){
+function FlightCard({allocations,defaultCurrency,amount,from,to, mode='Flight', showActionButtons, itnId, handleLineItemAction}){
+  console.log('travel allocations',allocations)
     return(
     <div className="shadow-sm min-h-[76px] bg-slate-50 rounded-md border border-slate-300 w-full px-6 py-4 flex flex-col sm:flex-row gap-4 items-center sm:divide-x">
     <img src={spitImageSource(mode)} className='w-4 h-4' />
     <div className="w-full flex sm:block">
         <div className='mx-2 text-xs text-neutral-600 flex justify-between flex-col sm:flex-row'>
             <div className="flex-1">
-                Travel Allocation   
+                Destination  
+            </div>
+            <div className="flex-1">
+              Allocation
             </div>
             <div className="flex-1">
                 Amount
@@ -2065,12 +2032,23 @@ function FlightCard({defaultCurrency,amount,from,to, mode='Flight', showActionBu
             <div className="flex-1 capitalize ">
             {from??'not provided'} <span className="  lowercase">to</span>  {to??'not provided'}   
             </div>
-            
+            <div className="flex-1 capitalize ">
+             {allocations.map((allocation,index)=>(
+            <div 
+            key={index} 
+            className="flex w-full text-neutral-900 font-cabin flex-row items-center space-x-1 text-sm"
+          >
+            <p className="font-medium">{`${allocation.headerName}:`}</p>
+            <p className="text-neutral-600">{allocation.headerValue ?? "-"}</p>
+          </div>
+          
+             ))}
+            </div>
             <div className="flex-1">
               {defaultCurrency?.shortName ?? "-"} {formatAmount(amount)??'N/A'}
             </div>
             <div className='flex-1'>
-                <input type="checkbox" checked={true}/>
+              <input type="checkbox" checked={true}/>
             </div>
         </div>
     </div>
@@ -2128,6 +2106,8 @@ function HotelCard({defaultCurrency,amount,location, hotelClass, onClick, prefer
     </div>)
 }
 
+
+
 function CabCard({defaultCurrency, amount,from, to, date, time, travelClass, onClick, mode, isTransfer=false, showActionButtons, itnId, handleLineItemAction}){
     return(
     <div className="shadow-sm min-h-[76px] bg-slate-50 rounded-md border border-slate-300 w-full px-6 py-4 flex flex-col sm:flex-row gap-4 items-center sm:divide-x">
@@ -2180,22 +2160,22 @@ function CabCard({defaultCurrency, amount,from, to, date, time, travelClass, onC
 
 
 
-function EditView({expenseHeaderStatus,isUploading,active,flagToOpen,expenseHeaderId,lineItem, index ,newExpenseReport ,handleEdit, handleDeleteLineItem}){
-  console.log('lineItems for edit view', lineItem)
+// function EditView({expenseHeaderStatus,isUploading,active,flagToOpen,expenseHeaderId,lineItem, index ,newExpenseReport ,handleEdit, handleDeleteLineItem}){
+//   console.log('lineItems for edit view', lineItem)
  
-  return(
-    <>
-<div className=" w-full lg:w-3/5">
-  <DocumentPreview initialFile={lineItem?.billImageUrl}/>
-</div>
+//   return(
+//     <>
+// <div className=" w-full lg:w-3/5 border border-slate-300 rounded-md">
+//   <DocumentPreview initialFile={lineItem?.billImageUrl}/>
+// </div>
 
-<div className="w-full lg:w-2/5">
-  <LineItemView expenseHeaderId={expenseHeaderStatus} lineItem={lineItem} active={active} index={index} handleEdit={handleEdit} handleDeleteLineItem={()=>{setModalOpen(true);setActionType("deleteLineItem");setSelectedLineItemId(lineItem?.lineItemId)}}/>
-</div>
+// <div className="w-full lg:w-2/5">
+//   <LineItemView expenseHeaderId={expenseHeaderStatus} lineItem={lineItem} active={active} index={index} handleEdit={handleEdit} handleDeleteLineItem={()=>{setModalOpen(true);setActionType("deleteLineItem");setSelectedLineItemId(lineItem?.lineItemId)}}/>
+// </div>
 
-</>
-  )
-}
+// </>
+//   )
+// }
 
 
 
@@ -2480,7 +2460,7 @@ console.log('currency for edit ',selectedCurrency)
     <>
     <div className="flex flex-col lg:flex-row border">
     <div className="border w-full lg:w-1/2">
-    <div className='w-full  border  flex justify-center items-center '>
+    <div className='w-full   flex justify-center items-center border border-slate-300 rounded-md'>
        <DocumentPreview selectedFile={selectedFile}  initialFile={initialFile}/>
     </div>
     </div>
@@ -2676,8 +2656,6 @@ onChange={(value)=>handleEditChange('personalExpenseAmount',value)}
   />
 </div>
 </div>
-
-
 <div className="w-full mt-5 px-4">
  <Button text="Update" 
  loading={isUploading}
@@ -2694,60 +2672,4 @@ onChange={(value)=>handleEditChange('personalExpenseAmount',value)}
   )
 }
 
-// function DocumentPreview({selectedFile , initialFile}){
 
-
-//   return(
-//     <div className=' border-[5px] min-w-[100%] h-fit flex justify-center items-center'>
-//     {selectedFile ? 
-//     (
-//         <div className="w-full  flex flex-col justify-center">
-//           {/* <p>Selected File: {selectedFile.name}</p> */}
-//           {/* <p>Size: {selectedFile.size} bytes</p>
-//           <p>Last Modified: {selectedFile.lastModifiedDate.toString()}</p> */}
-//           {selectedFile.type.startsWith('image/') ? (
-            
-//             <img
-//               src={URL.createObjectURL(selectedFile)}
-//               alt="Preview"
-//               className=' h-[700px] w-full'
-              
-//             />
-            
-//           ) : selectedFile.type === 'application/pdf' ? (
-//             <embed
-//               src={URL.createObjectURL(selectedFile)}
-//               type="application/pdf"
-//               width="100%"
-//               height="700px"
-//             />
-//           ) : (
-//             <p>Preview not available for this file type.</p>
-//           )}
-//         </div>
-//       ) : 
-//       !initialFile ?
-//       <div className='w-full h-[700px] flex justify-center items-center bg-white opacity-30'>
-//         <img src={!initialFile && file_icon|| initialFile} className='w-40 h-40'/>
-//       </div> :
-//       <div className='w-full h-[700px] flex justify-center items-center '>
-//        {initialFile.toLowerCase().endsWith('.pdf') ? (
-//         // Display a default PDF icon or text for PDF files
-//         <div className='w-full'>
-//           <embed
-//             src={initialFile}
-//             type="application/pdf"
-//             width="100%"
-//             height="700px"
-//           />
-//         </div>
-//       ) : (
-//         // Display the image preview for other file types
-//         <img src={initialFile ? initialFile : file_icon} alt="Initial Document Preview" className='w-40 h-40' />
-//       )}
-//       </div>
-//       }
-//     </div>
-
-//   )
-// }

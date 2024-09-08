@@ -59,6 +59,7 @@ console.log('error mgs',errorMsg.conversion)
           }
           }))
         }
+        
         setCurrencyConversion(prev =>({...prev,payload:{
           ...prev.payload,
           'currencyName':formData?.Currency?.shortName,
@@ -102,7 +103,7 @@ console.log('error mgs',errorMsg.conversion)
     
 
   return (
- <div className="w-full flex-row ">
+ <div className="w-full flex-row">
    <div className="sticky top-0 bg-white z-20 w-full flex items-center h-12 px-4 border-dashed  border-y border-slate-300 py-4">
         <div className="flex items-center justify-center gap-2">
           <div className="bg-slate-100 p-2 rounded-full">
@@ -118,6 +119,7 @@ console.log('error mgs',errorMsg.conversion)
 <p className='text-start w-full  px-2 py-2 text-base text-neutral-700 font-inter'>Allocations</p>
  <div className='border-y flex items-center justify-center w-full  border-slate-300 px-2  pb-2'>
           <Allocations 
+            getSavedAllocations={lineItemDetails?.allocations}
             errorMsg={errorMsg}
             onboardingLevel={onboardingLevel} 
             travelExpenseAllocation={allocationsList} 
@@ -253,91 +255,11 @@ console.log('error mgs',errorMsg.conversion)
 
 
 <div className='px-2'>
-{/* <div className="flex flex-col md:flex-row  items-start gap-x-2 w-full"> 
 
-<div >
-<Toggle 
-checked={personalExpFlag}
-setChecked={setPersonalExpFlag}
-title='Is personal expense?' 
-initialValue={false}
-onClick={(flag)=>handleInputChange("isPersonalExpense",flag)}/>
-</div>
-<div
-  className={`w-full transition-all ease-in-out duration-300 ${personalExpFlag ? 'opacity-100 max-h-full' : 'opacity-0 max-h-0 overflow-hidden'}`}
->
-<Input
-    title='Personal Amount'
-    error={errorMsg?.personalAmount}
-    name='personalExpenseAmount'
-    initialValue={formData.personalExpenseAmount || ""}
-    type='text'
-    onChange={(value) => handleInputChange('personalExpenseAmount', value)}
-    key={personalExpFlag ? "visible" : "hidden"} // This forces the Input component to re-render and clear its state
-  />
-</div>
-
-</div>  */}
-
-
-{/* <div className="relative">
-<div className=" h-[48px] w-full sm:w-[200px]  mb-10 mr-28 mt-[-10px] ">
-   <Select
-       title='Currency'
-       currentOption={currencyDropdown[0].shortName}
-       placeholder="Select Currency"
-       options={currencyDropdown.map(currency => currency.shortName)} 
-       onSelect={(value)=>handleCurrenctySelect(value)}
-    
-       error={errorMsg.currencyFlag} 
-       />
-</div>  
-
-<div className='absolute top-6 left-[210px] w-fit'>
-{selectDropdown == null || selectDropdown.shortName !== defaultCurrency?.shortName   &&
-<ActionButton disabled={active?.convert} loading={active?.convert} active={active.convert} text="Convert" onClick={()=>handleConverter( totalAmount ,lineItemDetails?.personalExpenseAmount)}/>
-}
-</div>
-</div> */}
-{/* <div >
-{currencyTableData?.currencyFlag  ? 
-<div className={`flex gap-2 `}>
-<div className="min-w-[200px] w-full  h-auto flex-col justify-start items-start gap-2 inline-flex mb-3">
-<div className="text-zinc-600 text-sm font-cabin">Coverted Amount Details :</div>
-<div className="text-neutral-700 w-full h-full text-sm font-normal font-cabin  ">
-  <div className="w-full h-full decoration:none  rounded-md border placeholder:text-zinc-400 border-neutral-300 focus-visible:outline-0 focus-visible:border-indigo-600">
-    <div className={`sm:px-6 px-4  py-2  flex sm:flex-row flex-col  sm:items-center items-start justify-between  min-h-12 bg-slate-100  border  ${currencyTableData?.convertedPersonalAmount == undefined ? "rounded-md" :"rounded-t-md"}`}>
-      <div className="text-[16px] font-semibold text-neutral-600">Total Amount </div> 
-      <div className="text-neutral-600 font-cabin">{currencyTableData?.defaultCurrencyName} {currencyTableData?.convertedTotalAmount?.toFixed(2)}</div>
-  </div>
-{currencyTableData?.convertedPersonalAmount !== undefined &&
-<>
-    <div className="sm:px-6 px-4  py-2  flex sm:flex-row flex-col  sm:items-center items-start justify-between  min-h-12 bg-slate-100 ">
-      <div className=" text-[16px] font-semibold text-neutral-600">Personal Amount </div> 
-      <div className="text-neutral-600 font-cabin">{currencyTableData?.defaultCurrencyName} {currencyTableData?.convertedPersonalAmount?.toFixed(2)}</div>
-  </div>
-    <div className="sm:px-6 px-4  py-2  flex sm:flex-row flex-col  sm:items-center items-start justify-between  min-h-12 bg-slate-200 rounded-b-md border">
-      <div className="  text-[16px] font-semibold text-neutral-600">Final Reimbursement Amount </div> 
-      <div className="text-neutral-600 font-cabin">{currencyTableData?.defaultCurrencyName} {currencyTableData?.convertedBookableTotalAmount?.toFixed(2)}</div>
-  </div>
-  </>}
-  </div>
-
-</div>
-
-</div>
-</div>
-   : 
-  currencyTableData?.message !== undefined &&
-  <div className={`flex items-center justify-center gap-2 border-[1px] px-4 py-2 rounded border-yellow-600  text-yellow-600 mt-6`} >
-    <img src={validation_symb_icon} className='w-5 h-5'/>
-  <h2 className=''>{currencyTableData?.message}</h2>
-  </div>
- } 
-</div> */}
 
 <div className='flex w-fit mb-4'>
   <Select 
+  currentOption={formData['Mode of Payment']}
    title="Paid Through"
    name="mode of payment"
    placeholder="Select Mode"
@@ -346,30 +268,8 @@ onClick={(flag)=>handleInputChange("isPersonalExpense",flag)}/>
 </div>
 
 
-{/* ------////-------- */}
 
-
-{/* <div className="w-full mt-4 flex items-center justify-center border-[1px] border-gray-50 ">
-<Upload  
-  selectedFile={selectedFile}
-  setSelectedFile={ setSelectedFile}
-  fileSelected={fileSelected}
-  setFileSelected={setFileSelected}
-  />
-</div> */}
 </div>
-
-{/* <div className="w-full mt-5 px-4">
- <Button text="Save" 
- disabled={isUploading} 
- loading={isUploading} 
- active={active.saveLineItem}
- onClick={handleSaveLineItemDetails} />
-</div>    */}
-
-{/* -------------------- */}
-
-
      
      </div>
   )

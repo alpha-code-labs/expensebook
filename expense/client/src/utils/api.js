@@ -435,13 +435,15 @@ export const postNonTravelExpenseLineItemApi = async(params,payload)=>{
 
 }
 ///edit line item details for non travel expense 
-export const editNonTravelExpenseLineItemsApi = async(tenantId,empId,expenseHeaderId,lineItemId,data)=>{
+export const editNonTravelExpenseLineItemsApi = async(params,payload)=>{
+  const {tenantId,empId,expenseHeaderId,lineItemId}=params;
+  
 
   // this is the real api route
   const url = `${EXPENSE_BACKEND_API_URL}/api/fe/expense/non-travel/${tenantId}/${empId}/${expenseHeaderId}/${lineItemId}/edit`
   
   try{
-    const response = await axiosRetry(axios.patch,url,data)
+    const response = await axiosRetry(axios.patch,url,payload)
      return response.data
     
 

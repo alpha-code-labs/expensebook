@@ -248,5 +248,14 @@ function formatDate(date=Date.now()) {
     return amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   }
 
-export {rearrangeKeyForLineItem, allocationLevel,initializenonTravelFormFields, initializeFormFields, camelCaseToTitleCase, titleCase, formatDate, formatDate2 ,getStatusClass ,generateRandomId,urlRedirection,formatAmount}  
+
+  function removeSuffix(text) {
+    if (text.endsWith('es')) {
+      return text.slice(0, -2);  // Remove 'es'
+    } else if (text.endsWith('s')) {
+      return text.slice(0, -1);  // Remove 's'
+    }
+    return text;  // Return the original text if neither 'es' nor 's' is found
+  }
+export {removeSuffix,rearrangeKeyForLineItem, allocationLevel,initializenonTravelFormFields, initializeFormFields, camelCaseToTitleCase, titleCase, formatDate, formatDate2 ,getStatusClass ,generateRandomId,urlRedirection,formatAmount}  
 

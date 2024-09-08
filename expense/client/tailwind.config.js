@@ -6,11 +6,7 @@ export default {
   ],
 
 
-  // for main text ---text-gray-800
-  // for main text ---text-gray-600
-  // for background ---bg-slate-100
-  // for border    ---border-gray-100
-  //py-3 px-2 or py-3 py-4
+ 
 
   theme: {
     extend: {

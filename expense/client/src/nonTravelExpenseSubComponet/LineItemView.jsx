@@ -3,33 +3,36 @@ import { categoryIcons } from "../assets/icon";
 import Button1 from "../Components/common/Button1";
 import { camelCaseToTitleCase, rearrangeKeyForLineItem } from "../utils/handyFunctions";
 import { lineItems } from "../utils/dummyData";
+import { StatusBox } from "../Components/common/TinyComponent";
+import CancelButton from "../Components/common/CancelButton";
 
-export function LineItemView({ expenseHeaderStatus, isUploading, active, flagToOpen, expenseHeaderId, lineItem, index, newExpenseReport, handleEdit, handleDeleteLineItem }) {
+export function LineItemView({selectedLineItemId, expenseHeaderStatus, isUploading, active, flagToOpen, expenseHeaderId, lineItem, index, newExpenseReport, handleEdit, handleDeleteLineItem }) {
 
-  const excludedKeys = ['isMultiCurrency','convertedAmountDetails', 'isPersonalExpense', 'Tax Amount', 'personalExpenseAmount','policyValidation', 'Category Name', 'expenseLineId', 'billImageUrl', 'group', 'expenseLineAllocation', 'allocations', 'multiCurrencyDetails', 'lineItemStatus', 'lineItemId', '_id','approvers'];
+  const excludedKeys = ['settlementBy','isMultiCurrency','convertedAmountDetails', 'isPersonalExpense', 'Tax Amount', 'personalExpenseAmount','policyValidation', 'Category Name', 'expenseLineId', 'billImageUrl', 'group', 'expenseLineAllocation', 'allocations', 'multiCurrencyDetails', 'lineItemStatus', 'lineItemId', '_id','approvers'];
   const includedKeys = ['Total Fair', 'Total Fare','personalExpenseAmount','Tax Amount', 'Total Amount', 'Subscription Cost', 'Cost', 'Premium Cost'];
   
-
-
      const arrangedItems=rearrangeKeyForLineItem(lineItem,includedKeys)
      console.log('arranged lineitem', arrangedItems)
+
   return (
     <div className="flex justify-between flex-col h-[600px] sm:h-screen">
       <div className="w-full flex-row   overflow-y-auto scrollbar-hide">
 
-        <div className="sticky top-0 bg-white z-20 w-full flex items-center h-12 px-4 border-dashed  border-y border-slate-300 py-4">
+        <div className="sticky  top-0 bg-white z-20 w-full flex-row justify-between flex items-center h-12 px-4 border-dashed  border-y border-slate-300 py-4">
           <div className="flex items-center justify-center gap-2">
             <div className="bg-slate-100 p-2 rounded-full">
               <img src={categoryIcons[arrangedItems?.['Category Name']]} className="w-4 h-4 rounded-full" />
             </div>
             <p>{index + 1}. {arrangedItems?.['Category Name']}</p>
           </div>
+          <div>
+           <StatusBox status={arrangedItems?.lineItemStatus}/>
+          </div>
         </div>
-
-        <div className="pb-4 px-4 flex flex-wrap items-center justify-evenly border-b border-slate-300" >
-        <p className='text-start w-full  px-2 py-2 text-base text-neutral-700 font-inter'>Allocations</p>
-          {arrangedItems?.allocations ?
-            arrangedItems?.allocations?.map((allocation, index) => (
+          {arrangedItems?.allocations?.length > 0 && 
+          <div className="pb-4 px-4 flex flex-wrap items-center justify-evenly border-b border-slate-300" >
+           <p className='text-start w-full  px-2 py-2 text-base text-neutral-700 font-inter'>Allocations</p>
+         {  arrangedItems?.allocations?.map((allocation, index) => (
               <div key={index} className="min-w-[200px] min-h-[52px] ">
                 <div className="text-zinc-600 text-sm font-cabin capitalize py-1">{allocation.headerName}</div>
                 <div className="w-full h-12 bg-white items-center flex border border-neutral-300 rounded-md">
@@ -40,8 +43,10 @@ export function LineItemView({ expenseHeaderStatus, isUploading, active, flagToO
                   </div>
                 </div>
               </div>
-            )) : ""}
-        </div>
+            )) }
+            </div>
+           }
+        
         <div>
         { 
 
@@ -187,11 +192,11 @@ export function LineItemView({ expenseHeaderStatus, isUploading, active, flagToO
       <div className=' bottom-0 p-2 bg-white border-y  border-slate-300'>
         {!['paid', 'paid and distribute'].includes(expenseHeaderStatus) && (
           <div className="w-full flex sm:justify-start justify-center gap-4">
-            <Button1 text="Edit" onClick={() => handleEdit(arrangedItems?.expenseLineId, arrangedItems?.['Category Name'], arrangedItems.travelType)} />
-            <Button1 loading={false} text="Delete" onClick={()=>handleDeleteLineItem()} />
-           
+            <Button1  text={"Edit"} onClick={() => handleEdit(arrangedItems)} />
+            <CancelButton loading={false} text="Delete" onClick={()=>handleDeleteLineItem()} />
           </div>
         )}
+       
       </div>
     </div>
   );

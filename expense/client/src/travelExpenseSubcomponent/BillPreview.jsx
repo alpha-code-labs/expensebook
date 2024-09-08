@@ -27,10 +27,10 @@ export function DocumentPreview({ selectedFile, setIsFileSelected, initialFile, 
 
   return (
     
-    <div className='border border-slate-300 rounded-md h-[600px] sm:h-screen w-full'>
+    <div className='h-full w-full'>
         
       {selectedFile ? (
-        <div className="w-full h-full  overflow-auto flex justify-center">
+        <div className="w-full h-full   overflow-auto flex justify-center">
           {selectedFile.type.startsWith('image/') ? (
             <img
               src={fileUrl}
