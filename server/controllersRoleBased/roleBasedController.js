@@ -1813,7 +1813,7 @@ const approvalsForManager = async (tenantId, empId) => {
                         return { tripId,tripName,tripNumber,tripPurpose,createdBy,tripStatus,tripStartDate, expenseHeaderNumber,expenseHeaderId, expenseHeaderStatus, approvers, expenseLines };
                     });
                 });
-                console.log(" expense reports for approval:", travelExpenseDataList);
+                // console.log(" expense reports for approval:", travelExpenseDataList);
         
                 return travelExpenseDataList;
             } catch (error) {

@@ -70,8 +70,8 @@ console.log("fullUpdateCash --tenantId,travelRequestId", tenantId, travelRequest
   try {
     const updated = await dashboard.updateOne(
       { 
-        "tenantId": tenantId,
-        "travelRequestId": travelRequestId,
+        tenantId,
+        travelRequestId,
       },
       {
         "travelRequestSchema": travelRequestData,
@@ -80,7 +80,7 @@ console.log("fullUpdateCash --tenantId,travelRequestId", tenantId, travelRequest
       },
       { upsert: true, new: true }
     );
-    console.log('Saved to dashboard: using async queue', updated);
+    console.log('Saved to dashboard: Full Update cash---', updated);
     return { success: true, error: null };
   } catch (error) {
     console.error('Failed to update dashboard: using rabbitmq m2m', error);
@@ -190,5 +190,35 @@ export const cashStatusUpdatePaid = async (payloadArray) => {
 
 
 
+export const onceCash = async (payload) => {
+  console.log('full update cashAdvanceSchema', payload)
+  const{ travelRequestData, cashAdvancesData} = payload
+  const { tenantId, travelRequestId } = travelRequestData;
+console.log("fullUpdateCash --tenantId,travelRequestId", tenantId, travelRequestId)
+  // Check if the tenantId is present
+  if (!tenantId) {
+    console.error('TenantId is missing');
+    return { success: false, error: 'TenantId is missing' };
+  }
 
+  try {
+    const updated = await dashboard.updateOne(
+      { 
+        tenantId,
+        travelRequestId,
+      },
+      {
+        "tripSchema.travelRequestData": travelRequestData,
+        "cashAdvanceSchema.travelRequestData": travelRequestData,
+        "cashAdvanceSchema.cashAdvancesData": cashAdvancesData,
+      },
+      { upsert: true, new: true }
+    );
+    console.log('Saved to dashboard: Full Update cash---', updated);
+    return { success: true, error: null };
+  } catch (error) {
+    console.error('Failed to update dashboard: using rabbitmq m2m', error);
+    return { success: false, error: error };
+  }
+}
 

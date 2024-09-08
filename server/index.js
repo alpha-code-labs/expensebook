@@ -225,7 +225,6 @@ consumeFromDashboardQueue();
 
 
 
-
 // // 1 ) consume --- rabbitmq -- synchronous call
 // import { processTransitTrip, updateTripToDashboardSync,  } from './rabbitmq/messageProcessor.js';
 

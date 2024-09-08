@@ -546,7 +546,7 @@ try{
     const approvalDocs = []
 
     if(travelReports.length){
-      console.log("just travel")
+      console.log("just tr and cash for approval")
       approvalDocs.push(rejectAllTravelWithCash(tenantId, empId,travelReports,rejectionReason))
 
     }
@@ -583,7 +583,7 @@ export const rejectAllTravelWithCash = async (tenantId, empId,travelReports,reje
     const allTravelRequests = []
     const allTravelRequestsWithCash=[]
 
-    const approvedDocs = await Promise.all(travelReports.map(async (cashApprovalDoc) => {
+    const updateApprovedDocs = travelReports.map(async (cashApprovalDoc) => {
       const { travelRequestSchema={} } = cashApprovalDoc;
 
     const isCashAdvanceTaken = travelRequestSchema.isCashAdvanceTaken
@@ -598,7 +598,7 @@ export const rejectAllTravelWithCash = async (tenantId, empId,travelReports,reje
   
       itineraryRejected.forEach(booking => {  
         booking.approvers.forEach(approver => {
-          if(approver.empId === req.params.empId && approver.status == 'pending approval' && booking.status == 'pending approval'){
+          if(approver.empId === empId && approver.status == 'pending approval' && booking.status == 'pending approval'){
           approver.status = 'rejected'
           }
         })
@@ -708,7 +708,9 @@ console.log("payload",payload)
 
     }
     await cashApprovalDoc.save();
-    }));
+    });
+
+    const approvedDocs = await Promise.all(updateApprovedDocs)
 
     const payloadToTravel = allTravelRequests.map(doc => ({
       tenantId:doc.tenantId,
@@ -739,7 +741,7 @@ console.log("payload",payload)
 
     console.log("total approved",approvedDocs.length)
 
-    console.log("payloadToTravel", payloadToTravel, "payloadToCash", payloadToCash)
+    console.log("payloadToTravel", payloadToTravel,"count of payloadToTravel ", payloadToTravel?.length , "payloadToCash", payloadToCash,"count of payloadToCash", payloadToCash?.length)
 
     if(allTravelRequests?.length > 0){
       console.log("allTravelRequests", payloadToTravel)
