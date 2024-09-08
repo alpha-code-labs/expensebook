@@ -2,7 +2,7 @@ import {BrowserRouter as Router, Routes, Route} from 'react-router-dom';
 import './App.css';
 import TravelApproval from './pages/Page-3';
 import { useEffect, useState } from 'react';
-import TravelExpenseApproval from './pages/Page-3';
+import TravelExpenseApproval from './pages/ExpenseApproval';
 import { urlRedirection } from './utils/handyFunctions';
 import { logoutApi } from './utils/api';
 import NonTravelTravelExpenseApproval from './pages/NonTravelApproval';
