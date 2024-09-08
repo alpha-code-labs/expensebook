@@ -1,6 +1,6 @@
 /* eslint-disable no-unreachable */
 import React, { useEffect, useState } from 'react';
-import { briefcase, cancel, cancel_round, categoryIcons, check_tick, cross_icon, filter_icon, info_icon, modify, money, money1, plus_violet_icon, receipt, search_icon, violation_icon } from '../assets/icon';
+import { approval_icon, approvalempty_icon, briefcase, cancel, cancel_round, categoryIcons, check_tick, cross_icon, filter_icon, info_icon, modify, money, money1, plus_violet_icon, receipt, search_icon, violation_icon } from '../assets/icon';
 import { formatAmount, getStatusClass, sortTripsByDate, splitTripName } from '../utils/handyFunctions';
 import {TRCashadvance,NonTRCashAdvances, travelExpense, TrExpenseForApproval, NonTrExpenseForApproval} from '../utils/dummyData';
 import Modal from '../components/common/Modal1';
@@ -17,7 +17,7 @@ import Button from '../components/common/Button';
 import { approveTravelRequestApi, nonTravelExpenseApprovalActionApi ,rejectTravelExpenseApi, approveTravelExpenseApi, rejectTravelRequestApi } from '../utils/api';
 import PopupMessage from "../components/common/PopupMessage";
 import TripMS from '../microservice/TripMS';
-import { CardLayout, ExpenseLine, TripName, Violation } from '../components/common/TinyComponent';
+import { CardLayout, EmptyBox, ExpenseLine, TripName, Violation } from '../components/common/TinyComponent';
 
 
 const rejectionOptions=['Too Many Violations', 'Budget Constraints','Insufficient Documents','Upcoming Project Deadline']
@@ -726,11 +726,12 @@ const handleVisible = ({travelRequestId,tripId,expenseHeaderId, action}) => {
 
   return (
     <>
-     {isLoading && <Error message={loadingErrMsg}/>}
-     {!isLoading && 
-    <div className=''>
+     {isLoading ? <Error message={loadingErrMsg}/>:
+     <>
        <TripMS visible={visible} setVisible={setVisible} src={approvalUrl}/>
-      <div className='flex-col w-full p-4 flex items-start gap-2'>
+     <div className='h-screen  flex flex-col p-4'>
+     
+
       
       <div className=' border border-slate-300 bg-white rounded-md  w-full flex flex-col justify-center items-start px-2'>
  {/* <div className='flex flex-wrap  space-x-2 '>      
@@ -762,10 +763,11 @@ const handleVisible = ({travelRequestId,tripId,expenseHeaderId, action}) => {
    
  </div>
 </div>
-        <div className='w-full flex md:flex-row flex-col'>
-        <div className='flex-1 rounded-md justify-center items-center'>
-         
-<div className='relative  flex justify-center items-center  rounded-l-md   font-inter text-md text-white h-[52px] bg-indigo-600  text-center'>
+
+<div className=' flex flex-col md:flex-row flex-grow w-full overflow-auto scrollbar-hide  mt-2'>
+        
+<div className='w-full md:w-1/2  flex flex-col'>
+<div className='relative shrink-0  flex justify-center items-center  rounded-l-md   font-inter text-md text-white h-[52px] bg-indigo-600  text-center'>
 
 {/* <div
 onClick={()=>setModalOpen(!modalOpen)}
@@ -789,6 +791,9 @@ Raise a Cash-Advance
     </div>
 </div>
 
+
+{ travelAndItinerary?.length>0 ?
+<>
   <div className={` flex px-2 h-[52px] py-4  items-center justify-start gap-2`}>
    {travelAndItinerary?.length > 0 &&
    <>
@@ -801,8 +806,8 @@ Raise a Cash-Advance
    
   </div>
 
-      <div className='w-full bg-white xl:h-[570px] lg:h-[370px] md:h-[590px] h-fit overflow-y-auto px-2'>
-          {filterCashadvances(travelAndItinerary).map((trip) => { 
+  <div className='w-full h-full mt-4  overflow-y-auto px-2 bg-white rounded-l-md'>
+          { filterCashadvances(travelAndItinerary).map((trip) => { 
             return (
               <>
               <CardLayout index={trip?.tripId}>
@@ -819,15 +824,6 @@ Raise a Cash-Advance
 
             {/* / */}
             <div className='flex items-center justify-center'>
-
-              {/* <div className={`${trip?.violationsCounter?.total === 0 ? 'hidden':'block'}  flex flex-row gap-2 justify-center items-center text-yellow-200 font-cabin  text-sm`}>
-                <img src={violation_icon} className='w-4 h-4'/>
-                <p>
-  {trip?.violationsCounter?.total} 
-  {trip?.violationsCounter?.total === 1 ? ' violation' : ' violations'}
-</p>
-
-            </div> */}
             <Violation violationCount={trip?.violationsCounter?.total}/>
              
               <div className='text-sm font-cabin px-2 py-1 cursor-pointer' onClick={()=>{if(!disableButton(trip?.travelRequestStatus)){handleVisible({travelRequestId:trip?.travelRequestId,  action:'travel-approval-view' })}}}>
@@ -876,22 +872,22 @@ Raise a Cash-Advance
             </>
             )
            })}
-      </div>
+      </div> </>:
+      <div className='mt-4 h-full'>
+      <EmptyBox  icon={approvalempty_icon} text="No Travel & Cash-Advance for Approval"/>
+      </div>}
 
           </div>
-           <div className='flex-1 rounded-md'>
-            <div className='flex justify-center items-center rounded-r-md font-inter text-md text-white h-[52px] bg-indigo-600  text-center'>
+           <div className='w-full md:w-1/2  flex flex-col'>
+            <div className='flex shrink-0 justify-center items-center rounded-r-md font-inter text-md text-white h-[52px] bg-indigo-600  text-center'>
               <img src={money1} className='w-6 h-6 mr-2'/>
               <p>Travel & Non-Travel Expenses</p>
             </div>
             {/* <div className='flex px-2 h-[52px] py-4 items-center justify-start gap-2'/> */}
 
 
- <div className='w-full xl:h-[570px] lg:h-[370px] md:[590px] overflow-y-auto px-2 bg-white rounded-l-md'>
-              {filterExpenses(DummyExpenseData)?.map((trip, index) => {
-                // const filteredTripExpenses = filterExpenses(trip?.travelExpenseData);
-                // if (filteredTripExpenses?.length === 0) return null; 
-
+            <div className='w-full h-full mt-4  overflow-y-auto px-2 bg-white rounded-l-md'>
+              {DummyExpenseData?.length>0 ? filterExpenses(DummyExpenseData)?.map((trip, index) => {
             return (
               <>
               <CardLayout index={index}>
@@ -916,17 +912,7 @@ Raise a Cash-Advance
              </div>}
               </div>
 
-                    {/* {trip?.expenseType === "Travel Expense" &&
-                     <div className='flex gap-2 items-center '>
-                     <img src={briefcase} className='w-4 h-4'/>
-                     <div className='font-medium font-cabin  text-sm uppercase text-neutral-700 '>
-                      {splitTripName(trip?.tripName)}
-                     </div>
-                     <div className='font-medium font-cabin  text-sm  text-neutral-700 '>
-                      {extractAndFormatDate(trip?.tripName)}
-                     </div>
-                     </div>
-                    } */}
+                   
                     
                     <div className='mt-2 space-y-2'>
                       {/* {filteredTripExpenses?.map((trExpense, index) => ( */}
@@ -953,19 +939,7 @@ Raise a Cash-Advance
                             </div> */}
                           </div>
                           <ExpenseLine expenseLines={trip?.expenseLines}/>
-                          {/* <div className='overflow-x-hidden overflow-y-auto max-h-[236px] py-1 pt-2 h-auto px-2 space-y-2'>
-                            {trip?.expenseLines?.map((line, index) => (
-                              <div key={`${index}-line`} className='flex  text-neutral-700 flex-row justify-between items-center font-cabin text-sm'>
-                                <div className='bg-indigo-50 border-2 shadow-md shadow-slate-900/50 translate-x-4 border-white p-2 rounded-full'>
-                                  <img src={categoryIcons?.[line?.["Category Name"]]} className='w-4 h-4' />
-                                </div>
-                                <div className='flex border-slate-400 border flex-row justify-between text-neutral-700 flex-1 items-center gap-2 py-4 px-4 pl-6 rounded-md bg-slate-100'>
-                                  <div>{line?.["Category Name"]}</div>
-                                  <div>{line?.["Currency"]?.shortName} {formatAmount(line?.["Total Amount"])}</div>
-                                </div>
-                              </div>
-                            ))}
-                          </div> */}
+                         
                         </div>
                       {/* // ))} */}
                     </div>
@@ -973,11 +947,11 @@ Raise a Cash-Advance
                   </CardLayout>
                   </>
                 );
-              })}
+              }):<EmptyBox icon={approvalempty_icon} text='No Expense for Approval.'/>}
             </div>
           </div>
         </div>
-      </div>
+      
 
   
     <Modal 
@@ -1004,9 +978,10 @@ Raise a Cash-Advance
         </div>}
       />  
     </div>
-   
+   <PopupMessage showPopup={showPopup} setShowPopup={setShowPopup} message={message}/>
+   </>
     }
-    <PopupMessage showPopup={showPopup} setShowPopup={setShowPopup} message={message}/>
+    
     </>
   );
 };

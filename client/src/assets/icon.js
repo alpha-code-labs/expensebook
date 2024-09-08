@@ -15,6 +15,15 @@ export {default as material_personal_black_icon} from './material_icon/outline_c
 export {default as material_personalVehicle_w_icon} from './material_icon/outline_commute_white_48dp.png';
 
 
+
+//gif icons
+export {default as cashadvance_icon} from './gif_icon/cashadvance_icon.gif'
+export {default as expene_icon} from './gif_icon/expense_icon.gif'
+export {default as approvalempty_icon} from './gif_icon/approval_icon.gif'
+export {default as trip_icon} from './gif_icon/trip_icon.gif'
+
+
+
 export { default as expense_text } from './expensebook.svg';
 export {default as frame_504} from './Frame 504.svg';
 export {default as airplay_1} from './airplay (1).svg';
@@ -98,7 +107,6 @@ export {default as violation_icon} from './violation_icon.png';
 export {default as arrow1_icon} from './icons8-forward-100.png';
 export {default as hamburger_icon} from './icons8-hamburger.svg';
 export {default as grade_icon} from './grade.png';
-
 
 
 

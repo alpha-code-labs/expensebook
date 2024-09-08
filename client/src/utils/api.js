@@ -9,7 +9,7 @@ const retry = 2;
 const retryDelay = 3000;
 
 const errorMessages = {
-  '404': 'Resource Not Found',
+  '404': 'Something went wrong. Please try again later',
   '400': 'Cannot fetch data at the moment',
   '500': 'Internal Server Error',
   'request': 'Network Error',

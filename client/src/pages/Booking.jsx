@@ -337,13 +337,13 @@ const handleConfirm = async (action) => {
   
   return (
     <>
-    {isLoading && <Error message={loadingErrMsg}/>}
-    {!isLoading && 
-    <div className='min-h-screen'>
-      <TravelMS visible={visible} setVisible={setVisible} src={iframeURL}/>
-<div className='flex flex-col w-full p-4  items-start gap-2'>
+    {isLoading ? <Error message={loadingErrMsg}/>:
+    <>
+    <TravelMS visible={visible} setVisible={setVisible} src={iframeURL}/>
+    <div className='h-screen  flex flex-col p-4'>
 
-<div className='min-h-[120px] flex-col border border-slate-300 bg-white rounded-md  w-full flex  items-start gap-2 px-2 py-2'>
+
+<div className='min-h-[150px] shrink-0 flex-col border border-slate-300 bg-white rounded-md  w-full flex  items-start gap-2 px-2 py-2'>
 
 <StatusFilter
 statuses={["48 Hours", "7 Days", "Within 30 Days", "Beyond 30 Days", "paid and cancelled"]}
@@ -371,9 +371,9 @@ setSelectedStatuses={setSelectedDateRange}
 
        
 
-        <div className='w-full flex md:flex-row flex-col'>
-          <div className='flex-1 justify-center items-center'>
-          <div className='relative flex justify-center items-center rounded-md font-inter text-md text-white h-[52px] bg-indigo-600 text-center'>
+<div className='w-full flex flex-col flex-grow  overflow-auto scrollbar-hide  mt-2'>
+          
+          <div className='relative shrink-0 flex justify-center items-center rounded-md font-inter text-md text-white h-[52px] bg-indigo-600 text-center'>
           
               
               <div className='flex justify-center items-center'>
@@ -382,7 +382,7 @@ setSelectedStatuses={setSelectedDateRange}
               </div>
             </div>
 
-            <div className='w-full mt-4 xl:h-[570px] lg:h-[370px] md:[590px] overflow-y-auto px-2 bg-white rounded-l-md'>
+            <div className='w-full h-full mt-2  overflow-y-auto px-2 bg-white rounded-l-md'>
               {selectedDateRange === "paid and cancelled" ? 
                 <div>
                 
@@ -559,11 +559,11 @@ setSelectedStatuses={setSelectedDateRange}
                 );
               })}
             </div>
-          </div>
+         
 
          
         </div>
-</div>
+
 
       
 
@@ -591,8 +591,9 @@ setSelectedStatuses={setSelectedDateRange}
           </div>
         </div>}
       />  
-    </div>}
+    </div>
     <PopupMessage showPopup={showPopup} setShowPopup={setShowPopup} message={message}/>
+    </>}
     </>
   );
 };
