@@ -128,7 +128,7 @@ const Sidebar = ({setSidebarOpen }) => {
                     className={`w-full   ${pathname === item.url ? 'bg-purple-500 text-white' : "text-indigo-600"} overflow-hidden flex flex-col items-start justify-start   box-border cursor-pointer`}
                 >
                     <div className="flex flex-row items-center justify-between px-3 py-3 w-full ">
-                        <div className='flex gap-2'>
+                        <div className='flex gap-2 items-center'>
                        
                         <img src={pathname === item.url ? item.icon1 : item.icon} alt={item.label} className='min-w-4 min-h-4 h-4 w-4' />
                         <div className={`   relative  tracking-[0.02em] w-auto md:w-[140px] font-inter  font-medium`} >

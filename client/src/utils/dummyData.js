@@ -4953,82 +4953,82 @@ const TRCashadvance = [
 ];
 
 const NonTRCashAdvances = [
-  {
-    cashAdvanceId: "66795ea1a4b5e4e0e666cd4a",
-    cashAdvanceNumber: "CA0001",
-    amountDetails: [
-      {
-        amount: 400,
-        currency: {
-          countryCode: "IN",
-          fullName: "Indian Rupee",
-          shortName: "INR",
-          symbol: "₹"
-        },
-        mode: null,
-        _id: "66795ea1a4b5e4e0e666cd5a"
-      },
-      {
-        amount: 500,
-        currency: {
-          countryCode: "IN",
-          fullName: "Indian Rupee",
-          shortName: "INR",
-          symbol: "₹"
-        },
-        mode: null,
-        _id: "66795ea1a4b5e4e0e666cd5b"
-      }
-    ],
-    cashAdvanceStatus: "pending settlement"
-  },
-  {
-    cashAdvanceId: "66795ea1a4b5e4e0e666cd4b",
-    cashAdvanceNumber: "CA0002",
-    amountDetails: [
-      {
-        amount: 6000,
-        currency: {
-          countryCode: "IN",
-          fullName: "Indian Rupee",
-          shortName: "INR",
-          symbol: "₹"
-        },
-        mode: null,
-        _id: "66795ea1a4b5e4e0e666cd5c"
-      }
-    ],
-    cashAdvanceStatus: "pending settlement"
-  },
-  {
-    cashAdvanceId: "66795ea1a4b5e4e0e666cd4c",
-    cashAdvanceNumber: "CA0003",
-    amountDetails: [
-      {
-        amount: 1500,
-        currency: {
-          countryCode: "US",
-          fullName: "US Dollar",
-          shortName: "USD",
-          symbol: "$"
-        },
-        mode: null,
-        _id: "66795ea1a4b5e4e0e666cd5d"
-      },
-      {
-        amount: 2000,
-        currency: {
-          countryCode: "US",
-          fullName: "US Dollar",
-          shortName: "USD",
-          symbol: "$"
-        },
-        mode: null,
-        _id: "66795ea1a4b5e4e0e666cd5e"
-      }
-    ],
-    cashAdvanceStatus: "approved"
-  }
+  // {
+  //   cashAdvanceId: "66795ea1a4b5e4e0e666cd4a",
+  //   cashAdvanceNumber: "CA0001",
+  //   amountDetails: [
+  //     {
+  //       amount: 400,
+  //       currency: {
+  //         countryCode: "IN",
+  //         fullName: "Indian Rupee",
+  //         shortName: "INR",
+  //         symbol: "₹"
+  //       },
+  //       mode: null,
+  //       _id: "66795ea1a4b5e4e0e666cd5a"
+  //     },
+  //     {
+  //       amount: 500,
+  //       currency: {
+  //         countryCode: "IN",
+  //         fullName: "Indian Rupee",
+  //         shortName: "INR",
+  //         symbol: "₹"
+  //       },
+  //       mode: null,
+  //       _id: "66795ea1a4b5e4e0e666cd5b"
+  //     }
+  //   ],
+  //   cashAdvanceStatus: "pending settlement"
+  // },
+  // {
+  //   cashAdvanceId: "66795ea1a4b5e4e0e666cd4b",
+  //   cashAdvanceNumber: "CA0002",
+  //   amountDetails: [
+  //     {
+  //       amount: 6000,
+  //       currency: {
+  //         countryCode: "IN",
+  //         fullName: "Indian Rupee",
+  //         shortName: "INR",
+  //         symbol: "₹"
+  //       },
+  //       mode: null,
+  //       _id: "66795ea1a4b5e4e0e666cd5c"
+  //     }
+  //   ],
+  //   cashAdvanceStatus: "pending settlement"
+  // },
+  // {
+  //   cashAdvanceId: "66795ea1a4b5e4e0e666cd4c",
+  //   cashAdvanceNumber: "CA0003",
+  //   amountDetails: [
+  //     {
+  //       amount: 1500,
+  //       currency: {
+  //         countryCode: "US",
+  //         fullName: "US Dollar",
+  //         shortName: "USD",
+  //         symbol: "$"
+  //       },
+  //       mode: null,
+  //       _id: "66795ea1a4b5e4e0e666cd5d"
+  //     },
+  //     {
+  //       amount: 2000,
+  //       currency: {
+  //         countryCode: "US",
+  //         fullName: "US Dollar",
+  //         shortName: "USD",
+  //         symbol: "$"
+  //       },
+  //       mode: null,
+  //       _id: "66795ea1a4b5e4e0e666cd5e"
+  //     }
+  //   ],
+  //   cashAdvanceStatus: "approved"
+  // }
 ];
 
 const reimbursementExpense = [

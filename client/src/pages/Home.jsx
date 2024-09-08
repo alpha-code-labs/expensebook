@@ -10,6 +10,7 @@ import Approval from './Approval';
 import Settlement from './Settlement';
 import Booking from './Booking';
 import Profile from './Profile';
+import Configure from './Configure';
 import Error from '../components/common/Error';
 import { getEmployeeData_API, getEmployeeRoles_API, logoutApi } from '../utils/api';
 import { useData } from '../api/DataProvider';
@@ -36,35 +37,37 @@ useEffect(() => {
 }, []);
 
 const [authToken , setAuthToken] = useState("authtoken");
-const [isLoading , setIsLoading]=useState(true);
+const [isLoading, setIsLoading] = useState({ loginData: false, roleData: true });
 const [loadingErrMsg, setLoadingErrMsg] = useState(null);
-const {employeeRoles , setEmployeeRoles, setEmployeeData , employeeData } = useData(); 
-  const fetchData = async () => {
-    try {
-      // Conditionally fetch employee roles only if employeeRoles is null
-      let rolesResponse = employeeRoles;
-      if (rolesResponse === null) {
-        rolesResponse = await getEmployeeRoles_API(tenantId, empId);
-        setEmployeeRoles(rolesResponse);
-      }
-  
-      const employeeResponse = await getEmployeeData_API(tenantId, empId);
-  
-      
-      // Set the state with the fetched data
-      setEmployeeData(employeeResponse);
-      setIsLoading(false);
-    } catch (error) {
-      console.error('Error fetching data:', error.message);
-      setLoadingErrMsg('Error danger', error.message);
-      setIsLoading(false);
+const { employeeRoles, setEmployeeRoles, setEmployeeData } = useData();
+
+const fetchData = async () => {
+  try {
+    // Conditionally fetch employee roles only if employeeRoles is null
+    setLoadingErrMsg(null)
+    let rolesResponse = employeeRoles;
+    if (rolesResponse === null) {
+      setIsLoading(prev => ({ ...prev, loginData: true })); // Start loading for role data
+      rolesResponse = await getEmployeeRoles_API(tenantId, empId);
+      setEmployeeRoles(rolesResponse);
+      setIsLoading(prev => ({ ...prev, loginData: false })); // Stop loading for role data
     }
-  };
 
-  useEffect(()=>{
-    fetchData()
+    setIsLoading(prev => ({ ...prev, roleData: true })); // Start loading for login data
+    const employeeResponse = await getEmployeeData_API(tenantId, empId);
+    setEmployeeData(employeeResponse);
+    setIsLoading(prev => ({ ...prev, roleData: false })); // Stop loading for login data
+  } catch (error) {
+    console.error('Error fetching data:', error.message);
+    setLoadingErrMsg(error?.message);
+    // Stop both loadings in case of error
+    //setIsLoading({ loginData: false, roleData: false });
+  }
+};
 
-  },[])
+useEffect(() => {
+  fetchData();
+}, []);
   
   const handleLogout = async () => {
     logoutApi(authToken)
@@ -113,7 +116,7 @@ const {employeeRoles , setEmployeeRoles, setEmployeeData , employeeData } = useD
 
   return (
     <>
-    {isLoading ? <Error message={loadingErrMsg}/> : 
+    {isLoading.loginData ? <Error message={loadingErrMsg}/> : 
      <div className='bg-slate-100'>
      
       <section>
@@ -122,7 +125,7 @@ const {employeeRoles , setEmployeeRoles, setEmployeeData , employeeData } = useD
        
       </section>
       <section>
-      <div className='flex flex-row'>
+      <div className='flex flex-row '>
      
       
       <div 
@@ -133,40 +136,44 @@ const {employeeRoles , setEmployeeRoles, setEmployeeData , employeeData } = useD
       </div>
       
      
-      <div className='h-screen overflow-auto scrollbar-hide w-full max-h-fit bg-white'>
+      <div className='h-screen overflow-y-auto scrollbar-hide w-full  bg-white'>
         <Routes>
           <Route
             exact
             path="/overview"
-            element={<Overview fetchData={fetchData} loadingErrMsg={loadingErrMsg} setLoadingErrMsg={setLoadingErrMsg} isLoading={isLoading} setIsLoading={setIsLoading} setAuthToken={setAuthToken} />}
+            element={<Overview fetchData={fetchData} loadingErrMsg={loadingErrMsg} setLoadingErrMsg={setLoadingErrMsg} isLoading={isLoading?.roleData} setIsLoading={setIsLoading} setAuthToken={setAuthToken} />}
           />
           <Route
             path="/trip"
-            element={<Travel fetchData={fetchData} loadingErrMsg={loadingErrMsg} isLoading={isLoading} setIsLoading={setIsLoading} setAuthToken={setAuthToken} />}
+            element={<Travel fetchData={fetchData} loadingErrMsg={loadingErrMsg} isLoading={isLoading?.roleData} setIsLoading={setIsLoading} setAuthToken={setAuthToken} />}
           />
           <Route
             path="/cash-advance"
-            element={<CashAdvance fetchData={fetchData} loadingErrMsg={loadingErrMsg} isLoading={isLoading} setAuthToken={setAuthToken} />}
+            element={<CashAdvance fetchData={fetchData} loadingErrMsg={loadingErrMsg} isLoading={isLoading?.roleData} setAuthToken={setAuthToken} />}
           />
           <Route
             path="/expense"
-            element={<Expense fetchData={fetchData} loadingErrMsg={loadingErrMsg} isLoading={isLoading} setAuthToken={setAuthToken} />}
+            element={<Expense fetchData={fetchData} loadingErrMsg={loadingErrMsg} isLoading={isLoading?.roleData} setAuthToken={setAuthToken} />}
           />
           <Route
             path="/approval"
-            element={<Approval fetchData={fetchData}loadingErrMsg={loadingErrMsg} isLoading={isLoading} setAuthToken={setAuthToken} />}
+            element={<Approval fetchData={fetchData}loadingErrMsg={loadingErrMsg} isLoading={isLoading?.roleData} setAuthToken={setAuthToken} />}
           />
           <Route
             path="/settlement"
-            element={<Settlement  fetchData={fetchData}loadingErrMsg={loadingErrMsg} isLoading={isLoading} setAuthToken={setAuthToken} />}
+            element={<Settlement  fetchData={fetchData}loadingErrMsg={loadingErrMsg} isLoading={isLoading?.roleData} setAuthToken={setAuthToken} />}
           />
           <Route
             path="/bookings"
-            element={<Booking fetchData={fetchData} loadingErrMsg={loadingErrMsg} isLoading={isLoading}   setAuthToken={setAuthToken} />}
+            element={<Booking fetchData={fetchData} loadingErrMsg={loadingErrMsg} isLoading={isLoading?.roleData}   setAuthToken={setAuthToken} />}
           />
           <Route
             path="/profile"
-            element={<Profile fetchData={fetchData} loadingErrMsg={loadingErrMsg} isLoading={isLoading} setAuthToken={setAuthToken}/>}
+            element={<Profile fetchData={fetchData} loadingErrMsg={loadingErrMsg} isLoading={isLoading?.roleData} setAuthToken={setAuthToken}/>}
+          />
+          <Route
+            path="/configure"
+            element={<Configure fetchData={fetchData} loadingErrMsg={loadingErrMsg} isLoading={isLoading?.roleData} setAuthToken={setAuthToken}/>}
           />
         </Routes>
         

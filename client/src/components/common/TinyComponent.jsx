@@ -67,11 +67,11 @@ const TripName = ({tripName})=>(
   }) {
 
     return (
-      <div className='flex items-center justify-start flex-row border border-slate-300 px-4 py-1 rounded-md w-full overflow-auto'>
+      <div className='flex items-center scrollbar-hide justify-start flex-row border border-slate-300 px-4 py-1 rounded-md w-full overflow-auto'>
         <div className='px-4'>
           <img src={filter_icon} className='min-w-5 w-5 h-5 min-h-5' alt="Filter icon"/>
         </div>
-        <div className='flex md:flex-wrap gap-2'>
+        <div className='inline-flex gap-2'>
           {statuses.map((status) => {
             const statusCount = getStatusCount(status, tripData);
             const isDisabled = statusCount === 0;
@@ -128,4 +128,15 @@ const TripName = ({tripName})=>(
   }
 
 
-export {Violation, ExpenseLine,StatusFilter,CardLayout ,TripName,ExtractAndFormatDate,StatusBox}  
+  function EmptyBox ({icon, text }){
+    return(
+    <div className=" border border-slate-300 rounded-md h-full w-full flex justify-center items-center">
+      <div className="flex flex-col gap-4 items-center">
+        <img src={icon} className="w-[200px] animate-pulse" alt="Empty itinerary icon" />
+        <p className="text-xl text-center font-cabin text-neutral-600 inline-flex">{text}</p>
+      </div>
+    </div>
+  )}
+
+
+export {EmptyBox,Violation, ExpenseLine,StatusFilter,CardLayout ,TripName,ExtractAndFormatDate,StatusBox}  
