@@ -449,7 +449,7 @@ const currentTotalExpenseAmount = Object.values(alreadyBookedExpenseLines)
 const currentTotalAlreadyBookedExpense = currentTotalExpenseAmount;
 
         // Handling cash advance details
-        let currentTotalcashAdvance = 0;
+        let currentTotalCashAdvance = 0;
         let currentRemainingCash = 0;
         const isCashAdvanceTaken = expenseReport.travelRequestData?.isCashAdvanceTaken;
         const cashAdvanceData = expenseReport?.cashAdvancesData;
@@ -459,17 +459,17 @@ const currentTotalAlreadyBookedExpense = currentTotalExpenseAmount;
           const cashAdvanceResult = await calculateTotalCashAdvances(cashAdvanceData, res);
           console.log("cashAdvanceResult",cashAdvanceResult)
 
-          currentTotalcashAdvance += cashAdvanceResult.totalPaid.reduce((total, item) => total + item.amount, 0);
-          currentTotalcashAdvance = parseFloat(currentTotalcashAdvance) + 0.00;
-          currentRemainingCash = currentTotalcashAdvance;
-          console.log("cashAdvanceResult - currentTotalcashAdvance", currentTotalcashAdvance)
+          currentTotalCashAdvance += cashAdvanceResult.totalPaid.reduce((total, item) => total + item.amount, 0);
+          currentTotalCashAdvance = parseFloat(currentTotalCashAdvance) + 0.00;
+          currentRemainingCash = currentTotalCashAdvance;
+          console.log("cashAdvanceResult - currentTotalCashAdvance", currentTotalCashAdvance)
         }
 
         // Updating the expenseAmountStatus in the existing document
-        expenseReport.expenseAmountStatus.totalCashAmount = isCashAdvanceTaken ? currentTotalcashAdvance : 0 ;
+        expenseReport.expenseAmountStatus.totalCashAmount = isCashAdvanceTaken ? currentTotalCashAdvance : 0 ;
         expenseReport.expenseAmountStatus.totalAlreadyBookedExpenseAmount = currentTotalAlreadyBookedExpense;
         expenseReport.expenseAmountStatus.totalExpenseAmount = currentTotalExpenseAmount;
-        expenseReport.expenseAmountStatus.totalRemainingCash = isCashAdvanceTaken ? currentTotalcashAdvance : 0;
+        expenseReport.expenseAmountStatus.totalRemainingCash = isCashAdvanceTaken ? currentTotalCashAdvance : 0;
 
         //create a expenseHeaderId
         const newExpenseHeaderId = new mongoose.Types.ObjectId();
@@ -1290,7 +1290,7 @@ const getExpenseHeaderStatus = (travelExpenseData) => {
       console.log("Approvers", travelExpenseData.approvers);
       return 'pending approval';
   } else if (hasPaidLines && hasNoExpenseLines) {
-    console.log("AlreadybookedExpense", hasPaidLines, hasNoExpenseLines)
+    console.log("Already booked Expense", hasPaidLines, hasNoExpenseLines)
       return 'paid';
   } else {
       return 'pending settlement'; // finance admin

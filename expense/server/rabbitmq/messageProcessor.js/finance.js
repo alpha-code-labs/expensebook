@@ -79,6 +79,22 @@ export const settleOrRecoverCashAdvance = async (payload) => {
           recoveredBy,recoveredFlag,
       } = payload;
   
+      const report = await Expense.findOne(
+        { 
+          tenantId,
+          'cashAdvancesData': { $elemMatch: { travelRequestId } }
+          // 'cashAdvancesData': { $elemMatch: { cashAdvanceId,travelRequestId } }
+        },)
+
+        console.log("report", JSON.stringify(report,'',2))
+
+        const { expenseAmountStatus,cashAdvancesData,} = report
+        const isCash = cashAdvancesData.find(c => c.cashAdvanceId.toString() === cashAdvanceId.toString())
+
+        if(isCash){
+          
+        }
+
       console.log("settle ca payload", payload)
       const updateCashDoc = {
           'cashAdvancesData.$.cashAdvanceStatus': cashAdvanceStatus, 
@@ -94,13 +110,6 @@ export const settleOrRecoverCashAdvance = async (payload) => {
         updateCashDoc['cashAdvancesData.$.recoveredFlag'] = recoveredFlag
       }
 
-      const isFound = await Expense.findOne(
-        { 
-          tenantId,
-          'cashAdvancesData': { $elemMatch: { cashAdvanceId,travelRequestId } }
-        },)
-
-        console.log("isFound", JSON.stringify(isFound,'',2))
       const trip = await Expense.findOneAndUpdate(
         { 
           tenantId,

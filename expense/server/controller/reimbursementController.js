@@ -122,6 +122,7 @@ export const getExpenseCategoriesForEmpId = async (req, res) => {
     }
     const { tenantId, empId } = value;
 
+    console.log("non travel expense booking",  tenantId, empId )
     const employeeDocument = await HRCompany.findOne({
       tenantId,
       'employees.employeeDetails.employeeId': empId
