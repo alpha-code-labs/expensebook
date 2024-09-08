@@ -1199,7 +1199,7 @@ const getContent = () => {
           If you delete this {actionType==="cancelExpense" ? 'expense': 'line-item'}, you cannot retrieve it. Are you sure you want to delete?
           </p>
                                 <div className="flex items-center gap-2 mt-10">
-                                  <Button1 loading={isUploading.deleteHeader || isUploading.deleteLineItem}  text='Delete' onClick={()=>{actionType==="deleteExpense" ?handleCancelExpenseHeader(): handleDeleteLineItem()}} />
+                                  <Button1 loading={isUploading.deleteHeader || isUploading.deleteLineItem}  text='Delete' onClick={()=>{actionType==="cancelExpense" ? handleCancelExpenseHeader(): handleDeleteLineItem()}} />
                                   <CancelButton   text='Cancel'  onClick={()=>setModalOpen(false)}/>
                                 </div>
           </>
