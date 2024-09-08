@@ -120,15 +120,15 @@ export const expenseRoutes={
 export const nonExpenseRoutes={  
   create:{
     path:'/non-tr-ex-create/:tenantId/:empId',
-    getUrl:()=>`${expenseBaseUrl}/${tenantId}/${empId}/non-travel-expense/new`
+    getUrl:(tenantId,empId)=>`${expenseBaseUrl}/${tenantId}/${empId}/non-travel-expense/new`
   },
   modify:{
     path:'/non-tr-ex-modify/:tenantId/:empId/:cashAdvanceId',
-    getUrl:(expenseHeaderId,)=>`${expenseBaseUrl}/${tenantId}/${empId}/non-travel-expense/${expenseHeaderId}/view`
+    getUrl:(tenantId,empId,expenseHeaderId)=>`${expenseBaseUrl}/${tenantId}/${empId}/non-travel-expense/${expenseHeaderId}/view`
   },
   cancel:{
     path:'/non-tr-ex-cancel/:tenantId/:empId/:expenseHeaderId',
-    getUrl:(expenseHeaderId,)=>`${expenseBaseUrl}/${tenantId}/${empId}/${expenseHeaderId}/cancel/reimbursement`
+    getUrl:(tenantId,empId,expenseHeaderId,)=>`${expenseBaseUrl}/${tenantId}/${empId}/${expenseHeaderId}/cancel/reimbursement`
   },
   // clearRejected:{
   //   path:'/non-tr-ex-clear-rejected/:tenantId/:empId/:expenseHeaderId',

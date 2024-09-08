@@ -11,6 +11,7 @@ import Error from '../components/common/Error';
 import Input from '../components/common/SearchInput';
 import { CardLayout, EmptyBox, ExpenseLine, StatusFilter, TripName } from '../components/common/TinyComponent';
 import ExpenseMS from '../microservice/Expense';
+import { act } from 'react';
 
 
 const Expense = ({isLoading ,fetchData,loadingErrMsg}) => {
@@ -135,12 +136,12 @@ const Expense = ({isLoading ,fetchData,loadingErrMsg}) => {
       setTripId(null)
       setExpenseType(null)
       setModalOpen(false)
-      handleVisible({urlName:handleTravelExpense({tenantId,empId,tripId, action:'trip-ex-create'})})
+      handleVisible({urlName:handleTravelExpense({tenantId,empId,tripId, "action":'trip-ex-create'})})
       //handleTravelExpense(tripId, '','trip-ex-create')
     } else {
       setExpenseType(null)
       setModalOpen(false)
-      handleVisible({urlName:handleNonTravelExpense('','non-tr-ex-create')})
+      handleVisible({urlName:handleNonTravelExpense({tenantId,empId,"action":'non-tr-ex-create'})})
      // handleNonTravelExpense('','non-tr-ex-create')
     }
   };

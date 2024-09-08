@@ -96,17 +96,17 @@ export const handleTrip=(tripId,action)=>{
 
 
 //handle non travel expense
-export const handleNonTravelExpense=(expenseHeaderId,action)=>{
+export const handleNonTravelExpense=({tenantId,empId,expenseHeaderId,action})=>{
     let url ;
     if (action==="non-tr-ex-create"){
-      url=nonExpenseRoutes.create.getUrl()
+      url=nonExpenseRoutes.create.getUrl(tenantId,empId)
     }
     else if(action==="non-tr-ex-modify"){
-      url= nonExpenseRoutes.modify.getUrl(expenseHeaderId);
+      url= nonExpenseRoutes.modify.getUrl(tenantId,empId,expenseHeaderId);
     } else if (action==="non-tr-ex-cancel"){
-      url =nonExpenseRoutes.cancel.getUrl(expenseHeaderId)
+      url =nonExpenseRoutes.cancel.getUrl(tenantId,empId,expenseHeaderId)
     }else if (action=="non-tr-ex-clear-rejected"){
-      url=nonExpenseRoutes.clearRejected.getUrl(expenseHeaderId)
+      url=nonExpenseRoutes.clearRejected.getUrl(tenantId,empId,expenseHeaderId)
     }
     else {
       throw new Error('Invalid action');
