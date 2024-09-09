@@ -583,7 +583,7 @@ const IntransitTrips = ({ index, trip, lastIndex,handleVisible }) => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <div className='h-[180px]  space-y-2 min-w-max w-full bg-white overflow-y-auto rounded-b-md py-1 px-2'>
+          <div className='h-[180px]  space-y-2  w-full bg-white overflow-y-auto rounded-b-md py-1 px-2'>
           {itineraryByTab && itineraryByTab.length == 0 && 
          <EmptyTrips icon={empty_itinerary_icon} text={"No upcoming itineraries."}/>
             }

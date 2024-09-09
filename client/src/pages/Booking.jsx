@@ -148,9 +148,9 @@ const handleConfirm = async (action) => {
     const data = employeeData?.dashboardViews?.businessAdmin || [];
 
     const travelRequests = data?.pendingBooking || [];
-    //const paidAndCancelledTrips = data?.paidAndCancelledTrips || []
+    const paidAndCancelledTrips = data?.paidAndCancelledTrips || []
     //const travelRequests = [ ...dummyTravelReqForBooking];
-    const paidAndCancelledTrips = [...dummyPaidAndCancelledTrips] || []
+    //const paidAndCancelledTrips = [...dummyPaidAndCancelledTrips] || []
 
     sortTripsForBooking(travelRequests)
     sortTripsForBooking(paidAndCancelledTrips)
@@ -413,7 +413,7 @@ setSelectedStatuses={setSelectedDateRange}
           </div>
         </div>
         <div className='flex w-full sm:justify-end justify-between gap-2 items-center'>
-        <div className='text-red-600 font-semibold font-inter text-sm'>{checkUpcomingTrip(trip?.tripStartDate)}</div>
+        <div className='text-red-600  font-medium font-inter text-xs text-center'>{checkUpcomingTrip(trip?.tripStartDate)}</div>
           <div className='flex items-center justify-center space-x-2'>
           
             <div className='w-fit bg-slate-100 px-2 py-1 flex gap-1 rounded-md border border-slate-300'>Grade
