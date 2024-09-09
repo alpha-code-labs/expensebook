@@ -18,22 +18,28 @@ import {
     no_smoking_icon,
     restraunt_icon,
  } from "../../assets/icon";
-import { titleCase } from "../../utils/handyFunctions";
+import { getStatusClass, titleCase } from "../../utils/handyFunctions";
 import moment from "moment";
 
-export function FlightCard({ from, to, date, returnDate, time, travelClass, onClick, mode = 'Flight', id, handleEdit, handleDelete }) {
+export function FlightCard({ status,from, to, date, returnDate, time, travelClass, onClick, mode = 'Flight', id, handleEdit, handleDelete }) {
     return (
-        <CardLayout>
-            <div className="flex flex-col justify-center">
+        <CardLayout status={status}>
+            {['pending booking'].includes(status) && 
+            <div className={`${getStatusClass(status)} capitalize absolute text-center rounded-sm px-1  right-0 top-0`}>
+            <p className="text-xs">{status}</p>
+        </div>}
+            
+
+            <div className="flex flex-col justify-center items-center">
                 <img src={spitImageSource(mode)} className='w-6 md:h-6' />
             </div>
             <CardItemsLayout>
-                <div className='flex items-center gap-1 lg:justify-center'>
-                    <div className="text-lg semibold">
+                <div className='flex  items-center gap-1 lg:justify-center'>
+                    <div className="text-base semibold">
                         {titleCase(from)}
                     </div>
                     <img src={straight_arrow_icon} className="w-5 rotate-90" />
-                    <div className="text-lg semibold">
+                    <div className=" text-base semibold">
                         {titleCase(to)}
                     </div>
                 </div>
@@ -49,6 +55,10 @@ export function CabCard({ from, to, date, returnDate, time, isFullDayCab, travel
     console.log('isFullDay cab', isFullDayCab)
     return (
         <CardLayout>
+            {['pending booking'].includes(status) && 
+            <div className={`${getStatusClass(status)} capitalize absolute text-center rounded-sm px-1  right-0 top-0`}>
+            <p className="text-xs">{status}</p>
+        </div>}
             <div className='font-semibold items-center flex flex-col'>
                 <img src={spitImageSource(mode)} className='w-6 md:h-6' />
                 {isFullDayCab && <p className="text-xs whitespace-nowrap ">Full Day</p>}
@@ -80,6 +90,10 @@ export function CabCard({ from, to, date, returnDate, time, isFullDayCab, travel
 export function RentalCabCard({ from, to, date, returnDate, time, travelClass, mode, id, handleDelete, handleEdit }) {
     return (
         <CardLayout>
+            {['pending booking'].includes(status) && 
+            <div className={`${getStatusClass(status)} capitalize absolute text-center rounded-sm px-1  right-0 top-0`}>
+            <p className="text-xs">{status}</p>
+        </div>}
             <div className='font-semibold items-center flex flex-col'>
                 <img src={spitImageSource(mode)} className='w-6 md:h-6' />
                 <p className="text-xs whitespace-nowrap">Self Drive</p>
@@ -108,6 +122,10 @@ export function RentalCabCard({ from, to, date, returnDate, time, travelClass, m
 export function HotelCard({ checkIn, checkOut, location, ratings='any', onClick, id, handleDelete, handleEdit, needBreakfast, needLunch, needDinner, needNonSmokingRoom }) {
     return (
         <CardLayout>
+            {['pending booking'].includes(status) && 
+            <div className={`${getStatusClass(status)} capitalize absolute text-center rounded-sm px-1  right-0 top-0`}>
+            <p className="text-xs">{status}</p>
+        </div>}
             <img src={material_hotel_black_icon} className="w-6 md:h-6" />
 
             <CardItemsLayout>
@@ -133,9 +151,10 @@ export function HotelCard({ checkIn, checkOut, location, ratings='any', onClick,
         </CardLayout>)
 }
 
-function CardLayout({ children }) {
+function CardLayout({ children ,status }) {
+    console.log('status',status)
     return (
-        <div className="shadow-sm   min-h-[76px] bg-white rounded-md border-x-4 border-x-indigo-600  border border-slate-300 w-full px-6 py-4 flex flex-col sm:flex-row gap-4 items-center sm:divide-x">
+        <div className={`relative shadow-sm    min-h-[76px] bg-white rounded-md border-x-4 ${["pending booking"].includes(status) ?"border-x-slate-600":  "border-x-indigo-600"} border border-slate-300 w-full px-6 py-4 flex flex-col sm:flex-row gap-4 items-center sm:divide-x`}>
             {children}
         </div>)
 }
@@ -155,7 +174,7 @@ function ActionButtons({ id, handleDelete, handleEdit }) {
 }
 
 function CardItemsLayout({ children }) {
-    return (<div className="w-full flex flex-col items-start  text-sm gap-1  sm:flex-row sm:justify-between sm:items-start pl-2">
+    return (<div className="w-full flex flex-col font-cabin  items-start  text-sm gap-1  sm:flex-row sm:justify-between sm:items-center pl-2">
         {children}
     </div>)
 }

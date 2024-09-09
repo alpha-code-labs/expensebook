@@ -34,7 +34,7 @@ function CardLayout({cardSequence,icon,cardTitle,children}){
          </div>
          <div className=' shadow-sm shadow-indigo-600 rounded-md'/>
          {/* <div className="h-[285px] flex justify-center items-center  bg-white overflow-hidden overflow-y-auto mt-2  border-[4px] border-gray-600  shadow-lg  shadow-black/60  rounded-3xl px-2"> */}
-         <div className="h-[285px] bg-white overflow-hidden overflow-y-auto mt-2  border-[4px] border-gray-600    shadow-custom-light  rounded-3xl px-2">
+         <div className="h-[285px] scrollbar-hide bg-white overflow-hidden overflow-y-auto space-y-2  border-[4px] border-gray-600    shadow-custom-light  rounded-3xl px-2">
          
           {children}
       
@@ -442,6 +442,7 @@ export default Overview;
 
 const IntransitTrips = ({ index, trip, lastIndex,handleVisible }) => {
   
+  
   const [activeTabs, setActiveTabs] = useState("upcoming");
  
 
@@ -450,50 +451,21 @@ const IntransitTrips = ({ index, trip, lastIndex,handleVisible }) => {
   console.log(activeTabs);
 
 
-  // function separateItineraryByDate(currentDate, itinerary) {
-  //   let completedItinerary = [];
-  //   let upcomingItinerary = [];
-  
-  //   function checkAndPush(item, dateField, category, timeField) {
-  //     const itemDate = new Date(item[dateField]);
-  //     const currentTime = currentDate.getTime();
-  //     const itemTime = item[timeField] ? item[timeField].split(":") : ["00", "00"];
-  
-  //     // Set itemDate time using the itemTime values
-  //     itemDate.setHours(parseInt(itemTime[0], 10));
-  //     itemDate.setMinutes(parseInt(itemTime[1], 10));
-  
-  //     const itemWithCategory = { ...item, category };
-  
-  //     if (category === "hotels") {
-  //       if (itemDate < currentDate) {
-  //         completedItinerary.push(itemWithCategory);
-  //       } else {
-  //         upcomingItinerary.push(itemWithCategory);
-  //       }
-  //     } else {
-  //       if (itemDate >= currentDate) {
-  //         upcomingItinerary.push(itemWithCategory);
-  //       } else {
-  //         completedItinerary.push(itemWithCategory);
-  //       }
-  //     }
-  //   }
-  
-  //   itinerary.flights.forEach(flight => checkAndPush(flight, 'bkd_date', 'flights', 'bkd_time'));
-  //   itinerary.hotels.forEach(hotel => checkAndPush(hotel, 'bkd_checkOut', 'hotels'));
-  //   itinerary.buses.forEach(bus => checkAndPush(bus, 'bkd_date', 'buses', 'bkd_time'));
-  //   itinerary.trains.forEach(train => checkAndPush(train, 'bkd_date', 'trains', 'bkd_time'));
-  //   itinerary.cabs.forEach(cab => checkAndPush(cab, 'bkd_date', 'cabs', 'bkd_time'));
-  
-  //   completedItinerary = completedItinerary.sort((a, b) => a.sequence - b.sequence);
-  //   upcomingItinerary = upcomingItinerary.sort((a, b) => a.sequence - b.sequence);
-  
-  //   return { completedItinerary, upcomingItinerary };
-  // }
-  function separateItineraryByDate(currentDate, itinerary) {
+ 
+  function separateItineraryByDate(currentDate, itinerary,addALegItinerary) {
+
     let completedItinerary = [];
-    let upcomingItinerary = [];
+    let upcomingItinerary = [
+    ];
+    const addALegItineraryArray = [
+      ...addALegItinerary.flights,
+      ...addALegItinerary.buses,
+      ...addALegItinerary.trains,
+      ...addALegItinerary.hotels,
+      ...addALegItinerary.cabs,
+      ...addALegItinerary.carRentals,
+      ...addALegItinerary.personalVehicles
+    ]
   
     function checkAndPush(item, dateField, category, timeField) {
       const itemDate = new Date(item[dateField]);
@@ -529,7 +501,8 @@ const IntransitTrips = ({ index, trip, lastIndex,handleVisible }) => {
   
     completedItinerary = completedItinerary.sort((a, b) => a.sequence - b.sequence);
     upcomingItinerary = upcomingItinerary.sort((a, b) => a.sequence - b.sequence);
-  
+   
+   upcomingItinerary = [...upcomingItinerary,...addALegItineraryArray]
     return { completedItinerary, upcomingItinerary };
   }
   
@@ -539,7 +512,7 @@ const IntransitTrips = ({ index, trip, lastIndex,handleVisible }) => {
 
 
   const currentDate = new Date();
-  const { completedItinerary, upcomingItinerary } = separateItineraryByDate(currentDate, trip?.itinerary);
+  const { completedItinerary, upcomingItinerary } = separateItineraryByDate(currentDate, trip?.itinerary,trip?.addALegItinerary ??[]);
   
   const [itineraryByTab , setItineraryByTab] = useState(upcomingItinerary)
   const handleTabChange = (tab) => {
@@ -562,7 +535,7 @@ const IntransitTrips = ({ index, trip, lastIndex,handleVisible }) => {
   const [textVisible, setTextVisible] = useState({ modify: false });
 
   return (
-    <div className={`h-[275px]  rounded-md border border-white  `}>
+    <div className={`h-[275px]  rounded-md    `}>
       <div className="flex gap-2 px-2 flex-row items-center justify-between text-center font-cabin border-b-2 border-slate-300 shadow-sm  py-2 text-neutral-700 text-xs">
         <div className='flex'>
         <div
@@ -610,7 +583,7 @@ const IntransitTrips = ({ index, trip, lastIndex,handleVisible }) => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <div className='h-[200px] space-y-2 min-w-max w-full bg-white overflow-y-auto rounded-b-md py-1 px-2'>
+          <div className='h-[180px]  space-y-2 min-w-max w-full bg-white overflow-y-auto rounded-b-md py-1 px-2'>
           {itineraryByTab && itineraryByTab.length == 0 && 
          <EmptyTrips icon={empty_itinerary_icon} text={"No upcoming itineraries."}/>
             }
@@ -619,89 +592,100 @@ const IntransitTrips = ({ index, trip, lastIndex,handleVisible }) => {
                 return ( 
                 <FlightCard 
                 key={index}
+                status={item.status}
                 id={item.id} 
-                from={item.bkd_from} 
-                to={item.bkd_to} 
-                date={item.bkd_date}
-                returnDate={item.bkd_returnDate}
-                returnTime={item.bkd_returnTime}
-                travelClass={item.bkd_travelClass} 
+                from={['pending booking'].includes(item?.status) ? item.from :item.bkd_from} 
+                to={['pending booking'].includes(item?.status) ? item.to :item.bkd_to} 
+                date={['pending booking'].includes(item?.status) ? item.date :item.bkd_date}
+                returnDate={['pending booking'].includes(item?.status) ? item.returnDate :item.bkd_returnDate}
+                returnTime={['pending booking'].includes(item?.status) ? item.returnTime :item.bkd_returnTime}
+                travelClass={['pending booking'].includes(item?.status) ? item.travelClass :item.bkd_travelClass} 
                 mode={'Flight'}
-                time={item.bkd_time}
+                time={['pending booking'].includes(item?.status) ? item.time :item.bkd_time}
                 />)
               }
               if(item?.category === "trains"){
                 return ( 
                   <FlightCard 
                   key={index}
+                  status={item.status}
                   id={item.id} 
-                  from={item.bkd_from} 
-                  to={item.bkd_to} 
-                  date={item.bkd_date}
-                  returnDate={item.bkd_returnDate}
-                  returnTime={item.bkd_returnTime}
-                  travelClass={item.bkd_travelClass} 
-                  mode={'Flight'}
-                  time={item.bkd_time}
+                  from={['pending booking'].includes(item?.status) ? item.from :item.bkd_from} 
+                  to={['pending booking'].includes(item?.status) ? item.to :item.bkd_to} 
+                  date={['pending booking'].includes(item?.status) ? item.date :item.bkd_date}
+                  returnDate={['pending booking'].includes(item?.status) ? item.returnDate :item.bkd_returnDate}
+                  returnTime={['pending booking'].includes(item?.status) ? item.returnTime :item.bkd_returnTime}
+                  travelClass={['pending booking'].includes(item?.status) ? item.travelClass :item.bkd_travelClass} 
+                  mode={'Train'}
+                  time={['pending booking'].includes(item?.status) ? item.time :item.bkd_time}
                   />)
               }
               if(item?.category === "buses"){
                 return (                 
                   <FlightCard 
                   key={index}
+                  status={item.status}
                   id={item.id} 
-                  from={item.bkd_from} 
-                  to={item.bkd_to} 
-                  date={item.bkd_date}
-                  returnDate={item.bkd_returnDate}
-                  returnTime={item.bkd_returnTime}
-                  travelClass={item.bkd_travelClass} 
-                  mode={'Flight'}
-                  time={item.bkd_time}
+                  from={['pending booking'].includes(item?.status) ? item.from :item.bkd_from} 
+                  to={['pending booking'].includes(item?.status) ? item.to :item.bkd_to} 
+                  date={['pending booking'].includes(item?.status) ? item.date :item.bkd_date}
+                  returnDate={['pending booking'].includes(item?.status) ? item.returnDate :item.bkd_returnDate}
+                  returnTime={['pending booking'].includes(item?.status) ? item.returnTime :item.bkd_returnTime}
+                  travelClass={['pending booking'].includes(item?.status) ? item.travelClass :item.bkd_travelClass} 
+                  mode={'Bus'}
+                  time={['pending booking'].includes(item?.status) ? item.time :item.bkd_time}
                   />)
               }
               if(item?.category === "cabs"){
                 return (                 
                   <CabCard
                   key={index}
+                  status={item.status}
                   id={item.id} 
-                  from={item.bkd_pickupAddress} 
-                  to={item.bkd_dropAddress} 
-                  date={item.bkd_date}
-                  returnDate={item.bkd_returnDate}
-                  isFullDayCab={item.isFullDayCab}
-                  travelClass={item.bkd_class} 
+                  from={['pending booking'].includes(item?.status) ? item.pickupAddress :item.bkd_pickupAddress} 
+                  to={['pending booking'].includes(item?.status) ? item.dropAddress : item.bkd_dropAddress} 
+                  date={['pending booking'].includes(item?.status) ? item.date : item.bkd_date}
+                  returnDate={['pending booking'].includes(item?.status) ? item.returnDate : item.bkd_returnDate}
+                  isFullDayCab={['pending booking'].includes(item?.status) ? item.isFullDayCab : item.isFullDayCab}
+                  travelClass={['pending booking'].includes(item?.status) ? item.class : item.bkd_class} 
                   mode={'Cab'}
-                  time={item.bkd_time}/>)
+                  time={['pending booking'].includes(item?.status) ? item.time : item.bkd_time}/>)
               }
+    
               if(item.category == 'carRentals'){
                 return (
-                    <RentalCabCard
-                    key={index}
-                        id={item.id} 
-                        from={item.bkd_pickupAddress} 
-                        to={item.bkd_dropAddress} 
-                        date={item.bkd_date}
-                        returnDate={item.bkd_returnDate}
-                        travelClass={item.bkd_class} 
-                        mode={'Cab'}
-                        time={item.bkd_time}/>
+                  <RentalCabCard
+                  key={index}
+                  status={item.status}
+                  id={item.id}
+                  from={['pending booking'].includes(item?.status) ? item.pickupAddress : item.bkd_pickupAddress}
+                  to={['pending booking'].includes(item?.status) ? item.dropAddress : item.bkd_dropAddress}
+                  date={['pending booking'].includes(item?.status) ? item.date : item.bkd_date}
+                  returnDate={['pending booking'].includes(item?.status) ? item.returnDate : item.bkd_returnDate}
+                  travelClass={['pending booking'].includes(item?.status) ? item.travelClass : item.bkd_class}
+                  mode={'Cab'}
+                  time={['pending booking'].includes(item?.status) ? item.time : item.bkd_time}
+              />
                 )
             }
             if(item.category == 'hotels'){
               return (
-                  <HotelCard
-                  key={index}
-                      id={item.id} 
-                      checkIn={item.bkd_checkIn} 
-                      checkOut={item.bkd_checkOut} 
-                      location={item.bkd_location}
-                      time={item.bkd_preferredTime}
-                      needBreakfast={item.bkd_needBreakfast}
-                      needLunch={item.bkd_needLunch}
-                      needDinner={item.bkd_needDinner}
-                      needNonSmokingRoom={item.bkd_needNonSmokingRoom}
-                      />
+
+
+                <HotelCard
+                key={index}
+                status={item.status}
+                id={item.id}
+                checkIn={['pending booking'].includes(item?.status) ? item.checkIn : item.bkd_checkIn}
+                checkOut={['pending booking'].includes(item?.status) ? item.checkOut : item.bkd_checkOut}
+                location={['pending booking'].includes(item?.status) ? item.location : item.bkd_location}
+                time={['pending booking'].includes(item?.status) ? item.preferredTime : item.bkd_preferredTime}
+                needBreakfast={['pending booking'].includes(item?.status) ? item.needBreakfast : item.bkd_needBreakfast}
+                needLunch={['pending booking'].includes(item?.status) ? item.needLunch : item.bkd_needLunch}
+                needDinner={['pending booking'].includes(item?.status) ? item.needDinner : item.bkd_needDinner}
+                needNonSmokingRoom={['pending booking'].includes(item?.status) ? item.needNonSmokingRoom : item.bkd_needNonSmokingRoom}
+            />
+            
               )
           }
 
