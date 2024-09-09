@@ -1433,6 +1433,7 @@ const handleSubmitOrDraft=async(action)=>{
       const handleSettlementMethod = (option)=>{
         setFormData(prev => ({...prev,expenseSettlement:option}))
        }
+
       const handleSelectCategory = async(option) => {
         console.log('handle category',option)
         // setRequiredObj((prev) => ({
@@ -1503,12 +1504,12 @@ const handleSubmitOrDraft=async(action)=>{
             group:response?.group || {}
           });
           
-          if (!actionType==="editLineItem"){
+          // if (!actionType==="editLineItem"){
             setFormData((prevData) => ({
               ...prevData,
               fields: updatedFields,
             }));
-          }
+          
          
 
           console.log('Updated FormData:', updatedFields);
