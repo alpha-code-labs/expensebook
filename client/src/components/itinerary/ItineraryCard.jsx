@@ -51,10 +51,10 @@ export function FlightCard({ status,from, to, date, returnDate, time, travelClas
     )
 }
 
-export function CabCard({ from, to, date, returnDate, time, isFullDayCab, travelClass, mode, id, handleDelete, handleEdit }) {
+export function CabCard({status, from, to, date, returnDate, time, isFullDayCab, travelClass, mode, id, handleDelete, handleEdit }) {
     console.log('isFullDay cab', isFullDayCab)
     return (
-        <CardLayout>
+        <CardLayout status={status} >
             {['pending booking'].includes(status) && 
             <div className={`${getStatusClass(status)} capitalize absolute text-center rounded-sm px-1  right-0 top-0`}>
             <p className="text-xs">{status}</p>
@@ -87,9 +87,9 @@ export function CabCard({ from, to, date, returnDate, time, isFullDayCab, travel
     </CardLayout>)
 }
 
-export function RentalCabCard({ from, to, date, returnDate, time, travelClass, mode, id, handleDelete, handleEdit }) {
+export function RentalCabCard({ status,from, to, date, returnDate, time, travelClass, mode, id, handleDelete, handleEdit }) {
     return (
-        <CardLayout>
+        <CardLayout status={status}>
             {['pending booking'].includes(status) && 
             <div className={`${getStatusClass(status)} capitalize absolute text-center rounded-sm px-1  right-0 top-0`}>
             <p className="text-xs">{status}</p>
@@ -119,9 +119,9 @@ export function RentalCabCard({ from, to, date, returnDate, time, travelClass, m
         </CardLayout>)
 }
 
-export function HotelCard({ checkIn, checkOut, location, ratings='any', onClick, id, handleDelete, handleEdit, needBreakfast, needLunch, needDinner, needNonSmokingRoom }) {
+export function HotelCard({status, checkIn, checkOut, location, ratings='any', onClick, id, handleDelete, handleEdit, needBreakfast, needLunch, needDinner, needNonSmokingRoom }) {
     return (
-        <CardLayout>
+        <CardLayout status={status}>
             {['pending booking'].includes(status) && 
             <div className={`${getStatusClass(status)} capitalize absolute text-center rounded-sm px-1  right-0 top-0`}>
             <p className="text-xs">{status}</p>
