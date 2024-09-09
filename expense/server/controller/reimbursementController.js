@@ -122,7 +122,7 @@ export const getExpenseCategoriesForEmpId = async (req, res) => {
     }
     const { tenantId, empId } = value;
 
-    console.log("non travel expense booking",  tenantId, empId )
+    // console.log("non travel expense booking",  tenantId, empId )
     const employeeDocument = await HRCompany.findOne({
       tenantId,
       'employees.employeeDetails.employeeId': empId
@@ -137,7 +137,7 @@ export const getExpenseCategoriesForEmpId = async (req, res) => {
 
     const { employeeName, employeeId } = employeeDocument?.employees[0]?.employeeDetails;
 
-    console.log("employeeName, employeeId", employeeName, employeeId)
+    // console.log("employeeName, employeeId", employeeName, employeeId)
     if (!employeeId) {
       return res.status(404).json({
         success: false,
@@ -320,6 +320,24 @@ export const getHighestLimitGroupPolicy = async (req, res) => {
       expenseHeaderId = new mongoose.Types.ObjectId()
       }
       expenseHeaderStatus = 'new'
+
+      const newExpense = {
+        tenantId,
+        companyName,
+        tenantName:companyName,
+        expenseHeaderId,
+        expenseHeaderNumber,
+        expenseHeaderStatus,
+        createdBy: {
+          empId,
+          name: employeeName,
+        },
+        defaultCurrency,
+      }
+
+      const addExpense = await Reimbursement.create(newExpense)
+
+      console.log("addExpense", JSON.stringify(addExpense,'',2))
       approvers = []
       const getApprovers = getApproversFromOnboarding(employeeDocument,empId)
 
@@ -451,6 +469,36 @@ const validateRequest = (schema, data) => {
   return value;
 };
 
+export const extractCategoryAndTotalAmount = async (expenseLines) => {
+  const fixedFields = [
+      'Total Amount', 
+      'Total Fare', 
+      'Premium Amount', 
+      'Total Cost', 
+      'License Cost', 
+      'Subscription Cost',  
+      'Premium Cost',
+      'Cost', 
+      'Tip Amount',
+  ];
+
+  const results = [];
+  let totalExpenseAmount = 0; 
+
+  expenseLines.forEach(expenseLine => {
+      if (expenseLine.lineItemStatus === 'approved') {
+          const categoryName = expenseLine['Category Name'] || ''; 
+          const keyFound = Object.entries(expenseLine).find(([key]) =>
+              fixedFields.some(name => name.trim().toUpperCase() === key.trim().toUpperCase())
+          );
+          const totalAmount = keyFound ? Number(keyFound[1]) || 0 : 0; 
+          totalExpenseAmount += totalAmount; 
+          results.push({ categoryName, totalAmount });
+      }
+  });
+
+  return { results, totalExpenseAmount };
+};
 
 // 4) save line item 
 export const saveReimbursementExpenseLine = async (req, res) => {
@@ -462,7 +510,7 @@ export const saveReimbursementExpenseLine = async (req, res) => {
       console.log("Params:", req.params);
   
       const { tenantId, empId, expenseHeaderId } = params;
-      const { companyName, createdBy, expenseHeaderNumber, defaultCurrency, lineItem } = body;
+      const { companyName, createdBy, expenseHeaderNumber,expenseAmountStatus, defaultCurrency, lineItem } = body;
   
        console.log("req body", req.body)
        console.log("lineItem ......", lineItem)
@@ -471,6 +519,7 @@ export const saveReimbursementExpenseLine = async (req, res) => {
       if (!expenseHeaderNumber ) {
         return res.status(404).json({ message: 'error expenseHeaderNumber is missing' });
       }
+
 
       const {name} = createdBy
       const expenseLineId = new mongoose.Types.ObjectId().toString();
@@ -484,15 +533,15 @@ export const saveReimbursementExpenseLine = async (req, res) => {
       const filter = { tenantId, expenseHeaderId };
       const update = {
           $set: {
-              tenantId,
-              tenantName: companyName ?? '',
-              companyName: companyName ?? '',
-              expenseHeaderId,
-              expenseHeaderNumber,
-              expenseHeaderStatus: 'new',
-              createdBy,
-              expenseHeaderType: 'reimbursement',
-              defaultCurrency,
+              // tenantId,
+              // tenantName: companyName ?? '',
+              // companyName: companyName ?? '',
+              // expenseHeaderId,
+              // expenseHeaderNumber,
+              // expenseHeaderStatus: 'new',
+              // createdBy,
+              // expenseHeaderType: 'reimbursement',
+              // defaultCurrency,
           },
           $push: {
             expenseLines: [expenseLineData],
@@ -698,7 +747,7 @@ export const submitReimbursementExpenseReport = async (req, res) => {
       if(isApproval) approver.status = status.PENDING_APPROVAL
     })
 
-   const getStatus =  isApproval ? status.PENDING_APPROVAL :  status.PENDING_SETTLEMENT
+  const getStatus =  isApproval ? status.PENDING_APPROVAL :  status.PENDING_SETTLEMENT
 
     const report = await Reimbursement.findOne({
     tenantId, expenseHeaderId, 'createdBy.empId': empId
@@ -708,16 +757,22 @@ export const submitReimbursementExpenseReport = async (req, res) => {
       return res.status(404).json({ message: 'Expense Report not found or unauthorized.' });
     }
 
-    console.log("the report 0", JSON.stringify(report.expenseLines, '',2))
-    report.expenseLines = report.expenseLines.map(lineItem => ({
+    const {expenseLines} = report
+    console.log("did i get", JSON.stringify(expenseLines,'',2))
+    const {totalExpenseAmount,results} = await extractCategoryAndTotalAmount(expenseLines);
+    console.log("totalExpenseAmount - result",JSON.stringify(totalExpenseAmount,'',2), "results", results)
+
+    console.log("the report 0", JSON.stringify(expenseLines, '',2))
+    report.expenseLines = expenseLines.map(lineItem => ({
       ...lineItem,
       lineItemStatus:getStatus,
       approvers:approvers
     }))
 
-    report.expenseHeaderStatus = getStatus
-    report.approvers = approvers
-    report.expenseSettlement = expenseSettlement
+    totalExpenseAmount && (report.expenseAmountStatus.totalExpenseAmount = totalExpenseAmount)
+    approvers && (report.approvers = approvers)
+    report.expenseHeaderStatus = getStatus ? getStatus : report.expenseHeaderStatus
+    report.expenseSettlement = expenseSettlement ? expenseSettlement: report.expenseSettlement
 
     const updatedExpense = await report.save()
 
