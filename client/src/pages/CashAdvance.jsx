@@ -64,7 +64,7 @@ const CashAdvance = ({isLoading, fetchData, loadingErrMsg}) => {
 
   }, [employeeData]);
 
-  const travelCashAdvances = cashAdvanceData?.travelCashAdvance?.filter((travel)=>!travel.cashAdvances.some((cash)=>["awaiting pending settlement"].includes(cash.cashAdvanceStatus))) || []
+  const travelCashAdvances = cashAdvanceData?.travelCashAdvance?.filter((travel)=>!travel.cashAdvances.some((cash)=>["awaiting"].includes(cash.cashAdvanceStatus))) || []
   const nonTravelCashAdvances = cashAdvanceData?.nonTravelCashAdvance || []
 
 

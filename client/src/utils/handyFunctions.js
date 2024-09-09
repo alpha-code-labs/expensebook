@@ -212,6 +212,7 @@ function formatDate(date=Date.now()){
       case "pending approval": 
       case "new":
       case "pending booking": 
+      case "awaiting pending settlement":
       case "pending": 
       case "transit":
       case "draft":
