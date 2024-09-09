@@ -94,8 +94,7 @@ export const updateTripStatus = async (payload) => {
       success: successCount === payload.length,
       message: `Successfully updated ${successCount} trips. Failed to update ${failureCount} trips.`
   };
- };
- 
+};
 
 // Process transit trip message (received from - trip microservice, received -All transit trips (batchjob))
 //Trip microservice --All trip updates --- asynchronous rabbitmq route --- 
