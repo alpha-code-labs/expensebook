@@ -340,7 +340,10 @@ const updateTravelRequest = async (req, res) =>{
     if(!travelRequestData) return res.status(404).json({message: 'Can not find the requested resource'})
     lastTravelRequestStatus = travelRequestData.travelRequestStatus 
     //update travel request
-    Object.keys(travelRequest).map(key=>travelRequestData[key] = travelRequest[key])
+    Object.keys(travelRequest).forEach(key=>{
+      if(key != '__v')
+      travelRequestData[key] = travelRequest[key]
+    })
 
     travelRequestData.travelRequestDate = Date.now()
     if(travelRequestData.approvers.length > 0){
