@@ -5,7 +5,7 @@
 //prepleaf
 
 import React,{ useState, useEffect , useRef} from "react";
-import {BrowserRouter as Router, useParams} from 'react-router-dom';
+import {BrowserRouter as Router, useParams,useNavigate} from 'react-router-dom';
 import Icon from "../components/common/Icon";
 import { formatAmount, getStatusClass, removeSuffix, titleCase, urlRedirection } from "../utils/handyFunctions";
 import Button from "../components/common/Button";
@@ -51,6 +51,7 @@ const dateForms = ['Invoice Date', 'Date', 'Visited Date', 'Booking Date',"Bill 
 
 export default function () {
   const {cancel , tenantId,empId,tripId} = useParams() ///these has to send to backend get api
+  const navigate = useNavigate()
   
   const az_blob_container = import.meta.env.VITE_AZURE_BLOB_CONTAINER
    const blob_endpoint = import.meta.env.VITE_AZURE_BLOB_CONNECTION_URL
@@ -205,8 +206,8 @@ export default function () {
       
       const settlementOptionArray = onboardingData?.companyDetails?.expenseSettlementOptions;
       const settlementOptions = Object.keys(settlementOptionArray).filter((option) => settlementOptionArray[option]);
-      const approversList1 = onboardingData?.approvers && onboardingData?.approvers?.map((approver) => (approver?.name));
-      setApproversList(approversList1);
+      
+      
       setSettlementOptions(settlementOptions);
       setTravelAllocationFlag(onboardingLevel);
      
@@ -242,6 +243,7 @@ export default function () {
       console.log('expenseData', expenseData);
       const flagToOpen = onboardingData?.flagToOpen
       const findExpenseHeaderId = expenseData.find(item => item.expenseHeaderId == flagToOpen )
+      setRequiredObj(prev=>({...prev, approverList: findExpenseHeaderId?.approvers}))
       setSelectedExpenseSettlement(findExpenseHeaderId?.expenseSettlement && findExpenseHeaderId?.expenseSettlement)
       setFlagExpenseHeaderStatus(findExpenseHeaderId?.expenseHeaderStatus)
       console.log('already saved expense settlement option',findExpenseHeaderId?.expenseSettlement)
@@ -283,9 +285,9 @@ export default function () {
   }, [onboardingData]);
   
   console.log('get expense data', getExpenseData);
-  console.log('approvers', approversList);
+ 
   console.log('onboardingData', onboardingData);
-  console.log('approvers',approversList);
+
   console.log('expenseAmountStatus',expenseAmountStatus);
   console.log('selected Allocations',selectedAllocations);
   console.log('requiredObj',requiredObj)
@@ -1344,6 +1346,7 @@ const getContent = () => {
     
     <div>
       <ExpenseHeader 
+          handleAddLineItem={()=>navigate(`/${tenantId}/${empId}/${tripId}/new/line-item`)}
           selectedExpenseSettlement={selectedExpenseSettlement} 
           errorMsg={errorMsg} 
           expenseHeaderStatus={flagExpenseHeaderStatus} 
@@ -1357,12 +1360,15 @@ const getContent = () => {
           handleCancelExpenseHeader={handleCancelExpenseHeader} 
           handleSubmitOrDraft={handleSubmitOrDraft} 
           formData={formData} 
-          approversList={approversList} 
+          approversList={requiredObj?.approverList} 
           onReasonSelection={onReasonSelection} 
           settlementOptions={settlementOptions} 
           defaultCurrency={defaultCurrency} 
       />
+
+
     </div>
+  
 
 
        
@@ -1903,6 +1909,7 @@ function AllocationComponent ({errorMsg, getSavedAllocations,travelExpenseAlloca
 function ExpenseHeader({
   selectedExpenseSettlement,
   errorMsg,
+  handleAddLineItem,
   expenseHeaderStatus,
   tripPurpose,
   tripNumber,
@@ -1957,19 +1964,23 @@ function ExpenseHeader({
 </div>
 
 
-<div className=" flex flex-col gap-2 lg:flex-row border-b-2  py-4">
-{approversList?.length>0 && <div className="h-[48px]">
-<Select 
-  
-  options={approversList}
-  onSelect={onReasonSelection}
-  placeholder='Select Approver'
-  title="Select Approver"
-/>
-</div>}
+<div className=" flex items-start  justify-start flex-col gap-2  border-b-2  py-4">
+  <div className="flex  flex-col md:flex-row gap-2 items-start justify-start">
+{approversList?.length>0 && 
+approversList.map((approver,index)=>(
+  <div  className="w-full h-full" key={`${index} approver`}>
+  <p className="capitalize text-zinc-600 truncate whitespace-nowrap text-sm font-normal font-cabin pb-2.5">{'Approvers'}</p>
+  <div className="border rounded-md inline-flex justify-start items-center h-[44px]  w-full border-slate-300 text-neutral-700 truncate text-sm font-normal font-cabin px-4">
+    <p>{approver?.name}</p>
+  </div>
+</div>
 
-{settlementOptions.length>0 &&
-<div>
+))
+ 
+}
+
+{settlementOptions?.length>0 &&
+<div className="">
 
 <Select 
   currentOption={selectedExpenseSettlement}
@@ -1981,6 +1992,11 @@ function ExpenseHeader({
 />
 
 </div>}
+</div>
+
+<Button1 text="Add Expense" onClick={()=>handleAddLineItem()}/>
+
+
 </div>
 </>
   )

@@ -1498,21 +1498,30 @@ const handleSubmitOrDraft=async(action)=>{
           //setReimbursementHeaderId(response?.expenseHeaderId)
           
           console.log('expense data for approval fetched.',response);
-          let updatedFields = initializenonTravelFormFields(response?.fields, {
+          let updatedFields = {}
+          
+           updatedFields = initializenonTravelFormFields(response?.fields, {
             "defaultCurrency": response.defaultCurrency || "", // or any other logic to set default values
             categoryName: option || "",
             group:response?.group || {}
           });
+        
           
-          // if (!actionType==="editLineItem"){
+        if(actionType==="editLineItem"){
+
+          return 
+            
+          }else{
             setFormData((prevData) => ({
               ...prevData,
               fields: updatedFields,
             }));
+          }
           
-         
-
+          
           console.log('Updated FormData:', updatedFields);
+
+          
          
         } catch (error) {
           setIsUploading(prev=>({...prev, "selectCategory":false}))
