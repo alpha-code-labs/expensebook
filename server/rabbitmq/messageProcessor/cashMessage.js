@@ -1,6 +1,48 @@
 import Trip from "../../models/tripSchema.js";
 
 
+export const cashStatusUpdatePaid = async(payloadArray)=>{
+  try{
+    // console.log("cash status update batchJob", JSON.stringify(payloadArray,'',2))
+    // console.log("payload length",payloadArray.length)
+
+    const results =[]
+
+    for(const payload of payloadArray){
+      const {travelRequestData,cashAdvancesData} = payload
+      const {travelRequestId} = travelRequestData
+        const updateCashStatus = Trip.findOneAndUpdate(
+          { 'travelRequestData.travelRequestId':travelRequestId},
+          { $set:{ 'cashAdvancesData':cashAdvancesData}},
+          {new: true}
+        );
+
+        if(!updateCashStatus){
+          console.log("updateCashStatus",updateCashStatus)
+          results.push({
+            travelRequestId,
+            success:false,
+            message:'failed to update cash'
+          })
+        } else {
+          console.log("updateCashStatus",updateCashStatus)
+          results.push({
+            travelRequestId,
+            success:true,
+            message:'cash'
+          })
+        }
+    }
+
+    console.log("updateCashStatus", JSON.stringify(updateCashStatus,'',2))
+    return {success: true, error: null, message: 'cash status updated successfully'}
+
+  } catch(error){
+    console.log("error", error)
+    return { success:false, error:error.message}
+  }
+}
+
 //priority cash update-
 /**
  * 
@@ -142,18 +184,19 @@ export const recoverCashAdvance = async (payload) => {
 //travel expense header 'paid'
 export const settleExpenseReport= async (payload) => {
   try {
-    const { tenantId, expenseHeaderId, tripId, paidBy, } = payload;
-
+      const {  tenantId,travelRequestId, expenseHeaderId, settlementBy, expenseHeaderStatus, 
+        settlementDate } = payload;
+  
     const trip = await Trip.findOneAndUpdate(
       { 
         'tenantId': tenantId,
-         
-        'travelexpenseData': { $elemMatch: { 'tripId': tripId, 'expenseHeaderId': expenseHeaderId } }
+        'travelExpenseData': { $elemMatch: { travelRequestId, expenseHeaderId } }
       },
       { 
         $set: { 
-          'travelexpenseData.$.expenseHeaderStatus': 'paid', 
-          'travelexpenseData.$.paidBy': paidBy, 
+          'travelExpenseData.$.expenseHeaderStatus': expenseHeaderStatus, 
+          'travelExpenseData.$.settlementDate': settlementDate,
+          'travelExpenseData.$.settlementBy': settlementBy,
         }
       },
       { new: true }

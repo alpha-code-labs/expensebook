@@ -11,7 +11,7 @@ import Trip from './models/tripSchema.js';
 import { sendToOtherMicroservice } from './rabbitmq/publisher.js';
 import { scheduleToExpenseBatchJob } from './scheduler/sendToExpense.js';
 import{transitToCompleteBatchJob} from './scheduler/transitToCompleteBatchJob.js'
-import { filterFutureFlights } from './utils/dateUtils.js';
+import { filterFutureFlights, filterFutureHotels } from './utils/dateUtils.js';
 import pino from 'pino';
 import PinoPretty from 'pino-pretty';
 import { lastDate } from './utils/date.js';
@@ -67,6 +67,14 @@ app.listen(port, () => {
 startConsumer('trip');
 
 
+// const tripp = '66b0b254b565699533846bfa'
+// const trip = await Trip.findOne({"tripId":tripp})
+// const { itinerary} = trip.travelRequestData
+// console.log("itinerary", itinerary)
+// const hello = itinerary.flights
+// console.log("hello",hello,null,2)
+// const getFlights = filterFutureFlights(itinerary.flights)
+// console.log("getFlights",getFlights)
 // const tripY = '66a87ecc38c376aa6a5a57cf'
 // const trip = await Trip.findOne({"tripId":tripY})
 // if(trip){

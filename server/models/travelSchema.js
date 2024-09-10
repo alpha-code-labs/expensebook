@@ -22,7 +22,7 @@ const travelRequestStateEnums = [
   "section 3",
 ];
 
-const approverStatusEnums = ["pending approval", "approved", "rejected"];
+export const approverStatusEnums = ["pending approval", "approved", "rejected"];
 
 const itineraryStatusEnums = [
   'draft', 
@@ -40,8 +40,8 @@ const itineraryStatusEnums = [
 ];
 
 
-const itinerarySchema = {
-flights: [
+export const itinerarySchema = {
+  flights: [
     {
       itineraryId: mongoose.Schema.ObjectId,
       formId: String,
@@ -83,7 +83,6 @@ flights: [
       cancellationDate: Date,
       cancellationReason: String,
       rejectionReason: String,
-      note:String,
       status: { type: String, enum: itineraryStatusEnums },
       bookingDetails: {
         docURL: String,
@@ -131,7 +130,6 @@ flights: [
       cancellationDate: Date,
       cancellationReason: String,
       rejectionReason: String,
-      note:String,
       status: { type: String, enum: itineraryStatusEnums },
       bookingDetails: {
         docURL: String,
@@ -193,7 +191,6 @@ flights: [
       cancellationDate: Date,
       cancellationReason: String,
       rejectionReason: String,
-      note:String,
       status: { type: String, enum: itineraryStatusEnums },
       bookingDetails: {
         docURL: String,
@@ -263,7 +260,6 @@ flights: [
       cancellationDate: String,
       cancellationReason: String,
       rejectionReason: String,
-      note:String,
       status: { type: String, enum: itineraryStatusEnums },
       bookingDetails: {
         docURL: String,
@@ -273,8 +269,8 @@ flights: [
           taxAmount: String,
           totalAmount: String,
         },
-    },
-    approvers: [
+      },
+      approvers: [
         {
           empId: String,
           name: String,
@@ -301,11 +297,11 @@ flights: [
       dropAddress: String,
       isFullDayCab: Boolean,
 
-    violations: {
+      violations: {
         class: String,
         amount: String,
-    },
-    approvers: [
+      },
+      approvers: [
         {
           empId: String,
           name: String,
@@ -330,7 +326,6 @@ flights: [
       cancellationDate: String,
       cancellationReason: String,
       rejectionReason: String,
-      note:String,
       status: { type: String, enum: itineraryStatusEnums },
       bookingDetails: {
         docURL: String,
@@ -383,7 +378,6 @@ flights: [
       cancellationDate: String,
       cancellationReason: String,
       rejectionReason: String,
-      note:String,
       status: { type: String, enum: itineraryStatusEnums },
       bookingDetails: {
         docURL: String,
@@ -410,7 +404,6 @@ flights: [
       cancellationDate: String,
       cancellationReason: String,
       rejectionReason: String,
-      note:String,
       status: { type: String, enum: itineraryStatusEnums },
       bookingDetails: {
         docURL: String,
@@ -490,7 +483,7 @@ export const travelRequestSchema = new mongoose.Schema({
   },
   tripPurposeDescription: {
     type: String,
-    // required: true,
+    required: true,
   },
   tripName:{
     type: String,
@@ -628,7 +621,3 @@ travelRequestSchema.pre("validate", function (next) {
     next();
   }
 });
-
-
-
-

@@ -3,6 +3,7 @@ import Trip from "../models/tripSchema.js"
 import { fetchOnboardingData } from "../services/hrData.js"
 import { addALeg } from "./addALeg.js"
 import { itineraryLineItem } from "./cancelTripController.js"
+import { sendToOtherMicroservice } from "../rabbitmq/publisher.js"
 
 
 export async function getHrData(req,res) {
@@ -70,6 +71,24 @@ const bodySchema = Joi.object({
     allocations: Joi.array()
 }).or('cancelIds','allocations','modifyIds','newItinerary')
 
+const updateItinerary = async (tripDetails, newItinerary, allocations, modifyIds) => {
+
+  try {
+    const promises = [
+      itineraryLineItem(tripDetails, modifyIds, 'booked'),
+      addALeg(tripDetails, newItinerary, allocations),
+    ];
+
+    const [modifyTrip] = await Promise.all(promises);
+
+    console.log("addALeg result:", modifyTrip);
+  } catch (error) {
+    console.error('Error updating itinerary:', error.message);
+    throw new Error
+    //implement rollback logic here if necessary
+  }
+};
+
 
 export const modifyTrip = async(req,res) => {
     try{    
@@ -85,26 +104,55 @@ export const modifyTrip = async(req,res) => {
         .filter(Array.isArray)
         .some(array => array?.length > 0)
 
-        const isModifyIds = Array.isArray(modifyIds)?.length
+        console.group("begining")
+       const isModifyIds = modifyIds.length > 0 ? true : false;
         console.log("here", tenantId, empId, tripId)
-        console.log("cancelIds", JSON.stringify(cancelIds, '' , 2) ,
-        "newItinerary",JSON.stringify(newItinerary, '' , 2),
-        "allocations", JSON.stringify(allocations, '' , 2) )
+        console.log("isModifyIds",isModifyIds)
+        console.log("cancelIds", JSON.stringify(cancelIds, null, 2) ,
+        "newItinerary",JSON.stringify(newItinerary, null, 2),
+        "allocations", JSON.stringify(allocations, null , 2) )
+        console.groupEnd()
 
-        const tripDetails = await  getTrip(tenantId,empId,tripId)
+        const tripDetails = await getTrip(tenantId,empId,tripId)
 
         if(tripDetails){
-
+         
         if(cancelIds){
-            const cancelItinerary = await itineraryLineItem(tripDetails, cancelIds);
+            const cancelItinerary = await itineraryLineItem(tripDetails, cancelIds,'cancelled');
             console.log("cancelItinerary 0 flightzzzz", JSON.stringify(cancelItinerary.travelRequestData.itinerary.flights, " ", 2))
         } 
 
-        if(isValidItinerary && isModifyIds){
-            const modifyTrip = await addALeg(tripDetails,newItinerary,allocations)
-            await itineraryLineItem(tripDetails, modifyIds);
-            console.log("addALeg maga", modifyTrip)
+        if (isValidItinerary && isModifyIds) {
+            try {
+                const success = await itineraryLineItem(tripDetails, modifyIds, 'booked');
+                if (success) {
+                   const addItinerary = await addALeg(tripDetails, newItinerary, allocations);
+                } else {
+                    throw new Error("Duplicate entry");
+                }
+            } catch (error) {
+                console.error(error);
+                throw new Error("Duplicate entry");
+            }
         }
+
+        const getDoc = await getTrip(tenantId,empId,tripId)
+        const {travelRequestData} =getDoc
+         const { approvers, isCashAdvanceTaken} =travelRequestData
+         const isTransit = getDoc.tripStatus ==='transit'
+        if (approvers && approvers?.length > 0 && !isTransit) {
+          console.log("Approvers found for this trip:", approvers);
+          await sendToOtherMicroservice(travelRequestData, 'add-leg', 'approval', 'to update itinerary added to travelRequestData for trips');
+        }
+        
+        if (isCashAdvanceTaken) {
+          console.log('Is cash advance taken:', isCashAdvanceTaken);
+          await sendToOtherMicroservice(travelRequestData, 'add-leg', 'cash', 'to update itinerary added to travelRequestData for trips');
+          await sendToOtherMicroservice(travelRequestData, 'add-leg', 'dashboard', 'to update itinerary added to travelRequestData for trips');
+        } else {
+          await sendToOtherMicroservice(travelRequestData, 'add-leg', 'travel', 'to update itinerary added to travelRequestData for trips');
+          await sendToOtherMicroservice(travelRequestData, 'add-leg', 'dashboard', 'to update itinerary added to travelRequestData for trips');
+        } 
 
         return res.status(200).json({success:true ,message:"Trip Updated Successfully", tripDetails})
         } else {
@@ -113,7 +161,7 @@ export const modifyTrip = async(req,res) => {
 
     } catch(error){
         console.error(error)
-        return res.status(500).json({success:false,message:"", error})
+        return res.status(500).json({success:false, error:error.message})
     }
 }
 

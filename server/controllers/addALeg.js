@@ -95,6 +95,7 @@ export const addALeg = async (trip, newItinerary,allocations) => {
 // 1) Add a flight/flights to exiting trip
 export async function addFlight(trip, newFlights, newApproverStatus,addNote){
 try {
+  console.group('flight added')
       let payload = [];
       let itineraryDetails;
 
@@ -118,7 +119,7 @@ try {
           status: updateLineItemStatus(tripStatus),
           approvers: approvers?.map((approver) => ({ empId: approver.empId, name: approver.name, status: newApproverStatus })),
         };
-        console.log("addedflight",itineraryDetails)
+        console.log("added flight",itineraryDetails)
     
         flights.push(itineraryDetails);
         payload.push(itineraryDetails);
@@ -126,6 +127,7 @@ try {
 
       trip.travelRequestData.itinerary.flights = flights;
        console.log("the payload ....", itineraryDetails)
+       console.groupCollapsed()
       const updatedTrip = await trip.save();
       
       if (!updatedTrip) {
@@ -150,6 +152,7 @@ try {
         // if (approvers && approvers?.length > 0 && !isTransit) {
         //   console.log("Approvers found for this trip:", approvers);
         //   await sendToOtherMicroservice(dataToSend, 'add-leg', 'approval', 'to update itinerary added to travelRequestData for trips');
+        //   await sendToOtherMicroservice(dataToSend, 'add-leg', 'dashboard', 'to update itinerary added to travelRequestData for trips');
         // }
         
         // if (isCashAdvanceTaken) {
@@ -160,9 +163,9 @@ try {
         // } 
     }
 
-    return ({ success: true, message: 'flights added successfully', trip: updatedTrip });
+    return ({ success: true, message: 'flights added successfully', dataToSend });
 } catch (error) {
-    return ({success:false , message: "Failed to add flights ", error})
+    return ({success:false , message: "Failed to add flights ", error:error.message})
 }
 }
 

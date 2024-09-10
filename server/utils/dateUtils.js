@@ -10,59 +10,113 @@ export function calculateDateDifferenceInDays(date1, date2) {
 
 
 // Function to parse time in 'HH:mm' format to total minutes
+// const parseTimeToMinutes = (time) => {
+//     if (typeof time !== 'string') {
+//       throw new TypeError(`Expected a string, but got ${typeof time}`);
+//     }
+//     console.log("Time:", time);
+//     const [hours, minutes] = time.split(':').map(Number);
+//     return hours * 60 + minutes;
+// };
+
+//   // Function to check if a flight is in the future
+// const isFlightInFuture = (flight, currentDate, currentTime) => {
+//     const flightDate = new Date(flight.bkd_date);
+//     const tempPastTime = '12:48'
+
+//     const flightTime = parseTimeToMinutes(flight.bkd_time ?? tempPastTime);
+  
+//     const flightYear = flightDate.getFullYear();
+//     const flightMonth = flightDate.getMonth();
+//     const flightDay = flightDate.getDate();
+  
+//     const currentYear = currentDate.getFullYear();
+//     const currentMonth = currentDate.getMonth();
+//     const currentDay = currentDate.getDate();
+  
+//     // Debug output
+//     console.log(`Flight: ${flight.bkd_date} ${flight.bkd_time}`);
+//     console.log(`Current Date: ${currentDate.toISOString().split('T')[0]}`);
+//     console.log(`Current Time in Minutes: ${currentTime}`);
+  
+//     // Check if the flight date is in the future
+//     if (flightYear > currentYear ||
+//         (flightYear === currentYear && flightMonth > currentMonth) ||
+//         (flightYear === currentYear && flightMonth === currentMonth && flightDay > currentDay)) {
+//       return true;
+//     }
+  
+//     // If the flight date is today, check the time
+//     if (flightYear === currentYear && flightMonth === currentMonth && flightDay === currentDay) {
+//       return flightTime >= currentTime;
+//     }
+  
+//     return false;
+// };
+
+// // Main function to filter flights
+// export const filterFutureFlights = (flights) => {
+//     const statusName = ['booked','pending approval']
+//     const currentDate = new Date(); 
+//     const currentTime = currentDate.getHours() * 60 + currentDate.getMinutes(); 
+//     return flights.filter(flight => 
+//       isFlightInFuture(flight, currentDate, currentTime)
+//     )
+//     .filter(flight => flight.status === statusName.includes(flight.status) )
+// };
+
 const parseTimeToMinutes = (time) => {
-    if (typeof time !== 'string') {
+  if (typeof time !== 'string') {
       throw new TypeError(`Expected a string, but got ${typeof time}`);
-    }
-    console.log("Time:", time);
-    const [hours, minutes] = time.split(':').map(Number);
-    return hours * 60 + minutes;
+  }
+  console.log("Time:", time);
+  const [hours, minutes] = time.split(':').map(Number);
+  return hours * 60 + minutes;
 };
 
-  // Function to check if a flight is in the future
+// Function to check if a flight is in the future
 const isFlightInFuture = (flight, currentDate, currentTime) => {
-    const flightDate = new Date(flight.bkd_date);
-    const tempPastTime = '12:48'
+  const flightDate = new Date(flight.bkd_date);
+  const flightTime = parseTimeToMinutes(flight.bkd_time ?? '00:00');
 
-    const flightTime = parseTimeToMinutes(flight.bkd_time ?? tempPastTime);
-  
-    const flightYear = flightDate.getFullYear();
-    const flightMonth = flightDate.getMonth();
-    const flightDay = flightDate.getDate();
-  
-    const currentYear = currentDate.getFullYear();
-    const currentMonth = currentDate.getMonth();
-    const currentDay = currentDate.getDate();
-  
-    // Debug output
-    console.log(`Flight: ${flight.bkd_date} ${flight.bkd_time}`);
-    console.log(`Current Date: ${currentDate.toISOString().split('T')[0]}`);
-    console.log(`Current Time in Minutes: ${currentTime}`);
-  
-    // Check if the flight date is in the future
-    if (flightYear > currentYear ||
-        (flightYear === currentYear && flightMonth > currentMonth) ||
-        (flightYear === currentYear && flightMonth === currentMonth && flightDay > currentDay)) {
+  const flightYear = flightDate.getFullYear();
+  const flightMonth = flightDate.getMonth();
+  const flightDay = flightDate.getDate();
+
+  const currentYear = currentDate.getFullYear();
+  const currentMonth = currentDate.getMonth();
+  const currentDay = currentDate.getDate();
+
+  // Debug output
+  console.log(`Flight: ${flight.bkd_date} ${flight.bkd_time}`);
+  console.log(`Current Date: ${currentDate.toISOString().split('T')[0]}`);
+  console.log(`Current Time in Minutes: ${currentTime}`);
+
+  // Check if the flight date is in the future
+  if (flightYear > currentYear ||
+      (flightYear === currentYear && flightMonth > currentMonth) ||
+      (flightYear === currentYear && flightMonth === currentMonth && flightDay > currentDay)) {
       return true;
-    }
-  
-    // If the flight date is today, check the time
-    if (flightYear === currentYear && flightMonth === currentMonth && flightDay === currentDay) {
+  }
+
+  // If the flight date is today, check the time
+  if (flightYear === currentYear && flightMonth === currentMonth && flightDay === currentDay) {
       return flightTime >= currentTime;
-    }
-  
-    return false;
+  }
+
+  return false;
 };
 
 // Main function to filter flights
 export const filterFutureFlights = (flights) => {
-    const statusName = ['booked','pending approval']
-    const currentDate = new Date(); 
-    const currentTime = currentDate.getHours() * 60 + currentDate.getMinutes(); 
-    return flights.filter(flight => 
-      isFlightInFuture(flight, currentDate, currentTime)
-    )
-    .filter(flight => flight.status === statusName.includes(flight.status) )
+  const statusName = ['booked', 'pending approval'];
+  const currentDate = new Date(); 
+  const currentTime = currentDate.getHours() * 60 + currentDate.getMinutes(); 
+  
+  return flights.filter(flight => 
+      isFlightInFuture(flight, currentDate, currentTime) &&
+      statusName.includes(flight.status)
+  );
 };
 
 // Function to check if a Hotel is in the future

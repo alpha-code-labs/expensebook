@@ -376,34 +376,79 @@ export const cancelTripAtHeaderLevel = async (req, res) => {
 
 // 3) Itinerary line item (Already booked line item) cancelled,  then update status from 'booked' to 'paid and cancelled'
 //Line item cancellation is allowed for trips with = upcoming, transit status only
-  const updateStatus = (item) => {
-    return item.status === 'booked' ? 'paid and cancelled' : 'cancelled';
+// const updateStatus = (item) => {
+//   return item.status === 'booked' ? 'paid and cancelled' : 'cancelled';
+// };
+
+// // Update status fields conditionally
+// export const itineraryLineItem = async (tripDetails, itineraryIds) => {
+//   try {
+//     const updateItemStatus = (items) => {
+//       items.forEach(item => {
+//         const itemId = item.itineraryId.toString();
+//         if (itineraryIds.includes(itemId)) {
+//           item.status = updateStatus(item);
+//         }
+//       });
+//     };
+  
+//     updateItemStatus(tripDetails.travelRequestData.itinerary.flights || []);
+//     updateItemStatus(tripDetails.travelRequestData.itinerary.hotels || []);
+//     updateItemStatus(tripDetails.travelRequestData.itinerary.cabs || []);
+//     updateItemStatus(tripDetails.travelRequestData.itinerary.buses || []);
+  
+//     await tripDetails.save();
+  
+//     return tripDetails;
+//   } catch (error) {
+//     console.error(error);
+//     throw new Error(error);
+//   }
+// };
+const updateStatus = (item, action) => {
+  const validActions = {
+    booked: () => {
+      if (item.status !== 'booked') {
+        throw new Error(`Cannot update status to 'paid and cancelled' because current status is '${item.status}'`);
+      }
+      return 'paid and cancelled';
+    },
+    cancelled: () => 'cancelled'
   };
 
-  // Update status fields conditionally
-export const itineraryLineItem = async (tripDetails, itineraryIds) => {
-    try{
-      const updateItemStatus = (items) => {
-        items.forEach(item => {
-          if (itineraryIds.includes(item.itineraryId.toString())) {   // .toString() is very important to make the code work.
-            item.status = updateStatus(item);
-          }
-        });
-      };
-    
-      updateItemStatus(tripDetails.travelRequestData.itinerary.flights);
-      updateItemStatus(tripDetails.travelRequestData.itinerary.hotels);
-      updateItemStatus(tripDetails.travelRequestData.itinerary.cabs);
-      updateItemStatus(tripDetails.travelRequestData.itinerary.buses);
-    
-      await tripDetails.save();
-    
-      return tripDetails;
-    } catch(error){
-      console.error(error);
-      throw new Error(error)
-    }
-  };
+  if (validActions[action]) {
+    return validActions[action]();
+  }
+
+  throw new Error(`Invalid action: ${action}`);
+};
+
+// Update status fields conditionally
+export const itineraryLineItem = async (tripDetails, itineraryIds, action) => {
+  try {
+    const updateItemStatus = (items) => {
+      items.forEach(item => {
+        if (itineraryIds.includes(item.itineraryId.toString())) {
+          item.status = updateStatus(item, action);
+        }
+      });
+    };
+
+    // Update status for all types of itinerary items
+    ['flights', 'hotels', 'cabs', 'buses'].forEach(type => {
+      updateItemStatus(tripDetails.travelRequestData.itinerary[type] || []);
+    });
+
+    await tripDetails.save();
+
+    return tripDetails;
+  } catch (error) {
+    console.error('Error updating itinerary status:', error.message);
+    throw error;
+  }
+};
+
+
 
 
   // Line item cancel
