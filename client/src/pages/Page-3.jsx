@@ -335,7 +335,7 @@ totalViolations = totalTravelViolations +  totalCashViolations || 0;
                                                 return (
                                                     <div key={itemIndex}>
                                                         <CabCard 
-                                                       
+                                                        mode={'Cab'}
                                                         violations={item?.violations}
                                                       
                                                         handleAction={handleAction}
@@ -461,6 +461,8 @@ totalViolations = totalTravelViolations +  totalCashViolations || 0;
 //     else if(modeOfTransit === 'Bus')
 //         return 'Bus station'
 // }
+
+
 
 function spitImageSource(modeOfTransit){
     if(modeOfTransit === 'Flight')
@@ -656,7 +658,7 @@ function FlightCard({from, to, date, returnDate, time, returnTime, travelClass, 
                       <p className="text-xs text-neutral-600 flex justify-between flex-col sm:flex-row">Prefferred Time</p>
                       <div className='flex items-center gap-1'>
                           <img src={clock_icon} className='w-4'/>
-                          <p>{formattedTime(time)??'--:--'}</p>    
+                          <p>{time??'--:--'}</p>    
                       </div>
                   </div>
                 
@@ -833,7 +835,7 @@ function HotelCard({checkIn, checkOut, location, onClick}){
                       <p className="text-xs text-neutral-600 flex justify-between flex-col sm:flex-row">Location</p>
                       <div className="flex items-center gap-1">
                           <img src={location_icon} className='w-4'/>
-                          <p>{location??'not provided'}</p>
+                          <p>{location??'-'}</p>
                       </div>
                   </div>
             </div>
@@ -854,7 +856,7 @@ function CabCard({from, to, date, time, travelClass, onClick, mode, isTransfer=f
                    <p className="text-xs text-neutral-600 flex justify-between flex-col sm:flex-row">Pickup Location</p>
                     <div className="flex items-center gap-1">
                       <img src={location_icon} className="w-4 h-4"/>
-                      <p className="whitespace-wrap">{from??'not provided'}</p>
+                      <p className="whitespace-wrap  capitalize">{from??'not provided'}</p>
                     </div>     
                 </div>
                 <div className="flex-1 justify-center">
@@ -868,18 +870,18 @@ function CabCard({from, to, date, time, travelClass, onClick, mode, isTransfer=f
                     <p className="text-xs text-neutral-600 flex justify-between flex-col sm:flex-row">{mode} Date</p>
                     <div className="flex items-center gap-1">
                       <img src={calender} className="w-4 h-4"/>
-                      <p className="whitespace-wrap">{isoString(date)??'not provided'}</p>
+                      <p className="whitespace-wrap">{isoString(date)??'-'}</p>
                     </div>
                 </div>
                 <div className="flex-1 justify-center">
                     <p className="text-xs text-neutral-600 flex justify-between flex-col sm:flex-row">Prefferred Time</p>
                     <div className="flex items-center gap-1">
                       <img src={clock_icon} className="w-4 h-4"/>
-                      <p className="whitespace-wrap">{formattedTime(time)??'not provided'}</p>
+                      <p className="whitespace-wrap">{(time)??'-'}</p>
                     </div>
                 </div>
                {!isTransfer && <div className="flex-1 justify-center">
-                    {travelClass??'N/A'}
+                    {travelClass??'-'}
                 </div>}
             </div>
         </div>
