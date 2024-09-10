@@ -204,12 +204,11 @@ export default function({formData, setFormData, handleEdit, handleDelete}) {
                     })}
                 </SortableContext>
             </div>
-
         </DndContext>
     </div>)
 }
 
-const SortableItem = ({id, children})=>{
+const SortableItem = ({id, children})=> {
     const {attributes, listeners, setNodeRef, transform, transition} = useSortable({id});
 
     const style={
