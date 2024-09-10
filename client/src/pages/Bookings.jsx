@@ -1106,8 +1106,8 @@ function AddScannedTicket(
                                 fileSelected={fileSelected} 
                                 setFileSelected={setFileSelected}  />
 
-                        <label htmlFor="camera_input">Open Camera</label>      
-                        <input name='camera_input' type="file" accept="image/*" capture="camera"/>
+                        {/* <label htmlFor="camera_input">Open Camera</label>      
+                        <input name='camera_input' type="file" accept="image/*" capture="camera"/> */}
                     </div>
                     }
         
