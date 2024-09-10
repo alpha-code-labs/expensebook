@@ -37,6 +37,7 @@ const expenseCategories = {
                 {name:'Arrival', type:'text', toSet:'bkd_to', id:'bkd_to'}, 
                 {name:'Tax Amount', type:'amount', toSet:'bookingDetails', id:'taxAmount'}, 
                 {name:'Total Amount', type:'amount', toSet:'bookingDetails', id:'totalAmount'}],
+                
     'train' : [{name:'Vendor Name', id:'vendorName', toSet:'bookingDetails', type:'text'}, 
                 {name:'Train Date',  toSet:'bkd_date',  id:'bkd_date', type:'date'},
                 {name:'Train Time',  toSet:'bkd_time',  id:'bkd_time', type:'time'},
@@ -44,6 +45,7 @@ const expenseCategories = {
                 {name:'Arrival', type:'text', toSet:'bkd_to', id:'bkd_to'}, 
                 {name:'Tax Amount', type:'amount', toSet:'bookingDetails', id:'taxAmount'}, 
                 {name:'Total Amount', type:'amount', toSet:'bookingDetails', id:'totalAmount'}],
+
     'bus' : [{name:'Vendor Name', id:'vendorName', toSet:'bookingDetails', type:'text'}, 
                 {name:'Bus Date',  toSet:'bkd_date',  id:'bkd_date', type:'date'},
                 {name:'Bus Time',  toSet:'bkd_time',  id:'bkd_time', type:'time'},
@@ -51,19 +53,32 @@ const expenseCategories = {
                 {name:'Arrival', type:'text', toSet:'bkd_to', id:'bkd_to'}, 
                 {name:'Tax Amount', type:'amount', toSet:'bookingDetails', id:'taxAmount'}, 
                 {name:'Total Amount', type:'amount', toSet:'bookingDetails', id:'totalAmount'}],
+
     'personalVehicle' : [{name:'Vendor Name', id:'vendorName', toSet:'bookingDetails', type:'text'}, 
                 {name:'Travel Date',  toSet:'bkd_date',  id:'bkd_date', type:'date'},
                 {name:'Departure', toSet:'bkd_from',  id:'bkd_from', type:'text'}, 
                 {name:'Arrival', type:'text', toSet:'bkd_to', id:'bkd_to'}, 
                 {name:'Tax Amount', type:'amount', toSet:'bookingDetails', id:'taxAmount'}, 
                 {name:'Total Amount', type:'amount', toSet:'bookingDetails', id:'totalAmount'}],
+
     'cab' : [{name:'Vendor Name', id:'vendorName', toSet:'bookingDetails', type:'text'},
-                {name:'Booking Date',  toSet:'bkd_date',  id:'bkd_date', type:'date'}, 
+                {name:'Booking Date',  toSet:'bkd_date',  id:'bkd_date', type:'date'},
+                {name: 'Return Date', toSet:'bkd_returnDate', id:'bkd_returnDate', type:'date'}, 
                 {name:'Cab Time',  toSet:'bkd_time',  id:'bkd_time', type:'time'},
                 {name:'Pickup Address', toSet:'bkd_pickupAddress',  id:'bkd_pickupAddress', type:'text'}, 
                 {name:'Drop Address', type:'text', toSet:'bkd_dropAddress', id:'bkd_dropAddress'}, 
                 {name:'Tax Amount', type:'amount', toSet:'bookingDetails', id:'taxAmount'}, 
                 {name:'Total Amount', type:'amount', toSet:'bookingDetails', id:'totalAmount'}],
+
+    'rentalCab' : [{name:'Vendor Name', id:'vendorName', toSet:'bookingDetails', type:'text'},
+                {name:'Booking Date',  toSet:'bkd_date',  id:'bkd_date', type:'date'},
+                {name: 'Return Date', toSet:'bkd_returnDate', id:'bkd_returnDate', type:'date'}, 
+                {name:'Cab Time',  toSet:'bkd_time',  id:'bkd_time', type:'time'},
+                {name:'Pickup Address', toSet:'bkd_pickupAddress',  id:'bkd_pickupAddress', type:'text'}, 
+                {name:'Drop Address', type:'text', toSet:'bkd_dropAddress', id:'bkd_dropAddress'}, 
+                {name:'Tax Amount', type:'amount', toSet:'bookingDetails', id:'taxAmount'}, 
+                {name:'Total Amount', type:'amount', toSet:'bookingDetails', id:'totalAmount'}],
+
     'hotel' : [{name:'Vendor Name', id:'vendorName', toSet:'bookingDetails', type:'text'},
                 {name:'Location', id:'bkd_location', toSet:'bkd_location', type:'text'}, 
                  {name:'Hotel Name', id:'hotelName', toSet:'bookingDetails', type:'text'},
@@ -544,7 +559,7 @@ export default function () {
                                         } else if (itnItem === 'cabs' || itnItem === 'carRentals') {
                                             return (
                                                 <div key={itemIndex}>
-                                                    <CabCard onClick={() => handleAddTicket('cabs', itemIndex)} status={item.status} from={item.pickupAddress} to={item.dropAddress} date={isoString(item?.date)} time={item.time} mode={itnItem == 'cabs'? 'Cab' : 'Rental Car'} travelClass={item.travelClass} vendorName={item?.bookingDetails?.billDetails?.vendorName??undefined} taxAmount={item?.bookingDetails?.billDetails?.taxAmount??undefined} totalAmount={item?.bookingDetails?.billDetails?.totalAmount??undefined} isTransfer={item.type !== 'regular'} />
+                                                    <CabCard onClick={() => handleAddTicket(itnItem, itemIndex)} status={item.status} from={item.pickupAddress} to={item.dropAddress} date={isoString(item?.date)} returnDate={isoString(item.returnDate)} isRentalCab={itnItem === 'carRentals'} isFullDayCab={item.isFullDayCab} time={item.time} mode={itnItem == 'cabs'? 'Cab' : 'Rental Car'} travelClass={item.travelClass} vendorName={item?.bookingDetails?.billDetails?.vendorName??undefined} taxAmount={item?.bookingDetails?.billDetails?.taxAmount??undefined} totalAmount={item?.bookingDetails?.billDetails?.totalAmount??undefined} isTransfer={item.type !== 'regular'} />
                                                 </div>
                                             );
                                         } else if (itnItem === 'hotels') {
@@ -746,12 +761,13 @@ function FlightCard({status, from, to, date, returnDate, time, returnTime, taxAm
     </div>)
 }
 
-function CabCard({status, from, to, date, time, taxAmount, totalAmount, vendorName, travelClass, onClick, isTransfer=false, mode='Cab'}){
+function CabCard({status, from, to, date, returnDate, time, isFullDayCab, taxAmount, totalAmount, vendorName, travelClass, onClick, isTransfer=false, mode='Cab'}){
     return(
         <div className='relative'>
             <div className="relative shadow-sm min-h-[76px] bg-slate-50 rounded-md border border-slate-300 w-full px-6 py-4 flex flex-col sm:flex-row gap-4 items-center sm:divide-x">
                 <div className='font-semibold text-base text-neutral-600'>
-                <img src={mode=='Cab'? material_cab_black_icon : material_car_rental_black_icon} className='w-4 h-4 md:w-6 md:h-6' />
+                    <img src={mode=='Cab'? material_cab_black_icon : material_car_rental_black_icon} className='w-4 h-4 md:w-6 md:h-6' />
+                    {isFullDayCab && <p className="text-xs font-thin whitespace-nowrap">Full Day</p>}
                 </div>
                 <div className="w-full flex sm:block">
                     <div className="mx-2 text-sm w-full flex justify-between flex-col lg:flex-row">
@@ -776,6 +792,13 @@ function CabCard({status, from, to, date, time, taxAmount, totalAmount, vendorNa
                                 <p className="whitespace-wrap">{isoString(date)??'not provided'}</p>
                             </div>
                         </div>
+                        {isFullDayCab && <div className="flex-1">
+                            <p className="text-xs text-neutral-600 flex justify-between flex-col sm:flex-row">Return Date</p>
+                            <div className="flex items-center gap-1">
+                                <img src={calender_icon} className="w-4 h-4"/>
+                                <p className="whitespace-wrap">{isoString(returnDate)??'not provided'}</p>
+                            </div>
+                        </div>}
                         <div className="flex-1">
                             <p className="text-xs text-neutral-600 flex justify-between flex-col sm:flex-row">Prefferred Time</p>
                             <div className="flex items-center gap-1">
@@ -1306,12 +1329,14 @@ function getDateXDaysAway(days) {
 
   function formattedTime(timeValue){
     try{
-        if(timeValue == null || timeValue == undefined) return timeValue
-        const hours = timeValue.split(':')[0]>=12? timeValue.split(':')[0]-12 : timeValue.split(':')[0]
-        const minutes = timeValue.split(':')[1]
-        const suffix = timeValue.split(':')[0]>=12? 'PM' : 'AM'
+        // if(timeValue == null || timeValue == undefined) return timeValue
+        // const hours = timeValue.split(':')[0]>=12? timeValue.split(':')[0]-12 : timeValue.split(':')[0]
+        // const minutes = timeValue.split(':')[1]
+        // const suffix = timeValue.split(':')[0]>=12? 'PM' : 'AM'
 
-        return `${hours}:${minutes} ${suffix}`
+        // return `${hours}:${minutes} ${suffix}`
+
+        return timeValue;
     }
     catch(e){
         return timeValue
@@ -1336,6 +1361,3 @@ function getStatusClass(status){
         return " ";  
     }
   }
-
-
-  
