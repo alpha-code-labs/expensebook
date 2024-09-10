@@ -394,6 +394,7 @@ const [selectedCategory , setSelectedCategory]= useState(null)
           "expenseHeaderId":response?.expenseReport?.expenseHeaderId ?? null,
           "expenseHeaderNumber":response?.expenseReport?.expenseHeaderNumber,
           "expenseHeaderStatus": response?.expenseReport?.expenseHeaderStatus,
+          "expenseAmountStatus": response?.expenseReport?.expenseAmountStatus || {},
           "createdBy":response?.expenseReport?.createdBy,
           //"category":response?.expenseReport?.categoryName,
           "groupLimit":response?.expenseReport?.group || {},
@@ -1695,6 +1696,7 @@ If the required category is unavailable, Kindly contact the administrator.</span
  requiredObj?.expenseHeaderStatus && 
  requiredObj?.defaultCurrency && (
   <HeaderComponent 
+  totalExpenseAmount={requiredObj?.expenseAmountStatus?.totalExpenseAmount ?? "0.00"}
     createdBy={requiredObj.createdBy}
     expenseHeaderNumber={requiredObj.expenseHeaderNumber}
     expenseHeaderStatus={requiredObj.expenseHeaderStatus}
@@ -2029,7 +2031,7 @@ export default CreateNonTraveExpense
 
 
 
-const  HeaderComponent =({createdBy, expenseHeaderNumber, expenseHeaderStatus ,defaultCurrency }) =>(
+const  HeaderComponent =({totalExpenseAmount,createdBy, expenseHeaderNumber, expenseHeaderStatus ,defaultCurrency }) =>(
 
     <div className='my-5'>
     <div className="flex md:flex-row flex-col gap-2 justify-between w-full  ">
@@ -2056,6 +2058,11 @@ const  HeaderComponent =({createdBy, expenseHeaderNumber, expenseHeaderStatus ,d
       <p className=" text-neutral-600 text-xs line-clamp-1">Expense Header No.</p>
      
       <p className="text-purple-500 text-medium font-medium">{expenseHeaderNumber}</p>
+      </div>
+      <div className=' flex-1 font-cabin  px-2 '>
+      <p className=" text-neutral-600 text-xs line-clamp-1">Total Expense Amount</p>
+     
+      <p className="text-purple-500 text-medium font-medium">{totalExpenseAmount ?? 0}</p>
       </div>
 
       <div className=' flex-1 font-cabin  px-2  '>

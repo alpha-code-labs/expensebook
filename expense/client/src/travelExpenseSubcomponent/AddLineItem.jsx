@@ -217,7 +217,7 @@ const handleSelectCategory = (option) => {
   });
 
   // Only add allocations if level3 is present
-  if (requiredObj.level === 'level3') {
+  if (requiredObj?.level === 'level3') {
     const allocations = (option.expenseAllocation || []).map((allocation) => ({
       headerName: allocation.headerName,
       headerValue: "",
@@ -231,6 +231,7 @@ const handleSelectCategory = (option) => {
   }));
 };
 
+console.log('initial selected allocation',selectedAllocations)
 
 const handleMannualBtn=()=>{
   if(requiredObj.category){
@@ -821,7 +822,7 @@ useEffect(()=>{
      
       {showForm &&
 <div className='w-full flex flex-col md:flex-row relative border-t-2 border-slate-300 h-screen p-4 pb-16 '>
-    <div className='w-full md:w-3/5 md:block hidden  h-full overflow-auto'>
+    <div className='w-full md:w-3/5 md:block hidden border border-slate-300 rounded-md  h-full overflow-auto'>
         <DocumentPreview isFileSelected={isFileSelected} setIsFileSelected={setIsFileSelected} selectedFile={selectedFile} setSelectedFile={setSelectedFile} initialFile=""/>
     </div>
     <div className='w-full md:w-2/5 h-full overflow-auto'>
@@ -836,7 +837,7 @@ useEffect(()=>{
        formData={formData.fields}
        handleAllocations={handleAllocations}
        onboardingLevel={requiredObj.level}
-       allocationsList={requiredObj?.selectedCategoryData?.allocation}
+       allocationsList={requiredObj?.selectedCategoryData?.expenseAllocation}
        errorMsg={errorMsg}
        lineItemDetails={formData.fields}
        categoryFields={requiredObj?.selectedCategoryData?.fields || []}

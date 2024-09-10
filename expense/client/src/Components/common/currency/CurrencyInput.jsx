@@ -94,7 +94,7 @@ const CurrencyInput = ({conversionAmount,dataMsg,uploading,title,id,placeholder,
           {/* {error?.msg} */}
           {/* Amount in INR: Rs.310212.19
 1 CAD = 62.042437 INR */}
-      {`Amount in ${conversionAmount?.defaultCurrencyName} ${conversionAmount?.convertedTotalAmount} | 1 ${conversionAmount?.convertedCurrencyName} = ${conversionAmount?.defaultCurrencyName} ${conversionAmount?.conversionRate}`}
+      {`Amount in ${conversionAmount?.defaultCurrencyName} ${(conversionAmount?.convertedTotalAmount).toFixed(2)} | 1 ${conversionAmount?.convertedCurrencyName} = ${conversionAmount?.defaultCurrencyName} ${conversionAmount?.conversionRate}`}
         </div>
       )} 
            {uploading?.set && (
