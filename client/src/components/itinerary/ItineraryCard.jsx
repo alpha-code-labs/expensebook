@@ -24,10 +24,7 @@ import moment from "moment";
 export function FlightCard({ status,from, to, date, returnDate, time, travelClass, onClick, mode = 'Flight', id, handleEdit, handleDelete }) {
     return (
         <CardLayout status={status}>
-            {['pending booking'].includes(status) && 
-            <div className={`${getStatusClass(status)} capitalize absolute text-center rounded-sm px-1  right-0 top-0`}>
-            <p className="text-xs">{status}</p>
-        </div>}
+            
             
 
             <div className="flex flex-col justify-center items-center">
@@ -46,6 +43,10 @@ export function FlightCard({ status,from, to, date, returnDate, time, travelClas
                 <CardItemLayout title="Departure Date" imageSource={calender_icon} value={isoString(date)}  />
                 <CardItemLayout title="Time" imageSource={clock_icon} value={formattedTime(time)}  />
             </CardItemsLayout>
+            {['pending booking'].includes(status) && 
+            <div className={`${getStatusClass(status)} capitalize absolute text-center rounded-sm px-1  right-0 top-0`}>
+            <p className="text-xs">{status}</p>
+        </div>}
             {/* <ActionButtons id={id} handleDelete={handleDelete} handleEdit={handleEdit} /> */}
         </CardLayout>
     )
@@ -55,10 +56,7 @@ export function CabCard({status, from, to, date, returnDate, time, isFullDayCab,
     console.log('isFullDay cab', isFullDayCab)
     return (
         <CardLayout status={status} >
-            {['pending booking'].includes(status) && 
-            <div className={`${getStatusClass(status)} capitalize absolute text-center rounded-sm px-1  right-0 top-0`}>
-            <p className="text-xs">{status}</p>
-        </div>}
+           
             <div className='font-semibold items-center flex flex-col'>
                 <img src={spitImageSource(mode)} className='w-6 md:h-6' />
                 {isFullDayCab && <p className="text-xs whitespace-nowrap ">Full Day</p>}
@@ -82,6 +80,10 @@ export function CabCard({status, from, to, date, returnDate, time, isFullDayCab,
                 
                 
             </CardItemsLayout>
+            {['pending booking'].includes(status) && 
+            <div className={`${getStatusClass(status)}  capitalize absolute text-center rounded-sm px-1  right-0 top-0`}>
+            <p className="text-xs">{status}</p>
+        </div>} 
 
             {/* <ActionButtons id={id} handleDelete={handleDelete} handleEdit={handleEdit} /> */}
     </CardLayout>)
@@ -90,10 +92,7 @@ export function CabCard({status, from, to, date, returnDate, time, isFullDayCab,
 export function RentalCabCard({ status,from, to, date, returnDate, time, travelClass, mode, id, handleDelete, handleEdit }) {
     return (
         <CardLayout status={status}>
-            {['pending booking'].includes(status) && 
-            <div className={`${getStatusClass(status)} capitalize absolute text-center rounded-sm px-1  right-0 top-0`}>
-            <p className="text-xs">{status}</p>
-        </div>}
+           
             <div className='font-semibold items-center flex flex-col'>
                 <img src={spitImageSource(mode)} className='w-6 md:h-6' />
                 <p className="text-xs whitespace-nowrap">Self Drive</p>
@@ -115,6 +114,10 @@ export function RentalCabCard({ status,from, to, date, returnDate, time, travelC
                 
                 
             </CardItemsLayout>
+            {['pending booking'].includes(status) && 
+            <div className={`${getStatusClass(status)} capitalize absolute text-center rounded-sm px-1  right-0 top-0`}>
+            <p className="text-xs">{status}</p>
+        </div>}
             {/* <ActionButtons id={id} handleDelete={handleDelete} handleEdit={handleEdit} /> */}
         </CardLayout>)
 }
@@ -185,7 +188,7 @@ function CardItemLayout({ title, imageSource, value, altValue='-', whitespace='w
         <div className="flex items-center gap-1">
             {imageSource && <img src={imageSource} className="w-4 h-4" />}
             {!imageSource && <p> </p>}
-            <p className={`whitespace-${whitespace}`}>{value ?? '-'}</p>
+            <p className={`text-xs whitespace-${whitespace}`}>{value ?? '-'}</p>
         </div>
     </div>)
 }
