@@ -37,7 +37,7 @@ export async function statusUpdateBatchJob(){
 
         if(res.length > 0){
             //send to dashboard
-            await sendToOtherMicroservice(res, 'full-update-batchjob', 'dashboard', 'To update cashadvance data after running travel status update batch job from approved to Next state', 'cash', 'batch')
+            await sendToOtherMicroservice(res, 'full-update-batch-job', 'dashboard', 'To update cashadvance data after running travel status update batch job from approved to Next state', 'cash', 'batch')
         }
         
 
