@@ -29,10 +29,10 @@ function getItinerary(itinerary){
                     mappedItems = items
                     .filter(item => item.status === status.BOOKED)
                     .map(({
-                        itineraryId, status, bkd_date, bkd_class, bkd_pickupAddress, bkd_dropAddress,
+                        itineraryId, status,isFullDayCab, bkd_date,bkd_returnDate,bkd_time, bkd_class, bkd_pickupAddress, bkd_dropAddress,
                     }) => ({
                         category,
-                        itineraryId, status, bkd_date, bkd_class, bkd_pickupAddress, bkd_dropAddress,
+                        itineraryId, status,isFullDayCab, bkd_date, bkd_returnDate, bkd_time, bkd_class, bkd_pickupAddress, bkd_dropAddress,
                     }));
                 } else {
                     mappedItems = items
@@ -83,8 +83,11 @@ function getAddALegItinerary(itinerary) {
                     .map(item => ({
                         category,
                         itineraryId: item.itineraryId,
+                        isFullDayCab: item.isFullDayCab,
                         status: item.status,
                         date: item.date,
+                        returnDate: item.returnDate,
+                        time: item.time,
                         class: item['class'], 
                         pickupAddress: item.pickupAddress,
                         dropAddress: item.dropAddress,
@@ -357,6 +360,7 @@ const getAllCashAdvance = async(tenantId,empId) => {
                 cashAdvanceRejectionReason:cash?.cashAdvanceSchema?.cashAdvancesData?.cashAdvanceRejectionReason,
                 })).filter(Boolean)
               }))
+              console.log("travelCashAdvance", JSON.stringify(travelCashAdvance,'',2))
 
             // console.log("travelCashAdvance", travelCashAdvance)
             return {nonTravelCashAdvance, travelCashAdvance}
@@ -1745,6 +1749,7 @@ const approvalsForManager = async (tenantId, empId) => {
                         }
                     })
                 )
+            console.log("travelWithCash", JSON.stringify(travelWithCash,'',2))
 
                 // console.log("approvalDoc", approvalDoc)
                 const cashAdvanceRaisedLater = await Promise.all(
