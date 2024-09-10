@@ -42,10 +42,6 @@ body {
   scrollbar-width: none;  /* Firefox */
 }
 
-/* Custom scrollbar class */
-.custom-scrollbar::-webkit-scrollbar {
-  width: 4px; /* Width of the scrollbar */
-}
 
 
 

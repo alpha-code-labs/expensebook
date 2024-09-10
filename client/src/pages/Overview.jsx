@@ -223,16 +223,9 @@ const handleRaise = () => {
     <>
     {expenseVisible ?  ( <ExpenseMS visible={expenseVisible} setVisible={setExpenseVisible} src={iframeURL} /> ) :
     <div className="p-4 ">
-       
+      <TripMS visible={visible} setVisible={setVisible} src={iframeURL} /> 
+    <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 w-full overflow-x-auto pb-2">
       
-       
-               <TripMS visible={visible} setVisible={setVisible} src={iframeURL} /> 
-       
-
-       <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 w-full overflow-x-auto pb-2">
-       
-        
-   
    <CardLayout cardSequence={visibleDivs[0]} icon={briefcase} cardTitle={"Activities for On-going Trips"}>
    {intransitTrips.length === 0 ? (
      <EmptyTrips icon={empty_itinerary_icon} text="No in-transit trips." />
@@ -299,16 +292,8 @@ className={`px-2 py-1 rounded-xl cursor-pointer ease-in-out ${expenseTabs === 'n
    )
    }
    </div>
-   
-   
    </CardLayout>  
           
-   
-   
-   
-   
-   
-   
    <CardLayout cardSequence={visibleDivs[2]} icon={briefcase} cardTitle={"Upcoming Trips"}>
     
     {  upcomingTrips?.length === 0 ? (
@@ -373,12 +358,7 @@ className={`px-2 py-1 rounded-xl cursor-pointer ease-in-out ${expenseTabs === 'n
      {/* </div> */}
    </CardLayout>
    
-         </div>
-      
-        
-        
- 
-
+    </div>
       <Modal
         isOpen={modalOpen} 
         onClose={modalOpen} 

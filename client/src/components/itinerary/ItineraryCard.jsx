@@ -67,7 +67,7 @@ export function CabCard({status, from, to, date, returnDate, time, isFullDayCab,
             <CardItemsLayout>
 
                 <div className="flex flex-col gap-2">
-                    <div className="flex flex-col gap-2">      
+                    <div className="flex flex-col gap-2 capitalize">      
                         <CardItemLayout title="Pickup Location" imageSource={location_icon} value={from}  />
                         <CardItemLayout title="Drop Location" imageSource={location_icon} value={to}  />
                     </div>
@@ -101,7 +101,7 @@ export function RentalCabCard({ status,from, to, date, returnDate, time, travelC
             <CardItemsLayout>
 
                 <div className="flex flex-col gap-2">
-                    <div className="flex flex-col gap-2">      
+                    <div className="flex flex-col gap-2 capitalize">      
                         <CardItemLayout title="Pickup Location" imageSource={location_icon} value={from}  />
                         <CardItemLayout title="Drop Location" imageSource={location_icon} value={to}  />
                     </div>
@@ -141,7 +141,7 @@ export function HotelCard({status, checkIn, checkOut, location, ratings='any', o
                     
                     <div className="flex flex-col sm:flex-row gap-2 sm:gap-8">
                         <CardItemLayout title={'Smoking Preference'} imageSource={needNonSmokingRoom? no_smoking_icon : smoking_icon } value={needNonSmokingRoom ? 'Non-Smoking Room' : 'Smoking Room'} />
-                        <CardItemLayout title={'Food Requirements'} imageSource={restraunt_icon} value={!needBreakfast&&!needLunch&&!needDinner? 'None' : `${needBreakfast ? 'Breakfast' : ''} ${needLunch? 'Lunch' : ''} ${needDinner? 'Dinner' : ''}`} />
+                        <CardItemLayout title={'Food Requirements'} imageSource={restraunt_icon} value={!needBreakfast&&!needLunch&&!needDinner? '-' : `${needBreakfast ? 'Breakfast' : ''} ${needLunch? 'Lunch' : ''} ${needDinner? 'Dinner' : ''}`} />
                     </div>
                 
                 </div>
@@ -179,13 +179,13 @@ function CardItemsLayout({ children }) {
     </div>)
 }
 
-function CardItemLayout({ title, imageSource, value, altValue='not provided', whitespace='wrap'}) {
+function CardItemLayout({ title, imageSource, value, altValue='-', whitespace='wrap'}) {
     return (<div className="flex flex-col justify-center">
         <p className="text-xs text-neutral-600 flex justify-between flex-col sm:flex-row">{title}</p>
         <div className="flex items-center gap-1">
             {imageSource && <img src={imageSource} className="w-4 h-4" />}
             {!imageSource && <p> </p>}
-            <p className={`whitespace-${whitespace}`}>{value ?? 'not provided'}</p>
+            <p className={`whitespace-${whitespace}`}>{value ?? '-'}</p>
         </div>
     </div>)
 }
