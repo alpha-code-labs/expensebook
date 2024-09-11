@@ -3,6 +3,7 @@ import HRCompany from "../models/hrCompanySchema.js";
 import Reimbursement from "../models/reimbursementSchema.js";
 import { sendToOtherMicroservice } from "../rabbitmq/publisher.js";
 import Joi from "joi";
+import { extractTotalAmount } from "./travelExpenseController.js";
 
 /**
  * Generates an incremental number for a given tenant ID and incremental value.
@@ -459,6 +460,7 @@ const saveSchema = Joi.object({
   expenseHeaderNumber:Joi.string().required(),
   defaultCurrency:Joi.object().required(),
   lineItem:Joi.object().required(),
+  expenseAmountStatus:Joi.object().required(),
 })
 
 const validateRequest = (schema, data) => {
@@ -512,14 +514,26 @@ export const saveReimbursementExpenseLine = async (req, res) => {
       const { tenantId, empId, expenseHeaderId } = params;
       const { companyName, createdBy, expenseHeaderNumber,expenseAmountStatus, defaultCurrency, lineItem } = body;
   
-       console.log("req body", req.body)
+      //  console.log("req body", req.body)
        console.log("lineItem ......", lineItem)
        console.log("Type of 'Booking Reference No':", typeof lineItem['Booking Reference No']);
-
+console.log("expenseAmountStatus", JSON.stringify(expenseAmountStatus,'',2))
       if (!expenseHeaderNumber ) {
         return res.status(404).json({ message: 'error expenseHeaderNumber is missing' });
       }
+      const fixedFields = ['Total Amount', 'Total Fare', 'Premium Amount', 'Total Cost', 'License Cost', 'Subscription Cost',  'Premium Cost','Cost', 'Tip Amount', ]
 
+      // Extract total amount
+      let totalAmount = extractTotalAmount(lineItem, fixedFields);
+      let {
+        totalExpenseAmount,
+        totalPersonalExpenseAmount,
+        totalRemainingCash
+      } = expenseAmountStatus;
+      const totalAmountField = Number(totalAmount);
+      
+      totalRemainingCash -= totalAmountField;
+      totalExpenseAmount += totalAmountField;
 
       const {name} = createdBy
       const expenseLineId = new mongoose.Types.ObjectId().toString();
@@ -541,7 +555,7 @@ export const saveReimbursementExpenseLine = async (req, res) => {
               // expenseHeaderStatus: 'new',
               // createdBy,
               // expenseHeaderType: 'reimbursement',
-              // defaultCurrency,
+              'expenseAmountStatus.totalExpenseAmount': totalExpenseAmount,
           },
           $push: {
             expenseLines: [expenseLineData],
