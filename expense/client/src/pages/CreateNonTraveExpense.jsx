@@ -901,6 +901,7 @@ const handleSaveLineItem = async (action) => {
   
     payload = {
       companyName: requiredObj?.companyName,
+      "expenseAmountStatus":requiredObj?.expenseAmountStatus,
       createdBy: requiredObj?.createdBy,
       expenseHeaderNumber: requiredObj?.expenseHeaderNumber,
       defaultCurrency: requiredObj?.defaultCurrency,
@@ -912,7 +913,6 @@ const handleSaveLineItem = async (action) => {
     };
     api = postNonTravelExpenseLineItemApi(params, payload);
   }else{
-   
     payload= {
       "travelType":requiredObj?.travelType,
       "expenseAmountStatus": requiredObj?.expenseAmountStatus,
