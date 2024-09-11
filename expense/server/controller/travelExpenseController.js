@@ -400,7 +400,7 @@ export const BookExpense = async (req, res) => {
           .sort({ 'travelExpenseData.expenseHeaderNumber': -1 })
           .limit(1);
 
-        let nextIncrementalValue = 0;
+        let nextIncrementalValue = 1;
 
         if (maxIncrementalValue && maxIncrementalValue.travelExpenseData && maxIncrementalValue.travelExpenseData.expenseHeaderNumber) {
           nextIncrementalValue = parseInt(maxIncrementalValue.travelExpenseData.expenseHeaderNumber.substring(3), 10) + 1;
@@ -621,7 +621,7 @@ export const travelPolicyValidation = async (tenantId, empId, travelType, catego
 };
 
 
-const extractTotalAmount = (expenseLine, fixedFields) => {
+export const extractTotalAmount = (expenseLine, fixedFields) => {
   const keyFound = Object.entries(expenseLine)
       .find(([key]) => fixedFields.some(name => name.trim().toUpperCase() === key.trim().toUpperCase()));
 

@@ -136,6 +136,7 @@ export async function startConsumer(receiver) {
                 case 'settle-ca':
                 case 'recover-ca':
                   console.log("settle-ca or recover-ca ")
+                  // channel.ack(msg)
                  const res3 = await settleOrRecoverCashAdvance(payload);
                   handleMessageAcknowledgment(channel, msg, res3);
                   break;
