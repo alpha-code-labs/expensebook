@@ -901,6 +901,7 @@ const handleSaveLineItem = async (action) => {
   
     payload = {
       companyName: requiredObj?.companyName,
+      "expenseAmountStatus":requiredObj?.expenseHeaderStatus,
       createdBy: requiredObj?.createdBy,
       expenseHeaderNumber: requiredObj?.expenseHeaderNumber,
       defaultCurrency: requiredObj?.defaultCurrency,
