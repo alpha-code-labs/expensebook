@@ -549,7 +549,7 @@ export default function () {
                                         {`${titleCase(itnItem)} `}
                                     </p>
 
-                                    {formData.itinerary[itnItem].map((item, itemIndex) => {
+                                    {formData.itinerary[itnItem].filter(item=>['booked', 'pending booking'].includes(item.status)).map((item, itemIndex) => {
                                         if (['flights', 'trains', 'buses', 'personalVehicles'].includes(itnItem)) {
                                             return (
                                                 <div key={itemIndex}>
@@ -939,7 +939,7 @@ function AddTicketManually(
                                             onChange={(e)=>handleFieldValueChange(field.toSet, field.id, e)} />
                                     </div>)
 
-                    case 'date' : return(  
+                    case 'date' : return( (field.toSet != 'bkd_returnDate' || addTicketVariables.toSet != 'cabs' ||   itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex].isFullDayCab) &&
                         <div className='' key={index}>
 
                             <div className="min-w-[200px] w-full md:w-fit max-w-[403px] h-[73px] flex-col justify-start items-start gap-2 inline-flex">
