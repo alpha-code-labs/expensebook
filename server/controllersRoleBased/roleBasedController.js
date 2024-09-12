@@ -360,7 +360,7 @@ const getAllCashAdvance = async(tenantId,empId) => {
                 cashAdvanceRejectionReason:cash?.cashAdvanceSchema?.cashAdvancesData?.cashAdvanceRejectionReason,
                 })).filter(Boolean)
               }))
-              console.log("travelCashAdvance", JSON.stringify(travelCashAdvance,'',2))
+            //   console.log("travelCashAdvance", JSON.stringify(travelCashAdvance,'',2))
 
             // console.log("travelCashAdvance", travelCashAdvance)
             return {nonTravelCashAdvance, travelCashAdvance}
@@ -1677,6 +1677,7 @@ const approvalsForManager = async (tenantId, empId) => {
             ]
         }).lean().exec();
 
+        // console.log("approvalDoc",approvalDoc)
         if (approvalDoc?.length === 0) {
             return { message: 'There are no approvals found for the user' };
         } else {
@@ -1749,7 +1750,7 @@ const approvalsForManager = async (tenantId, empId) => {
                         }
                     })
                 )
-            console.log("travelWithCash", JSON.stringify(travelWithCash,'',2))
+            // console.log("travelWithCash", JSON.stringify(travelWithCash,'',2))
 
                 // console.log("approvalDoc", approvalDoc)
                 const cashAdvanceRaisedLater = await Promise.all(
@@ -1826,6 +1827,7 @@ const approvalsForManager = async (tenantId, empId) => {
                 return []; // Return an empty array or handle the error accordingly
             }
         })();
+        console.log("travelExpenseReports", approvalDoc.length)
 
         const nonTravelExpenseReports = await (async () => {
             try {
@@ -1872,7 +1874,7 @@ const approvalsForManager = async (tenantId, empId) => {
             }
         })();
         
-       console.log("nonTravelExpenseReports",nonTravelExpenseReports)
+    //    console.log("nonTravelExpenseReports",nonTravelExpenseReports)
        const addALeg= await (async () => {
         if (!Array.isArray(approvalDoc) || approvalDoc.length === 0) {
             return {}; 
@@ -2114,7 +2116,7 @@ console.log("verified business admin layout", tenantId, empId);
                 // Process each filtered booking
                 const results = await Promise.all(filteredBooking.map(async (booking) => {
                     try {
-                        const { travelRequestId, tripPurpose, createdBy, travelRequestNumber, tripName, travelRequestStatus, isCashAdvanceTaken, assignedTo, itinerary } = booking.travelRequestSchema;
+                        const { travelRequestId, tripPurpose, createdBy, travelRequestNumber, tripName, travelRequestStatus, isCashAdvanceTaken, assignedTo, itinerary,isAddALeg } = booking.travelRequestSchema;
                         const { empId } = createdBy;
                         
                         // Fetch the grade for the employee
@@ -2136,7 +2138,8 @@ console.log("verified business admin layout", tenantId, empId);
                             travelRequestNumber,
                             travelRequestStatus,
                             isCashAdvanceTaken,
-                            assignedTo
+                            assignedTo,
+                            isAddALeg
                         };
                     } catch (error) {
                         console.error(`Error processing booking ${booking.travelRequestSchema.travelRequestId}:`, error);
@@ -2176,7 +2179,7 @@ console.log("verified business admin layout", tenantId, empId);
                 // Process each filtered booking with an async function
                 const results = await Promise.all(filteredBooking.map(async (booking) => {
                     const { travelRequestData } = booking?.cashAdvanceSchema;
-                    const { travelRequestId, createdBy, travelRequestNumber, itinerary, tripPurpose, tripName, travelRequestStatus, isCashAdvanceTaken, assignedTo } = travelRequestData;
+                    const { travelRequestId, createdBy, travelRequestNumber, itinerary, tripPurpose, tripName, travelRequestStatus, isCashAdvanceTaken, assignedTo, isAddALeg } = travelRequestData;
                     const { empId } = createdBy;
             
                     try {
@@ -2199,7 +2202,8 @@ console.log("verified business admin layout", tenantId, empId);
                             itinerary: itineraryToSend,
                             travelRequestStatus,
                             isCashAdvanceTaken,
-                            assignedTo
+                            assignedTo,
+                            isAddALeg
                         };
                     } catch (error) {
                         console.error(`Error processing booking ${travelRequestId}:`, error);
@@ -2241,7 +2245,7 @@ console.log("verified business admin layout", tenantId, empId);
             
                 const results = await Promise.all(filteredBooking.map(async (booking) => {
                     const { tripId, tripNumber, tripStatus, tripStartDate, travelRequestData } = booking.tripSchema;
-                    const { travelRequestId, createdBy, travelRequestNumber, itinerary, tripPurpose, tripName, travelRequestStatus, isCashAdvanceTaken, assignedTo } = travelRequestData;
+                    const { travelRequestId, createdBy, travelRequestNumber, itinerary, tripPurpose, tripName, travelRequestStatus, isCashAdvanceTaken, assignedTo, isAddALeg } = travelRequestData;
                     const { empId } = createdBy;
             
                     try {
@@ -2265,7 +2269,8 @@ console.log("verified business admin layout", tenantId, empId);
                             itinerary: itineraryToSend,
                             travelRequestStatus,
                             isCashAdvanceTaken,
-                            assignedTo
+                            assignedTo,
+                            isAddALeg
                         };
                     } catch (error) {
                         console.error(`Error processing trip ${tripId}:`, error);
@@ -2277,7 +2282,8 @@ console.log("verified business admin layout", tenantId, empId);
                 return results.filter(Boolean);
             })();
             
-            
+            console.log("Add a leg .......", JSON.stringify(trips,'',2))
+
             const tripsPaidAndCancelled = await (async () => {
                 // Filter bookings where the tripStatus is not 'cancelled' and travelRequestStatus is 'booked'
                 const filteredBooking = bookingDoc.filter(booking => 
@@ -2325,14 +2331,13 @@ console.log("verified business admin layout", tenantId, empId);
                 return results.filter(Boolean);
             })();
     
-            const pendingBooking = [...travel, ...travelWithCash];
+            const pendingBooking = [...travel, ...travelWithCash, ...trips];
             const paidAndCancelledTrips = [...tripsPaidAndCancelled];
-            const pendingBookingTrips = [...trips];
 
-            // const responseData = {pendingBooking, paidAndCancelledTrips, pendingBookingTrips };
+            // const responseData = {pendingBooking, paidAndCancelledTrips, pendingBookingTrips};
             // return responseData
 
-            const responseData = { pendingBooking, paidAndCancelledTrips, pendingBookingTrips };
+            const responseData = { pendingBooking, paidAndCancelledTrips };
 
             
          const result = Object.values(responseData).some(value => value.length > 0) ? responseData : [];
