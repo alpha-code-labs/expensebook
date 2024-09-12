@@ -277,9 +277,11 @@ Raise a Cash-Advance
                     <div className={`text-center rounded-sm ${getStatusClass(advance?.cashAdvanceStatus ?? "-")}`}>
                        <p className='px-1 py-1 text-xs text-center capitalize font-cabin'>{advance?.cashAdvanceStatus ?? "-"}</p>
                     </div>
+                    {!['paid'].includes(advance?.cashAdvanceStatus) &&
                     <div onClick={()=>{if(!disableButton(trip?.travelRequestStatus)){handleVisible(trip?.travelRequestId,  'ca-modify' ,advance?.cashAdvanceId,)}}} className={`w-7 h-7 bg-indigo-100 rounded-full border border-white flex items-center justify-center ${disableButton(trip?.travelRequestStatus)? ' cursor-not-allowed opacity-50' : ' cursor-pointer'}`}>
                     <img src={modify} className='w-4 h-4' alt="modify_icon" />
-                    </div>
+                    </div>}
+                    
                   </div>
       </div>
       </div>
