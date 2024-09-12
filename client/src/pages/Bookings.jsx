@@ -489,14 +489,14 @@ export default function () {
         {(isLoading) && <Error message={loadingErrMsg}/>}
        
        {!isLoading && 
-        <div className="w-full h-full relative bg-white md:px-24 md:mx-0 sm:px-0 sm:mx-auto py-12 select-none">
+        <div className="w-full h-full relative  select-none">
         {/* app icon */}
-        <div className='w-full flex justify-center  md:justify-start lg:justify-start'>
+        {/* <div className='w-full flex justify-center  md:justify-start lg:justify-start'>
             <Icon/>
-        </div>
+        </div> */}
 
         {/* Rest of the section */}
-        <div className="w-full h-full mt-10 p-10 font-cabin tracking-tight">
+        <div className="w-full h-full p-10 font-cabin tracking-tight">
             <p className="text-2xl text-neutral-600 mb-5">{`${formData.tripPurpose} Trip`}</p>
             <div className='flex divide-x'>
                 <div className='flex flex-col sm:flex-row gap-1 pr-1'>
