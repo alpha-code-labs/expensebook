@@ -815,7 +815,7 @@ export const expenseSchema = new mongoose.Schema({
             type: {empId: String, name: String}, //employee Id by whom TR is raised
             // required: true
             },
-          travelAllocationFlags:{ //Comes from HRMaster -Based on this expense booking screen changes
+          travelAllocationFlags:{ //Comes from HRCompany -Based on this expense booking screen changes
             level1:Boolean,
             level2:Boolean,
             level3:Boolean,

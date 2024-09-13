@@ -1,5 +1,4 @@
 import amqp from 'amqplib';
-import { updateHRMaster } from './messageProcessor/hrMaster.js';
 // import { fullUpdateTravel } from './messageProcessor/travel.js';
 import dotenv from 'dotenv';
 // import { fullUpdateExpense } from './messageProcessor/travelExpenseProcessor.js';
@@ -51,6 +50,20 @@ export async function startConsumer(receiver) {
     }
   };
 
+  const handleMessageAcknowledgment = (channel,msg,res) => {
+   try{
+    if(res.success){
+      channel.ack(msg)
+      console.info('Message acknowledged Successfully')
+    } else {
+    // channel.noAck(msg, false, true)
+    console.error('Error Processing message, requeuing')
+    }
+
+   } catch(error){
+     console.error('error in ack of rabbitmq msg', error)
+   }
+  }
   // Start initial connection attempt
   const channel = await connectToRabbitMQ();
   if (!channel) {
@@ -82,23 +95,23 @@ export async function startConsumer(receiver) {
      const payload = content?.payload
      const source = content?.headers?.source
      const action = content?.headers?.action
+     const isReporting = content?.headers?.destination == 'reporting'
   
-      if(content.headers.destination == 'reporting'){
+      if(isReporting){
   
-        if(source == 'onboarding'){
-          console.log('trying to update HR Master')
-          const res = await updateHRMaster(payload)
+      switch(source){
+        case 'onboarding':
+        case 'system-config':
+          const res = await update(payload)
           console.log(res)
-          if(res.success){
-            //acknowledge message
-            channel.ack(msg)
-            console.log('message processed successfully')
-          }
-          else{
-            //implement retry mechanism
-            console.log('update failed with error code', res.error)
-          }
-          }
+          handleMessageAcknowledgment(channel,msg,res)  
+          break;
+
+            default:
+              console.log(`no action ${action} defined for source ${source}`)
+            break;
+        }
+
           //  else if (source == 'travel'){
           //   console.log('trying to update Travel')
           //   const res = await fullUpdateTravel(payload)

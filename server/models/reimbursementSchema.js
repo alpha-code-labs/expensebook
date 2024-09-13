@@ -90,7 +90,7 @@ expenseHeaderStatus: {
   enum: expenseHeaderStatusEnums,
   default: null
 },
-travelAllocationFlags:{ //Comes from HRMaster -Based on this expense booking screen changes
+travelAllocationFlags:{ //Comes from HRCompany -Based on this expense booking screen changes
   level1:Boolean,
   level2:Boolean,
   level3:Boolean,

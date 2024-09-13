@@ -1,14 +1,14 @@
 import reporting from "../models/reportingSchema.js";
-import hrmaster from '../models/hrCompanySchema.js';
 import Joi from 'joi';
 import { getMonthRange, getQuarterRange, getWeekRange, getYear } from "../helpers/dateHelpers.js";
+import HRCompany from "../models/hrCompanySchema.js";
 
 
 export const getExpenseCategoriesForEmpId = async (req, res) => {
     try {
       const { tenantId, empId } = req.params;
   
-      const employeeDocument = await hrmaster.findOne({
+      const employeeDocument = await HRCompany.findOne({
         tenantId,
         'employees.employeeDetails.employeeId': empId
       });
@@ -222,7 +222,6 @@ export const testgetReimbursementExpenseReport = async (req, res) => {
   }
 };
 
-  
 
 
 

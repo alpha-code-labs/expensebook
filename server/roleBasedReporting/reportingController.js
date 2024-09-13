@@ -1,12 +1,12 @@
 import reporting from '../models/reportingSchema.js';
-import hrmaster from '../models/hrCompanySchema.js';
 import Joi from 'joi';
 import { approverStatusEnums, cashAdvanceStatusEnum, expenseHeaderStatusEnums, tripStatusEnum } from '../models/expenseSchema.js';
+import HRCompany from '../models/hrCompanySchema.js';
 
 const getEnums = {approverStatusEnums, cashAdvanceStatusEnum,tripStatusEnum,expenseHeaderStatusEnums}
 const getEmployeeRoles = async (tenantId, empId) => {
     const toString = empId.toString();
-    const hrDocument = await hrmaster.findOne({
+    const hrDocument = await HRCompany.findOne({
         'tenantId': tenantId,
         'employees.employeeDetails.employeeId': empId,
     });
@@ -106,7 +106,7 @@ const employeeLayout = async (tenantId, empId) => {
 const hrDetailsService = async (tenantId, empId) =>{
   try {
   
-    const employeeDocument = await hrmaster.findOne({
+    const employeeDocument = await HRCompany.findOne({
       tenantId,
       'employees.employeeDetails.employeeId': empId
     });
@@ -133,7 +133,7 @@ const hrDetailsService = async (tenantId, empId) =>{
     } = employeeDocument || {};
 
     let {
-      flags:{policyFlag} = {}, // the name need to be cross-checked with HRMaster later --
+      flags:{policyFlag} = {}, // the name need to be cross-checked with hrcompany later --
       travelAllocationFlags = {}, // 3 types
       travelAllocations = {},
       travelExpenseCategories = {},

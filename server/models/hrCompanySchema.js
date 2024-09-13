@@ -36,6 +36,7 @@ const employeeSchema = new mongoose.Schema({
   },
   onboarder: Boolean,
   canDelegate: Boolean,
+  imageUrl: String,
 })
 
 // company details schema
@@ -69,7 +70,7 @@ const hrCompanySchema = new mongoose.Schema({
     ORG_HEADERS_FLAG: Boolean,
     POLICY_SETUP_FLAG: Boolean,
   },
-
+  progress:{},
   onboardingCompleted: Boolean,
   state: String,
   companyDetails: companyDetailsSchema,
@@ -231,13 +232,6 @@ const hrCompanySchema = new mongoose.Schema({
 })
 
 // model from the schema
-const hrmaster = mongoose.model('hrmasters', hrCompanySchema)
+const HRCompany = mongoose.model('HRCompany', hrCompanySchema)
 
-export default hrmaster
-
-
-
-
-
-
-
+export default HRCompany
