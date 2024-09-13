@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { filter_icon, cancel, search_icon, info_icon, airplane_icon1, plus_icon } from '../assets/icon';
+import { filter_icon, cancel, search_icon, info_icon, airplane_icon1, plus_icon, violation_icon, violation_red_icon } from '../assets/icon';
 import { checkUpcomingTrip, filterByTimeRange,  sortTripsByDate, sortTripsForBooking, } from '../utils/handyFunctions';
 import {dummyTravelReqForBooking, dummyPaidAndCancelledTrips} from '../utils/dummyData';
 import { CabCard, FlightCard, HotelCard, RentalCabCard } from '../components/itinerary/BookingItineraryCard';
@@ -412,8 +412,14 @@ setSelectedStatuses={setSelectedDateRange}
             {/* <div>{trip?.tripStartDate}</div> */}
           </div>
         </div>
-        <div className='flex w-full sm:justify-end justify-between gap-2 items-center'>
-        <div className='text-red-600  font-medium font-inter text-xs text-center'>{trip?.isAddALeg ? "Urgent: On-going trip. Please prioritize booking." : checkUpcomingTrip(trip?.tripStartDate)}</div>
+        <div className='flex w-full sm:justify-end justify-between gap-2 items-center '>
+        {(trip?.isAddALeg || checkUpcomingTrip(trip?.tripStartDate)) && (
+  <div className='text-red-600 border-red-600 font-medium font-inter text-xs text-center border px-1 py-1 rounded-sm gap-1 flex items-center justify-center'>
+    <img className='w-4 h-4' src={violation_red_icon} alt="Urgent icon" />
+    {trip?.isAddALeg ? "Urgent: On-going trip. Please prioritize booking." : checkUpcomingTrip(trip?.tripStartDate)}
+  </div>
+)}
+
           <div className='flex items-center justify-center space-x-2'>
 
             <div className='w-fit bg-slate-100 px-2 py-1 flex gap-1 rounded-md border border-slate-300'>Grade
