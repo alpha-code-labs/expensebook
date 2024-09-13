@@ -2,10 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
-import dummy from './routes/dummyRoute.js';
 import overview from './routes/overviewRoutes.js';
 import { handleErrors } from './errorHandler/errorHandler.js';
-import amqp from 'amqplib';
 import { startConsumer } from './rabbitmq/consumer.js';
 import { mainRouter} from './routes/mainFrontendRoutes.js';
 import { consumeFromDashboardQueue } from './rabbitmq/dashboardConsumer.js';
@@ -27,7 +25,6 @@ app.use(express.json());
 app.use(cors());
 
 //Routes
-app.use('/api/dummydata', dummy);
 app.use('/api/dashboard/overview', overview ); 
 app.use('/api/fe/dashboard', mainRouter);
 app.get('/ping', (req,res) => { return res.status(200).json({message:'Dashboard microservice is live'})})
