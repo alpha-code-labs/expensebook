@@ -6,6 +6,7 @@ import tripRoutes from './routes/tripRoutes.js';
 import { mainRouter } from './routes/mainFrontendRoutes.js';
 import { handleErrors } from './errorHandler/errorHandler.js';
 import { startConsumer } from './rabbitmq/consumer.js';
+import HRCompany from './models/hrCompanySchema.js';
 
 dotenv.config();
 const app = express();
@@ -49,5 +50,4 @@ app.listen(port, () => {
 
 // start consuming messages..
 startConsumer('reporting');
-
 
