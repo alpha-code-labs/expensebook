@@ -1,5 +1,5 @@
 const trip = {
-    "_id": { "$oid": "6603be4983f2d4546e4c281e" },
+    "_id": { "$oid": "6603be4983f2d4546e4c281e" } ,
     "tenantId": "65f7d5442f8fdd7d542eed0700",
     "travelRequestData": {
       "itinerary": {
@@ -264,40 +264,268 @@ const trip = {
     "tripStartDate": { "$date": { "$numberLong": "1711497600000" } },
     "tripStatus": "transit",
   }
-export const expenseData= [
+
+
+export const requiredCashAdvanceData= [
+
+{
+  "travelRequestData": {
+    "tenantId": "65c5c3bef21cc9ab3038e21f",
+    "tenantName": "Studio Innovate",
+    "companyName": "Studio Innovate",
+    "travelRequestId": {
+      "$oid": "65c5dec8cf52af3ac3026c46"
+    },
+    "travelRequestNumber": "TRST000000",
+    "travelType": "international",
+    "tripPurpose": "Business",
+    "travelRequestStatus": "booked",
+
+},
+"cashAdvancesData":
   {
-    "tripStartDate" : "2023-12-24T08:00:00.000+00:00",
-    "tripCompletionDate" : "2023-12-29T15:30:00.000+00:00",
-    "tripStatus":"transit",
-      "tripNumber": "TRIPST00001",
+        "cashAdvanceNumber": "CA0001",
+        "createdBy": {
+          "empId": "1002",
+          "name": "Kanhaiya Verma"
+        },
+        "paidBy": {
+          "empId": "1002",
+          "name": "Adhivansh"
+        },
+        "cashAdvanceStatus": "pending approval",
+        "cashAdvanceRequestDate" : "2024-02-11T13:45:41.662+00:00",
+        "paymentMode": "credit card",
+        "amountDetails": [
+          {
+            "amount":"5000",
+            "currency": {
+              "countryCode": "IN",
+              "fullName": "Indian Rupee",
+              "shortName": "INR",
+              "symbol": "₹"
+            },
+            "mode": "Cheque",
+            "_id": {
+              "$oid": "65c9d61647379a04a6ecbdc1"
+            }
+          }
+      ]
+  }
+}]
+
+
+export const requiredExpenseData = [
+  {
+    "tripStartDate": "2023-12-24T08:00:00.000+00:00",
+    "tripCompletionDate": "2023-12-29T15:30:00.000+00:00",
+    "tripStatus": "transit",
+    "tripNumber": "TRIPST00001",
+    "travelType":"international",
     "createdBy": {
       "empId": "1001",
       "name": "Ajay Singh",
-      "_id": { "$oid": "6603bb535a8f60af9de10f3a" }
+      "_id": {
+        "$oid": "6603bb535a8f60af9de10f3a"
+      }
     },
-    
-    "travelAllocationHeaders": [
+    "expenseAmountStatus": {
+      totalAlreadyBookedExpenseAmount: 37900,
+      totalCashAmount: 5000,
+      totalExpenseAmount: 37900,
+      totalPersonalExpenseAmount: 0,
+      totalRemainingCash: 5000
+    },
+    "travelExpenseData":{
+        "createdBy": {
+          "empId": "1001",
+          "name": "Ajay Singh",
+          "_id": {
+            "$oid": "6603bb535a8f60af9de10f3a"
+          }
+        },
+        "expenseHeaderDate":"2023-12-24T08:00:00.000+00:00",
+        "travelAllocationHeaders": [
+          {
+            "headerName": "department",
+            "headerValue": "Finance"
+          },
+          {
+            "headerName": "legalEntity",
+            "headerValue": "Company XYZ"
+          },
+          {
+            "headerName": "costCenter",
+            "headerValue": "CC-001"
+          }
+        ],
+        "tenantId": "660a58ac1a308ce97b32213f",
+        "tenantName": "Studio Innovate",
+        "travelRequestId": {
+          "$oid": "660a6d654b838b3120f96404"
+        },
+        "travelRequestNumber": "TRST000001",
+        "expenseHeaderNumber": "ERST000001",
+        "expenseHeaderId": {
+          "$oid": "660a7ff9ebdfa9056d7358df"
+        },
+        "expenseHeaderType": "travel",
+        "travelAllocationFlags": {
+          "level1": true,
+          "level2": false,
+          "level3": false
+        },
+        "expenseHeaderStatus": "paid",
+        "paidBy": {
+          "empId": "1003",
+          "name": "Adharav Tomar",
+          "_id": {
+            "$oid": "6603bb535a8f60af9de10f3a"
+          }
+        },
+        "paymentMode": "cash",
+        "totalAmount": "4000.00"
+      },
+  },
+
+  
+]  
+
+export const requiredReimbursementData =[
+
+  {
+    "_id": {
+      "$oid": "660d099f1d2713355ff63963"
+    },
+    "tenantId": "660a58ac1a308ce97b32213f",
+    "expenseHeaderId": "660d098034c6e33ed9339546",
+    "__v": {
+      "$numberInt": "0"
+    },
+    "companyName": "Alpha Code Labs",
+    "createdBy": {
+      "empId": "1003",
+      "name": "Ajay Singh",
+      "_id": {
+        "$oid": "660d09bc34c6e33ed9339558"
+      }
+    },
+    "expenseHeaderNumber": "REAL000001",
+    "expenseHeaderStatus": "pending settlement",
+    "expenseHeaderType": "reimbursement",
+    "expenseLines": [
       {
-        "headerName": "department",
-        "headerValue": "Finance"
+        "lineItemId": {
+          "$oid": "660d099e34c6e33ed933954a"
+        },
+        "lineItemStatus": "save",
+        "expenseLineAllocation": [
+          {
+            "headerName": "department",
+            "_id": {
+              "$oid": "660d099e34c6e33ed933954c"
+            },
+            "headerValue": "HR"
+          },
+          {
+            "headerName": "legalEntity",
+            "_id": {
+              "$oid": "660d099e34c6e33ed933954d"
+            },
+            "headerValue": "Company XYZ"
+          }
+        ],
+        "multiCurrencyDetails": null,
+        "_id": {
+          "$oid": "660d099e34c6e33ed933954b"
+        },
+        "group": {
+          "limit": {
+            "$numberInt": "2500"
+          },
+          "group": "Finance",
+          "message": "Ajay Singh is part of Finance. Highest limit found: 2500"
+        },
+        "Category Name": "Hotel",
+        "Hotel Name": "Seven Hills Inn",
+        "Check-In Date": "2019-03-26",
+        "Check-Out Date": "2019-03-27",
+        "City": "Behind Mango Market, Tiruchanoor Road, Thanapalli Cross, Chittoor Highway, Tirupati",
+        "Room Rates": "761",
+        "Tax Amount": "",
+        "Total Amount": "761",
+        "Guest Name": " Sumesh",
+        "Booking Reference No": "",
+        "Payment Method": "",
+        "Document": "https://blobstorage318.blob.core.windows.net/images/images/31%20ticket.pdf?sp=racwdl&st=2024-03-11T10:04:12Z&se=2024-04-05T18:04:12Z&sv=2022-11-02&sr=c&sig=o7ToXXk7knEWeWB8XQHVLUd6fnFuBxxpgn9KrW02O7k%3D",
+        "Currency": {
+          "countryCode": "IN",
+          "fullName": "Indian Rupee",
+          "shortName": "INR",
+          "symbol": "₹"
+        }
       },
       {
-        "headerName": "legalEntity",
-        "headerValue": "Company XYZ"
-      },
-      {
-        "headerName": "costCenter",
-        "headerValue": "CC-001"
+        "lineItemId": {
+          "$oid": "660d09bc34c6e33ed9339554"
+        },
+        "lineItemStatus": "save",
+        "expenseLineAllocation": [
+          {
+            "headerName": "department",
+            "_id": {
+              "$oid": "660d09bc34c6e33ed9339556"
+            },
+            "headerValue": "Marketing"
+          },
+          {
+            "headerName": "legalEntity",
+            "_id": {
+              "$oid": "660d09bc34c6e33ed9339557"
+            },
+            "headerValue": "Company ABC"
+          }
+        ],
+        "multiCurrencyDetails": null,
+        "_id": {
+          "$oid": "660d09bc34c6e33ed9339555"
+        },
+        "group": {
+          "limit": {
+            "$numberInt": "2500"
+          },
+          "group": "Finance",
+          "message": "Ajay Singh is part of Finance. Highest limit found: 2500"
+        },
+        "Category Name": "Hotel",
+        "Hotel Name": "Seven Hills Inn",
+        "Check-In Date": "2019-03-26",
+        "Check-Out Date": "2019-03-27",
+        "City": "Behind Mango Market, Tiruchanoor Road, Thanapalli Cross, Chittoor Highway, Tirupati",
+        "Room Rates": "761",
+        "Tax Amount": "",
+        "Total Amount": "761",
+        "Guest Name": " Sumesh",
+        "Booking Reference No": "",
+        "Payment Method": "",
+        "Document": "https://blobstorage318.blob.core.windows.net/images/images/acl.png?sp=racwdl&st=2024-03-11T10:04:12Z&se=2024-04-05T18:04:12Z&sv=2022-11-02&sr=c&sig=o7ToXXk7knEWeWB8XQHVLUd6fnFuBxxpgn9KrW02O7k%3D",
+        "Currency": {
+          "countryCode": "IN",
+          "fullName": "Indian Rupee",
+          "shortName": "INR",
+          "symbol": "₹"
+        }
       }
     ],
+    "expenseViolations": [],
+    "tenantName": "Alpha Code Labs"
   }
+    
 ]  
 
 
 
-
-  export const requiredTripData= [
-
+export const requiredTripData= [
     {
       "tripStartDate" : "2023-12-24T08:00:00.000+00:00",
       "tripCompletionDate" : "2023-12-29T15:30:00.000+00:00",
@@ -1325,660 +1553,662 @@ export const expenseData= [
   ]
 
 
+  
 
-  {
-    "_id": {
-      "$oid": "660a7859b202f54c53ef040e"
-    },
-    "tenantId": "660a58ac1a308ce97b32213f",
-    "travelRequestData": {
-      "itinerary": {
-        "flights": [
-          {
-            "itineraryId": {
-              "$oid": "660a6dcc4b838b3120f96413"
-            },
-            "formId": "travel_050b32d6-045d-4b40-b4a3-649b38be7e59",
-            "from": "Delhi",
-            "to": "Lucknow",
-            "date": {
-              "$date": {
-                "$numberLong": "1713312000000"
-              }
-            },
-            "returnDate": null,
-            "time": "14:00",
-            "returnTime": null,
-            "travelClass": null,
-            "isReturnTravel": false,
-            "violations": {
-              "class": null,
-              "amount": null
-            },
-            "approvers": [
-              {
-                "empId": "1002",
-                "name": "Sumesh Nayar",
-                "status": "approved",
-                "_id": {
-                  "$oid": "660a6dcb4b838b3120f9640b"
-                }
-              }
-            ],
-            "bkd_from": "Indira Gandhi International Airport",
-            "bkd_to": "Chaudhary Charan Singh International Airport",
-            "bkd_date": {
-              "$date": {
-                "$numberLong": "1711929600000"
-              }
-            },
-            "bkd_returnDate": null,
-            "bkd_time": "14:00",
-            "bkd_returnTime": null,
-            "bkd_travelClass": null,
-            "bkd_violations": {
-              "class": null,
-              "amount": null
-            },
-            "modified": false,
-            "cancellationDate": null,
-            "cancellationReason": null,
-            "rejectionReason": null,
-            "status": "booked",
-            "bookingDetails": {
-              "docURL": "https://blobstorage318.blob.core.windows.net/images/images/flight_ticket_1.pdf",
-              "docType": null,
-              "billDetails": {
-                "vendorName": "Yatra",
-                "taxAmount": "0",
-                "totalAmount": "5258"
-              }
-            },
-            "_id": {
-              "$oid": "660a6dcc4b838b3120f9640d"
-            }
-          }
-        ],
-        "buses": [],
-        "trains": [
-          {
-            "itineraryId": {
-              "$oid": "660a6dcc4b838b3120f96414"
-            },
-            "formId": "travel_a4a79d70-93fd-42ab-9e61-19700dbe78f3",
-            "from": "Delhi",
-            "to": "Raipur",
-            "date": {
-              "$date": {
-                "$numberLong": "1712102400000"
-              }
-            },
-            "time": "13:00",
-            "travelClass": null,
-            "violations": {
-              "class": null,
-              "amount": null
-            },
-            "approvers": [
-              {
-                "empId": "1002",
-                "name": "Sumesh Nayar",
-                "status": "approved",
-                "_id": {
-                  "$oid": "660a6dcb4b838b3120f9640b"
-                }
-              }
-            ],
-            "bkd_from": "H. Nizammudin",
-            "bkd_to": "Raipur JN",
-            "bkd_date": {
-              "$date": {
-                "$numberLong": "1712016000000"
-              }
-            },
-            "bkd_time": null,
-            "bkd_travelClass": null,
-            "bkd_violations": {
-              "class": null,
-              "amount": null
-            },
-            "modified": false,
-            "cancellationDate": null,
-            "cancellationReason": null,
-            "rejectionReason": null,
-            "status": "booked",
-            "bookingDetails": {
-              "docURL": "https://blobstorage318.blob.core.windows.net/images/images/train_ticket_1.pdf",
-              "docType": null,
-              "billDetails": {
-                "vendorName": "IRCTC",
-                "taxAmount": "0",
-                "totalAmount": "438"
-              }
-            },
-            "_id": {
-              "$oid": "660a6dcc4b838b3120f9640f"
-            }
-          }
-        ],
-        "hotels": [
-          {
-            "itineraryId": {
-              "$oid": "660a6dcc4b838b3120f96415"
-            },
-            "location": "Tirupati",
-            "locationPreference": null,
-            "class": null,
-            "checkIn": {
-              "$date": {
-                "$numberLong": "1712016000000"
-              }
-            },
-            "checkOut": {
-              "$date": {
-                "$numberLong": "1712275200000"
-              }
-            },
-            "violations": {
-              "class": null,
-              "amount": null
-            },
-            "approvers": [
-              {
-                "empId": "1002",
-                "name": "Sumesh Nayar",
-                "status": "approved",
-                "_id": {
-                  "$oid": "660a6dcb4b838b3120f9640b"
-                }
-              }
-            ],
-            "bkd_location": "Behind Mango Market, Tiruchanoor Road, Thanapalli Cross, Chittoor Highway, Tirupati",
-            "bkd_class": null,
-            "bkd_checkIn": {
-              "$date": {
-                "$numberLong": "1712016000000"
-              }
-            },
-            "bkd_checkOut": {
-              "$date": {
-                "$numberLong": "1712102400000"
-              }
-            },
-            "bkd_violations": {
-              "class": null,
-              "amount": null
-            },
-            "modified": false,
-            "cancellationDate": null,
-            "cancellationReason": null,
-            "status": "booked",
-            "bookingDetails": {
-              "docURL": "https://blobstorage318.blob.core.windows.net/images/images/Hotel_bill_1.pdf",
-              "docType": null,
-              "billDetails": {
-                "vendorName": "Oravel Travels Pvt. Ltd.",
-                "taxAmount": "0",
-                "totalAmount": "761"
-              }
-            },
-            "_id": {
-              "$oid": "660a6dcc4b838b3120f96411"
-            }
-          }
-        ],
-        "cabs": [],
-        "carRentals": [],
-        "personalVehicles": [],
-        "formState": []
-      },
-      "tripType": {
-        "oneWayTrip": true,
-        "roundTrip": false,
-        "multiCityTrip": false
-      },
-      "assignedTo": {
-        "empId": "1003",
-        "name": "Kanhaiya Verma"
-      },
-      "tenantId": "660a58ac1a308ce97b32213f",
-      "tenantName": "Studio Innovate",
-      "companyName": "Studio Innovate",
-      "travelRequestId": {
-        "$oid": "660a6d654b838b3120f96404"
-      },
-      "travelRequestNumber": "TRST000001",
-      "travelType": "international",
-      "tripPurpose": "Business",
-      "travelRequestStatus": "booked",
-      "travelRequestState": "section 0",
-      "createdBy": {
-        "empId": "1001",
-        "name": "Ajay Singh",
-        "_id": {
-          "$oid": "660a6dcb4b838b3120f9640c"
-        }
-      },
-      "createdFor": null,
-      "teamMembers": [],
-      "travelAllocationHeaders": [
-        {
-          "headerName": "department",
-          "headerValue": "Finance"
-        },
-        {
-          "headerName": "legalEntity",
-          "headerValue": "Company XYZ"
-        },
-        {
-          "headerName": "costCenter",
-          "headerValue": "CC-001"
-        }
-      ],
-      "travelDocuments": [],
-      "bookings": [],
-      "approvers": [
-        {
-          "empId": "1002",
-          "name": "Sumesh Nayar",
-          "status": "approved",
-          "_id": {
-            "$oid": "660a6dcb4b838b3120f9640b"
-          }
-        }
-      ],
-      "preferences": [],
-      "travelViolations": {
-        "tripPurpose": null,
-        "class": null,
-        "amount": null,
-        "tripPurposeViolationMesssage": null
-      },
-      "travelRequestDate": "2024-04-01T08:18:20.047Z",
-      "cancellationDate": null,
-      "isCancelled": false,
-      "cancellationReason": null,
-      "isCashAdvanceTaken": true,
-      "isAddALeg": false,
-      "sentToTrip": true
-    },
-    "__v": {
-      "$numberInt": "10"
-    },
-    "cashAdvancesData": [
-      {
-        "tenantId": "660a58ac1a308ce97b32213f",
-        "travelRequestId": {
-          "$oid": "660a6d654b838b3120f96404"
-        },
-        "travelRequestNumber": "TRST000001",
-        "cashAdvanceId": {
-          "$oid": "660a6dd0f061a127e132d5a6"
-        },
-        "cashAdvanceNumber": "CA0001",
-        "createdBy": {
-          "empId": "1001",
-          "name": "Ajay Singh"
-        },
-        "cashAdvanceStatus": "paid",
-        "cashAdvanceState": "section 0",
-        "amountDetails": [
-          {
-            "amount": {
-              "$numberInt": "60000"
-            },
-            "currency": {
-              "countryCode": "IN",
-              "fullName": "Indian Rupee",
-              "shortName": "INR",
-              "symbol": "₹"
-            },
-            "mode": "Cheque",
-            "_id": {
-              "$oid": "660a6dd0f061a127e132d5b3"
-            }
-          }
-        ],
-        "approvers": [
-          {
-            "empId": "1002",
-            "name": "Sumesh Nayar",
-            "status": "approved",
-            "_id": {
-              "$oid": "660a6dcb4b838b3120f9640b"
-            }
-          }
-        ],
-        "cashAdvanceRequestDate": {
-          "$date": {
-            "$numberLong": "1711959530092"
-          }
-        },
-        "cashAdvanceApprovalDate": null,
-        "cashAdvanceSettlementDate": null,
-        "cashAdvanceViolations": "Cash Advance exceeds maximum allowed limit of 50000",
-        "_id": {
-          "$oid": "660a6dd0f061a127e132d5b2"
-        }
-      }
-    ],
-    "createdBy": {
-      "empId": "1001",
-      "name": "Ajay Singh",
-      "_id": {
-        "$oid": "660a6dcb4b838b3120f9640c"
-      }
-    },
-    "tenantName": "Studio Innovate",
-    "tripCompletionDate": {
-      "$date": {
-        "$numberLong": "1712102400000"
-      }
-    },
-    "tripId": {
-      "$oid": "660a78127900b0e04830e106"
-    },
-    "tripNumber": "TRIPST000000",
-    "tripStartDate": {
-      "$date": {
-        "$numberLong": "1711929600000"
-      }
-    },
-    "tripStatus": "transit",
-    "expenseAmountStatus": {
-      "totalAlreadyBookedExpenseAmount": {
-        "$numberInt": "6457"
-      },
-      "totalCashAmount": {
-        "$numberInt": "60000"
-      },
-      "totalExpenseAmount": {
-        "$numberInt": "6457"
-      },
-      "totalPersonalExpenseAmount": {
-        "$numberInt": "0"
-      },
-      "totalRemainingCash": {
-        "$numberInt": "60000"
-      }
-    },
-    "travelExpenseData": [
-      {
-        "tenantId": "660a58ac1a308ce97b32213f",
-        "tenantName": "Studio Innovate",
-        "travelRequestId": {
-          "$oid": "660a6d654b838b3120f96404"
-        },
-        "travelRequestNumber": "TRST000001",
-        "expenseHeaderNumber": "ERST000001",
-        "expenseHeaderId": {
-          "$oid": "660a7ff9ebdfa9056d7358df"
-        },
-        "expenseHeaderType": "travel",
-        "travelAllocationFlags": {
-          "level1": true,
-          "level2": false,
-          "level3": false
-        },
-        "expenseHeaderStatus": "paid",
-        "alreadyBookedExpenseLines": {
-          "formState": [],
-          "flights": [
-            {
-              "itineraryId": {
-                "$oid": "660a6dcc4b838b3120f96413"
-              },
-              "formId": "travel_050b32d6-045d-4b40-b4a3-649b38be7e59",
-              "from": "Delhi",
-              "to": "Lucknow",
-              "date": {
-                "$date": {
-                  "$numberLong": "1713312000000"
-                }
-              },
-              "returnDate": null,
-              "time": "14:00",
-              "returnTime": null,
-              "travelClass": null,
-              "isReturnTravel": false,
-              "violations": {
-                "class": null,
-                "amount": null
-              },
-              "approvers": [
-                {
-                  "empId": "1002",
-                  "name": "Sumesh Nayar",
-                  "status": "approved",
-                  "_id": {
-                    "$oid": "660a6dcb4b838b3120f9640b"
-                  }
-                }
-              ],
-              "bkd_from": "Indira Gandhi International Airport",
-              "bkd_to": "Chaudhary Charan Singh International Airport",
-              "bkd_date": {
-                "$date": {
-                  "$numberLong": "1711929600000"
-                }
-              },
-              "bkd_returnDate": null,
-              "bkd_time": "14:00",
-              "bkd_returnTime": null,
-              "bkd_travelClass": null,
-              "bkd_violations": {
-                "class": null,
-                "amount": null
-              },
-              "modified": false,
-              "cancellationDate": null,
-              "cancellationReason": null,
-              "rejectionReason": null,
-              "status": "booked",
-              "bookingDetails": {
-                "docURL": "https://blobstorage318.blob.core.windows.net/images/images/flight_ticket_1.pdf",
-                "docType": null,
-                "billDetails": {
-                  "vendorName": "Yatra",
-                  "taxAmount": "0",
-                  "totalAmount": "5258"
-                }
-              },
-              "_id": {
-                "$oid": "660a6dcc4b838b3120f9640d"
-              }
-            }
-          ],
-          "buses": [],
-          "trains": [
-            {
-              "itineraryId": {
-                "$oid": "660a6dcc4b838b3120f96414"
-              },
-              "formId": "travel_a4a79d70-93fd-42ab-9e61-19700dbe78f3",
-              "from": "Delhi",
-              "to": "Raipur",
-              "date": {
-                "$date": {
-                  "$numberLong": "1712102400000"
-                }
-              },
-              "time": "13:00",
-              "travelClass": null,
-              "violations": {
-                "class": null,
-                "amount": null
-              },
-              "approvers": [
-                {
-                  "empId": "1002",
-                  "name": "Sumesh Nayar",
-                  "status": "approved",
-                  "_id": {
-                    "$oid": "660a6dcb4b838b3120f9640b"
-                  }
-                }
-              ],
-              "bkd_from": "H. Nizammudin",
-              "bkd_to": "Raipur JN",
-              "bkd_date": {
-                "$date": {
-                  "$numberLong": "1712016000000"
-                }
-              },
-              "bkd_time": null,
-              "bkd_travelClass": null,
-              "bkd_violations": {
-                "class": null,
-                "amount": null
-              },
-              "modified": false,
-              "cancellationDate": null,
-              "cancellationReason": null,
-              "rejectionReason": null,
-              "status": "booked",
-              "bookingDetails": {
-                "docURL": "https://blobstorage318.blob.core.windows.net/images/images/train_ticket_1.pdf",
-                "docType": null,
-                "billDetails": {
-                  "vendorName": "IRCTC",
-                  "taxAmount": "0",
-                  "totalAmount": "438"
-                }
-              },
-              "_id": {
-                "$oid": "660a6dcc4b838b3120f9640f"
-              }
-            }
-          ],
-          "hotels": [
-            {
-              "itineraryId": {
-                "$oid": "660a6dcc4b838b3120f96415"
-              },
-              "location": "Tirupati",
-              "locationPreference": null,
-              "class": null,
-              "checkIn": {
-                "$date": {
-                  "$numberLong": "1712016000000"
-                }
-              },
-              "checkOut": {
-                "$date": {
-                  "$numberLong": "1712275200000"
-                }
-              },
-              "violations": {
-                "class": null,
-                "amount": null
-              },
-              "approvers": [
-                {
-                  "empId": "1002",
-                  "name": "Sumesh Nayar",
-                  "status": "approved",
-                  "_id": {
-                    "$oid": "660a6dcb4b838b3120f9640b"
-                  }
-                }
-              ],
-              "bkd_location": "Behind Mango Market, Tiruchanoor Road, Thanapalli Cross, Chittoor Highway, Tirupati",
-              "bkd_class": null,
-              "bkd_checkIn": {
-                "$date": {
-                  "$numberLong": "1712016000000"
-                }
-              },
-              "bkd_checkOut": {
-                "$date": {
-                  "$numberLong": "1712102400000"
-                }
-              },
-              "bkd_violations": {
-                "class": null,
-                "amount": null
-              },
-              "modified": false,
-              "cancellationDate": null,
-              "cancellationReason": null,
-              "status": "booked",
-              "bookingDetails": {
-                "docURL": "https://blobstorage318.blob.core.windows.net/images/images/Hotel_bill_1.pdf",
-                "docType": null,
-                "billDetails": {
-                  "vendorName": "Oravel Travels Pvt. Ltd.",
-                  "taxAmount": "0",
-                  "totalAmount": "761"
-                }
-              },
-              "_id": {
-                "$oid": "660a6dcc4b838b3120f96411"
-              }
-            }
-          ],
-          "cabs": [],
-          "carRentals": [],
-          "personalVehicles": [],
-          "_id": {
-            "$oid": "660a7ff9ebdfa9056d7358e1"
-          }
-        },
-        "approvers": [
-          {
-            "empId": "1002",
-            "name": "Sumesh Nayar",
-            "status": "pending approval",
-            "_id": {
-              "$oid": "660a7ff9ebdfa9056d7358e8"
-            }
-          }
-        ],
-        "allocations": [],
-        "violations": [],
-        "travelType": "international",
-        "_id": {
-          "$oid": "660a7ff9ebdfa9056d7358e0"
-        },
-        "expenseLines": [],
-        "expenseSettlement": "Cash"
-      },
-      {
-        "tenantId": "660a58ac1a308ce97b32213f",
-        "tenantName": "Studio Innovate",
-        "travelRequestId": {
-          "$oid": "660a6d654b838b3120f96404"
-        },
-        "travelRequestNumber": "TRST000001",
-        "expenseHeaderNumber": "ERST000001",
-        "expenseHeaderId": {
-          "$oid": "660a85cdcd25f6c01b8d6631"
-        },
-        "expenseHeaderType": "travel",
-        "travelAllocationFlags": {
-          "level1": true,
-          "level2": false,
-          "level3": false
-        },
-        "expenseHeaderStatus": "new",
-        "approvers": [
-          {
-            "empId": "1002",
-            "name": "Sumesh Nayar",
-            "status": "pending approval",
-            "_id": {
-              "$oid": "660a85cdcd25f6c01b8d6633"
-            }
-          }
-        ],
-        "allocations": [],
-        "violations": [],
-        "travelType": "international",
-        "_id": {
-          "$oid": "660a85cdcd25f6c01b8d6632"
-        },
-        "expenseLines": []
-      }
-    ]
-  }
+
+  // {
+  //   "_id": {
+  //     "$oid": "660a7859b202f54c53ef040e"
+  //   },
+  //   "tenantId": "660a58ac1a308ce97b32213f",
+  //   "travelRequestData": {
+  //     "itinerary": {
+  //       "flights": [
+  //         {
+  //           "itineraryId": {
+  //             "$oid": "660a6dcc4b838b3120f96413"
+  //           },
+  //           "formId": "travel_050b32d6-045d-4b40-b4a3-649b38be7e59",
+  //           "from": "Delhi",
+  //           "to": "Lucknow",
+  //           "date": {
+  //             "$date": {
+  //               "$numberLong": "1713312000000"
+  //             }
+  //           },
+  //           "returnDate": null,
+  //           "time": "14:00",
+  //           "returnTime": null,
+  //           "travelClass": null,
+  //           "isReturnTravel": false,
+  //           "violations": {
+  //             "class": null,
+  //             "amount": null
+  //           },
+  //           "approvers": [
+  //             {
+  //               "empId": "1002",
+  //               "name": "Sumesh Nayar",
+  //               "status": "approved",
+  //               "_id": {
+  //                 "$oid": "660a6dcb4b838b3120f9640b"
+  //               }
+  //             }
+  //           ],
+  //           "bkd_from": "Indira Gandhi International Airport",
+  //           "bkd_to": "Chaudhary Charan Singh International Airport",
+  //           "bkd_date": {
+  //             "$date": {
+  //               "$numberLong": "1711929600000"
+  //             }
+  //           },
+  //           "bkd_returnDate": null,
+  //           "bkd_time": "14:00",
+  //           "bkd_returnTime": null,
+  //           "bkd_travelClass": null,
+  //           "bkd_violations": {
+  //             "class": null,
+  //             "amount": null
+  //           },
+  //           "modified": false,
+  //           "cancellationDate": null,
+  //           "cancellationReason": null,
+  //           "rejectionReason": null,
+  //           "status": "booked",
+  //           "bookingDetails": {
+  //             "docURL": "https://blobstorage318.blob.core.windows.net/images/images/flight_ticket_1.pdf",
+  //             "docType": null,
+  //             "billDetails": {
+  //               "vendorName": "Yatra",
+  //               "taxAmount": "0",
+  //               "totalAmount": "5258"
+  //             }
+  //           },
+  //           "_id": {
+  //             "$oid": "660a6dcc4b838b3120f9640d"
+  //           }
+  //         }
+  //       ],
+  //       "buses": [],
+  //       "trains": [
+  //         {
+  //           "itineraryId": {
+  //             "$oid": "660a6dcc4b838b3120f96414"
+  //           },
+  //           "formId": "travel_a4a79d70-93fd-42ab-9e61-19700dbe78f3",
+  //           "from": "Delhi",
+  //           "to": "Raipur",
+  //           "date": {
+  //             "$date": {
+  //               "$numberLong": "1712102400000"
+  //             }
+  //           },
+  //           "time": "13:00",
+  //           "travelClass": null,
+  //           "violations": {
+  //             "class": null,
+  //             "amount": null
+  //           },
+  //           "approvers": [
+  //             {
+  //               "empId": "1002",
+  //               "name": "Sumesh Nayar",
+  //               "status": "approved",
+  //               "_id": {
+  //                 "$oid": "660a6dcb4b838b3120f9640b"
+  //               }
+  //             }
+  //           ],
+  //           "bkd_from": "H. Nizammudin",
+  //           "bkd_to": "Raipur JN",
+  //           "bkd_date": {
+  //             "$date": {
+  //               "$numberLong": "1712016000000"
+  //             }
+  //           },
+  //           "bkd_time": null,
+  //           "bkd_travelClass": null,
+  //           "bkd_violations": {
+  //             "class": null,
+  //             "amount": null
+  //           },
+  //           "modified": false,
+  //           "cancellationDate": null,
+  //           "cancellationReason": null,
+  //           "rejectionReason": null,
+  //           "status": "booked",
+  //           "bookingDetails": {
+  //             "docURL": "https://blobstorage318.blob.core.windows.net/images/images/train_ticket_1.pdf",
+  //             "docType": null,
+  //             "billDetails": {
+  //               "vendorName": "IRCTC",
+  //               "taxAmount": "0",
+  //               "totalAmount": "438"
+  //             }
+  //           },
+  //           "_id": {
+  //             "$oid": "660a6dcc4b838b3120f9640f"
+  //           }
+  //         }
+  //       ],
+  //       "hotels": [
+  //         {
+  //           "itineraryId": {
+  //             "$oid": "660a6dcc4b838b3120f96415"
+  //           },
+  //           "location": "Tirupati",
+  //           "locationPreference": null,
+  //           "class": null,
+  //           "checkIn": {
+  //             "$date": {
+  //               "$numberLong": "1712016000000"
+  //             }
+  //           },
+  //           "checkOut": {
+  //             "$date": {
+  //               "$numberLong": "1712275200000"
+  //             }
+  //           },
+  //           "violations": {
+  //             "class": null,
+  //             "amount": null
+  //           },
+  //           "approvers": [
+  //             {
+  //               "empId": "1002",
+  //               "name": "Sumesh Nayar",
+  //               "status": "approved",
+  //               "_id": {
+  //                 "$oid": "660a6dcb4b838b3120f9640b"
+  //               }
+  //             }
+  //           ],
+  //           "bkd_location": "Behind Mango Market, Tiruchanoor Road, Thanapalli Cross, Chittoor Highway, Tirupati",
+  //           "bkd_class": null,
+  //           "bkd_checkIn": {
+  //             "$date": {
+  //               "$numberLong": "1712016000000"
+  //             }
+  //           },
+  //           "bkd_checkOut": {
+  //             "$date": {
+  //               "$numberLong": "1712102400000"
+  //             }
+  //           },
+  //           "bkd_violations": {
+  //             "class": null,
+  //             "amount": null
+  //           },
+  //           "modified": false,
+  //           "cancellationDate": null,
+  //           "cancellationReason": null,
+  //           "status": "booked",
+  //           "bookingDetails": {
+  //             "docURL": "https://blobstorage318.blob.core.windows.net/images/images/Hotel_bill_1.pdf",
+  //             "docType": null,
+  //             "billDetails": {
+  //               "vendorName": "Oravel Travels Pvt. Ltd.",
+  //               "taxAmount": "0",
+  //               "totalAmount": "761"
+  //             }
+  //           },
+  //           "_id": {
+  //             "$oid": "660a6dcc4b838b3120f96411"
+  //           }
+  //         }
+  //       ],
+  //       "cabs": [],
+  //       "carRentals": [],
+  //       "personalVehicles": [],
+  //       "formState": []
+  //     },
+  //     "tripType": {
+  //       "oneWayTrip": true,
+  //       "roundTrip": false,
+  //       "multiCityTrip": false
+  //     },
+  //     "assignedTo": {
+  //       "empId": "1003",
+  //       "name": "Kanhaiya Verma"
+  //     },
+  //     "tenantId": "660a58ac1a308ce97b32213f",
+  //     "tenantName": "Studio Innovate",
+  //     "companyName": "Studio Innovate",
+  //     "travelRequestId": {
+  //       "$oid": "660a6d654b838b3120f96404"
+  //     },
+  //     "travelRequestNumber": "TRST000001",
+  //     "travelType": "international",
+  //     "tripPurpose": "Business",
+  //     "travelRequestStatus": "booked",
+  //     "travelRequestState": "section 0",
+  //     "createdBy": {
+  //       "empId": "1001",
+  //       "name": "Ajay Singh",
+  //       "_id": {
+  //         "$oid": "660a6dcb4b838b3120f9640c"
+  //       }
+  //     },
+  //     "createdFor": null,
+  //     "teamMembers": [],
+  //     "travelAllocationHeaders": [
+  //       {
+  //         "headerName": "department",
+  //         "headerValue": "Finance"
+  //       },
+  //       {
+  //         "headerName": "legalEntity",
+  //         "headerValue": "Company XYZ"
+  //       },
+  //       {
+  //         "headerName": "costCenter",
+  //         "headerValue": "CC-001"
+  //       }
+  //     ],
+  //     "travelDocuments": [],
+  //     "bookings": [],
+  //     "approvers": [
+  //       {
+  //         "empId": "1002",
+  //         "name": "Sumesh Nayar",
+  //         "status": "approved",
+  //         "_id": {
+  //           "$oid": "660a6dcb4b838b3120f9640b"
+  //         }
+  //       }
+  //     ],
+  //     "preferences": [],
+  //     "travelViolations": {
+  //       "tripPurpose": null,
+  //       "class": null,
+  //       "amount": null,
+  //       "tripPurposeViolationMesssage": null
+  //     },
+  //     "travelRequestDate": "2024-04-01T08:18:20.047Z",
+  //     "cancellationDate": null,
+  //     "isCancelled": false,
+  //     "cancellationReason": null,
+  //     "isCashAdvanceTaken": true,
+  //     "isAddALeg": false,
+  //     "sentToTrip": true
+  //   },
+  //   "__v": {
+  //     "$numberInt": "10"
+  //   },
+  //   "cashAdvancesData": [
+  //     {
+  //       "tenantId": "660a58ac1a308ce97b32213f",
+  //       "travelRequestId": {
+  //         "$oid": "660a6d654b838b3120f96404"
+  //       },
+  //       "travelRequestNumber": "TRST000001",
+  //       "cashAdvanceId": {
+  //         "$oid": "660a6dd0f061a127e132d5a6"
+  //       },
+  //       "cashAdvanceNumber": "CA0001",
+  //       "createdBy": {
+  //         "empId": "1001",
+  //         "name": "Ajay Singh"
+  //       },
+  //       "cashAdvanceStatus": "paid",
+  //       "cashAdvanceState": "section 0",
+  //       "amountDetails": [
+  //         {
+  //           "amount": {
+  //             "$numberInt": "60000"
+  //           },
+  //           "currency": {
+  //             "countryCode": "IN",
+  //             "fullName": "Indian Rupee",
+  //             "shortName": "INR",
+  //             "symbol": "₹"
+  //           },
+  //           "mode": "Cheque",
+  //           "_id": {
+  //             "$oid": "660a6dd0f061a127e132d5b3"
+  //           }
+  //         }
+  //       ],
+  //       "approvers": [
+  //         {
+  //           "empId": "1002",
+  //           "name": "Sumesh Nayar",
+  //           "status": "approved",
+  //           "_id": {
+  //             "$oid": "660a6dcb4b838b3120f9640b"
+  //           }
+  //         }
+  //       ],
+  //       "cashAdvanceRequestDate": {
+  //         "$date": {
+  //           "$numberLong": "1711959530092"
+  //         }
+  //       },
+  //       "cashAdvanceApprovalDate": null,
+  //       "cashAdvanceSettlementDate": null,
+  //       "cashAdvanceViolations": "Cash Advance exceeds maximum allowed limit of 50000",
+  //       "_id": {
+  //         "$oid": "660a6dd0f061a127e132d5b2"
+  //       }
+  //     }
+  //   ],
+  //   "createdBy": {
+  //     "empId": "1001",
+  //     "name": "Ajay Singh",
+  //     "_id": {
+  //       "$oid": "660a6dcb4b838b3120f9640c"
+  //     }
+  //   },
+  //   "tenantName": "Studio Innovate",
+  //   "tripCompletionDate": {
+  //     "$date": {
+  //       "$numberLong": "1712102400000"
+  //     }
+  //   },
+  //   "tripId": {
+  //     "$oid": "660a78127900b0e04830e106"
+  //   },
+  //   "tripNumber": "TRIPST000000",
+  //   "tripStartDate": {
+  //     "$date": {
+  //       "$numberLong": "1711929600000"
+  //     }
+  //   },
+  //   "tripStatus": "transit",
+  //   "expenseAmountStatus": {
+  //     "totalAlreadyBookedExpenseAmount": {
+  //       "$numberInt": "6457"
+  //     },
+  //     "totalCashAmount": {
+  //       "$numberInt": "60000"
+  //     },
+  //     "totalExpenseAmount": {
+  //       "$numberInt": "6457"
+  //     },
+  //     "totalPersonalExpenseAmount": {
+  //       "$numberInt": "0"
+  //     },
+  //     "totalRemainingCash": {
+  //       "$numberInt": "60000"
+  //     }
+  //   },
+  //   "travelExpenseData": [
+  //     {
+  //       "tenantId": "660a58ac1a308ce97b32213f",
+  //       "tenantName": "Studio Innovate",
+  //       "travelRequestId": {
+  //         "$oid": "660a6d654b838b3120f96404"
+  //       },
+  //       "travelRequestNumber": "TRST000001",
+  //       "expenseHeaderNumber": "ERST000001",
+  //       "expenseHeaderId": {
+  //         "$oid": "660a7ff9ebdfa9056d7358df"
+  //       },
+  //       "expenseHeaderType": "travel",
+  //       "travelAllocationFlags": {
+  //         "level1": true,
+  //         "level2": false,
+  //         "level3": false
+  //       },
+  //       "expenseHeaderStatus": "paid",
+  //       "alreadyBookedExpenseLines": {
+  //         "formState": [],
+  //         "flights": [
+  //           {
+  //             "itineraryId": {
+  //               "$oid": "660a6dcc4b838b3120f96413"
+  //             },
+  //             "formId": "travel_050b32d6-045d-4b40-b4a3-649b38be7e59",
+  //             "from": "Delhi",
+  //             "to": "Lucknow",
+  //             "date": {
+  //               "$date": {
+  //                 "$numberLong": "1713312000000"
+  //               }
+  //             },
+  //             "returnDate": null,
+  //             "time": "14:00",
+  //             "returnTime": null,
+  //             "travelClass": null,
+  //             "isReturnTravel": false,
+  //             "violations": {
+  //               "class": null,
+  //               "amount": null
+  //             },
+  //             "approvers": [
+  //               {
+  //                 "empId": "1002",
+  //                 "name": "Sumesh Nayar",
+  //                 "status": "approved",
+  //                 "_id": {
+  //                   "$oid": "660a6dcb4b838b3120f9640b"
+  //                 }
+  //               }
+  //             ],
+  //             "bkd_from": "Indira Gandhi International Airport",
+  //             "bkd_to": "Chaudhary Charan Singh International Airport",
+  //             "bkd_date": {
+  //               "$date": {
+  //                 "$numberLong": "1711929600000"
+  //               }
+  //             },
+  //             "bkd_returnDate": null,
+  //             "bkd_time": "14:00",
+  //             "bkd_returnTime": null,
+  //             "bkd_travelClass": null,
+  //             "bkd_violations": {
+  //               "class": null,
+  //               "amount": null
+  //             },
+  //             "modified": false,
+  //             "cancellationDate": null,
+  //             "cancellationReason": null,
+  //             "rejectionReason": null,
+  //             "status": "booked",
+  //             "bookingDetails": {
+  //               "docURL": "https://blobstorage318.blob.core.windows.net/images/images/flight_ticket_1.pdf",
+  //               "docType": null,
+  //               "billDetails": {
+  //                 "vendorName": "Yatra",
+  //                 "taxAmount": "0",
+  //                 "totalAmount": "5258"
+  //               }
+  //             },
+  //             "_id": {
+  //               "$oid": "660a6dcc4b838b3120f9640d"
+  //             }
+  //           }
+  //         ],
+  //         "buses": [],
+  //         "trains": [
+  //           {
+  //             "itineraryId": {
+  //               "$oid": "660a6dcc4b838b3120f96414"
+  //             },
+  //             "formId": "travel_a4a79d70-93fd-42ab-9e61-19700dbe78f3",
+  //             "from": "Delhi",
+  //             "to": "Raipur",
+  //             "date": {
+  //               "$date": {
+  //                 "$numberLong": "1712102400000"
+  //               }
+  //             },
+  //             "time": "13:00",
+  //             "travelClass": null,
+  //             "violations": {
+  //               "class": null,
+  //               "amount": null
+  //             },
+  //             "approvers": [
+  //               {
+  //                 "empId": "1002",
+  //                 "name": "Sumesh Nayar",
+  //                 "status": "approved",
+  //                 "_id": {
+  //                   "$oid": "660a6dcb4b838b3120f9640b"
+  //                 }
+  //               }
+  //             ],
+  //             "bkd_from": "H. Nizammudin",
+  //             "bkd_to": "Raipur JN",
+  //             "bkd_date": {
+  //               "$date": {
+  //                 "$numberLong": "1712016000000"
+  //               }
+  //             },
+  //             "bkd_time": null,
+  //             "bkd_travelClass": null,
+  //             "bkd_violations": {
+  //               "class": null,
+  //               "amount": null
+  //             },
+  //             "modified": false,
+  //             "cancellationDate": null,
+  //             "cancellationReason": null,
+  //             "rejectionReason": null,
+  //             "status": "booked",
+  //             "bookingDetails": {
+  //               "docURL": "https://blobstorage318.blob.core.windows.net/images/images/train_ticket_1.pdf",
+  //               "docType": null,
+  //               "billDetails": {
+  //                 "vendorName": "IRCTC",
+  //                 "taxAmount": "0",
+  //                 "totalAmount": "438"
+  //               }
+  //             },
+  //             "_id": {
+  //               "$oid": "660a6dcc4b838b3120f9640f"
+  //             }
+  //           }
+  //         ],
+  //         "hotels": [
+  //           {
+  //             "itineraryId": {
+  //               "$oid": "660a6dcc4b838b3120f96415"
+  //             },
+  //             "location": "Tirupati",
+  //             "locationPreference": null,
+  //             "class": null,
+  //             "checkIn": {
+  //               "$date": {
+  //                 "$numberLong": "1712016000000"
+  //               }
+  //             },
+  //             "checkOut": {
+  //               "$date": {
+  //                 "$numberLong": "1712275200000"
+  //               }
+  //             },
+  //             "violations": {
+  //               "class": null,
+  //               "amount": null
+  //             },
+  //             "approvers": [
+  //               {
+  //                 "empId": "1002",
+  //                 "name": "Sumesh Nayar",
+  //                 "status": "approved",
+  //                 "_id": {
+  //                   "$oid": "660a6dcb4b838b3120f9640b"
+  //                 }
+  //               }
+  //             ],
+  //             "bkd_location": "Behind Mango Market, Tiruchanoor Road, Thanapalli Cross, Chittoor Highway, Tirupati",
+  //             "bkd_class": null,
+  //             "bkd_checkIn": {
+  //               "$date": {
+  //                 "$numberLong": "1712016000000"
+  //               }
+  //             },
+  //             "bkd_checkOut": {
+  //               "$date": {
+  //                 "$numberLong": "1712102400000"
+  //               }
+  //             },
+  //             "bkd_violations": {
+  //               "class": null,
+  //               "amount": null
+  //             },
+  //             "modified": false,
+  //             "cancellationDate": null,
+  //             "cancellationReason": null,
+  //             "status": "booked",
+  //             "bookingDetails": {
+  //               "docURL": "https://blobstorage318.blob.core.windows.net/images/images/Hotel_bill_1.pdf",
+  //               "docType": null,
+  //               "billDetails": {
+  //                 "vendorName": "Oravel Travels Pvt. Ltd.",
+  //                 "taxAmount": "0",
+  //                 "totalAmount": "761"
+  //               }
+  //             },
+  //             "_id": {
+  //               "$oid": "660a6dcc4b838b3120f96411"
+  //             }
+  //           }
+  //         ],
+  //         "cabs": [],
+  //         "carRentals": [],
+  //         "personalVehicles": [],
+  //         "_id": {
+  //           "$oid": "660a7ff9ebdfa9056d7358e1"
+  //         }
+  //       },
+  //       "approvers": [
+  //         {
+  //           "empId": "1002",
+  //           "name": "Sumesh Nayar",
+  //           "status": "pending approval",
+  //           "_id": {
+  //             "$oid": "660a7ff9ebdfa9056d7358e8"
+  //           }
+  //         }
+  //       ],
+  //       "allocations": [],
+  //       "violations": [],
+  //       "travelType": "international",
+  //       "_id": {
+  //         "$oid": "660a7ff9ebdfa9056d7358e0"
+  //       },
+  //       "expenseLines": [],
+  //       "expenseSettlement": "Cash"
+  //     },
+  //     {
+  //       "tenantId": "660a58ac1a308ce97b32213f",
+  //       "tenantName": "Studio Innovate",
+  //       "travelRequestId": {
+  //         "$oid": "660a6d654b838b3120f96404"
+  //       },
+  //       "travelRequestNumber": "TRST000001",
+  //       "expenseHeaderNumber": "ERST000001",
+  //       "expenseHeaderId": {
+  //         "$oid": "660a85cdcd25f6c01b8d6631"
+  //       },
+  //       "expenseHeaderType": "travel",
+  //       "travelAllocationFlags": {
+  //         "level1": true,
+  //         "level2": false,
+  //         "level3": false
+  //       },
+  //       "expenseHeaderStatus": "new",
+  //       "approvers": [
+  //         {
+  //           "empId": "1002",
+  //           "name": "Sumesh Nayar",
+  //           "status": "pending approval",
+  //           "_id": {
+  //             "$oid": "660a85cdcd25f6c01b8d6633"
+  //           }
+  //         }
+  //       ],
+  //       "allocations": [],
+  //       "violations": [],
+  //       "travelType": "international",
+  //       "_id": {
+  //         "$oid": "660a85cdcd25f6c01b8d6632"
+  //       },
+  //       "expenseLines": []
+  //     }
+  //   ]
+  // }
   

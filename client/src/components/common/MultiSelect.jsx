@@ -1,36 +1,33 @@
 import { useState, useRef, useEffect } from "react";
-import {  chevron_down_icon } from "../../assets/index";
+import chevron_down from "../../assets/chevron-down.svg";
+import {titleCase} from '../../utils/handyFunctions'
+import close_icon from '../../assets/close_FILL0_wght200_GRAD0_opsz48.svg'
 
-
-export default function Select(props) {
+export default function MultiSelect(props) {
   const placeholder = props.placeholder || "Placeholder Text";
-  const title = props.title || "Title";
+  const title = titleCase(props.title) || "Title";
   const [hidePlaceholder, setHidePlaceholder] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef(null);
   const selectDivRef = useRef(null);
   const optionsList = props.options;
-  const onSelect = props.onSelect || null
-  // const currentOption = 'Hello'
-  const currentOption = props.currentOption || optionsList[0]
-  const [selectedOption, setSelectedOption] = useState("");
-  const [keyboardFocusIndex, setKeyboardFocusIndex] = useState(-1)
-  const violationMessage = props.violationMessage || null
-  const error = props.error || null
-  const required = props.required || false
-  const submitAttempted = props.submitAttempted || false
-
- 
+  const onSelect = props.onSelect || null;
+  const currentOption = props.currentOption || null;
+  const [selectedOption, setSelectedOption] = useState(currentOption); 
+  const [keyboardFocusIndex, setKeyboardFocusIndex] = useState(-1);
+  const violationMessage = props.violationMessage || null;
+  const error = props.error || null;
+  const required = props.required || false;
+  const submitAttempted = props.submitAttempted || false;
 
 
     useEffect(()=>{
-     
-      if(currentOption != null && currentOption != undefined && currentOption != '' ){
+      if(currentOption != null && currentOption != undefined && currentOption.length!==0 ){
         setHidePlaceholder(true)
       }
       else{setHidePlaceholder(false)}
+
       setSelectedOption(currentOption)
-    
     },[currentOption])
 
     //refs for filtered options
@@ -117,19 +114,48 @@ const selectDivFocus = (e)=>{
 
   //handles selection of option
   const handleOptionSelect = (option, index=0)=>{
-    setSelectedOption(option)
+
+    if(selectedOption!=null && !selectedOption.includes(option)){
+        setSelectedOption(pre=>[...pre, option])
+    }
+    else{
+        setSelectedOption([option])
+    }
+
     if(option != placeholder){
         setHidePlaceholder(true)
     }
 
     if(onSelect != null){
-        onSelect(option )
+        if(selectedOption!=null && !selectedOption.includes(option)){
+            onSelect([...selectedOption, option])
+        }
+        else{
+            onSelect([option])
+        }
+        
     }
 
     console.log(option)
     setShowDropdown(false)
   }
 
+  const handleOptionRemove = (e, index)=>{
+    e.stopPropagation()
+
+    const selectedOptions_copy = JSON.parse(JSON.stringify(selectedOption))
+    selectedOptions_copy.splice(index,1)
+    setSelectedOption(selectedOptions_copy)
+
+    if(selectedOption.length==1){
+        setHidePlaceholder(false)
+    }
+
+    if(onSelect != null){
+        onSelect(selectedOptions_copy)
+    }
+
+  }
 
   //close dropdown on outside click
   useEffect(() => {
@@ -149,9 +175,9 @@ const selectDivFocus = (e)=>{
 
   return (
     <>
-      <div className="min-w-[200px] w-full  h-[73px] flex-col justify-start items-start gap-2 inline-flex">
+      <div className="min-w-[214px] w-full max-w-[403px] h-[73px] flex-col justify-start items-start gap-2 inline-flex">
         {/* title*/}
-        <div className="text-zinc-600 text-sm font-cabin">{title}</div>
+        <div className="text-zinc-600 text-sm font-cabin tracking-tight">{title}</div>
         <div className="self-stretch h-12 justify-start items-start gap-4 inline-flex">
           <div className={`grow relative shrink basis-0 self-stretch px-6 py-2 bg-white rounded-md border border-neutral-300 justify-between items-center flex`} >
             <div
@@ -163,27 +189,35 @@ const selectDivFocus = (e)=>{
               onClick={handleSelectClick}
             >
               {!hidePlaceholder && (
-                <div className="text-zinc-400 text-sm font-normal font-cabin">
+                <div className="text-zinc-400 text-sm font-normal font-cabin tracking-tight">
                   {placeholder}
                 </div>
               )}
-              {hidePlaceholder && <div className='text-neutral-700 text-sm font-normal capitalize font-cabin'>{selectedOption ?? ""}</div>}
+              {hidePlaceholder && 
+                selectedOption.map((option,index)=>
+                <div key={index} className="flex gap-1">
+                    <div className="px-1 py-.5 rounded-sm bg-slate-100 items-center flex gap-.5 border shadow-sm ml-1">
+                        <div className='text-neutral-700 text-xs font-normal font-cabin tracking-tight'>{option}</div>
+                        <div className="w-4 h-4" onClick={(e)=>handleOptionRemove(e,index)}>
+                            <img src={close_icon} alt="close icon" />
+                        </div>
+                    </div>
+                </div>)
+                }
               <div className={`w-6 h-6 relative transition ${showDropdown && 'rotate-180'}`}>
-                <img src={chevron_down_icon} className="w-4 h-4"/>
+                <img src={chevron_down} />
               </div>
 
               
-            {/* {!showDropdown && hidePlaceholder && violationMessage && <div className="absolute top-[35px] w-full text-xs text-yellow-600 font-cabin">
+            {!showDropdown && hidePlaceholder && violationMessage && <div className="absolute top-[35px] w-full text-xs text-yellow-600 font-cabin tracking-tight">
               {violationMessage}
-            </div>} */}
-            
-            
-            { error?.set && <div className="absolute top-[35px] w-full text-xs text-red-600 font-cabin">
-              {error?.msg}
             </div>}
-            {/* {!showDropdown && !hidePlaceholder && error?.set && <div className="absolute top-[35px] w-full text-xs text-red-600 font-cabin">
-              {error?.msg}
-            </div>} */}
+            
+            {!showDropdown && !hidePlaceholder && error?.set && <div className="absolute top-[35px] w-full text-xs text-red-600 font-cabin tracking-tight">
+              {error?.message}
+            </div>}
+
+
             </div>
 
             {/* options */}
@@ -201,9 +235,9 @@ const selectDivFocus = (e)=>{
                         onKeyDown={handleDropdownKeyDown}
                         ref={el => dropdownOptionsRef.current[index] = el} 
                         onClick={()=>{ handleOptionSelect(option, index) }}
-                        className={`text-xs ${'capitalize'} focus-visible:outline-0 focus-visible:bg-gray-100 font-medium font-cabin text-neutral-700 px-4 py-3 cursor-pointer transition-color hover:bg-gray-100`}
+                        className="text-xs focus-visible:outline-0 focus-visible:bg-gray-100 font-medium font-cabin tracking-tight text-neutral-700 px-4 py-3 cursor-pointer transition-color hover:bg-gray-100"
                       >
-                        {(option || " ")}
+                        {isNaN(option) && option? titleCase(option): option}
                       </p>
                       {index != optionsList.length - 1 && <hr key={`${option}-${index}`} />}
                     </div>

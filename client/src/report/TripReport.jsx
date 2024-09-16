@@ -1,18 +1,20 @@
 
 
 import React, { useState } from 'react';
-import { requiredTripData } from '../data/tripData'
 import { formatDate } from '../utils/handyFunctions';
 
-const TripReport = ({visibleHeaders}) => {
+
+const TripReport = ({visibleHeaders,tripData}) => {
 
 
+
+  
   return (
     <div className="overflow-x-auto mx-4 capitalize text-neutral-700 text-base h-[40%]">
       <div className="min-w-max ">
-        <table className="min-w-full bg-white border border-gray-300">
+        <table className=" min-w-full bg-white border border-gray-300">
           <thead>
-            <tr>
+            <tr className=' '>
               {visibleHeaders.map((title, index) => (
                 <th key={index} className="px-4 py-2 border-b border-gray-300 bg-gray-100 text-left text-base font-cabin capitalize font-medium text-neutral-700">
                   {title}
@@ -21,17 +23,17 @@ const TripReport = ({visibleHeaders}) => {
             </tr>
           </thead>
           <tbody>
-            {requiredTripData.map((trip, index) => (
+            {tripData.map((trip, index) => (
               <tr key={index} className="hover:bg-gray-100">
                 {visibleHeaders.includes('start date') && (
                   <td className="px-4 py-2 border-b border-gray-300 min-w-[200px]">
-                    {formatDate(trip.tripStartDate)}
+                    {formatDate(trip?.tripStartDate)}
                   </td>
                 )}
                 {visibleHeaders.includes('completion date') && (
                   <td className="px-4 py-2 border-b border-gray-300 min-w-[200px]">
                
-                    {formatDate(trip.tripCompletionDate)}
+                    {formatDate(trip?.tripCompletionDate)}
                   </td>
                 )}
                 {visibleHeaders.includes('trip number') && (
@@ -41,7 +43,7 @@ const TripReport = ({visibleHeaders}) => {
                 )}
                 {visibleHeaders.includes('travel type') && (
                   <td className="px-4 py-2 border-b border-gray-300 min-w-[200px]">
-                    {trip.travelRequestData.travelType}
+                    {trip?.travelType}
                   </td>
                 )}
                 {visibleHeaders.includes('trip status') && (
@@ -51,12 +53,12 @@ const TripReport = ({visibleHeaders}) => {
                 )}
                 {visibleHeaders.includes('created by') && (
                   <td className="px-4 py-2 border-b border-gray-300 min-w-[200px]">
-                    {trip.travelRequestData.createdBy.name}
+                    {trip?.createdBy?.name}
                   </td>
                 )}
                 {visibleHeaders.includes('approver') && (
                   <td className="px-4 py-2 border-b border-gray-300 min-w-[200px]">
-                    {trip.travelRequestData.approvers.map((approver, index) => (
+                    {trip?.approvers.map((approver, index) => (
                       <div key={index}>
                         {approver.name} ({approver.status})
                       </div>
@@ -65,7 +67,7 @@ const TripReport = ({visibleHeaders}) => {
                 )}
                 {visibleHeaders.includes('trip purpose') && (
                   <td className="px-4 py-2 border-b border-gray-300 min-w-[200px]">
-                    {trip.travelRequestData.tripPurpose}
+                    {trip?.tripPurpose}
                   </td>
                 )}
               </tr>

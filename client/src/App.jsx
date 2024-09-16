@@ -3,11 +3,13 @@ import { BrowserRouter, Route , Routes} from 'react-router-dom'
 import Menu from './components/Menu'; 
 
 
+
 const App = () => {
   return (
    <BrowserRouter>
    <Routes>
-   <Route  path='/' element={<Menu/>}/>
+   <Route path='/' element={<Menu/>}/>
+   
    </Routes>
    </BrowserRouter>
   )

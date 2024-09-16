@@ -40,7 +40,7 @@ const CustomTooltip = ({ active, payload, label }) => {
 };
 
 
-const BarChartComponent = ({data}) => {
+const CashChart = ({data}) => {
   const processedData = processData(data);
 
   return (
@@ -68,6 +68,6 @@ const BarChartComponent = ({data}) => {
   );
 };
 
-export default BarChartComponent;
+export default CashChart;
 
 
