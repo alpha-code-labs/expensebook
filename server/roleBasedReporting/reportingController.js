@@ -1,24 +1,43 @@
 import reporting from '../models/reportingSchema.js';
 import Joi from 'joi';
-import { approverStatusEnums, cashAdvanceStatusEnum, expenseHeaderStatusEnums, tripStatusEnum } from '../models/expenseSchema.js';
+import { approverStatusEnums, cashAdvanceStatusEnum, tripStatusEnum } from '../models/tripSchema.js';
+import {expenseHeaderStatusEnums} from '../models/travelExpenseSchema.js'
 import HRCompany from '../models/hrCompanySchema.js';
 
 const getEnums = {approverStatusEnums, cashAdvanceStatusEnum,tripStatusEnum,expenseHeaderStatusEnums}
+
 const getEmployeeRoles = async (tenantId, empId) => {
-    const toString = empId.toString();
+  try {
+    if (!tenantId || !empId) {
+      throw new Error("Invalid arguments: tenantId and empId are required.");
+    }
+    const empIdStr = empId.toString()
+
     const hrDocument = await HRCompany.findOne({
-        'tenantId': tenantId,
-        'employees.employeeDetails.employeeId': empId,
+      tenantId,
+      'employees.employeeDetails.employeeId': empId
     });
+
     if (!hrDocument) {
-        throw new Error("Error in fetching company details, company not found");
+      throw new Error(`Company not found for tenantId: ${tenantId}`);
     }
-    const employee = hrDocument?.employees.find(emp => emp.employeeDetails.employeeId === empId);
-    if (!employee || !employee.employeeRoles) {
-        throw new Error("Employee roles not found");
+    const employee = hrDocument.employees.find(emp => emp.employeeDetails.employeeId === empIdStr);
+
+    if (!employee) {
+      throw new Error(`Employee not found for employeeId: ${empIdStr}`);
     }
+
+    if (!employee.employeeRoles) {
+      throw new Error("Employee roles not found");
+    }
+
     return employee.employeeRoles;
+  } catch (error) {
+    console.error("Error in getEmployeeRoles:", error.message);
+    throw error;  // Re-throw the error to be handled by the calling function
+  }
 };
+
 
 
 const roleBasedLayoutSchema = Joi.object({
@@ -28,22 +47,25 @@ const roleBasedLayoutSchema = Joi.object({
 
 
 export const roleBasedLayout = async (req, res) => {
-    try {
-      const {error, value} = roleBasedLayoutSchema.validate(req.params);
+  const { error, value } = roleBasedLayoutSchema.validate(req.params);
 
-      if(error){
-        return res.status(400).json({ error: error.details[0].message})
-      }
-      const { tenantId, empId } = value;
-  
-      const reportingViews = await getReportingViews(tenantId, empId);
-  
-      return res.status(200).json(reportingViews);
-    } catch (error) {
-      console.error("Error:", error);
-      return;
+  if (error) {
+    return res.status(400).json({ error: error.details[0].message });
+  }
+
+  try {
+    const { tenantId, empId } = value;
+    const reportingViews = await getReportingViews(tenantId, empId);
+    if(!reportingViews){
+      return res.status(400).json({success:false, reportingViews})
     }
+    return res.status(200).json(reportingViews);
+  } catch (err) {
+    console.error("Error fetching reporting views:", err.message);
+    return res.status(500).json({success:false, error:err.message });
+  }
 };
+
 
 
 const getReportingViews = async (tenantId, empId) => {
@@ -148,20 +170,19 @@ const hrDetailsService = async (tenantId, empId) =>{
       : [];
 
 
-    const reimbursementData = {  defaultCurrency,
-      employeeName,
-      companyName,
-      reimbursementExpenseCategory,expenseHeaderStatusEnums}
-
     const isLevel3 = travelAllocationFlags?.level3
   let travelData
  if(isLevel3){
-   travelData = {defaultCurrency, travelAllocationFlags, travelExpenseCategories, expenseCategoryNames,travelAllocations, expenseSettlementOptions,approverStatusEnums, cashAdvanceStatusEnum,tripStatusEnum}
-  return { travelData: travelData, reimbursementData:reimbursementData, getEnums}
+   travelData = { travelAllocationFlags, travelExpenseCategories, expenseCategoryNames,travelAllocations, expenseSettlementOptions}
+  return {defaultCurrency,
+  employeeName,
+  companyName, travelData: travelData , reimbursementExpenseCategory, getEnums}
  }
- travelData = {defaultCurrency, travelAllocationFlags, travelExpenseCategories, expenseCategoryNames,travelAllocations, expenseSettlementOptions}
-console.log("hr data", travelData, reimbursementData)
-    return { travelData: travelData, reimbursementData:reimbursementData,getEnums };
+ travelData = { travelAllocationFlags, travelExpenseCategories, expenseCategoryNames,travelAllocations, expenseSettlementOptions}
+console.log("hr data", travelData)
+    return {defaultCurrency,
+  employeeName,
+  companyName, travelData: travelData ,reimbursementExpenseCategory, getEnums};
   } catch (error) {
     console.error("Error in fetching employee Reporting:", error);
     throw new Error('Error in fetching employee Reporting');
@@ -200,7 +221,7 @@ const getLastMonthTrips = async (tenantId, empId) => {
     try {
       const today = new Date();
       const lastMonth = new Date(today.getFullYear(), today.getMonth() -1, today.getDate());
-      console.log("today date", today , "last month", lastMonth)
+      console.log("today date", today , "last month", lastMonth ,"tenantId", tenantId, "empId", empId)
 
       const tripDocs = await reporting.find({
         'tripSchema.tenantId': tenantId,
@@ -208,7 +229,7 @@ const getLastMonthTrips = async (tenantId, empId) => {
         'tripSchema.tripCompletionDate': { $gte: lastMonth, $lte: today },
       }).lean().exec();
   
-    //console.log("trip in last month", tripDocs)
+    console.log("trip in last month", tripDocs)
       const trips = tripDocs.map(trip => {
         const { tripSchema } = trip;
         const { travelRequestData, cashAdvancesData, travelExpenseData, expenseAmountStatus, tripId, tripNumber, tripStartDate, tripCompletionDate ,tripStatus} = tripSchema || {};
@@ -299,7 +320,7 @@ const getLastMonthReimbursement = async (tenantId, empId) => {
       return { message: 'There are no reimbursement found for the user' };
     } else {
       const extractDocs = docs.map(doc => doc.reimbursementSchema)
-      return {reimbursementEnums:expenseHeaderStatusEnums, reimbursement: extractDocs, };
+      return extractDocs
     }
   } catch (error) {
     console.error("Error in fetching employee Reporting:", error);
