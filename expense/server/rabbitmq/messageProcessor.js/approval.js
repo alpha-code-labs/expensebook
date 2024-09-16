@@ -213,7 +213,7 @@ export const nonTravelReportApproval = async (payload) => {
 
   } catch (error) {
       console.error('Failed to update Expense: Non TravelExpenseData update failed', error);
-      return { success: false, error: error };
+      return { success: false, error: error.message };
   }
 };
 

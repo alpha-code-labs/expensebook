@@ -59,6 +59,10 @@ export async function startConsumer(receiver) {
         console.log('Message acknowledged successfully');
       } else {
         // channel.nack(msg, false, true);
+        const content = JSON.parse(msg.content.toString());
+        const payload = content?.payload
+        console.log("message", JSON.stringify(payload,'',2))
+        // channel.nack(msg, false, true);
         console.log('Error processing message, requeuing');
       }
     } catch(error){

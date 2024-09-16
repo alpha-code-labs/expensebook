@@ -136,3 +136,26 @@ const travelType = 'international'
 const expenseCategory = 'hotel'
 // getExpenseCategoryFields(tenantId, travelType, expenseCategory) 
 
+const theCount =await Reimbursement.countDocuments({tenantId})
+
+console.log("the count", theCount)
+
+const formatTenant = (companyName) => {
+  return companyName.toUpperCase(); 
+};
+
+const generateIncrementalNumber = (companyName, incrementalValue) => {
+  if (typeof companyName !== 'string' || typeof incrementalValue !== 'number') {
+    throw new Error('Invalid input parameters');
+  }
+  console.log("companyName",companyName, "incrementalValue", incrementalValue)
+  const formattedTenant = formatTenant(companyName).substring(0, 2);
+  const paddedIncrementalValue = (incrementalValue !== null && incrementalValue !== undefined && incrementalValue !== 0) ?
+    (incrementalValue + 1).toString().padStart(6, '0') :
+    '000001';
+
+  return `RE${formattedTenant}${paddedIncrementalValue}`;
+}
+
+console.log("the number", generateIncrementalNumber('quantum',theCount)
+)
