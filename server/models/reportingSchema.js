@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
-import {expenseSchema} from './expenseSchema.js';
 import { reimbursementSchema } from "./reimbursementSchema.js";
+import { tripSchema } from './tripSchema.js';
   
 const reportingSchema = new mongoose.Schema({
     tenantId: {
@@ -36,7 +36,7 @@ const reportingSchema = new mongoose.Schema({
       type: reimbursementSchema,
       required: false, // Make reimbursementSchema optional
     },
-    tripSchema: expenseSchema, // trip Schema has travel,cash,travel expenses included.
+    tripSchema: tripSchema, // trip Schema has travel,cash,travel expenses included.
   }); 
 
 
