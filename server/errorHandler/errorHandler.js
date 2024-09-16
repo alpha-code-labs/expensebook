@@ -1,5 +1,6 @@
 
 
+
 export const handleErrors = (err, req, res, next) => {
     console.error(`[${new Date().toISOString()}] Error in ${req.method} ${req.path}: `, err);
   
@@ -51,4 +52,4 @@ export const handleErrors = (err, req, res, next) => {
     }
   
     res.status(statusCode).json({ error: errorMessage });
-  };
+};

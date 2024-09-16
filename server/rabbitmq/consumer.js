@@ -110,6 +110,9 @@ export async function startConsumer(receiver) {
             default:
               console.log(`no action ${action} defined for source ${source}`)
             break;
+
+          case 'travel':
+            
         }
 
           //  else if (source == 'travel'){
