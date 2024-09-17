@@ -123,6 +123,7 @@ export const employeeSchema = Joi.object({
 
 const getEmployeeRoles = async (tenantId, empId) => {
 
+    console.log("tenantId type", typeof tenantId)
     const hrDocument = await HRMaster.findOne({
         tenantId,
         'employees.employeeDetails.employeeId': empId,
@@ -154,11 +155,11 @@ export const roleBasedLayout = async (req, res) => {
 
     // Send response
     return res.status(200).json(dashboardViews);
-  } catch (error) {
-    console.error("Error:", error);
+  } catch (err) {
+    console.error("Error:", err);
     // Handle the error, but do not send another response
-    return;
-  }
+    return res.status(500).json({success:false, error:err.message });
+}
 };
 
 

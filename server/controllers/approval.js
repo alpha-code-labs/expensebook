@@ -439,11 +439,14 @@ export const approveAllTravelWithCash = async (tenantId, empId, travelReports) =
       console.log("allTravelRequests", payloadToTravel)
       sendToOtherMicroservice(payloadToTravel,  'approve-reject-tr', 'travel', 'approve travelRequests', 'dashboard', 'online')
       sendToOtherMicroservice(payloadToTravel,  'approve-reject-tr', 'approval', 'approve travelRequests', 'dashboard', 'online')
+      sendToOtherMicroservice(payloadToTravel,  'approve-reject-tr', 'reporting', 'approve travelRequests', 'dashboard', 'online')
+
 
     } else if (allTravelRequestsWithCash?.length > 0){
       console.log("payloadToCash", payloadToCash)
       sendToOtherMicroservice(payloadToCash,  'approve-reject-ca', 'cash', 'approve travelRequests with cash','dashboard','online')
       sendToOtherMicroservice(payloadToCash,  'approve-reject-ca', 'approval', 'approve travelRequests with cash','dashboard','online')
+      sendToOtherMicroservice(payloadToCash,  'approve-reject-ca', 'reporting', 'approve travelRequests with cash','dashboard','online')
     }
 
     if (allTravelRequests?.length > 0 ||allTravelRequestsWithCash?.length > 0) {
@@ -497,12 +500,15 @@ console.log("should match cash ids ", getCashAdvanceIds)
           if(isBooked && isBooked.length){
             await sendToOtherMicroservice(isBooked,'approve-reject-ca-later','trip', 'To update cashAdvanceStatus to approved -cash advance raised later')
             await sendToOtherMicroservice(isBooked,'approve-reject-ca-later','expense', 'To update cashAdvanceStatus to approved -cash advance raised later')
+            await sendToOtherMicroservice(isBooked,'approve-reject-ca-later','reporting', 'To update cashAdvanceStatus to approved -cash advance raised later')
           }
 
     // send Rejected cash advance to Cash microservice
     const promises = [
       sendToOtherMicroservice(payload, 'approve-reject-ca-later', 'cash', 'To update cashAdvanceStatus to approved in cash microservice'),
       sendToOtherMicroservice(payload, 'approve-reject-ca-later', 'approval', 'To update cashAdvanceStatus to approved in approval microservice'),
+      sendToOtherMicroservice(isBooked,'approve-reject-ca-later','reporting', 'To update cashAdvanceStatus to approved -cash advance raised later')
+
      ]
     await Promise.all(promises)
 
@@ -747,11 +753,14 @@ console.log("payload",payload)
       console.log("allTravelRequests", payloadToTravel)
       sendToOtherMicroservice(payloadToTravel,  'approve-reject-tr', 'travel', 'reject travelRequests', 'dashboard', 'online')
       sendToOtherMicroservice(payloadToTravel,  'approve-reject-tr', 'approval', 'reject travelRequests', 'dashboard', 'online')
+      sendToOtherMicroservice(payloadToTravel,  'approve-reject-tr', 'reporting', 'reject travelRequests', 'dashboard', 'online')
+
 
     } else if (allTravelRequestsWithCash?.length > 0){
       console.log("payloadToCash", payloadToCash)
       sendToOtherMicroservice(payloadToCash,  'approve-reject-ca', 'cash', 'reject travelRequests with cash', 'dashboard', 'online')
       sendToOtherMicroservice(payloadToCash,  'approve-reject-ca', 'approval', 'reject travelRequests with cash', 'dashboard', 'online')
+      sendToOtherMicroservice(payloadToCash,  'approve-reject-ca', 'reporting', 'reject travelRequests with cash', 'dashboard', 'online')
     }
 
      if (allTravelRequests?.length > 0 ||allTravelRequestsWithCash?.length > 0) {
@@ -830,6 +839,8 @@ export const travelWithCashApproveCashAdvance = async (req, res) => {
         // console.log("is payload updated save()....", payload);
 
       await   sendToOtherMicroservice(payload, 'approve-reject-ca', 'cash', 'To update cashAdvanceStatus to approved in cash microservice');
+      await   sendToOtherMicroservice(payload, 'approve-reject-ca', 'reporting', 'To update cashAdvanceStatus to approved in cash microservice');
+
         if (payload) {
           console.log("payload",payload)
           return res.status(200).json({ message: `Cash Advance Approved for ${employee}` });
@@ -930,6 +941,8 @@ export const travelWithCashRejectCashAdvance = async (req, res) => {
         const promises = [
          sendToOtherMicroservice(payload, 'approve-reject-ca', 'cash', 'To update cashAdvanceStatus to rejected in cash microservice'),
          sendToOtherMicroservice(payload, 'approve-reject-ca', 'approval', 'To update cashAdvanceStatus to rejected in cash microservice'),
+         sendToOtherMicroservice(payload, 'approve-reject-ca', 'reporting', 'To update cashAdvanceStatus to rejected in cash microservice'),
+
         ]
         await Promise.all(promises)
 x
@@ -1061,12 +1074,16 @@ export const rejectCashAdvance = async (tenantId, empId, cashApprovalDocs,reject
           if(isBooked && isBooked.length){
             await sendToOtherMicroservice(isBooked,'approve-reject-ca-later','trip', 'To update cashAdvanceStatus to rejected -cash advance raised later')
             await sendToOtherMicroservice(isBooked,'approve-reject-ca-later','expense', 'To update cashAdvanceStatus to rejected -cash advance raised later')
+            await sendToOtherMicroservice(isBooked,'approve-reject-ca-later','reporting', 'To update cashAdvanceStatus to rejected -cash advance raised later')
+
           }
 
           // send Rejected cash advance to Cash microservice
           const promises = [
            sendToOtherMicroservice(payload, 'approve-reject-ca-later', 'cash', 'To update cashAdvanceStatus to rejected in cash microservice'),
            sendToOtherMicroservice(payload, 'approve-reject-ca-later', 'approval', 'To update cashAdvanceStatus to rejected in cash microservice'),
+           sendToOtherMicroservice(payload, 'approve-reject-ca-later', 'reporting', 'To update cashAdvanceStatus to rejected in cash microservice'),
+
           ]
         await Promise.all(promises)
     
@@ -1289,6 +1306,8 @@ export const travelExpenseApproval = async (req, res) => {
       sendToOtherMicroservice(payload, action, 'trip', comments),
       sendToOtherMicroservice(payload, action, 'expense', comments),
       sendToOtherMicroservice(payload, action, 'approval', comments),
+      sendToOtherMicroservice(payload, action, 'reporting', comments),
+
     ]
     await Promise.all(promises)
 
@@ -1457,6 +1476,7 @@ export const nonTravelReportApproval = async (req, res) => {
     const promises = [
       sendToOtherMicroservice(payload, action, 'expense', comments,  source, onlineVsBatch),
       sendToOtherMicroservice(payload, action, 'approval', comments,  source, onlineVsBatch),
+      sendToOtherMicroservice(payload, action, 'reporting', comments,  source, onlineVsBatch),
     ]
     
     await Promise.all(promises);
