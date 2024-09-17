@@ -217,6 +217,39 @@ export const findListOfApprovers = async (tenantId, empId) => {
   }
 };
 
+function getItinerary(itinerary){
+  try {
+   const extractItinerary = Object.fromEntries(
+      Object.entries(itinerary)
+        .filter(([category]) => category !== 'formState')
+        .map(([category, items]) => {
+          let mappedItems;
+          if (category === 'hotels') {
+            mappedItems = items.map(({ itineraryId, status, bkd_location, bkd_class, bkd_checkIn, bkd_checkOut, bkd_violations, cancellationDate, cancellationReason }) => ({
+              category,
+              itineraryId, status, bkd_location, bkd_class, bkd_checkIn, bkd_checkOut, bkd_violations, cancellationDate, cancellationReason,
+            }));
+          } else if (category === 'cabs') {
+            mappedItems = items.map(({ itineraryId, status, bkd_date, bkd_class, bkd_pickupAddress, bkd_dropAddress }) => ({
+              category,
+              itineraryId, status, bkd_date, bkd_class, bkd_pickupAddress, bkd_dropAddress,
+            }));
+          } else {
+            mappedItems = items.map(({ itineraryId, status, bkd_from, bkd_to, bkd_date, bkd_time, bkd_travelClass, bkd_violations }) => ({
+              category,
+              itineraryId, status, bkd_from, bkd_to, bkd_date, bkd_time, bkd_travelClass, bkd_violations,
+            }));
+          }
+
+          return [category, mappedItems];
+        })
+    );
+    return extractItinerary;
+  } catch (error) {
+    
+  }
+}
+
 const getLastMonthTrips = async (tenantId, empId) => {
     try {
       const today = new Date();
@@ -226,15 +259,15 @@ const getLastMonthTrips = async (tenantId, empId) => {
       const tripDocs = await reporting.find({
         'tripSchema.tenantId': tenantId,
         'tripSchema.createdBy.empId': empId,
-        'tripSchema.tripCompletionDate': { $gte: lastMonth, $lte: today },
+        'tripSchema.tripStartDate': { $gte: lastMonth, $lte: today },
       }).lean().exec();
   
     console.log("trip in last month", tripDocs)
       const trips = tripDocs.map(trip => {
         const { tripSchema } = trip;
         const { travelRequestData, cashAdvancesData, travelExpenseData, expenseAmountStatus, tripId, tripNumber, tripStartDate, tripCompletionDate ,tripStatus} = tripSchema || {};
-        const { totalCashAmount, totalremainingCash } = expenseAmountStatus || {};
-        const { travelRequestId, travelRequestNumber, travelRequestStatus, tripPurpose,createdBy, isCashAdvanceTaken,travelType,approvers, itinerary } = travelRequestData || {};
+        const { totalCashAmount, totalRemainingCash } = expenseAmountStatus || {};
+        const { travelRequestId, travelRequestNumber, travelRequestStatus, tripPurpose,createdBy,tripName, isCashAdvanceTaken,travelType,approvers, itinerary } = travelRequestData || {};
   
         const itineraryToSend = Object.fromEntries(
           Object.entries(itinerary)
@@ -264,6 +297,7 @@ const getLastMonthTrips = async (tenantId, empId) => {
   
         return {
           tripId, tripNumber,
+          tripName,
           travelRequestId,
           travelRequestNumber,
           createdBy,
@@ -359,40 +393,10 @@ const getTripForEmployee = async (tenantId, empId) => {
             console.log("each trip", trip)
             const { tripSchema} = trip
               const {travelRequestData, cashAdvancesData, travelExpenseData, expenseAmountStatus,  tripId, tripNumber, tripStartDate,tripCompletionDate} = tripSchema || {};
-              const { totalCashAmount, totalremainingCash } = expenseAmountStatus ||  {};
+              const { totalCashAmount, totalRemainingCash } = expenseAmountStatus ||  {};
               const {travelRequestId,travelRequestNumber,travelRequestStatus,tripPurpose, isCashAdvanceTaken, itinerary} = travelRequestData || {};
         
-              const itineraryToSend = Object.fromEntries(
-                Object.entries(itinerary)
-                    .filter(([category]) => category !== 'formState')
-                    .map(([category, items]) => {
-                        let mappedItems;
-                        if (category === 'hotels') {
-                            mappedItems = items.map(({
-                                itineraryId, status, bkd_location, bkd_class, bkd_checkIn, bkd_checkOut, bkd_violations, cancellationDate, cancellationReason,
-                            }) => ({
-                                category,
-                                itineraryId, status, bkd_location, bkd_class, bkd_checkIn, bkd_checkOut, bkd_violations, cancellationDate, cancellationReason,
-                            }));
-                        } else if (category === 'cabs') {
-                            mappedItems = items.map(({
-                                itineraryId, status, bkd_date, bkd_class, bkd_pickupAddress, bkd_dropAddress,
-                            }) => ({
-                                category,
-                                itineraryId, status, bkd_date, bkd_class, bkd_pickupAddress, bkd_dropAddress,
-                            }));
-                        } else {
-                            mappedItems = items.map(({
-                                itineraryId, status, bkd_from, bkd_to, bkd_date, bkd_time, bkd_travelClass, bkd_violations,
-                            }) => ({
-                                category,
-                                itineraryId, status, bkd_from, bkd_to, bkd_date, bkd_time, bkd_travelClass, bkd_violations,
-                            }));
-                        }
-            
-                        return [category, mappedItems];
-                    })
-            );
+              const itineraryToSend = getItinerary(itinerary)
 
               return {
                 tripId, tripNumber, 
@@ -404,7 +408,7 @@ const getTripForEmployee = async (tenantId, empId) => {
                   travelRequestStatus,
                   isCashAdvanceTaken,
                 //   totalCashAmount,
-                //   totalremainingCash,
+                //   totalRemainingCash,
                 expenseAmountStatus,
                 cashAdvances: isCashAdvanceTaken ? (cashAdvancesData ? cashAdvancesData.map(({ cashAdvanceId, cashAdvanceNumber, amountDetails, cashAdvanceStatus }) => ({
                     cashAdvanceId,
@@ -469,7 +473,7 @@ const getTripForEmployee = async (tenantId, empId) => {
         const trips = {           
             transitTrips,
             completedTrips,
-             }
+            }
 
           return {
             trips,reimbursements
@@ -555,34 +559,10 @@ export const getTrips = async (req, res) => {
         .map(trip => {
           const { tripSchema } = trip;
           const { travelRequestData, cashAdvancesData, travelExpenseData, expenseAmountStatus, tripId, tripNumber, tripStartDate, tripCompletionDate } = tripSchema || {};
-          const { totalCashAmount, totalremainingCash } = expenseAmountStatus || {};
+          const { totalCashAmount, totalRemainingCash } = expenseAmountStatus || {};
           const { travelRequestId, travelRequestNumber, travelRequestStatus, tripPurpose, isCashAdvanceTaken, itinerary } = travelRequestData || {};
   
-          const itineraryToSend = Object.fromEntries(
-            Object.entries(itinerary)
-              .filter(([category]) => category !== 'formState')
-              .map(([category, items]) => {
-                let mappedItems;
-                if (category === 'hotels') {
-                  mappedItems = items.map(({ itineraryId, status, bkd_location, bkd_class, bkd_checkIn, bkd_checkOut, bkd_violations, cancellationDate, cancellationReason }) => ({
-                    category,
-                    itineraryId, status, bkd_location, bkd_class, bkd_checkIn, bkd_checkOut, bkd_violations, cancellationDate, cancellationReason,
-                  }));
-                } else if (category === 'cabs') {
-                  mappedItems = items.map(({ itineraryId, status, bkd_date, bkd_class, bkd_pickupAddress, bkd_dropAddress }) => ({
-                    category,
-                    itineraryId, status, bkd_date, bkd_class, bkd_pickupAddress, bkd_dropAddress,
-                  }));
-                } else {
-                  mappedItems = items.map(({ itineraryId, status, bkd_from, bkd_to, bkd_date, bkd_time, bkd_travelClass, bkd_violations }) => ({
-                    category,
-                    itineraryId, status, bkd_from, bkd_to, bkd_date, bkd_time, bkd_travelClass, bkd_violations,
-                  }));
-                }
-  
-                return [category, mappedItems];
-              })
-          );
+          const itineraryToSend = getItinerary(itinerary)
   
           return {
             tripId, tripNumber,
