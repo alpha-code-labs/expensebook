@@ -538,7 +538,6 @@ export const saveReimbursementExpenseLine = async (req, res) => {
 
       console.log("totalAmount", totalAmount)
 
-      const {name} = createdBy
       const expenseLineId = new mongoose.Types.ObjectId().toString();
 
       const expenseLineData ={
@@ -553,7 +552,9 @@ export const saveReimbursementExpenseLine = async (req, res) => {
         return res.status(404).json({success: false, error:'document not found' })
       }
 
-      let {expenseAmountStatus:{totalRemainingCash,totalExpenseAmount}} = getReport
+      let {expenseAmountStatus:{totalRemainingCash,totalExpenseAmount},createdBy} = getReport
+      const {name} = createdBy
+
       console.log("expenseAmountStatus - on save nte", JSON.stringify(getReport.expenseAmountStatus,'',2))
 
       
