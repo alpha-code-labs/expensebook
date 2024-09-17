@@ -1,10 +1,10 @@
 import amqp from 'amqplib';
-import { updateHRMaster, updatePreferences } from './messageProcessor.js/onboardingMessage.js';
+import { updateHRMaster } from './messageProcessor.js/onboardingMessage.js';
 import {  addALegToTravelRequestData, deleteALegFromTravelRequestData, tripArrayFullUpdate, tripFullUpdate } from './messageProcessor.js/trip.js';
 import { settleExpenseReport, settleExpenseReportPaidAndDistributed, settleNonTravelExpenseReport, settleOrRecoverCashAdvance } from './messageProcessor.js/finance.js';
 import dotenv from 'dotenv';
-import { approveRejectCashRaisedLater, expenseReportApproval, nonTravelReportApproval } from './messageProcessor.js/approval.js';
 import { cashStatusUpdatePaid } from './messageProcessor.js/cashAdvanceMessage.js';
+import { approveRejectCashRaisedLater, expenseReportApproval, nonTravelReportApproval, updatePreferences } from './messageProcessor.js/dashboard.js';
 
 dotenv.config();
 
