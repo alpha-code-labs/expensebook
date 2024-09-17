@@ -42,7 +42,7 @@ const CurrencyInput = ({conversionAmount,dataMsg,uploading,title,id,placeholder,
        <div className="w-full h-[73px] flex-col justify-start items-start gap-2 inline-flex mb-3 ">
       {/* title */}
       <div className="text-zinc-600 text-sm font-cabin">{title}</div>
-          <div className='relative flex items-center w-full  h-full'>
+          <div className='relative flex  items-center w-full  h-full'>
               <div className='relative h-full '>
               <div 
                 ref={dropdownTriggerRef}
@@ -82,26 +82,27 @@ const CurrencyInput = ({conversionAmount,dataMsg,uploading,title,id,placeholder,
           />
            </div>
           
-       
-      
            {error?.set && (
         <div className="absolute  top-[48px] w-full text-xs text-red-500 font-cabin">
           {error?.msg}
         </div>
       )} 
-           {conversionAmount?.currencyFlag && (
+
+           {/* {conversionAmount?.currencyFlag && (
         <div className="absolute  top-[48px] w-full text-xs text-neutral-900 font-cabin">
-          {/* {error?.msg} */}
-          {/* Amount in INR: Rs.310212.19
-1 CAD = 62.042437 INR */}
       {`Amount in ${conversionAmount?.defaultCurrencyName} ${(conversionAmount?.convertedTotalAmount).toFixed(2)} | 1 ${conversionAmount?.convertedCurrencyName} = ${conversionAmount?.defaultCurrencyName} ${conversionAmount?.conversionRate}`}
         </div>
-      )} 
-           {uploading?.set && (
+      )}  */}
+           {uploading?.set ? (
         <div className="absolute  top-[48px] w-full text-xs text-neutral-700 font-cabin">
           {uploading?.msg}
         </div>
-      )} 
+      ):
+      conversionAmount?.currencyFlag && (
+        <div className="absolute  top-[48px] w-full text-xs text-neutral-900 font-cabin">
+      {`Amount in ${conversionAmount?.defaultCurrencyName} ${(conversionAmount?.convertedTotalAmount).toFixed(2)} | 1 ${conversionAmount?.convertedCurrencyName} = ${conversionAmount?.defaultCurrencyName} ${conversionAmount?.conversionRate}`}
+        </div>
+      ) } 
            {dataMsg?.set && (
         <div className="absolute  top-[48px] w-full text-xs text-neutral-700 font-cabin">
           {dataMsg?.msg}
