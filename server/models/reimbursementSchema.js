@@ -95,7 +95,7 @@ const expenseLineSchema = new mongoose.Schema({
   billRejectionReason: String,
 },{ strict: false });
 
-export const reimbursementSchema = new mongoose.Schema({
+const reimbursementSchema = new mongoose.Schema({
 tenantId: {
   type: String,
   //required: true,
@@ -194,67 +194,8 @@ expenseSettlementOptions:String,
 expenseCancelledReason: String,
 expenseSubmissionDate: Date,
 expenseSettledDate: Date,
-});
+},{timestamps:true});
 
+const REIMBURSEMENT = mongoose.model('Reimbursement', reimbursementSchema);
 
-// Pre hook to generate and assign an ObjectId to expenseHeaderId before saving the document
-reimbursementSchema.pre('validate', function(next) {
-  if(!this.expenseHeaderId) {
-    this.expenseHeaderId = new mongoose.Types.ObjectId(); 
-  }
-  next(); // Call 'next' to proceed with the save operation
-})
-
-// Function to generate the incremental number
-const generateIncrementalNumber = (tenantName, incrementalValue) => {
-  const formattedTenant = (tenantName || '').toUpperCase().substring(0, 3);
-  return `NTER${formattedTenant}${incrementalValue.toString().padStart(6, '0')}`;
-};
-
-// reimbursementSchema.pre('validate', async function (next) {
-//   if (!this.expenseHeaderNumber) {
-//     // Query to find the maximum incremental value
-//     const maxIncrementalValue = await this.constructor.findOne({}, 'expenseHeaderNumber')
-//       .sort('-expenseHeaderNumber')
-//       .limit(1);
-
-//     // Calculate the next incremental value
-//     const nextIncrementalValue = (maxIncrementalValue ? parseInt(maxIncrementalValue.expenseHeaderNumber.substring(9), 10) : 0) + 1;
-
-//     // Generate the new expenseHeaderNumber
-//     this.expenseHeaderNumber = generateIncrementalNumber(this.tenantName, nextIncrementalValue);
-
-//     // Logging the latest generated expenseHeaderNumber
-//     console.log(`Latest generated expenseHeaderNumber: ${this.expenseHeaderNumber}`);
-//   }
-//   next();
-// });
-
-
-
-// const Reimbursement = mongoose.model('Reimbursement', expenseReimbursementSchema);
-
-
-// export default Reimbursement
-
-
-// // Pre-save hook to generate and assign expenseHeaderNumber if it doesn't exist
-// expenseSchema.pre('save', async function (next) {
-//   if (!this.expenseHeaderNumber) {
-
-//     const generateIncrementalNumber = (tenantName, ex, incrementalValue) => {
-//       const formattedTenant = (tenantName || '00').toString().substring(0, 2);
-//       const formattedEx = (ex || '00').toString().substring(0, 2);
-//       return `${formattedTenant}${formattedEx}${incrementalValue.toString().padStart(4, '0')}`;
-//     };
-
-//     const maxIncrementalValue = await this.constructor.findOne({}, 'expenseHeaderNumber')
-//       .sort('-expenseHeaderNumber')
-//       .limit(1);
-
-//     const nextIncrementalValue = (maxIncrementalValue ? parseInt(maxIncrementalValue.expenseHeaderNumber.substring(4), 10) : 0) + 1;
-
-//     this.expenseHeaderNumber = generateIncrementalNumber('tenantName', 'ex', nextIncrementalValue);
-//   }
-//   next();
-// });
+export default REIMBURSEMENT
