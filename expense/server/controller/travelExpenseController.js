@@ -39,7 +39,6 @@ const generateIncrementalNumber = (tenantName, incrementalValue = 1) => {
 };
 
 
-
 // to get expense report related company details
 const getExpenseRelatedHrData = async (tenantId,res = {}) => {
     try {
@@ -803,8 +802,11 @@ export const onSaveExpenseLine = async (req, res) => {
       const action = 'full-update';
       const comments = 'on Save expense line';
   
-await  sendToOtherMicroservice(payload, action, 'dashboard', comments)
-await sendToOtherMicroservice(payload, action, 'trip', comments)
+      await Promise.all([
+        sendToOtherMicroservice(payload, action, 'dashboard', comments),
+        sendToOtherMicroservice(payload, action, 'trip', comments),
+        sendToOtherMicroservice(payload,action,'reporting',comments)
+      ])
 
       return res.status(200).json({
         message: 'Expense line updated successfully.',
@@ -845,9 +847,12 @@ await sendToOtherMicroservice(payload, action, 'trip', comments)
         const payload = { getExpenseReport: updatedExpenseReport};
         const action = 'full-update';
         const comments = 'on Save expense line';
-    
-  await  sendToOtherMicroservice(payload, action, 'dashboard', comments)
-  await sendToOtherMicroservice(payload, action, 'trip', comments)
+
+      await Promise.all([
+        sendToOtherMicroservice(payload, action, 'dashboard', comments),
+        sendToOtherMicroservice(payload, action, 'trip', comments),
+        sendToOtherMicroservice(payload,action,'reporting',comments)
+      ])
 
         return res.status(200).json({
           message: 'Expense line added successfully.',
@@ -897,8 +902,9 @@ export const onEditExpenseLine = async (req, res) => {
   
     if(!isLineUpdate){
       res.status(404).json({ error:'Invalid request sent'});
-    } else {
-      let {
+    } 
+
+    let {
         isPersonalExpense,
         isMultiCurrency,
         'Category Name':categoryName,
@@ -1109,9 +1115,12 @@ export const onEditExpenseLine = async (req, res) => {
           const payload = { getExpenseReport: updatedExpenseReport};
           const action = 'full-update';
           const comments = 'on Save expense line';
-      
-    await  sendToOtherMicroservice(payload, action, 'dashboard', comments)
-    await sendToOtherMicroservice(payload, action, 'trip', comments)
+
+    await Promise.all([
+      sendToOtherMicroservice(payload, action, 'dashboard', comments),
+      sendToOtherMicroservice(payload, action, 'trip', comments),
+      sendToOtherMicroservice(payload,action,'reporting',comments)
+    ])
     
       console.log("expenseLineEdited edited...........",travelExpenseData )
       return res.status(200).json({
@@ -1120,7 +1129,7 @@ export const onEditExpenseLine = async (req, res) => {
         expenseAmountStatus,
       })
     }}
-    }
+    
   } catch (error) {
     console.error('An error occurred while saving the expense line items:', error);
     return res.status(500).json({
@@ -1266,8 +1275,11 @@ export const onSaveAsDraftExpenseReport = async (req, res) => {
       const action = 'full-update';
       const comments = 'expense report saved as Draft';
   
-await  sendToOtherMicroservice(payload, action, 'dashboard', comments)
-await sendToOtherMicroservice(payload, action, 'trip', comments)
+      await Promise.all([
+        sendToOtherMicroservice(payload, action, 'dashboard', comments),
+        sendToOtherMicroservice(payload, action, 'trip', comments),
+        sendToOtherMicroservice(payload,action,'reporting',comments)
+      ])
 
   // Process the updated expenseReport if needed
       return  res.status(200).json({ message: 'Expense report status updated as draft' });
@@ -1374,8 +1386,11 @@ if (matchingIndex !== -1) {
       if(isApproval){
         await sendToOtherMicroservice(payload, action, 'approval', comments)
       }
-      await  sendToOtherMicroservice(payload, action, 'dashboard', comments)
-      await sendToOtherMicroservice(payload, action, 'trip', comments)
+      await Promise.all([
+        sendToOtherMicroservice(payload, action, 'dashboard', comments),
+        sendToOtherMicroservice(payload, action, 'trip', comments),
+        sendToOtherMicroservice(payload,action,'reporting',comments)
+      ])
 
   // Process the updated expenseReport if needed
   return res.status(200).json({ message: 'Your Expense report submitted successfully' });
@@ -1465,8 +1480,11 @@ export const cancelAtHeaderLevelForAReport = async (req, res) => {
         const action = 'full-update';
         const comments = 'All expenseReports are deleted'
         
-        await  sendToOtherMicroservice(payload, action, 'dashboard', comments)
-        await  sendToOtherMicroservice(payload, action, 'trip', comments)
+        await Promise.all([
+          sendToOtherMicroservice(payload, action, 'dashboard', comments),
+          sendToOtherMicroservice(payload, action, 'trip', comments),
+          sendToOtherMicroservice(payload,action,'reporting',comments)
+        ])
 
         if(isApproval){
           await  sendToOtherMicroservice(payload, action, 'approval', comments)
@@ -1545,7 +1563,12 @@ const payload = {getExpenseReport:updatedExpenseReport};
 const action = 'full-update';
 const comments = 'expense report cancelled at headerLevel'
 
-await sendToOtherMicroservice(payload, action, 'dashboard',comments )
+await Promise.all([
+  sendToOtherMicroservice(payload, action, 'dashboard', comments),
+  sendToOtherMicroservice(payload, action, 'trip', comments),
+  sendToOtherMicroservice(payload,action,'reporting',comments)
+])
+
 await sendToDashboardMicroservice(payload, action, comments)
 if(isApproval){
   await  sendToOtherMicroservice(payload, action, 'approval', comments)
@@ -1681,7 +1704,11 @@ export const cancelAtLine = async (req, res) => {
         const comments = 'Expense line is deleted from expenseReport'
 
         await sendToDashboardMicroservice(payload, action, comments)
-        await  sendToOtherMicroservice(payload, action, 'trip', comments)
+        await Promise.all([
+          sendToOtherMicroservice(payload, action, 'dashboard', comments),
+          sendToOtherMicroservice(payload, action, 'trip', comments),
+          sendToOtherMicroservice(payload,action,'reporting',comments)
+        ])
   
         // Process the updated expenseReport if needed
         return res.status(200).json({ success: true, travelExpenseData, expenseAmountStatus, message:"Your expense deleted Successfully" });

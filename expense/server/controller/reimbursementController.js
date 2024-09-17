@@ -291,12 +291,6 @@ export const getHighestLimitGroupPolicy = async (req, res) => {
         return res.status(400).json({success: false, message: error.details[0].message})
       }
       const { tenantId, empId, expenseCategory } = value;
-       let{expenseHeaderId} = req.body;
-       let expenseHeaderNumber;
-       let approvers
-       let expenseHeaderStatus
-
-       console.log("expenseHeaderId from req.body",expenseHeaderId)
 
       const employeeDocument = await HRCompany.findOne({
         tenantId,
@@ -474,16 +468,7 @@ export const reimbursementCurrencyConverter = async (req, res) => {
 };
 
 const saveSchema = Joi.object({
-  companyName:Joi.string().required(),
-  createdBy: Joi.object({
-    empId: Joi.string().required(),
-    name: Joi.string().required(),
-    _id: Joi.string().optional(),
-  }).required(),
-  expenseHeaderNumber:Joi.string().required(),
-  defaultCurrency:Joi.object().required(),
   lineItem:Joi.object().required(),
-  expenseAmountStatus:Joi.object().required(),
 })
 
 const validateRequest = (schema, data) => {
@@ -536,14 +521,12 @@ export const saveReimbursementExpenseLine = async (req, res) => {
       console.log("Params:", req.params);
   
       const { tenantId, empId, expenseHeaderId } = params;
-      const { createdBy, expenseHeaderNumber, lineItem , } = body;
+      const {lineItem  } = body;
   
       //  console.log("req body", req.body)
       //  console.log("lineItem ......", lineItem)
-       console.log("Type of 'Booking Reference No':", typeof lineItem['Booking Reference No']);
-      if (!expenseHeaderNumber ) {
-        return res.status(404).json({ message: 'error expenseHeaderNumber is missing' });
-      }
+      console.log("Type of 'Booking Reference No':", typeof lineItem['Booking Reference No']);
+    
       const fixedFields = ['Total Amount', 'Total Fare', 'Premium Amount', 'Total Cost', 'License Cost', 'Subscription Cost',  'Premium Cost','Cost', 'Tip Amount', ]
 
       // Extract total amount
