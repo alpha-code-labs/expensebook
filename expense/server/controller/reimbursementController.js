@@ -26,6 +26,7 @@ const nonTravelSchema = Joi.object({
 
 // to generate and add expense report number
 const generateIncrementalNumber = (companyName, incrementalValue) => {
+  console.log("generateIncrementalNumber - ", companyName, typeof companyName , "incrementalValue", incrementalValue , typeof incrementalValue)
   if (typeof companyName !== 'string' || typeof incrementalValue !== 'number') {
     throw new Error('Invalid input parameters');
   }
@@ -38,9 +39,10 @@ const generateIncrementalNumber = (companyName, incrementalValue) => {
   return `RE${formattedTenant}${paddedIncrementalValue}`;
 }
 
-const createReimbursementReport = async(tenantId,empId) => {
+const createReimbursementReport = async(tenantId,empId,companyName,employeeName,defaultCurrency) => {
   try{
 
+    console.log("createReimbursementReport", "tenantId,empId,companyName", tenantId,empId,companyName)
     let expenseHeaderStatus
     let expenseHeaderNumber
     let expenseHeaderId
@@ -126,6 +128,7 @@ const createReimbursementReport = async(tenantId,empId) => {
     }); 
   } catch(error){
     console.log(error);
+    throw error
   }
 }
 
@@ -227,9 +230,11 @@ export const getExpenseCategoriesForEmpId = async (req, res) => {
       });
     }
 
-    const { employeeName, employeeId } = employeeDocument?.employees[0]?.employeeDetails;
+const employee = employeeDocument?.employees.find(emp => emp.employeeDetails.employeeId.toString() === empId.toString());
 
-    // console.log("employeeName, employeeId", employeeName, employeeId)
+const { employeeName, employeeId } = employee?.employeeDetails || {};
+
+    console.log("employeeName, employeeId", employeeName, employeeId)
     if (!employeeId) {
       return res.status(404).json({
         success: false,
@@ -238,8 +243,7 @@ export const getExpenseCategoriesForEmpId = async (req, res) => {
     }
 
     const {
-      companyDetails: { defaultCurrency } = {},
-      companyName,
+      companyDetails: { defaultCurrency, companyName} = {},
       reimbursementExpenseCategories,
       travelAllocationFlags,
       expenseSettlementOptions
@@ -250,7 +254,11 @@ export const getExpenseCategoriesForEmpId = async (req, res) => {
       : [];
 
       const getApprovers = getApproversFromOnboarding(employeeDocument,empId)
-      const getReport = await createReimbursementReport(tenantId,empId)
+      console.log("before","tenantId,empId,companyName, defaultCurrency", tenantId,empId,companyName, defaultCurrency )
+      const getReport = await createReimbursementReport(tenantId,empId,companyName,employeeName,defaultCurrency)
+      if(!getReport){
+        return res.status(404).json({success: false, message: 'report creation or retrial failed', error:error.message})
+      }
 
     return res.status(200).json({
       success: true,
