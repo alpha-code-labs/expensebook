@@ -1,3 +1,4 @@
+import REIMBURSEMENT from "../../models/reimbursementSchema.js";
 import reporting from "../../models/reportingSchema.js";
 
 
@@ -9,18 +10,17 @@ export const updateReimbursement = async (payload) => {
         const { empId } = createdBy;
         console.log("updateReimbursement ....", payload);
 
-        const reimbursement = await reporting.findOneAndUpdate(
-            { tenantId,
-            'reimbursementSchema.tenantId': tenantId, 
-            'reimbursementSchema.createdBy.empId': empId , 
-            'reimbursementSchema.expenseHeaderId': expenseHeaderId},
-            { $set: { reimbursementSchema: reimbursementReport } },
+        const result = await REIMBURSEMENT.updateOne(
+            { tenantId, 
+            'createdBy.empId': empId , 
+            'expenseHeaderId': expenseHeaderId},
+            { $set: { ...reimbursementReport } },
             { upsert: true, new: true }
         );
 
-        console.log("Reimbursement update result:", reimbursement);
-
-        if (reimbursement) {
+        console.log("Reimbursement update result:", result);
+        
+        if (result.upsertedCount > 0 || result.modifiedCount > 0) {
             console.log("Success: Reimbursement updated successfully.");
             return { success: true, error: null };
         } else {
@@ -41,8 +41,8 @@ export const deleteReimbursement = async (payload) => {
         const { tenantId,empId, expenseHeaderId } = payload;
 
         console.log("deleteReimbursement....", payload);
-    const deleteReimbursementReport = await reporting.findOneAndDelete({ 
-        'reimbursementSchema.tenantId': tenantId, 'reimbursementSchema.expenseHeaderId': expenseHeaderId })
+    const deleteReimbursementReport = await REIMBURSEMENT.findOneAndDelete({ 
+        tenantId, 'expenseHeaderId': expenseHeaderId })
 
         if(!deleteReimbursementReport){
             return {success: false, error: "Failed to delete reimbursement expense in reporting."}

@@ -4,6 +4,8 @@ import dotenv from 'dotenv';
 import { updateTrip } from './messageProcessor/trip.js';
 import { deleteReimbursement, updateReimbursement } from './messageProcessor/reimbursement.js';
 import { fullUpdateExpense } from './messageProcessor/travelExpenseProcessor.js';
+import { expenseReportApproval, nonTravelReportApproval } from './messageProcessor/dashboard.js';
+import { settleNonTravelExpenseReport } from './messageProcessor/finance.js';
 // import { fullUpdateExpense } from './messageProcessor/travelExpenseProcessor.js';
 // import { updateTrip } from './messageProcessor/trip.js';
 // import { fullUpdateCash, fullUpdateCashBatchJob } from './messageProcessor/cash.js';
@@ -200,6 +202,73 @@ export async function startConsumer(receiver) {
           }
         break;
     
+        case 'dashboard':
+          switch(action){
+            case 'profile-update':
+              const res7 = await updatePreferences(payload);
+              console.log(res7)
+              handleMessageAcknowledgment(channel, msg, res7);
+              break;
+            
+            case 'approve-reject-ca-later':
+              const res8 = await approveRejectCashRaisedLater(payload);
+              console.log(res8)
+              handleMessageAcknowledgment(channel, msg, res8);
+              break;
+
+            case 'expense-approval':
+              const res9 = await expenseReportApproval(payload);
+              console.log(res9)
+              handleMessageAcknowledgment(channel, msg, res9);
+              break;
+
+            case 'nte-full-update':
+              const res10 = await nonTravelReportApproval(payload);
+              console.log(res10)
+              handleMessageAcknowledgment(channel, msg, res10);
+              break;
+
+            default:
+              console.warn(`Unknown action '${action}' for source ${source}`);
+              break;
+          }
+          break;
+
+          case 'finance':
+            switch(action){
+              case 'settle-ca':
+              case 'recover-ca':
+                console.log("settle-ca or recover-ca ")
+                // channel.ack(msg)
+               const res3 = await settleOrRecoverCashAdvance(payload);
+                handleMessageAcknowledgment(channel, msg, res3);
+                break;
+
+              case 'expense-paid':
+                console.log(" expense header status paid")
+                const res4 = await settleExpenseReport(payload);
+                handleMessageAcknowledgment(channel, msg, res4);
+                break;
+  
+              case 'settle-expense-Paid-and-distributed':
+                console.log(" expense header status paid and distributed")
+               const res5 = await settleExpenseReportPaidAndDistributed(payload);
+                handleMessageAcknowledgment(channel, msg, res5);
+                break;
+              
+              case 'non-travel-paid':
+                console.log(" expense header status paid - 'non-travel-paid'")
+                const res6 = await settleNonTravelExpenseReport(payload);
+                handleMessageAcknowledgment(channel, msg, res6);
+                break;
+
+              
+              default:
+                console.warn(`unknown action ${action} for source ${source}`)
+                break;
+            }
+            break;
+
         default:
               console.log(`no action ${action} defined for source ${source}`)
         break;

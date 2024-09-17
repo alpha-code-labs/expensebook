@@ -1,8 +1,9 @@
 import reporting from '../models/reportingSchema.js';
 import Joi from 'joi';
-import { approverStatusEnums, cashAdvanceStatusEnum, tripStatusEnum } from '../models/tripSchema.js';
+import { approverStatusEnums, cashAdvanceStatusEnum, tripStatusEnum } from '../models/reportingSchema.js';
 import {expenseHeaderStatusEnums} from '../models/travelExpenseSchema.js'
 import HRCompany from '../models/hrCompanySchema.js';
+import REIMBURSEMENT from '../models/reimbursementSchema.js'
 
 const getEnums = {approverStatusEnums, cashAdvanceStatusEnum,tripStatusEnum,expenseHeaderStatusEnums}
 
@@ -193,8 +194,8 @@ console.log("hr data", travelData)
 export const findListOfApprovers = async (tenantId, empId) => {
   try {
     const tripDocs = await reporting.find({
-      'tripSchema.tenantId': tenantId,
-      'tripSchema.createdBy.empId': empId,
+      'tenantId': tenantId,
+      'createdBy.empId': empId,
     }).lean().exec();
 
     // Create a Set to store unique approvers
@@ -202,7 +203,7 @@ export const findListOfApprovers = async (tenantId, empId) => {
 
     // Iterate over the tripDocs and extract unique approvers
     tripDocs.forEach((trip) => {
-      trip.tripSchema.travelRequestData.approvers.forEach((approver) => {
+      trip.travelRequestData.approvers.forEach((approver) => {
         uniqueApprovers.add(JSON.stringify({ empId: approver.empId, name: approver.name }));
       });
     });
@@ -257,43 +258,18 @@ const getLastMonthTrips = async (tenantId, empId) => {
       console.log("today date", today , "last month", lastMonth ,"tenantId", tenantId, "empId", empId)
 
       const tripDocs = await reporting.find({
-        'tripSchema.tenantId': tenantId,
-        'tripSchema.createdBy.empId': empId,
-        'tripSchema.tripStartDate': { $gte: lastMonth, $lte: today },
+        tenantId,
+        'createdBy.empId': empId,
+        'tripStartDate': { $gte: lastMonth, $lte: today },
       }).lean().exec();
   
     console.log("trip in last month", tripDocs)
       const trips = tripDocs.map(trip => {
-        const { tripSchema } = trip;
-        const { travelRequestData, cashAdvancesData, travelExpenseData, expenseAmountStatus, tripId, tripNumber, tripStartDate, tripCompletionDate ,tripStatus} = tripSchema || {};
+        const { travelRequestData, cashAdvancesData, travelExpenseData, expenseAmountStatus, tripId, tripNumber, tripStartDate, tripCompletionDate ,tripStatus} = trip || {};
         const { totalCashAmount, totalRemainingCash } = expenseAmountStatus || {};
         const { travelRequestId, travelRequestNumber, travelRequestStatus, tripPurpose,createdBy,tripName, isCashAdvanceTaken,travelType,approvers, itinerary } = travelRequestData || {};
   
-        const itineraryToSend = Object.fromEntries(
-          Object.entries(itinerary)
-            .filter(([category]) => category !== 'formState')
-            .map(([category, items]) => {
-              let mappedItems;
-              if (category === 'hotels') {
-                mappedItems = items.map(({ itineraryId, status, bkd_location, bkd_class, bkd_checkIn, bkd_checkOut, bkd_violations, cancellationDate, cancellationReason }) => ({
-                  category,
-                  itineraryId, status, bkd_location, bkd_class, bkd_checkIn, bkd_checkOut, bkd_violations, cancellationDate, cancellationReason,
-                }));
-              } else if (category === 'cabs') {
-                mappedItems = items.map(({ itineraryId, status, bkd_date, bkd_class, bkd_pickupAddress, bkd_dropAddress }) => ({
-                  category,
-                  itineraryId, status, bkd_date, bkd_class, bkd_pickupAddress, bkd_dropAddress,
-                }));
-              } else {
-                mappedItems = items.map(({ itineraryId, status, bkd_from, bkd_to, bkd_date, bkd_time, bkd_travelClass, bkd_violations }) => ({
-                  category,
-                  itineraryId, status, bkd_from, bkd_to, bkd_date, bkd_time, bkd_travelClass, bkd_violations,
-                }));
-              }
-  
-              return [category, mappedItems];
-            })
-        );
+        const itineraryToSend = getItinerary(itinerary)
   
         return {
           tripId, tripNumber,
@@ -310,12 +286,16 @@ const getLastMonthTrips = async (tenantId, empId) => {
           expenseAmountStatus,
           travelType,
           approvers,
-          cashAdvances: isCashAdvanceTaken ? (cashAdvancesData ? cashAdvancesData.map(({ cashAdvanceId, cashAdvanceNumber, amountDetails, cashAdvanceStatus , approvers}) => ({
+          cashAdvances: isCashAdvanceTaken ? (cashAdvancesData ? cashAdvancesData.map(({ cashAdvanceId, cashAdvanceNumber, amountDetails, cashAdvanceStatus , approvers,cashAdvanceRequestDate,paidBy,recoveredBy,cashAdvanceRejectionReason}) => ({
             cashAdvanceId,
             cashAdvanceNumber,
             amountDetails,
             cashAdvanceStatus,
-            approvers
+            approvers,
+            cashAdvanceRequestDate,
+            paidBy,
+            recoveredBy,
+            cashAdvanceRejectionReason
           })) : []) : [],
           // travelExpenses: travelExpenseData?.map(({ expenseHeaderId, expenseHeaderNumber, expenseHeaderStatus, approvers ,expenseLines,travelType}) => ({
           //   expenseHeaderId,
@@ -337,6 +317,68 @@ const getLastMonthTrips = async (tenantId, empId) => {
     }
 };
 
+const getLastMonthTravel = async (tenantId, empId) => {
+  try {
+    const today = new Date();
+    const lastMonth = new Date(today.getFullYear(), today.getMonth() -1, today.getDate());
+    console.log("today date", today , "last month", lastMonth ,"tenantId", tenantId, "empId", empId)
+
+    const tripDocs = await reporting.find({
+      tenantId,
+      'createdBy.empId': empId,
+      'tripStartDate': { $gte: lastMonth, $lte: today },
+    }).lean().exec();
+
+  console.log("trip in last month", tripDocs)
+    const trips = tripDocs.map(trip => {
+      const { travelRequestData, cashAdvancesData, travelExpenseData, expenseAmountStatus, tripId, tripNumber, tripStartDate, tripCompletionDate ,tripStatus} = trip || {};
+      const { totalCashAmount, totalRemainingCash } = expenseAmountStatus || {};
+      const { travelRequestId, travelRequestNumber, travelRequestStatus, tripPurpose,createdBy,tripName, isCashAdvanceTaken,travelType,approvers, itinerary } = travelRequestData || {};
+
+      const itineraryToSend = getItinerary(itinerary)
+
+      return {
+        tripId, tripNumber,
+        tripName,
+        travelRequestId,
+        travelRequestNumber,
+        createdBy,
+        tripPurpose,
+        tripStartDate,
+        tripStatus,
+        tripCompletionDate,
+        travelRequestStatus,
+        isCashAdvanceTaken,
+        expenseAmountStatus,
+        travelType,
+        approvers,
+        cashAdvances: isCashAdvanceTaken ? (cashAdvancesData ? cashAdvancesData.map(({ cashAdvanceId, cashAdvanceNumber, amountDetails, cashAdvanceStatus , approvers}) => ({
+          cashAdvanceId,
+          cashAdvanceNumber,
+          amountDetails,
+          cashAdvanceStatus,
+          approvers
+        })) : []) : [],
+        // travelExpenses: travelExpenseData?.map(({ expenseHeaderId, expenseHeaderNumber, expenseHeaderStatus, approvers ,expenseLines,travelType}) => ({
+        //   expenseHeaderId,
+        //   expenseHeaderNumber,
+        //   expenseHeaderStatus,
+        //   approvers, expenseLines,
+        // travelType
+        // })),
+        travelExpenses:travelExpenseData,
+        itinerary: itineraryToSend,
+      };
+    });
+
+  //console.log("trips", trips);
+    return trips;
+  } catch (error) {
+    console.error("Error in fetching employee Reporting:", error);
+    throw new Error('Error in fetching employee Reporting');
+  }
+};
+
 
 const getLastMonthReimbursement = async (tenantId, empId) => {
   try {
@@ -344,17 +386,16 @@ const getLastMonthReimbursement = async (tenantId, empId) => {
     const lastMonth = new Date(today.getFullYear(), today.getMonth() -1, today.getDate());
     console.log("today date", today , "last month", lastMonth)
 
-    const docs = await reporting.find({
-      'reimbursementSchema.tenantId': tenantId,
-      'reimbursementSchema.createdBy.empId': empId,
-      'reimbursementSchema.expenseSubmissionDate': { $gte: lastMonth, $lte: today },
+    const docs = await REIMBURSEMENT.find({
+      tenantId,
+      'createdBy.empId': empId,
+      'expenseSubmissionDate': { $gte: lastMonth, $lte: today },
     }).lean().exec();
 
     if(!docs){
       return { message: 'There are no reimbursement found for the user' };
     } else {
-      const extractDocs = docs.map(doc => doc.reimbursementSchema)
-      return extractDocs
+      return docs
     }
   } catch (error) {
     console.error("Error in fetching employee Reporting:", error);
@@ -369,12 +410,12 @@ const getTripForEmployee = async (tenantId, empId) => {
       const tripDocs = await reporting.find({
         $or: [
           { 
-            'tripSchema.tenantId': tenantId,
-            'tripSchema.travelRequestData.createdBy.empId': empId,
+            'tenantId': tenantId,
+            'travelRequestData.createdBy.empId': empId,
             $or: [
-              { 'tripSchema.tripStatus': { $in: ['transit', 'completed', 'closed'] } },
-              { 'tripSchema.travelExpenseData.expenseHeaderStatus': 'rejected' },
-              { 'tripSchema.cashAdvanceData.cashAdvanceStatus': { $nin: ['rejected'] }},
+              { 'tripStatus': { $in: ['transit', 'completed', 'closed'] } },
+              { 'travelExpenseData.expenseHeaderStatus': 'rejected' },
+              { 'cashAdvanceData.cashAdvanceStatus': { $nin: ['rejected'] }},
             ],
           },
           { 'reimbursementSchema.createdBy.empId': empId }, 
@@ -388,11 +429,10 @@ const getTripForEmployee = async (tenantId, empId) => {
  console.log("tripDocs............", tripDocs)
 
       const transitTrips = tripDocs
-          .filter(trip => trip?.tripSchema?.tripStatus === 'transit')
+          .filter(trip => trip?.tripStatus === 'transit')
           .map(trip => {
             console.log("each trip", trip)
-            const { tripSchema} = trip
-              const {travelRequestData, cashAdvancesData, travelExpenseData, expenseAmountStatus,  tripId, tripNumber, tripStartDate,tripCompletionDate} = tripSchema || {};
+              const {travelRequestData, cashAdvancesData, travelExpenseData, expenseAmountStatus,  tripId, tripNumber, tripStartDate,tripCompletionDate} = trip || {};
               const { totalCashAmount, totalRemainingCash } = expenseAmountStatus ||  {};
               const {travelRequestId,travelRequestNumber,travelRequestStatus,tripPurpose, isCashAdvanceTaken, itinerary} = travelRequestData || {};
         
@@ -428,22 +468,22 @@ const getTripForEmployee = async (tenantId, empId) => {
 
       const completedTrips = tripDocs
         //   .filter(trip => trip?.tripSchema?.tripStatus === 'completed' && trip?.tripSchema?.travelExpenseData && trip?.tripSchema?.travelExpenseData?.length > 0 )
-        .filter(trip => (trip?.tripSchema?.tripStatus === 'completed' || trip?.tripSchema?.tripStatus === 'closed') && trip?.tripSchema?.travelExpenseData && trip?.tripSchema?.travelExpenseData?.length > 0 )
-          .flatMap(trip => trip.tripSchema.travelExpenseData.map(({ tripId, expenseHeaderId, expenseHeaderNumber, expenseHeaderStatus }) => ({
+        .filter(trip => (trip?.tripStatus === 'completed' || trip?.tripStatus === 'closed') && trip?.travelExpenseData && trip?.travelExpenseData?.length > 0 )
+          .flatMap(trip => trip.travelExpenseData.map(({ tripId, expenseHeaderId, expenseHeaderNumber, expenseHeaderStatus }) => ({
               tripId,
-              tripPurpose: trip.tripSchema.travelRequestData.tripPurpose || '',
+              tripPurpose: trip.travelRequestData.tripPurpose || '',
               expenseHeaderId: expenseHeaderId || '',
               expenseHeaderNumber: expenseHeaderNumber || '',
               expenseHeaderStatus:expenseHeaderStatus|| '',
           })));
 
           const rejectedTrips = tripDocs
-          .filter(trip => trip?.tripSchema?.tripStatus === 'rejected')
+          .filter(trip => trip?.tripStatus === 'rejected')
           .flatMap(trip => {
-              console.log("travelExpenseData", trip.tripSchema.travelExpenseData);
-              return trip.tripSchema.travelExpenseData.map(({ tripId, tripNumber, expenseHeaderId, expenseHeaderNumber, expenseAmountStatus }) => ({
+              console.log("travelExpenseData", trip.travelExpenseData);
+              return trip.travelExpenseData.map(({ tripId, tripNumber, expenseHeaderId, expenseHeaderNumber, expenseAmountStatus }) => ({
                   tripId,
-                  tripPurpose: trip.tripSchema.tripPurpose,
+                  tripPurpose: trip.tripPurpose,
                   tripNumber,
                   expenseHeaderId,
                   expenseHeaderNumber,
@@ -529,23 +569,23 @@ export const getTrips = async (req, res) => {
     const { tripStatuses, tripCompletionDate, startDate, endDate, travelType} = bodyValue;
 
       const query = {
-        'tripSchema.tenantId': tenantId,
-        'tripSchema.travelRequestData.createdBy.empId': empId,
-        'tripSchema.tripStatus': { $in: tripStatuses }
+        tenantId,
+        'travelRequestData.createdBy.empId': empId,
+        'tripStatus': { $in: tripStatuses }
       };
   
       // Add the tripCompletionDate filter only if it's present in the request body
       if (tripCompletionDate) {
-        query['tripSchema.tripCompletionDate'] = tripCompletionDate;
+        query['tripCompletionDate'] = tripCompletionDate;
       }
 
       // Add startDate and endDate filters if both are present
        if (startDate && endDate) {
-        query['tripSchema.tripCompletionDate'] = { $gte: startDate, $lte: endDate };
+        query['tripCompletionDate'] = { $gte: startDate, $lte: endDate };
       }
 
       if(travelType){
-        query['tripSchema.travelRequestData.travelType'] = travelType
+        query['travelRequestData.travelType'] = travelType
       }
   
       const tripDocs = await reporting.find(query).lean().exec();
@@ -557,8 +597,7 @@ export const getTrips = async (req, res) => {
         const trips = tripDocs
         // .filter(trip => tripStatuses.includes(trip?.tripSchema?.tripStatus) && trip?.tripSchema?.tripCompletionDate === tripCompletionDate)
         .map(trip => {
-          const { tripSchema } = trip;
-          const { travelRequestData, cashAdvancesData, travelExpenseData, expenseAmountStatus, tripId, tripNumber, tripStartDate, tripCompletionDate } = tripSchema || {};
+          const { travelRequestData, cashAdvancesData, travelExpenseData, expenseAmountStatus, tripId, tripNumber, tripStartDate, tripCompletionDate } = trip || {};
           const { totalCashAmount, totalRemainingCash } = expenseAmountStatus || {};
           const { travelRequestId, travelRequestNumber, travelRequestStatus, tripPurpose, isCashAdvanceTaken, itinerary } = travelRequestData || {};
   

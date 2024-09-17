@@ -29,7 +29,7 @@ export const updateTrip = async (payload) => {
       // Use $set to replace the entire tripSchema object with the new item
       const updatedTrip = await reporting.findOneAndUpdate(
         { tenantId, travelRequestId,  },
-        { $set: { tripSchema: item } },
+        { $set: { ...item } },
         { upsert: true, new: true }
       );
       
@@ -43,7 +43,7 @@ export const updateTrip = async (payload) => {
 
     const results = await Promise.all(promises);
 
-    console.log("waht i get i results",results);
+    console.log("what i get i results",results);
     // Return the results array containing success messages
     return results;
   } catch (error) {
@@ -69,8 +69,8 @@ export const updateTripStatus = async (payload) => {
       try {
         console.log(`Attempting to update trip with ID: ${tripId} to status: ${tripStatus}`);
         const updatedTrip = await reporting.findOneAndUpdate(
-          { 'tripSchema.tripId': tripId },
-          { $set: { 'tripSchema.tripStatus': tripStatus } },
+          { tripId },
+          { $set: { 'tripStatus': tripStatus } },
           { new: true }
         );
   
@@ -96,7 +96,7 @@ export const updateTripStatus = async (payload) => {
   };
 };
 
-// Process transit trip message (received from - trip microservice, received -All transit trips (batchjob))
+// Process transit trip message (received from - trip microservice, received -All transit trips (batch job))
 //Trip microservice --All trip updates --- asynchronous rabbitmq route --- 
 export const processTransitTrip = async (message) => {
   // const failedUpdates = [];
@@ -123,22 +123,22 @@ export const processTransitTrip = async (message) => {
 
     try {
     const updated = await reporting.findOneAndUpdate(
-      { 'tripSchema.tripId': tripId },
+      { tripId },
       {
         $set: {
-          'tripSchema.tenantId': tenantId ?? undefined,
-          'tripSchema.tenantName': tenantName ?? undefined,
-          'tripSchema.companyName': companyName ?? undefined,
-          'tripSchema.tripId': tripId ?? undefined,
-          'tripSchema.tripNumber': tripNumber ?? undefined,
-          'tripSchema.tripPurpose': tripPurpose ?? undefined,
-          'tripSchema.tripStatus': tripStatus ?? undefined,
-          'tripSchema.tripStartDate': tripStartDate ?? undefined,
-          'tripSchema.tripCompletionDate': tripCompletionDate ?? undefined,
-          'tripSchema.isSentToExpense': isSentToExpense ?? undefined,
-          'tripSchema.notificationSentToReportingFlag': notificationSentToReportingFlag ?? undefined,
-          'tripSchema.travelRequestData': travelRequestData ?? undefined,
-          'tripSchema.cashAdvancesData': cashAdvancesData ?? undefined,
+          'tenantId': tenantId ?? undefined,
+          'tenantName': tenantName ?? undefined,
+          'companyName': companyName ?? undefined,
+          'tripId': tripId ?? undefined,
+          'tripNumber': tripNumber ?? undefined,
+          'tripPurpose': tripPurpose ?? undefined,
+          'tripStatus': tripStatus ?? undefined,
+          'tripStartDate': tripStartDate ?? undefined,
+          'tripCompletionDate': tripCompletionDate ?? undefined,
+          'isSentToExpense': isSentToExpense ?? undefined,
+          'notificationSentToReportingFlag': notificationSentToReportingFlag ?? undefined,
+          'travelRequestData': travelRequestData ?? undefined,
+          'cashAdvancesData': cashAdvancesData ?? undefined,
         },
       },
       { upsert: true, new: true }
@@ -205,25 +205,25 @@ export const updateTripToreportingSync = async (message,correlationId) => {
 
     try {
     const updated = await reporting.findOneAndUpdate(
-      { tenantId,'tripSchema.tripId': tripId },
+      { tenantId,'tripId': tripId },
       {
         $set: {
-          'tripSchema.tenantId': tenantId ?? undefined,
-          'tripSchema.tenantName': tenantName ?? undefined,
-          'tripSchema.companyName': companyName ?? undefined,
-          'tripSchema.tripId': tripId ?? undefined,
-          'tripSchema.tripNumber': tripNumber ?? undefined,
-          'tripSchema.tripPurpose': tripPurpose ?? undefined,
-          'tripSchema.tripStatus': tripStatus ?? undefined,
-          'tripSchema.tripStartDate': tripStartDate ?? undefined,
-          'tripSchema.tripCompletionDate': tripCompletionDate ?? undefined,
-          'tripSchema.isSentToExpense': isSentToExpense ?? undefined,
-          'tripSchema.notificationSentToReportingFlag': notificationSentToReportingFlag ?? undefined,
-          'tripSchema.travelRequestData': travelRequestData ?? undefined,
-          'tripSchema.cashAdvancesData': cashAdvancesData ?? undefined,
-          'tripSchema.sendForNotification': false,  // always set 'sendForNotification' it as false when reporting is updated 
-          'tripSchema.travelRequestData.sendForNotification': false, 
-          'tripSchema.cashAdvancesData.sendForNotification': false, 
+          'tenantId': tenantId ?? undefined,
+          'tenantName': tenantName ?? undefined,
+          'companyName': companyName ?? undefined,
+          'tripId': tripId ?? undefined,
+          'tripNumber': tripNumber ?? undefined,
+          'tripPurpose': tripPurpose ?? undefined,
+          'tripStatus': tripStatus ?? undefined,
+          'tripStartDate': tripStartDate ?? undefined,
+          'tripCompletionDate': tripCompletionDate ?? undefined,
+          'isSentToExpense': isSentToExpense ?? undefined,
+          'notificationSentToReportingFlag': notificationSentToReportingFlag ?? undefined,
+          'travelRequestData': travelRequestData ?? undefined,
+          'cashAdvancesData': cashAdvancesData ?? undefined,
+          'sendForNotification': false,  // always set 'sendForNotification' it as false when reporting is updated 
+          'travelRequestData.sendForNotification': false, 
+          'cashAdvancesData.sendForNotification': false, 
         },
       },
       { upsert: true, new: true }
@@ -408,7 +408,7 @@ export const addLeg = async (payload) => {
 
     const travelRequest = await reporting.findOneAndUpdate(
       { travelRequestId },
-      { $set: { "tripSchema.travelRequestData": payload } },
+      { $set: { "travelRequestData": payload } },
     );
 
     if (!travelRequest) {
@@ -422,6 +422,7 @@ export const addLeg = async (payload) => {
     return { success: false, error: err.message };
   }
 };
+
 
 
 
