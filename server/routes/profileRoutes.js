@@ -10,4 +10,3 @@ profileRouter.post('/:tenantId/:empId', saveProfile);
 
 
 
-
