@@ -194,7 +194,7 @@ expenseSettlementOptions:String,
 expenseCancelledReason: String,
 expenseSubmissionDate: Date,
 expenseSettledDate: Date,
-});
+},{timestamps:true});
 
 
 // Pre hook to generate and assign an ObjectId to expenseHeaderId before saving the document
