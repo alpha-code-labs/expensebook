@@ -14,10 +14,10 @@ export const fullUpdateExpense = async (payload) => {
 
 
     try {
-    const updated = await reporting.findOneAndUpdate(
-      { tenantId,'tripSchema.tenantId': tenantId , 'tripSchema.travelRequestData.travelRequestId':travelRequestId, 'tripSchema.tripId': tripId },
+    const updated = await reporting.updateOne(
+      { tenantId, 'travelRequestData.travelRequestId':travelRequestId, tripId },
       {
-      $set:{tripSchema :getExpenseReport}
+      $set:{...getExpenseReport}
       },
       { upsert: true, new: true }
     );

@@ -2,6 +2,7 @@ import reporting from "../models/reportingSchema.js";
 import Joi from 'joi';
 import { getMonthRange, getQuarterRange, getWeekRange, getYear } from "../helpers/dateHelpers.js";
 import HRCompany from "../models/hrCompanySchema.js";
+import REIMBURSEMENT from "../models/reimbursementSchema.js";
 
 
 export const getExpenseCategoriesForEmpId = async (req, res) => {
@@ -58,7 +59,7 @@ export const getExpenseCategoriesForEmpId = async (req, res) => {
     }
   };
 
-const reimbursementExpenseReportSchema = Joi.object({
+const dataSchema = Joi.object({
     tenantId: Joi.string().required(),
     empId: Joi.string().required(),
     filterBy: Joi.string().valid('date', 'week', 'month', 'quarter', 'year'),
@@ -78,7 +79,7 @@ const reimbursementExpenseReportSchema = Joi.object({
 //to filter reimbursement expense reports based on 'date', 'week', 'month', 'quarter', 'year' and date.
 export const getReimbursementExpenseReport = async (req, res) => {
   try {
-    const { error, value } = reimbursementExpenseReportSchema.validate({
+    const { error, value } = dataSchema.validate({
       ...req.params,
       ...req.body,
     });
@@ -91,7 +92,7 @@ export const getReimbursementExpenseReport = async (req, res) => {
 
     let filterCriteria = {
       tenantId,
-      'reimbursementSchema.createdBy.empId': empId,
+      'createdBy.empId': empId,
     };
 
     if (filterBy && ( date ) && !fromDate && !toDate) {
@@ -100,7 +101,7 @@ export const getReimbursementExpenseReport = async (req, res) => {
 
       switch (filterBy) {
         case 'date':
-          filterCriteria['reimbursementSchema.expenseSubmissionDate'] = {
+          filterCriteria['expenseSubmissionDate'] = {
             $gte: parsedDate,
             $lt: new Date(parsedDate.setDate(parsedDate.getDate() + 1)),
           };
@@ -108,7 +109,7 @@ export const getReimbursementExpenseReport = async (req, res) => {
 
         case 'week':
           const { startOfWeek, endOfWeek } = getWeekRange(parsedDate);
-          filterCriteria['reimbursementSchema.expenseSubmissionDate'] = {
+          filterCriteria['expenseSubmissionDate'] = {
             $gte: startOfWeek,
             $lt: new Date(endOfWeek.setDate(endOfWeek.getDate() + 1)),
           };
@@ -116,7 +117,7 @@ export const getReimbursementExpenseReport = async (req, res) => {
 
         case 'month':
           const { startOfMonth, endOfMonth } = getMonthRange(parsedDate);
-          filterCriteria['reimbursementSchema.expenseSubmissionDate'] = {
+          filterCriteria['expenseSubmissionDate'] = {
             $gte: startOfMonth,
             $lt: new Date(endOfMonth.setDate(endOfMonth.getDate() + 1)),
           };
@@ -124,7 +125,7 @@ export const getReimbursementExpenseReport = async (req, res) => {
 
         case 'quarter':
           const { startOfQuarter, endOfQuarter } = getQuarterRange(parsedDate);
-          filterCriteria['reimbursementSchema.expenseSubmissionDate'] = {
+          filterCriteria['expenseSubmissionDate'] = {
             $gte: startOfQuarter,
             $lt: new Date(endOfQuarter.setDate(endOfQuarter.getDate() + 1)),
           };
@@ -132,7 +133,7 @@ export const getReimbursementExpenseReport = async (req, res) => {
 
         case 'year':
           const { startOfYear, endOfYear } = getYear(parsedDate);
-          filterCriteria['reimbursementSchema.expenseSubmissionDate'] = {
+          filterCriteria['expenseSubmissionDate'] = {
             $gte: startOfYear,
             $lt: new Date(endOfYear.setDate(endOfYear.getDate() + 1)),
           };
@@ -143,16 +144,16 @@ export const getReimbursementExpenseReport = async (req, res) => {
       }
     }
   }  else if (fromDate && toDate) {
-    filterCriteria['reimbursementSchema.expenseSubmissionDate'] = {
+    filterCriteria['expenseSubmissionDate'] = {
       $gte: new Date(fromDate),
       $lte: new Date(toDate),
     };
   }
 
   if(expenseSubmissionDate){
-    filterCriteria['reimbursementSchema.expenseSubmissionDate']= expenseSubmissionDate;
+    filterCriteria['expenseSubmissionDate']= expenseSubmissionDate;
   }
-  const expenseReports = await reporting.find(filterCriteria);
+  const expenseReports = await REIMBURSEMENT.find(filterCriteria);
 
   if (expenseReports.length === 0) {
     return res.status(404).json({
@@ -160,10 +161,10 @@ export const getReimbursementExpenseReport = async (req, res) => {
       message: 'No reimbursement reports found for the specified date range',
     });
   }
-   const reimReports = expenseReports.map((reports)=> reports.reimbursementSchema)
+
   return res.status(200).json({
     success: true,
-    reimbursementReports: reimReports,
+    reports: expenseReports,
     message: `Reimbursement reports retrieved for the specified date range.`,
   });
 } catch (error) {

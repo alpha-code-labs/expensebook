@@ -56,7 +56,7 @@ const reportingSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     unique: true,
     required: true,
-    index:true,
+    // index:true,
   },
   tripId:{
     type: mongoose.Types.ObjectId, 

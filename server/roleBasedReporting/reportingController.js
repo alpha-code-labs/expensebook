@@ -4,6 +4,7 @@ import { approverStatusEnums, cashAdvanceStatusEnum, tripStatusEnum } from '../m
 import {expenseHeaderStatusEnums} from '../models/travelExpenseSchema.js'
 import HRCompany from '../models/hrCompanySchema.js';
 import REIMBURSEMENT from '../models/reimbursementSchema.js'
+import { extractTrip, getItinerary } from '../controllers/tripController.js';
 
 const getEnums = {approverStatusEnums, cashAdvanceStatusEnum,tripStatusEnum,expenseHeaderStatusEnums}
 
@@ -116,9 +117,10 @@ const employeeLayout = async (tenantId, empId) => {
     const approvers = await findListOfApprovers(tenantId, empId);
     console.log("list of approvers", approvers)
     const monthlyTrips = await getLastMonthTrips(tenantId, empId);
+    const monthlyTravel = await getLastMonthTravel(tenantId,empId);
     // console.log("reporting trip", monthlyTrips)
     const reimbursement = await getLastMonthReimbursement(tenantId, empId)
-     return { trips:monthlyTrips,reimbursement:reimbursement, hrDetails:hrDetails, approvers};
+     return { travel:monthlyTravel,trips:monthlyTrips,reimbursement:reimbursement, hrDetails:hrDetails, approvers};
   } catch (error) {
       console.error("Error:", error);
       throw new Error({ message: 'Internal server error' });
@@ -218,44 +220,12 @@ export const findListOfApprovers = async (tenantId, empId) => {
   }
 };
 
-function getItinerary(itinerary){
-  try {
-   const extractItinerary = Object.fromEntries(
-      Object.entries(itinerary)
-        .filter(([category]) => category !== 'formState')
-        .map(([category, items]) => {
-          let mappedItems;
-          if (category === 'hotels') {
-            mappedItems = items.map(({ itineraryId, status, bkd_location, bkd_class, bkd_checkIn, bkd_checkOut, bkd_violations, cancellationDate, cancellationReason }) => ({
-              category,
-              itineraryId, status, bkd_location, bkd_class, bkd_checkIn, bkd_checkOut, bkd_violations, cancellationDate, cancellationReason,
-            }));
-          } else if (category === 'cabs') {
-            mappedItems = items.map(({ itineraryId, status, bkd_date, bkd_class, bkd_pickupAddress, bkd_dropAddress }) => ({
-              category,
-              itineraryId, status, bkd_date, bkd_class, bkd_pickupAddress, bkd_dropAddress,
-            }));
-          } else {
-            mappedItems = items.map(({ itineraryId, status, bkd_from, bkd_to, bkd_date, bkd_time, bkd_travelClass, bkd_violations }) => ({
-              category,
-              itineraryId, status, bkd_from, bkd_to, bkd_date, bkd_time, bkd_travelClass, bkd_violations,
-            }));
-          }
-
-          return [category, mappedItems];
-        })
-    );
-    return extractItinerary;
-  } catch (error) {
-    
-  }
-}
 
 const getLastMonthTrips = async (tenantId, empId) => {
     try {
       const today = new Date();
       const lastMonth = new Date(today.getFullYear(), today.getMonth() -1, today.getDate());
-      console.log("today date", today , "last month", lastMonth ,"tenantId", tenantId, "empId", empId)
+      // console.log("today date", today , "last month", lastMonth ,"tenantId", tenantId, "empId", empId)
 
       const tripDocs = await reporting.find({
         tenantId,
@@ -263,52 +233,8 @@ const getLastMonthTrips = async (tenantId, empId) => {
         'tripStartDate': { $gte: lastMonth, $lte: today },
       }).lean().exec();
   
-    console.log("trip in last month", tripDocs)
-      const trips = tripDocs.map(trip => {
-        const { travelRequestData, cashAdvancesData, travelExpenseData, expenseAmountStatus, tripId, tripNumber, tripStartDate, tripCompletionDate ,tripStatus} = trip || {};
-        const { totalCashAmount, totalRemainingCash } = expenseAmountStatus || {};
-        const { travelRequestId, travelRequestNumber, travelRequestStatus, tripPurpose,createdBy,tripName, isCashAdvanceTaken,travelType,approvers, itinerary } = travelRequestData || {};
-  
-        const itineraryToSend = getItinerary(itinerary)
-  
-        return {
-          tripId, tripNumber,
-          tripName,
-          travelRequestId,
-          travelRequestNumber,
-          createdBy,
-          tripPurpose,
-          tripStartDate,
-          tripStatus,
-          tripCompletionDate,
-          travelRequestStatus,
-          isCashAdvanceTaken,
-          expenseAmountStatus,
-          travelType,
-          approvers,
-          cashAdvances: isCashAdvanceTaken ? (cashAdvancesData ? cashAdvancesData.map(({ cashAdvanceId, cashAdvanceNumber, amountDetails, cashAdvanceStatus , approvers,cashAdvanceRequestDate,paidBy,recoveredBy,cashAdvanceRejectionReason}) => ({
-            cashAdvanceId,
-            cashAdvanceNumber,
-            amountDetails,
-            cashAdvanceStatus,
-            approvers,
-            cashAdvanceRequestDate,
-            paidBy,
-            recoveredBy,
-            cashAdvanceRejectionReason
-          })) : []) : [],
-          // travelExpenses: travelExpenseData?.map(({ expenseHeaderId, expenseHeaderNumber, expenseHeaderStatus, approvers ,expenseLines,travelType}) => ({
-          //   expenseHeaderId,
-          //   expenseHeaderNumber,
-          //   expenseHeaderStatus,
-          //   approvers, expenseLines,
-          // travelType
-          // })),
-          travelExpenses:travelExpenseData,
-          itinerary: itineraryToSend,
-        };
-      });
-  
+    // console.log("trip in last month", tripDocs)
+      const trips = extractTrip(tripDocs)
     //   console.log("trips", trips);
       return trips;
     } catch (error) {
@@ -321,17 +247,17 @@ const getLastMonthTravel = async (tenantId, empId) => {
   try {
     const today = new Date();
     const lastMonth = new Date(today.getFullYear(), today.getMonth() -1, today.getDate());
-    console.log("today date", today , "last month", lastMonth ,"tenantId", tenantId, "empId", empId)
+    // console.log("travel -----------","today date", today , "last month", lastMonth ,"tenantId", tenantId, "empId", empId)
 
-    const tripDocs = await reporting.find({
+    const travelDocs = await reporting.find({
       tenantId,
-      'createdBy.empId': empId,
-      'tripStartDate': { $gte: lastMonth, $lte: today },
+      'travelRequestData.createdBy.empId': empId,
+      'travelRequestData.travelRequestDate': { $gte: lastMonth, $lte: today },
     }).lean().exec();
 
-  console.log("trip in last month", tripDocs)
-    const trips = tripDocs.map(trip => {
-      const { travelRequestData, cashAdvancesData, travelExpenseData, expenseAmountStatus, tripId, tripNumber, tripStartDate, tripCompletionDate ,tripStatus} = trip || {};
+  // console.log("travel in last month", travelDocs)
+    const travelRequests = travelDocs.map(travel => {
+      const { travelRequestData, cashAdvancesData, travelExpenseData, expenseAmountStatus, tripId, tripNumber, tripStartDate, tripCompletionDate ,tripStatus} = travel || {};
       const { totalCashAmount, totalRemainingCash } = expenseAmountStatus || {};
       const { travelRequestId, travelRequestNumber, travelRequestStatus, tripPurpose,createdBy,tripName, isCashAdvanceTaken,travelType,approvers, itinerary } = travelRequestData || {};
 
@@ -372,7 +298,7 @@ const getLastMonthTravel = async (tenantId, empId) => {
     });
 
   //console.log("trips", trips);
-    return trips;
+    return travelRequests;
   } catch (error) {
     console.error("Error in fetching employee Reporting:", error);
     throw new Error('Error in fetching employee Reporting');
@@ -403,126 +329,6 @@ const getLastMonthReimbursement = async (tenantId, empId) => {
   }
 };
 
-
-const getTripForEmployee = async (tenantId, empId) => {
-    console.log("entering trips db")
-  try {
-      const tripDocs = await reporting.find({
-        $or: [
-          { 
-            'tenantId': tenantId,
-            'travelRequestData.createdBy.empId': empId,
-            $or: [
-              { 'tripStatus': { $in: ['transit', 'completed', 'closed'] } },
-              { 'travelExpenseData.expenseHeaderStatus': 'rejected' },
-              { 'cashAdvanceData.cashAdvanceStatus': { $nin: ['rejected'] }},
-            ],
-          },
-          { 'reimbursementSchema.createdBy.empId': empId }, 
-        ],
-      }).lean().exec();
-      
-
-      if (!tripDocs || tripDocs.length === 0) {
-          return { message: 'There are no trips found for the user' };
-      } 
- console.log("tripDocs............", tripDocs)
-
-      const transitTrips = tripDocs
-          .filter(trip => trip?.tripStatus === 'transit')
-          .map(trip => {
-            console.log("each trip", trip)
-              const {travelRequestData, cashAdvancesData, travelExpenseData, expenseAmountStatus,  tripId, tripNumber, tripStartDate,tripCompletionDate} = trip || {};
-              const { totalCashAmount, totalRemainingCash } = expenseAmountStatus ||  {};
-              const {travelRequestId,travelRequestNumber,travelRequestStatus,tripPurpose, isCashAdvanceTaken, itinerary} = travelRequestData || {};
-        
-              const itineraryToSend = getItinerary(itinerary)
-
-              return {
-                tripId, tripNumber, 
-                  travelRequestId,
-                  travelRequestNumber,
-                  tripPurpose,
-                  tripStartDate,
-                  tripCompletionDate,
-                  travelRequestStatus,
-                  isCashAdvanceTaken,
-                //   totalCashAmount,
-                //   totalRemainingCash,
-                expenseAmountStatus,
-                cashAdvances: isCashAdvanceTaken ? (cashAdvancesData ? cashAdvancesData.map(({ cashAdvanceId, cashAdvanceNumber, amountDetails, cashAdvanceStatus }) => ({
-                    cashAdvanceId,
-                    cashAdvanceNumber,
-                    amountDetails,
-                    cashAdvanceStatus
-                })) : []) : [],              
-                  travelExpenses: travelExpenseData?.map(({ expenseHeaderId, expenseHeaderNumber, expenseHeaderStatus }) => ({
-                      expenseHeaderId,
-                      expenseHeaderNumber,
-                      expenseHeaderStatus
-                  })),
-                  itinerary: itineraryToSend,
-              };
-          });
-          console.log("transitTrips", transitTrips)
-
-      const completedTrips = tripDocs
-        //   .filter(trip => trip?.tripSchema?.tripStatus === 'completed' && trip?.tripSchema?.travelExpenseData && trip?.tripSchema?.travelExpenseData?.length > 0 )
-        .filter(trip => (trip?.tripStatus === 'completed' || trip?.tripStatus === 'closed') && trip?.travelExpenseData && trip?.travelExpenseData?.length > 0 )
-          .flatMap(trip => trip.travelExpenseData.map(({ tripId, expenseHeaderId, expenseHeaderNumber, expenseHeaderStatus }) => ({
-              tripId,
-              tripPurpose: trip.travelRequestData.tripPurpose || '',
-              expenseHeaderId: expenseHeaderId || '',
-              expenseHeaderNumber: expenseHeaderNumber || '',
-              expenseHeaderStatus:expenseHeaderStatus|| '',
-          })));
-
-          const rejectedTrips = tripDocs
-          .filter(trip => trip?.tripStatus === 'rejected')
-          .flatMap(trip => {
-              console.log("travelExpenseData", trip.travelExpenseData);
-              return trip.travelExpenseData.map(({ tripId, tripNumber, expenseHeaderId, expenseHeaderNumber, expenseAmountStatus }) => ({
-                  tripId,
-                  tripPurpose: trip.tripPurpose,
-                  tripNumber,
-                  expenseHeaderId,
-                  expenseHeaderNumber,
-                  expenseAmountStatus
-              }));
-          });
-
-          const reimbursements = tripDocs
-          .filter(trip => {
-            console.log("trip after filter", trip);
-            // Assuming createdBy is an object with empId property
-            return trip?.reimbursementSchema?.createdBy?.empId === empId;
-          })
-          .flatMap(trip => {
-            console.log("before reimbursement schema:", trip);
-            const { expenseHeaderId, createdBy, expenseHeaderNumber, expenseHeaderStatus } = trip.reimbursementSchema;
-            return [{
-              expenseHeaderId,
-              createdBy,
-              expenseHeaderNumber,
-              expenseHeaderStatus
-            }];
-          });
-        
-        console.log("reimbursements reports:", reimbursements);
-        
-        const trips = {           
-            transitTrips,
-            completedTrips,
-            }
-
-          return {
-            trips,reimbursements
-        };
-  } catch (error) {
-      console.error("Error in fetching employee Reporting:", error);
-      throw new Error ( { error: 'Error in fetching employee Reporting' });
-  }
-};
 
 const tripStatusSchema = Joi.object({
   tripStatuses: Joi.array().items(
