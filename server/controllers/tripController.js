@@ -3,6 +3,101 @@ import { getWeekRange, getMonthRange, getQuarterRange, getYear } from '../helper
 import Joi from 'joi';
 import HRCompany from '../models/hrCompanySchema.js';
 
+
+function getItinerary(itinerary){
+  try {
+   const extractItinerary = Object.fromEntries(
+      Object.entries(itinerary)
+        .filter(([category]) => category !== 'formState')
+        .map(([category, items]) => {
+          let mappedItems;
+          if (category === 'hotels') {
+            mappedItems = items.map(({ itineraryId, status, bkd_location, bkd_class, bkd_checkIn, bkd_checkOut, bkd_violations, cancellationDate, cancellationReason }) => ({
+              category,
+              itineraryId, status, bkd_location, bkd_class, bkd_checkIn, bkd_checkOut, bkd_violations, cancellationDate, cancellationReason,
+            }));
+          } else if (category === 'cabs') {
+            mappedItems = items.map(({ itineraryId, status, bkd_date, bkd_class, bkd_pickupAddress, bkd_dropAddress }) => ({
+              category,
+              itineraryId, status, bkd_date, bkd_class, bkd_pickupAddress, bkd_dropAddress,
+            }));
+          } else {
+            mappedItems = items.map(({ itineraryId, status, bkd_from, bkd_to, bkd_date, bkd_time, bkd_travelClass, bkd_violations }) => ({
+              category,
+              itineraryId, status, bkd_from, bkd_to, bkd_date, bkd_time, bkd_travelClass, bkd_violations,
+            }));
+          }
+
+          return [category, mappedItems];
+        })
+    );
+    return extractItinerary;
+  } catch (error) {
+    
+  }
+}
+
+
+const extractTrip = (tripDocs) =>{
+  try{
+    if(!tripDocs?.length){
+      throw new Error('There are no trips')
+    }
+const getTrips = tripDocs.map(trip => {
+  const { travelRequestData, cashAdvancesData, travelExpenseData, expenseAmountStatus, tripId, tripNumber, tripStartDate, tripCompletionDate ,tripStatus} = trip || {};
+  const { totalCashAmount, totalRemainingCash } = expenseAmountStatus || {};
+  const { travelRequestId, travelRequestNumber, travelRequestStatus, tripPurpose,createdBy,tripName, isCashAdvanceTaken,travelType,approvers, itinerary } = travelRequestData || {};
+
+  const itineraryToSend = getItinerary(itinerary)
+
+  return {
+    tripId, tripNumber,
+    tripName,
+    travelRequestId,
+    travelRequestNumber,
+    createdBy,
+    tripPurpose,
+    tripStartDate,
+    tripStatus,
+    tripCompletionDate,
+    travelRequestStatus,
+    isCashAdvanceTaken,
+    expenseAmountStatus,
+    travelType,
+    approvers,
+    cashAdvances: isCashAdvanceTaken ? (cashAdvancesData ? cashAdvancesData.map(({ cashAdvanceId, cashAdvanceNumber, amountDetails, cashAdvanceStatus , approvers,cashAdvanceRequestDate,paidBy,recoveredBy,cashAdvanceRejectionReason}) => ({
+      cashAdvanceId,
+      cashAdvanceNumber,
+      amountDetails,
+      cashAdvanceStatus,
+      approvers,
+      cashAdvanceRequestDate,
+      paidBy,
+      recoveredBy,
+      cashAdvanceRejectionReason
+    })) : []) : [],
+    // travelExpenses: travelExpenseData?.map(({ expenseHeaderId, expenseHeaderNumber, expenseHeaderStatus, approvers ,expenseLines,travelType}) => ({
+    //   expenseHeaderId,
+    //   expenseHeaderNumber,
+    //   expenseHeaderStatus,
+    //   approvers, expenseLines,
+    // travelType
+    // })),
+    travelExpenses:travelExpenseData,
+    itinerary: itineraryToSend,
+  };
+});
+
+if(!getTrips){
+  return [];
+}
+return getTrips;
+  } catch(error){
+    console.log(error);
+    throw error
+  }
+} 
+
 const tripFilterSchema = Joi.object({
   tenantId: Joi.string().required(),
   empId: Joi.string().required(),
@@ -30,7 +125,7 @@ const tripFilterSchema = Joi.object({
 });
 
 
-export const filterTrips = async (req, res) => {
+const filterTrips = async (req, res) => {
   try {
     const { error, value } = tripFilterSchema.validate({
       ...req.params, 
@@ -42,11 +137,12 @@ export const filterTrips = async (req, res) => {
       return res.status(400).json({ message: error.details[0].message });
     }
 
+    console.log("filter trips - value", JSON.stringify(value,'',2))
     const { tenantId, empId, filterBy, date, fromDate, toDate, travelType, tripStatus, travelAllocationHeaders, approvers } = value;
 
     let filterCriteria = {    
       tenantId: tenantId,
-      'tripSchema.createdBy.empId': empId,
+      'createdBy.empId': empId,
     };
 
     if (filterBy && date && (!fromDate && !toDate)) {
@@ -55,7 +151,7 @@ export const filterTrips = async (req, res) => {
 
         switch (filterBy) {
           case 'date':
-            filterCriteria['tripSchema.tripCompletionDate'] = {
+            filterCriteria['tripCompletionDate'] = {
                 $gte: parsedDate,
                 $lt: new Date(parsedDate.setDate(parsedDate.getDate() + 1)),
             };
@@ -63,7 +159,7 @@ export const filterTrips = async (req, res) => {
 
           case 'week':
             const { startOfWeek, endOfWeek } = getWeekRange(parsedDate);
-            filterCriteria['tripSchema.tripCompletionDate'] ={
+            filterCriteria['tripCompletionDate'] ={
                 $gte: startOfWeek,
                 $lt: new Date(endOfWeek.setDate(endOfWeek.getDate() + 1)),
               };
@@ -71,7 +167,7 @@ export const filterTrips = async (req, res) => {
 
           case 'month':
             const { startOfMonth, endOfMonth } = getMonthRange(parsedDate);
-            filterCriteria['tripSchema.tripCompletionDate'] = {
+            filterCriteria['tripCompletionDate'] = {
                 $gte: startOfMonth,
                 $lt: new Date(endOfMonth.setDate(endOfMonth.getDate() + 1)),
             };
@@ -79,7 +175,7 @@ export const filterTrips = async (req, res) => {
 
           case 'quarter':
             const { startOfQuarter, endOfQuarter } = getQuarterRange(parsedDate);
-            filterCriteria['tripSchema.tripCompletionDate'] =  {
+            filterCriteria['tripCompletionDate'] =  {
                 $gte: startOfQuarter,
                 $lt: new Date(endOfQuarter.setDate(endOfQuarter.getDate() + 1)),
             };
@@ -87,7 +183,7 @@ export const filterTrips = async (req, res) => {
 
           case 'year':
             const { startOfYear, endOfYear } = getYear(parsedDate);
-            filterCriteria['tripSchema.tripCompletionDate'] = {
+            filterCriteria['tripCompletionDate'] = {
                 $gte: startOfYear,
                 $lt: new Date(endOfYear.setDate(endOfYear.getDate() + 1)),
             };
@@ -97,7 +193,7 @@ export const filterTrips = async (req, res) => {
             break;
         }
       } else if (fromDate && toDate) {
-        filterCriteria['tripSchema.tripCompletionDate'] =  {
+        filterCriteria['tripCompletionDate'] =  {
             $gte: new Date(fromDate),
             $lte: new Date(toDate),
         };
@@ -105,15 +201,15 @@ export const filterTrips = async (req, res) => {
     }
 
     if (travelType) {
-      filterCriteria['tripSchema.travelRequestData.travelType'] = travelType;
+      filterCriteria['travelRequestData.travelType'] = travelType;
     }
 
     if(tripStatus){
-      filterCriteria['tripSchema.tripStatus']= tripStatus;
+      filterCriteria['tripStatus']= tripStatus;
     }
 
     if(travelAllocationHeaders){
-      filterCriteria['tripSchema.travelRequestData.travelAllocationHeaders'] = {
+      filterCriteria['travelRequestData.travelAllocationHeaders'] = {
         $elemMatch:{
           headerName:{$in:travelAllocationHeaders.map((header)=> header.headerName)},
           headerValue:{$in:travelAllocationHeaders.map((header)=> header.headerValue),}
@@ -122,7 +218,7 @@ export const filterTrips = async (req, res) => {
     }
 
     if(approvers){
-      filterCriteria['tripSchema.travelRequestData.approvers'] ={
+      filterCriteria['travelRequestData.approvers'] ={
         $elemMatch:{
           name:{$in:approvers.map((approver)=> approver.name)},
           empId:{$in:approvers.map((approver)=> approver.empId)}
@@ -130,16 +226,18 @@ export const filterTrips = async (req, res) => {
           }
         }
   
-    const trips = await reporting.find(filterCriteria);
+    const tripDocs = await reporting.find(filterCriteria);
 
-    if (trips.length === 0) {
+    if (tripDocs.length === 0) {
       return res.status(404).json({
         success: false,
         message: 'No trips found matching the filter criteria',
       });
     }
 
-    res.status(200).json(trips);
+    const getTrips = extractTrip(tripDocs)
+    console.log("tripDocs", tripDocs)
+    return res.status(200).json({success:true , trips:getTrips});
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Internal server error' });
@@ -183,4 +281,9 @@ export const getExpenseRelatedHrData = async (req, res) => {
 
 
 
+export {
+  extractTrip,
+  getItinerary,
+  filterTrips
 
+}
