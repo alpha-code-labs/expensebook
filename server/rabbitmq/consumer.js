@@ -1,7 +1,7 @@
 import amqp from 'amqplib';
 // import { fullUpdateTravel } from './messageProcessor/travel.js';
 import dotenv from 'dotenv';
-import { updateTrip } from './messageProcessor/trip.js';
+import { updateTrip, updateTripToCompleteOrClosed } from './messageProcessor/trip.js';
 import { deleteReimbursement, updateReimbursement } from './messageProcessor/reimbursement.js';
 import { fullUpdateExpense } from './messageProcessor/travelExpenseProcessor.js';
 import { approveRejectCashRaisedLater, expenseReportApproval, nonTravelReportApproval } from './messageProcessor/dashboard.js';

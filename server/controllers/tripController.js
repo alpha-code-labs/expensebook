@@ -134,7 +134,8 @@ const filterTrips = async (req, res) => {
 
     if (error) {
       console.log("what is the error", error)
-      return res.status(400).json({ message: error.details[0].message });
+      return res.status(400).json({ message: error.details[0].message ,  trips:[], success: false
+      });
     }
 
     console.log("filter trips - value", JSON.stringify(value,'',2))
@@ -231,12 +232,12 @@ const filterTrips = async (req, res) => {
     if (tripDocs.length === 0) {
       return res.status(404).json({
         success: false,
+        trips:[],
         message: 'No trips found matching the filter criteria',
       });
     }
 
     const getTrips = extractTrip(tripDocs)
-    console.log("tripDocs", tripDocs)
     return res.status(200).json({success:true , trips:getTrips});
   } catch (error) {
     console.error(error);
@@ -273,8 +274,6 @@ export const getExpenseRelatedHrData = async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 };
-
-
 
 
 

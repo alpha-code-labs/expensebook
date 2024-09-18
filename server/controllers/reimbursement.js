@@ -85,7 +85,8 @@ export const getReimbursementExpenseReport = async (req, res) => {
     });
 
     if (error) {
-      return res.status(400).json({ message: error.details[0].message });
+      return res.status(400).json({ message: error.details[0].message , reports:[],
+    success: false });
     }
 
     const { tenantId, empId, filterBy, date, fromDate, toDate , expenseSubmissionDate } = value;
@@ -158,6 +159,7 @@ export const getReimbursementExpenseReport = async (req, res) => {
   if (expenseReports.length === 0) {
     return res.status(404).json({
       success: false,
+      reports:[],
       message: 'No reimbursement reports found for the specified date range',
     });
   }

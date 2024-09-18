@@ -25,7 +25,7 @@ app.use(cors(corsOptions));
 
 //Routes
 app.use('/api', tripRoutes);
-app.use('/api/fe/reporting', mainRouter);
+app.use(mainRouter);
 app.get('/test', (req,res) => { return res.status(200).json({message:'Reporting microservice is live'})})
 
 const connectToMongoDB = async () => {
@@ -50,4 +50,8 @@ app.listen(port, () => {
 
 // start consuming messages..
 startConsumer('reporting');
+
+
+
+
 
