@@ -282,7 +282,7 @@ export const requiredCashAdvanceData= [
     "travelRequestStatus": "booked",
 
 },
-"cashAdvancesData":
+"cashAdvancesData":[
   {
         "cashAdvanceNumber": "CA0001",
         "createdBy": {
@@ -311,8 +311,137 @@ export const requiredCashAdvanceData= [
             }
           }
       ]
-  }
-}]
+  },
+  {
+        "cashAdvanceNumber": "CA0002",
+        "createdBy": {
+          "empId": "1002",
+          "name": "Kanhaiya Verma"
+        },
+        "paidBy": {
+          "empId": "1002",
+          "name": "Adhivansh"
+        },
+        "cashAdvanceStatus": "pending approval",
+        "cashAdvanceRequestDate" : "2024-02-11T13:45:41.662+00:00",
+        "paymentMode": "credit card",
+        "amountDetails": [
+          {
+            "amount":"1000",
+            "currency": {
+              "countryCode": "IN",
+              "fullName": "Indian Rupee",
+              "shortName": "INR",
+              "symbol": "₹"
+            },
+            "mode": "Cheque",
+            "_id": {
+              "$oid": "65c9d61647379a04a6ecbdc1"
+            }
+          }
+      ]
+  },
+
+]
+},
+{
+  "travelRequestData": {
+    "tenantId": "65c5c3bef21cc9ab3038e21f",
+    "tenantName": "Studio Innovate",
+    "companyName": "Studio Innovate",
+    "travelRequestId": {
+      "$oid": "65c5dec8cf52af3ac3026c46"
+    },
+    "travelRequestNumber": "TRST000000",
+    "travelType": "international",
+    "tripPurpose": "Business",
+    "travelRequestStatus": "booked",
+
+},
+"cashAdvancesData":[
+  {
+        "cashAdvanceNumber": "CA0001",
+        "createdBy": {
+          "empId": "1002",
+          "name": "Kanhaiya Verma"
+        },
+        "paidBy": {
+          "empId": "1002",
+          "name": "Adhivansh"
+        },
+        "cashAdvanceStatus": "pending approval",
+        "cashAdvanceRequestDate" : "2024-02-11T13:45:41.662+00:00",
+        "paymentMode": "credit card",
+        "amountDetails": [
+          {
+            "amount":"5000",
+            "currency": {
+              "countryCode": "IN",
+              "fullName": "Indian Rupee",
+              "shortName": "INR",
+              "symbol": "₹"
+            },
+            "mode": "Cheque",
+            "_id": {
+              "$oid": "65c9d61647379a04a6ecbdc1"
+            }
+          }
+      ]
+  }]
+},
+{
+  "travelRequestData": {
+    "tenantId": "65c5c3bef21cc9ab3038e21f",
+    "tenantName": "Studio Innovate",
+    "companyName": "Studio Innovate",
+    "travelRequestId": {
+      "$oid": "65c5dec8cf52af3ac3026c46"
+    },
+    "travelRequestNumber": "TRST000000",
+    "travelType": "international",
+    "tripPurpose": "Business",
+    "travelRequestStatus": "booked",
+
+},
+"cashAdvancesData":[
+  {
+        "cashAdvanceNumber": "CA0001",
+        "createdBy": {
+          "empId": "1002",
+          "name": "Kanhaiya Verma"
+        },
+        "paidBy": {
+          "empId": "1002",
+          "name": "Adhivansh"
+        },
+        "cashAdvanceStatus": "pending settlement",
+        "cashAdvanceRequestDate" : "2024-02-11T13:45:41.662+00:00",
+        "paymentMode": "credit card",
+        "amountDetails": [
+          {
+            "amount":"5000",
+            "currency": {
+              "countryCode": "IN",
+              "fullName": "Indian Rupee",
+              "shortName": "INR",
+              "symbol": "₹"
+            },
+            "mode": "Cheque",
+            "_id": {
+              "$oid": "65c9d61647379a04a6ecbdc1"
+            }
+          }
+      ]
+  }]
+}
+
+
+
+
+
+
+
+]
 
 
 export const requiredExpenseData = [

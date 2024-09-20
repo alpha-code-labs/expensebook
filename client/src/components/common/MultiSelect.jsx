@@ -1,7 +1,9 @@
 import { useState, useRef, useEffect } from "react";
-import chevron_down from "../../assets/chevron-down.svg";
-import {titleCase} from '../../utils/handyFunctions'
-import close_icon from '../../assets/close_FILL0_wght200_GRAD0_opsz48.svg'
+import { down_arrow_icon as chevron_down,cancel_icon as close_icon } from "../../assets";
+import {titleCase} from '../../utils/handyFunctions';
+
+
+
 
 export default function MultiSelect(props) {
   const placeholder = props.placeholder || "Placeholder Text";
@@ -11,14 +13,14 @@ export default function MultiSelect(props) {
   const dropdownRef = useRef(null);
   const selectDivRef = useRef(null);
   const optionsList = props.options;
-  const onSelect = props.onSelect || null;
-  const currentOption = props.currentOption || null;
-  const [selectedOption, setSelectedOption] = useState(currentOption); 
-  const [keyboardFocusIndex, setKeyboardFocusIndex] = useState(-1);
-  const violationMessage = props.violationMessage || null;
-  const error = props.error || null;
-  const required = props.required || false;
-  const submitAttempted = props.submitAttempted || false;
+  const onSelect = props.onSelect || null
+  const currentOption = props.currentOption || null
+  const [selectedOption, setSelectedOption] = useState(currentOption) 
+  const [keyboardFocusIndex, setKeyboardFocusIndex] = useState(-1)
+  const violationMessage = props.violationMessage || null
+  const error = props.error || null
+  const required = props.required || false
+  const submitAttempted = props.submitAttempted || false
 
 
     useEffect(()=>{
@@ -175,7 +177,7 @@ const selectDivFocus = (e)=>{
 
   return (
     <>
-      <div className="min-w-[214px] w-full max-w-[403px] h-[73px] flex-col justify-start items-start gap-2 inline-flex">
+      <div className="min-w-[214px] w-full h-[73px] flex-col justify-start items-start gap-2 inline-flex">
         {/* title*/}
         <div className="text-zinc-600 text-sm font-cabin tracking-tight">{title}</div>
         <div className="self-stretch h-12 justify-start items-start gap-4 inline-flex">

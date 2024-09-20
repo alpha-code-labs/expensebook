@@ -52,13 +52,36 @@ const axiosRetry = async (requestFunction, ...args) => {
 
 const REPORTING_BACKEND_API_URL = import.meta.env.VITE_BACKEND_REPORT_API_URL
 
-export const getReportDataAPI = async (tenantId,empId) => {
-  const url = `${REPORTING_BACKEND_API_URL}/api/fe/reporting/rol/${tenantId}/${empId}`;
+export const getReportDataAPI = async (tenantId,empId,tab) => {
+  let url
+if(tab==="myView"){
+  url = `${REPORTING_BACKEND_API_URL}/api/v1/reporting/roles/${tenantId}/${empId}/employee`;
+}else{
+  url = `${REPORTING_BACKEND_API_URL}/api/v1/reporting/roles/${tenantId}/${empId}/admin`;
+}
+   
 
   try {
     const response = await axiosRetry(axios.get, url);
-    return response.data
+    
+    return response?.data
 
+  } catch (error) {
+    handleRequestError(error);
+    const errorObject = {
+      status: error.response?.status || null,
+      message: error.message || 'Unknown error',
+    };
+    return { error: errorObject };
+  }
+};
+export const getfilteredReportDataAPI = async (parmas,payload) => {
+  const {tenantId,empId,filterBy}=parmas
+  const url = `${REPORTING_BACKEND_API_URL}/api/v1/reporting/${filterBy}/filter/${tenantId}/${empId}`;
+
+  try {
+    const response = await axiosRetry(axios.post, url,payload);
+    return response?.data;
   } catch (error) {
     handleRequestError(error);
     const errorObject = {

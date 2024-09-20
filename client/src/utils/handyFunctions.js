@@ -17,6 +17,9 @@ function titleCase(str){
     }
     
     function formatDate(inputDate) {
+      if(!inputDate){
+        return "-"
+      }
       const date = new Date(inputDate);
     
       const day = date.getDate();
@@ -180,6 +183,12 @@ function titleCase(str){
         document.body.removeChild(a);
       };
 
+      function formatAmount(number) {
+        // Convert to a number if it isn't already
+        const amount = parseFloat(number) || 0;
+        return amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+      }
+
       const convertJsonToPdf = (json) => {
         const keys = Object.keys(json[0]);
         const pdfContent = `
@@ -224,4 +233,4 @@ function titleCase(str){
         }
       };
       
-    export {titleCase, formatDateMonth, formatDate,formatFullDate, formatDate2, formatDate3, camelCaseToTitleCase,formatDateToYYYYMMDD, titleCaseToCamelCase ,convertJsonToCsv,handleCSVDownload,formatLargeNumber}
+    export {formatAmount, titleCase, formatDateMonth, formatDate,formatFullDate, formatDate2, formatDate3, camelCaseToTitleCase,formatDateToYYYYMMDD, titleCaseToCamelCase ,convertJsonToCsv,handleCSVDownload,formatLargeNumber}

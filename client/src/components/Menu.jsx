@@ -1,37 +1,37 @@
 import React, { useEffect, useState } from 'react'
-import { aeroplane1_icon, csv_icon, down_arrow_icon, export_icon, filter_icon, pdf_icon, reciept_icon, show_coloum_icon } from '../assets'
+import { aeroplane1_icon, airplane_icon1, cancel_icon, csv_icon, down_arrow_icon, export_icon, filter_icon, money, pdf_icon, receipt, reciept_icon, show_coloum_icon } from '../assets'
 import Modal from './common/Modal';
 import Input from './common/Input';
 import Select from './common/Select';
 import Search from './common/Search';
+import { useParams } from 'react-router-dom';
 import { employees, travelRequestStatus, travelType } from '../data/userData';
 import MultiSearch from '../components/common/MultiSearch';
 import Button from './common/Button';
 import TripReport from '../report/TripReport';
+import PopupMessage from './common/PopupMessage';
 import ExpenseReport from '../report/ExpenseReport';
 import { formatDate, formatFullDate ,formatDateToYYYYMMDD,handleCSVDownload} from '../utils/handyFunctions';
 import TripChart from './chart/TripChart';
 import { requiredCashAdvanceData, requiredExpenseData, requiredTripData } from '../data/tripData';
 import Error from './common/Error';
 import Sidebar from './common/Sidebar';
-import { getReportDataAPI } from '../utils/api';
+import { getfilteredReportDataAPI, getReportDataAPI } from '../utils/api';
 import IconOption from '../components/common/IconOption'
 import ExpenseChart from './chart/ExpenseChart';
 import CashChart from './chart/CashChart';
 import CashReport from '../report/CashReport';
 import ReimbursementReport from '../report/ReimbursementReport';
 import {reimbursementHeaders, cashAdvanceHeaders, travelExpenseHeaders, tripHeaders} from '../data/miscellaneousData'
+import { flattedCashadvanceData, flattedTravelExpenseData, flattenNonTravelExpenseData, flattenTripData } from '../utils/transformer';
+import NonTravelExpenseChart from './chart/NonTravelExpenseChart';
+import MultiSelect from './common/MultiSelect';
 
 
 
 const Menu = () => {
-  const employeeRoles ={
-    "employee": true,
-    "employeeManager": true,
-    "finance": true,
-    "businessAdmin": true,
-    "superAdmin": false
-}
+  const {tenantId,empId}= useParams()
+
   const reportConfigInputs = {
     trips: [
       { name: 'tripStatus', type: 'dropdown', options: [...travelRequestStatus] },
@@ -68,17 +68,34 @@ const Menu = () => {
 
 
   const [activeView, setActiveView] = useState("myView");
-  const [reportingData , setReportingData]=useState(null);
-  const [tripData,setTripData]=useState([]);
+  const [reportData , setReportData]=useState({
+    "employeeRoles": {},
+    "tripData": [],
+    "cashadvanceData":[],
+    "travelExpenseData":[],
+    "nonTravelExpenseData":  [],
+    "filterData":{
+      "apporvers": [],
+      "statuses":{
+        "approverStatusList":[],
+        "cashadvanceStatusList":[],
+        "expenseHeaderStatusList":[],
+        "tripStatusList":[]
+      }
+    }
+  });
   const [isLoading , setIsLoading]=useState(true);
+  const [isUploading,setIsUploading]=useState({"filterReport":false})
   const [loadingErrorMsg, setLoadingErrorMsg]=useState(null);
   const [reportTab , setReportTab]= useState("trip");
+  const [exportData, setExportData]=useState("trip")
   const [showModal , setShowModal]=useState(false);
   const [modalTab , setModalTab]=useState("filterTab");
-  const [selectedOptions, setSelectedOptions] = useState([]);
   const [filterForm , setFilterForm]= useState({});
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const [fromDate, setStartDate] = useState('');
+  const [toDate, setEndDate] = useState('');
+  const [showPopup, setShowPopup] = useState(false)
+  const [message, setMessage] = useState(null)
 
   if(activeView==="myTeamView"){
 
@@ -98,18 +115,37 @@ const Menu = () => {
  
 
 
+
   useEffect(()=>{
     setEndDate(formatDateToYYYYMMDD(new Date()))
     setStartDate(formatDateToYYYYMMDD(new Date()))
     setFilterForm((prevForm) => ({
       ...prevForm,
-      'startDate':new Date(),
-      'endDate':new Date()
+      'fromDate':new Date(),
+      'toDate':new Date()
     }));
   },[])
 
  
-
+  const tabIcon = (tab) => { 
+    switch (tab) {
+      case "trip":
+        return aeroplane1_icon;
+        
+      case "cash-advance":
+        return money;
+  
+      case "travel expense":
+        return receipt;
+  
+      case "non-travel expense":
+        return receipt;
+  
+      default:
+        return airplane_icon1;
+    }
+  }
+  
 
   const handleReportTab = (tab) => {
     setReportTab(tab);
@@ -117,18 +153,23 @@ const Menu = () => {
     switch (tab) {
       case "trip":
         setVisibleHeaders(tripHeaders);
+        setExportData(tripData);
         break;
-      case "expense":
+      case "travel expense":
         setVisibleHeaders(travelExpenseHeaders);
+        setExportData(travelExpenseData);
         break;
       case "cash-advance":
         setVisibleHeaders(cashAdvanceHeaders);
+        setExportData(cashadvanceData);
         break;
-      case "reimbursement":
+      case "non-travel expense":
         setVisibleHeaders(reimbursementHeaders);
+        setExportData(reportData?.nonTravelExpenseData);
         break;
       default:
         setVisibleHeaders(tripHeaders);
+        setExportData(tripData)
     }
   };
   
@@ -175,16 +216,16 @@ const Menu = () => {
     
     setFilterForm((prevForm) => ({
       ...prevForm,
-      'startDate':selectedRange[0],
-      'endDate':selectedRange[1]
+      'fromDate':selectedRange[0],
+      'toDate':selectedRange[1]
     }));
   };
 
-  console.log('end date', endDate)
+  console.log('end date', toDate)
 
   
   const handleFilterForm = (key, value) => {
-    if(key === 'startDate'|| key === 'endDate'){
+    if(key === 'fromDate'|| key === 'toDate'){
       setFilterForm((prevForm) => ({
         ...prevForm,
         [key]: formatFullDate(value.target.value),
@@ -205,7 +246,6 @@ const [hiddenHeaders, setHiddenHeaders] = useState([]);
 const [isModalOpen, setIsModalOpen] = useState(false);
 
 // Toggle modal visibility
-
 const toggleModal = () => {
   setIsModalOpen(!isModalOpen);
 };
@@ -223,14 +263,29 @@ const hideHeader = (header) => {
 
 
 // for fetch the data
-  const fetchData = async () => {
+  const fetchData = async (tab) => {
     try {
       setIsLoading(true);
-      const response = await getReportDataAPI('660a58ac1a308ce97b32213f', '1001');
-      // setReportingData(response)
-
-      console.log('trip data fetched successfully', response?.reportingViews?.employee?.trips);
-      setTripData(response?.reportingViews?.employee?.trips)
+      const response = await getReportDataAPI(tenantId, empId,tab);
+      console.log('from api data',response)
+      setReportData(prev=>({...prev,
+        "employeeRoles":response?.employeeRoles || {},
+        "tripData": response?.reports?.trips || [],
+        "cashadvanceData": response?.reports?.trips || [],
+        "travelExpenseData": response?.reports?.trips || [],
+        "nonTravelExpenseData": flattenNonTravelExpenseData(response?.reports?.reimbursement) || [],
+        "filterData":{
+          "listOfEmployees":response?.reports?.employeeManager?.listOfEmployees  || [],
+          "listOfApprovers":response?.reports?.listOfApprovers  || [],
+          "statuses":{
+            "approverStatusList":response?.reports?.hrDetails?.getEnums?.approverStatusEnums,
+            "cashadvanceStatusList":response?.reports?.hrDetails?.getEnums?.cashAdvanceStatusEnum,
+            "expenseHeaderStatusList":response?.reports?.hrDetails?.getEnums?.expenseHeaderStatusEnums,
+            "tripStatusList":response?.reports?.hrDetails?.getEnums?.tripStatusEnum
+          }
+        }
+      }))
+      console.log('Report Data', response);
       setIsLoading(false);  
     } catch (error) {
       setLoadingErrorMsg(error.message);
@@ -241,16 +296,96 @@ const hideHeader = (header) => {
     } 
   };
 
+console.log('Report Data1',reportData)
 //for generate customize report
+const handleRunReport = async () => {
+  console.log('Filter Form:', filterForm);
+  // Prepare the payload with filterForm and dynamically add filterBy based on the reportTab
+  const payload = { ...filterForm };
 
+  // Function to determine the value for "filterBy" based on reportTab
+  const getFilterBy = (reportTab) => {
+    switch (reportTab) {
+      case "trip":
+        return "trips";
+      case "travel expense":
+        return "travel-expenses";
+      case "non-travel expense":
+        return "non-travel-expenses";
+      default:
+        return ""; // Fallback value in case reportTab doesn't match
+    }
+  };
 
-const handleRunReport =()=>{
-  console.log(filterForm)
-}
+  try {
+    // Set the loading state for filtering the report
+    setIsUploading((prev) => ({ ...prev, filterReport: true }));
+
+    // Call the API to get the filtered report data with the payload and filterBy
+    const response = await getfilteredReportDataAPI(
+      { tenantId, empId, filterBy: getFilterBy(reportTab) },
+      payload
+    );
+
+    console.log('API Response:', response);
+
+    // Dynamically set report data based on the reportTab value
+    const setDataByReportTab = (reportTab, response) => {
+      switch (reportTab) {
+        case "trip":
+          setReportData((prev) => ({
+            ...prev,
+            tripData: response?.trips || [],
+          }));
+          break;
+        case "cash-advance":
+          setReportData((prev) => ({
+            ...prev,
+            cashadvanceData: response?.reportingViews?.employee?.trips || [],
+          }));
+          break;
+        case "travel expense":
+          setReportData((prev) => ({
+            ...prev,
+            travelExpenseData: response?.reportingViews?.employee?.trips || [],
+          }));
+          break;
+        case "non-travel expense":
+          setReportData((prev) => ({
+            ...prev,
+            nonTravelExpenseData: flattenNonTravelExpenseData(
+              response?.reports
+            ) || [],
+          }));
+          break;
+        default:
+          // Fallback handling, if any
+          setReportData((prev) => ({
+            ...prev,
+            tripData: response?.trips || [],
+          }));
+      }
+    };
+
+    // Set the report data based on the current reportTab
+    setDataByReportTab(reportTab, response);
+
+    console.log('Report Data Set:', response);
+
+    // Stop the loading state once the data is set
+    setIsUploading((prev) => ({ ...prev, filterReport: false }));
+  } catch (error) {
+    setShowPopup(true)
+    setMessage(error.message)
+    setTimeout(() => {setIsUploading((prev) => ({ ...prev, filterReport: false }));setMessage(null);setShowPopup(false)},3000);
+   
+  }
+};
+
 
 
 useEffect(()=>{
-  setReportingData(requiredTripData)
+  // setReportData(requiredTripData)
   setIsLoading(false)
 
   setTimeout(()=>{
@@ -258,49 +393,51 @@ useEffect(()=>{
     setIsLoading(false)
     },3000)
 
-  fetchData();
+  fetchData("myView");
 
 },[])
-  
+
+
+
+
 
 // download file
-
 const handleDownloadfile=(file)=>{
   if(file === 'PDF'){
     //handleCSVDownload(json.employees)
   }else if (file === 'CSV'){
-    handleCSVDownload(requiredTripData)
+    handleCSVDownload(exportData)
   }
 }
+const tripData = flattenTripData(reportData?.tripData)
+const cashadvanceData = flattedCashadvanceData(reportData?.cashadvanceData,'cashAdvances')
+const travelExpenseData = flattedTravelExpenseData(reportData?.travelExpenseData)
 
-  return (
-<div className='flex'>
-
-    <div className='w-[20%]'>
-        <Sidebar activeView={activeView} setActiveView={setActiveView} handleReportTab={handleReportTab} reportTab={reportTab} />
+console.log('flatted reports',travelExpenseData)
+return (
+  <>
+<div className='flex overflow-auto h-screen scrollbar-hide'>
+    <div className='w-[180px]'>
+        <Sidebar fetchData={(tab)=>fetchData(tab)} employeeRoles={reportData?.employeeRoles} activeView={activeView} setActiveView={setActiveView} handleReportTab={handleReportTab} reportTab={reportTab} />
     </div>  
 {isLoading && <Error message={loadingErrorMsg}/>}
 {!isLoading &&
-<div className='w-[80%] h-screen over overflow-y-auto'>
-      
+<div className=' flex flex-col w-screen  '>
 
-  <div className='mx-4 px-4 py-2 bg-indigo-200 rounded-md text-neutral-700 flex flex-row justify-between items-center h-[48px]'>
+  <div className='mx-4 px-4 py-2  bg-indigo-200 rounded-md text-neutral-700 flex flex-row justify-between items-center h-[48px]'>
   
-    <div className='flex items-center gap-2 font-cabin  text-base '>
-      <img src={aeroplane1_icon} className='w-4 h-4'/>
+    <div className='flex items-center gap-2 font-cabin text-base'>
+      <img src={tabIcon(reportTab)} className='w-4 h-4'/>
       <h1 className='capitalize font-semibold text-indigo-600'>{reportTab}</h1>
     </div>
 
   <div className='flex gap-2 capitalize items-center'>
     <img src={filter_icon} className='w-4 h-4'/>
-      <p className='text-neutral-800 font-semibold'>{`start date : ${formatDate(filterForm.startDate)} - ${formatDate(filterForm.endDate)}`}</p> 
+      <p className='text-neutral-800 font-semibold'>{`start date : ${formatDate(filterForm.fromDate)} - ${formatDate(filterForm.toDate)}`}</p> 
       <div className='cursor-pointer' onClick={()=>{setShowModal(!showModal);handlePresetChange(presets[0].label)}}>
         <p className='text-base text-indigo-600 font-semibold'>Customize</p>
       </div> 
   </div> 
-
-
-
 
       <IconOption 
         buttonText={
@@ -327,67 +464,75 @@ const handleDownloadfile=(file)=>{
 {reportTab === "trip" && 
 <>
 <div className='flex items-center justify-center'>  
-  <TripChart data={tripData}/>
+  <TripChart data={reportData?.tripData}/>
 </div> 
+
 <TripReport toggleModal={toggleModal} tripData={tripData} visibleHeaders={visibleHeaders}/>
 </>} 
 
 
 {reportTab === "cash-advance" && 
-
 <>
   <div className='flex items-center justify-center'>  
-    <CashChart data={requiredExpenseData}/>
+    <CashChart data={[...reportData?.cashadvanceData]}/>
   </div> 
-
-  <CashReport toggleModal={toggleModal} visibleHeaders={visibleHeaders} data={requiredCashAdvanceData}/>
+  <CashReport toggleModal={toggleModal} visibleHeaders={visibleHeaders} data={cashadvanceData}/>
 </>} 
 
-{reportTab === "expense" && 
+{reportTab === "travel expense" && 
 <>
 
 <div className='flex items-center justify-center'>  
-  <ExpenseChart data={requiredExpenseData}/>
+  <ExpenseChart data={[...reportData?.travelExpenseData]}/>
 </div> 
-
- <ExpenseReport toggleModal={toggleModal} visibleHeaders={visibleHeaders} expenseData={requiredExpenseData}/>
+ <ExpenseReport toggleModal={toggleModal} visibleHeaders={visibleHeaders} expenseData={travelExpenseData}/>
 </>} 
-{reportTab === "reimbursement" && 
-<>
+{reportTab === "non-travel expense" && 
+<> 
 <div className='flex items-center justify-center'>  
-  <ExpenseChart data={requiredExpenseData}/>
+  <NonTravelExpenseChart data={[...reportData?.nonTravelExpenseData]}/>
 </div> 
-
- <ReimbursementReport toggleModal={toggleModal} visibleHeaders={visibleHeaders} data={requiredExpenseData}/>
+ <ReimbursementReport toggleModal={toggleModal} visibleHeaders={visibleHeaders} data={reportData?.nonTravelExpenseData}/>
 </>} 
 
 
   <Modal showModal={showModal} setShowModal={setShowModal} skipable={true}>  
-    < >
-    <div className='h-[48px] rounded-t-lg   bg-purple-100 px-5 flex justify-start items-center'>
+    <div className='h-full'>
+    {/* <div className='h-[48px] rounded-t-lg   bg-purple-100 px-5 flex justify-start items-center'>
         <h1 className='text-start text-inter text-lg font-semibold text-purple-500 capitalize'>{`${reportTab}s Report`}</h1>
-    </div>
+    </div> */}
+      <div className='sticky top-0 z-10 flex gap-2 justify-between items-center bg-indigo-100 w-auto  p-4'>
+            <div className='flex gap-2'>
+              {/* <img src={info_icon} className='w-5 h-5' alt="Info icon"/> */}
+              <p className='font-inter capitalize text-base font-semibold text-indigo-600'>
+              {`${reportTab}s Report`}
+              </p>
+            </div>
+            <div onClick={() => setShowModal(false)} className='bg-red-100 cursor-pointer rounded-full border border-white'>
+              <img src={cancel_icon} className='w-5 h-5' alt="Cancel icon"/>
+            </div>
+          </div>
     <div className='px-4 py-2'>
     <div className='h-[48px]  flex-row rounded-t-lg px-5 flex justify-between items-center border-b w-full'>
       <div className='flex flex-row space-x-4'>
-      <div className={` ${modalTab === "filterTab" ? 'bg-indigo-300 ' : ''} px-2 py-1 rounded-lg  flex items-center gap-2 cursor-pointer`} onClick={()=>handleModalTab("filterTab")}> 
-      <img src={filter_icon} className='w-4 h-4'/>
-        <h1 className='text-start text-neutral-700 text-inter text-base font-cabin '>
+      <div className={` ${modalTab === "filterTab" ? 'border-b-2 border-indigo-600 text-indigo-600 ' : 'text-neutral-700'} hover:rounded-md hover:bg-indigo-200 px-2 py-1   flex items-center gap-2 cursor-pointer`} onClick={()=>handleModalTab("filterTab")}> 
+      <img src={filter_icon} className='w-3 h-3'/>
+        <h1 className='text-start  text-inter text-base font-cabin '>
           Filters
         </h1>
       </div>
-      <div className={`${modalTab === "columnTab" ? 'bg-indigo-300' : ''} px-2 py-1 rounded-lg  flex items-center gap-2 cursor-pointer`}  onClick={()=>handleModalTab("columnTab")}> 
+      <div className={`${modalTab === "columnTab" ? ' border-b-2 border-indigo-600 text-indigo-600' : 'text-neutral-700'}  hover:bg-indigo-200 px-2 py-1 hover:rounded-md  flex items-center gap-2 cursor-pointer`}  onClick={()=>handleModalTab("columnTab")}> 
       <img src={show_coloum_icon} className='w-4 h-4'/>
-        <h1 className='text-start text-neutral-700 text-inter text-base font-cabin '>
+        <h1 className='text-start  text-inter text-sm font-cabin '>
           Show/Hide Column
         </h1>
       </div>
       </div>
-    <h1 className='text-start text-inter text-base font-cabin font-semibold text-purple-500 '>Reset Filters</h1>
+    <h1 className='text-start text-inter text-base font-cabin hover:font-medium cursor-pointer text-purple-500 '>Reset Filters</h1>
     </div>
 
     {modalTab === "filterTab" &&
-    <div>
+    <div className=''>
       <div className='flex items items-center  justify-between'>
       <div>
         <Select
@@ -400,70 +545,109 @@ const handleDownloadfile=(file)=>{
         <Input
           title="From"
           type="date"
-          value={formatDateToYYYYMMDD(startDate)}
-          onChange={(value)=>handleFilterForm('startDate',value)}
+          value={formatDateToYYYYMMDD(fromDate)}
+          onChange={(value)=>handleFilterForm('fromDate',value)}
         />
       </div>
     <div className='w-[200px]'>
       <Input
         title="Till"
         type="date"
-        value={formatDateToYYYYMMDD(endDate)}
-        onChange={(value)=>handleFilterForm('endDate',value)}
-        // min={startDate}
+        value={formatDateToYYYYMMDD(toDate)}
+        onChange={(value)=>handleFilterForm('toDate',value)}
+        // min={fromDate}
       />
     </div>
     </div>
     </div>
+    {['travel expense', 'trip'].includes(reportTab) &&
       <div className='w-full'>
-        <Select 
-        title="Trip Status" 
-        options={travelRequestStatus}
-        onSelect={(value)=>handleFilterForm('status',value)}/>
-      </div>
+        <MultiSelect
+       onSelect={(value)=>handleFilterForm('tripStatus',value)}
+        placeholder={'i.e. Upcoming Trip'}
+        title={('trip status')} 
+        options={reportData?.filterData?.statuses?.tripStatusList|| []}/>
+      </div>}
+     
 
+      {(reportData?.employeeRoles.employeeManager || reportData?.employeeRoles.finance || reportData?.employeeRoles.businessAdmin || reportData?.employeeRoles.superAdmin) && (
       <div className='w-full'>
       <MultiSearch
-        options={employees}
+        options={reportData?.filterData?.listOfEmployees}
         // currentOption={selectedOptions}
         onSelect={(value)=>handleFilterForm('employees',value)}
         title="Search Employees"
         placeholder="Start typing employee name..."
         // error={{ set: true, message: "Please select at least one employee." }}
       />
-      </div>
+      </div>)}
       <div className='w-full'>
         <Select 
         options={travelType}
         onSelect={value=>handleFilterForm('travelType',value)}
         title="Type of Trip"/>
       </div>
+      {reportTab==="cash-advance" &&
+       <div className='w-full'>
+       <MultiSelect
+       onSelect={(value)=>handleFilterForm('cashAdvanceStatus',value)}
+       placeholder={'i.e. Pending Settlement'}
+       title={('cash-advance status')} 
+       options={reportData?.filterData?.statuses?.cashadvanceStatusList|| []}/>
+     </div>}
+     {['travel expense', 'non-travel expense'].includes(reportTab)&&
+      <div className='w-full'>
+      <MultiSelect
+      onSelect={(value)=>handleFilterForm('expenseStatus',value)}
+      placeholder={'i.e. Pending Settlement'}
+      title={('Expense status')} 
+      options={reportData?.filterData?.statuses?.expenseHeaderStatusList|| []}/>
+    </div>}
+     
+      <MultiSearch
+        options={reportData?.filterData?.listOfApprovers}
+        // currentOption={selectedOptions}
+        onSelect={(value)=>handleFilterForm('approvers',value)}
+        title="Search Approvers"
+        placeholder="Start typing approver name..."
+        // error={{ set: true, message: "Please select at least one employee." }}
+      />
       </div>}
-
-
 
     {modalTab === "columnTab" && 
       
         <div className="bg-white p-4 rounded text-neutral-700 font-cabin">
-          <div className="flex ">
-            <div className="w-1/2 p-2">
-              <h3 className="mb-2 font-semibold ">Hidden Headers</h3>
+          <div className="flex gap-2">
+            <div className="w-1/2 p-2 border border-slate-300">
+              <h3 className="mb-2 text-neutral-500 ">Hidden Headers</h3>
               <div className='h-[200px] overflow-y-auto'>
               {hiddenHeaders.map((header, index) => (
-                <div key={index} className="flex items-center mb-2 capitalize">
-                  <button onClick={() => showHeader(header)} className="mr-2 bg-green-500  text-white px-2 py-1 rounded">+</button>
-                  {header}
-                </div>
-              ))}
+        <div key={index} className="flex gap-2 items-center capitalize">
+          <div
+            onClick={() => showHeader(header)}
+            className="bg-green-600 cursor-pointer text-white h-4 w-4 flex items-center justify-center rounded-full focus:outline-none"
+            aria-label={`Hide ${header}`}
+          >
+            <span className='text-lg text-center'>+</span>
+          </div>
+          <p>{header}</p>
+        </div>
+      ))}
             </div>
             </div>
-            <div className="w-1/2 p-2 capitalize font-cabin text-base">
-              <h3 className="mb-2 font-semibold">Visible Headers</h3>
+            <div className="w-1/2 p-2 capitalize font-cabin text-base border border-slate-300">
+              <h3 className="mb-2 text-neutral-500">Visible Headers</h3>
               <div className='h-[200px] overflow-y-auto'>
               {visibleHeaders.map((header, index) => (
-                <div key={index} className="flex items-center mb-2 ">
-                  <button onClick={() => hideHeader(header)} className="mr-2 bg-red-500 text-white  px-2 py-1 rounded">-</button>
-                  {header}
+                <div key={index} className="flex items-center gap-2">
+                  <div
+            onClick={() => hideHeader(header)}
+            className="bg-red-600 cursor-pointer text-white h-4 w-4 flex items-center justify-center rounded-full focus:outline-none"
+            aria-label={`Hide ${header}`}
+          >
+            <span className='text-lg text-center'>−</span>
+          </div>
+                  <p>{header}</p>
                 </div>
               ))}
               </div>
@@ -474,17 +658,20 @@ const handleDownloadfile=(file)=>{
       }  
 
       <div className='pt-4'>
-        <Button text="Run Report" onClick={handleRunReport}/>
+        <Button loading={isUploading.filterReport} text="Run Report" onClick={handleRunReport}/>
       </div>
       </div>
     
   
-    </>
+    </div>
   </Modal>
 </div>}
 
 </div>
+<PopupMessage showPopup={showPopup} setShowPopup={setShowPopup} message={message}/>
+</>
   )
+
 }
 
 export default Menu

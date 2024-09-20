@@ -1,5 +1,6 @@
 import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { titleCase } from '../../utils/handyFunctions';
 
 // Function to count the number of trips by status
 const countTripsByStatus = (data) => {
@@ -12,14 +13,27 @@ const countTripsByStatus = (data) => {
   // Ensure specific statuses are included
   const requiredStatuses = ["upcoming", "transit", "completed", "cancelled","recovered"];
   return requiredStatuses.map(status => ({
-    name: status,
-    count: counts[status] || 0,
+    name: titleCase(`${status} Trips`),
+    "Trips": counts[status] || 0,
   }));
+};
+const CustomTooltip = ({ active, payload, label }) => {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload;
+    return (
+      <div className="custom-tooltip rounded-md" style={{ backgroundColor: '#fff', padding: '10px', border: '1px solid #ccc' }}>
+        <p className='font-cabin font-medium'>{`Status: ${data?.name}`}</p>
+        <p className='font-cabin font-semibold'>{`Total: ${data?.["Trips"]}`}</p>
+      </div>
+    );
+  }
+
+  return null;
 };
 
 const TripChart = ({ data }) => {
   const tripCounts = countTripsByStatus(data);
-  const maxCount = Math.max(...tripCounts.map(trip => trip.count));
+  const maxCount = Math.max(...tripCounts.map(trip => trip["Trips"]));
 
   return (
     <ResponsiveContainer width="80%" height={400}>
@@ -29,10 +43,10 @@ const TripChart = ({ data }) => {
           domain={[0, maxCount]} 
           allowDecimals={false} 
         />
-        <Tooltip cursor={{ fill: 'none' }} />
+        <Tooltip content={<CustomTooltip />} cursor={{ fill: 'none' }} />
         <Legend />
         <Bar 
-          dataKey="count" 
+          dataKey="Trips" 
           fill="#4C36F1" 
           barSize={60}
           label={{ position: 'top' }}

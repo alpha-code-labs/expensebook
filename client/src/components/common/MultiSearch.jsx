@@ -49,12 +49,12 @@ export default function Search(props){
             selectedOption.forEach((option, index)=>{
                 
                 //not sure if we should keep this
-                if(selectedOption.slice(0, index+1).map(o=>o.employeeName).join(', ').length == caretIndex){
+                if(selectedOption.slice(0, index+1).map(o=>o.name).join(', ').length == caretIndex){
                     removeOption(option)
                 }    
             })
 
-            //&& selectedOption[selectedOption.length-1].employeeName !== keywords[keywords.length-1]            
+            //&& selectedOption[selectedOption.length-1].name !== keywords[keywords.length-1]            
            // removeOption(selectedOption[selectedOption.length-1])
         }
 
@@ -62,7 +62,7 @@ export default function Search(props){
 
         if (keywords.length > 0 && keywords[keywords.length - 1].length > startShowingOptions) {
             //console.log(optionsList, 'optionsList') 
-            const filteredOptions = optionsList.filter(option=> option?.employeeName?.toLowerCase()?.startsWith(keywords[keywords.length - 1]?.toLowerCase()) )
+            const filteredOptions = optionsList.filter(option=> option?.name?.toLowerCase()?.startsWith(keywords[keywords.length - 1]?.toLowerCase()) )
             setFilteredOptionsList(filteredOptions)
             if(filteredOptions.length > 0){
                 setShowDropdown(true)
@@ -76,7 +76,7 @@ export default function Search(props){
       
         if (keywords.length > 0 && keywords[keywords.length - 1].length > startShowingOptions) {
           const filteredOptions = optionsList.filter((option) =>
-            option?.employeeName?.toLowerCase()?.startsWith(keywords[keywords.length - 1]?.toLowerCase())
+            option?.name?.toLowerCase()?.startsWith(keywords[keywords.length - 1]?.toLowerCase())
           );
           setFilteredOptionsList(filteredOptions);
       
@@ -90,7 +90,7 @@ export default function Search(props){
         //bad idea...
         //setShowDropdown(false)
         if(textInput.length>0 && textInput[textInput.length-1] != ','){
-            const keywords = selectedOption.map(o=>o.employeeName)  
+            const keywords = selectedOption.map(o=>o.name)  
             setTextInput(keywords.join(', ')+', ')
             //setTextInput(textInput+', ')
         }
@@ -165,11 +165,11 @@ export default function Search(props){
     
     //handles selection of options
     const handleOptionSelect = (option, index=0)=>{
-        if(!selectedOption.some(o=> o.employeeId == option.employeeId)){
+        if(!selectedOption.some(o=> o.empId == option.empId)){
             const updatedSlectedOption = [...selectedOption, option]
             setSelectedOption(updatedSlectedOption)
             
-            setTextInput(updatedSlectedOption.map(o=>o.employeeName).join(', ')+', ')
+            setTextInput(updatedSlectedOption.map(o=>o.name).join(', ')+', ')
         
             if(onSelect != null){
                 onSelect(updatedSlectedOption)
@@ -178,16 +178,16 @@ export default function Search(props){
             setShowDropdown(false)
         }
         else{
-            setTextInput(selectedOption.map(o=>o.employeeName).join(', ')+', ')
+            setTextInput(selectedOption.map(o=>o.name).join(', ')+', ')
             setShowDropdown(false)   
         }
     }
 
     const removeOption = (option)=>{
-        const updatedSelectedOption = selectedOption.filter(o=> o.employeeId!=option.employeeId)
+        const updatedSelectedOption = selectedOption.filter(o=> o.empId!=option.empId)
         setSelectedOption(updatedSelectedOption)
 
-        updatedSelectedOption.length>0? setTextInput(updatedSelectedOption.map(o=>o.employeeName).join(', ') + ', ') : setTextInput('')
+        updatedSelectedOption.length>0? setTextInput(updatedSelectedOption.map(o=>o.name).join(', ') + ', ') : setTextInput('')
 
         if(onSelect != null){
             onSelect(updatedSelectedOption)
@@ -257,7 +257,7 @@ export default function Search(props){
                             ref={el => dropdownOptionsRef.current[index] = el}
                             key={index}>
                             <p className="text-xs font-medium font-cabin text-neutral-700 px-4 pt-3">
-                                {`${titleCase(option.employeeName)}-${option.employeeId}`}
+                                {`${titleCase(option.name)}-${option.empId}`}
                             </p>
                             <div className='flex px-4 pb-3 pt-.5 gap-1'>
                                 <p className="text-xs font-medium font-cabin text-neutral-400">{`${option.designation? titleCase(option?.designation) : ''}`} </p>

@@ -1,7 +1,8 @@
 
 const tripHeaders= [
+    "trip name",
     "start date",
-    "completion date",
+    "end date",
     "trip number",
     "travel type",
     "trip status",
@@ -12,17 +13,20 @@ const tripHeaders= [
 
 
 const travelExpenseHeaders = [
+  "trip name",
   "trip number",
   "trip status",
   "travel type",
   "expense number",
+  "submitted on",
   "expense date",
   "expense amount",
   "created by",
   "expense status",
   "payment mode",
+  "approver",
   "paid by",
-  "included bills"
+  
 ]
 
 const cashAdvanceHeaders = [
@@ -31,26 +35,28 @@ const cashAdvanceHeaders = [
   "travel type",
   "cash-advance number",
   "requested date",
-  // "amount",
+  "amount",
   "created by",
   "cash-advance status",
   "payment mode",
+  "approver",
   "paid by",
+   "recovered by"
   
 ]
 
 const reimbursementHeaders=[
 
-  "reimbursement number",
-  "requested date",
-  "category",
+  "expense number",
+  "expense type",
+  "submitted on",
   "created by",
-  "expense amount",
-  "created by",
+ 
   "expense status",
   "payment mode",
   "paid by",
-  "merchant"
+  "expense amount",
+  "approver"
 
 ]
 

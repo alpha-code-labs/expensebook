@@ -16,6 +16,7 @@ const IconOption = ({ buttonText, children }) => {
   };
 
   useEffect(() => {
+    
     if (isOpen) {
       document.addEventListener('click', handleClickOutside);
     } else {

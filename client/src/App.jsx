@@ -8,7 +8,7 @@ const App = () => {
   return (
    <BrowserRouter>
    <Routes>
-   <Route path='/' element={<Menu/>}/>
+   <Route path='/:tenantId/:empId' element={<Menu/>}/>
    
    </Routes>
    </BrowserRouter>

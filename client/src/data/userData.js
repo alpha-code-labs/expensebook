@@ -52,8 +52,8 @@ const travelRequestStatus = [
   ]
 
 const employees = [
-    { employeeId: 1, employeeName: 'John Doe', designation: 'Manager', department: 'Sales' },
-    { employeeId: 2, employeeName: 'Jane Smith', designation: 'Developer', department: 'Engineering' },
+    { emplId: 1, name: 'John Doe', designation: 'Manager', department: 'Sales' },
+    { emplId: 2, name: 'Jane Smith', designation: 'Developer', department: 'Engineering' },
 
 ];
 
