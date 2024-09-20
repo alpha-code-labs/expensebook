@@ -409,7 +409,6 @@ setSelectedStatuses={setSelectedDateRange}
           </div>
           <div className='font-cabin text-xs text-neutral-700'>
             <TripName tripName={trip?.tripName}/>
-            {/* <div>{trip?.tripStartDate}</div> */}
           </div>
         </div>
         <div className='flex w-full sm:justify-end justify-between gap-2 items-center '>

@@ -15,6 +15,7 @@ import Error from '../components/common/Error';
 import { getEmployeeData_API, getEmployeeRoles_API, logoutApi } from '../utils/api';
 import { useData } from '../api/DataProvider';
 import { handleLoginPageUrl } from '../utils/actionHandler';
+import Report from './Report';
 
 const Home = () => {
 
@@ -154,6 +155,10 @@ useEffect(() => {
           <Route
             path="/expense"
             element={<Expense fetchData={fetchData} loadingErrMsg={loadingErrMsg} isLoading={isLoading?.roleData} setAuthToken={setAuthToken} />}
+          />
+          <Route
+            path="/report"
+            element={<Report  fetchData={fetchData} loadingErrMsg={loadingErrMsg} isLoading={isLoading?.roleData} setAuthToken={setAuthToken} />}
           />
           <Route
             path="/approval"

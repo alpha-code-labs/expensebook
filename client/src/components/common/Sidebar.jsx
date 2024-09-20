@@ -4,7 +4,7 @@ import { useData } from '../../api/DataProvider';
 import {  NavLink } from 'react-router-dom';
 import { filterTravelRequests} from '../../utils/handyFunctions';
 
-import {arrow1_icon, receipt, house_simple, airplane_1, money, logo_with_text, airplane, house_simple_1, money1, airplane_icon1, receipt_icon1, setting_icon, setting_icon1, businessAdmin_icon, businessAdmin1_icon, approval_icon, approval_w_icon, cancel_round, cancel, down_arrow, arrow_left, up_arrow, straight_arrow_icon } from '../../assets/icon';
+import {arrow1_icon, receipt, house_simple, airplane_1, money, logo_with_text, airplane, house_simple_1, money1, airplane_icon1, receipt_icon1, setting_icon, setting_icon1, businessAdmin_icon, businessAdmin1_icon, approval_icon, approval_w_icon, cancel_round, cancel, down_arrow, arrow_left, up_arrow, straight_arrow_icon, report_icon, report_white_icon } from '../../assets/icon';
 
 
 const Sidebar = ({setSidebarOpen }) => {
@@ -57,7 +57,6 @@ const Sidebar = ({setSidebarOpen }) => {
             trApproval: filteredTrApprovalData?.length || 0,
             trExpApproval: approvalData?.travelExpenseReports?.length || 0,
             nonTrExpApproval :approvalData?.nonTravelExpenseReports?.length || 0,
-
             //business admin
             pendingBooking: filteredPendingBookingData?.length || 0,
             paidAndCancelledTrips: businessAdminData?.paidAndCancelled || 0
@@ -78,6 +77,7 @@ const Sidebar = ({setSidebarOpen }) => {
         { label: 'Trip', icon: airplane_1, icon1: airplane_icon1, url: 'trip', count: countData?.rejectedTravelRequests },
         { label: 'Cash-Advance', icon: money, icon1: money1, url: 'cash-advance', count: countData?.rejectedCashAdvances },
         { label: 'Expense', icon: receipt, icon1: receipt_icon1, url: 'expense', count: "" },
+        { label: 'Report', icon: report_icon, icon1: report_white_icon, url: 'report', count: "" },
     ];
 
     if (employeeRoles) {
