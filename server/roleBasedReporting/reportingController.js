@@ -5,6 +5,7 @@ import {expenseHeaderStatusEnums} from '../models/travelExpenseSchema.js'
 import HRCompany from '../models/hrCompanySchema.js';
 import REIMBURSEMENT from '../models/reimbursementSchema.js'
 import { extractTrip, getItinerary } from '../controllers/tripController.js';
+import { getEmployeeDetails } from '../utils/functions.js';
 
 const getEnums = {approverStatusEnums, cashAdvanceStatusEnum,tripStatusEnum,expenseHeaderStatusEnums}
 
@@ -48,7 +49,7 @@ const roleBasedLayoutSchema = Joi.object({
 })
 
 
-export const roleBasedLayout = async (req, res) => {
+const roleBasedLayout = async (req, res) => {
   const { error, value } = roleBasedLayoutSchema.validate(req.params);
 
   if (error) {
@@ -76,32 +77,43 @@ const getReportingViews = async (tenantId, empId) => {
         const layoutFunctions = {
             employee: async () => employeeLayout(tenantId, empId),
             // employeeManager: async () => managerLayout(tenantId, empId),
-            // employee: async () => {},
-            employeeManager: async () => ({}),
-            // finance: async () => financeLayout(tenantId, empId),
-            // businessAdmin: async () => businessAdminLayout(tenantId, empId),
-            // superAdmin: async () => superAdminLayout(tenantId, empId)
-            finance: async() => ({ message:"Finance Layout "}),
-            superAdmin: async () => ({ message:"SuperAdmin Layout"}),
+            employeeManager: null,
+            businessAdmin: null,
+            finance: null,
+            superAdmin: null,
         };
 
         const applicableRoles = Object.keys(employeeRoles).filter(role => employeeRoles[role]);
 
         const reportingViews = await Promise.all(applicableRoles.map(async role => {
-            try {
-                const data = await layoutFunctions[role]();
-                return { [role]: data };
-            } catch (error) {
-                console.error("Error fetching data for role", role, "Error:", error);
-                return { [role]: null }; // Handle the error case as needed
-            }
-        }));
+          try {
+              if (layoutFunctions[role]) {
+                  const data = await layoutFunctions[role]();
+                  return { [role]: data };
+              } else {
+                  console.warn(`No layout function for role: ${role}`);
+                  return { [role]: null }; // Handle the absence of function
+              }
+          } catch (error) {
+              console.error("Error fetching data for role", role, "Error:", error);
+              return { [role]: null }; // Handle the error case as needed
+          }
+      }));
+      
 
-        const formattedReportingViews = reportingViews.reduce((acc, curr) => ({ ...acc, ...curr }), {});
+        // const formattedReportingViews = reportingViews.reduce((acc, curr) => ({ ...acc, ...curr }), {});
+        const formattedReportingViews = reportingViews.reduce((acc, curr) => {
+          Object.entries(curr).forEach(([key, value]) => {
+            if (value !== null && value !== undefined) {
+              acc[key] = value; 
+            }
+          });
+          return acc;
+        }, {});
 
         return {
             employeeRoles,
-            reportingViews: formattedReportingViews,
+            reports:formattedReportingViews.employee
         };
     } catch (error) {
         console.error("Error fetching Reporting views:", error);
@@ -110,17 +122,24 @@ const getReportingViews = async (tenantId, empId) => {
 };
 
 
-const employeeLayout = async (tenantId, empId) => {
+const employeeLayout = async (tenantId, empId, isAdmin=false) => {
   try {
-    const hrDetails = await hrDetailsService(tenantId, empId);
-    // console.log("reporting hr", hrDetails)
-    const approvers = await findListOfApprovers(tenantId, empId);
-    console.log("list of approvers", approvers)
-    const monthlyTrips = await getLastMonthTrips(tenantId, empId);
-    const monthlyTravel = await getLastMonthTravel(tenantId,empId);
-    // console.log("reporting trip", monthlyTrips)
-    const reimbursement = await getLastMonthReimbursement(tenantId, empId)
-     return { travel:monthlyTravel,trips:monthlyTrips,reimbursement:reimbursement, hrDetails:hrDetails, approvers};
+
+    const promises = [
+      hrDetailsService(tenantId, empId,isAdmin),
+      getLastMonthTrips(tenantId, empId),
+      getLastMonthTravel(tenantId,empId),
+      getLastMonthReimbursement(tenantId, empId)
+    ]
+
+    if(!isAdmin){
+      promises.push(findListOfApprovers(tenantId, empId))
+    }
+
+    const [hrData,monthlyTrips,monthlyTravel,reimbursement,approvers] = await Promise.all(promises)
+    const {hrDetails,employeeDetails} = hrData
+
+    return { travel:monthlyTravel,trips:monthlyTrips,reimbursement, hrDetails,employeeDetails, listOfApprovers: approvers};
   } catch (error) {
       console.error("Error:", error);
       throw new Error({ message: 'Internal server error' });
@@ -128,69 +147,58 @@ const employeeLayout = async (tenantId, empId) => {
 };
 
 
-const hrDetailsService = async (tenantId, empId) =>{
+const getHrDataService = (employeeDocument) => {
+  const {
+    companyDetails: { defaultCurrency, companyName } = {},
+    reimbursementExpenseCategories = [],
+    flags: { policyFlag } = {},
+    travelAllocationFlags = {},
+    travelAllocations = {},
+    travelExpenseCategories = [],
+    expenseSettlementOptions = {},
+  } = employeeDocument;
+
+  const expenseCategoryNames = travelExpenseCategories.map(category => category.categoryName);
+  const reimbursementExpenseCategory = reimbursementExpenseCategories.map(category => category?.categoryName);
+
+  const travelData = {
+    travelAllocationFlags,
+    travelExpenseCategories,
+    expenseCategoryNames,
+    travelAllocations,
+    expenseSettlementOptions,
+  };
+
+  return {
+    defaultCurrency,
+    companyName,
+    travelData,
+    reimbursementExpenseCategory,
+    getEnums,
+  };
+};
+
+const hrDetailsService = async (tenantId, empId, isAdmin = false) => {
   try {
+    const  {employeeDocument,employeeDetails} = await getEmployeeDetails(tenantId, empId);
+
+    if(!isAdmin){
+      const hrDetails = getHrDataService(employeeDocument);
+      return {
+        employeeDetails,
+        hrDetails,
+      };
+    }
   
-    const employeeDocument = await HRCompany.findOne({
-      tenantId,
-      'employees.employeeDetails.employeeId': empId
-    });
-
-    if (!employeeDocument) {
-      return res.status(404).json({
-        success: false,
-        message: 'Employee not found for the given IDs',
-      });
-    }
-
-    const { employeeName, employeeId } = employeeDocument?.employees[0]?.employeeDetails;
-
-    if (!employeeId) {
-      return res.status(404).json({
-        success: false,
-        message: 'Employee not found for the provided ID',
-      });
-    }
-
-    const {
-      companyDetails: { defaultCurrency, companyName } = {},
-      reimbursementExpenseCategories,
-    } = employeeDocument || {};
-
-    let {
-      flags:{policyFlag} = {}, // the name need to be cross-checked with hrcompany later --
-      travelAllocationFlags = {}, // 3 types
-      travelAllocations = {},
-      travelExpenseCategories = {},
-      expenseSettlementOptions = {},
-  } =  employeeDocument || {};
-
-       // const { travelExpenseCategories = [],  } = companyDetails 
-        const expenseCategoryNames = travelExpenseCategories.map(category => category.categoryName);
-
-    const reimbursementExpenseCategory = Array.isArray(reimbursementExpenseCategories)
-      ? reimbursementExpenseCategories.map(category => category?.categoryName)
-      : [];
-
-
-    const isLevel3 = travelAllocationFlags?.level3
-  let travelData
- if(isLevel3){
-   travelData = { travelAllocationFlags, travelExpenseCategories, expenseCategoryNames,travelAllocations, expenseSettlementOptions}
-  return {defaultCurrency,
-  employeeName,
-  companyName, travelData: travelData , reimbursementExpenseCategory, getEnums}
- }
- travelData = { travelAllocationFlags, travelExpenseCategories, expenseCategoryNames,travelAllocations, expenseSettlementOptions}
-console.log("hr data", travelData)
-    return {defaultCurrency,
-  employeeName,
-  companyName, travelData: travelData ,reimbursementExpenseCategory, getEnums};
+    return {
+      employeeDetails,
+    };
   } catch (error) {
     console.error("Error in fetching employee Reporting:", error);
-    throw new Error('Error in fetching employee Reporting');
+    throw error;
   }
 };
+
 
 
 export const findListOfApprovers = async (tenantId, empId) => {
@@ -333,13 +341,7 @@ const getLastMonthReimbursement = async (tenantId, empId) => {
 const tripStatusSchema = Joi.object({
   tripStatuses: Joi.array().items(
     Joi.string().valid(
-      'upcoming',
-      'modification',
-      'transit',
-      'completed',
-      'paid and cancelled',
-      'cancelled',
-      'recovered'
+      ...tripStatusEnum
     )
   ),
   // tripCompletionDate: Joi.date().required()
@@ -386,7 +388,7 @@ export const getTrips = async (req, res) => {
       }
 
       // Add startDate and endDate filters if both are present
-       if (startDate && endDate) {
+      if (startDate && endDate) {
         query['tripCompletionDate'] = { $gte: startDate, $lte: endDate };
       }
 
@@ -443,6 +445,159 @@ export const getTrips = async (req, res) => {
       return res.status(404).json({ success: 'false',message:'Error in fetching data'});
     }
 };
+
+
+export const findListOfEmployees = async (tenantId, empId) => {
+  try {
+
+    const tripDocs = await reporting.find({
+      'tenantId': tenantId,
+      'travelRequestData.approvers.empId': empId,
+    }).lean().exec();
+
+    const employeesArray = Array.from(
+      new Set(
+          tripDocs
+              .map(trip => trip.createdBy) 
+              .filter(Boolean)
+              .map(createdBy => JSON.stringify({ empId: createdBy.empId, name: createdBy.name }))
+      )
+  ).map(item => JSON.parse(item));
+  
+  // console.log("employeesArray", JSON.stringify(employeesArray,'',2));
+  
+    return (employeesArray);
+  } catch (error) {
+    console.error(error);
+    throw new Error({ error: 'Internal server error' });
+  }
+};
+
+
+const managerLayout = async(tenantId, empId) =>{
+  try {
+
+    const [employeeRoles,listOfEmployees,getEmpDetails] = await Promise.all([
+      getEmployeeRoles(tenantId,empId),
+      findListOfEmployees(tenantId,empId),
+      getEmployeeDetails(tenantId,empId)      
+    ])
+    
+    if(!listOfEmployees){
+      return []
+    }
+
+    const {employeeDocument,employeeDetails } = getEmpDetails
+    const { employeeName, employeeId , department, designation,grade,project} = employeeDetails
+    const hrDetails = getHrDataService(employeeDocument);
+
+
+    const  { employeeDetailsArray, allEmployeeReports,reports} = await getAllEmployeeReports(tenantId, listOfEmployees, 'true');
+
+    listOfEmployees.forEach(employee => {
+      const matchedDetails = employeeDetailsArray.find(hr => hr.employeeId.toString() === employee.empId)
+      if(matchedDetails){
+        const { companyName, department,designation,grade, project} = matchedDetails
+
+        Object.assign(employee,{
+          companyName, department,designation,grade, project
+        })
+      } 
+    })
+
+    return {employeeRoles,listOfEmployees,allEmployeeReports,reports,employeeDetailsArray,hrDetails}
+  } catch (error) {
+    throw error
+  }
+}
+
+
+const getAllEmployeeReports = async (tenantId, listOfEmployees) => {
+  try {
+    const isAdmin = true
+    const getAllReports = await Promise.all(
+      listOfEmployees.map(async (e) => {
+        const employee = await employeeLayout(tenantId, e.empId, isAdmin);
+        return employee;
+      })
+    );
+
+    if(!getAllReports?.length){
+      return {
+        employeeDetailsArray:[],
+        allReports:[],
+        reports:[]
+      }
+    }
+    const employeeDetailsArray = []
+    const allReports =[]
+
+    getAllReports.forEach(({employeeDetails, ...rest})=> {
+      employeeDetailsArray.push(employeeDetails)
+      allReports.push(rest)
+    })
+
+  if(allReports?.length){
+        const reports = {
+          travel: allReports.reduce((acc, report) => {
+            return acc.concat(report.travel);
+          }, []),
+          
+          trips: allReports.reduce((acc, report) => {
+            return acc.concat(report.trips);
+          }, []),
+          
+          reimbursement: allReports.reduce((acc, report) => {
+            return acc.concat(report.reimbursement);
+          }, []),
+        };
+    
+        return {
+          employeeDetailsArray,
+          allReports,
+          reports
+        }
+
+  }
+  } catch (error) {
+    console.error('Error fetching employee reports:', error);
+    throw error; // Rethrow or handle as needed
+  }
+};
+
+const employeeSchema = Joi.object({
+  empId: Joi.string().required(),
+  tenantId: Joi.string().required()
+})
+
+const getAllManagerReports = async(req,res) => {
+  try{
+    const {error, value} = employeeSchema.validate(req.params)
+    if(error) return res.status(400).json({success:false, message:error.message})
+    const { tenantId, empId } = value;
+
+    const getAll  = await managerLayout(tenantId,empId)
+    if(!getAll){
+      return res.status(200).json({success:true, message:'No reports found' , getAll:{} })
+    }
+    const {employeeRoles,listOfEmployees, reports,employeeDetailsArray,hrDetails } = getAll
+
+    reports.hrDetails = employeeDetailsArray
+    reports.listOfEmployees = listOfEmployees
+    reports.hrDetails = hrDetails
+    return  res.status(200).json({success:true, employeeRoles,reports })
+
+  } catch(error){
+    console.error(error);
+    return res.status(500).json("internal server error")
+  }
+}
+
+export{
+  roleBasedLayout,
+  getAllManagerReports
+}
+
 
 
 

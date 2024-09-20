@@ -1,8 +1,8 @@
 import express from 'express';
-import { roleBasedLayout } from '../roleBasedReporting/reportingController.js';
+import { getAllManagerReports, roleBasedLayout } from '../roleBasedReporting/reportingController.js';
 
 export const roleBasedRouter = express.Router()
 
-roleBasedRouter.get('/:tenantId/:empId', roleBasedLayout )
+roleBasedRouter.get('/:tenantId/:empId/employee', roleBasedLayout )
 
-
+roleBasedRouter.get('/:tenantId/:empId/admin', getAllManagerReports)

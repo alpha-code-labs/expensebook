@@ -1,4 +1,4 @@
-import reporting from '../models/reportingSchema.js';
+import reporting, { tripStatusEnum } from '../models/reportingSchema.js';
 import { getWeekRange, getMonthRange, getQuarterRange, getYear } from '../helpers/dateHelpers.js';
 import Joi from 'joi';
 import HRCompany from '../models/hrCompanySchema.js';
@@ -41,7 +41,7 @@ function getItinerary(itinerary){
 const extractTrip = (tripDocs) =>{
   try{
     if(!tripDocs?.length){
-      throw new Error('There are no trips')
+      return [];
     }
 const getTrips = tripDocs.map(trip => {
   const { travelRequestData, cashAdvancesData, travelExpenseData, expenseAmountStatus, tripId, tripNumber, tripStartDate, tripCompletionDate ,tripStatus} = trip || {};
@@ -112,8 +112,7 @@ const tripFilterSchema = Joi.object({
     then: Joi.required(),
   }),
   travelType: Joi.string().valid('domestic', 'international','local').optional(),
-  tripStatus: Joi.string().valid('upcoming','modification',
-  'transit','completed','paid and cancelled','cancelled','recovered').optional(),
+  tripStatus: Joi.array().items(Joi.string().valid(...tripStatusEnum)).optional(),
   travelAllocationHeaders: Joi.array().items(Joi.object().keys({
     headerName: Joi.string().required(),
     headerValue: Joi.string().required(),
@@ -205,8 +204,8 @@ const filterTrips = async (req, res) => {
       filterCriteria['travelRequestData.travelType'] = travelType;
     }
 
-    if(tripStatus){
-      filterCriteria['tripStatus']= tripStatus;
+    if(tripStatus?.length){
+      filterCriteria.tripStatus= {$in: tripStatus};
     }
 
     if(travelAllocationHeaders){
@@ -277,12 +276,12 @@ export const getExpenseRelatedHrData = async (req, res) => {
 
 
 
-
-
-
 export {
   extractTrip,
   getItinerary,
   filterTrips
-
 }
+
+
+
+

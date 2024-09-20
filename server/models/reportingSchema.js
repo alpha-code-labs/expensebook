@@ -4,7 +4,7 @@ import { travelExpenseSchema } from './travelExpenseSchema.js';
 
 
 //---------------------cash---------
-export const approverStatusEnums = [
+const approverStatusEnums = [
   'pending approval',
   'approved',
   'rejected',
@@ -15,7 +15,7 @@ const cashAdvanceStateEnums = [
   'section 1',
 ];
 
-export const cashAdvanceStatusEnum = [
+const cashAdvanceStatusEnum = [
 'draft',
 'pending approval',
 'approved',
@@ -27,7 +27,7 @@ export const cashAdvanceStatusEnum = [
 ];
 
 //-----------trip---------
-export const tripStatusEnum = [
+const tripStatusEnum = [
   'upcoming',
   'modification',
   'transit',
@@ -191,7 +191,11 @@ export default reporting
 
 
 
-
+export{
+  approverStatusEnums,
+  cashAdvanceStatusEnum,
+  tripStatusEnum
+}
 
 
 

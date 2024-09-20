@@ -199,3 +199,9 @@ expenseSettledDate: Date,
 const REIMBURSEMENT = mongoose.model('Reimbursement', reimbursementSchema);
 
 export default REIMBURSEMENT
+
+export{
+  expenseHeaderStatusEnums,
+}
+
+

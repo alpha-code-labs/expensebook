@@ -1,8 +1,7 @@
-import reporting from "../models/reportingSchema.js";
 import Joi from 'joi';
 import { getMonthRange, getQuarterRange, getWeekRange, getYear } from "../helpers/dateHelpers.js";
 import HRCompany from "../models/hrCompanySchema.js";
-import REIMBURSEMENT from "../models/reimbursementSchema.js";
+import REIMBURSEMENT, { expenseHeaderStatusEnums } from "../models/reimbursementSchema.js";
 
 
 export const getExpenseCategoriesForEmpId = async (req, res) => {
@@ -20,8 +19,10 @@ export const getExpenseCategoriesForEmpId = async (req, res) => {
           message: 'Employee not found for the given IDs',
         });
       }
-  
-      const { employeeName, employeeId } = employeeDocument?.employees[0]?.employeeDetails;
+
+      const getEmployee = employeeDocument?.employees.find(e => e.employeeDetails.employeeId.toString() === empId.toString())
+      const { employeeName, employeeId , department, designation,grade,project} = getEmployee.employeeDetails
+      console.log("employee name man", employeeName, employeeId )
   
       if (!employeeId) {
         return res.status(404).json({
@@ -45,6 +46,10 @@ export const getExpenseCategoriesForEmpId = async (req, res) => {
         defaultCurrency,
         employeeName,
         companyName,
+        department, 
+        designation,
+        grade,
+        project,
         reimbursementExpenseCategory,
       });
     } catch (error) {
@@ -72,6 +77,7 @@ const dataSchema = Joi.object({
       is: Joi.exist(),
       then: Joi.required(),
     }),
+    expenseHeaderStatus: Joi.array().items(Joi.string().valid(...expenseHeaderStatusEnums)).optional(),
     expenseSubmissionDate: Joi.date(), // validation
   }).with('fromDate', 'toDate').without('filterBy', [ 'fromDate', 'toDate']);
 
@@ -89,12 +95,16 @@ export const getReimbursementExpenseReport = async (req, res) => {
     success: false });
     }
 
-    const { tenantId, empId, filterBy, date, fromDate, toDate , expenseSubmissionDate } = value;
+    const { tenantId, empId, filterBy, date, fromDate, toDate , expenseSubmissionDate ,expenseHeaderStatus } = value;
 
     let filterCriteria = {
       tenantId,
       'createdBy.empId': empId,
     };
+
+    if(expenseHeaderStatus?.length){
+      filterCriteria.expenseHeaderStatus = {$in: expenseHeaderStatus}
+    }
 
     if (filterBy && ( date ) && !fromDate && !toDate) {
       if(date){
@@ -179,51 +189,6 @@ return res.status(500).json({
 };
 
 
-export const testgetReimbursementExpenseReport = async (req, res) => {
-  try {
-    const { error, value } = reimbursementExpenseReportSchema.validate({
-      ...req.params,
-      ...req.body,
-    });
-
-    if (error) {
-      return res.status(400).json({ message: error.details[0].message });
-    }
-
-    const { tenantId, empId, fromDate, toDate } = value;
-
-    let filterCriteria = {
-      tenantId,
-      'reimbursementSchema.createdBy.empId': empId,
-      'reimbursementSchema.expenseSubmissionDate': {
-        $gte: new Date(fromDate),
-        $lte: new Date(toDate),
-      },
-    };
-
-    const expenseReports = await reporting.find(filterCriteria);
-
-    if (expenseReports.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: 'No reimbursement reports found for the specified date range',
-      });
-    }
-
-    return res.status(200).json({
-      success: true,
-      expenseReports,
-      message: `Reimbursement reports retrieved for the specified date range.`,
-    });
-  } catch (error) {
-    console.error(error);
-
-    return res.status(500).json({
-      success: false,
-      message: 'Failed to retrieve reimbursement reports.',
-    });
-  }
-};
 
 
 
