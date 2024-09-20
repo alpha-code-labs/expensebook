@@ -1,4 +1,94 @@
-import dashboard from "../../models/dashboardSchema.js";
+import reporting from "../../models/reportingSchema.js";
+
+
+export const fullUpdateExpense = async (payload) => {
+  const {getExpenseReport} = payload
+  const { 
+    tenantId,
+    tripId,
+    travelRequestData,
+  } = getExpenseReport;
+  
+    const {travelRequestId} = travelRequestData
+    console.log("payload for travelExpenseData", payload )
+
+
+    try {
+    const updated = await reporting.updateOne(
+      { tenantId, 'travelRequestData.travelRequestId':travelRequestId, tripId },
+      {
+      $set:{...getExpenseReport}
+      },
+      { upsert: true, new: true }
+    );
+    console.log('Saved to dashboard: TravelExpenseData updated successfully', updated);
+    return { success: true, error: null}
+  } catch (error) {
+    console.error('Failed to update dashboard: TravelExpenseData updation failed', error);
+    return { success: false, error: error}
+  }
+}
+
+
+
+//travel expense header 'paid'
+export const settleExpenseReport= async (payload) => {
+  try {
+      const {  tenantId,travelRequestId, expenseHeaderId, settlementBy, expenseHeaderStatus, 
+        settlementDate } = payload;
+  
+        const status = {
+          PENDING_SETTLEMENT: 'pending settlement',
+          PAID: 'paid',
+          APPROVED:'approved'
+        };
+
+        const arrayFilters = [
+          {'elem.expenseHeaderId':expenseHeaderId},
+          {'lineItem.lineItemStatus':status.APPROVED}
+        ]
+
+    const trip = await reporting.findOneAndUpdate(
+      { 
+        tenantId,
+        'tripSchema.travelExpenseData': { $elemMatch: { travelRequestId, expenseHeaderId } }
+      },
+      { 
+        $set: { 
+          'tripSchema.travelExpenseData.$[elem].expenseHeaderStatus': expenseHeaderStatus, 
+          'tripSchema.travelExpenseData.$[elem].settlementDate': settlementDate,
+          'tripSchema.travelExpenseData.$[elem].settlementBy': settlementBy,
+          'tripSchema.travelExpenseData.$[elem].expenseLines.$[lineItem].lineItemStatus':status.PAID
+        }
+      },
+      { arrayFilters,new: true, runValidators:true }
+    );
+
+    console.log('Travel request status updated in approval microservice:', trip);
+    return { success: true, error: null };
+  } catch (error) {
+    console.error('Failed to update travel request status in approval microservice:', error);
+    return { success: false, error: error };
+  }
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 export const processTravelExpense = async (message,correlationId) => {
     const failedUpdates = [];
@@ -12,12 +102,12 @@ export const processTravelExpense = async (message,correlationId) => {
       } = payload;
 
       try {
-      const updated = await dashboard.findOneAndUpdate(
-        { 'travelExpenseData.tripId': tripId },
+      const updated = await reporting.findOneAndUpdate(
+        { 'tripSchema.travelExpenseData.tripId': tripId },
         {
           $set: {
-            'travelExpenseData':payload,
-            'travelExpenseData.sendForNotification ': false,  // always set 'sendForNotification' it as false when dashboard is updated 
+            'tripSchema.travelExpenseData':payload,
+            'tripSchema.travelExpenseData.sendForNotification ': false,  // always set 'sendForNotification' it as false when dashboard is updated 
           },
         },
         { upsert: true, new: true }
@@ -56,33 +146,10 @@ export const processTravelExpense = async (message,correlationId) => {
   }
 }
 
-export const fullUpdateExpense = async (payload) => {
-  const {getExpenseReport} = payload
-  const { 
-    tenantId,
-    tripId,
-    travelRequestData,
-  } = getExpenseReport;
-  
-    const {travelRequestId} = travelRequestData
-    console.log("payload for travelExpenseData", payload )
 
 
-    try {
-    const updated = await dashboard.findOneAndUpdate(
-      { tenantId,'tripSchema.tenantId': tenantId , 'tripSchema.travelRequestData.travelRequestId':travelRequestId, 'tripSchema.tripId': tripId },
-      {
-       $set:{tripSchema :getExpenseReport}
-      },
-      { upsert: true, new: true }
-    );
-    console.log('Saved to dashboard: TravelExpenseData updated successfully', updated);
-    return { success: true, error: null}
-  } catch (error) {
-    console.error('Failed to update dashboard: TravelExpenseData updation failed', error);
-    return { success: false, error: error}
-  }
-}
-  
+
+
+
 
 

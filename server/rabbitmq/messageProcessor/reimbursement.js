@@ -1,4 +1,5 @@
-import dashboard from "../../models/dashboardSchema.js"
+import REIMBURSEMENT from "../../models/reimbursementSchema.js";
+import reporting from "../../models/reportingSchema.js";
 
 
 export const updateReimbursement = async (payload) => {
@@ -9,23 +10,25 @@ export const updateReimbursement = async (payload) => {
         const { empId } = createdBy;
         console.log("updateReimbursement ....", payload);
 
-        const reimbursement = await dashboard.findOneAndUpdate(
-            { tenantId,'reimbursementSchema.tenantId': tenantId, 'reimbursementSchema.createdBy.empId': empId , 'reimbursementSchema.expenseHeaderId': expenseHeaderId},
-            { $set: { reimbursementSchema: reimbursementReport } },
+        const result = await REIMBURSEMENT.updateOne(
+            { tenantId, 
+            'createdBy.empId': empId , 
+            'expenseHeaderId': expenseHeaderId},
+            { $set: { ...reimbursementReport } },
             { upsert: true, new: true }
         );
 
-        console.log("Reimbursement update result:", reimbursement);
-
-        if (reimbursement) {
+        console.log("Reimbursement update result:", result);
+        
+        if (result.upsertedCount > 0 || result.modifiedCount > 0) {
             console.log("Success: Reimbursement updated successfully.");
             return { success: true, error: null };
         } else {
-            console.log("Failed: Unable to save reimbursement expense in dashboard.");
-            return { success: false, error: "Failed to save reimbursement expense in dashboard." };
+            console.log("Failed: Unable to save reimbursement expense in reporting.");
+            return { success: false, error: "Failed to save reimbursement expense in reporting." };
         }
     } catch (error) {
-        console.error('Failed to update dashboard: using synchronous queue', error);
+        console.error('Failed to update reporting: using synchronous queue', error);
         return { success: false, error: error.message };
     }
 };
@@ -38,11 +41,11 @@ export const deleteReimbursement = async (payload) => {
         const { tenantId,empId, expenseHeaderId } = payload;
 
         console.log("deleteReimbursement....", payload);
-    const deleteReimbursementReport = await dashboard.findOneAndDelete({ 
-        'reimbursementSchema.tenantId': tenantId, 'reimbursementSchema.createdBy.empId': empId, 'reimbursementSchema.expenseHeaderId': expenseHeaderId })
+    const deleteReimbursementReport = await REIMBURSEMENT.findOneAndDelete({ 
+        tenantId, 'expenseHeaderId': expenseHeaderId })
 
         if(!deleteReimbursementReport){
-            return {success: false, error: "Failed to delete reimbursement expense in dashboard."}
+            return {success: false, error: "Failed to delete reimbursement expense in reporting."}
         } else{
             return {success: true, message: "Successfully deleted"}
         }

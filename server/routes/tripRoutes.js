@@ -11,5 +11,5 @@ router.get('/trips/:tenantId/:empId', getTrips)
 export default router;
 
 
- 
+
 

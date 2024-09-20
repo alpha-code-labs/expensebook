@@ -6,6 +6,7 @@ import tripRoutes from './routes/tripRoutes.js';
 import { mainRouter } from './routes/mainFrontendRoutes.js';
 import { handleErrors } from './errorHandler/errorHandler.js';
 import { startConsumer } from './rabbitmq/consumer.js';
+import HRCompany from './models/hrCompanySchema.js';
 
 dotenv.config();
 const app = express();
@@ -24,7 +25,7 @@ app.use(cors(corsOptions));
 
 //Routes
 app.use('/api', tripRoutes);
-app.use('/api/fe/reporting', mainRouter);
+app.use(mainRouter);
 app.get('/test', (req,res) => { return res.status(200).json({message:'Reporting microservice is live'})})
 
 const connectToMongoDB = async () => {
@@ -49,5 +50,8 @@ app.listen(port, () => {
 
 // start consuming messages..
 startConsumer('reporting');
+
+
+
 
 
