@@ -110,7 +110,7 @@ export async function startConsumer(receiver) {
             handleMessageAcknowledgment(channel, msg, res);
             break;
         
-            case 'trip':
+          case 'trip':
             switch (action) {
               case 'trip-creation':
                 console.log('Trying to update trip Data ...............', payload);
@@ -287,7 +287,6 @@ export async function startConsumer(receiver) {
                   break;
             }
             break;
-
 
           default:
             console.warn(`Unknown source ${source} for action ${action}`)
