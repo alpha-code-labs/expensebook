@@ -434,7 +434,8 @@ const handleRunReport = async () => {
     console.log('Report Data Set:', response);
 
     // Stop the loading state once the data is set
-    setIsUploading((prev) => ({ ...prev, filterReport: false }));
+    setIsUploading((prev) => ({ ...prev, filterReport: false, }));
+    setShowModal(false)
   } catch (error) {
     setShowPopup(true)
     setMessage(error.message)

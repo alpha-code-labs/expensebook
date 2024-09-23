@@ -5,7 +5,7 @@ import { approverStatusEnums, itinerarySchema } from "./travelSchema.js";
 const expenseHeaderTypeEnums = ['travel'];
 
 // Define constant enums for expenseStatus and expenseHeaderType
-export const expenseHeaderStatusEnums = [
+const expenseHeaderStatusEnums = [
   "new",
   'draft',
   'pending approval', 
@@ -91,7 +91,7 @@ const expenseLineSchema = new mongoose.Schema({
   billRejectionReason: String,
 },{ strict: false });
 
-export const travelExpenseSchema = new mongoose.Schema({
+const travelExpenseSchema = new mongoose.Schema({
     tenantId: {
       type: String,
       required: true,
@@ -175,8 +175,6 @@ export const travelExpenseSchema = new mongoose.Schema({
         type:Boolean,
         default:false
     },
-    submissionDate: Date,
-    settlementDate:Date,
     entriesFlag:{
     type:Boolean,
     required:true,
@@ -186,3 +184,7 @@ export const travelExpenseSchema = new mongoose.Schema({
 
 
 
+export{
+  expenseHeaderStatusEnums,
+  travelExpenseSchema
+}
