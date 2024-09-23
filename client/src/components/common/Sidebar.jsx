@@ -37,7 +37,7 @@ const Sidebar = ({fetchData, employeeRoles,handleReportTab, reportTab , activeVi
                     {reportTypes.map((item, index) => (
                         <Link
                             key={index}
-                            onClick={() => handleReportTab(item.label)}
+                            onClick={() => handleReportTab(item?.label)}
                             className={`w-full overflow-hidden flex flex-col items-center sm:items-start justify-start py-3 px-4 box-border cursor-pointer ${
                                 'animate-slideIn'
                             } ${reportTab === item.label ? 'bg-purple-500 text-white' : ''}`}

@@ -1,5 +1,6 @@
 import React from 'react';
 import { formatDate } from '../utils/handyFunctions';
+import { TableLayout } from '../components/common/Table';
 
 const TripReport = ({ visibleHeaders, tripData }) => {
 
@@ -65,14 +66,10 @@ const TripReport = ({ visibleHeaders, tripData }) => {
   };
 
   return (
-    <div className="overflow-x-auto mx-4 capitalize text-neutral-700 text-base">
-      <div className="min-w-max scrollbar-hide">
-        <table className="min-w-full bg-white ">
-          {renderHeaders()}
-          {renderRows()}
-        </table>
-      </div>
-    </div>
+    <TableLayout>
+    {renderHeaders()}
+    {renderRows()}
+    </TableLayout>
   );
 }
 

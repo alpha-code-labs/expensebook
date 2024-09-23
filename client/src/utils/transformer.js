@@ -98,7 +98,7 @@ const flattenTripData = (data) => {
       expenseSubmissionDate: new Date(expense?.expenseSubmissionDate)?.toLocaleDateString(), // Format date as needed
       createdBy: expense?.createdBy?.name,
       expenseHeaderStatus: expense?.expenseHeaderStatus,
-      paidBy: expense.paidBy?.name || 'N/A', // Fallback if null
+      paidBy: expense.paidBy?.name || '-', // Fallback if null
       totalExpenseAmount: expense?.expenseAmountStatus?.totalExpenseAmount,
       defaultCurrency: expense?.defaultCurrency?.shortName,
       approvers: expense?.approvers?.map(approver => `${approver?.name ?? "-"} (${approver?.status ?? "-"})`).join(", "),

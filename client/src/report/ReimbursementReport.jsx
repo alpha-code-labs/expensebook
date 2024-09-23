@@ -1,5 +1,6 @@
 import React from 'react';
 import { formatAmount, formatDate } from '../utils/handyFunctions';
+import { TableLayout } from '../components/common/Table';
 
 const ReimbursementReport = ({ visibleHeaders, data }) => {
   // Render table headers dynamically
@@ -63,14 +64,10 @@ const ReimbursementReport = ({ visibleHeaders, data }) => {
   };
 
   return (
-    <div className="overflow-x-auto mx-4 capitalize text-neutral-700 text-base">
-      <div className="min-w-max scrollbar-hide">
-        <table className="min-w-full bg-white ">
-          {renderHeaders()}
-          {renderRows()}
-        </table>
-      </div>
-    </div>
+    <TableLayout>
+    {renderHeaders()}
+    {renderRows()}
+ </TableLayout>
   );
 };
 

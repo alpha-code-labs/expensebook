@@ -312,6 +312,8 @@ const handleRunReport = async () => {
         return "travel-expenses";
       case "non-travel expense":
         return "non-travel-expenses";
+      case "cash-advance":
+        return "trips";
       default:
         return ""; // Fallback value in case reportTab doesn't match
     }
@@ -369,6 +371,11 @@ const handleRunReport = async () => {
 
     // Set the report data based on the current reportTab
     setDataByReportTab(reportTab, response);
+    setFilterForm((prevForm) => ({
+      fromDate:prevForm?.fromDate,
+      toDate: prevForm?.toDate
+    }));
+    setShowModal(false)
 
     console.log('Report Data Set:', response);
 
@@ -508,7 +515,7 @@ return (
               {`${reportTab}s Report`}
               </p>
             </div>
-            <div onClick={() => setShowModal(false)} className='bg-red-100 cursor-pointer rounded-full border border-white'>
+            <div onClick={() => {setShowModal(false);setFilterForm({})}} className='bg-red-100 cursor-pointer rounded-full border border-white'>
               <img src={cancel_icon} className='w-5 h-5' alt="Cancel icon"/>
             </div>
           </div>
@@ -598,7 +605,7 @@ return (
      {['travel expense', 'non-travel expense'].includes(reportTab)&&
       <div className='w-full'>
       <MultiSelect
-      onSelect={(value)=>handleFilterForm('expenseStatus',value)}
+      onSelect={(value)=>handleFilterForm('expenseHeaderStatus',value)}
       placeholder={'i.e. Pending Settlement'}
       title={('Expense status')} 
       options={reportData?.filterData?.statuses?.expenseHeaderStatusList|| []}/>
