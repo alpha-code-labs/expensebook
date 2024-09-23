@@ -3,7 +3,6 @@ import { aeroplane1_icon, airplane_icon1, cancel_icon, csv_icon, down_arrow_icon
 import Modal from './common/Modal';
 import Input from './common/Input';
 import Select from './common/Select';
-import Search from './common/Search';
 import { useParams } from 'react-router-dom';
 import { employees, travelRequestStatus, travelType } from '../data/userData';
 import MultiSearch from '../components/common/MultiSearch';
@@ -13,7 +12,6 @@ import PopupMessage from './common/PopupMessage';
 import ExpenseReport from '../report/ExpenseReport';
 import { formatDate, formatFullDate ,formatDateToYYYYMMDD,handleCSVDownload} from '../utils/handyFunctions';
 import TripChart from './chart/TripChart';
-import { requiredCashAdvanceData, requiredExpenseData, requiredTripData } from '../data/tripData';
 import Error from './common/Error';
 import Sidebar from './common/Sidebar';
 import { getfilteredReportDataAPI, getReportDataAPI } from '../utils/api';
@@ -448,12 +446,12 @@ const handleRunReport = async () => {
 
 useEffect(()=>{
   // setReportData(requiredTripData)
-  setIsLoading(false)
+  setIsLoading(true)
 
-  setTimeout(()=>{
-    setLoadingErrorMsg('Something went wrong')
-    setIsLoading(false)
-    },3000)
+  // setTimeout(()=>{
+  //   setLoadingErrorMsg('Something went wrong')
+  //   setIsLoading(false)
+  //   },3000)
 
   fetchData("myView");
 
@@ -482,8 +480,7 @@ return (
     <div className='w-[180px]'>
         <Sidebar fetchData={(tab)=>fetchData(tab)} employeeRoles={reportData?.employeeRoles} activeView={activeView} setActiveView={setActiveView} handleReportTab={handleReportTab} reportTab={reportTab} />
     </div>  
-{isLoading && <Error message={loadingErrorMsg}/>}
-{!isLoading &&
+{isLoading ? <Error message={loadingErrorMsg}/>:
 <div className=' flex flex-col w-screen  '>
 
   <div className='mx-4 px-4 py-2  bg-indigo-200 rounded-md text-neutral-700 flex flex-row justify-between items-center h-[48px]'>
