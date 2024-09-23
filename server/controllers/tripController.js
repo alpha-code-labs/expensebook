@@ -113,6 +113,7 @@ const tripFilterSchema = Joi.object({
     then: Joi.required(),
   }),
   travelType: Joi.string().valid('domestic', 'international','local').optional(),
+  empNames: Joi.array().items(Joi.object()).optional(),
   tripStatus: Joi.array().items(Joi.string().valid(...tripStatusEnum)).optional(),
   cashAdvanceStatus: Joi.array().items(Joi.string().valid(...cashAdvanceStatusEnum)).optional(),
   expenseHeaderStatus:Joi.array().items(Joi.string().valid(...expenseHeaderStatusEnums)).optional(),
@@ -142,12 +143,24 @@ const filterTrips = async (req, res) => {
     }
 
     console.log("filter trips - value", JSON.stringify(value,'',2))
-    const { tenantId, empId, filterBy, date, fromDate, toDate, travelType, tripStatus,cashAdvanceStatus, travelAllocationHeaders, approvers } = value;
+    const { tenantId, empId, filterBy, date, empNames, fromDate, toDate, travelType, tripStatus,cashAdvanceStatus, travelAllocationHeaders, approvers } = value;
 
+    if(!empNames?.length){
+    return res.status(404).json({success:false, message:'no employees selected for filtering'})
+    }
+
+    const empIds = empNames ? empNames.map(e => e.empId) : [];
+
+    console.log("empNames", JSON.stringify(empIds,'',2))
     let filterCriteria = {    
       tenantId: tenantId,
-      'createdBy.empId': empId,
     };
+
+    if(empIds){
+      filterCriteria['createdBy.empId'] = { $in: empIds }
+    } else {
+      filterCriteria['createdBy.empId'] = empId
+    }
 
     if (filterBy && date && (!fromDate && !toDate)) {
       if (date) {
@@ -243,6 +256,10 @@ const filterTrips = async (req, res) => {
           }
         }
   
+        if(empNames && empIds){
+          filterCriteria['createdBy.empId'] = {$in:empIds}
+        }
+    
         console.log("filterCriteria finally", JSON.stringify(filterCriteria,'',2))
     const tripDocs = await reporting.find(filterCriteria);
 
@@ -403,12 +420,24 @@ const filterTravelExpenses = async (req, res) => {
     }
 
     console.log("filter trips - value", JSON.stringify(value,'',2))
-    const { tenantId, empId, filterBy, date, fromDate, toDate, travelType, tripStatus,expenseHeaderStatus, travelAllocationHeaders, approvers } = value;
+    const { tenantId, empId, filterBy, date, fromDate,empNames, toDate, travelType, tripStatus,expenseHeaderStatus, travelAllocationHeaders, approvers } = value;
+
+    const empIds = empNames ? empNames.map(e => e.empId) : [];
+
+    if(!empNames?.length){
+      return res.status(404).json({success:false, message:'no employees selected for filtering'})
+      }
 
     let filterCriteria = {    
       tenantId: tenantId,
-      'createdBy.empId': empId,
     };
+
+
+    if(empIds){
+      filterCriteria['createdBy.empId'] = { $in: empIds }
+    } else {
+      filterCriteria['createdBy.empId'] = empId
+    }
 
     if (filterBy && date && (!fromDate && !toDate)) {
       if (date) {
@@ -483,7 +512,7 @@ const filterTravelExpenses = async (req, res) => {
       }
     }
 
-    console.log("filterCriteria", JSON.stringify(filterCriteria,'',2))
+    console.log("filterCriteria for mongodb ", JSON.stringify(filterCriteria,'',2))
     if(travelAllocationHeaders){
       filterCriteria['travelRequestData.travelAllocationHeaders'] = {
         $elemMatch:{
@@ -514,7 +543,6 @@ const filterTravelExpenses = async (req, res) => {
     }
 
     const getTrips = extractTrip(tripDocs)
-    console.log("trip filter", getTrips?.length, JSON.stringify(getTrips,'',2))
     return res.status(200).json({success:true , trips:getTrips});
   } catch (error) {
     console.error(error);

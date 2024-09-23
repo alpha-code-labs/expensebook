@@ -77,6 +77,7 @@ const dataSchema = Joi.object({
       is: Joi.exist(),
       then: Joi.required(),
     }),
+    empNames:Joi.array().items(Joi.object()).optional(),
     expenseHeaderStatus: Joi.array().items(Joi.string().valid(...expenseHeaderStatusEnums)).optional(),
     expenseSubmissionDate: Joi.date(), // validation
   }).with('fromDate', 'toDate').without('filterBy', [ 'fromDate', 'toDate']);
@@ -95,12 +96,23 @@ export const getReimbursementExpenseReport = async (req, res) => {
     success: false });
     }
 
-    const { tenantId, empId, filterBy, date, fromDate, toDate , expenseSubmissionDate ,expenseHeaderStatus } = value;
+    const { tenantId, empId, filterBy, date, fromDate, toDate , empNames, expenseSubmissionDate ,expenseHeaderStatus } = value;
 
     let filterCriteria = {
       tenantId,
-      'createdBy.empId': empId,
     };
+
+    const empIds = empNames ? empNames.map(e => e.empId) : [];
+
+    if(!empNames?.length){
+      return res.status(404).json({success:false, message:'no employees selected for filtering'})
+      }
+
+      if(empIds){
+        filterCriteria['createdBy.empId'] = { $in: empIds }
+      } else {
+        filterCriteria['createdBy.empId'] = empId
+      }
 
     if(expenseHeaderStatus?.length){
       filterCriteria.expenseHeaderStatus = {$in: expenseHeaderStatus}
