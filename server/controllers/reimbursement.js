@@ -167,10 +167,10 @@ export const getReimbursementExpenseReport = async (req, res) => {
   const expenseReports = await REIMBURSEMENT.find(filterCriteria);
 
   if (expenseReports.length === 0) {
-    return res.status(404).json({
-      success: false,
+    return res.status(204).json({
+      success: true,
       reports:[],
-      message: 'No reimbursement reports found for the specified date range',
+      message: 'No reimbursement reports found for the specified filter',
     });
   }
 

@@ -194,7 +194,7 @@ export default reporting
 export{
   approverStatusEnums,
   cashAdvanceStatusEnum,
-  tripStatusEnum
+  tripStatusEnum,
 }
 
 
