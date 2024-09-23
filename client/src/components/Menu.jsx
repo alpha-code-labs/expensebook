@@ -332,50 +332,104 @@ const handleRunReport = async () => {
     console.log('API Response:', response);
 
     // Dynamically set report data based on the reportTab value
+    // const setDataByReportTab = (reportTab, response) => {
+    //   switch (reportTab) {
+    //     case "trip":
+    //       if(response?.trips?.length > 0 ){
+
+          
+    //       setReportData((prev) => ({
+    //         ...prev,
+    //         tripData: response?.trips || [],
+    //       }));}else{
+    //         setShowPopup(true)
+    //         setMessage("No trips found for the current criteria.")
+    //       }
+    //       break;
+    //     case "cash-advance":
+    //       setReportData((prev) => ({
+    //         ...prev,
+    //         cashadvanceData: response?.trips || [],
+    //       }));
+    //       break;
+    //     case "travel expense":
+    //       setReportData((prev) => ({
+    //         ...prev,
+    //         travelExpenseData: response?.trips || [],
+    //       }));
+    //       break;
+    //     case "non-travel expense":
+    //       setReportData((prev) => ({
+    //         ...prev,
+    //         nonTravelExpenseData: flattenNonTravelExpenseData(
+    //           response?.reports
+    //         ) || [],
+    //       }));
+    //       break;
+    //     default:
+    //       // Fallback handling, if any
+    //       setReportData((prev) => ({
+    //         ...prev,
+    //         tripData: response?.trips || [],
+    //       }));
+    //   }
+    // };
     const setDataByReportTab = (reportTab, response) => {
-      switch (reportTab) {
-        case "trip":
-          setReportData((prev) => ({
-            ...prev,
-            tripData: response?.trips || [],
-          }));
-          break;
-        case "cash-advance":
-          setReportData((prev) => ({
-            ...prev,
-            cashadvanceData: response?.reportingViews?.employee?.trips || [],
-          }));
-          break;
-        case "travel expense":
-          setReportData((prev) => ({
-            ...prev,
-            travelExpenseData: response?.reportingViews?.employee?.trips || [],
-          }));
-          break;
-        case "non-travel expense":
-          setReportData((prev) => ({
-            ...prev,
-            nonTravelExpenseData: flattenNonTravelExpenseData(
-              response?.reports
-            ) || [],
-          }));
-          break;
-        default:
-          // Fallback handling, if any
-          setReportData((prev) => ({
-            ...prev,
-            tripData: response?.trips || [],
-          }));
+      const dataMap = {
+        trip: "tripData",
+        "cash-advance": "cashadvanceData",
+        "travel expense": "travelExpenseData",
+        "non-travel expense": "nonTravelExpenseData"
+      };
+    
+      const newData = reportTab === "non-travel expense"
+        ? flattenNonTravelExpenseData(response?.reports)
+        : response?.trips || [];
+    
+      // Check if data is empty and handle popup message for each tab
+      if (newData.length === 0) {
+        setShowPopup(true);
+        
+        let message = "";
+        switch (reportTab) {
+          case "trip":
+            message = "No trips found for the current criteria.";
+            break;
+          case "cash-advance":
+            message = "No cash advances found for the current criteria.";
+            break;
+          case "travel expense":
+            message = "No travel expenses found for the current criteria.";
+            break;
+          case "non-travel expense":
+            message = "No non-travel expenses found for the current criteria.";
+            break;
+          default:
+            message = "No data found for the selected criteria.";
+        }
+        setShowPopup(true)
+        setMessage(message);
+
+      } else {
+        setReportData((prev) => ({
+          ...prev,
+          [dataMap[reportTab]]: newData,
+        }));
       }
     };
-
+    
     // Set the report data based on the current reportTab
     setDataByReportTab(reportTab, response);
     setFilterForm((prevForm) => ({
       fromDate:prevForm?.fromDate,
       toDate: prevForm?.toDate
     }));
+    setTimeout(()=>{
+      setShowPopup(false)
+      setMessage(null)
+    },3000)
     setShowModal(false)
+
 
     console.log('Report Data Set:', response);
 
