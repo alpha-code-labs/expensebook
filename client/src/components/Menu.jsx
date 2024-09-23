@@ -275,7 +275,7 @@ const hideHeader = (header) => {
         "travelExpenseData": response?.reports?.trips || [],
         "nonTravelExpenseData": flattenNonTravelExpenseData(response?.reports?.reimbursement) || [],
         "filterData":{
-          "listOfEmployees":response?.reports?.employeeManager?.listOfEmployees  || [],
+          "listOfEmployees":response?.reports?.listOfEmployees  || [],
           "listOfApprovers":response?.reports?.listOfApprovers  || [],
           "statuses":{
             "approverStatusList":response?.reports?.hrDetails?.getEnums?.approverStatusEnums,
@@ -637,7 +637,7 @@ return (
       <MultiSearch
         options={reportData?.filterData?.listOfEmployees}
         // currentOption={selectedOptions}
-        onSelect={(value)=>handleFilterForm('employees',value)}
+        onSelect={(value)=>handleFilterForm('empNames',value)}
         title="Search Employees"
         placeholder="Start typing employee name..."
         // error={{ set: true, message: "Please select at least one employee." }}
@@ -666,14 +666,14 @@ return (
       options={reportData?.filterData?.statuses?.expenseHeaderStatusList|| []}/>
     </div>}
      
-      <MultiSearch
+     {["myView"].includes(activeView) && <MultiSearch
         options={reportData?.filterData?.listOfApprovers}
         // currentOption={selectedOptions}
         onSelect={(value)=>handleFilterForm('approvers',value)}
         title="Search Approvers"
         placeholder="Start typing approver name..."
         // error={{ set: true, message: "Please select at least one employee." }}
-      />
+      />}
       </div>}
 
     {modalTab === "columnTab" && 
