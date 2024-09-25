@@ -197,6 +197,9 @@ expenseSettledDate: Date,
 },{timestamps:true});
 
 
+const REIMBURSEMENT = mongoose.model('reimbursements', reimbursementSchema)
+
+export default REIMBURSEMENT
 // Pre hook to generate and assign an ObjectId to expenseHeaderId before saving the document
 reimbursementSchema.pre('validate', function(next) {
   if(!this.expenseHeaderId) {
