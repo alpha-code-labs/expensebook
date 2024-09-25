@@ -21,7 +21,6 @@ export const settleExpenseReport= async (payload) => {
     const trip = await Expense.findOneAndUpdate(
       { 
         'tenantId': tenantId,
-         
         'travelExpenseData': { $elemMatch: { travelRequestId, expenseHeaderId } }
       },
       { 
@@ -133,68 +132,152 @@ export const settleOrRecoverCashAdvance = async (payload) => {
 };
 
 
-export const settleNonTravelExpenseReport= async (payload) => {
+// export const settleNonTravelExpenseReport= async (payload) => {
+//   try {
+//       const {  tenantId, expenseHeaderId, settlementBy, expenseHeaderStatus, 
+//         settlementDate } = payload;
+// let name 
+// let empId
+//         if (settlementBy) {
+//           let { name, empId } = settlementBy;
+//           console.log(`Settled by: ${name}, empId: ${empId}`);
+//         } else {
+//           console.error('settlementBy is undefined for one of the settlements');
+//         }
+
+//         console.log("non travel settlement", payload)
+//         const status = {
+//           PENDING_SETTLEMENT: 'pending settlement',
+//           PAID: 'paid',
+//           APPROVED:'approved'
+//         };
+        
+//         const filter = {
+//           tenantId,
+//           expenseHeaderId,
+//           // 'expenseHeaderStatus': status.PENDING_SETTLEMENT,
+//         };
+        
+//         // Use findOneAndUpdate to find and update in one operation
+//         const updateResult = await Reimbursement.findOne(
+//           filter,
+//         );
+
+//         if(!updateResult){
+//           throw new Error('non travel expense report not found in dashboard ms')
+//         }
+
+//         const {expenseLines} = updateResult
+
+//         const updatedExpenseLines = expenseLines.map((line) => {
+//           if(line.lineItemStatus == status.APPROVED){
+//             return{
+//               ...line,
+//               lineItemStatus: status.PAID,
+//               actionedUpon:true,
+//               settlementBy: {name,empId},
+//               expenseSettledDate:settlementDate,
+//             }
+//           }
+//           return line
+//         })
+
+//         updateResult.expenseLines = updatedExpenseLines
+//         updateResult.settlementBy = settlementBy
+//         updateResult.expenseHeaderStatus = expenseHeaderStatus
+//         updateResult.settlementDate = settlementDate
+//         updateResult.actionedUpon = true
+        
+//       const report =  await updateResult.save()
+//     console.log('Travel request status updated in expense microservice:', JSON.stringify(report,'',2));
+//     const {expenseHeaderStatus:getStatus} = report
+
+//     if(getStatus === status.PAID){
+//       return { success: true, error: null };
+//     }
+//     return { success: false, error:`non Travel expense report has ${getStatus} as expenseHeaderStatus` };
+//   } catch (error) {
+//     console.error('Failed to update travel request status in expense microservice:', error);
+//     return { success: false, error: error.message };
+//   }
+// };
+
+export const settleNonTravelExpenseReport = async (payload) => {
   try {
-      const {  tenantId, expenseHeaderId, settlementBy, expenseHeaderStatus, 
-        settlementDate } = payload;
+    const {
+      tenantId,
+      expenseHeaderId,
+      settlementBy,
+      expenseHeaderStatus,
+      settlementDate,
+    } = payload;
 
-        console.log("non travel settlement", payload)
-        const status = {
-          PENDING_SETTLEMENT: 'pending settlement',
-          PAID: 'paid',
-          APPROVED:'approved'
+    let name, empId;
+
+    if (settlementBy) {
+      // Destructure only if settlementBy is defined
+      ({ name, empId } = settlementBy);
+      console.log(`Settled by: ${name}, empId: ${empId}`);
+    } else {
+      console.error('settlementBy is undefined for one of the settlements');
+      // Handle this case if needed, e.g., throw an error
+      throw new Error('settlementBy is undefined');
+    }
+
+    console.log("Non-travel settlement", payload);
+    const status = {
+      PENDING_SETTLEMENT: 'pending settlement',
+      PAID: 'paid',
+      APPROVED: 'approved',
+    };
+
+    const filter = {
+      tenantId,
+      expenseHeaderId,
+      // 'expenseHeaderStatus': status.PENDING_SETTLEMENT,
+    };
+
+    // Use findOne to find the document
+    const updateResult = await Reimbursement.findOne(filter);
+
+    if (!updateResult) {
+      throw new Error('Non-travel expense report not found in dashboard MS');
+    }
+
+    const { expenseLines } = updateResult;
+
+    const updatedExpenseLines = expenseLines.map((line) => {
+      if (line.lineItemStatus === status.APPROVED) {
+        return {
+          ...line,
+          lineItemStatus: status.PAID,
+          actionedUpon: true,
+          settlementBy: { name, empId },
+          expenseSettledDate: settlementDate,
         };
-        
-        const filter = {
-          tenantId,
-          expenseHeaderId,
-          'expenseHeaderStatus': status.PENDING_SETTLEMENT,
-        };
-        
-        // Use findOneAndUpdate to find and update in one operation
-        const updateResult = await Reimbursement.findOne(
-          filter,
-        );
+      }
+      return line;
+    });
 
-        if(!updateResult){
-          throw new Error('non travel expense report not found in dashboard ms')
-        }
+    updateResult.expenseLines = updatedExpenseLines;
+    updateResult.settlementBy = settlementBy; // This can be set without issue as settlementBy is checked
+    updateResult.expenseHeaderStatus = expenseHeaderStatus;
+    updateResult.settlementDate = settlementDate;
+    updateResult.actionedUpon = true;
 
-        const {expenseLines} = updateResult
+    const report = await updateResult.save();
+    console.log('Travel request status updated in expense microservice:', JSON.stringify(report, '', 2));
+    const { expenseHeaderStatus: getStatus } = report;
 
-        const updatedExpenseLines = expenseLines.map((line) => {
-          if(line.lineItemStatus == status.APPROVED){
-            return{
-              ...line,
-              lineItemStatus: status.PAID,
-              actionedUpon:true,
-              settlementBy: settlementBy,
-              expenseSettledDate:settlementDate,
-            }
-          }
-          return line
-        })
-
-        updateResult.expenseLines = updatedExpenseLines
-        updateResult.settlementBy = settlementBy
-        updateResult.expenseHeaderStatus = expenseHeaderStatus
-        updateResult.settlementDate = settlementDate
-        updateResult.actionedUpon = true
-        
-      const report =  await updateResult.save()
-    console.log('Travel request status updated in expense microservice:', JSON.stringify(report,'',2));
-    const {expenseHeaderStatus:getStatus} = report
-
-    if(getStatus === status.PAID){
+    if (getStatus === status.PAID) {
       return { success: true, error: null };
     }
-    return { success: false, error:`non Travel expense report has ${getStatus} as expenseHeaderStatus` };
+    return { success: false, error: `Non-travel expense report has ${getStatus} as expenseHeaderStatus` };
   } catch (error) {
     console.error('Failed to update travel request status in expense microservice:', error);
     return { success: false, error: error.message };
   }
 };
-
 
 
 

@@ -102,7 +102,7 @@ export async function startConsumer(receiver) {
         const payload = content?.payload
         const source = content?.headers?.source
         const action = content?.headers?.action
-        // console.log("source", source,"action", action)
+        console.log("source", source,"action", action)
         if(content.headers.destination == 'expense'){
           switch(source){
             case 'onboarding':

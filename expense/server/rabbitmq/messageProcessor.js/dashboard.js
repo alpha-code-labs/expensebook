@@ -1,4 +1,5 @@
 import HRMaster from "../../models/hrCompanySchema.js"
+import Reimbursement from "../../models/reimbursementSchema.js"
 import Expense from "../../models/tripSchema.js"
 
 
@@ -24,7 +25,7 @@ async function updatePreferences(payload){
     }catch(e){
         return {success:false, error:e}
     }
-  }
+}
 
 
 //2) Approve reject cash raised later
@@ -222,7 +223,7 @@ async function getNonTravelExpenseReport(tenantId, empId, expenseHeaderId) {
 }
 
 
-const nonTravelReportApproval = async (payload) => {
+const oldNonTravelReportApproval = async (payload) => {
     try {
        const { tenantId, expenseHeaderId, empId, approve, reject, rejectionReason } = payload;
   
@@ -289,6 +290,72 @@ const nonTravelReportApproval = async (payload) => {
     }
 };
 
+
+//here settlementBy is not coming
+const nonTravelReportApproval = async(payload) => {
+  try {
+    const { tenantId, expenseHeaderId,settlementBy, expenseSettledDate, expenseHeaderStatus} = payload;
+
+    console.log("Received nonTravelReportApproval", tenantId, expenseHeaderId);
+    console.log("Received nonTravelReportApproval", settlementBy);
+    const {name, empId} = settlementBy
+
+    const status = {
+      APPROVED:'approved',
+      PENDING_SETTLEMENT: 'pending settlement',
+      PAID: 'paid',
+    };
+
+    const filter = {
+      tenantId,
+      expenseHeaderId,
+      // expenseHeaderStatus,
+    };
+
+    // Use findOneAndUpdate to find and update in one operation
+    const updateResult = await Reimbursement.findOne(
+      filter,
+    );
+
+    if (!updateResult) {
+      return res.status(404).json({ message: 'No matching document found for update' });
+    }
+  
+    const {expenseLines } = updateResult
+
+    const updatedExpenseLines = expenseLines.map((line) =>{
+      const isPendingSettlement = line.lineItemStatus == status.APPROVED
+     if(isPendingSettlement){
+      return{
+        ...line,
+        lineItemStatus :status.PAID,
+        settlementBy :{name, empId},
+        expenseSettledDate,
+      }
+     }
+     return line
+    })
+
+    console.log("updatedExpenseLines", JSON.stringify(updatedExpenseLines, '', 2))
+
+    updateResult.expenseLines = updatedExpenseLines
+    updateResult.settlementBy = {name,empId}
+    updateResult.expenseHeaderStatus = status.PAID
+    updateResult.actionedUpon = true
+    updateResult.expenseSettledDate = new Date()
+
+    const expenseApproved = await updateResult.save()
+
+    if(!expenseApproved){
+      return { success: false, error:`error occurred while approving non travel expense report `};
+    }
+
+    return { success: true, error: null };
+  } catch (error) {
+    console.error('Failed to update Expense: Non TravelExpenseData update failed', error);
+    return { success: false, error: error.message };
+  }
+}
 
 export { 
         updatePreferences, 

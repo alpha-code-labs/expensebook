@@ -5,6 +5,35 @@ import { sendToOtherMicroservice } from "../rabbitmq/publisher.js";
 import Joi from "joi";
 import { extractTotalAmount } from "./travelExpenseController.js";
 
+
+
+export const getReimbursementReport = async (tenantId, empId, expenseHeaderId) => {
+  try {
+
+    if (!expenseHeaderId || !empId || !tenantId) {
+      throw new Error(' Required parameters are missing - expenseHeaderId , empId,tenantId' )
+    }
+
+    const expenseReport = await Reimbursement.findOne({
+      tenantId,
+      expenseHeaderId,
+      'createdBy.empId': empId,
+    });
+
+    if (!expenseReport) {
+      throw new Error({
+        success: false,
+        message: 'Expense report not found for the given IDs.',
+      });
+    }
+
+    return expenseReport
+  } catch (error) {
+    console.error(error);
+    throw error
+  }
+};
+
 /**
  * Generates an incremental number for a given tenant ID and incremental value.
  * 
@@ -63,7 +92,7 @@ const createReimbursementReport = async(tenantId,empId,companyName,employeeName,
     );
 
     if (updatedExpense) {
-      console.log('Updated expense', updatedExpense);
+      // console.log('Updated expense', updatedExpense);
       ({ expenseHeaderNumber, expenseHeaderId, approvers=[],expenseHeaderStatus  } = updatedExpense);
       return updatedExpense
     }
@@ -105,9 +134,9 @@ const createReimbursementReport = async(tenantId,empId,companyName,employeeName,
       defaultCurrency,
       approvers : []
     }
-    const report = await Reimbursement.create(newExpense)
+    const expenseReport = await Reimbursement.create(newExpense)
     console.log("report", JSON.stringify(report,'',2))
-    return report
+    return expenseReport
   }
 
      // Return the response with the extracted information
@@ -200,6 +229,7 @@ const getApproversFromOnboarding = (employeeDocument,empId) => {
 const employeeSchema = Joi.object({
   empId: Joi.string().required(),
   tenantId: Joi.string().required(),
+  expenseHeaderId: Joi.string().optional(),
 })
 
 
@@ -211,11 +241,13 @@ const employeeSchema = Joi.object({
  */
 export const getExpenseCategoriesForEmpId = async (req, res) => {
   try {
-    const {error,value} = employeeSchema.validate(req.params)
+    const { error, value } = employeeSchema.validate({ ...req.params, ...req.query });
+
     if (error) {
       return res.status(400).send({ message: error.details[0].message });
     }
-    const { tenantId, empId } = value;
+
+    const { tenantId, empId, expenseHeaderId } = value;
 
     // console.log("non travel expense booking",  tenantId, empId )
     const employeeDocument = await HRCompany.findOne({
@@ -255,10 +287,17 @@ const { employeeName, employeeId } = employee?.employeeDetails || {};
 
       const getApprovers = getApproversFromOnboarding(employeeDocument,empId)
       console.log("before","tenantId,empId,companyName, defaultCurrency", tenantId,empId,companyName, defaultCurrency )
-      const getReport = await createReimbursementReport(tenantId,empId,companyName,employeeName,defaultCurrency)
-      if(!getReport){
-        return res.status(404).json({success: false, message: 'report creation or retrial failed', error:error.message})
+
+      let getReport
+      if(!expenseHeaderId){
+        getReport = await createReimbursementReport(tenantId,empId,companyName,employeeName,defaultCurrency)
+        if(!getReport){
+          return res.status(404).json({success: false, message: 'report creation or retrial failed', error:error.message})
+        }
+      } else {
+        getReport = await getReimbursementReport(tenantId,empId,expenseHeaderId)
       }
+    
 
     return res.status(200).json({
       success: true,
@@ -269,7 +308,7 @@ const { employeeName, employeeId } = employee?.employeeDetails || {};
       travelAllocationFlags,
       getApprovers,
       expenseSettlementOptions,  
-      report:getReport
+      expenseReport:getReport
     });
   } catch (error) {
     console.error('Error finding expense categories:', error);
@@ -525,9 +564,6 @@ export const saveReimbursementExpenseLine = async (req, res) => {
       const params = validateRequest(nonTravelSchema, req.params);
       const body = validateRequest(saveSchema, req.body);
   
-      console.log("Request Body for save:", req.body);
-      console.log("Params:", req.params);
-  
       const { tenantId, empId, expenseHeaderId } = params;
       const {lineItem  } = body;
   
@@ -591,8 +627,8 @@ export const saveReimbursementExpenseLine = async (req, res) => {
         return res.status(200).json({
           success: true,
           message: `expense line saved successfully by ${name} `,
-          lineItemId:lastLineItemId,
-          expenseAmountStatus
+          expenseAmountStatus,
+          expenseLines
         });
       }
     } catch (error) {
@@ -617,24 +653,29 @@ export const editReimbursementExpenseLine = async (req, res) => {
       return res.status(404).json({ message: 'Error params are missing' });
     }
 
-    const { lineItem , editedLineItem } = req.body;
+    const { prevLineItem , lineItem } = req.body;
 
+    if (!prevLineItem || !lineItem ) {
+      return res.status(404).json({ message: 'Error in lineItem,prevLineItem' });
+    }
+
+    // console.log("prevLineItem KABOOM ", JSON.stringify(prevLineItem,'',2) ,"lineItem KAKOOM" ,lineItem)
 
    const fixedFields = ['Total Amount', 'Total Fare', 'Premium Amount', 'Total Cost', 'License Cost', 'Subscription Cost',  'Premium Cost','Cost', 'Tip Amount', ]
 
     // Extract total amount
-    let totalAmount = extractTotalAmount(lineItem, fixedFields);
+    let prevTotalAmount = extractTotalAmount(prevLineItem, fixedFields);
 
-    if(!totalAmount){
-      throw new Error(`totalAmount Not found: ${totalAmount}, `, "totalAmount type on save",typeof totalAmount)
+    if(!prevTotalAmount){
+      throw new Error(`prevTotalAmount Not found: ${prevTotalAmount}, `, "prevTotalAmount type on save",typeof prevTotalAmount)
     }  
 
-    let editedTotalAmount = extractTotalAmount(editedLineItem, fixedFields)
-    if(!editedTotalAmount){
-      throw new Error(`editedTotalAmount Not found: ${editedTotalAmount}, `, "editedTotalAmount type on save",typeof editedTotalAmount)
+    let currentTotalAmount = extractTotalAmount(lineItem, fixedFields)
+    if(!currentTotalAmount){
+      throw new Error(`currentTotalAmount Not found: ${currentTotalAmount}, `, "currentTotalAmount type on save",typeof currentTotalAmount)
     } 
 
-    console.log("totalAmount", totalAmount , "editedTotalAmount", editedTotalAmount)
+    // console.log("prevTotalAmount", prevTotalAmount , "currentTotalAmount", currentTotalAmount)
 
     const getReport = await Reimbursement.findOne({ tenantId, expenseHeaderId, 'expenseLines.lineItemId': lineItemId });
     if (!getReport) {
@@ -644,10 +685,10 @@ export const editReimbursementExpenseLine = async (req, res) => {
     let {expenseAmountStatus:{totalRemainingCash,totalExpenseAmount}} = getReport
     console.log("expenseAmountStatus - on save nte", JSON.stringify(getReport.expenseAmountStatus,'',2))
     
-    const totalAmountField = +totalAmount;
-    const editedTotalAmountField = +editedTotalAmount;
-    const newTotalAmount = totalAmountField - editedTotalAmount
-    console.log("totalAmountField", totalAmountField, "editedTotalAmountField", editedTotalAmountField)
+    const prevTotalAmountField = +prevTotalAmount;
+    const currentTotalAmountField = +currentTotalAmount;
+    const newTotalAmount = prevTotalAmountField - currentTotalAmount
+    console.log("prevTotalAmountField", prevTotalAmountField, "currentTotalAmountField", currentTotalAmountField)
 
     let newTotalRemainingCash
     let newTotalExpenseAmount 
@@ -673,12 +714,12 @@ console.log('New Total Expense Amount:', newTotalExpenseAmount);
 
     getReport.expenseAmountStatus.totalExpenseAmount = newTotalExpenseAmount
     getReport.expenseAmountStatus.totalRemainingCash = newTotalRemainingCash
-    if(editedLineItem){
+    if(lineItem){
     getReport.expenseLines = getReport.expenseLines.map(line => {
         if(line.lineItemId.toString() === lineItemId.toString()){
         return{
           ...line,
-          ...editedLineItem
+          ...lineItem
         } 
         }
         return line
@@ -687,7 +728,7 @@ console.log('New Total Expense Amount:', newTotalExpenseAmount);
     const newExpense = await getReport.save()
 
     // const filter = { tenantId, expenseHeaderId, 'expenseLines.lineItemId': lineItemId };
-    // const update = { $set: { 'expenseLines.$': lineItem } };
+    // const update = { $set: { 'expenseLines.$': prevLineItem } };
     // const options = { upsert: true, new: true };
 
     // const updatedExpense = await Reimbursement.findOneAndUpdate(filter, update, options);
@@ -707,7 +748,7 @@ console.log('New Total Expense Amount:', newTotalExpenseAmount);
     return res.status(200).json({
       success: true,
       message: `Expense line saved successfully by ${name}`,
-      editedLine: savedLineItem,
+      updatedLine: savedLineItem,
     });
   } catch (error) {
     console.error(error);
@@ -998,6 +1039,20 @@ export const cancelReimbursementReport = async (req, res) => {
   }
 };
 
+
+const lineItemSchema = Joi.object({
+  lineItemIds: Joi.array()
+    .items(Joi.string().messages({
+      'string.base': 'lineItemIds must be strings',
+      'string.empty': 'lineItemIds cannot be empty'
+    }))
+    .required()
+    .messages({
+      'array.base': 'lineItemIds must be an array',
+      'array.empty': 'lineItemIds cannot be empty',
+      'any.required': 'lineItemIds is a required field'
+    })
+});
 /**
  * Cancels non-travel expense lines in an expense report.
  * @param {Object} req - The request object.
@@ -1007,20 +1062,13 @@ export const cancelReimbursementReport = async (req, res) => {
 export const cancelReimbursementReportLine = async (req, res) => {
   try {
     const { tenantId, empId, expenseHeaderId } = req.params;
-    const { lineItemIds } = req.body;
 
+    const { error , value} = lineItemSchema.validate(req.body);
+    if (error) return res.status(400).json({success: false, message: error.details[0].message})
+
+    const { lineItemIds } = value;
     console.log("params cancelNonTravelReportLine", req.params);
-    console.log("lineItemIds cancelNonTravelReportLine", lineItemIds);
-
-    const fixedFields = ['Total Amount', 'Total Fare', 'Premium Amount', 'Total Cost', 'License Cost', 'Subscription Cost',  'Premium Cost','Cost', 'Tip Amount', ]
-
-    // Extract total amount
-    let totalAmount = extractTotalAmount(lineItem, fixedFields);
-
-    if(!totalAmount){
-      throw new Error(`totalAmount Not found: ${totalAmount}, `, "totalAmount type on save",typeof totalAmount)
-    }  
-
+    console.log("lineItemIds cancelNonTravelReportLine", lineItemIds)
 
     const expenseReport = await Reimbursement.findOne({
       tenantId,
@@ -1035,8 +1083,15 @@ export const cancelReimbursementReportLine = async (req, res) => {
       });
     }
 
-    const { createdBy , approvers } = expenseReport;
+    const { createdBy , approvers , expenseAmountStatus:{totalExpenseAmount,totalRemainingCash}} = expenseReport;
     const { name } = createdBy;
+
+
+    const fixedFields = ['Total Amount', 'Total Fare', 'Premium Amount', 'Total Cost', 'License Cost', 'Subscription Cost',  'Premium Cost','Cost', 'Tip Amount', ]
+    let totalAmount
+    let newTotalExpenseAmount
+    let newTotalRemainingCash
+
 
     const isApproval = approvers?.length > 0
 
@@ -1045,6 +1100,21 @@ export const cancelReimbursementReportLine = async (req, res) => {
         (line) => line.lineItemId.toString() === expenseLineId.toString()
       );
       if (indexToRemove !== -1) {
+      const lineToRemove = expenseReport.expenseLines[indexToRemove]
+       // Extract total amount
+      totalAmount = extractTotalAmount(lineToRemove, fixedFields);
+
+      if(!totalAmount){
+        throw new Error(`totalAmount Not found: ${totalAmount}, `, "totalAmount type on save",typeof totalAmount)
+      }  
+
+      newTotalExpenseAmount = totalExpenseAmount - totalAmount
+      newTotalRemainingCash = totalRemainingCash + totalAmount
+
+      // Update expense report
+      expenseReport.expenseAmountStatus.totalExpenseAmount = newTotalExpenseAmount
+      expenseReport.expenseAmountStatus.totalRemainingCash =  newTotalRemainingCash 
+      // Remove the line item from the expense report
         expenseReport.expenseLines.splice(indexToRemove, 1);
       }
     });
