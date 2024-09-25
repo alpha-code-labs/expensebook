@@ -4,6 +4,7 @@ import dashboard from "../models/dashboardSchema.js";
 import HRMaster from "../models/hrMasterSchema.js";
 import { earliestDate, extractStartDate } from "../utils/date.js";
 import { countViolations, extractValidViolations } from "../utils/count.js";
+import REIMBURSEMENT from "../models/reimbursementSchema.js";
 
 
 function getItinerary(itinerary){
@@ -1018,15 +1019,20 @@ const getTripForEmployee = async (tenantId, empId) => {
               }));
           });
 
-          const reimbursements = tripDocs
-          .filter(trip => {
+          const getReimbursementReports = await REIMBURSEMENT.find(
+            { 'createdBy.empId': empId }, 
+          )
+
+
+          const reimbursements = getReimbursementReports
+          .filter(report => {
             // console.log("trip after filter", trip);
             // Assuming createdBy is an object with empId property
-            return trip?.reimbursementSchema?.createdBy?.empId === empId;
+            return report?.createdBy?.empId === empId;
           })
-          .flatMap(trip => {
+          .flatMap(report => {
             // console.log("before reimbursement schema:", trip);
-            const { expenseHeaderId, createdBy, expenseHeaderNumber, expenseHeaderStatus } = trip.reimbursementSchema;
+            const { expenseHeaderId, createdBy, expenseHeaderNumber, expenseHeaderStatus } = report;
             return [{
               expenseHeaderId,
               createdBy,
@@ -1035,7 +1041,7 @@ const getTripForEmployee = async (tenantId, empId) => {
             }];
           });
         
-        // console.log("reimbursements reports:", reimbursements);
+        console.log("reimbursements reports:", reimbursements);
         
         const trips = {           
             upcomingTrips: upcomingTrips ?? [],
@@ -1198,19 +1204,24 @@ const status ={
         };
     });
 
-        const allNonTravelReports = tripDocs
-        .filter(trip => {
+    const getReimbursementReports = await REIMBURSEMENT.find({ 
+        'createdBy.empId': empId })
+    
+
+        const allNonTravelReports = getReimbursementReports
+        .filter(report => {
             // console.log("trip after filter", trip);
             // Assuming createdBy is an object with empId property
-            return trip?.reimbursementSchema?.createdBy?.empId === empId;
+            return report?.createdBy?.empId === empId;
           })
-          .flatMap(trip => {
+          .flatMap(report => {
             // console.log("before reimbursement schema:", trip);
-            const { expenseHeaderId, createdBy, expenseHeaderNumber, expenseHeaderStatus, expenseLines } = trip?.reimbursementSchema;
+            const { expenseHeaderId, createdBy, expenseAmountStatus,expenseHeaderNumber, expenseHeaderStatus, expenseLines } = report;
             // return expenseLines.map(expenseLine => ({lineItemId, lineItemStatus,})
             return [{
               expenseHeaderId,
               createdBy,
+              expenseAmountStatus,
               expenseHeaderNumber,
               expenseHeaderStatus,
               expenseLines
@@ -1670,14 +1681,13 @@ const approvalsForManager = async (tenantId, empId) => {
                                 }
                             }
                             }
-                        },
-                        {'reimbursementSchema.approvers':{
-                            $elemMatch :{empId,'status': 'pending approval'}
-                        }, 
                         }
             ]
         }).lean().exec();
 
+        const getReimbursementReports = await REIMBURSEMENT.find({'approvers':{
+                $elemMatch :{empId,'status': 'pending approval'}}
+        })
         // console.log("approvalDoc",approvalDoc)
         if (approvalDoc?.length === 0) {
             return { message: 'There are no approvals found for the user' };
@@ -1828,52 +1838,6 @@ const approvalsForManager = async (tenantId, empId) => {
                 return []; // Return an empty array or handle the error accordingly
             }
         })();
-        console.log("travelExpenseReports", approvalDoc.length)
-
-        const nonTravelExpenseReports = await (async () => {
-            try {
-                // Filter approvals based on criteria
-                const filteredApprovals = approvalDoc.filter(approval => {
-                    const schema = approval.reimbursementSchema;
-        
-                    // Ensure schema exists and meets criteria
-                    return schema &&
-                           schema.tenantId === tenantId &&
-                           schema.expenseHeaderStatus === 'pending approval' &&
-                           schema.approvers.some(approver => {
-                               return approver.empId === empId &&
-                                      approver.status === 'pending approval';
-                           });
-                });
-        
-                // Extract necessary data from filtered approvals
-                const nonTravelExpenseDataList = filteredApprovals.map(approval => {
-                    const schema = approval.reimbursementSchema;
-                    const {
-                        expenseHeaderNumber,
-                        expenseHeaderId,
-                        expenseHeaderStatus,
-                        createdBy,
-                        approvers,
-                        expenseLines
-                    } = schema;
-        
-                    return {
-                        expenseHeaderNumber,
-                        expenseHeaderId,
-                        expenseHeaderStatus,
-                        createdBy,
-                        approvers,
-                        expenseLines
-                    };
-                });
-        
-                return nonTravelExpenseDataList;
-            } catch (error) {
-                console.error('Error occurred:', error);
-                return []; // Handle the error by returning an empty array
-            }
-        })();
         
     //    console.log("nonTravelExpenseReports",nonTravelExpenseReports)
        const addALeg= await (async () => {
@@ -1934,6 +1898,49 @@ const approvalsForManager = async (tenantId, empId) => {
         // console.log("rule12", uniqueTravelWithCash)
     
         // console.log("addAleg", addALeg)
+        console.log("travelExpenseReports", approvalDoc.length)
+
+        const nonTravelExpenseReports = await (async () => {
+            try {
+                // Filter approvals based on criteria
+                const filteredApprovals = getReimbursementReports.filter(approval => {
+                    return approval &&
+                           approval.tenantId === tenantId &&
+                           approval.expenseHeaderStatus === 'pending approval' &&
+                           approval.approvers.some(approver => {
+                               return approver.empId === empId &&
+                                      approver.status === 'pending approval';
+                           });
+                });
+        
+                // Extract necessary data from filtered approvals
+                const nonTravelExpenseDataList = filteredApprovals.map(approval => {
+                    const {
+                        expenseHeaderNumber,
+                        expenseHeaderId,
+                        expenseHeaderStatus,
+                        createdBy,
+                        approvers,
+                        expenseLines
+                    } = approval;
+        
+                    return {
+                        expenseHeaderNumber,
+                        expenseHeaderId,
+                        expenseHeaderStatus,
+                        createdBy,
+                        approvers,
+                        expenseLines
+                    };
+                });
+        
+                return nonTravelExpenseDataList;
+            } catch (error) {
+                console.error('Error occurred:', error);
+                return []; // Handle the error by returning an empty array
+            }
+        })();
+
         const responseData = {
                 // travelAndCash: [...travelRequests, ...travelWithCash,cashAdvanceRaisedLater, addAleg],
                 travelAndCash: [ ...filteredTravelWithCash, ...cashAdvanceRaisedLater,],
@@ -2283,7 +2290,7 @@ console.log("verified business admin layout", tenantId, empId);
                 return results.filter(Boolean);
             })();
             
-            console.log("Add a leg .......", JSON.stringify(trips,'',2))
+            // console.log("Add a leg .......", JSON.stringify(trips,'',2))
 
             const tripsPaidAndCancelled = await (async () => {
                 // Filter bookings where the tripStatus is not 'cancelled' and travelRequestStatus is 'booked'

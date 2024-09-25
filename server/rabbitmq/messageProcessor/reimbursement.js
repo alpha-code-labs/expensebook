@@ -1,4 +1,4 @@
-import dashboard from "../../models/dashboardSchema.js"
+import REIMBURSEMENT from "../../models/reimbursementSchema.js";
 
 
 export const updateReimbursement = async (payload) => {
@@ -9,9 +9,9 @@ export const updateReimbursement = async (payload) => {
         const { empId } = createdBy;
         console.log("updateReimbursement ....", payload);
 
-        const reimbursement = await dashboard.findOneAndUpdate(
-            { tenantId,'reimbursementSchema.tenantId': tenantId, 'reimbursementSchema.createdBy.empId': empId , 'reimbursementSchema.expenseHeaderId': expenseHeaderId},
-            { $set: { reimbursementSchema: reimbursementReport } },
+        const reimbursement = await REIMBURSEMENT.findOneAndUpdate(
+            { tenantId, 'createdBy.empId': empId ,expenseHeaderId},
+            { $set: { ...reimbursementReport } },
             { upsert: true, new: true }
         );
 
@@ -38,8 +38,8 @@ export const deleteReimbursement = async (payload) => {
         const { tenantId,empId, expenseHeaderId } = payload;
 
         console.log("deleteReimbursement....", payload);
-    const deleteReimbursementReport = await dashboard.findOneAndDelete({ 
-        'reimbursementSchema.tenantId': tenantId, 'reimbursementSchema.expenseHeaderId': expenseHeaderId })
+    const deleteReimbursementReport = await REIMBURSEMENT.findOneAndDelete({ 
+        tenantId, expenseHeaderId })
 
         if(!deleteReimbursementReport){
             return {success: false, error: "Failed to delete reimbursement expense in dashboard."}

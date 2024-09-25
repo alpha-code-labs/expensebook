@@ -2,6 +2,7 @@ import Joi from "joi";
 import { employeeSchema } from "../controllersRoleBased/roleBasedController.js";
 import dashboard from "../models/dashboardSchema.js";
 import { sendToOtherMicroservice } from "../rabbitmq/publisher.js";
+import REIMBURSEMENT from "../models/reimbursementSchema.js";
 
 const status = {
   PENDING_APPROVAL:'pending approval'
@@ -1351,10 +1352,10 @@ const otherExpenseSchema = Joi.object({
 
 async function getNonTravelExpenseReport(tenantId, empId, expenseHeaderId) {
   try {
-    const report = await dashboard.findOne({
+    const report = await REIMBURSEMENT.findOne({
       tenantId,
-      'reimbursementSchema.expenseHeaderId':expenseHeaderId,
-      'reimbursementSchema.approvers': {
+      expenseHeaderId,
+      'approvers': {
             $elemMatch: {
               'empId': empId,
               status:'pending approval'
@@ -1400,48 +1401,45 @@ export const nonTravelReportApproval = async (req, res) => {
        return res.status(404).json({ message: 'No matching approval document found for updating expenses status.' });
      }
 
-      const { reimbursementSchema} = approvalDocument
-      const { createdBy:{name = ''} = {}} = reimbursementSchema
- 
-      const {expenseLines = []} =reimbursementSchema
+      const { createdBy:{name = ''} = {}, expenseLines = []} = approvalDocument
 
       const updatedExpenseLines = updateExpenseLineStatus(expenseLines, approve, reject,empId)
 
        console.log("updatedExpenseLines", JSON.stringify(updatedExpenseLines,'',2))
-      reimbursementSchema.expenseLines = updatedExpenseLines
-      const isPendingApproval = reimbursementSchema.expenseHeaderStatus === 'pending approval'
+      approvalDocument.expenseLines = updatedExpenseLines
+      const isPendingApproval = approvalDocument.expenseHeaderStatus === 'pending approval'
 
       console.log("isPendingApproval", isPendingApproval)
 
-       const isAllApproved = reimbursementSchema.expenseLines.every(line => line.lineItemStatus === 'approved')
-       const isRejected = reimbursementSchema.expenseLines.some(line => line.lineItemStatus === 'rejected')
+       const isAllApproved = approvalDocument.expenseLines.every(line => line.lineItemStatus === 'approved')
+       const isRejected = approvalDocument.expenseLines.some(line => line.lineItemStatus === 'rejected')
 
      console.log("isAllApproved, isRejected", isAllApproved, isRejected)
 
-     const getApprover = reimbursementSchema.approvers.find(approver =>
+     const getApprover = approvalDocument.approvers.find(approver =>
       approver.empId === empId && approver.status === 'pending approval'
      )
 
     console.log("approver", getApprover)
 
        if(getApprover && isAllApproved && isPendingApproval ){
-       const setApprover = reimbursementSchema.approvers.map(approver =>{
+       const setApprover = approvalDocument.approvers.map(approver =>{
         if(approver.empId === empId && approver.status === 'pending approval'){
           return { ...approver, status: 'approved' }
         }
        }
          )
-        reimbursementSchema.approvers = setApprover
-        reimbursementSchema.expenseHeaderStatus = 'pending settlement'
+        approvalDocument.approvers = setApprover
+        approvalDocument.expenseHeaderStatus = 'pending settlement'
        } else if(getApprover && isPendingApproval && isRejected ){
-        const setApprover = reimbursementSchema.approvers.map(approver =>{
+        const setApprover = approvalDocument.approvers.map(approver =>{
           if(approver.empId === empId && approver.status === 'pending approval'){
             return { ...approver, status: 'rejected' }
           }
         })
-        reimbursementSchema.status = setApprover
-        reimbursementSchema.expenseHeaderStatus = 'rejected';
-        reimbursementSchema.rejectionReason = rejectionReason
+        approvalDocument.status = setApprover
+        approvalDocument.expenseHeaderStatus = 'rejected';
+        approvalDocument.rejectionReason = rejectionReason
        }
 
        // Save the updated approvalDocument document
@@ -1451,7 +1449,7 @@ export const nonTravelReportApproval = async (req, res) => {
          return res.status(404).json({message:`error occurred while updating expense report `})
        }
 
-     const {  expenseHeaderStatus, approvers } = expenseApproved.reimbursementSchema;
+     const {  expenseHeaderStatus, approvers } = expenseApproved;
 
      const validStatus = ['approved','rejected','pending settlement']
      if(validStatus.includes(expenseHeaderStatus)){

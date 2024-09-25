@@ -1,5 +1,6 @@
-import { get } from "mongoose";
+
 import dashboard from "../../models/dashboardSchema.js";
+import REIMBURSEMENT from "../../models/reimbursementSchema.js";
 
 
 // Non travel expense header 'paid'
@@ -16,13 +17,13 @@ export const settleNonTravelExpenseReport= async (payload) => {
         };
         
         const filter = {
-          'reimbursementSchema.tenantId': tenantId,
-          'reimbursementSchema.expenseHeaderId': expenseHeaderId,
-          'reimbursementSchema.expenseHeaderStatus': status.PENDING_SETTLEMENT,
+          tenantId,
+          expenseHeaderId,
+          'expenseHeaderStatus': status.PENDING_SETTLEMENT,
         };
         
         // Use findOneAndUpdate to find and update in one operation
-        const updateResult = await dashboard.findOne(
+        const updateResult = await REIMBURSEMENT.findOne(
           filter,
         );
 
@@ -30,7 +31,7 @@ export const settleNonTravelExpenseReport= async (payload) => {
           throw new Error('non travel expense report not found in dashboard ms')
         }
 
-        const {expenseLines} = updateResult.reimbursementSchema
+        const {expenseLines} = updateResult
 
         const updatedExpenseLines = expenseLines.map((line) => {
           if(line.lineItemStatus == status.APPROVED){
@@ -45,11 +46,11 @@ export const settleNonTravelExpenseReport= async (payload) => {
           return line
         })
 
-        updateResult.reimbursementSchema.expenseLines = updatedExpenseLines
-        updateResult.reimbursementSchema.settlementBy = settlementBy
-        updateResult.reimbursementSchema.expenseHeaderStatus = expenseHeaderStatus
-        updateResult.reimbursementSchema.settlementDate = settlementDate
-        updateResult.reimbursementSchema.actionedUpon = true
+        updateResult.expenseLines = updatedExpenseLines
+        updateResult.settlementBy = settlementBy
+        updateResult.expenseHeaderStatus = expenseHeaderStatus
+        updateResult.settlementDate = settlementDate
+        updateResult.actionedUpon = true
         
       const report =  await updateResult.save()
     console.log('Travel request status updated in Dashboard microservice:', JSON.stringify(report,'',2));
