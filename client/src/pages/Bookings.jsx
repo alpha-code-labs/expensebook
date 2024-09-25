@@ -896,7 +896,7 @@ function AddTicketManually(
     
 
     useEffect(()=>{
-        if(presentURL == undefined){
+        if(!presentURL){
             setDocURL();
         }
     }, [fileSelected, presentURL])
@@ -905,6 +905,7 @@ function AddTicketManually(
 
     async function setDocURL(){
         if(firstTime) {firstTime = false; return;}
+        if(!selectedFile) return;
         setUploading(true)
         const res = await uploadFileToAzure(selectedFile)
         setUploading(false)
@@ -935,7 +936,8 @@ function AddTicketManually(
                                     <div className='' key={index}>
                                         <Input 
                                             title={field.name} 
-                                            value={field.toSet == field.id ? itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet] : itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet].billDetails?.[field.id]} 
+                                            value={
+                                                field.toSet == field.id ? itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet] ? itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet] : itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet.split('_')[1]]  : itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet].billDetails?.[field.id]} 
                                             onChange={(e)=>handleFieldValueChange(field.toSet, field.id, e)} />
                                     </div>)
 
@@ -954,7 +956,7 @@ function AddTicketManually(
                                         min={getDateXDaysAway(Number(minDaysBeforeBooking))}
                                         className="w-full h-full decoration:none px-6 py-2 border rounded-md border border-neutral-300 focus-visible:outline-0 focus-visible:border-indigo-600 "
                                         name={field.name} 
-                                        value={itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet]}
+                                        value={itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet] ? itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet] : itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet.split('_')[1]]}
                                         onChange={(e)=>handleFieldValueChange(field.toSet, field.id, e)} />
                                     </div>
                                 </div>

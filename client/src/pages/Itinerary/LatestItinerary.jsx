@@ -89,27 +89,27 @@ const editItineraryItem = useCallback((formId)=>{
 
   switch(category){
     case 'flights' : {
-     setModalContent(<FlightForm setVisible={setVisible} handleAddToItinerary={handleAddToItinerary} action='edit' editId={formId} editData={{from:item.from, to:item.to, date:item.date, time:item.time}} />);
+     setModalContent(<FlightForm setVisible={setVisible} handleAddToItinerary={handleAddToItinerary} action='edit' editId={formId} editData={{from:item.from, to:item.to, date:item.date, time:item.time}} itinerary={formData.itinerary} />);
      return; 
     }
     case 'trains' : {
-      setModalContent(<TrainForm setVisible={setVisible} handleAddToItinerary={handleAddToItinerary} action='edit' editId={formId} editData={{from:item.from, to:item.to, date:item.date, time:item.time}} />);
+      setModalContent(<TrainForm setVisible={setVisible} handleAddToItinerary={handleAddToItinerary} action='edit' editId={formId} editData={{from:item.from, to:item.to, date:item.date, time:item.time}} itinerary={formData.itinerary} />);
       return; 
      }
      case 'buses' : {
-      setModalContent(<BusForm setVisible={setVisible} handleAddToItinerary={handleAddToItinerary} action='edit' editId={formId} editData={{from:item.from, to:item.to, date:item.date, time:item.time}} />);
+      setModalContent(<BusForm setVisible={setVisible} handleAddToItinerary={handleAddToItinerary} action='edit' editId={formId} editData={{from:item.from, to:item.to, date:item.date, time:item.time}} itinerary={formData.itinerary} />);
       return; 
      }
     case 'cabs' : {
-      setModalContent(<CabForm setVisible={setVisible} handleAddToItinerary={handleAddToItinerary} action='edit' editId={formId} editData={{pickupAddress:item.pickupAddress, dropAddress:item.dropAddress, class:item.class, time:item.time, date:item.date, returnDate:item.returnDate, isFullDayCab:item.isFullDayCab}} />);
+      setModalContent(<CabForm setVisible={setVisible} handleAddToItinerary={handleAddToItinerary} action='edit' editId={formId} editData={{pickupAddress:item.pickupAddress, dropAddress:item.dropAddress, class:item.class, time:item.time, date:item.date, returnDate:item.returnDate, isFullDayCab:item.isFullDayCab}} itinerary={formData.itinerary} />);
       return;
     }
     case 'carRentals' : {
-      setModalContent(<CabForm setVisible={setVisible} handleAddToItinerary={handleAddToItinerary} action='edit' editId={formId} editData={{pickupAddress:item.pickupAddress, dropAddress:item.dropAddress, class:item.class, time:item.time, date:item.date, returnDate:item.returnDate, isRentalCab:true}} />);
+      setModalContent(<CabForm setVisible={setVisible} handleAddToItinerary={handleAddToItinerary} action='edit' editId={formId} editData={{pickupAddress:item.pickupAddress, dropAddress:item.dropAddress, class:item.class, time:item.time, date:item.date, returnDate:item.returnDate, isRentalCab:true}} itinerary={formData.itinerary} />);
       return;
     }
     case 'hotels' : {
-      setModalContent(<HotelForm setVisible={setVisible} handleAddToItinerary={handleAddToItinerary} action='edit' editId={formId} editData={{checkIn:item.checkIn, checkOut:item.checkOut, class:item.class, location:item.location, time:item.time, needBreakfast:item.needBreakfast, needLunch: item.needLunch, needDinner:item.needDinner, needNonSmokingRoom:item.needNonSmokingRoom}} />);
+      setModalContent(<HotelForm setVisible={setVisible} handleAddToItinerary={handleAddToItinerary} action='edit' editId={formId} editData={{checkIn:item.checkIn, checkOut:item.checkOut, class:item.class, location:item.location, time:item.time, needBreakfast:item.needBreakfast, needLunch: item.needLunch, needDinner:item.needDinner, needNonSmokingRoom:item.needNonSmokingRoom}} itinerary={formData.itinerary} />);
       return;
     }
   }
@@ -492,7 +492,7 @@ useEffect(()=>{
     </>)
 }
 
-const FlightForm = ({setVisible, handleAddToItinerary, action='create', editId = null, editData=null})=>{
+const FlightForm = ({setVisible, handleAddToItinerary, action='create', editId = null, editData=null, itinerary})=>{
 
   const [formData, setFormData] = useState({from:editData?.from??'', to:editData?.to??'', date:editData?.date??getCurrentDate(), time:editData?.time??'12pm - 3pm'});
 
@@ -598,7 +598,7 @@ const FlightForm = ({setVisible, handleAddToItinerary, action='create', editId =
     </div>)
 }
 
-const TrainForm = ({setVisible, handleAddToItinerary, action='create', editId = null, editData=null})=>{
+const TrainForm = ({setVisible, handleAddToItinerary, action='create', editId = null, editData=null, itinerary})=>{
 
   const [formData, setFormData] = useState({from:editData?.from??'', to:editData?.to??'', date:editData?.date??getCurrentDate(), time:editData?.time??'12pm - 3pm'});
 
@@ -704,7 +704,7 @@ const TrainForm = ({setVisible, handleAddToItinerary, action='create', editId = 
     </div>)
 }
 
-const BusForm = ({setVisible, handleAddToItinerary, action='create', editId = null, editData=null})=>{
+const BusForm = ({setVisible, handleAddToItinerary, action='create', editId = null, editData=null, itinerary})=>{
 
   const [formData, setFormData] = useState({from:editData?.from??'', to:editData?.to??'', date:editData?.date??getCurrentDate(), time:editData?.time??'12pm - 3pm'});
 
@@ -810,7 +810,7 @@ const BusForm = ({setVisible, handleAddToItinerary, action='create', editId = nu
     </div>)
 }
 
-const CabForm = ({setVisible, handleAddToItinerary, action='create', editId = null, editData=null})=>{
+const CabForm = ({setVisible, handleAddToItinerary, action='create', editId = null, editData=null, itinerary})=>{
 
   const [formData, setFormData] = useState( 
     {
@@ -1026,7 +1026,7 @@ const CabForm = ({setVisible, handleAddToItinerary, action='create', editId = nu
     </div>)
 }
 
-const HotelForm = ({setVisible, handleAddToItinerary, action='create', editId = null, editData = null})=>{
+const HotelForm = ({setVisible, handleAddToItinerary, action='create', editId = null, editData = null, itinerary})=>{
 
   const [formData, setFormData] = useState(
     {checkIn:editData?.checkIn??getCurrentDate(), 
@@ -1283,7 +1283,7 @@ const Confirm = ({ visible, setVisible, actionHandler, itemId}) => {
         <div className='fixed  w-[100%] h-[100%] left-0 top-0 bg-black/30 z-10' onClick={()=>setVisible(false)}>
         </div>
 
-        <div className="fixed w-[90%] sm:w-fit max-w-[100%] h-fit max-h-[90%] overflow-y-scroll sm:overflow-y-hidden left-[50%] translate-x-[-50%] top-[50%] translate-y-[-50%] rounded-sm shadow-lg z-[100] bg-white">
+        <div className="fixed w-[90%] sm:w-fit max-w-[100%] h-fit max-h-[90%]  sm:overflow-y-hidden left-[50%] translate-x-[-50%] top-[50%] translate-y-[-50%] rounded-sm shadow-lg z-[100] bg-white">
       
             {/* childrens */}
             <div className='p-6 sm:p-10 max-w-[100%] rounded-sm'>
