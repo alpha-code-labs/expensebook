@@ -14,12 +14,10 @@ import {getRawTravelRequest_API, getTravelBookingOnboardingData_API, updateTrave
 import { cab_icon, bus_icon, train_icon, biderectional_arrows_icon as double_arrow, calender_icon, clock_icon, airplane_icon, location_icon } from "../assets/icon";
 import CloseButton from "../components/common/closeButton";
 import Error from "../components/common/Error";
-import { Document, Page } from 'react-pdf';
 import Prompt from "../components/common/Prompt";
-import {material_flight_black_icon, material_train_black_icon, material_bus_black_icon, material_cab_black_icon, material_car_rental_black_icon, material_hotel_black_icon, material_personal_black_icon, add_icon} from "../assets/icon";
+import { close_gray_icon, material_flight_black_icon, material_train_black_icon, material_bus_black_icon, material_cab_black_icon, material_car_rental_black_icon, material_hotel_black_icon, material_personal_black_icon, add_icon} from "../assets/icon";
 import { BlobServiceClient } from "@azure/storage-blob";
 
-const TRAVEL_API = import.meta.env.VITE_TRAVEL_API_URL
 const az_blob_container = import.meta.env.VITE_AZURE_BLOB_CONTAINER
 
 const storage_sas_token = import.meta.env.VITE_AZURE_BLOB_SAS_TOKEN
@@ -31,8 +29,6 @@ const blob_endpoint = `https://${storage_account}.blob.core.windows.net/?${stora
 const DASHBOARD_URL = import.meta.env.VITE_DASHBOARD_URL
 
 
-console.log(import.meta.env.VITE_TRAVEL_API_URL)
-
 const expenseCategories = {
     'flight' : [{name:'Vendor Name', id:'vendorName', toSet:'bookingDetails', type:'text'}, 
                 {name:'Flight Date',  toSet:'bkd_date',  id:'bkd_date', type:'date'},
@@ -41,6 +37,7 @@ const expenseCategories = {
                 {name:'Arrival', type:'text', toSet:'bkd_to', id:'bkd_to'}, 
                 {name:'Tax Amount', type:'amount', toSet:'bookingDetails', id:'taxAmount'}, 
                 {name:'Total Amount', type:'amount', toSet:'bookingDetails', id:'totalAmount'}],
+                
     'train' : [{name:'Vendor Name', id:'vendorName', toSet:'bookingDetails', type:'text'}, 
                 {name:'Train Date',  toSet:'bkd_date',  id:'bkd_date', type:'date'},
                 {name:'Train Time',  toSet:'bkd_time',  id:'bkd_time', type:'time'},
@@ -48,6 +45,7 @@ const expenseCategories = {
                 {name:'Arrival', type:'text', toSet:'bkd_to', id:'bkd_to'}, 
                 {name:'Tax Amount', type:'amount', toSet:'bookingDetails', id:'taxAmount'}, 
                 {name:'Total Amount', type:'amount', toSet:'bookingDetails', id:'totalAmount'}],
+
     'bus' : [{name:'Vendor Name', id:'vendorName', toSet:'bookingDetails', type:'text'}, 
                 {name:'Bus Date',  toSet:'bkd_date',  id:'bkd_date', type:'date'},
                 {name:'Bus Time',  toSet:'bkd_time',  id:'bkd_time', type:'time'},
@@ -55,19 +53,32 @@ const expenseCategories = {
                 {name:'Arrival', type:'text', toSet:'bkd_to', id:'bkd_to'}, 
                 {name:'Tax Amount', type:'amount', toSet:'bookingDetails', id:'taxAmount'}, 
                 {name:'Total Amount', type:'amount', toSet:'bookingDetails', id:'totalAmount'}],
+
     'personalVehicle' : [{name:'Vendor Name', id:'vendorName', toSet:'bookingDetails', type:'text'}, 
                 {name:'Travel Date',  toSet:'bkd_date',  id:'bkd_date', type:'date'},
                 {name:'Departure', toSet:'bkd_from',  id:'bkd_from', type:'text'}, 
                 {name:'Arrival', type:'text', toSet:'bkd_to', id:'bkd_to'}, 
                 {name:'Tax Amount', type:'amount', toSet:'bookingDetails', id:'taxAmount'}, 
                 {name:'Total Amount', type:'amount', toSet:'bookingDetails', id:'totalAmount'}],
+
     'cab' : [{name:'Vendor Name', id:'vendorName', toSet:'bookingDetails', type:'text'},
-                {name:'Booking Date',  toSet:'bkd_date',  id:'bkd_date', type:'date'}, 
+                {name:'Booking Date',  toSet:'bkd_date',  id:'bkd_date', type:'date'},
+                {name: 'Return Date', toSet:'bkd_returnDate', id:'bkd_returnDate', type:'date'}, 
                 {name:'Cab Time',  toSet:'bkd_time',  id:'bkd_time', type:'time'},
                 {name:'Pickup Address', toSet:'bkd_pickupAddress',  id:'bkd_pickupAddress', type:'text'}, 
                 {name:'Drop Address', type:'text', toSet:'bkd_dropAddress', id:'bkd_dropAddress'}, 
                 {name:'Tax Amount', type:'amount', toSet:'bookingDetails', id:'taxAmount'}, 
                 {name:'Total Amount', type:'amount', toSet:'bookingDetails', id:'totalAmount'}],
+
+    'rentalCab' : [{name:'Vendor Name', id:'vendorName', toSet:'bookingDetails', type:'text'},
+                {name:'Booking Date',  toSet:'bkd_date',  id:'bkd_date', type:'date'},
+                {name: 'Return Date', toSet:'bkd_returnDate', id:'bkd_returnDate', type:'date'}, 
+                {name:'Cab Time',  toSet:'bkd_time',  id:'bkd_time', type:'time'},
+                {name:'Pickup Address', toSet:'bkd_pickupAddress',  id:'bkd_pickupAddress', type:'text'}, 
+                {name:'Drop Address', type:'text', toSet:'bkd_dropAddress', id:'bkd_dropAddress'}, 
+                {name:'Tax Amount', type:'amount', toSet:'bookingDetails', id:'taxAmount'}, 
+                {name:'Total Amount', type:'amount', toSet:'bookingDetails', id:'totalAmount'}],
+
     'hotel' : [{name:'Vendor Name', id:'vendorName', toSet:'bookingDetails', type:'text'},
                 {name:'Location', id:'bkd_location', toSet:'bkd_location', type:'text'}, 
                  {name:'Hotel Name', id:'hotelName', toSet:'bookingDetails', type:'text'},
@@ -94,33 +105,32 @@ export default function () {
 
     //fetch travel request details and other details
     useEffect(()=>{
-                (async function(){
-                    const res = await getRawTravelRequest_API({travelRequestId})
-                    
-                    if(res.err){
-                        setLoadingErrMsg(res.err)
-                        return;
-                    }
-        
-                    setFormData(res.data)
-        
-                    const tenantId = res.data.tenantId
-                    const travelType = res.data.travelType
-        
-                    console.log(tenantId)
-        
-                    const employeeId = res.data?.createdFor?.empId??res.data?.createdBy?.empId
-                    console.log(employeeId)
-                    const onboarding_res = await getTravelBookingOnboardingData_API({tenantId, employeeId, travelType})
-                    console.log(onboarding_res.data, 'onboarding')
-                    setOnBoardingData(onboarding_res.data)
-        
-                    console.log(res.data)
-                    
-                    setIsLoading(false)
-                })()
-            },[])
-        
+        (async function(){
+            const res = await getRawTravelRequest_API({travelRequestId})
+            
+            if(res.err){
+                setLoadingErrMsg(res.err)
+                return;
+            }
+
+            setFormData(res.data)
+
+            const tenantId = res.data.tenantId
+            const travelType = res.data.travelType
+
+            console.log(tenantId)
+
+            const employeeId = res.data?.createdFor?.empId??res.data?.createdBy?.empId
+            console.log(employeeId)
+            const onboarding_res = await getTravelBookingOnboardingData_API({tenantId, employeeId, travelType})
+            console.log(onboarding_res.data, 'onboarding')
+            setOnBoardingData(onboarding_res.data)
+
+            console.log(res.data)
+            
+            setIsLoading(false)
+        })()
+    },[])
 
     async function uploadFileToAzure(file) {
         try{
@@ -186,20 +196,33 @@ export default function () {
         console.log(onBoardingData?.policies?.['Train'])
         formData_copy.itinerary[_toSet][itemIndex][toSet].billDetails[id] = e.target.value 
         if(id == 'totalAmount'){
-            if(_toSet == 'flights' && e.target.value > (onBoardingData?.policies?.['Flight']?.limit??99999999) && onBoardingData?.policies?.['Flight']?.limit != 0)
+            let goAhead = true;
+
+            if(_toSet == 'flights' && e.target.value > (onBoardingData?.policies?.['Flight']?.limit??99999999) && onBoardingData?.policies?.['Flight']?.limit != 0){
+                console.log('violation occured in flight ticket amount')
                 formData_copy.itinerary[_toSet][itemIndex].bkd_violations.amount = 'Allowed flight ticket limit exceeded'
+                goAhead=false;
+            } else if(goAhead)  {formData_copy.itinerary[_toSet][itemIndex].bkd_violations.amount = ''; goAhead=false}
+                
+            // else formData_copy.itinerary[_toSet][itemIndex].bkd_violations.amount = '';
 
-            if(_toSet == 'trains' && e.target.value > (onBoardingData?.policies?.['Train']?.limit??99999999))
+            if(_toSet == 'trains' && e.target.value > (onBoardingData?.policies?.['Train']?.limit??99999999)){
                 formData_copy.itinerary[_toSet][itemIndex].bkd_violations.amount = 'Allowed Train ticket limit exceeded'
+                goAhead=false;
+            }else if(goAhead) formData_copy.itinerary[_toSet][itemIndex].bkd_violations.amount = '';
 
-            if(_toSet == 'cabs' && e.target.value > (onBoardingData?.policies?.['Cab']?.limit??99999999))
+            if(_toSet == 'cabs' && e.target.value > (onBoardingData?.policies?.['Cab']?.limit??99999999)){
                 formData_copy.itinerary[_toSet][itemIndex].bkd_violations.amount = 'Allowed Cab booking limit exceeded'
+                goAhead=false;
+            }else if(goAhead) {formData_copy.itinerary[_toSet][itemIndex].bkd_violations.amount = ''; goAhead=false}
 
             // if(_toSet == 'buses' && e.target.value > (onBoardingData?.policies?.['Cab Rental']?.limit??99999999))
             // formData_copy.itinerary[_toSet][itemIndex].bkd_violations.amount = 'Allowed limit exceeded'
 
-            if(_toSet == 'cabRentals' && e.target.value > (onBoardingData?.policies?.['Cab Rental']?.limit??99999999))
+            if(_toSet == 'cabRentals' && e.target.value > (onBoardingData?.policies?.['Cab Rental']?.limit??99999999)){
                 formData_copy.itinerary[_toSet][itemIndex].bkd_violations.amount = 'Allowed Cab Rental booking limit exceeded'
+                goAhead=false;
+            }else if(goAhead) {formData_copy.itinerary[_toSet][itemIndex].bkd_violations.amount = ''; goAhead=false}
         }
     }
 
@@ -349,8 +372,9 @@ export default function () {
                     if(newData.totalAmount != null) itineraryItem.bookingDetails = {...itineraryItem.bookingDetails, billDetails: {...itineraryItem.bookingDetails.billDetails, totalAmount: newData.totalAmount}}
                     
                     console.log(newData.totalAmount, 'limit:', onBoardingData?.policies?.['Flight']?.limit)
-                    if(newData.totalAmount!= null && newData.totalAmount>(onBoardingData?.policies?.['Flight']?.limit??99999999) && onBoardingData?.policies?.['Flight']?.limit != 0)
-                        itineraryItem.bkd_violations.amount = 'Allowed limit exceeded as per Amex policies for this employee'
+                    if(newData.totalAmount!= null && newData.totalAmount>(onBoardingData?.policies?.['Flight']?.limit??99999999) && onBoardingData?.policies?.['Flight']?.limit != 0){
+                        itineraryItem.bkd_violations.amount = `Allowed limit exceeded as per ${formData.tenantName??'your company'} policies for this employee`
+                    }else itineraryItem.bkd_violations.amount = '';
                 }
     
                 if(categoryToScan == 'trains'){
@@ -362,8 +386,9 @@ export default function () {
                     if(newData.taxAmount != null) itineraryItem.bookingDetails = {...itineraryItem.bookingDetails, billDetails: {...itineraryItem.bookingDetails.billDetails, taxAmount: newData.taxAmount} }
                     if(newData.totalAmount != null) itineraryItem.bookingDetails = {...itineraryItem.bookingDetails, billDetails: {...itineraryItem.bookingDetails.billDetails, totalAmount: newData.totalAmount}}
 
-                    if(newData.totalAmount!= null && newData.totalAmount>(onBoardingData?.policies?.['Train']?.limit??99999999))
-                        itineraryItem.bkd_violations.amount = 'Allowed limit exceeded as per Amex policies for this employee'
+                    if(newData.totalAmount!= null && newData.totalAmount>(onBoardingData?.policies?.['Train']?.limit??99999999)){
+                        itineraryItem.bkd_violations.amount = `Allowed limit exceeded as per ${formData.tenantName??'your company'} policies for this employee`
+                    }else itineraryItem.bkd_violations.amount = '';
                 }
     
                 if(categoryToScan == 'Buses'){
@@ -374,8 +399,9 @@ export default function () {
                     if(newData.taxAmount != null) itineraryItem.bookingDetails = {...itineraryItem.bookingDetails, billDetails: {...itineraryItem.bookingDetails.billDetails, taxAmount: newData.taxAmount} }
                     if(newData.totalAmount != null) itineraryItem.bookingDetails = {...itineraryItem.bookingDetails, billDetails: {...itineraryItem.bookingDetails.billDetails, totalAmount: newData.totalAmount}}
                     
-                    if(newData.totalAmount!= null && newData.totalAmount>(onBoardingData?.policies?.['Cab Rental']?.limit??99999999))
-                        itineraryItem.bkd_violations.amount = 'Allowed limit exceeded as per Amex policies for this employee'
+                    if(newData.totalAmount!= null && newData.totalAmount>(onBoardingData?.policies?.['Cab Rental']?.limit??99999999)){
+                        itineraryItem.bkd_violations.amount = `Allowed limit exceeded as per ${formData.tenantName??'your company'} policies for this employee`
+                    }else itineraryItem.bkd_violations.amount = '';
                 }
     
                 if(categoryToScan == 'cabs'){
@@ -386,8 +412,9 @@ export default function () {
                     if(newData.taxAmount != null) itineraryItem.bookingDetails = {...itineraryItem.bookingDetails, billDetails: {...itineraryItem.bookingDetails.billDetails, taxAmount: newData.taxAmount} }
                     if(newData.totalAmount != null) itineraryItem.bookingDetails = {...itineraryItem.bookingDetails, billDetails: {...itineraryItem.bookingDetails.billDetails, totalAmount: newData.totalAmount}}
                     
-                    if(newData.totalAmount!= null && newData.totalAmount>(onBoardingData?.policies?.['Cab']?.limit??99999999))
-                        itineraryItem.bkd_violations.amount = 'Allowed limit exceeded as per Amex policies for this employee'
+                    if(newData.totalAmount!= null && newData.totalAmount>(onBoardingData?.policies?.['Cab']?.limit??99999999)){
+                        itineraryItem.bkd_violations.amount = `Allowed limit exceeded as per ${formData.tenantName??'your company'} policies for this employee`
+                    }else itineraryItem.bkd_violations.amount = '';
                 }
     
                 if(categoryToScan == 'Car Rentals'){
@@ -398,8 +425,9 @@ export default function () {
                     if(newData.taxAmount != null) itineraryItem.bookingDetails = {...itineraryItem.bookingDetails, billDetails: {...itineraryItem.bookingDetails.billDetails, taxAmount: newData.taxAmount} }
                     if(newData.totalAmount != null) itineraryItem.bookingDetails = {...itineraryItem.bookingDetails, billDetails: {...itineraryItem.bookingDetails.billDetails, totalAmount: newData.totalAmount}}
                     
-                    if(newData.totalAmount!= null && newData.totalAmount>(onBoardingData?.policies?.['Cab Rental']?.limit??99999999))
-                        itineraryItem.bkd_violations.amount = 'Allowed limit exceeded as per Amex policies for this employee'
+                    if(newData.totalAmount!= null && newData.totalAmount>(onBoardingData?.policies?.['Cab Rental']?.limit??99999999)){
+                        itineraryItem.bkd_violations.amount = `Allowed limit exceeded as per ${formData.tenantName??'your company'} policies for this employee`
+                    }else itineraryItem.bkd_violations.amount = '';
                 }
 
                 if(categoryToScan == 'hotels'){
@@ -410,8 +438,9 @@ export default function () {
                     if(newData.taxAmount != null) itineraryItem.bookingDetails = {...itineraryItem.bookingDetails, billDetails: {...itineraryItem.bookingDetails.billDetails, taxAmount: newData.taxAmount} }
                     if(newData.totalAmount != null) itineraryItem.bookingDetails = {...itineraryItem.bookingDetails, billDetails: {...itineraryItem.bookingDetails.billDetails, totalAmount: newData.totalAmount}}
                     
-                    if(newData.totalAmount!= null && newData.totalAmount>(onBoardingData?.policies?.['Hotels']?.limit??99999999))
-                        itineraryItem.bkd_violations.amount = 'Allowed limit exceeded as per Amex policies for this employee'
+                    if(newData.totalAmount!= null && newData.totalAmount>(onBoardingData?.policies?.['Hotels']?.limit??99999999)){
+                        itineraryItem.bkd_violations.amount = `Allowed limit exceeded as per ${formData.tenantName??'your company'} policies for this employee`
+                    }else itineraryItem.bkd_violations.amount = '';
                 }
     
                 setFormData(formData_copy)
@@ -450,8 +479,8 @@ export default function () {
 
         setTimeout(()=>{
             //window.location.href = `${DASHBOARD_URL}/${formData.tenantId}/${formData.createdBy.empId}/overview`
+            //window.location.href = `${DASHBOARD_URL}/${formData.tenantId}/${formData.assignedTo.empId}/bookings`
             window.parent.postMessage('closeIframe', DASHBOARD_URL);
-            //window.location.href = `${DASHBOARD_URL}/${formData.tenantId}/${formData.assignedTo.empId}/overview`
         }, 3000)
         
     }
@@ -460,14 +489,14 @@ export default function () {
         {(isLoading) && <Error message={loadingErrMsg}/>}
        
        {!isLoading && 
-        <div className="w-full h-full relative bg-white md:px-24 md:mx-0 sm:px-0 sm:mx-auto py-12 select-none">
+        <div className="w-full h-full relative  select-none">
         {/* app icon */}
-        <div className='w-full flex justify-center  md:justify-start lg:justify-start'>
+        {/* <div className='w-full flex justify-center  md:justify-start lg:justify-start'>
             <Icon/>
-        </div>
+        </div> */}
 
         {/* Rest of the section */}
-        <div className="w-full h-full mt-10 p-10 font-cabin tracking-tight">
+        <div className="w-full h-full p-10 font-cabin tracking-tight">
             <p className="text-2xl text-neutral-600 mb-5">{`${formData.tripPurpose} Trip`}</p>
             <div className='flex divide-x'>
                 <div className='flex flex-col sm:flex-row gap-1 pr-1'>
@@ -520,7 +549,7 @@ export default function () {
                                         {`${titleCase(itnItem)} `}
                                     </p>
 
-                                    {formData.itinerary[itnItem].map((item, itemIndex) => {
+                                    {formData.itinerary[itnItem].filter(item=>['booked', 'pending booking', 'pending approval'].includes(item.status)).map((item, itemIndex) => {
                                         if (['flights', 'trains', 'buses', 'personalVehicles'].includes(itnItem)) {
                                             return (
                                                 <div key={itemIndex}>
@@ -530,7 +559,7 @@ export default function () {
                                         } else if (itnItem === 'cabs' || itnItem === 'carRentals') {
                                             return (
                                                 <div key={itemIndex}>
-                                                    <CabCard onClick={() => handleAddTicket('cabs', itemIndex)} status={item.status} from={item.pickupAddress} to={item.dropAddress} date={isoString(item?.date)} time={item.time} mode={itnItem == 'cabs'? 'Cab' : 'Rental Car'} travelClass={item.travelClass} vendorName={item?.bookingDetails?.billDetails?.vendorName??undefined} taxAmount={item?.bookingDetails?.billDetails?.taxAmount??undefined} totalAmount={item?.bookingDetails?.billDetails?.totalAmount??undefined} isTransfer={item.type !== 'regular'} />
+                                                    <CabCard onClick={() => handleAddTicket(itnItem, itemIndex)} status={item.status} from={item.pickupAddress} to={item.dropAddress} date={isoString(item?.date)} returnDate={isoString(item.returnDate)} isRentalCab={itnItem === 'carRentals'} isFullDayCab={item.isFullDayCab} time={item.time} mode={itnItem == 'cabs'? 'Cab' : 'Rental Car'} travelClass={item.travelClass} vendorName={item?.bookingDetails?.billDetails?.vendorName??undefined} taxAmount={item?.bookingDetails?.billDetails?.taxAmount??undefined} totalAmount={item?.bookingDetails?.billDetails?.totalAmount??undefined} isTransfer={item.type !== 'regular'} />
                                                 </div>
                                             );
                                         } else if (itnItem === 'hotels') {
@@ -732,12 +761,13 @@ function FlightCard({status, from, to, date, returnDate, time, returnTime, taxAm
     </div>)
 }
 
-function CabCard({status, from, to, date, time, taxAmount, totalAmount, vendorName, travelClass, onClick, isTransfer=false, mode='Cab'}){
+function CabCard({status, from, to, date, returnDate, time, isFullDayCab, taxAmount, totalAmount, vendorName, travelClass, onClick, isTransfer=false, mode='Cab'}){
     return(
         <div className='relative'>
             <div className="relative shadow-sm min-h-[76px] bg-slate-50 rounded-md border border-slate-300 w-full px-6 py-4 flex flex-col sm:flex-row gap-4 items-center sm:divide-x">
                 <div className='font-semibold text-base text-neutral-600'>
-                <img src={mode=='Cab'? material_cab_black_icon : material_car_rental_black_icon} className='w-4 h-4 md:w-6 md:h-6' />
+                    <img src={mode=='Cab'? material_cab_black_icon : material_car_rental_black_icon} className='w-4 h-4 md:w-6 md:h-6' />
+                    {isFullDayCab && <p className="text-xs font-thin whitespace-nowrap">Full Day</p>}
                 </div>
                 <div className="w-full flex sm:block">
                     <div className="mx-2 text-sm w-full flex justify-between flex-col lg:flex-row">
@@ -762,6 +792,13 @@ function CabCard({status, from, to, date, time, taxAmount, totalAmount, vendorNa
                                 <p className="whitespace-wrap">{isoString(date)??'not provided'}</p>
                             </div>
                         </div>
+                        {isFullDayCab && <div className="flex-1">
+                            <p className="text-xs text-neutral-600 flex justify-between flex-col sm:flex-row">Return Date</p>
+                            <div className="flex items-center gap-1">
+                                <img src={calender_icon} className="w-4 h-4"/>
+                                <p className="whitespace-wrap">{isoString(returnDate)??'not provided'}</p>
+                            </div>
+                        </div>}
                         <div className="flex-1">
                             <p className="text-xs text-neutral-600 flex justify-between flex-col sm:flex-row">Prefferred Time</p>
                             <div className="flex items-center gap-1">
@@ -859,7 +896,7 @@ function AddTicketManually(
     
 
     useEffect(()=>{
-        if(presentURL == undefined){
+        if(!presentURL){
             setDocURL();
         }
     }, [fileSelected, presentURL])
@@ -868,6 +905,7 @@ function AddTicketManually(
 
     async function setDocURL(){
         if(firstTime) {firstTime = false; return;}
+        if(!selectedFile) return;
         setUploading(true)
         const res = await uploadFileToAzure(selectedFile)
         setUploading(false)
@@ -898,11 +936,12 @@ function AddTicketManually(
                                     <div className='' key={index}>
                                         <Input 
                                             title={field.name} 
-                                            value={field.toSet == field.id ? itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet] : itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet].billDetails?.[field.id]} 
+                                            value={
+                                                field.toSet == field.id ? itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet] ? itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet] : itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet.split('_')[1]]  : itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet].billDetails?.[field.id]} 
                                             onChange={(e)=>handleFieldValueChange(field.toSet, field.id, e)} />
                                     </div>)
 
-                    case 'date' : return(  
+                    case 'date' : return( (field.toSet != 'bkd_returnDate' || addTicketVariables.toSet != 'cabs' ||   itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex].isFullDayCab) &&
                         <div className='' key={index}>
 
                             <div className="min-w-[200px] w-full md:w-fit max-w-[403px] h-[73px] flex-col justify-start items-start gap-2 inline-flex">
@@ -917,7 +956,7 @@ function AddTicketManually(
                                         min={getDateXDaysAway(Number(minDaysBeforeBooking))}
                                         className="w-full h-full decoration:none px-6 py-2 border rounded-md border border-neutral-300 focus-visible:outline-0 focus-visible:border-indigo-600 "
                                         name={field.name} 
-                                        value={itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet]}
+                                        value={itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet] ? itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet] : itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet.split('_')[1]]}
                                         onChange={(e)=>handleFieldValueChange(field.toSet, field.id, e)} />
                                     </div>
                                 </div>
@@ -1008,7 +1047,7 @@ function AddTicketManually(
             </div>
 
             <div className='absolute z-[11] right-2.5 top-2 cursor-pointer'>
-                <CloseButton onClick={()=>setShowModal(false)} />
+                <CloseButton onClick={()=>setShowModal(false)} /> 
             </div>
         </div>
     )
@@ -1041,6 +1080,7 @@ function AddScannedTicket(
         return;
      }
 
+     console.log('from add scanned tickets');
      console.log(addTicketVariables, 'addTicketVariables')
      let presentURL = formData.itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex].bookingDetails.docURL??undefined;
        
@@ -1083,15 +1123,18 @@ function AddScannedTicket(
      return(<>
         {!scanComplete && <div className="h-full flex flex-1 flex-col items-center justify-center overflow-y-scroll no-scroll">
                     
-            {!fileSelected && <div>
+            {!fileSelected && 
+                    <div>
                         <Upload 
                                 selectedFile={selectedFile} 
                                 setSelectedFile={setSelectedFile} 
                                 fileSelected={fileSelected} 
                                 setFileSelected={setFileSelected}  />
-                    </div>}
 
-                    
+                        {/* <label htmlFor="camera_input">Open Camera</label>      
+                        <input name='camera_input' type="file" accept="image/*" capture="camera"/> */}
+                    </div>
+                    }
         
             {fileSelected && 
                 <div className='relative flex flex-col items-center w-full h-full'>
@@ -1184,7 +1227,6 @@ function AddScannedTicket(
 
                     case 'amount' : return(  
                         <div className='' key={index}>
-
                             <div className="min-w-[200px] w-full md:w-fit max-w-[403px] h-[73px] flex-col justify-start items-start gap-2 inline-flex">
                                 {/* title */}
                                 <div className="text-zinc-600 text-sm font-cabin">{field.name}</div>
@@ -1289,12 +1331,14 @@ function getDateXDaysAway(days) {
 
   function formattedTime(timeValue){
     try{
-        if(timeValue == null || timeValue == undefined) return timeValue
-        const hours = timeValue.split(':')[0]>=12? timeValue.split(':')[0]-12 : timeValue.split(':')[0]
-        const minutes = timeValue.split(':')[1]
-        const suffix = timeValue.split(':')[0]>=12? 'PM' : 'AM'
+        // if(timeValue == null || timeValue == undefined) return timeValue
+        // const hours = timeValue.split(':')[0]>=12? timeValue.split(':')[0]-12 : timeValue.split(':')[0]
+        // const minutes = timeValue.split(':')[1]
+        // const suffix = timeValue.split(':')[0]>=12? 'PM' : 'AM'
 
-        return `${hours}:${minutes} ${suffix}`
+        // return `${hours}:${minutes} ${suffix}`
+
+        return timeValue;
     }
     catch(e){
         return timeValue
@@ -1319,6 +1363,3 @@ function getStatusClass(status){
         return " ";  
     }
   }
-
-
-  
