@@ -12,7 +12,7 @@ const LineItemForm = ({categoryName, setErrorMsg,isUploading,defaultCurrency, cu
   const dateKeys = ['Invoice Date', 'Date', 'Visited Date', 'Booking Date',"Bill Date"];
   const conversionAmount= currencyConversion?.response || {}
   
-console.log('error mgs',errorMsg.conversion)
+console.log('error mgs',errorMsg?.conversion)
 console.log('form data for edit',formData,formData,categoryFields)
 
 

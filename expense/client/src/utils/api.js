@@ -364,9 +364,12 @@ export const postMultiCurrencyForNonTravelExpenseApi = async({tenantId,totalAmou
 
 ///get non-travel-expense category and group if available
 
-export const getNonTravelExpenseMiscellaneousDataApi=async(tenantId,empId)=>{
+export const getNonTravelExpenseMiscellaneousDataApi=async(tenantId,empId,expenseHeaderId)=>{
 
-  const url =`${EXPENSE_BACKEND_API_URL}/api/fe/expense/non-travel/${tenantId}/${empId}/expensecategories`
+  const baseUrl = `${EXPENSE_BACKEND_API_URL}/api/fe/expense/non-travel/${tenantId}/${empId}/expensecategories`;
+
+  const url = expenseHeaderId ? `${baseUrl}?expenseHeaderId=${expenseHeaderId}` : baseUrl;
+  
   try {
     const response = await axiosRetry(axios.get, url);
     return response.data

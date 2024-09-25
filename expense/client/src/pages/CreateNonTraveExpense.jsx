@@ -89,7 +89,7 @@ const [currencyConversion, setCurrencyConversion]=useState({
     useEffect(() => {
       const fetchData = async () => {
         try {
-          const response = await getNonTravelExpenseMiscellaneousDataApi(tenantId, empId,);
+          const response = await getNonTravelExpenseMiscellaneousDataApi(tenantId, empId,expenseHeaderId);
           setCategoryList(response?.reimbursementExpenseCategory || [])
           const expenseSettlementOptions = Object.keys(response?.expenseSettlementOptions).filter((option) => response?.expenseSettlementOptions[option]) || [];
           const travelAllocationFlag = allocationLevel(response?.travelAllocationFlags)
@@ -100,16 +100,23 @@ const [currencyConversion, setCurrencyConversion]=useState({
              "APPROVAL_FLAG":response?.getApprovers?.APPROVAL_FLAG, //boolean
              "approvalFlow":response?.getApprovers?.approvalFlow ||[],
              "MANAGER_FLAG"  :response?.getApprovers?.MANAGER_FLAG, //boolean
-             "expenseHeaderId":response?.report?.expenseHeaderId ?? null,
-          "expenseHeaderNumber":response?.report?.expenseHeaderNumber,
-          "expenseHeaderStatus": response?.report?.expenseHeaderStatus,
-          "expenseAmountStatus": response?.report?.expenseAmountStatus || {},
-          "createdBy":response?.report?.createdBy,
+             "expenseHeaderId":response?.expenseReport?.expenseHeaderId ?? null,
+          "expenseHeaderNumber":response?.expenseReport?.expenseHeaderNumber,
+          "expenseHeaderStatus": response?.expenseReport?.expenseHeaderStatus,
+          "expenseAmountStatus": response?.expenseReport?.expenseAmountStatus || {},
+          "expenseLines":response?.expenseReport?.expenseLines,
+          "defaultCurrency":response?.expenseReport?.defaultCurrency,
+          //"fields":response?.expenseReport?.fields || [],
+          "createdBy":response?.expenseReport?.createdBy,
+          "groupLimit":response?.expenseReport?.group || {},
+         
+         
              expenseSettlementOptions}))
           setHeaderDetails({
             name: response?.employeeName,
             defaultCurrency : response?.defaultCurrency
           })
+          setFormData(prev=>({...prev,"approvers":response?.expenseReport?.approvers}))
          
           setIsLoading(false);
           console.log(response.data)
@@ -150,7 +157,7 @@ const [currencyConversion, setCurrencyConversion]=useState({
     const [selectedAllocations , setSelectedAllocations]=useState([])
     const [selectedLineItemId, setSelectedLineItemId]=useState(null)
     const [modalOpen , setModalOpen]= useState(false)
-    const [actionType, setActionType]=useState(false)
+    const [actionType, setActionType]=useState("")
     const [isLoading,setIsLoading]=useState(true)
   
     const [isUploading , setIsUploading]=useState({
@@ -231,7 +238,7 @@ const [selectedCategory , setSelectedCategory]= useState(null)
       setActionType("editLineItem")
       setSelectedLineItemId(lineItem?.lineItemId)
       setFormData(prev=>({...prev,"editedFields":lineItem, "fields":lineItem}))
-      await handleSelectCategory(lineItem['Category Name'])
+      await handleSelectCategory(lineItem['Category Name'],"editLineItem")
       setIsUploading(prev => ({...prev,editLineItem:false}))
     }
 
@@ -325,54 +332,54 @@ const [selectedCategory , setSelectedCategory]= useState(null)
       }
     };
 
-  useEffect(() => {
+  // useEffect(() => {
    
-    const expenseHeaderIds =  expenseHeaderId || requiredObj?.expenseHeaderId 
-    console.log('expense header id1',expenseHeaderIds)
+  //   const expenseHeaderIds =  expenseHeaderId || requiredObj?.expenseHeaderId 
+  //   console.log('expense header id1',expenseHeaderIds)
   
-    const fetchData = async () => {
-      try {
-        const response = await getNonTravelExpenseLineItemsApi(tenantId, empId, expenseHeaderIds);
+  //   const fetchData = async () => {
+  //     try {
+  //       const response = await getNonTravelExpenseLineItemsApi(tenantId, empId, expenseHeaderIds);
 
-        //setExpenseDataByGet(response?.expenseReport)
+  //       //setExpenseDataByGet(response?.expenseReport)
         
-        setRequiredObj(prev => ({...prev,
-          "defaultCurrency":response?.expenseReport?.defaultCurrency,
-          //"fields":response?.expenseReport?.fields || [],
-          "expenseHeaderId":response?.expenseReport?.expenseHeaderId ?? null,
-          "expenseHeaderNumber":response?.expenseReport?.expenseHeaderNumber,
-          "expenseHeaderStatus": response?.expenseReport?.expenseHeaderStatus,
-          "expenseAmountStatus": response?.expenseReport?.expenseAmountStatus || {},
-          "createdBy":response?.expenseReport?.createdBy,
-          //"category":response?.expenseReport?.categoryName,
-          "groupLimit":response?.expenseReport?.group || {},
-          //"allocation":response?.expenseReport?.newExpenseAllocation || [],
-          "expenseLines":response?.expenseReport?.expenseLines
-        }))
-        setFormData(prev=>({...prev,"approvers":response?.expenseReport?.approvers}))
+  //       setRequiredObj(prev => ({...prev,
+  //         "defaultCurrency":response?.expenseReport?.defaultCurrency,
+  //         //"fields":response?.expenseReport?.fields || [],
+  //         "expenseHeaderId":response?.expenseReport?.expenseHeaderId ?? null,
+  //         "expenseHeaderNumber":response?.expenseReport?.expenseHeaderNumber,
+  //         "expenseHeaderStatus": response?.expenseReport?.expenseHeaderStatus,
+  //         "expenseAmountStatus": response?.expenseReport?.expenseAmountStatus || {},
+  //         "createdBy":response?.expenseReport?.createdBy,
+  //         //"category":response?.expenseReport?.categoryName,
+  //         "groupLimit":response?.expenseReport?.group || {},
+  //         //"allocation":response?.expenseReport?.newExpenseAllocation || [],
+  //         "expenseLines":response?.expenseReport?.expenseLines
+  //       }))
+  //       setFormData(prev=>({...prev,"approvers":response?.expenseReport?.approvers}))
 
 
-        //setLineItemsData(response?.expenseReport?.expenseLines)
-        setIsLoading(false);
-        if(response.expenseReport===null){
-          setRequiredObj(prev => ({...prev,defaultCurrency:response?.expenseReport?.defaultCurrency}))
-        //setDefaultCurrency(response?.expenseReport?.defaultCurrency)
-      }
+  //       //setLineItemsData(response?.expenseReport?.expenseLines)
+  //       setIsLoading(false);
+  //       if(response.expenseReport===null){
+  //         setRequiredObj(prev => ({...prev,defaultCurrency:response?.expenseReport?.defaultCurrency}))
+  //       //setDefaultCurrency(response?.expenseReport?.defaultCurrency)
+  //     }
         
-        console.log('expense line items fetched successfully.',response);
-      } catch (error) {
-        console.log('Error in fetching expense data for approval:', error.message);
-        setLoadingErrorMsg(error.message);
-        setTimeout(() => {setLoadingErrorMsg(null);setIsLoading(false)},5000);
-      }
-    };
+  //       console.log('expense line items fetched successfully.',response);
+  //     } catch (error) {
+  //       console.log('Error in fetching expense data for approval:', error.message);
+  //       setLoadingErrorMsg(error.message);
+  //       setTimeout(() => {setLoadingErrorMsg(null);setIsLoading(false)},5000);
+  //     }
+  //   };
 
-    if(expenseHeaderId || requiredObj?.expenseHeaderId){
-      fetchData(); 
-    }
+  //   if(expenseHeaderId || requiredObj?.expenseHeaderId){
+  //     fetchData(); 
+  //   }
     
 
-  }, [expenseHeaderId || requiredObj?.expenseHeaderId ])
+  // }, [expenseHeaderId || requiredObj?.expenseHeaderId ])
 
   
 
@@ -752,6 +759,7 @@ const handleRemoveFile = ()=>{
   console.log('file removed')
   setSelectedFile(null)
 }
+
 const handleSaveLineItem = async (action) => {
   console.log('line item action', action);
   let allowForm = true;
@@ -842,7 +850,6 @@ const handleSaveLineItem = async (action) => {
   let payload ={}
   let api
   if(action ==="saveAndSubmit"){
-  
     payload = {
       // companyName: requiredObj?.companyName,
       // "expenseAmountStatus":requiredObj?.expenseAmountStatus,
@@ -858,12 +865,8 @@ const handleSaveLineItem = async (action) => {
     api = postNonTravelExpenseLineItemApi(params, payload);
   }else{
     payload= {
-      "travelType":requiredObj?.travelType,
-      "expenseAmountStatus": requiredObj?.expenseAmountStatus,
-      "expenseLine":formData?.fields ?? {},
-      "editedExpesneLine":formData?.editedFields ?? {},
-      "allocations":[]
-
+      "lineItem":formData?.fields ?? {},
+      "prevLineItem":formData?.editedFields ?? {},
     }
     api= editNonTravelExpenseLineItemsApi(params,payload)
   }
@@ -875,12 +878,8 @@ const handleSaveLineItem = async (action) => {
 
   // Save the data
   setIsUploading((prev) => ({ ...prev, [action]: { set: true, msg: "" } }));
-  
-
-
 
   try {
-
     const response = await api
     // const response = await postNonTravelExpenseLineItemApi(params, payload);
     setShowPopup(true);
@@ -894,26 +893,32 @@ const handleSaveLineItem = async (action) => {
         setShowForm(false);
         
         
-
-        try {
-            const res = await getNonTravelExpenseLineItemsApi(tenantId, empId, requiredObj.expenseHeaderId);
-            setRequiredObj((prev) => ({
-                ...prev,
-                "expenseLines": res?.expenseReport?.expenseLines||[],
-                "expenseAmountStatus":res?.expenseReport?.expenseAmountStatus
-            }));
-        } catch (fetchError) {
-            console.error("Error fetching expense line items:", fetchError);
-            setMessage("Failed to update expense lines. Please try again.");
-            setShowPopup(true);
-            setTimeout(() => setShowPopup(false), 3000);
-        }
+if(action==="saveAndSubmit"){
+ 
+    setRequiredObj((prev) => ({
+        ...prev,
+        "expenseLines": response?.expenseLines||[],
+        "expenseAmountStatus":response?.expenseAmountStatus
+    }));
+}
+else if (action ==="updateLineItem"){
+  const updatedLineItem = response?.updatedLine
+  console.log('api update line item response',updatedLineItem)
+  setRequiredObj(prev=>({...prev,expenseLines:
+    requiredObj?.expenseLines.map(item => 
+      item.lineItemId === formData?.editedFields?.lineItemId ? { ...item, ...updatedLineItem } : item
+  )
+  }))
+}
+       
 
         switch (action) {
             case "saveAndSubmit":
                 return setSelectedFile(null), setIsFileSelected(false)
             case "saveAndNew":
-                return window.location.reload(); // Reload the page
+                return window.location.reload(); 
+            case "updateLineItem":
+                 return setActionType(""),setSelectedLineItemId(null)
             default:
                 break;
         }
@@ -929,8 +934,6 @@ const handleSaveLineItem = async (action) => {
 }
 
 };
-
-
 
 const handleOCRScan=()=>{
   
@@ -1072,8 +1075,6 @@ const handleSubmitOrDraft=async(action)=>{
     approvers:formData.approvers || [],
     expenseSettlement: formData.expenseSettlement || "",
   }
-
-
  
   // const data ={ expenseSettlement: selectedExpenseSettlement}
   // if(!selectedExpenseSettlement){
@@ -1160,7 +1161,7 @@ const handleSubmitOrDraft=async(action)=>{
         setTimeout(()=>{
           setShowPopup(false)
           setMessage(null)
-         
+
           if(action === "deleteHeader" || action === "submit"  ){
           // urlRedirection(`${dashboard_url}/${tenantId}/${empId}/overview`)}
           handleDashboardRedirection()
@@ -1300,18 +1301,13 @@ const handleSubmitOrDraft=async(action)=>{
         setFormData(prev => ({...prev,expenseSettlement:option}))
        }
 
-      const handleSelectCategory = async(option) => {
-        console.log('handle category',option)
-        // setRequiredObj((prev) => ({
-        //   ...prev,
-        //   category: option,
-        // }));
+      const handleSelectCategory = async(option,action) => {
+        console.log('handle category',option,action)
         let expenseHeaderId 
         let api
   
         try {
           setIsUploading(prev=>({...prev, "selectCategory":true}))
-          //setActive(true)
           if(requiredObj?.reimbursementHeaderId){
             expenseHeaderId =requiredObj?.reimbursementHeaderId
             api = await getCategoryFormElementApi(tenantId,empId,option,expenseHeaderId)
@@ -1373,7 +1369,7 @@ const handleSubmitOrDraft=async(action)=>{
           });
         
           
-          if (actionType !== "editLineItem") {
+          if (action !== "editLineItem") {
             setFormData((prevData) => ({
               ...prevData,
               fields: updatedFields,
@@ -1383,9 +1379,6 @@ const handleSubmitOrDraft=async(action)=>{
           
           
           console.log('Updated FormData:', updatedFields);
-
-          
-         
         } catch (error) {
           setIsUploading(prev=>({...prev, "selectCategory":false}))
           console.log('Error in fetching expense data for approval:', error.message);
@@ -1579,7 +1572,7 @@ If the required category is unavailable, please contact the administrator.</span
 <div className=''>
 {(requiredObj?.expenseLines)?.map((lineItem , index)=>(
 
-   (lineItem.lineItemId === selectedLineItemId && requiredObj?.fields.length>0 && actionType==="editLineItem") ?
+   (lineItem.lineItemId === selectedLineItemId && requiredObj?.fields?.length>0 && actionType==="editLineItem") ?
   //edit form view
   <>
   
@@ -1615,7 +1608,7 @@ If the required category is unavailable, please contact the administrator.</span
       showButton={true} 
       title1={"Delete"} 
       title={"Update"} 
-      handleDelete={()=>{setModalOpen(true);setActionType("deleteLineItem");setSelectedLineItemId(lineItem?.lineItemId)}}
+      handleDelete={()=>{setModalOpen(true);setActionType("deleteLineItem");setSelectedLineItemId(lineItem?.lineItemId);}}
       handleClick={()=>handleSaveLineItem("updateLineItem")} 
       isUploading={isUploading} 
       setModalOpen={setModalOpen} 
