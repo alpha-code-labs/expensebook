@@ -6,78 +6,6 @@ import { sendToOtherMicroservice } from '../rabbitmq/publisher.js';
 dotenv.config();
 
 
-const getSettlements = async (settlementsFilter) => {
-  return await Dashboard.find(settlementsFilter);
-};
-
-
-// const updateSentToFinanceStatus = async (settlementsFilter) => {
-//   const documents = await Dashboard.find(settlementsFilter);
-
-//   const bulkOps = documents.map((doc) => {
-//     const update = { $set: {} };
-
-//     if (doc?.cashAdvanceSchema?.cashAdvancesData) {
-//       update.$set['cashAdvanceSchema.cashAdvancesData.$[elem].actionedUpon'] = true;
-//     }
-//     if (doc?.tripSchema?.travelExpenseData) {
-//       update.$set['tripSchema.travelExpenseData.$[elem].actionedUpon'] = true;
-//     }
-//     if (doc?.reimbursementSchema) {
-//       update.$set['reimbursementSchema.actionedUpon'] = true;
-//     }
-
-//     return {
-//       updateOne: {
-//         filter: { _id: doc._id },
-//         update,
-//         arrayFilters: [{ 'elem.actionedUpon': false }],
-//       },
-//     };
-//   });
-
-//   const result = await Dashboard.bulkWrite(bulkOps);
-//   console.log('Modified documents:', result.modifiedCount);
-// };
-
-const oldupdateSentToFinanceStatus = async (settlementsFilter) => {
-  try {
-    const documents = await Dashboard.find(settlementsFilter);
-
-    const bulkOps = documents.map((doc) => {
-      const update = { $set: {} };
-      const arrayFilters = [];
-
-      // Check if we need to update an array field
-      if (doc?.cashAdvanceSchema?.cashAdvancesData) {
-        update.$set['cashAdvanceSchema.cashAdvancesData.$[elem].actionedUpon'] = true;
-        arrayFilters.push({ 'elem.actionedUpon': false });
-      }
-      if (doc?.tripSchema?.travelExpenseData) {
-        update.$set['tripSchema.travelExpenseData.$[elem].actionedUpon'] = true;
-        arrayFilters.push({ 'elem.actionedUpon': false });
-      }
-      // For non-array fields, no arrayFilters are needed
-      if (doc?.reimbursementSchema) {
-        update.$set['reimbursementSchema.actionedUpon'] = true;
-      }
-
-      return {
-        updateOne: {
-          filter: { _id: doc._id },
-          update,
-          arrayFilters: arrayFilters.length > 0 ? arrayFilters : undefined,
-        },
-      };
-    });
-
-    const result = await Dashboard.bulkWrite(bulkOps);
-    console.log('Modified documents:', result.modifiedCount);
-  } catch (error) {
-    console.error('Error updating documents:', error);
-  }
-};
-
 const updateSentToFinanceStatus = async (settlementsFilter) => {
   try {
     const documents = await Dashboard.find(settlementsFilter);
@@ -130,31 +58,63 @@ const updateSentToFinanceStatus = async (settlementsFilter) => {
   }
 };
 
-export const financeBatchJob = async () => {
+const getSettlements = async () => {
+  const cashAdvanceStatus = ['pending settlement', 'Paid and Cancelled'];
+  const travelExpenseStatus = ['pending settlement', 'Paid'];
+  const reimbursementStatus = ['pending settlement'];
+
+  const settlementsFilter = {
+      $or: [
+          {
+              'cashAdvanceSchema.cashAdvancesData.actionedUpon': false,
+              'cashAdvanceSchema.cashAdvancesData.cashAdvanceStatus': {
+                  $in: cashAdvanceStatus,
+              },
+          },
+          {
+              'tripSchema.travelExpenseData.actionedUpon': false,
+              'tripSchema.travelExpenseData.expenseHeaderStatus': {
+                  $in: travelExpenseStatus,
+              },
+          },
+          {
+              'reimbursementSchema.actionedUpon': false,
+              'reimbursementSchema.expenseHeaderStatus': {
+                  $in: reimbursementStatus,
+              },
+          },
+      ],
+  };
+
+  return await Dashboard.find(settlementsFilter);
+};
+
+
+const financeBatchJob = async () => {
     try {
-      const settlementsFilter = {
-        $or: [
-          {
-            'cashAdvanceSchema.cashAdvancesData.actionedUpon': false,
-            'cashAdvanceSchema.cashAdvancesData.cashAdvanceStatus': {
-              $in: ['pending settlement', 'Paid and Cancelled'],
-            },
-          },
-          {
-            'tripSchema.travelExpenseData.actionedUpon': false,
-            'tripSchema.travelExpenseData.expenseHeaderStatus': {
-              $in: ['pending settlement', 'Paid'],
-            },
-          },
-          {
-            'reimbursementSchema.actionedUpon': false,
-            'reimbursementSchema.expenseHeaderStatus': {
-              $in: ['pending settlement'],
-            },
-          },
-        ],
-      }
-        const settlements = await getSettlements(settlementsFilter);
+      // const settlementsFilter = {
+      //   $or: [
+      //     {
+      //       'cashAdvanceSchema.cashAdvancesData.actionedUpon': false,
+      //       'cashAdvanceSchema.cashAdvancesData.cashAdvanceStatus': {
+      //         $in: ['pending settlement', 'Paid and Cancelled'],
+      //       },
+      //     },
+      //     {
+      //       'tripSchema.travelExpenseData.actionedUpon': false,
+      //       'tripSchema.travelExpenseData.expenseHeaderStatus': {
+      //         $in: ['pending settlement', 'Paid'],
+      //       },
+      //     },
+      //     {
+      //       'reimbursementSchema.actionedUpon': false,
+      //       'reimbursementSchema.expenseHeaderStatus': {
+      //         $in: ['pending settlement'],
+      //       },
+      //     },
+      //   ],
+      // }
+      const settlements = await getSettlements();
 
         console.log("settlements",settlements.length)
         let result;
@@ -214,7 +174,7 @@ export const financeBatchJob = async () => {
 };
 
 
-export const scheduleToFinanceBatchJob = () => {
+const scheduleToFinanceBatchJob = () => {
     const schedule = process.env.SCHEDULE_TIME??'* * * * *';
     cron.schedule(schedule, async () => {
       console.log('Running Finance batchJob...');
@@ -229,5 +189,10 @@ export const scheduleToFinanceBatchJob = () => {
 }
 
 
+export {
+  getSettlements,
+  financeBatchJob,
+  scheduleToFinanceBatchJob
 
+}
 
