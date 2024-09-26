@@ -1,4 +1,3 @@
-import Dashboard from "../models/dashboardSchema.js";
 
 /**
  * Picks up all the actionables that the Finance Role has to perform.
@@ -12,59 +11,53 @@ import Dashboard from "../models/dashboardSchema.js";
  * 5. All expense header reports having status Paid.
  */
 
+import dashboard from "../models/dashboardSchema.js";
+
+const findSettlements = async (tenantId) => {
+    const cashAdvanceStatus = ['pending settlement', 'Paid and Cancelled'];
+    const travelExpenseStatus = ['pending settlement', 'Paid'];
+    const reimbursementStatus = ['pending settlement'];
+  
+    const settlementsFilter = {
+        tenantId,
+        $or: [
+            {
+                'cashAdvanceSchema.cashAdvancesData.actionedUpon': false,
+                'cashAdvanceSchema.cashAdvancesData.cashAdvanceStatus': {
+                    $in: cashAdvanceStatus,
+                },
+            },
+            {
+                'tripSchema.travelExpenseData.actionedUpon': false,
+                'tripSchema.travelExpenseData.expenseHeaderStatus': {
+                    $in: travelExpenseStatus,
+                },
+            },
+            {
+                'reimbursementSchema.actionedUpon': false,
+                'reimbursementSchema.expenseHeaderStatus': {
+                    $in: reimbursementStatus,
+                },
+            },
+        ],
+    };
+  
+    return await dashboard.find(settlementsFilter);
+};
+
 export const financeLayout = async (tenantId, empId) => {
     try {
-        const settlements = await Dashboard.find({
-            tenantId,
-            'cashAdvanceSchema.cashAdvancesData.cashAdvanceStatus': { $in: ['pending settlement', 'Paid and Cancelled'] },
-            'tripSchema.travelExpenseData.expenseHeaderStatus':{$in: ['pending settlement', 'Paid']},
-            'reimbursementSchema.expenseHeaderStatus':{$in: ['pending settlement']},
-        });
-
-        let result;
-        result = {message: 'All are settled.'}
-        if (!settlements || settlements.length === 0) {
-            return result
-        }
-
-       const pendingCashAdvanceSettlements = []
-       const pendingTravelExpenseSettlements = []
-       const pendingNonTravelExpenseSettlements = []
-
-if(settlements){
-    pendingCashAdvanceSettlements = settlements.filter(doc => {
-        return doc.cashAdvanceSchema.cashAdvancesData.some(
-            data =>
-                data.cashAdvanceStatus === 'pending settlement' ||
-                data.cashAdvanceStatus === 'Paid and Cancelled'
-        );
-    });
-
-    pendingTravelExpenseSettlements = settlements.filter(doc => {
-        return doc.tripSchema.travelExpenseData.some(
-            data =>
-                data.expenseHeaderStatus === 'pending settlement' ||
-                data.expenseHeaderStatus === 'Paid'
-        );
-    });
-
-    pendingNonTravelExpenseSettlements = settlements.filter(doc => {
-        return doc.reimbursementSchema.some(
-            data =>
-                data.expenseHeaderStatus === 'pending settlement' 
-        );
-    });
-
-    // await processSettlements(pendingCashAdvanceSettlements, pendingTravelExpenseSettlements, pendingNonTravelExpenseSettlements);
-
-    return result ={ pendingCashAdvanceSettlements,pendingTravelExpenseSettlements, pendingNonTravelExpenseSettlements}
-    // return res.status(200).json({
-    //     message: 'Settlements processed successfully.',
-    // });
-
-} else{
-    return result ={}
-}} catch (error) {
+        // const settlements = await Dashboard.find({
+        //     tenantId,
+        //     'cashAdvanceSchema.cashAdvancesData.cashAdvanceStatus': { $in: ['pending settlement', 'Paid and Cancelled'] },
+        //     'tripSchema.travelExpenseData.expenseHeaderStatus':{$in: ['pending settlement', 'Paid']},
+        //     'reimbursementSchema.expenseHeaderStatus':{$in: ['pending settlement']},
+        // });
+    const settlements = await findSettlements(tenantId)
+    let count = settlements?.length
+    console.log("count finance", count)
+    return count
+    }catch (error) {
         console.error("Error in fetching employee Dashboard:", error);
         throw new Error('Error in fetching employee Dashboard');
     }
@@ -72,7 +65,7 @@ if(settlements){
 
 
 
-// to-do - (empId in params -to be added)fianace employee must be verified using hrCompanyStructure
+// to-do - (empId in params -to be added)Finance employee must be verified using hrCompanyStructure
 // export const financeLayout = async (tenantId, empId) => {
 //     try {
 //         const settlements = await Dashboard.find({

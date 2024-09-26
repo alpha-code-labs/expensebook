@@ -214,6 +214,7 @@ const generateIncrementalNumber = (tenantName, incrementalValue) => {
   return `NTER${formattedTenant}${incrementalValue.toString().padStart(6, '0')}`;
 };
 
+
 // reimbursementSchema.pre('validate', async function (next) {
 //   if (!this.expenseHeaderNumber) {
 //     // Query to find the maximum incremental value
