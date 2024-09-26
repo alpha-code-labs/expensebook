@@ -20,9 +20,9 @@ const TravelMS = ({ visible, setVisible, src }) => {
 
        </div>
       <div className="fixed w-[100%] h-[100%] left-0 top-0  md:w-[80%] xl:w-[80%] md:h-[80%] lg:h-[80%] xl:h-[80%]   md:left-[10%] xl:left-[10%] blur-0  px-6 sm:px-0 md:rounded-b-lg shadow-lg z-[100]  bg-white ">
-        <div onClick={()=>setVisible(false)} className=' cursor-pointer absolute right-0 hover:bg-red-100 p-2 rounded-full mt-2 mr-4'>
-        <img src={cancel} alt="" className='w-6 h-6' />
-      </div>
+      <div onClick={() => setVisible(false)} className='w-fit bg-red-100  z-10 top-2  right-4 absolute cursor-pointer rounded-full border border-white'>
+              <img src={cancel} className='w-5 h-5' alt="Cancel icon"/>
+            </div>
      
         <iframe
           src={src}

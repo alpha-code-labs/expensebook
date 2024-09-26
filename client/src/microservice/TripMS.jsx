@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { cancel } from '../assets/icon';
 
 const TripMS = ({ visible, setVisible, src }) => {
-
   useEffect(() => {
     if (visible) {
       document.body.style.overflow = 'hidden';
@@ -11,34 +11,59 @@ const TripMS = ({ visible, setVisible, src }) => {
     }
   }, [visible]);
 
+  const backdropVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1 },
+  };
+
+  const modalVariants = {
+    hidden: { opacity: 0, y: '-100%' },
+    visible: { opacity: 1, y: '0' },
+  };
 
   return (
+    <AnimatePresence>
+      {visible && (
+        <div className="relative">
+          {/* Background overlay with fade-in/out animation */}
+          <motion.div
+            className="fixed inset-0 w-[100%] h-[100%] left-0 top-0 bg-black/70 z-10"
+            initial="hidden"
+            animate="visible"
+            exit="hidden"
+            variants={backdropVariants}
+            transition={{ duration: 0.3 }}
+          />
 
-    visible && (
-      <div className='relative'>
-      <div className='fixed drop-shadow-sm inset-0   w-[100%] h-[100%] left-0 top-0 bg-black/70 z-10'>
+          {/* Modal content with slide-down/up animation */}
+          <motion.div
+            className="fixed w-[100%] left-0 top-0 md:w-[80%] lg:w-[60%] xl:w-[50%] sm:h-[95%] h-[100%] md:left-[20%] xl:left-[25%] blur-0 px-6 sm:px-0 sm:rounded-b-lg shadow-lg z-[100] bg-white shadow-black/50"
+            initial="hidden"
+            animate="visible"
+            exit="hidden"
+            variants={modalVariants}
+            transition={{ type: 'spring', stiffness: 100, damping: 20, duration: 0.5 }}
+          >
+            <div
+              onClick={() => setVisible(false)}
+              className="w-fit bg-red-100 z-10 top-2 right-4 absolute cursor-pointer rounded-full border border-white"
+            >
+              <img src={cancel} className="w-5 h-5" alt="Cancel icon" />
+            </div>
 
-       </div>
-      <div className="fixed  w-[100%]  left-0 top-0  md:w-[80%] lg:w-[60%] xl:w-[50%] sm:h-[95%]  h-[100%]    md:left-[20%] lg:[10%] xl:left-[25%] blur-0 px-6 sm:px-0 sm:rounded-b-lg shadow-lg z-[100]  bg-white shadow-black/50 ">
-        <div onClick={()=>setVisible(false)} className=' z-10 cursor-pointer absolute right-0 hover:bg-red-100 p-2 rounded-full mt-2 mr-4'>
-        <img src={cancel} alt="" className='w-6 h-6' />
-      </div>
-     
-        <iframe
-          src={src}
-          className="rounded-lg w-[100%] h-[100%] "
-          title="Embedded Content"
-        ></iframe>
-     
-       
-      </div>
-      </div>
-    )
+            <iframe
+              src={src}
+              className="rounded-lg w-[100%] h-[100%]"
+              title="Embedded Content"
+            ></iframe>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
   );
 };
 
 export default TripMS;
-
 
 // import React, { useEffect } from 'react';
 // import { cancel } from '../assets/icon';
@@ -49,7 +74,7 @@ export default TripMS;
 //     if (visible) {
 //       document.body.style.overflow = 'hidden';
 //     } else {
-//       document.body.style.overflow = 'visible';
+//       document.body.style.overflow = 'auto';
 //     }
 //   }, [visible]);
 
@@ -58,17 +83,17 @@ export default TripMS;
 
 //     visible && (
 //       <div className='relative'>
-//       <div className='fixed drop-shadow-sm inset-0 backdrop-blur-sm w-[100%] h-[100%] left-0 top-0 bg-black/30 z-10'>
+//       <div className='fixed drop-shadow-sm inset-0   w-[100%] h-[100%] left-0 top-0 bg-black/70 z-10'>
 
 //        </div>
-//       <div className="fixed w-[100%] h-[100%] left-0 top-0  md:w-[80%] xl:w-[50%] md:h-[80%] lg:h-[90%] xl:h-[80%]   md:left-[10%] xl:left-[25%] blur-0 md:top-[5%] px-6 sm:px-0 sm:rounded-lg shadow-lg z-[100]  bg-white ">
-//         <div onClick={()=>setVisible(false)} className=' cursor-pointer absolute right-0 hover:bg-red-100 p-2 rounded-full mt-2 mr-4'>
-//         <img src={cancel} alt="" className='w-6 h-6' />
-//       </div>
+//       <div className="fixed  w-[100%]  left-0 top-0  md:w-[80%] lg:w-[60%] xl:w-[50%] sm:h-[95%]  h-[100%]    md:left-[20%] lg:[10%] xl:left-[25%] blur-0 px-6 sm:px-0 sm:rounded-b-lg shadow-lg z-[100]  bg-white shadow-black/50 ">
+//       <div onClick={() => setVisible(false)} className='w-fit bg-red-100  z-10 top-2  right-4 absolute cursor-pointer rounded-full border border-white'>
+//               <img src={cancel} className='w-5 h-5' alt="Cancel icon"/>
+//             </div>
      
 //         <iframe
 //           src={src}
-//           className="rounded-lg w-[100%] h-[100%]"
+//           className="rounded-lg w-[100%] h-[100%] "
 //           title="Embedded Content"
 //         ></iframe>
      
@@ -80,3 +105,4 @@ export default TripMS;
 // };
 
 // export default TripMS;
+
