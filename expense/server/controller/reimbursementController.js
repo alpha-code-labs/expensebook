@@ -21,15 +21,12 @@ export const getReimbursementReport = async (tenantId, empId, expenseHeaderId) =
     });
 
     if (!expenseReport) {
-      throw new Error({
-        success: false,
-        message: 'Expense report not found for the given IDs.',
-      });
+      throw new Error('Expense report not found for the given IDs.');
     }
 
     return expenseReport
   } catch (error) {
-    console.error(error);
+    console.error("error finding expense categories",error);
     throw error
   }
 };
@@ -135,7 +132,6 @@ const createReimbursementReport = async(tenantId,empId,companyName,employeeName,
       approvers : []
     }
     const expenseReport = await Reimbursement.create(newExpense)
-    console.log("report", JSON.stringify(report,'',2))
     return expenseReport
   }
 
@@ -296,6 +292,9 @@ const { employeeName, employeeId } = employee?.employeeDetails || {};
         }
       } else {
         getReport = await getReimbursementReport(tenantId,empId,expenseHeaderId)
+        if(!getReport){
+          return res.status(404).json({success: false, message: 'report retrial failed', error:error.message})
+        }
       }
     
 
@@ -606,8 +605,8 @@ export const saveReimbursementExpenseLine = async (req, res) => {
       const newTotalRemainingCash = +totalRemainingCash - totalAmountField
       const newTotalExpenseAmount =  +totalExpenseAmount +totalAmountField;
 
-      console.log("totalExpenseAmount",totalExpenseAmount)
-      console.log("totalRemainingCash",totalRemainingCash)
+      // console.log("totalExpenseAmount kaboom",totalExpenseAmount, typeof totalExpenseAmount , typeof newTotalRemainingCash)
+      // console.log("totalRemainingCash kaboom2",totalRemainingCash, typeof totalRemainingCash, typeof totalRemainingCash)
 
       getReport.expenseAmountStatus.totalExpenseAmount = newTotalExpenseAmount
       getReport.expenseAmountStatus.totalRemainingCash = newTotalRemainingCash
@@ -1104,12 +1103,15 @@ export const cancelReimbursementReportLine = async (req, res) => {
        // Extract total amount
       totalAmount = extractTotalAmount(lineToRemove, fixedFields);
 
+      console.log("totalAmount type", typeof totalAmount , totalAmount)
       if(!totalAmount){
         throw new Error(`totalAmount Not found: ${totalAmount}, `, "totalAmount type on save",typeof totalAmount)
       }  
 
-      newTotalExpenseAmount = totalExpenseAmount - totalAmount
-      newTotalRemainingCash = totalRemainingCash + totalAmount
+      newTotalExpenseAmount = +totalExpenseAmount - +totalAmount
+      newTotalRemainingCash = +totalRemainingCash + +totalAmount
+      console.log("totalExpenseAmount kaboom",totalExpenseAmount, typeof totalExpenseAmount , typeof newTotalRemainingCash)
+      console.log("totalRemainingCash kaboom2",totalRemainingCash, typeof totalRemainingCash, typeof totalRemainingCash)
 
       // Update expense report
       expenseReport.expenseAmountStatus.totalExpenseAmount = newTotalExpenseAmount
@@ -1119,9 +1121,10 @@ export const cancelReimbursementReportLine = async (req, res) => {
       }
     });
 
-    await expenseReport.save();
+   const updatedReport =  await expenseReport.save();
 
-    const payload = { reimbursementReport: expenseReport };
+    const { expenseAmountStatus} = updatedReport
+    const payload = { reimbursementReport: updatedReport };
     const needConfirmation = false;
     const source = 'reimbursement';
     const onlineVsBatch = 'online';
@@ -1136,6 +1139,7 @@ export const cancelReimbursementReportLine = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: `Expense lines deleted successfully by ${name}`,
+      expenseAmountStatus
     });
   } catch (error) {
     console.error(error);
