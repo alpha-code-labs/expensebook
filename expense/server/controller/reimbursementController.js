@@ -727,7 +727,8 @@ console.log('New Total Expense Amount:', newTotalExpenseAmount);
     const updatedExpense = await getReport.save()
 
     const { name } = updatedExpense.createdBy;
-    const { expenseLines } = updatedExpense;
+    const { expenseLines,approvers } = updatedExpense;
+    const isApproval = approvers?.length > 0
 
     // Find the updated line
     const savedLineItem = expenseLines.find(line => line.lineItemId.toString() === lineItemId);
