@@ -724,25 +724,26 @@ console.log('New Total Expense Amount:', newTotalExpenseAmount);
         return line
       })
     } 
-    const newExpense = await getReport.save()
+    const updatedExpense = await getReport.save()
 
-    // const filter = { tenantId, expenseHeaderId, 'expenseLines.lineItemId': lineItemId };
-    // const update = { $set: { 'expenseLines.$': prevLineItem } };
-    // const options = { upsert: true, new: true };
-
-    // const updatedExpense = await Reimbursement.findOneAndUpdate(filter, update, options);
-
-    // // Handle the case when no match is found
-    // if (!updatedExpense) {
-    //   return res.status(404).json({ message: 'Expense not found' });
-    // }
-
-    const { name } = newExpense.createdBy;
-    const { expenseLines } = newExpense;
+    const { name } = updatedExpense.createdBy;
+    const { expenseLines } = updatedExpense;
 
     // Find the updated line
     const savedLineItem = expenseLines.find(line => line.lineItemId.toString() === lineItemId);
 
+    const payload = { reimbursementReport : updatedExpense };
+    const source = 'reimbursement';
+    const onlineVsBatch = 'online';
+    const action = 'full-update';
+    const comments = 'expense report edited';
+
+  if(isApproval){
+    console.log("sending reim payload - approval")
+    await  sendToOtherMicroservice(payload, action, 'approval', comments, source, onlineVsBatch) 
+  }     
+  await  sendToOtherMicroservice(payload, action, 'dashboard', comments, source, onlineVsBatch)  
+  await  sendToOtherMicroservice(payload, action, 'reporting', comments, source, onlineVsBatch) 
 
     return res.status(200).json({
       success: true,
@@ -1135,6 +1136,7 @@ export const cancelReimbursementReportLine = async (req, res) => {
       await  sendToOtherMicroservice(payload, action, 'approval', comments, source, onlineVsBatch)
     }
       await  sendToOtherMicroservice(payload, action, 'dashboard', comments, source, onlineVsBatch)
+      await  sendToOtherMicroservice(payload, action, 'reporting', comments, source, onlineVsBatch)
 
     return res.status(200).json({
       success: true,
