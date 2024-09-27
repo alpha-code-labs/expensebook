@@ -12,6 +12,7 @@ import { scheduleTripTransitBatchJob } from './batchJobs/upcomingToTransit.js';
 import Expense from './models/tripSchema.js';
 import Reimbursement from './models/reimbursementSchema.js';
 import { getExpenseCategoryFields } from './ocr/categoryFields.js';
+import { calculateTotalCashAdvances } from './rabbitmq/messageProcessor.js/finance.js';
 // import logger from './logger/logger.js';
 
 // test
@@ -42,7 +43,7 @@ app.use('/api/fe/expense', mainFrontendRoutes);
 
 
 // Start the batch job
-// runApproveToNextState()
+runApproveToNextState()
 scheduleTripTransitBatchJob()
 
 app.get('/test', (req,res) =>{
@@ -131,31 +132,44 @@ startConsumer("expense");
 //   }
 // })()
 
-const tenantId = '66794853c61cc24ba97b5b0f'
-const travelType = 'international'
-const expenseCategory = 'hotel'
+// const tenantId = '66e048c79286e2f4e03bdac1'
+// const travelType = 'international'
+// const expenseCategory = 'hotel'
+// const report = await Expense.findOne({"tripId":"66e296fc272686d0070db91f"})
+// if(report){
+//   const {cashAdvancesData, expenseAmountStatus} = report
+//   // console.log("cashAdvancesData hamlet ---", cashAdvancesData?.length , JSON.stringify(report,'',2))
+//   console.log("cashAdvancesData hamlet ---",expenseAmountStatus, cashAdvancesData?.length , report)
+
+//  const data = await calculateTotalCashAdvances(tenantId,cashAdvancesData)
+//  console.log("data", JSON.stringify(data,'',2))
+// }
+
 // getExpenseCategoryFields(tenantId, travelType, expenseCategory) 
 
-const theCount =await Reimbursement.countDocuments({tenantId})
+// const theCount =await Reimbursement.countDocuments({tenantId})
 
-console.log("the count", theCount)
+// console.log("the count", theCount)
 
-const formatTenant = (companyName) => {
-  return companyName.toUpperCase(); 
-};
+// const formatTenant = (companyName) => {
+//   return companyName.toUpperCase(); 
+// };
 
-const generateIncrementalNumber = (companyName, incrementalValue) => {
-  if (typeof companyName !== 'string' || typeof incrementalValue !== 'number') {
-    throw new Error('Invalid input parameters');
-  }
-  console.log("companyName",companyName, "incrementalValue", incrementalValue)
-  const formattedTenant = formatTenant(companyName).substring(0, 2);
-  const paddedIncrementalValue = (incrementalValue !== null && incrementalValue !== undefined && incrementalValue !== 0) ?
-    (incrementalValue + 1).toString().padStart(6, '0') :
-    '000001';
+// const generateIncrementalNumber = (companyName, incrementalValue) => {
+//   if (typeof companyName !== 'string' || typeof incrementalValue !== 'number') {
+//     throw new Error('Invalid input parameters');
+//   }
+//   console.log("companyName",companyName, "incrementalValue", incrementalValue)
+//   const formattedTenant = formatTenant(companyName).substring(0, 2);
+//   const paddedIncrementalValue = (incrementalValue !== null && incrementalValue !== undefined && incrementalValue !== 0) ?
+//     (incrementalValue + 1).toString().padStart(6, '0') :
+//     '000001';
 
-  return `RE${formattedTenant}${paddedIncrementalValue}`;
-}
+//   return `RE${formattedTenant}${paddedIncrementalValue}`;
+// }
 
-console.log("the number", generateIncrementalNumber('quantum',theCount)
-)
+// console.log("the number", generateIncrementalNumber('quantum',theCount)
+// )
+
+
+

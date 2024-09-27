@@ -96,7 +96,7 @@ const createReimbursementReport = async(tenantId,empId,companyName,employeeName,
   
     if(!expenseHeaderId){
       console.log("expenseHeaderId from req body",expenseHeaderId)
-      const maxIncrementalValue = await Reimbursement.findOne({ tenantId, 'createdBy.empId':empId })
+      const maxIncrementalValue = await Reimbursement.findOne({ tenantId})
       .sort({ expenseHeaderNumber: -1 })
       .limit(1)
       .select('expenseHeaderNumber');
@@ -727,7 +727,7 @@ console.log('New Total Expense Amount:', newTotalExpenseAmount);
     const updatedExpense = await getReport.save()
 
     const { name } = updatedExpense.createdBy;
-    const { expenseLines,approvers } = updatedExpense;
+    const { expenseLines,approvers , expenseAmountStatus} = updatedExpense;
     const isApproval = approvers?.length > 0
 
     // Find the updated line
@@ -749,6 +749,7 @@ console.log('New Total Expense Amount:', newTotalExpenseAmount);
     return res.status(200).json({
       success: true,
       message: `Expense line saved successfully by ${name}`,
+      expenseAmountStatus,
       updatedLine: savedLineItem,
     });
   } catch (error) {
@@ -907,7 +908,7 @@ export const submitReimbursementExpenseReport = async (req, res) => {
     totalExpenseAmount && (report.expenseAmountStatus.totalExpenseAmount = totalExpenseAmount)
     approvers && (report.approvers = approvers)
     report.expenseHeaderStatus = getStatus ? getStatus : report.expenseHeaderStatus
-    report.expenseSettlement = expenseSettlement ? expenseSettlement: report.expenseSettlement
+    report.expenseSettlementOptions = expenseSettlement ? expenseSettlement: report.expenseSettlementOptions
     report.expenseSubmissionDate = new Date()
 
     const updatedExpense = await report.save()
