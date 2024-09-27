@@ -1,8 +1,9 @@
 import reporting, { cashAdvanceStatusEnum, tripStatusEnum } from '../models/reportingSchema.js';
 import { getWeekRange, getMonthRange, getQuarterRange, getYear } from '../helpers/dateHelpers.js';
-import Joi from 'joi';
 import HRCompany from '../models/hrCompanySchema.js';
 import { expenseHeaderStatusEnums } from '../models/travelExpenseSchema.js';
+import { getEmployeeDetails, getGroupDetails } from '../utils/functions.js';
+import { tripFilterSchema } from './financeController.js';
 
 
 function getItinerary(itinerary){
@@ -99,35 +100,6 @@ return getTrips;
   }
 } 
 
-const tripFilterSchema = Joi.object({
-  tenantId: Joi.string().required(),
-  empId: Joi.string().required(),
-  filterBy: Joi.string().valid('date', 'week', 'month', 'quarter', 'year'),
-  date: Joi.date().when('filterBy',{
-    is: Joi.exist(),
-    then: Joi.required(),
-  }),
-  fromDate: Joi.date(),
-  toDate: Joi.date().when('fromDate', {
-    is: Joi.exist(),
-    then: Joi.required(),
-  }),
-  travelType: Joi.string().valid('domestic', 'international','local').optional(),
-  empNames: Joi.array().items(Joi.object()).optional(),
-  tripStatus: Joi.array().items(Joi.string().valid(...tripStatusEnum)).optional(),
-  cashAdvanceStatus: Joi.array().items(Joi.string().valid(...cashAdvanceStatusEnum)).optional(),
-  expenseHeaderStatus:Joi.array().items(Joi.string().valid(...expenseHeaderStatusEnums)).optional(),
-  travelAllocationHeaders: Joi.array().items(Joi.object().keys({
-    headerName: Joi.string().required(),
-    headerValue: Joi.string().required(),
-  })),
-  approvers: Joi.array().items(Joi.object().keys({
-    name:Joi.string().required(),
-    empId:Joi.string().required(),
-  }))
-});
-
-
 
 const filterTrips = async (req, res) => {
   try {
@@ -143,24 +115,51 @@ const filterTrips = async (req, res) => {
     }
 
     console.log("filter trips - value", JSON.stringify(value,'',2))
-    const { tenantId, empId, filterBy, date, empNames, fromDate, toDate, travelType, tripStatus,cashAdvanceStatus, travelAllocationHeaders, approvers } = value;
+    const { tenantId, empId, role, filterBy, date, empNames, fromDate, toDate, travelType, tripStatus,cashAdvanceStatus, travelAllocationHeaders, approvers , getGroups=[]} = value;
 
-    if(!empNames?.length){
-    return res.status(404).json({success:false, message:'no employees selected for filtering'})
+    console.log({role})
+    const forTeam = [getGroups]
+let getHrInfo;
+let getHrData;
+let empIds;
+let employeeDocument, employeeDetails, group, getAllGroups, matchedEmployees;
+
+switch (role) {
+  case 'myView':
+    
+  break;
+  
+  case 'financeView':
+
+  default:
+    break;
+}
+console.info({empIds})
+
+    if (getGroups?.length) {
+      console.log({getGroups})
+    getHrInfo = await getGroupDetails(tenantId, empId, getGroups);
+    ({ employeeDocument, employeeDetails, group, getAllGroups, matchedEmployees } = getHrInfo);
+    empIds = matchedEmployees ? matchedEmployees.map(e => e.empId) : [empId];
+    } 
+    console.info({empIds})
+
+    if(empNames?.length){
+    getHrData = await getEmployeeDetails(tenantId,empId)
+    empIds = empNames ? empNames.map(e => e.empId) : [empId];
     }
+    console.info({empIds})
 
-    const empIds = empNames ? empNames.map(e => e.empId) : [];
+    console.log("get Groups kaboom",typeof getGroups , JSON.stringify(getGroups,'',2))
 
-    console.log("empNames", JSON.stringify(empIds,'',2))
+    console.log("empIds", JSON.stringify(empIds,'',2))
     let filterCriteria = {    
       tenantId: tenantId,
     };
 
-    if(empIds){
+    if(empIds?.length){
       filterCriteria['createdBy.empId'] = { $in: empIds }
-    } else {
-      filterCriteria['createdBy.empId'] = empId
-    }
+    } 
 
     if (filterBy && date && (!fromDate && !toDate)) {
       if (date) {
@@ -237,7 +236,7 @@ const filterTrips = async (req, res) => {
       };
   }
   
-    console.log("filterCriteria", JSON.stringify(filterCriteria,'',2))
+    // console.log("filterCriteria", JSON.stringify(filterCriteria,'',2))
     if(travelAllocationHeaders){
       filterCriteria['travelRequestData.travelAllocationHeaders'] = {
         $elemMatch:{
@@ -254,13 +253,14 @@ const filterTrips = async (req, res) => {
           empId:{$in:approvers.map((approver)=> approver.empId)}
           }
           }
-        }
+    }
   
-        if(empNames && empIds){
+    if(empNames && empIds){
           filterCriteria['createdBy.empId'] = {$in:empIds}
-        }
+    }
     
-        console.log("filterCriteria finally", JSON.stringify(filterCriteria,'',2))
+    console.info({getHrInfo,getHrData})
+    console.log("filterCriteria finally", JSON.stringify(filterCriteria,'',2))
     const tripDocs = await reporting.find(filterCriteria);
 
     if (tripDocs.length === 0) {
@@ -272,10 +272,14 @@ const filterTrips = async (req, res) => {
     }
 
     const getTrips = extractTrip(tripDocs)
-    return res.status(200).json({success:true , trips:getTrips});
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Internal server error' });
+    const updatedTrips = getTrips.map(trip => ({
+      ...trip,
+      groupName:getGroups
+    }))
+    return res.status(200).json({success:true , trips:updatedTrips});
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({message:e.message });
   }
 };
 
@@ -293,7 +297,7 @@ const filterCash = async (req, res) => {
     }
 
     console.log("filter trips - value", JSON.stringify(value,'',2))
-    const { tenantId, empId, filterBy, date, fromDate, toDate, travelType, tripStatus,cashAdvanceStatus, travelAllocationHeaders, approvers } = value;
+    const { tenantId, empId, filterBy, date, fromDate, toDate, travelType, tripStatus,cashAdvanceStatus, travelAllocationHeaders, approvers , getGroups} = value;
 
     let filterCriteria = {    
       tenantId: tenantId,
@@ -420,18 +424,31 @@ const filterTravelExpenses = async (req, res) => {
     }
 
     console.log("filter trips - value", JSON.stringify(value,'',2))
-    const { tenantId, empId, filterBy, date, fromDate,empNames, toDate, travelType, tripStatus,expenseHeaderStatus, travelAllocationHeaders, approvers } = value;
+    const { tenantId, empId, filterBy, date, fromDate,empNames, toDate, travelType, tripStatus,expenseHeaderStatus, travelAllocationHeaders, approvers,getGroups } = value;
 
-    const empIds = empNames ? empNames.map(e => e.empId) : [];
 
-    if(!empNames?.length){
-      return res.status(404).json({success:false, message:'no employees selected for filtering'})
-      }
+    const forTeam = [getGroups]
+    let getHrInfo;
+    let getHrData;
+    let empIds;
+    let employeeDocument, employeeDetails, group, getAllGroups, matchedEmployees;
+    
+        if (getGroups?.length) {
+        getHrInfo = await getGroupDetails(tenantId, empId, getGroups);
+        ({ employeeDocument, employeeDetails, group, getAllGroups, matchedEmployees } = getHrInfo);
+        empIds = matchedEmployees ? matchedEmployees.map(e => e.empId) : [empId];
+        } 
+    
+        if(empNames?.length){
+        getHrData = await getEmployeeDetails(tenantId,empId)
+        empIds = empNames ? empNames.map(e => e.empId) : [empId];
+        }
 
     let filterCriteria = {    
       tenantId: tenantId,
     };
 
+    console.log("get Groups",typeof getGroups)
 
     if(empIds){
       filterCriteria['createdBy.empId'] = { $in: empIds }
@@ -512,7 +529,7 @@ const filterTravelExpenses = async (req, res) => {
       }
     }
 
-    console.log("filterCriteria for mongodb ", JSON.stringify(filterCriteria,'',2))
+    // console.log("filterCriteria for mongodb ", JSON.stringify(filterCriteria,'',2))
     if(travelAllocationHeaders){
       filterCriteria['travelRequestData.travelAllocationHeaders'] = {
         $elemMatch:{
@@ -543,7 +560,11 @@ const filterTravelExpenses = async (req, res) => {
     }
 
     const getTrips = extractTrip(tripDocs)
-    return res.status(200).json({success:true , trips:getTrips});
+    const updatedTrips = getTrips.map(trip => ({
+      ...trip,
+      groupName:getGroups,
+    }))
+    return res.status(200).json({success:true , updatedTrips});
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Internal server error' });
@@ -578,8 +599,6 @@ export const getExpenseRelatedHrData = async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 };
-
-
 
 export {
   extractTrip,

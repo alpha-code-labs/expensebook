@@ -103,8 +103,9 @@ export async function startConsumer(receiver) {
      const isReporting = content?.headers?.destination == 'reporting'
 
       if(isReporting){
-
+        console.log(`action ${action} defined for source ${source}`)
       switch(source){
+        
         case 'onboarding':
         case 'system-config':
           const res = await update(payload)

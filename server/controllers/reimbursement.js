@@ -1,7 +1,8 @@
-import Joi from 'joi';
 import { getMonthRange, getQuarterRange, getWeekRange, getYear } from "../helpers/dateHelpers.js";
 import HRCompany from "../models/hrCompanySchema.js";
-import REIMBURSEMENT, { expenseHeaderStatusEnums } from "../models/reimbursementSchema.js";
+import REIMBURSEMENT from "../models/reimbursementSchema.js";
+import { getEmployeeDetails, getGroupDetails } from '../utils/functions.js';
+import { dataSchema } from './financeController.js';
 
 
 export const getExpenseCategoriesForEmpId = async (req, res) => {
@@ -64,24 +65,6 @@ export const getExpenseCategoriesForEmpId = async (req, res) => {
     }
   };
 
-const dataSchema = Joi.object({
-    tenantId: Joi.string().required(),
-    empId: Joi.string().required(),
-    filterBy: Joi.string().valid('date', 'week', 'month', 'quarter', 'year'),
-    date: Joi.date().when('filterBy', {
-      is: Joi.exist(),
-      then: Joi.required(),
-    }),
-    fromDate: Joi.date(),
-    toDate: Joi.date().when('fromDate', {
-      is: Joi.exist(),
-      then: Joi.required(),
-    }),
-    empNames:Joi.array().items(Joi.object()).optional(),
-    expenseHeaderStatus: Joi.array().items(Joi.string().valid(...expenseHeaderStatusEnums)).optional(),
-    expenseSubmissionDate: Joi.date(), // validation
-  }).with('fromDate', 'toDate').without('filterBy', [ 'fromDate', 'toDate']);
-
 
 //to filter reimbursement expense reports based on 'date', 'week', 'month', 'quarter', 'year' and date.
 export const getReimbursementExpenseReport = async (req, res) => {
@@ -96,23 +79,39 @@ export const getReimbursementExpenseReport = async (req, res) => {
     success: false });
     }
 
-    const { tenantId, empId, filterBy, date, fromDate, toDate , empNames, expenseSubmissionDate ,expenseHeaderStatus } = value;
+    const { tenantId, empId, filterBy, date, fromDate, toDate , empNames, expenseSubmissionDate ,expenseHeaderStatus, getGroups} = value;
 
     let filterCriteria = {
       tenantId,
     };
 
-    const empIds = empNames ? empNames.map(e => e.empId) : [];
+    console.log("get Groups",typeof getGroups)
+
+    const forTeam = [getGroups]
+let getHrInfo;
+let getHrData;
+let empIds;
+let employeeDocument, employeeDetails, group, getAllGroups, matchedEmployees;
+
+    if (getGroups?.length) {
+    getHrInfo = await getGroupDetails(tenantId, empId, getGroups);
+    ({ employeeDocument, employeeDetails, group, getAllGroups, matchedEmployees } = getHrInfo);
+    empIds = matchedEmployees ? matchedEmployees.map(e => e.empId) : [empId];
+    } 
 
     if(!empNames?.length){
-      return res.status(404).json({success:false, message:'no employees selected for filtering'})
-      }
+    getHrData = await getEmployeeDetails(tenantId,empId)
+    empIds = empNames ? empNames.map(e => e.empId) : [empId];
+    }
+    console.log("empNames", JSON.stringify(empIds,'',2))
+    console.log("get Groups kaboom",typeof getGroups)
 
-      if(empIds){
-        filterCriteria['createdBy.empId'] = { $in: empIds }
-      } else {
-        filterCriteria['createdBy.empId'] = empId
-      }
+    if(empIds?.length){
+      filterCriteria['createdBy.empId'] = { $in: empIds }
+    } else if (forTeam && forTeam.length === 0 ) { 
+    filterCriteria['createdBy.empId'] = empId;
+    }
+
 
     if(expenseHeaderStatus?.length){
       filterCriteria.expenseHeaderStatus = {$in: expenseHeaderStatus}
