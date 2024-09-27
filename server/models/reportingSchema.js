@@ -16,14 +16,16 @@ const cashAdvanceStateEnums = [
 ];
 
 const cashAdvanceStatusEnum = [
-'draft',
-'pending approval',
-'approved',
-'rejected',
-'awaiting pending settlement',
-'pending settlement',
-'paid',
-'cancelled',
+  'draft',
+  'pending approval',
+  'approved',
+  'rejected',
+  'awaiting pending settlement',
+  'pending settlement',
+  'paid',
+  'cancelled',
+  'paid and cancelled',
+  'recovered',
 ];
 
 //-----------trip---------
