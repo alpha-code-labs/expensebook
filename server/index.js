@@ -40,7 +40,8 @@ const app = express();
 // }
 
 const corsOptions = {
-  origin: '*',
+  origin: true,
+  credentials: true
 }
 
 app.use(express.json());
