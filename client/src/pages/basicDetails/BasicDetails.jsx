@@ -144,11 +144,11 @@ export default function BasicDetails({ onBoardingData, formData, setFormData }) 
                 const formData_copy = JSON.parse(JSON.stringify(formData))
                 formData_copy.travelRequestId = travelRequestId
                 setFormData(formData_copy)
-                navigate(`/modify/${travelRequestId}/section1`)
+                navigate(`/modify/travel/${travelRequestId}/section1`)
             }
             else {
                 setIsLoading(true)
-                navigate(`/modify/${formData.travelRequestId}/section1`)
+                navigate(`/modify/travel/${formData.travelRequestId}/section1`)
             }
         }
     }
