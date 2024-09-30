@@ -9,12 +9,12 @@ import password from './controllers/update_password.js';
 import companyName from './controllers/companyName.js';
 import login from './controllers/login.js';
 import forgotPassword from './controllers/forgotPassword.js';
-import middleware from './middleware/middleware.js';
 import updateEmployee from "./controllers/updateEmployee.js";
 import updateHRCompany from "./controllers/hrMaster.js";
 import employeeRoles from "./controllers/employeeRoles.js";
 import hrData from './controllers/companyHr.js';
 import startConsumer from "./controllers/rabbitMQ/consumer.js";
+import cookieParser from "cookie-parser";
 
 const logger = pino({})
 logger.info('Hello World')
@@ -24,8 +24,9 @@ const app = express();
 
 const MONGO_URI = process.env.MONGO_URI;
 const PORT = process.env.PORT||9004
+// app.use(cookieParser());
+app.use(cors()); 
 
-app.use(cors()); // Use cors middleware to handle CORS
 
 app.get('/ping', async (req, res)=>{
     res.status(200).json({message: 'It\'s Chilling in here'})
@@ -37,7 +38,6 @@ app.use("/api", password);
 app.use("/api", companyName);
 app.use("/api", login);
 app.use("/api", forgotPassword);
-app.use("/api", middleware);
 app.use("/api", updateEmployee);
 app.use("/api", updateHRCompany);
 app.use("/api", employeeRoles);

@@ -44,7 +44,7 @@ const handleUpdate = async () => {
   if (formData.password === '') {
     setErrors((pre) => ({
       ...pre,
-      passwordError: { set: true, message: 'Please enter a password' },
+      passwordError: { set: true, message: 'Password is required.' },
     }));
     allowSubmit = false;
   }else if(!validatePassword(formData.password)){
