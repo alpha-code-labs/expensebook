@@ -25,7 +25,8 @@ const app = express();
 const MONGO_URI = process.env.MONGO_URI;
 const PORT = process.env.PORT||9004
 // app.use(cookieParser());
-app.use(cors()); 
+app.use(cors({ origin: true, credentials: true }));
+// app.use(cors({ origin: 'http://localhost:7002', credentials: true }));
 
 
 app.get('/ping', async (req, res)=>{

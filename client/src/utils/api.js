@@ -5,7 +5,6 @@ const CITYLIST_BACKEND_API_URL = import.meta.env.VITE_CITYLIST_API
 const retry = 3;
 const retryDelay = 3000;
 
-const 
 
 const errorMessages = {
   '404': 'Resource Not Found',
