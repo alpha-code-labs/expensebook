@@ -907,10 +907,7 @@ Raise a Cash-Advance
               <TripName tripName={trip?.tripName}/>
             
              </div>}
-              </div>
-
-                   
-                    
+              </div>  
                     <div className='mt-2 space-y-2'>
                       {/* {filteredTripExpenses?.map((trExpense, index) => ( */}
                         <div key={index} className='border border-slate-300 rounded-md px-2 py-1'>

@@ -1,4 +1,4 @@
-function titleCase(str){
+  function titleCase(str){
   if(!str){
     return '';
   }
@@ -12,9 +12,8 @@ function titleCase(str){
     str= str.map(word=>word.replace(word[0],word[0].toUpperCase()))
     return str.join(' ')
   }
-
   
-function formatDate(date=Date.now()){
+  function formatDate(date=Date.now()){
     // Get the current timestamp
     const currentTimestamp = date
 
@@ -140,7 +139,6 @@ function formatDate(date=Date.now()){
       }
     });
   };
-  
   
   const sortTripsByDate = (trips) => {
     return trips.sort((a, b) => {

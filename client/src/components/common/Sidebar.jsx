@@ -22,18 +22,17 @@ const Sidebar = ({setSidebarOpen }) => {
     });
 
     useEffect(() => {
-        const data = employeeData && employeeData?.dashboardViews?.employee;
-        const approvalData = employeeData && employeeData?.dashboardViews?.employeeManager;
-        const businessAdminData = employeeData && employeeData?.dashboardViews?.businessAdmin;
+        const data = employeeData?.dashboardViews?.employee;
+        const approvalData = employeeData?.dashboardViews?.employeeManager;
+        const businessAdminData =  employeeData?.dashboardViews?.businessAdmin;
+        const settlementCount = employeeData?.dashboardViews?.finance;
         console.log('approvalData', approvalData);
-
         // Filtered travelRequests array
         let filteredData;
 
         if (data) {
             let filteredTravelRequests = filterTravelRequests(data?.travelRequests);
             filteredData = filteredTravelRequests;
-            
         }
         //business admin > pending booking
         let filteredPendingBookingData;
@@ -59,7 +58,9 @@ const Sidebar = ({setSidebarOpen }) => {
             nonTrExpApproval :approvalData?.nonTravelExpenseReports?.length || 0,
             //business admin
             pendingBooking: filteredPendingBookingData?.length || 0,
-            paidAndCancelledTrips: businessAdminData?.paidAndCancelled || 0
+            paidAndCancelledTrips: businessAdminData?.paidAndCancelled || 0,
+            //finance
+            settlement:settlementCount
         }));
     }, [employeeData]);
 
@@ -91,7 +92,7 @@ const Sidebar = ({setSidebarOpen }) => {
         }
 
         if (employeeRoles?.employeeRoles?.finance) {
-            sidebarItems.push({ label: 'Settlement', icon: money, icon1: money1, url: 'settlement', count: "" });
+            sidebarItems.push({ label: 'Settlement', icon: money, icon1: money1, url: 'settlement', count: countData?.settlement });
         }
 
         if (employeeRoles?.employeeRoles?.superAdmin) {

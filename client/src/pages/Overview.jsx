@@ -60,7 +60,7 @@ const Overview = ({fetchData ,isLoading,setIsLoading,loadingErrMsg, setLoadingEr
 
 useEffect(()=>{
   
-  setOverviewData(employeeData && employeeData?.dashboardViews?.employee?.overview)
+  setOverviewData(employeeData?.dashboardViews?.employee?.overview)
 
 },[employeeData])
 
@@ -659,11 +659,7 @@ const IntransitTrips = ({ index, trip, lastIndex,handleVisible }) => {
 
 
             })
-           }
-            
-          
-           
-            
+           } 
           </div>
         </motion.div>
     </div>
@@ -869,6 +865,7 @@ const TravelRequests = ({travel,index,lastIndex})=>{
             <p>{travel?.travelRequestNumber}</p>
          </div>
           : 
+          
           <TripName tripName={travel?.tripName}/>
           
         }

@@ -10,7 +10,7 @@ import Button1 from '../components/common/Button1';
 import Error from '../components/common/Error';
 import Input from '../components/common/SearchInput';
 import TripMS from '../microservice/TripMS';
-import { CardLayout, EmptyBox, StatusFilter, TripName } from '../components/common/TinyComponent';
+import { CardLayout, EmptyBox, StatusBox, StatusFilter, TripName } from '../components/common/TinyComponent';
 
 
 const Travel = ({isLoading ,fetchData,loadingErrMsg}) => {
@@ -291,9 +291,8 @@ setSelectedStatuses={setSelectedStatuses}
         }
       </div>
       <div className='flex justify-center items-center gap-2'>
-        <div className={`text-center rounded-sm ${getStatusClass(trip?.travelRequestStatus ?? "-")}`}>
-            <p className='px-1 py-1 text-xs text-center capitalize font-cabin'>{(trip?.travelRequestStatus) ?? "-"}</p>
-      </div>
+       
+      <StatusBox status={trip?.travelRequestStatus ?? "-"}/>
         <div onClick={()=>{if(!disableButton(trip?.travelRequestStatus)){handleVisible({tripId:trip?.tripId ,travelRequestId:trip?.travelRequestId,urlName: trip?.travelRequestStatus})}}}  className='cursor-pointer w-7 h-7 bg-indigo-100 rounded-full border border-white flex items-center justify-center'>
         <img src={modify} className='w-4 h-4' alt="Add Icon" />
         </div>
