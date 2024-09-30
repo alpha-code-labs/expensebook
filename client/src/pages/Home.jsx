@@ -66,9 +66,7 @@ const fetchData = async () => {
   }
 };
 
-useEffect(() => {
-  fetchData();
-}, []);
+
   
   const handleLogout = async () => {
     logoutApi(authToken)

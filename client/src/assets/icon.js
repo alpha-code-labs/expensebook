@@ -78,11 +78,11 @@ export {default as loading_icon} from './loading2.svg';
 export {default as loading} from './loading.svg';
 export {default as businessAdmin_icon} from './business-admin.png';
 export {default as businessAdmin1_icon} from './businessAdmin1.png';
-export {default as company_icon} from './icons8-company-100.png';
+//export {default as company_icon} from './icons8-company-100.png';
 export {default as approval_icon} from './icons8-pass-fail-100.png';
 export {default as approval_w_icon} from './icons8-pass-fail-100 (1).png';
 export {default as briefcaseMap} from './suitcase/breifcase03.jpg';
-export {default as user_icon} from './userprofile.png';
+export {default as user_icon} from './profile.png';
 export {default as plus_icon} from './plus.svg';
 export {default as plus_violet_icon} from './plus copy.svg';
 export {default as calender_2_icon} from './calender-2.png';
@@ -110,6 +110,7 @@ export {default as grade_icon} from './grade.png';
 export {default as violation_red_icon} from './violation_red_icon.png';
 export {default as report_icon} from './report_icon.png'
 export {default as report_white_icon} from './report_icon_white.png'
+export {default as company_icon} from './companyLogo_slate.png';
 
 
 
@@ -148,6 +149,7 @@ import softwareSubscription_icon from './expense_icon/subscriptions.svg'
 import clientEntertainment_icon from './expense_icon/insurance.svg'
 import clientGift_icon from './expense_icon/insurance.svg'
 import receipt_icon from './expense_icon/receipt.svg'
+
 
 export const categoryIcons = {
   'Flight': flight_icon, 

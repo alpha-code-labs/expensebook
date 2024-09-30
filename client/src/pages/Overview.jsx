@@ -4,14 +4,12 @@ import { airplane_1, briefcase, calender_icon, double_arrow,cab_purple,  house_s
 import {  extractTripNameStartDate, formatAmount,  getStatusClass, sortTripsByDate, splitTripName } from '../utils/handyFunctions';
 import { useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import TravelMS from '../microservice/TravelMS';
 import { useData } from '../api/DataProvider';
 import Error from '../components/common/Error';
 import { CabCard, FlightCard, HotelCard, RentalCabCard } from '../components/itinerary/ItineraryCard';
 import Modal from '../components/common/Modal1';
 import TripSearch from '../components/common/TripSearch';
 import Button1 from '../components/common/Button1';
-import { handleNonTravelExpense, handleTravelExpense} from '../utils/actionHandler';
 import TripMS from '../microservice/TripMS';
 import { TripName } from '../components/common/TinyComponent';
 import ExpenseMS from '../microservice/Expense';
@@ -21,9 +19,9 @@ const cashBaseUrl    = import.meta.env.VITE_CASHADVANCE_PAGE_URL;
 const tripBaseUrl    = import.meta.env.VITE_TRIP_BASE_URL;
 const expenseBaseUrl = import.meta.env.VITE_EXPENSE_PAGE_URL;
 
-function CardLayout({cardSequence,icon,cardTitle,children}){
+function CardLayout({icon,cardTitle,children}){
   return(
-  <div className={`min-w-[400px] px-2  h-[340px] ${cardSequence ? 'opacity-100' : 'opacity-0'}`} >
+  <div className={`min-w-[400px] px-2  h-[340px] `} >
          <div className="border-b-2  border-indigo-600 flex flex-row items-center justify-start gap-2 overflow-hidden py-2">
            <img
              className="w-5 h-5 shrink-0"
@@ -33,7 +31,6 @@ function CardLayout({cardSequence,icon,cardTitle,children}){
            <b className="tracking-[0.02em] font-cabin text-[16px] text-indigo-600 font-semibold">{cardTitle}</b>
          </div>
          <div className=' shadow-sm shadow-indigo-600 rounded-md'/>
-         {/* <div className="h-[285px] flex justify-center items-center  bg-white overflow-hidden overflow-y-auto mt-2  border-[4px] border-gray-600  shadow-lg  shadow-black/60  rounded-3xl px-2"> */}
          <div className="h-[285px] scrollbar-hide bg-white overflow-hidden overflow-y-auto space-y-2  border-[4px] border-gray-600    shadow-custom-light  rounded-3xl px-2">
          
           {children}
@@ -63,11 +60,9 @@ const Overview = ({fetchData ,isLoading,setIsLoading,loadingErrMsg, setLoadingEr
 
 useEffect(()=>{
   
-  setOverviewData(employeeData && employeeData?.dashboardViews?.employee?.overview)
+  setOverviewData(employeeData?.dashboardViews?.employee?.overview)
 
 },[employeeData])
-
-console.log('data11',overviewData)
 
 const intransitTrips     = overviewData?.transitTrips || [];
 const upcomingTrips      = overviewData?.upcomingTrips || [];
@@ -79,14 +74,9 @@ const travelRequests     = overviewData?.allTravelRequests?.allTravelRequests?.m
   tripStartDate: extractTripNameStartDate(travel?.tripName)
 })) || [];
 
-
 sortTripsByDate(travelRequests)
 sortTripsByDate(intransitTrips)
 sortTripsByDate(upcomingTrips)
-
-
-console.log('travel request11', travelRequests);
-
 
   const [visible, setVisible]=useState(false);
   const [expenseVisible, setExpenseVisible]=useState(false);
@@ -191,8 +181,6 @@ const handleRaise = () => {
   }
 };
   
-
-
   const [textVisible , setTextVisible]=useState({expense:false,createTravel:false});
   const [expenseTabs , setExpenseTabs]=useState("travelExpense");
   
@@ -200,20 +188,20 @@ const handleRaise = () => {
     setExpenseTabs(tab)
   }
 
-  const [visibleDivs, setVisibleDivs] = useState([false, false, false, false]);
 
-  useEffect(() => {
-    const delays = [0, 1000, 2000, 3000]; // delays in milliseconds
-    delays.forEach((delay, index) => {
-      setTimeout(() => {
-        setVisibleDivs((prev) => {
-          const newVisibleDivs = [...prev];
-          newVisibleDivs[index] = true;
-          return newVisibleDivs;
-        });
-      }, delay);
-    });
-  }, []);
+
+  // useEffect(() => {
+  //   const delays = [0, 1000, 2000, 3000]; // delays in milliseconds
+  //   delays.forEach((delay, index) => {
+  //     setTimeout(() => {
+  //       setVisibleDivs((prev) => {
+  //         const newVisibleDivs = [...prev];
+  //         newVisibleDivs[index] = true;
+  //         return newVisibleDivs;
+  //       });
+  //     }, delay);
+  //   });
+  // }, []);
 
 
   return (
@@ -226,7 +214,7 @@ const handleRaise = () => {
       <TripMS visible={visible} setVisible={setVisible} src={iframeURL} /> 
     <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 w-full overflow-x-auto pb-2">
       
-   <CardLayout cardSequence={visibleDivs[0]} icon={briefcase} cardTitle={"Activities for On-going Trips"}>
+   <CardLayout  icon={briefcase} cardTitle={"Activities for On-going Trips"}>
    {intransitTrips.length === 0 ? (
      <EmptyTrips icon={empty_itinerary_icon} text="No in-transit trips." />
    ) : (
@@ -243,7 +231,7 @@ const handleRaise = () => {
    </CardLayout>
    
         
-    <CardLayout cardSequence={visibleDivs[0]} icon={receipt} cardTitle={"Expenses"}>    
+    <CardLayout  icon={receipt} cardTitle={"Expenses"}>    
    
    <div className="flex gap-x-2 h-[45px] px-2 flex-row items-center justify-between text-center font-cabin border-b-2  border-slate-300  text-neutral-700 text-xs">
    <div className='flex'>
@@ -294,7 +282,7 @@ className={`px-2 py-1 rounded-xl cursor-pointer ease-in-out ${expenseTabs === 'n
    </div>
    </CardLayout>  
           
-   <CardLayout cardSequence={visibleDivs[2]} icon={briefcase} cardTitle={"Upcoming Trips"}>
+   <CardLayout  icon={briefcase} cardTitle={"Upcoming Trips"}>
     
     {  upcomingTrips?.length === 0 ? (
      <EmptyTrips icon={empty_itinerary_icon} text="No upcoming trips" />
@@ -317,7 +305,7 @@ className={`px-2 py-1 rounded-xl cursor-pointer ease-in-out ${expenseTabs === 'n
    
    
    
-   <CardLayout cardSequence={visibleDivs[2]} icon={briefcase} cardTitle={"Travel Requests"}>
+   <CardLayout  icon={briefcase} cardTitle={"Travel Requests"}>
      {/* <div className="border-b-2 border-indigo-600 flex flex-row items-center justify-start gap-2 overflow-hidden py-2">
        <img
          className="w-5 h-5 shrink-0"
@@ -671,11 +659,7 @@ const IntransitTrips = ({ index, trip, lastIndex,handleVisible }) => {
 
 
             })
-           }
-            
-          
-           
-            
+           } 
           </div>
         </motion.div>
     </div>
@@ -881,6 +865,7 @@ const TravelRequests = ({travel,index,lastIndex})=>{
             <p>{travel?.travelRequestNumber}</p>
          </div>
           : 
+          
           <TripName tripName={travel?.tripName}/>
           
         }

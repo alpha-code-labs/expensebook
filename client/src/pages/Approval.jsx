@@ -730,9 +730,6 @@ const handleVisible = ({travelRequestId,tripId,expenseHeaderId, action}) => {
      <>
        <TripMS visible={visible} setVisible={setVisible} src={approvalUrl}/>
      <div className='h-screen  flex flex-col p-4'>
-     
-
-      
       <div className=' border border-slate-300 bg-white rounded-md  w-full flex flex-col justify-center items-start px-2'>
  {/* <div className='flex flex-wrap  space-x-2 '>      
 <div className='flex items-center justify-center p-2 bg-slate-100 rounded-full border border-slate-300 '><img src={filter_icon} className='w-5 h-5'/></div>
@@ -910,10 +907,7 @@ Raise a Cash-Advance
               <TripName tripName={trip?.tripName}/>
             
              </div>}
-              </div>
-
-                   
-                    
+              </div>  
                     <div className='mt-2 space-y-2'>
                       {/* {filteredTripExpenses?.map((trExpense, index) => ( */}
                         <div key={index} className='border border-slate-300 rounded-md px-2 py-1'>

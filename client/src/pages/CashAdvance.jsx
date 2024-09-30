@@ -12,7 +12,7 @@ import Error from '../components/common/Error';
 import { useParams } from 'react-router-dom';
 import Input from '../components/common/SearchInput';
 import TripMS from '../microservice/TripMS';
-import { CardLayout, EmptyBox, StatusFilter, TripName } from '../components/common/TinyComponent';
+import { CardLayout, EmptyBox, StatusBox, StatusFilter, TripName } from '../components/common/TinyComponent';
 
 const CashAdvance = ({isLoading, fetchData, loadingErrMsg}) => {
 
@@ -274,9 +274,7 @@ Raise a Cash-Advance
 </div> 
     </div>
       <div className='flex justify-center items-center gap-2'>
-                    <div className={`text-center rounded-sm ${getStatusClass(advance?.cashAdvanceStatus ?? "-")}`}>
-                       <p className='px-1 py-1 text-xs text-center capitalize font-cabin'>{advance?.cashAdvanceStatus ?? "-"}</p>
-                    </div>
+                    <StatusBox status={advance?.cashAdvanceStatus ?? "-"}/>
                     {!['paid'].includes(advance?.cashAdvanceStatus) &&
                     <div onClick={()=>{if(!disableButton(trip?.travelRequestStatus)){handleVisible(trip?.travelRequestId,  'ca-modify' ,advance?.cashAdvanceId,)}}} className={`w-7 h-7 bg-indigo-100 rounded-full border border-white flex items-center justify-center ${disableButton(trip?.travelRequestStatus)? ' cursor-not-allowed opacity-50' : ' cursor-pointer'}`}>
                     <img src={modify} className='w-4 h-4' alt="modify_icon" />

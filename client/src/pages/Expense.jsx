@@ -9,7 +9,7 @@ import TripSearch from '../components/common/TripSearch';
 import Button1 from '../components/common/Button1';
 import Error from '../components/common/Error';
 import Input from '../components/common/SearchInput';
-import { CardLayout, EmptyBox, ExpenseLine, StatusFilter, TripName } from '../components/common/TinyComponent';
+import { CardLayout, EmptyBox, ExpenseLine, StatusBox, StatusFilter, TripName } from '../components/common/TinyComponent';
 import ExpenseMS from '../microservice/Expense';
 import { act } from 'react';
 
@@ -248,9 +248,8 @@ setSelectedStatuses={setSelectedStatuses}
                       {filteredTripExpenses.map((trExpense, index) => (
                         <div key={index} className='border border-slate-300 rounded-md px-2 py-1'>
                           <div className='flex flex-row justify-between items-center py-1 border-b border-slate-300 font-cabin font-xs'>
-                            <div className={`text-center rounded-sm ${getStatusClass(trExpense?.expenseHeaderStatus ?? "-")}`}>
-                              <p className='px-1 py-1 text-xs text-center capitalize font-cabin'>{trExpense?.expenseHeaderStatus ?? "-"}</p>
-                            </div>
+                            
+                            <StatusBox status={trExpense?.expenseHeaderStatus ?? "-"}/>
                             {!['paidAndDistributed'].includes(trExpense?.expenseHeaderStatus) &&
                             <div onClick={()=>handleVisible({urlName:handleTravelExpense({tenantId,empId,tripId:trip?.tripId,expenseHeaderId: trExpense?.expenseHeaderId, action: 'trip-ex-modify' })})} className={`w-7 h-7 bg-indigo-100 rounded-full border border-white flex items-center justify-center cursor-pointer`}>
                             <img src={modify} className='w-4 h-4' alt="modify_icon" />
@@ -294,9 +293,7 @@ setSelectedStatuses={setSelectedStatuses}
                       </div>
                     </div>
                     <div className='flex flex-row gap-2 justify-between items-center font-cabin font-xs'>
-                      <div className={`text-center rounded-sm ${getStatusClass(nonTravelExp?.expenseHeaderStatus ?? "-")}`}>
-                        <p className='px-1 py-1 text-xs text-center capitalize font-cabin'>{nonTravelExp?.expenseHeaderStatus ?? "-"}</p>
-                      </div>
+                      <StatusBox status={nonTravelExp?.expenseHeaderStatus ?? "-"}/>
                       {!['paidAndDistributed'].includes(nonTravelExp?.expenseHeaderStatus) &&<div onClick={() => handleVisible({urlName:handleNonTravelExpense({tenantId,empId ,expenseHeaderId:nonTravelExp?.expenseHeaderId,action:"non-tr-ex-modify"})})} className={`w-7 h-7 bg-indigo-100 rounded-full border border-white flex items-center justify-center ${disableButton(nonTravelExp?.travelRequestStatus) ? ' cursor-not-allowed opacity-50' : ' cursor-pointer'}`}>
                         <img src={modify} className='w-4 h-4' alt="modify_icon" />
                       </div>}
