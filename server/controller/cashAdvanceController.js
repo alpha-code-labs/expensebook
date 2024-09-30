@@ -2,6 +2,30 @@ import Joi from "joi";
 import Finance from "../models/Finance.js";
 import { handleErrors } from "../errorHandler/errorHandler.js"; 
 import { sendToOtherMicroservice } from "../rabbitmq/publisher.js";
+import HRMaster from "../models/hrMaster.js";
+
+const getMultiCurrencyTable = async(tenantId) => {
+  try{
+    const getData = await HRMaster.findOne({
+      tenantId,
+    },{multiCurrencyTable:1})
+    if (!getData) {
+      throw new Error('No data found for the given tenantId');
+    }
+
+    const { exchangeValue } = getData.multiCurrencyTable
+    const shortNames = Array.isArray(exchangeValue) ? exchangeValue.map(item => item.currency.shortName).filter(Boolean) : []
+
+    return shortNames
+  } catch(e){
+    console.log(e);
+    throw e
+  }
+}
+
+
+
+
 
 export const getPaidAndCancelledCash = async(tenantId, empId)=>{
     try { 
@@ -82,6 +106,8 @@ export const getCashAdvanceToSettle = async(tenantId, empId) => {
       return {message:"All are settled", success: true}
     }else{
 
+      const shortNames = await getMultiCurrencyTable(tenantId)
+console.info(shortNames)
       const settleCash = getAllCashToSettle.flatMap((report) => {
           if (!report.cashAdvanceSchema || !Array.isArray(report.cashAdvanceSchema.cashAdvancesData)) {
             return [];
@@ -102,9 +128,48 @@ export const getCashAdvanceToSettle = async(tenantId, empId) => {
             }));
            return {tripName,travelRequestId,travelRequestNumber,createdBy,cashAdvance}
           });
-          // console.log("settleCash", settleCash)
-
-        return settleCash;
+          console.log("settleCash", JSON.stringify(settleCash,'',2))
+        
+      // const kaboom = settleCash.map(cash =>{
+      //   const { cashAdvance} = cash
+      //   cashAdvance.map(advance => {
+      //     const isAmountDetails = advance.amountDetails
+      //     let isValidCurrency
+      //     isAmountDetails.forEach(amount => {
+      //       if(shortNames.includes(amount.currency.shortName)){
+      //         isValidCurrency = true
+      //         advance.amountDetails.isValidCurrency = isValidCurrency
+      //       }
+      //     })
+      //   })
+      // })
+      
+      const updatedSettleCash = settleCash.map(trip => {
+        return {
+          ...trip,
+          cashAdvance: trip.cashAdvance.map(advance => {
+            return {
+              ...advance,
+              amountDetails: advance.amountDetails.map(detail => {
+                // Return a new object with the desired properties
+                return {
+                  amount: detail.amount,
+                  currency: detail.currency,
+                  mode: detail.mode,
+                  _id: detail._id,
+                  isMultiCurrency: shortNames.includes(detail.currency.shortName)
+                };
+              })
+            };
+          })
+        };
+      });
+      
+      console.log(JSON.stringify(updatedSettleCash, null, 2));
+      
+      console.log(JSON.stringify(updatedSettleCash, null, 2));
+      
+        return updatedSettleCash;
     }
 
   } catch(error){
