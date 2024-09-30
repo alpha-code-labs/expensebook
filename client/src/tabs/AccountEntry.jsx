@@ -4,8 +4,9 @@ import { responseData } from '../utilis/dummyData';
 import { splitTripName } from '../utilis/handyFunctions';
 
 const AccountEntry = ({data}) => {
-  const tableData = flattenData(data);
 
+  const tableData = flattenData(data);
+  
   return (
     <div className="flex flex-col h-full">
       <div className="overflow-y-auto">

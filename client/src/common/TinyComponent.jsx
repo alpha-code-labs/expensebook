@@ -127,12 +127,27 @@ const TripName = ({tripName})=>(
             </div>)
   }
 
-  function SettleNowBtn ({text,onClick}){
+  function SettleNowBtn ({onHover,disabled, text,onClick}){
+    const handleClick = (e)=>{
+      if(!disabled ){
+          onClick(e)
+      }
+      else{
+          // console.log('disabled')
+      }
+  }
 
     return(
-      <div onClick={onClick} className=' cursor-pointer px-2 py-1 font-cabin text-xs bg-indigo-600 rounded-md text-white'>
+      <>
+      <div onClick={handleClick} className={`${disabled ? 'group hover:bg-indigo-400  bg-indigo-400 text-gray-400 cursor-not-allowed': 'bg-indigo-600 hover:bg-indigo-500  text-white cursor-pointer' } relative px-2 py-1 font-cabin text-xs bg-indigo-600 rounded-md text-white`}>
         <p className=' whitespace-nowrap'>{text}</p>
+        {disabled &&
+        <div className="absolute truncate -top-8 right-8  rounded-md px-2 py-1 bg-gray-800 text-gray-200 text-xs z-[10] font-cabin hidden scale-0 group-hover:block group-hover:origin-bottom-left group-hover:scale-100">
+            {onHover}
+        </div>}
     </div>
+      
+        </>
     )
     
   }
