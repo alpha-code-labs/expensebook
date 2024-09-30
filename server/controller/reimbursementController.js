@@ -65,12 +65,13 @@ export const getReimbursement = async(tenantId, empId)=>{
           expenseHeaderStatus,
           expenseLines,
           defaultCurrency,
-          createdBy
+          createdBy,
+          expenseAmountStatus,
         } = report.reimbursementSchema;
 
         const {expenseTotalAmount,results} = extractCategoryAndTotalAmount(expenseLines);
-      console.log("expenseTotalAmount - result",expenseTotalAmount, "results", results)
-      
+      // console.log("expenseTotalAmount - result",expenseTotalAmount, "results", results)
+      // const {totalExpenseAmount} =expenseAmountStatus
         return {
           expenseHeaderId,
           expenseHeaderNumber,

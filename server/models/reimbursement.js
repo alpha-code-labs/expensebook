@@ -138,6 +138,24 @@ expenseHeaderStatus: {
   enum: expenseHeaderStatusEnums,
   default: null
 },
+expenseAmountStatus: {
+  totalCashAmount: {
+    type: Number,
+    default: 0,
+  },
+  totalExpenseAmount: {
+    type: Number,
+    default: 0,
+  },
+  totalPersonalExpenseAmount: {
+    type: Number,
+    default: 0,
+  },
+  totalRemainingCash: {
+    type: Number,
+    default: 0,
+  },
+},
 travelAllocationFlags:{ //Comes from HRMaster -Based on this expense booking screen changes
   level1:Boolean,
   level2:Boolean,
@@ -186,7 +204,7 @@ expenseSettlementOptions:String,
 expenseCancelledReason: String,
 expenseSubmissionDate: Date,
 expenseSettledDate: Date,
-});
+},{timestamps:true});
 
 
 // Pre hook to generate and assign an ObjectId to expenseHeaderId before saving the document
