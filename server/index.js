@@ -9,11 +9,18 @@ import { mainRouter} from './routes/mainFrontendRoutes.js';
 import { consumeFromDashboardQueue } from './rabbitmq/dashboardConsumer.js';
 import { scheduleToFinanceBatchJob } from './schedulars/finance.js';
 import { gradeForEmployee } from './controllersRoleBased/roleBasedController.js';
+import cookieParser from 'cookie-parser';
 // import dashboard from "../models/dashboardSchema.js";
 
 const environment = process.env.NODE_ENV == 'production' ? '.env.prod' : '.env';
 dotenv.config({path:environment});
 
+
+const allowedOrigins = JSON.parse(process.env.ALLOWED_ORIGINS);
+const jwtSecret = process.env.JWT_SECRET
+
+
+console.log({allowedOrigins})
 console.log(`Running in ${environment} environment`);
 const rabbitMQUrl = process.env.rabbitMQUrl;
 const mongoURI= process.env.MONGODB_URI
@@ -21,8 +28,25 @@ const port = process.env.PORT || 8088;
 
 const app = express();
 
+// const corsOptions = {
+//   origin: function (origin, callback) {
+//     if (!origin) return callback(null, true);
+//     if (allowedOrigins.indexOf(origin) === -1) {
+//       return callback(new Error('CORS policy violation: Origin not allowed'), false); 
+//     }
+//     return callback(null, true);
+//   },
+//   credentials: true
+// }
+
+const corsOptions = {
+  origin: '*',
+}
+
 app.use(express.json());
-app.use(cors());
+app.use(cookieParser());
+app.use(cors(corsOptions));
+
 
 //Routes
 app.use('/api/dashboard/overview', overview ); 
@@ -50,41 +74,6 @@ const connectToMongoDB = async () => {
 };
 
 connectToMongoDB();
-
-// let channel;
-
-// export const connectToRabbitMQ = async () => {
-//   try {
-//     console.log('Connecting to RabbitMQ...');
-//     const connection = await amqp.connect(rabbitMQUrl);
-//     channel = await connection.createConfirmChannel();
-//     console.log('Connected to RabbitMQ...channel;');
-//     return channel; 
-//   } catch (error) {
-//     console.error('Error connecting to RabbitMQ:', error);
-//     return error;
-//   }
-// };
-// const res = await dashboard.updateOne({'travelRequestId':'65f999fc8ce974b02b0e14fb'},{$set:{'travelRequestSchema.assignedTo.empId': null, 'travelRequestSchema.assignedTo.name': null}})
-// if(res.success){
-//   console.log("success", success , res)
-// }
-// connectToRabbit();
-
-// const mongodb = async () => {
-//     try {
-//       const client = new MongoClient(mongoURI);
-      
-//       await client.connect();
-      
-//       console.log('Connected to MongoDB');
-  
-//     } catch (error) {
-//       console.error('Error connecting to MongoDB:', error);
-//     }
-//   };
-
-// mongodb();
 
 app.use((err, req, res, next) => {
   handleErrors(err, req, res, next);

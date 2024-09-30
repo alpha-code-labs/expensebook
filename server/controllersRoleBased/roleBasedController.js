@@ -6,6 +6,10 @@ import { earliestDate, extractStartDate } from "../utils/date.js";
 import { countViolations, extractValidViolations } from "../utils/count.js";
 import REIMBURSEMENT from "../models/reimbursementSchema.js";
 
+export const employeeSchema = Joi.object({
+    tenantId: Joi.string().required(),
+    empId:Joi.string().required()
+});
 
 function getItinerary(itinerary){
     const status={
@@ -117,11 +121,6 @@ function getAddALegItinerary(itinerary) {
 }
 
 
-export const employeeSchema = Joi.object({
-    tenantId: Joi.string().required(),
-    empId:Joi.string().required()
-});
-
 const getEmployeeRoles = async (tenantId, empId) => {
 
     console.log("tenantId type", typeof tenantId)
@@ -140,16 +139,17 @@ const getEmployeeRoles = async (tenantId, empId) => {
 };
 
 
-export const roleBasedLayout = async (req, res) => {
+const roleBasedLayout = async (req, res) => {
   try {
-
-    const { error, value} = employeeSchema.validate(req.params)
+    let { tenantId,empId} = req.user
+    const { error, value} = employeeSchema.validate({tenantId,empId})
+    console.log("jwt in controller - req.user",JSON.stringify(req.user,'',2))
 
     if(error){
         return res.status(400).json({error: error.details[0].message})
     }
 
-    const { tenantId, empId } = value;
+    ({ tenantId, empId } = value)
 
     // Get employee roles and execute layout functions
     const dashboardViews = await getDashboardViews(tenantId, empId);
@@ -2039,7 +2039,7 @@ const extractItinerary = (itinerary) => {
     }
 };
 
-export const gradeForEmployee = async (empId) => {
+const gradeForEmployee = async (empId) => {
     try {
       const getEmployee = await HRMaster.findOne({
         'employees': {
@@ -2390,6 +2390,9 @@ const superAdminLayout = async (tenantId, empId) => {
 };
 
 
-
+export{
+    roleBasedLayout,
+    gradeForEmployee
+}
 
 

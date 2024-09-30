@@ -229,7 +229,7 @@ async function getReportsForApproval(tenantId, empId, travelRequestIds) {
 }
 
 
-export async function approveAll(req,res){
+async function approveAll(req,res){
     try{  
       const [paramsValue, bodyValue] = await Promise.all([
         approveSchema.validateAsync(req.params),
@@ -294,7 +294,7 @@ export async function approveAll(req,res){
 }
 
 // approve travel Request with/without cash advance
-export const approveAllTravelWithCash = async (tenantId, empId, travelReports) => {
+const approveAllTravelWithCash = async (tenantId, empId, travelReports) => {
   try {
     console.log("approveAllTravelWithCash",tenantId, empId, )
     const allTravelRequests = []
@@ -461,7 +461,7 @@ export const approveAllTravelWithCash = async (tenantId, empId, travelReports) =
 }
 
 // travel with cash advance -- approve cashAdvance raised later
-export const approveCashAdvance = async (tenantId, empId,cashReports,getCashAdvanceIds) => {
+const approveCashAdvance = async (tenantId, empId,cashReports,getCashAdvanceIds) => {
   console.log("Starting cash advance approval process...");
   try {
     const travelRequestIds = cashReports.map(report => report.cashAdvanceSchema.travelRequestData.travelRequestId.toString())
@@ -527,7 +527,7 @@ const rejectSchema = Joi.object({
 
 
 
-export async function rejectAll(req,res){
+async function rejectAll(req,res){
 try{
   const {error : paramsError, value: paramsValue} = approveSchema.validate(req.params)
   if(paramsError){
@@ -579,7 +579,7 @@ try{
 }
 
 // reject travel request with/without cash advance
-export const rejectAllTravelWithCash = async (tenantId, empId,travelReports,rejectionReason) => {
+const rejectAllTravelWithCash = async (tenantId, empId,travelReports,rejectionReason) => {
   try {
     console.log("rejectAllTravelWithCash",tenantId, empId,rejectionReason )
     
@@ -776,7 +776,7 @@ console.log("payload",payload)
 
 
 // travel with cash advance -- Approve cash advance / approve cashAdvance raised later
-export const travelWithCashApproveCashAdvance = async (req, res) => {
+const travelWithCashApproveCashAdvance = async (req, res) => {
 
     const {error, value} = raisedLaterReqSchema.validate(req.params)
   
@@ -856,7 +856,7 @@ export const travelWithCashApproveCashAdvance = async (req, res) => {
   };
 
   // travel with cash advance -- Reject cash advance / reject cash Advance raised later
-export const travelWithCashRejectCashAdvance = async (req, res) => {
+const travelWithCashRejectCashAdvance = async (req, res) => {
     const { error: errorParams, value: valueParams} = raisedLaterReqSchema.validate(req.params)
   if(errorParams){
     return res.status(400).json({error: errorParams.details[0].message})
@@ -1029,7 +1029,7 @@ async function getReportsCashRaisedLater(tenantId,empId,travelRequestIds){
 
 
 // travel with cash advance -- reject cashAdvance raised later
-export const rejectCashAdvance = async (tenantId, empId, cashApprovalDocs,rejectionReason) => {
+const rejectCashAdvance = async (tenantId, empId, cashApprovalDocs,rejectionReason) => {
 
       console.log( "rejectCashAdvance--rejectionReason", rejectionReason)
     
@@ -1104,11 +1104,6 @@ export const rejectCashAdvance = async (tenantId, empId, cashApprovalDocs,reject
 
 
 
-
-
-
-
-
 // travel expense report
 const expenseParamsSchema = Joi.object({
   tenantId:Joi.string().required(),
@@ -1146,7 +1141,7 @@ function validateRequest(schema,data){
 }
 
 
-export async function getExpenseReport(tenantId,empId,tripId,expenseHeaderId){
+async function getExpenseReport(tenantId,empId,tripId,expenseHeaderId){
   try{
     const expenseReport = await dashboard.findOne({
       'tripSchema.tenantId':tenantId,
@@ -1173,7 +1168,7 @@ export async function getExpenseReport(tenantId,empId,tripId,expenseHeaderId){
   }
 }
 
-export function updateExpenseLineStatus(expenseLines, approve = [], reject = [], empId) {
+function updateExpenseLineStatus(expenseLines, approve = [], reject = [], empId) {
 
   return expenseLines.map(expenseLine => {
     const expenseLineIdStr = ( expenseLine.expenseLineId ?? expenseLine.lineItemId)?.toString()
@@ -1211,7 +1206,7 @@ export function updateExpenseLineStatus(expenseLines, approve = [], reject = [],
 }
 
 //Approve or reject travel expense report at header level or line item level
-export const travelExpenseApproval = async (req, res) => {
+const travelExpenseApproval = async (req, res) => {
   try {
     const params = validateRequest(expenseParamsSchema,req.params)
     const body = validateRequest(expenseBodySchema,req.body);
@@ -1376,7 +1371,7 @@ async function getNonTravelExpenseReport(tenantId, empId, expenseHeaderId) {
 }
 
 
-export const nonTravelReportApproval = async (req, res) => {
+const nonTravelReportApproval = async (req, res) => {
   try {
     const { error: errorParams, value: valueParams} = otherExpenseSchema.validate(req.params)
 
@@ -1493,6 +1488,19 @@ export const nonTravelReportApproval = async (req, res) => {
 
 
 
-
+export {
+  approveAll,
+  approveAllTravelWithCash,
+  approveCashAdvance,
+  rejectAll,
+  rejectAllTravelWithCash,
+  travelWithCashApproveCashAdvance,
+  travelWithCashRejectCashAdvance,
+  rejectCashAdvance,
+  getExpenseReport,
+  updateExpenseLineStatus,
+  travelExpenseApproval,
+  nonTravelReportApproval
+}
 
 

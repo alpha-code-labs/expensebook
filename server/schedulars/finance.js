@@ -92,28 +92,28 @@ const getSettlements = async () => {
 
 const financeBatchJob = async () => {
     try {
-      // const settlementsFilter = {
-      //   $or: [
-      //     {
-      //       'cashAdvanceSchema.cashAdvancesData.actionedUpon': false,
-      //       'cashAdvanceSchema.cashAdvancesData.cashAdvanceStatus': {
-      //         $in: ['pending settlement', 'Paid and Cancelled'],
-      //       },
-      //     },
-      //     {
-      //       'tripSchema.travelExpenseData.actionedUpon': false,
-      //       'tripSchema.travelExpenseData.expenseHeaderStatus': {
-      //         $in: ['pending settlement', 'Paid'],
-      //       },
-      //     },
-      //     {
-      //       'reimbursementSchema.actionedUpon': false,
-      //       'reimbursementSchema.expenseHeaderStatus': {
-      //         $in: ['pending settlement'],
-      //       },
-      //     },
-      //   ],
-      // }
+      const settlementsFilter = {
+        $or: [
+          {
+            'cashAdvanceSchema.cashAdvancesData.actionedUpon': false,
+            'cashAdvanceSchema.cashAdvancesData.cashAdvanceStatus': {
+              $in: ['pending settlement', 'Paid and Cancelled'],
+            },
+          },
+          {
+            'tripSchema.travelExpenseData.actionedUpon': false,
+            'tripSchema.travelExpenseData.expenseHeaderStatus': {
+              $in: ['pending settlement', 'Paid'],
+            },
+          },
+          {
+            'reimbursementSchema.actionedUpon': false,
+            'reimbursementSchema.expenseHeaderStatus': {
+              $in: ['pending settlement'],
+            },
+          },
+        ],
+      }
       const settlements = await getSettlements();
 
         console.log("settlements",settlements.length)
