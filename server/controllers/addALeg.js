@@ -35,6 +35,9 @@ async function getTrip(tenantId,empId,tripId){
     }
 }
 
+// IMPORTANT - If trip status is transit -
+//  then approver status for add a leg should be 'approval not needed' instead of currently i am using
+// 'approved'
 export const addALeg = async (trip, newItinerary,allocations) => {
     try {
         console.log("addALeg","trip",trip, newItinerary, "newItinerary","allocations",allocations  )
@@ -88,7 +91,7 @@ export const addALeg = async (trip, newItinerary,allocations) => {
       return({ success:true, message: 'All itinerary items processed successfully.',modifyTrip });
     } catch (error) {
       console.error(error);
-      throw new error('An error occurred while processing itinerary items.', error);
+      throw new Error({success: false,message:'An error occurred while processing itinerary items.', error:error.message});
     }
 };
 
@@ -110,7 +113,7 @@ try {
       payload.push({ travelRequestId });
     
       newFlights.forEach((newFlight) => {
-         itineraryDetails = {
+        itineraryDetails = {
           ...initializeFields(),
           ...addNote,
           ...newFlight,
@@ -131,7 +134,7 @@ try {
       const updatedTrip = await trip.save();
       
       if (!updatedTrip) {
-        return res.status(500).json({ error: 'Failed to save trip' });
+        throw new Error( 'Failed to save trip');
       } else {
 
         console.log("the itinerary ..........", itineraryDetails)
@@ -174,6 +177,9 @@ try {
 export async function addBus( trip,newBuses,newApproverStatus,addNote){
   try {
       let payload = [];
+      let itineraryDetails;
+
+      const { tripStatus} = trip
       let {tenantId, travelRequestId, isCashAdvanceTaken, itinerary, approvers, isAddALeg } = trip.travelRequestData;
       const { buses } = itinerary || { buses: [] };
     
@@ -184,13 +190,13 @@ export async function addBus( trip,newBuses,newApproverStatus,addNote){
 
       // add formId before sending to travel/cash
       newBuses.forEach((newBus) => {
-        const itineraryDetails = {
+        itineraryDetails = {
           ...initializeFields(), 
           ...addNote,
           ...newBus,
           itineraryId: new mongoose.Types.ObjectId(),
           formId: new mongoose.Types.ObjectId().toString(),
-          status: updateLineItemStatus(approvers),
+          status: updateLineItemStatus(tripStatus),
           approvers: approvers.map((approver) => ({ empId: approver.empId, name: approver.name, status: newApproverStatus })),
         };
         console.log("bus",itineraryDetails)
@@ -204,7 +210,8 @@ export async function addBus( trip,newBuses,newApproverStatus,addNote){
       const updatedTrip = await trip.save();
       
       if (!updatedTrip) {
-        return res.status(500).json({ error: 'Failed to save trip' });
+         throw new Error( 'Failed to save trip');
+
       } else {
         console.log("after saving hotel", updatedTrip.travelRequestData.itinerary.buses.length-1)
         const busesArray = updatedTrip.travelRequestData.itinerary.buses;
@@ -232,10 +239,10 @@ export async function addBus( trip,newBuses,newApproverStatus,addNote){
         // }
       }
 
-      return ({ success: true, message: 'Buses added successfully', trip: updatedTrip });
+      return ({ success: true, message: 'Buses added successfully', dataToSend });
 
   } catch (error) {
-    return ({success:false , message: "Failed to add Buses ", error})
+    return ({success:false , message: "Failed to add Buses ", error:error.message})
   }
 }
 
@@ -243,6 +250,10 @@ export async function addBus( trip,newBuses,newApproverStatus,addNote){
 export async function addTrain( trip,newTrains,newApproverStatus,addNote){
   try {
         let payload = [];
+        let itineraryDetails
+
+        const { tripStatus} = trip
+
       let {tenantId, travelRequestId, isCashAdvanceTaken, itinerary, approvers, isAddALeg } = trip.travelRequestData;
       const { trains } = itinerary || { trains: [] };
     
@@ -253,13 +264,13 @@ export async function addTrain( trip,newTrains,newApproverStatus,addNote){
 
       // add formId before sending to travel/cash
       newTrains.forEach((newTrain) => {
-        const itineraryDetails = {
+        itineraryDetails = {
           ...initializeFields(), 
           ...addNote,
           ...newTrain,
           itineraryId: new mongoose.Types.ObjectId(),
           formId: new mongoose.Types.ObjectId().toString(),
-          status: updateLineItemStatus(approvers),
+          status: updateLineItemStatus(tripStatus),
           approvers: approvers.map((approver) => ({ empId: approver.empId, name: approver.name, status: newApproverStatus })),
         };
         console.log("Train",itineraryDetails)
@@ -273,7 +284,7 @@ export async function addTrain( trip,newTrains,newApproverStatus,addNote){
       const updatedTrip = await trip.save();
       
       if (!updatedTrip) {
-        return res.status(500).json({ error: 'Failed to save trip' });
+        throw new Error( 'Failed to save trip');
       } else {
         console.log("after saving Train", updatedTrip.travelRequestData.itinerary.trains.length-1)
         const trainsArray = updatedTrip.travelRequestData.itinerary.trains;
@@ -298,13 +309,11 @@ export async function addTrain( trip,newTrains,newApproverStatus,addNote){
         // } else {
         //   await sendToOtherMicroservice(dataToSend, 'add-leg', 'travel', 'to update itinerary added to travelRequestData for trips');
         // }
+        return ({ success: true, message: 'train added successfully', dataToSend });
         
       }
-
-      return ({ success: true, message: 'train added successfully', trip: updatedTrip });
-
   } catch (error) {
-    return ({success:false , message: "Failed to add trains ", error})
+    return ({success:false , message: "Failed to add trains ", error:error.message})
   }
 }
 
@@ -313,6 +322,8 @@ export async function addTrain( trip,newTrains,newApproverStatus,addNote){
 export async function addCab(trip,newCabs,newApproverStatus,addNote){
   try {
       let payload = [];
+      let itineraryDetails;
+
       const {tripStatus} = trip
       let {tenantId, travelRequestId, isCashAdvanceTaken, itinerary, approvers, isAddALeg } = trip.travelRequestData;
       const { cabs } = itinerary || { cabs: [] };
@@ -324,7 +335,7 @@ export async function addCab(trip,newCabs,newApproverStatus,addNote){
 
       // add formId before sending to travel/cash
       newCabs.forEach((newCab) => {
-        const itineraryDetails = {
+        itineraryDetails = {
           ...initializeCabFields(), 
           ...addNote,
           ...newCab,
@@ -346,7 +357,8 @@ export async function addCab(trip,newCabs,newApproverStatus,addNote){
       
       if (!updatedTrip) {
         console.log('Failed to save trip' ,updatedTrip)
-        return res.status(500).json({ error: 'Failed to save trip' });
+         throw new Error( 'Failed to save trip');
+
       } else {
         console.log("after saving cabs", updatedTrip.travelRequestData.itinerary.cabs.length-1)
         const cabsArray = updatedTrip.travelRequestData.itinerary.cabs;
@@ -375,11 +387,11 @@ export async function addCab(trip,newCabs,newApproverStatus,addNote){
         
       }
 
-      return ({ success: true, message: 'cabs added successfully', trip: updatedTrip });
+      return ({ success: true, message: 'cabs added successfully', dataToSend });
 
   } catch (error) {
     console.log(JSON.stringify(error, '', 2))
-    return ({success:false , message: "Failed to add cabs ", error})
+    return ({success:false , message: "Failed to add cabs ", error:error.message})
   }
 }
 
@@ -387,6 +399,8 @@ export async function addCab(trip,newCabs,newApproverStatus,addNote){
 export async function addCarRentals(trip,newCarRentals,newApproverStatus,addNote){
     try {
         let payload = [];
+        let itineraryDetails;
+
         const {tripStatus} = trip
         let { travelRequestId, isCashAdvanceTaken, itinerary, approvers, isAddALeg } = trip.travelRequestData;
         const {tenantId, carRentals } = itinerary || { carRentals: [] };
@@ -398,7 +412,7 @@ export async function addCarRentals(trip,newCarRentals,newApproverStatus,addNote
 
         // add formId before sending to travel/cash
         newCarRentals.forEach((newCarRental) => {
-          const itineraryDetails = {
+          itineraryDetails = {
             ...initializeCabFields(), 
             ...addNote,
             ...newCarRental,
@@ -418,7 +432,8 @@ export async function addCarRentals(trip,newCarRentals,newApproverStatus,addNote
         const updatedTrip = await trip.save();
         
         if (!updatedTrip) {
-          return res.status(500).json({ error: 'Failed to save trip' });
+           throw new Error( 'Failed to save trip');
+
         } else {
           console.log("after saving newCarRental", updatedTrip.travelRequestData.itinerary.carRentals.length-1)
           const carRentalsArray = updatedTrip.travelRequestData.itinerary.carRentals;
@@ -447,21 +462,24 @@ export async function addCarRentals(trip,newCarRentals,newApproverStatus,addNote
           
         }
   
-        return ({ success: true, message: 'cabs added successfully', trip: updatedTrip });
+        return ({ success: true, message: 'cabs added successfully', dataToSend });
   
     } catch (error) {
-      return ({success:false , message: "Failed to add cabs ", error})
+      return ({success:false , message: "Failed to add cabs ", error:error.message})
     }
 }
 
 
 // 5) Add hotel details via dashboard
-export async function addHotel( trip,newHotels,newApproverStatus){
+export async function addHotel( trip,newHotels,newApproverStatus,addNote){
   try {
      let payload = [];
+     let itineraryDetails;
+
       const {tripStatus} = trip
       let {tenantId, travelRequestId, isCashAdvanceTaken, itinerary, approvers, isAddALeg } = trip.travelRequestData;
       const { hotels } = itinerary || { hotels: [] };
+
       let isAddALegFlag = true;
       trip.travelRequestData.isAddALeg = isAddALegFlag;
     
@@ -469,12 +487,12 @@ export async function addHotel( trip,newHotels,newApproverStatus){
 
       // add formId before sending to travel/cash
       newHotels.forEach((newHotel) => {
-        const itineraryDetails = {
+        itineraryDetails = {
           ...initializeHotelFields(), // Initialize all fields to null
           ...addNote,
           ...newHotel,
-          itineraryId: new mongoose.Types.ObjectId(),
           formId: new mongoose.Types.ObjectId().toString(),
+          itineraryId: new mongoose.Types.ObjectId(),
           status: updateLineItemStatus(tripStatus),
           approvers: approvers.map((approver) => ({ empId: approver.empId, name: approver.name, status: newApproverStatus })),
         };
@@ -488,7 +506,7 @@ export async function addHotel( trip,newHotels,newApproverStatus){
 
       const updatedTrip = await trip.save();
       if (!updatedTrip) {
-        return res.status(500).json({ error: 'Failed to save trip' });
+        throw new Error( 'Failed to save trip');
       } else {
         console.log("after saving hotel", updatedTrip.travelRequestData.itinerary.hotels.length-1)
         const hotelsArray = updatedTrip.travelRequestData.itinerary.hotels;
@@ -517,17 +535,20 @@ export async function addHotel( trip,newHotels,newApproverStatus){
         // }
     }
 
-    return ({ success: true, message: 'Hotels added successfully', trip: updatedTrip });
+    return ({ success: true, message: 'Hotels added successfully', dataToSend });
 
 } catch (error) {
-    return ({success:false , message: "Failed to add Hotel ", error})
+    return ({success:false , message: "Failed to add Hotel ", error:error.message})
 }
 }
 
-export async function addPersonalVehicles(trip, newPersonalVehicle, newApproverStatus){
+export async function addPersonalVehicles(trip, newPersonalVehicle, newApproverStatus,addNote){
     try{
 
         let payload = [];
+        let itineraryDetails;
+
+
         const {tripStatus} = trip
         let {tenantId, travelRequestId, isCashAdvanceTaken, itinerary, approvers, isAddALeg } = trip.travelRequestData;
         const { personalVehicles } = itinerary || { personalVehicles: [] };
@@ -538,7 +559,7 @@ export async function addPersonalVehicles(trip, newPersonalVehicle, newApproverS
 
         // add formId before sending to travel/cash
         newPersonalVehicle.forEach((vehicle) => {
-        const itineraryDetails = {
+        itineraryDetails = {
             ...initializeVehicle(), 
             ...addNote,
             ...vehicle,
@@ -557,7 +578,8 @@ export async function addPersonalVehicles(trip, newPersonalVehicle, newApproverS
 
         const updatedTrip = await trip.save();
         if (!updatedTrip) {
-          return res.status(500).json({ error: 'Failed to save trip' });
+           throw new Error( 'Failed to save trip');
+
         } else {
           console.log("after saving vehiclesAdded", updatedTrip.travelRequestData.itinerary.personalVehicles.length-1)
           const personalVehiclesArray = updatedTrip.travelRequestData.itinerary.personalVehicles;
@@ -587,10 +609,10 @@ export async function addPersonalVehicles(trip, newPersonalVehicle, newApproverS
         // }
         }
 
-        return ({ success: true, message: 'vehiclesAdded added successfully', trip: updatedTrip });  
+        return ({ success: true, message: 'vehiclesAdded added successfully', dataToSend });  
 
     } catch(error){
-        return ({success:false , message: "Failed to add Personal Vehicle ", error})
+        return ({success:false , message: "Failed to add Personal Vehicle ", error:error.message})
     }
 }
 

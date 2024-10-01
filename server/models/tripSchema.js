@@ -188,6 +188,8 @@ const tripSchema = new mongoose.Schema({
         type: Boolean,
         default:null,
   },
+  isCompleted:Boolean,
+  isClosed:Boolean
 }); 
 
 

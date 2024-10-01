@@ -100,6 +100,7 @@ export const modifyTrip = async(req,res) => {
         const { tenantId, empId, tripId} = valueParams
         const {cancelIds=[] , modifyIds=[], newItinerary={}, allocations=[]} = valueBody
 
+        console.log("cancelIds=[] , modifyIds=[], newItinerary={}, allocations=[]", cancelIds, modifyIds, newItinerary, allocations)
         const isValidItinerary = Object.values(newItinerary)
         .filter(Array.isArray)
         .some(array => array?.length > 0)
@@ -116,7 +117,7 @@ export const modifyTrip = async(req,res) => {
         const tripDetails = await getTrip(tenantId,empId,tripId)
 
         if(tripDetails){
-         
+        
         if(cancelIds){
             const cancelItinerary = await itineraryLineItem(tripDetails, cancelIds,'cancelled');
             console.log("cancelItinerary 0 flightzzzz", JSON.stringify(cancelItinerary.travelRequestData.itinerary.flights, " ", 2))
@@ -126,20 +127,44 @@ export const modifyTrip = async(req,res) => {
             try {
                 const success = await itineraryLineItem(tripDetails, modifyIds, 'booked');
                 if (success) {
-                   const addItinerary = await addALeg(tripDetails, newItinerary, allocations);
+                  const addItinerary = await addALeg(tripDetails, newItinerary, allocations);
+                  if (addItinerary.success) {
+                    // console.log(addItinerary.message); 
+                    // const modifyTrip = addItinerary.modifyTrip; 
+                  
                 } else {
+                  console.warn("Add itinerary and delete already booked itinerary failed:", addItinerary.message);
+
                     throw new Error("Duplicate entry");
                 }
-            } catch (error) {
+                } else {
+              console.warn("Modify itinerary failed:", success.message);
+            }} catch (error) {
                 console.error(error);
                 throw new Error("Duplicate entry");
             }
         }
 
+        if (isValidItinerary && !isModifyIds) {
+          try {
+              const addItinerary = await addALeg(tripDetails, newItinerary, allocations);
+              if (addItinerary.success) {
+                  // console.log(addItinerary.message); 
+                  // const modifyTrip = addItinerary.modifyTrip; 
+                
+              } else {
+                  console.warn("Add itinerary failed:", addItinerary.message);
+              }
+          } catch (error) {
+              console.error("Error occurred while adding itinerary:", error);
+              throw new Error("Duplicate entry"); // Re-throw a custom error
+          }
+      }
+
         const getDoc = await getTrip(tenantId,empId,tripId)
         const {travelRequestData} =getDoc
-         const { approvers, isCashAdvanceTaken} =travelRequestData
-         const isTransit = getDoc.tripStatus ==='transit'
+        const { approvers, isCashAdvanceTaken} =travelRequestData
+        const isTransit = getDoc.tripStatus ==='transit'
         if (approvers && approvers?.length > 0 && !isTransit) {
           console.log("Approvers found for this trip:", approvers);
           await sendToOtherMicroservice(travelRequestData, 'add-leg', 'approval', 'to update itinerary added to travelRequestData for trips');

@@ -67,7 +67,7 @@ export async function startConsumer(receiver) {
       console.error('Error handling message acknowledgment:', error)
     }
   }
-  
+
   // Start initial connection attempt
   const channel = await connectToRabbitMQ();
   if (!channel) {
@@ -131,7 +131,7 @@ export async function startConsumer(receiver) {
                 break;
             }
             break;
-         
+
           case 'cash':
             switch(action){
               case 'trip-creation':

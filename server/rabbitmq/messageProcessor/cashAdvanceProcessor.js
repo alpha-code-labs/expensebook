@@ -114,9 +114,9 @@ const createTrip = async (travelRequest) => {
       cashAdvancesData
     };
   };
-  
-  
-  const updateOrCreateTrip = async (trip) => {
+
+
+const updateOrCreateTrip = async (trip) => {
     const { tenantId, tenantName, travelRequestId, tripId,tripNumber, tripStartDate, tripCompletionDate, tripStatus, createdBy, travelRequestData, cashAdvancesData } = trip;
     const { isCashAdvanceTaken } = travelRequestData;
   
@@ -159,9 +159,8 @@ const createTrip = async (travelRequest) => {
       console.error('Error updating/creating trip:', error);
       throw error;
     }
-  };
-  
-  
+};
+
   export const processTravelRequestsWithCash = async (tripArray) => {
 
     try{

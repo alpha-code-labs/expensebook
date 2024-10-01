@@ -22,7 +22,7 @@ const travelRequestStateEnums = [
   "section 3",
 ];
 
-export const approverStatusEnums = ["pending approval", "approved", "rejected"];
+export const approverStatusEnums = ["pending approval", "approved", "rejected", ];
 
 const itineraryStatusEnums = [
   'draft', 

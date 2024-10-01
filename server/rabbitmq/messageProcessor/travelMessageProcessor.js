@@ -210,6 +210,8 @@ export const processTravelRequests = async (tripArray) => {
 
     console.log(" standalone tr - trip created and sent to dashboard", tripsCreated)
     await sendToOtherMicroservice(tripsCreated, 'trip-creation', 'dashboard', 'Trip creation successful and sent to dashboard', 'trip', 'online');
+    await sendToOtherMicroservice(tripsCreated, 'trip-creation', 'reporting', 'Trip creation successful and sent to reporting', 'trip', 'online');
+
     return {success: true, error: null}; 
   } catch(e){
     return {success:false, error: e};
