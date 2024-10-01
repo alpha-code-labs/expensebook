@@ -233,16 +233,30 @@ const handleSelectCategory = (option) => {
 
 console.log('initial selected allocation',selectedAllocations)
 
-const handleMannualBtn=()=>{
-  if(requiredObj.category){
+const handleMannualBtn = () => {
+  if (requiredObj?.category) {
+    setShowForm(true);
 
-    setShowForm(true)
-    document.getElementById('newLineItem').scrollIntoView({ behavior: 'smooth' });
-    setErrorMsg(prev => ({...prev,category:{ set: false, msg: "" },}))
-  }else{
-    setErrorMsg(prev => ({...prev,category:{ set: true, msg: "Select the category" },}))
+    // Smooth scroll to the bottom of the page after the form is shown
+    setTimeout(() => {
+      window.scrollTo({
+        top: document.documentElement.scrollHeight,
+        behavior: 'smooth',
+      });
+    }, 300);
+
+    setErrorMsg(prev => ({
+      ...prev,
+      category: { set: false, msg: "" },
+    }));
+  } else {
+    setErrorMsg(prev => ({
+      ...prev,
+      category: { set: true, msg: "Select the category" },
+    }));
   }
-}
+};
+
 
 
 const handleCurrencyConversion = async ( {currencyName}) => { 
@@ -821,7 +835,7 @@ useEffect(()=>{
       </div>
      
       {showForm &&
-<div className='w-full flex flex-col md:flex-row relative border-t-2 border-slate-300 h-screen p-4 pb-16 '>
+<div className={` ${showForm ? 'block' : 'hidden'} w-full flex flex-col md:flex-row relative border-t-2 border-slate-300 h-screen p-4 pb-16 `}>
     <div className='w-full md:w-3/5 md:block hidden border border-slate-300 rounded-md  h-full overflow-auto'>
         <DocumentPreview isFileSelected={isFileSelected} setIsFileSelected={setIsFileSelected} selectedFile={selectedFile} setSelectedFile={setSelectedFile} initialFile=""/>
     </div>
@@ -848,10 +862,11 @@ useEffect(()=>{
     <div className='absolute -left-4 mx-4 inset-x-0 w-full  z-20 bg-slate-100  h-fit border border-slate-300 bottom-0'>
       <ActionBoard handleClick={handleSaveLineItem} isUploading={isUploading} setModalOpen={setModalOpen} setActionType={setActionType}/>
     </div>
-</div>}
+    <div id='newLineItem'/>
+</div >}
 
     </div>}
-    <div id='newLineItem'/>
+   
     
     <Modal 
         isOpen={modalOpen} 

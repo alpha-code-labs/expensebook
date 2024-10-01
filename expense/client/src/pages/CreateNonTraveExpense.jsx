@@ -105,6 +105,7 @@ const [currencyConversion, setCurrencyConversion]=useState({
           "expenseHeaderStatus": response?.expenseReport?.expenseHeaderStatus,
           "expenseAmountStatus": response?.expenseReport?.expenseAmountStatus || {},
           "expenseLines":response?.expenseReport?.expenseLines,
+          "selectedSettlementOption": response?.expenseReport?.expenseSettlementOptions,
           "defaultCurrency":response?.expenseReport?.defaultCurrency,
           //"fields":response?.expenseReport?.fields || [],
           "createdBy":response?.expenseReport?.createdBy,
@@ -169,7 +170,8 @@ const [currencyConversion, setCurrencyConversion]=useState({
         saveAsDraft:false,
         submit:false,
         autoScan:false,
-        selectCategory:false
+        selectCategory:false,
+        updateLineItem:false
     })
     // const [active , setActive]=useState({
     //   edit:{visible:false,id:null},
@@ -260,7 +262,7 @@ const [selectedCategory , setSelectedCategory]= useState(null)
       const updatedLineItems = requiredObj?.expenseLines?.filter(
         (item) => item.lineItemId !== selectedLineItemId
       );
-      setRequiredObj(prev =>({...prev, "expenseLines":updatedLineItems}))
+      setRequiredObj(prev =>({...prev, "expenseLines":updatedLineItems,"expenseAmountStatus":response?.expenseAmountStatus}))
       setTimeout(() => {setShowPopup(false);setMessage(null)},3000);
     } catch (error) {
       console.log('Error in deleting line item', error.message);
@@ -877,7 +879,7 @@ const handleSaveLineItem = async (action) => {
   }
 
   // Save the data
-  setIsUploading((prev) => ({ ...prev, [action]: { set: true, msg: "" } }));
+  setIsUploading((prev) => ({ ...prev, saveLineItem: true }));
 
   try {
     const response = await api
@@ -904,8 +906,8 @@ if(action==="saveAndSubmit"){
 else if (action ==="updateLineItem"){
   const updatedLineItem = response?.updatedLine
   console.log('api update line item response',updatedLineItem)
-  setRequiredObj(prev=>({...prev,expenseLines:
-    requiredObj?.expenseLines.map(item => 
+  setRequiredObj(prev=>({...prev,"expenseAmountStatus":response?.expenseAmountStatus,
+    expenseLines:requiredObj?.expenseLines.map(item => 
       item.lineItemId === formData?.editedFields?.lineItemId ? { ...item, ...updatedLineItem } : item
   )
   }))
@@ -925,12 +927,12 @@ else if (action ==="updateLineItem"){
     }, 5000);
 } catch (error) {
     console.error("Error saving line item:", error);
-    setIsUploading((prev) => ({ ...prev, [action]: { set: false, msg: "" } }));
+    setIsUploading((prev) => ({ ...prev, saveLineItem: false }));
     setMessage(error.message);
     setShowPopup(true);
     setTimeout(() => setShowPopup(false), 3000);
 } finally {
-    setIsUploading((prev) => ({ ...prev, [action]: { set: false, msg: "" } }));
+    setIsUploading((prev) => ({ ...prev, saveLineItem: false }));
 }
 
 };
@@ -1536,7 +1538,7 @@ If the required category is unavailable, please contact the administrator.</span
                         </div>}
                         <Select 
                         variant="max-w-[200px]"
-                        currentOption={requiredObj?.expenseSettlement}
+                        currentOption={requiredObj?.selectedSettlementOption}
                         options={requiredObj?.expenseSettlementOptions}
                         onSelect={handleSettlementMethod}
                         error={errorMsg?.settlementError}
@@ -1551,7 +1553,7 @@ If the required category is unavailable, please contact the administrator.</span
  requiredObj?.expenseHeaderStatus && 
  requiredObj?.defaultCurrency && (
   <HeaderComponent 
-  totalExpenseAmount={(requiredObj?.expenseAmountStatus?.totalExpenseAmount ||0).toFixed(2) ?? "0.00"}
+   totalExpenseAmount={(requiredObj?.expenseAmountStatus?.totalExpenseAmount ||0).toFixed(2) ?? "0.00"}
     createdBy={requiredObj.createdBy}
     expenseHeaderNumber={requiredObj.expenseHeaderNumber}
     expenseHeaderStatus={requiredObj.expenseHeaderStatus}
@@ -1963,7 +1965,7 @@ const ActionBoard = ({showButton= false,title, handleDelete, title1, handleClick
              <p className='text-start whitespace-nowrap left-14 top-8 text-red-600 text-sm font-inter'><sup>*</sup>Kindly check the fields before saving the line item.</p>
     <div className='flex gap-1'>
       {/* <Button1  loading={isUploading?.saveAndNew?.set}      text='Save and New'    onClick={()=>handleClick("saveAndNew")}/> */}
-      <Button1  loading={isUploading?.saveAndSubmit?.set}      text={title} onClick={handleClick}/>
+      <Button1  loading={isUploading?.saveLineItem}      text={title} onClick={handleClick}/>
       {showButton &&<CancelButton  loading={isUploading?.saveLineItem?.set} text={title1}          onClick={handleDelete}/>} 
       <CancelButton  loading={isUploading?.saveLineItem?.set} text='Cancel'          onClick={()=>{setModalOpen(true);setActionType("closeAddExpense")}}/>
     
