@@ -725,6 +725,14 @@ export const tripSchema = new mongoose.Schema({
     type: travelExpenseSchema,
   }
   ],
+  isCompleted:{
+    type:Boolean,
+    default:false
+  },
+  isClosed:{
+    type:Boolean,
+    default:false
+  },
   isSentToExpense: Boolean, 
   notificationSentToDashboardFlag: Boolean,
 }); 
