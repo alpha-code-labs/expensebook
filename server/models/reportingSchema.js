@@ -183,6 +183,14 @@ const reportingSchema = new mongoose.Schema({
         required:true
       }
   ],
+  isCompleted:{
+    type:Boolean,
+    default:false
+  },
+  isClosed:{
+    type:Boolean,
+    default:false
+  }
   isSentToExpense: Boolean, 
   notificationSentToDashboardFlag: Boolean,
 }); 

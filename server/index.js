@@ -7,20 +7,34 @@ import { mainRouter } from './routes/mainFrontendRoutes.js';
 import { handleErrors } from './errorHandler/errorHandler.js';
 import { startConsumer } from './rabbitmq/consumer.js';
 import HRCompany from './models/hrCompanySchema.js';
+import cookieParser from 'cookie-parser';
 
 dotenv.config();
 const app = express();
 
 const environment = process.env.NODE_ENV || 'development';
 console.log(`Running in ${environment} environment`);
+const allowedOrigins = JSON.parse(process.env.ALLOWED_ORIGINS);
 const rabbitMQUrl = process.env.rabbitMQUrl;
 const mongoURI = process.env.MONGODB_URI;
+
+// const corsOptions = {
+//   origin: function (origin, callback) {
+//     if (!origin) return callback(null, true);
+//     if (allowedOrigins.indexOf(origin) === -1) {
+//       return callback(new Error('CORS policy violation: Origin not allowed'), false); 
+//     }
+//     return callback(null, true);
+//   },
+//   credentials: true
+// }
 
 const corsOptions = {
     origin: '*',
 }
 
 app.use(express.json());
+app.use(cookieParser());
 app.use(cors(corsOptions));
 
 //Routes
