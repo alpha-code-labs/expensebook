@@ -176,6 +176,14 @@ const tripSchema = new mongoose.Schema({
   ],
   isSentToExpense: Boolean, 
   notificationSentToDashboardFlag: Boolean,
+  isCompleted:{
+    type:Boolean,
+    default:false
+  },
+  isClosed:{
+    type:Boolean,
+    default:false
+  }
 }); 
 
 // Pre hook to generate and assign an ObjectId to expenseHeaderId before saving the document
