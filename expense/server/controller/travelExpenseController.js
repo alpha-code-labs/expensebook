@@ -38,7 +38,53 @@ const generateIncrementalNumber = (tenantName, incrementalValue = 1) => {
   }
 };
 
+const getGroupDetails = async(tenantId,empId, getGroups) => {
+  try{
+      let matchedEmployees
+      const employeeDocument = await HRCompany.findOne({
+          tenantId,
+          'employees.employeeDetails.employeeId': empId
+      });
+  
+      if (!employeeDocument) {
+          console.warn(`Employee not found for tenantId: ${tenantId}, empId: ${empId}`);
+          return { success: false, message: 'Invalid credentials. Please check your employee ID.' };
+      }
 
+      const {groups} = employeeDocument
+      const getAllGroups = groups.map(group => group.groupName)
+      const getEmployee = employeeDocument?.employees.find(e => e.employeeDetails.employeeId.toString() === empId.toString())
+
+      if(getGroups){
+          const upperCaseGroups = getGroups.map(group => group.replace(/\s+/g, '').toUpperCase());
+          
+      
+          matchedEmployees = employeeDocument?.employees
+              .filter(employee => 
+                  employee.group.some(empGroup => 
+                      upperCaseGroups.includes(empGroup.replace(/\s+/g, '').toUpperCase())
+                  )
+              )
+              .map(employee => ({
+                  empId: employee.employeeDetails.employeeId,
+                  empName: employee.employeeDetails.employeeName
+              }));
+              if(!matchedEmployees?.length){
+                  console.log("No employee found in the group");
+                  throw new Error(`No employee found for the group:- ${getGroups}`)
+              }
+      }
+
+      const {employeeDetails:getEmployeeDetails ,group } = getEmployee
+      const { employeeName, employeeId , department, designation,grade,project} = getEmployeeDetails
+      console.log("employee name man", employeeName, employeeId )
+      const employeeDetails = { employeeName, employeeId , department, designation,grade,project}
+      return {employeeDocument,employeeDetails,group , getAllGroups, matchedEmployees}
+  } catch(e){
+      console.log(e);
+      throw e
+  }
+}
 // to get expense report related company details
 const getExpenseRelatedHrData = async (tenantId,res = {}) => {
     try {
@@ -50,6 +96,11 @@ const getExpenseRelatedHrData = async (tenantId,res = {}) => {
 
         // const { travelExpenseCategories = [],  } = companyDetails 
         // const expenseCategoryNames = travelExpenseCategories.map(category => category.categoryName);
+        const getEmployee = companyDetails?.employees.find(e => e.employeeDetails.employeeId.toString() === empId.toString())
+        const {employeeDetails:getEmployeeDetails ,group } = getEmployee
+        const { employeeName, employeeId , department, designation,grade,project} = getEmployeeDetails
+        console.log("employee name man", employeeName, employeeId )
+        const employeeDetails = { employeeName, employeeId , department, designation,grade,project,group}
 
         let {
             flags:{POLICY_SETUP_FLAG} = {}, // the name need to be cross-checked with HRMaster later --
@@ -68,12 +119,12 @@ const getExpenseRelatedHrData = async (tenantId,res = {}) => {
   });
 
 
-        // const { expenseAllocation, expenseAllocation_accountLine} =travelAllocations
-        const isLevel3 = travelAllocationFlags?.level3
+    // const { expenseAllocation, expenseAllocation_accountLine} =travelAllocations
+    const isLevel3 = travelAllocationFlags?.level3
     if(isLevel3){
-      return {POLICY_SETUP_FLAG, defaultCurrency, travelAllocationFlags, travelExpenseCategories:getTravelExpenseCategories, travelAllocations, expenseSettlementOptions}
+      return {POLICY_SETUP_FLAG, defaultCurrency, travelAllocationFlags, travelExpenseCategories:getTravelExpenseCategories, travelAllocations, expenseSettlementOptions, employeeDetails}
     }
-      return {POLICY_SETUP_FLAG, defaultCurrency, travelAllocationFlags, travelExpenseCategories:getTravelExpenseCategories, travelAllocations, expenseSettlementOptions};
+      return {POLICY_SETUP_FLAG, defaultCurrency, travelAllocationFlags, travelExpenseCategories:getTravelExpenseCategories, travelAllocations, expenseSettlementOptions, employeeDetails};
     } catch (error) {
         console.error('Error in getExpenseRelatedHrData:', error);
         // logger.error('Error in getExpenseRelatedHrData:', error);
@@ -354,18 +405,18 @@ export const BookExpense = async (req, res) => {
       }
   
       // Getting additional details from HRMaster
-      let additionalDetails;
+      let getHRData;
       try {
-        additionalDetails = await getExpenseRelatedHrData(tenantId, res);
+        getHRData = await getExpenseRelatedHrData(tenantId, res);
         // const travelAllocationFlags = {}
-        // additionalDetails = {travelAllocationFlags};
+        // getHRData = {travelAllocationFlags};
       } catch (error) {
         console.error('Error in getExpenseRelatedHrData:', error);
         return res.status(500).json({ message: 'Server error' });
       }
   
       // Destructuring additional details
-      const { defaultCurrency, travelAllocationFlags,expenseAllocation, expenseAllocation_accountLine,  expenseCategoryNames, expenseSettlementOptions } = additionalDetails;
+      const { defaultCurrency, travelAllocationFlags,expenseAllocation, expenseAllocation_accountLine,  expenseCategoryNames, expenseSettlementOptions,employeeDetails } = getHRData;
   
       // Destructuring properties from the expense report
       const { tripNumber, tenantName, companyName, travelRequestData: { travelRequestId, travelRequestNumber, tripPurpose, approvers,travelAllocationHeaders, } } = expenseReport;
@@ -392,7 +443,7 @@ export const BookExpense = async (req, res) => {
           travelAllocationHeaders,
           expenseAmountStatus,
           travelExpenseData,
-          companyDetails: additionalDetails,
+          companyDetails: getHRData,
         });
       } else {
         const maxIncrementalValue = await Expense.findOne({}, 'travelExpenseData.expenseHeaderNumber')
@@ -410,6 +461,7 @@ export const BookExpense = async (req, res) => {
 
         // Updating the expense header number in the travelExpenseData
         expenseReport.travelExpenseData.expenseHeaderNumber = expenseHeaderNumber;
+        const isCashAdvanceTaken = expenseReport.travelRequestData?.isCashAdvanceTaken;
 
         // Extracting already booked expenses
         const alreadyBookedExpenseLines = expenseReport.travelRequestData?.itinerary;
@@ -446,32 +498,30 @@ const currentTotalExpenseAmount = Object.values(alreadyBookedExpenseLines)
 
   // Set the total already booked expense amount outside the loop
 const currentTotalAlreadyBookedExpense = currentTotalExpenseAmount;
+expenseReport.expenseAmountStatus.totalAlreadyBookedExpenseAmount = currentTotalAlreadyBookedExpense;
+expenseReport.expenseAmountStatus.totalExpenseAmount = currentTotalExpenseAmount;
 
-        // Handling cash advance details
-        let currentTotalCashAdvance = 0;
-        let currentRemainingCash = 0;
-        const isCashAdvanceTaken = expenseReport.travelRequestData?.isCashAdvanceTaken;
-        const cashAdvanceData = expenseReport?.cashAdvancesData;
+     //create a expenseHeaderId
+    const newExpenseHeaderId = new mongoose.Types.ObjectId();
+        // // Handling cash advance details
+        // let currentTotalCashAdvance = 0;
+        // let currentRemainingCash = 0;
+        // const cashAdvanceData = expenseReport?.cashAdvancesData;
 
-        if (isCashAdvanceTaken) {
-          // console.log("i am isCashAdvanceTaken", isCashAdvanceTaken)
-          const cashAdvanceResult = await calculateTotalCashAdvances(cashAdvanceData, res);
-          console.log("cashAdvanceResult",cashAdvanceResult)
+        // if (isCashAdvanceTaken) {
+        //   // console.log("i am isCashAdvanceTaken", isCashAdvanceTaken)
+        //   const cashAdvanceResult = await calculateTotalCashAdvances(cashAdvanceData, res);
+        //   console.log("cashAdvanceResult",cashAdvanceResult)
 
-          currentTotalCashAdvance += cashAdvanceResult.totalPaid.reduce((total, item) => total + item.amount, 0);
-          currentTotalCashAdvance = parseFloat(currentTotalCashAdvance) + 0.00;
-          currentRemainingCash = currentTotalCashAdvance;
-          console.log("cashAdvanceResult - currentTotalCashAdvance", currentTotalCashAdvance)
-        }
+        //   currentTotalCashAdvance += cashAdvanceResult.totalPaid.reduce((total, item) => total + item.amount, 0);
+        //   currentTotalCashAdvance = parseFloat(currentTotalCashAdvance) + 0.00;
+        //   currentRemainingCash = currentTotalCashAdvance;
+        //   console.log("cashAdvanceResult - currentTotalCashAdvance", currentTotalCashAdvance)
+        // }
 
         // Updating the expenseAmountStatus in the existing document
-        expenseReport.expenseAmountStatus.totalCashAmount = isCashAdvanceTaken ? currentTotalCashAdvance : 0 ;
-        expenseReport.expenseAmountStatus.totalAlreadyBookedExpenseAmount = currentTotalAlreadyBookedExpense;
-        expenseReport.expenseAmountStatus.totalExpenseAmount = currentTotalExpenseAmount;
-        expenseReport.expenseAmountStatus.totalRemainingCash = isCashAdvanceTaken ? currentTotalCashAdvance : 0;
-
-        //create a expenseHeaderId
-        const newExpenseHeaderId = new mongoose.Types.ObjectId();
+        // expenseReport.expenseAmountStatus.totalCashAmount = isCashAdvanceTaken ? currentTotalCashAdvance : 0 ;
+        // expenseReport.expenseAmountStatus.totalRemainingCash = isCashAdvanceTaken ? currentTotalCashAdvance : 0;
 
         //based on travelAllocationFlags
         // travelType = travelAllocationFlags.level1 ? travelType : "";
@@ -490,6 +540,7 @@ const currentTotalAlreadyBookedExpense = currentTotalExpenseAmount;
           alreadyBookedExpenseLines: alreadyBookedExpenseLines,
           approvers: approversNames,
           travelType: travelType,
+          // employeeDetails, // This need to be added at travel request for wider use
         };
 
         // Adding newTravelExpenseData to travelExpenseData array
@@ -516,7 +567,7 @@ const currentTotalAlreadyBookedExpense = currentTotalExpenseAmount;
           expenseAmountStatus,
           travelExpenseData,
           isCashAdvanceTaken: isCashAdvanceTaken, 
-          companyDetails: additionalDetails,
+          companyDetails: getHRData,
         });
       }
     } catch (error) {

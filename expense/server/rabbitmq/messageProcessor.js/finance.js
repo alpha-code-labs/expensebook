@@ -183,6 +183,8 @@ const settleOrRecoverCashAdvance = async (payload) => {
         recoveredBy,recoveredFlag,
     } = payload;
 
+    // const cashAdvanceId ="66e1489346c0410c5bd208a3"
+
     const report = await Expense.findOne(
       { 
         tenantId,
@@ -190,14 +192,48 @@ const settleOrRecoverCashAdvance = async (payload) => {
         // 'cashAdvancesData': { $elemMatch: { cashAdvanceId,travelRequestId } }
       },)
 
-      console.log("report", JSON.stringify(report,'',2))
+      // console.log("report", JSON.stringify(report,'',2))
 
       const { expenseAmountStatus,cashAdvancesData,} = report
       const isCash = cashAdvancesData.find(c => c.cashAdvanceId.toString() === cashAdvanceId.toString())
+      console.log("isCash", JSON.stringify(isCash,'',2))
 
-      if(isCash){
-        
-      }
+  // -----------
+  // Calculate the new total cash amount from cash advances
+const totalCashAmount = await calculateTotalCashAdvances(tenantId, cashAdvancesData);
+
+// Destructure current values for clarity
+const { totalCashAmount: currentTotalCashAmount, totalRemainingCash: currentTotalRemainingCash } = expenseAmountStatus;
+
+console.log("currentTotalCashAmount:", currentTotalCashAmount, "currentTotalRemainingCash:", currentTotalRemainingCash);
+
+
+// Helper function to update cash amounts
+const updateCashAmounts = (current, total) => {
+    if (current === total) {
+        return { updatedTotalCashAmount: total, updatedTotalRemainingCash: current === 0 ? 0 : current };
+    }
+    
+    const difference = Math.abs(total - current);
+    const updatedTotalCashAmount = current < total 
+        ? current + difference 
+        : current - difference;
+
+    return {
+        updatedTotalCashAmount,
+        updatedTotalRemainingCash: updatedTotalCashAmount
+    };
+};
+
+// Get updated cash amounts
+const { updatedTotalCashAmount, updatedTotalRemainingCash } = updateCashAmounts(+currentTotalCashAmount, +totalCashAmount);
+
+// Update the report with the new total amounts
+report.expenseAmountStatus.totalCashAmount = updatedTotalCashAmount;
+report.expenseAmountStatus.totalRemainingCash = updatedTotalRemainingCash;
+
+
+const data = await report.save(); 
 
     console.log("settle ca payload", payload)
     const updateCashDoc = {
@@ -229,7 +265,7 @@ const settleOrRecoverCashAdvance = async (payload) => {
     throw new Error('cash advance status change to paid failed : while updating db')
     }
     console.log('Travel request status updated in approval microservice:', trip);
-    return { success: false, error: null };
+    return { success: true, error: null };
   } catch (error) {
     console.error('Failed to update travel request status in approval microservice:', error.message);
     return { success: false, error: error.message };

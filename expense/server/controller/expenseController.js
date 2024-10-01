@@ -129,7 +129,6 @@ const getExpenseRelatedHrData = async (req, res) => {
     }
 };
 
-export { getExpenseRelatedHrData };
 
 // Get expense report
 export const getBookExpense = async (req, res) => {
@@ -431,7 +430,7 @@ export const onSaveOld = async (req, res) => {
 };
 
 // entire expenselines saved as draft
-export const onSaveAsDraftExpenseHeader = async (req, res) => {
+const onSaveAsDraftExpenseHeader = async (req, res) => {
     const {tenantId, empId, tripId, expenseHeaderId } = req.params;
   
     try {
@@ -495,7 +494,7 @@ const updateExpenseHeaderStatus = (expenseReport) => {
 };
 
 // Exported function for handling expense header submission ()(when cancelling at header level check length of travelExpenseData, if it is just 1 object and getting cancelled then reset all amounts to 0 or else - the total amounts   is available if it is available  )
-export const onSubmitExpenseHeader = async (req, res) => {
+const onSubmitExpenseHeader = async (req, res) => {
   const {tenantId, empId, tripId, expenseHeaderId } = req.params;
 
   try {
@@ -549,7 +548,7 @@ export const onSubmitExpenseHeader = async (req, res) => {
 };
 
 
-export const getTravelExpenseReport = async (req, res) => {
+const getTravelExpenseReport = async (req, res) => {
   try {
     const { tenantId, empId, tripId, expenseHeaderId } = req.params;
 
@@ -593,7 +592,7 @@ export const getTravelExpenseReport = async (req, res) => {
 };
 
 // rejection reasons
-export const getRejectionReasons = async (req, res) => {
+const getRejectionReasons = async (req, res) => {
   try {
     const { tenantId, empId, tripId, expenseHeaderId } = req.params;
 
@@ -645,7 +644,7 @@ export const getRejectionReasons = async (req, res) => {
   }
 };
 
-export const getRejectedReport = async (req, res) => {
+const getRejectedReport = async (req, res) => {
   try {
     const { tenantId, empId, tripId, expenseHeaderId } = req.params;
 
@@ -704,7 +703,7 @@ export const getRejectedReport = async (req, res) => {
         6. Delete the entire Expense Header Report cancelled. 
  */
 
-export const cancelAtHeaderLevelForAReport = async (req, res) => {
+const cancelAtHeaderLevelForAReport = async (req, res) => {
   const { tenantId, tripId, expenseHeaderId } = req.params;
   const { expenseAmountStatus, travelExpenseReport } = req.body;
   let { totalCashAmount, totalExpenseAmount, totalPersonalExpenseAmount, totalremainingCash } = expenseAmountStatus;
@@ -852,7 +851,7 @@ if (hasAlreadyBookedExpense && isMatchingExpenseHeaderId){
 //     4. Overwrite the amount in the amount fields. 
 //     5. Delete the line item completely. 
 
-export const cancelAtLine = async (req, res) => {
+const cancelAtLine = async (req, res) => {
   try {
     const {tenantId, empId, tripId, expenseHeaderId } = req.params;
     const {expenseAmountStatus, expenseLine } = req.body;
@@ -1077,3 +1076,13 @@ export const cancelAtLine = async (req, res) => {
 
   // await sendTravelExpenseToDashboardQueue(payload, needConfirmation, onlineVsBatch, source);
 
+export { 
+  getExpenseRelatedHrData,
+  getRejectedReport,
+  getRejectionReasons,
+  getTravelExpenseReport,
+  onSubmitExpenseHeader,
+  onSaveAsDraftExpenseHeader,
+  cancelAtHeaderLevelForAReport,
+  cancelAtLine,
+};
