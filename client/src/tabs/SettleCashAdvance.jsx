@@ -1,6 +1,6 @@
 import React from 'react'
 import { CardLayout, SettleNowBtn, TripName, Violation } from '../common/TinyComponent'
-import { formatAmount } from '../utilis/handyFunctions'
+import { formatAmount, isMultiCurrencyAvailable } from '../utilis/handyFunctions'
 
 const SettleCashAdvance = ({trip,handleActionConfirm}) => {
   return (
@@ -72,11 +72,9 @@ const SettleCashAdvance = ({trip,handleActionConfirm}) => {
             {/* <input  type='checkbox' className='w-4 h-4 accent-indigo-600' checked={true}/>  */}
             <SettleNowBtn
             onClick={()=>handleActionConfirm('settleCashAdvance',{ travelRequestId : trip?.travelRequestId, cashAdvanceId:advance?.cashAdvanceId})}
-            text={"Settle Now"}/>
+            text={"Settle Now"} disabled={isMultiCurrencyAvailable(advance?.amountDetails) ? true : false} onHover={'Currency unavailable for settlement. Kindly contact your administrator.'}/>
           
-                    {/* <div onClick={()=>{if(!disableButton(trip?.travelRequestStatus)){handleVisible(trip?.travelRequestId,  'ca-modify' ,advance?.cashAdvanceId,)}}} className={`w-7 h-7 bg-indigo-100 rounded-full border border-white flex items-center justify-center ${disableButton(trip?.travelRequestStatus)? ' cursor-not-allowed opacity-50' : ' cursor-pointer'}`}>
-                    <img src={modify} className='w-4 h-4' alt="modify_icon" />
-                    </div> */}
+        
                   </div>
                   </div>
                 </div>

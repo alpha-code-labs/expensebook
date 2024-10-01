@@ -414,8 +414,10 @@ function checkUpcomingTrip(tripStartDate) {
   } 
 }
 
-
+function isMultiCurrencyAvailable(array) {
+  return array.every(item => item.isMultiCurrency === true);
+}
   
 
-export {handleCSVDownload, calculateDateRanges,formatFullDate, sortTripsForBooking, checkUpcomingTrip, filterByTimeRange,extractTripNameStartDate, sortTripsByDate, splitTripName, titleCase, formatDate, filterTravelRequests,formatDate2 ,getStatusClass ,addOrdinalIndicator ,formatDate3 ,getCashAdvanceButtonText,urlRedirection,formatAmount}  
+export {isMultiCurrencyAvailable,handleCSVDownload, calculateDateRanges,formatFullDate, sortTripsForBooking, checkUpcomingTrip, filterByTimeRange,extractTripNameStartDate, sortTripsByDate, splitTripName, titleCase, formatDate, filterTravelRequests,formatDate2 ,getStatusClass ,addOrdinalIndicator ,formatDate3 ,getCashAdvanceButtonText,urlRedirection,formatAmount}  
 
