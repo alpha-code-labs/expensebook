@@ -7,12 +7,10 @@ const Input = ({ title, placeholder, onChange ,error,initialValue, icon,type}) =
   const showError = error?.set && !inputValue.trim();
 
   return (
-    
-    
 <>
       {/* input */}
     
-        <div className="min-w-[300px] bg-white focus-within:border focus-within:border-neutral-700 h-[38px] rounded-md  text-neutral-700  w-auto  text-sm font-normal font-cabin justify-center items-center  flex flex-row  ">
+        <div className="min-w-[300px] px-2 bg-white focus-within:border focus-within:border-neutral-700 h-[38px]  rounded-md  text-neutral-700  w-full  text-sm font-normal font-cabin justify-center items-center  flex flex-row  ">
         <img src={icon} className="shrink-0 w-4 h-4   cursor-pointer m-2 " />
           <input
             ref={inputRef}

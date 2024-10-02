@@ -48,7 +48,7 @@ const TripName = ({tripName})=>(
   function CardLayout ({index,children}){ 
 
     return (
-      <div key={index} className='flex  border border-slate-300 flex-row  w-full items-center hover:border hover:border-indigo-600 hover:bg-indigo-100 cursor-pointer  justify-between my-2 text-neutral-700 rounded-md hover:shadow-custom-light bg-white px-4 py-2 '>
+      <div key={index} className='flex  border border-slate-300 flex-row  w-full items-center hover:border hover:border-slate-300 hover:bg-slate-100 cursor-pointer  justify-between my-2 text-neutral-700 rounded-md hover:shadow-slate-300 hover:shadow-sm bg-white px-4 py-2 '>
      {children}
     </div>
     )
@@ -97,17 +97,15 @@ const TripName = ({tripName})=>(
     statuses=[]
   }) {
     return (
-      <div className='flex items-center scrollbar-hide  border-slate-100 justify-start flex-row  px-4 py-1  w-full overflow-auto'>
-        <div className=' '>
-          <img src={filter_icon} className='min-w-5 w-5 h-5 min-h-5' alt="Filter icon"/>
-        </div>
-        <div className='flex gap-1  divide-x  divide-slate-300'>
+      <div className='flex items-center scrollbar-hide  border-slate-100 justify-start flex-row   w-full overflow-auto'>
+       
+        <div className='flex  '>
           {statuses.map((status) => {
             const statusCount = getStatusCount(status, tripData);
             const isDisabled = statusCount === 0;
   
             return (
-              <div key={status} onClick={() => !isDisabled && handleStatusClick(status)} className={`flex justify-center font-inter  px-2 py-1 gap-1 items-center ${selectedStatuses.includes(status) ? "bg-gray-200/10 text-neutral-700  rounded-md font-medium " : " text-neutral-900  "}  ${isDisabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
+              <div key={status} onClick={() => !isDisabled && handleStatusClick(status)} className={`gap-1 first:rounded-l-md last:rounded-r-md flex border border-slate-300 border-collapse justify-center font-inter px-2 py-2 items-center hover:bg-gray-200/10 ${selectedStatuses.includes(status) ? " text-white bg-neutral-900 hover:bg-neutral-900   " : " text-neutral-900  "}  ${isDisabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
                
                   <p className=' text-sm text-center capitalize  whitespace-nowrap'>{status}</p>
                  
@@ -124,6 +122,15 @@ const TripName = ({tripName})=>(
         </div>
       </div>
     );
+  }
+
+  function TooltipBtn( {onClick,onHover,icon,disabled}){
+    return(<div onClick={onClick}  className={`cursor-pointer ${disabled ? 'group text-gray-400 ': '  text-white cursor-pointer' } relative px-2 py-1 font-cabin text-xs  rounded-md text-white` }>
+           <img src={icon} className='w-4 h-4' alt="Add Icon" />
+           <div className="absolute truncate -top-0  right-8   rounded-md px-2 py-1 bg-neutral-900 text-gray-100 text-xs z-[10] font-cabin hidden scale-0 group-hover:block group-hover:origin-bottom-left group-hover:scale-100">
+            {onHover}
+            </div>
+        </div>)
   }
 
   // function StatusFilter({
@@ -241,4 +248,4 @@ const TripName = ({tripName})=>(
   }
 
 
-export {ModifyBtn, BoxTitleLayout, RaiseButton,EmptyBox,Violation, ExpenseLine,StatusFilter,CardLayout ,TripName,ExtractAndFormatDate,StatusBox}  
+export {TooltipBtn,ModifyBtn, BoxTitleLayout, RaiseButton,EmptyBox,Violation, ExpenseLine,StatusFilter,CardLayout ,TripName,ExtractAndFormatDate,StatusBox}  

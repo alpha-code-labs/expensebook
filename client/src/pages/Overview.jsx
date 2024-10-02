@@ -1,6 +1,6 @@
 /* eslint-disable react/jsx-key */
 import React, { useState,useEffect } from 'react';
-import { airplane_1, briefcase, calender_icon, double_arrow,cab_purple,  house_simple, train, bus, cancel_round, cancel, modify, plus_icon, plus_violet_icon, receipt, down_arrow, chevron_down, down_left_arrow, calender_2_icon, airplane, material_flight_black_icon, material_cab_black_icon, material_hotel_black_icon, city_icon, empty_itinerary_icon, empty_travelExpense_icon, empty_nonTravelExpense_icon, expense_white_icon, expense_black_icon } from '../assets/icon';
+import { airplane_1, briefcase, calender_icon, double_arrow,cab_purple,  house_simple, train, bus, cancel_round, cancel, modify, plus_icon, plus_violet_icon, receipt, down_arrow, chevron_down, down_left_arrow, calender_2_icon, airplane, material_flight_black_icon, material_cab_black_icon, material_hotel_black_icon, city_icon, empty_itinerary_icon, empty_travelExpense_icon, empty_nonTravelExpense_icon, expense_white_icon, expense_black_icon, plus_black_icon } from '../assets/icon';
 import {  extractTripNameStartDate, formatAmount,  getStatusClass, sortTripsByDate, splitTripName } from '../utils/handyFunctions';
 import { useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -11,7 +11,7 @@ import Modal from '../components/common/Modal1';
 import TripSearch from '../components/common/TripSearch';
 import Button1 from '../components/common/Button1';
 import TripMS from '../microservice/TripMS';
-import { TripName } from '../components/common/TinyComponent';
+import { TooltipBtn, TripName } from '../components/common/TinyComponent';
 import ExpenseMS from '../microservice/Expense';
 
 const travelBaseUrl  = import.meta.env.VITE_TRAVEL_PAGE_URL;
@@ -19,19 +19,23 @@ const cashBaseUrl    = import.meta.env.VITE_CASHADVANCE_PAGE_URL;
 const tripBaseUrl    = import.meta.env.VITE_TRIP_BASE_URL;
 const expenseBaseUrl = import.meta.env.VITE_EXPENSE_PAGE_URL;
 
-function CardLayout({icon,cardTitle,children}){
+function CardLayout({icon,title,subTitle,cardTitle,children}){
   return(
-  <div className={`min-w-[400px] px-2  h-[340px] `} >
-         <div className="border-b-2  border-neutral-700 flex flex-row items-center justify-start gap-2 overflow-hidden py-2">
+  <div className={`min-w-[400px] px-2  h-[340px]  bg-slate-100/50 shadow shadow-slate-300 rounded-2xl   d`} >
+         <div className=" px-2  border-neutral-700 flex flex-row items-center justify-start gap-1.5 overflow-hidden py-2">
            <img
              className="w-5 h-5 shrink-0"
              alt="briefcase_icon"
              src={icon}
            />
-           <b className="tracking-[0.02em] font-cabin text-[16px] text-neutral-900 font-semibold">{cardTitle}</b>
+           <div className=''>
+            <p className='text-sm font-inter text-neutral-900'>{title}</p>
+            <p className='text-xs'>{subTitle}</p>
+           </div>
+           {/* <p className="tracking-[0.02em] font-cabin text-[16px] text-neutral-900 font-semibold">{cardTitle}</p> */}
          </div>
          <div className=' shadow-sm shadow-indigo-600 rounded-md'/>
-         <div className="h-[285px] scrollbar-hide bg-white overflow-hidden overflow-y-auto space-y-2  border-[4px] border-gray-600    shadow-custom-light  rounded-3xl px-2">
+         <div className="h-[285px]  scrollbar-hide bg-white overflow-hidden overflow-y-auto space-y-2  border-[4px] border-gray-600   rounded-3xl px-2">
          
           {children}
       
@@ -39,6 +43,26 @@ function CardLayout({icon,cardTitle,children}){
          
        </div>)
 }
+// function CardLayout({icon,cardTitle,children}){
+//   return(
+//   <div className={`min-w-[400px] px-2  h-[340px] `} >
+//          <div className="border-b-2  border-neutral-700 flex flex-row items-center justify-start gap-2 overflow-hidden py-2">
+//            <img
+//              className="w-5 h-5 shrink-0"
+//              alt="briefcase_icon"
+//              src={icon}
+//            />
+//            <b className="tracking-[0.02em] font-cabin text-[16px] text-neutral-900 font-semibold">{cardTitle}</b>
+//          </div>
+//          <div className=' shadow-sm shadow-indigo-600 rounded-md'/>
+//          <div className="h-[285px] scrollbar-hide bg-white overflow-hidden overflow-y-auto space-y-2  border-[4px] border-gray-600   rounded-3xl px-2">
+         
+//           {children}
+      
+//          </div>
+         
+//        </div>)
+// }
 
 
 const Overview = ({fetchData ,isLoading,setIsLoading,loadingErrMsg, setLoadingErrMsg}) => {
@@ -213,9 +237,9 @@ const handleRaise = () => {
       <ExpenseMS visible={expenseVisible} setVisible={setExpenseVisible} src={iframeURL} /> ) :
     <div className="p-4 ">
       <TripMS visible={visible} setVisible={setVisible} src={iframeURL} /> 
-    <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 w-full overflow-x-auto pb-2">
+    <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 w-full overflow-x-auto pb-2 ">
       
-   <CardLayout  icon={briefcase} cardTitle={"Activities for On-going Trips"}>
+   <CardLayout  icon={briefcase} title={"On-going Trips"} subTitle={'Activities for On-going Trips'}>
    {intransitTrips.length === 0 ? (
      <EmptyTrips icon={empty_itinerary_icon} text="No in-transit trips." />
    ) : (
@@ -232,7 +256,7 @@ const handleRaise = () => {
    </CardLayout>
    
         
-    <CardLayout  icon={expense_black_icon} cardTitle={"Expenses"}>    
+    <CardLayout  icon={expense_black_icon} title={"Expenses"} subTitle={'Track travel and non-travel expense'}>    
    
    <div className="flex gap-x-2 h-[45px] px-2 flex-row items-center justify-between text-center font-cabin border-b-2  border-slate-300  text-neutral-700 text-xs">
    <div className='flex'>
@@ -250,7 +274,7 @@ className={`px-2 py-1 rounded-lg cursor-pointer ease-in-out ${expenseTabs === 'n
    </div>
    </div>     
    
-   <div
+   {/* <div
    onClick={()=>setModalOpen(!modalOpen)}
    onMouseEnter={() => setTextVisible({expense:true})}
    onMouseLeave={() => setTextVisible({expense:false})}
@@ -264,7 +288,8 @@ className={`px-2 py-1 rounded-lg cursor-pointer ease-in-out ${expenseTabs === 'n
    >
    Add an Expense
    </p>
-   </div>
+   </div> */}
+   <TooltipBtn   onClick={()=>setModalOpen(!modalOpen)} onHover={'Add an Expense'} icon={plus_black_icon} disabled={true}/>
    </div>
    
    <div className='h-[224px] overflow-y-auto px-2 mt-2 '>
@@ -283,7 +308,7 @@ className={`px-2 py-1 rounded-lg cursor-pointer ease-in-out ${expenseTabs === 'n
    </div>
    </CardLayout>  
           
-   <CardLayout  icon={briefcase} cardTitle={"Upcoming Trips"}>
+   <CardLayout  icon={briefcase} title={"Upcoming Trips"} subTitle={'All upcoming trips itinerary'}>
     
     {  upcomingTrips?.length === 0 ? (
      <EmptyTrips icon={empty_itinerary_icon} text="No upcoming trips" />
@@ -306,20 +331,13 @@ className={`px-2 py-1 rounded-lg cursor-pointer ease-in-out ${expenseTabs === 'n
    
    
    
-   <CardLayout  icon={briefcase} cardTitle={"Travel Requests"}>
-     {/* <div className="border-b-2 border-indigo-600 flex flex-row items-center justify-start gap-2 overflow-hidden py-2">
-       <img
-         className="w-5 h-5 shrink-0"
-         alt="briefcase_icon"
-         src={airplane_1}
-       />
-       <b className="tracking-[0.02em] text-indigo-600 font-cabin text-[16px] font-semibold">Travel Requests</b>
-     </div> */}
+   <CardLayout  icon={briefcase} title={"Travel Requests"} subTitle={'Track the status of your travel requests'} >
+   
      
      {/* <div className="h-[288px] mt-2 border-4 border-indigo-600 rounded-md px-2"> */}
      <div className="flex gap-x-2 h-[40px]   px-2 flex-row items-center justify-end text-center font-cabin border-b-2  border-slate-300  text-neutral-700 text-xs">
    
-   <div
+   {/* <div
    onMouseEnter={() => setTextVisible({createTravel:true})}
    onMouseLeave={() => setTextVisible({createTravel:false})}
    onClick={()=>handleVisible({urlName:"travel-url"})}
@@ -333,7 +351,8 @@ className={`px-2 py-1 rounded-lg cursor-pointer ease-in-out ${expenseTabs === 'n
    >
    Raise Travel Request
    </p>
-   </div>
+   </div> */}
+   <TooltipBtn onClick={()=>handleVisible({urlName:"travel-url"})} onHover={'Raisn Travel Request'} icon={plus_black_icon} disabled={true}/>
      
    </div>
    
@@ -518,19 +537,22 @@ const IntransitTrips = ({ index, trip, lastIndex,handleVisible }) => {
         
         {activeTabs === 'upcoming' && upcomingItinerary.length >0 &&
         // {upcomingItinerary.length >0 &&}
-        <div
-           onClick={()=>handleVisible({urlName:'trip-url',tripId:trip?.tripId})}
-            onMouseEnter={() => setTextVisible({ modify: true })}
-            onMouseLeave={() => setTextVisible({ modify: false })}
+        // <div
+        //    onClick={()=>handleVisible({urlName:'trip-url',tripId:trip?.tripId})}
+        //     onMouseEnter={() => setTextVisible({ modify: true })}
+        //     onMouseLeave={() => setTextVisible({ modify: false })}
             
-            className={`relative shadow-md shadow-indigo-600 hover:px-2 w-6 h-6 hover:overflow-hidden hover:w-auto group text-indigo-600 bg-indigo-100 border border-white flex items-center justify-center hover:gap-x-1 rounded-full cursor-pointer transition-all duration-300`}
+        //     className={`relative shadow-md shadow-indigo-600 hover:px-2 w-6 h-6 hover:overflow-hidden hover:w-auto group text-indigo-600 bg-indigo-100 border border-white flex items-center justify-center hover:gap-x-1 rounded-full cursor-pointer transition-all duration-300`}
 
-          >
-            <img src={modify} width={16} height={16} alt="Add Icon" />
-            <p className={`${textVisible?.modify ? 'opacity-100 ' : 'opacity-0 w-0'} whitespace-nowrap text-xs transition-all duration-300 group-hover:opacity-100 group-hover:w-auto`}>
-              Modify
-            </p>
-          </div>}  
+        //   >
+        //     <img src={modify} width={16} height={16} alt="Add Icon" />
+        //     <p className={`${textVisible?.modify ? 'opacity-100 ' : 'opacity-0 w-0'} whitespace-nowrap text-xs transition-all duration-300 group-hover:opacity-100 group-hover:w-auto`}>
+        //       Modify
+        //     </p>
+        //   </div>
+        <TooltipBtn onClick={()=>handleVisible({urlName:'trip-url',tripId:trip?.tripId})} onHover={'Modify Trip'} icon={modify} disabled={true}/>
+          
+          }  
           
       
       </div>
@@ -737,7 +759,7 @@ const TravelExpenses = ({ index, expense ,lastIndex}) => {
   };
 
   return (
-    <div className={`${index ===lastIndex ? ' ' :'mb-2'} p-3 rounded shadow w-full border border-slate-300 bg-slate-50 hover:border hover:border-indigo-600 hover:bg-indigo-100`}>
+    <div className={`${index ===lastIndex ? ' ' :'mb-2'} p-3 rounded shadow w-full border border-slate-300 bg-slate-50 hover:border hover:border-slate-300 hover:bg-slate-100`}>
       <div onClick={handleExpanded} className={`${expense?.travelExpenses.length > 0 && isExpanded && 'border-b-[1px]'} flex items-center  justify-between cursor-pointer min-h-4`}>
         
         <div className='font-cabin text-xs text-neutral-700'>
@@ -749,11 +771,11 @@ const TravelExpenses = ({ index, expense ,lastIndex}) => {
         <img src={chevron_down} className='w-5 h-5' />
       </div>
 {isExpanded && expense?.travelExpenses.map((item, index) => (
-        <div key={index} className={`px-2 hover:bg-indigo-100 hover:border-[1px] hover:border-indigo-600 cursor-pointer rounded-sm border border-slate-300 ${expense?.travelExpenses.length - 1 !== index && 'mb-2'}`}>
+        <div key={index} className={`px-2   cursor-pointer rounded-sm border border-slate-300 ${expense?.travelExpenses.length - 1 !== index && 'mb-2'}`}>
           
           <div className={`flex ${dropdowns[index] &&  'border-b border-slate-300'} justify-between items-center min-h-4 py-1 `} onClick={() => toggleDropdown(index)}>
             <div className='flex gap-x-2 ml-2 items-center'>
-            <img src={down_left_arrow} className='w-4 h-3'/>
+            <img src={chevron_down} className='w-4 h-4'/>
               
               
           {/* <div className='font-cabin text-xs text-neutral-700'>
@@ -805,7 +827,7 @@ const NonTravelExpenses = ({ index, expense, lastIndex }) => {
   };
 
   return (
-    <div className={`${index === lastIndex ? '' : 'mb-2'} p-3 hover:border hover:border-indigo-600 rounded shadow w-full border border-slate-300 bg-slate-50 hover:bg-indigo-100`}>
+    <div className={`${index === lastIndex ? '' : 'mb-2'} p-3   rounded shadow w-full border border-slate-300 bg-slate-50 hover:bg-slate-100`}>
       <div onClick={toggleDropdown} className={`${dropdowns && 'border-b-[1px] pb-1 border-slate-300'} flex items-center justify-between cursor-pointer min-h-4`}>
        
 
@@ -848,8 +870,8 @@ const NonTravelExpenses = ({ index, expense, lastIndex }) => {
 const TravelRequests = ({travel,index,lastIndex})=>{
 
   return(
-    <div className={`${index === lastIndex ? '' : 'mb-2'} p-3 hover:border hover:border-indigo-600 rounded shadow w-full border border-slate-300 bg-slate-50 hover:bg-indigo-100`}>
-    <div className={`flex items-center justify-between cursor-pointer min-h-4`}>
+    <div className={`${index === lastIndex ? '' : 'mb-2'} p-3   rounded shadow w-full border border-slate-300  hover:bg-slate-100`}>
+    <div className={`flex items-center justify-between  min-h-4`}>
       
       <div className='font-cabin text-xs text-neutral-700'>
           {travel?.travelRequestStatus === "draft" ?
