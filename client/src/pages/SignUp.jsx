@@ -81,7 +81,7 @@ export default function CompanyAndHRInformation(){
    (function async(){
     return new Promise((resolve, reject)=>{
       if(formData.companyName == '' || formData.companyName == undefined){
-        setErrors(pre=>({...pre, companyNameError:{set:true, message:'Please enter company name'}}))
+        setErrors(pre=>({...pre, companyNameError:{set:true, message:'Company name is required.'}}))
         allowSubmit=false
       }else{setErrors(pre=>({...pre, companyNameError:{set:false, message:''}}))}
 
@@ -91,7 +91,7 @@ export default function CompanyAndHRInformation(){
       }else{setErrors(pre=>({...pre, fullNameError:{set:false, message:''}}))}
 
       if(formData.email == ''){
-        setErrors(pre=>({...pre, emailError:{set:true, message:'Please enter email Id'}}))
+        setErrors(pre=>({...pre, emailError:{set:true, message:'Email is required.'}}))
         allowSubmit=false
       }
       else if(!validateEmail(formData.email)){
@@ -108,7 +108,7 @@ export default function CompanyAndHRInformation(){
       }else {setErrors(pre=>({...pre, mobileNumberError:{set:false, message:''}}))}
 
       if(formData.password == ''){
-        setErrors(pre=>({...pre, passwordError:{set:true, message:'Please enter a password'}}))
+        setErrors(pre=>({...pre, passwordError:{set:true, message:'Password is required.'}}))
         allowSubmit=false
       } else if(!validatePassword(formData.password)){
        setErrors(pre=>({...pre,passwordError: {

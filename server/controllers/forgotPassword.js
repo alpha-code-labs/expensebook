@@ -77,9 +77,9 @@ router.post('/forgot-password', async (req, res) => {
     employee.password = hashedPassword;
     employee.temporaryPasswordFlag = true;
     await user.save();
-
+    
     // Send the email with the temporary password
-    await sendEmail(email, password);
+    // await sendEmail(email, password);
 
     return res.status(200).json({ message: 'Temporary password has been sent to registered email' });
 

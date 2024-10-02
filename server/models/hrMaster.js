@@ -36,6 +36,7 @@ const employeeSchema = new mongoose.Schema({
     superAdmin: Boolean,
   },
   canDelegate: Boolean,
+  imageUrl: String,
 })
 
 // company details schema
