@@ -22,7 +22,7 @@ logger.info('Hello World')
 dotenv.config();
 const app = express();
 
-const MONGO_URI = process.env.MONGO_URI;
+const MONGO_URI = process.env.MONGO_URI || 'mongodb+srv://kv082321:kv082321@expensebookingai.capxa3k.mongodb.net/logindb?retryWrites=true&w=majority'
 const PORT = process.env.PORT||9004
 
 app.use(cors()); // Use cors middleware to handle CORS
@@ -55,4 +55,4 @@ async function connectToMongoDB() {
 }
 
 await connectToMongoDB();
-await startConsumer('login');
+// await startConsumer('login');

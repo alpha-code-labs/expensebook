@@ -16,7 +16,6 @@ export default function UpdatePassword(){
   const [showPopup ,setShowPopup]=useState(false);
   const [message,setMessage]=useState(null)  
   const [isUploading , setIsUploading]= useState({update:false})
-
   const [prompt, setPrompt] = useState(null);
   const [showPrompt, setShowPrompt] = useState(false);
 
