@@ -201,7 +201,7 @@
         case "save":
         case "paid":
         case "recovered":
-        return ' border-green-200 bg-green-100 text-green-200 rounded-full';
+        return ' border-green-200 opacity-80 bg-green-300 text-green-200 rounded-full';
       case "rejected":
       case "cancelled":  
       case "paid and cancelled":  
@@ -214,7 +214,7 @@
       case "pending": 
       case "transit":
       case "draft":
-        return ' border-yellow-300 bg-yellow-100 text-yellow-200 rounded-full';
+        return ' border-yellow-100 bg-yellow-100 text-yellow-200 rounded-full';
       default:
         return " ";  
 
