@@ -1,6 +1,6 @@
 /* eslint-disable react/jsx-key */
 import React, { useState,useEffect } from 'react';
-import { airplane_1, briefcase, calender_icon, double_arrow,cab_purple,  house_simple, train, bus, cancel_round, cancel, modify, plus_icon, plus_violet_icon, receipt, down_arrow, chevron_down, down_left_arrow, calender_2_icon, airplane, material_flight_black_icon, material_cab_black_icon, material_hotel_black_icon, city_icon, empty_itinerary_icon, empty_travelExpense_icon, empty_nonTravelExpense_icon } from '../assets/icon';
+import { airplane_1, briefcase, calender_icon, double_arrow,cab_purple,  house_simple, train, bus, cancel_round, cancel, modify, plus_icon, plus_violet_icon, receipt, down_arrow, chevron_down, down_left_arrow, calender_2_icon, airplane, material_flight_black_icon, material_cab_black_icon, material_hotel_black_icon, city_icon, empty_itinerary_icon, empty_travelExpense_icon, empty_nonTravelExpense_icon, expense_white_icon, expense_black_icon } from '../assets/icon';
 import {  extractTripNameStartDate, formatAmount,  getStatusClass, sortTripsByDate, splitTripName } from '../utils/handyFunctions';
 import { useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -22,13 +22,13 @@ const expenseBaseUrl = import.meta.env.VITE_EXPENSE_PAGE_URL;
 function CardLayout({icon,cardTitle,children}){
   return(
   <div className={`min-w-[400px] px-2  h-[340px] `} >
-         <div className="border-b-2  border-indigo-600 flex flex-row items-center justify-start gap-2 overflow-hidden py-2">
+         <div className="border-b-2  border-neutral-700 flex flex-row items-center justify-start gap-2 overflow-hidden py-2">
            <img
              className="w-5 h-5 shrink-0"
              alt="briefcase_icon"
              src={icon}
            />
-           <b className="tracking-[0.02em] font-cabin text-[16px] text-indigo-600 font-semibold">{cardTitle}</b>
+           <b className="tracking-[0.02em] font-cabin text-[16px] text-neutral-900 font-semibold">{cardTitle}</b>
          </div>
          <div className=' shadow-sm shadow-indigo-600 rounded-md'/>
          <div className="h-[285px] scrollbar-hide bg-white overflow-hidden overflow-y-auto space-y-2  border-[4px] border-gray-600    shadow-custom-light  rounded-3xl px-2">
@@ -209,7 +209,8 @@ const handleRaise = () => {
     {isLoading ? <Error message={loadingErrMsg}/>
    :
     <>
-    {expenseVisible ?  ( <ExpenseMS visible={expenseVisible} setVisible={setExpenseVisible} src={iframeURL} /> ) :
+    {expenseVisible ?  ( 
+      <ExpenseMS visible={expenseVisible} setVisible={setExpenseVisible} src={iframeURL} /> ) :
     <div className="p-4 ">
       <TripMS visible={visible} setVisible={setVisible} src={iframeURL} /> 
     <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 w-full overflow-x-auto pb-2">
@@ -231,18 +232,18 @@ const handleRaise = () => {
    </CardLayout>
    
         
-    <CardLayout  icon={receipt} cardTitle={"Expenses"}>    
+    <CardLayout  icon={expense_black_icon} cardTitle={"Expenses"}>    
    
    <div className="flex gap-x-2 h-[45px] px-2 flex-row items-center justify-between text-center font-cabin border-b-2  border-slate-300  text-neutral-700 text-xs">
    <div className='flex'>
    <div
-className={`px-2 py-1 rounded-xl cursor-pointer ease-in-out ${expenseTabs === 'travelExpense' ? 'bg-indigo-100 font-semibold text-indigo-600 border border-white text-xs shadow-md shadow-indigo-600' : 'text-xs'}`}
+className={`px-2 py-1 rounded-lg cursor-pointer ease-in-out ${expenseTabs === 'travelExpense' ? 'bg-gray-200/10  font-semibold text-neutral-700 border border-white text-xs ' : 'text-xs'}`}
    onClick={() => handleExpenseTabChange("travelExpense")}
    >
    <p>Travel Expense</p>
    </div>
    <div
-className={`px-2 py-1 rounded-xl cursor-pointer ease-in-out ${expenseTabs === 'nonTravelExpense' ? 'bg-indigo-100 font-semibold text-indigo-600 border border-white text-xs shadow-md shadow-indigo-600' : 'text-xs'}`}
+className={`px-2 py-1 rounded-lg cursor-pointer ease-in-out ${expenseTabs === 'nonTravelExpense' ? 'bg-gray-200/10  font-semibold text-neutral-700 border border-white text-xs ' : 'text-xs'}`}
    onClick={() => handleExpenseTabChange("nonTravelExpense")}
    >
    <p>Non-Travel Expense</p>
@@ -351,7 +352,7 @@ className={`px-2 py-1 rounded-xl cursor-pointer ease-in-out ${expenseTabs === 'n
         isOpen={modalOpen} 
         onClose={modalOpen} 
         content={<div className='w-full h-auto'> 
-          <div>
+          <div> 
               <div className='flex gap-2 justify-between items-center bg-indigo-100 w-full p-4'>
                 <p className='font-inter text-base font-semibold text-indigo-600'>Raise an Expense</p>
                 <div onClick={()=>{setModalOpen(!modalOpen);setTripId(null);setExpenseType(null)}} className='bg-red-100 cursor-pointer rounded-full border border-white'>
@@ -359,7 +360,7 @@ className={`px-2 py-1 rounded-xl cursor-pointer ease-in-out ${expenseTabs === 'n
                 </div>
               </div>
 <div className='p-4'>
- <div className='flex md:flex-row flex-col justify-between gap-2 '>
+ <div className='flex md:flex-row flex-col justify-between gap-2'>
  <div onClick={()=>setExpenseType("travel_Cash-Advance")} className={`cursor-pointer transition  duration-200 hover:bg-indigo-100 hover:rounded-md flex-1 flex gap-2 items-center justify-center ${expenseType === "travel_Cash-Advance" ? ' border-b-2 border-indigo-600 text-indigo-600' : 'border-b-2 border-white '}  p-4`}>
     <img src={receipt} className='w-5 h-5'/>
     <p className='truncate '>Travel Expense</p> 
@@ -369,10 +370,8 @@ className={`px-2 py-1 rounded-xl cursor-pointer ease-in-out ${expenseTabs === 'n
     <img src={receipt} className='w-5 h-5'/>
     <p className='truncate  shrink'>Non-Travel Expense</p>
   </div>
-  
   </div>  
   
-
 <div className='flex gap-4 flex-col items-start justify-start w-full py-2'>
 
 { expenseType=== "travel_Cash-Advance" &&
@@ -380,13 +379,7 @@ className={`px-2 py-1 rounded-xl cursor-pointer ease-in-out ${expenseTabs === 'n
   <TripSearch placeholder={"Select the trip"} error={error?.tripId} title="Apply to trip" data={[...intransitTrips, ...completedTrips]} onSelect={handleSelect} />
  </div> }
   
-
-
 {expenseType && <Button1 text={"Raise"} onClick={handleRaise} />}
-
-  
-   
-
 
 </div>   
 </div>
@@ -504,17 +497,17 @@ const IntransitTrips = ({ index, trip, lastIndex,handleVisible }) => {
 
   return (
     <div className={`h-[275px]  rounded-md    `}>
-      <div className="flex gap-2 px-2 flex-row items-center justify-between text-center font-cabin border-b-2 border-slate-300 shadow-sm  py-2 text-neutral-700 text-xs">
+      <div className="flex gap-2 px-2 flex-row items-center justify-between text-center font-inter border-b-2 border-slate-300 shadow-sm  py-2 text-neutral-700 text-xs">
         <div className='flex'>
         <div
-            className={`px-2 py-1 rounded-xl cursor-pointer ease-in-out ${activeTabs === 'upcoming' ? 'bg-indigo-100 font-semibold text-indigo-600 border border-white text-xs shadow-md shadow-indigo-600' : 'text-xs'}`}
+            className={`px-2 py-1 rounded-lg cursor-pointer ease-in-out ${activeTabs === 'upcoming' ? 'bg-gray-200/10  font-semibold text-neutral-700 border border-white text-xs ' : 'text-xs'}`}
             onClick={() => handleTabChange('upcoming')}
             
           >
             <p>Upcoming</p>
           </div>
           <div
-            className={`px-2 py-1 rounded-xl cursor-pointer transition duration-150 ease-in-out ${activeTabs === 'completed' ? 'bg-indigo-100 font-semibold text-indigo-600 border border-white text-xs shadow-md shadow-indigo-600' : 'text-xs'}`}
+            className={`px-2 py-1 rounded-lg cursor-pointer transition duration-150 ease-in-out ${activeTabs === 'completed' ? 'bg-gray-200/10  font-semibold text-neutral-700 border border-white text-xs ' : 'text-xs'}`}
             onClick={() => handleTabChange('completed')}
             
           >

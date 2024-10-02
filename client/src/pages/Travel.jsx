@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { briefcase, modify, receipt, filter_icon, plus_violet_icon, cancel, search_icon, info_icon, airplane_1, airplane_icon1, trip_icon } from '../assets/icon';
+import { briefcase, modify, receipt, filter_icon, trip_white_icon,plus_violet_icon, cancel, search_icon, info_icon, airplane_1, airplane_icon1, trip_icon } from '../assets/icon';
 import {  getStatusClass, sortTripsByDate } from '../utils/handyFunctions';
 import { handleNonTravelExpense, handleTravelExpense } from '../utils/actionHandler';
 import Modal from '../components/common/Modal1';
@@ -10,10 +10,10 @@ import Button1 from '../components/common/Button1';
 import Error from '../components/common/Error';
 import Input from '../components/common/SearchInput';
 import TripMS from '../microservice/TripMS';
-import { CardLayout, EmptyBox, StatusBox, StatusFilter, TripName } from '../components/common/TinyComponent';
+import { CardLayout, EmptyBox,RaiseButton, BoxTitleLayout,StatusBox, StatusFilter, TripName, ModifyBtn } from '../components/common/TinyComponent';
 
 
-const Travel = ({isLoading ,fetchData,loadingErrMsg}) => {
+const Travel = ({searchQuery,isLoading ,fetchData,loadingErrMsg}) => {
 const travelBaseUrl  = import.meta.env.VITE_TRAVEL_PAGE_URL;
 const cashBaseUrl = import.meta.env.VITE_CASHADVANCE_PAGE_URL;
 const tripBaseUrl = import.meta.env.VITE_TRIP_BASE_URL;
@@ -29,7 +29,7 @@ const tripBaseUrl = import.meta.env.VITE_TRIP_BASE_URL;
   const [error , setError]= useState({
     tripId: {set:false, message:""}
   }); 
-  const [searchQuery , setSearchQuery] = useState('');
+
   
 
 
@@ -215,7 +215,7 @@ console.log('trips and travel from travel screen', tripData)
    <div className='h-screen  flex flex-col p-4'>
      
    
-      <div className='h-[150px] shrink-0 border border-slate-300 bg-white rounded-md  w-full flex flex-col items-start gap-2 px-2 py-2'>
+      <div className=' shrink-0 border border-slate-300 bg-white rounded-md  w-full flex flex-col items-start gap-2 px-2 py-2'>
 
 <StatusFilter
  const statuses = {[
@@ -237,17 +237,14 @@ getStatusCount={getStatusCount}
 setSelectedStatuses={setSelectedStatuses}
 
 />
-<div className=''>
-   
-   <Input placeholder="Search Trip..." type="search" icon={search_icon} onChange={(value)=>setSearchQuery(value)}/>
- </div>
+
 
  
 </div>
 
         <div className='w-full flex flex-col flex-grow  overflow-auto scrollbar-hide  mt-2'>
         
-            <div className='relative shrink-0 flex justify-center items-center rounded-md font-inter text-md text-white h-[52px] bg-indigo-600 text-center'>
+            {/* <div className='relative shrink-0 flex justify-center items-center rounded-md font-inter text-md text-white h-[52px] bg-indigo-600 text-center'>
           <div
           onClick={()=>handleVisible({urlName:"travel-url"})}
           onMouseEnter={() => setTextVisible({cashAdvance:true})}
@@ -268,7 +265,18 @@ setSelectedStatuses={setSelectedStatuses}
                 <img src={airplane_icon1} className='w-4 h-4 mr-2' />
                 <p>Trips</p>
               </div>
-            </div>
+            </div> */}
+            <BoxTitleLayout title="Trips" icon={trip_white_icon}>
+              <RaiseButton
+               onClick={()=>handleVisible({urlName:"travel-url"})}
+               onMouseEnter={() => setTextVisible({cashAdvance:true})}
+               onMouseLeave={() => setTextVisible({cashAdvance:false})}
+               text={"Travel Request"}
+               textVisible={textVisible?.expense}
+              
+              />
+            </BoxTitleLayout>
+
 
             <div className='w-full h-full mt-4  overflow-y-auto px-2 bg-white rounded-l-md'>
               {tripData?.length>0 ? filterExpenses(tripData)?.map((trip, index) => {
@@ -279,7 +287,7 @@ setSelectedStatuses={setSelectedStatuses}
                 return (
 <>
                   <CardLayout index={index}>
-                 <div className='flex flex-row justify-between w-full items-center py-2'>
+                 <div onClick={()=>{if(!disableButton(trip?.travelRequestStatus)){handleVisible({tripId:trip?.tripId ,travelRequestId:trip?.travelRequestId,urlName: trip?.travelRequestStatus})}}} className='flex flex-row justify-between w-full items-center py-2'>
                <div className='font-cabin text-xs text-neutral-700'>
           {trip?.travelRequestStatus === "draft" ?
            <div className='text-xs text-start'>
@@ -293,17 +301,17 @@ setSelectedStatuses={setSelectedStatuses}
       <div className='flex justify-center items-center gap-2'>
        
       <StatusBox status={trip?.travelRequestStatus ?? "-"}/>
-        <div onClick={()=>{if(!disableButton(trip?.travelRequestStatus)){handleVisible({tripId:trip?.tripId ,travelRequestId:trip?.travelRequestId,urlName: trip?.travelRequestStatus})}}}  className='cursor-pointer w-7 h-7 bg-indigo-100 rounded-full border border-white flex items-center justify-center'>
+       <ModifyBtn onClick={()=>{if(!disableButton(trip?.travelRequestStatus)){handleVisible({tripId:trip?.tripId ,travelRequestId:trip?.travelRequestId,urlName: trip?.travelRequestStatus})}}}/> 
+       
+        {/* <div onClick={()=>{if(!disableButton(trip?.travelRequestStatus)){handleVisible({tripId:trip?.tripId ,travelRequestId:trip?.travelRequestId,urlName: trip?.travelRequestStatus})}}}  className='bg-neutral-200 cursor-pointer w-7 h-7 bg--100 rounded-full border border-white flex items-center justify-center'>
         <img src={modify} className='w-4 h-4' alt="Add Icon" />
-        </div>
+        </div> */}
       </div>
       </div>
-                 
-                  
                   </CardLayout>
                   </>
                 );
-              }):<EmptyBox icon={trip_icon} text="No Travel Request or Trip"/>}
+              }):<EmptyBox icon={trip_white_icon} text="No Travel Request or Trip"/>}
             </div>
          
 
@@ -339,9 +347,6 @@ setSelectedStatuses={setSelectedStatuses}
  <div className='w-full'>
   <TripSearch placeholder={"Select the trip"} error={error?.tripId} title="Apply to trip" data={tripData} onSelect={handleSelect} />
  </div> }
-  
-
-
 {expenseType && <Button1 text={"Raise"} onClick={handleRaise} />}
 </div>   
 </div>

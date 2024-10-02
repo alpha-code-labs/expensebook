@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { briefcase, cancel, cashadvance_icon, filter_icon, modify, money, money1, plus_violet_icon, search_icon } from '../assets/icon';
+import { briefcase, cancel, cash_black_icon, cash_white_icon, cashadvance_icon, filter_icon, modify, money, money1, plus_violet_icon, search_icon } from '../assets/icon';
 import { formatAmount, getStatusClass, splitTripName } from '../utils/handyFunctions';
 import {TRCashadvance,NonTRCashAdvances} from '../utils/dummyData';
 import Modal from '../components/common/Modal1';
@@ -12,9 +12,9 @@ import Error from '../components/common/Error';
 import { useParams } from 'react-router-dom';
 import Input from '../components/common/SearchInput';
 import TripMS from '../microservice/TripMS';
-import { CardLayout, EmptyBox, StatusBox, StatusFilter, TripName } from '../components/common/TinyComponent';
+import { CardLayout, EmptyBox, StatusBox, StatusFilter, TripName,BoxTitleLayout,RaiseButton, ModifyBtn } from '../components/common/TinyComponent';
 
-const CashAdvance = ({isLoading, fetchData, loadingErrMsg}) => {
+const CashAdvance = ({searchQuery,isLoading, fetchData, loadingErrMsg}) => {
 
   const [cashAdvanceUrl , setCashAdvanceUrl]=useState(null) 
   const [visible, setVisible]=useState(false) 
@@ -29,7 +29,6 @@ const CashAdvance = ({isLoading, fetchData, loadingErrMsg}) => {
 
   const { employeeData } = useData();
   const [travelData, setTravelData]=useState([]);
-  const [searchQuery , setSearchQuery] = useState('');
   const [cashAdvanceData, setCashAdvanceData]=useState([]);
 
   const {tenantId,empId,page}= useParams();
@@ -199,7 +198,7 @@ const handleVisible = (travelRequestId, action, cashadvanceId) => {
      
       
       
-      <div className='min-h-[150px] shrink-0 border border-slate-300 bg-white rounded-md  w-full flex flex-wrap items-start gap-2 px-2 py-2'>
+      <div className=' shrink-0 border border-slate-100 rounded-md  w-full flex flex-wrap items-start gap-2 px-2 py-2'>
       
 
   <StatusFilter
@@ -211,40 +210,21 @@ filter_icon={filter_icon}
 getStatusClass={getStatusClass}
 getStatusCount={getStatusCount}
 setSelectedStatuses={setSelectedStatuses}/>
-  <div className=''>
+  {/* <div className=''>
    
    <Input placeholder="Search Cash Advance..." type="search" icon={search_icon} onChange={(value)=>setSearchQuery(value)}/>
- </div>
+ </div> */}
 </div>
 
-<div className=' flex flex-col md:flex-row flex-grow w-full overflow-auto scrollbar-hide  mt-2'>
+<div className=' flex flex-col md:flex-row flex-grow w-full overflow-y-auto overflow-hidden scrollbar-hide gap-1  mt-2'>
 <div className='w-full md:w-1/2  flex flex-col'>
          
-<div className='relative shrink-0  flex justify-center items-center  rounded-l-md   font-inter text-md text-white h-[52px] bg-indigo-600  text-center'>
-
-<div
-onClick={()=>setModalOpen(!modalOpen)}
-onMouseEnter={() => setTextVisible({cashAdvance:true})}
-onMouseLeave={() => setTextVisible({cashAdvance:false})}
-className={`absolute  left-0 ml-4 hover:px-2 w-6 h-6 hover:overflow-hidden hover:w-auto group text-indigo-600 bg-indigo-100 border border-white flex items-center justify-center  hover:gap-x-1 rounded-full cursor-pointer transition-all duration-300`}
->
-<img src={plus_violet_icon} width={16} height={16} alt="Add Icon" />
-<p
-className={`${
-textVisible?.cashAdvance ? 'opacity-100 ' : 'opacity-0 w-0'
-} whitespace-nowrap text-xs transition-all duration-300 group-hover:opacity-100 group-hover:w-auto`}
->
-Raise a Cash-Advance
-</p>
-</div>
-  
-             
-              <div className='flex justify-center items-center '>
-              <img src={money1} className='w-6 h-6 mr-2' />
+<div className='px-2 shrink-0  flex justify-start items-center  rounded-md   font-inter text-base text-neutral-900 h-[52px] bg-gray-200/10  text-center'>
+              <div className='flex justify-center text-base items-center '>
+              <img src={cash_white_icon} className='w-6 h-6 mr-2' />
               <p>Travel Cash-Advances</p>
               </div>
-
-            </div>
+</div>
 
 
 
@@ -276,9 +256,9 @@ Raise a Cash-Advance
       <div className='flex justify-center items-center gap-2'>
                     <StatusBox status={advance?.cashAdvanceStatus ?? "-"}/>
                     {!['paid'].includes(advance?.cashAdvanceStatus) &&
-                    <div onClick={()=>{if(!disableButton(trip?.travelRequestStatus)){handleVisible(trip?.travelRequestId,  'ca-modify' ,advance?.cashAdvanceId,)}}} className={`w-7 h-7 bg-indigo-100 rounded-full border border-white flex items-center justify-center ${disableButton(trip?.travelRequestStatus)? ' cursor-not-allowed opacity-50' : ' cursor-pointer'}`}>
-                    <img src={modify} className='w-4 h-4' alt="modify_icon" />
-                    </div>}
+                    
+                    <ModifyBtn onClick={()=>{if(!disableButton(trip?.travelRequestStatus)){handleVisible(trip?.travelRequestId,  'ca-modify' ,advance?.cashAdvanceId,)}}}/>
+                    }
                     
                   </div>
       </div>
@@ -289,14 +269,47 @@ Raise a Cash-Advance
 </>
 
 )
-           }) : <EmptyBox icon={cashadvance_icon} text={'Travel Cash Advance'}/>}
+           }) : <EmptyBox icon={cash_black_icon } text={'Travel Cash Advance'}/>}
         </div>
           </div>
           <div className='w-full md:w-1/2  flex flex-col'>
-            <div className='flex shrink-0 justify-center items-center rounded-r-md font-inter text-md text-white h-[52px] bg-indigo-600  text-center'>
-              <img src={money1} className='w-6 h-6 mr-2'/>
+          {/* <div className='relative px-2 shrink-0  flex justify-start items-center  rounded-md   font-inter text-md text-white h-[52px] bg-gray-200/10  text-center'>
+
+
+  
+<div className='flex shrink-0 justify-center items-center rounded-r-md font-inter text-md text-base text-neutral-900 h-[52px] text-center'>
+              <img src={cash_white_icon} className='w-6 h-6 mr-2'/>
               <p>Non-Travel Cash-Advances</p>
-            </div>
+</div>
+            <div
+onClick={()=>setModalOpen(!modalOpen)}
+onMouseEnter={() => setTextVisible({cashAdvance:true})}
+onMouseLeave={() => setTextVisible({cashAdvance:false})}
+className={`absolute  right-4 ml-4 hover:px-2 w-6 h-6 hover:overflow-hidden hover:w-auto group text-neutral-900 bg-slate-100 border border-white font-inter flex items-center justify-center  hover:gap-x-1 rounded-full cursor-pointer transition-all duration-300`}
+>
+<img src={plus_violet_icon} width={16} height={16} alt="Add Icon" />
+<p
+className={`${
+textVisible?.cashAdvance ? 'opacity-100 ' : 'opacity-0 w-0'
+} whitespace-nowrap text-xs transition-all duration-300 group-hover:opacity-100 group-hover:w-auto`}
+>
+Raise a Cash-Advance
+</p>
+</div>
+
+            </div> */}
+
+            <BoxTitleLayout title={"Non-Travel Cash-Advances"} icon={cash_white_icon}>
+            <RaiseButton  
+          onClick={()=>setModalOpen(!modalOpen)}
+         
+          text={'Cash-Advance'}
+          textVisible={'textVisible?.expense'}
+          />
+
+            </BoxTitleLayout>
+           
+
             <div className='w-full h-full mt-4  overflow-y-auto px-2 bg-white rounded-l-md'>
             {/* THIS WILL BE USE AFTER IMPLEMENT THE NON TRAVEL CASH */}
             {NonTRCashAdvances?.length > 0 ? 
@@ -329,9 +342,7 @@ Raise a Cash-Advance
         <div className={`text-center rounded-sm ${getStatusClass(cashAdvance?.cashAdvanceStatus ?? "-")}`}>
             <p className='px-1 py-1 text-xs text-center capitalize font-cabin'>{cashAdvance?.cashAdvanceStatus ?? "-"}</p>
       </div>
-        <div  className='cursor-pointer w-7 h-7 bg-indigo-100 rounded-full border border-white flex items-center justify-center'>
-        <img src={modify} className='w-4 h-4' alt="Add Icon" />
-      </div>
+       <ModifyBtn onClick={()=>console.log('non travel ca')}/>
       </div>
       </div>
     </div>
@@ -339,20 +350,17 @@ Raise a Cash-Advance
             </div>
             </CardLayout>
             </>
-          )) : <EmptyBox icon={cashadvance_icon} text={'Non-Travel Cash Advance'}/>}
+          )) : <EmptyBox icon={cash_white_icon} text={'Non-Travel Cash Advance'}/>}
         </div>
           </div>
         </div>
-     
 
     <Modal 
         isOpen={modalOpen} 
         onClose={modalOpen}
         content={<div className=' w-full h-auto'>
           <div>
-            
               <div className='flex gap-2 justify-between items-center bg-indigo-100 w-full p-4'>
-               
                 <p className='font-inter text-base font-semibold text-indigo-600'>Raise a Cash-Advance</p>
                 <div onClick={()=>{setModalOpen(!modalOpen);setTravelRequestId(null);setAdvanceType(null)}} className='bg-red-100 cursor-pointer rounded-full border border-white'>
                 <img src={cancel} className='w-5 h-5'/>

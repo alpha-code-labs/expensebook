@@ -4,7 +4,7 @@ import { useData } from '../../api/DataProvider';
 import {  NavLink } from 'react-router-dom';
 import { filterTravelRequests} from '../../utils/handyFunctions';
 
-import {arrow1_icon, receipt, house_simple, airplane_1, money, logo_with_text, airplane, house_simple_1, money1, airplane_icon1, receipt_icon1, setting_icon, setting_icon1, businessAdmin_icon, businessAdmin1_icon, approval_icon, approval_w_icon, cancel_round, cancel, down_arrow, arrow_left, up_arrow, straight_arrow_icon, report_icon, report_white_icon } from '../../assets/icon';
+import {arrow1_icon, receipt, house_simple, airplane_1, money, logo_with_text, airplane, house_simple_1, money1, airplane_icon1, receipt_icon1, setting_icon, setting_icon1, businessAdmin_icon, businessAdmin1_icon, approval_icon, approval_w_icon, cancel_round, cancel, down_arrow, arrow_left, up_arrow, straight_arrow_icon, report_icon, report_white_icon, company_icon, overview_white_icon, trip_white_icon, cash_white_icon, expense_white_icon, approval_white_icon, booking_white_icon, configure_white_icon, configure_black_icon, trip_black_icon, overview_black_icon, cash_black_icon, expense_black_icon, report_black_icon, approval_black_icon, booking_black_icon } from '../../assets/icon';
 
 
 const Sidebar = ({setSidebarOpen }) => {
@@ -74,36 +74,36 @@ const Sidebar = ({setSidebarOpen }) => {
    
 
     const sidebarItems = [
-        { label: 'Overview', icon: house_simple, icon1: house_simple_1, url: 'overview', count: '' },
-        { label: 'Trip', icon: airplane_1, icon1: airplane_icon1, url: 'trip', count: countData?.rejectedTravelRequests },
-        { label: 'Cash-Advance', icon: money, icon1: money1, url: 'cash-advance', count: countData?.rejectedCashAdvances },
-        { label: 'Expense', icon: receipt, icon1: receipt_icon1, url: 'expense', count: "" },
-        { label: 'Report', icon: report_icon, icon1: report_white_icon, url: 'report', count: "" },
+        { label: 'Overview', icon: overview_black_icon, icon1: overview_white_icon, url: 'overview', count: '' },
+        { label: 'Trip', icon: trip_black_icon, icon1: trip_white_icon, url: 'trip', count: countData?.rejectedTravelRequests },
+        { label: 'Cash-Advance', icon: cash_black_icon, icon1: cash_white_icon, url: 'cash-advance', count: countData?.rejectedCashAdvances },
+        { label: 'Expense', icon: expense_black_icon, icon1: expense_white_icon, url: 'expense', count: "" },
+        { label: 'Report', icon: report_black_icon, icon1: report_white_icon, url: 'report', count: "" },
     ];
 
     if (employeeRoles) {
 
         if (employeeRoles?.employeeRoles?.employeeManager) {
-            sidebarItems.push({ label: 'Approval', icon: approval_icon, icon1: approval_w_icon, url: 'approval', count: (countData?.trApproval + countData?.trExpApproval + countData?.nonTrExpApproval + countData?.itineraryApproval || 0) });
+            sidebarItems.push({ label: 'Approval', icon: approval_black_icon, icon1: approval_white_icon, url: 'approval', count: (countData?.trApproval + countData?.trExpApproval + countData?.nonTrExpApproval + countData?.itineraryApproval || 0) });
         }
 
         if (employeeRoles?.employeeRoles?.businessAdmin) {
-            sidebarItems.push({ label: 'Bookings', icon: businessAdmin_icon, icon1: businessAdmin1_icon, url: 'bookings', count: (countData?.pendingBooking + countData?.paidAndCancelledTrips) });
+            sidebarItems.push({ label: 'Bookings', icon: booking_black_icon, icon1: booking_white_icon, url: 'bookings', count: (countData?.pendingBooking + countData?.paidAndCancelledTrips) });
         }
 
         if (employeeRoles?.employeeRoles?.finance) {
-            sidebarItems.push({ label: 'Settlement', icon: money, icon1: money1, url: 'settlement', count: countData?.settlement });
+            sidebarItems.push({ label: 'Settlement', icon: cash_black_icon, icon1: cash_white_icon, url: 'settlement', count: countData?.settlement });
         }
 
         if (employeeRoles?.employeeRoles?.superAdmin) {
-            sidebarItems.push({ label: 'Configure', icon: setting_icon, icon1: setting_icon1, url: 'configure', count: "" });
+            sidebarItems.push({ label: 'Configure', icon: configure_black_icon, icon1: configure_white_icon, url: 'configure', count: "" });
         }
         
     }
    
 
     return (
-        <div className={` border-r border-indigo-600    min-h-screen h-full   bg-indigo-50   left-[0px] flex flex-col items-start justify-start`}>
+        <div className={` min-h-screen h-full  bg-gray-50 border-r-2 border-slate-200  left-[0px] flex flex-col items-start justify-start`}>
             <div className='flex flex-row justify-between items-center w-full px-2 '>
                 <div className='h-16'>
                 <img
@@ -118,7 +118,8 @@ const Sidebar = ({setSidebarOpen }) => {
             </div>
             
             </div>
-            <nav className='w-full'>
+            <div className='flex flex-col justify-between h-full'>
+            <nav className='w-full px-2'>
             {sidebarItems.map((item, index) => (
                 
                 <NavLink
@@ -126,13 +127,13 @@ const Sidebar = ({setSidebarOpen }) => {
                     to={`${item.url.toLowerCase()}`}
                     key={index}
                     
-                    className={`w-full   ${pathname === item.url ? 'bg-purple-500 text-white' : "text-indigo-600"} overflow-hidden flex flex-col items-start justify-start   box-border cursor-pointer`}
+                    className={`w-full   ${pathname === item.url ? 'bg-gray-200/10 text-neutral-900 font-semibold  ' : "text-neutral-700"} overflow-hidden flex flex-col items-start justify-start  rounded-md  box-border cursor-pointer`}
                 >
                     <div className="flex flex-row items-center justify-between px-3 py-3 w-full ">
                         <div className='flex gap-2 items-center'>
                        
-                        <img src={pathname === item.url ? item.icon1 : item.icon} alt={item.label} className='min-w-4 min-h-4 h-4 w-4' />
-                        <div className={`   relative  tracking-[0.02em] w-auto md:w-[140px] font-inter  font-medium`} >
+                        <img src={ item.icon1} alt={item.label} className='min-w-4 min-h-4 h-4 w-4' />
+                        <div className={`   relative  tracking-[0.02em] w-auto md:w-[140px] font-inter  `} >
                             {item?.label}
                         </div>
                         </div>
@@ -146,6 +147,13 @@ const Sidebar = ({setSidebarOpen }) => {
                 
             ))}
             </nav>
+            <div className='flex gap-1 items-center justify-start bg-slate-100  p-2  rounded-sm shadow-md'>
+        <img src={company_icon} className='w-5 h-5' />
+        <p className="hidden lg:block font-inter  text-medium font-medium text-neutral-700  capitalize ">{employeeRoles?.employeeInfo?.tenantName}</p>
+        </div>
+           
+            </div>
+           
         </div>
     );
 }

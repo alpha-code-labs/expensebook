@@ -3,7 +3,7 @@ import axios from 'axios';
 
 const DASHBOARD_BACKEND_API_URL = import.meta.env.VITE_DASHBOARD_BACKEND_API_URL;
 const SETTLEMENT_BACKEND_API_URL = import.meta.env.VITE_SETTLEMENT_BACKEND_API_URL;
-const APPROVAL_BACKEND_API_URL = import.meta.env.VITE_APPROVAL_BACKEND_API_URL
+const APPROVAL_BACKEND_API_URL = import.meta.env.VITE_APPROVAL_BACKEND_API_URL;
 
 const retry = 2;
 const retryDelay = 3000;
@@ -78,7 +78,9 @@ export const getEmployeeData_API = async (tenantId,empId) => {
   const url = `${DASHBOARD_BACKEND_API_URL}/api/fe/dashboard/role/${tenantId}/${empId}`;
 
   try {
-    const response = await axiosRetry(axios.get, url);
+    const response = await axiosRetry(axios.get, url,{
+      withCredentials: true // Ensure the cookie (authToken) is sent
+    });
     return response.data
   } catch (error) {
     handleRequestError(error);

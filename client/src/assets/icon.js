@@ -43,7 +43,7 @@ export {default as calender_icon} from './calender.svg';
 export {default as location} from './location.svg';
 export {default as cab} from './cab.svg';
 export {default as bus} from './bus.png';
-export {default as briefcase} from './briefcase.svg';
+export {default as briefcase} from './breifcase_icon.svg';
 export {default as receipt} from './receipt.svg';
 export {default as receipt_icon1} from './receipt copy.svg';
 export {default as setting_icon} from './icons8-settings.svg';
@@ -65,7 +65,7 @@ export {default as frame_341} from './frame-341.svg';
 export {default as validation_sym} from './validation-sym.svg';
 export {default as three_dot} from './three-dot.png';
 export {default as down_left_arrow} from './down-left-arrow.svg';
-export {default as modify} from './modify.svg';
+export {default as modify} from './edit.svg';
 export {default as check_tick} from './check-tick.svg';
 export {default as app_icon} from './app_icon.svg';
 export {default as app_symbol} from './app_symbol.svg';
@@ -109,10 +109,28 @@ export {default as hamburger_icon} from './icons8-hamburger.svg';
 export {default as grade_icon} from './grade.png';
 export {default as violation_red_icon} from './violation_red_icon.png';
 export {default as report_icon} from './report_icon.png'
-export {default as report_white_icon} from './report_icon_white.png'
+//export {default as report_white_icon} from './report_icon_white.png'
 export {default as company_icon} from './companyLogo_slate.png';
 
+///sidebar
+export {default as overview_white_icon} from './sidebar/home_24dp_FFFF_FILL1_wght400_GRAD0_opsz24.svg'
+export {default as trip_white_icon} from './sidebar/flight_24dp_FFFF_FILL1_wght400_GRAD0_opsz24.svg'
+export {default as cash_white_icon} from './sidebar/payments_24dp_FFFF_FILL1_wght400_GRAD0_opsz24.svg'
+export {default as expense_white_icon} from './sidebar/receipt_long_24dp_FFFF_FILL1_wght400_GRAD0_opsz24.svg'
+export {default as approval_white_icon} from './sidebar/list_alt_check_24dp_FFFF_FILL1_wght400_GRAD0_opsz24.svg'
+export {default as booking_white_icon} from './sidebar/airplane_ticket_24dp_FFFF_FILL1_wght400_GRAD0_opsz24.svg'
+export {default as report_white_icon} from './sidebar/finance_24dp_FFFF_FILL1_wght400_GRAD0_opsz24.svg'
+export {default as configure_white_icon} from './sidebar/settings_24dp_FFFF_FILL1_wght400_GRAD0_opsz24.svg'
 
+
+export {default as overview_black_icon} from './sidebar/overview_black_icon.svg'
+export {default as trip_black_icon} from './sidebar/flight_black_icon.svg'
+export {default as cash_black_icon} from './sidebar/cash_black_icon.svg'
+export {default as expense_black_icon} from './sidebar/expense_black_icon.svg'
+export {default as approval_black_icon} from './sidebar/approval_black_icon.svg'
+export {default as booking_black_icon} from './sidebar/airplane_black_icon.svg'
+export {default as report_black_icon} from './sidebar/report_black_icon.svg'
+export {default as configure_black_icon} from './sidebar/setting_black_icon.svg'
 
 
 
