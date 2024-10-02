@@ -353,7 +353,7 @@ export const updateTripToCompleteOrClosed = async (payload) => {
   const promises = [];
 
   if (listOfCompletedStandaloneTravelRequests.length > 0) {
-    promises.push(updateTravelRequests(listOfCompletedStandaloneTravelRequests, 'travelRequestSchema.travelRequestStatus', getTravelRequestStatus.COMPLETED));
+    promises.push(updateTravelRequests(listOfCompletedStandaloneTravelRequests, 'travelRequestSchema.travelRequestStatus', 'completed'));
   }
 
   if (listOfClosedStandAloneTravelRequests.length > 0) {
@@ -361,7 +361,7 @@ export const updateTripToCompleteOrClosed = async (payload) => {
   }
 
   if (listOfCompletedTravelRequests.length > 0) {
-    promises.push(updateCashAdvanceRequests(listOfCompletedTravelRequests, 'cashAdvanceSchema.travelRequestData.travelRequestStatus', getTravelRequestStatus.COMPLETED));
+    promises.push(updateCashAdvanceRequests(listOfCompletedTravelRequests, 'cashAdvanceSchema.travelRequestData.travelRequestStatus', 'completed'));
   }
 
   if (listOfClosedTravelRequests.length > 0) {
@@ -388,7 +388,7 @@ export const updateTripToCompleteOrClosed = async (payload) => {
 async function updateTravelRequests(travelRequestIds, updateField, updateValue) {
   try {
     const updateTravel = await dashboard.updateMany({
-      'travelRequestSchema.travelRequestId': { $in: travelRequestIds }
+      'travelRequestId': { $in: travelRequestIds }
     }, {
       $set: {
         [updateField]: updateValue
