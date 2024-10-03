@@ -10,65 +10,82 @@ import {  settleOrRecoverCashAdvance } from './messageProcessor/finance.js';
 import { settleNonTravelExpenseReport } from './messageProcessor/nonTravelExpenseProcessor.js';
 
 dotenv.config();
+
+
 export async function startConsumer(receiver) {
-  const rabbitMQUrl = process.env.rabbitMQUrl;
-  let retryCount = 0;
-
-  const connectToRabbitMQ = async () => {
-    try {
-      console.log("Connecting to RabbitMQ...");
-      const connection = await amqp.connect(rabbitMQUrl);
-      const channel = await connection.createChannel();
-      console.log("Connected to RabbitMQ.");
-      // Add error event listener to the connection
-      connection.on("error", handleConnectionError);
-      return channel; // Return the created channel
-    } catch (error) {
-      retryCount++;
-      if (retryCount === 1) {
-        console.error("Error connecting to RabbitMQ:", error);
+  try {
+    const rabbitMQUrl = process.env.rabbitMQUrl;
+    const MAX_RETRIES = 5;
+    const INITIAL_RETRY_DELAY = 5000; // 5 seconds
+    
+    class RabbitMQConnectionError extends Error {
+      constructor(message) {
+        super(message);
+        this.name = 'RabbitMQConnectionError';
       }
-      if (retryCount === 3) {
-        console.error("Failed after 3 times trying");
-      } else {
-        // Retry connection after 1 minute for the first two attempts, then after 3 minutes
-        const retryDelay = retryCount <= 2 ? 1 : 3;
-        console.log(`Retrying in ${retryDelay} minute(s)...`);
-        setTimeout(connectToRabbitMQ, retryDelay * 60 * 1000);
-      }
-      return null; // Return null if connection fails
     }
-  };
-
-  const handleConnectionError = (err) => {
-    console.error("RabbitMQ connection error:", err);
-    // Retry connection after 3 minutes if the first attempt fails
-    retryCount++;
-    if (retryCount === 3) {
-      console.error("Failed after 3 times trying");
-    } else {
-      const retryDelay = retryCount <= 2 ? 1 : 3;
-      console.log(`Retrying in ${retryDelay} minute(s)...`);
-      setTimeout(connectToRabbitMQ, retryDelay * 60 * 1000);
-    }
-  };
-
-  const handleMessageAcknowledgment = (channel, msg, res) => {
-    try{
-      if (res.success) {
-        channel.ack(msg);
-        console.log('Message acknowledged successfully');
-      } else {
-        // channel.nack(msg, false, true);
-        console.log('Error processing message, requeuing');
-      }
-    } catch(error){
-      console.error('Error handling message acknowledgment:', error);
-    }
-  };
+    
+    const connectToRabbitMQ = async () => {
+      let retryCount = 0;
+      let channel = null;
+    
+      const attemptConnection = async () => {
+        try {
+          console.log("Connecting to RabbitMQ...");
+          const connection = await amqp.connect(rabbitMQUrl);
+          channel = await connection.createChannel();
+          console.log("Connected to RabbitMQ.");
+    
+          connection.on("error", (error) => {
+            console.error("RabbitMQ connection error:", error);
+            throw new RabbitMQConnectionError("Connection error occurred");
+          });
+    
+          connection.on("close", () => {
+            console.warn("RabbitMQ connection closed. Attempting to reconnect...");
+            setTimeout(attemptConnection, calculateRetryDelay(retryCount));
+          });
+    
+          return channel;
+        } catch (error) {
+          console.error("Error connecting to RabbitMQ:", error);
+          
+          if (retryCount >= MAX_RETRIES) {
+            throw new RabbitMQConnectionError(`Failed to connect to RabbitMQ after ${MAX_RETRIES} attempts`);
+          }
+    
+          retryCount++;
+          const delay = calculateRetryDelay(retryCount);
+          console.log(`Retrying in ${delay / 1000} seconds... (Attempt ${retryCount} of ${MAX_RETRIES})`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+          return attemptConnection();
+        }
+      };
+    
+      const calculateRetryDelay = (attempt) => {
+        return Math.min(INITIAL_RETRY_DELAY * Math.pow(2, attempt), 60000); // Max delay of 1 minute
+      };
+    
+      return attemptConnection();
+    };
   
-  // Start initial connection attempt
-  const channel = await connectToRabbitMQ();
+    const handleMessageAcknowledgment = (channel, msg, res) => {
+      try{
+        if (res.success) {
+          channel.ack(msg);
+          console.log('Message acknowledged successfully');
+        } else {
+          // channel.nack(msg, false, true);
+          console.log('Error processing message, requeuing');
+        }
+      } catch(error){
+        console.error('Error handling message acknowledgment:', error);
+      }
+    };
+
+    const channel = await connectToRabbitMQ();
+    console.log("RabbitMQ connection established.");
+    
   if (!channel) {
     console.error("Failed to establish connection to RabbitMQ.");
     return; // Exit function if connection failed
@@ -294,6 +311,14 @@ export async function startConsumer(receiver) {
         }
       }
     }}, { noAck: false });
+  } catch (error) {
+    if (error instanceof RabbitMQConnectionError) {
+      console.error("Failed to establish RabbitMQ connection:", error.message);
+      // Handle the connection failure (e.g....use a fallback mechanism or notify administrators)
+    } else {
+      console.error("An unexpected error occurred:", error);
+    }
+  }
 }
 
 
