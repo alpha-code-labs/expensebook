@@ -21,6 +21,7 @@ export default function MultiSelect(props) {
   const error = props.error || null
   const required = props.required || false
   const submitAttempted = props.submitAttempted || false
+  const [availableList,setAvailableList]=useState(optionsList)
 
 
     useEffect(()=>{
@@ -116,9 +117,11 @@ const selectDivFocus = (e)=>{
 
   //handles selection of option
   const handleOptionSelect = (option, index=0)=>{
+    setAvailableList(availableList.filter(opt => opt !== option));
 
     if(selectedOption!=null && !selectedOption.includes(option)){
         setSelectedOption(pre=>[...pre, option])
+       
     }
     else{
         setSelectedOption([option])
@@ -131,11 +134,11 @@ const selectDivFocus = (e)=>{
     if(onSelect != null){
         if(selectedOption!=null && !selectedOption.includes(option)){
             onSelect([...selectedOption, option])
+            
         }
         else{
             onSelect([option])
         }
-        
     }
 
     console.log(option)
@@ -144,6 +147,8 @@ const selectDivFocus = (e)=>{
 
   const handleOptionRemove = (e, index)=>{
     e.stopPropagation()
+    const removedOption = selectedOption[index];
+    setAvailableList([...availableList, removedOption]);
 
     const selectedOptions_copy = JSON.parse(JSON.stringify(selectedOption))
     selectedOptions_copy.splice(index,1)
@@ -177,7 +182,7 @@ const selectDivFocus = (e)=>{
 
   return (
     <>
-      <div className="min-w-[214px] w-full h-[73px] flex-col justify-start items-start gap-2 inline-flex">
+      <div className="min-w-[214px] w-full h-[73px] grow flex-col justify-start items-start gap-2 inline-flex">
         {/* title*/}
         <div className="text-zinc-600 text-sm font-cabin tracking-tight">{title}</div>
         <div className="self-stretch h-12 justify-start items-start gap-4 inline-flex">
@@ -187,7 +192,7 @@ const selectDivFocus = (e)=>{
               onKeyDown={selectKeyDown}
               onFocus={selectDivFocus}
               ref={selectDivRef}
-              className="grow shrink basis-0 h-6 relative justify-between items-center flex cursor-pointer focus-visible:outline-0"
+              className="grow shrink  basis-0 h-6 relative justify-between items-center flex cursor-pointer focus-visible:outline-0"
               onClick={handleSelectClick}
             >
               {!hidePlaceholder && (
@@ -196,16 +201,19 @@ const selectDivFocus = (e)=>{
                 </div>
               )}
               {hidePlaceholder && 
-                selectedOption.map((option,index)=>
-                <div key={index} className="flex gap-1">
+              <div className="flex gap-1 flex-wrap">
+                {selectedOption.map((option,index)=>
+                <div key={index} className="flex gap-1 justify-start">
                     <div className="px-1 py-.5 rounded-sm bg-slate-100 items-center flex gap-.5 border shadow-sm ml-1">
-                        <div className='text-neutral-700 text-xs font-normal font-cabin tracking-tight'>{option}</div>
+                        <div className='text-nowrap truncate text-neutral-700 text-xs font-normal font-cabin tracking-tight'>{option}</div>
                         <div className="w-4 h-4" onClick={(e)=>handleOptionRemove(e,index)}>
                             <img src={close_icon} alt="close icon" />
                         </div>
                     </div>
-                </div>)
+                </div>)}
+                </div>
                 }
+               
               <div className={`w-6 h-6 relative transition ${showDropdown && 'rotate-180'}`}>
                 <img src={chevron_down} />
               </div>
@@ -229,8 +237,8 @@ const selectDivFocus = (e)=>{
                 ref={dropdownRef}
                 className="absolute z-10 w-[calc(100%-10px)] h-fit max-h-[230px] overflow-y-scroll scroll rounded-b left-[5px] top-11 bg-white transition-all border-b  border-l border-r border-neutral-300 shadow-sm"
               >
-                {optionsList &&
-                  optionsList.map((option, index) => (
+                {
+                  availableList?.map((option, index) => (
                     <div key={index}>
                       <p
                         tabIndex={index+1}

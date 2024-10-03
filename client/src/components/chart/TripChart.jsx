@@ -30,28 +30,49 @@ const CustomTooltip = ({ active, payload, label }) => {
 
   return null;
 };
-
+const CustomXAxisTick = ({ x, y, payload }) => {
+ 
+  return (
+    <g transform={`translate(${x}, ${y})`}>
+      <text 
+        dy={14} 
+        textAnchor="middle" 
+        style={{ fill: '#1D4ED8' }}
+        className="text-blue-600 truncate shrink-0 font-inter font-semibold text-xs" 
+      > 
+        {(payload.value ?? "-")} 
+      </text>
+    </g>
+  );
+};
 const TripChart = ({ data }) => {
   const tripCounts = countTripsByStatus(data);
   const maxCount = Math.max(...tripCounts.map(trip => trip["Trips"]));
 
   return (
-    <ResponsiveContainer width="80%" height={400}>
-      <BarChart data={tripCounts} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-        <XAxis dataKey="name" />
+    <ResponsiveContainer  width="70%" height={300}>
+      <BarChart   data={tripCounts} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+         <defs>
+        <linearGradient id="gradientFill" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#4C36F1" stopOpacity={1} />
+          <stop offset="100%" stopColor="#C7D2FE" stopOpacity={1} />
+        </linearGradient>
+        </defs>
+        <XAxis dataKey="name" tick={<CustomXAxisTick />}/>
         <YAxis 
+        
           domain={[0, maxCount]} 
           allowDecimals={false} 
         />
         <Tooltip content={<CustomTooltip />} cursor={{ fill: 'none' }} />
         <Legend />
         <Bar 
+          radius={[10, 10, 0, 0]}
           dataKey="Trips" 
-          fill="#4C36F1" 
+          fill="url(#gradientFill)"
           barSize={60}
           label={{ position: 'top' }}
-         
-          background={{ fill: '#eee' }}
+          background={{fill: '#f8fafc',radius:[10, 10, 0, 0]}}
         />
       </BarChart>
     </ResponsiveContainer>

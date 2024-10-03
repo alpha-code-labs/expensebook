@@ -56,8 +56,10 @@ export const getReportDataAPI = async (tenantId,empId,tab) => {
   let url
 if(tab==="myView"){
   url = `${REPORTING_BACKEND_API_URL}/api/v1/reporting/roles/${tenantId}/${empId}/employee`;
-}else{
+}else if (tab==="adminView"){
   url = `${REPORTING_BACKEND_API_URL}/api/v1/reporting/roles/${tenantId}/${empId}/admin`;
+}else if (tab==="financeView"){
+  url = `${REPORTING_BACKEND_API_URL}/api/v1/reporting/roles/${tenantId}/${empId}/finance`;
 }
    
 

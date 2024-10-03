@@ -64,6 +64,8 @@ const CashReport = ({ visibleHeaders, data }) => {
         return cash?.recoveredBy ;
       case 'approver':
         return cash?.approvers ?? "-"
+      case 'group':
+        return cash?.group  
       default:
         return null;
     }

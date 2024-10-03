@@ -46,18 +46,18 @@ const ReimbursementReport = ({ visibleHeaders, data }) => {
         return expense?.expenseType;
       case 'submitted on':
         return formatDate(expense?.expenseSubmissionDate);
-      
       case 'created by':
         return expense?.createdBy;
       case 'expense status':
         return expense?.expenseHeaderStatus;
-      
       case 'paid by':
         return expense?.paidBy?.name || 'N/A';
       case 'expense amount':
         return `${expense?.defaultCurrency} ${formatAmount(expense?.totalExpenseAmount)}`; 
       case 'approver':
         return expense?.approvers ?? "-"
+      case 'group':
+        return expense?.group         
       default:
         return null;
     }
