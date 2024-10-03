@@ -148,7 +148,7 @@ export default function () {
             console.log(`Upload of file '${file.name}' completed`);
             return {success:true}
         }catch(e){
-            console.error(e)
+            //console.error(e)
             return {success:false}   
         }
       }
