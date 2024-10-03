@@ -375,7 +375,7 @@ const handleDownloadfile=(file)=>{
     handleCSVDownload(exportData)
   }
 }
-console.log('export data', exportData)
+console.log(' data', exportData)
 const tripData = flattenTripData(reportData?.tripData)
 const cashadvanceData = flattedCashadvanceData(reportData?.cashadvanceData,'cashAdvances')
 const travelExpenseData = flattedTravelExpenseData(reportData?.travelExpenseData)
