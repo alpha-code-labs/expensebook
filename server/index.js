@@ -10,6 +10,7 @@ import { consumeFromDashboardQueue } from './rabbitmq/dashboardConsumer.js';
 import { scheduleToFinanceBatchJob } from './schedulars/finance.js';
 import { gradeForEmployee } from './controllersRoleBased/roleBasedController.js';
 import cookieParser from 'cookie-parser';
+import { financeLayout } from './controllers/financeController.js';
 // import dashboard from "../models/dashboardSchema.js";
 
 const environment = process.env.NODE_ENV == 'production' ? '.env.prod' : '.env';
@@ -89,10 +90,7 @@ scheduleToFinanceBatchJob()
 consumeFromDashboardQueue();
 
 
-
-
-
-
+// financeLayout("66e048c79286e2f4e03bdac1")
 
 
 
