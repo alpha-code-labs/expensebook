@@ -51,14 +51,14 @@ const roleBasedLayoutSchema = Joi.object({
 
 
 const roleBasedLayout = async (req, res) => {
-  const { error, value } = roleBasedLayoutSchema.validate(req.params);
-
-  if (error) {
-    return res.status(400).json({ error: error.details[0].message });
-  }
-
   try {
-    const { tenantId, empId } = value;
+    let{tenantId, empId } = req.user
+    const { error, value } = roleBasedLayoutSchema.validate({tenantId, empId });
+
+    if (error) {
+      return res.status(400).json({ error: error.details[0].message });
+    }
+    ({ tenantId, empId } = value)
     const reportingViews = await getReportingViews(tenantId, empId);
     if(!reportingViews){
       return res.status(400).json({success:false, reportingViews})
