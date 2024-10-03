@@ -65,15 +65,17 @@ const expenseCategories = {
                 {name:'Booking Date',  toSet:'bkd_date',  id:'bkd_date', type:'date'},
                 {name: 'Return Date', toSet:'bkd_returnDate', id:'bkd_returnDate', type:'date'}, 
                 {name:'Cab Time',  toSet:'bkd_time',  id:'bkd_time', type:'time'},
+                {name:'Return Time',  toSet:'bkd_returnTime',  id:'bkd_returnTime', type:'time'},
                 {name:'Pickup Address', toSet:'bkd_pickupAddress',  id:'bkd_pickupAddress', type:'text'}, 
                 {name:'Drop Address', type:'text', toSet:'bkd_dropAddress', id:'bkd_dropAddress'}, 
                 {name:'Tax Amount', type:'amount', toSet:'bookingDetails', id:'taxAmount'}, 
                 {name:'Total Amount', type:'amount', toSet:'bookingDetails', id:'totalAmount'}],
 
-    'rentalCab' : [{name:'Vendor Name', id:'vendorName', toSet:'bookingDetails', type:'text'},
+    'carRentals' : [{name:'Vendor Name', id:'vendorName', toSet:'bookingDetails', type:'text'},
                 {name:'Booking Date',  toSet:'bkd_date',  id:'bkd_date', type:'date'},
                 {name: 'Return Date', toSet:'bkd_returnDate', id:'bkd_returnDate', type:'date'}, 
                 {name:'Cab Time',  toSet:'bkd_time',  id:'bkd_time', type:'time'},
+                {name:'Return Time',  toSet:'bkd_returnTime',  id:'bkd_returnTime', type:'time'},
                 {name:'Pickup Address', toSet:'bkd_pickupAddress',  id:'bkd_pickupAddress', type:'text'}, 
                 {name:'Drop Address', type:'text', toSet:'bkd_dropAddress', id:'bkd_dropAddress'}, 
                 {name:'Tax Amount', type:'amount', toSet:'bookingDetails', id:'taxAmount'}, 
@@ -244,8 +246,56 @@ export default function () {
 
     //send data to backend
     const formData_copy = JSON.parse(JSON.stringify(formData))
-    formData_copy.itinerary[toSet].forEach( (_,index)=>{
-        if(index == itemIndex) formData_copy.itinerary[toSet][index].status = 'booked';
+    formData_copy.itinerary[toSet].forEach( (item,index)=>{
+        if(index == itemIndex){
+            //check if all required fields are filled
+            switch(toSet){
+                case 'flights': {
+                    if(item.bkd_from && item.bkd_to && item.bkd_date && item.bkd_time && item.bookingDetails.billDetails.vendorName && item.bookingDetails.billDetails.taxAmount && item.bookingDetails.billDetails.totalAmount){
+                        formData_copy.itinerary[toSet][index].status = 'booked';
+                    }
+                    return;
+                }
+                case 'buses': {
+                    if(item.bkd_from && item.bkd_to && item.bkd_date && item.bkd_time && item.bookingDetails.billDetails.taxAmount && item.bookingDetails.billDetails.totalAmount){
+                        formData_copy.itinerary[toSet][index].status = 'booked';
+                    }
+                    return;
+                }
+                case 'trains': {
+                    if(item.bkd_from && item.bkd_to && item.bkd_date && item.bkd_time && item.bookingDetails.billDetails.taxAmount && item.bookingDetails.billDetails.totalAmount){
+                        formData_copy.itinerary[toSet][index].status = 'booked';
+                    }
+                    return;
+                }
+                case 'cabs': {
+                    if(item.bkd_from && item.bkd_to && item.bkd_date && item.bkd_time && item.bookingDetails.billDetails.taxAmount && item.bookingDetails.billDetails.totalAmount){
+                        if(item.isFullDayCab){
+                            if(item.returnDate) formData_copy.itinerary[toSet][index].status = 'booked';
+                        }else{
+                            formData_copy.itinerary[toSet][index].status = 'booked';
+                        }
+                    }
+                    return;
+                }
+                case 'carRentals': {
+                    if(item.bkd_from && item.bkd_to && item.bkd_date && item.bkd_time && item.bookingDetails.billDetails.taxAmount && item.bookingDetails.billDetails.totalAmount){
+                        if(item.isFullDayCab){
+                            if(item.returnDate) formData_copy.itinerary[toSet][index].status = 'booked';
+                        }else{
+                            formData_copy.itinerary[toSet][index].status = 'booked';
+                        }
+                    }
+                    return;
+                }
+                case 'hotels':{
+                    if(item.bkd_location && item.bkd_checkIn && item.bkd_checkOut && bkd_checkInTime && bkd_checkOutTime && item.bookingDetails.billDetails.taxAmount && item.bookingDetails.billDetails.totalAmount){
+                        formData_copy.itinerary[toSet][index].status = 'booked';
+                    }
+                }
+
+            }
+        }
     })
 
     setFormData(formData_copy)
@@ -556,13 +606,19 @@ export default function () {
                                                     <FlightCard onClick={() => handleAddTicket(itnItem, itemIndex)} status={item.status} from={item.from} to={item.to} date={isoString(item?.date)} time={item.time} returnDate={isoString(item.returnDate)} returnTime={item.returnTime} travelClass={item.travelClass} vendorName={item?.bookingDetails?.billDetails?.vendorName??undefined} taxAmount={item?.bookingDetails?.billDetails?.taxAmount??undefined} totalAmount={item?.bookingDetails?.billDetails?.totalAmount??undefined}  mode={titleCase(itnItem.slice(0, -1))} />
                                                 </div>
                                             );
-                                        } else if (itnItem === 'cabs' || itnItem === 'carRentals') {
+                                        } else if (itnItem === 'cabs') {
                                             return (
                                                 <div key={itemIndex}>
-                                                    <CabCard onClick={() => handleAddTicket(itnItem, itemIndex)} status={item.status} from={item.pickupAddress} to={item.dropAddress} date={isoString(item?.date)} returnDate={isoString(item.returnDate)} isRentalCab={itnItem === 'carRentals'} isFullDayCab={item.isFullDayCab} time={item.time} mode={itnItem == 'cabs'? 'Cab' : 'Rental Car'} travelClass={item.travelClass} vendorName={item?.bookingDetails?.billDetails?.vendorName??undefined} taxAmount={item?.bookingDetails?.billDetails?.taxAmount??undefined} totalAmount={item?.bookingDetails?.billDetails?.totalAmount??undefined} isTransfer={item.type !== 'regular'} />
+                                                    <CabCard onClick={() => handleAddTicket(itnItem, itemIndex)} status={item.status} from={item.pickupAddress} to={item.dropAddress} date={isoString(item?.date)} returnDate={isoString(item.returnDate)} isFullDayCab={item.isFullDayCab} time={item.time} mode={itnItem == 'cabs'? 'Cab' : 'Rental Car'} travelClass={item.travelClass} vendorName={item?.bookingDetails?.billDetails?.vendorName??undefined} taxAmount={item?.bookingDetails?.billDetails?.taxAmount??undefined} totalAmount={item?.bookingDetails?.billDetails?.totalAmount??undefined} isTransfer={item.type !== 'regular'} />
                                                 </div>
                                             );
-                                        } else if (itnItem === 'hotels') {
+                                        } else if (itnItem === 'carRentals') {
+                                            return (
+                                                <div key={itemIndex}>
+                                                    <CabCard onClick={() => handleAddTicket(itnItem, itemIndex)} status={item.status} from={item.pickupAddress} to={item.dropAddress} date={isoString(item?.date)} returnDate={isoString(item.returnDate)} isRentalCab={true} isFullDayCab={item.isFullDayCab} time={item.time} mode={itnItem == 'cabs'? 'Cab' : 'Rental Car'} travelClass={item.travelClass} vendorName={item?.bookingDetails?.billDetails?.vendorName??undefined} taxAmount={item?.bookingDetails?.billDetails?.taxAmount??undefined} totalAmount={item?.bookingDetails?.billDetails?.totalAmount??undefined} isTransfer={item.type !== 'regular'} />
+                                                </div>
+                                            );
+                                        }else if (itnItem === 'hotels') {
                                             return (
                                                 <div key={itemIndex}>
                                                     <HotelCard onClick={() => handleAddTicket('hotels', itemIndex)} status={item.status} checkIn={item.checkIn} checkOut={item.checkOut} date={item.data} time={item.time} location={item.location} travelClass={item.travelClass} vendorName={item?.bookingDetails?.billDetails?.vendorName??undefined} taxAmount={item?.bookingDetails?.billDetails?.taxAmount??undefined} totalAmount={item?.bookingDetails?.billDetails?.totalAmount??undefined} mode='Hotel' />
@@ -899,7 +955,59 @@ function AddTicketManually(
         if(!presentURL){
             setDocURL();
         }
-    }, [fileSelected, presentURL])
+    }, [fileSelected, presentURL]);
+
+    useEffect(()=>{
+        //if itinerary fileds are empty set them them to travel request forms values
+        const formData_copy = JSON.parse(JSON.stringify(formData));
+        Object.keys(formData_copy.itinerary).forEach(key=>{
+            if(key == 'flights' || key == 'buses' || key == 'trains' ){
+                formData_copy.itinerary[key].forEach(item=>{
+                    if(!item.bkd_from){
+                        item.bkd_from = item.from;
+                    }
+                    if(!item.bkd_to){
+                        item.bkd_to = item.to;
+                    }
+                    if(!item.bkd_date){
+                        item.bkd_date = item.date;
+                    } 
+                })
+            }
+
+            if(key == 'cabs' || key == 'carRentals'){
+                formData_copy.itinerary[key].forEach(item=>{
+                    if(!item.bkd_pickupAddress){
+                        item.bkd_pickupAddress = item.pickupAddress;
+                    }
+                    if(!item.bkd_dropAddress){
+                        item.bkd_dropAddress = item.dropAddress;
+                    }
+                    if(!item.bkd_date){
+                        item.bkd_date = item.date;
+                    } 
+                    if((item.isFullDayCab || item.isRentalCab) && !item.bkd_returnDate){
+                        item.bkd_returnDate = item.returnDate;
+                    }
+                })
+            }
+
+            if(key == 'hotels'){
+                formData_copy.itinerary[key].forEach(item=>{
+                    if(!item.bkd_location){
+                        item.bkd_location = item.location;
+                    }
+                    if(!item.bkd_checkIn){
+                        item.bkd_checkIn = item.checkIn;
+                    }
+                    if(!item.bkd_checkOut){
+                        item.bkd_checkOut = item.checkOut;
+                    }
+                })
+            }
+        });
+        setFormData(formData_copy);
+    },[]);
 
     let firstTime = true;
 
@@ -956,7 +1064,7 @@ function AddTicketManually(
                                         min={getDateXDaysAway(Number(minDaysBeforeBooking))}
                                         className="w-full h-full decoration:none px-6 py-2 border rounded-md border border-neutral-300 focus-visible:outline-0 focus-visible:border-indigo-600 "
                                         name={field.name} 
-                                        value={itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet] ? itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet] : itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet.split('_')[1]]}
+                                        value={itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet] ? formattedDate(itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet]) : formattedDate(itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet.split('_')[1]])}
                                         onChange={(e)=>handleFieldValueChange(field.toSet, field.id, e)} />
                                     </div>
                                 </div>
@@ -1328,6 +1436,15 @@ function getDateXDaysAway(days) {
   
     return `${year}-${month}-${day}`;
   }
+
+function formattedDate(date){
+    const givenDate = new Date(date);
+    const day = String(givenDate.getDate()).padStart(2,'0');
+    const month = String(givenDate.getMonth()).padStart(2,'0');
+    const year = givenDate.getFullYear();
+
+    return `${year}-${month}-${day}`;
+}
 
   function formattedTime(timeValue){
     try{
