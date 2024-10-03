@@ -21,9 +21,9 @@ export const getTravelAndNonTravelExpenseData = async(tenantId, empId)=>{
         'expenseHeaderStatus':status.PAID}
         }},
         {
-        'reimbursementSchema.tenantId':tenantId,
-        'reimbursementSchema.entriesFlag':false,
-        'reimbursementSchema.expenseHeaderStatus':status.PAID,
+        'tenantId':tenantId,
+        'entriesFlag':false,
+        'expenseHeaderStatus':status.PAID,
         }]
         });
 
@@ -340,6 +340,127 @@ export const getNonTravelExpenseReports = async (value) => {
 
     let filterCriteria = {
       tenantId,
+      'expenseHeaderStatus': status.PAID,
+    };
+
+    if (filterBy && ( date ) && !startDate && !endDate) {
+      if(date){
+      const parsedDate = new Date(date);
+
+      switch (filterBy) {
+        case 'date':
+          filterCriteria['expenseSubmissionDate'] = {
+            $gte: parsedDate,
+            $lt: new Date(parsedDate.setDate(parsedDate.getDate() + 1)),
+          };
+          break;
+
+        case 'week':
+          const { startOfWeek, endOfWeek } = getWeekRange(parsedDate);
+          filterCriteria['expenseSubmissionDate'] = {
+            $gte: startOfWeek,
+            $lt: new Date(endOfWeek.setDate(endOfWeek.getDate() + 1)),
+          };
+          break;
+
+        case 'month':
+          const { startOfMonth, endOfMonth } = getMonthRange(parsedDate);
+          filterCriteria['expenseSubmissionDate'] = {
+            $gte: startOfMonth,
+            $lt: new Date(endOfMonth.setDate(endOfMonth.getDate() + 1)),
+          };
+          break;
+
+        case 'quarter':
+          const { startOfQuarter, endOfQuarter } = getQuarterRange(parsedDate);
+          filterCriteria['expenseSubmissionDate'] = {
+            $gte: startOfQuarter,
+            $lt: new Date(endOfQuarter.setDate(endOfQuarter.getDate() + 1)),
+          };
+          break;
+
+        case 'year':
+          const { startOfYear, endOfYear } = getYear(parsedDate);
+          filterCriteria['expenseSubmissionDate'] = {
+            $gte: startOfYear,
+            $lt: new Date(endOfYear.setDate(endOfYear.getDate() + 1)),
+          };
+          break;
+
+        default:
+          break;
+      }
+    }
+  }  else if (startDate && endDate) {
+    filterCriteria['expenseSettledDate'] = {
+      $gte: new Date(startDate),
+      $lte: new Date(endDate),
+    };
+  }
+
+  if(expenseSubmissionDate){
+    filterCriteria['expenseSubmissionDate']= expenseSubmissionDate;
+  }
+  const expenseReports = await Finance.find(filterCriteria);
+
+  if (expenseReports.length === 0) {
+    return {nonTravelExpense:[]}
+  }
+
+   const nonTravelExpense = expenseReports.map((report) => {
+    // console.log("reports expense", JSON.stringify(report, null, 2)); 
+  
+    const {
+      expenseHeaderId,
+      expenseHeaderNumber,
+      defaultCurrency,
+      actionedUpon,
+      settlementBy,
+      expenseHeaderStatus,
+      createdBy,
+      expenseLines,
+    } = report;
+  
+    const { expenseAmountStatus } = report;
+
+    const {expenseTotalAmount,results} = extractCategoryAndTotalAmount(expenseLines);
+    console.log("expenseTotalAmount",expenseTotalAmount, "results", results)
+  
+    return {
+      expenseHeaderId,
+      expenseHeaderNumber,
+      defaultCurrency,
+      expenseHeaderStatus,
+      expenseAmountStatus,
+      createdBy,
+      settlementBy,
+      actionedUpon,
+      expenseTotalAmount
+    };
+  });
+  
+  console.log("nonTravelExpense", JSON.stringify(nonTravelExpense, null, 2));
+  
+  return {nonTravelExpense:nonTravelExpense}
+} catch (error) {
+console.error(error);
+throw new Error({
+  success: false,
+  message: 'Error occurred while retrieving nonTravelReports',
+});
+}
+};
+
+export const oldgetNonTravelExpenseReports = async (value) => {
+  try {
+    const { tenantId, empId, filterBy, date, startDate, endDate , expenseSubmissionDate } = value;
+
+    const status ={
+        PAID: 'paid',
+    }
+
+    let filterCriteria = {
+      tenantId,
       'reimbursementSchema.expenseHeaderStatus': status.PAID,
     };
 
@@ -605,7 +726,7 @@ export const updateAllNonTravelExpenseReports = async (req, res) => {
 
     let filterCriteria = {
       tenantId,
-      'reimbursementSchema.expenseHeaderStatus': status.PAID,
+      'expenseHeaderStatus': status.PAID,
     };
 
     if (filterBy && ( date ) && !startDate && !endDate) {
@@ -614,7 +735,7 @@ export const updateAllNonTravelExpenseReports = async (req, res) => {
 
       switch (filterBy) {
         case 'date':
-          filterCriteria['reimbursementSchema.expenseSubmissionDate'] = {
+          filterCriteria['expenseSubmissionDate'] = {
             $gte: parsedDate,
             $lt: new Date(parsedDate.setDate(parsedDate.getDate() + 1)),
           };
@@ -622,7 +743,7 @@ export const updateAllNonTravelExpenseReports = async (req, res) => {
 
         case 'week':
           const { startOfWeek, endOfWeek } = getWeekRange(parsedDate);
-          filterCriteria['reimbursementSchema.expenseSubmissionDate'] = {
+          filterCriteria['expenseSubmissionDate'] = {
             $gte: startOfWeek,
             $lt: new Date(endOfWeek.setDate(endOfWeek.getDate() + 1)),
           };
@@ -630,7 +751,7 @@ export const updateAllNonTravelExpenseReports = async (req, res) => {
 
         case 'month':
           const { startOfMonth, endOfMonth } = getMonthRange(parsedDate);
-          filterCriteria['reimbursementSchema.expenseSubmissionDate'] = {
+          filterCriteria['expenseSubmissionDate'] = {
             $gte: startOfMonth,
             $lt: new Date(endOfMonth.setDate(endOfMonth.getDate() + 1)),
           };
@@ -638,7 +759,7 @@ export const updateAllNonTravelExpenseReports = async (req, res) => {
 
         case 'quarter':
           const { startOfQuarter, endOfQuarter } = getQuarterRange(parsedDate);
-          filterCriteria['reimbursementSchema.expenseSubmissionDate'] = {
+          filterCriteria['expenseSubmissionDate'] = {
             $gte: startOfQuarter,
             $lt: new Date(endOfQuarter.setDate(endOfQuarter.getDate() + 1)),
           };
@@ -646,7 +767,7 @@ export const updateAllNonTravelExpenseReports = async (req, res) => {
 
         case 'year':
           const { startOfYear, endOfYear } = getYear(parsedDate);
-          filterCriteria['reimbursementSchema.expenseSubmissionDate'] = {
+          filterCriteria['expenseSubmissionDate'] = {
             $gte: startOfYear,
             $lt: new Date(endOfYear.setDate(endOfYear.getDate() + 1)),
           };
@@ -657,14 +778,14 @@ export const updateAllNonTravelExpenseReports = async (req, res) => {
       }
     }
   }  else if (startDate && endDate) {
-    filterCriteria['reimbursementSchema.expenseSubmissionDate'] = {
+    filterCriteria['expenseSubmissionDate'] = {
       $gte: new Date(startDate),
       $lte: new Date(endDate),
     };
   }
 
   if(expenseSubmissionDate){
-    filterCriteria['reimbursementSchema.expenseSubmissionDate']= expenseSubmissionDate;
+    filterCriteria['expenseSubmissionDate']= expenseSubmissionDate;
   }
   const expenseReports = await Finance.find(filterCriteria);
 
@@ -676,7 +797,7 @@ export const updateAllNonTravelExpenseReports = async (req, res) => {
   }
 
   const updateResult = await Finance.updateMany(filterCriteria, {
-      $set: { 'reimbursementSchema.expenseHeaderStatus': status.DISTRIBUTED }
+      $set: { 'expenseHeaderStatus': status.DISTRIBUTED }
     });
   
   return res.status(200).json({
@@ -833,7 +954,112 @@ export const updateAllTravelExpenseReports = async (req, res) => {
 
 
 
+export const oldupdateAllNonTravelExpenseReports = async (req, res) => {
+  try {
+    const { error, value } = nonTravelReportsSchema.validate({
+      ...req.params,
+      ...req.body,
+    });
 
+    if (error) {
+      return res.status(400).json({ message: error.details[0].message });
+    }
+
+    const { tenantId, empId, filterBy, date, startDate, endDate , expenseSubmissionDate } = value;
+
+    const status ={
+        PAID: 'paid',
+        DISTRIBUTED:'paid and distributed'
+    }
+
+    let filterCriteria = {
+      tenantId,
+      'reimbursementSchema.expenseHeaderStatus': status.PAID,
+    };
+
+    if (filterBy && ( date ) && !startDate && !endDate) {
+      if(date){
+      const parsedDate = new Date(date);
+
+      switch (filterBy) {
+        case 'date':
+          filterCriteria['reimbursementSchema.expenseSubmissionDate'] = {
+            $gte: parsedDate,
+            $lt: new Date(parsedDate.setDate(parsedDate.getDate() + 1)),
+          };
+          break;
+
+        case 'week':
+          const { startOfWeek, endOfWeek } = getWeekRange(parsedDate);
+          filterCriteria['reimbursementSchema.expenseSubmissionDate'] = {
+            $gte: startOfWeek,
+            $lt: new Date(endOfWeek.setDate(endOfWeek.getDate() + 1)),
+          };
+          break;
+
+        case 'month':
+          const { startOfMonth, endOfMonth } = getMonthRange(parsedDate);
+          filterCriteria['reimbursementSchema.expenseSubmissionDate'] = {
+            $gte: startOfMonth,
+            $lt: new Date(endOfMonth.setDate(endOfMonth.getDate() + 1)),
+          };
+          break;
+
+        case 'quarter':
+          const { startOfQuarter, endOfQuarter } = getQuarterRange(parsedDate);
+          filterCriteria['reimbursementSchema.expenseSubmissionDate'] = {
+            $gte: startOfQuarter,
+            $lt: new Date(endOfQuarter.setDate(endOfQuarter.getDate() + 1)),
+          };
+          break;
+
+        case 'year':
+          const { startOfYear, endOfYear } = getYear(parsedDate);
+          filterCriteria['reimbursementSchema.expenseSubmissionDate'] = {
+            $gte: startOfYear,
+            $lt: new Date(endOfYear.setDate(endOfYear.getDate() + 1)),
+          };
+          break;
+
+        default:
+          break;
+      }
+    }
+  }  else if (startDate && endDate) {
+    filterCriteria['reimbursementSchema.expenseSubmissionDate'] = {
+      $gte: new Date(startDate),
+      $lte: new Date(endDate),
+    };
+  }
+
+  if(expenseSubmissionDate){
+    filterCriteria['reimbursementSchema.expenseSubmissionDate']= expenseSubmissionDate;
+  }
+  const expenseReports = await Finance.find(filterCriteria);
+
+  if (expenseReports.length === 0) {
+    return res.status(200).json({
+      success: true,
+      message: 'All Non Travel Expense reports are settled for specified date range',
+    });
+  }
+
+  const updateResult = await Finance.updateMany(filterCriteria, {
+      $set: { 'reimbursementSchema.expenseHeaderStatus': status.DISTRIBUTED }
+    });
+  
+  return res.status(200).json({
+    success: true,
+    message: `${updateResult.nModified} reports updated successfully`,
+  });
+} catch (error) {
+console.error(error);
+return res.status(500).json({
+  success: false,
+  message: 'Error occurred while retrieving nonTravelReports',
+});
+}
+};
 
 
 

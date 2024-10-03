@@ -1,6 +1,7 @@
 import Joi from "joi";
 import Finance from "../models/Finance.js";
 import { financeSchema, sendUpdate } from "./cashAdvanceController.js";
+import REIMBURSEMENT from "../models/reimbursement.js";
 
 
 export const extractCategoryAndTotalAmount = (expenseLines) => {
@@ -44,9 +45,9 @@ export const getReimbursement = async(tenantId, empId)=>{
         PENDING_SETTLEMENT:"pending settlement",
       }
 
-        const getNonTravelExpenseReports = await Finance.find({
-          'reimbursementSchema.tenantId': tenantId,
-          'reimbursementSchema.actionedUpon': false
+        const getNonTravelExpenseReports = await REIMBURSEMENT.find({
+          tenantId,
+          'actionedUpon': false
       });
 
         if(!getNonTravelExpenseReports){
@@ -67,7 +68,7 @@ export const getReimbursement = async(tenantId, empId)=>{
           defaultCurrency,
           createdBy,
           expenseAmountStatus,
-        } = report.reimbursementSchema;
+        } = report;
 
         const {expenseTotalAmount,results} = extractCategoryAndTotalAmount(expenseLines);
       // console.log("expenseTotalAmount - result",expenseTotalAmount, "results", results)
@@ -121,10 +122,10 @@ export const paidNonTravelExpenseReports = async (req, res, next) => {
     };
 
     const filter = {
-      'reimbursementSchema.tenantId': tenantId,
-      'reimbursementSchema.expenseHeaderId': expenseHeaderId,
-      'reimbursementSchema.expenseHeaderStatus': status.PENDING_SETTLEMENT,
-      'reimbursementSchema.actionedUpon': false
+      'tenantId': tenantId,
+      'expenseHeaderId': expenseHeaderId,
+      'expenseHeaderStatus': status.PENDING_SETTLEMENT,
+      'actionedUpon': false
     };
 
     // Use findOneAndUpdate to find and update in one operation
@@ -136,7 +137,7 @@ export const paidNonTravelExpenseReports = async (req, res, next) => {
       return res.status(404).json({ message: 'No matching document found for update' });
     }
   
-    const {expenseLines,settlementBy, expenseHeaderStatus } = updateResult.reimbursementSchema
+    const {expenseLines,settlementBy, expenseHeaderStatus } = updateResult
 
     const updatedExpenseLines = expenseLines.map((line) =>{
       const isPendingSettlement = line.lineItemStatus == status.APPROVED
@@ -153,11 +154,11 @@ export const paidNonTravelExpenseReports = async (req, res, next) => {
 
     console.log("updatedExpenseLines", JSON.stringify(updatedExpenseLines, '', 2))
 
-    updateResult.reimbursementSchema.expenseLines = updatedExpenseLines
-    updateResult.reimbursementSchema.settlementBy = {name,empId}
-    updateResult.reimbursementSchema.expenseHeaderStatus = status.PAID
-    updateResult.reimbursementSchema.actionedUpon = true
-    updateResult.reimbursementSchema.expenseSettledDate = new Date()
+    updateResult.expenseLines = updatedExpenseLines
+    updateResult.settlementBy = {name,empId}
+    updateResult.expenseHeaderStatus = status.PAID
+    updateResult.actionedUpon = true
+    updateResult.expenseSettledDate = new Date()
 
     const report = await updateResult.save()
 
