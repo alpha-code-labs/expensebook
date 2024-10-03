@@ -138,7 +138,7 @@ const Sidebar = ({setSidebarOpen }) => {
                         </div>
                         </div>
                         {item?.count > 0 &&
-                             <div className={`${pathname === item.url ? 'text-purple-500 bg-white font-semibold' : "text-white "} w-6 h-6 flex font-inter rounded-full bg-indigo-600 items-center justify-center float-right text-xs font-medium `}>
+                             <div className={`${pathname === item.url ? 'text-neutral-900 bg-white font-semibold' : "text-neutral-900 "} w-6 h-6 flex font-inter rounded-full bg-gray-200/10 items-center justify-center float-right text-xs font-medium `}>
                                  <p className=''> {item?.count}</p>
                          </div>} 
                     </div>

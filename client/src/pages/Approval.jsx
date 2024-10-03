@@ -446,7 +446,8 @@ const handleVisible = ({travelRequestId,tripId,expenseHeaderId, action}) => {
           setShowPopup(false);
           setIsUploading(false);
           setMessage(null);
-          window.location.reload()
+          setModalOpen(false)
+          fetchData()
         }, 3000);
       } catch (error) {
         setShowPopup(true);
