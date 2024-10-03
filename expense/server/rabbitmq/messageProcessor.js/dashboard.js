@@ -3,7 +3,7 @@ import Reimbursement from "../../models/reimbursementSchema.js"
 import Expense from "../../models/tripSchema.js"
 
 
-// 1)travel prefernce
+// 1)travel preference
 async function updatePreferences(payload){
     try{
         const {tenantId, employeeId, travelPreferences} = payload
@@ -76,7 +76,6 @@ function updateCashAdvances(existingCashAdvances, newCashAdvances) {
 }
 
 // 3) expense Report Approval
-
 async function getExpenseReport(tenantId,empId,tripId,expenseHeaderId){
     try{
       const expenseReport = await Expense.findOne({
@@ -152,27 +151,27 @@ const expenseReportApproval = async (payload) => {
         if(approvalDocument){
             const { travelExpenseData} = approvalDocument
             const expenseReportFound = travelExpenseData.find(expense => expense.expenseHeaderId.toString() == expenseHeaderId);
-       
+      
            //  console.log("valid expenseReport", expenseReportFound);
             if (expenseReportFound) {
             const {expenseLines = []} =expenseReportFound
-       
-             const updatedExpenseLines = updateExpenseLineStatus(expenseLines, approve, reject,empId)
-       
+      
+            const updatedExpenseLines = updateExpenseLineStatus(expenseLines, approve, reject,empId)
+      
              // console.log("updatedExpenseLines", JSON.stringify(updatedExpenseLines,'',2))
-             expenseReportFound.expenseLines = updatedExpenseLines
-             const isPendingApproval = expenseReportFound.expenseHeaderStatus === 'pending approval'
-       
+            expenseReportFound.expenseLines = updatedExpenseLines
+            const isPendingApproval = expenseReportFound.expenseHeaderStatus === 'pending approval'
+      
              // console.log("isPendingApproval", isPendingApproval)
               const approver = expenseReportFound.approvers.find(approver =>
-               approver.empId === empId && approver.status === 'pending approval'
+              approver.empId === empId && approver.status === 'pending approval'
               )
-       
+      
              //  console.log("approver", isPendingApproval)
-       
+      
               const isAllApproved = expenseReportFound.expenseLines.every(line => line.lineItemStatus === 'approved')
               const isRejected = expenseReportFound.expenseLines.some(line => line.lineItemStatus === 'rejected')
-       
+      
              //  console.log("isAllApproved, isRejected", isAllApproved, isRejected)
        
               if(approver && isAllApproved && isPendingApproval ){
