@@ -210,6 +210,8 @@ const dummyHotel = {
   class: null,
   checkIn: null,
   checkOut: null,
+  checkInTime: null,
+  checkOutTime: null,
   needBrakfast: false,
   needLunch: false,
   needDinner: false,
@@ -222,6 +224,8 @@ const dummyHotel = {
   bkd_class: null,
   bkd_checkIn: null,
   bkd_checkOut: null,
+  bkd_checkInTime: null,
+  bkd_checkOutTime: null,
   bkd_violations: {
     class: null,
     amount: null,

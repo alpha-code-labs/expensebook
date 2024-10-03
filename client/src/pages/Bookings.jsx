@@ -64,7 +64,6 @@ const expenseCategories = {
     'cab' : [{name:'Vendor Name', id:'vendorName', toSet:'bookingDetails', type:'text'},
                 {name:'Booking Date',  toSet:'bkd_date',  id:'bkd_date', type:'date'},
                 {name: 'Return Date', toSet:'bkd_returnDate', id:'bkd_returnDate', type:'date'}, 
-                {name:'Cab Time',  toSet:'bkd_time',  id:'bkd_time', type:'time'},
                 {name:'Return Time',  toSet:'bkd_returnTime',  id:'bkd_returnTime', type:'time'},
                 {name:'Pickup Address', toSet:'bkd_pickupAddress',  id:'bkd_pickupAddress', type:'text'}, 
                 {name:'Drop Address', type:'text', toSet:'bkd_dropAddress', id:'bkd_dropAddress'}, 
@@ -75,7 +74,6 @@ const expenseCategories = {
                 {name:'Booking Date',  toSet:'bkd_date',  id:'bkd_date', type:'date'},
                 {name: 'Return Date', toSet:'bkd_returnDate', id:'bkd_returnDate', type:'date'}, 
                 {name:'Cab Time',  toSet:'bkd_time',  id:'bkd_time', type:'time'},
-                {name:'Return Time',  toSet:'bkd_returnTime',  id:'bkd_returnTime', type:'time'},
                 {name:'Pickup Address', toSet:'bkd_pickupAddress',  id:'bkd_pickupAddress', type:'text'}, 
                 {name:'Drop Address', type:'text', toSet:'bkd_dropAddress', id:'bkd_dropAddress'}, 
                 {name:'Tax Amount', type:'amount', toSet:'bookingDetails', id:'taxAmount'}, 
@@ -86,7 +84,8 @@ const expenseCategories = {
                  {name:'Hotel Name', id:'hotelName', toSet:'bookingDetails', type:'text'},
                 {name:'Check-In Date',  toSet:'bkd_checkIn',  id:'bkd_checkIn', type:'date'}, 
                 {name:'Check-Out Date', toSet:'bkd_checkOut', id:'bkd_checkOut', type:'date' },
-                {name:'Check-In Time',  toSet:'bkd_time',  id:'bkd_time', type:'time'}, 
+                {name:'Check-In Time',  toSet:'bkd_checkInTime',  id:'bkd_checkInTime', type:'time'}, 
+                {name:'Check-Out Time',  toSet:'bkd_checkOutTime',  id:'bkd_checkOutTime', type:'time'},
                 {name:'Tax Amount', type:'amount', toSet:'bookingDetails', id:'taxAmount'}, 
                 {name:'Total Amount', type:'amount', toSet:'bookingDetails', id:'totalAmount'}]
 }
@@ -288,9 +287,8 @@ export default function () {
                     }
                     return;
                 }
-                //&& bkd_checkInTime && bkd_checkOutTime
                 case 'hotels':{
-                    if(item.bkd_location && item.bkd_checkIn && item.bkd_checkOut  && item.bookingDetails.billDetails.vendorName && item.bookingDetails.billDetails.taxAmount && item.bookingDetails.billDetails.totalAmount){
+                    if(item.bkd_location && item.bkd_checkIn && item.bkd_checkOut && bkd_checkInTime && bkd_checkOutTime  && item.bookingDetails.billDetails.vendorName && item.bookingDetails.billDetails.taxAmount && item.bookingDetails.billDetails.totalAmount){
                         formData_copy.itinerary[toSet][index].status = 'booked';
                     }
                 }
@@ -972,6 +970,9 @@ function AddTicketManually(
                     }
                     if(!item.bkd_date){
                         item.bkd_date = item.date;
+                    }
+                    if(!item.bkd_time){
+                        item.bkd_time = '11:00'
                     } 
                 })
             }
@@ -990,6 +991,9 @@ function AddTicketManually(
                     if((item.isFullDayCab || item.isRentalCab) && !item.bkd_returnDate){
                         item.bkd_returnDate = item.returnDate;
                     }
+                    if(!item.bkd_time){
+                        item.bkd_time = '11:00'
+                    } 
                 })
             }
 
@@ -1003,6 +1007,12 @@ function AddTicketManually(
                     }
                     if(!item.bkd_checkOut){
                         item.bkd_checkOut = item.checkOut;
+                    }
+                    if(!item.bkd_checkInTime){
+                        item.bkd_checkInTime = '11:00'
+                    } 
+                    if(!item.bkd_checkOutTime){
+                        item.bkd_checkOutTime = '11:00';
                     }
                 })
             }

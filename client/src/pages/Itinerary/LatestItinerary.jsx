@@ -29,7 +29,7 @@ const tenantId = formData.tenantId;
 const [requestSubmitted, setRequestSubmitted] = useState(false)
 const [showPopup, setShowPopup] = useState(false)
 const [loadingErrMsg, setLoadingErrMsg] = useState(false)
-const cashAdvanceAllowed = onBoardingData.cashAdvanceAllowed
+const cashAdvanceAllowed = false;
 const [showConfirm, setShowConfirm] = useState(false);
 const [deleteId, setDeleteId] = useState()
 
@@ -43,11 +43,11 @@ const addItineraryItem = (item)=>{
     setVisible(true);
 
     switch(item){
-      case 'Cab' : setModalContent(<CabForm handleAddToItinerary={handleAddToItinerary} action='create' />); return;
-      case 'Flight' : setModalContent(<FlightForm  handleAddToItinerary={handleAddToItinerary} action='create' />); return;
-      case 'Hotel': setModalContent(<HotelForm  handleAddToItinerary={handleAddToItinerary} action='create' />); return;
-      case 'Train': setModalContent(<TrainForm  handleAddToItinerary={handleAddToItinerary} action='create' />); return;
-      case 'Bus': setModalContent(<BusForm  handleAddToItinerary={handleAddToItinerary} action='create' />); return;
+      case 'Cab' : setModalContent(<CabForm handleAddToItinerary={handleAddToItinerary} action='create' itinerary={formData.itinerary} />); return;
+      case 'Flight' : setModalContent(<FlightForm  handleAddToItinerary={handleAddToItinerary} action='create' itinerary={formData.itinerary} />); return;
+      case 'Hotel': setModalContent(<HotelForm  handleAddToItinerary={handleAddToItinerary} action='create' itinerary={formData.itinerary} />); return;
+      case 'Train': setModalContent(<TrainForm  handleAddToItinerary={handleAddToItinerary} action='create' itinerary={formData.itinerary} />); return;
+      case 'Bus': setModalContent(<BusForm  handleAddToItinerary={handleAddToItinerary} action='create' itinerary={formData.itinerary} />); return;
     }
 }
 
@@ -89,6 +89,7 @@ const editItineraryItem = useCallback((formId)=>{
 
   switch(category){
     case 'flights' : {
+      console.log(formData, 'formdata.... line 92')
      setModalContent(<FlightForm setVisible={setVisible} handleAddToItinerary={handleAddToItinerary} action='edit' editId={formId} editData={{from:item.from, to:item.to, date:item.date, time:item.time}} itinerary={formData.itinerary} />);
      return; 
     }
@@ -471,7 +472,8 @@ useEffect(()=>{
                   </div>}
                 {requestSubmitted && <div className='p-10'>
                     <p className='text-2xl text-neutral-700 font-semibold font-cabin'>Travel Request Submitted !</p>
-                    { cashAdvanceAllowed && <> 
+                    {console.log('cash advance allowed', cashAdvanceAllowed)}
+                    { false && <> 
                         <p className='text-zinc-800 text-base font-medium font-cabin mt-4'>Would you like to raise a cash advance request for this trip?</p>
                         <div className='flex gap-10 justify-between mt-10'>
                             <Button text='Yes' onClick={()=>handleCashAdvance(true)} />
@@ -480,7 +482,7 @@ useEffect(()=>{
                       </>
                     }
 
-                    {!cashAdvanceAllowed && <div className='flex gap-10 justify-between mt-10'>
+                    {true && <div className='flex gap-10 justify-between mt-10'>
                             <Button text='Ok' onClick={()=>handleCashAdvance(false)} />
                         </div>}
 
@@ -494,7 +496,8 @@ useEffect(()=>{
 
 const FlightForm = ({setVisible, handleAddToItinerary, action='create', editId = null, editData=null, itinerary})=>{
 
-  const [formData, setFormData] = useState({from:editData?.from??'', to:editData?.to??'', date:editData?.date??getCurrentDate(), time:editData?.time??'12pm - 3pm'});
+  console.log(itinerary, 'itinerary from flights..')
+  const [formData, setFormData] = useState({from:editData?.from??'', to:editData?.to??'', date:editData?.date??getCurrentDate(itinerary), time:editData?.time??'12pm - 3pm'});
 
   const [errors, setErrors] = useState({fromError:{set:false, message:null}, toError:{set:false, message:null}, dateError:{set:false, message:null}, timeError:{set:false, message:null}});
 
@@ -600,7 +603,7 @@ const FlightForm = ({setVisible, handleAddToItinerary, action='create', editId =
 
 const TrainForm = ({setVisible, handleAddToItinerary, action='create', editId = null, editData=null, itinerary})=>{
 
-  const [formData, setFormData] = useState({from:editData?.from??'', to:editData?.to??'', date:editData?.date??getCurrentDate(), time:editData?.time??'12pm - 3pm'});
+  const [formData, setFormData] = useState({from:editData?.from??'', to:editData?.to??'', date:editData?.date??getCurrentDate(itinerary), time:editData?.time??'12pm - 3pm'});
 
   const [errors, setErrors] = useState({fromError:{set:false, message:null}, toError:{set:false, message:null}, dateError:{set:false, message:null}, timeError:{set:false, message:null}});
 
@@ -706,7 +709,7 @@ const TrainForm = ({setVisible, handleAddToItinerary, action='create', editId = 
 
 const BusForm = ({setVisible, handleAddToItinerary, action='create', editId = null, editData=null, itinerary})=>{
 
-  const [formData, setFormData] = useState({from:editData?.from??'', to:editData?.to??'', date:editData?.date??getCurrentDate(), time:editData?.time??'12pm - 3pm'});
+  const [formData, setFormData] = useState({from:editData?.from??'', to:editData?.to??'', date:editData?.date??getCurrentDate(itinerary), time:editData?.time??'12pm - 3pm'});
 
   const [errors, setErrors] = useState({fromError:{set:false, message:null}, toError:{set:false, message:null}, dateError:{set:false, message:null}, timeError:{set:false, message:null}});
 
@@ -817,8 +820,8 @@ const CabForm = ({setVisible, handleAddToItinerary, action='create', editId = nu
       pickupAddress:editData?.pickupAddress??'', 
       dropAddress:editData?.dropAddress??'', 
       class:editData?.class??'Regular', 
-      date:editData?.date??getCurrentDate(), 
-      returnDate: editData?.returnDate??getCurrentDate(1), 
+      date:editData?.date??getCurrentDate(itinerary), 
+      returnDate: editData?.returnDate??getCurrentDate(itinerary), 
       time:editData?.time??'12pm - 3pm', 
       isFullDayCab:editData?.isFullDayCab??false, 
       isRentalCab: editData?.isRentalCab??false 
@@ -998,7 +1001,7 @@ const CabForm = ({setVisible, handleAddToItinerary, action='create', editId = nu
 
                 {(formData.isFullDayCab || formData.isRentalCab) && <SlimDate 
                   format='date-month'
-                  min={dateDiffInDays(formData.date, getCurrentDate())}
+                  min={dateDiffInDays(formData.date, getCurrentDate(itinerary))}
                   date={formData?.returnDate}
                   onChange = {handleReturnDateChange}
                   title={`Till Date?`} />}
@@ -1029,8 +1032,8 @@ const CabForm = ({setVisible, handleAddToItinerary, action='create', editId = nu
 const HotelForm = ({setVisible, handleAddToItinerary, action='create', editId = null, editData = null, itinerary})=>{
 
   const [formData, setFormData] = useState(
-    {checkIn:editData?.checkIn??getCurrentDate(), 
-      checkOut:editData?.checkOut??getCurrentDate(), 
+    {checkIn:editData?.checkIn??getCurrentDate(itinerary), 
+      checkOut:editData?.checkOut??getCurrentDate(itinerary), 
       class:editData?.date??'Any', 
       location:editData?.location??'', 
       needBreakfast:editData?.needBreakfast??false,
@@ -1225,7 +1228,42 @@ const Modal = ({ visible, setVisible, children }) => {
   );
 };
 
-function getCurrentDate(){
+function getCurrentDate(itinerary){
+  console.log(itinerary, 'itinerary...')
+  const dates = [
+    new moment().format('YYYY-MM-DD'),
+    ...itinerary.flights?.map(item=>item.date),
+    ...itinerary.buses?.map(item=>item.date),
+    ...itinerary.trains?.map(item=>item.date),
+    ...itinerary.cabs?.map(item=>item.date),
+    ...itinerary.cabs?.map(item=>item.returnDate),
+    ...itinerary.carRentals?.map(item=>item.date),
+    ...itinerary.carRentals?.map(item=>item.returnDate),
+    ...itinerary.hotels?.map(item=>item.checkIn),
+    ...itinerary.hotels?.map(item=>item.checkOut)
+  ]
+  console.log(dates, '....dates')
+  // if(itinerary.flights.length > 0){
+  //   itinerary.flights.forEach(item=> dates.push(item.date));
+  // }
+  // if(itinerary.buses.length > 0){
+  //   itinerary.buses.forEach(item=> dates.push(item.date));
+  // }
+  // if(itinerary.trains.length > 0){
+  //   itinerary.trains.forEach(item=> dates.push(item.date));
+  // }
+  // if(itinerary.cabs.length > 0){
+  //   itinerary.cabs.forEach(item=> dates.push(item.date));
+  // }
+
+
+  const res = dates.reduce((maxDate, currentDate) => {
+    return moment(currentDate).isAfter(maxDate) ? currentDate : maxDate;
+  }, dates[0]);
+
+  console.log(res, '..max date')
+  return res;
+  
   const date = new Date();
   const year = date.getFullYear();
   const month = (date.getMonth() + 1).toString().padStart(2, '0');
