@@ -337,7 +337,7 @@ totalViolations = totalTravelViolations +  totalCashViolations || 0;
                                                         <CabCard 
                                                         mode={'Cab'}
                                                         violations={item?.violations}
-                                                      
+                                                        isFullDayCab={item?.isFullDayCab}
                                                         handleAction={handleAction}
                                                         itnId={item.itineraryId}
                                                         handleLineItemAction={handleLineItemAction}
@@ -713,11 +713,12 @@ function HotelCard({checkIn, checkOut, location, onClick}){
     </div>)
   }
 
-function CabCard({from, to, date, time, travelClass, onClick, mode, isTransfer=false}){
+function CabCard({isFullDayCab,from, to, date, time, travelClass, onClick, mode, isTransfer=false}){
     return(
         <div className="shadow-sm min-h-[76px] bg-slate-50 rounded-md border border-slate-300 w-full px-6 py-4 flex flex-col sm:flex-row gap-4 items-center sm:divide-x">
-        <div className='font-semibold text-base text-neutral-600'>
+        <div className='font-semibold items-center flex flex-col text-base text-neutral-600'>
         <img src={spitImageSource(mode)} className='w-4 h-4 md:w-6 md:h-6' />
+          {isFullDayCab && <p className="text-xs whitespace-nowrap ">Full Day</p>}
         </div>
         <div className="w-full flex sm:block">
             
