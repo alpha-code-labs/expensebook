@@ -10,7 +10,7 @@ import Button from './common/Button';
 import TripReport from '../report/TripReport';
 import PopupMessage from './common/PopupMessage';
 import ExpenseReport from '../report/ExpenseReport';
-import { formatDate, formatFullDate ,formatDateToYYYYMMDD,handleCSVDownload} from '../utils/handyFunctions';
+import { formatDate, formatFullDate ,formatDateToYYYYMMDD,handleCSVDownload, datePresets} from '../utils/handyFunctions';
 import TripChart from './chart/TripChart';
 import Error from './common/Error';
 import Sidebar from './common/Sidebar';
@@ -25,10 +25,9 @@ import { flattedCashadvanceData, flattedTravelExpenseData, flattenNonTravelExpen
 import NonTravelExpenseChart from './chart/NonTravelExpenseChart';
 import MultiSelect from './common/MultiSelect';
 
-
-
 const Menu = () => {
-  const {tenantId,empId}= useParams()
+
+  const {tenantId,empId}= useParams();
 
   const reportConfigInputs = {
     trips: [
@@ -59,12 +58,6 @@ const Menu = () => {
     ],
   };
 
-
-  
-  
-
-
-
   const [activeView, setActiveView] = useState("myView");
   const [reportData , setReportData]=useState({
     "employeeRoles": {},
@@ -82,16 +75,25 @@ const Menu = () => {
       }
     }
   });
+
+
   const [isLoading , setIsLoading]=useState(true);
-  const [isUploading,setIsUploading]=useState({"filterReport":false})
+  const [isUploading,setIsUploading]=useState({"filterReport":false});
   const [loadingErrorMsg, setLoadingErrorMsg]=useState(null);
   const [reportTab , setReportTab]= useState("trip");
-  const [exportData, setExportData]=useState("trip")
+  const [exportData, setExportData]=useState("trip");
   const [showModal , setShowModal]=useState(false);
   const [modalTab , setModalTab]=useState("filterTab");
-  const [filterForm , setFilterForm]= useState({});
-  const [fromDate, setStartDate] = useState('');
-  const [toDate, setEndDate] = useState('');
+  //for show on title
+  
+  const intialFilterForm ={
+    'fromDate':new Date(),
+    'toDate':new Date(),
+    'role':activeView
+  }
+  const [reportDate, setReportDate]=useState(intialFilterForm)
+  const [filterForm , setFilterForm]= useState({...intialFilterForm});
+
   const [showPopup, setShowPopup] = useState(false)
   const [message, setMessage] = useState(null)
 
@@ -102,10 +104,7 @@ const Menu = () => {
       reportConfigInputs[key].push({ name: "Employees", type: "multisearch", options: [] })
       }
     })
-    
-
   }
-
 
   const handleModalTab =(tab)=>{
     setModalTab(tab)
@@ -114,15 +113,7 @@ const Menu = () => {
 
 
 
-  useEffect(()=>{
-    setEndDate(formatDateToYYYYMMDD(new Date()))
-    setStartDate(formatDateToYYYYMMDD(new Date()))
-    setFilterForm((prevForm) => ({
-      ...prevForm,
-      'fromDate':new Date(),
-      'toDate':new Date()
-    }));
-  },[])
+
 
  
   const tabIcon = (tab) => { 
@@ -171,47 +162,11 @@ const Menu = () => {
     }
   };
   
-  const subtractDays = (date, days) => {
-    const result = new Date(date);
-    result.setDate(result.getDate() - days);
-    return result;
-  };
+ 
   
-  const startOfWeek = (date) => {
-    const result = new Date(date);
-    const day = result.getDay();
-    const diff = result.getDate() - day + (day === 0 ? -6 : 1); // adjust when day is Sunday
-    result.setDate(diff);
-    return result;
-  };
-  
-  const endOfWeek = (date) => {
-    const result = startOfWeek(date);
-    result.setDate(result.getDate() + 6);
-    return result;
-  };
-  
-  const startOfMonth = (date) => {
-    return new Date(date.getFullYear(), date.getMonth(), 1);
-  };
-  
-  const endOfMonth = (date) => {
-    return new Date(date.getFullYear(), date.getMonth() + 1, 0);
-  };
-  
-  const presets = [
-    { label: 'Today', range: [new Date(), new Date()] },
-    { label: 'Yesterday', range: [subtractDays(new Date(), 1), subtractDays(new Date(), 1)] },
-    { label: 'Last 7 Days', range: [subtractDays(new Date(), 6), new Date()] },
-    { label: 'This Week', range: [startOfWeek(new Date()), endOfWeek(new Date())] },
-    { label: 'This Month', range: [startOfMonth(new Date()), endOfMonth(new Date())] },
-  ];
   
   const handlePresetChange = (value) => {
-    const selectedRange = presets.find(preset=> preset.label === value).range
-    setStartDate(selectedRange[0]);
-    setEndDate(selectedRange[1]);
-    
+    const selectedRange = datePresets.find(preset=> preset.label === value).range    
     setFilterForm((prevForm) => ({
       ...prevForm,
       'fromDate':selectedRange[0],
@@ -219,7 +174,7 @@ const Menu = () => {
     }));
   };
 
-  console.log('end date', toDate)
+ 
 
   
   const handleFilterForm = (key, value) => {
@@ -275,6 +230,7 @@ const hideHeader = (header) => {
         "filterData":{
           "listOfEmployees":response?.reports?.listOfEmployees  || [],
           "listOfApprovers":response?.reports?.listOfApprovers  || [],
+          "listOfGroups":response?.reports?.hrDetails?.getAllGroups,
           "statuses":{
             "approverStatusList":response?.reports?.hrDetails?.getEnums?.approverStatusEnums,
             "cashadvanceStatusList":response?.reports?.hrDetails?.getEnums?.cashAdvanceStatusEnum,
@@ -287,10 +243,10 @@ const hideHeader = (header) => {
       setIsLoading(false);  
     } catch (error) {
       setLoadingErrorMsg(error.message);
-      setTimeout(() => {
-        setIsLoading(false);
-        setLoadingErrorMsg(null);
-      }, 3000);
+      // setTimeout(() => {
+      //   setIsLoading(false);
+      //   setLoadingErrorMsg(null);
+      // }, 3000);
     } 
   };
 
@@ -329,49 +285,10 @@ const handleRunReport = async () => {
 
     console.log('API Response:', response);
 
-    // Dynamically set report data based on the reportTab value
-    // const setDataByReportTab = (reportTab, response) => {
-    //   switch (reportTab) {
-    //     case "trip":
-    //       if(response?.trips?.length > 0 ){
-
-          
-    //       setReportData((prev) => ({
-    //         ...prev,
-    //         tripData: response?.trips || [],
-    //       }));}else{
-    //         setShowPopup(true)
-    //         setMessage("No trips found for the current criteria.")
-    //       }
-    //       break;
-    //     case "cash-advance":
-    //       setReportData((prev) => ({
-    //         ...prev,
-    //         cashadvanceData: response?.trips || [],
-    //       }));
-    //       break;
-    //     case "travel expense":
-    //       setReportData((prev) => ({
-    //         ...prev,
-    //         travelExpenseData: response?.trips || [],
-    //       }));
-    //       break;
-    //     case "non-travel expense":
-    //       setReportData((prev) => ({
-    //         ...prev,
-    //         nonTravelExpenseData: flattenNonTravelExpenseData(
-    //           response?.reports
-    //         ) || [],
-    //       }));
-    //       break;
-    //     default:
-    //       // Fallback handling, if any
-    //       setReportData((prev) => ({
-    //         ...prev,
-    //         tripData: response?.trips || [],
-    //       }));
-    //   }
-    // };
+    setReportDate({
+      "toDate":filterForm?.toDate,
+      "fromDate":filterForm?.fromDate
+    })
     const setDataByReportTab = (reportTab, response) => {
       const dataMap = {
         trip: "tripData",
@@ -419,6 +336,7 @@ const handleRunReport = async () => {
     // Set the report data based on the current reportTab
     setDataByReportTab(reportTab, response);
     setFilterForm((prevForm) => ({
+      ...prevForm,
       fromDate:prevForm?.fromDate,
       toDate: prevForm?.toDate
     }));
@@ -427,7 +345,6 @@ const handleRunReport = async () => {
       setMessage(null)
     },3000)
     setShowModal(false)
-
 
     console.log('Report Data Set:', response);
 
@@ -438,23 +355,12 @@ const handleRunReport = async () => {
     setShowPopup(true)
     setMessage(error.message)
     setTimeout(() => {setIsUploading((prev) => ({ ...prev, filterReport: false }));setMessage(null);setShowPopup(false)},3000);
-   
   }
 };
 
-
-
 useEffect(()=>{
-  // setReportData(requiredTripData)
   setIsLoading(true)
-
-  // setTimeout(()=>{
-  //   setLoadingErrorMsg('Something went wrong')
-  //   setIsLoading(false)
-  //   },3000)
-
   fetchData("myView");
-
 },[])
 
 
@@ -469,6 +375,7 @@ const handleDownloadfile=(file)=>{
     handleCSVDownload(exportData)
   }
 }
+console.log(' data', exportData)
 const tripData = flattenTripData(reportData?.tripData)
 const cashadvanceData = flattedCashadvanceData(reportData?.cashadvanceData,'cashAdvances')
 const travelExpenseData = flattedTravelExpenseData(reportData?.travelExpenseData)
@@ -478,13 +385,12 @@ return (
   <>
 <div className='flex overflow-auto h-screen scrollbar-hide'>
     <div className='w-[180px]'>
-        <Sidebar fetchData={(tab)=>fetchData(tab)} employeeRoles={reportData?.employeeRoles} activeView={activeView} setActiveView={setActiveView} handleReportTab={handleReportTab} reportTab={reportTab} />
+        <Sidebar fetchData={(tab)=>fetchData(tab)} setFilterForm={setFilterForm} employeeRoles={reportData?.employeeRoles} activeView={activeView} setActiveView={setActiveView} setReportTab={setReportTab} handleReportTab={handleReportTab} reportTab={reportTab} />
     </div>  
 {isLoading ? <Error message={loadingErrorMsg}/>:
-<div className=' flex flex-col w-screen  '>
+<div className=' flex flex-col w-screen'>
 
   <div className='mx-4 px-4 py-2  bg-indigo-200 rounded-md text-neutral-700 flex flex-row justify-between items-center h-[48px]'>
-  
     <div className='flex items-center gap-2 font-cabin text-base'>
       <img src={tabIcon(reportTab)} className='w-4 h-4'/>
       <h1 className='capitalize font-semibold text-indigo-600'>{reportTab}</h1>
@@ -492,8 +398,8 @@ return (
 
   <div className='flex gap-2 capitalize items-center'>
     <img src={filter_icon} className='w-4 h-4'/>
-      <p className='text-neutral-800 font-semibold'>{`start date : ${formatDate(filterForm.fromDate)} - ${formatDate(filterForm.toDate)}`}</p> 
-      <div className='cursor-pointer' onClick={()=>{setShowModal(!showModal);handlePresetChange(presets[0].label)}}>
+      <p className='text-neutral-800 font-semibold'>{`start date : ${formatDate(reportDate?.fromDate)} - ${formatDate(reportDate?.toDate)}`}</p> 
+      <div className='cursor-pointer' onClick={()=>{setShowModal(!showModal);handlePresetChange(datePresets[0].label)}}>
         <p className='text-base text-indigo-600 font-semibold'>Customize</p>
       </div> 
   </div> 
@@ -533,7 +439,7 @@ return (
 {reportTab === "cash-advance" && 
 <>
   <div className='flex items-center justify-center'>  
-    <CashChart data={[...reportData?.cashadvanceData]}/>
+    <CashChart activeView={activeView} data={[...reportData?.cashadvanceData]}/>
   </div> 
   <CashReport toggleModal={toggleModal} visibleHeaders={visibleHeaders} data={cashadvanceData}/>
 </>} 
@@ -542,14 +448,14 @@ return (
 <>
 
 <div className='flex items-center justify-center'>  
-  <ExpenseChart data={[...reportData?.travelExpenseData]}/>
+  <ExpenseChart activeView={activeView} data={[...reportData?.travelExpenseData]}/>
 </div> 
  <ExpenseReport toggleModal={toggleModal} visibleHeaders={visibleHeaders} expenseData={travelExpenseData}/>
 </>} 
 {reportTab === "non-travel expense" && 
 <> 
 <div className='flex items-center justify-center'>  
-  <NonTravelExpenseChart data={[...reportData?.nonTravelExpenseData]}/>
+  <NonTravelExpenseChart activeView={activeView} data={[...reportData?.nonTravelExpenseData]}/>
 </div> 
  <ReimbursementReport toggleModal={toggleModal} visibleHeaders={visibleHeaders} data={reportData?.nonTravelExpenseData}/>
 </>} 
@@ -557,9 +463,6 @@ return (
 
   <Modal showModal={showModal} setShowModal={setShowModal} skipable={true}>  
     <div className='h-full'>
-    {/* <div className='h-[48px] rounded-t-lg   bg-purple-100 px-5 flex justify-start items-center'>
-        <h1 className='text-start text-inter text-lg font-semibold text-purple-500 capitalize'>{`${reportTab}s Report`}</h1>
-    </div> */}
       <div className='sticky top-0 z-10 flex gap-2 justify-between items-center bg-indigo-100 w-auto  p-4'>
             <div className='flex gap-2'>
               {/* <img src={info_icon} className='w-5 h-5' alt="Info icon"/> */}
@@ -567,7 +470,7 @@ return (
               {`${reportTab}s Report`}
               </p>
             </div>
-            <div onClick={() => {setShowModal(false);setFilterForm({})}} className='bg-red-100 cursor-pointer rounded-full border border-white'>
+            <div onClick={() => setShowModal(false)} className='bg-red-100 cursor-pointer rounded-full border border-white'>
               <img src={cancel_icon} className='w-5 h-5' alt="Cancel icon"/>
             </div>
           </div>
@@ -582,43 +485,47 @@ return (
       </div>
       <div className={`${modalTab === "columnTab" ? ' border-b-2 border-indigo-600 text-indigo-600' : 'text-neutral-700'}  hover:bg-indigo-200 px-2 py-1 hover:rounded-md  flex items-center gap-2 cursor-pointer`}  onClick={()=>handleModalTab("columnTab")}> 
       <img src={show_coloum_icon} className='w-4 h-4'/>
-        <h1 className='text-start  text-inter text-sm font-cabin '>
+        <h1 className='text-start whitespace-nowrap truncate  text-inter text-sm font-cabin '>
           Show/Hide Column
         </h1>
       </div>
       </div>
-    <h1 className='text-start text-inter text-base font-cabin hover:font-medium cursor-pointer text-purple-500 '>Reset Filters</h1>
+    <h1 className='text-start whitespace-nowrap truncate text-inter text-base font-cabin hover:font-medium cursor-pointer text-purple-500 '>Reset Filters</h1>
     </div>
 
     {modalTab === "filterTab" &&
+
     <div className=''>
-      <div className='flex items items-center  justify-between'>
-      <div>
-        <Select
-          options={presets.map(preset => preset.label)}
-          onSelect={(value)=> handlePresetChange(value)}
-          title="Custom"/>
-      </div>
-      <div className='flex gap-2'>
-      <div className='w-[200px]'>
-        <Input
-          title="From"
-          type="date"
-          value={formatDateToYYYYMMDD(fromDate)}
-          onChange={(value)=>handleFilterForm('fromDate',value)}
-        />
-      </div>
-    <div className='w-[200px]'>
+     <div className='flex flex-col lg:flex-row items-center lg:items-start justify-between gap-4'>
+  <div className='lg:w-fit w-full'>
+    <Select
+      options={datePresets.map(preset => preset.label)}
+      title="Custom"
+      onSelect={(value)=>{handlePresetChange(value)}}
+    />
+  </div>
+
+  <div className='flex flex-col md:flex-row lg:items-center gap-2 lg:gap-4 w-full lg:w-auto'>
+    <div className='lg:w-fit w-full'>
+      <Input
+        title="From"
+        type="date"
+        value={formatDateToYYYYMMDD(filterForm?.fromDate)}
+        onChange={(value) => handleFilterForm('fromDate', value)}
+      />
+    </div>
+
+    <div className='lg:w-fit w-full md:w-[200px]'>
       <Input
         title="Till"
         type="date"
-        value={formatDateToYYYYMMDD(toDate)}
-        onChange={(value)=>handleFilterForm('toDate',value)}
-        // min={fromDate}
+        value={formatDateToYYYYMMDD(filterForm?.toDate)}
+        onChange={(value) => handleFilterForm('toDate', value)}
       />
     </div>
-    </div>
-    </div>
+  </div>
+</div>
+
     {['travel expense', 'trip'].includes(reportTab) &&
       <div className='w-full'>
         <MultiSelect
@@ -627,9 +534,7 @@ return (
         title={('trip status')} 
         options={reportData?.filterData?.statuses?.tripStatusList|| []}/>
       </div>}
-     
-
-      {(reportData?.employeeRoles.employeeManager || reportData?.employeeRoles.finance || reportData?.employeeRoles.businessAdmin || reportData?.employeeRoles.superAdmin) && (
+      {["myTeamView","financeView"].includes(activeView) &&(reportData?.employeeRoles.employeeManager || reportData?.employeeRoles.finance || reportData?.employeeRoles.businessAdmin || reportData?.employeeRoles.superAdmin) && (
       <div className='w-full'>
       <MultiSearch
         options={reportData?.filterData?.listOfEmployees}
@@ -654,6 +559,16 @@ return (
        title={('cash-advance status')} 
        options={reportData?.filterData?.statuses?.cashadvanceStatusList|| []}/>
      </div>}
+      
+      <div className='w-full'>
+       <MultiSelect
+       onSelect={(value)=>handleFilterForm('getGroups',value)}
+       placeholder={'Select group'}
+       title={('groups')} 
+       options={reportData?.filterData?.listOfGroups|| []}/>
+     </div>
+
+
      {['travel expense', 'non-travel expense'].includes(reportTab)&&
       <div className='w-full'>
       <MultiSelect

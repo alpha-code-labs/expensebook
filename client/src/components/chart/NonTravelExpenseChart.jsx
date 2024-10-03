@@ -1,18 +1,24 @@
 import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { titleCase } from '../../utils/handyFunctions';
+import { getStatusClass, titleCase } from '../../utils/handyFunctions';
 
-// Function to process and "Non-Travel Expense" expense statuses
-const processData = (data) => {
-  const statusCounts = {
-    'new': 0,
+// Function to process and count expense statuses
+const processData = (activeView,data) => {
+  const statusCounts = activeView ==="financeView" ? {
+   
+    'pending settlement': 0,
+    'paid': 0,
+    'paid and cancelled': 0,
+    'Recovered': 0,
+  }:{
+    'rejected': 0,
     'pending approval': 0,
     'pending settlement': 0,
     'paid': 0,
     'paid and cancelled': 0,
   };
 
-  // Loop through all the expenses and "Non-Travel Expense" statuses
+  // Loop through all the expenses and count statuses
   data.forEach(expense => {
     const status = expense.expenseHeaderStatus.toLowerCase();
     if (statusCounts.hasOwnProperty(status)) {
@@ -23,7 +29,7 @@ const processData = (data) => {
   // Convert the statusCounts object into an array for the chart
   return Object.keys(statusCounts).map(status => ({
     status: titleCase(status),
-    "Non-Travel Expense": statusCounts[status],
+    count: statusCounts[status],
   }));
 };
 
@@ -34,7 +40,7 @@ const CustomTooltip = ({ active, payload, label }) => {
     return (
       <div className="custom-tooltip rounded-md" style={{ backgroundColor: '#fff', padding: '10px', border: '1px solid #ccc' }}>
         <p className='font-cabin font-medium'>{`Status: ${data.status}`}</p>
-        <p className='font-cabin font-semibold'>{`Total: ${data?.["Non-Travel Expense"]}`}</p>
+        <p className='font-cabin font-semibold'>{`Total: ${data.count}`}</p>
       </div>
     );
   }
@@ -42,28 +48,55 @@ const CustomTooltip = ({ active, payload, label }) => {
   return null;
 };
 
+const CustomXAxisTick = ({ x, y, payload }) => {
+ 
+  return (
+    <g transform={`translate(${x}, ${y})`}>
+    
+      
+      <text 
+        dy={14} // Positioning the text vertically
+        textAnchor="middle" 
+        style={{ fill: '#1D4ED8' }}
+        className="text-blue-600 font-inter font-semibold text-xs" // Tailwind CSS classes for text
+      >
+        {(payload.value ?? "-")}
+      </text>
+    </g>
+  );
+};
+
+
 // The main component for displaying the bar chart
-const NonTravelExpenseChart = ({ data }) => {
-  const processedData = processData(data);
+const NonTravelExpenseChart = ({ activeView,data }) => {
+  
+  const processedData = processData(activeView, data);
 
   return (
-    <ResponsiveContainer width="80%" height={400}>
+    <ResponsiveContainer width="70%" height={300}>
       <BarChart
         data={processedData}
         margin={{
           top: 20, right: 30, left: 20, bottom: 5,
         }}
       >
-        <XAxis dataKey="status" />
+        <defs>
+        <linearGradient id="gradientFill" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#4C36F1" stopOpacity={1} />
+          <stop offset="100%" stopColor="#C7D2FE" stopOpacity={1} />
+        </linearGradient>
+        </defs>
+        <XAxis dataKey="status"  tick={<CustomXAxisTick />}/>
         <YAxis />
         <Tooltip content={<CustomTooltip />} cursor={{ fill: 'none' }} />
         <Legend />
         <Bar 
-          fill="#4C36F1" 
-          barSize={60}
-          label={{ position: 'top' }}
-          background={{ fill: '#eee' }}
-          dataKey="Non-Travel Expense"
+            radius={[10, 10, 0, 0]}
+            fill="url(#gradientFill)"
+            barSize={60}
+            label={{ position: 'top' }}
+            background={{fill: '#f8fafc',radius:[10, 10, 0, 0]}}
+           dataKey="count" 
         />
       </BarChart>
     </ResponsiveContainer>

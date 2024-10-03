@@ -43,12 +43,14 @@ const TripReport = ({ visibleHeaders, tripData }) => {
     switch (header) {
       case 'trip name':
         return trip?.tripName   ?? "-";
+      case 'travel request number':
+        return trip?.travelRequestNumber   ?? "-";
       case 'start date':
         return formatDate(trip?.tripStartDate);
       case 'end date':
         return formatDate(trip?.tripCompletionDate);
       case 'trip number':
-        return trip?.tripNumber;
+        return trip?.tripNumber  ?? "-";
       case 'travel type':
         return trip?.travelType;
       case 'trip status':
@@ -57,7 +59,8 @@ const TripReport = ({ visibleHeaders, tripData }) => {
         return trip?.createdBy;
       case 'approver':
         return trip?.approvers
-        
+      case 'group':
+        return trip?.group
       case 'trip purpose':
         return trip?.tripPurpose;
       default:

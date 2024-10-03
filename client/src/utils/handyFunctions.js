@@ -1,4 +1,40 @@
+///for preset date
+const subtractDays = (date, days) => {
+  const result = new Date(date);
+  result.setDate(result.getDate() - days);
+  return result;
+};
 
+const startOfWeek = (date) => {
+  const result = new Date(date);
+  const day = result.getDay();
+  const diff = result.getDate() - day + (day === 0 ? -6 : 1); // adjust when day is Sunday
+  result.setDate(diff);
+  return result;
+};
+
+const endOfWeek = (date) => {
+  const result = startOfWeek(date);
+  result.setDate(result.getDate() + 6);
+  return result;
+};
+
+const startOfMonth = (date) => {
+  return new Date(date.getFullYear(), date.getMonth(), 1);
+};
+
+const endOfMonth = (date) => {
+  return new Date(date.getFullYear(), date.getMonth() + 1, 0);
+};
+
+const datePresets = [
+  { label: 'Today', range: [new Date(), new Date()] },
+  { label: 'Yesterday', range: [subtractDays(new Date(), 1), subtractDays(new Date(), 1)] },
+  { label: 'Last 7 Days', range: [subtractDays(new Date(), 6), new Date()] },
+  { label: 'This Week', range: [startOfWeek(new Date()), endOfWeek(new Date())] },
+  { label: 'This Month', range: [startOfMonth(new Date()), endOfMonth(new Date())] },
+];
+/// end preset data
 
 function titleCase(str){
     try{
@@ -232,5 +268,36 @@ function titleCase(str){
           return tickItem.toString();
         }
       };
+
+
+      function getStatusClass(status){
+        switch(status){
+          case "approved":
+            case "completed":
+            case "booked":
+            case "intransit":
+            case "upcoming":
+            case "save":
+            case "paid":
+            case "recovered":
+            return ' border border-green-200 bg-green-100 text-green-200 rounded-full';
+          case "rejected":
+          case "cancelled":  
+          case "paid and cancelled":  
+            return 'border border-red-900 bg-red-100 text-red-900 rounded-full';
+          case "pending settlement":
+          case "pending approval": 
+          case "new":
+          case "pending booking": 
+          case "awaiting pending settlement":
+          case "pending": 
+          case "transit":
+          case "draft":
+            return 'border border-yellow-200 bg-yellow-100 text-yellow-200 rounded-full';
+          default:
+            return " ";  
+    
+        }
+      } 
       
-    export {formatAmount, titleCase, formatDateMonth, formatDate,formatFullDate, formatDate2, formatDate3, camelCaseToTitleCase,formatDateToYYYYMMDD, titleCaseToCamelCase ,convertJsonToCsv,handleCSVDownload,formatLargeNumber}
+    export {getStatusClass, datePresets,formatAmount, titleCase, formatDateMonth, formatDate,formatFullDate, formatDate2, formatDate3, camelCaseToTitleCase,formatDateToYYYYMMDD, titleCaseToCamelCase ,convertJsonToCsv,handleCSVDownload,formatLargeNumber}
