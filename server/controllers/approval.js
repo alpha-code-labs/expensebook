@@ -122,8 +122,7 @@ const updateCashAdvanceStatus = async (cashApprovalDocs, cashAdvanceIds, empId, 
   console.groupEnd()
   console.log('cash status updated ');
 console.groupEnd()
- await updateDocs(cashApprovalDocs);
-
+await updateDocs(cashApprovalDocs);
 };
 
 
