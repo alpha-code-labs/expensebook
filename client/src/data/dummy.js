@@ -20,8 +20,8 @@ const dummyCabs = {
   bkd_pickupAddress: null,
   bkd_dropAddress: null,
   bkd_violations: {
-    class: String,
-    amount: String,
+    class: null,
+    amount: null,
   },
   modified: false,
   cancellationDate: null,
@@ -59,8 +59,8 @@ const dummyCarRentals = {
   bkd_pickupAddress: null,
   bkd_dropAddress: null,
   bkd_violations: {
-    class: String,
-    amount: String,
+    class: null,
+    amount: null,
   },
   modified: false,
   cancellationDate: null,
