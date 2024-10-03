@@ -257,19 +257,19 @@ export default function () {
                     return;
                 }
                 case 'buses': {
-                    if(item.bkd_from && item.bkd_to && item.bkd_date && item.bkd_time && item.bookingDetails.billDetails.taxAmount && item.bookingDetails.billDetails.totalAmount){
+                    if(item.bkd_from && item.bkd_to && item.bkd_date && item.bkd_time && item.bookingDetails.billDetails.vendorName &&  item.bookingDetails.billDetails.taxAmount && item.bookingDetails.billDetails.totalAmount){
                         formData_copy.itinerary[toSet][index].status = 'booked';
                     }
                     return;
                 }
                 case 'trains': {
-                    if(item.bkd_from && item.bkd_to && item.bkd_date && item.bkd_time && item.bookingDetails.billDetails.taxAmount && item.bookingDetails.billDetails.totalAmount){
+                    if(item.bkd_from && item.bkd_to && item.bkd_date && item.bkd_time && item.bookingDetails.billDetails.vendorName && item.bookingDetails.billDetails.taxAmount && item.bookingDetails.billDetails.totalAmount){
                         formData_copy.itinerary[toSet][index].status = 'booked';
                     }
                     return;
                 }
                 case 'cabs': {
-                    if(item.bkd_from && item.bkd_to && item.bkd_date && item.bkd_time && item.bookingDetails.billDetails.taxAmount && item.bookingDetails.billDetails.totalAmount){
+                    if(item.bkd_pickupAddress && item.bkd_dropAddress && item.bkd_date && item.bkd_time && item.bookingDetails.billDetails.vendorName && item.bookingDetails.billDetails.taxAmount && item.bookingDetails.billDetails.totalAmount){
                         if(item.isFullDayCab){
                             if(item.returnDate) formData_copy.itinerary[toSet][index].status = 'booked';
                         }else{
@@ -279,7 +279,7 @@ export default function () {
                     return;
                 }
                 case 'carRentals': {
-                    if(item.bkd_from && item.bkd_to && item.bkd_date && item.bkd_time && item.bookingDetails.billDetails.taxAmount && item.bookingDetails.billDetails.totalAmount){
+                    if(item.bkd_pickupAddress && item.bkd_dropAddress && item.bkd_date && item.bkd_time && item.bookingDetails.billDetails.vendorName && item.bookingDetails.billDetails.taxAmount && item.bookingDetails.billDetails.totalAmount){
                         if(item.isFullDayCab){
                             if(item.returnDate) formData_copy.itinerary[toSet][index].status = 'booked';
                         }else{
@@ -289,7 +289,7 @@ export default function () {
                     return;
                 }
                 case 'hotels':{
-                    if(item.bkd_location && item.bkd_checkIn && item.bkd_checkOut && bkd_checkInTime && bkd_checkOutTime && item.bookingDetails.billDetails.taxAmount && item.bookingDetails.billDetails.totalAmount){
+                    if(item.bkd_location && item.bkd_checkIn && item.bkd_checkOut && bkd_checkInTime && item.bookingDetails.billDetails.vendorName && bkd_checkOutTime && item.bookingDetails.billDetails.taxAmount && item.bookingDetails.billDetails.totalAmount){
                         formData_copy.itinerary[toSet][index].status = 'booked';
                     }
                 }
