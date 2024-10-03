@@ -41,6 +41,7 @@ const [authToken , setAuthToken] = useState("authtoken");
 const [isLoading, setIsLoading] = useState({ loginData: false, roleData: true });
 const [loadingErrMsg, setLoadingErrMsg] = useState(null);
 const { employeeRoles, setEmployeeRoles, setEmployeeData } = useData();
+const [searchQuery , setSearchQuery] = useState('');
 
 const fetchData = async () => {
   try {
@@ -118,17 +119,13 @@ const fetchData = async () => {
     {isLoading.loginData ? <Error message={loadingErrMsg}/> : 
      <div className='bg-slate-100'>
      
-      <section>
-
-           <Navbar setSidebarOpen={setSidebarOpen}   tenantId={tenantId} empId={empId}  />
-       
-      </section>
+      
       <section>
       <div className='flex flex-row '>
      
       
       <div 
-     className={`fixed inset-0 z-10 md:static w-fit bg-indigo-50 min-h-screen shadow-lg shadow-black/50  transform transition-all duration-300 ease-in-out ${
+     className={`fixed inset-0 z-10 md:static w-fit bg-indigo-50 min-h-screen   transform transition-all duration-300 ease-in-out ${
       sidebarOpen ? 'opacity-0 translate-x-[-100%]' : 'opacity-100 translate-x-0'
     }`}>
            <Sidebar setSidebarOpen={setSidebarOpen} fetchData={fetchData}  tenantId={tenantId} empId={empId}  />
@@ -136,6 +133,11 @@ const fetchData = async () => {
       
      
       <div className='h-screen overflow-y-auto scrollbar-hide w-full  bg-white'>
+      <section>
+
+<Navbar setSearchQuery={setSearchQuery} setSidebarOpen={setSidebarOpen}   tenantId={tenantId} empId={empId}  />
+
+</section>
         <Routes>
           <Route
             exact
@@ -144,15 +146,15 @@ const fetchData = async () => {
           />
           <Route
             path="/trip"
-            element={<Travel fetchData={fetchData} loadingErrMsg={loadingErrMsg} isLoading={isLoading?.roleData} setIsLoading={setIsLoading} setAuthToken={setAuthToken} />}
+            element={<Travel searchQuery={searchQuery} setSearchQuery={setSearchQuery} fetchData={fetchData} loadingErrMsg={loadingErrMsg} isLoading={isLoading?.roleData} setIsLoading={setIsLoading} setAuthToken={setAuthToken} />}
           />
           <Route
             path="/cash-advance"
-            element={<CashAdvance fetchData={fetchData} loadingErrMsg={loadingErrMsg} isLoading={isLoading?.roleData} setAuthToken={setAuthToken} />}
+            element={<CashAdvance searchQuery={searchQuery} setSearchQuery={setSearchQuery} fetchData={fetchData} loadingErrMsg={loadingErrMsg} isLoading={isLoading?.roleData} setAuthToken={setAuthToken} />}
           />
           <Route
             path="/expense"
-            element={<Expense fetchData={fetchData} loadingErrMsg={loadingErrMsg} isLoading={isLoading?.roleData} setAuthToken={setAuthToken} />}
+            element={<Expense searchQuery={searchQuery} setSearchQuery={setSearchQuery} fetchData={fetchData} loadingErrMsg={loadingErrMsg} isLoading={isLoading?.roleData} setAuthToken={setAuthToken} />}
           />
           <Route
             path="/report"
@@ -160,7 +162,7 @@ const fetchData = async () => {
           />
           <Route
             path="/approval"
-            element={<Approval fetchData={fetchData}loadingErrMsg={loadingErrMsg} isLoading={isLoading?.roleData} setAuthToken={setAuthToken} />}
+            element={<Approval searchQuery={searchQuery} setSearchQuery={setSearchQuery} fetchData={fetchData}loadingErrMsg={loadingErrMsg} isLoading={isLoading?.roleData} setAuthToken={setAuthToken} />}
           />
           <Route
             path="/settlement"
@@ -168,7 +170,7 @@ const fetchData = async () => {
           />
           <Route
             path="/bookings"
-            element={<Booking fetchData={fetchData} loadingErrMsg={loadingErrMsg} isLoading={isLoading?.roleData}   setAuthToken={setAuthToken} />}
+            element={<Booking searchQuery={searchQuery} setSearchQuery={setSearchQuery} fetchData={fetchData} loadingErrMsg={loadingErrMsg} isLoading={isLoading?.roleData}   setAuthToken={setAuthToken} />}
           />
           <Route
             path="/profile"

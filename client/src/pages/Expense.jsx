@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { briefcase, modify, receipt, receipt_icon1, categoryIcons, filter_icon, plus_violet_icon, cancel, search_icon, info_icon, expene_icon } from '../assets/icon';
+import { briefcase, modify, receipt, receipt_icon1,expense_white_icon, categoryIcons, filter_icon, plus_violet_icon, cancel, search_icon, info_icon, expene_icon } from '../assets/icon';
 import { formatAmount, getStatusClass, splitTripName } from '../utils/handyFunctions';
 import { handleNonTravelExpense, handleTravelExpense } from '../utils/actionHandler';
 import Modal from '../components/common/Modal1';
@@ -9,12 +9,12 @@ import TripSearch from '../components/common/TripSearch';
 import Button1 from '../components/common/Button1';
 import Error from '../components/common/Error';
 import Input from '../components/common/SearchInput';
-import { CardLayout, EmptyBox, ExpenseLine, StatusBox, StatusFilter, TripName } from '../components/common/TinyComponent';
+import { CardLayout, EmptyBox, ExpenseLine, StatusBox, StatusFilter, TripName,RaiseButton,BoxTitleLayout, ModifyBtn } from '../components/common/TinyComponent';
 import ExpenseMS from '../microservice/Expense';
 import { act } from 'react';
 
 
-const Expense = ({isLoading ,fetchData,loadingErrMsg}) => {
+const Expense = ({searchQuery,isLoading ,fetchData,loadingErrMsg}) => {
   const expenseBaseUrl = import.meta.env.VITE_EXPENSE_PAGE_URL;
 
   const [tripId , setTripId]=useState(null);
@@ -28,7 +28,7 @@ const Expense = ({isLoading ,fetchData,loadingErrMsg}) => {
   const [error , setError]= useState({
     tripId: {set:false, message:""}
   }); 
-  const [searchQuery , setSearchQuery] = useState('');
+
   const [expenseData , setExpenseData] = useState({});
   const [expenseVisible, setExpenseVisible]=useState(false);
   const [iframeURL, setIframeURL] = useState(null); 
@@ -175,7 +175,7 @@ const Expense = ({isLoading ,fetchData,loadingErrMsg}) => {
     {expenseVisible ?   ( <ExpenseMS visible={expenseVisible} setVisible={setExpenseVisible} src={iframeURL} /> ) :
     <div className='h-screen  flex flex-col p-4'>
     
-      <div className='h-[150px] border border-slate-300 bg-white rounded-md  w-full flex flex-wrap items-start gap-2 px-2 py-2'>
+      <div className=' border border-slate-300 bg-white rounded-md  w-full flex flex-wrap items-start gap-2 px-2 py-2'>
 
   <StatusFilter
    statuses = {
@@ -193,47 +193,22 @@ const Expense = ({isLoading ,fetchData,loadingErrMsg}) => {
 getStatusClass={getStatusClass}
 getStatusCount={getStatusCount}
 setSelectedStatuses={setSelectedStatuses}
-
-
-
   />
  
  
 
-<div className=''>
-   
-   <Input placeholder="Search Expense..." type="search" icon={search_icon} onChange={(value)=>setSearchQuery(value)}/>
- </div>
+
 
  
      </div>   
 
 
-<div className=' flex flex-col md:flex-row flex-grow w-full overflow-auto scrollbar-hide  mt-2'>
+<div className=' flex flex-col md:flex-row flex-grow w-full overflow-auto scrollbar-hide gap-2  mt-2'>
          
        
 <div className='w-full md:w-1/2  flex flex-col'>
-<div className='relative flex justify-center items-center  rounded-l-md font-inter text-md text-white shrink-0 h-[52px] bg-indigo-600 text-center'>
-          <div
-          onClick={()=>setModalOpen(!modalOpen)}
-          onMouseEnter={() => setTextVisible({cashAdvance:true})}
-          onMouseLeave={() => setTextVisible({cashAdvance:false})}
-          className={`absolute  left-0 ml-4 hover:px-2 w-6 h-6 hover:overflow-hidden hover:w-auto group text-indigo-600 bg-indigo-100 border border-white flex items-center justify-center  hover:gap-x-1 rounded-full cursor-pointer transition-all duration-300`}
-          >
-          <img src={plus_violet_icon} width={16} height={16} alt="Add Icon" />
-          <p
-          className={`${
-          textVisible?.expense ? 'opacity-100' : 'opacity-0 w-0'
-          } whitespace-nowrap text-xs transition-all duration-300 group-hover:opacity-100 group-hover:w-auto`}
-          >
-          Raise an Expense
-          </p>
-          </div>
-              <div className='inline-flex items-center'>
-                <img src={receipt_icon1} className='w-6 h-6 mr-2' />
-                <p>Travel Expenses</p>
-              </div>
-            </div>
+
+<BoxTitleLayout title="Travel Expense" icon={expense_white_icon}/>
 <div className='w-full h-full mt-4  overflow-y-auto px-2 bg-white rounded-l-md'>
               {travelExpenses?.length > 0 ? travelExpenses?.map((trip, index) => {
                 const filteredTripExpenses = filterExpenses(trip?.travelExpenses);
@@ -251,9 +226,8 @@ setSelectedStatuses={setSelectedStatuses}
                             
                             <StatusBox status={trExpense?.expenseHeaderStatus ?? "-"}/>
                             {!['paidAndDistributed'].includes(trExpense?.expenseHeaderStatus) &&
-                            <div onClick={()=>handleVisible({urlName:handleTravelExpense({tenantId,empId,tripId:trip?.tripId,expenseHeaderId: trExpense?.expenseHeaderId, action: 'trip-ex-modify' })})} className={`w-7 h-7 bg-indigo-100 rounded-full border border-white flex items-center justify-center cursor-pointer`}>
-                            <img src={modify} className='w-4 h-4' alt="modify_icon" />
-                          </div>}
+                            <ModifyBtn onClick={()=>handleVisible({urlName:handleTravelExpense({tenantId,empId,tripId:trip?.tripId,expenseHeaderId: trExpense?.expenseHeaderId, action: 'trip-ex-modify' })})}/>
+                            }
                             
                           </div>
                           <ExpenseLine expenseLines={trExpense?.expenseLines}/>
@@ -274,10 +248,16 @@ setSelectedStatuses={setSelectedStatuses}
 
          
 <div className='w-full md:w-1/2  flex flex-col'>
-          <div className='flex justify-center items-center rounded-r-md font-inter text-md shrink-0 text-white h-[52px] bg-indigo-600 text-center'>
-              <img src={receipt_icon1} className='w-6 h-6 mr-2' />
-              <p>Non-Travel Expenses</p>
-            </div>
+
+            <BoxTitleLayout title={'Non-Travel Expense'} icon={expense_white_icon}>
+            <RaiseButton  
+          onClick={()=>setModalOpen(!modalOpen)}
+          
+          text={'Expense'}
+          textVisible={'textVisible?.expense'}/>
+
+            </BoxTitleLayout>
+         
             
           <div className='w-full mt-4 h-full overflow-y-auto px-2 bg-white rounded-r-md'>
               {nonTravelExpenses?.length > 0 ? filterExpenses(nonTravelExpenses)?.map((nonTravelExp, index) => (
@@ -294,9 +274,10 @@ setSelectedStatuses={setSelectedStatuses}
                     </div>
                     <div className='flex flex-row gap-2 justify-between items-center font-cabin font-xs'>
                       <StatusBox status={nonTravelExp?.expenseHeaderStatus ?? "-"}/>
-                      {!['paidAndDistributed'].includes(nonTravelExp?.expenseHeaderStatus) &&<div onClick={() => handleVisible({urlName:handleNonTravelExpense({tenantId,empId ,expenseHeaderId:nonTravelExp?.expenseHeaderId,action:"non-tr-ex-modify"})})} className={`w-7 h-7 bg-indigo-100 rounded-full border border-white flex items-center justify-center ${disableButton(nonTravelExp?.travelRequestStatus) ? ' cursor-not-allowed opacity-50' : ' cursor-pointer'}`}>
-                        <img src={modify} className='w-4 h-4' alt="modify_icon" />
-                      </div>}
+                      {!['paidAndDistributed'].includes(nonTravelExp?.expenseHeaderStatus) &&
+                      
+                      <ModifyBtn onClick={() => handleVisible({urlName:handleNonTravelExpense({tenantId,empId ,expenseHeaderId:nonTravelExp?.expenseHeaderId,action:"non-tr-ex-modify"})})}/>
+                      }
                     </div>
                   </div>
                   <ExpenseLine expenseLines={nonTravelExp?.expenseLines}/>
@@ -370,10 +351,11 @@ setSelectedStatuses={setSelectedStatuses}
 };
 
 export default Expense;
+
+
 // import React, { useEffect, useState } from 'react';
 // import { briefcase, modify, receipt, receipt_icon1, categoryIcons, filter_icon, plus_violet_icon, cancel, search_icon, info_icon, expene_icon } from '../assets/icon';
 // import { formatAmount, getStatusClass, splitTripName } from '../utils/handyFunctions';
-// import { travelExpense, nonTravelExpense } from '../utils/dummyData';
 // import { handleNonTravelExpense, handleTravelExpense } from '../utils/actionHandler';
 // import Modal from '../components/common/Modal1';
 // import { useParams } from 'react-router-dom';
@@ -382,11 +364,12 @@ export default Expense;
 // import Button1 from '../components/common/Button1';
 // import Error from '../components/common/Error';
 // import Input from '../components/common/SearchInput';
-// import { CardLayout, EmptyBox, ExpenseLine, StatusFilter, TripName } from '../components/common/TinyComponent';
+// import { CardLayout, EmptyBox, ExpenseLine, StatusBox, StatusFilter, TripName,RaiseButton } from '../components/common/TinyComponent';
 // import ExpenseMS from '../microservice/Expense';
+// import { act } from 'react';
 
 
-// const Expense = ({isLoading ,fetchData,loadingErrMsg}) => {
+// const Expense = ({searchQuery,isLoading ,fetchData,loadingErrMsg}) => {
 //   const expenseBaseUrl = import.meta.env.VITE_EXPENSE_PAGE_URL;
 
 //   const [tripId , setTripId]=useState(null);
@@ -400,15 +383,10 @@ export default Expense;
 //   const [error , setError]= useState({
 //     tripId: {set:false, message:""}
 //   }); 
-//   const [searchQuery , setSearchQuery] = useState('');
+
 //   const [expenseData , setExpenseData] = useState({});
 //   const [expenseVisible, setExpenseVisible]=useState(false);
 //   const [iframeURL, setIframeURL] = useState(null); 
-
-
-
-
-  
 
   
 //   useEffect(()=>{
@@ -508,12 +486,12 @@ export default Expense;
 //       setTripId(null)
 //       setExpenseType(null)
 //       setModalOpen(false)
-//       handleVisible({urlName:handleTravelExpense({tenantId,empId,tripId, action:'trip-ex-create'})})
+//       handleVisible({urlName:handleTravelExpense({tenantId,empId,tripId, "action":'trip-ex-create'})})
 //       //handleTravelExpense(tripId, '','trip-ex-create')
 //     } else {
 //       setExpenseType(null)
 //       setModalOpen(false)
-//       handleVisible({urlName:handleNonTravelExpense('','non-tr-ex-create')})
+//       handleVisible({urlName:handleNonTravelExpense({tenantId,empId,"action":'non-tr-ex-create'})})
 //      // handleNonTravelExpense('','non-tr-ex-create')
 //     }
 //   };
@@ -550,35 +528,10 @@ export default Expense;
 //     {!isLoading && 
 //     <>
 //     {expenseVisible ?   ( <ExpenseMS visible={expenseVisible} setVisible={setExpenseVisible} src={iframeURL} /> ) :
-//     <div className='min-h-screen'>
-//       <div className='flex-col w-full p-4 flex items-start gap-2'>
-//       <div className='min-h-[120px] border border-slate-300 bg-white rounded-md  w-full flex flex-wrap items-start gap-2 px-2 py-2'>
-//       {/* <div className='flex  space-x-2 space-y-2  overflow-x-auto '>
-//         <div className='flex gap-2  items-center justify-center p-2 bg-slate-100/50 rounded-full border border-slate-300 '>
-//         <div className='px-4 '>
-//         <img src={filter_icon} className='min-w-5 w-5 h-5 min-h-5'/>
-//         </div>
-//   {["draft","pending approval", "pending settlement", "paid","rejected",  "cancelled", "paid and cancelled"].map((status) => {
-//     const statusCount = getStatusCount(status, [...travelExpenses.flatMap(te => te?.travelExpenses ), ...nonTravelExpenses]);
-//     const isDisabled = statusCount === 0;
+//     <div className='h-screen  flex flex-col p-4'>
     
-//     return (
-//       <div key={status} className={`flex items-center  ${isDisabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
-//         <div
-//           onClick={() => !isDisabled && handleStatusClick(status)}
-//           className={`ring-1 ring-white flex py-1 pr-3 text-center rounded-sm ${selectedStatuses.includes(status) ? getStatusClass(status ?? "-") : "bg-slate-100 text-neutral-700 border border-slate-300"}`}
-//         >
-//           <p className='px-1 py-1 text-sm text-center capitalize font-cabin whitespace-nowrap '>{status ?? "-"}</p>
-//         </div>
-//         <div className={`shadow-md shadow-black/30 font-semibold -translate-x-3 ring-1 rounded-full ring-white w-6 h-6 flex justify-center items-center text-center text-xs ${selectedStatuses.includes(status) ? getStatusClass(status ?? "-") : "bg-slate-100 text-neutral-700 border border-slate-300 "}`}>
-//           <p>{statusCount}</p>
-//         </div>
-//       </div>
-//     );
-//   })}
-//    </div>
-//   <div className='text-neutral-700 text-base flex justify-center items-center hover:text-red-200 hover:font-semibold text-center w-auto h-[36px] font-cabin cursor-pointer whitespace-nowrap' onClick={() => setSelectedStatuses([])}>Clear All</div>
-//   </div> */}
+//       <div className=' border border-slate-300 bg-white rounded-md  w-full flex flex-wrap items-start gap-2 px-2 py-2'>
+
 //   <StatusFilter
 //    statuses = {
 //     [ "draft",
@@ -595,28 +548,22 @@ export default Expense;
 // getStatusClass={getStatusClass}
 // getStatusCount={getStatusCount}
 // setSelectedStatuses={setSelectedStatuses}
-
-
-
 //   />
  
  
 
-// <div className=''>
-   
-//    <Input placeholder="Search Expense..." type="search" icon={search_icon} onChange={(value)=>setSearchQuery(value)}/>
-//  </div>
+
 
  
-// </div>
+//      </div>   
 
 
+// <div className=' flex flex-col md:flex-row flex-grow w-full overflow-auto scrollbar-hide gap-2  mt-2'>
+         
        
-
-//         <div className='w-full flex md:flex-row flex-col '>
-//           <div className='flex-1 justify-center items-center'>
-//             <div className='relative flex justify-center items-center rounded-l-md font-inter text-md text-white h-[52px] bg-indigo-600 text-center'>
-//           <div
+// <div className='w-full md:w-1/2  flex flex-col'>
+// <div className='relative flex justify-center items-center  rounded-l-md font-inter text-md text-white shrink-0 h-[52px] bg-indigo-600 text-center'>
+//           {/* <div
 //           onClick={()=>setModalOpen(!modalOpen)}
 //           onMouseEnter={() => setTextVisible({cashAdvance:true})}
 //           onMouseLeave={() => setTextVisible({cashAdvance:false})}
@@ -630,13 +577,19 @@ export default Expense;
 //           >
 //           Raise an Expense
 //           </p>
-//           </div>
-//               <div className='flex justify-center items-center'>
+//           </div> */}
+//           <RaiseButton  
+//           onClick={()=>setModalOpen(!modalOpen)}
+//           onMouseEnter={() => setTextVisible({cashAdvance:true})}
+//           onMouseLeave={() => setTextVisible({cashAdvance:false})}
+//           text={'Raise an Expense'}
+//           textVisible={'textVisible?.expense'}/>
+//               <div className='inline-flex items-center'>
 //                 <img src={receipt_icon1} className='w-6 h-6 mr-2' />
 //                 <p>Travel Expenses</p>
 //               </div>
 //             </div>
-//             <div className='w-full mt-4 xl:h-[570px] lg:h-[370px] md:[590px] overflow-y-auto px-2 bg-white rounded-l-md'>
+// <div className='w-full h-full mt-4  overflow-y-auto px-2 bg-white rounded-l-md'>
 //               {travelExpenses?.length > 0 ? travelExpenses?.map((trip, index) => {
 //                 const filteredTripExpenses = filterExpenses(trip?.travelExpenses);
 //                 if (filteredTripExpenses.length === 0) return null; // Skip rendering if no expenses match the selected statuses
@@ -650,9 +603,8 @@ export default Expense;
 //                       {filteredTripExpenses.map((trExpense, index) => (
 //                         <div key={index} className='border border-slate-300 rounded-md px-2 py-1'>
 //                           <div className='flex flex-row justify-between items-center py-1 border-b border-slate-300 font-cabin font-xs'>
-//                             <div className={`text-center rounded-sm ${getStatusClass(trExpense?.expenseHeaderStatus ?? "-")}`}>
-//                               <p className='px-1 py-1 text-xs text-center capitalize font-cabin'>{trExpense?.expenseHeaderStatus ?? "-"}</p>
-//                             </div>
+                            
+//                             <StatusBox status={trExpense?.expenseHeaderStatus ?? "-"}/>
 //                             {!['paidAndDistributed'].includes(trExpense?.expenseHeaderStatus) &&
 //                             <div onClick={()=>handleVisible({urlName:handleTravelExpense({tenantId,empId,tripId:trip?.tripId,expenseHeaderId: trExpense?.expenseHeaderId, action: 'trip-ex-modify' })})} className={`w-7 h-7 bg-indigo-100 rounded-full border border-white flex items-center justify-center cursor-pointer`}>
 //                             <img src={modify} className='w-4 h-4' alt="modify_icon" />
@@ -669,15 +621,20 @@ export default Expense;
 //                 );
 //               }):<EmptyBox icon={expene_icon} text='Travel Expense'/>}
 //             </div>
-//           </div>
 
-//           <div className='flex-1'>
-//             <div className='flex justify-center items-center rounded-r-md font-inter text-md text-white h-[52px] bg-indigo-600 text-center'>
+// </div>
+           
+            
+          
+
+         
+// <div className='w-full md:w-1/2  flex flex-col'>
+//           <div className='flex justify-center items-center rounded-r-md font-inter text-md shrink-0 text-white h-[52px] bg-indigo-600 text-center'>
 //               <img src={receipt_icon1} className='w-6 h-6 mr-2' />
 //               <p>Non-Travel Expenses</p>
 //             </div>
-
-//             <div className='w-full mt-4 xl:h-[570px] lg:h-[370px] md:[590px] overflow-y-auto px-2 bg-white rounded-r-md'>
+            
+//           <div className='w-full mt-4 h-full overflow-y-auto px-2 bg-white rounded-r-md'>
 //               {nonTravelExpenses?.length > 0 ? filterExpenses(nonTravelExpenses)?.map((nonTravelExp, index) => (
 //                 <>
 //                 <CardLayout index={index}>
@@ -691,10 +648,8 @@ export default Expense;
 //                       </div>
 //                     </div>
 //                     <div className='flex flex-row gap-2 justify-between items-center font-cabin font-xs'>
-//                       <div className={`text-center rounded-sm ${getStatusClass(nonTravelExp?.expenseHeaderStatus ?? "-")}`}>
-//                         <p className='px-1 py-1 text-xs text-center capitalize font-cabin'>{nonTravelExp?.expenseHeaderStatus ?? "-"}</p>
-//                       </div>
-//                       {!['paidAndDistributed'].includes(nonTravelExp?.expenseHeaderStatus) &&<div onClick={() => handleVisible({urlName:handleNonTravelExpense((nonTravelExp?.expenseHeaderId),"non-tr-ex-modify")})} className={`w-7 h-7 bg-indigo-100 rounded-full border border-white flex items-center justify-center ${disableButton(nonTravelExp?.travelRequestStatus) ? ' cursor-not-allowed opacity-50' : ' cursor-pointer'}`}>
+//                       <StatusBox status={nonTravelExp?.expenseHeaderStatus ?? "-"}/>
+//                       {!['paidAndDistributed'].includes(nonTravelExp?.expenseHeaderStatus) &&<div onClick={() => handleVisible({urlName:handleNonTravelExpense({tenantId,empId ,expenseHeaderId:nonTravelExp?.expenseHeaderId,action:"non-tr-ex-modify"})})} className={`w-7 h-7 bg-indigo-100 rounded-full border border-white flex items-center justify-center ${disableButton(nonTravelExp?.travelRequestStatus) ? ' cursor-not-allowed opacity-50' : ' cursor-pointer'}`}>
 //                         <img src={modify} className='w-4 h-4' alt="modify_icon" />
 //                       </div>}
 //                     </div>
@@ -705,9 +660,12 @@ export default Expense;
 //                 </>
 //               )):<EmptyBox icon={expene_icon} text='Non-Travel Expense'/>}
 //             </div>
-//           </div>
-//         </div>
-//       </div>
+//             </div> 
+
+           
+          
+// </div>
+      
 
 //       <Modal 
 //         isOpen={modalOpen} 
@@ -767,5 +725,3 @@ export default Expense;
 // };
 
 // export default Expense;
-
-

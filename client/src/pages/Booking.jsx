@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { filter_icon, cancel, search_icon, info_icon, airplane_icon1, plus_icon, violation_icon, violation_red_icon } from '../assets/icon';
+import { filter_icon, cancel, search_icon, info_icon, airplane_icon1, plus_icon, violation_icon, violation_red_icon, trip_white_icon } from '../assets/icon';
 import { checkUpcomingTrip, filterByTimeRange,  sortTripsByDate, sortTripsForBooking, } from '../utils/handyFunctions';
 import {dummyTravelReqForBooking, dummyPaidAndCancelledTrips} from '../utils/dummyData';
 import { CabCard, FlightCard, HotelCard, RentalCabCard } from '../components/itinerary/BookingItineraryCard';
@@ -9,7 +9,7 @@ import { useData } from '../api/DataProvider';
 import Button1 from '../components/common/Button1';
 import Error from '../components/common/Error';
 import Input from '../components/common/SearchInput';
-import { CardLayout, StatusFilter, TripName } from '../components/common/TinyComponent';
+import { CardLayout, StatusFilter, TripName, BoxTitleLayout } from '../components/common/TinyComponent';
 import TravelMS from '../microservice/TravelMS';
 import CurrencyInput from '../components/common/currency/CurrencyInput';
 import { currenciesList } from '../utils/data/currencyList';
@@ -20,7 +20,7 @@ import { motion } from 'framer-motion';
 
 
 
-const Booking = ({isLoading, fetchData, loadingErrMsg}) => {
+const Booking = ({searchQuery,isLoading, fetchData, loadingErrMsg}) => {
 
 const travelBaseUrl  = import.meta.env.VITE_TRAVEL_PAGE_URL;
 const cashBaseUrl = import.meta.env.VITE_CASHADVANCE_PAGE_URL;
@@ -42,7 +42,7 @@ const tripBaseUrl = import.meta.env.VITE_TRIP_BASE_URL;
   const [error , setError]= useState({
     tripId: {set:false, message:""}
   }); 
-  const [searchQuery , setSearchQuery] = useState('');
+  // const [searchQuery , setSearchQuery] = useState('');
   const [actionType, setActionType]= useState(null)
   
 ///----------------------start---------------
@@ -343,7 +343,7 @@ const handleConfirm = async (action) => {
     <div className='h-screen  flex flex-col p-4'>
 
 
-<div className='min-h-[150px] shrink-0 flex-col border border-slate-300 bg-white rounded-md  w-full flex  items-start gap-2 px-2 py-2'>
+<div className=' shrink-0 flex-col border border-slate-300 bg-white rounded-md  w-full flex  items-start gap-2 px-2 py-2'>
 
 <StatusFilter
 statuses={["48 Hours", "7 Days", "Within 30 Days", "Beyond 30 Days", "paid and cancelled"]}
@@ -359,10 +359,7 @@ setSelectedStatuses={setSelectedDateRange}
 
 
 
-<div className=''>
-   
-   <Input placeholder="Search Trip..." type="search" icon={search_icon} onChange={(value)=>setSearchQuery(value)}/>
- </div>
+
 
 
  
@@ -373,15 +370,8 @@ setSelectedStatuses={setSelectedDateRange}
 
 <div className='w-full flex flex-col flex-grow  overflow-auto scrollbar-hide  mt-2'>
           
-          <div className='relative shrink-0 flex justify-center items-center rounded-md font-inter text-md text-white h-[52px] bg-indigo-600 text-center'>
-          
-              
-              <div className='flex justify-center items-center'>
-                <img src={airplane_icon1} className='w-4 h-4 mr-2' />
-                <p>Trips</p>
-              </div>
-            </div>
-
+         
+<BoxTitleLayout title="Trips" icon={trip_white_icon}/>
             <div className='w-full h-full mt-2  overflow-y-auto px-2 bg-white rounded-l-md'>
               {selectedDateRange === "paid and cancelled" ? 
                 <div>

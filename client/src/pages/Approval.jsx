@@ -1,6 +1,6 @@
 /* eslint-disable no-unreachable */
 import React, { useEffect, useState } from 'react';
-import { approval_icon, approvalempty_icon, briefcase, cancel, cancel_round, categoryIcons, check_tick, cross_icon, filter_icon, info_icon, modify, money, money1, plus_violet_icon, receipt, search_icon, violation_icon } from '../assets/icon';
+import { approval_icon, approvalempty_icon, briefcase,approval_white_icon,trip_white_icon,cash_white_icon, cancel, cancel_round, categoryIcons, check_tick, cross_icon, filter_icon, info_icon, modify, money, money1, plus_violet_icon, receipt, search_icon, violation_icon } from '../assets/icon';
 import { formatAmount, getStatusClass, sortTripsByDate, splitTripName } from '../utils/handyFunctions';
 import {TRCashadvance,NonTRCashAdvances, travelExpense, TrExpenseForApproval, NonTrExpenseForApproval} from '../utils/dummyData';
 import Modal from '../components/common/Modal1';
@@ -17,12 +17,12 @@ import Button from '../components/common/Button';
 import { approveTravelRequestApi, nonTravelExpenseApprovalActionApi ,rejectTravelExpenseApi, approveTravelExpenseApi, rejectTravelRequestApi } from '../utils/api';
 import PopupMessage from "../components/common/PopupMessage";
 import TripMS from '../microservice/TripMS';
-import { CardLayout, EmptyBox, ExpenseLine, TripName, Violation } from '../components/common/TinyComponent';
+import { CardLayout, EmptyBox, ExpenseLine, TripName, Violation,BoxTitleLayout } from '../components/common/TinyComponent';
 
 
 const rejectionOptions=['Too Many Violations', 'Budget Constraints','Insufficient Documents','Upcoming Project Deadline']
 
-const Approval = ({isLoading, fetchData, loadingErrMsg}) => {
+const Approval = ({searchQuery,isLoading, fetchData, loadingErrMsg}) => {
 
 
   const approvalBaseUrl    = import.meta.env.VITE_APPROVAL_PAGE_URL;
@@ -32,7 +32,7 @@ const Approval = ({isLoading, fetchData, loadingErrMsg}) => {
   const [advancetype , setAdvanceType]=useState(null); 
   const [textVisible,setTextVisible]=useState({cashAdvance:false});
   const [modalOpen , setModalOpen]=useState(false);
-  const [searchQuery,setSearchQuery]= useState(false);
+  
   const [selectAll , setSelectAll]=useState([]); // for travelrequests
   const [selectedLineItems , setSelectedLineItems]=useState([]);
   const [modalContentTitle , setModalContentTitle]=useState(null);
@@ -730,63 +730,15 @@ const handleVisible = ({travelRequestId,tripId,expenseHeaderId, action}) => {
      <>
        <TripMS visible={visible} setVisible={setVisible} src={approvalUrl}/>
      <div className='h-screen  flex flex-col p-4'>
-      <div className=' border border-slate-300 bg-white rounded-md  w-full flex flex-col justify-center items-start px-2'>
- {/* <div className='flex flex-wrap  space-x-2 '>      
-<div className='flex items-center justify-center p-2 bg-slate-100 rounded-full border border-slate-300 '><img src={filter_icon} className='w-5 h-5'/></div>
-  {["draft","pending approval", "pending settlement", "paid",  "cancelled", "paid and cancelled"].map((status) => {
-    const statusCount = getStatusCount(status, [...TRCashadvance.flatMap(te => te?.cashAdvances), ...NonTRCashAdvances]);
-    const isDisabled = statusCount === 0;
-    
-    return (
-      <div key={status} className={`flex items-center  ${isDisabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
-        <div
-          onClick={() => !isDisabled && handleStatusClick(status)}
-          className={`ring-1 ring-white flex py-1 pr-3 text-center rounded-sm ${selectedStatuses.includes(status) ? getStatusClass(status ?? "-") : "bg-slate-100 text-neutral-700 border border-slate-300"}`}
-        >
-          <p className='px-1 py-1 text-sm text-center capitalize font-cabin'>{status ?? "-"}</p>
-        </div>
-        <div className={`shadow-md shadow-black/30 font-semibold -translate-x-3 ring-1 rounded-full ring-white w-6 h-6 flex justify-center items-center text-center text-xs ${selectedStatuses.includes(status) ? getStatusClass(status ?? "-") : "bg-slate-100 text-neutral-700 border border-slate-300 "}`}>
-          <p>{statusCount}</p>
-        </div>
-      </div>
-    );
-  })}
-<div className='text-neutral-700 text-base flex justify-center items-center hover:text-red-200 hover:font-semibold text-center w-auto h-[36px] font-cabin cursor-pointer' onClick={() => setSelectedStatuses([])}>Clear All</div>
-</div>  */}
+     
 
-<div>
-   
-   <Input placeholder="Search" type="search" icon={search_icon} onChange={(value)=>setSearchQuery(value)}/>
-   
- </div>
-</div>
-
-<div className=' flex flex-col md:flex-row flex-grow w-full overflow-auto scrollbar-hide  mt-2'>
+<div className=' flex flex-col gap-1 md:flex-row flex-grow w-full overflow-auto scrollbar-hide  mt-2'>
         
 <div className='w-full md:w-1/2  flex flex-col'>
-<div className='relative shrink-0  flex justify-center items-center  rounded-l-md   font-inter text-md text-white h-[52px] bg-indigo-600  text-center'>
 
-{/* <div
-onClick={()=>setModalOpen(!modalOpen)}
-onMouseEnter={() => setTextVisible({cashAdvance:true})}
-onMouseLeave={() => setTextVisible({cashAdvance:false})}
-className={`absolute left-0 ml-4 hover:px-2 w-6 h-6 hover:overflow-hidden hover:w-auto group text-indigo-600 bg-indigo-100 border border-white flex items-center justify-center  hover:gap-x-1 rounded-full cursor-pointer transition-all duration-300`}
->
-<img src={plus_violet_icon} width={16} height={16} alt="Add Icon" />
-<div
-className={`${
-textVisible?.cashAdvance ? 'opacity-100' : 'opacity-0 w-0'
-} whitespace-nowrap text-xs transition-all duration-300 group-hover:opacity-100 group-hover:w-auto`}
->
-Raise a Cash-Advance
-</div>
-</div>*/}
 
-<div className='flex justify-center items-center'>
-    <img src={money1} className='w-6 h-6 mr-2'/>
-     <p>Travel & Cash-Advances</p>
-    </div>
-</div>
+<BoxTitleLayout title={"Travel & Cash-Advance"} icon={trip_white_icon}/>
+
 
 
 { travelAndItinerary?.length>0 ?
@@ -871,15 +823,13 @@ Raise a Cash-Advance
            })}
       </div> </>:
       <div className='mt-4 h-full'>
-      <EmptyBox  icon={approvalempty_icon} text="No Travel & Cash-Advance for Approval"/>
+      <EmptyBox  icon={approval_white_icon} text="No Travel & Cash-Advance for Approval"/>
       </div>}
 
           </div>
            <div className='w-full md:w-1/2  flex flex-col'>
-            <div className='flex shrink-0 justify-center items-center rounded-r-md font-inter text-md text-white h-[52px] bg-indigo-600  text-center'>
-              <img src={money1} className='w-6 h-6 mr-2'/>
-              <p>Travel & Non-Travel Expenses</p>
-            </div>
+          
+          <BoxTitleLayout title="Travel & Non-Travel Expenses" icon={cash_white_icon}/>
             {/* <div className='flex px-2 h-[52px] py-4 items-center justify-start gap-2'/> */}
 
 
@@ -941,7 +891,7 @@ Raise a Cash-Advance
                   </CardLayout>
                   </>
                 );
-              }):<EmptyBox icon={approvalempty_icon} text='No Expense for Approval.'/>}
+              }):<EmptyBox icon={approval_white_icon} text='No Expense for Approval.'/>}
             </div>
           </div>
         </div>
