@@ -288,8 +288,9 @@ export default function () {
                     }
                     return;
                 }
+                //&& bkd_checkInTime && bkd_checkOutTime
                 case 'hotels':{
-                    if(item.bkd_location && item.bkd_checkIn && item.bkd_checkOut && bkd_checkInTime && item.bookingDetails.billDetails.vendorName && bkd_checkOutTime && item.bookingDetails.billDetails.taxAmount && item.bookingDetails.billDetails.totalAmount){
+                    if(item.bkd_location && item.bkd_checkIn && item.bkd_checkOut  && item.bookingDetails.billDetails.vendorName && item.bookingDetails.billDetails.taxAmount && item.bookingDetails.billDetails.totalAmount){
                         formData_copy.itinerary[toSet][index].status = 'booked';
                     }
                 }
