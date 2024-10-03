@@ -72,7 +72,7 @@ const SettleCashAdvance = ({trip,handleActionConfirm}) => {
             {/* <input  type='checkbox' className='w-4 h-4 accent-indigo-600' checked={true}/>  */}
             <SettleNowBtn
             onClick={()=>handleActionConfirm('settleCashAdvance',{ travelRequestId : trip?.travelRequestId, cashAdvanceId:advance?.cashAdvanceId})}
-            text={"Settle Now"} disabled={isMultiCurrencyAvailable(advance?.amountDetails) ? true : false} onHover={'Currency unavailable for settlement. Kindly contact your administrator.'}/>
+            text={"Settle Now"} disabled={isMultiCurrencyAvailable(advance?.amountDetails) ? false : true} onHover={'Currency unavailable for settlement. Kindly contact your administrator.'}/>
           
         
                   </div>

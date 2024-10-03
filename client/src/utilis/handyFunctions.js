@@ -415,6 +415,7 @@ function checkUpcomingTrip(tripStartDate) {
 }
 
 function isMultiCurrencyAvailable(array) {
+  console.log('cash array',array)
   return array.every(item => item.isMultiCurrency === true);
 }
   
