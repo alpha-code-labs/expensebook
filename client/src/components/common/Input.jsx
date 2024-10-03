@@ -4,6 +4,7 @@ import { location_icon } from "../../assets/icon";
 
 export default function Input(props){
     const width = props.maxWidth??false;
+    console.log(props.maxWidth, 'width from props')
     const placeholder = props.placeholder || "Placeholder Text";
     const value = props.value
     const title = props.title || "Title";
@@ -35,7 +36,9 @@ export default function Input(props){
     }
     
     return(<>
-        <div className={`${showLocationSymbol? `min-w-[${width??'184px'}]` : `min-w-[${width??'200px'}]`} ${width? `w-[${width}]` : 'w-full' } max-w-[403px] h-[73px] flex-col justify-start items-start gap-2 inline-flex`}>
+        <div
+            style={{minWidth: `${showLocationSymbol? `${width??'184px'}` : `${width??'200px'}` }`, width: `${width??'100%'}`}} 
+            className={`max-w-[403px] h-[73px] flex-col justify-start items-start gap-2 inline-flex`}>
             {/* title */}
             <div className="text-zinc-600 text-sm font-cabin select-none">{title}</div>
 

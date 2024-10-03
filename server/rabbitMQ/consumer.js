@@ -3,7 +3,7 @@ import amqp from 'amqplib'
 import dotenv from 'dotenv'
 import {cancelTravelRequest, markCompleted} from "./messageProcessor/trip.js";
 import {approveRejectLegItem, approveRejectTravelRequests} from "./messageProcessor/approval.js";
-import { updatePreferences, addALeg, updateBookingAdmin, updateFinanceAdmin } from "./messageProcessor/dashboard.js";
+import { updatePreferences, addALeg, updateBookingAdmin, updateFinanceAdmin, addLeg } from "./messageProcessor/dashboard.js";
 
 
 dotenv.config()
@@ -107,6 +107,38 @@ export default async function startConsumer(receiver) {
                             console.log("update failed with error code", res.error);
                     }
                 }
+
+                // if(action == 'add-leg'){
+                //     console.log("add-leg", payload)
+                //     const res = await addALeg(payload)
+                //     console.log(res);
+                //     console.log(payload)
+                //     if (res.success) {
+                //         //acknowledge message
+                //         channel.ack(msg);
+                //         console.log("message processed successfully");
+                //     } else {
+                //         //implement retry mechanism
+                //         console.log("update failed with error code", res.error);
+                //     }
+                // }
+                if(action == 'add-leg'){
+                    if(payload){
+                      "i am in add a leg"
+                      const result = await addLeg(payload)
+                      console.log("results after trip status updated to completed or closed  ", result)
+                      if(result.success) {
+                          channel.ack(msg);
+                          console.log('Message processed successfully');
+                        } else {
+                          // Implement retry mechanism or handle error
+                          console.log('Update failed with error:', res.error);
+                        }
+                      }
+                    else{
+                      console.error(Error,"Payload is not an array");
+                    }
+                  }
             }
     
             if(source == 'approval'){
