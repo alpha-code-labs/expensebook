@@ -22,4 +22,4 @@ export const getWeekRange = (date) => {
     const startOfYear = new Date(date.getFullYear(), 0, 1);
     const endOfYear = new Date(date.getFullYear() + 1, 0, 0);
     return { startOfYear, endOfYear}
-  }
+  };

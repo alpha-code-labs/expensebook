@@ -76,7 +76,6 @@ const Menu = () => {
     }
   });
 
-
   const [isLoading , setIsLoading]=useState(true);
   const [isUploading,setIsUploading]=useState({"filterReport":false});
   const [loadingErrorMsg, setLoadingErrorMsg]=useState(null);
@@ -91,11 +90,12 @@ const Menu = () => {
     'toDate':new Date(),
     'role':activeView
   }
+
   const [reportDate, setReportDate]=useState(intialFilterForm)
   const [filterForm , setFilterForm]= useState({...intialFilterForm});
-
   const [showPopup, setShowPopup] = useState(false)
   const [message, setMessage] = useState(null)
+
 
   if(activeView==="myTeamView"){
 
@@ -105,17 +105,11 @@ const Menu = () => {
       }
     })
   }
-
+  
   const handleModalTab =(tab)=>{
     setModalTab(tab)
   }
- 
 
-
-
-
-
- 
   const tabIcon = (tab) => { 
     switch (tab) {
       case "trip":
@@ -259,6 +253,7 @@ const handleRunReport = async () => {
 
   // Function to determine the value for "filterBy" based on reportTab
   const getFilterBy = (reportTab) => {
+
     switch (reportTab) {
       case "trip":
         return "trips";
@@ -290,17 +285,19 @@ const handleRunReport = async () => {
       "fromDate":filterForm?.fromDate
     })
     const setDataByReportTab = (reportTab, response) => {
+      
+
       const dataMap = {
         trip: "tripData",
         "cash-advance": "cashadvanceData",
         "travel expense": "travelExpenseData",
         "non-travel expense": "nonTravelExpenseData"
       };
-    
+      
       const newData = reportTab === "non-travel expense"
         ? flattenNonTravelExpenseData(response?.reports)
         : response?.trips || [];
-    
+      
       // Check if data is empty and handle popup message for each tab
       if (newData.length === 0) {
         setShowPopup(true);
@@ -326,12 +323,37 @@ const handleRunReport = async () => {
         setMessage(message);
 
       } else {
+        switch (reportData) {
+          case "tripData":
+            setExportData(flattenTripData(response?.reports?.trips));
+            break;
+          
+          case "travel expense":
+            setExportData(flattedTravelExpenseData(response?.reports?.trips));
+            break;
+          
+          case "non-travel expense":
+            setExportData(flattenNonTravelExpenseData(response?.reports?.reimbursement));
+            break;
+          
+          case "cash-advance":
+            setExportData(flattedCashadvanceData(response?.reports?.trips));
+            break;
+          
+          default:
+            // Handle default case if necessary
+            console.warn("Unknown report data type:", reportData);
+        }
         setReportData((prev) => ({
           ...prev,
           [dataMap[reportTab]]: newData,
         }));
+        
       }
     };
+    
+   
+    
     
     // Set the report data based on the current reportTab
     setDataByReportTab(reportTab, response);
@@ -375,10 +397,11 @@ const handleDownloadfile=(file)=>{
     handleCSVDownload(exportData)
   }
 }
-console.log('export data', exportData)
+
 const tripData = flattenTripData(reportData?.tripData)
 const cashadvanceData = flattedCashadvanceData(reportData?.cashadvanceData,'cashAdvances')
 const travelExpenseData = flattedTravelExpenseData(reportData?.travelExpenseData)
+console.log('export data', exportData,cashadvanceData)
 
 console.log('flatted reports',travelExpenseData)
 return (
@@ -390,15 +413,15 @@ return (
 {isLoading ? <Error message={loadingErrorMsg}/>:
 <div className=' flex flex-col w-screen'>
 
-  <div className='mx-4 px-4 py-2  bg-indigo-200 rounded-md text-neutral-700 flex flex-row justify-between items-center h-[48px]'>
-    <div className='flex items-center gap-2 font-cabin text-base'>
+  <div className='mx-4 px-4 py-2 border-slate-300 border  bg-gray-50 rounded-md text-neutral-700 flex flex-row justify-between items-center h-[48px]'>
+    <div className='flex  items-center gap-2 font-inter text-base'>
       <img src={tabIcon(reportTab)} className='w-4 h-4'/>
-      <h1 className='capitalize font-semibold text-indigo-600'>{reportTab}</h1>
+      <h1 className='capitalize  text-neutral-900'>{reportTab}</h1>
     </div>
 
-  <div className='flex gap-2 capitalize items-center'>
-    <img src={filter_icon} className='w-4 h-4'/>
-      <p className='text-neutral-800 font-semibold'>{`start date : ${formatDate(reportDate?.fromDate)} - ${formatDate(reportDate?.toDate)}`}</p> 
+  <div className='flex gap-2 font-inter capitalize items-center bg-gray-200/50 rounded-md 0 px-2 py-1 '>
+    {/* <img src={filter_icon} className='w-4 h-4'/> */}
+      <p className='text-neutral-800 '>{`start date : ${formatDate(reportDate?.fromDate)} - ${formatDate(reportDate?.toDate)}`}</p> 
       <div className='cursor-pointer' onClick={()=>{setShowModal(!showModal);handlePresetChange(datePresets[0].label)}}>
         <p className='text-base text-indigo-600 font-semibold'>Customize</p>
       </div> 
@@ -409,7 +432,7 @@ return (
           <div className='inline-flex justify-center items-center gap-2'>
           <img src={export_icon} className='w-4 h-4 -rotate-90'/>
           <div className='cursor-pointer'>
-            <p className='text-base text-indigo-600 font-semibold'>Export As</p>
+            <p className='text-base font-inter text-neutral-900'>Export As</p>
           </div>
           <img src={down_arrow_icon} className='w-4 h-4 translate-y-1'/>
           </div>

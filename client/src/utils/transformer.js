@@ -5,7 +5,7 @@ const flattedCashadvanceData = (data, subData) => {
     return data.flatMap(item => 
       item[subData].flatMap(obj => 
         obj.amountDetails.map(amountDetail => ({
-          group:item?.groupName?.map(group=>group).join(", ") ?? "-",
+          group:`${item?.groupName?.map(group=>group).join(", ") ?? "-"}`,
           travelRequestNumber: item?.travelRequestNumber,
           travelRequestStatus: item?.travelRequestStatus,
           travelType: item?.travelType,
