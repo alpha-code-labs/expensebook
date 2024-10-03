@@ -1,4 +1,5 @@
 import Finance from "../../models/Finance.js";
+import REIMBURSEMENT from "../../models/reimbursement.js";
 
 
 export const updateFinance = async (payload) => {
@@ -25,41 +26,81 @@ export const updateFinance = async (payload) => {
 };
 
 
+// export const fullUpdateReimbursement = async (settlements) => {
+//   console.log("reimbursement array one..... ", JSON.stringify(settlements))
+// try{
+//    const updateAll = settlements.map(async(reimbursement) => {
+//      const {tenantId, expenseHeaderId} = reimbursement
+
+//      const reimbursementReport = await REIMBURSEMENT.findOneAndUpdate({
+//       tenantId,
+//       'actionedUpon':false,
+//       'expenseHeaderId':expenseHeaderId
+//      },
+//      {
+//       $set:{
+//         ...reimbursement,
+//       }
+//       },
+//       {
+//         upsert:true, new:true
+//       }
+//      )
+
+//      console.log("reimbursementReport updated in finance db",reimbursementReport?.length)
+//      return { success:true, error: null}
+//    })
+//    const results = await Promise.all(updateAll)
+//    const isSuccess = results.every(result => result.success)
+//    if(isSuccess){
+//     return {success:true, error: null}
+//    } else{
+//     return { success:false, error: error}
+//    }
+// } catch (error){
+//   return {success:false, error:error.message}
+// }
+// }
+
 export const fullUpdateReimbursement = async (settlements) => {
-  console.log("reimbursement array one..... ", JSON.stringify(settlements))
-try{
-   const updateAll = settlements.map(async(reimbursement) => {
-     const {reimbursementSchema} = reimbursement
-     const {tenantId, expenseHeaderId,} = reimbursementSchema
+  console.log("reimbursement array one..... ", JSON.stringify(settlements));
+  try {
+    const updateAll = settlements.map(async (reimbursement) => {
+      const { tenantId, expenseHeaderId } = reimbursement;
 
-     const reimbursementReport = await Finance.findOneAndUpdate({
-      tenantId,
-      'reimbursementSchema.actionedUpon':false,
-      'reimbursementSchema.expenseHeaderId':expenseHeaderId
-     },
-     {
-      $set:{
-        reimbursementSchema:reimbursementSchema,
-      }
-      },
-      {
-        upsert:true, new:true
-      }
-     )
+      const reimbursementReport = await REIMBURSEMENT.findOneAndUpdate(
+        {
+          tenantId,
+          'actionedUpon': false,
+          'expenseHeaderId': expenseHeaderId,
+        },
+        {
+          $set: {
+            ...reimbursement,
+          },
+        },
+        {
+          upsert: true,
+          new: true,
+        }
+      );
 
-     return { success:true, error: null}
-   })
-   const results = await Promise.all(updateAll)
-   const isSuccess = results.every(result => result.success)
-   if(isSuccess){
-    return {success:true, error: null}
-   } else{
-    return { success:false, error: error}
-   }
-} catch (error){
-  return {success:false, error:error.message}
-}
-}
+      // console.log("reimbursementReport updated in finance db", reimbursementReport);
+      return { success: true, error: null };
+    });
+
+    const results = await Promise.all(updateAll);
+    const isSuccess = results.every(result => result.success);
+    if (isSuccess) {
+      return { success: true, error: null };
+    } else {
+      return { success: false, error: "Some updates failed." };
+    }
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+};
+
 
 
 export const fullUpdateCashBatchJob = async (payloadArray) => {
@@ -146,7 +187,7 @@ export const fullUpdateExpense = async (payloadArray) => {
     return {success: false, error: error}
   }
  } catch (error) {
-    console.error('Failed to update Finance: TravelExpenseData updation failed', error);
+    console.error('Failed to update Finance: Failed to update TravelExpenseData failed', error);
     return { success: false, error: error}
   }
 }
