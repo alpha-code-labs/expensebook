@@ -52,7 +52,7 @@ const roleBasedLayoutSchema = Joi.object({
 
 const roleBasedLayout = async (req, res) => {
   try {
-    let{tenantId, empId } = req.user
+    let{tenantId, empId } = req.params
     const { error, value } = roleBasedLayoutSchema.validate({tenantId, empId });
 
     if (error) {

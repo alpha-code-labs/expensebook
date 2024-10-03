@@ -4,7 +4,7 @@ import dotenv from 'dotenv';
 import { updateTrip, updateTripToCompleteOrClosed } from './messageProcessor/trip.js';
 import { deleteReimbursement, updateReimbursement } from './messageProcessor/reimbursement.js';
 import { fullUpdateExpense } from './messageProcessor/travelExpenseProcessor.js';
-import { approveRejectCashRaisedLater, expenseReportApproval, nonTravelReportApproval } from './messageProcessor/dashboard.js';
+import { approveRejectCashRaisedLater, approveRejectRequests, expenseReportApproval, nonTravelReportApproval, travelStandAloneApproval, travelWithCashTravelApproval } from './messageProcessor/dashboard.js';
 import { settleNonTravelExpenseReport } from './messageProcessor/finance.js';
 // import { fullUpdateExpense } from './messageProcessor/travelExpenseProcessor.js';
 // import { updateTrip } from './messageProcessor/trip.js';
@@ -210,6 +210,25 @@ export async function startConsumer(receiver) {
               console.log(res7)
               handleMessageAcknowledgment(channel, msg, res7);
               break;
+              
+              case 'approve-reject-tr':
+                console.log("approval standalone")
+                const res14 = await travelStandAloneApproval(payload)
+                handleMessageAcknowledgment(channel,msg,res14);
+                break;
+              
+                case 'approve-reject-tr-ca':
+                  console.log("approval standalone")
+                  console.log("approval - travel with cash")
+                  const res15 = await travelWithCashTravelApproval(payload)
+                  handleMessageAcknowledgment(channel,msg,res15);
+                  break;
+
+            case "approve-reject-ca":
+              const res12 = await approveRejectRequests(payload);
+                console.log(res12);
+                handleMessageAcknowledgment(channel, msg, res12);
+                break;
             
             case 'approve-reject-ca-later':
               const res8 = await approveRejectCashRaisedLater(payload);

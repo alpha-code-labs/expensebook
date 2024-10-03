@@ -3,6 +3,64 @@ import REIMBURSEMENT from "../../models/reimbursementSchema.js"
 import reporting from "../../models/reportingSchema.js"
 
 
+
+const travelStandAloneApproval = async(payload) =>{
+  try{
+   const {tenantId, travelRequestId, approvers,travelRequestStatus, rejectionReason} = payload || {};
+
+   // console.log("Payload for travelStandAloneApproval", payload);
+   const travelStandAlone = await reporting.updateOne({
+       tenantId,
+       travelRequestId
+      },{
+        $set:{
+           'travelRequestData.travelRequestStatus': travelRequestStatus,
+            'travelRequestData.approvers': approvers,
+            'travelRequestData.rejectionReason': rejectionReason,
+           }
+       }, 
+   )
+
+   //  console.log("update on travel request", travelStandAlone)
+   if(travelStandAlone.modifiedCount == 0){
+       return {success: false, message:"failed to update travel "}
+   }else{
+   //    console.log("Updated tr...",travelStandAlone)
+       return {success: true, message:"travel Approval was updated successfully"}
+   }
+} catch (error){
+   return {success: false, message:"failed to update travel ", error}
+}
+}
+
+const travelWithCashTravelApproval = async(payload) =>{
+  try{
+   const {tenantId, travelRequestId, approvers,travelRequestStatus, rejectionReason} = payload || {};
+
+   console.log("Payload for travelWithCash   Travel  approval", payload);
+   const travelWithCashTravel = await reporting.updateOne({
+       tenantId,
+       travelRequestId
+      },{
+        $set:{
+           'travelRequestData.travelRequestStatus': travelRequestStatus,
+            'travelRequestData.approvers': approvers,
+            'travelRequestData.rejectionReason': rejectionReason,
+           }
+       }, 
+   )
+    console.log("after db update ", travelWithCashTravel)
+   if(travelWithCashTravel.modifiedCount == 0){
+       return {success: false, message:"failed to update travel "}
+   }else{
+      console.log("Updated travelWithCashTravel...",travelWithCashTravel)
+       return {success: true, message:"travelWithCash Travel Approval was updated successfully"}
+   }
+} catch (error){
+   return {success: false, message:"failed to update travelWithCashTravel ", error}
+}
+}
+
 // 1)travel preference
 async function updatePreferences(payload){
     try{
@@ -27,6 +85,64 @@ async function updatePreferences(payload){
     }
   }
 
+async function approveRejectRequests(payload) {
+    try {
+        const results = [];
+        console.log("payload",payload)
+
+        for (const request of payload) {
+            const {
+                travelRequestId,
+                travelRequestStatus,
+                rejectionReason,
+                approvers,
+                cashAdvances
+            } = request;
+
+            // Find the cash advance based on the travel request ID
+            const cashAdvance = await reporting.findOne({ 'travelRequestData.travelRequestId': travelRequestId });
+            if (!cashAdvance) {
+                results.push({ travelRequestId, success: false, error: 'Travel Request not found' });
+                continue;
+            }
+
+            // Update travel request details
+            cashAdvance.travelRequestData.travelRequestStatus = travelRequestStatus;
+            cashAdvance.travelRequestData.rejectionReason = rejectionReason;
+            cashAdvance.travelRequestData.approvers = approvers;
+
+            // Update itinerary items if pending approval
+            Object.keys(cashAdvance.travelRequestData.itinerary).forEach(key => {
+                cashAdvance.travelRequestData.itinerary[key].forEach(item => {
+                    if (item.status === 'pending approval') {
+                        item.status = travelRequestStatus;
+                        item.approvers = approvers;
+                    }
+                });
+            });
+
+            // Update cash advances
+            cashAdvances.forEach(ca => {
+                cashAdvance.cashAdvancesData.forEach(existingCa => {
+                    if (existingCa.cashAdvanceId.toString() === ca.cashAdvanceId) {
+                        existingCa.cashAdvanceStatus = ca.cashAdvanceStatus;
+                        existingCa.cashAdvanceRejectionReason = ca.cashAdvanceRejectionReason;
+                        existingCa.approvers = ca.approvers;
+                    }
+                });
+            });
+
+            // Save the updates
+            await cashAdvance.save();
+            console.log("cashAdvance",cashAdvance)
+            results.push({ travelRequestId, success: true, error: null });
+        }
+
+        return {success: true, error: null};
+    } catch (e) {
+        return { success: false, error: e };
+    }
+}
 
 //2) Approve reject cash raised later
 async function approveRejectCashRaisedLater(payload) {
@@ -76,7 +192,6 @@ function updateCashAdvances(existingCashAdvances, newCashAdvances) {
 }
 
 // 3) expense Report Approval
-
 async function getExpenseReport(tenantId,empId,tripId,expenseHeaderId){
     try{
       const expenseReport = await reporting.findOne({
@@ -292,7 +407,10 @@ const nonTravelReportApproval = async (payload) => {
 
 
 export { 
+        travelStandAloneApproval,
+        travelWithCashTravelApproval,
         updatePreferences, 
+        approveRejectRequests,
         approveRejectCashRaisedLater, 
         expenseReportApproval,
         updateExpenseLineStatus,

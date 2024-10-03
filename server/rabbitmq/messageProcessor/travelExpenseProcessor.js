@@ -17,7 +17,7 @@ export const fullUpdateExpense = async (payload) => {
     const updated = await reporting.updateOne(
       { tenantId, 'travelRequestData.travelRequestId':travelRequestId, tripId },
       {
-      $set:{...getExpenseReport}
+      $set:{travelRequestId,...getExpenseReport}
       },
       { upsert: true, new: true }
     );

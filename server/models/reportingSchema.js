@@ -57,7 +57,7 @@ const reportingSchema = new mongoose.Schema({
   travelRequestId: {
     type: mongoose.Schema.Types.ObjectId,
     unique: true,
-    required: true,
+    // required: true,
     // index:true,
   },
   tripId:{
@@ -190,7 +190,7 @@ const reportingSchema = new mongoose.Schema({
   isClosed:{
     type:Boolean,
     default:false
-  }
+  },
   isSentToExpense: Boolean, 
   notificationSentToDashboardFlag: Boolean,
 }); 
