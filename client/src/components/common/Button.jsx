@@ -8,7 +8,7 @@ export default function Button(props){
     <div
         onClick={onClick} 
         className={`${variant=='fit'? 'w-fit':'w-full' } h-12 px-8 py-4 bg-indigo-600 rounded-[32px] justify-center items-center gap-2 inline-flex cursor-pointer`}>
-        <div className="w-full h-5 text-center text-white text-base font-medium font-cabin">{text}</div>
+        <div className="w-full text-center text-white text-base font-medium font-cabin">{text}</div>
     </div>
     </>)
 }
