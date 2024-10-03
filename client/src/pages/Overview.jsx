@@ -352,7 +352,7 @@ className={`px-2 py-1 rounded-lg cursor-pointer ease-in-out ${expenseTabs === 'n
    Raise Travel Request
    </p>
    </div> */}
-   <TooltipBtn onClick={()=>handleVisible({urlName:"travel-url"})} onHover={'Raisn Travel Request'} icon={plus_black_icon} disabled={true}/>
+   <TooltipBtn onClick={()=>handleVisible({urlName:"travel-url"})} onHover={'Raise Travel Request'} icon={plus_black_icon} disabled={true}/>
      
    </div>
    
