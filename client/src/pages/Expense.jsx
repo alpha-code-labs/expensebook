@@ -151,7 +151,8 @@ const Expense = ({searchQuery,isLoading ,fetchData,loadingErrMsg}) => {
          // Check the message content or identifier
          if (event.data === 'closeIframe') {
           setExpenseVisible(false)
-          window.location.href = window.location.href;
+          //window.location.href = window.location.href;
+          fetchData()
          
           
         }
@@ -225,7 +226,7 @@ setSelectedStatuses={setSelectedStatuses}
                           <div className='flex flex-row justify-between items-center py-1 border-b border-slate-300 font-cabin font-xs'>
                             
                             <StatusBox status={trExpense?.expenseHeaderStatus ?? "-"}/>
-                            {!['paidAndDistributed'].includes(trExpense?.expenseHeaderStatus) &&
+                            {!['paid','paidAndDistributed'].includes(trExpense?.expenseHeaderStatus) &&
                             <ModifyBtn onClick={()=>handleVisible({urlName:handleTravelExpense({tenantId,empId,tripId:trip?.tripId,expenseHeaderId: trExpense?.expenseHeaderId, action: 'trip-ex-modify' })})}/>
                             }
                             
@@ -274,7 +275,7 @@ setSelectedStatuses={setSelectedStatuses}
                     </div>
                     <div className='flex flex-row gap-2 justify-between items-center font-cabin font-xs'>
                       <StatusBox status={nonTravelExp?.expenseHeaderStatus ?? "-"}/>
-                      {!['paidAndDistributed'].includes(nonTravelExp?.expenseHeaderStatus) &&
+                      {!['paid','paidAndDistributed'].includes(nonTravelExp?.expenseHeaderStatus) &&
                       
                       <ModifyBtn onClick={() => handleVisible({urlName:handleNonTravelExpense({tenantId,empId ,expenseHeaderId:nonTravelExp?.expenseHeaderId,action:"non-tr-ex-modify"})})}/>
                       }

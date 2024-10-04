@@ -212,7 +212,8 @@ const handleConfirm = async (action) => {
          // Check the message content or identifier
          if (event.data === 'closeIframe') {
           setVisible(false)
-          window.location.href = window.location.href;
+          fetchData()
+          // window.location.href = window.location.href;
         }else if(event.data.split(' ')[0] == 'raiseAdvance'){
           //we have to open an Iframe to raise cash advance
           setVisible(false)
@@ -319,7 +320,8 @@ const handleConfirm = async (action) => {
          // Check the message content or identifier
          if (event.data === 'closeIframe') {
           setVisible(false)
-          window.location.href = window.location.href;
+          // window.location.href = window.location.href;
+          fetchData()
         }
         
       }
