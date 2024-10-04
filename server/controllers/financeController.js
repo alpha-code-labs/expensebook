@@ -12,8 +12,117 @@
  */
 
 import dashboard from "../models/dashboardSchema.js";
+import REIMBURSEMENT from "../models/reimbursementSchema.js";
 
-const findSettlements = async (tenantId) => {
+
+
+const countSettlements = async (tenantId) => {
+    const statusFilters = {
+      cashAdvance: ['pending settlement', 'Paid and Cancelled'],
+      travelExpense: ['pending settlement', 'Paid'],
+      reimbursement: ['pending settlement']
+    };
+
+    const filter = {
+    tenantId,
+    $or: [
+        {
+          'cashAdvanceSchema.cashAdvancesData': {
+            $elemMatch: {
+              cashAdvanceStatus: { $in: statusFilters.cashAdvance }
+            }
+          }
+        },
+        {
+          'tripSchema.travelExpenseData': {
+            $elemMatch: {
+              expenseHeaderStatus: { $in: statusFilters.travelExpense }
+            }
+          }
+        },
+      ]
+    };
+  
+    // Get the counts of documents
+    const [dashboardCount, reimbursementCount] = await Promise.all([
+      dashboard.countDocuments(filter),
+      REIMBURSEMENT.countDocuments({
+        tenantId,
+        expenseHeaderStatus: { $in: statusFilters.reimbursement }
+      })
+    ]);
+  
+    const totalCount = dashboardCount + reimbursementCount;
+  
+    return { 
+      dashboardCount, 
+      reimbursementCount, 
+      totalCount 
+    };
+  };
+
+
+export const financeLayout = async (tenantId) => {
+    try {
+      const {totalCount} = await countSettlements(tenantId);
+      console.log("count finance", totalCount);
+      return totalCount;
+    } catch (error) {
+      console.error("Error in fetching employee Dashboard:", error);
+      throw new Error('Error in fetching employee Dashboard');
+    }
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+const oldfindSettlements = async (tenantId) => {
     const cashAdvanceStatus = ['pending settlement', 'Paid and Cancelled'];
     const travelExpenseStatus = ['pending settlement', 'Paid'];
     const reimbursementStatus = ['pending settlement'];
@@ -45,7 +154,7 @@ const findSettlements = async (tenantId) => {
     return await dashboard.find(settlementsFilter);
 };
 
-export const financeLayout = async (tenantId, empId) => {
+export const oldfinanceLayout = async (tenantId, empId) => {
     try {
         // const settlements = await Dashboard.find({
         //     tenantId,
