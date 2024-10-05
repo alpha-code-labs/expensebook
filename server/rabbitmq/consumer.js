@@ -6,6 +6,8 @@ import { deleteReimbursement, updateReimbursement } from './messageProcessor/rei
 import { fullUpdateExpense } from './messageProcessor/travelExpenseProcessor.js';
 import { approveRejectCashRaisedLater, approveRejectRequests, expenseReportApproval, nonTravelReportApproval, travelStandAloneApproval, travelWithCashTravelApproval } from './messageProcessor/dashboard.js';
 import { settleNonTravelExpenseReport } from './messageProcessor/finance.js';
+import { fullUpdateTravel, fullUpdateTravelBatchJob } from './messageProcessor/travel.js';
+import { cashStatusUpdatePaid, fullUpdateCash, fullUpdateCashBatchJob, onceCash } from './messageProcessor/cash.js';
 // import { fullUpdateExpense } from './messageProcessor/travelExpenseProcessor.js';
 // import { updateTrip } from './messageProcessor/trip.js';
 // import { fullUpdateCash, fullUpdateCashBatchJob } from './messageProcessor/cash.js';
@@ -113,6 +115,59 @@ export async function startConsumer(receiver) {
           handleMessageAcknowledgment(channel,msg,res)  
           break;
 
+          case 'travel':
+            switch (action) {
+              case 'full-update':
+                console.log('trying to update Travel')
+                const res1 = await fullUpdateTravel(payload)
+                handleMessageAcknowledgment(channel, msg, res1);
+                break;
+              
+              case 'full-update-batchjob':
+                console.log('trying to update Travel BatchJob - Booking')
+                const res2 = await fullUpdateTravelBatchJob(payload)
+                handleMessageAcknowledgment(channel, msg, res2);
+                break;
+            
+              default:
+                console.warn(`Unknown action '${action}' for source ${source}`);
+                break;
+            }
+            break;
+
+          case 'cash':
+            switch (action) {
+              case 'full-update':
+                console.log('trying to update CashAdvanceSchema')
+              const res3 = await fullUpdateCash(payload)
+              handleMessageAcknowledgment(channel, msg, res3);
+                break;
+            
+              case 'full-update-batch-job':
+                console.log('trying to update CashAdvanceSchema')
+                const res4 = await fullUpdateCashBatchJob(payload)
+                handleMessageAcknowledgment(channel, msg, res4);
+                break;
+              
+              case 'status-update-batch-job':
+                console.log('trying to update CashAdvanceSchema')
+                const res5 = await cashStatusUpdatePaid(payload)
+                handleMessageAcknowledgment(channel, msg, res5);
+                break;
+
+
+                case 'onceCash':
+                  console.log('trying to update CashAdvanceSchema')
+                  const res51 = await onceCash(payload)
+                  handleMessageAcknowledgment(channel, msg, res51);
+                  break;
+
+                default:
+                  console.warn(`Unknown action '${action}' for source ${source}`);
+                  break;
+            }
+            break;
+          
         case 'reimbursement':
             switch (action) {
               case 'full-update':
@@ -254,7 +309,7 @@ export async function startConsumer(receiver) {
           }
           break;
 
-          case 'finance':
+        case 'finance':
             switch(action){
               case 'settle-ca':
               case 'recover-ca':
