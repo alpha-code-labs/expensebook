@@ -1060,24 +1060,47 @@ const getTripForEmployee = async (tenantId, empId) => {
   }
 };
 
-const getAllExpensesForEmployee = async (tenantId, empId) => {
-    // console.log("entering trips db")
-try {
-    const tripDocs = await dashboard.find({
-        $or: [
-        { 
+const fetchEmployeeReimbursementReports = (tenantId, empId) => {
+    return REIMBURSEMENT.find({
+        tenantId,
+       'createdBy.empId': empId, 
+    });
+};
+
+const fetchEmployeeExpenseReports = (tenantId,empId) => {
+    return dashboard.find({ 
             'tripSchema.tenantId': tenantId,
             'tripSchema.travelRequestData.createdBy.empId': empId,
             $or: [
               { 'tripSchema.tripStatus': { $nin: ['upcoming',  'recovered',] } },
-            ],
-        },
-        { 'reimbursementSchema.createdBy.empId': empId }, 
-        ],
-    }).lean().exec();
+            ]
+        }).lean().exec();
+}
+
+const getAllExpensesForEmployee = async (tenantId, empId) => {
+    // console.log("entering trips db")
+try {
+
+    const [tripDocs, reimbursementReports] = await Promise.all([
+        fetchEmployeeExpenseReports(tenantId, empId),
+        fetchEmployeeReimbursementReports(tenantId, empId)
+    ]);
+
+    // const tripDocs = await dashboard.find({
+    //     $or: [
+    //     { 
+    //         'tripSchema.tenantId': tenantId,
+    //         'tripSchema.travelRequestData.createdBy.empId': empId,
+    //         $or: [
+    //           { 'tripSchema.tripStatus': { $nin: ['upcoming',  'recovered',] } },
+    //         ],
+    //     },
+    //     { 'reimbursementSchema.createdBy.empId': empId }, 
+    //     ],
+    // }).lean().exec();
     
 
-    if (tripDocs?.length === 0) {
+    if (tripDocs?.length === 0 && reimbursementReports?.length === 0) {
         return { allTripExpenseReports : [],
             allNonTravelReports :[],
             completedTrips :[]};
@@ -1203,12 +1226,9 @@ const status ={
             itinerary: itineraryToSend
         };
     });
-
-    const getReimbursementReports = await REIMBURSEMENT.find({ 
-        'createdBy.empId': empId })
     
 
-        const allNonTravelReports = getReimbursementReports
+        const allNonTravelReports = reimbursementReports
         .filter(report => {
             // console.log("trip after filter", trip);
             // Assuming createdBy is an object with empId property
