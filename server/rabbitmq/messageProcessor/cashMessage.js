@@ -102,7 +102,7 @@ export const cashStatusUpdate = async(payload) => {
 // cash status- cancel cash
 export const updateCashStatus = async (payload) => {
     try {
-      const updated = await Approval.findOneAndUpdate(
+      const updated = await Trip.findOneAndUpdate(
         { 'tenantId': payload.tenantId, 'cashAdvanceData.travelRequestId': payload.travelRequestId },
         {
           $set: {

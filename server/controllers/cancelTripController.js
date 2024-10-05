@@ -190,7 +190,7 @@ export const getTripDetails = async (req, res) => {
     const getTrip = await Trip.findOne({
       tenantId,
       tripId,
-      tripStatus: { $in: ['transit', 'upcoming'] },
+      tripStatus: { $in: ['transit', 'upcoming','completed'] },
       $or: [
           { 'travelRequestData.createdBy.empId': empId },
           { 'travelRequestData.createdFor.empId': empId },
