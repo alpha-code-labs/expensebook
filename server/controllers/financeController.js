@@ -59,7 +59,7 @@ const countSettlements = async (tenantId) => {
       reimbursementCount, 
       totalCount 
     };
-  };
+};
 
 
 export const financeLayout = async (tenantId) => {

@@ -75,7 +75,7 @@ export async function startConsumer(receiver) {
           channel.ack(msg);
           console.log('Message acknowledged successfully');
         } else {
-          // channel.nack(msg, false, true);
+          //  channel.nack(msg, false, true);
           console.log('Error processing message, requeuing');
         }
       } catch(error){
