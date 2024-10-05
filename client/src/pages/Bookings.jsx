@@ -64,13 +64,13 @@ const expenseCategories = {
     'cab' : [{name:'Vendor Name', id:'vendorName', toSet:'bookingDetails', type:'text'},
                 {name:'Booking Date',  toSet:'bkd_date',  id:'bkd_date', type:'date'},
                 {name: 'Return Date', toSet:'bkd_returnDate', id:'bkd_returnDate', type:'date'}, 
-                {name:'Cab Time',  toSet:'bkd_time',  id:'bkd_time', type:'time'},
+                {name:'Return Time',  toSet:'bkd_returnTime',  id:'bkd_returnTime', type:'time'},
                 {name:'Pickup Address', toSet:'bkd_pickupAddress',  id:'bkd_pickupAddress', type:'text'}, 
                 {name:'Drop Address', type:'text', toSet:'bkd_dropAddress', id:'bkd_dropAddress'}, 
                 {name:'Tax Amount', type:'amount', toSet:'bookingDetails', id:'taxAmount'}, 
                 {name:'Total Amount', type:'amount', toSet:'bookingDetails', id:'totalAmount'}],
 
-    'rentalCab' : [{name:'Vendor Name', id:'vendorName', toSet:'bookingDetails', type:'text'},
+    'carRentals' : [{name:'Vendor Name', id:'vendorName', toSet:'bookingDetails', type:'text'},
                 {name:'Booking Date',  toSet:'bkd_date',  id:'bkd_date', type:'date'},
                 {name: 'Return Date', toSet:'bkd_returnDate', id:'bkd_returnDate', type:'date'}, 
                 {name:'Cab Time',  toSet:'bkd_time',  id:'bkd_time', type:'time'},
@@ -84,10 +84,12 @@ const expenseCategories = {
                  {name:'Hotel Name', id:'hotelName', toSet:'bookingDetails', type:'text'},
                 {name:'Check-In Date',  toSet:'bkd_checkIn',  id:'bkd_checkIn', type:'date'}, 
                 {name:'Check-Out Date', toSet:'bkd_checkOut', id:'bkd_checkOut', type:'date' },
-                {name:'Check-In Time',  toSet:'bkd_time',  id:'bkd_time', type:'time'}, 
+                {name:'Check-In Time',  toSet:'bkd_checkInTime',  id:'bkd_checkInTime', type:'time'}, 
+                {name:'Check-Out Time',  toSet:'bkd_checkOutTime',  id:'bkd_checkOutTime', type:'time'},
                 {name:'Tax Amount', type:'amount', toSet:'bookingDetails', id:'taxAmount'}, 
                 {name:'Total Amount', type:'amount', toSet:'bookingDetails', id:'totalAmount'}]
 }
+
 
 export default function () {
   //get travel request Id from params
@@ -148,7 +150,7 @@ export default function () {
             console.log(`Upload of file '${file.name}' completed`);
             return {success:true}
         }catch(e){
-            console.error(e)
+            //console.error(e)
             return {success:false}   
         }
       }
@@ -244,8 +246,56 @@ export default function () {
 
     //send data to backend
     const formData_copy = JSON.parse(JSON.stringify(formData))
-    formData_copy.itinerary[toSet].forEach( (_,index)=>{
-        if(index == itemIndex) formData_copy.itinerary[toSet][index].status = 'booked';
+    formData_copy.itinerary[toSet].forEach( (item,index)=>{
+        if(index == itemIndex){
+            //check if all required fields are filled
+            switch(toSet){
+                case 'flights': {
+                    if(item.bkd_from && item.bkd_to && item.bkd_date && item.bkd_time && item.bookingDetails.billDetails.vendorName && item.bookingDetails.billDetails.taxAmount && item.bookingDetails.billDetails.totalAmount){
+                        formData_copy.itinerary[toSet][index].status = 'booked';
+                    }
+                    return;
+                }
+                case 'buses': {
+                    if(item.bkd_from && item.bkd_to && item.bkd_date && item.bkd_time && item.bookingDetails.billDetails.vendorName &&  item.bookingDetails.billDetails.taxAmount && item.bookingDetails.billDetails.totalAmount){
+                        formData_copy.itinerary[toSet][index].status = 'booked';
+                    }
+                    return;
+                }
+                case 'trains': {
+                    if(item.bkd_from && item.bkd_to && item.bkd_date && item.bkd_time && item.bookingDetails.billDetails.vendorName && item.bookingDetails.billDetails.taxAmount && item.bookingDetails.billDetails.totalAmount){
+                        formData_copy.itinerary[toSet][index].status = 'booked';
+                    }
+                    return;
+                }
+                case 'cabs': {
+                    if(item.bkd_pickupAddress && item.bkd_dropAddress && item.bkd_date && item.bkd_time && item.bookingDetails.billDetails.vendorName && item.bookingDetails.billDetails.taxAmount && item.bookingDetails.billDetails.totalAmount){
+                        if(item.isFullDayCab){
+                            if(item.returnDate) formData_copy.itinerary[toSet][index].status = 'booked';
+                        }else{
+                            formData_copy.itinerary[toSet][index].status = 'booked';
+                        }
+                    }
+                    return;
+                }
+                case 'carRentals': {
+                    if(item.bkd_pickupAddress && item.bkd_dropAddress && item.bkd_date && item.bkd_time && item.bookingDetails.billDetails.vendorName && item.bookingDetails.billDetails.taxAmount && item.bookingDetails.billDetails.totalAmount){
+                        if(item.isFullDayCab){
+                            if(item.returnDate) formData_copy.itinerary[toSet][index].status = 'booked';
+                        }else{
+                            formData_copy.itinerary[toSet][index].status = 'booked';
+                        }
+                    }
+                    return;
+                }
+                case 'hotels':{
+                    if(item.bkd_location && item.bkd_checkIn && item.bkd_checkOut && bkd_checkInTime && item.bookingDetails.billDetails.vendorName && bkd_checkOutTime && item.bookingDetails.billDetails.taxAmount && item.bookingDetails.billDetails.totalAmount){
+                        formData_copy.itinerary[toSet][index].status = 'booked';
+                    }
+                }
+
+            }
+        }
     })
 
     setFormData(formData_copy)
@@ -899,7 +949,71 @@ function AddTicketManually(
         if(!presentURL){
             setDocURL();
         }
-    }, [fileSelected, presentURL])
+    }, [fileSelected, presentURL]);
+
+    useEffect(()=>{
+        //if itinerary fileds are empty set them them to travel request forms values
+        const formData_copy = JSON.parse(JSON.stringify(formData));
+        Object.keys(formData_copy.itinerary).forEach(key=>{
+            if(key == 'flights' || key == 'buses' || key == 'trains' ){
+                formData_copy.itinerary[key].forEach(item=>{
+                    if(!item.bkd_from){
+                        item.bkd_from = item.from;
+                    }
+                    if(!item.bkd_to){
+                        item.bkd_to = item.to;
+                    }
+                    if(!item.bkd_date){
+                        item.bkd_date = item.date;
+                    }
+                    if(!item.bkd_time){
+                        item.bkd_time = '11:00'
+                    } 
+                })
+            }
+
+            if(key == 'cabs' || key == 'carRentals'){
+                formData_copy.itinerary[key].forEach(item=>{
+                    if(!item.bkd_pickupAddress){
+                        item.bkd_pickupAddress = item.pickupAddress;
+                    }
+                    if(!item.bkd_dropAddress){
+                        item.bkd_dropAddress = item.dropAddress;
+                    }
+                    if(!item.bkd_date){
+                        item.bkd_date = item.date;
+                    } 
+                    if((item.isFullDayCab || item.isRentalCab) && !item.bkd_returnDate){
+                        item.bkd_returnDate = item.returnDate;
+                    }
+                    if(!item.bkd_time){
+                        item.bkd_time = '11:00'
+                    } 
+                })
+            }
+
+            if(key == 'hotels'){
+                formData_copy.itinerary[key].forEach(item=>{
+                    if(!item.bkd_location){
+                        item.bkd_location = item.location;
+                    }
+                    if(!item.bkd_checkIn){
+                        item.bkd_checkIn = item.checkIn;
+                    }
+                    if(!item.bkd_checkOut){
+                        item.bkd_checkOut = item.checkOut;
+                    }
+                    if(!item.bkd_checkInTime){
+                        item.bkd_checkInTime = '11:00'
+                    } 
+                    if(!item.bkd_checkOutTime){
+                        item.bkd_checkOutTime = '11:00';
+                    }
+                })
+            }
+        });
+        setFormData(formData_copy);
+    },[]);
 
     let firstTime = true;
 
@@ -956,7 +1070,7 @@ function AddTicketManually(
                                         min={getDateXDaysAway(Number(minDaysBeforeBooking))}
                                         className="w-full h-full decoration:none px-6 py-2 border rounded-md border border-neutral-300 focus-visible:outline-0 focus-visible:border-indigo-600 "
                                         name={field.name} 
-                                        value={itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet] ? itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet] : itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet.split('_')[1]]}
+                                        value={itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet] ? formattedDate(itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet]) : formattedDate(itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet.split('_')[1]])}
                                         onChange={(e)=>handleFieldValueChange(field.toSet, field.id, e)} />
                                     </div>
                                 </div>
@@ -1343,6 +1457,15 @@ function getDateXDaysAway(days) {
     catch(e){
         return timeValue
     }
+}
+
+function formattedDate(date){
+    const givenDate = new Date(date);
+    const day = String(givenDate.getDate()).padStart(2,'0');
+    const month = String(givenDate.getMonth()).padStart(2,'0');
+    const year = givenDate.getFullYear();
+
+    return `${year}-${month}-${day}`;
 }
 
 function getStatusClass(status){

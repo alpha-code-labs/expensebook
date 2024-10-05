@@ -263,6 +263,7 @@ const itinerarySchema = {
         docType: String,
         billDetails: {
           vendorName: String,
+          hotelName: String,
           taxAmount: String,
           totalAmount: String,
         },
