@@ -221,10 +221,10 @@ export const travelExpenseApproval = async (req, res) => {
     ]
     await Promise.all(promises)
 
-     return res.status(200).json({ message: `expense Report ${expenseHeaderStatus} for ${name}` });
+    return res.status(200).json({ message: `expense Report ${expenseHeaderStatus} for ${name}` });
   }} catch (error) {
-     console.error('An error occurred while updating Travel Expense status:', error.message);
-     res.status(500).json({ error: error.message });
+    console.error('An error occurred while updating Travel Expense status:', error.message);
+    res.status(500).json({ error: error.message });
   }
 };
 
@@ -275,8 +275,8 @@ export const viewTravelExpenseDetails = async (req, res) => {
     // Filter approval documents by approver's empId and expenseHeaderType: Travel
     const approvalDocument = await Approval.findOne({
       tenantId,
-       'tripSchema.tripId':tripId,
-       'tripSchema.travelExpenseData':{
+      'tripSchema.tripId':tripId,
+      'tripSchema.travelExpenseData':{
         $elemMatch:{
           'expenseHeaderId':expenseHeaderId,
           'expenseHeaderStatus': 'pending approval',
@@ -295,10 +295,10 @@ export const viewTravelExpenseDetails = async (req, res) => {
     } else{
       console.log(" before ",approvalDocument)
       const {travelRequestData, expenseAmountStatus,tripId,tripNumber,  travelExpenseData} = approvalDocument.tripSchema
-      const {createdBy} = travelRequestData
+      const {createdBy, tripName} = travelRequestData
       const { defaultCurrency} = travelExpenseData
       const expenseReport = travelExpenseData.find(expense => expense.expenseHeaderId.toString() === expenseHeaderId);
-    const data = {createdBy,expenseAmountStatus,tripId, tripNumber, defaultCurrency, expenseReport}
+    const data = {createdBy,expenseAmountStatus,tripId,tripName, tripNumber, defaultCurrency, expenseReport}
     return  res.status(200).json({ success: true , data});
 
     }
@@ -478,11 +478,6 @@ export const TravelExpenseHeaderStatusRejected = async (req, res) => {
      res.status(500).json({ error: 'An error occurred while updating Travel Expense status.' });
   }
 };
-
-
-
-
-
 
 
 
