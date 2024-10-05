@@ -132,7 +132,7 @@ export const consumeFromDashboardQueue = async () => {
            const source = headers.source;
            const isNeedConfirmation = headers.needConfirmation;
            let action = headers.action;
- 
+
            // Process only messages with type 'new'
            if (headers.type === 'new') {
              console.log("Processing message of type 'new'", payload);
