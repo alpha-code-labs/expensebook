@@ -335,9 +335,9 @@ totalViolations = totalTravelViolations +  totalCashViolations || 0;
                                                 return (
                                                     <div key={itemIndex}>
                                                         <CabCard 
-                                                       
+                                                        mode={'Cab'}
                                                         violations={item?.violations}
-                                                      
+                                                        isFullDayCab={item?.isFullDayCab}
                                                         handleAction={handleAction}
                                                         itnId={item.itineraryId}
                                                         handleLineItemAction={handleLineItemAction}
@@ -354,7 +354,7 @@ totalViolations = totalTravelViolations +  totalCashViolations || 0;
                                                         itnId={item.itineraryId}
                                                         handleLineItemAction={handleLineItemAction}
                                                         showActionButtons={travelRequestStatus!='pending approval' && item.status == 'pending approval'} 
-                                                        checkIn={item.checkIn} checkOut={item.checkOut} date={item.data} time={item.time} travelClass={item.travelClass} mode='Train' />
+                                                        checkIn={item.checkIn} checkOut={item.checkOut} location={item.location} date={item.data} time={item.time} travelClass={item.travelClass} mode='Train' />
                                                     </div>
                                                 );
                                             }
@@ -462,12 +462,14 @@ totalViolations = totalTravelViolations +  totalCashViolations || 0;
 //         return 'Bus station'
 // }
 
+
+
 function spitImageSource(modeOfTransit){
     if(modeOfTransit === 'Flight')
         return material_flight_icon
     else if(modeOfTransit === 'Train')
         return material_train_icon
-    else if(modeOfTransit === 'Bus')
+    else if(modeOfTransit === 'Buse')
         return material_bus_icon
     else if(modeOfTransit === 'Cab')
         return material_cab_icon
@@ -656,7 +658,7 @@ function FlightCard({from, to, date, returnDate, time, returnTime, travelClass, 
                       <p className="text-xs text-neutral-600 flex justify-between flex-col sm:flex-row">Prefferred Time</p>
                       <div className='flex items-center gap-1'>
                           <img src={clock_icon} className='w-4'/>
-                          <p>{formattedTime(time)??'--:--'}</p>    
+                          <p>{time??'--:--'}</p>    
                       </div>
                   </div>
                 
@@ -677,137 +679,7 @@ function FlightCard({from, to, date, returnDate, time, returnTime, travelClass, 
     </div>)
   }
 
-// function HotelCard({violations,handleAction ,checkIn, checkOut, hotelClass, onClick, preference='close to airport,', showActionButtons, itnId, handleLineItemAction}){
-//     return(
-//         <div className='border border-slate-300 rounded'>
-//     <div className="shadow-sm min-h-[76px] bg-slate-50 rounded-md  w-full px-6 py-4 flex flex-col sm:flex-row gap-4 items-center sm:divide-x">
-//     <p className='font-semibold text-base text-neutral-600'>Hotel</p>
-//     <div className="w-full flex sm:block">
-//         <div className='mx-2 text-xs text-neutral-600 flex justify-between flex-col sm:flex-row'>
-//             <div className="flex-1">
-//                 Check-In  
-//             </div>
-//             <div className="flex-1" >
-//                 Checkout
-//             </div>
-//             <div className="flex-1">
-//                 Class/Type
-//             </div>
-//             <div className='flex-1'>
-//                 Site Preference
-//             </div>
-//         </div>
-     
 
-//         <div className="mx-2 text-sm w-full flex justify-between flex-col sm:flex-row">
-//             <div className="flex-1">
-//                 {checkIn}     
-//             </div>
-//             <div className="flex-1">
-//                 {checkOut}     
-//             </div>
-//             <div className="flex-1">
-//                 {hotelClass??'N/A'}
-//             </div>
-//             <div className='flex-1'>
-//                 {preference??'N/A'}
-//             </div>
-//         </div>
-
-//     </div>
-   
-
-//     {showActionButtons && 
-//     // onClick={onClick}
-//     <div className={`flex items-center gap-2 px-3 pt-[6px] pb-2 py-3 rounded-[12px] text-[14px] font-medium tracking-[0.03em] text-gray-600 cursor-pointer bg-slate-100 `} >
-//         <div onClick={()=>handleAction(itnId,'itinerary-approve')}>
-//             <ActionButton text={'approve'}/>
-//         </div>
-//         <div onClick={()=>handleAction(itnId, 'itinerary-reject')}>
-//             <ActionButton text={'reject'}/>   
-//         </div>   
-//     </div>}
-    
-
-//     </div>
-//     {violations?.class !== null && 
-//         <div className="w-full h-auto bg-slate-100 rounded flex gap-2 text-yellow-500/80 px-4 py-2">
-//         <img src={violation_ySym_icon} alt='validation'/>
-        
-//         <p className="font-inter text-normal ">{violations?.class}</p>
-//         </div>}
-//     </div>)
-// }
-
-// function CabCard({violations,handleAction,from, to, date, time, travelClass,  isTransfer=false, showActionButtons, itnId}){
-
-
-    
-    
-//     return(
-//        <div className='border border-slate-300 rounded'>
-//     <div className="shadow-sm min-h-[76px] bg-slate-50 rounded-md  w-full px-6 py-4 flex flex-col sm:flex-row gap-4 items-center sm:divide-x">
-//     <div className='font-semibold text-base text-neutral-600'>
-//     <img src={cab_icon} className='w-4 h-4' />
-//         <p className="text-xs text-neutral-500">{isTransfer? 'Transfer Cab': 'Cab'}</p>
-//     </div>
-//     <div className="w-full flex sm:block">
-//         <div className='mx-2 text-xs text-neutral-600 flex justify-between flex-col sm:flex-row'>
-//             <div className="flex-1">
-//                 Pickup     
-//             </div>
-//             <div className="flex-1" >
-//                 Drop    
-//             </div>
-//             <div className="flex-1">
-//                     Date
-//             </div>
-//             <div className="flex-1">
-//                 Preffered Time
-//             </div>
-//             {!isTransfer && <div className="flex-1">
-//                 Class/Type
-//             </div>}
-//         </div>
-
-//         <div className="mx-2 text-sm w-full flex justify-between flex-col sm:flex-row">
-//             <div className="flex-1">
-//                 {from??'not provided'}     
-//             </div>
-//             <div className="flex-1">
-//                 {to??'not provided'}     
-//             </div>
-//             <div className="flex-1">
-//                 {formatDate(date??'not provided')}
-//             </div>
-//             <div className="flex-1">
-//                 {time??'N/A'}
-//             </div>
-//            {!isTransfer && <div className="flex-1">
-//                 {travelClass??'N/A'}
-//             </div>}
-//         </div>
-//     </div>
-   
-//     {showActionButtons && 
-//     <div className={`flex items-center gap-2 px-3 pt-[6px] pb-2 py-3 rounded-[12px] text-[14px] font-medium tracking-[0.03em] text-gray-600 cursor-pointer bg-slate-100`} >
-//         <div onClick={()=>handleAction(itnId,'itinerary-approve')}>
-//             <ActionButton text={'approve'}/>
-//         </div>
-//         <div onClick={()=>handleAction(itnId, 'itinerary-reject')}>
-//             <ActionButton text={'reject'}/>   
-//         </div>   
-//     </div>}
-
-//     </div>
-    
-//       {violations?.class?.length >0 && <div className="w-full h-auto bg-slate-100 rounded flex gap-2 text-yellow-500/80 px-4 py-2">
-//         <img src={violation_ySym_icon} alt='validation'/>
-        
-//         <p className="font-inter text-normal ">{violations?.class}</p>
-//         </div>}
-//     </div>)
-// }
 
 function HotelCard({checkIn, checkOut, location, onClick}){
     return(
@@ -833,7 +705,7 @@ function HotelCard({checkIn, checkOut, location, onClick}){
                       <p className="text-xs text-neutral-600 flex justify-between flex-col sm:flex-row">Location</p>
                       <div className="flex items-center gap-1">
                           <img src={location_icon} className='w-4'/>
-                          <p>{location??'not provided'}</p>
+                          <p>{location??'-'}</p>
                       </div>
                   </div>
             </div>
@@ -841,11 +713,12 @@ function HotelCard({checkIn, checkOut, location, onClick}){
     </div>)
   }
 
-function CabCard({from, to, date, time, travelClass, onClick, mode, isTransfer=false}){
+function CabCard({isFullDayCab,from, to, date, time, travelClass, onClick, mode, isTransfer=false}){
     return(
         <div className="shadow-sm min-h-[76px] bg-slate-50 rounded-md border border-slate-300 w-full px-6 py-4 flex flex-col sm:flex-row gap-4 items-center sm:divide-x">
-        <div className='font-semibold text-base text-neutral-600'>
+        <div className='font-semibold items-center flex flex-col text-base text-neutral-600'>
         <img src={spitImageSource(mode)} className='w-4 h-4 md:w-6 md:h-6' />
+          {isFullDayCab && <p className="text-xs whitespace-nowrap ">Full Day</p>}
         </div>
         <div className="w-full flex sm:block">
             
@@ -854,7 +727,7 @@ function CabCard({from, to, date, time, travelClass, onClick, mode, isTransfer=f
                    <p className="text-xs text-neutral-600 flex justify-between flex-col sm:flex-row">Pickup Location</p>
                     <div className="flex items-center gap-1">
                       <img src={location_icon} className="w-4 h-4"/>
-                      <p className="whitespace-wrap">{from??'not provided'}</p>
+                      <p className="whitespace-wrap  capitalize">{from??'not provided'}</p>
                     </div>     
                 </div>
                 <div className="flex-1 justify-center">
@@ -868,18 +741,18 @@ function CabCard({from, to, date, time, travelClass, onClick, mode, isTransfer=f
                     <p className="text-xs text-neutral-600 flex justify-between flex-col sm:flex-row">{mode} Date</p>
                     <div className="flex items-center gap-1">
                       <img src={calender} className="w-4 h-4"/>
-                      <p className="whitespace-wrap">{isoString(date)??'not provided'}</p>
+                      <p className="whitespace-wrap">{isoString(date)??'-'}</p>
                     </div>
                 </div>
                 <div className="flex-1 justify-center">
                     <p className="text-xs text-neutral-600 flex justify-between flex-col sm:flex-row">Prefferred Time</p>
                     <div className="flex items-center gap-1">
                       <img src={clock_icon} className="w-4 h-4"/>
-                      <p className="whitespace-wrap">{formattedTime(time)??'not provided'}</p>
+                      <p className="whitespace-wrap">{(time)??'-'}</p>
                     </div>
                 </div>
                {!isTransfer && <div className="flex-1 justify-center">
-                    {travelClass??'N/A'}
+                    {travelClass??'-'}
                 </div>}
             </div>
         </div>

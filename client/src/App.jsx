@@ -66,11 +66,9 @@ function App() {
     
     <Router>
       <Routes>
-        
        <Route path='/:tenantId/:empId/:tripId/:expenseHeaderId/travel-expense-approval' element={<TravelExpenseApproval/>}/>
        <Route path='/:tenantId/:empId/:travelRequestId/travel-approval' element={<TravelApproval/>}/>
        <Route path='/:tenantId/:empId/:expenseHeaderId/approval/non-travel' element={<NonTravelTravelExpenseApproval/>}/>
-
       </Routes>
     </Router>
    
