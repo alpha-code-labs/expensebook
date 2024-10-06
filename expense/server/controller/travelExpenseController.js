@@ -672,12 +672,16 @@ export const travelPolicyValidation = async (tenantId, empId, travelType, catego
 
 
 export const extractTotalAmount = (expenseLine, fixedFields) => {
-  const keyFound = Object.entries(expenseLine)
-      .find(([key]) => fixedFields.some(name => name.trim().toUpperCase() === key.trim().toUpperCase()));
+  const keyFound = Object.entries(expenseLine).find(([key]) =>
+    fixedFields.some(name => name.trim().toUpperCase() === key.trim().toUpperCase())
+  );
 
-  return keyFound ? keyFound[1] : '';
+  if (!keyFound) {
+    throw new Error('Total amount is not found from bill');
+  }
+
+  return Number(keyFound[1])
 };
-
 
 //On save expense Line
 export const onSaveExpenseLine = async (req, res) => {

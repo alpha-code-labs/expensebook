@@ -662,7 +662,7 @@ const saveReimbursementExpenseLine = async (req, res) => {
  * @param {Object} res - The response object.
  * @returns {Object} The response object.
  */
-const editReimbursementExpenseLine = async (req, res) => {
+const v0editReimbursementExpenseLine = async (req, res) => {
   try {
     const { tenantId, empId, expenseHeaderId, lineItemId } = req.params;
 
@@ -695,7 +695,9 @@ const editReimbursementExpenseLine = async (req, res) => {
 
     // console.log("prevTotalAmount", prevTotalAmount , "currentTotalAmount", currentTotalAmount)
 
-    const getReport = await Reimbursement.findOne({ tenantId, expenseHeaderId, 'expenseLines.lineItemId': lineItemId });
+    const getReport = await Reimbursement.findOne({ tenantId, expenseHeaderId, 'expenseLines.lineItemId': lineItemId },
+      {'expenseLines.$':1,'expenseAmountStatus':1}
+    );
     if (!getReport) {
       return res.status(404).json({ message: 'Expense not found' , success:false});
     }
@@ -732,17 +734,11 @@ console.log('New Total Expense Amount:', newTotalExpenseAmount);
 
     getReport.expenseAmountStatus.totalExpenseAmount = newTotalExpenseAmount
     getReport.expenseAmountStatus.totalRemainingCash = newTotalRemainingCash
-    if(lineItem){
-    getReport.expenseLines = getReport.expenseLines.map(line => {
-        if(line.lineItemId.toString() === lineItemId.toString()){
-        return{
-          ...line,
-          ...lineItem
-        } 
-        }
-        return line
-      })
-    } 
+
+    if (lineItem && getReport.expenseLines.length) {
+      Object.assign(getReport.expenseLines[0], lineItem); 
+    }
+
     const updatedExpense = await getReport.save()
 
     const { name } = updatedExpense.createdBy;
@@ -773,6 +769,68 @@ console.log('New Total Expense Amount:', newTotalExpenseAmount);
 };
 
 
+const editReimbursementExpenseLine = async (req, res) => {
+  try {
+    const { tenantId, empId, expenseHeaderId, lineItemId } = req.params;
+    const { prevLineItem, lineItem } = req.body;
+
+    if (!expenseHeaderId || !empId || !tenantId || !prevLineItem || !lineItem) {
+      return res.status(400).json({ message: 'Missing required parameters', success: false });
+    }
+
+    const fixedFields = ['Total Amount', 'Total Fare', 'Premium Amount', 'Total Cost', 'License Cost', 'Subscription Cost', 'Premium Cost', 'Cost', 'Tip Amount'];
+
+    const prevTotalAmount = extractTotalAmount(prevLineItem, fixedFields);
+    const currentTotalAmount = extractTotalAmount(lineItem, fixedFields);
+
+    if (!prevTotalAmount || !currentTotalAmount) {
+      throw new Error(`Invalid total amounts: prev=${prevTotalAmount}, current=${currentTotalAmount}`);
+    }
+
+    const getReport = await Reimbursement.findOneAndUpdate(
+      { tenantId, expenseHeaderId, 'expenseLines.lineItemId': lineItemId },
+      {
+        $set: {
+          'expenseLines.$': lineItem,
+          'expenseAmountStatus.totalExpenseAmount': {
+            $subtract: [
+              '$expenseAmountStatus.totalExpenseAmount',
+              { $subtract: [prevTotalAmount, currentTotalAmount] }
+            ]
+          },
+          'expenseAmountStatus.totalRemainingCash': {
+            $add: [
+              '$expenseAmountStatus.totalRemainingCash',
+              { $subtract: [prevTotalAmount, currentTotalAmount] }
+            ]
+          }
+        }
+      },
+      { new: true, runValidators: true, projection: { expenseLines: { $elemMatch: { lineItemId } }, expenseAmountStatus: 1, createdBy: 1, approvers: 1 } }
+    );
+
+    if (!getReport) {
+      return res.status(404).json({ message: 'Expense not found', success: false });
+    }
+
+    const { name } = getReport.createdBy;
+    const { expenseLines, approvers, expenseAmountStatus } = getReport;
+    const isApproval = approvers?.length > 0;
+
+    const payload = { reimbursementReport: getReport };
+    await sendToMicroservices(payload, 'full-update', 'expense report edited', 'reimbursement', 'online', isApproval);
+
+    return res.status(200).json({
+      success: true,
+      message: `Expense line saved successfully by ${name}`,
+      expenseAmountStatus,
+      updatedLine: expenseLines[0],
+    });
+  } catch (error) {
+    console.error('Failed to edit reimbursement expense line:', error);
+    return res.status(500).json({ message: 'Failed to process the request', success: false });
+  }
+};
 
 /**
  * Updates the status of an expense report to "draft" and sends a success message and the updated expense report as a response.
