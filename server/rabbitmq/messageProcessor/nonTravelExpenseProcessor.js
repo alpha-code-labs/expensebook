@@ -1,5 +1,6 @@
 
 import dashboard from "../../models/dashboardSchema.js";
+import REIMBURSEMENT from "../../models/reimbursementSchema.js";
 
 
 // Non travel expense header 'paid'
@@ -18,7 +19,7 @@ export const settleNonTravelExpenseReport= async (payload) => {
         const filter = {
           tenantId,
           expenseHeaderId,
-          'expenseHeaderStatus': status.PENDING_SETTLEMENT,
+          // 'expenseHeaderStatus': status.PENDING_SETTLEMENT,
         };
         
         // Use findOneAndUpdate to find and update in one operation
@@ -53,12 +54,21 @@ export const settleNonTravelExpenseReport= async (payload) => {
         
       const report =  await updateResult.save()
     console.log('Travel request status updated in Dashboard microservice:', JSON.stringify(report,'',2));
-    const {expenseHeaderStatus:getStatus} = report.reimbursementSchema
 
-    if(getStatus === status.PAID){
-      return { success: true, error: null };
+    // Check if report and reimbursementSchema exist
+    if (report && report.reimbursementSchema) {
+      const { expenseHeaderStatus: getStatus } = report.reimbursementSchema;
+    
+      // Ensure getStatus is a string before comparing
+      if (typeof getStatus === 'string' && getStatus.toString() === status.PAID) {
+        return { success: true, error: null };
+      }
+    
+      return { success: false, error: `Non Travel expense report has ${getStatus} as expenseHeaderStatus` };
+    } else {
+      return { success: false, error: 'Report or reimbursementSchema is missing.' };
     }
-    return { success: false, error:`non Travel expense report has ${getStatus} as expenseHeaderStatus` };
+    
   } catch (error) {
     console.error('Failed to update travel request status in Dashboard microservice:', error);
     return { success: false, error: error.message };
