@@ -201,12 +201,12 @@ const settleNonTravelExpenseCount = financeData?.nonTravelExpense?.length || 0;
     <div
       onClick={() => handleSwitchTab(tab.name)}
       key={index}
-      className={`text-sm shrink-0 flex justify-center items-center font-cabin text-center truncate h-10 px-2 py-2 ${activeTab === tab.name ? 'border-b-2 border-indigo-600 hover:border-0' : ' '} hover:border-slate-300 hover:border-b-2 hover:text-neutral-500 text-neutral-700 cursor-pointer `}
+      className={`text-sm shrink-0 flex justify-center items-center font-cabin text-center truncate h-10 px-2 py-2 ${activeTab === tab.name ? 'border-b-2 border-neutral-900 hover:border-0' : ' '} hover:border-slate-300 hover:border-b-2 hover:text-neutral-500 text-neutral-700 cursor-pointer `}
     >
       <p className="flex items-center justify-center gap-1">
         {tab.name}
         {tab.count > 0 && (
-          <div className={`shadow-sm shadow-black/30 font-semibold ring-1 rounded-full ring-white min-w-6 min-h-6 flex justify-center items-center text-center text-xs bg-slate-100 text-neutral-700 border border-slate-300 ml-2`}>
+          <div className={`shadow-sm w-5 h-5 shadow-black/30 font-semibold ring-1 rounded-full ring-white min-w-6 min-h-6 flex justify-center items-center text-center text-xs bg-slate-100 text-neutral-700 border border-slate-300 ml-2`}>
             <p>{tab.count}</p>
           </div>
         )}
@@ -437,7 +437,7 @@ const AccountEntryComponent = ({isLoading, handleConfirm,data}) => {
           <div className='inline-flex justify-center items-center gap-2'>
           <img src={export_icon} className='w-4 h-4 -rotate-90'/>
           <div className='cursor-pointer'>
-            <p className='text-base text-indigo-600 font-semibold'>Export As</p>
+            <p className='text-base text-neutral-900 font-semibold'>Export As</p>
           </div>
          
           </div>

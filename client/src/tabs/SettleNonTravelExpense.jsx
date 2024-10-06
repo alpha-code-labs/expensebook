@@ -99,7 +99,7 @@ function financeMsg(amt, cashAdvance, currency){
                 </div> */}
                  <SettleNowBtn
             onClick={()=>handleActionConfirm('settleNonTravelExpense',{ expenseHeaderId:trip?.expenseHeaderId})}
-            text={"Settle Now"} disabled={true} onHover={'selected currency not available'}/>
+            text={"Settle Now"} disabled={false} onHover={'selected currency not available'}/>
                 </div>
                             {/* <div className={`text-center rounded-sm ${getStatusClass(trip?.expenseHeaderStatus ?? "-")}`}>
                               <p className='px-1 py-1 text-xs text-center capitalize font-cabin'>{trip?.expenseHeaderStatus ?? "-"}</p>
