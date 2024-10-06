@@ -1,5 +1,4 @@
 import Joi from "joi";
-import Finance from "../models/Finance.js";
 import { financeSchema, sendUpdate } from "./cashAdvanceController.js";
 import REIMBURSEMENT from "../models/reimbursement.js";
 
@@ -129,7 +128,7 @@ export const paidNonTravelExpenseReports = async (req, res, next) => {
     };
 
     // Use findOneAndUpdate to find and update in one operation
-    const updateResult = await Finance.findOne(
+    const updateResult = await REIMBURSEMENT.findOne(
       filter,
     );
 
