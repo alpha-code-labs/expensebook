@@ -291,6 +291,7 @@ export async function startConsumer(receiver) {
                 console.log(" expense header status paid - 'non-travel-paid'")
                 const res11 = await settleNonTravelExpenseReport(payload);
                 handleMessageAcknowledgment(channel, msg, res11);
+                break;
             
                 case 'recover-ca':
                   const res12 = await settleOrRecoverCashAdvance(payload)
