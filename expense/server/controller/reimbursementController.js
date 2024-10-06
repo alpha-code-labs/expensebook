@@ -612,7 +612,7 @@ const saveReimbursementExpenseLine = async (req, res) => {
         return res.status(404).json({success: false, error:'document not found' })
       }
 
-      let {expenseAmountStatus:{totalRemainingCash,totalExpenseAmount},createdBy} = getReport
+      let {expenseAmountStatus:{totalRemainingCash,totalExpenseAmount},createdBy,expenseHeaderStatus} = getReport
       const {name} = createdBy
 
       console.log("expenseAmountStatus - on save nte", JSON.stringify(getReport.expenseAmountStatus,'',2))
@@ -628,6 +628,7 @@ const saveReimbursementExpenseLine = async (req, res) => {
       getReport.expenseAmountStatus.totalExpenseAmount = newTotalExpenseAmount
       getReport.expenseAmountStatus.totalRemainingCash = newTotalRemainingCash
       if(expenseLineData) getReport.expenseLines.push(expenseLineData)
+      getReport.expenseHeaderStatus = (expenseHeaderStatus === 'pending settlement') ? 'draft' : getReport.expenseHeaderStatus;
       const newExpense = await getReport.save()
       // const newExpense = await Reimbursement.findOneAndUpdate(filter, update, options);
       if(newExpense){
@@ -643,6 +644,7 @@ const saveReimbursementExpenseLine = async (req, res) => {
         return res.status(200).json({
           success: true,
           message: `expense line saved successfully by ${name} `,
+          expenseHeaderStatus,
           expenseAmountStatus,
           expenseLines
         });
