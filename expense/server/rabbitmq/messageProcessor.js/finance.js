@@ -41,7 +41,7 @@ export const currencyConverter = async (tenantId, currencyName, totalAmount) => 
 };
 
 
-// const calculateTotalCashAdvances = async (tenantId, cashAdvancesData) => { 
+// const v0calculateTotalCashAdvances = async (tenantId, cashAdvancesData) => { 
 //   const totalCashAdvances = { totalPaid: [], totalRecovered: [] };
 
 //   try {
@@ -213,7 +213,7 @@ export const currencyConverter = async (tenantId, currencyName, totalAmount) => 
 //travel expense header 'paid'
 // at line item level also update status of lineItem as paid.
 
-const calculateTotalCashAdvances = async (tenantId, cashAdvancesData) => {
+const v1calculateTotalCashAdvances = async (tenantId, cashAdvancesData) => {
   if (!Array.isArray(cashAdvancesData) || cashAdvancesData.length === 0) {
     throw new Error('Invalid input: cashAdvancesData should be a non-empty array');
   }
@@ -253,9 +253,98 @@ const calculateTotalCashAdvances = async (tenantId, cashAdvancesData) => {
   return totals.paid - totals.recovered;
 };
 
+const calculateTotalCashAdvances = async (tenantId, cashAdvancesData) => {
+  if (!Array.isArray(cashAdvancesData) || cashAdvancesData.length === 0) {
+    throw new Error('Invalid input: cashAdvancesData should be a non-empty array');
+  }
 
+  const conversionCache = new Map();
+  const getConversionRate = async (currency) => {
+    if (!conversionCache.has(currency)) {
+      const { defaultCurrency, conversionPrice } = await currencyConverter(tenantId, currency, 1);
+      conversionCache.set(currency, { defaultCurrency, conversionPrice });
+    }
+    return conversionCache.get(currency);
+  };
+
+  const totals = await cashAdvancesData.reduce(async (accPromise, { amountDetails, cashAdvanceStatus }) => {
+    const acc = await accPromise;
+    if (!Array.isArray(amountDetails)) {
+      throw new Error('Invalid amountDetails structure; expected an array');
+    }
+
+    const convertedAmounts = await Promise.all(amountDetails.map(async ({ amount, currency }) => {
+      if (typeof amount !== 'number' || isNaN(amount)) {
+        throw new Error(`Invalid amount: ${amount} in cash advance`);
+      }
+
+      const { defaultCurrency, conversionPrice } = await getConversionRate(currency.shortName);
+      return currency.shortName === defaultCurrency.shortName ? amount : amount * conversionPrice;
+    }));
+
+    const total = convertedAmounts.reduce((sum, amount) => sum + amount, 0);
+    acc[cashAdvanceStatus] = (acc[cashAdvanceStatus] || 0) + total;
+    return acc;
+  }, Promise.resolve({}));
+
+  return (totals.paid || 0) - (totals.recovered || 0);
+};
 
 const settleOrRecoverCashAdvance = async (payload) => {
+  try {
+    const { 
+      tenantId, 
+      travelRequestId, 
+      cashAdvanceId, 
+      paidBy,
+      cashAdvanceStatus,
+      paidFlag,
+      recoveredBy,
+      recoveredFlag
+    } = payload;
+    
+    const report = await Expense.findOne(
+      { 
+        tenantId,
+        'cashAdvancesData': { $elemMatch: { cashAdvanceId, travelRequestId } }
+      },
+      { cashAdvancesData: 1, expenseAmountStatus: 1 }
+    );
+
+    if (!report) {
+      throw new Error('Expense report not found');
+    }
+
+    const totalCashAmount = await calculateTotalCashAdvances(tenantId, report.cashAdvancesData);
+
+    const updateCashDoc = {
+      'cashAdvancesData.$.cashAdvanceStatus': cashAdvanceStatus,
+      ...(paidBy && { 'cashAdvancesData.$.paidBy': paidBy, 'cashAdvancesData.$.paidFlag': paidFlag }),
+      ...(recoveredBy && { 'cashAdvancesData.$.recoveredBy': recoveredBy, 'cashAdvancesData.$.recoveredFlag': recoveredFlag }),
+      'expenseAmountStatus.totalCashAmount': totalCashAmount,
+      'expenseAmountStatus.totalRemainingCash': Math.max(totalCashAmount, 0)
+    };
+
+    const updatedTrip = await Expense.findOneAndUpdate(
+      { 
+        tenantId,
+        'cashAdvancesData': { $elemMatch: { cashAdvanceId, travelRequestId } }
+      },
+      { $set: updateCashDoc },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedTrip) {
+      throw new Error('Failed to update cash advance status');
+    }
+
+    return { success: true, data: updatedTrip };
+  } catch (error) {
+    console.error('Error in settleOrRecoverCashAdvance:', error);
+    return { success: false, error: error.message };
+  }
+};
+const v1settleOrRecoverCashAdvance = async (payload) => {
   const { 
     tenantId, 
     travelRequestId, 
