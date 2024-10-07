@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { down_arrow_icon as chevron_down,cancel_icon as close_icon } from "../../assets";
+import { chevron_down_icon as chevron_down,cancel_icon as close_icon } from "../../assets";
 import {titleCase} from '../../utils/handyFunctions';
 
 
@@ -214,7 +214,7 @@ const selectDivFocus = (e)=>{
                 </div>
                 }
                
-              <div className={`w-6 h-6 relative transition ${showDropdown && 'rotate-180'}`}>
+              <div className={`w-4 h-4  relative transition ${showDropdown && 'rotate-180'}`}>
                 <img src={chevron_down} />
               </div>
 

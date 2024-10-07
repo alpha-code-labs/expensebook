@@ -35,7 +35,7 @@ const IconOption = ({ buttonText, children }) => {
       {isOpen && (
         <div
           ref={dropdownRef}
-          className="absolute mt-2 w-full h-fit bg-white border border-neutral-400 rounded-md shadow-lg p-2"
+          className="absolute mt-2 w-full h-fit bg-white border border-slate-300 rounded-md shadow-lg p-2"
           style={{ zIndex: 1000 }}
         >
           {children}

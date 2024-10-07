@@ -168,7 +168,7 @@ const selectDivFocus = (e)=>{
                 </div>
               )}
               {hidePlaceholder && <div className='text-neutral-700 text-sm font-normal capitalize font-cabin'>{selectedOption ?? ""}</div>}
-              <div className={`w-6 h-6 relative transition ${showDropdown && 'rotate-180'}`}>
+              <div className={`relative transition ${showDropdown && 'rotate-180'}`}>
                 <img src={chevron_down_icon} className="w-4 h-4"/>
               </div>
 

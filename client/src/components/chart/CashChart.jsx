@@ -59,8 +59,8 @@ const CustomXAxisTick = ({ x, y, payload }) => {
       <text 
         dy={14} // Positioning the text vertically
         textAnchor="middle" 
-        style={{ fill: '#1D4ED8' }}
-        className="text-blue-600 font-inter font-semibold text-xs" // Tailwind CSS classes for text
+        // style={{ fill: '#1D4ED8' }}
+        className="text-neutral-900 font-inter font-semibold text-xs" // Tailwind CSS classes for text
       >
         {(payload.value ?? "-")}
       </text>
@@ -83,8 +83,8 @@ const CashChart = ({activeView,data}) => {
       >
         <defs>
     <linearGradient id="gradientFill" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stopColor="#4C36F1" stopOpacity={1} />
-      <stop offset="100%" stopColor="#C7D2FE" stopOpacity={1} />
+      <stop offset="0%" stopColor="#434343" stopOpacity={1} />
+      <stop offset="100%" stopColor="#EFEFEF" stopOpacity={1} />
     </linearGradient>
   </defs>
         <XAxis dataKey="status" tick={CustomXAxisTick}/>
@@ -94,7 +94,7 @@ const CashChart = ({activeView,data}) => {
         <Bar 
            radius={[10, 10, 0, 0]}
           fill="url(#gradientFill)" 
-          barSize={60}
+          barSize={50}
           label={{ position: 'top' }}
           background={{fill: '#f8fafc',radius:[10, 10, 0, 0]}}
           dataKey="Cash-Advances"
