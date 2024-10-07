@@ -146,7 +146,7 @@ export async function sendToOtherMicroservice(payload, action='full-update', des
         payload
        };
   
-      console.log('Publishing message to RabbitMQ:', messageToSend);
+      console.log('Publishing message to RabbitMQ:', JSON.stringify(messageToSend));
   
       try {
         

@@ -30,7 +30,7 @@ export async function statusUpdateBatchJob(){
                 })
             })
 
-            return result.save()
+            return await result.save()
         })
 
         const res = await Promise.all(updatedResults)
