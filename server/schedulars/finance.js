@@ -141,6 +141,7 @@ const processPendingSettlements = (dashboardDocs, reimbursementDocs) => {
     }
   });
 
+  console.log("reimbursementDocs finance", reimbursementDocs)
   reimbursementDocs.forEach(doc => {
     if (doc.expenseHeaderStatus === 'pending settlement') {
       pendingSettlements.pendingReimbursementSettlements.push(doc);
