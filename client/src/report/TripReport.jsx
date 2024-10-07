@@ -11,7 +11,7 @@ const TripReport = ({ visibleHeaders, tripData }) => {
         {visibleHeaders.map((title, index) => (
           <th
             key={index}
-            className={`px-4 py-2 border-b sticky top-0  bg-indigo-100 border-gray-300 text-left capitalize font-medium text-neutral-700 ${index === 0 ? 'rounded-tl-lg' : ''} ${index === visibleHeaders.length - 1 ? 'rounded-tr-lg' : ''}`}
+            className={`px-4 py-2 border-b sticky top-0  bg-gray-300 border-gray-300 text-left capitalize font-medium text-neutral-900 ${index === 0 ? 'rounded-tl-lg' : ''} ${index === visibleHeaders.length - 1 ? 'rounded-tr-lg' : ''}`}
           >
             {title}
           </th>
@@ -26,7 +26,7 @@ const TripReport = ({ visibleHeaders, tripData }) => {
       {tripData?.map((trip, index) => (
         <tr
           key={index}
-          className={`divide-y border-y font-cabin text-sm text-neutral-700 hover:cursor-pointer hover:bg-gray-300 ${index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}`}
+          className={`divide-y border-y font-cabin text-sm text-neutral-700 hover:cursor-pointer hover:bg-gray-200 ${index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}`}
         >
           {visibleHeaders.map((header, headerIndex) => (
             <td key={headerIndex} className="px-4 py-2 border-b border-gray-300 ">

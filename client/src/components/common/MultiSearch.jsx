@@ -230,7 +230,7 @@ export default function Search(props){
                         onBlur={inputBlur}
                         onKeyDown={inputKeyDown}
                         onClick={(e)=>{e.stopPropagation()}}
-                        className=" w-full h-full decoration:none px-6 py-2 border rounded-md border border-neutral-300 focus-visible:outline-0 focus-visible:border-indigo-600 " 
+                        className=" w-full h-full decoration:none px-6 py-2  rounded-md border border-neutral-300 focus-visible:outline-0 focus-visible:border-indigo-600 " 
                         value={textInput} 
                         placeholder={placeholder}></input>
 

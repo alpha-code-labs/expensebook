@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { aeroplane1_icon, airplane_icon1, cancel_icon, csv_icon, down_arrow_icon, export_icon, filter_icon, money, pdf_icon, receipt, reciept_icon, show_coloum_icon } from '../assets'
+import { add_icon, aeroplane1_icon, airplane_icon1, cancel_icon, cash_white_icon, csv_icon, down_arrow_icon, expense_white_icon, export_icon, filter_icon, money, pdf_icon, receipt, reciept_icon, remove_icon, show_coloum_icon, trip_white_icon } from '../assets'
 import Modal from './common/Modal';
 import Input from './common/Input';
 import Select from './common/Select';
@@ -24,6 +24,9 @@ import {reimbursementHeaders, cashAdvanceHeaders, travelExpenseHeaders, tripHead
 import { flattedCashadvanceData, flattedTravelExpenseData, flattenNonTravelExpenseData, flattenTripData } from '../utils/transformer';
 import NonTravelExpenseChart from './chart/NonTravelExpenseChart';
 import MultiSelect from './common/MultiSelect';
+import jsPDF from "jspdf";
+import "jspdf-autotable";
+// import "jspdf-autotable";
 
 const Menu = () => {
 
@@ -76,12 +79,11 @@ const Menu = () => {
     }
   });
 
-
   const [isLoading , setIsLoading]=useState(true);
   const [isUploading,setIsUploading]=useState({"filterReport":false});
   const [loadingErrorMsg, setLoadingErrorMsg]=useState(null);
   const [reportTab , setReportTab]= useState("trip");
-  const [exportData, setExportData]=useState("trip");
+  const [exportData, setExportData]=useState([]);
   const [showModal , setShowModal]=useState(false);
   const [modalTab , setModalTab]=useState("filterTab");
   //for show on title
@@ -91,11 +93,12 @@ const Menu = () => {
     'toDate':new Date(),
     'role':activeView
   }
+
   const [reportDate, setReportDate]=useState(intialFilterForm)
   const [filterForm , setFilterForm]= useState({...intialFilterForm});
-
   const [showPopup, setShowPopup] = useState(false)
   const [message, setMessage] = useState(null)
+
 
   if(activeView==="myTeamView"){
 
@@ -105,33 +108,27 @@ const Menu = () => {
       }
     })
   }
-
+  
   const handleModalTab =(tab)=>{
     setModalTab(tab)
   }
- 
 
-
-
-
-
- 
   const tabIcon = (tab) => { 
     switch (tab) {
       case "trip":
-        return aeroplane1_icon;
+        return trip_white_icon;
         
       case "cash-advance":
-        return money;
+        return cash_white_icon;
   
       case "travel expense":
-        return receipt;
+        return expense_white_icon;
   
       case "non-travel expense":
-        return receipt;
+        return expense_white_icon;
   
       default:
-        return airplane_icon1;
+        return trip_white_icon;
     }
   }
   
@@ -174,9 +171,6 @@ const Menu = () => {
     }));
   };
 
- 
-
-  
   const handleFilterForm = (key, value) => {
     if(key === 'fromDate'|| key === 'toDate'){
       setFilterForm((prevForm) => ({
@@ -189,8 +183,8 @@ const Menu = () => {
       [key]: value,
     }))}
   };
-  
-console.log('filtered form', filterForm)
+
+  console.log('filtered form', filterForm)
 
 const [visibleHeaders, setVisibleHeaders] = useState(tripHeaders);
 const [hiddenHeaders, setHiddenHeaders] = useState([]);
@@ -252,6 +246,7 @@ const hideHeader = (header) => {
 
 console.log('Report Data1',reportData)
 //for generate customize report
+
 const handleRunReport = async () => {
   console.log('Filter Form:', filterForm);
   // Prepare the payload with filterForm and dynamically add filterBy based on the reportTab
@@ -259,6 +254,7 @@ const handleRunReport = async () => {
 
   // Function to determine the value for "filterBy" based on reportTab
   const getFilterBy = (reportTab) => {
+
     switch (reportTab) {
       case "trip":
         return "trips";
@@ -290,17 +286,19 @@ const handleRunReport = async () => {
       "fromDate":filterForm?.fromDate
     })
     const setDataByReportTab = (reportTab, response) => {
+      
+
       const dataMap = {
         trip: "tripData",
         "cash-advance": "cashadvanceData",
         "travel expense": "travelExpenseData",
         "non-travel expense": "nonTravelExpenseData"
       };
-    
+      
       const newData = reportTab === "non-travel expense"
         ? flattenNonTravelExpenseData(response?.reports)
         : response?.trips || [];
-    
+      
       // Check if data is empty and handle popup message for each tab
       if (newData.length === 0) {
         setShowPopup(true);
@@ -326,12 +324,37 @@ const handleRunReport = async () => {
         setMessage(message);
 
       } else {
+        switch (reportData) {
+          case "tripData":
+            setExportData(flattenTripData(response?.reports?.trips));
+            break;
+          
+          case "travel expense":
+            setExportData(flattedTravelExpenseData(response?.reports?.trips));
+            break;
+          
+          case "non-travel expense":
+            setExportData(flattenNonTravelExpenseData(response?.reports?.reimbursement));
+            break;
+          
+          case "cash-advance":
+            setExportData(flattedCashadvanceData(response?.reports?.trips));
+            break;
+          
+          default:
+            // Handle default case if necessary
+            console.warn("Unknown report data type:", reportData);
+        }
         setReportData((prev) => ({
           ...prev,
           [dataMap[reportTab]]: newData,
         }));
+        
       }
     };
+    
+   
+    
     
     // Set the report data based on the current reportTab
     setDataByReportTab(reportTab, response);
@@ -364,43 +387,84 @@ useEffect(()=>{
 },[])
 
 
+const generatePDF = (data) => {
+  const doc = new jsPDF({ orientation: "landscape" }); // Set to landscape
 
+  // Extract keys from the first object as table headers
+  const headers = Object.keys(data[0]);
 
+  // Map data into array of arrays (rows)
+  const tableData = data.map((obj) => headers.map((key) => obj[key]));
+
+  // Generate the table with no wrapping for content
+  doc.autoTable({
+    head: [headers],
+    body: tableData,
+    theme: "grid", // Optional: can be 'plain', 'striped', or 'grid'
+    startY: 20, // Start below the title
+    styles: {
+      whiteSpace: "nowrap",
+       // Ensure no text wrapping
+    },
+    headStyles: {
+      fillColor: [22, 160, 133], // Header color (optional)
+      textColor: [255, 255, 255], // Header text color (optional)
+    },
+    didDrawPage: function (data) {
+      // Optional: Add a title or other custom elements to each page
+      doc.setFontSize(14);
+      doc.text("Report", 14, 10);
+    },
+    margin: { top: 20 },
+    pageBreak: 'auto', // Handles page breaks
+  });
+
+  // Save the PDF
+  doc.save("report.pdf");
+};
 
 // download file
-const handleDownloadfile=(file)=>{
+const handleDownloadfile=(file,data)=>{
   if(file === 'PDF'){
     //handleCSVDownload(json.employees)
+    generatePDF(data)
   }else if (file === 'CSV'){
-    handleCSVDownload(exportData)
+    handleCSVDownload(data)
   }
 }
+
 console.log(' data', exportData)
+
 const tripData = flattenTripData(reportData?.tripData)
 const cashadvanceData = flattedCashadvanceData(reportData?.cashadvanceData,'cashAdvances')
 const travelExpenseData = flattedTravelExpenseData(reportData?.travelExpenseData)
+console.log('export data', exportData,cashadvanceData)
 
 console.log('flatted reports',travelExpenseData)
+
+// useEffect(()=>{
+//   setExportData(tripData)
+//  },[tripData])
 return (
   <>
 <div className='flex overflow-auto h-screen scrollbar-hide'>
-    <div className='w-[180px]'>
+    <div className='  '>
         <Sidebar fetchData={(tab)=>fetchData(tab)} setFilterForm={setFilterForm} employeeRoles={reportData?.employeeRoles} activeView={activeView} setActiveView={setActiveView} setReportTab={setReportTab} handleReportTab={handleReportTab} reportTab={reportTab} />
     </div>  
 {isLoading ? <Error message={loadingErrorMsg}/>:
 <div className=' flex flex-col w-screen'>
 
-  <div className='mx-4 px-4 py-2  bg-indigo-200 rounded-md text-neutral-700 flex flex-row justify-between items-center h-[48px]'>
-    <div className='flex items-center gap-2 font-cabin text-base'>
+  <div className=' mx-4 px-4 py-2 border-slate-300 border  bg-gray-200/10 rounded-md text-neutral-700 flex flex-row justify-between items-center h-[48px]'>
+    <div className='flex  items-center gap-2 font-inter text-base'>
       <img src={tabIcon(reportTab)} className='w-4 h-4'/>
-      <h1 className='capitalize font-semibold text-indigo-600'>{reportTab}</h1>
+      <h1 className='font-sm capitalize  text-neutral-900'>{reportTab}</h1>
     </div>
 
-  <div className='flex gap-2 capitalize items-center'>
-    <img src={filter_icon} className='w-4 h-4'/>
-      <p className='text-neutral-800 font-semibold'>{`start date : ${formatDate(reportDate?.fromDate)} - ${formatDate(reportDate?.toDate)}`}</p> 
+  <div className='flex gap-2 font-inter capitalize items-center bg-gray-200/50 rounded-md 0 px-2 py-1 '>
+    {/* <img src={filter_icon} className='w-4 h-4'/> */}
+      <p className='text-neutral-800 text-sm '>{`start date : ${formatDate(reportDate?.fromDate)} - ${formatDate(reportDate?.toDate)}`}</p> 
       <div className='cursor-pointer' onClick={()=>{setShowModal(!showModal);handlePresetChange(datePresets[0].label)}}>
-        <p className='text-base text-indigo-600 font-semibold'>Customize</p>
+        <p className='text-sm text-neutral-900 font-semibold'>Customize</p>
       </div> 
   </div> 
 
@@ -409,15 +473,16 @@ return (
           <div className='inline-flex justify-center items-center gap-2'>
           <img src={export_icon} className='w-4 h-4 -rotate-90'/>
           <div className='cursor-pointer'>
-            <p className='text-base text-indigo-600 font-semibold'>Export As</p>
+            <p className='text-sm font-semibold font-inter text-neutral-900'>Export As</p>
           </div>
-          <img src={down_arrow_icon} className='w-4 h-4 translate-y-1'/>
+          <img src={down_arrow_icon} className='w-4 h-4 '/>
           </div>
         }
       >
         {
-          [{name:'PDF',icon:pdf_icon}, {name:'CSV',icon:csv_icon }].map((ele)=>(
-            <div onClick={()=>handleDownloadfile(ele.name)} key={ele.name}  className='flex items-center gap-2 px-2 py-2 hover:bg-indigo-50 rounded-md cursor-pointer'>
+          // {name:'PDF',icon:pdf_icon},
+          [ {name:'CSV',icon:csv_icon }].map((ele)=>(
+            <div onClick={()=>handleDownloadfile(ele.name,exportData)} key={ele.name}  className='flex items-center gap-2 px-2 py-2 hover:bg-slate-100 rounded-md cursor-pointer'>
               <img src={ele.icon} className='w-4 h-4'/>
               <p className='font-cabin text-base '>{ele.name}</p>
             </div>
@@ -475,22 +540,22 @@ return (
             </div>
           </div>
     <div className='px-4 py-2'>
-    <div className='h-[48px]  flex-row rounded-t-lg px-5 flex justify-between items-center border-b w-full'>
+    <div className='h-[48px]  flex-row  px-5 flex justify-between items-center border-b w-full'>
       <div className='flex flex-row space-x-4'>
-      <div className={` ${modalTab === "filterTab" ? 'border-b-2 border-indigo-600 text-indigo-600 ' : 'text-neutral-700'} hover:rounded-md hover:bg-indigo-200 px-2 py-1   flex items-center gap-2 cursor-pointer`} onClick={()=>handleModalTab("filterTab")}> 
+      <div className={` ${modalTab === "filterTab" ? ' border-neutral-900 text-neutral-900 ' : 'border-white text-neutral-700'}  border-b-2 hover:bg-gray-200/10 px-2 py-1   flex items-center gap-2 cursor-pointer`} onClick={()=>handleModalTab("filterTab")}> 
       <img src={filter_icon} className='w-3 h-3'/>
         <h1 className='text-start  text-inter text-base font-cabin '>
           Filters
         </h1>
       </div>
-      <div className={`${modalTab === "columnTab" ? ' border-b-2 border-indigo-600 text-indigo-600' : 'text-neutral-700'}  hover:bg-indigo-200 px-2 py-1 hover:rounded-md  flex items-center gap-2 cursor-pointer`}  onClick={()=>handleModalTab("columnTab")}> 
+      <div className={`${modalTab === "columnTab" ? '  border-neutral-900 text-neutral-900' : ' border-white text-neutral-900'}  border-b-2 hover:bg-gray-200/10 px-2 py-1   flex items-center gap-2 cursor-pointer`}  onClick={()=>handleModalTab("columnTab")}> 
       <img src={show_coloum_icon} className='w-4 h-4'/>
-        <h1 className='text-start whitespace-nowrap truncate  text-inter text-sm font-cabin '>
+        <h1 className='text-start whitespace-nowrap truncate  text-inter text-sm font-inter '>
           Show/Hide Column
         </h1>
       </div>
       </div>
-    <h1 className='text-start whitespace-nowrap truncate text-inter text-base font-cabin hover:font-medium cursor-pointer text-purple-500 '>Reset Filters</h1>
+    <h1 className='text-sm text-neutral-900 font-semibold font-inter'>Reset Filters</h1>
     </div>
 
     {modalTab === "filterTab" &&
@@ -499,6 +564,7 @@ return (
      <div className='flex flex-col lg:flex-row items-center lg:items-start justify-between gap-4'>
   <div className='lg:w-fit w-full'>
     <Select
+    
       options={datePresets.map(preset => preset.label)}
       title="Custom"
       onSelect={(value)=>{handlePresetChange(value)}}
@@ -547,6 +613,7 @@ return (
       </div>)}
       <div className='w-full'>
         <Select 
+        currentOption={ filterForm?.travelType}
         options={travelType}
         onSelect={value=>handleFilterForm('travelType',value)}
         title="Type of Trip"/>
@@ -593,33 +660,32 @@ return (
         <div className="bg-white p-4 rounded text-neutral-700 font-cabin">
           <div className="flex gap-2">
             <div className="w-1/2 p-2 border border-slate-300">
-              <h3 className="mb-2 text-neutral-500 ">Hidden Headers</h3>
+              <h3 className="mb-2 text-neutral-900 font-base ">Hidden Headers</h3>
               <div className='h-[200px] overflow-y-auto'>
               {hiddenHeaders.map((header, index) => (
-        <div key={index} className="flex gap-2 items-center capitalize">
+        <div key={index} className="flex gap-2 items-center capitalize px-2 py-1">
           <div
             onClick={() => showHeader(header)}
-            className="bg-green-600 cursor-pointer text-white h-4 w-4 flex items-center justify-center rounded-full focus:outline-none"
+            className="bg-slate-300 cursor-pointer text-base font-inter text-white h-6 w-6 flex items-center justify-center rounded-full focus:outline-none"
             aria-label={`Hide ${header}`}
           >
-            <span className='text-lg text-center'>+</span>
+            <img src={add_icon} className='w-4 h-4' />
           </div>
           <p>{header}</p>
         </div>
       ))}
             </div>
             </div>
-            <div className="w-1/2 p-2 capitalize font-cabin text-base border border-slate-300">
-              <h3 className="mb-2 text-neutral-500">Visible Headers</h3>
+            <div className="w-1/2 p-2 capitalize font-inter text-base border border-slate-300">
+              <h3 className="mb-2 text-base text-neutral-900">Visible Headers</h3>
               <div className='h-[200px] overflow-y-auto'>
               {visibleHeaders.map((header, index) => (
-                <div key={index} className="flex items-center gap-2">
+                <div key={index} className="flex items-center gap-2 px-2 py-1">
                   <div
             onClick={() => hideHeader(header)}
-            className="bg-red-600 cursor-pointer text-white h-4 w-4 flex items-center justify-center rounded-full focus:outline-none"
+            className="bg-slate-300 cursor-pointer font-inter text-base  h-6 w-6 flex items-center justify-center rounded-full focus:outline-none"
             aria-label={`Hide ${header}`}
-          >
-            <span className='text-lg text-center'>−</span>
+          > <img src={remove_icon} className='w-4 h-4' />  
           </div>
                   <p>{header}</p>
                 </div>

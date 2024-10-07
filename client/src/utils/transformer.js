@@ -5,7 +5,7 @@ const flattedCashadvanceData = (data, subData) => {
     return data.flatMap(item => 
       item[subData].flatMap(obj => 
         obj.amountDetails.map(amountDetail => ({
-          group:item?.groupName?.map(group=>group).join(", ") ?? "-",
+          group:`${item?.groupName?.map(group=>group).join(". ") ?? "-"}`,
           travelRequestNumber: item?.travelRequestNumber,
           travelRequestStatus: item?.travelRequestStatus,
           travelType: item?.travelType,
@@ -69,7 +69,7 @@ const flattenTripData = (data) => {
     tripPurpose: trip.tripPurpose,
     tripStartDate: trip.tripStartDate,
     tripStatus: trip.tripStatus,
-    group:trip?.groupName?.map(group=>group).join(", ") ?? "-",
+    group: `${trip?.groupName?.map(group=>group).join(". ") ?? "-"}`,
     tripName: trip.tripName,
     tripNumber: trip?.tripNumber,
     tripCompletionDate: trip.tripCompletionDate,
@@ -104,7 +104,7 @@ const flattenTripData = (data) => {
       paidBy: expense.paidBy?.name || '-', // Fallback if null
       totalExpenseAmount: expense?.expenseAmountStatus?.totalExpenseAmount,
       defaultCurrency: expense?.defaultCurrency?.shortName,
-      group:expense?.groupName?.map(group=>group).join(", ") ?? "-",
+      group:expense?.groupName?.map(group=>group).join(". ") ?? "-",
       approvers: expense?.approvers?.map(approver => `${approver?.name ?? "-"} (${approver?.status ?? "-"})`).join(", "),
       expenseType:"Non-Travel Expense"
 

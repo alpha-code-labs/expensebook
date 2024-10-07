@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { aeroplane1_icon, receipt, receipt_icon1, down_arrow_icon, airplane_icon1, money, money1 } from '../../assets';
+import { aeroplane1_icon, receipt, receipt_icon1, down_arrow_icon, airplane_icon1, money, money1, chevron_down_icon } from '../../assets';
 
 const Sidebar = ({setReportTab,setFilterForm, fetchData, employeeRoles, handleReportTab, reportTab, activeView, setActiveView }) => {
     
@@ -36,10 +36,10 @@ const Sidebar = ({setReportTab,setFilterForm, fetchData, employeeRoles, handleRe
             <Link
                 key={index}
                 onClick={() => handleReportTab(item.label)}
-                className={`whitespace-nowrap border-none font-inter text-xs w-full flex items-center justify-start py-3 pl-4 pr-8 cursor-pointer ${reportTab === item.label ? 'bg-purple-500 text-white' : ''}`}
+                className={`font-inter whitespace-nowrap border-none  text-xs w-full flex items-center justify-start py-3 pl-4 pr-8 cursor-pointer ${reportTab === item.label ? 'bg-gray-200 text-neutral-900' : ''}`}
             >
-                <img src={reportTab === item.label ? item.icon1 : item.icon} className="h-4 w-4" alt={item.label} />
-                <div className={`ml-2 capitalize ${reportTab === item.label ? 'text-white' : 'text-indigo-800'}`}>{item.label}</div>
+                {/* <img src={reportTab === item.label ? item.icon1 : item.icon} className="h-4 w-4" alt={item.label} /> */}
+                <div className={`ml-2 capitalize ${reportTab === item.label ? 'text-neutral-900' : 'text-neutral-900'}`}>{item.label}</div>
             </Link>
         ));
     };
@@ -47,15 +47,15 @@ const Sidebar = ({setReportTab,setFilterForm, fetchData, employeeRoles, handleRe
     const renderSection = (view, title) => (
         <>
             <div onClick={() => handleViewToggle(view)} className="cursor-pointer text-base  whitespace-nowrap px-4 py-4 inline-flex justify-between items-center w-full">
-                <h2 className={`font-semibold ${activeView === view ? 'text-indigo-600' : 'text-neutral-700'}`}>{title}</h2>
-                <img src={down_arrow_icon} className={`transition-transform ${activeView === view ? 'rotate-0' : '-rotate-90'} w-5 h-5`} />
+                <h2 className={`font-semibold ${activeView === view ? 'text-neutral-900' : 'text-neutral-900'}`}>{title}</h2>
+                <img src={chevron_down_icon} className={`transition-transform ${activeView === view ? 'rotate-0' : '-rotate-90'} w-5 h-5`} />
             </div>
             {activeView === view && renderLinks(view)}
         </>
     );
 
     return (
-        <div className="min-h-screen divide-y divide-slate-300  bg-indigo-50 text-white">
+        <div className="min-h-screen divide-y divide-slate-300  bg-gray-50 text-white">
             {renderSection('myView', 'My View')}
             {shouldShowView(true) && renderSection('myTeamView', 'My Team View')}
             {shouldShowView(false) && renderSection('financeView', 'Finance View')}
