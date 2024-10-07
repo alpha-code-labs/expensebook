@@ -7,7 +7,7 @@ import { verifyJwt } from '../middleware/jwt.middleware.js';
 
 export const mainRouter = express.Router();
 
-mainRouter.use(verifyJwt)
+// mainRouter.use(verifyJwt)
 
 mainRouter.use("/api/v1/reporting/roles", roleBasedRouter);
 

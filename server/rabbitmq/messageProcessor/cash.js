@@ -1,9 +1,9 @@
-import dashboard from "../../models/dashboardSchema.js";
+import reporting from "../../models/reportingSchema.js";
 
-export const updateCashToDashboardSync = async (message,correlationId) => {
+export const updateCashToReportingSync = async (message,correlationId) => {
     const failedUpdates = [];
     const successMessage = {
-      message: 'Successfully updated dashboard database',
+      message: 'Successfully updated reporting database',
       correlationId: correlationId,
     };
     for (const cashApprovalDoc of message.cashApprovalDoc) {
@@ -12,20 +12,20 @@ export const updateCashToDashboardSync = async (message,correlationId) => {
       } = cashApprovalDoc;
 
       try {
-      const updated = await dashboard.findOneAndUpdate(
-        { 'cashAdvanceSchema.cashAdvanceId': cashAdvanceId },
+      const updated = await reporting.findOneAndUpdate(
+        { 'cashAdvancesData.cashAdvanceId': cashAdvanceId },
         {
           $set: {
-            'cashAdvanceSchema':cashApprovalDoc,
-            'cashAdvanceSchema.sendForNotification ': false,  // always set 'sendForNotification' it as false when dashboard is updated 
+            'cashAdvancesData':cashApprovalDoc,
+            'cashAdvancesData.sendForNotification ': false,  // always set 'sendForNotification' it as false when reporting is updated 
           },
         },
         { upsert: true, new: true }
       );
-      console.log('Saved to dashboard: using synchrnous queue', updated);
+      console.log('Saved to reporting: using synchronous queue', updated);
   
     } catch (error) {
-      console.error('Failed to update dashboard: using synchronous queue', error);
+      console.error('Failed to update reporting: using synchronous queue', error);
   
       // Collect failed updates
       failedUpdates.push(trip);
@@ -49,19 +49,18 @@ export const updateCashToDashboardSync = async (message,correlationId) => {
     try {
       // Send the failed updates to another service or queue for further processing
       await sendFailedConfirmationToTripMicroservice(failedUpdates,correlationId );
-      console.log(' dashboard update failed and is sent to rabbitmq sent as confirmation,using synchrnous queue:', failedUpdates,correlationId);
+      console.log(' reporting update failed and is sent to rabbitmq sent as confirmation,using synchrnous queue:', failedUpdates,correlationId);
     } catch (error) {
       console.error('Failed to send failed updates confirmation,using synchrnous queue:', error);
     }
   }
 }
 
-
 export const fullUpdateCash = async (payload) => {
   console.log('full update cashAdvanceSchema', payload)
   const{ travelRequestData, cashAdvancesData} = payload
   const { tenantId, travelRequestId } = travelRequestData;
-console.log("whattt", tenantId, travelRequestId)
+console.log("fullUpdateCash --tenantId,travelRequestId", tenantId, travelRequestId)
   // Check if the tenantId is present
   if (!tenantId) {
     console.error('TenantId is missing');
@@ -69,22 +68,21 @@ console.log("whattt", tenantId, travelRequestId)
   }
 
   try {
-    const updated = await dashboard.updateOne(
+    const updated = await reporting.updateOne(
       { 
-        "tenantId": tenantId,
-        "travelRequestId": travelRequestId,
+        tenantId,
+        travelRequestId,
       },
       {
-        "travelRequestSchema.isCashAdvanceTaken": true,
-        "cashAdvanceSchema.travelRequestData": travelRequestData,
-        "cashAdvanceSchema.cashAdvancesData": cashAdvancesData,
+        "travelRequestData": travelRequestData,
+        "cashAdvancesData": cashAdvancesData,
       },
       { upsert: true, new: true }
     );
-    console.log('Saved to dashboard: using async queue', updated);
+    console.log('Saved to reporting: Full Update cash---', updated);
     return { success: true, error: null };
   } catch (error) {
-    console.error('Failed to update dashboard: using rabbitmq m2m', error);
+    console.error('Failed to update reporting: using rabbitmq m2m', error);
     return { success: false, error: error };
   }
 }
@@ -101,19 +99,18 @@ export const fullUpdateCashBatchJob = async (payloadArray) => {
         return { success: false, error: 'TenantId is missing' };
       }
 
-      const updated = await dashboard.updateOne(
+      const updated = await reporting.updateOne(
         { 
           "tenantId": tenantId,
           "travelRequestId": travelRequestId,
         },
         {
-          "travelRequestSchema.isCashAdvanceTaken": true,
-          "cashAdvanceSchema.travelRequestData": travelRequestData,
-          "cashAdvanceSchema.cashAdvancesData": cashAdvancesData,
+          "travelRequestData": travelRequestData,
+          "cashAdvancesData": cashAdvancesData,
         },
         { upsert: true, new: true }
       );
-      console.log('Saved to dashboard: using async queue', updated);
+      console.log('Saved to reporting: using async queue', updated);
       return { success: true, error: null };
     });
 
@@ -125,7 +122,122 @@ export const fullUpdateCashBatchJob = async (payloadArray) => {
     } else {
       return {success: true, error: null}}
   } catch (error) {
-    console.error('Failed to update dashboard: using rabbitmq m2m', error);
+    console.error('Failed to update reporting: using rabbitmq m2m', error);
     return { success: false, error: error };
   }
 }
+
+
+export const cashStatusUpdatePaid = async (payloadArray) => {
+  try {
+    // Initialize an array to keep track of results
+    const results = [];
+
+    // Iterate over each object in the payload array
+    for (const payload of payloadArray) {
+      const { travelRequestData, cashAdvancesData } = payload;
+      const { travelRequestId } = travelRequestData;
+
+      // Initialize update object
+      const update = {
+        'cashAdvancesData': cashAdvancesData,
+      };
+
+      // Perform the update operation
+      const updateCashStatus = await reporting.findOneAndUpdate(
+        { 'travelRequestId': travelRequestId },
+        { $set: update },
+        { new: true }
+      );
+
+      // Check if update was successful
+      if (!updateCashStatus) {
+        console.log(`Failed to update cash status for ${travelRequestId}`);
+        results.push({
+          travelRequestId,
+          success: false,
+          message: 'Failed to update cash status'
+        });
+      } else {
+        console.log(`Successfully updated cash status for ${travelRequestId}`);
+        results.push({
+          travelRequestId,
+          success: true,
+          message: 'Cash status updated successfully'
+        });
+      }
+    }
+
+    // Log the results of the batch update
+    console.log("Update results:", JSON.stringify(results, '', 2));
+
+    return { success: true, error: null, results };
+
+  } catch (error) {
+    console.log("Error occurred:", error);
+    return { success: false, error: error.message, results };
+  }
+};
+
+
+
+export const onceCash = async (payload) => {
+  console.log('full update cashAdvanceSchema', payload)
+  const{ travelRequestData, cashAdvancesData} = payload
+  const { tenantId, travelRequestId } = travelRequestData;
+console.log("fullUpdateCash --tenantId,travelRequestId", tenantId, travelRequestId)
+  // Check if the tenantId is present
+  if (!tenantId) {
+    console.error('TenantId is missing');
+    return { success: false, error: 'TenantId is missing' };
+  }
+
+  try {
+    const updated = await reporting.updateOne(
+      { 
+        tenantId,
+        travelRequestId,
+      },
+      {
+        "travelRequestData": travelRequestData,
+        "cashAdvancesData": cashAdvancesData,
+      },
+      { upsert: true, new: true }
+    );
+    console.log('Saved to reporting: Full Update cash---', updated);
+    return { success: true, error: null };
+  } catch (error) {
+    console.error('Failed to update reporting: using rabbit mq m2m', error);
+    return { success: false, error: error };
+  }
+}
+
+// cash status- cancel cash
+export const updateCashStatus = async (payload) => {
+  try {
+    const updated = await reporting.findOneAndUpdate(
+      { 'tenantId': payload.tenantId, 'cashAdvanceData.travelRequestId': payload.travelRequestId },
+      {
+        $set: {
+          'cashAdvanceData.$[elem].cashAdvancesData.$[inner].cashAdvanceStatus': payload.travelRequestStatus,
+        },
+      },
+      { 
+        arrayFilters: [
+          { 'elem.travelRequestId': payload.travelRequestId },
+          { 'inner.cashAdvanceId': payload.cashAdvanceId }
+        ],
+        upsert: true,
+        new: true
+      }
+    );
+
+    console.log('Travel request status updated in approval microservice:', updated);
+    return { success: true, error: null };
+  } catch (error) {
+    console.error('Failed to update travel request status in approval microservice:', error);
+    return { success: false, error: error };
+  }
+};
+
+

@@ -29,7 +29,7 @@ export const updateTrip = async (payload) => {
       // Use $set to replace the entire tripSchema object with the new item
       const updatedTrip = await reporting.findOneAndUpdate(
         { tenantId, travelRequestId,  },
-        { $set: { ...item } },
+        { $set: {travelRequestId, ...item } },
         { upsert: true, new: true }
       );
       
