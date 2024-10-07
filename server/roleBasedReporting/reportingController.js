@@ -126,6 +126,7 @@ const getReportingViews = async (tenantId, empId) => {
 
 const employeeLayout = async (tenantId, empId,options={},filter) => {
   try {
+    console.info("in employee layout",tenantId, empId,options,filter)
     const {employee= false, manager=false , finance = false} = options
     const promises = [
       hrDetailsService(tenantId, empId,options),
@@ -136,6 +137,10 @@ const employeeLayout = async (tenantId, empId,options={},filter) => {
 
     if(!manager || !finance || employee){
       promises.push(findListOfApprovers(tenantId, empId))
+    }
+
+    if(finance){
+      promises.push(hrDetailsService(tenantId, empId,options))
     }
 
     const [hrData,monthlyTrips,monthlyTravel,reimbursement,approvers] = await Promise.all(promises)
@@ -205,7 +210,7 @@ const getHrDataService = (employeeDocument,options) => {
     getEnums: {...getEnums},
   }
 
-  console.log("options", options)
+  console.log("getHrDataService", options)
   if(isFinance){
     console.log({isFinance})
     response.getEnums.cashAdvanceStatusEnum = financeCashAdvanceStatusEnum
@@ -218,11 +223,13 @@ const getHrDataService = (employeeDocument,options) => {
 
 const hrDetailsService = async (tenantId, empId,options={}) => {
   try {
+    console.info("in hr details service",tenantId, empId,options,)
+
     const {manager=false, finance=false} = options
     const  {employeeDocument,employeeDetails,group, getAllGroups} = await getEmployeeDetails(tenantId, empId);
 
     if(!manager || !finance){
-      const hrDetails = getHrDataService(employeeDocument);
+      const hrDetails = getHrDataService(employeeDocument,options);
       hrDetails.getAllGroups = getAllGroups
       return {
         employeeDetails,
@@ -274,6 +281,8 @@ export const findListOfApprovers = async (tenantId, empId) => {
 
 const getLastMonthTrips = async (tenantId, empId,options,filter) => {
     try {
+      console.info("in getLastMonthTrips",tenantId, empId,options,filter)
+
       const {employee= false, manager=false , finance = false} = options
 
       const today = new Date();
@@ -286,16 +295,17 @@ const getLastMonthTrips = async (tenantId, empId,options,filter) => {
       }
 
       if(employee) {
-        filterObject['createdBy.empId']=empId
+        filterObject['travelRequestData.createdBy.empId']=empId
       }else if(filter){
         Object.assign(filterObject,filter)
       } 
 
-      console.log("filter object", JSON.stringify(filterObject,'',2))
+      console.log("get last month trips", JSON.stringify(filterObject,'',2))
 
-      const tripDocs = await reporting.find().lean().exec();
+      const tripDocs = await reporting.find(filterObject).lean().exec();
   
-    // console.log("trip in last month", tripDocs)
+      const createdBy = tripDocs.map(trip => trip.travelRequestData.createdBy)
+    console.log("trip in last month", tripDocs?.length , JSON.stringify(createdBy,'',2) )
       const trips = extractTrip(tripDocs)
     //   console.log("trips", trips);
       return trips;
@@ -307,6 +317,9 @@ const getLastMonthTrips = async (tenantId, empId,options,filter) => {
 
 const getLastMonthTravel = async (tenantId, empId,options) => {
   try {
+
+    console.info("in getLastMonthTrips",tenantId, empId,options)
+
     const {employee= false, manager=false , finance = false} = options
 
     const today = new Date();
@@ -464,7 +477,7 @@ export const getTrips = async (req, res) => {
       if (!tripDocs || tripDocs.length === 0) {
         return res.status(200).json({ message: 'No Trips found for this filter, update the filter and try again', success: 'true' });
       } else{
-        console.log("tripDocs", tripDocs)
+        console.log("get Trips --", tripDocs)
         const trips = tripDocs
         // .filter(trip => tripStatuses.includes(trip?.tripSchema?.tripStatus) && trip?.tripSchema?.tripCompletionDate === tripCompletionDate)
         .map(trip => {
@@ -499,7 +512,7 @@ export const getTrips = async (req, res) => {
           };
         });
   
-      console.log("trips", trips);
+      console.log("getTrips h1", trips);
       return res.status(200).json({success: 'true', trips});
       }
 
@@ -515,7 +528,7 @@ export const findListOfEmployees = async (tenantId, empId, options = {}) => {
     const filter = buildFilter(tenantId, empId, options);
     const tripDocs = await reporting.find(filter).lean().exec();
 
-    console.log("tripDocs", tripDocs)
+    // console.log("findListOfEmployees tripDocs", tripDocs)
     if(!tripDocs){
       throw new Error('Document not found :findListOfEmployees')
     }

@@ -55,6 +55,7 @@ const financeSchema = Joi.object({
 const dataSchema = Joi.object({
     tenantId: Joi.string().required(),
     empId: Joi.string().required(),
+    role : Joi.string().valid('myView','financeView','teamView').required(),
     filterBy: Joi.string().valid('date', 'week', 'month', 'quarter', 'year'),
     date: Joi.date().when('filterBy', {
       is: Joi.exist(),

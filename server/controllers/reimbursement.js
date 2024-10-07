@@ -23,7 +23,7 @@ export const getExpenseCategoriesForEmpId = async (req, res) => {
 
       const getEmployee = employeeDocument?.employees.find(e => e.employeeDetails.employeeId.toString() === empId.toString())
       const { employeeName, employeeId , department, designation,grade,project} = getEmployee.employeeDetails
-      console.log("employee name man", employeeName, employeeId )
+      console.log("getExpenseCategoriesForEmpId -employee name and id", employeeName, employeeId )
   
       if (!employeeId) {
         return res.status(404).json({
@@ -79,7 +79,7 @@ export const getReimbursementExpenseReport = async (req, res) => {
     success: false });
     }
 
-    const { tenantId, empId, filterBy, date, fromDate, toDate , empNames, expenseSubmissionDate ,expenseHeaderStatus, getGroups} = value;
+    const { tenantId, empId, filterBy, date,role, fromDate, toDate , empNames, expenseSubmissionDate ,expenseHeaderStatus, getGroups} = value;
 
     let filterCriteria = {
       tenantId,

@@ -266,13 +266,13 @@ export async function startConsumer(receiver) {
               handleMessageAcknowledgment(channel, msg, res7);
               break;
               
-              case 'approve-reject-tr':
+            case 'approve-reject-tr':
                 console.log("approval standalone")
                 const res14 = await travelStandAloneApproval(payload)
                 handleMessageAcknowledgment(channel,msg,res14);
                 break;
               
-                case 'approve-reject-tr-ca':
+            case 'approve-reject-tr-ca':
                   console.log("approval standalone")
                   console.log("approval - travel with cash")
                   const res15 = await travelWithCashTravelApproval(payload)
