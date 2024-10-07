@@ -7,17 +7,17 @@ const Settlement = ({isLoading,loadingErrMsg,fetchData}) => {
   const {tenantId,empId}= useParams()
   const settlementBaseUrl = import.meta.env.VITE_SETTLEMENT_PAGE_URL
 
-  useEffect(()=>{
+  // useEffect(()=>{
 
-    fetchData(tenantId,empId)
+  //   fetchData(tenantId,empId)
 
-  },[])
+  // },[])
 
   return (
 <>
     {isLoading ? <Error message={loadingErrMsg}/>:
     <div className='h-full p-4'>
-      <FinanceMS  src={`${settlementBaseUrl}/${tenantId}/${empId}/settlement`}/>
+      <FinanceMS fetchData={fetchData}  src={`${settlementBaseUrl}/${tenantId}/${empId}/settlement`}/>
     </div>}
 </>    
   )

@@ -4,12 +4,12 @@ import { formatAmount, getStatusClass, splitTripName } from "../../utils/handyFu
 
 
 const TripName = ({tripName})=>(
-    <div className='flex gap-2 items-center '>
+    <div className='flex gap-2 items-center  '>
           <img src={briefcase} className='w-4 h-4'/>
-          <div className='font-medium font-cabin  text-sm uppercase text-neutral-700 '>
+          <div className='font-medium font-cabin  text-sm uppercase text-neutral-700 text-nowrap'>
            {splitTripName(tripName?? "")}
           </div>
-          <div className='font-medium font-cabin  text-sm  text-neutral-700  -translate-y-[2px]'>
+          <div className='font-medium font-cabin text-nowrap  text-sm  text-neutral-700  -translate-y-[2px]'>
            {ExtractAndFormatDate(tripName?? "")}
           </div>
           </div>
@@ -57,13 +57,13 @@ const TripName = ({tripName})=>(
 
   function BoxTitleLayout({title,icon,children}){
     return(
-      <div className='relative px-2 shrink-0  flex justify-start items-center  rounded-md   font-inter text-md text-white h-[52px] bg-gray-200/10  text-center'>
+      <div className='relative px-2 shrink-0  flex justify-start items-center  rounded-md   font-inter text-md  h-[52px] bg-gray-200/10  text-center'>
 
 
   
       <div className='flex shrink-0 justify-center items-center rounded-r-md font-inter text-md text-base text-neutral-900 h-[52px] text-center'>
                     <img src={icon} className='w-6 h-6 mr-2'/>
-                    <p>{title}</p>
+                    <p className=" truncate w-fit line-clamp-1">{title}</p>
       </div>
       {children}
                   {/* <div
@@ -184,7 +184,7 @@ const TripName = ({tripName})=>(
             <div className='bg-indigo-50 border-2 shadow-md shadow-slate-900/50 translate-x-4 border-white p-2 rounded-full'>
               <img src={categoryIcons?.[line?.["Category Name"]]} className='w-4 h-4' />
             </div>
-            <div className='flex border-slate-400 border flex-row justify-between text-neutral-700 flex-1 items-center gap-2 py-4 px-4 pl-6 rounded-md bg-slate-100'>
+            <div className='flex border-slate-300 border flex-row justify-between text-neutral-700 flex-1 items-center gap-2 py-4 px-4 pl-6 rounded-md bg-gray-50'>
               <div>{line?.["Category Name"]}</div>
               <div>{line?.["Currency"]?.shortName} {formatAmount(line?.["Total Amount"])}</div>
             </div>
@@ -208,7 +208,7 @@ const TripName = ({tripName})=>(
 
   function EmptyBox ({icon, text }){
     return(
-    <div className=" border border-slate-300 rounded-md h-full w-full flex justify-center items-center">
+    <div className=" border border-slate-300 rounded-md min-h-[400px] h-full w-full flex justify-center items-center">
       <div className="flex flex-col gap-4 items-center">
         <img src={icon} className="w-[80px] animate-pulse" alt="Empty itinerary icon" />
         <p className="text-xl text-center font-cabin text-neutral-600 inline-flex">{text}</p>
@@ -232,20 +232,45 @@ const TripName = ({tripName})=>(
     {text}
     </p> */}
       <img src={plus_icon} width={16} height={16} alt="Add Icon" />
-    <p className="text-xs  font-inter  "> {text}</p>
+    <p className="text-xs  font-inter  text-white "> {text}</p>
   
    
     </div>)
   }
 
 
-  function ModifyBtn ({onClick}){
+  function ModifyBtn ({onClick,text="Modify"}){
     return(
-      <div onClick={onClick} className="p-1">
-        <p className="text-xs font-medium font-inter text-neutral-900">Modify</p>
+      <div onClick={onClick} className="p-1 ">
+        <p className="text-xs font-semibold  font-inter text-neutral-900">{text}</p>
       </div>
     )
   }
 
+  function SmallAction ({onHover,disabled, text,onClick}){
+    const handleClick = (e)=>{
+      if(!disabled ){
+          onClick(e)
+      }
+      else{
+          // console.log('disabled')
+      }
+  }
 
-export {TooltipBtn,ModifyBtn, BoxTitleLayout, RaiseButton,EmptyBox,Violation, ExpenseLine,StatusFilter,CardLayout ,TripName,ExtractAndFormatDate,StatusBox}  
+    return(
+      <>
+      <div onClick={handleClick} className={`${disabled ? 'group bg-neutral-900 text-white   hover:bg-neutral-700   cursor-not-allowed': 'bg-neutral-900 text-white   hover:bg-neutral-700    cursor-pointer' } relative px-2 py-1 h-fit font-cabin text-xs  rounded-md text-white`}>
+        <p className=' whitespace-nowrap'>{text}</p>
+        {disabled &&
+        <div className="absolute truncate -top-8 right-8  rounded-md px-2 py-1 bg-gray-800 text-gray-200 text-xs z-[10] font-cabin hidden scale-0 group-hover:block group-hover:origin-bottom-left group-hover:scale-100">
+            {onHover}
+        </div>}
+    </div>
+      
+        </>
+    )
+    
+  }
+
+
+export {SmallAction,TooltipBtn,ModifyBtn, BoxTitleLayout, RaiseButton,EmptyBox,Violation, ExpenseLine,StatusFilter,CardLayout ,TripName,ExtractAndFormatDate,StatusBox}  

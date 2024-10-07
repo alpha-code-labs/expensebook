@@ -4,7 +4,7 @@ import { useData } from '../../api/DataProvider';
 import {  NavLink } from 'react-router-dom';
 import { filterTravelRequests} from '../../utils/handyFunctions';
 
-import {arrow1_icon, receipt, house_simple, airplane_1, money, logo_with_text, airplane, house_simple_1, money1, airplane_icon1, receipt_icon1, setting_icon, setting_icon1, businessAdmin_icon, businessAdmin1_icon, approval_icon, approval_w_icon, cancel_round, cancel, down_arrow, arrow_left, up_arrow, straight_arrow_icon, report_icon, report_white_icon, company_icon, overview_white_icon, trip_white_icon, cash_white_icon, expense_white_icon, approval_white_icon, booking_white_icon, configure_white_icon, configure_black_icon, trip_black_icon, overview_black_icon, cash_black_icon, expense_black_icon, report_black_icon, approval_black_icon, booking_black_icon } from '../../assets/icon';
+import {chevron_down,arrow1_icon, receipt, house_simple, airplane_1, money, logo_with_text, airplane, house_simple_1, money1, airplane_icon1, receipt_icon1, setting_icon, setting_icon1, businessAdmin_icon, businessAdmin1_icon, approval_icon, approval_w_icon, cancel_round, cancel, down_arrow, arrow_left, up_arrow, straight_arrow_icon, report_icon, report_white_icon, company_icon, overview_white_icon, trip_white_icon, cash_white_icon, expense_white_icon, approval_white_icon, booking_white_icon, configure_white_icon, configure_black_icon, trip_black_icon, overview_black_icon, cash_black_icon, expense_black_icon, report_black_icon, approval_black_icon, booking_black_icon } from '../../assets/icon';
 
 
 const Sidebar = ({setSidebarOpen }) => {
@@ -43,9 +43,8 @@ const Sidebar = ({setSidebarOpen }) => {
         }
         let filteredTrApprovalData;
         if (approvalData) {
-            filteredTrApprovalData = approvalData?.travelAndCash?.filter(item => ['approved', 'pending approval', 'upcoming', 'intransit','booked'].includes(item?.travelRequestStatus));
+            filteredTrApprovalData = approvalData?.travelAndCash?.filter(item => ['approved','pending booking', 'pending approval', 'upcoming', 'intransit','booked'].includes(item?.travelRequestStatus));
         }
-
         setCountData(prevStates => ({
             ...prevStates,
             travelRequests: filteredData?.length || 0,
@@ -103,7 +102,7 @@ const Sidebar = ({setSidebarOpen }) => {
    
 
     return (
-        <div className={` min-h-screen h-full  bg-gray-50 border-r-2 border-slate-200  left-[0px] flex flex-col items-start justify-start`}>
+        <div className={` min-h-screen h-full  bg-gray-50 border-r-2 border-slate-200  left-[0px] flex flex-col items-start justify-start  `}>
             <div className='flex flex-row justify-between items-center w-full px-2 '>
                 <div className='h-16'>
                 <img
@@ -112,9 +111,8 @@ const Sidebar = ({setSidebarOpen }) => {
                 src={logo_with_text}
             />
                 </div>
-           
             <div onClick={()=>setSidebarOpen(true)} className='md:hidden block hover:bg-indigo-100 rounded-full p-2'>
-            <img src={arrow1_icon} className='w-4 h-4 rotate-180'/>
+            <img src={chevron_down} className='w-5 h-5 rotate-90'/>
             </div>
             
             </div>
@@ -129,18 +127,20 @@ const Sidebar = ({setSidebarOpen }) => {
                     
                     className={`w-full   ${pathname === item.url ? 'bg-gray-200/10 text-neutral-900 font-semibold  ' : "text-neutral-700"} overflow-hidden flex flex-col items-start justify-start  rounded-md  box-border cursor-pointer`}
                 >
-                    <div className="flex flex-row items-center justify-between px-3 py-3 w-full ">
-                        <div className='flex gap-2 items-center'>
+                    <div className="flex flex-row items-center justify-between px-3  py-3 w-full ">
+                        <div className='w-[150px] inline-flex gap-2 items-center  shrink-0 '>
                        
-                        <img src={ item.icon1} alt={item.label} className='min-w-4 min-h-4 h-4 w-4' />
-                        <div className={`   relative  tracking-[0.02em] w-auto md:w-[140px] font-inter  `} >
+                        <img src={ item.icon1} alt={item.label} className='shrink-0 h-4 w-4' />
+                        <div className={` relative inline-flex truncate  tracking-[0.02em] w-full  font-inter  `} >
                             {item?.label}
                         </div>
-                        </div>
-                        {item?.count > 0 &&
-                             <div className={`${pathname === item.url ? 'text-neutral-900 bg-white font-semibold' : "text-neutral-900 "} w-6 h-6 flex font-inter rounded-full bg-gray-200/10 items-center justify-center float-right text-xs font-medium `}>
+                        <div className={`${pathname === item.url ? 'text-neutral-900 bg-white font-semibold' : "text-neutral-900 "} ${item?.count > 0 ? 'block ': 'hidden '} w-9 border border-slate-300 h-6 flex font-inter rounded-full bg-gray-100 items-center justify-center float-right text-xs font-medium `}>
                                  <p className=''> {item?.count}</p>
-                         </div>} 
+                         </div>
+                       
+                        </div>
+                       
+                       
                     </div>
                 </NavLink>
        
@@ -149,7 +149,7 @@ const Sidebar = ({setSidebarOpen }) => {
             </nav>
             <div className='flex gap-1 items-center justify-start bg-slate-100  p-2  rounded-sm shadow-md'>
         <img src={company_icon} className='w-5 h-5' />
-        <p className="hidden lg:block font-inter  text-medium font-medium text-neutral-700  capitalize ">{employeeRoles?.employeeInfo?.tenantName}</p>
+        <p className=" font-inter  text-medium font-medium text-neutral-700  capitalize ">{employeeRoles?.employeeInfo?.tenantName}</p>
         </div>
            
             </div>

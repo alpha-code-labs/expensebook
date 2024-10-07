@@ -40,7 +40,7 @@ useEffect(() => {
 const [authToken , setAuthToken] = useState("authtoken");
 const [isLoading, setIsLoading] = useState({ loginData: false, roleData: true });
 const [loadingErrMsg, setLoadingErrMsg] = useState(null);
-const { employeeRoles, setEmployeeRoles, setEmployeeData } = useData();
+const { employeeRoles, setEmployeeRoles, setEmployeeData,employeeData } = useData();
 const [searchQuery , setSearchQuery] = useState('');
 
 const fetchData = async () => {
@@ -135,7 +135,7 @@ const fetchData = async () => {
       <div className='h-screen overflow-y-auto scrollbar-hide w-full  bg-white'>
       <section>
 
-<Navbar setSearchQuery={setSearchQuery} setSidebarOpen={setSidebarOpen}   tenantId={tenantId} empId={empId}  />
+<Navbar setSearchQuery={setSearchQuery} setSidebarOpen={setSidebarOpen} notificationData={employeeData?.dashboardViews?.employee?.overview?.upcomingTrips|| []}  tenantId={tenantId} empId={empId}  />
 
 </section>
         <Routes>

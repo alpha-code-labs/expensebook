@@ -9,7 +9,7 @@ import { useParams } from 'react-router-dom';
 
 
 
-const FinanceMS = ({ visible, setVisible, src }) => {
+const FinanceMS = ({ visible, setVisible, src,fetchData }) => {
 
   const  iframeRef = useRef(null);
 
@@ -66,6 +66,7 @@ const FinanceMS = ({ visible, setVisible, src }) => {
         setShowPopup(true);
         setMessage(response);
         setTimeout(() => {
+          fetchData()
           setShowPopup(false);
           setIsUploading(false);
           setMessage(null);

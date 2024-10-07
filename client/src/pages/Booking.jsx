@@ -55,9 +55,6 @@ const handleTabClick = (range) => {
 
 
 
-const getStatusClass = (status) => {
-  return 'bg-indigo-100 text-indigo-600 border border-indigo-600'; // Adjust this based on your styling requirements
-};
 
 
 function dataFilterByDate(data) {
@@ -353,7 +350,7 @@ tripData={tripData}
 selectedStatuses={selectedDateRange}
 handleStatusClick={handleTabClick}
 filter_icon={filter_icon}
-getStatusClass={getStatusClass}
+// getStatusClass={getStatusClass}
 getStatusCount={getStatusCount}
 setSelectedStatuses={setSelectedDateRange}
 />
