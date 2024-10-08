@@ -801,6 +801,7 @@ const updateTenantGroups = async (req, res) => {
               ['Approval Flow'] : {approval: {approvers:[], violationMessage:''}},
               ['Per Diem allowance / Cash Advance allowed'] : {permission: {allowed: true, violationMessage:'', enabled:false}},
               ['Advance Payment'] : {limit:{amount:null, currency:defaultCurrency, violationMessage:'', enabled:false}},
+              ['Allow expense report submission during travel'] : {permission: {allowed: true, violationMessage:'', enabled:false}},
               ['Allow International Travel Submission/booking with violations'] : {permission: {allowed: true, violationMessage:''}, enabled:false},
               ['Allow International Travel Expense Submission with violations'] : {permission: {allowed: true, violationMessage:''}, enabled:false},
               ['Expense Report Submission Deadline'] : {dayLimit: {days:'', violationMessage:''}, enabled:false},
@@ -817,6 +818,7 @@ const updateTenantGroups = async (req, res) => {
             ['Approval Flow'] : {approval: {approvers:[], violationMessage:''}},
             ['Per Diem allowance / Cash Advance allowed'] : {permission: {allowed: true, violationMessage:'', enabled:false}},
             ['Advance Payment'] : {limit:{amount:null, currency:defaultCurrency, violationMessage:'', enabled:false}},
+            ['Allow expense report submission during travel'] : {permission: {allowed: true, violationMessage:'', enabled:false}},
             ['Expense Report Submission Deadline'] : {dayLimit: {days:'', violationMessage:''}, enabled:false},
             ['Minimum Days to Book Before Travel'] : {dayLimit: {days:'', violationMessage:''}, enabled:false},
         },
@@ -831,6 +833,7 @@ const updateTenantGroups = async (req, res) => {
           ['Approval Flow'] : {approval: {approvers:[], violationMessage:''}},
           ['Per Diem allowance / Cash Advance allowed'] : {permission: {allowed: true, violationMessage:'', enabled:false}},
           ['Advance Payment'] : {limit:{amount:null, currency:defaultCurrency, violationMessage:'', enabled:false}},
+          ['Allow expense report submission during travel'] : {permission: {allowed: true, violationMessage:'', enabled:false}},
           ['Expense Report Submission Deadline'] : {dayLimit: {days:'', violationMessage:''}, enabled:false},
           ['Minimum Days to Book Before Travel'] : {dayLimit: {days:'', violationMessage:''}, enabled:false},
       },
@@ -1853,7 +1856,7 @@ const handleHRData = async (req, res) => {
 
 const updateHRMaster = async (req, res) => {
 
-}
+} 
 
 const updateTenantState = async (req, res) => {
   try{
