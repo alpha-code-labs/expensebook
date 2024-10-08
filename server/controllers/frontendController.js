@@ -1669,6 +1669,7 @@ const handleHRData = async (req, res) => {
     //do validations here...
     const {tenantId} = req.params
     const {hrData} = req.body
+    console.log(JSON.stringify(hrData), '...hr ')
 
     console.log('upload route hit')
 
@@ -1757,9 +1758,9 @@ const handleHRData = async (req, res) => {
             }
 
             //push employeeId's present in  l1, l2, l3 manager fields to managers
-            if(l1Manager??false) managers.add(l1Manager)
-            if(l2Manager??false) managers.add(l2Manager)
-            if(l3Manager??false) managers.add(l3Manager) 
+            if(l1Manager??false) managers.add(l1Manager.toString().trim())
+            if(l2Manager??false) managers.add(l2Manager.toString().trim())
+            if(l3Manager??false) managers.add(l3Manager.toString().trim()) 
 
             //set other details
             if(profitCenter??false) profitCenters.add(profitCenter)

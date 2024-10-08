@@ -24,7 +24,7 @@ const expenseCategories = [
         { name: 'Destination', type: 'text' },
         { name: 'Travelers Name', type: 'text' },
         { name: 'Class', type: 'text' },
-        { name: 'Booking Reference No.', type: 'text' },
+        { name: 'Booking Reference No', type: 'text' },
         { name: 'Total Amount', type: 'amount' },
         { name: 'Tax Amount', type: 'amount' }
       ],
@@ -40,7 +40,7 @@ const expenseCategories = [
         { name: 'Destination', type: 'text' },
         { name: 'Travelers Name', type: 'text' },
         { name: 'Class', type: 'text' },
-        { name: 'Booking Reference No.', type: 'text' },
+        { name: 'Booking Reference No', type: 'text' },
         { name: 'Total Amount', type: 'amount' },
         { name: 'Tax Amount', type: 'amount' }
       ],
@@ -58,7 +58,7 @@ const expenseCategories = [
         { name: 'Total Amount', type: 'amount' },
         { name: 'Tax Amount', type: 'amount' },
         { name: 'Payment Method', type: 'text' },
-        { name: 'Receipt No.', type: 'text' },
+        { name: 'Receipt No', type: 'text' },
         { name: 'Ride Distance', type: 'text' }
       ],
       modeOfTranfer:true,
@@ -75,7 +75,7 @@ const expenseCategories = [
         { name: 'Total Amount', type: 'amount' },
         { name: 'Tax Amount', type: 'amount' },
         { name: 'Payment Method', type: 'text' },
-        { name: 'Receipt No.', type: 'text' },
+        { name: 'Receipt No', type: 'text' },
         { name: 'Ride Distance', type: 'text' }
       ],
       modeOfTranfer:true,
@@ -93,7 +93,7 @@ const expenseCategories = [
         { name: 'Tax Amount', type: 'amount' },
         {name: 'Total Amount', type: 'amount'},
         { name: 'Guest Name', type: 'text' },
-        { name: 'Booking Reference No.', type: 'text' },
+        { name: 'Booking Reference No', type: 'text' },
         { name: 'Payment Method', type: 'text' }
       ],
       modeOfTranfer:false,
@@ -135,6 +135,8 @@ const expenseCategories = [
     {
       categoryName: 'Conference / Event',
       fields: [
+        { name: 'Bill Date', type: 'date' },
+        { name: 'Bill Number', type: 'text' },
         { name: 'Conference Name', type: 'text' },
         { name: 'Conference Date', type: 'date' },
         { name: 'Total Amount', type: 'amount' },
@@ -146,6 +148,8 @@ const expenseCategories = [
     {
       categoryName: 'Travel Insurance',
       fields: [
+        { name: 'Bill Date', type: 'date' },
+        { name: 'Bill Number', type: 'text' },
         { name: 'Policy Type', type: 'text' },
         { name: 'Insurance Provider', type: 'text' },
         { name: 'Total Amount', type: 'amount' }
@@ -156,8 +160,9 @@ const expenseCategories = [
     {
       categoryName: 'Baggage',
       fields: [
+        { name: 'Bill Date', type: 'date' },
         { name: 'Airline name', type: 'text' },
-        { name: 'Bill no.', type: 'text' },
+        { name: 'Bill No', type: 'text' },
         { name: 'Total Amount', type: 'amount' },
         { name: 'Tax Amount', type: 'amount' }
       ],
@@ -166,6 +171,8 @@ const expenseCategories = [
     {
       categoryName: 'Tips',
       fields: [
+        { name: 'Bill Date', type: 'date' },
+        { name: 'Bill Number', type: 'text' },
         { name: 'Purpose', type: 'text' },
         { name: 'Tip Amount', type: 'amount' }
       ],
@@ -219,6 +226,8 @@ const expenseCategories = [
     {
       categoryName: 'Insurance',
       fields: [
+        { name: 'Bill Date', type: 'date' },
+        { name: 'Bill Number', type: 'text' },
         { name: 'Policy type', type: 'text' },
         { name: 'Insurance Provider', type: 'text' },
         { name: 'Premium Amount', type: 'amount' }
@@ -228,6 +237,8 @@ const expenseCategories = [
     {
       categoryName: 'Marketing and Advertising',
       fields: [
+        { name: 'Bill Date', type: 'date' },
+        { name: 'Bill Number', type: 'text' },
         { name: 'Marketing Campaign Description', type: 'text' },
         { name: 'Advertising Channels', type: 'text' },
         { name: 'Cost', type: 'amount' }
@@ -237,6 +248,8 @@ const expenseCategories = [
     {
       categoryName: 'Professional Fees',
       fields: [
+        { name: 'Bill Date', type: 'date' },
+        { name: 'Bill Number', type: 'text' },
         { name: 'Service Provider', type: 'text' },
         { name: 'Nature of Service', type: 'text' },
         { name: 'Cost', type: 'amount' }
@@ -246,6 +259,8 @@ const expenseCategories = [
     {
       categoryName: 'Software and Licenses',
       fields: [
+        { name: 'Bill Date', type: 'date' },
+        { name: 'Bill Number', type: 'text' },
         { name: 'Software Name', type: 'text' },
         { name: 'License Type', type: 'text' },
         { name: 'License Cost', type: 'amount' }
@@ -255,6 +270,8 @@ const expenseCategories = [
     {
       categoryName: 'Equipment',
       fields: [
+        { name: 'Bill Date', type: 'date' },
+        { name: 'Bill Number', type: 'text' },
         { name: 'Item Description', type: 'text' },
         { name: 'Quantity', type: 'number' },
         { name: 'Unit Cost', type: 'amount' },
@@ -265,6 +282,8 @@ const expenseCategories = [
     {
       categoryName: 'Repairs and Maintenance',
       fields: [
+        { name: 'Bill Date', type: 'date' },
+        { name: 'Bill Number', type: 'text' },
         { name: 'Description of repair/maintenance work', type: 'text' },
         { name: 'Service provider', type: 'text' },
         { name: 'Cost', type: 'amount' }
@@ -274,6 +293,8 @@ const expenseCategories = [
     {
       categoryName: 'Legal and Compliance',
       fields: [
+        { name: 'Bill Date', type: 'date' },
+        { name: 'Bill Number', type: 'text' },
         { name: 'Firm name', type: 'text' },
         { name: 'Description', type: 'text' },
         { name: 'Service name', type: 'text' },
@@ -285,7 +306,7 @@ const expenseCategories = [
     {
       categoryName: 'Communication',
       fields: [
-        { name: 'Bill no. service provider', type: 'text' },
+        { name: 'Bill No service provider', type: 'text' },
         { name: 'Bill date', type: 'date' },
         { name: 'Tax Amount', type: 'amount' },
         { name: 'Total Amount', type: 'amount' }
@@ -295,6 +316,8 @@ const expenseCategories = [
     {
       categoryName: 'Research and Development',
       fields: [
+        { name: 'Bill Date', type: 'date' },
+        { name: 'Bill Number', type: 'text' },
         { name: 'Research Project Description', type: 'text' },
         { name: 'Cost', type: 'amount' }
       ],
@@ -303,6 +326,8 @@ const expenseCategories = [
     {
       categoryName: 'Training',
       fields: [
+        { name: 'Bill Date', type: 'date' },
+        { name: 'Bill Number', type: 'text' },
         { name: 'Training Program Description', type: 'text' },
         { name: 'Trainer', type: 'text' },
         { name: 'Cost', type: 'amount' }
@@ -312,6 +337,8 @@ const expenseCategories = [
     {
       categoryName: 'Software Subscriptions',
       fields: [
+        { name: 'Bill Date', type: 'date' },
+        { name: 'Bill Number', type: 'text' },
         { name: 'Software Name', type: 'text' },
         { name: 'Subscription Type', type: 'text' },
         { name: 'Subscription Cost', type: 'amount' }
@@ -321,6 +348,8 @@ const expenseCategories = [
     {
       categoryName: 'Client entertainment',
       fields: [
+        { name: 'Bill Date', type: 'date' },
+        { name: 'Bill Number', type: 'text' },
         { name: 'Total Amount', type: 'text' }
       ],
       modeOfTranfer:false,
@@ -328,6 +357,8 @@ const expenseCategories = [
     {
       categoryName: 'Client gift',
       fields: [
+        { name: 'Bill Date', type: 'date' },
+        { name: 'Bill Number', type: 'text' },
         { name: 'Total Amount', type: 'text' }
       ],
       modeOfTranfer:false,
