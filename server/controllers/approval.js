@@ -1254,6 +1254,7 @@ const travelExpenseApproval = async (req, res) => {
          }
            )
            expenseReportFound.approvers = setApprover
+           expenseReportFound.actionedUpon = false
         expenseReportFound.expenseHeaderStatus = 'pending settlement'
        } else if(approver && isPendingApproval && isRejected ){
         const setApprover = expenseReportFound.approvers.map(approver =>{
@@ -1302,7 +1303,6 @@ const travelExpenseApproval = async (req, res) => {
       sendToOtherMicroservice(payload, action, 'expense', comments),
       sendToOtherMicroservice(payload, action, 'approval', comments),
       sendToOtherMicroservice(payload, action, 'reporting', comments),
-
     ]
     await Promise.all(promises)
 
@@ -1424,6 +1424,7 @@ const nonTravelReportApproval = async (req, res) => {
        }
          )
         approvalDocument.approvers = setApprover
+        approvalDocument.actionedUpon = false
         approvalDocument.expenseHeaderStatus = 'pending settlement'
        } else if(getApprover && isPendingApproval && isRejected ){
         const setApprover = approvalDocument.approvers.map(approver =>{
