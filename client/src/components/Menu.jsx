@@ -157,6 +157,7 @@ const Menu = () => {
         setVisibleHeaders(tripHeaders);
         setExportData(tripData)
     }
+    setFilterForm({...intialFilterForm,role:activeView})
   };
   
 
