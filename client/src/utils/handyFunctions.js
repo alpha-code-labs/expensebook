@@ -206,14 +206,14 @@ function titleCase(str){
         return csvRows.join('\n');
       };
 
-      const handleCSVDownload = (jsonData) => {
+      const handleCSVDownload = (jsonData,fileName) => {
         const csvData = convertJsonToCsv(jsonData);
         const blob = new Blob([csvData], { type: 'text/csv' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.setAttribute('hidden', '');
         a.setAttribute('href', url);
-        a.setAttribute('download', 'employees.csv');
+        a.setAttribute('download', `${fileName}.csv`);
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);

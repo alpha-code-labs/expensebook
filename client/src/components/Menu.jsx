@@ -159,7 +159,7 @@ const Menu = () => {
     }
   };
   
- 
+
   
   
   const handlePresetChange = (value) => {
@@ -233,6 +233,7 @@ const hideHeader = (header) => {
           }
         }
       }))
+      setExportData(flattenTripData(response?.reports?.trips || []));
       console.log('Report Data', response);
       setIsLoading(false);  
     } catch (error) {
@@ -272,22 +273,15 @@ const handleRunReport = async () => {
   try {
     // Set the loading state for filtering the report
     setIsUploading((prev) => ({ ...prev, filterReport: true }));
-
     // Call the API to get the filtered report data with the payload and filterBy
     const response = await getfilteredReportDataAPI(
       { tenantId, empId, filterBy: getFilterBy(reportTab) },
       payload
     );
 
-    console.log('API Response:', response);
+      console.log('API Response:', response);
 
-    setReportDate({
-      "toDate":filterForm?.toDate,
-      "fromDate":filterForm?.fromDate
-    })
     const setDataByReportTab = (reportTab, response) => {
-      
-
       const dataMap = {
         trip: "tripData",
         "cash-advance": "cashadvanceData",
@@ -322,6 +316,11 @@ const handleRunReport = async () => {
         }
         setShowPopup(true)
         setMessage(message);
+        setFilterForm((prevForm) => ({
+          role: prevForm?.role,
+          fromDate:prevForm?.fromDate,
+          toDate: prevForm?.toDate
+        }));
 
       } else {
         switch (reportData) {
@@ -345,6 +344,13 @@ const handleRunReport = async () => {
             // Handle default case if necessary
             console.warn("Unknown report data type:", reportData);
         }
+        setFilterForm((prevForm) => ({
+          ...prevForm,
+          role: prevForm?.role,
+          fromDate:prevForm?.fromDate,
+          toDate: prevForm?.toDate
+        }));
+
         setReportData((prev) => ({
           ...prev,
           [dataMap[reportTab]]: newData,
@@ -353,9 +359,6 @@ const handleRunReport = async () => {
       }
     };
     
-   
-    
-    
     // Set the report data based on the current reportTab
     setDataByReportTab(reportTab, response);
     setFilterForm((prevForm) => ({
@@ -363,6 +366,7 @@ const handleRunReport = async () => {
       fromDate:prevForm?.fromDate,
       toDate: prevForm?.toDate
     }));
+
     setTimeout(()=>{
       setShowPopup(false)
       setMessage(null)
@@ -379,12 +383,9 @@ const handleRunReport = async () => {
     setMessage(error.message)
     setTimeout(() => {setIsUploading((prev) => ({ ...prev, filterReport: false }));setMessage(null);setShowPopup(false)},3000);
   }
+
 };
 
-useEffect(()=>{
-  setIsLoading(true)
-  fetchData("myView");
-},[])
 
 
 const generatePDF = (data) => {
@@ -425,11 +426,12 @@ const generatePDF = (data) => {
 
 // download file
 const handleDownloadfile=(file,data)=>{
+  const fileName  = `${reportTab}_report ${formatDate(reportDate?.fromDate)} - ${formatDate(reportDate?.toDate)}`
   if(file === 'PDF'){
     //handleCSVDownload(json.employees)
     generatePDF(data)
   }else if (file === 'CSV'){
-    handleCSVDownload(data)
+    handleCSVDownload(data,fileName)
   }
 }
 
@@ -442,9 +444,13 @@ console.log('export data', exportData,cashadvanceData)
 
 console.log('flatted reports',travelExpenseData)
 
-// useEffect(()=>{
-//   setExportData(tripData)
-//  },[tripData])
+
+useEffect(()=>{
+  setIsLoading(true)
+ 
+  fetchData("myView");
+  
+},[])
 return (
   <>
 <div className='flex overflow-auto h-screen scrollbar-hide'>
@@ -535,7 +541,11 @@ return (
               {`${reportTab}s Report`}
               </p>
             </div>
-            <div onClick={() => setShowModal(false)} className='bg-red-100 cursor-pointer rounded-full border border-white'>
+            <div onClick={() => {setShowModal(false),setFilterForm((prevForm) => ({
+          role: prevForm?.role,
+          fromDate:prevForm?.fromDate,
+          toDate: prevForm?.toDate
+        }))}} className='bg-red-100 cursor-pointer rounded-full border border-white'>
               <img src={cancel_icon} className='w-5 h-5' alt="Cancel icon"/>
             </div>
           </div>
