@@ -386,7 +386,7 @@ const handleAddToItinerary = (category, data)=>{
 
 const handleNext = async ()=>{
   console.log('clicked on next');
-  if(nextPage == undefined && formData.travelRequestId){
+  if((nextPage == undefined || !isItineraryPresent()) && formData.travelRequestId){
     //submission logic
       console.log('sending call')
       setShowPopup(true)
@@ -415,6 +415,14 @@ const handleCashAdvance = async (needed)=>{
       window.parent.postMessage('closeIframe', DASHBOARD_URL);
   }
 
+}
+
+function isItineraryPresent(){
+  const keys = Object.keys(formData.itinerary);
+  for(let i=0; i<keys.length; i++){
+    if(formData.itinerary[keys[i]].length > 0) return true;
+  }
+  return false;
 }
 
 useEffect(()=>{
@@ -462,24 +470,20 @@ useEffect(()=>{
             </div>
 
             <div className='flex w-full justify-end'>
-                <Button disabled={nextPage == 'undefined' && formData.itinerary } text={`${nextPage == undefined ? 'Submit' : 'Continue'}`} onClick={handleNext}/>
+                <Button disabled={nextPage == 'undefined' && formData.itinerary } text={`${ (nextPage == undefined || !isItineraryPresent()) ? 'Submit' : 'Continue'}`} onClick={handleNext}/>
             </div>
             
-            <Modal visible={showPopup} setVisible={setShowPopup} skipable={true}>
-                {!requestSubmitted && 
-                  <div className='w-[150px] h-[150px]'>
-                    <Error message={loadingErrMsg} />
-                  </div>}
+            <Modal2 showModal={showPopup} setShowModal={setShowPopup} skipable={true}>
+                {!requestSubmitted && <Error message={loadingErrMsg}/>}
                 {requestSubmitted && <div className='p-10'>
                     <p className='text-2xl text-neutral-700 font-semibold font-cabin'>Travel Request Submitted !</p>
-                    {console.log('cash advance allowed', cashAdvanceAllowed)}
                     { false && <> 
                         <p className='text-zinc-800 text-base font-medium font-cabin mt-4'>Would you like to raise a cash advance request for this trip?</p>
                         <div className='flex gap-10 justify-between mt-10'>
                             <Button text='Yes' onClick={()=>handleCashAdvance(true)} />
                             <Button text='No' onClick={()=>handleCashAdvance(false)} />
                         </div>
-                      </>
+                        </>
                     }
 
                     {true && <div className='flex gap-10 justify-between mt-10'>
@@ -487,7 +491,7 @@ useEffect(()=>{
                         </div>}
 
                 </div>}
-            </Modal>
+            </Modal2>
             
             <Confirm visible={showConfirm} setVisible={setShowConfirm} itemId = {deleteId} actionHandler={deleteItineraryItem} />
         </div>
@@ -1194,7 +1198,7 @@ const HotelForm = ({setVisible, handleAddToItinerary, action='create', editId = 
     </div>)
 }
 
-const Modal = ({ visible, setVisible, children }) => {
+const Modal = ({ visible, setVisible, children, overflowHidden=false, skipable=true }) => {
 
   useEffect(()=>{
     if(visible){
@@ -1208,17 +1212,17 @@ const Modal = ({ visible, setVisible, children }) => {
     visible && (
       <div className='relative'>
 
-        <div className='fixed  w-[100%] h-[100%] left-0 top-0 bg-black/30 z-10' onClick={()=>setVisible(false)}>
-        </div>
+        {<div className='fixed  w-[100%] h-[100%] left-0 top-0 bg-black/30 z-10' onClick={()=> skipable && setVisible(false)}>
+        </div>}
 
-        <div className="fixed w-[90%] sm:w-fit max-w-[100%] h-fit max-h-[96%] xl:max-h-[80%] overflow-y-scroll left-[50%] translate-x-[-50%] top-[2%] xl:top-[10%] rounded-lg shadow-lg z-[100] bg-white">
+        <div className={`fixed w-[90%] sm:w-fit max-w-[100%] h-fit max-h-[96%] xl:max-h-[80%] left-[50%] ${!overflowHidden&&'overflow-y-scroll'} translate-x-[-50%] top-[2%] xl:top-[10%] rounded-lg shadow-lg z-[100] bg-white`}>
             {/* close icon */}
-            <div onClick={()=>setVisible(false)} className='cursor-pointer fixed right-0 hover:bg-red-100 p-2 rounded-full mt-2 mr-4'>
+            {skipable && <div onClick={()=>setVisible(false)} className='cursor-pointer fixed right-0 hover:bg-red-100 p-2 rounded-full mt-2 mr-4'>
                 <img src={closeIcon} alt="" className='w-6 h-6' />
-            </div>
+            </div>}
             
             {/* childrens */}
-            <div className='p-4 sm:p-10 max-w-[100%] rounded-md overflow-y-scroll'>
+            <div className='p-4 sm:p-10 max-w-[100%] rounded-md'>
                 {children}
             </div>
         </div>
@@ -1227,6 +1231,42 @@ const Modal = ({ visible, setVisible, children }) => {
     )
   );
 };
+
+const Modal2=(props)=>{
+
+  const modalRef = useRef(null)
+  const [showModal, setShowModal] = [props.showModal, props.setShowModal]
+  const { children, skipable} = props
+
+ // const skipable = props.skipable || true
+  console.log(skipable, showModal, 'skipable')
+
+  useEffect(()=>{
+      if(showModal){
+          document.body.style.overflow = 'hidden'
+      }
+      else{
+          document.body.style.overflow = 'auto'
+      }
+  },[showModal])
+
+  const handleOutsideClick = (e)=>{
+      e.preventDefault()
+      e.stopPropagation()
+      if(skipable){
+          setShowModal(false)
+      }
+  }
+
+  return(
+      <>
+          {showModal && <div onClick={handleOutsideClick} className="fixed overflow-hidden flex justify-center items-center inset-0 backdrop-blur-sm w-full h-full left-0 top-0 bg-gray-800/60 scroll-none">
+              <div ref={modalRef} className='z-10 max-w-[600px] w-[90%] sm:w-[80%] md:w-[60%] min-h-[200px] scroll-none bg-white rounded-lg shadow-md'>
+                  {children}
+              </div>
+          </div>}
+      </>)
+}
 
 function getCurrentDate(itinerary){
   console.log(itinerary, 'itinerary...')
