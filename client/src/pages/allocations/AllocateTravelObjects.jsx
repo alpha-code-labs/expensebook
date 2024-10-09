@@ -192,9 +192,14 @@ export default function({formData, setFormData, nextPage, lastPage, onBoardingDa
                 {/* Rest of the section */}
                 <div className="w-full h-full mx-auto">
                     {/* back link */}
-                    <div className='flex items-center gap-4 cursor-pointer'>
-                        <img className='w-[24px] h-[24px]' src={leftArrow_icon} onClick={()=>navigate(lastPage)} />
-                        <p className='text-neutral-700 text-md font-semibold font-sans-serif'>Allocate Travel</p>
+                    <div className='flex justify-between'>
+                        <div className='flex items-center gap-4 cursor-pointer'>
+                            <img className='w-[24px] h-[24px]' src={leftArrow_icon} onClick={()=>navigate(lastPage)} />
+                            <p className='text-neutral-700 text-md font-semibold font-sans-serif'>Allocate Travel</p>
+                        </div>
+                        <div>
+                            <p className='text-indigo-500 underline cursor-pointer' onClick={handleSubmit}>Skip</p>
+                        </div>
                     </div>
 
                     <div>
@@ -229,7 +234,7 @@ export default function({formData, setFormData, nextPage, lastPage, onBoardingDa
                         })}
                             
                                     
-                        { selectedTravelAllocationHeaders && selectedTravelAllocationHeaders.length == 0 && 
+                        { false && selectedTravelAllocationHeaders && selectedTravelAllocationHeaders.length == 0 && 
                         <div className='mt-6 flex gap-4'>
                             <input type='radio' />
                             <p className='text-zinc-800 text-sm font-medium font-cabin'>Not Sure</p>
