@@ -353,8 +353,8 @@ defaultCurrency={defaultCurrency}
 expenseAmountStatus={expenseAmtDetails}
 />
 
-<div className="flex w-full justify-between  items-center bg-indigo-50 py-2 px-6 mt-2 border-[1px] rounded-sm border-indigo-600 cursor-pointer">
-  <p className=" whitespace-nowrap text-indigo-600">Header Report No.{expenseData?.expenseReport?.expenseHeaderNumber}</p>
+<div className="flex w-full justify-between  items-center bg-gray-200/10 py-2 px-6 mt-2 border rounded-md border-slate-300 cursor-pointer">
+  <p className=" whitespace-nowrap text-neutral-900">Header Report No.{expenseData?.expenseReport?.expenseHeaderNumber}</p>
 
   </div>
            

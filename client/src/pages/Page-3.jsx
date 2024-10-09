@@ -248,28 +248,30 @@ totalViolations = totalTravelViolations +  totalCashViolations || 0;
 
        
         <div className="w-full h-full mt-10 p-10 font-cabin tracking-tight">
-            <div className="flex justify-between">
-            <div className='flex flex-col justify-between py-2'>
+            <div className="flex justify-between flex-row md:flex-col">
+            <div className='flex w-full flex-row justify-between py-2 '>
                 {/* <p className="text-2xl text-neutral-600 mb-5">{`${travelData?.tripPurpose}`}</p> */}
 
                     <TripName tripName={travelData?.tripName}/>
+<div className="flex flex-col sm:flex-row gap-2">
+                    {totalViolations>0 &&
+                <div className="flex justify-center border px-1 rounded-sm border-yellow-200 bg-yellow-100 items-center gap-1 font-inter text-xs">
+                   <img src={violation_ySym_icon} className='w-4 h-4' alt='validation'/>
+                   
+                  
+  <p className="text-xs text-yellow-200">{totalViolations ?? "-"}</p>
 
-                {/* {travelRequestStatus === 'pending approval' && 
-                <div className="flex gap-4">
-                    <div >
-                        <ActionButton text={titleCase('approve' )} onClick={()=>handleAction('','travel-approve')}/>
-                    </div>
-                    <div >
-                        <ActionButton text={'Reject'}     onClick={()=>handleAction('','travel-reject')}/>
-                    </div>
-                    
-                </div>} */}
+<p className="text-yellow-200">Violations</p>
 
-                
-             
+                   
+                </div>}  
+                    <StatusBox status={travelData?.travelRequestStatus} />
+                    </div>
+                      
             </div>
+           
 
-            <StatusBox status={travelData?.travelRequestStatus} />
+         
             </div>
            
            
@@ -283,17 +285,12 @@ totalViolations = totalTravelViolations +  totalCashViolations || 0;
         Created By
         </p>
     
-    <p className="text-purple-500 capitalize">
+    <p className="text-neutral-900 capitalize">
         {travelData?.createdBy?.name}
     </p>
 </div>
 </div>
-                {totalViolations>0 &&
-                <div className="flex gap-2 font-inter text-md  tracking-tight">
-                    <p className=" text-yellow-600 font-semibold fo">Warning Violations:</p>
-                    <div className="bg-yellow-600  rounded-full px-2 text-center text-white-100"> <p className="text-center">{totalViolations ?? "-"}</p></div>
-                   
-                </div>}
+                
                 {/* <div className="flex gap-2 font-cabin text-xs tracking-tight">
                     <p className="w-[100px] text-neutral-600">Raised For:</p>
                     <p className="text-neutral-700">{travelData.createdFor?.name??'Self'}</p>

@@ -35,7 +35,7 @@ export {default as location_icon} from './location.svg';
 export {default as cab} from './cab.svg';
 export {default as briefcase} from './briefcase.svg';
 export {default as receipt} from './receipt.svg';
-export {default as money} from './money.svg';
+export {default as money} from './cash_black_icon.svg';
 export {default as house_simple} from './house-simple.svg';
 export {default as intransit_trip} from './intransit-trip.svg';
 export {default as upcoming_trip} from './upcoming-trip.svg';
