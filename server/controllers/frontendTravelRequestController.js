@@ -157,6 +157,7 @@ const createTravelRequest = async (req, res) => {
 
      //send data to rabbitmq
      await sendToOtherMicroservice(savedNewTravelRequest, 'To update newly created travel request in dashboard', 'dashboard')
+     await sendToOtherMicroservice(savedNewTravelRequest, 'To update newly created travel request in reporting', 'reporting')
 
     return res.status(201).json({ message: "Travel Request Created", travelRequestId});
   } catch (e) {
@@ -378,8 +379,8 @@ const updateTravelRequest = async (req, res) =>{
       }
 
       //send data to rabbitmq
-      await sendToOtherMicroservice(result, 'To update entire travelRequestData in dashboard microservice', 'dashbaord')
-      
+      await sendToOtherMicroservice(result, 'To update entire travelRequestData in dashboard microservice', 'dashboard')
+      await sendToOtherMicroservice(result, 'To update entire travelRequestData in dashboard microservice', 'reporting')
 
       if(sendToApproval && lastTravelRequestStatus!='draft'){
           //replicate data in approval microservice
@@ -425,7 +426,9 @@ const updateTravelRequest = async (req, res) =>{
         }
 
         //send data to rabbitmq
-        await sendToOtherMicroservice(result, 'To update entire travelRequestData in dashbaord microservice', 'dashboard')
+        await sendToOtherMicroservice(result, 'To update entire travelRequestData in dashboard microservice', 'dashboard')
+        await sendToOtherMicroservice(result, 'To update entire travelRequestData in dashboard microservice', 'reporting')
+
 
         if(sendToApproval){
           //replicate data in approval microservice
@@ -463,6 +466,8 @@ const updateTravelRequest = async (req, res) =>{
 
         //send data to rabbitmq
         await sendToOtherMicroservice(result, 'To update entire travelRequestData in dashboard microservice', 'dashboard')
+        await sendToOtherMicroservice(result, 'To update entire travelRequestData in dashboard microservice', 'reporting')
+
 
         if(sendToApproval){
           //replicate data in approval microservice
@@ -537,6 +542,8 @@ const cancelTravelRequest = async (req, res)=>{
     travelRequest.isCancelled = true;
 
     const sentToDashboard = await sendToDashboardQueue(travelRequest, 'To cancel the travel request in dashboard', 'full-update', 'online')
+    await sendToOtherMicroservice(travelRequest, 'To cancel the travel request in dashboard microservice', 'reporting')
+
 
     if(!sentToDashboard) {
       return res.status(400).json({message: 'Can not perform requested operation at the moment'})
@@ -630,7 +637,9 @@ const updateTravelBookings = async (req, res)=>{
       console.log('Updated everything')
 
       //send data to rabbitmq.. 
-      const sentToDashboard = await sendToOtherMicroservice(travelRequest, 'Booked Travel Requests Update from Travel MS', 'dashboard', 'travel', 'onbline', 'full-update')
+      const sentToDashboard = await sendToOtherMicroservice(travelRequest, 'Booked Travel Requests Update from Travel MS', 'dashboard', 'travel', 'online', 'full-update')
+      await sendToOtherMicroservice(travelRequest, 'Booked Travel Requests Update from Travel MS', 'reporting')
+
       // const sentToDashboard = await sendToDashboardQueue(travelRequest, 'to update travel request contents after booking', 'full-update','online')
       if(!sentToDashboard) {
         return res.status(400).json({message: 'Can not perform requested operation at the moment'})
