@@ -16,6 +16,9 @@ import { urlRedirection } from '../utils/handyFunctions';
 
 export default function CompanyAndHRInformation(){
 
+  const emailRef = useRef()
+  const passwordRef = useRef()
+
   const DASHBOARD_PAGE_URL  = import.meta.env.VITE_DASHBOARD_PAGE_URL
   const ONBOARDING_PAGE_URL = import.meta.env.VITE_ONBOARDING_PAGE_URL
   const navigate= useNavigate()
@@ -74,6 +77,8 @@ export default function CompanyAndHRInformation(){
   const handleLogin = () => {
 
     let allowSubmit = true
+    const email = emailRef?.current?.value || ""
+    const password = passwordRef?.current?.value
 
     const data = new FormData();
 
@@ -89,17 +94,17 @@ export default function CompanyAndHRInformation(){
 
      
 
-      if(formData.email == ''){
+      if(!email){
         setErrors(pre=>({...pre, emailError:{set:true, message:'Email is required.'}}))
         allowSubmit=false
       }
-      else if(!validateEmail(formData.email)){
+      else if(!validateEmail(email)){
         setErrors(pre=>({...pre, emailError:{set:true, message:'Please enter valid email id'}}))
         allowSubmit=false
       }else{setErrors(pre=>({...pre, emailError:{set:false, message:''}}))}
 
 
-      if(formData.password == ''){
+      if(!password){
         setErrors(pre=>({...pre, passwordError:{set:true, message:'Password is required.'}}))
         allowSubmit=false
       }else{setErrors(pre=>({...pre, passwordError:{set:false, message:''}}))}
@@ -124,7 +129,7 @@ export default function CompanyAndHRInformation(){
        // navigate('/success-page');
         
        setIsUploading(prevState => ({ ...prevState, logFog: true }));
-          const {error,data} = await postLogin_API(formData)
+          const {error,data} = await postLogin_API({companyName:formData.companyName , email, password})
           // Redirect to the dashboard page with the authToken as a query parameter
           if (error) {
           console.error('API Error:', error);
@@ -175,6 +180,7 @@ export default function CompanyAndHRInformation(){
   
   const handleForgotPassword =async()=>{
 
+    const email = emailRef?.current?.value
     let allowSubmit = true    
     //validate form
   
@@ -183,11 +189,11 @@ export default function CompanyAndHRInformation(){
         allowSubmit=false
       }else{setErrors(pre=>({...pre, companyNameError:{set:false, message:''}}))}
 
-      if(formData.email == ''){
+      if(!email){
         setErrors(pre=>({...pre, emailError:{set:true, message:'Email is required.'}}))
         allowSubmit=false
       }
-      else if(!validateEmail(formData.email)){
+      else if(!validateEmail(email)){
         setErrors(pre=>({...pre, emailError:{set:true, message:'Please enter valid email id'}}))
         allowSubmit=false
       }else{setErrors(pre=>({...pre, emailError:{set:false, message:''}}))}
@@ -196,8 +202,9 @@ export default function CompanyAndHRInformation(){
    
     if(allowSubmit){
       
-       const {companyName , email}= formData
-
+       const {companyName }= formData
+      
+       
        const ForgotPasswordInputs ={
         companyName,email
        }
@@ -240,8 +247,9 @@ export default function CompanyAndHRInformation(){
   }
 
 
-  
- 
+  const email = emailRef?.current?.value
+  const password = passwordRef?.current?.value
+ console.log('login data', formData,email,password)
   return (
     <div> 
       {isLoading && <Error message={loadingErrorMsg}/>}
@@ -290,6 +298,7 @@ export default function CompanyAndHRInformation(){
               
 
             <Input
+            ref={emailRef}
       title='Email Id' 
       placeholder='email id'
       type='email'
@@ -303,6 +312,7 @@ export default function CompanyAndHRInformation(){
 {isForgotPassword ? null :
             <div className='flex gap-2 flex-col md:flex-row w-full'>
                 <Input
+                ref={passwordRef}
                     title='Password' 
                     placeholder='password'
                     value={formData.password}
