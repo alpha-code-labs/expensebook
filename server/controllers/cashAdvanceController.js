@@ -93,6 +93,7 @@ const createCashAdvance = async (req, res) => {
       //await sendToDashboardQueue(updatedCashAdvance, false, 'online')
 
       await sendToOtherMicroservice(updatedCashAdvance, 'full-update', 'dashboard', 'To update full cash advance data in dashboard')
+      await sendToOtherMicroservice(updatedCashAdvance, 'full-update', 'reporting', 'To update full cash advance data in dashboard')
 
       return res.status(200).json({message:'Created cash advance in draft state', cashAdvanceId})
     }
@@ -180,6 +181,8 @@ const createCashAdvance = async (req, res) => {
     //send data to dashboard
     //await sendToDashboardQueue(newCashAdvance, false, 'online')
     await sendToOtherMicroservice(newCashAdvance, 'full-update', 'dashboard', 'To update full cash advance data in dashboard')
+    await sendToOtherMicroservice(newCashAdvance, 'full-update', 'reporting', 'To update full cash advance data in dashboard')
+
 
     return res.status(201).json({ message: 'Cash Advance created in draft state', cashAdvanceId });
   } catch (error) {
@@ -315,6 +318,8 @@ const updateCashAdvance = async (req, res) => {
 
     //await sendToDashboardQueue(updatedData, false, 'online')
     await sendToOtherMicroservice(updatedData, 'full-update', 'dashboard', 'To update cash advance and travelRequest data in dashboard', 'cash')
+    await sendToOtherMicroservice(updatedData, 'full-update', 'reporting', 'To update cash advance and travelRequest data in dashboard', 'cash')
+
     console.log('sent to dashboard')
 
     //check status
@@ -340,6 +345,7 @@ const updateCashAdvance = async (req, res) => {
         //if(trip_res.status!=200) throw new Error('Error occured while replicating details in Finance-ms')
       
         sendToOtherMicroservice(updatedCashAdvance, 'partial-cash-update', 'trip', 'To update raised cash advance in trip-ms', 'cash' )
+        
         return res.status(200).json({message: 'Cash advance submitted for settlement'})
       }
 
@@ -349,6 +355,8 @@ const updateCashAdvance = async (req, res) => {
         //if(approval_res.status!=200) throw new Error('Error occured while replicating details in approval-ms')
     
         sendToOtherMicroservice(updatedData, 'full-update', 'approval', 'To update travelRequestData and cashAdvanceData in approval-ms', 'cash' )
+        sendToOtherMicroservice(updatedData, 'full-update', 'reporting', 'To update travelRequestData and cashAdvanceData in approval-ms', 'cash' )
+
         
         //sendToOtherMicroservice(updatedCashAdvance, 'partial-cash-update', 'trip', 'To update raised cash advance in trip-ms', 'cash' )
        
@@ -358,6 +366,8 @@ const updateCashAdvance = async (req, res) => {
           sendToOtherMicroservice(updatedCashAdvance, 'partial-cash-update', 'trip', 'To update raised cash advance in trip-ms', 'cash' )
           //send data to expense
           sendToOtherMicroservice(updatedCashAdvance, 'partial-cash-update', 'expense', 'To update raised cash advance in expense-ms', 'cash' )
+          sendToOtherMicroservice(updatedCashAdvance, 'partial-cash-update', 'reporting', 'To update raised cash advance in expense-ms', 'cash' )
+
         }
 
         return res.status(200).json({message: 'Cash advance submitted for approval'})
@@ -525,6 +535,8 @@ const cancelCashAdvance = async (req, res) =>{
       //send to trip and expense
       await sendToOtherMicroservice(payload, 'cancel-cash-update', 'expense', 'To update raised cash advance in expense-ms', 'cash' )
       await sendToOtherMicroservice(payload, 'cancel-cash-update', 'trip', 'To update raised cash advance in trip-ms', 'cash' )
+      await sendToOtherMicroservice(payload, 'cancel-cash-update', 'reporting', 'To update raised cash advance in trip-ms', 'cash' )
+
     }
 
     return res.status(200).json({message: `Cash advance cancelled`})

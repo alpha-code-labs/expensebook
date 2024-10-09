@@ -40,4 +40,4 @@ await startConsumer('cash')
 
 batchJobApprovedToNextTravel();
 batchJobApprovedToNextCash();
-batchJobCreateTrip();
+// batchJobCreateTrip();
