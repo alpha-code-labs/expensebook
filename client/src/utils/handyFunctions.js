@@ -214,7 +214,7 @@
       case "pending": 
       case "transit":
       case "draft":
-        return ' border-yellow-100 bg-yellow-100 text-yellow-200 rounded-full';
+        return ' border-yellow-100  bg-yellow-100 text-yellow-200 rounded-full';
       default:
         return " ";  
 
