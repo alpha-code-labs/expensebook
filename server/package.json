@@ -1,0 +1,28 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon index.js"
+  },
+  "author": "Ajay",
+  "license": "ISC",
+  "dependencies": {
+    "@azure/communication-email": "^1.0.0",
+    "amqplib": "^0.10.3",
+    "axios": "^1.6.4",
+    "bcrypt": "^5.1.1",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.0.3",
+    "nodemon": "^3.0.2",
+    "pino": "^8.17.2",
+    "pino-pretty": "^10.3.1"
+  }
+}
