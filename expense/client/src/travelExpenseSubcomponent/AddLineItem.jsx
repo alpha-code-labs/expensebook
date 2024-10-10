@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState,useRef } from 'react';
 import { allocationLevel1,  lineItems,  } from '../utils/dummyData';
 import { cancel_icon, categoryIcons, info_icon, modify_icon, receipt,scan_icon } from '../assets/icon';
 import Allocations from './Allocations';
@@ -257,12 +257,12 @@ const handleMannualBtn = () => {
   }
 };
 
-
+  const currencyRef = useRef('');
+  const totalAmountRef = useRef(0);
+  const personalAmountRef = useRef(0);
 
 const handleCurrencyConversion = async ( {currencyName}) => { 
-  
-  
-  
+
   const payload = {
     ...currencyConversion.payload,
     currencyName
@@ -276,18 +276,14 @@ const handleCurrencyConversion = async ( {currencyName}) => {
   } else {
     setErrorMsg((prevErrors) => ({ ...prevErrors, conversion: { set: false, msg: "" } }));
   }
-
+  
   if (formData.fields.isPersonalExpense && currencyConversion.payload.personalAmount ==="") {
     setErrorMsg((prev) => ({ ...prev, personalAmount: { set: true, msg: "Enter the personal expense amount" } }));
     allowForm = false;
   } else {
     setErrorMsg((prevErrors) => ({ ...prevErrors, personalAmount: { set: false, msg: "" } }));   
   }
-
   
-
-  
-
   if (allowForm) {
     ///api 
     setErrorMsg((prev) => ({ ...prev, conversion: { set: false, msg: "" } }));
@@ -806,7 +802,7 @@ useEffect(()=>{
                                         </div>
       
       {categorySearchVisible &&
-      <div className='absolute top-[84px]'>
+      <div className='absolute top-[84px] z-10'>
        <Search
        visible={categorySearchVisible}
        setVisible={setCategorySearchVisible}

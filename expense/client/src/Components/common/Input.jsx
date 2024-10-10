@@ -80,7 +80,7 @@ const Input = ({conversionAmount, title, placeholder, onChange ,error,initialVal
           {error?.msg}
         </div>
       )} 
-        {conversionAmount?.currencyFlag && (
+        {conversionAmount?.currencyFlag && conversionAmount?.convertedPersonalAmount && (
         <div className="absolute  top-[48px] w-full text-xs text-neutral-900 font-cabin">
          
       {`Amount in ${conversionAmount?.defaultCurrencyName} ${conversionAmount?.convertedPersonalAmount} | 1 ${conversionAmount?.convertedCurrencyName} = ${conversionAmount?.defaultCurrencyName} ${conversionAmount?.conversionRate}`}

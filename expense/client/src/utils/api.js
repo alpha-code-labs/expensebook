@@ -147,6 +147,24 @@ export const getTravelExpenseForModifyApi= async(tenantId,empId,tripId,expenseHe
 
 }
 
+export const getTravelExpenseForViewApi= async(tenantId,empId,tripId,expenseHeaderId)=>{
+  const url = `${EXPENSE_BACKEND_API_URL}/api/fe/expense/travel/${tenantId}/${empId}/${expenseHeaderId}/view`
+  
+  try {
+    const response = await axiosRetry(axios.get, url);
+    return response.data
+
+  } catch(error){
+    handleRequestError(error);
+    const errorObject = {
+      status: error.response?.status || null,
+      message: error.message || 'Unknown error',
+    };
+    return { error: errorObject };
+  }
+
+}
+
 
 export const postTravelExpenseLineItemApi = async(params,payload)=>{
   const {tenantId,empId,tripId,expenseHeaderId}= params

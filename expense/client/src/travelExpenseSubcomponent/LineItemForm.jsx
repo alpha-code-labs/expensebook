@@ -1,4 +1,4 @@
-import React, { useState,useEffect } from 'react'
+import React, { useState,useEffect ,useRef} from 'react'
 import Allocations from './Allocations'
 import Input from '../components/common/Input'
 import Select from '../components/common/Select'
@@ -33,6 +33,7 @@ console.log('converted amount',currencyConversion)
         if (key === 'isPersonalExpense' && value === false) {
           updatedFields.personalExpenseAmount = "";  // Clear the input value
           setCurrencyConversion(prev => ({...prev,payload:{...prev.payload,personalAmount:""}}))
+          setCurrencyConversion(prev => ({...prev,response:{...prev.payload,personalAmount:""}}))
         }
 
         
@@ -184,10 +185,7 @@ console.log('converted amount',currencyConversion)
           uploading={isUploading.conversion}
           currencyOptions={currenciesList.map(cr=>({...cr, imageUrl:`https://hatscripts.github.io/circle-flags/flags/${cr.countryCode.toLowerCase()}.svg`}))} 
           initialValue={lineItemDetails[field.name]}
-            //for amount input---
              name={field.name}
-            // placeholder={`Enter ${field.name}`}
-            // value={lineItemDetails[field.name] || ""}
             currency={formData.Currency}
             onCurrencyChange={(value)=>handleInputChange('Currency',value)}
             onChange={(value) => handleInputChange(field.name, value)}

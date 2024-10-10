@@ -5,6 +5,7 @@ import { camelCaseToTitleCase, rearrangeKeyForLineItem } from "../utils/handyFun
 import { lineItems } from "../utils/dummyData";
 import { StatusBox } from "../Components/common/TinyComponent";
 import CancelButton from "../Components/common/CancelButton";
+import { disableDeleteLine, disableEditLine } from "../utils/data/keyList";
 
 export function LineItemView({selectedLineItemId, expenseHeaderStatus, isUploading, active, flagToOpen, expenseHeaderId, lineItem, index, newExpenseReport, handleEdit, handleDeleteLineItem }) {
 
@@ -192,8 +193,8 @@ export function LineItemView({selectedLineItemId, expenseHeaderStatus, isUploadi
       <div className=' bottom-0 p-2 bg-white border-y  border-slate-300'>
         {!['paid', 'paid and distribute'].includes(expenseHeaderStatus) && (
           <div className="w-full flex sm:justify-start justify-center gap-4">
-            <Button1  text={"Edit"} onClick={() => handleEdit(arrangedItems)} />
-            <CancelButton loading={false} text="Delete" onClick={()=>handleDeleteLineItem()} />
+            <Button1 disabled={disableEditLine.includes(arrangedItems?.lineItemStatus)}  text={"Edit"} onClick={() => handleEdit(arrangedItems)} />
+            <CancelButton disabled={disableDeleteLine.includes(arrangedItems?.lineItemStatus)} loading={false} text="Delete" onClick={()=>handleDeleteLineItem()} />
           </div>
         )}
        
