@@ -5,6 +5,7 @@ import HRMaster from "../models/hrMasterSchema.js";
 import { earliestDate, extractStartDate } from "../utils/date.js";
 import { countViolations, extractValidViolations } from "../utils/count.js";
 import REIMBURSEMENT from "../models/reimbursementSchema.js";
+import { fetchEmployeeNotifications } from "../controllers/notificationController.js";
 
 export const employeeSchema = Joi.object({
     tenantId: Joi.string().required(),
@@ -141,7 +142,9 @@ const getEmployeeRoles = async (tenantId, empId) => {
 
 const roleBasedLayout = async (req, res) => {
   try {
-    let { tenantId,empId} = req.user
+    // let { tenantId,empId} = req.user
+    let { tenantId,empId} = req.params
+
     const { error, value} = employeeSchema.validate({tenantId,empId})
     console.log("jwt in controller - req.user",JSON.stringify(req.user,'',2))
 
@@ -192,9 +195,12 @@ const getDashboardViews = async (tenantId, empId) => {
 
         const formattedDashboardViews = dashboardViews.reduce((acc, curr) => ({ ...acc, ...curr }), {});
 
+        const notifications = await fetchEmployeeNotifications(tenantId,empId)
+
         return {
             dashboardViews: formattedDashboardViews,
-            employeeRoles
+            employeeRoles,
+            notifications
         };
     } catch (error) {
         console.error("Error fetching dashboard views:", error);
@@ -213,7 +219,7 @@ const promises = [
         getTripForEmployee(tenantId, empId),
         getAllExpensesForEmployee(tenantId, empId),
         getOverView(tenantId,empId),
-        getAllCashAdvance(tenantId,empId)
+        getAllCashAdvance(tenantId,empId),
 ]
 
 const [travelStandAlone,travelWithCash, trip,expense, allTravelRequests, allCashAdvance] = await Promise.all(promises)
