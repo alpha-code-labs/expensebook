@@ -64,7 +64,6 @@ function CardLayout({icon,title,subTitle,cardTitle,children}){
 //        </div>)
 // }
 
-
 const Overview = ({fetchData ,isLoading,setIsLoading,loadingErrMsg, setLoadingErrMsg}) => {
 
   const { employeeData } = useData(); 
@@ -155,7 +154,8 @@ sortTripsByDate(upcomingTrips)
          if (event.data === 'closeIframe') {
           setVisible(false)
           setExpenseVisible(false)
-          window.location.href = window.location.href;
+          // window.location.href = window.location.href;
+          fetchData();
          
           
         }else if(event.data.split(' ')[0] == 'raiseAdvance'){
@@ -205,8 +205,7 @@ const handleRaise = () => {
   }
 };
   
-  const [textVisible , setTextVisible]=useState({expense:false,createTravel:false});
-  const [expenseTabs , setExpenseTabs]=useState("travelExpense");
+const [expenseTabs , setExpenseTabs]=useState("travelExpense");
   
   const handleExpenseTabChange = (tab)=>{
     setExpenseTabs(tab)
@@ -214,18 +213,7 @@ const handleRaise = () => {
 
 
 
-  // useEffect(() => {
-  //   const delays = [0, 1000, 2000, 3000]; // delays in milliseconds
-  //   delays.forEach((delay, index) => {
-  //     setTimeout(() => {
-  //       setVisibleDivs((prev) => {
-  //         const newVisibleDivs = [...prev];
-  //         newVisibleDivs[index] = true;
-  //         return newVisibleDivs;
-  //       });
-  //     }, delay);
-  //   });
-  // }, []);
+ 
 
 
   return (
@@ -239,7 +227,7 @@ const handleRaise = () => {
       <TripMS visible={visible} setVisible={setVisible} src={iframeURL} /> 
     <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 w-full overflow-x-auto pb-2 ">
       
-   <CardLayout  icon={briefcase} title={"On-going Trips"} subTitle={'Activities for On-going Trips'}>
+   <CardLayout  icon={briefcase} title={"On-going Trips"} subTitle={'Activities for on-going Trips'}>
    {intransitTrips.length === 0 ? (
      <EmptyTrips icon={empty_itinerary_icon} text="No in-transit trips." />
    ) : (
@@ -256,18 +244,18 @@ const handleRaise = () => {
    </CardLayout>
    
         
-    <CardLayout  icon={expense_black_icon} title={"Expenses"} subTitle={'Track travel and non-travel expense'}>    
+    <CardLayout  icon={expense_black_icon} title={"Expenses"} subTitle={'Track travel and non-travel expenses'}>    
    
    <div className="flex gap-x-2 h-[45px] px-2 flex-row items-center justify-between text-center font-cabin border-b-2  border-slate-300  text-neutral-700 text-xs">
-   <div className='flex'>
+   <div className='flex font-inter'>
    <div
-className={`px-2 py-1 rounded-lg cursor-pointer ease-in-out ${expenseTabs === 'travelExpense' ? 'bg-gray-200/10  font-semibold text-neutral-700 border border-white text-xs ' : 'text-xs'}`}
+className={`px-2 py-1  rounded-lg cursor-pointer ease-in-out ${expenseTabs === 'travelExpense' ? 'bg-gray-200/10   text-neutral-900 font-semibold  text-xs ' : 'text-xs'}`}
    onClick={() => handleExpenseTabChange("travelExpense")}
    >
    <p>Travel Expense</p>
    </div>
    <div
-className={`px-2 py-1 rounded-lg cursor-pointer ease-in-out ${expenseTabs === 'nonTravelExpense' ? 'bg-gray-200/10  font-semibold text-neutral-700 border border-white text-xs ' : 'text-xs'}`}
+className={`px-2 py-1 rounded-lg cursor-pointer ease-in-out ${expenseTabs === 'nonTravelExpense' ? 'bg-gray-200/10   text-neutral-900 font-semibold  text-xs ' : 'text-xs'}`}
    onClick={() => handleExpenseTabChange("nonTravelExpense")}
    >
    <p>Non-Travel Expense</p>
@@ -308,7 +296,7 @@ className={`px-2 py-1 rounded-lg cursor-pointer ease-in-out ${expenseTabs === 'n
    </div>
    </CardLayout>  
           
-   <CardLayout  icon={briefcase} title={"Upcoming Trips"} subTitle={'All upcoming trips itinerary'}>
+   <CardLayout  icon={briefcase} title={"Upcoming Trips"} subTitle={'All upcoming trips'}>
     
     {  upcomingTrips?.length === 0 ? (
      <EmptyTrips icon={empty_itinerary_icon} text="No upcoming trips" />
@@ -519,14 +507,14 @@ const IntransitTrips = ({ index, trip, lastIndex,handleVisible }) => {
       <div className="flex gap-2 px-2 flex-row items-center justify-between text-center font-inter border-b-2 border-slate-300 shadow-sm  py-2 text-neutral-700 text-xs">
         <div className='flex'>
         <div
-            className={`px-2 py-1 rounded-lg cursor-pointer ease-in-out ${activeTabs === 'upcoming' ? 'bg-gray-200/10  font-semibold text-neutral-700 border border-white text-xs ' : 'text-xs'}`}
+            className={`px-2 py-1 rounded-lg cursor-pointer ease-in-out ${activeTabs === 'upcoming' ? 'bg-gray-200/10  font-semibold text-neutral-700  text-xs ' : 'text-xs'}`}
             onClick={() => handleTabChange('upcoming')}
             
           >
             <p>Upcoming</p>
           </div>
           <div
-            className={`px-2 py-1 rounded-lg cursor-pointer transition duration-150 ease-in-out ${activeTabs === 'completed' ? 'bg-gray-200/10  font-semibold text-neutral-700 border border-white text-xs ' : 'text-xs'}`}
+            className={`px-2 py-1 rounded-lg cursor-pointer  ${activeTabs === 'completed' ? 'bg-gray-200/10  font-semibold text-neutral-700  text-xs ' : 'text-xs'}`}
             onClick={() => handleTabChange('completed')}
             
           >
@@ -536,20 +524,7 @@ const IntransitTrips = ({ index, trip, lastIndex,handleVisible }) => {
         </div>
         
         {activeTabs === 'upcoming' && upcomingItinerary.length >0 &&
-        // {upcomingItinerary.length >0 &&}
-        // <div
-        //    onClick={()=>handleVisible({urlName:'trip-url',tripId:trip?.tripId})}
-        //     onMouseEnter={() => setTextVisible({ modify: true })}
-        //     onMouseLeave={() => setTextVisible({ modify: false })}
-            
-        //     className={`relative shadow-md shadow-indigo-600 hover:px-2 w-6 h-6 hover:overflow-hidden hover:w-auto group text-indigo-600 bg-indigo-100 border border-white flex items-center justify-center hover:gap-x-1 rounded-full cursor-pointer transition-all duration-300`}
-
-        //   >
-        //     <img src={modify} width={16} height={16} alt="Add Icon" />
-        //     <p className={`${textVisible?.modify ? 'opacity-100 ' : 'opacity-0 w-0'} whitespace-nowrap text-xs transition-all duration-300 group-hover:opacity-100 group-hover:w-auto`}>
-        //       Modify
-        //     </p>
-        //   </div>
+     
         <TooltipBtn onClick={()=>handleVisible({urlName:'trip-url',tripId:trip?.tripId})} onHover={'Modify Trip'} icon={modify} disabled={true}/>
           
           }  
@@ -707,25 +682,15 @@ const [textVisible ,setTextVisible]=useState(false)
 
 
   return (
-    <div className={`${index === lastIndex ? '' : 'mb-2'} cursor-pointer flex justify-between items-center p-3 hover:border hover:border-indigo-600 rounded shadow w-full border border-slate-300 bg-slate-50 hover:bg-indigo-100`}>
+    <div className={`${index === lastIndex ? '' : 'mb-2'} cursor-pointer flex justify-between items-center p-3  rounded shadow w-full border border-slate-300 bg-slate-50 hover:bg-slate-100`}>
       {/* <div className="flex gap-2 px-2 flex-row items-center justify-between text-center font-cabin  border-slate-300 py-2 text-neutral-700 text-xs"> */}
        
       <TripName tripName={trip?.tripName}/>
 
         <div className='gap-4 flex '>
 
-        <div
-            onClick={()=>handleVisible({urlName:'trip-url',tripId:trip?.tripId})}
-            onMouseEnter={() => setTextVisible({ modify: true })}
-            onMouseLeave={() => setTextVisible({ modify: false })}
-            className={`relative shadow-md shadow-indigo-600 hover:px-2 w-6 h-6 hover:overflow-hidden hover:w-auto group text-indigo-600 bg-indigo-100 border border-white flex items-center justify-center hover:gap-x-1 rounded-full cursor-pointer transition-all duration-300`}
-
-          >
-            <img src={modify} width={16} height={16} alt="Add Icon" />
-            <p className={`${textVisible?.modify ? 'opacity-100 ' : 'opacity-0 w-0'} whitespace-nowrap text-xs transition-all duration-300 group-hover:opacity-100 group-hover:w-auto`}>
-              Modify
-            </p>
-          </div>
+       
+          <TooltipBtn onClick={()=>handleVisible({urlName:'trip-url',tripId:trip?.tripId})} onHover={'Modify Trip'} icon={modify} disabled={true}/>
 
           </div>
         

@@ -55,9 +55,6 @@ const handleTabClick = (range) => {
 
 
 
-const getStatusClass = (status) => {
-  return 'bg-indigo-100 text-indigo-600 border border-indigo-600'; // Adjust this based on your styling requirements
-};
 
 
 function dataFilterByDate(data) {
@@ -212,7 +209,8 @@ const handleConfirm = async (action) => {
          // Check the message content or identifier
          if (event.data === 'closeIframe') {
           setVisible(false)
-          window.location.href = window.location.href;
+          fetchData()
+          // window.location.href = window.location.href;
         }else if(event.data.split(' ')[0] == 'raiseAdvance'){
           //we have to open an Iframe to raise cash advance
           setVisible(false)
@@ -319,7 +317,8 @@ const handleConfirm = async (action) => {
          // Check the message content or identifier
          if (event.data === 'closeIframe') {
           setVisible(false)
-          window.location.href = window.location.href;
+          // window.location.href = window.location.href;
+          fetchData()
         }
         
       }
@@ -351,7 +350,7 @@ tripData={tripData}
 selectedStatuses={selectedDateRange}
 handleStatusClick={handleTabClick}
 filter_icon={filter_icon}
-getStatusClass={getStatusClass}
+// getStatusClass={getStatusClass}
 getStatusCount={getStatusCount}
 setSelectedStatuses={setSelectedDateRange}
 />

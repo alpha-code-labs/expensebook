@@ -1,6 +1,6 @@
 /* eslint-disable no-unreachable */
 import React, { useEffect, useState } from 'react';
-import { approval_icon, approvalempty_icon, briefcase,approval_white_icon,trip_white_icon,cash_white_icon, cancel, cancel_round, categoryIcons, check_tick, cross_icon, filter_icon, info_icon, modify, money, money1, plus_violet_icon, receipt, search_icon, violation_icon } from '../assets/icon';
+import { approval_white_icon,trip_white_icon,cash_white_icon, cancel,  categoryIcons, check_tick, cross_icon, filter_icon, info_icon, modify, money, money1, plus_violet_icon, receipt, search_icon, violation_icon } from '../assets/icon';
 import { formatAmount, getStatusClass, sortTripsByDate, splitTripName } from '../utils/handyFunctions';
 import {TRCashadvance,NonTRCashAdvances, travelExpense, TrExpenseForApproval, NonTrExpenseForApproval} from '../utils/dummyData';
 import Modal from '../components/common/Modal1';
@@ -17,7 +17,7 @@ import Button from '../components/common/Button';
 import { approveTravelRequestApi, nonTravelExpenseApprovalActionApi ,rejectTravelExpenseApi, approveTravelExpenseApi, rejectTravelRequestApi } from '../utils/api';
 import PopupMessage from "../components/common/PopupMessage";
 import TripMS from '../microservice/TripMS';
-import { CardLayout, EmptyBox, ExpenseLine, TripName, Violation,BoxTitleLayout } from '../components/common/TinyComponent';
+import { CardLayout, EmptyBox, ExpenseLine, TripName, Violation,BoxTitleLayout, ModifyBtn, SmallAction } from '../components/common/TinyComponent';
 
 
 const rejectionOptions=['Too Many Violations', 'Budget Constraints','Insufficient Documents','Upcoming Project Deadline']
@@ -178,57 +178,6 @@ const handleSelect = (obj) => {
   });
 };
 
-// const handleSelect = (obj) => {
-//   setSelectAll((prevSelected) => {
-
-//     const isSelected = prevSelected.some(travel => travel.travelRequestId === obj?.travelRequestId);
-    
-//     if (isSelected) {
-//       return prevSelected.filter(travel => travel.travelRequestId !== obj?.travelRequestId);
-//     } else {
-//      const newSelection = {
-//   travelRequestId: obj?.travelRequestId,
-//   ...(obj?.cashAdvance && {
-//     cashAdvanceData: obj?.cashAdvance
-//       .filter(item => item?.status === 'pending approval')
-//       .map(item => ({
-//         cashAdvanceId: item?.cashAdvanceId
-//       }))
-//   })
-// };
-//       return [...prevSelected, newSelection];
-//     }
-//   });
-// };   
-
-    // const handleSelect = (obj) => {
-    //   setSelectAll(prevSelected => {
-    //     const isSelected = prevSelected.some(travel => travel.travelRequestId === obj?.travelRequestId);
-    //     if (isSelected) {
-    //       return prevSelected.filter(travel => travel.travelRequestId !== obj?.travelRequestId);
-    //     } else {
-    //       return [
-    //         ...prevSelected,
-    //         {
-    //           travelRequestId: obj?.travelRequestId,
-              
-    //           cashAdvanceData: obj?.cashAdvance.map(item => ({
-    //           cashAdvanceId: item.cashAdvanceId
-    //           }))
-    //         }
-    //       ];
-    //     }
-    //   });
-    // };
-  
-
-
-
-
- 
-
-
-//cashadvance iframe
 
 const handleVisible = ({travelRequestId,tripId,expenseHeaderId, action}) => {
 
@@ -651,17 +600,7 @@ const handleVisible = ({travelRequestId,tripId,expenseHeaderId, action}) => {
   </div>
   </div>
 
-                    {/* {trip?.expenseType === "Travel Expense" &&
-                     <div className='flex gap-2 items-center'>
-                     <img src={briefcase} className='w-4 h-4'/>
-                     <div className='font-medium font-cabin  text-sm uppercase text-neutral-700 '>
-                      {splitTripName(trip?.tripName)}
-                     </div>
-                     <div className='font-medium font-cabin  text-sm  text-neutral-700 '>
-                      {extractAndFormatDate(trip?.tripName)}
-                     </div>
-                     </div>
-                    } */}
+                    
                     
                     <div className='mt-2 space-y-2'>
                       {/* {filteredTripExpenses?.map((trExpense, index) => ( */}
@@ -849,7 +788,9 @@ const handleVisible = ({travelRequestId,tripId,expenseHeaderId, action}) => {
                 <p className='header-text'>{trip?.createdBy?.name ?? <span className='text-center'>-</span>}</p>
               </div>
               </div>
-              <Button1 text="Take Action" variant="fit" onClick={() => {openModal("expenseDetails");setExpenseDetails({...trip,expenseType:trip?.expenseType})}}/>
+              {/* <ModifyBtn text="Take Action" onClick={() => {openModal("expenseDetails");setExpenseDetails({...trip,expenseType:trip?.expenseType})}}/> */}
+              <SmallAction text="Take Action" onClick={() => {openModal("expenseDetails");setExpenseDetails({...trip,expenseType:trip?.expenseType})}}/>
+              {/* <Button1 text="Take Action" variant="fit" /> */}
             
               </div>  
               {trip?.expenseType === "Travel Expense" &&
@@ -873,7 +814,7 @@ const handleVisible = ({travelRequestId,tripId,expenseHeaderId, action}) => {
                     <div className='flex items-center justify-center'>
               <img src={info_icon} className='w-4 h-4'/>
                 <div className='text-sm font-cabin px-2 py-1 cursor-pointer' onClick={()=>{if(!disableButton(trip?.travelRequestStatus)){handleVisible(trip?.expenseType ==="Non Travel Expense" ? { expenseHeaderId:trip?.expenseHeaderId,  action:'nontravelExpense-approval-view' }:{tripId:trip?.tripId, expenseHeaderId:trip?.expenseHeaderId,  action:'travelExpense-approval-view' })}}}>
-                  <p className='text-indigo-600 font-semibold'>View Details</p>
+                  <p className='text-indigo-600  font-semibold'>View Details</p>
                 </div>
                 </div>
                             {/* <div className={`text-center rounded-sm ${getStatusClass(trip?.expenseHeaderStatus ?? "-")}`}>

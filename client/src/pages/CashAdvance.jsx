@@ -126,7 +126,8 @@ const handleVisible = (travelRequestId, action, cashadvanceId) => {
         console.log('iframe close msg',event.data)
         if (event.data === 'closeIframe') {
           setVisible(false)
-          window.location.href = window.location.href;
+          //window.location.href = window.location.href;
+          fetchData()
         }
       // }
     };
@@ -201,7 +202,7 @@ const handleVisible = (travelRequestId, action, cashadvanceId) => {
       <div className=' shrink-0 border border-slate-100 rounded-md  w-full flex flex-wrap items-start gap-2 px-2 py-2'>
       
 
-  <StatusFilter
+  <StatusFilter 
   statuses={["draft","pending approval", "pending settlement", "paid","rejected",  "cancelled", "paid and cancelled"]}
   tripData={[...travelCashAdvances.flatMap(te => te?.cashAdvances), ...NonTRCashAdvances]}
 selectedStatuses={selectedStatuses}
@@ -269,7 +270,7 @@ setSelectedStatuses={setSelectedStatuses}/>
 </>
 
 )
-           }) : <EmptyBox icon={cash_black_icon } text={'Travel Cash Advance'}/>}
+           }) : <EmptyBox icon={cash_white_icon } text={'Travel Cash Advance'}/>}
         </div>
           </div>
           <div className='w-full md:w-1/2  flex flex-col'>

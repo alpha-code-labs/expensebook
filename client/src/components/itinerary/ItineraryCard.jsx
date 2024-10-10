@@ -27,8 +27,12 @@ export function FlightCard({ status,from, to, date, returnDate, time, travelClas
             
             
 
-            <div className="flex flex-col justify-center items-center">
-                <img src={spitImageSource(mode)} className='w-6 md:h-6' />
+            <div className="flex flex-col gap-1 justify-center items-center ">
+                <img src={spitImageSource(mode)} className='w-6 h-6 shrink-0' />
+                {['pending booking'].includes(status) && 
+            <div className={`${getStatusClass(status)} capitalize text-center rounded-sm px-1  right-0 top-0`}>
+            <p className="text-[10px] text-nowrap">{status}</p>
+        </div>}
             </div>
             <CardItemsLayout>
                 <div className='flex  items-center gap-1 lg:justify-center'>
@@ -43,10 +47,7 @@ export function FlightCard({ status,from, to, date, returnDate, time, travelClas
                 <CardItemLayout title="Departure Date" imageSource={calender_icon} value={isoString(date)}  />
                 <CardItemLayout title="Time" imageSource={clock_icon} value={formattedTime(time)}  />
             </CardItemsLayout>
-            {['pending booking'].includes(status) && 
-            <div className={`${getStatusClass(status)} capitalize absolute text-center rounded-sm px-1  right-0 top-0`}>
-            <p className="text-xs">{status}</p>
-        </div>}
+           
             {/* <ActionButtons id={id} handleDelete={handleDelete} handleEdit={handleEdit} /> */}
         </CardLayout>
     )
@@ -57,9 +58,13 @@ export function CabCard({status, from, to, date, returnDate, time, isFullDayCab,
     return (
         <CardLayout status={status} >
            
-            <div className='font-semibold items-center flex flex-col'>
-                <img src={spitImageSource(mode)} className='w-6 md:h-6' />
+            <div className='font-semibold gap-1 items-center flex flex-col'>
+                <img src={spitImageSource(mode)} className='w-6 h-6 shrink-0' />
                 {isFullDayCab && <p className="text-xs whitespace-nowrap ">Full Day</p>}
+                {['pending booking'].includes(status) && 
+            <div className={`${getStatusClass(status)} capitalize text-center rounded-sm px-1  right-0 top-0`}>
+            <p className="text-[10px] text-nowrap">{status}</p>
+        </div>}
             </div>
 
             <CardItemsLayout>
@@ -80,10 +85,7 @@ export function CabCard({status, from, to, date, returnDate, time, isFullDayCab,
                 
                 
             </CardItemsLayout>
-            {['pending booking'].includes(status) && 
-            <div className={`${getStatusClass(status)}  capitalize absolute text-center rounded-sm px-1  right-0 top-0`}>
-            <p className="text-xs">{status}</p>
-        </div>} 
+            
 
             {/* <ActionButtons id={id} handleDelete={handleDelete} handleEdit={handleEdit} /> */}
     </CardLayout>)
@@ -93,9 +95,13 @@ export function RentalCabCard({ status,from, to, date, returnDate, time, travelC
     return (
         <CardLayout status={status}>
            
-            <div className='font-semibold items-center flex flex-col'>
+            <div className='font-semibold items-center flex gap-1 flex-col'>
                 <img src={spitImageSource(mode)} className='w-6 md:h-6' />
                 <p className="text-xs whitespace-nowrap">Self Drive</p>
+                {['pending booking'].includes(status) && 
+            <div className={`${getStatusClass(status)} capitalize text-center rounded-sm px-1  right-0 top-0`}>
+            <p className="text-[10px] text-nowrap">{status}</p>
+        </div>}
             </div>
             <CardItemsLayout>
 
@@ -114,10 +120,7 @@ export function RentalCabCard({ status,from, to, date, returnDate, time, travelC
                 
                 
             </CardItemsLayout>
-            {['pending booking'].includes(status) && 
-            <div className={`${getStatusClass(status)} capitalize absolute text-center rounded-sm px-1  right-0 top-0`}>
-            <p className="text-xs">{status}</p>
-        </div>}
+            
             {/* <ActionButtons id={id} handleDelete={handleDelete} handleEdit={handleEdit} /> */}
         </CardLayout>)
 }
@@ -125,11 +128,13 @@ export function RentalCabCard({ status,from, to, date, returnDate, time, travelC
 export function HotelCard({status, checkIn, checkOut, location, ratings='any', onClick, id, handleDelete, handleEdit, needBreakfast, needLunch, needDinner, needNonSmokingRoom }) {
     return (
         <CardLayout status={status}>
-            {['pending booking'].includes(status) && 
-            <div className={`${getStatusClass(status)} capitalize absolute text-center rounded-sm px-1  right-0 top-0`}>
-            <p className="text-xs">{status}</p>
-        </div>}
+          <div className="flex flex-col gap-1 items-center justify-center">
             <img src={material_hotel_black_icon} className="w-6 md:h-6" />
+            {['pending booking'].includes(status) && 
+            <div className={`${getStatusClass(status)} capitalize text-center rounded-sm px-1  right-0 top-0`}>
+            <p className="text-[10px] text-nowrap">{status}</p>
+        </div>}
+        </div>
 
             <CardItemsLayout>
                 <div className="flex flex-col w-full gap-2">
@@ -157,7 +162,7 @@ export function HotelCard({status, checkIn, checkOut, location, ratings='any', o
 function CardLayout({ children ,status }) {
     console.log('status',status)
     return (
-        <div className={`relative shadow-sm    min-h-[76px] bg-white rounded-md border-x-4 ${["pending booking"].includes(status) ?"border-x-slate-600":  "border-x-indigo-600"} border border-slate-300 w-full px-6 py-4 flex flex-col sm:flex-row gap-4 items-center sm:divide-x`}>
+        <div className={`relative shadow-sm    min-h-[76px] bg-white rounded-md hover:bg-slate-100 border  shadow-slate-300 border-slate-300 w-full px-6 py-4 flex flex-col sm:flex-row gap-4 items-center sm:divide-x`}>
             {children}
         </div>)
 }

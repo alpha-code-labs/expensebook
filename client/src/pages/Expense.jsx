@@ -151,7 +151,8 @@ const Expense = ({searchQuery,isLoading ,fetchData,loadingErrMsg}) => {
          // Check the message content or identifier
          if (event.data === 'closeIframe') {
           setExpenseVisible(false)
-          window.location.href = window.location.href;
+          //window.location.href = window.location.href;
+          fetchData()
          
           
         }
@@ -194,13 +195,7 @@ getStatusClass={getStatusClass}
 getStatusCount={getStatusCount}
 setSelectedStatuses={setSelectedStatuses}
   />
- 
- 
-
-
-
- 
-     </div>   
+</div>   
 
 
 <div className=' flex flex-col md:flex-row flex-grow w-full overflow-auto scrollbar-hide gap-2  mt-2'>
@@ -225,9 +220,9 @@ setSelectedStatuses={setSelectedStatuses}
                           <div className='flex flex-row justify-between items-center py-1 border-b border-slate-300 font-cabin font-xs'>
                             
                             <StatusBox status={trExpense?.expenseHeaderStatus ?? "-"}/>
-                            {!['paidAndDistributed'].includes(trExpense?.expenseHeaderStatus) &&
-                            <ModifyBtn onClick={()=>handleVisible({urlName:handleTravelExpense({tenantId,empId,tripId:trip?.tripId,expenseHeaderId: trExpense?.expenseHeaderId, action: 'trip-ex-modify' })})}/>
-                            }
+                            {/* {!['paid','paidAndDistributed'].includes(trExpense?.expenseHeaderStatus) && */}
+                            <ModifyBtn text={['paid','paidAndDistributed'].includes(trExpense?.expenseHeaderStatus)? "View Details": "Modify"} onClick={()=>handleVisible({urlName:handleTravelExpense({tenantId,empId,tripId:trip?.tripId,expenseHeaderId: trExpense?.expenseHeaderId, action: 'trip-ex-modify' })})}/>
+                            {/* // } */}
                             
                           </div>
                           <ExpenseLine expenseLines={trExpense?.expenseLines}/>
@@ -242,11 +237,7 @@ setSelectedStatuses={setSelectedStatuses}
             </div>
 
 </div>
-           
-            
-          
-
-         
+             
 <div className='w-full md:w-1/2  flex flex-col'>
 
             <BoxTitleLayout title={'Non-Travel Expense'} icon={expense_white_icon}>
@@ -274,7 +265,7 @@ setSelectedStatuses={setSelectedStatuses}
                     </div>
                     <div className='flex flex-row gap-2 justify-between items-center font-cabin font-xs'>
                       <StatusBox status={nonTravelExp?.expenseHeaderStatus ?? "-"}/>
-                      {!['paidAndDistributed'].includes(nonTravelExp?.expenseHeaderStatus) &&
+                      {!['paid','paidAndDistributed'].includes(nonTravelExp?.expenseHeaderStatus) &&
                       
                       <ModifyBtn onClick={() => handleVisible({urlName:handleNonTravelExpense({tenantId,empId ,expenseHeaderId:nonTravelExp?.expenseHeaderId,action:"non-tr-ex-modify"})})}/>
                       }

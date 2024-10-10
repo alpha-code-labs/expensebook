@@ -214,7 +214,7 @@
       case "pending": 
       case "transit":
       case "draft":
-        return ' border-yellow-100 bg-yellow-100 text-yellow-200 rounded-full';
+        return ' border-yellow-100  bg-yellow-100 text-yellow-200 rounded-full';
       default:
         return " ";  
 
@@ -298,34 +298,69 @@
 // src/utils/filterData.js
 
 
-
 const filterByTimeRange = (data, range) => {
   const now = new Date();
   const todayStart = new Date(now.setHours(0, 0, 0, 0));
   const tomorrowEnd = new Date(todayStart);
-  tomorrowEnd.setDate(tomorrowEnd.getDate() + 2);
+  tomorrowEnd.setDate(tomorrowEnd.getDate() + 2); // 48 hours end
   const sevenDaysEnd = new Date(todayStart);
-  sevenDaysEnd.setDate(sevenDaysEnd.getDate() + 7);
+  sevenDaysEnd.setDate(sevenDaysEnd.getDate() + 7); // 7 days end
   const thirtyDaysEnd = new Date(todayStart);
-  thirtyDaysEnd.setDate(thirtyDaysEnd.getDate() + 30);
+  thirtyDaysEnd.setDate(thirtyDaysEnd.getDate() + 30); // 30 days end
 
   return data.filter(item => {
     const startDate = new Date(item.tripStartDate);
 
     switch (range) {
       case "48 Hours":
+        // Trips within the next 48 hours
         return startDate >= todayStart && startDate < tomorrowEnd;
+
       case "7 Days":
-        return startDate >= todayStart && startDate < sevenDaysEnd;
+        // Trips within the next 7 days but not within the next 48 hours
+        return startDate >= tomorrowEnd && startDate < sevenDaysEnd;
+
       case "Within 30 Days":
-        return startDate >= todayStart && startDate < thirtyDaysEnd;
+        // Trips within the next 30 days but not within the next 7 days
+        return startDate >= sevenDaysEnd && startDate < thirtyDaysEnd;
+
       case "Beyond 30 Days":
+        // Trips beyond 30 days from today
         return startDate >= thirtyDaysEnd;
+
       default:
         return false;
     }
   });
 };
+
+// const filterByTimeRange = (data, range) => {
+//   const now = new Date();
+//   const todayStart = new Date(now.setHours(0, 0, 0, 0));
+//   const tomorrowEnd = new Date(todayStart);
+//   tomorrowEnd.setDate(tomorrowEnd.getDate() + 2);
+//   const sevenDaysEnd = new Date(todayStart);
+//   sevenDaysEnd.setDate(sevenDaysEnd.getDate() + 7);
+//   const thirtyDaysEnd = new Date(todayStart);
+//   thirtyDaysEnd.setDate(thirtyDaysEnd.getDate() + 30);
+
+//   return data.filter(item => {
+//     const startDate = new Date(item.tripStartDate);
+
+//     switch (range) {
+//       case "48 Hours":
+//         return startDate >= todayStart && startDate < tomorrowEnd;
+//       case "7 Days":
+//         return startDate >= todayStart && startDate < sevenDaysEnd;
+//       case "Within 30 Days":
+//         return startDate >= todayStart && startDate < thirtyDaysEnd;
+//       case "Beyond 30 Days":
+//         return startDate >= thirtyDaysEnd;
+//       default:
+//         return false;
+//     }
+//   });
+// };
 
 //in 48 hours
 function checkUpcomingTrip(tripStartDate) {
