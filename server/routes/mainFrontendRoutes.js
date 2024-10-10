@@ -28,13 +28,15 @@ import { profileRouter } from './profileRoutes.js';
 import { approvalRouter } from './approval.js';
 import bookingsRouter from './bookings.js';
 import { verifyJwt } from '../middleware/jwt.middleware.js';
+import { notificationRouter } from './notification.js';
 
 export const mainRouter = express.Router();
 
 // Use the JWT verification middleware for all routes except the specified ones
-mainRouter.use("/role", verifyJwt, roleBasedRouter);
+mainRouter.use("/role",  roleBasedRouter);
 mainRouter.use("/travel-admin",  travelAdminRoutes);
 mainRouter.use("/profile", verifyJwt, profileRouter);
+mainRouter.use('/bell', notificationRouter)
 
 // No JWT verification for the following routes
 mainRouter.use("/approval", approvalRouter);
