@@ -6,8 +6,25 @@ import Joi from "joi";
 import { extractTotalAmount } from "./travelExpenseController.js";
 
 
+const sendToMicroservices = async (payload, action, comments, source, onlineVsBatch, isApproval) => {
+  const services = ['dashboard', 'reporting'];
+  if (isApproval) {
+      services.unshift('approval');
+  }
 
-export const getReimbursementReport = async (tenantId, empId, expenseHeaderId) => {
+  for (const service of services) {
+      try {
+          await sendToOtherMicroservice(payload, action, service, comments, source, onlineVsBatch);
+      } catch (error) {
+          console.error(`Error sending to ${service}:`, error);
+          // logging or retrying need to be added
+      }
+  }
+};
+
+
+
+const getReimbursementReport = async (tenantId, empId, expenseHeaderId) => {
   try {
 
     if (!expenseHeaderId || !empId || !tenantId) {
@@ -235,7 +252,7 @@ const employeeSchema = Joi.object({
  * @param {Object} res - The response object.
  * @returns {Object} The response object with the employee's name, company name, default currency, and reimbursement expense categories.
  */
-export const getExpenseCategoriesForEmpId = async (req, res) => {
+const getExpenseCategoriesForEmpId = async (req, res) => {
   try {
     const { error, value } = employeeSchema.validate({ ...req.params, ...req.query });
 
@@ -330,7 +347,7 @@ const expenseCatSchema = Joi.object({
 })
 
 // 2) group limit, policies, expense header number
-export const getHighestLimitGroupPolicy = async (req, res) => {
+const getHighestLimitGroupPolicy = async (req, res) => {
     try {
       const {error, value} = expenseCatSchema.validate(req.params)
       if (error) {
@@ -449,7 +466,7 @@ const currencySchema = Joi.object({
 
 
 //3) currency converter for non travel expense 
-export const reimbursementCurrencyConverter = async (req, res) => {
+const reimbursementCurrencyConverter = async (req, res) => {
   try {
     const {error, value} = currencySchema.validate(req.params)
     if (error) return res.status(400).json({success: false, message: error.details[0].message})
@@ -525,7 +542,7 @@ const validateRequest = (schema, data) => {
   return value;
 };
 
-export const extractCategoryAndTotalAmount = async (expenseLines, onSave) => {
+const extractCategoryAndTotalAmount = async (expenseLines, onSave) => {
   const fixedFields = [
       'Total Amount', 
       'Total Fare', 
@@ -558,7 +575,7 @@ export const extractCategoryAndTotalAmount = async (expenseLines, onSave) => {
 };
 
 // 4) save line item 
-export const saveReimbursementExpenseLine = async (req, res) => {
+const saveReimbursementExpenseLine = async (req, res) => {
     try {
       const params = validateRequest(nonTravelSchema, req.params);
       const body = validateRequest(saveSchema, req.body);
@@ -595,7 +612,7 @@ export const saveReimbursementExpenseLine = async (req, res) => {
         return res.status(404).json({success: false, error:'document not found' })
       }
 
-      let {expenseAmountStatus:{totalRemainingCash,totalExpenseAmount},createdBy} = getReport
+      let {expenseAmountStatus:{totalRemainingCash,totalExpenseAmount},createdBy,expenseHeaderStatus} = getReport
       const {name} = createdBy
 
       console.log("expenseAmountStatus - on save nte", JSON.stringify(getReport.expenseAmountStatus,'',2))
@@ -611,6 +628,7 @@ export const saveReimbursementExpenseLine = async (req, res) => {
       getReport.expenseAmountStatus.totalExpenseAmount = newTotalExpenseAmount
       getReport.expenseAmountStatus.totalRemainingCash = newTotalRemainingCash
       if(expenseLineData) getReport.expenseLines.push(expenseLineData)
+      getReport.expenseHeaderStatus = (expenseHeaderStatus === 'pending settlement') ? 'draft' : getReport.expenseHeaderStatus;
       const newExpense = await getReport.save()
       // const newExpense = await Reimbursement.findOneAndUpdate(filter, update, options);
       if(newExpense){
@@ -626,6 +644,7 @@ export const saveReimbursementExpenseLine = async (req, res) => {
         return res.status(200).json({
           success: true,
           message: `expense line saved successfully by ${name} `,
+          expenseHeaderStatus,
           expenseAmountStatus,
           expenseLines
         });
@@ -643,7 +662,7 @@ export const saveReimbursementExpenseLine = async (req, res) => {
  * @param {Object} res - The response object.
  * @returns {Object} The response object.
  */
-export const editReimbursementExpenseLine = async (req, res) => {
+const v0editReimbursementExpenseLine = async (req, res) => {
   try {
     const { tenantId, empId, expenseHeaderId, lineItemId } = req.params;
 
@@ -676,7 +695,9 @@ export const editReimbursementExpenseLine = async (req, res) => {
 
     // console.log("prevTotalAmount", prevTotalAmount , "currentTotalAmount", currentTotalAmount)
 
-    const getReport = await Reimbursement.findOne({ tenantId, expenseHeaderId, 'expenseLines.lineItemId': lineItemId });
+    const getReport = await Reimbursement.findOne({ tenantId, expenseHeaderId, 'expenseLines.lineItemId': lineItemId },
+      {'expenseLines.$':1,'expenseAmountStatus':1}
+    );
     if (!getReport) {
       return res.status(404).json({ message: 'Expense not found' , success:false});
     }
@@ -713,17 +734,11 @@ console.log('New Total Expense Amount:', newTotalExpenseAmount);
 
     getReport.expenseAmountStatus.totalExpenseAmount = newTotalExpenseAmount
     getReport.expenseAmountStatus.totalRemainingCash = newTotalRemainingCash
-    if(lineItem){
-    getReport.expenseLines = getReport.expenseLines.map(line => {
-        if(line.lineItemId.toString() === lineItemId.toString()){
-        return{
-          ...line,
-          ...lineItem
-        } 
-        }
-        return line
-      })
-    } 
+
+    if (lineItem && getReport.expenseLines.length) {
+      Object.assign(getReport.expenseLines[0], lineItem); 
+    }
+
     const updatedExpense = await getReport.save()
 
     const { name } = updatedExpense.createdBy;
@@ -739,12 +754,7 @@ console.log('New Total Expense Amount:', newTotalExpenseAmount);
     const action = 'full-update';
     const comments = 'expense report edited';
 
-  if(isApproval){
-    console.log("sending reim payload - approval")
-    await  sendToOtherMicroservice(payload, action, 'approval', comments, source, onlineVsBatch) 
-  }     
-  await  sendToOtherMicroservice(payload, action, 'dashboard', comments, source, onlineVsBatch)  
-  await  sendToOtherMicroservice(payload, action, 'reporting', comments, source, onlineVsBatch) 
+  await sendToMicroservices(payload, action, comments, source, onlineVsBatch, isApproval);
 
     return res.status(200).json({
       success: true,
@@ -759,6 +769,68 @@ console.log('New Total Expense Amount:', newTotalExpenseAmount);
 };
 
 
+const editReimbursementExpenseLine = async (req, res) => {
+  try {
+    const { tenantId, empId, expenseHeaderId, lineItemId } = req.params;
+    const { prevLineItem, lineItem } = req.body;
+
+    if (!expenseHeaderId || !empId || !tenantId || !prevLineItem || !lineItem) {
+      return res.status(400).json({ message: 'Missing required parameters', success: false });
+    }
+
+    const fixedFields = ['Total Amount', 'Total Fare', 'Premium Amount', 'Total Cost', 'License Cost', 'Subscription Cost', 'Premium Cost', 'Cost', 'Tip Amount'];
+
+    const prevTotalAmount = extractTotalAmount(prevLineItem, fixedFields);
+    const currentTotalAmount = extractTotalAmount(lineItem, fixedFields);
+
+    if (!prevTotalAmount || !currentTotalAmount) {
+      throw new Error(`Invalid total amounts: prev=${prevTotalAmount}, current=${currentTotalAmount}`);
+    }
+
+    const getReport = await Reimbursement.findOneAndUpdate(
+      { tenantId, expenseHeaderId, 'expenseLines.lineItemId': lineItemId },
+      {
+        $set: {
+          'expenseLines.$': lineItem,
+          'expenseAmountStatus.totalExpenseAmount': {
+            $subtract: [
+              '$expenseAmountStatus.totalExpenseAmount',
+              { $subtract: [prevTotalAmount, currentTotalAmount] }
+            ]
+          },
+          'expenseAmountStatus.totalRemainingCash': {
+            $add: [
+              '$expenseAmountStatus.totalRemainingCash',
+              { $subtract: [prevTotalAmount, currentTotalAmount] }
+            ]
+          }
+        }
+      },
+      { new: true, runValidators: true, projection: { expenseLines: { $elemMatch: { lineItemId } }, expenseAmountStatus: 1, createdBy: 1, approvers: 1 } }
+    );
+
+    if (!getReport) {
+      return res.status(404).json({ message: 'Expense not found', success: false });
+    }
+
+    const { name } = getReport.createdBy;
+    const { expenseLines, approvers, expenseAmountStatus } = getReport;
+    const isApproval = approvers?.length > 0;
+
+    const payload = { reimbursementReport: getReport };
+    await sendToMicroservices(payload, 'full-update', 'expense report edited', 'reimbursement', 'online', isApproval);
+
+    return res.status(200).json({
+      success: true,
+      message: `Expense line saved successfully by ${name}`,
+      expenseAmountStatus,
+      updatedLine: expenseLines[0],
+    });
+  } catch (error) {
+    console.error('Failed to edit reimbursement expense line:', error);
+    return res.status(500).json({ message: 'Failed to process the request', success: false });
+  }
+};
 
 /**
  * Updates the status of an expense report to "draft" and sends a success message and the updated expense report as a response.
@@ -781,7 +853,7 @@ const draftExpense = Joi.object({
   expenseSettlement: Joi.string().allow('').default('')
 })
 
-export const draftReimbursementExpenseLine = async (req, res) => {
+const draftReimbursementExpenseLine = async (req, res) => {
   try {
     const params = validateRequest(nonTravelSchema,req.params)
     const body = validateRequest(draftExpense, req.body)
@@ -863,7 +935,7 @@ const submitExpense = Joi.object({
   expenseSettlement: Joi.string().optional()
 })
 
-export const submitReimbursementExpenseReport = async (req, res) => {
+const submitReimbursementExpenseReport = async (req, res) => {
   try {
     const params = validateRequest(nonTravelSchema,req.params)
     const body = validateRequest(submitExpense, req.body)
@@ -919,14 +991,9 @@ export const submitReimbursementExpenseReport = async (req, res) => {
       const onlineVsBatch = 'online';
       const action = 'full-update';
       const comments = 'expense report submitted';
-  
-    if(isApproval){
-      console.log("sending reim payload - approval")
-      await  sendToOtherMicroservice(payload, action, 'approval', comments, source, onlineVsBatch) 
-    }     
-    await  sendToOtherMicroservice(payload, action, 'dashboard', comments, source, onlineVsBatch)  
-    await  sendToOtherMicroservice(payload, action, 'reporting', comments, source, onlineVsBatch)   
- 
+
+    await sendToMicroservices(payload, action, comments, source, onlineVsBatch, isApproval);
+
     console.log("sending reim payload - dashboard")
 
     const response = {
@@ -948,7 +1015,7 @@ export const submitReimbursementExpenseReport = async (req, res) => {
  * @param {Object} res - The response object.
  * @returns {Object} - The response object.
  */
-export const getReimbursementExpenseReport = async (req, res) => {
+const getReimbursementExpenseReport = async (req, res) => {
   try {
     const { tenantId, empId, expenseHeaderId } = req.params;
 
@@ -994,7 +1061,7 @@ export const getReimbursementExpenseReport = async (req, res) => {
  * @returns {Object} The response object.
  */
 
-export const cancelReimbursementReport = async (req, res) => {
+const cancelReimbursementReport = async (req, res) => {
   try {
     const { tenantId, empId, expenseHeaderId } = req.params;
 
@@ -1022,19 +1089,13 @@ export const cancelReimbursementReport = async (req, res) => {
 
     const isApproval = approvers?.length > 0
     const payload = {  tenantId, empId, expenseHeaderId };
-    const needConfirmation = false;
     const source = 'reimbursement';
     const onlineVsBatch = 'online';
-
-    // await sendTravelExpenseToDashboardQueue(payload, needConfirmation, onlineVsBatch, source);
     const action = 'delete';
-    const comments = 'reimbursement expense report deleted';
+    const comments = 'reimbursement expense report deleted'; 
 
-    if(isApproval){
-      await  sendToOtherMicroservice(payload, action, 'approval', comments, source, onlineVsBatch)
-    }
-    await  sendToOtherMicroservice(payload, action, 'dashboard', comments, source, onlineVsBatch)
-    await  sendToOtherMicroservice(payload, action, 'reporting', comments, source, onlineVsBatch)
+    await sendToMicroservices(payload, action, comments, source, onlineVsBatch, isApproval);
+
     return res.status(200).json({ success: true, message: `Expense report deleted successfully ${name}` });
   } catch (error) {
     return res.status(500).json({ success: false, message: 'Internal server error' });
@@ -1061,7 +1122,7 @@ const lineItemSchema = Joi.object({
  * @param {Object} res - The response object.
  * @returns {Object} The response object.
  */
-export const cancelReimbursementReportLine = async (req, res) => {
+const cancelReimbursementReportLine = async (req, res) => {
   try {
     const { tenantId, empId, expenseHeaderId } = req.params;
 
@@ -1126,19 +1187,15 @@ export const cancelReimbursementReportLine = async (req, res) => {
 
    const updatedReport =  await expenseReport.save();
 
-    const { expenseAmountStatus} = updatedReport
-    const payload = { reimbursementReport: updatedReport };
-    const needConfirmation = false;
-    const source = 'reimbursement';
-    const onlineVsBatch = 'online';
-    const action = 'full-update';
-    const comments = 'reimbursement expense line deleted';
-
-    if(isApproval){
-      await  sendToOtherMicroservice(payload, action, 'approval', comments, source, onlineVsBatch)
-    }
-      await  sendToOtherMicroservice(payload, action, 'dashboard', comments, source, onlineVsBatch)
-      await  sendToOtherMicroservice(payload, action, 'reporting', comments, source, onlineVsBatch)
+    const { expenseAmountStatus} = updatedReport 
+  
+  const payload = { reimbursementReport: updatedReport };
+  const source = 'reimbursement';
+  const onlineVsBatch = 'online';
+  const action = 'full-update';
+  const comments = 'reimbursement expense line deleted';
+  
+  await sendToMicroservices(payload, action, comments, source, onlineVsBatch, isApproval);
 
     return res.status(200).json({
       success: true,
@@ -1157,7 +1214,20 @@ export const cancelReimbursementReportLine = async (req, res) => {
 
 
 
-
+export {
+  getReimbursementReport,
+  getExpenseCategoriesForEmpId,
+  getHighestLimitGroupPolicy,
+  reimbursementCurrencyConverter,
+  extractCategoryAndTotalAmount,
+  saveReimbursementExpenseLine,
+  editReimbursementExpenseLine,
+  draftReimbursementExpenseLine,
+  submitReimbursementExpenseReport,
+  getReimbursementExpenseReport,
+  cancelReimbursementReport,
+  cancelReimbursementReportLine,
+}
 
 
 

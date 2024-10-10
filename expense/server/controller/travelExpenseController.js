@@ -38,98 +38,98 @@ const generateIncrementalNumber = (tenantName, incrementalValue = 1) => {
   }
 };
 
-const getGroupDetails = async(tenantId,empId, getGroups) => {
-  try{
-      let matchedEmployees
-      const employeeDocument = await HRCompany.findOne({
-          tenantId,
-          'employees.employeeDetails.employeeId': empId
-      });
-  
-      if (!employeeDocument) {
-          console.warn(`Employee not found for tenantId: ${tenantId}, empId: ${empId}`);
-          return { success: false, message: 'Invalid credentials. Please check your employee ID.' };
-      }
-
-      const {groups} = employeeDocument
-      const getAllGroups = groups.map(group => group.groupName)
-      const getEmployee = employeeDocument?.employees.find(e => e.employeeDetails.employeeId.toString() === empId.toString())
-
-      if(getGroups){
-          const upperCaseGroups = getGroups.map(group => group.replace(/\s+/g, '').toUpperCase());
-          
-      
-          matchedEmployees = employeeDocument?.employees
-              .filter(employee => 
-                  employee.group.some(empGroup => 
-                      upperCaseGroups.includes(empGroup.replace(/\s+/g, '').toUpperCase())
-                  )
-              )
-              .map(employee => ({
-                  empId: employee.employeeDetails.employeeId,
-                  empName: employee.employeeDetails.employeeName
-              }));
-              if(!matchedEmployees?.length){
-                  console.log("No employee found in the group");
-                  throw new Error(`No employee found for the group:- ${getGroups}`)
-              }
-      }
-
-      const {employeeDetails:getEmployeeDetails ,group } = getEmployee
-      const { employeeName, employeeId , department, designation,grade,project} = getEmployeeDetails
-      console.log("employee name man", employeeName, employeeId )
-      const employeeDetails = { employeeName, employeeId , department, designation,grade,project}
-      return {employeeDocument,employeeDetails,group , getAllGroups, matchedEmployees}
-  } catch(e){
-      console.log(e);
-      throw e
-  }
-}
 // to get expense report related company details
-const getExpenseRelatedHrData = async (tenantId,res = {}) => {
-    try {
-        const companyDetails = await HRMaster.findOne({ tenantId });
+// const getExpenseRelatedHrData = async (tenantId,empId,res = {}) => {
+//     try {
+//         const companyDetails = await HRMaster.findOne({ tenantId });
 
-        if (!companyDetails) {
-            return res.status(404).json({ message: 'Company details not found, please check the req details' });
-        }
+//         if (!companyDetails) {
+//             return res.status(404).json({ message: 'Company details not found, please check the req details' });
+//         }
 
-        // const { travelExpenseCategories = [],  } = companyDetails 
-        // const expenseCategoryNames = travelExpenseCategories.map(category => category.categoryName);
-        const getEmployee = companyDetails?.employees.find(e => e.employeeDetails.employeeId.toString() === empId.toString())
-        const {employeeDetails:getEmployeeDetails ,group } = getEmployee
-        const { employeeName, employeeId , department, designation,grade,project} = getEmployeeDetails
-        console.log("employee name man", employeeName, employeeId )
-        const employeeDetails = { employeeName, employeeId , department, designation,grade,project,group}
+//         // const { travelExpenseCategories = [],  } = companyDetails 
+//         // const expenseCategoryNames = travelExpenseCategories.map(category => category.categoryName);
+//         const getEmployee = companyDetails?.employees.find(e => e.employeeDetails.employeeId.toString() === empId.toString())
+//         const {employeeDetails:getEmployeeDetails ,group } = getEmployee
+//         const { employeeName, employeeId , department, designation,grade,project} = getEmployeeDetails
+//         console.log("employee name man", employeeName, employeeId )
+//         const employeeDetails = { employeeName, employeeId , department, designation,grade,project,group}
 
-        let {
-            flags:{POLICY_SETUP_FLAG} = {}, // the name need to be cross-checked with HRMaster later --
-            companyDetails: { defaultCurrency } = {},
-            travelAllocationFlags = {}, // 3 types
-            travelAllocations = {},
-            travelExpenseCategories = [],
-            expenseSettlementOptions = {},
-        } = companyDetails;
+//         let {
+//             flags:{POLICY_SETUP_FLAG} = {}, // the name need to be cross-checked with HRMaster later --
+//             companyDetails: { defaultCurrency } = {},
+//             travelAllocationFlags = {}, // 3 types
+//             travelAllocations = {},
+//             travelExpenseCategories = [],
+//             expenseSettlementOptions = {},
+//         } = companyDetails;
 
-        let getTravelExpenseCategories = {};
+//         let getTravelExpenseCategories = {};
 
-  travelExpenseCategories.forEach(obj => {
-  let key = Object.keys(obj)[0];
-  getTravelExpenseCategories[key] = obj[key];
-  });
+//   travelExpenseCategories.forEach(obj => {
+//   let key = Object.keys(obj)[0];
+//   getTravelExpenseCategories[key] = obj[key];
+//   });
 
 
-    // const { expenseAllocation, expenseAllocation_accountLine} =travelAllocations
-    const isLevel3 = travelAllocationFlags?.level3
-    if(isLevel3){
-      return {POLICY_SETUP_FLAG, defaultCurrency, travelAllocationFlags, travelExpenseCategories:getTravelExpenseCategories, travelAllocations, expenseSettlementOptions, employeeDetails}
+//     // const { expenseAllocation, expenseAllocation_accountLine} =travelAllocations
+//     const isLevel3 = travelAllocationFlags?.level3
+//     if(isLevel3){
+//       return {POLICY_SETUP_FLAG, defaultCurrency, travelAllocationFlags, travelExpenseCategories:getTravelExpenseCategories, travelAllocations, expenseSettlementOptions, employeeDetails}
+//     }
+//       return {POLICY_SETUP_FLAG, defaultCurrency, travelAllocationFlags, travelExpenseCategories:getTravelExpenseCategories, travelAllocations, expenseSettlementOptions, employeeDetails};
+//     } catch (error) {
+//         // logger.error('Error in getExpenseRelatedHrData:', error);
+//         return { error: 'Server error' };
+//     }
+// };
+const getExpenseRelatedHrData = async (tenantId, empId) => {
+  try {
+    const companyDetails = await HRMaster.findOne({ tenantId });
+
+    if (!companyDetails) {
+      throw new Error('Company details not found, please check the req details');
     }
-      return {POLICY_SETUP_FLAG, defaultCurrency, travelAllocationFlags, travelExpenseCategories:getTravelExpenseCategories, travelAllocations, expenseSettlementOptions, employeeDetails};
-    } catch (error) {
-        console.error('Error in getExpenseRelatedHrData:', error);
-        // logger.error('Error in getExpenseRelatedHrData:', error);
-        return { error: 'Server error' };
+
+    const employee = companyDetails.employees.find(e => e.employeeDetails.employeeId.toString() === empId.toString());
+
+    if (!employee) {
+      throw new Error('Employee not found');
     }
+
+    const { employeeDetails, group } = employee;
+    const { employeeName, employeeId, department, designation, grade, project } = employeeDetails;
+
+    const {
+      flags: { POLICY_SETUP_FLAG = {} } = {},
+      companyDetails: { defaultCurrency } = {},
+      travelAllocationFlags = {},
+      travelAllocations = {},
+      travelExpenseCategories = [],
+      expenseSettlementOptions = {},
+    } = companyDetails;
+
+    const getTravelExpenseCategories = travelExpenseCategories.reduce((acc, obj) => {
+      const [key] = Object.keys(obj);
+      acc[key] = obj[key];
+      return acc;
+    }, {});
+
+    const result = {
+      POLICY_SETUP_FLAG,
+      defaultCurrency,
+      travelAllocationFlags,
+      travelExpenseCategories: getTravelExpenseCategories,
+      travelAllocations,
+      expenseSettlementOptions,
+      employeeDetails: { employeeName, employeeId, department, designation, grade, project, group }
+    };
+
+    return travelAllocationFlags?.level3 ? result : result;
+  } catch (error) {
+    console.error('Error in getExpenseRelatedHrData:', error);
+    throw error;
+  }
 };
 
 const currencySchema = Joi.object({
@@ -407,7 +407,7 @@ export const BookExpense = async (req, res) => {
       // Getting additional details from HRMaster
       let getHRData;
       try {
-        getHRData = await getExpenseRelatedHrData(tenantId, res);
+        getHRData = await getExpenseRelatedHrData(tenantId,empId);
         // const travelAllocationFlags = {}
         // getHRData = {travelAllocationFlags};
       } catch (error) {
@@ -672,12 +672,16 @@ export const travelPolicyValidation = async (tenantId, empId, travelType, catego
 
 
 export const extractTotalAmount = (expenseLine, fixedFields) => {
-  const keyFound = Object.entries(expenseLine)
-      .find(([key]) => fixedFields.some(name => name.trim().toUpperCase() === key.trim().toUpperCase()));
+  const keyFound = Object.entries(expenseLine).find(([key]) =>
+    fixedFields.some(name => name.trim().toUpperCase() === key.trim().toUpperCase())
+  );
 
-  return keyFound ? keyFound[1] : '';
+  if (!keyFound) {
+    throw new Error('Total amount is not found from bill');
+  }
+
+  return Number(keyFound[1])
 };
-
 
 //On save expense Line
 export const onSaveExpenseLine = async (req, res) => {
@@ -1342,117 +1346,205 @@ export const onSaveAsDraftExpenseReport = async (req, res) => {
 };
 
 
+// const getExpenseHeaderStatus = (travelExpenseData) => {
+//   console.log("I am here for status update", travelExpenseData);
+
+//   const hasApprovers = travelExpenseData?.approvers?.length > 0;
+//   const hasPaidLines =travelExpenseData?.alreadyBookedExpenseLines?.formState?.length > 0;
+//   const hasNoExpenseLines = travelExpenseData?.expenseLines?.length === 0
+
+//   if (hasApprovers) {
+//       console.log("Approvers", travelExpenseData.approvers);
+//       return 'pending approval';
+//   } else if (hasPaidLines && hasNoExpenseLines) {
+//     console.log("Already booked Expense", hasPaidLines, hasNoExpenseLines)
+//       return 'paid';
+//   } else {
+//     console.log("pending settlement")
+//       return 'pending settlement'; // finance admin
+//   }
+// };
+
+
+// Exported function for handling expense header submission ()(when cancelling at header level check length of travelExpenseData, if it is just 1 object and getting cancelled then reset all amounts to 0 or else - the total amounts   is available if it is available)
+// export const onSubmitExpenseHeader = async (req, res) => {
+//     try {
+//       const {tenantId, empId, tripId, expenseHeaderId } = req.params;
+//       console.log("params----onSubmitExpenseHeader", req.params)
+//       let {approvers=[], expenseSettlement} = req.body;
+    
+//       const filter =  {
+//         'tenantId': tenantId,
+//         'tripId': tripId,
+//         $or: [
+//           { 'travelRequestData.createdBy.empId': empId },
+//           { 'travelRequestData.createdFor.empId': empId },
+//         ],
+//         'travelExpenseData': {
+//           $elemMatch: {
+//             'expenseHeaderId': expenseHeaderId,
+//             'expenseHeaderStatus': { $in: ['new', 'draft', 'pending approval', 'approved', 'pending settlement'] },
+//           },
+//         },
+//       }
+    
+//       const update = {
+//         $set:{
+//         'travelExpenseData.$.expenseSettlement': expenseSettlement,
+//         'travelExpenseData.$.expenseSubmissionDate': new Date(),
+//       }
+//     }
+    
+//     console.log("update approvers - before ", approvers)
+    
+//     const isApproval = approvers?.length > 0
+//     if(isApproval){
+//       approvers.forEach(a=> a.status = 'pending approval')
+//       update.$set['travelExpenseData.$.approvers'] = approvers
+//     }
+    
+//     console.log("update approvers - after ", approvers)
+//       console.log("expenseSettlement", expenseSettlement)
+//       const expenseReport = await Expense.findOneAndUpdate(
+//       filter,
+//       update
+//       );
+      
+//       // Check if the expense report is not found
+//       if (!expenseReport) {
+//         return res.status(404).json({ message: 'Expense report not found' });
+//       } else {
+//         const { travelExpenseData} = expenseReport
+//         // console.log("travelExpenseData ", travelExpenseData)
+//         let { expenseHeaderStatus} = travelExpenseData
+//         const matchingIndex = travelExpenseData.findIndex(data => data.expenseHeaderId.toString() === expenseHeaderId.toString());
+
+//         //  console.log("Matching index:", matchingIndex);
+// // console.log("Matching index:", matchingIndex);
+
+// if (matchingIndex !== -1) {
+//     const updatedStatus = getExpenseHeaderStatus(travelExpenseData[matchingIndex]);
+//     travelExpenseData[matchingIndex].expenseHeaderStatus = updatedStatus;
+//     // console.log("Updated expense header status:", updatedStatus);
+
+//     // Save the updated status in the database
+//    const getExpenseReport =  await expenseReport.save();
+
+//    if(!getExpenseReport){
+//      return res.status(404).json({ message: 'Error: failed to submit expense Report!!' });
+//    } else {
+//       // await onSaveLineItemToTrip(updatedExpenseReport);
+//       const payload = {getExpenseReport};
+//       const action = 'full-update';
+//       const comments = 'expense report submitted';
+//       // console.log("the payload expense report submitted direct ..", getExpenseReport)
+
+//       if(isApproval){
+//         await sendToOtherMicroservice(payload, action, 'approval', comments)
+//       }
+//       await Promise.all([
+//         sendToOtherMicroservice(payload, action, 'dashboard', comments),
+//         sendToOtherMicroservice(payload, action, 'trip', comments),
+//         sendToOtherMicroservice(payload,action,'reporting',comments)
+//       ])
+
+//   // Process the updated expenseReport if needed
+//   return res.status(200).json({ message: 'Your Expense report submitted successfully' });
+//     } 
+//     }
+//    }
+// } catch (error) {
+//       // Handle errors in a consistent manner
+//       console.error('An error occurred while updating the expense header:', error);
+//       return res.status(500).json({ error: 'An error occurred while updating the expense header.' });
+//     }
+// };
+
+
 const getExpenseHeaderStatus = (travelExpenseData) => {
-  console.log("I am here for status update", travelExpenseData);
+  try {
+    const { approvers = [], alreadyBookedExpenseLines, expenseLines = [] } = travelExpenseData || [];
 
-  const hasApprovers = travelExpenseData?.approvers?.length > 0;
-  const hasPaidLines =travelExpenseData?.alreadyBookedExpenseLines?.formState?.length > 0;
-  const hasNoExpenseLines = travelExpenseData?.expenseLines?.length === 0
-
-  if (hasApprovers) {
-      console.log("Approvers", travelExpenseData.approvers);
+    if (approvers.length > 0) {
       return 'pending approval';
-  } else if (hasPaidLines && hasNoExpenseLines) {
-    console.log("Already booked Expense", hasPaidLines, hasNoExpenseLines)
+    }
+    
+    if (alreadyBookedExpenseLines?.formState?.length > 0 && expenseLines.length === 0) {
       return 'paid';
-  } else {
-      return 'pending settlement'; // finance admin
-      console.log("pending settlement")
+    }
+    
+    return 'pending settlement'; // finance admin
+  } catch (error) {
+    console.error('Error determining expense header status:', error);
+    throw error;
   }
 };
 
-// Exported function for handling expense header submission ()(when cancelling at header level check length of travelExpenseData, if it is just 1 object and getting cancelled then reset all amounts to 0 or else - the total amounts   is available if it is available)
 export const onSubmitExpenseHeader = async (req, res) => {
-    const {tenantId, empId, tripId, expenseHeaderId } = req.params;
-  console.log("params----onSubmitExpenseHeader", req.params)
-  let {approvers=[], expenseSettlement} = req.body;
+  const { tenantId, empId, tripId, expenseHeaderId } = req.params;
+  const { approvers = [], expenseSettlement } = req.body;
 
-  const filter =  {
-    'tenantId': tenantId,
-    'tripId': tripId,
-    $or: [
-      { 'travelRequestData.createdBy.empId': empId },
-      { 'travelRequestData.createdFor.empId': empId },
-    ],
-    'travelExpenseData': {
-      $elemMatch: {
-        'expenseHeaderId': expenseHeaderId,
-        'expenseHeaderStatus': { $in: ['new', 'draft', 'pending approval', 'approved', 'pending settlement'] },
+  try {
+    const filter = {
+      tenantId,
+      tripId,
+      $or: [
+        { 'travelRequestData.createdBy.empId': empId },
+        { 'travelRequestData.createdFor.empId': empId },
+      ],
+      'travelExpenseData': {
+        $elemMatch: {
+          expenseHeaderId,
+          expenseHeaderStatus: { $in: ['new', 'draft', 'pending approval', 'approved', 'pending settlement'] },
+        },
       },
-    },
-  }
+    };
 
-  const update = {
-    $set:{
-    'travelExpenseData.$.expenseSettlement': expenseSettlement,
-    'travelExpenseData.$.expenseSubmissionDate': new Date(),
-  }
-}
-
-console.log("update approvers - before ", approvers)
-
-const isApproval = approvers?.length > 0
-if(isApproval){
-  approvers.forEach(a=> a.status = 'pending approval')
-  update.$set['travelExpenseData.$.approvers'] = approvers
-}
-
-console.log("update approvers - after ", approvers)
-  console.log("expenseSettlement", expenseSettlement)
-    try {
-      const expenseReport = await Expense.findOneAndUpdate(
-      filter,
-      update
-      );
-      
-      // Check if the expense report is not found
-      if (!expenseReport) {
-        return res.status(404).json({ message: 'Expense report not found' });
-      } else {
-        const { travelExpenseData} = expenseReport
-        // console.log("travelExpenseData ", travelExpenseData)
-        let { expenseHeaderStatus} = travelExpenseData
-        const matchingIndex = travelExpenseData.findIndex(data => data.expenseHeaderId.toString() === expenseHeaderId.toString());
-
-        //  console.log("Matching index:", matchingIndex);
-// console.log("Matching index:", matchingIndex);
-
-if (matchingIndex !== -1) {
-    const updatedStatus = getExpenseHeaderStatus(travelExpenseData[matchingIndex]);
-    travelExpenseData[matchingIndex].expenseHeaderStatus = updatedStatus;
-    // console.log("Updated expense header status:", updatedStatus);
-
-    // Save the updated status in the database
-   const getExpenseReport =  await expenseReport.save();
-
-   if(!getExpenseReport){
-     return res.status(404).json({ message: 'Error: failed to submit expense Report!!' });
-   } else {
-      // await onSaveLineItemToTrip(updatedExpenseReport);
-      const payload = {getExpenseReport};
-      const action = 'full-update';
-      const comments = 'expense report submitted';
-      // console.log("the payload expense report submitted direct ..", getExpenseReport)
-
-      if(isApproval){
-        await sendToOtherMicroservice(payload, action, 'approval', comments)
+    const update = {
+      $set: {
+        'travelExpenseData.$.expenseSettlement': expenseSettlement,
+        'travelExpenseData.$.expenseSubmissionDate': new Date(),
+        ...(approvers.length > 0 && {
+          'travelExpenseData.$.approvers': approvers.map(a => ({ ...a, status: 'pending approval' }))
+        }),
       }
-      await Promise.all([
-        sendToOtherMicroservice(payload, action, 'dashboard', comments),
-        sendToOtherMicroservice(payload, action, 'trip', comments),
-        sendToOtherMicroservice(payload,action,'reporting',comments)
-      ])
+    };
 
-  // Process the updated expenseReport if needed
-  return res.status(200).json({ message: 'Your Expense report submitted successfully' });
-    } 
+    const expenseReport = await Expense.findOneAndUpdate(filter, update, { new: true });
+
+    if (!expenseReport) {
+      return res.status(404).json({ message: 'Expense report not found' });
     }
-   }
-} catch (error) {
-      // Handle errors in a consistent manner
-      console.error('An error occurred while updating the expense header:', error);
-      return res.status(500).json({ error: 'An error occurred while updating the expense header.' });
+
+    const expenseDataIndex = expenseReport.travelExpenseData.findIndex(
+      data => data.expenseHeaderId.toString() === expenseHeaderId
+    );
+
+    if (expenseDataIndex === -1) {
+      return res.status(404).json({ message: 'Expense header not found in the report' });
     }
+
+    const updatedExpenseData = expenseReport.travelExpenseData[expenseDataIndex];
+    updatedExpenseData.expenseHeaderStatus = getExpenseHeaderStatus(updatedExpenseData);
+
+    await expenseReport.save();
+
+    const payload = { getExpenseReport: expenseReport };
+    const action = 'full-update';
+    const comments = 'expense report submitted';
+
+    await Promise.all([
+      ...(approvers.length > 0 ? [sendToOtherMicroservice(payload, action, 'approval', comments)] : []),
+      sendToOtherMicroservice(payload, action, 'dashboard', comments),
+      sendToOtherMicroservice(payload, action, 'trip', comments),
+      sendToOtherMicroservice(payload, action, 'reporting', comments)
+    ]);
+
+    return res.status(200).json({ message: 'Your Expense report submitted successfully' });
+  } catch (error) {
+    console.error('An error occurred while updating the expense header:', error);
+    return res.status(500).json({ error: 'An error occurred while updating the expense header.' });
+  }
 };
 
 
@@ -1486,11 +1578,13 @@ export const cancelAtHeaderLevelForAReport = async (req, res) => {
  let totalExpenseAmount;
  let totalPersonalExpenseAmount;
  let totalRemainingCash;
+ let totalCashAmount;
   
     if(expenseAmountStatus){
       totalExpenseAmount = parseNumber(expenseAmountStatus.totalExpenseAmount)
       totalPersonalExpenseAmount = parseNumber(expenseAmountStatus.totalPersonalExpenseAmount)
       totalRemainingCash = parseNumber(expenseAmountStatus.totalRemainingCash)
+      totalCashAmount = parseNumber(expenseAmountStatus.totalCashAmount)
     }
 
 
@@ -1521,7 +1615,12 @@ export const cancelAtHeaderLevelForAReport = async (req, res) => {
           },
           {
               $pull: { 'travelExpenseData': { 'expenseHeaderId': expenseHeaderId } },
-              $unset: { 'expenseAmountStatus': 1 },
+              // $unset: { 'expenseAmountStatus': 1 },
+              $set:{
+                'expenseAmountStatus.totalExpenseAmount':0,
+                'expenseAmountStatus.totalPersonalExpenseAmount':0,
+                'expenseAmountStatus.totalRemainingCash':totalCashAmount,
+              }
           },
           { new: true }
         );
@@ -1644,7 +1743,7 @@ export const cancelAtLine = async (req, res) => {
       const {expenseAmountStatus, expenseLine } = req.body;
       console.log("req.body for cancel line", req.body)
       const {expenseLineId , isPersonalExpense, isMultiCurrency} = expenseLine
-     console.log(" expenseLine for cancel lineitem", expenseLineId , isPersonalExpense, isMultiCurrency)
+     console.log(" expenseLine for cancel line item", expenseLineId , isPersonalExpense, isMultiCurrency)
 
      const fixedFields = ['Total Amount', 'Date',  'Tax Amount', 'Tip Amount', 'Premium Amount', 'Cost', 'Total Cost', 'License Cost', 'Subscription Cost', 'Total Fare', 'Premium Cost']
 
@@ -1663,7 +1762,7 @@ export const cancelAtLine = async (req, res) => {
 
     // Handle personal expenses and multicurrency
     if (isPersonalExpense) {
-      console.log("is personal expoense", isPersonalExpense)
+      console.log("is personal expense", isPersonalExpense)
       const personalExpenseAmount = expenseLine?.personalExpenseAmount || 0;
 
       if (!isMultiCurrency) {
@@ -1861,6 +1960,55 @@ export const getRejectionReasons = async (req, res) => {
 
 
 // testing
+const getGroupDetails = async(tenantId,empId, getGroups) => {
+  try{
+      let matchedEmployees
+      const employeeDocument = await HRCompany.findOne({
+          tenantId,
+          'employees.employeeDetails.employeeId': empId
+      });
+  
+      if (!employeeDocument) {
+          console.warn(`Employee not found for tenantId: ${tenantId}, empId: ${empId}`);
+          return { success: false, message: 'Invalid credentials. Please check your employee ID.' };
+      }
+
+      const {groups} = employeeDocument
+      const getAllGroups = groups.map(group => group.groupName)
+      const getEmployee = employeeDocument?.employees.find(e => e.employeeDetails.employeeId.toString() === empId.toString())
+
+      if(getGroups){
+          const upperCaseGroups = getGroups.map(group => group.replace(/\s+/g, '').toUpperCase());
+          
+      
+          matchedEmployees = employeeDocument?.employees
+              .filter(employee => 
+                  employee.group.some(empGroup => 
+                      upperCaseGroups.includes(empGroup.replace(/\s+/g, '').toUpperCase())
+                  )
+              )
+              .map(employee => ({
+                  empId: employee.employeeDetails.employeeId,
+                  empName: employee.employeeDetails.employeeName
+              }));
+              if(!matchedEmployees?.length){
+                  console.log("No employee found in the group");
+                  throw new Error(`No employee found for the group:- ${getGroups}`)
+              }
+      }
+
+      const {employeeDetails:getEmployeeDetails ,group } = getEmployee
+      const { employeeName, employeeId , department, designation,grade,project} = getEmployeeDetails
+      console.log("employee name man", employeeName, employeeId )
+      const employeeDetails = { employeeName, employeeId , department, designation,grade,project}
+      return {employeeDocument,employeeDetails,group , getAllGroups, matchedEmployees}
+  } catch(e){
+      console.log(e);
+      throw e
+  }
+}
+
+
 export const getTripDetails = async (req,res) => {
     const {tenantId, empId, tripId} = req.params;
  try{

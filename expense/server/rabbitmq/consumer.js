@@ -140,8 +140,7 @@ export async function startConsumer(receiver) {
                 case 'settle-ca':
                 case 'recover-ca':
                   console.log("settle-ca or recover-ca ")
-                  // channel.ack(msg)
-                 const res3 = await settleOrRecoverCashAdvance(payload);
+                  const res3 = await settleOrRecoverCashAdvance(payload);
                   handleMessageAcknowledgment(channel, msg, res3);
                   break;
 
@@ -153,7 +152,7 @@ export async function startConsumer(receiver) {
     
                 case 'settle-expense-Paid-and-distributed':
                   console.log(" expense header status paid and distributed")
-                 const res5 = await settleExpenseReportPaidAndDistributed(payload);
+                  const res5 = await settleExpenseReportPaidAndDistributed(payload);
                   handleMessageAcknowledgment(channel, msg, res5);
                   break;
                 
