@@ -1,64 +1,7 @@
 import dashboard from "../../models/dashboardSchema.js";
 
-//travel expense header 'paid'
-export const settleExpenseReport= async (payload) => {
-  try {
-      const {  tenantId,travelRequestId, expenseHeaderId, settlementBy, expenseHeaderStatus, 
-        settlementDate } = payload;
-  
-        const status = {
-          PENDING_SETTLEMENT: 'pending settlement',
-          PAID: 'paid',
-          APPROVED:'approved'
-        };
 
-        const arrayFilters = [
-          {'elem.expenseHeaderId':expenseHeaderId},
-          {'lineItem.lineItemStatus':status.APPROVED}
-        ]
-    const trip = await dashboard.findOneAndUpdate(
-      { 
-        tenantId,
-        'tripSchema.travelExpenseData': { $elemMatch: { travelRequestId, expenseHeaderId } }
-      },
-      { 
-        $set: { 
-          'tripSchema.travelExpenseData.$[elem].expenseHeaderStatus': expenseHeaderStatus, 
-          'tripSchema.travelExpenseData.$[elem].settlementDate': settlementDate,
-          'tripSchema.travelExpenseData.$[elem].settlementBy': settlementBy,
-          'tripSchema.travelExpenseData.$[elem].expenseLines.$[lineItem].lineItemStatus':status.PAID
-        }
-      },
-      { arrayFilters,new: true, runValidators:true }
-    );
-
-    console.log('Travel request status updated in approval microservice:', trip);
-    return { success: true, error: null };
-  } catch (error) {
-    console.error('Failed to update travel request status in approval microservice:', error);
-    return { success: false, error: error };
-  }
-};
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-export const processTravelExpense = async (message,correlationId) => {
+const processTravelExpense = async (message,correlationId) => {
     const failedUpdates = [];
     const successMessage = {
       message: 'Successfully updated dashboard database-travel expense data',
@@ -80,7 +23,7 @@ export const processTravelExpense = async (message,correlationId) => {
         },
         { upsert: true, new: true }
       );
-      console.log('Saved to dashboard: using synchrnous queue', updated);
+      console.log('Saved to dashboard: using synchronous queue', updated);
   
     } catch (error) {
       console.error('Failed to update dashboard: using synchronous queue', error);
@@ -114,7 +57,7 @@ export const processTravelExpense = async (message,correlationId) => {
   }
 }
 
-export const fullUpdateExpense = async (payload) => {
+const fullUpdateExpense = async (payload) => {
   const {getExpenseReport} = payload
   const { 
     tenantId,
@@ -141,6 +84,10 @@ export const fullUpdateExpense = async (payload) => {
     return { success: false, error: error}
   }
 }
-  
+
+export{
+  processTravelExpense,
+  fullUpdateExpense
+}
 
 

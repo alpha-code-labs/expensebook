@@ -573,9 +573,9 @@ const travelWithCashForEmployee = async (tenantId, empId) => {
           { 'cashAdvanceSchema.cashAdvancesData.cashAdvanceStatus': { $in: ['rejected'] } },
         ],
       };
-  
+
     //   console.log("Fetching cashSchema ...", tenantId, empId);
-      const travelRequestDocs = await dashboard.find(query);
+    const travelRequestDocs = await dashboard.find(query);
     //   console.log("Fetched cashSchema:", travelRequestDocs);
 
     if (travelRequestDocs?.length === 0) {
@@ -1740,7 +1740,7 @@ const approvalsForManager = async (tenantId, empId) => {
 
 
         if(approvalDoc?.length){
-          const  travel = await Promise.all(
+        const  travel = await Promise.all(
                 approvalDoc
                 .filter(approval =>
                     approval.travelRequestSchema?.travelRequestStatus === 'pending approval'&&
@@ -1748,14 +1748,14 @@ const approvalsForManager = async (tenantId, empId) => {
                     approval.travelRequestSchema?.approvers.length > 0 &&
                     approval.travelRequestSchema?.isCashAdvanceTaken === false &&
                     approval.travelRequestSchema.approvers.some(approver =>
-                      approver.empId === empId &&
-                      approver.status === 'pending approval'
+                    approver.empId === empId &&
+                    approver.status === 'pending approval'
                     )
-                  )
-                  .map(async approval => {
+                )
+                .map(async approval => {
                     const { 
-                      travelRequestId, approvers, tripPurpose, tripName, createdBy, 
-                      travelRequestNumber, travelRequestStatus, isCashAdvanceTaken, itinerary 
+                    travelRequestId, approvers, tripPurpose, tripName, createdBy, 
+                    travelRequestNumber, travelRequestStatus, isCashAdvanceTaken, itinerary 
                     } = approval.travelRequestSchema;
                     
                     // Await earliestDate if tripStartDate is not present
@@ -1765,14 +1765,14 @@ const approvalsForManager = async (tenantId, empId) => {
                     const violationsCounter = countViolations(allBkdViolations);
                     
                     return {
-                      travelRequestId, approvers, tripPurpose, tripName, tripStartDate,
-                      travelRequestNumber, createdBy, travelRequestStatus, isCashAdvanceTaken, violationsCounter
+                    travelRequestId, approvers, tripPurpose, tripName, tripStartDate,
+                    travelRequestNumber, createdBy, travelRequestStatus, isCashAdvanceTaken, violationsCounter
                     };
-                  })
+                })
             );
 
 
-           const travelWithCash = await Promise.all (approvalDoc
+        const travelWithCash = await Promise.all (approvalDoc
                 .filter(approval => 
                     approval?.cashAdvanceSchema?.travelRequestData?.travelRequestStatus === 'pending approval' &&
                     approval?.cashAdvanceSchema.travelRequestData.approvers?.some(approver =>
@@ -1907,9 +1907,9 @@ const approvalsForManager = async (tenantId, empId) => {
     
             console.log("travelExpenseReports", approvalDoc.length)
     
-             travelAndCash = [ ...filteredTravelWithCash, ...cashAdvanceRaisedLater,]
-             trips =[...addALeg]
-             
+            travelAndCash = [ ...filteredTravelWithCash, ...cashAdvanceRaisedLater,]
+            trips =[...addALeg]
+            
             travelExpenseReports = await (async () => {
             try {
                 const filteredApprovals = approvalDoc.filter(approval => {
@@ -2038,7 +2038,7 @@ const approvalsForManager = async (tenantId, empId) => {
 //     }
 // };
 
-const fetchApprovalDocuments = (tenantId, empId) => {
+export const fetchApprovalDocuments = (tenantId, empId) => {
     return dashboard.find({
         tenantId,
         $or: [
@@ -2080,7 +2080,7 @@ const fetchApprovalDocuments = (tenantId, empId) => {
     }).lean().exec();
 };
 
-const fetchReimbursementReports = (tenantId, empId) => {
+export const fetchReimbursementReports = (tenantId, empId) => {
     return REIMBURSEMENT.find({
         tenantId,
         'approvers': {

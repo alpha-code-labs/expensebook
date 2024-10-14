@@ -70,9 +70,6 @@ const formatDate = (dateString) => {
 // const theDate = dateString ? formatDate(dateString) : null
 // console.log("magic", theDate)
 
-
-
-
 export function extractStartDate(itinerary) {
   try{
       const allowedStatus = [  'draft', 

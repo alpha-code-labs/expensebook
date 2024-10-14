@@ -393,3 +393,200 @@ export const rejectCashAdvance = async (tenantId, empId, cashApprovalDocs,reject
       return res.status(500).json({ error: 'Failed to update approval.', error: error.message });
     }
 };
+
+
+// const getPolicyDetails = async (tenantId, empId, travelType, categoryName) => {
+//   try {
+//     const companyDetails = await HRMaster.findOne(
+//       { tenantId, 'employees.employeeDetails.employeeId': empId },
+//       {
+//         policies: { travelPolicies: 1 },
+//         employees: {
+//           $elemMatch: { 'employeeDetails.employeeId': empId }
+//         }
+//       }
+//     );
+
+//     if (!companyDetails) {
+//       console.log("Company details or employee not found.");
+//       return { success: false, message: 'Company details or employee not found' };
+//     }
+
+//     const { employees, policies } = companyDetails;
+
+//     if (!employees || employees.length === 0) {
+//       console.log("Employee not found.");
+//       return { success: false, message: 'Employee not found' };
+//     }
+
+//     const employee = employees[0];
+//     const groups = employee.group || [];
+
+//     // Filter travelPolicies based on the employee's groups and travelType
+//     const matchingTravelPolicies = policies.travelPolicies.filter(policy => {
+//       const policyKey = Object.keys(policy)[0]; // Get the first key (e.g., Finance, All)
+//       return groups.some(group => group.toLowerCase() === policyKey.toLowerCase()) &&
+//              policy[policyKey][travelType]; // Check if the travelType exists
+//     });
+
+//     // Define the additional keys you want to extract
+//     const additionalKeys = [
+//       'Allow expense report submission during travel',
+//       'Allow International Travel Submission/booking with violations',
+//       'Allow International Travel Expense Submission with violations',
+//       'Expense Report Submission Deadline',
+//       'Minimum Days to Book Before Travel'
+//     ];
+
+//     // Extract the matched travelType object based on categoryName and additional keys
+//     const matchedTravelTypeObject = matchingTravelPolicies.map(policy => {
+//       const key = Object.keys(policy)[0]; // Get the first key (e.g., Finance, All)
+//       const travelPolicy = policy[key][travelType]; // Get the specific travelType object
+
+//       // Prepare the extracted policies object
+//       const extractedPolicies = {};
+
+//       // Check for the categoryName match
+//       if (travelPolicy[categoryName]) {
+//         extractedPolicies[categoryName] = travelPolicy[categoryName];
+//       }
+
+//       // Check for additional keys and extract required values
+//       additionalKeys.forEach(additionalKey => {
+//         if (travelPolicy[additionalKey]) {
+//           const permission = travelPolicy[additionalKey];
+//           extractedPolicies[additionalKey] = {
+//             allowed: permission.allowed,
+//             limit: travelPolicy[additionalKey].limit?.amount || null
+//           };
+//         }
+//       });
+
+//       return {
+//         [key]: extractedPolicies // Return only the matched category and additional keys
+//       };
+//     });
+
+//     console.log("Matched Travel Type Object:", matchedTravelTypeObject);
+
+//     // Extract limit.amount and allowed values
+//     if (matchedTravelTypeObject.length === 1) {
+//       const singlePolicy = matchedTravelTypeObject[0];
+//       const firstKey = Object.keys(singlePolicy)[0];
+//       const getLimit = singlePolicy[firstKey][categoryName];
+
+//       return {
+//         success: true,
+//         // employee,
+//         categoryName:getLimit,
+//       };
+//     } else {
+//       // Compare limit.amounts to find the highest
+//       let highestLimit = 0;
+//       let allowedStatus = false;
+
+//       matchedTravelTypeObject.forEach(policy => {
+//         const key = Object.keys(policy)[0];
+//         const limitAmount = policy[key][categoryName]?.limit?.amount;
+//         const getLimit = policy[key][categoryName];
+
+//         if (limitAmount && parseFloat(limitAmount) > highestLimit) {
+//           // highestLimit = parseFloat(limitAmount);
+//           highestLimit = getLimit
+//           allowedStatus = policy[key][categoryName]?.allowed;
+//         }
+//       });
+
+//       return {
+//         success: true,
+//         employee,
+//         categoryName: highestLimit,
+//       };
+//     }
+
+//   } catch (error) {
+//     console.error("Error fetching policy details:", error);
+//     return { success: false, message: 'Error fetching policy details' };
+//   }
+// };
+
+
+// // Example usage
+// const employeeDetails = await getPolicyDetails('66e048c79286e2f4e03bdac1', '1004', 'international', 'Flight');
+
+const getPolicyDetails = async (travelType, employeeGroups) => {
+  try {
+    const companyDetails = await HRMaster.findOne(
+      { tenantId },
+      { 'employees': { $elemMatch: { 'employeeDetails.employeeId': empId } }, 'policies': 1 }
+  );
+
+  if (!companyDetails) {
+      console.log("Company details not found.");
+      return { success: false, message: 'Company details not found' };
+  }
+
+  const { employees, policies } = companyDetails;
+
+  if (!employees || employees.length === 0) {
+      console.log("Employee not found.");
+      return { success: false, message: 'Employee not found' };
+  }
+
+  const employee = employees[0];
+
+  const employeeGroups = employee.group;
+
+  if (!employeeGroups?.length) {
+      console.log("No groups associated with the employee.");
+      return { success: false, message: 'No groups associated with the employee' };
+  }
+
+  const extractPolicies = (employeeGroups, travelType) => {
+    const results = [];
+
+    policies.travelPolicies.forEach(policy => {
+      for (const group in policy) {
+        if (employeeGroups.some(employeeGroup => employeeGroup.toLowerCase() === group.toLowerCase())) {
+          const groupPolicies = policy[group][travelType];
+          results.push({
+            group,
+            minimumDaysToBook: groupPolicies['Minimum Days to Book Before Travel'].value,
+            expenseReportDeadline: groupPolicies['Expense Report Submission Deadline'],
+            allowInternationalExpenseSubmission: groupPolicies['Allow International Travel Expense Submission with violations'],
+          });
+        }
+      }
+    });
+
+    // If there are multiple groups, find the one with the smallest minimumDaysToBook
+    if (results.length > 1) {
+      const minPolicy = results.reduce((prev, curr) => {
+        return (prev.minimumDaysToBook < curr.minimumDaysToBook) ? prev : curr;
+      });
+      return [minPolicy]; 
+    }
+
+    return results; 
+  };
+
+  // Get the extracted policies
+  const extractedPolicies = extractPolicies(employeeGroups, travelType);
+
+  // Return the results as an array of variables
+  return extractedPolicies.map(({ group, minimumDaysToBook, expenseReportDeadline, allowInternationalExpenseSubmission }) => ({
+    group,
+    minimumDaysToBook,
+    expenseReportDeadline,
+    allowInternationalExpenseSubmission
+  }));
+
+  } catch (error) {
+
+  }
+};
+
+const travelType = 'international'; // Dynamic travel type
+const employeeGroups = ['Finance', 'All']; // Example groups to check against
+
+const policyDetails = getPolicyDetails(travelType, employeeGroups);

@@ -2,12 +2,11 @@ import amqp from 'amqplib';
 import { updateHRMaster } from './messageProcessor/hrMaster.js';
 import { fullUpdateTravel, fullUpdateTravelBatchJob } from './messageProcessor/travel.js';
 import dotenv from 'dotenv';
-import { fullUpdateExpense, settleExpenseReport } from './messageProcessor/travelExpenseProcessor.js';
+import { fullUpdateExpense } from './messageProcessor/travelExpenseProcessor.js';
 import { addLeg, updateTrip, updateTripStatus, updateTripToCompleteOrClosed } from './messageProcessor/trip.js';
 import { cashStatusUpdatePaid, fullUpdateCash, fullUpdateCashBatchJob, onceCash } from './messageProcessor/cash.js';
 import { deleteReimbursement, updateReimbursement } from './messageProcessor/reimbursement.js';
-import {  settleOrRecoverCashAdvance } from './messageProcessor/finance.js';
-import { settleNonTravelExpenseReport } from './messageProcessor/nonTravelExpenseProcessor.js';
+import {  settleExpenseReport, settleNonTravelExpenseReport, settleOrRecoverCashAdvance } from './messageProcessor/finance.js';
 
 dotenv.config();
 
@@ -275,6 +274,7 @@ export async function startConsumer(receiver) {
           case 'finance':
             switch (action) {
               case 'settle-ca':
+              case 'recover-ca':
                 console.log('settle-ca', payload);
                 const res9 = await settleOrRecoverCashAdvance(payload);
                 console.log("result for settle ca", res9)
@@ -282,7 +282,7 @@ export async function startConsumer(receiver) {
                 break;
               
               case 'expense-paid':
-                console.log(" expense header status paid")
+              console.log(" expense header status paid")
               const res10 = await settleExpenseReport(payload);
               handleMessageAcknowledgment(channel, msg, res10);
               break;
@@ -292,13 +292,6 @@ export async function startConsumer(receiver) {
                 const res11 = await settleNonTravelExpenseReport(payload);
                 handleMessageAcknowledgment(channel, msg, res11);
                 break;
-            
-                case 'recover-ca':
-                  const res12 = await settleOrRecoverCashAdvance(payload)
-                  console.log("result for recoverCashAdvance ", res12)
-                  handleMessageAcknowledgment(channel, msg, res12);
-                  break;
-
 
                 default:
                   console.warn(`Unknown action '${action}' for source ${source}`);
