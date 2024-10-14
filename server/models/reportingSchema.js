@@ -28,6 +28,11 @@ const cashAdvanceStatusEnum = [
   'recovered',
 ];
 
+const documentStatusEnums = [
+  'paid',
+  'recovered'
+]
+
 //-----------trip---------
 const tripStatusEnum = [
   'upcoming',
@@ -167,6 +172,14 @@ const reportingSchema = new mongoose.Schema({
               },
             },
           ],
+          settlementDetails: [{
+            url: { type: String},
+            comment:{type:String},
+            status: {
+            type: String,
+            enum: documentStatusEnums,
+          },
+        }],
           assignedTo:{empId:String, name:String},
           paidBy:{empId:String, name:String},
           recoveredBy:{empId:String, name:String},
