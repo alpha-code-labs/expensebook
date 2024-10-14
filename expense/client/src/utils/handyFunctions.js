@@ -222,6 +222,9 @@ function formatDate(date=Date.now()) {
   }
 
   function allocationLevel(levels) {
+    if(!levels){
+      return 'null'
+    }
     try {
       // Ensure levels and travelAllocationFlags are valid objects
       if (!levels  || typeof levels !== 'object') {

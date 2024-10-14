@@ -76,8 +76,12 @@ const [currencyConversion, setCurrencyConversion]=useState({
         try {
           const response = await getNonTravelExpenseMiscellaneousDataApi(tenantId, empId,expenseHeaderId);
           setCategoryList(response?.reimbursementExpenseCategory || [])
-          const expenseSettlementOptions = Object.keys(response?.expenseSettlementOptions).filter((option) => response?.expenseSettlementOptions[option]) || [];
+          const expenseSettlementOptions = Object.keys(response?.expenseSettlementOptions || {}).filter(
+            (option) => response?.expenseSettlementOptions?.[option]
+          ) || [];
+          
           const travelAllocationFlag = allocationLevel(response?.travelAllocationFlags)
+          
           setRequiredObj(prev=>({...prev,
             "expenseCategories":response?.reimbursementExpenseCategory || [],
              "level":travelAllocationFlag,

@@ -36,8 +36,6 @@ console.log('converted amount',currencyConversion)
           setCurrencyConversion(prev => ({...prev,response:{...prev.payload,personalAmount:""}}))
         }
 
-        
-       
         ///for conversion stop
 
         return {
@@ -46,29 +44,25 @@ console.log('converted amount',currencyConversion)
         };
       });
        
-       if(totalAmountKeys.includes(key) ){
+       if(totalAmountKeys.includes(key)){
           setCurrencyConversion(prev =>({...prev,payload:{
             ...prev.payload,
            ["totalAmount"]:value
           }
           }))
-          
+         if(formData?.Currency?.shortName !==defaultCurrency.shortName){
+          handleCurrencyConversion({currencyName:formData.Currency?.shortName,totalAmount:value,personalAmount:formData?.personalExpenseAmount})          
+         }
         }
           
-        if(key === "personalExpenseAmount"){
+        if(key === "personalExpenseAmount" && formData?.Currency?.shortName !==defaultCurrency.shortName ){
           setCurrencyConversion(prev =>({...prev,payload:{
             ...prev.payload,
            ["personalAmount"]:value
           }
           }))
+          handleCurrencyConversion({currencyName:formData.Currency?.shortName,totalAmount:currencyConversion?.payload?.totalAmount,personalAmount:value})          
         }
-        // if(key === 'Currency'){  setCurrencyConversion(prev =>({...prev,payload:{
-        //   ...prev.payload,
-        //   'currencyName':value.shortName,
-         
-        //  // nonPersonalAmount: Number(prev.payload.totalAmount) - Number(formData.personalExpenseAmount)
-        // }
-        // }))}
 
         if(key==='Currency' && value.shortName !== defaultCurrency.shortName){
           setFormData(prev => ({
@@ -80,7 +74,8 @@ console.log('converted amount',currencyConversion)
             }
           }));
           
-          handleCurrencyConversion({currencyName:value.shortName})
+          handleCurrencyConversion({currencyName:value.shortName,totalAmount:currencyConversion?.payload?.totalAmount,personalAmount:formData?.personalExpenseAmount})
+
         }else if(key==='Currency' && value.shortName === defaultCurrency.shortName) {
           if(key==='Currency'){
             setErrorMsg((prevErrors) => ({ ...prevErrors, conversion: { set: false, msg: "" } }));

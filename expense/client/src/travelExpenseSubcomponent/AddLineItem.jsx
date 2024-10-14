@@ -1,6 +1,6 @@
 import React, { useEffect, useState,useRef } from 'react';
 import { allocationLevel1,  lineItems,  } from '../utils/dummyData';
-import { cancel_icon, categoryIcons, info_icon, modify_icon, receipt,scan_icon } from '../assets/icon';
+import { cancel_icon, categoryIcons, close_gray_icon, info_icon, modify_icon, receipt,scan_icon } from '../assets/icon';
 import Allocations from './Allocations';
 import Modal from '../Components/common/Modal'
 import Search from '../Components/common/Index';
@@ -15,6 +15,12 @@ import Error from '../components/common/Error';
 import PopupMessage from '../components/common/PopupMessage';
 import CancelButton from '../Components/common/CancelButton';
 import { BlobServiceClient } from "@azure/storage-blob";
+import useCurrencyConversion from '../utils/Conversion';
+
+
+
+
+
 
 
 
@@ -257,27 +263,29 @@ const handleMannualBtn = () => {
   }
 };
 
-  const currencyRef = useRef('');
-  const totalAmountRef = useRef(0);
-  const personalAmountRef = useRef(0);
 
-const handleCurrencyConversion = async ( {currencyName}) => { 
 
+const handleCurrencyConversion = async ( {currencyName,totalAmount,personalAmount}) => { 
+  console.log('conversion _data',currencyName,totalAmount,personalAmount)
+  
   const payload = {
-    ...currencyConversion.payload,
-    currencyName
+   totalAmount, 
+   personalAmount,
+   currencyName,
+   nonPersonalAmount:`${totalAmount-personalAmount||0}`
   }
   
   let allowForm = true;
   
-  if (currencyConversion.payload.totalAmount==="" || currencyConversion.payload.totalAmount===undefined){
+  if ((!totalAmount || totalAmount === 0)){
+    setCurrencyConversion(prev=>({...prev,response:null}))
     setErrorMsg((prevErrors) => ({ ...prevErrors, conversion: { set: true, msg: "Enter the amount" } }));
     allowForm = false;
   } else {
     setErrorMsg((prevErrors) => ({ ...prevErrors, conversion: { set: false, msg: "" } }));
   }
   
-  if (formData.fields.isPersonalExpense && currencyConversion.payload.personalAmount ==="") {
+  if (formData.fields.isPersonalExpense && personalAmount ==="") {
     setErrorMsg((prev) => ({ ...prev, personalAmount: { set: true, msg: "Enter the personal expense amount" } }));
     allowForm = false;
   } else {
@@ -297,7 +305,6 @@ const handleCurrencyConversion = async ( {currencyName}) => {
               setFormData(prev => ({...prev,fields:{...prev.fields, convertedAmountDetails: response?.currencyConverterData}}))
             }
           }else{
-            
             setErrorMsg((prev) => ({ ...prev, conversion: { set: true, msg: "Exchange rates not available. Kindly contact your administrator." } }));
             setCurrencyConversion(prev=>({...prev,response:{}}))
             setFormData(prev => ({...prev,fields:{...prev.fields, convertedAmountDetails: null}}))
@@ -312,6 +319,8 @@ const handleCurrencyConversion = async ( {currencyName}) => {
         }
   }
 };
+
+
 
 console.log('converted data',currencyConversion)
 
@@ -842,6 +851,7 @@ useEffect(()=>{
        isUploading={isUploading}
        defaultCurrency={requiredObj.defaultCurrency}
        setCurrencyConversion={setCurrencyConversion}
+       //handleCurrencyConversion={useCurrencyConversion}
        handleCurrencyConversion={handleCurrencyConversion}
        setFormData={setFormData}
        formData={formData.fields}
