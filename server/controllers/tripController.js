@@ -314,12 +314,14 @@ const filterTrips = async (req, res) => {
 
     console.log("my view", typeof role)
     let empIds = [empId];
-    if ( isFinanceView && getGroups.length) {
+    if ( isFinanceView || getGroups.length) {
       const { matchedEmployees } = await getGroupDetails(tenantId, empId, getGroups);
       empIds = matchedEmployees?.map(e => e.empId) || empIds;
     } else if (isMyView && empNames?.length) {
       await getEmployeeDetails(tenantId, empId);
       empIds = empNames.map(e => e.empId);
+    } else if (isFinanceView){
+      
     }
 
     console.log("empIds for filter TRips", empIds)
@@ -589,9 +591,9 @@ const filterTravelExpenses = async (req, res) => {
     }
 
     console.log("filter trips - value", JSON.stringify(value,'',2))
-    const { tenantId, empId, filterBy, date, fromDate,empNames, toDate, travelType, tripStatus,expenseHeaderStatus, travelAllocationHeaders, approvers,getGroups } = value;
+    const { tenantId, empId, filterBy,role, date, fromDate,empNames, toDate, travelType, tripStatus,expenseHeaderStatus, travelAllocationHeaders, approvers,getGroups } = value;
 
-
+const approverEmpIds = approvers?.map(a => a.empId)
     const forTeam = [getGroups]
     let getHrInfo;
     let getHrData
@@ -610,7 +612,7 @@ const filterTravelExpenses = async (req, res) => {
         empIds = matchedEmployees ? matchedEmployees.map(e => e.empId) : [empId];
         } 
     
-        if( isMyView && empNames?.length){
+        if(!empNames?.length || isMyView || empNames?.length){
         getHrData = await getEmployeeDetails(tenantId,empId)
         empIds = empNames ? empNames.map(e => e.empId) : [empId];
         }
@@ -621,10 +623,14 @@ const filterTravelExpenses = async (req, res) => {
 
     console.log("get Groups",typeof getGroups)
 
-    if(empIds){
+    if(empIds?.length){
       filterCriteria['createdBy.empId'] = { $in: empIds }
     } else {
       filterCriteria['createdBy.empId'] = empId
+    }
+
+    if(approvers?.length){
+      filterCriteria['travelExpenseData.approvers.empId'] = {$in:approverEmpIds}
     }
 
     if (filterBy && date && (!fromDate && !toDate)) {
@@ -731,11 +737,11 @@ const filterTravelExpenses = async (req, res) => {
     }
 
     const getTrips = extractTrip(tripDocs)
-    const updatedTrips = getTrips.map(trip => ({
+    const trips = getTrips.map(trip => ({
       ...trip,
       groupName:getGroups,
     }))
-    return res.status(200).json({success:true , updatedTrips});
+    return res.status(200).json({success:true , trips});
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Internal server error' });

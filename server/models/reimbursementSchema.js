@@ -28,6 +28,11 @@ const lineItemStatusEnums = [
   'paid',
 ]
 
+const documentStatusEnums = [
+  'paid',
+  'recovered'
+]
+
 const expenseHeaderTypeEnums = ['reimbursement'];
 
 const expenseLineSchema = new mongoose.Schema({
@@ -188,6 +193,14 @@ approvers: [
       imageUrl: String,
     },
   ],
+  settlementDetails: [{
+    url: { type: String},
+    comment:{type:String},
+    status: {
+    type: String,
+    enum: documentStatusEnums,
+  },
+}],
 expenseLines: [expenseLineSchema],
 expenseViolations: [String],
 expenseSettlementOptions:String,

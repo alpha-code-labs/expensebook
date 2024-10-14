@@ -70,6 +70,7 @@ const dataSchema = Joi.object({
     expenseHeaderStatus: Joi.array().items(Joi.string().valid(...expenseHeaderStatusEnums)).optional(),
     expenseSubmissionDate: Joi.date(), // validation
     getGroups:Joi.array().items(Joi.string()).optional(),
+    approvers:Joi.array().items(Joi.object()).optional()
   }).with('fromDate', 'toDate').without('filterBy', [ 'fromDate', 'toDate']);
 
 

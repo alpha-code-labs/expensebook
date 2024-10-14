@@ -5,9 +5,10 @@ import { updateTrip, updateTripToCompleteOrClosed } from './messageProcessor/tri
 import { deleteReimbursement, updateReimbursement } from './messageProcessor/reimbursement.js';
 import { fullUpdateExpense } from './messageProcessor/travelExpenseProcessor.js';
 import { approveRejectCashRaisedLater, approveRejectRequests, expenseReportApproval, nonTravelReportApproval, travelStandAloneApproval, travelWithCashTravelApproval } from './messageProcessor/dashboard.js';
-import { settleNonTravelExpenseReport } from './messageProcessor/finance.js';
+import { settleNonTravelExpenseReport, settleOrRecoverCashAdvance } from './messageProcessor/finance.js';
 import { fullUpdateTravel, fullUpdateTravelBatchJob } from './messageProcessor/travel.js';
 import { cashStatusUpdatePaid, fullUpdateCash, fullUpdateCashBatchJob, onceCash } from './messageProcessor/cash.js';
+import { updateHRCompany } from './messageProcessor/hrCompany.js';
 // import { fullUpdateExpense } from './messageProcessor/travelExpenseProcessor.js';
 // import { updateTrip } from './messageProcessor/trip.js';
 // import { fullUpdateCash, fullUpdateCashBatchJob } from './messageProcessor/cash.js';
@@ -110,7 +111,7 @@ export async function startConsumer(receiver) {
         
         case 'onboarding':
         case 'system-config':
-          const res = await update(payload)
+          const res = await updateHRCompany(payload)
           console.log(res)
           handleMessageAcknowledgment(channel,msg,res)  
           break;
@@ -315,7 +316,7 @@ export async function startConsumer(receiver) {
               case 'recover-ca':
                 console.log("settle-ca or recover-ca ")
                 // channel.ack(msg)
-               const res3 = await settleOrRecoverCashAdvance(payload);
+                const res3 = await settleOrRecoverCashAdvance(payload);
                 handleMessageAcknowledgment(channel, msg, res3);
                 break;
 
@@ -323,12 +324,6 @@ export async function startConsumer(receiver) {
                 console.log(" expense header status paid")
                 const res4 = await settleExpenseReport(payload);
                 handleMessageAcknowledgment(channel, msg, res4);
-                break;
-  
-              case 'settle-expense-Paid-and-distributed':
-                console.log(" expense header status paid and distributed")
-               const res5 = await settleExpenseReportPaidAndDistributed(payload);
-                handleMessageAcknowledgment(channel, msg, res5);
                 break;
               
               case 'non-travel-paid':

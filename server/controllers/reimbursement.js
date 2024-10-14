@@ -79,11 +79,13 @@ export const getReimbursementExpenseReport = async (req, res) => {
     success: false });
     }
 
-    const { tenantId, empId, filterBy, date,role, fromDate, toDate , empNames, expenseSubmissionDate ,expenseHeaderStatus, getGroups} = value;
+    const { tenantId, empId, filterBy, date,role, fromDate, toDate , empNames, approvers, expenseSubmissionDate ,expenseHeaderStatus, getGroups} = value;
 
     let filterCriteria = {
       tenantId,
     };
+
+    const approverEmpIds = approvers?.map(a => a.empId)
 
     console.log("get Groups",typeof getGroups)
 
@@ -93,16 +95,31 @@ let getHrData;
 let empIds;
 let employeeDocument, employeeDetails, group, getAllGroups, matchedEmployees;
 
-    if (getGroups?.length) {
-    getHrInfo = await getGroupDetails(tenantId, empId, getGroups);
-    ({ employeeDocument, employeeDetails, group, getAllGroups, matchedEmployees } = getHrInfo);
-    empIds = matchedEmployees ? matchedEmployees.map(e => e.empId) : [empId];
-    } 
+    // if (getGroups?.length) {
+    // getHrInfo = await getGroupDetails(tenantId, empId, getGroups);
+    // ({ employeeDocument, employeeDetails, group, getAllGroups, matchedEmployees } = getHrInfo);
+    // empIds = matchedEmployees ? matchedEmployees.map(e => e.empId) : [empId];
+    // } 
 
-    if(!empNames?.length){
-    getHrData = await getEmployeeDetails(tenantId,empId)
-    empIds = empNames ? empNames.map(e => e.empId) : [empId];
-    }
+    // if(!empNames?.length){
+    // getHrData = await getEmployeeDetails(tenantId,empId)
+    // empIds = empNames ? empNames.map(e => e.empId) : [empId];
+    // }
+    const isMyView = role === 'myView'
+    const isFinanceView = role === 'financeView'
+    const isTeamView = role === 'teamView'
+
+    if ( isFinanceView || getGroups?.length) {
+      getHrInfo = await getGroupDetails(tenantId, empId, getGroups);
+      ({ employeeDocument, employeeDetails, group, getAllGroups, matchedEmployees } = getHrInfo);
+      empIds = matchedEmployees ? matchedEmployees.map(e => e.empId) : [empId];
+      } 
+  
+      if(!empNames?.length || isMyView || empNames?.length){
+      getHrData = await getEmployeeDetails(tenantId,empId)
+      empIds = empNames ? empNames.map(e => e.empId) : [empId];
+      }
+
     console.log("empNames", JSON.stringify(empIds,'',2))
     console.log("get Groups kaboom",typeof getGroups)
 
@@ -112,6 +129,13 @@ let employeeDocument, employeeDetails, group, getAllGroups, matchedEmployees;
     filterCriteria['createdBy.empId'] = empId;
     }
 
+    if(approvers?.length){
+      filterCriteria['approvers.empId'] = {$in:approverEmpIds}
+    }
+
+
+    console.log("my view", typeof role)
+  
 
     if(expenseHeaderStatus?.length){
       filterCriteria.expenseHeaderStatus = {$in: expenseHeaderStatus}

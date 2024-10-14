@@ -1,11 +1,12 @@
 import REIMBURSEMENT from "../../models/reimbursementSchema.js";
+import reporting from "../../models/reportingSchema.js";
 
 //travel expense header 'paid'
 // at line item level also update status of lineItem as paid.
 export const settleExpenseReport= async (payload) => {
   try {
       const {  tenantId,travelRequestId, expenseHeaderId, settlementBy, expenseHeaderStatus, 
-        settlementDate } = payload;
+        settlementDate, settlementDetails } = payload;
   
         const status = {
           PENDING_SETTLEMENT: 'pending settlement',
@@ -20,7 +21,6 @@ export const settleExpenseReport= async (payload) => {
     const trip = await Expense.findOneAndUpdate(
       { 
         'tenantId': tenantId,
-         
         'travelExpenseData': { $elemMatch: { travelRequestId, expenseHeaderId } }
       },
       { 
@@ -30,6 +30,9 @@ export const settleExpenseReport= async (payload) => {
           'travelExpenseData.$[elem].settlementBy': settlementBy,
           'travelExpenseData.$[elem].settlementDate': new Date(),
           'travelExpenseData.$[elem].expenseLines.$[lineItem].lineItemStatus': status.PAID,
+        },
+        $push :{
+          'travelExpenseData.$[elem].settlementDetails': settlementDetails
         }
       },
       { arrayFilters,new: true }
@@ -44,38 +47,11 @@ export const settleExpenseReport= async (payload) => {
 };
 
 
-export const settleExpenseReportPaidAndDistributed= async (payload) => {
-    try {
-      const { tenantId, expenseHeaderId, tripId, paidBy, } = payload;
-  
-      const trip = await Expense.findOneAndUpdate(
-        { 
-          tenantId,
-          tripId,
-          'travelExpenseData': { $elemMatch: {'expenseHeaderId': expenseHeaderId } }
-        },
-        { 
-          $set: { 
-            'travelExpenseData.$.expenseHeaderStatus': 'paid and distributed', 
-            'travelExpenseData.$.paidBy': paidBy ?? '', 
-          }
-        },
-        { new: true }
-      );
-  
-      console.log('Travel request status updated in approval microservice:', trip);
-      return { success: true, error: null };
-    } catch (error) {
-      console.error('Failed to update travel request status in approval microservice:', error);
-      return { success: false, error: error };
-    }
-};
-
 //settle cashAdvance
 export const settleOrRecoverCashAdvance = async (payload) => {
     try {
       const { tenantId, travelRequestId, cashAdvanceId, paidBy ,cashAdvanceStatus,paidFlag,
-          recoveredBy,recoveredFlag,
+          recoveredBy,recoveredFlag,settlementDetails
       } = payload;
   
       const report = await Expense.findOne(
@@ -90,9 +66,6 @@ export const settleOrRecoverCashAdvance = async (payload) => {
         const { expenseAmountStatus,cashAdvancesData,} = report
         const isCash = cashAdvancesData.find(c => c.cashAdvanceId.toString() === cashAdvanceId.toString())
 
-        if(isCash){
-          
-        }
 
       console.log("settle ca payload", payload)
       const updateCashDoc = {
@@ -109,7 +82,13 @@ export const settleOrRecoverCashAdvance = async (payload) => {
         updateCashDoc['cashAdvancesData.$.recoveredFlag'] = recoveredFlag
       }
 
-      const trip = await Expense.findOneAndUpdate(
+      if(Array.isArray(settlementDetails) && settlementDetails.length>0){
+        updateCashDoc['push']={
+          'cashAdvancesData.$.settlementDetails':settlementDetails
+        }
+      }
+
+      const trip = await reporting.findOneAndUpdate(
         { 
           tenantId,
           'cashAdvancesData': { $elemMatch: { cashAdvanceId,travelRequestId } }
@@ -135,7 +114,7 @@ export const settleOrRecoverCashAdvance = async (payload) => {
 export const settleNonTravelExpenseReport= async (payload) => {
   try {
       const {  tenantId, expenseHeaderId, settlementBy, expenseHeaderStatus, 
-        settlementDate } = payload;
+        settlementDate,settlementDetails } = payload;
 
         console.log("non travel settlement", payload)
         const status = {
@@ -179,8 +158,12 @@ export const settleNonTravelExpenseReport= async (payload) => {
         updateResult.expenseHeaderStatus = expenseHeaderStatus
         updateResult.settlementDate = settlementDate
         updateResult.actionedUpon = true
+        if (Array.isArray(settlementDetails) && settlementDetails.length > 0) {
+          updateResult.settlementDetails = updateResult.settlementDetails || [];
+          updateResult.settlementDetails.push(...settlementDetails);
+          }
         
-      const report =  await updateResult.save()
+    const report =  await updateResult.save()
     console.log('Travel request status updated in expense microservice:', JSON.stringify(report,'',2));
     const {expenseHeaderStatus:getStatus} = report
 
