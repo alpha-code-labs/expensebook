@@ -1,12 +1,12 @@
 import amqp from 'amqplib';
 import { updateHRMaster, updatePreferences } from './messageProcessor/hrMessage.js';
-import { cashStatusUpdatePaid, partialCashUpdate, settleExpenseReport, updateCashStatus } from './messageProcessor/cashMessage.js';
+import { cashStatusUpdatePaid, partialCashUpdate, updateCashStatus } from './messageProcessor/cashMessage.js';
 import { processTravelRequests } from './messageProcessor/travelMessageProcessor.js';
 import dotenv from 'dotenv';
 import { processTravelRequestsWithCash } from './messageProcessor/cashAdvanceProcessor.js';
 import { fullUpdateExpense } from './messageProcessor/expense.js';
 import { approveRejectCashRaisedLater, expenseReportApproval } from './messageProcessor/approval.js';
-import { settleExpenseReportPaidAndDistributed, settleOrRecoverCashAdvance } from './messageProcessor/finance.js';
+import { settleExpenseReport, settleOrRecoverCashAdvance } from './messageProcessor/finance.js';
 
 dotenv.config();
 
@@ -176,12 +176,6 @@ export async function startConsumer(receiver) {
                 case 'expense-paid':
                   console.log('expense-paid')
                   res = await settleExpenseReport(payload);
-                  handleMessageAcknowledgment(channel,msg,res)
-                  break;
-
-                case 'settle-expense-Paid-and-distributed':
-                  console.log(" expenseheaderstatus paid and distributed")
-                  res = await settleExpenseReportPaidAndDistributed(payload);
                   handleMessageAcknowledgment(channel,msg,res)
                   break;
             
