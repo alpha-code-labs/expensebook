@@ -34,7 +34,7 @@ export async function settleCashAdvance(payload /* */){
 
 export async function recoveryCashAdvance(payload /* */){
     try{
-        const {travelRequestId, cashAdvanceId, cashAdvanceStatus} = payload
+        const {travelRequestId, cashAdvanceId, cashAdvanceStatus, settlementDetails} = payload
         
         const cashAdvance = await CashAdvance.findOne({'travelRequestData.travelRequestId' : travelRequestId}) 
         if(!cashAdvance) return {success:false, error: 'Travel Request not found', dashBoardPayload:{}}
@@ -43,6 +43,7 @@ export async function recoveryCashAdvance(payload /* */){
             if(ca.cashAdvanceId == cashAdvanceId){
                 ca.cashAdvanceStatus = cashAdvanceStatus
                 ca.paidBy = paidBy
+                ca.settlementDetails = settlementDetails
             }
         })
 

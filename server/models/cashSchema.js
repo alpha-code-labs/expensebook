@@ -105,6 +105,14 @@ const cashAdvanceSchema = new mongoose.Schema({
           imageUrl: String,
         },
       ],
+      settlementDetails: [{
+          url: { type: String},
+          comment:{type:String},
+          status: {
+          type: String,
+          enum: documentStatusEnums,
+        },
+      }],
       assignedTo:{empId:String, name:String},
       paidBy:{empId:String, name:String},
       recoveredBy:{empId:String, name:String},
@@ -115,14 +123,6 @@ const cashAdvanceSchema = new mongoose.Schema({
       cashAdvanceRejectionReason: String,
     },
   ],
-  settlementDetails: [{
-      url: { type: String},
-      comment:{type:String},
-      status: {
-      type: String,
-      enum: documentStatusEnums,
-    },
-  }],
   totalAdvanceRequested: Number,
   totalAdvanceGranted: Number,
   totalAdvanceRecovered: Number,
