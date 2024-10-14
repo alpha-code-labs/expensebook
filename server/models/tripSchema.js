@@ -30,6 +30,10 @@ const cashAdvanceStatusEnum = [
   'recovered',
 ];
 
+const documentStatusEnums = [
+  'paid',
+  'recovered'
+]
 
 //-----------trip---------
 const tripStatusEnum = [
@@ -166,7 +170,14 @@ const tripSchema = new mongoose.Schema({
           assignedTo:{empId:String, name:String},
           paidBy:{empId:String, name:String},
           recoveredBy:{empId:String, name:String},
-          
+          settlementDetails: [{
+            url: { type: String},
+            comment:{type:String},
+            status: {
+            type: String,
+            enum: documentStatusEnums,
+          },
+        }],
           cashAdvanceRequestDate: Date,
           cashAdvanceApprovalDate: Date,
           cashAdvanceSettlementDate: Date,
