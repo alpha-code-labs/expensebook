@@ -50,6 +50,8 @@ export {default as scan_icon }  from './scan-doc.png';
 export {default as info_icon }  from './icons8-info.svg';
 export {default as close_gray_icon} from './close.svg'
 export {default as delete_icon} from './delete.svg'
+export {default as add_icon} from './add_icon.svg'
+export {default as remove_icon} from './remove_icon.svg'
 
 
 

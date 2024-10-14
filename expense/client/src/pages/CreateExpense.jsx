@@ -46,6 +46,7 @@ const currencyDropdown = [
   {"countryCode": "IN","fullName": "Indian Rupee","shortName": "INR","symbol": "₹"}
 ];
 
+
 const totalAmountNames = ['Total Fare','Total Amount',  'Subscription cost', 'Cost', 'Premium Cost'];
 const dateForms = ['Invoice Date', 'Date', 'Visited Date', 'Booking Date',"Bill Date"];
 
@@ -1299,7 +1300,7 @@ const getContent = () => {
     {['draft', 'new'].includes(flagExpenseHeaderStatus) && (
         <Button1 loading={isUploading.saveAsDraft} text='Save as Draft' onClick={() => handleSubmitOrDraft("draft")} />
     )}
-    <CancelButton loading={isUploading} active={active.deleteHeader} variant='fit' text='Delete' onClick={()=>{setModalOpen(true);setActionType("cancelExpense")}} />
+    <CancelButton loading={isUploading.deleteHeader} active={active.deleteHeader} variant='fit' text='Delete' onClick={()=>{setModalOpen(true);setActionType("cancelExpense")}} />
     <div className="flex items-center justify-center rounded-sm hover:bg-slate-100 p-1 cursor-pointer" onClick={()=>handleDashboardRedirection()}>
       <img src={cancel_icon} className="w-5 h-5"/> 
     </div>       
@@ -1384,12 +1385,12 @@ const getContent = () => {
    <React.Fragment key={index} >
     <div className="mb-4">
       <div
-        className="flex w-full justify-between  items-center bg-indigo-50 py-2 px-6 border-[1px] rounded-sm border-indigo-600 cursor-pointer"
+        className="flex w-full justify-between  items-center bg-gray-200/10 py-2 px-6 border-[1px]  border-slate-300 rounded-md cursor-pointer"
         onClick={() => handleItemClick(index)}
       >
        
        
-<div className="max-w-full overflow-hidden whitespace-nowrap text-indigo-600 ">
+<div className="max-w-full overflow-hidden whitespace-nowrap text-neutral-700 ">
 <p className="overflow-hidden text-ellipsis ">
 {`Header Report Number : ${item?.expenseHeaderNumber ?? 'N/a'}`}
 </p>
@@ -1942,7 +1943,7 @@ function ExpenseHeader({
       </div>
       <div className="font-cabin">
         <p className="text-neutral-600 text-xs">{item.label}</p>
-        <p className="text-purple-500 text-sm ">{item.value}</p>
+        <p className="text-neutral-900 text-sm ">{item.value}</p>
       </div>
     </div>
   ))}
@@ -1957,7 +1958,7 @@ function ExpenseHeader({
     ].map((item, index) => (
       <div key={index} className="flex-1 px-2 font-cabin">
         <p className="text-neutral-600 text-xs line-clamp-1">{item.label}</p>
-        <p className="text-purple-500 text-sm">{item.value}</p>
+        <p className="text-neutral-900 text-sm">{item.value}</p>
       </div>
     ))}
   </div>

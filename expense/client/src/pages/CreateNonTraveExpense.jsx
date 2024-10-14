@@ -12,8 +12,6 @@ import Upload from '../components/common/Upload';
 import Select from '../components/common/Select';
 import ActionButton from '../components/common/ActionButton';
 import Modal from '../components/common/Modal';
-import AddMore from "../components/common/AddMore.jsx";
-import { BlobServiceClient } from "@azure/storage-blob";
 import Button1 from '../Components/common/Button1.jsx';
 import FileUpload from '../Components/common/FileUpload.jsx';
 import Search from '../Components/common/Index.jsx';
@@ -26,20 +24,7 @@ import uploadFileToAzure from '../utils/azureBlob.js';
 import { act } from 'react';
 
 ///Cuurency on Save you have to save object of currency
-const currencyDropdown = [
-  { fullName: "Argentine Peso", shortName: "ARS", symbol: "$", countryCode: "AR" },
-  { fullName: "Australian Dollar", shortName: "AUD", symbol: "A$", countryCode: "AU" },
-  { fullName: "United States Dollar", shortName: "USD", symbol: "$", countryCode: "US" },
-  {
-    "fullName": "Bangladeshi Taka",
-    "shortName": "BDT",
-    "symbol": "৳",
-    "countryCode": "BD"
-  },
-  {"countryCode": "IN","fullName": "Indian Rupee","shortName": "INR","symbol": "₹"}
-];
-const totalAmountNames = ['Total Fare','Total Amount',  'Subscription cost', 'Cost', 'Premium Cost'];
-const dateForms = ['Invoice Date', 'Date', 'Visited Date', 'Booking Date','Bill Date','Check-In Date'];
+
 
 const CreateNonTraveExpense = () => {
  
@@ -91,8 +76,12 @@ const [currencyConversion, setCurrencyConversion]=useState({
         try {
           const response = await getNonTravelExpenseMiscellaneousDataApi(tenantId, empId,expenseHeaderId);
           setCategoryList(response?.reimbursementExpenseCategory || [])
-          const expenseSettlementOptions = Object.keys(response?.expenseSettlementOptions).filter((option) => response?.expenseSettlementOptions[option]) || [];
+          const expenseSettlementOptions = Object.keys(response?.expenseSettlementOptions || {}).filter(
+            (option) => response?.expenseSettlementOptions?.[option]
+          ) || [];
+          
           const travelAllocationFlag = allocationLevel(response?.travelAllocationFlags)
+          
           setRequiredObj(prev=>({...prev,
             "expenseCategories":response?.reimbursementExpenseCategory || [],
              "level":travelAllocationFlag,
@@ -117,7 +106,7 @@ const [currencyConversion, setCurrencyConversion]=useState({
             name: response?.employeeName,
             defaultCurrency : response?.defaultCurrency
           })
-          setFormData(prev=>({...prev,"approvers":response?.expenseReport?.approvers}))
+          setFormData(prev=>({...prev,"approvers":response?.expenseReport?.approvers,expenseSettlement:response?.expenseReport?.expenseSettlementOptions}))
          
           setIsLoading(false);
           console.log(response.data)
@@ -334,54 +323,7 @@ const [selectedCategory , setSelectedCategory]= useState(null)
       }
     };
 
-  // useEffect(() => {
-   
-  //   const expenseHeaderIds =  expenseHeaderId || requiredObj?.expenseHeaderId 
-  //   console.log('expense header id1',expenseHeaderIds)
-  
-  //   const fetchData = async () => {
-  //     try {
-  //       const response = await getNonTravelExpenseLineItemsApi(tenantId, empId, expenseHeaderIds);
 
-  //       //setExpenseDataByGet(response?.expenseReport)
-        
-  //       setRequiredObj(prev => ({...prev,
-  //         "defaultCurrency":response?.expenseReport?.defaultCurrency,
-  //         //"fields":response?.expenseReport?.fields || [],
-  //         "expenseHeaderId":response?.expenseReport?.expenseHeaderId ?? null,
-  //         "expenseHeaderNumber":response?.expenseReport?.expenseHeaderNumber,
-  //         "expenseHeaderStatus": response?.expenseReport?.expenseHeaderStatus,
-  //         "expenseAmountStatus": response?.expenseReport?.expenseAmountStatus || {},
-  //         "createdBy":response?.expenseReport?.createdBy,
-  //         //"category":response?.expenseReport?.categoryName,
-  //         "groupLimit":response?.expenseReport?.group || {},
-  //         //"allocation":response?.expenseReport?.newExpenseAllocation || [],
-  //         "expenseLines":response?.expenseReport?.expenseLines
-  //       }))
-  //       setFormData(prev=>({...prev,"approvers":response?.expenseReport?.approvers}))
-
-
-  //       //setLineItemsData(response?.expenseReport?.expenseLines)
-  //       setIsLoading(false);
-  //       if(response.expenseReport===null){
-  //         setRequiredObj(prev => ({...prev,defaultCurrency:response?.expenseReport?.defaultCurrency}))
-  //       //setDefaultCurrency(response?.expenseReport?.defaultCurrency)
-  //     }
-        
-  //       console.log('expense line items fetched successfully.',response);
-  //     } catch (error) {
-  //       console.log('Error in fetching expense data for approval:', error.message);
-  //       setLoadingErrorMsg(error.message);
-  //       setTimeout(() => {setLoadingErrorMsg(null);setIsLoading(false)},5000);
-  //     }
-  //   };
-
-  //   if(expenseHeaderId || requiredObj?.expenseHeaderId){
-  //     fetchData(); 
-  //   }
-    
-
-  // }, [expenseHeaderId || requiredObj?.expenseHeaderId ])
 
   
 
@@ -391,197 +333,15 @@ const [selectedCategory , setSelectedCategory]= useState(null)
    
 
 
-//intial form value with empty string
-
-// useEffect(()=>{
-//   const initialFormValues = Object.fromEntries(
-//     categoryElement && categoryElement?.map((field) => [
-//        field.name,
-//         ocrValue?.[field.name] || '',
-//      ])
-//    );
-//    setFormDataValues(initialFormValues)
-//    const foundDateKey = dateForms.find(key => Object.keys(initialFormValues).includes(key));
-//         const foundTotalAmtKey = totalAmountNames.find(key => Object.keys(initialFormValues).includes(key));
-//         const dateValue = foundDateKey ? initialFormValues[foundDateKey] : undefined;
-//         const totalAmountValue = foundTotalAmtKey ? initialFormValues[foundTotalAmtKey] : undefined;
-//         setDate({[foundDateKey]:dateValue})
-//         setTotalAmount(totalAmountValue)
-//   console.log('intialFormValues',initialFormValues)
-//   console.log('expense line allocation',expenseLineAllocation)
-
-// },[categoryElement])
 
 
 
 
  
-// for line items form
-   
 
-    // const handleInputChange = (name, value) => {
-      
-    //    setErrorMsg((prevErrors) => ({ ...prevErrors, totalAmount: { set: false, msg: "" } }));
-    //   //  setErrorMsg((prevErrors) => ({ ...prevErrors, [name]: { set: false, msg: "" } }));
-    //     setFormDataValues((prevValues) => ({
-    //       ...prevValues,
-    //       [name]: value,
-    //     }));
-    //     if (name === 'Total Amount' || name === 'Total Fair') {
-    //         setTotalAmount(value);
-    //       }
-    //   };
-
-    // const handleInputChange = (name, value) => {
-    //   console.log(`Updating ${name} with value:`, value);
-    
-    //   setFormDataValues(prevState => {
-    //     const updatedState = { ...prevState };
-    
-    //     // Check if the name already exists
-    //     if (updatedState.hasOwnProperty(name)) {
-    //       // If the name exists, replace its value
-    //       updatedState[name] = value || "";
-    //     } else {
-    //       // If the name doesn't exist, add a new key-value pair
-    //       updatedState[name] = value || "";
-    //     }
-    
-    //     return updatedState;
-    //   });
-    
-    //   if (name === 'Total Amount' || name === 'Total Fair') {
-    //     setTotalAmount(value);
-    //   }
-    // };
    console.log('grouplimit',requiredObj?.groupLimit)
    console.log('initial values',formDataValues)
 
-    // const handleInputChange = (name, value) => {
-    //   console.log(`Updating ${name} with value:`, value);
-
-     
-
-    //   setFormDataValues(prevState=>({...prevState, [name]: value}))
-    //   // setFormDataValues((prevState) => ({ ...prevState, [name]: value || "" }));
-    //   console.log('onChange lineitem',formDataValues)
-      
-    //   if (totalAmountNames.includes(name)) {
-    //     setTotalAmount(value);
-    //     setErrorMsg(prevErrors => ({
-    //       ...prevErrors,
-    //       totalAmount: { set: !name, msg: name ? "" : `Enter ${name}` }
-    //     }));
-    //   }
-
-
-    //   if(dateForms.includes(name)){
-    //     setDate({[name] : value})
-    //     setErrorMsg(prevErrors => ({
-    //       ...prevErrors,
-    //       dateErr: { set: !name, msg: name ? "" : `Enter ${name}` }
-    //     }));
-    //   }    
-
-    //   if(totalAmountNames.includes(name)){
-    //     const limit = requiredObj?.groupLimit?.limit 
-    //     if(value>limit){
-    //       setErrorMsg((prevErrors)=>({...prevErrors,totalAmount:{set:true,msg:requiredObj?.groupLimit?.message}}))
-    //     }else{
-    //       setErrorMsg((prevErrors)=>({...prevErrors,totalAmount:{set:false,msg:requiredObj?.groupLimit?.message}}))
-    //     }
-    //   }
-
-      
-      
-    // };
-
-
-    // const handleInputChange = (key, value) => {
-    //   console.log(`Updating ${key} with value:`, value);
-    
-    //   setFormData((prevData) => {
-    //     const updatedFields = {
-    //       ...prevData.fields,
-    //       [key]: value,
-    //     };
-    
-       
-
-        
-       
-    //     ///for conversion stop
-
-    //     return {
-    //       ...prevData,
-    //       fields: updatedFields,
-    //     };
-    //   });
-
-    //    if(totalAmountKeys.includes(key) ){
-    //       setCurrencyConversion(prev =>({...prev,payload:{
-    //         ...prev.payload,
-    //        ["totalAmount"]:value
-    //       }
-    //       }))
-    //     }
-
-    //     if(key === "personalExpenseAmount"){
-    //       setCurrencyConversion(prev =>({...prev,payload:{
-    //         ...prev.payload,
-    //        ["personalAmount"]:value
-    //       }
-    //       }))
-    //     }
-    //     setCurrencyConversion(prev =>({...prev,payload:{
-    //       ...prev.payload,
-    //       'currencyName':formData?.Currency?.shortName,
-         
-    //       ///nonPersonalAmount: Number(prev.payload.totalAmount) - Number(formData.personalExpenseAmount)
-    //     }
-    //     }))
-
-    //     if(key==='Currency' && value.shortName !== requiredObj?.defaultCurrency.shortName){
-    //       setFormData(prev => ({
-    //         ...prev,
-    //         fields: {
-    //           ...prev.fields, // Spread the existing fields object
-    //           isMultiCurrency: true 
-    //         }
-    //       }));
-    //       handleCurrencyConversion()
-    //     }else{
-    //       if(key==='Currency'){
-    //         setErrorMsg((prevErrors) => ({ ...prevErrors, conversion: { set: false, msg: "" } }));
-    //       }
-          
-    //       setFormData(prev => ({
-    //         ...prev,
-    //         fields: {
-    //           ...prev.fields, // Spread the existing fields object
-    //           isMultiCurrency: false 
-    //         }
-    //       }));
-          
-         
-    //       //setErrorMsg((prevErrors) => ({ ...prevErrors, personalAmount: { set: true, msg: "Enter the amount" } }));
-    //     }
-    // };
-    // const handleInputChange = (name, value) => {
-    //   console.log(`Updating ${name} with value:`, value);
-    //   setFormDataValues((prevState) => ({ ...prevState, [name]: value || "" }));
-    //   if ((name === 'Total Amount' || name === 'Total Fare')) {
-    //             setTotalAmount(value);
-    //           }
-    //   if((name === 'Total Amount' || name === 'Total Fare') ){
-    //     const limit = groupLimit?.limit 
-    //     if(value>limit){
-    //       setErrorMsg((prevErrors)=>({...prevErrors,totalAmount:{set:true,msg:groupLimit?.message}}))
-    //     }else{
-    //       setErrorMsg((prevErrors)=>({...prevErrors,totalAmount:{set:false,msg:groupLimit?.message}}))
-    //     }
-    //   }
-    // };
    
 console.log('selected category',selectedCategory)
 
@@ -900,8 +660,10 @@ if(action==="saveAndSubmit"){
     setRequiredObj((prev) => ({
         ...prev,
         "expenseLines": response?.expenseLines||[],
-        "expenseAmountStatus":response?.expenseAmountStatus
+        "expenseAmountStatus":response?.expenseAmountStatus,
+        "expenseHeaderStatus":response?.expenseHeaderStatus
     }));
+
 }
 else if (action ==="updateLineItem"){
   const updatedLineItem = response?.updatedLine
@@ -912,8 +674,6 @@ else if (action ==="updateLineItem"){
   )
   }))
 }
-       
-
         switch (action) {
             case "saveAndSubmit":
                 return setSelectedFile(null), setIsFileSelected(false)
@@ -988,8 +748,6 @@ const handleOCRScan=()=>{
       }}))
       setCurrencyConversion(prev=>({...prev,payload:{...prev.payload,totalAmount:"318.15"}}))
     }
-    
-    
   }else{
     setErrorMsg(prev => ({...prev,category:{ set: true, msg: "Select the category" },}))
   }
@@ -1442,9 +1200,9 @@ const handleSubmitOrDraft=async(action)=>{
         <>      
         <div className="w-full h-full  font-cabin tracking-tight ">
           <div className='p-4'>
-        <div className='inline-flex p-2 gap-2 border-[1px] w-full  border-indigo-600 bg-indigo-50'> 
+        <div className='inline-flex p-2 gap-2 rounded-md border-[1px] w-full  border-slate-300 bg-gray-200/10'> 
         <img src={validation_sym} width={16} height={16} alt='validation'/> 
-        <span className='text-indigo-600'> 
+        <span className='text-neutral-700'> 
 If the required category is unavailable, please contact the administrator.</span>
         </div>           
         <div className="flex flex-col lg:flex-row justify-between  items-start lg:items-end my-5 gap-2">
@@ -1486,13 +1244,14 @@ If the required category is unavailable, please contact the administrator.</span
 
 {requiredObj?.expenseLines?.length > 0 && (
   <div className="flex gap-2 flex-col sm:flex-row">
-    {requiredObj?.expenseHeaderStatus !== 'pending settlement' && (
+    {!['paid'].includes(requiredObj?.expenseHeaderStatus) && (
       <>
         <Button1 loading={isUploading.submit} variant="fit" text="Submit" onClick={() => handleSubmitOrDraft("submit")} />
         <Button1 loading={isUploading.saveAsDraft} text="Save as Draft" onClick={() => handleSubmitOrDraft("draft")} />
+        <CancelButton variant="fit" text="Delete" onClick={()=>{setModalOpen(true);setActionType("cancelExpense")}} />
       </>
     )}
-    <CancelButton variant="fit" text="Delete" onClick={()=>{setModalOpen(true);setActionType("cancelExpense")}} />
+   
     <div className="flex items-center justify-center rounded-sm hover:bg-slate-100 p-1 cursor-pointer" onClick={()=>handleDashboardRedirection()}>
           <img src={cancel_icon} className="w-5 h-5"/> 
     </div> 
@@ -1899,7 +1658,7 @@ const  HeaderComponent =({totalExpenseAmount,createdBy, expenseHeaderNumber, exp
 <div className='font-cabin '>
       <p className=" text-neutral-600 text-xs ">Created By</p>
 
-  <p className="text-purple-500 capitalize">
+  <p className="text-neutral-900 capitalize">
     { createdBy?.name ?? "-"}
   </p>
 
@@ -1914,18 +1673,18 @@ const  HeaderComponent =({totalExpenseAmount,createdBy, expenseHeaderNumber, exp
       <div className=' flex-1 font-cabin  px-2 '>
       <p className=" text-neutral-600 text-xs line-clamp-1">Expense Header No.</p>
      
-      <p className="text-purple-500 text-medium font-medium">{expenseHeaderNumber}</p>
+      <p className="text-neutral-900 text-medium font-medium">{expenseHeaderNumber}</p>
       </div>
       <div className=' flex-1 font-cabin  px-2 '>
       <p className=" text-neutral-600 text-xs line-clamp-1">Total Expense Amount</p>
      
-      <p className="text-purple-500 text-medium font-medium">{totalExpenseAmount ?? 0}</p>
+      <p className="text-neutral-900 text-medium font-medium">{totalExpenseAmount ?? 0}</p>
       </div>
 
       <div className=' flex-1 font-cabin  px-2  '>
       <p className=" text-neutral-600 text-xs line-clamp-1">Status</p>
      
-      <p className="text-purple-500   text-medium font-medium capitalize">{expenseHeaderStatus}</p>
+      <p className="text-neutral-900   text-medium font-medium capitalize">{expenseHeaderStatus}</p>
       
       </div>
       
@@ -1940,7 +1699,7 @@ const  HeaderComponent =({totalExpenseAmount,createdBy, expenseHeaderNumber, exp
   
       <div className='font-cabin '>
       <p className=" text-neutral-600 text-xs ">Default Currency</p>
-      <p className="text-purple-500 text-medium font-medium">{defaultCurrency?.shortName}</p>
+      <p className="text-neutral-900 text-medium font-medium">{defaultCurrency?.shortName}</p>
       </div>
      
       
