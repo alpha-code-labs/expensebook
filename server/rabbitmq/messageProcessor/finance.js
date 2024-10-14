@@ -5,7 +5,7 @@ import dashboard from "../../models/dashboardSchema.js";
 export const settleOrRecoverCashAdvance = async (payload) => {
   try {
     const { tenantId, travelRequestId, cashAdvanceId, paidBy ,cashAdvanceStatus,paidFlag,
-        recoveredBy,recoveredFlag,
+        recoveredBy,recoveredFlag,settlementDetails
     } = payload;
 
     const filter =  { 
@@ -31,25 +31,50 @@ export const settleOrRecoverCashAdvance = async (payload) => {
     if(isPaidBy && !isTripPaidBy){
       updateCashDoc['cashAdvanceSchema.cashAdvancesData.$.paidBy'] = paidBy,
       updateCashDoc['cashAdvanceSchema.cashAdvancesData.$.paidFlag'] = paidFlag
+      if (settlementDetails !== undefined) {
+        updateCashDoc['$push'] = {
+          'cashAdvanceSchema.cashAdvancesData.$.settlementDetails': settlementDetails
+        };
+      }
     }
 
-    if(isRecoveredBy && !isTripRecoveredBy){
-      updateCashDoc['cashAdvanceSchema.cashAdvancesData.$.recoveredBy'] = recoveredBy,
-      updateCashDoc['cashAdvanceSchema.cashAdvancesData.$.recoveredFlag'] = recoveredFlag
+    if (isRecoveredBy && !isTripRecoveredBy) {
+      updateCashDoc['cashAdvanceSchema.cashAdvancesData.$.recoveredBy'] = recoveredBy;
+      updateCashDoc['cashAdvanceSchema.cashAdvancesData.$.recoveredFlag'] = recoveredFlag;
+
+      if (settlementDetails !== undefined) {
+        updateCashDoc['$push'] = {
+          'cashAdvanceSchema.cashAdvancesData.$.settlementDetails': settlementDetails
+        };
+      }
     }
+    
 
     if (isPaidBy && isTripPaidBy) {
-      updateCashDoc[ 'tripSchema.cashAdvancesData.$.paidBy'] = paidBy,
-      updateCashDoc[ 'tripSchema.cashAdvancesData.$.paidFlag'] = paidFlag
+      updateCashDoc['tripSchema.cashAdvancesData.$.paidBy'] = paidBy;
+      updateCashDoc['tripSchema.cashAdvancesData.$.paidFlag'] = paidFlag;
+    
+      if (settlementDetails !== undefined) {
+        updateCashDoc['$push'] = {
+          'tripSchema.cashAdvancesData.$.settlementDetails': settlementDetails
+        };
+      }
     }
-
-    if (isRecoveredBy && isTripRecoveredBy ) {
-      updateCashDoc[ 'tripSchema.cashAdvancesData.$.recoveredBy'] = recoveredBy,
-      updateCashDoc[ 'tripSchema.cashAdvancesData.$.recoveredFlag'] = recoveredFlag
+    
+    if (isRecoveredBy && isTripRecoveredBy) {
+      updateCashDoc['tripSchema.cashAdvancesData.$.recoveredBy'] = recoveredBy;
+      updateCashDoc['tripSchema.cashAdvancesData.$.recoveredFlag'] = recoveredFlag;
+    
+      if (settlementDetails !== undefined) {
+        updateCashDoc['$push'] = {
+          'tripSchema.cashAdvancesData.$.settlementDetails': settlementDetails
+        };
+      }
     }
+    
 
     const trip = await dashboard.findOneAndUpdate(
-     filter,
+      filter,
       { 
         $set: updateCashDoc
       },
