@@ -30,6 +30,11 @@ const approverStatusEnums = [
   'rejected',
 ];
 
+const documentStatusEnums = [
+  'paid',
+  'recovered'
+]
+
 
 export const cashAdvanceSchema = new mongoose.Schema({
   travelRequestData:{
@@ -135,6 +140,14 @@ export const cashAdvanceSchema = new mongoose.Schema({
       empId:{type: String, default:null},
       name:{type: String, default:null}
     },
+    settlementDetails: [{
+        url: { type: String},
+        comment:{type:String},
+        status: {
+        type: String,
+        enum: documentStatusEnums,
+      },
+    }],
     cashAdvanceRequestDate: Date,
     cashAdvanceApprovalDate: Date,
     cashAdvanceSettlementDate: Date,

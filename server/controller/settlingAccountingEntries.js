@@ -683,7 +683,7 @@ export const getCashReports = async(value) => {
          const {travelRequestId,travelRequestNumber, tripName, createdBy} = report?.cashAdvanceSchema.travelRequestData   
          const getCashAdvanceData = report.cashAdvanceSchema.cashAdvancesData
            .filter((cash) => cash.cashAdvanceStatus === status.PAID)
-           .map(({cashAdvanceId,actionedUpon,paidBy, recoveredBy, amountDetails, cashAdvanceStatus,approvers,cashAdvanceNumber})=>({
+           .map(({cashAdvanceId,actionedUpon,paidBy, recoveredBy, amountDetails, cashAdvanceStatus,approvers,cashAdvanceNumber,settlementDetails})=>({
              cashAdvanceStatus,
              cashAdvanceId,
              paidBy,
@@ -691,7 +691,8 @@ export const getCashReports = async(value) => {
              actionedUpon,
              amountDetails,
              approvers,
-             cashAdvanceNumber
+             cashAdvanceNumber,
+             settlementDetails
              }))
 
            return{tripName,travelRequestId,travelRequestNumber,createdBy, cashAdvancesData:getCashAdvanceData}
@@ -952,114 +953,6 @@ export const updateAllTravelExpenseReports = async (req, res) => {
   }
 };
 
-
-
-export const oldupdateAllNonTravelExpenseReports = async (req, res) => {
-  try {
-    const { error, value } = nonTravelReportsSchema.validate({
-      ...req.params,
-      ...req.body,
-    });
-
-    if (error) {
-      return res.status(400).json({ message: error.details[0].message });
-    }
-
-    const { tenantId, empId, filterBy, date, startDate, endDate , expenseSubmissionDate } = value;
-
-    const status ={
-        PAID: 'paid',
-        DISTRIBUTED:'paid and distributed'
-    }
-
-    let filterCriteria = {
-      tenantId,
-      'reimbursementSchema.expenseHeaderStatus': status.PAID,
-    };
-
-    if (filterBy && ( date ) && !startDate && !endDate) {
-      if(date){
-      const parsedDate = new Date(date);
-
-      switch (filterBy) {
-        case 'date':
-          filterCriteria['reimbursementSchema.expenseSubmissionDate'] = {
-            $gte: parsedDate,
-            $lt: new Date(parsedDate.setDate(parsedDate.getDate() + 1)),
-          };
-          break;
-
-        case 'week':
-          const { startOfWeek, endOfWeek } = getWeekRange(parsedDate);
-          filterCriteria['reimbursementSchema.expenseSubmissionDate'] = {
-            $gte: startOfWeek,
-            $lt: new Date(endOfWeek.setDate(endOfWeek.getDate() + 1)),
-          };
-          break;
-
-        case 'month':
-          const { startOfMonth, endOfMonth } = getMonthRange(parsedDate);
-          filterCriteria['reimbursementSchema.expenseSubmissionDate'] = {
-            $gte: startOfMonth,
-            $lt: new Date(endOfMonth.setDate(endOfMonth.getDate() + 1)),
-          };
-          break;
-
-        case 'quarter':
-          const { startOfQuarter, endOfQuarter } = getQuarterRange(parsedDate);
-          filterCriteria['reimbursementSchema.expenseSubmissionDate'] = {
-            $gte: startOfQuarter,
-            $lt: new Date(endOfQuarter.setDate(endOfQuarter.getDate() + 1)),
-          };
-          break;
-
-        case 'year':
-          const { startOfYear, endOfYear } = getYear(parsedDate);
-          filterCriteria['reimbursementSchema.expenseSubmissionDate'] = {
-            $gte: startOfYear,
-            $lt: new Date(endOfYear.setDate(endOfYear.getDate() + 1)),
-          };
-          break;
-
-        default:
-          break;
-      }
-    }
-  }  else if (startDate && endDate) {
-    filterCriteria['reimbursementSchema.expenseSubmissionDate'] = {
-      $gte: new Date(startDate),
-      $lte: new Date(endDate),
-    };
-  }
-
-  if(expenseSubmissionDate){
-    filterCriteria['reimbursementSchema.expenseSubmissionDate']= expenseSubmissionDate;
-  }
-  const expenseReports = await Finance.find(filterCriteria);
-
-  if (expenseReports.length === 0) {
-    return res.status(200).json({
-      success: true,
-      message: 'All Non Travel Expense reports are settled for specified date range',
-    });
-  }
-
-  const updateResult = await Finance.updateMany(filterCriteria, {
-      $set: { 'reimbursementSchema.expenseHeaderStatus': status.DISTRIBUTED }
-    });
-  
-  return res.status(200).json({
-    success: true,
-    message: `${updateResult.nModified} reports updated successfully`,
-  });
-} catch (error) {
-console.error(error);
-return res.status(500).json({
-  success: false,
-  message: 'Error occurred while retrieving nonTravelReports',
-});
-}
-};
 
 
 

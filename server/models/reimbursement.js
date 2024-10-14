@@ -30,6 +30,11 @@ const lineItemStatusEnums = [
 
 const expenseHeaderTypeEnums = ['reimbursement'];
 
+const documentStatusEnums = [
+  'paid',
+  'recovered'
+]
+
 const expenseLineSchema = new mongoose.Schema({
   expenseLineId:mongoose.Schema.Types.ObjectId,
   travelType: String,
@@ -179,6 +184,14 @@ settlementBy:{
   },
   imageUrl: String,
 },
+settlementDetails: [{
+  url: { type: String},
+  comment:{type:String},
+  status: {
+  type: String,
+  enum: documentStatusEnums,
+},
+}],
 entriesFlag:{
 type:Boolean,
 required:true,

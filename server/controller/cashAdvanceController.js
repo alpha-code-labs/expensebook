@@ -266,17 +266,27 @@ const cashSchema = Joi.object({
   cashAdvanceId: Joi.string().required(),
 })
 
+const documentStatusEnums = ['paid', 'recovered'];
+
 export const financeSchema = Joi.object({
   getFinance: Joi.object({
     empId: Joi.string().required(),
-    name: Joi.string().required()
-  })
-})
+    name: Joi.string().required(),
+  }),
+  settlementDetails: Joi.array().items(
+    Joi.object({
+      url: Joi.string().optional(),
+      comment: Joi.string().optional(), 
+      status: Joi.string().valid(...documentStatusEnums).optional(),
+    })
+  ).min(1)
+});
+
 
 export const sendUpdate = async(payload,options) => {
   try{
     const {action,comments, includeTrip=false,includeCash=false, includeNonTravel=false} = options
-    const services = ['dashboard']
+    const services = ['dashboard','reporting']
 
     if(includeTrip){
       services.push('trip','expense')
@@ -318,10 +328,19 @@ try {
   ])
 
   const { tenantId, travelRequestId, cashAdvanceId } = params;
-  const { getFinance } = body;
+  const { getFinance, settlementDetails } = body;
+
+  let setSettlementDetails
+
+  if (Array.isArray(settlementDetails) && settlementDetails.length > 0) {
+setSettlementDetails = settlementDetails.map(details => ({
+  ...details,
+  status: 'paid',
+}));
+  }
 
   console.log("Received Parameters:", { tenantId, travelRequestId, cashAdvanceId });
-  console.log("Received Body Data:", { getFinance });
+  console.log("Received Body Data: kaboom", JSON.stringify(req.body,'',2));
 
   const STATUS = {
     PENDING_SETTLEMENT: 'pending settlement',
@@ -344,7 +363,10 @@ try {
           'cashAdvanceSchema.cashAdvancesData.$[elem].paidBy': getFinance,
           'cashAdvanceSchema.cashAdvancesData.$[elem].paidFlag': true,
           'cashAdvanceSchema.cashAdvancesData.$[elem].cashAdvanceStatus': STATUS.PAID,
-          'cashAdvanceSchema.cashAdvancesData.$[elem].actionedUpon': true
+          'cashAdvanceSchema.cashAdvancesData.$[elem].actionedUpon': true,
+        },
+        $push:{
+          'cashAdvanceSchema.cashAdvancesData.$[elem].settlementDetails':setSettlementDetails,
         }
       },
       {
@@ -365,7 +387,7 @@ try {
     }
 
     const payload = {
-      tenantId, travelRequestId, cashAdvanceId,paidBy:getFinance,paidFlag:true,cashAdvanceStatus:STATUS.PAID, 
+      tenantId, travelRequestId, cashAdvanceId,paidBy:getFinance,paidFlag:true,cashAdvanceStatus:STATUS.PAID, settlementDetails:setSettlementDetails
     }
 
     console.log("Update successful:paidCashAdvance-", updateResult);
@@ -484,7 +506,15 @@ export const recoverCashAdvance = async (req, res, next) => {
       financeSchema.validateAsync(req.body)
     ])
     const { tenantId, travelRequestId, cashAdvanceId } = params;
-    const { getFinance } = body;
+    const { getFinance,settlementDetails } = body;
+    let setSettlementDetails
+
+    if (Array.isArray(settlementDetails) && settlementDetails.length > 0) {
+  setSettlementDetails = settlementDetails.map(details => ({
+    ...details,
+    status: 'recovered',
+  }));
+    }
   
     console.log("Received Parameters:", { tenantId, travelRequestId, cashAdvanceId });
     console.log("Received Body Data:", { getFinance });
@@ -506,6 +536,9 @@ export const recoverCashAdvance = async (req, res, next) => {
           'cashAdvanceSchema.cashAdvancesData.$[elem].recoveredBy': getFinance,
           'cashAdvanceSchema.cashAdvancesData.$[elem].recoveryFlag': true,
           'cashAdvanceSchema.cashAdvancesData.$[elem].cashAdvanceStatus': status.RECOVERED
+        },
+        $push:{
+          'cashAdvanceSchema.cashAdvancesData.$[elem].settlementDetails':setSettlementDetails,
         }
       },
       {
@@ -528,6 +561,7 @@ export const recoverCashAdvance = async (req, res, next) => {
 
     const payload = {
       tenantId, travelRequestId, cashAdvanceId,recoveredBy:getFinance,recoveryFlag, cashAdvanceStatus: status.RECOVERED,
+      settlementDetails:setSettlementDetails
     }
     console.log("Update successful:recoverCashAdvance:", payload);
 
