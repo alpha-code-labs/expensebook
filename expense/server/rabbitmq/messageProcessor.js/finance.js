@@ -41,76 +41,76 @@ export const currencyConverter = async (tenantId, currencyName, totalAmount) => 
 };
 
 
-// const v0calculateTotalCashAdvances = async (tenantId, cashAdvancesData) => { 
-//   const totalCashAdvances = { totalPaid: [], totalRecovered: [] };
+const calculateTotalCashAdvances = async (tenantId, cashAdvancesData) => { 
+  const totalCashAdvances = { totalPaid: [], totalRecovered: [] };
 
-//   try {
-//       // Validate input
-//       if (!Array.isArray(cashAdvancesData) || cashAdvancesData.length === 0) {
-//           throw new Error('Invalid input: cashAdvancesData should be a non-empty array');
-//       }
+  try {
+      // Validate input
+      if (!Array.isArray(cashAdvancesData) || cashAdvancesData.length === 0) {
+          throw new Error('Invalid input: cashAdvancesData should be a non-empty array');
+      }
 
-//       for (const cashAdvance of cashAdvancesData) {
-//           const { amountDetails, cashAdvanceStatus } = cashAdvance;
+      for (const cashAdvance of cashAdvancesData) {
+          const { amountDetails, cashAdvanceStatus } = cashAdvance;
 
-//           if (!Array.isArray(amountDetails)) {
-//               throw new Error('Invalid amountDetails structure; expected an array');
-//           }
+          if (!Array.isArray(amountDetails)) {
+              throw new Error('Invalid amountDetails structure; expected an array');
+          }
 
-//           for (const detail of amountDetails) {
-//               const { amount, currency } = detail;
-//               console.info(`Valid amount: ${amount} in cash advance: ${JSON.stringify(detail, null, 2)}`);
+          for (const detail of amountDetails) {
+              const { amount, currency } = detail;
+              console.info(`Valid amount: ${amount} in cash advance: ${JSON.stringify(detail, null, 2)}`);
 
-//               if (typeof amount !== 'number' || isNaN(amount)) {
-//                   throw new Error(`Invalid amount: ${amount} in cash advance: ${JSON.stringify(detail, null, 2)}`);
-//               }
+              if (typeof amount !== 'number' || isNaN(amount)) {
+                  throw new Error(`Invalid amount: ${amount} in cash advance: ${JSON.stringify(detail, null, 2)}`);
+              }
 
-//               const { defaultCurrency, conversionPrice } = await currencyConverter(tenantId, currency.shortName, amount);
+              const { defaultCurrency, conversionPrice } = await currencyConverter(tenantId, currency.shortName, amount);
 
-//               let convertedAmount;
-//               if (currency.shortName === defaultCurrency.shortName) {
-//                   convertedAmount = amount; // No conversion needed
-//               } else {
-//                   convertedAmount = amount * conversionPrice; // Perform conversion
-//               }
+              let convertedAmount;
+              if (currency.shortName === defaultCurrency.shortName) {
+                  convertedAmount = amount; // No conversion needed
+              } else {
+                  convertedAmount = amount * conversionPrice; // Perform conversion
+              }
 
-//               // Determine the target array based on the status
-//               let targetArray;
-//               if (cashAdvanceStatus === 'paid') {
-//                   targetArray = totalCashAdvances.totalPaid;
-//               } else if (cashAdvanceStatus === 'recovered') {
-//                   targetArray = totalCashAdvances.totalRecovered;
-//               } else {
-//                   continue;
-//               }
+              // Determine the target array based on the status
+              let targetArray;
+              if (cashAdvanceStatus === 'paid') {
+                  targetArray = totalCashAdvances.totalPaid;
+              } else if (cashAdvanceStatus === 'recovered') {
+                  targetArray = totalCashAdvances.totalRecovered;
+              } else {
+                  continue;
+              }
 
-//               // Find or create entry for the currency in the respective target array
-//               let existingTotal = targetArray.find(item => item.currency.shortName === defaultCurrency.shortName);
+              // Find or create entry for the currency in the respective target array
+              let existingTotal = targetArray.find(item => item.currency.shortName === defaultCurrency.shortName);
 
-//               if (!existingTotal) {
-//                   existingTotal = { currency: { ...defaultCurrency }, amount: 0 }; 
-//                   targetArray.push(existingTotal);
-//               }
+              if (!existingTotal) {
+                  existingTotal = { currency: { ...defaultCurrency }, amount: 0 }; 
+                  targetArray.push(existingTotal);
+              }
 
-//               // Add the converted amount to the existing total
-//               console.log(`Adding ${convertedAmount} to existing total: ${existingTotal.amount}`);
-//               existingTotal.amount += convertedAmount; 
-//           }
-//       }
+              // Add the converted amount to the existing total
+              console.log(`Adding ${convertedAmount} to existing total: ${existingTotal.amount}`);
+              existingTotal.amount += convertedAmount; 
+          }
+      }
 
-//       console.log("totalCashAdvances - ", JSON.stringify(totalCashAdvances, null, 2));
+      console.log("totalCashAdvances - ", JSON.stringify(totalCashAdvances, null, 2));
 
-//       // Returning the total amount of paid cash advances
-//       const totalPaidAmount = totalCashAdvances.totalPaid.reduce((sum, item) => sum + item.amount, 0);
-//       const totalRecovered = totalCashAdvances.totalRecovered.reduce((sum, item) => sum + item.amount, 0);
-//       const totalCashAdvancePaid = +totalPaidAmount - +totalRecovered
-//       return totalCashAdvancePaid;
+      // Returning the total amount of paid cash advances
+      const totalPaidAmount = totalCashAdvances.totalPaid.reduce((sum, item) => sum + item.amount, 0);
+      const totalRecovered = totalCashAdvances.totalRecovered.reduce((sum, item) => sum + item.amount, 0);
+      const totalCashAdvancePaid = +totalPaidAmount - +totalRecovered
+      return totalCashAdvancePaid;
 
-//   } catch (error) {
-//       console.error('Error calculating total cash advances:', error.message);
-//       throw new Error(`Calculation error: ${error.message}`); 
-//   }
-// };
+  } catch (error) {
+      console.error('Error calculating total cash advances:', error.message);
+      throw new Error(`Calculation error: ${error.message}`); 
+  }
+};
 
 
 
@@ -213,47 +213,147 @@ export const currencyConverter = async (tenantId, currencyName, totalAmount) => 
 //travel expense header 'paid'
 // at line item level also update status of lineItem as paid.
 
-const v1calculateTotalCashAdvances = async (tenantId, cashAdvancesData) => {
-  if (!Array.isArray(cashAdvancesData) || cashAdvancesData.length === 0) {
-    throw new Error('Invalid input: cashAdvancesData should be a non-empty array');
+// const calculateTotalCashAdvances = async (tenantId, cashAdvancesData) => {
+//   if (!Array.isArray(cashAdvancesData) || cashAdvancesData.length === 0) {
+//     throw new Error('Invalid input: cashAdvancesData should be a non-empty array');
+//   }
+
+//   const totals = { paid: 0, recovered: 0 };
+//   const conversionCache = new Map();
+
+//   const getConversionRate = async (currency) => {
+//     if (!conversionCache.has(currency)) {
+//       const { defaultCurrency, conversionPrice } = await currencyConverter(tenantId, currency, 1);
+//       conversionCache.set(currency, { defaultCurrency, conversionPrice });
+//     }
+//     return conversionCache.get(currency);
+//   };
+
+//   await Promise.all(cashAdvancesData.map(async ({ amountDetails, cashAdvanceStatus }) => {
+//     if (!Array.isArray(amountDetails)) {
+//       throw new Error('Invalid amountDetails structure; expected an array');
+//     }
+
+//     await Promise.all(amountDetails.map(async ({ amount, currency }) => {
+//       if (typeof amount !== 'number' || isNaN(amount)) {
+//         throw new Error(`Invalid amount: ${amount} in cash advance`);
+//       }
+
+//       const { defaultCurrency, conversionPrice } = await getConversionRate(currency.shortName);
+//       const convertedAmount = currency.shortName === defaultCurrency.shortName ? amount : amount * conversionPrice;
+
+//       if (cashAdvanceStatus === 'paid') {
+//         totals.paid += convertedAmount;
+//       } else if (cashAdvanceStatus === 'recovered') {
+//         totals.recovered += convertedAmount;
+//       }
+//     }));
+//   }));
+
+//   return totals.paid - totals.recovered;
+// };
+
+const settleOrRecoverCashAdvance = async (payload) => {
+  const { 
+    tenantId, 
+    travelRequestId, 
+    cashAdvanceId, 
+    paidBy,
+    cashAdvanceStatus,
+    paidFlag,
+    recoveredBy,
+    recoveredFlag,
+    settlementDetails
+  } = payload;
+
+  try {
+    const report = await Expense.findOne(
+      { 
+        tenantId,
+        'cashAdvancesData.travelRequestId': travelRequestId
+      },
+      { expenseAmountStatus: 1, cashAdvancesData: 1 }
+    );
+
+    if (!report) {
+      throw new Error('Expense report not found');
+    }
+
+    const { expenseAmountStatus, cashAdvancesData } = report;
+    const cashAdvance = cashAdvancesData.find(c => c.cashAdvanceId.toString() === cashAdvanceId.toString());
+
+    if (!cashAdvance) {
+      throw new Error('Cash advance not found');
+    }
+
+    const totalCashAmount = await calculateTotalCashAdvances(tenantId, cashAdvancesData);
+    const { totalCashAmount: currentTotalCashAmount, totalRemainingCash: currentTotalRemainingCash } = expenseAmountStatus;
+
+    console.info("totalCashAmount", totalCashAmount)
+    console.info("currentTotalCashAmount", currentTotalCashAmount , "currentTotalRemainingCash", currentTotalRemainingCash)
+    const updateCashAmounts = (current, total) => {
+      const difference = Math.abs(total - current);
+      const updatedTotal = current < total ? current + difference : current - difference;
+      return {
+        updatedTotalCashAmount: updatedTotal,
+        updatedTotalRemainingCash: updatedTotal === 0 ? 0 : updatedTotal
+      };
+    };
+
+    const { updatedTotalCashAmount, updatedTotalRemainingCash } = updateCashAmounts(
+      Number(currentTotalCashAmount), 
+      Number(totalCashAmount)
+    );
+
+    console.info("updatedTotalCashAmount, updatedTotalRemainingCash", updatedTotalCashAmount, updatedTotalRemainingCash)
+    console.log("updateCashAmounts", updateCashAmounts)
+    const updateCashDoc = {
+      'cashAdvancesData.$.cashAdvanceStatus': cashAdvanceStatus,
+      ...(paidBy !== undefined && { 'cashAdvancesData.$.paidBy': paidBy, 'cashAdvancesData.$.paidFlag': paidFlag }),
+      ...(recoveredBy !== undefined && { 'cashAdvancesData.$.recoveredBy': recoveredBy, 'cashAdvancesData.$.recoveredFlag': recoveredFlag }),
+    };
+    
+    const updateOperations = {
+      ...updateCashDoc
+    };
+    
+    if (Array.isArray(settlementDetails) && settlementDetails.length > 0 ) {
+      updateOperations['$push'] = {
+        'cashAdvancesData.$.settlementDetails': settlementDetails
+      };
+      updateCashDoc['$push'] = {
+        'tripSchema.cashAdvancesData.$.settlementDetails': settlementDetails
+      };  
+    }    
+
+    const updatedTrip = await Expense.findOneAndUpdate(
+      { 
+        tenantId,
+        'cashAdvancesData': { $elemMatch: { cashAdvanceId, travelRequestId } }
+      },
+      { 
+        $set: {
+          ...updateOperations,
+          'expenseAmountStatus.totalCashAmount': updatedTotalCashAmount,
+          'expenseAmountStatus.totalRemainingCash': updatedTotalRemainingCash
+        }
+      },
+      { new: true }
+    );
+
+    if (!updatedTrip) {
+      throw new Error('Failed to update cash advance status');
+    }
+
+    return { success: true, data: updatedTrip };
+  } catch (error) {
+    console.error('Error in settleOrRecoverCashAdvance:', error);
+    return { success: false, error: error.message };
   }
-
-  const totals = { paid: 0, recovered: 0 };
-  const conversionCache = new Map();
-
-  const getConversionRate = async (currency) => {
-    if (!conversionCache.has(currency)) {
-      const { defaultCurrency, conversionPrice } = await currencyConverter(tenantId, currency, 1);
-      conversionCache.set(currency, { defaultCurrency, conversionPrice });
-    }
-    return conversionCache.get(currency);
-  };
-
-  await Promise.all(cashAdvancesData.map(async ({ amountDetails, cashAdvanceStatus }) => {
-    if (!Array.isArray(amountDetails)) {
-      throw new Error('Invalid amountDetails structure; expected an array');
-    }
-
-    await Promise.all(amountDetails.map(async ({ amount, currency }) => {
-      if (typeof amount !== 'number' || isNaN(amount)) {
-        throw new Error(`Invalid amount: ${amount} in cash advance`);
-      }
-
-      const { defaultCurrency, conversionPrice } = await getConversionRate(currency.shortName);
-      const convertedAmount = currency.shortName === defaultCurrency.shortName ? amount : amount * conversionPrice;
-
-      if (cashAdvanceStatus === 'paid') {
-        totals.paid += convertedAmount;
-      } else if (cashAdvanceStatus === 'recovered') {
-        totals.recovered += convertedAmount;
-      }
-    }));
-  }));
-
-  return totals.paid - totals.recovered;
 };
 
-const calculateTotalCashAdvances = async (tenantId, cashAdvancesData) => {
+
+const testCalculateTotalCashAdvances = async (tenantId, cashAdvancesData) => {
   if (!Array.isArray(cashAdvancesData) || cashAdvancesData.length === 0) {
     throw new Error('Invalid input: cashAdvancesData should be a non-empty array');
   }
@@ -290,7 +390,7 @@ const calculateTotalCashAdvances = async (tenantId, cashAdvancesData) => {
   return (totals.paid || 0) - (totals.recovered || 0);
 };
 
-const settleOrRecoverCashAdvance = async (payload) => {
+const testSettleOrRecoverCashAdvance = async (payload) => {
   try {
     const { 
       tenantId, 
@@ -302,7 +402,7 @@ const settleOrRecoverCashAdvance = async (payload) => {
       recoveredBy,
       recoveredFlag
     } = payload;
-    
+
     const report = await Expense.findOne(
       { 
         tenantId,
@@ -344,92 +444,12 @@ const settleOrRecoverCashAdvance = async (payload) => {
     return { success: false, error: error.message };
   }
 };
-const v1settleOrRecoverCashAdvance = async (payload) => {
-  const { 
-    tenantId, 
-    travelRequestId, 
-    cashAdvanceId, 
-    paidBy,
-    cashAdvanceStatus,
-    paidFlag,
-    recoveredBy,
-    recoveredFlag
-  } = payload;
-
-  try {
-    const report = await Expense.findOne(
-      { 
-        tenantId,
-        'cashAdvancesData.travelRequestId': travelRequestId
-      },
-      { expenseAmountStatus: 1, cashAdvancesData: 1 }
-    );
-
-    if (!report) {
-      throw new Error('Expense report not found');
-    }
-
-    const { expenseAmountStatus, cashAdvancesData } = report;
-    const cashAdvance = cashAdvancesData.find(c => c.cashAdvanceId.toString() === cashAdvanceId.toString());
-
-    if (!cashAdvance) {
-      throw new Error('Cash advance not found');
-    }
-
-    const totalCashAmount = await calculateTotalCashAdvances(tenantId, cashAdvancesData);
-    const { totalCashAmount: currentTotalCashAmount, totalRemainingCash: currentTotalRemainingCash } = expenseAmountStatus;
-
-    const updateCashAmounts = (current, total) => {
-      const difference = Math.abs(total - current);
-      const updatedTotal = current < total ? current + difference : current - difference;
-      return {
-        updatedTotalCashAmount: updatedTotal,
-        updatedTotalRemainingCash: updatedTotal === 0 ? 0 : updatedTotal
-      };
-    };
-
-    const { updatedTotalCashAmount, updatedTotalRemainingCash } = updateCashAmounts(
-      Number(currentTotalCashAmount), 
-      Number(totalCashAmount)
-    );
-
-    const updateCashDoc = {
-      'cashAdvancesData.$.cashAdvanceStatus': cashAdvanceStatus,
-      ...(paidBy !== undefined && { 'cashAdvancesData.$.paidBy': paidBy, 'cashAdvancesData.$.paidFlag': paidFlag }),
-      ...(recoveredBy !== undefined && { 'cashAdvancesData.$.recoveredBy': recoveredBy, 'cashAdvancesData.$.recoveredFlag': recoveredFlag })
-    };
-
-    const updatedTrip = await Expense.findOneAndUpdate(
-      { 
-        tenantId,
-        'cashAdvancesData': { $elemMatch: { cashAdvanceId, travelRequestId } }
-      },
-      { 
-        $set: {
-          ...updateCashDoc,
-          'expenseAmountStatus.totalCashAmount': updatedTotalCashAmount,
-          'expenseAmountStatus.totalRemainingCash': updatedTotalRemainingCash
-        }
-      },
-      { new: true }
-    );
-
-    if (!updatedTrip) {
-      throw new Error('Failed to update cash advance status');
-    }
-
-    return { success: false, data: updatedTrip };
-  } catch (error) {
-    console.error('Error in settleOrRecoverCashAdvance:', error);
-    return { success: false, error: error.message };
-  }
-};
 
 
 const settleExpenseReport= async (payload) => {
   try {
       const {  tenantId,travelRequestId, expenseHeaderId, settlementBy, expenseHeaderStatus, 
-        settlementDate } = payload;
+        settlementDate,settlementDetails } = payload;
   
         const status = {
           PENDING_SETTLEMENT: 'pending settlement',
@@ -453,6 +473,9 @@ const settleExpenseReport= async (payload) => {
           'travelExpenseData.$[elem].settlementBy': settlementBy,
           'travelExpenseData.$[elem].settlementDate': new Date(),
           'travelExpenseData.$[elem].expenseLines.$[lineItem].lineItemStatus': status.PAID,
+        },
+        $push:{
+          'travelExpenseData.$[elem].settlementDetails': settlementDetails
         }
       },
       { arrayFilters,new: true }
@@ -467,104 +490,6 @@ const settleExpenseReport= async (payload) => {
 };
 
 
-const settleExpenseReportPaidAndDistributed= async (payload) => {
-    try {
-      const { tenantId, expenseHeaderId, tripId, paidBy, } = payload;
-  
-      const trip = await Expense.findOneAndUpdate(
-        { 
-          tenantId,
-          tripId,
-          'travelExpenseData': { $elemMatch: {'expenseHeaderId': expenseHeaderId } }
-        },
-        { 
-          $set: { 
-            'travelExpenseData.$.expenseHeaderStatus': 'paid and distributed', 
-            'travelExpenseData.$.paidBy': paidBy ?? '', 
-          }
-        },
-        { new: true }
-      );
-  
-      console.log('Travel request status updated in Expense microservice:', trip);
-      return { success: true, error: null };
-    } catch (error) {
-      console.error('Failed to update travel request status in Expense microservice:', error);
-      return { success: false, error: error };
-    }
-};
-
-
-// export const settleNonTravelExpenseReport= async (payload) => {
-//   try {
-//       const {  tenantId, expenseHeaderId, settlementBy, expenseHeaderStatus, 
-//         settlementDate } = payload;
-// let name 
-// let empId
-//         if (settlementBy) {
-//           let { name, empId } = settlementBy;
-//           console.log(`Settled by: ${name}, empId: ${empId}`);
-//         } else {
-//           console.error('settlementBy is undefined for one of the settlements');
-//         }
-
-//         console.log("non travel settlement", payload)
-//         const status = {
-//           PENDING_SETTLEMENT: 'pending settlement',
-//           PAID: 'paid',
-//           APPROVED:'approved'
-//         };
-        
-//         const filter = {
-//           tenantId,
-//           expenseHeaderId,
-//           // 'expenseHeaderStatus': status.PENDING_SETTLEMENT,
-//         };
-        
-//         // Use findOneAndUpdate to find and update in one operation
-//         const updateResult = await Reimbursement.findOne(
-//           filter,
-//         );
-
-//         if(!updateResult){
-//           throw new Error('non travel expense report not found in dashboard ms')
-//         }
-
-//         const {expenseLines} = updateResult
-
-//         const updatedExpenseLines = expenseLines.map((line) => {
-//           if(line.lineItemStatus == status.APPROVED){
-//             return{
-//               ...line,
-//               lineItemStatus: status.PAID,
-//               actionedUpon:true,
-//               settlementBy: {name,empId},
-//               expenseSettledDate:settlementDate,
-//             }
-//           }
-//           return line
-//         })
-
-//         updateResult.expenseLines = updatedExpenseLines
-//         updateResult.settlementBy = settlementBy
-//         updateResult.expenseHeaderStatus = expenseHeaderStatus
-//         updateResult.settlementDate = settlementDate
-//         updateResult.actionedUpon = true
-        
-//       const report =  await updateResult.save()
-//     console.log('Travel request status updated in expense microservice:', JSON.stringify(report,'',2));
-//     const {expenseHeaderStatus:getStatus} = report
-
-//     if(getStatus === status.PAID){
-//       return { success: true, error: null };
-//     }
-//     return { success: false, error:`non Travel expense report has ${getStatus} as expenseHeaderStatus` };
-//   } catch (error) {
-//     console.error('Failed to update travel request status in expense microservice:', error);
-//     return { success: false, error: error.message };
-//   }
-// };
-
 const settleNonTravelExpenseReport = async (payload) => {
   try {
     const {
@@ -573,6 +498,7 @@ const settleNonTravelExpenseReport = async (payload) => {
       settlementBy,
       expenseHeaderStatus,
       settlementDate,
+      settlementDetails
     } = payload;
 
     let name, empId;
@@ -627,6 +553,10 @@ const settleNonTravelExpenseReport = async (payload) => {
     updateResult.expenseHeaderStatus = expenseHeaderStatus;
     updateResult.settlementDate = settlementDate;
     updateResult.actionedUpon = true;
+
+    if(Array.isArray(settlementDetails) && settlementDetails.length > 0){
+      updateResult.settlementDetails = settlementDetails
+    }
 
     const report = await updateResult.save();
     console.log('Travel request status updated in expense microservice:', JSON.stringify(report, '', 2));
