@@ -27,6 +27,11 @@ const approverStatusEnums = [
   'rejected',
 ];
 
+const documentStatusEnums = [
+  'paid',
+  'recovered'
+  ];
+
 const cashAdvanceSchema = new mongoose.Schema({
   travelRequestData:  {
       type: travelRequestSchema, 
@@ -110,6 +115,14 @@ const cashAdvanceSchema = new mongoose.Schema({
       cashAdvanceRejectionReason: String,
     },
   ],
+  settlementDetails: [{
+      url: { type: String},
+      comment:{type:String},
+      status: {
+      type: String,
+      enum: documentStatusEnums,
+    },
+  }],
   totalAdvanceRequested: Number,
   totalAdvanceGranted: Number,
   totalAdvanceRecovered: Number,
