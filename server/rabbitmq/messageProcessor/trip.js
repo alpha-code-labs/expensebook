@@ -12,7 +12,7 @@ const logger = pino({
  * @param {Array} payload - Array of objects containing tenantId and tripId.
  * @returns {Promise} - Promise representing the update operation.
  */
-export const updateTrip = async (payload) => {
+const updateTrip = async (payload) => {
   try {
     console.log("trip creation process", payload);
     if (!Array.isArray(payload)) {
@@ -55,7 +55,7 @@ export const updateTrip = async (payload) => {
 };
 
 
-export const updateTripStatus = async (payload) => {
+const updateTripStatus = async (payload) => {
   console.log("Payload received for status update - trip :", payload);
   
   if (!Array.isArray(payload)) {
@@ -98,7 +98,7 @@ export const updateTripStatus = async (payload) => {
 
 // Process transit trip message (received from - trip microservice, received -All transit trips (batchjob))
 //Trip microservice --All trip updates --- asynchronous rabbitmq route --- 
-export const processTransitTrip = async (message) => {
+const processTransitTrip = async (message) => {
   // const failedUpdates = [];
   // const successMessage = {
   //   message: 'Successfully updated dashboard database',
@@ -180,7 +180,7 @@ export const processTransitTrip = async (message) => {
 }
 
 // Trip microservice ---All trip updates -- synchronous rabbitmq route
-export const updateTripToDashboardSync = async (message,correlationId) => {
+const updateTripToDashboardSync = async (message,correlationId) => {
   const failedUpdates = [];
   const successMessage = {
     message: 'Successfully updated dashboard database',
@@ -262,87 +262,7 @@ if (failedUpdates.length > 0) {
 }
 }
 
-// export const updateTripToCompleteOrClosed = async(payload) => {
-
-//   const {
-//     listOfClosedStandAloneTravelRequests = [], 
-//     listOfCompletedStandaloneTravelRequests= [],
-//     listOfCompletedTravelRequests = [],
-//     listOfClosedTravelRequests = [],
-//   } = payload
-
-
-//   if(listOfClosedStandAloneTravelRequests.length > 0){
-
-//     const updateTravel = await dashboard.updateMany({
-//       'travelRequestSchema.travelRequestId':{$in:listOfClosedStandAloneTravelRequests}
-//     },{
-//       $set:{
-//         'travelRequestSchema.travelStatus': getTravelRequestStatus.CLOSED
-//       }
-//     }
-//   )
-
-//   if (updateTravel.modifiedCount !== listOfClosedStandAloneTravelRequests.length) {
-//     console.log('error occurred', updateTravel)
-//     throw new Error('Failed to update travel requests to closed status', updateTravel);
-//   } else {
-//     console.log('Successfully updated travel requests to closed status');
-//     return 
-//   }
-//   } else if (listOfCompletedStandaloneTravelRequests.length > 0){
-//     const updateTravel = await dashboard.updateMany({
-//       'travelRequestSchema.travelRequestId':{$in:listOfCompletedStandaloneTravelRequests}
-//     },{
-//       $set:{
-//         'travelRequestSchema.travelRequestStatus': getTravelRequestStatus.COMPLETED
-//       }
-//     })
-
-//     if(updateTravel.modifiedCount !== listOfCompletedStandaloneTravelRequests.length > 0){
-//       console.log('error occurred', updateTravel)
-//       // throw new Error('Failed to update travel requests to completed status', updateTravel);
-//       return{success:false, error: error}
-//     }else{
-//       console.log('Successfully updated travel requests to completed status');
-//       return{success:true, error: null}
-//     }
-//   } else if (listOfCompletedTravelRequests.length > 0){
-//     const updateTravel = await dashboard.updateMany({
-//       'cashAdvanceSchema.travelRequestData.travelRequestId':{$in:listOfCompletedTravelRequests}
-//     },{
-//       $set:{
-//         'cashAdvanceSchema.travelRequestData.travelRequestStatus': getTravelRequestStatus.COMPLETED
-//       }
-//     })
-//     if(updateTravel.modifiedCount !== listOfCompletedTravelRequests.length > 0){
-//       console.log('error occurred', updateTravel)
-//       return { success: false, error: error}
-//     } else{
-//       console.log('Successfully updated travel requests to completed status');
-//       return {success: true , error: error}
-//     }
-//   } else if(listOfClosedTravelRequests.length > 0){
-//     const updateTravel = await dashboard.updateMany({
-//       'cashAdvanceSchema.travelRequestData.travelRequestId':{$in:listOfClosedTravelRequests}
-//     },{
-//       $set:{
-//         'cashAdvanceSchema.travelRequestData.travelRequestStatus': getTravelRequestStatus.CLOSED
-//       }
-//     }
-//   )
-//   if(updateTravel.modifiedCount !== listOfClosedTravelRequests.length > 0){
-//     console.log('error occurred', updateTravel)
-//     return { success: false, error: error}
-//   }else{
-//     console.log('Successfully updated travel requests to closed status');
-//     return { success: true, error: null}
-//   }
-//   }
-
-// }
-
-export const updateTripToCompleteOrClosed = async (payload) => {
+const updateTripToCompleteOrClosed = async (payload) => {
   const {
     listOfCompletedStandaloneTravelRequests = [],
     listOfClosedStandAloneTravelRequests = [], 
@@ -432,7 +352,7 @@ async function updateCashAdvanceRequests(travelRequestIds, updateField, updateVa
 }
 
 
-export async function addALeg(payload) {
+async function addALeg(payload) {
   try {
       const { travelRequestId, tenantId, itineraryType, itineraryDetails } = payload;
 
@@ -465,7 +385,7 @@ export async function addALeg(payload) {
   }
 }
 
-export const addLeg = async (payload) => {
+const addLeg = async (payload) => {
   try {
     if (!payload || typeof payload !== 'object') {
       throw new Error('Invalid payload format.');
@@ -505,5 +425,13 @@ export const addLeg = async (payload) => {
 
 
 
-
+export{
+  updateTrip,
+  updateTripStatus,
+  processTransitTrip,
+  updateTripToDashboardSync,
+  updateTripToCompleteOrClosed,
+  addALeg,
+  addLeg
+}
 

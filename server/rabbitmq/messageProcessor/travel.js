@@ -1,31 +1,7 @@
 import dashboard from "../../models/dashboardSchema.js";
 
-// export const fullUpdateTravel = async (payload) => {
-//   console.log("trying to update travel", payload)
-//     const { tenantId, travelRequestId } = payload;
-//     console.log("...............................",tenantId, travelRequestId  )
-//       try {
-//       const updated = await dashboard.findOneAndUpdate(
-//         { tenantId,
-//           travelRequestId,
-//         },
-//         {
-//          "tenantId": tenantId,
-//          "travelRequestSchema": payload,
-//         },
-//         { upsert: true, new: true }
-//       );
-//       console.log('Saved to dashboard: using async queue', updated);
-//       return { success: true, error: null}
-//     } catch (error) {
-//       console.error('Failed to update dashboard: using rabbitmq m2m', error);
-//       return { success: false, error: error}
-//     }
-// }
 
-
-
-export const fullUpdateTravel = async (payload) => {
+const fullUpdateTravel = async (payload) => {
   console.log("trying to update travel", payload);
   const { tenantId, travelRequestId } = payload;
 
@@ -58,7 +34,7 @@ export const fullUpdateTravel = async (payload) => {
 }
 
 
-export const fullUpdateTravelBatchJob = async (payloadArray) => {
+const fullUpdateTravelBatchJob = async (payloadArray) => {
   try {
     console.log("batchjob travel", payloadArray)
     const updatePromises = payloadArray.map(async (payload) => {
@@ -97,4 +73,7 @@ export const fullUpdateTravelBatchJob = async (payloadArray) => {
   }
 }
 
-
+export{
+  fullUpdateTravelBatchJob,
+  fullUpdateTravel
+}

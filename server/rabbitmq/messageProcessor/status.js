@@ -1,4 +1,13 @@
-export const getTravelRequestStatus = {
+
+
+
+const getTravelRequestStatus = {
     CLOSED:'closed',
     COMPLETED:'completed'
+}
+
+
+
+export {
+    getTravelRequestStatus
 }
