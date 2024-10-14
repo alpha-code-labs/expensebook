@@ -18,7 +18,7 @@ export const settleExpenseReport= async (payload) => {
           {'elem.expenseHeaderId': expenseHeaderId },
           {'lineItem.lineItemStatus':status.APPROVED}
         ];
-    const trip = await Expense.findOneAndUpdate(
+    const trip = await reporting.findOneAndUpdate(
       { 
         'tenantId': tenantId,
         'travelExpenseData': { $elemMatch: { travelRequestId, expenseHeaderId } }
@@ -54,7 +54,7 @@ export const settleOrRecoverCashAdvance = async (payload) => {
           recoveredBy,recoveredFlag,settlementDetails
       } = payload;
   
-      const report = await Expense.findOne(
+      const report = await reporting.findOne(
         { 
           tenantId,
           'cashAdvancesData': { $elemMatch: { travelRequestId } }
