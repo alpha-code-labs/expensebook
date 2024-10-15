@@ -1,7 +1,7 @@
 import amqp from 'amqplib';
 import { updateHRMaster } from './messageProcessor.js/onboardingMessage.js';
 import {  addALegToTravelRequestData, deleteALegFromTravelRequestData, tripArrayFullUpdate, tripFullUpdate } from './messageProcessor.js/trip.js';
-import { settleExpenseReport, settleExpenseReportPaidAndDistributed, settleNonTravelExpenseReport, settleOrRecoverCashAdvance } from './messageProcessor.js/finance.js';
+import { settleExpenseReport,  settleNonTravelExpenseReport, settleOrRecoverCashAdvance } from './messageProcessor.js/finance.js';
 import dotenv from 'dotenv';
 import { cashStatusUpdatePaid } from './messageProcessor.js/cashAdvanceMessage.js';
 import { approveRejectCashRaisedLater, expenseReportApproval, nonTravelReportApproval, updatePreferences } from './messageProcessor.js/dashboard.js';
@@ -148,12 +148,6 @@ export async function startConsumer(receiver) {
                   console.log(" expense header status paid")
                   const res4 = await settleExpenseReport(payload);
                   handleMessageAcknowledgment(channel, msg, res4);
-                  break;
-    
-                case 'settle-expense-Paid-and-distributed':
-                  console.log(" expense header status paid and distributed")
-                  const res5 = await settleExpenseReportPaidAndDistributed(payload);
-                  handleMessageAcknowledgment(channel, msg, res5);
                   break;
                 
                 case 'non-travel-paid':

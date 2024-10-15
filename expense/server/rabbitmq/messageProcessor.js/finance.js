@@ -579,6 +579,5 @@ export {
   settleOrRecoverCashAdvance,
   settleExpenseReport,
   settleNonTravelExpenseReport,
-  settleExpenseReportPaidAndDistributed,
   calculateTotalCashAdvances
 }
