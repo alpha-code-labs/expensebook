@@ -10,6 +10,7 @@ import { consumeFromDashboardQueue } from './rabbitmq/dashboardConsumer.js';
 import { scheduleToFinanceBatchJob } from './schedulars/finance.js';
 import cookieParser from 'cookie-parser';
 import { scheduleToNotificationBatchJob } from './schedulars/notifications.js';
+import HRMaster from './models/hrMasterSchema.js';
 
 
 const environment = process.env.NODE_ENV == 'production' ? '.env.prod' : '.env';
@@ -88,10 +89,6 @@ startConsumer('dashboard');
 scheduleToFinanceBatchJob()
 consumeFromDashboardQueue();
 scheduleToNotificationBatchJob()
-
-
-
-
 
 
 
