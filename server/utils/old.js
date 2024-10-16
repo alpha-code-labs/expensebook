@@ -2,6 +2,8 @@
 //  approvalDocs.push(rejectCashAdvance(tenantId,empId,travelRequestIds,cashApprovalDocs,rejectionReason))
 // }
 
+import HRMaster from "../models/hrMasterSchema.js";
+
 export const approveTravelWithCash = async (req, res) => {
   try {
 
@@ -514,8 +516,9 @@ export const rejectCashAdvance = async (tenantId, empId, cashApprovalDocs,reject
 // // Example usage
 // const employeeDetails = await getPolicyDetails('66e048c79286e2f4e03bdac1', '1004', 'international', 'Flight');
 
-const getPolicyDetails = async (travelType, employeeGroups) => {
+const getPolicyDetails = async (travelType) => {
   try {
+    console.info("in getPolicyDetails - travelType", travelType)
     const companyDetails = await HRMaster.findOne(
       { tenantId },
       { 'employees': { $elemMatch: { 'employeeDetails.employeeId': empId } }, 'policies': 1 }
@@ -536,6 +539,8 @@ const getPolicyDetails = async (travelType, employeeGroups) => {
   const employee = employees[0];
 
   const employeeGroups = employee.group;
+
+  console.info("employeeGroups",employeeGroups)
 
   if (!employeeGroups?.length) {
       console.log("No groups associated with the employee.");
@@ -580,13 +585,12 @@ const getPolicyDetails = async (travelType, employeeGroups) => {
     expenseReportDeadline,
     allowInternationalExpenseSubmission
   }));
-
   } catch (error) {
-
   }
 };
 
 const travelType = 'international'; // Dynamic travel type
 const employeeGroups = ['Finance', 'All']; // Example groups to check against
+
 
 const policyDetails = getPolicyDetails(travelType, employeeGroups);
