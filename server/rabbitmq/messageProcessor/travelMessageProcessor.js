@@ -1,7 +1,7 @@
 import dashboard from "../../models/dashboardSchema.js";
 
 
-export const updateTravelToDashboardSync = async (message,correlationId) => {
+const updateTravelToDashboardSync = async (message,correlationId) => {
     const failedUpdates = [];
     const successMessage = {
       message: 'Successfully updated dashboard database',
@@ -58,6 +58,8 @@ export const updateTravelToDashboardSync = async (message,correlationId) => {
   }
   }
 
-
+export{
+  updateTravelToDashboardSync
+}
 
 

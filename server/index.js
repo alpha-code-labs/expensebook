@@ -8,12 +8,10 @@ import { startConsumer } from './rabbitmq/consumer.js';
 import { mainRouter} from './routes/mainFrontendRoutes.js';
 import { consumeFromDashboardQueue } from './rabbitmq/dashboardConsumer.js';
 import { scheduleToFinanceBatchJob } from './schedulars/finance.js';
-import { gradeForEmployee } from './controllersRoleBased/roleBasedController.js';
 import cookieParser from 'cookie-parser';
-import { financeLayout } from './controllers/financeController.js';
-import dashboard from './models/dashboardSchema.js';
-import REIMBURSEMENT from './models/reimbursementSchema.js';
-// import dashboard from "../models/dashboardSchema.js";
+import { scheduleToNotificationBatchJob } from './schedulars/notifications.js';
+import HRMaster from './models/hrMasterSchema.js';
+
 
 const environment = process.env.NODE_ENV == 'production' ? '.env.prod' : '.env';
 dotenv.config({path:environment});
@@ -90,66 +88,7 @@ startConsumer('dashboard');
 //BatchJobs
 scheduleToFinanceBatchJob()
 consumeFromDashboardQueue();
-
-
-// financeLayout("66e048c79286e2f4e03bdac1")
-
-const countSettlements = async (tenantId) => {
-  const statusFilters = {
-    cashAdvance: ['pending settlement', 'Paid and Cancelled'],
-    travelExpense: ['pending settlement', 'Paid'],
-    reimbursement: ['pending settlement']
-  };
-
-  const filter = {
-    tenantId,
-    $or: [
-      {
-        'cashAdvanceSchema.cashAdvancesData': {
-          $elemMatch: {
-            cashAdvanceStatus: { $in: statusFilters.cashAdvance }
-          }
-        }
-      },
-      {
-        'tripSchema.travelExpenseData': {
-          $elemMatch: {
-            expenseHeaderStatus: { $in: statusFilters.travelExpense }
-          }
-        }
-      }
-    ]
-  };
-
-  // Get the counts of documents
-  const [dashboardCount, reimbursementCount] = await Promise.all([
-    dashboard.find(filter),
-    REIMBURSEMENT.find({
-      tenantId,
-      expenseHeaderStatus: { $in: statusFilters.reimbursement }
-    })
-  ]);
-
-  console.log("here", dashboardCount?.length, reimbursementCount?.length);
-
-  // Uncomment if you need to calculate totalCount
-  // const totalCount = dashboardCount.length + reimbursementCount.length;
-  // console.log("Total counts:", totalCount);
-
-  return { 
-    dashboardCount, 
-    reimbursementCount 
-  };
-};
-
-
-countSettlements('66e048c79286e2f4e03bdac1')
-
-
-
-
-
-
+scheduleToNotificationBatchJob()
 
 
 

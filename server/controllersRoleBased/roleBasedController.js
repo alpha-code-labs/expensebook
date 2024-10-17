@@ -5,6 +5,8 @@ import HRMaster from "../models/hrMasterSchema.js";
 import { earliestDate, extractStartDate } from "../utils/date.js";
 import { countViolations, extractValidViolations } from "../utils/count.js";
 import REIMBURSEMENT from "../models/reimbursementSchema.js";
+import { fetchEmployeeNotifications } from "../controllers/notificationController.js";
+import { getPolicyDetails } from "../helpers/hrdata.js";
 
 export const employeeSchema = Joi.object({
     tenantId: Joi.string().required(),
@@ -141,7 +143,9 @@ const getEmployeeRoles = async (tenantId, empId) => {
 
 const roleBasedLayout = async (req, res) => {
   try {
-    let { tenantId,empId} = req.user
+    // let { tenantId,empId} = req.user
+    let { tenantId,empId} = req.params
+
     const { error, value} = employeeSchema.validate({tenantId,empId})
     console.log("jwt in controller - req.user",JSON.stringify(req.user,'',2))
 
@@ -192,9 +196,12 @@ const getDashboardViews = async (tenantId, empId) => {
 
         const formattedDashboardViews = dashboardViews.reduce((acc, curr) => ({ ...acc, ...curr }), {});
 
+        const notifications = await fetchEmployeeNotifications(tenantId,empId)
+
         return {
             dashboardViews: formattedDashboardViews,
-            employeeRoles
+            employeeRoles,
+            notifications
         };
     } catch (error) {
         console.error("Error fetching dashboard views:", error);
@@ -213,24 +220,25 @@ const promises = [
         getTripForEmployee(tenantId, empId),
         getAllExpensesForEmployee(tenantId, empId),
         getOverView(tenantId,empId),
-        getAllCashAdvance(tenantId,empId)
+        getAllCashAdvance(tenantId,empId),
 ]
 
 const [travelStandAlone,travelWithCash, trip,expense, allTravelRequests, allCashAdvance] = await Promise.all(promises)
 
 const { rejectedCashAdvances = [] } = travelWithCash || {};
 const { trips = {}, reimbursements = [] } = trip || {};
-const { upcomingTrips = [], transitTrips = [], completedTrips = [], rejectedTrips = [] } = trips;
+const { upcomingTrips = [], transitTrips = [], completedTrips = [], rejectedTrips = [] , transitFormValidations =[] } = trips;
 const { nonTravelCashAdvance = [], travelCashAdvance = [] } = allCashAdvance || {};
-
+const { completedFormValidations, ...getExpense} = expense
 // const travelRequestCombined = [ ...travelStandAlone.travelRequests, ...travelWithCash.travelRequests]
 // const rejectedTravelRequestsCombined = [ ...travelStandAlone.rejectedTravelRequests, ...travelWithCash.rejectedTravelRequests]
 
+console.log("completedFormValidations", completedFormValidations)
     //screens
     const overviewUi = {transitTrips,upcomingTrips,allTravelRequests , expense}
     const cashAdvanceUi = {...allCashAdvance}
-    const expenseUi = {...expense}
-
+    const expenseUi = {...getExpense}
+    const formValidations = {...transitFormValidations,...completedFormValidations}
     const employee = { 
         overview:overviewUi,
         cashAdvance:cashAdvanceUi,
@@ -239,6 +247,7 @@ const { nonTravelCashAdvance = [], travelCashAdvance = [] } = allCashAdvance || 
         // rejectedCashAdvances,
         // ...trip,
         expense:expenseUi,
+        formValidations
     }
     return employee;
 } catch (error) {
@@ -374,89 +383,6 @@ const getAllCashAdvance = async(tenantId,empId) => {
 }
 
 //----------------travel standalone for an employee
-// const travelStandAloneForEmployee = async (tenantId, empId) => {
-//     console.log("Fetching travelStandAloneForEmployee...", tenantId, empId);
-
-//     try {
-//         let allTravelRequests = [];
-//         let rejectedRequests = [];
-//         let rejectedItineraryLines = [];
-
-//         const travelRequestDocs = await dashboard.find({
-//             'travelRequestSchema.tenantId': tenantId,
-//             'createdBy.empId': empId,
-//             $or: [
-//                 {
-//                     'travelRequestSchema.travelRequestStatus': { $in: ['draft', 'pending approval', 'approved'] },
-//                 },
-//                 {
-//                     'travelRequestSchema.travelRequestStatus': { $in: ['rejected'] },
-//                 },
-//                 {
-//                     'travelRequestSchema.travelRequestStatus': { $nin: ['rejected'] },
-//                 },
-//             ],
-//         });
-        
-
-//         travelRequestDocs.forEach((travelRequest) => {
-//             const { travelRequestId, travelRequestNumber, tripPurpose, travelRequestStatus } = travelRequest;
-//             allTravelRequests.push({ travelRequestId, travelRequestNumber, tripPurpose, travelRequestStatus });
-//         });
-
-//         travelRequestDocs.forEach((travelRequest) => {
-//             const { travelRequestId, travelRequestNumber, tripPurpose, travelRequestStatus, rejectionReason } = travelRequest;
-//             rejectedRequests.push({ travelRequestId, travelRequestNumber, tripPurpose, travelRequestStatus, rejectionReason });
-//         });
-
-//         travelRequestDocs.forEach((travelRequest) => {
-//                 const { itinerary } = travelRequest.travelRequestSchema;
-            
-//                 Object.keys(itinerary).forEach((category) => {
-
-//                     itinerary[category].forEach((itineraryItem) => {
-//                         if (itineraryItem.status === 'rejected') {
-//                             const { itineraryId, rejectedReason, status } = itineraryItem;
-//                             const { travelRequestId, travelRequestNumber, tripPurpose, travelRequestStatus } = travelRequest;
-            
-//                             rejectedItineraryLines.push({
-//                                 itineraryId,
-//                                 rejectedReason,
-//                                 status,
-//                                 travelRequestId,
-//                                 travelRequestNumber,
-//                                 tripPurpose,
-//                                 travelRequestStatus,
-//                             });
-//                         }
-//                     });
-//                 });
-//             });
-
-//             const travelRequests = { ...allTravelRequests };
-//             const rejectedTravelRequests = { ...rejectedRequests, ...rejectedItineraryLines };
-        
-//             let message;
-//             if (!travelRequests.length && !rejectedTravelRequests.length) {
-//                 message = 'No travel request found and no rejected travel request found';
-//             } else if (!travelRequests.length) {
-//                 message = 'No travel request found';
-//             } else if (!rejectedTravelRequests.length) {
-//                 message = 'No rejected travel request found';
-//             }
-        
-//             return { 
-//                 travelRequests: travelRequests.length ? travelRequests : [],
-//                 rejectedTravelRequests: rejectedTravelRequests.length ? rejectedTravelRequests : [],
-//                 message
-//             };
-
-//     } catch (error) {
-//       console.error("Error in fetching employee Dashboard:", error);
-//       // Return an object indicating the error occurred
-//       throw new Error({ error: 'Error in fetching employee Dashboard' });
-//     }
-// };
 const travelStandAloneForEmployee = async (tenantId, empId) => {
     // console.log("Fetching travelStandAloneForEmployee...", tenantId, empId);
 
@@ -486,17 +412,6 @@ const travelStandAloneForEmployee = async (tenantId, empId) => {
                 travelRequestId, travelRequestNumber, tripPurpose, travelRequestStatus, rejectionReason , isCashAdvanceTaken
             }));
     
-            // const rejectedItineraryLines = [];
-            // travelRequestDocs.filter(({travelRequestSchema:{travelRequestStatus}}) => travelRequestStatus !== 'rejected')
-            // .forEach(({ travelRequestId, travelRequestNumber, tripPurpose, travelRequestStatus, travelRequestSchema: { itinerary } }) => {
-            //     Object.values(itinerary).flat().forEach(({ itineraryId, rejectedReason, status }) => {
-            //         if (status === 'rejected') {
-            //             rejectedItineraryLines.push({
-            //                 itineraryId, rejectedReason, status, travelRequestId, travelRequestNumber, tripPurpose, travelRequestStatus
-            //             });
-            //         }
-            //     });
-            // });
 
             let rejectedItineraryLines = [];
 
@@ -567,9 +482,9 @@ const travelWithCashForEmployee = async (tenantId, empId) => {
           { 'cashAdvanceSchema.cashAdvancesData.cashAdvanceStatus': { $in: ['rejected'] } },
         ],
       };
-  
+
     //   console.log("Fetching cashSchema ...", tenantId, empId);
-      const travelRequestDocs = await dashboard.find(query);
+    const travelRequestDocs = await dashboard.find(query);
     //   console.log("Fetched cashSchema:", travelRequestDocs);
 
     if (travelRequestDocs?.length === 0) {
@@ -842,6 +757,7 @@ const getTripForEmployee = async (tenantId, empId) => {
       } 
 // console.log("tripDocs............", tripDocs)
 
+const allTransitTravelTypes = new Set()
     const upcomingTrips = tripDocs
     .filter(trip => trip?.tripSchema?.tripStatus === 'upcoming')
     .map(trip => {
@@ -922,40 +838,12 @@ const getTripForEmployee = async (tenantId, empId) => {
             const { tripSchema} = trip
               const {travelRequestData, cashAdvancesData, travelExpenseData, expenseAmountStatus,  tripId, tripNumber,tripStatus, tripStartDate,tripCompletionDate} = tripSchema || {};
               const { totalCashAmount, totalRemainingCash } = expenseAmountStatus ||  {};
-              const {travelRequestId,travelRequestNumber,travelRequestStatus,tripName,tripPurpose, isCashAdvanceTaken, itinerary} = travelRequestData || {};
-        
-            //   const itineraryToSend = Object.fromEntries(
-            //     Object.entries(itinerary)
-            //         .filter(([category]) => category !== 'formState')
-            //         .map(([category, items]) => {
-            //             let mappedItems;
-            //             if (category === 'hotels') {
-            //                 mappedItems = items.map(({
-            //                     itineraryId, status, bkd_location, bkd_class, bkd_checkIn, bkd_checkOut, bkd_violations, cancellationDate, cancellationReason,needBreakfast,needLunch,needDinner,needNonSmokingRoom
-            //                 }) => ({
-            //                     category,
-            //                     itineraryId, status, bkd_location, bkd_class, bkd_checkIn, bkd_checkOut, bkd_violations, cancellationDate, cancellationReason,needBreakfast,needLunch,needDinner,needNonSmokingRoom
-            //                 }));
-            //             } else if (category === 'cabs') {
-            //                 mappedItems = items.map(({
-            //                     itineraryId, status, bkd_date, bkd_returnDate, bkd_isFullDayCab, bkd_class, bkd_pickupAddress, bkd_dropAddress,
-            //                 }) => ({
-            //                     category,
-            //                     itineraryId, status, bkd_date,bkd_returnDate, bkd_isFullDayCab, bkd_class, bkd_pickupAddress, bkd_dropAddress,
-            //                 }));
-            //             } else {
-            //                 mappedItems = items.map(({
-            //                     itineraryId, status, bkd_from, bkd_to, bkd_date, bkd_time,bkd_returnTime, bkd_travelClass, bkd_violations,
-            //                 }) => ({
-            //                     category,
-            //                     itineraryId, status, bkd_from, bkd_to, bkd_date, bkd_time,bkd_returnTime, bkd_travelClass, bkd_violations,
-            //                 }));
-            //             }
-            
-            //             return [category, mappedItems];
-            //         })
-            // );
+              const {travelRequestId,travelRequestNumber,travelRequestStatus,tripName,tripPurpose, travelType, isCashAdvanceTaken, itinerary} = travelRequestData || {};
 
+            if(travelType){
+                console.log("inside transit trips", travelType)
+                allTransitTravelTypes.add(travelType)
+            }
             const itineraryToSend = getItinerary(itinerary)
             const addALegItinerary = getAddALegItinerary(itinerary) 
 
@@ -994,6 +882,13 @@ const getTripForEmployee = async (tenantId, empId) => {
               
           });
         //   console.log("transitTrips", transitTrips)
+
+        const uniqueTransitTravelTypes = Array.from(allTransitTravelTypes);
+
+        const transitFormValidations = uniqueTransitTravelTypes.length > 0
+          ? await getPolicyDetails(tenantId, empId, uniqueTransitTravelTypes)
+          : [];
+        
 
       const completedTrips = tripDocs
           .filter(trip => trip?.tripSchema?.tripStatus === 'completed' && trip?.tripSchema?.travelExpenseData && trip?.tripSchema?.travelExpenseData?.length > 0 )
@@ -1047,7 +942,8 @@ const getTripForEmployee = async (tenantId, empId) => {
             upcomingTrips: upcomingTrips ?? [],
             transitTrips: transitTrips?? [],
             completedTrips:completedTrips??[],
-            rejectedTrips:rejectedTrips ?? [], 
+            rejectedTrips:rejectedTrips ?? [],
+            transitFormValidations 
         }
 
           return {
@@ -1086,20 +982,6 @@ try {
         fetchEmployeeReimbursementReports(tenantId, empId)
     ]);
 
-    // const tripDocs = await dashboard.find({
-    //     $or: [
-    //     { 
-    //         'tripSchema.tenantId': tenantId,
-    //         'tripSchema.travelRequestData.createdBy.empId': empId,
-    //         $or: [
-    //           { 'tripSchema.tripStatus': { $nin: ['upcoming',  'recovered',] } },
-    //         ],
-    //     },
-    //     { 'reimbursementSchema.createdBy.empId': empId }, 
-    //     ],
-    // }).lean().exec();
-    
-
     if (tripDocs?.length === 0 && reimbursementReports?.length === 0) {
         return { allTripExpenseReports : [],
             allNonTravelReports :[],
@@ -1107,17 +989,23 @@ try {
     } 
 //  console.log("tripDocs............", tripDocs)
 
-const status ={
+    const status ={
     COMPLETED:'completed'
-}
+    }
 
-    const allTripExpenseReports = tripDocs
-    ?.filter(trip => trip?.tripSchema?.travelExpenseData?.length > 0)
-    ?.map(trip => {
+    const allTravelTypes = new Set()
+    const allCompletedTravelTypes = new Set()
+
+
+    const allTripExpenseReports = tripDocs?.filter(trip => trip?.tripSchema?.travelExpenseData?.length > 0)?.map(trip => {
     //   console.log("each trip", trip)
-    const { tripSchema} = trip
+        const { tripSchema} = trip
         const {travelRequestData, cashAdvancesData, travelExpenseData, expenseAmountStatus, tripId, tripNumber, tripStartDate,tripCompletionDate} = tripSchema || {};
-        const {travelRequestId,travelRequestNumber,travelRequestStatus,tripName,tripPurpose, isCashAdvanceTaken, itinerary} = travelRequestData || {};
+        const {travelRequestId,travelRequestNumber,travelRequestStatus,tripName,tripPurpose,travelType, isCashAdvanceTaken, itinerary} = travelRequestData || {};
+
+        if(travelType){
+            allTravelTypes.add(travelType)
+        }
 
         const itineraryToSend = getItinerary(itinerary)
 
@@ -1151,18 +1039,18 @@ const status ={
             itinerary: itineraryToSend
         };
     });
-    // console.log("allTripExpenseReports", allTripExpenseReports)
 
-    const completedTrips = tripDocs
-    ?.filter(trip => trip?.tripSchema?.travelExpenseData?.length >= 0 && 
-        trip?.tripSchema?.tripStatus == status.COMPLETED
-    )
-    ?.map(trip => {
-    //   console.log("each trip", trip)
+    const completedTrips = tripDocs?.filter(trip => trip?.tripSchema?.travelExpenseData?.length >= 0 && trip?.tripSchema?.tripStatus == status.COMPLETED)?.map(trip => {
     const { tripSchema} = trip
         const {travelRequestData, cashAdvancesData, travelExpenseData, expenseAmountStatus, tripId, tripNumber, tripStartDate,tripCompletionDate} = tripSchema || {};
         // const { totalCashAmount, totalRemainingCash } = expenseAmountStatus ||  {};
-        const {travelRequestId,travelRequestNumber,travelRequestStatus,tripName,tripPurpose, isCashAdvanceTaken, itinerary} = travelRequestData || {};
+        const {travelRequestId,travelRequestNumber,travelRequestStatus,tripName,tripPurpose,travelType, isCashAdvanceTaken, itinerary} = travelRequestData || {};
+
+        if(travelType){
+            console.log("inside completed", travelType)
+
+        allCompletedTravelTypes.add(travelType)
+        }
 
         const itineraryToSend = Object.fromEntries(
             Object.entries(itinerary)
@@ -1203,7 +1091,7 @@ const status ={
             expenseLines: expense?.expenseLines ?? '',
         }))
 
-        // console.log("itineraryTosend.........................................", itineraryToSend)
+        // console.log("itineraryToSend.........................................", itineraryToSend)
         return {
             tripId: tripId ?? '', 
             tripNumber: tripNumber ??'', 
@@ -1224,20 +1112,19 @@ const status ={
             })) : []) : [], 
             travelExpenses: travelExpenseReports,
             itinerary: itineraryToSend
-        };
-    });
-    
+    };});
 
-        const allNonTravelReports = reimbursementReports
-        .filter(report => {
-            // console.log("trip after filter", trip);
-            // Assuming createdBy is an object with empId property
+    console.log("allCompletedTravelTypes",allCompletedTravelTypes)
+    const getUniqueTravelTypes = Array.from(allCompletedTravelTypes);
+    console.log("getUniqueTravelTypes",getUniqueTravelTypes)
+    const  completedFormValidations = await getPolicyDetails(tenantId, empId, getUniqueTravelTypes)
+
+console.log(" completedFormValidations", JSON.stringify( completedFormValidations,'',2))
+        const allNonTravelReports = reimbursementReports.filter(report => {
             return report?.createdBy?.empId === empId;
           })
           .flatMap(report => {
-            // console.log("before reimbursement schema:", trip);
             const { expenseHeaderId, createdBy, expenseAmountStatus,expenseHeaderNumber, expenseHeaderStatus, expenseLines } = report;
-            // return expenseLines.map(expenseLine => ({lineItemId, lineItemStatus,})
             return [{
               expenseHeaderId,
               createdBy,
@@ -1253,7 +1140,8 @@ const status ={
         return {           
             allTripExpenseReports,
             allNonTravelReports,
-            completedTrips
+            completedTrips,
+            completedFormValidations
         }
 } catch (error) {
       console.error("Error in fetching employee Dashboard:", error);
@@ -1734,7 +1622,7 @@ const approvalsForManager = async (tenantId, empId) => {
 
 
         if(approvalDoc?.length){
-          const  travel = await Promise.all(
+        const  travel = await Promise.all(
                 approvalDoc
                 .filter(approval =>
                     approval.travelRequestSchema?.travelRequestStatus === 'pending approval'&&
@@ -1742,14 +1630,14 @@ const approvalsForManager = async (tenantId, empId) => {
                     approval.travelRequestSchema?.approvers.length > 0 &&
                     approval.travelRequestSchema?.isCashAdvanceTaken === false &&
                     approval.travelRequestSchema.approvers.some(approver =>
-                      approver.empId === empId &&
-                      approver.status === 'pending approval'
+                    approver.empId === empId &&
+                    approver.status === 'pending approval'
                     )
-                  )
-                  .map(async approval => {
+                )
+                .map(async approval => {
                     const { 
-                      travelRequestId, approvers, tripPurpose, tripName, createdBy, 
-                      travelRequestNumber, travelRequestStatus, isCashAdvanceTaken, itinerary 
+                    travelRequestId, approvers, tripPurpose, tripName, createdBy, 
+                    travelRequestNumber, travelRequestStatus, isCashAdvanceTaken, itinerary 
                     } = approval.travelRequestSchema;
                     
                     // Await earliestDate if tripStartDate is not present
@@ -1759,14 +1647,14 @@ const approvalsForManager = async (tenantId, empId) => {
                     const violationsCounter = countViolations(allBkdViolations);
                     
                     return {
-                      travelRequestId, approvers, tripPurpose, tripName, tripStartDate,
-                      travelRequestNumber, createdBy, travelRequestStatus, isCashAdvanceTaken, violationsCounter
+                    travelRequestId, approvers, tripPurpose, tripName, tripStartDate,
+                    travelRequestNumber, createdBy, travelRequestStatus, isCashAdvanceTaken, violationsCounter
                     };
-                  })
+                })
             );
 
 
-           const travelWithCash = await Promise.all (approvalDoc
+        const travelWithCash = await Promise.all (approvalDoc
                 .filter(approval => 
                     approval?.cashAdvanceSchema?.travelRequestData?.travelRequestStatus === 'pending approval' &&
                     approval?.cashAdvanceSchema.travelRequestData.approvers?.some(approver =>
@@ -1901,9 +1789,9 @@ const approvalsForManager = async (tenantId, empId) => {
     
             console.log("travelExpenseReports", approvalDoc.length)
     
-             travelAndCash = [ ...filteredTravelWithCash, ...cashAdvanceRaisedLater,]
-             trips =[...addALeg]
-             
+            travelAndCash = [ ...filteredTravelWithCash, ...cashAdvanceRaisedLater,]
+            trips =[...addALeg]
+            
             travelExpenseReports = await (async () => {
             try {
                 const filteredApprovals = approvalDoc.filter(approval => {
@@ -2032,7 +1920,7 @@ const approvalsForManager = async (tenantId, empId) => {
 //     }
 // };
 
-const fetchApprovalDocuments = (tenantId, empId) => {
+export const fetchApprovalDocuments = (tenantId, empId) => {
     return dashboard.find({
         tenantId,
         $or: [
@@ -2074,7 +1962,7 @@ const fetchApprovalDocuments = (tenantId, empId) => {
     }).lean().exec();
 };
 
-const fetchReimbursementReports = (tenantId, empId) => {
+export const fetchReimbursementReports = (tenantId, empId) => {
     return REIMBURSEMENT.find({
         tenantId,
         'approvers': {

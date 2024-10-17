@@ -1,7 +1,7 @@
 import REIMBURSEMENT from "../../models/reimbursementSchema.js";
 
 
-export const updateReimbursement = async (payload) => {
+const updateReimbursement = async (payload) => {
     try {
         console.log("update updateReimbursement", payload)
         const { reimbursementReport } = payload;
@@ -31,7 +31,7 @@ export const updateReimbursement = async (payload) => {
 };
 
 
-export const deleteReimbursement = async (payload) => {
+const deleteReimbursement = async (payload) => {
     try {
         console.log("delete", payload)
         // const { reimbursementReport } = payload;
@@ -51,5 +51,8 @@ export const deleteReimbursement = async (payload) => {
 }
 }
 
-
+export{
+    updateReimbursement,
+    deleteReimbursement
+}
 

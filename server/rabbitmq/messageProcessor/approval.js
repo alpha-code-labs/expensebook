@@ -2,7 +2,7 @@ import { getExpenseReport, updateExpenseLineStatus } from "../../controllers/app
 import dashboard from "../../models/dashboardSchema.js";
 
 
-export const travelStandAloneApproval = async(payload) =>{
+const travelStandAloneApproval = async(payload) =>{
    try{
     const {tenantId, travelRequestId, approvers,travelRequestStatus, rejectionReason} = payload || {};
 
@@ -31,8 +31,7 @@ export const travelStandAloneApproval = async(payload) =>{
 }
 }
 
-
-export const travelWithCashTravelApproval = async(payload) =>{
+const travelWithCashTravelApproval = async(payload) =>{
     try{
      const {tenantId, travelRequestId, approvers,travelRequestStatus, rejectionReason} = payload || {};
  
@@ -60,7 +59,7 @@ export const travelWithCashTravelApproval = async(payload) =>{
  }
 }
 
-export const travelWithCashApproval = async(payload) =>{
+const travelWithCashApproval = async(payload) =>{
     try{
      const {tenantId, travelRequestId, cashAdvanceId, approvers,cashAdvanceStatus, rejectionReason} = payload || {};
  
@@ -91,9 +90,8 @@ export const travelWithCashApproval = async(payload) =>{
  }
 }
 
-
 //Approve or reject travel expense report at header level or line item level
-export const expenseReportApproval = async (payload) => {
+const expenseReportApproval = async (payload) => {
     try {
       const { tenantId,tripId, expenseHeaderId, empId ,approve, reject, rejectionReason} = payload
       const approvalDocument = await getExpenseReport(tenantId,empId,tripId,expenseHeaderId)
@@ -144,3 +142,11 @@ export const expenseReportApproval = async (payload) => {
 };
 
 
+
+
+export{
+    travelStandAloneApproval,
+    travelWithCashTravelApproval,
+    travelWithCashApproval,
+    expenseReportApproval
+}

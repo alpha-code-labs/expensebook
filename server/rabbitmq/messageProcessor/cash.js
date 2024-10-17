@@ -1,6 +1,6 @@
 import dashboard from "../../models/dashboardSchema.js";
 
-export const updateCashToDashboardSync = async (message,correlationId) => {
+const updateCashToDashboardSync = async (message,correlationId) => {
     const failedUpdates = [];
     const successMessage = {
       message: 'Successfully updated dashboard database',
@@ -56,7 +56,7 @@ export const updateCashToDashboardSync = async (message,correlationId) => {
   }
 }
 
-export const fullUpdateCash = async (payload) => {
+ const fullUpdateCash = async (payload) => {
   console.log('full update cashAdvanceSchema', payload)
   const{ travelRequestData, cashAdvancesData} = payload
   const { tenantId, travelRequestId } = travelRequestData;
@@ -88,7 +88,7 @@ console.log("fullUpdateCash --tenantId,travelRequestId", tenantId, travelRequest
   }
 }
 
-export const fullUpdateCashBatchJob = async (payloadArray) => {
+ const fullUpdateCashBatchJob = async (payloadArray) => {
   try {
     const updatePromises = payloadArray.map(async (payload) => {
       const { travelRequestData, cashAdvancesData } = payload;
@@ -130,7 +130,7 @@ export const fullUpdateCashBatchJob = async (payloadArray) => {
 }
 
 
-export const cashStatusUpdatePaid = async (payloadArray) => {
+ const cashStatusUpdatePaid = async (payloadArray) => {
   try {
     // Initialize an array to keep track of results
     const results = [];
@@ -189,8 +189,7 @@ export const cashStatusUpdatePaid = async (payloadArray) => {
 };
 
 
-
-export const onceCash = async (payload) => {
+ const onceCash = async (payload) => {
   console.log('full update cashAdvanceSchema', payload)
   const{ travelRequestData, cashAdvancesData} = payload
   const { tenantId, travelRequestId } = travelRequestData;
@@ -222,3 +221,12 @@ console.log("fullUpdateCash --tenantId,travelRequestId", tenantId, travelRequest
   }
 }
 
+export {
+  updateCashToDashboardSync,
+  fullUpdateCash,
+  fullUpdateCashBatchJob,
+  cashStatusUpdatePaid,
+  onceCash,
+  
+
+}
