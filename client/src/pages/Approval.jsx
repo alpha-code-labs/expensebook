@@ -17,7 +17,7 @@ import Button from '../components/common/Button';
 import { approveTravelRequestApi, nonTravelExpenseApprovalActionApi ,rejectTravelExpenseApi, approveTravelExpenseApi, rejectTravelRequestApi } from '../utils/api';
 import PopupMessage from "../components/common/PopupMessage";
 import TripMS from '../microservice/TripMS';
-import { CardLayout, EmptyBox, ExpenseLine, TripName, Violation,BoxTitleLayout, ModifyBtn, SmallAction } from '../components/common/TinyComponent';
+import { CardLayout, EmptyBox, ExpenseLine, TripName, Violation,BoxTitleLayout, ModifyBtn, SmallAction, TitleModal } from '../components/common/TinyComponent';
 
 
 const rejectionOptions=['Too Many Violations', 'Budget Constraints','Insufficient Documents','Upcoming Project Deadline']
@@ -127,11 +127,7 @@ console.log('selected lineItems',selectedLineItems)
     fetchData(tenantId,empId,page)
 
   },[])
-
-
-
  
-  
   const travelAndCashAdvances = approvalData?.travelAndCash || []
   const itineraries = approvalData?.trips || []
   const travelAndItinerary =[ ...travelAndCashAdvances , ...itineraries]
@@ -141,8 +137,6 @@ console.log('selected lineItems',selectedLineItems)
   const dummyTrExpense = travelExpenses?.map((expense)=> ({...expense,expenseType:"Travel Expense"})) || []
   const dummyNonTravelExpense = nonTravelExpenses?.map((expense)=>({...expense,expenseType:"Non Travel Expense"})) || []
   const DummyExpenseData = [...dummyTrExpense, ...dummyNonTravelExpense]
-  
-  
   
   console.log('dummy expense for approval ', DummyExpenseData)
   
@@ -227,7 +221,7 @@ const handleVisible = ({travelRequestId,tripId,expenseHeaderId, action}) => {
   }, []);
 
   
-  console.log(error.travelRequestId)
+  console.log(error.travelRequestId);
 
   // const handleSelect=(option)=>{
   //   console.log(option)
@@ -572,22 +566,9 @@ const handleVisible = ({travelRequestId,tripId,expenseHeaderId, action}) => {
               </div>  
             {expenseDetails?.expenseType === "Travel Expense" &&
              <div className='flex flex-row justify-between'>
-             {/* <div className='flex gap-2 items-center'>
-                     <img src={briefcase} className='w-4 h-4'/>
-                     <div className='font-medium font-cabin  text-sm uppercase text-neutral-700 '>
-                      {splitTripName(expenseDetails?.tripName)}
-                     </div>
-                     <div className='font-medium font-cabin  text-sm  text-neutral-700 '>
-                      {extractAndFormatDate(trip?.tripName)}
-                     </div>
-              </div> */}
+            
               <TripName tripName={expenseDetails?.tripName}/>
-             {/* <div className='flex items-center justify-center'>
-             <img src={info_icon} className='w-4 h-4'/>
-              <div className='text-sm font-cabin px-2 py-1 cursor-pointer' onClick={()=>{if(!disableButton(trip?.travelRequestStatus)){handleVisible(trip?.travelRequestId,  'travel-approval-view' )}}}>
-                <p className='text-indigo-600 font-semibold'>View Details</p>
-              </div>
-              </div> */}
+            
              </div>}
     <div className='flex px-2 h-[36px] py-4  items-center justify-between gap-2'>
     <div className='flex justify-center items-center gap-2'>
@@ -615,17 +596,11 @@ const handleVisible = ({travelRequestId,tripId,expenseHeaderId, action}) => {
                         </div>
                 <div className='flex items-center justify-center'>
                 <img src={info_icon} className='w-4 h-4'/>
-                <div className='text-sm font-cabin px-2 py-1 cursor-pointer' onClick={()=>{if(!disableButton(expenseDetails?.travelRequestStatus)){handleVisible({"tripId":expenseDetails?.tripId,expenseHeaderId:expenseDetails?.expenseHeaderId,  "action":'travelExpense-approval-view'} )}}}>
-                  <p className='text-indigo-600 font-semibold'>View Details</p>
-                </div>
+                
+                <ModifyBtn onClick={()=>{if(!disableButton(expenseDetails?.travelRequestStatus)){handleVisible({"tripId":expenseDetails?.tripId,expenseHeaderId:expenseDetails?.expenseHeaderId,  "action":'travelExpense-approval-view'} )}}} text='View Details'/>
                 </div>
                 
-                            {/* <div className={`text-center rounded-sm ${getStatusClass(trip?.expenseHeaderStatus ?? "-")}`}>
-                              <p className='px-1 py-1 text-xs text-center capitalize font-cabin'>{trip?.expenseHeaderStatus ?? "-"}</p>
-                            </div> */}
-                            {/* <div onClick={()=>{if(!disableButton(trip?.travelRequestStatus)){handleTravelExpense(trip?.tripId, filteredTripExpenses?.expenseHeaderId,  'trip-ex-modify' ,)}}} className={`w-7 h-7 bg-indigo-100 rounded-full border border-white flex items-center justify-center ${disableButton(trip?.travelRequestStatus) ? ' cursor-not-allowed opacity-50' : ' cursor-pointer'}`}>
-                              <img src={modify} className='w-4 h-4' alt="modify_icon" />
-                            </div> */}
+                          
                           </div>
                           <div className='overflow-x-hidden overscroll-y-scroll py-1 pt-2 max-h-[525px] h-auto px-2 space-y-2'>
                             {sortByStatus(expenseDetails?.expenseLines)?.map((line, index) => (
@@ -712,12 +687,11 @@ const handleVisible = ({travelRequestId,tripId,expenseHeaderId, action}) => {
               </div>
 
             {/* / */}
-            <div className='flex items-center justify-center'>
+            <div className='flex items-center justify-center gap-1'>
             <Violation violationCount={trip?.violationsCounter?.total}/>
              
-              <div className='text-sm font-cabin px-2 py-1 cursor-pointer' onClick={()=>{if(!disableButton(trip?.travelRequestStatus)){handleVisible({travelRequestId:trip?.travelRequestId,  action:'travel-approval-view' })}}}>
-                <p className='text-indigo-600 font-semibold'>View Details</p>
-              </div>
+              
+              <ModifyBtn  text='View Details' onClick={()=>{if(!disableButton(trip?.travelRequestStatus)){handleVisible({travelRequestId:trip?.travelRequestId,  action:'travel-approval-view' })}}}/>
               </div>
             {/* / */}
               </div>
@@ -765,7 +739,6 @@ const handleVisible = ({travelRequestId,tripId,expenseHeaderId, action}) => {
       <div className='mt-4 h-full'>
       <EmptyBox  icon={approval_white_icon} text="No Travel & Cash-Advance for Approval"/>
       </div>}
-
           </div>
            <div className='w-full md:w-1/2  flex flex-col'>
           
@@ -788,9 +761,9 @@ const handleVisible = ({travelRequestId,tripId,expenseHeaderId, action}) => {
                 <p className='header-text'>{trip?.createdBy?.name ?? <span className='text-center'>-</span>}</p>
               </div>
               </div>
-              {/* <ModifyBtn text="Take Action" onClick={() => {openModal("expenseDetails");setExpenseDetails({...trip,expenseType:trip?.expenseType})}}/> */}
+             
               <SmallAction text="Take Action" onClick={() => {openModal("expenseDetails");setExpenseDetails({...trip,expenseType:trip?.expenseType})}}/>
-              {/* <Button1 text="Take Action" variant="fit" /> */}
+            
             
               </div>  
               {trip?.expenseType === "Travel Expense" &&
@@ -801,7 +774,7 @@ const handleVisible = ({travelRequestId,tripId,expenseHeaderId, action}) => {
              </div>}
               </div>  
                     <div className='mt-2 space-y-2'>
-                      {/* {filteredTripExpenses?.map((trExpense, index) => ( */}
+                     
                         <div key={index} className='border border-slate-300 rounded-md px-2 py-1'>
                           <div className='flex flex-row justify-between items-center py-1 border-b border-slate-300 font-cabin font-xs'>
                           <div className='flex gap-2 items-center '>
@@ -812,22 +785,15 @@ const handleVisible = ({travelRequestId,tripId,expenseHeaderId, action}) => {
                       </div>
                     </div>
                     <div className='flex items-center justify-center'>
-              <img src={info_icon} className='w-4 h-4'/>
-                <div className='text-sm font-cabin px-2 py-1 cursor-pointer' onClick={()=>{if(!disableButton(trip?.travelRequestStatus)){handleVisible(trip?.expenseType ==="Non Travel Expense" ? { expenseHeaderId:trip?.expenseHeaderId,  action:'nontravelExpense-approval-view' }:{tripId:trip?.tripId, expenseHeaderId:trip?.expenseHeaderId,  action:'travelExpense-approval-view' })}}}>
-                  <p className='text-indigo-600  font-semibold'>View Details</p>
-                </div>
-                </div>
-                            {/* <div className={`text-center rounded-sm ${getStatusClass(trip?.expenseHeaderStatus ?? "-")}`}>
-                              <p className='px-1 py-1 text-xs text-center capitalize font-cabin'>{trip?.expenseHeaderStatus ?? "-"}</p>
-                            </div> */}
-                            {/* <div onClick={()=>{if(!disableButton(trip?.travelRequestStatus)){handleTravelExpense(trip?.tripId, filteredTripExpenses?.expenseHeaderId,  'trip-ex-modify' ,)}}} className={`w-7 h-7 bg-indigo-100 rounded-full border border-white flex items-center justify-center ${disableButton(trip?.travelRequestStatus) ? ' cursor-not-allowed opacity-50' : ' cursor-pointer'}`}>
-                              <img src={modify} className='w-4 h-4' alt="modify_icon" />
-                            </div> */}
+              {/* <img src={info_icon} className='w-4 h-4'/> */}
+                
+                <ModifyBtn text="View Details" onClick={()=>{if(!disableButton(trip?.travelRequestStatus)){handleVisible(trip?.expenseType ==="Non Travel Expense" ? { expenseHeaderId:trip?.expenseHeaderId,  action:'nontravelExpense-approval-view' }:{tripId:trip?.tripId, expenseHeaderId:trip?.expenseHeaderId,  action:'travelExpense-approval-view' })}}}/>
+                </div> 
                           </div>
                           <ExpenseLine expenseLines={trip?.expenseLines}/>
                          
                         </div>
-                      {/* // ))} */}
+                     
                     </div>
                   </div>
                   </CardLayout>
@@ -845,17 +811,8 @@ const handleVisible = ({travelRequestId,tripId,expenseHeaderId, action}) => {
         onClose={()=>closeModal}
         content={
           <div className='w-full h-auto'>
-          <div className='flex gap-2 justify-between items-center bg-indigo-100 w-auto p-4'>
-            <div className='flex gap-2'>
-              <img src={info_icon} className='w-5 h-5' alt="Info icon"/>
-              <p className='font-inter text-base font-semibold text-indigo-600'>
-                {getTitle()}
-              </p>
-            </div>
-            <div onClick={() => setModalOpen(false)} className='bg-red-100 cursor-pointer rounded-full border border-white'>
-              <img src={cancel} className='w-5 h-5' alt="Cancel icon"/>
-            </div>
-          </div>
+         
+          <TitleModal iconFlag={true} text={getTitle()} onClick={() => setModalOpen(false)}/>
 
           <div className="p-4">
             {getContent()}
