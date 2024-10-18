@@ -117,9 +117,8 @@ const fetchData = async () => {
   return (
     <>
     {isLoading.loginData ? <Error message={loadingErrMsg}/> : 
+
      <div className='bg-slate-100'>
-     
-      
       <section>
       <div className='flex flex-row '>
      
@@ -130,12 +129,10 @@ const fetchData = async () => {
     }`}>
            <Sidebar setSidebarOpen={setSidebarOpen} fetchData={fetchData}  tenantId={tenantId} empId={empId}  />
       </div>
-      
-     
       <div className='h-screen overflow-y-auto scrollbar-hide w-full  bg-white'>
       <section>
 
-<Navbar setSearchQuery={setSearchQuery} setSidebarOpen={setSidebarOpen} notificationData={employeeData?.dashboardViews?.employee?.overview?.upcomingTrips|| []}  tenantId={tenantId} empId={empId}  />
+<Navbar setSearchQuery={setSearchQuery} setSidebarOpen={setSidebarOpen} notificationData={employeeData?.notifications|| []}  tenantId={tenantId} empId={empId}  />
 
 </section>
         <Routes>

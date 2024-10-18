@@ -14,6 +14,15 @@ export {default as material_carRental_w_icon} from './material_icon/outline_car_
 export {default as material_personal_black_icon} from './material_icon/outline_commute_black_48dp.png';
 export {default as material_personalVehicle_w_icon} from './material_icon/outline_commute_white_48dp.png';
 
+//notifications icons
+export {default as alert_bell_icon} from './notification/alert_icon.svg'
+export {default as info_bell_icon} from './notification/info_icon.svg'
+export {default as warning_bell_icon} from './notification/warning_icon.svg'
+
+// export {default as alert_bell_icon} from './notification/notifications_24dp_434343_FILL0_wght400_GRAD0_opsz24.svg'
+// export {default as info_bell_icon} from './notification/info_24dp_434343_FILL0_wght400_GRAD0_opsz24.svg'
+// export {default as warning_bell_icon} from './notification/warning_24dp_434343_FILL0_wght400_GRAD0_opsz24.svg'
+// export {default as error_bell_icon} from './notification/error_24dp_434343_FILL0_wght400_GRAD0_opsz24.svg'
 
 
 //gif icons
@@ -88,7 +97,7 @@ export {default as plus_black_icon} from './plus_black_icon.svg';
 export {default as plus_violet_icon} from './plus copy.svg';
 export {default as calender_2_icon} from './calender-2.png';
 export {default as city_icon} from './city.png';
-export {default as info_icon} from './icons8-info.svg';
+export {default as info_icon} from './info_icon.svg';
 export {default as filter_icon} from './filter.svg';
 export {default as search_icon} from './serach.svg';
 export {default as empty_itinerary_icon} from './empty_itinerary.png';

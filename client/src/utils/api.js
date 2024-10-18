@@ -320,7 +320,7 @@ export const approveTravelRequestApi = async(data)=>{
 //finance microservice api
 
   export const settleCashAdvanceApi = async(data)=>{
-        const {tenantId, empId,travelRequestId, cashAdvanceId, paidBy, action} = data
+        const {tenantId, empId,travelRequestId, cashAdvanceId,  action,payload} = data
         
         let url
         console.log(action)
@@ -335,7 +335,7 @@ export const approveTravelRequestApi = async(data)=>{
         
         console.log('url from api.js',url)
           try{
-             const response = await axiosRetry(axios.patch,url,{getFinance:paidBy})
+             const response = await axiosRetry(axios.patch,url,payload)
              return(response.data.message)
           }catch(error){
             handleRequestError(error);
@@ -349,9 +349,9 @@ export const approveTravelRequestApi = async(data)=>{
         }  
 
   export const settleExpenseApi = async(data)=>{
-        const {tenantId, empId,travelRequestId, expenseHeaderId, paidBy, action} = data
+        const {tenantId, empId,travelRequestId, expenseHeaderId, action, payload} = data
         let url
-
+     
         if(action === "settleTravelExpense" ){
            url = `${SETTLEMENT_BACKEND_API_URL}/api/fe/finance/expense/paid/${tenantId}/${travelRequestId}/${expenseHeaderId}`
         }else{
@@ -359,7 +359,7 @@ export const approveTravelRequestApi = async(data)=>{
         }
         
           try{
-             const response = await axiosRetry(axios.patch,url,{getFinance:paidBy})
+             const response = await axiosRetry(axios.patch,url,payload)
              return(response.data.message)
           }catch(error){
             handleRequestError(error);

@@ -5,7 +5,7 @@ export const DataProvider = ({ children }) => {
   const [employeeData, setEmployeeData] = useState(null);
   const [managerData, setManagerData] = useState(null);
   const [travelAdminData, setTravelAdminData] = useState(null);
-  const [employeeRoles , setEmployeeRoles]=useState(null)
+  const [employeeRoles , setEmployeeRoles]=useState(null);
   const [routeData, setRouteData] = useState(null);
 
   return (

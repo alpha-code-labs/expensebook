@@ -1,4 +1,4 @@
-import { briefcase, categoryIcons, modify, plus_icon, plus_violet_icon, violation_icon } from "../../assets/icon";
+import { briefcase, cancel, categoryIcons, info_icon, modify, plus_icon, plus_violet_icon, violation_icon } from "../../assets/icon";
 import { formatAmount, getStatusClass, splitTripName } from "../../utils/handyFunctions";
 
 
@@ -239,10 +239,10 @@ const TripName = ({tripName})=>(
   }
 
 
-  function ModifyBtn ({onClick,text="Modify"}){
+  function ModifyBtn ({onClick,text="Modify",variant="sm"}){
     return(
       <div onClick={onClick} className="p-1 ">
-        <p className="text-xs font-semibold  font-inter text-neutral-900">{text}</p>
+        <p className={`${variant === "md" ? "text-sm" : "text-xs"} font-semibold  font-inter text-neutral-900`}>{text}</p>
       </div>
     )
   }
@@ -273,4 +273,32 @@ const TripName = ({tripName})=>(
   }
 
 
-export {SmallAction,TooltipBtn,ModifyBtn, BoxTitleLayout, RaiseButton,EmptyBox,Violation, ExpenseLine,StatusFilter,CardLayout ,TripName,ExtractAndFormatDate,StatusBox}  
+  function TitleModal ({onClick, text, iconFlag= false}){
+    return (
+      <div className='flex gap-2 justify-between items-center bg-gray-200/20 w-full p-4'>
+         <div className='flex gap-2'>
+              {iconFlag && <img src={info_icon} className='w-5 h-5' alt="Info icon"/>}
+              <p className='font-inter text-base font-semibold text-neutral-900'>
+                {text}
+              </p>
+            </div>
+                {/* <p className='font-inter text-base font-semibold text-neutral-900'>{text}</p> */}
+                <div onClick={onClick} className='bg-red-100 cursor-pointer rounded-full border border-white'>
+                <img src={cancel} className='w-5 h-5'/>
+                </div>
+      </div>
+    )
+  }
+
+  function TabTitleModal ({text,onClick,icon,selectedTab}){
+
+    return(
+  <div onClick={onClick} className={`min-w-fit cursor-pointer transition  duration-200 hover:bg-gray-100  hover:rounded-md flex-1  flex items-center justify-center gap-2 p-4 ${selectedTab ? 'border-b-2 border-neutral-900  hover:rounded-b-none': "border-b-2 border-white"}  `}>
+    <img src={icon} className='w-5 h-5'/>
+    <p className=' shrink'>{text}</p>
+  </div>
+    )
+  }
+
+
+export {TabTitleModal,TitleModal, SmallAction, TooltipBtn, ModifyBtn, BoxTitleLayout, RaiseButton, EmptyBox, Violation, ExpenseLine, StatusFilter, CardLayout ,TripName, ExtractAndFormatDate, StatusBox}  

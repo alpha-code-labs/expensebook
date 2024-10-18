@@ -11,7 +11,7 @@ import Modal from '../components/common/Modal1';
 import TripSearch from '../components/common/TripSearch';
 import Button1 from '../components/common/Button1';
 import TripMS from '../microservice/TripMS';
-import { TooltipBtn, TripName } from '../components/common/TinyComponent';
+import { TabTitleModal, TitleModal, TooltipBtn, TripName } from '../components/common/TinyComponent';
 import ExpenseMS from '../microservice/Expense';
 
 const travelBaseUrl  = import.meta.env.VITE_TRAVEL_PAGE_URL;
@@ -360,23 +360,20 @@ className={`px-2 py-1 rounded-lg cursor-pointer ease-in-out ${expenseTabs === 'n
         onClose={modalOpen} 
         content={<div className='w-full h-auto'> 
           <div> 
-              <div className='flex gap-2 justify-between items-center bg-indigo-100 w-full p-4'>
+              {/* <div className='flex gap-2 justify-between items-center bg-indigo-100 w-full p-4'>
                 <p className='font-inter text-base font-semibold text-indigo-600'>Raise an Expense</p>
                 <div onClick={()=>{setModalOpen(!modalOpen);setTripId(null);setExpenseType(null)}} className='bg-red-100 cursor-pointer rounded-full border border-white'>
                 <img src={cancel} className='w-5 h-5'/>
                 </div>
-              </div>
+              </div> */}
+              <TitleModal text={"Raise an Expense"} onClick={()=>{setModalOpen(!modalOpen);setTripId(null);setExpenseType(null)}} />
 <div className='p-4'>
  <div className='flex md:flex-row flex-col justify-between gap-2'>
- <div onClick={()=>setExpenseType("travel_Cash-Advance")} className={`cursor-pointer transition  duration-200 hover:bg-indigo-100 hover:rounded-md flex-1 flex gap-2 items-center justify-center ${expenseType === "travel_Cash-Advance" ? ' border-b-2 border-indigo-600 text-indigo-600' : 'border-b-2 border-white '}  p-4`}>
-    <img src={receipt} className='w-5 h-5'/>
-    <p className='truncate '>Travel Expense</p> 
-  </div>
+ 
+  <TabTitleModal text={"Travel Expense"} icon={expense_white_icon} onClick={()=>setExpenseType("travel_Cash-Advance")} selectedTab={expenseType === "travel_Cash-Advance"}/>
+  <TabTitleModal text={"Non-Travel Expense"} icon={expense_white_icon} onClick={()=>setExpenseType("non-Travel_Cash-Advance")} selectedTab={expenseType === "non-Travel_Cash-Advance"}/>
            
-  <div onClick={()=>setExpenseType("non-Travel_Cash-Advance")} className={`min-w-fit cursor-pointer transition  duration-200 hover:bg-indigo-100 hover:rounded-md flex-1  flex items-center justify-center gap-2 p-4 ${expenseType === "non-Travel_Cash-Advance" ? 'border-b-2 border-indigo-600 text-indigo-600': "border-b-2 border-white"}  `}>
-    <img src={receipt} className='w-5 h-5'/>
-    <p className='truncate  shrink'>Non-Travel Expense</p>
-  </div>
+ 
   </div>  
   
 <div className='flex gap-4 flex-col items-start justify-start w-full py-2'>
