@@ -108,7 +108,16 @@ export const paidNonTravelExpenseReports = async (req, res, next) => {
     ]);
 
     const { tenantId, expenseHeaderId } = params;
-    const { getFinance } = body;
+    const { getFinance, settlementDetails } = body;
+
+    let setSettlementDetails
+
+    if (Array.isArray(settlementDetails) && settlementDetails.length > 0) {
+      setSettlementDetails = settlementDetails.map(details => ({
+    ...details,
+    status: 'paid',
+    }));
+    }
 
     const {name, empId} = getFinance
     console.log("Received Parameters:", { tenantId, expenseHeaderId });
@@ -158,13 +167,16 @@ export const paidNonTravelExpenseReports = async (req, res, next) => {
     updateResult.expenseHeaderStatus = status.PAID
     updateResult.actionedUpon = true
     updateResult.expenseSettledDate = new Date()
+    updateResult.settlementDetails = updateResult.settlementDetails || [];
+    updateResult.settlementDetails.push(...setSettlementDetails);
 
     const report = await updateResult.save()
 
     console.log("Update successful:", report);
 
     const payload={
-      tenantId, expenseHeaderId, settlementBy:getFinance,expenseHeaderStatus:status.PAID, expenseSettledDate: new Date()
+      tenantId, expenseHeaderId, settlementBy:getFinance,expenseHeaderStatus:status.PAID, expenseSettledDate: new Date(),
+      settlementDetails:setSettlementDetails
     }
 
     const options={

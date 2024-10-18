@@ -167,8 +167,16 @@ export const paidExpenseReports = async (req, res, next) => {
     ]);
     
     const { tenantId, travelRequestId, expenseHeaderId } = params;
-    const { getFinance } = body;
+    const { getFinance, settlementDetails } = body;
 
+    let setSettlementDetails
+
+    if (Array.isArray(settlementDetails) && settlementDetails.length > 0) {
+      setSettlementDetails = settlementDetails.map(details => ({
+    ...details,
+    status: 'paid',
+    }));
+    }
     // console.log("Received Parameters:", { tenantId, travelRequestId, expenseHeaderId });
     // console.log("Received Body Data:", { getFinance });
 
@@ -201,6 +209,9 @@ export const paidExpenseReports = async (req, res, next) => {
         'tripSchema.travelExpenseData.$[elem].expenseHeaderStatus': newStatus.PAID,
         'tripSchema.travelExpenseData.$[elem].settlementDate': new Date(), // Renaming this to paidDate is required
         'tripSchema.travelExpenseData.$[elem].expenseLines.$[lineItem].lineItemStatus': newStatus.PAID
+      },
+      $push:{
+        'tripSchema.travelExpenseData.$[elem].settlementDetails': setSettlementDetails
       }
     };
 
@@ -225,7 +236,7 @@ export const paidExpenseReports = async (req, res, next) => {
 
     const payload = {
       tenantId,travelRequestId, expenseHeaderId, settlementBy:getFinance , expenseHeaderStatus:newStatus.PAID , 
-      settlementDate: new Date(),
+      settlementDate: new Date(), settlementDetails:setSettlementDetails
     }
 
     const options={
@@ -280,14 +291,15 @@ export const getAllPaidForEntries = async(req,res,next) => {
 
        const getTravelExpenseData =  report.tripSchema.travelExpenseData
         .filter((expense) => expense.expenseHeaderStatus === status.PENDING_SETTLEMENT)
-        .map(({expenseHeaderId,expenseHeaderNumber,actionedUpon,settlementBy , expenseHeaderStatus})=>({
+        .map(({expenseHeaderId,expenseHeaderNumber,actionedUpon,settlementBy , expenseHeaderStatus,settlementDetails})=>({
           expenseHeaderStatus,
           expenseAmountStatus,
           travelRequestId,
           expenseHeaderId,
           expenseHeaderNumber,
           settlementBy,
-          actionedUpon
+          actionedUpon,
+          settlementDetails
           }))
 
           return{travelRequestId,tripName, travelRequestNumber,expenseAmountStatus,createdBy, travelExpenseData:getTravelExpenseData}
