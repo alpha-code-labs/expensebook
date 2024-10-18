@@ -12,7 +12,8 @@ export default defineConfig({
   server: {
       proxy: {
           '/api': {
-              target: 'https://login-server.victoriousplant-d49987f1.centralindia.azurecontainerapps.io',
+              // target: 'https://login-server.victoriousplant-d49987f1.centralindia.azurecontainerapps.io',
+              target:'http://localhost:8002',
               changeOrigin: true,
           },
       },

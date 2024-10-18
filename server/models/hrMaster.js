@@ -1,8 +1,9 @@
 import mongoose from "mongoose"
 
 // employee schema
+
 const employeeSchema = new mongoose.Schema({
-  employeeDetails: {}, //for now it makes sense to make it flexible, extracting groups tag from here
+  employeeDetails: {}, 
   group: [String],
   travelPreferences:{
     busPreference: {
@@ -35,9 +36,11 @@ const employeeSchema = new mongoose.Schema({
     superAdmin: Boolean,
   },
   canDelegate: Boolean,
+  imageUrl: String,
 })
 
 // company details schema
+
 const companyDetailsSchema = new mongoose.Schema({
   companyName: String,
   companyLogo: String,

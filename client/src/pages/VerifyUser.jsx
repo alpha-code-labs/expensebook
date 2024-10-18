@@ -42,10 +42,10 @@ const handleVerifyOtp = async () => {
   let allowSubmit = true;
 
   if (formData.email === '') {
-    setErrors((pre) => ({ ...pre, emailError: { set: true, message: 'Please enter email Id' } }));
+    setErrors((pre) => ({ ...pre, emailError: { set: true, message: 'Email is required.' } }));
     allowSubmit = false;
   } else if (!validateEmail(formData.email)) {
-    setErrors((pre) => ({ ...pre, emailError: { set: true, message: 'Please enter a valid email id' } }));
+    setErrors((pre) => ({ ...pre, emailError: { set: true, message: 'Please enter a valid email address.' } }));
     allowSubmit = false;
   } else {
     setErrors((pre) => ({ ...pre, emailError: { set: false, message: '' } }));
@@ -100,7 +100,7 @@ const handleSetPassword=async()=>{
 let allowSubmit =true
 
   if(formData.password == ''){
-        setErrors(pre=>({...pre, passwordError:{set:true, message:'Please enter a password'}}))
+        setErrors(pre=>({...pre, passwordError:{set:true, message:'Password is required.'}}))
         allowSubmit=false
       }else if(!validatePassword(formData.password)){
         setErrors(pre=>({...pre,passwordError: {

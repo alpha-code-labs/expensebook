@@ -1,10 +1,10 @@
 import axios from 'axios';
 
-
 const LOGIN_BACKEND_API_URL = import.meta.env.VITE_LOGIN_LOGOUT_BACKEND_API_URL
 const CITYLIST_BACKEND_API_URL = import.meta.env.VITE_CITYLIST_API
 const retry = 3;
 const retryDelay = 3000;
+
 
 const errorMessages = {
   '404': 'Resource Not Found',
@@ -78,7 +78,7 @@ export const postLogin_API = async (data) => {
   const url = `${LOGIN_BACKEND_API_URL}/api/login`;
 
   try {
-    const response = await axiosRetry(axios.post, url, data);
+    const response = await axiosRetry(axios.post, url, data,{withCredentials:true});
     
     // Check if the response contains the authentication token
     const authToken = response.data?.data;
