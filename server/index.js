@@ -88,7 +88,7 @@ startConsumer('dashboard');
 //BatchJobs
 scheduleToFinanceBatchJob()
 consumeFromDashboardQueue();
-scheduleToNotificationBatchJob()
+// scheduleToNotificationBatchJob()
 
 
 

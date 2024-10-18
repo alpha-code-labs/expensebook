@@ -28,8 +28,8 @@ export async function earliestDate(itinerary) {
             'pending booking', 
             'cancelled',
             'paid and cancelled',
-            'paid and cancelled',
             'recovered',]
+
         const dateStrings=Object.entries(itinerary)
             // .filter(([category]) => category !== 'formState')
             .flatMap(([category, items]) => {
@@ -79,8 +79,8 @@ export function extractStartDate(itinerary) {
           'pending booking', 
           'cancelled',
           'paid and cancelled',
-          'paid and cancelled',
           'recovered',]
+
       const dateStrings=Object.entries(itinerary)
           // .filter(([category]) => category !== 'formState')
           .flatMap(([category, items]) => {
