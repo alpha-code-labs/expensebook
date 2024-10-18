@@ -16,14 +16,21 @@ const IconOption = ({ buttonText, children }) => {
     }
   };
 
+  const handleBlur = () => {
+    setIsOpen(false); 
+  };
+
   useEffect(() => {
     if (isOpen) {
       document.addEventListener('click', handleClickOutside);
+      window.removeEventListener('blur', handleBlur);
     } else {
       document.removeEventListener('click', handleClickOutside);
+      window.removeEventListener('blur', handleBlur);
     }
     return () => {
       document.removeEventListener('click', handleClickOutside);
+      window.removeEventListener('blur', handleBlur);
     };
   }, [isOpen]);
 
@@ -36,7 +43,7 @@ const IconOption = ({ buttonText, children }) => {
       {isOpen && (
         <div
           ref={dropdownRef}
-          className="absolute mt-2 w-full h-fit bg-white border border-neutral-400 rounded-md shadow-lg p-2"
+          className="absolute mt-2 w-full h-fit bg-white rounded-md shadow-lg p-2"
           style={{ zIndex: 1000 }}
         >
           {children}

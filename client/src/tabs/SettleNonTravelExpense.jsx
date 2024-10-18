@@ -1,20 +1,21 @@
 import React from 'react'
-import { info_icon, receipt } from '../assets/icon';
+import {  close_icon, expense_slate_icon, file_icon,  } from '../assets/icon';
 import { CardLayout, SettleNowBtn, TripName } from '../common/TinyComponent';
 import { formatAmount } from '../utilis/handyFunctions';
+import FileUpload from '../common/FileUpload';
 
-const SettleNonTravelExpense = ({trip, handleActionConfirm}) => {
+const SettleNonTravelExpense = ({trip, handleActionConfirm, handleRemoveFile, fileSelected, setFileSelected, selectedFile, setSelectedFile}) => {
 
-function financeMsg(amt, cashAdvance, currency){
-  const amt1 = formatAmount(amt)
+// function financeMsg(amt, cashAdvance, currency){
+//   const amt1 = formatAmount(amt)
 
-  if (amt >= 0){
-    return <div className='text-sx font-cabin text-red-600'>{`${amt1} owed to company.`}</div>
-  }else{
-    return <div className='text-sx font-cabin text-neutral-700'>{`owed to employee.`}</div>
-  }
+//   if (amt >= 0){
+//     return <div className='text-sx font-cabin text-red-600'>{`${amt1} owed to company.`}</div>
+//   }else{
+//     return <div className='text-sx font-cabin text-neutral-700'>{`owed to employee.`}</div>
+//   }
 
-}
+// }
 
 
   return (
@@ -73,7 +74,7 @@ function financeMsg(amt, cashAdvance, currency){
                 <div className='flex flex-row justify-between items-center py-1  font-cabin font-xs'>
                   <div className='flex gap-4'>
                     <div className='flex gap-2 items-center '>
-                      <img src={receipt} className='w-5 h-5'/>
+                      <img src={expense_slate_icon} className='w-5 h-5'/>
                       <div>
                         <div className='header-title'>Expense Header No.</div>
                         <p className='header-text'>{trip?.expenseHeaderNumber}</p>
@@ -92,11 +93,14 @@ function financeMsg(amt, cashAdvance, currency){
               </div>
               </div>
                     
-              <div className='flex items-center justify-center'>
-              {/* <img src={info_icon} className='w-4 h-4'/> */}
-                {/* <div className='text-sm font-cabin px-2 py-1 cursor-pointer' onClick={()=>{if(!disableButton(trip?.travelRequestStatus)){handleVisible(trip?.travelRequestId,  'travel-approval-view' )}}}>
-                  <p className='text-indigo-600 font-semibold'>View Details</p>
-                </div> */}
+              <div className='flex items-center justify-center gap-2'>
+              {fileSelected  ?<> <div className='flex justify-center cursor-default items-center px-2 py-1 bg-slate-100 rounded-md text-xs'><img src={file_icon} className='w-4 h-4' /><p className='w-20 truncate'>{selectedFile?.name}</p></div><img src={close_icon} className='w-4 h-4' onClick={handleRemoveFile}/></> :
+              <FileUpload 
+              isFileSelected={fileSelected} 
+              setIsFileSelected={setFileSelected} 
+              setSelectedFile={setSelectedFile} 
+              selectedFile={selectedFile} 
+            />}
                  <SettleNowBtn
             onClick={()=>handleActionConfirm('settleNonTravelExpense',{ expenseHeaderId:trip?.expenseHeaderId})}
             text={"Settle Now"} disabled={false} onHover={'selected currency not available'}/>

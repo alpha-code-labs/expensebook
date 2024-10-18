@@ -2,7 +2,7 @@ import React, { useState,useEffect } from 'react'
 import { StatusFilter } from '../common/TinyComponent'
 import Input from '../common/SearchInput'
 import Input1 from '../common/Input'
-import { chevron_down_icon, csv_icon, export_icon, filter_icon, pdf_icon, search_icon } from '../assets/icon'
+import { chevron_down_icon, close_icon, csv_icon, export_icon, file_icon, filter_icon, pdf_icon, search_icon } from '../assets/icon'
 import SettleCashAdvance from '../tabs/SettleCashAdvance'
 import RecoverCashAdvance from '../tabs/RecoverCashAdvance'
 import SettleTravelExpense from '../tabs/SettleTravelExpense'
@@ -17,6 +17,7 @@ import Select from '../common/Select'
 import Button1 from '../common/Button1'
 import IconOption from '../common/IconOption'
 import { flattenData } from '../utilis/dataToTable'
+import uploadFileToAzure from '../utilis/azureBlob'
 
 
 
@@ -28,12 +29,24 @@ const Finance = () => {
   const [AcEntryData, setAcEntryData]= useState({'travelExpense': [], 'nonTravelExpense':  [], 'cash': []})
   const [paidBy , setPaidBy]=useState(null)
   const [isLoading, setIsLoading]=useState(true)
-  const [isUploading, setIsUploading] =useState(false)
+  // const [isUploading, setIsUploading] =useState(false)
   const [errorMsg, setErrorMsg]= useState(null)
   const dashboardBaseUrl = import.meta.env.VITE_DASHBOARD_PAGE_URL
+  const [selectedFile, setSelectedFile]= useState(null)
+  const [fileSelected, setFileSelected]=useState(false)
 
+  const [isUploading, setIsUploading]=useState(false)
+  
+
+
+  const handleRemoveFile=()=>{
+    setSelectedFile(null)
+    setFileSelected(false)
+  }
+
+  
+  
   useEffect(() => {
-    
     const fetchData = async () => {
       try {
         console.log("page 3 my Params:", tenantId, empId);
@@ -69,15 +82,18 @@ const settleNonTravelExpenseCount = financeData?.nonTravelExpense?.length || 0;
 
 
   const handleSwitchTab = (value)=>{
-    setActiveTab(value)
+    setActiveTab(value);
+    handleRemoveFile();
   }
   
   const handleActionConfirm = (action, apiData) => {
     apiData.paidBy= paidBy
+    apiData.selectedFile = selectedFile
     const data = {
       message: 'message posted',
       action,
       payload: apiData,
+      
     };
     window.parent.postMessage(data, dashboardBaseUrl);
   };
@@ -131,13 +147,13 @@ const settleNonTravelExpenseCount = financeData?.nonTravelExpense?.length || 0;
   function Tab () {
     switch (activeTab) {
       case "Settle Cash-Advances":
-        return dataFilterByDate(settleCashAdvanceData).map((trip, index)=>(<SettleCashAdvance trip={trip} key={index} handleActionConfirm={handleActionConfirm}  />));
+        return dataFilterByDate(settleCashAdvanceData).map((trip, index)=>(<SettleCashAdvance trip={trip} key={index} handleActionConfirm={handleActionConfirm} handleRemoveFile={handleRemoveFile} fileSelected={fileSelected} setFileSelected={setFileSelected} selectedFile={selectedFile} setSelectedFile={setSelectedFile}/>));
       case "Recover Cash-Advances":
-        return dataFilterByDate(recoverCashAdvanceData).map((trip, index)=>(<RecoverCashAdvance trip={trip} key={index} handleActionConfirm={handleActionConfirm}/>));
+        return dataFilterByDate(recoverCashAdvanceData).map((trip, index)=>(<RecoverCashAdvance trip={trip} key={index} handleActionConfirm={handleActionConfirm} handleRemoveFile={handleRemoveFile} fileSelected={fileSelected} setFileSelected={setFileSelected} selectedFile={selectedFile} setSelectedFile={setSelectedFile}/>));
       case "Settle Travel Expenses":
-        return settleTravelExpenseData?.map((expense,index)=>(<SettleTravelExpense trip={expense} key={index} handleActionConfirm={handleActionConfirm}/>));
+        return settleTravelExpenseData?.map((expense,index)=>(<SettleTravelExpense trip={expense} key={index} handleActionConfirm={handleActionConfirm} handleRemoveFile={handleRemoveFile} fileSelected={fileSelected} setFileSelected={setFileSelected} selectedFile={selectedFile} setSelectedFile={setSelectedFile}/>));
       case "Settle Non-Travel Expenses":
-        return settleNonTravelExpenseData.map((expense,index)=>(<SettleNonTravelExpense trip={expense} key={index} handleActionConfirm={handleActionConfirm}/>));
+        return settleNonTravelExpenseData.map((expense,index)=>(<SettleNonTravelExpense trip={expense} key={index} handleActionConfirm={handleActionConfirm} handleRemoveFile={handleRemoveFile} fileSelected={fileSelected} setFileSelected={setFileSelected} selectedFile={selectedFile} setSelectedFile={setSelectedFile} Upload={FileUploadComponent}/>));
       case "Account Entries":
         return <AccountEntry data={AcEntryData}/>;
       default:
@@ -288,12 +304,7 @@ export default Finance
 
 
 
-// import React, { useState, useEffect } from 'react';
-// import Select from '../common/Select';
-// import Input from '../common/Input';
-// import { calculateDateRanges } from '../utilis/handyFunctions';
-// import { SettleNowBtn } from '../common/TinyComponent';
-// import Button1 from '../common/Button1';
+
 
 const AccountEntryComponent = ({isLoading, handleConfirm,data}) => {
   const tableData = flattenData(data)
@@ -445,10 +456,11 @@ const AccountEntryComponent = ({isLoading, handleConfirm,data}) => {
       >
         {
           [{name:'PDF',icon:pdf_icon}, {name:'CSV',icon:csv_icon }].map((ele)=>(
-            <div onClick={()=>handleDownloadfile(ele.name)} key={ele.name}  className='flex items-center gap-2 px-2 py-2 hover:bg-indigo-50 rounded-md cursor-pointer'>
-              <img src={ele.icon} className='w-4 h-4'/>
-              <p className='font-cabin text-base '>{ele.name}</p>
-            </div>
+            
+            <div onClick={()=>handleDownloadfile(ele.name)} key={ele.name}  className='flex items-center gap-2 px-2 py-2 hover:bg-gray-200/40 rounded-md cursor-pointer'>
+            <img src={ele.icon} className='w-4 h-4'/>
+            <p className='font-inter text-neutral-900 text-sm '>{ele.name}</p>
+          </div>
           ))
         }
       </IconOption>
