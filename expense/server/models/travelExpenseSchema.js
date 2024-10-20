@@ -29,6 +29,10 @@ const lineItemStatusEnums = [
   'paid and distributed',
 ]
 
+const documentStatusEnums = [
+  'paid',
+  'recovered'
+]
 
 //it is dynamic, any expense lines fields can be added
 const expenseLineSchema = new mongoose.Schema({
@@ -175,6 +179,14 @@ export const travelExpenseSchema = new mongoose.Schema({
         type:Boolean,
         default:false
     },
+    settlementDetails: [{
+      url: { type: String},
+      comment:{type:String},
+      status: {
+      type: String,
+      enum: documentStatusEnums,
+    },
+  }],
     submissionDate: Date,
     settlementDate:Date,
     entriesFlag:{
