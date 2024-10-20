@@ -2570,7 +2570,7 @@ onChange={(value)=>handleEditChange('personalExpenseAmount',value)}
 
 {/* //personal expense */}
 <div className="flex flex-row items-center">
-<div className="h-[48px] w-[100px]  mb-10 mr-28 mt-[-10px] ">
+<div className="h-[48px] w-[100px] mb-10 mr-28 mt-[-10px]">
    <Select
        placeholder="Select Currency"
        title="Currency"
@@ -2624,47 +2624,8 @@ onChange={(value)=>handleEditChange('personalExpenseAmount',value)}
   </div>
  } 
 </div>
-{/* <div >
-{currencyTableData?.currencyFlag  ? 
-<div className='flex gap-2'>
-<div className="min-w-[200px] w-full  h-auto flex-col justify-start items-start gap-2 inline-flex mb-3">
-<div className="text-zinc-600 text-sm font-cabin">Coverted Amount Details :</div>
-<div className="text-neutral-700 w-full h-full text-sm font-normal font-cabin  ">
-  <div className="w-full h-full decoration:none  rounded-md border placeholder:text-zinc-400 border-neutral-300 focus-visible:outline-0 focus-visible:border-indigo-600">
-    <div className="  px-6  flex flex-row justify-between items-center h-12 bg-slate-300">
-      <div className="text-[16px] font-semibold text-neutral-600">Total Amount </div> 
-      <div className="text-neutral-600 font-cabin">{currencyTableData?.defaultCurrencyName} {currencyTableData?.convertedTotalAmount?.toFixed(2)}</div>
-  </div>
-{currencyTableData?.convertedPersonalAmount !== undefined &&
-<>
-    <div className="px-6 flex flex-row justify-between items-center h-12 bg-slate-300">
-      <div className=" text-[16px] font-semibold text-neutral-600">Personal Amount </div> 
-      <div className="text-neutral-600 font-cabin">{currencyTableData?.defaultCurrencyName} {currencyTableData?.convertedPersonalAmount?.toFixed(2)}</div>
-  </div>
-    <div className="px-6 flex flex-row justify-between items-center h-12 bg-slate-400">
-      <div className="  text-[16px] font-semibold text-neutral-600">Final Reimbursement Amount </div> 
-      <div className="text-neutral-600 font-cabin">{currencyTableData?.defaultCurrencyName} {currencyTableData?.convertedBookableTotalAmount?.toFixed(2)}</div>
-  </div>
-  </>}
-  </div>
 
-</div>
-
-</div>
-</div>
-   : 
-  currencyTableData?.message !== undefined &&
-  <div className=' flex items-center justify-center gap-2 border-[1px] px-4 py-2 rounded border-yellow-600  text-yellow-600'>
-    <img src={validation_symb_icon} className='w-5 h-5'/>
-  <h2 className=''>{currencyTableData?.message}</h2>
-  </div>
- } 
-</div> */}
-
-
-
-
-<div className="w-full flex items-center justify-center border-[1px] border-gray-50 ">
+<div className="w-full flex items-center justify-center border-[1px] border-gray-50">
 <Upload  
   selectedFile={selectedFile}
   setSelectedFile={setSelectedFile}
@@ -2675,7 +2636,7 @@ onChange={(value)=>handleEditChange('personalExpenseAmount',value)}
 </div>
 <div className="w-full mt-5 px-4">
  <Button text="Update" 
- loading={isUploading}
+ loading={isUploading.updateLineItme}
  active={active?.saveLineItem}
  onClick={handleSaveLineItemDetails} />
 </div>     

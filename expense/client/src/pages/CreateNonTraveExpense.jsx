@@ -31,7 +31,6 @@ const CreateNonTraveExpense = () => {
   
   const {tenantId,empId,expenseHeaderId} =useParams()
   const dashboardBaseUrl = `${import.meta.env.VITE_DASHBOARD_URL}`
-
   const az_blob_container = import.meta.env.VITE_AZURE_BLOB_CONTAINER
   const storage_sas_token = import.meta.env.VITE_AZURE_BLOB_SAS_TOKEN
   const storage_account = import.meta.env.VITE_AZURE_BLOB_ACCOUNT
@@ -72,16 +71,14 @@ const [currencyConversion, setCurrencyConversion]=useState({
     
 
     useEffect(() => {
+      console.log('fetching data...')
       const fetchData = async () => {
         try {
+          console.log('fetching data...')
           const response = await getNonTravelExpenseMiscellaneousDataApi(tenantId, empId,expenseHeaderId);
           setCategoryList(response?.reimbursementExpenseCategory || [])
-          const expenseSettlementOptions = Object.keys(response?.expenseSettlementOptions || {}).filter(
-            (option) => response?.expenseSettlementOptions?.[option]
-          ) || [];
-          
+          const expenseSettlementOptions = Object.keys(response?.expenseSettlementOptions ?? {}).filter((option) => response?.expenseSettlementOptions[option]) || [];
           const travelAllocationFlag = allocationLevel(response?.travelAllocationFlags)
-          
           setRequiredObj(prev=>({...prev,
             "expenseCategories":response?.reimbursementExpenseCategory || [],
              "level":travelAllocationFlag,
@@ -223,6 +220,7 @@ const [selectedCategory , setSelectedCategory]= useState(null)
     // }
   
     ///Handle Edit
+    
     const handleEdit=async(lineItem)=>{
       console.log('lineItem for edit',lineItem)
       setIsUploading(prev => ({...prev,editLineItem:true}))
@@ -1243,7 +1241,7 @@ If the required category is unavailable, please contact the administrator.</span
        
 
 {requiredObj?.expenseLines?.length > 0 && (
-  <div className="flex gap-2 flex-col sm:flex-row">
+  <div className="flex gap-2 flex-row mt-0 sm:mt-2 justify-start md:justify-end items-center w-auto">
     {!['paid'].includes(requiredObj?.expenseHeaderStatus) && (
       <>
         <Button1 loading={isUploading.submit} variant="fit" text="Submit" onClick={() => handleSubmitOrDraft("submit")} />
@@ -1252,7 +1250,7 @@ If the required category is unavailable, please contact the administrator.</span
       </>
     )}
    
-    <div className="flex items-center justify-center rounded-sm hover:bg-slate-100 p-1 cursor-pointer" onClick={()=>handleDashboardRedirection()}>
+    <div className="flex items-center justify-center rounded-sm bg-gray-200 p-1 cursor-pointer" onClick={()=>handleDashboardRedirection()}>
           <img src={cancel_icon} className="w-5 h-5"/> 
     </div> 
   </div>

@@ -3,7 +3,7 @@ import { CircleFlag } from 'react-circle-flags';
 import { useRef, useEffect, useState } from 'react';
 import Search from './Index';
 
-const CurrencyInput = ({conversionAmount,dataMsg,uploading,title,id,placeholder, onChange ,error,initialValue,type,inputRef, amount, currency, mode, onModeChange, currencyOptions, cashAdvanceOptions, onAmountChange, onCurrencyChange, setSearchParam, removeItem })=>{
+const CurrencyInput = ({conversionAmount,dataMsg,uploading,title,id,placeholder, onChange ,error,initialValue,type='number',inputRef, amount, currency, mode, onModeChange, currencyOptions, cashAdvanceOptions, onAmountChange, onCurrencyChange, setSearchParam, removeItem })=>{
   const [inputValue, setInputValue] = useState("");
 
   console.log('selected currency',currency)
@@ -100,7 +100,7 @@ const CurrencyInput = ({conversionAmount,dataMsg,uploading,title,id,placeholder,
       ):
       conversionAmount?.currencyFlag && (
         <div className="absolute  top-[48px] w-full text-xs text-neutral-900 font-cabin">
-      {`Amount in ${conversionAmount?.defaultCurrencyName} ${(conversionAmount?.convertedTotalAmount).toFixed(2)} | 1 ${conversionAmount?.convertedCurrencyName} = ${conversionAmount?.defaultCurrencyName} ${conversionAmount?.conversionRate}`}
+      {`Amount in ${conversionAmount?.defaultCurrencyName} ${(conversionAmount?.convertedTotalAmount)?.toFixed(2)} | 1 ${conversionAmount?.convertedCurrencyName} = ${conversionAmount?.defaultCurrencyName} ${conversionAmount?.conversionRate}`}
         </div>
       ) } 
            {dataMsg?.set && (
