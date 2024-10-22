@@ -204,12 +204,12 @@ export const updateTravelExpenseLineItemApi = async(tenantId,empId,tripId,expens
 
 
 export const submitOrSaveAsDraftApi = async(
-  action,
+{  action,
   tenantId,
   empId,
   tripId,
   expenseHeaderId,
-  data)=>{
+  data})=>{
 let url;
     if(action==="submit"){
        url = `${EXPENSE_BACKEND_API_URL}/api/fe/expense/travel/${tenantId}/${empId}/${tripId}/${expenseHeaderId}/submit`
@@ -288,7 +288,7 @@ export const  getRejectionDataForTravelExpenseApi=async(tenantId,empId,tripId,ex
 
 
 
-export const cancelTravelExpenseHeaderApi = async(tenantId,empId,tripId,expenseHeaderId,data)=>{
+export const cancelTravelExpenseHeaderApi = async({tenantId,empId,tripId,expenseHeaderId,data})=>{
 
   const url = `${EXPENSE_BACKEND_API_URL}/api/fe/expense/travel/${tenantId}/${empId}/${tripId}/${expenseHeaderId}/cancel`
   

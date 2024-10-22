@@ -74,9 +74,6 @@ const dashboardBaseUrl = `${import.meta.env.VITE_DASHBOARD_URL}`
 // const dashboardBaseUrl = `${import.meta.env.VITE_DASHBOARD_URL}/${tenantId}/${empId}/overview`
 
 
-  
-
-
 const [requiredObj, setRequiredObj] = useState(
     {"allocationsList":[],
         'travelExpenseCategories':[],
@@ -124,28 +121,27 @@ useEffect(() => {
           headerName: allocation.headerName,
           headerValue: "",
         }));
-        selectedAllocations(allocations)
+        setSelectedAllocations(allocations)
     
       }
 
 
-      const flagToOpen = response?.flagToOpen
-      const openedExpenseObj = (response?.travelExpenseData)?.find(expense => expense.expenseHeaderId === flagToOpen)
-     
+      const flagToOpen = response?.flagToOpen;
+      const openedExpenseObj = (response?.travelExpenseData)?.find(expense => expense.expenseHeaderId === flagToOpen);
+
       if(travelAllocationFlag==='level3'){
-        const travelType = openedExpenseObj?.travelType
-        console.log('travelType',travelAllocationFlag,travelType,flagToOpen, openedExpenseObj)
-        const travelExpenseCategories = response?.companyDetails?.travelAllocations[travelType]
+        const travelType = openedExpenseObj?.travelType;
+        console.log('travelType',travelAllocationFlag,travelType,flagToOpen, openedExpenseObj);
+        const travelExpenseCategories = response?.companyDetails?.travelAllocations[travelType];
         setRequiredObj(prev=>({
           ...prev,
           travelExpenseCategories,
           level:travelAllocationFlag,
           travelType
-        }))
+        }));
       }
 
-
-      // for travelExpenseCategories data
+// for travelExpenseCategories data
 
       setRequiredObj(prev=>({
         ...prev,
@@ -154,7 +150,6 @@ useEffect(() => {
         expenseHeaderId:response?.flagToOpen,
         expenseAmountStatus:response?.expenseAmountStatus,
         approvers: openedExpenseObj?.approvers
-        
       }))
 
       console.log('trip data fetched successfully', response)
@@ -191,7 +186,6 @@ const [errorMsg,setErrorMsg] = useState({
 
 const handleAllocations = (headerName, headerValue) => {
     console.log('allocation handle', headerName, headerValue);
-  
     const updatedExpenseAllocation = selectedAllocations.map(item => {
       if (item.headerName === headerName) {
         return {
@@ -851,7 +845,6 @@ useEffect(()=>{
        isUploading={isUploading}
        defaultCurrency={requiredObj.defaultCurrency}
        setCurrencyConversion={setCurrencyConversion}
-       //handleCurrencyConversion={useCurrencyConversion}
        handleCurrencyConversion={handleCurrencyConversion}
        setFormData={setFormData}
        formData={formData.fields}

@@ -171,20 +171,18 @@ console.log('form data for edit',formData,formData,categoryFields)
         ) : isTotalAmountField ? (
           <div className='w-full'>
           <CurrencyInput
+          
           conversionAmount={conversionAmount}
           initialValue={formData[field.name]}
           error={errorMsg?.conversion}
           title={field.name}
           uploading={isUploading.conversion}
           currencyOptions={currenciesList.map(cr=>({...cr, imageUrl:`https://hatscripts.github.io/circle-flags/flags/${cr.countryCode.toLowerCase()}.svg`}))} 
-
-            //for amount input---
-             name={field.name}
-            // placeholder={`Enter ${field.name}`}
-            // value={formData[field.name] || ""}
-            currency={formData.Currency}
-            onCurrencyChange={(value)=>handleInputChange('Currency',value)}
-            onChange={(value) => handleInputChange(field.name, value)}
+          //for amount input---
+          name={field.name}
+          currency={formData.Currency}
+          onCurrencyChange={(value)=>handleInputChange('Currency',value)}
+          onChange={(value) => handleInputChange(field.name, value)}
           />
           </div>
         ) : (

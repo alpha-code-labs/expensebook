@@ -132,7 +132,8 @@ console.log('converted amount',currencyConversion)
 <p className='text-start w-full  px-2 py-2 text-base text-neutral-700 font-inter'>Allocations</p>
  <div className='border-y flex items-center justify-center w-full  border-slate-300 px-2  pb-2'>
           <Allocations 
-          errorMsg={errorMsg}
+            errorMsg={errorMsg}
+            getSavedAllocations={formData?.allocations}
             onboardingLevel={onboardingLevel} 
             travelExpenseAllocation={allocationsList} 
             onAllocationSelection={handleAllocations} 
@@ -175,7 +176,7 @@ console.log('converted amount',currencyConversion)
           <div className='w-full'>
           <CurrencyInput
           conversionAmount={conversionAmount}
-          error={errorMsg.conversion}
+          error={errorMsg?.conversion}
           title={field.name}
           uploading={isUploading.conversion}
           currencyOptions={currenciesList.map(cr=>({...cr, imageUrl:`https://hatscripts.github.io/circle-flags/flags/${cr.countryCode.toLowerCase()}.svg`}))} 
@@ -268,14 +269,14 @@ console.log('converted amount',currencyConversion)
 checked={personalExpFlag}
 setChecked={setPersonalExpFlag}
 title='Is personal expense?' 
-initialValue={false}
+initialValue={formData?.isPersonalExpense ?? false}
 onClick={(flag)=>handleInputChange("isPersonalExpense",flag)}/>
 </div>
 <div
   className={`w-full transition-all ease-in-out duration-300 ${personalExpFlag ? 'opacity-100 max-h-full' : 'opacity-0 max-h-0 overflow-hidden'}`}
 >
 <Input
-    conversionAmount={conversionAmount}
+    conversionAmount={conversionAmount }
     title='Personal Amount'
     error={errorMsg?.personalAmount}
     name='personalExpenseAmount'
