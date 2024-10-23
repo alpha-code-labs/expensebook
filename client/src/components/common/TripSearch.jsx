@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { briefcase } from '../../assets/icon';
-import { splitTripName } from '../../utils/handyFunctions';
+import { briefcase, calender_icon } from '../../assets/icon';
+import { formatDate, splitTripName } from '../../utils/handyFunctions';
 import { TripName } from './TinyComponent';
 
-const TripSearch = ({ data, onSelect, title, error, placeholder }) => {
+const TripSearch = ({requestType, validation, data, onSelect, title, error, placeholder }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredOptions, setFilteredOptions] = useState([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -61,11 +61,41 @@ const TripSearch = ({ data, onSelect, title, error, placeholder }) => {
   }, [filteredOptions, highlightedIndex]);
 
   const handleSelect = (option) => {
+
     setSearchTerm(option.travelRequestNumber || option.tripNumber);
     setIsDropdownOpen(false);
     setHighlightedIndex(-1);
     onSelect(option);
   };
+
+  function restrictBookExpense(travelType, tripCompletionDate, formValidations) {
+    if(requestType !== "travel_Expense"){
+      return {flag:false, message: ""}
+    }
+    const travelSettings = formValidations[travelType];
+    if (!travelSettings) return { flag: false, message: "Invalid travel type." };
+
+    const allowedDays = parseInt(travelSettings.expenseReportDeadline.dayLimit.days);
+    
+   
+    const tripCompletion = new Date(tripCompletionDate);
+    const currentDate = new Date();
+
+
+    const expenseDeadline = new Date(tripCompletion);
+    console.log('expense deadline data', expenseDeadline, allowedDays)
+    expenseDeadline.setDate(expenseDeadline.getDate() + allowedDays);
+    console.log('expense deadline data', expenseDeadline)
+     // const violationMessage = travelSettings.expenseReportDeadline.dayLimit.violationMessage;
+    //const violationMessage = "Expense raising period exceeded for this trip.";
+    const violationMessage = `Expense raising period exceeded on ${[formatDate(expenseDeadline)]}.`
+
+    if (currentDate > expenseDeadline) {
+        return { flag: true, message: violationMessage };
+    } else {
+        return { flag: false, message: "" };
+    }
+}
 
   return (
     <div className="relative h-[73px]" ref={dropdownRef}>
@@ -88,37 +118,50 @@ const TripSearch = ({ data, onSelect, title, error, placeholder }) => {
             filteredOptions.length === 0 ? (
               <div className='h-12 text-center flex justify-center items-center font-inter'>trips not found.</div>
             ) : (
-              filteredOptions.map((option, index) => (
-                <li
+              filteredOptions.map((option, index) => 
+                {
+                  const {message,flag} = restrictBookExpense(option?.travelType, option?.tripCompletionDate,validation );
+                  console.log("validataion",message,flag)
+                  return (
+                    <li
                   key={option.travelRequestId || option.tripId}
-                  onClick={() => handleSelect(option)}
-                  className={`flex flex-col-reverse gap-y-2 justify-between  p-2 px-4 border-b border-slate-300 cursor-pointer ${highlightedIndex === index ? 'bg-gray-200' : 'hover:bg-gray-100'}`}
+                  onClick={() => {flag? console.log("diabled") : handleSelect(option)}}
+                  className={`flex flex-col-reverse gap-y-2 justify-between  p-2 px-4 border-b border-slate-300 ${flag ? "cursor-not-allowed" : "cursor-pointer"} ${highlightedIndex === index ? 'bg-gray-200' : 'hover:bg-gray-100'}`}
                 >
-                  
-            
-                  <div className='  flex  items-center whitespace-nowrap'>
+              <div className='  flex flex-col  items-start whitespace-nowrap'>
                    
-                    {/* <div className='flex min-w-max gap-2 items-center '>
-              <img src={briefcase} className='w-4 h-4'/>
-              <div className='font-medium font-cabin  text-sm uppercase text-neutral-700 '>
-               {splitTripName(option?.tripName)}
-              </div>
-              <div className='font-medium font-cabin  text-sm  text-neutral-700 '>
-               {extractAndFormatDate(option?.tripName)}
-              </div>
-              </div> */}
               <TripName tripName={option?.tripName}/>
+              <p className='mt-1 text-xs font-cabin text-red-200'>{message}</p>
                   </div>
+                  <div className='flex justify-between items-start'>
                   <div className='     flex flex-col justify-center items-start'>
-                    <div className='font-medium   text-sm font-cabin text-neutral-400'>
+                   
+                    <div className='font-medium   text-xs font-cabin text-neutral-400'>
                       {option.tripNumber ? "Trip No." : "Travel Request No."}
                     </div>
-                    <div className='text-sm font-cabin text-start text-neutral-700'>
+                    <div className='text-xs font-cabin text-start text-neutral-700'>
                       {option.tripNumber || option.travelRequestNumber}
                     </div>
                   </div>
+                  <div className='     flex flex-col justify-center items-start'>
+                   
+                    <div className='font-medium   text-xs font-cabin text-neutral-400'>
+                      {"Completed Date"}
+                    </div>
+                    <div className='flex gap-1 items-center justify-center text-xs font-cabin text-start text-neutral-700'>
+                      <img src={calender_icon} className='w-3 h-3'/>
+                      {formatDate(option.tripCompletionDate)}
+                    </div>
+                    
+                    
+                  </div>
+                  </div>
+                 
                 </li>
-              ))
+
+                  )
+                }
+              )
             )
             
           )}

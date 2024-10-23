@@ -7,6 +7,7 @@ export const DataProvider = ({ children }) => {
   const [travelAdminData, setTravelAdminData] = useState(null);
   const [employeeRoles , setEmployeeRoles]=useState(null);
   const [routeData, setRouteData] = useState(null);
+  const [requiredData, setRequiredData] = useState({});
 
   return (
     <DataContext.Provider
@@ -20,7 +21,9 @@ export const DataProvider = ({ children }) => {
         employeeRoles,
         setEmployeeRoles,
         routeData,
-        setRouteData
+        setRouteData,
+        requiredData,
+        setRequiredData
       }}
     >
       {children}

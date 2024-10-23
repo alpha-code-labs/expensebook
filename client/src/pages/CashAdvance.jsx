@@ -42,8 +42,9 @@ const CashAdvance = ({searchQuery,isLoading, fetchData, loadingErrMsg}) => {
 
 
   useEffect(() => {
-
-    if (employeeData) {
+    setTimeout(() => {
+    if (employeeData?.length!==0) {
+      
 
       const data = employeeData?.dashboardViews?.employee?.overview || [];
       const travelData = data?.allTravelRequests?.allTravelRequests || [];
@@ -55,11 +56,11 @@ const CashAdvance = ({searchQuery,isLoading, fetchData, loadingErrMsg}) => {
 
       setTravelData(pushedData);
       setCashAdvanceData(employeeData?.dashboardViews?.employee?.cashAdvance);
-      console.log('Travel data for raise advance:', dataForRaiseCashadvance);
+      console.log('Travel data for raise advance:', employeeData);
 
     } else {
-      console.error('Employee data is missing.');
-    }
+      console.error('Employee data is missing.1');
+    }},2000)
 
   }, [employeeData]);
 
@@ -226,13 +227,13 @@ const handleVisible = (travelRequestId, action, cashadvanceId) => {
     </div>
 </div>   
             <div className='w-full h-full mt-4  overflow-y-auto px-2 bg-white rounded-l-md'>
-          {travelCashAdvances?.length > 0 ? travelCashAdvances?.map((trip) => { 
+          {travelCashAdvances?.length > 0 ? travelCashAdvances?.map((trip,mainIndex) => { 
             const filteredCashadvances = filterCashadvances(trip?.cashAdvances)
             if (filteredCashadvances.length === 0) return null;
             return(
               <>
-              <CardLayout index={trip?.tripId}>
-            <div key={trip?.tripId} className='py-2 w-full'>
+              <CardLayout key={mainIndex+"ca11"}>
+            <div  key={mainIndex} className='py-2 w-full'>
           <TripName tripName={trip?.tripName}/>
               {filteredCashadvances?.map((advance,index) => ( 
                 <div key={index} className={`px-2 py-2 ${index < filteredCashadvances.length-1 && 'border-b border-slate-400 '}`}>
@@ -365,7 +366,7 @@ Raise a Cash-Advance
 <div className='flex gap-4 flex-col items-start justify-start w-full py-2'>
 { advancetype=== "travel_Cash-Advance" &&
  <div className='w-full'>
-  <TripSearch placeholder={"Select the trip"} error={error?.travelRequestId} title="Apply to trip" data={travelData} onSelect={handleSelect} />
+  <TripSearch requestType={advancetype} placeholder={"Select the trip"} error={error?.travelRequestId} title="Apply to trip" data={travelData} onSelect={handleSelect} />
  </div> }
   
 
