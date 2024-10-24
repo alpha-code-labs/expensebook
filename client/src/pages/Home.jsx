@@ -20,7 +20,7 @@ import Report from './Report';
 const Home = () => {
 
 const {tenantId,empId}= useParams()
-const [sidebarOpen,setSidebarOpen]=useState(false)
+const [sidebarOpen,setSidebarOpen]=useState(false);
 
 useEffect(() => {
   // Function to update state based on screen width
@@ -40,7 +40,7 @@ useEffect(() => {
 const [authToken , setAuthToken] = useState("authtoken");
 const [isLoading, setIsLoading] = useState({ loginData: false, roleData: true });
 const [loadingErrMsg, setLoadingErrMsg] = useState(null);
-const { employeeRoles, setEmployeeRoles, setEmployeeData,employeeData } = useData();
+const { employeeRoles, setEmployeeRoles, setEmployeeData, setRequiredData, employeeData } = useData();
 const [searchQuery , setSearchQuery] = useState('');
 
 const fetchData = async () => {
@@ -54,10 +54,11 @@ const fetchData = async () => {
       setEmployeeRoles(rolesResponse);
       setIsLoading(prev => ({ ...prev, loginData: false })); // Stop loading for role data
     }
-
     setIsLoading(prev => ({ ...prev, roleData: true })); // Start loading for login data
     const employeeResponse = await getEmployeeData_API(tenantId, empId);
     setEmployeeData(employeeResponse);
+    setRequiredData({"formValidations": employeeResponse?.dashboardViews?.employee?.formValidations});
+
     setIsLoading(prev => ({ ...prev, roleData: false })); // Stop loading for login data
   } catch (error) {
     console.error('Error fetching data:', error.message);

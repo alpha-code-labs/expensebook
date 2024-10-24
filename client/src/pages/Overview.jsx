@@ -66,7 +66,7 @@ function CardLayout({icon,title,subTitle,cardTitle,children}){
 
 const Overview = ({fetchData ,isLoading,setIsLoading,loadingErrMsg, setLoadingErrMsg}) => {
 
-  const { employeeData } = useData(); 
+  const { employeeData, requiredData } = useData(); 
   const [overviewData,setOverviewData]=useState(null); 
   const {tenantId,empId,page}= useParams(); 
   const [modalOpen , setModalOpen]=useState(false); 
@@ -79,6 +79,8 @@ const Overview = ({fetchData ,isLoading,setIsLoading,loadingErrMsg, setLoadingEr
   useEffect(()=>{
     fetchData()
   },[])
+
+
 
 
 useEffect(()=>{
@@ -243,19 +245,17 @@ const [expenseTabs , setExpenseTabs]=useState("travelExpense");
    )}
    </CardLayout>
    
-        
-    <CardLayout  icon={expense_black_icon} title={"Expenses"} subTitle={'Track travel and non-travel expenses'}>    
-   
+   <CardLayout  icon={expense_black_icon} title={"Expenses"} subTitle={'Track travel and non-travel expenses'}>    
    <div className="flex gap-x-2 h-[45px] px-2 flex-row items-center justify-between text-center font-cabin border-b-2  border-slate-300  text-neutral-700 text-xs">
    <div className='flex font-inter'>
    <div
-className={`px-2 py-1  rounded-lg cursor-pointer ease-in-out ${expenseTabs === 'travelExpense' ? 'bg-gray-200/10   text-neutral-900 font-semibold  text-xs ' : 'text-xs'}`}
+   className={`px-2 py-1  rounded-lg cursor-pointer ease-in-out ${expenseTabs === 'travelExpense' ? 'bg-gray-200/10   text-neutral-900 font-semibold  text-xs ' : 'text-xs'}`}
    onClick={() => handleExpenseTabChange("travelExpense")}
    >
    <p>Travel Expense</p>
    </div>
    <div
-className={`px-2 py-1 rounded-lg cursor-pointer ease-in-out ${expenseTabs === 'nonTravelExpense' ? 'bg-gray-200/10   text-neutral-900 font-semibold  text-xs ' : 'text-xs'}`}
+   className={`px-2 py-1 rounded-lg cursor-pointer ease-in-out ${expenseTabs === 'nonTravelExpense' ? 'bg-gray-200/10   text-neutral-900 font-semibold  text-xs ' : 'text-xs'}`}
    onClick={() => handleExpenseTabChange("nonTravelExpense")}
    >
    <p>Non-Travel Expense</p>
@@ -280,7 +280,7 @@ className={`px-2 py-1 rounded-lg cursor-pointer ease-in-out ${expenseTabs === 'n
    <TooltipBtn   onClick={()=>setModalOpen(!modalOpen)} onHover={'Add an Expense'} icon={plus_black_icon} disabled={true}/>
    </div>
    
-   <div className='h-[224px] overflow-y-auto px-2 mt-2 '>
+   <div className='h-[224px] overflow-y-auto px-2 mt-2'>
    {expenseTabs === "travelExpense" && (
      travelExpenses?.length ===0 ? <EmptyTrips icon={empty_travelExpense_icon} text="No travel expenses." /> :
      
@@ -293,6 +293,7 @@ className={`px-2 py-1 rounded-lg cursor-pointer ease-in-out ${expenseTabs === 'n
    nonTravelExpenses?.map((expense,index) => <NonTravelExpenses index={index} expense={expense} lastIndex={nonTravelExpenses?.length-1}/>)
    )
    }
+
    </div>
    </CardLayout>  
           
@@ -370,7 +371,7 @@ className={`px-2 py-1 rounded-lg cursor-pointer ease-in-out ${expenseTabs === 'n
 <div className='p-4'>
  <div className='flex md:flex-row flex-col justify-between gap-2'>
  
-  <TabTitleModal text={"Travel Expense"} icon={expense_white_icon} onClick={()=>setExpenseType("travel_Cash-Advance")} selectedTab={expenseType === "travel_Cash-Advance"}/>
+  <TabTitleModal text={"Travel Expense"} icon={expense_white_icon} onClick={()=>setExpenseType("travel_Expense")} selectedTab={expenseType === "travel_Expense"}/>
   <TabTitleModal text={"Non-Travel Expense"} icon={expense_white_icon} onClick={()=>setExpenseType("non-Travel_Cash-Advance")} selectedTab={expenseType === "non-Travel_Cash-Advance"}/>
            
  
@@ -378,9 +379,9 @@ className={`px-2 py-1 rounded-lg cursor-pointer ease-in-out ${expenseTabs === 'n
   
 <div className='flex gap-4 flex-col items-start justify-start w-full py-2'>
 
-{ expenseType=== "travel_Cash-Advance" &&
+{ expenseType=== "travel_Expense" &&
  <div className='w-full'>
-  <TripSearch placeholder={"Select the trip"} error={error?.tripId} title="Apply to trip" data={[...intransitTrips, ...completedTrips]} onSelect={handleSelect} />
+  <TripSearch requestType={"travel_Expense"} validation={requiredData?.formValidations ?? {}} placeholder={"Select the trip"} error={error?.tripId} title="Apply to trip" data={[...intransitTrips, ...completedTrips]} onSelect={handleSelect} />
  </div> }
   
 {expenseType && <Button1 text={"Raise"} onClick={handleRaise} />}

@@ -144,7 +144,7 @@ function clearCookie(name) {
         }>
 <div className=' border-none divide-y divide-slate-300 flex  flex-col gap-1'>
 {notificationData?.map((ele)=>(
-            <div  key={ele.name}  className={`${ele.status === 'urgent' ? ' bg-gradient-to-t from-red-50/50 to-white  ' : ele.status ==='action' ? ' bg-gradient-to-t to-yellow-50/50 from-white  ': 'bg-gradient-to-t from-white to-indigo-50/50  '} bg-none flex w-[300px] gap-2 py-2  items-center text-neutral-900  hover:bg-gray-200/10 hover:rounded-md hover:border-none p-1 cursor-pointer`}>
+            <div  key={ele.name + "navbar"}  className={`${ele.status === 'urgent' ? ' bg-gradient-to-t from-red-50/50 to-white  ' : ele.status ==='action' ? ' bg-gradient-to-t to-yellow-50/50 from-white  ': 'bg-gradient-to-t from-white to-indigo-50/50  '} bg-none flex w-[300px] gap-2 py-2  items-center text-neutral-900  hover:bg-gray-200/10 hover:rounded-md hover:border-none p-1 cursor-pointer`}>
              {/* <p className='font-inter text-xs'>{`Trip ${ele.tripName} is scheduled to start in ${ele.daysLeft}.`}</p> */}
              {/* Reminder: Submit your expenses for the completed trip "DEL-DUB-DEL (4th Oct 2024)." */}
               {/* <img src={violation_icon} className='w-4 h-4'/> */}

@@ -20,11 +20,11 @@ const Expense = ({searchQuery,isLoading ,fetchData,loadingErrMsg}) => {
   const [tripId , setTripId]=useState(null);
   const [expenseType , setExpenseType]=useState(null);
   const [selectedStatuses, setSelectedStatuses] = useState([]);
-  const [textVisible,setTextVisible]=useState({tripId:false}); 
+  
   const [modalOpen , setModalOpen]=useState(false);
   const [tripData, setTripData]=useState([]);
   const {tenantId,empId,page}= useParams();
-  const { employeeData } = useData();
+  const { employeeData, requiredData } = useData();
   const [error , setError]= useState({
     tripId: {set:false, message:""}
   }); 
@@ -121,7 +121,7 @@ const Expense = ({searchQuery,isLoading ,fetchData,loadingErrMsg}) => {
   };
 
   const handleRaise = () => {
-    if (expenseType=== "travel_Cash-Advance") {
+    if (expenseType=== "travel_Expense") {
       if (!tripId) {
         setError(prev => ({ ...prev, tripId: { set: true, message: "Select the trip" } }));
         
@@ -293,15 +293,15 @@ setSelectedStatuses={setSelectedStatuses}
 <div className='p-4'>
 <div className='flex md:flex-row flex-col justify-between gap-2'>
  
-  <TabTitleModal text={"Travel Expense"} onClick={()=>setExpenseType("travel_Cash-Advance")} icon={expense_white_icon} selectedTab={expenseType === "travel_Cash-Advance"}/>
+  <TabTitleModal text={"Travel Expense"} onClick={()=>setExpenseType("travel_Expense")} icon={expense_white_icon} selectedTab={expenseType === "travel_Expense"}/>
   <TabTitleModal text={"Non-Travel Expense"} onClick={()=>setExpenseType("non-Travel_Cash-Advance")} icon={expense_white_icon} selectedTab={expenseType === "non-Travel_Cash-Advance"}/>
   </div>  
   
 
 <div className='flex gap-4 flex-col items-start justify-start w-full py-2'>
-{ expenseType=== "travel_Cash-Advance" &&
+{ expenseType=== "travel_Expense" &&
  <div className='w-full'>
-  <TripSearch placeholder={"Select the trip"} error={error?.tripId} title="Apply to trip" data={tripData} onSelect={handleSelect} />
+  <TripSearch requestType={expenseType} validation={requiredData?.formValidations ?? {}} placeholder={"Select the trip"} error={error?.tripId} title="Apply to trip" data={tripData} onSelect={handleSelect} />
  </div> }
   
 
