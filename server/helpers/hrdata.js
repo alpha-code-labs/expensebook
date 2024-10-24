@@ -41,6 +41,7 @@ const getPolicyDetails = async (tenantId, empId, travelType) => {
                     travelType,
                     expenseReportDeadline: groupPolicies['Expense Report Submission Deadline'],
                     allowInternationalExpenseSubmission: groupPolicies['Allow International Travel Expense Submission with violations'],
+                    expenseReportSubmissionDuringTravel:groupPolicies['Allow expense report submission during travel']
                   });
                 }
               }
