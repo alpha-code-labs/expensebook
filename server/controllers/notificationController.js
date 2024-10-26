@@ -70,13 +70,26 @@ const fetchEmployeeNotifications = async (tenantId, empId, applicableRoles) => {
             setBusinessAdmin=[]
         }
 
-        return { 
-            employee:setEmployee, 
-            employeeManager:setEmployeeManager , 
-            finance:setFinance, 
-            businessAdmin:setBusinessAdmin, 
-            superAdmin
+        const roleSets = {
+            employee: setEmployee,
+            employeeManager: setEmployeeManager,
+            finance: setFinance,
+            businessAdmin: setBusinessAdmin,
+            superAdmin: superAdmin
         };
+
+    console.log("applicableRoles", applicableRoles);
+
+    const rolesToReturn = {};
+
+    for (const role of applicableRoles) {
+    if (roleSets[role]) {
+        rolesToReturn[role] = roleSets[role];
+    }
+    }
+
+    return Object.keys(rolesToReturn).length > 0 ? rolesToReturn : null;
+
     } catch (error) {
         console.error('Error fetching employee notifications:', error);
         throw new Error('Could not fetch notifications.'); 
