@@ -6,6 +6,8 @@ const messageStatusEnums = [
     'action'
 ]
 
+const approverStatusEnums = ["pending approval", "approved", "rejected"];
+
 const MessageSchema = new mongoose.Schema({
     messageId: {
         type: mongoose.Schema.Types.ObjectId,
@@ -25,7 +27,7 @@ const MessageSchema = new mongoose.Schema({
     createdAt: {
         type: Date,
         default: Date.now,
-        expires: '24h', 
+        expires: '1024h', 
     },
     isRead: {
         type: Boolean,
@@ -45,21 +47,48 @@ const NotificationSchema = new mongoose.Schema({
     employee: {
         empId: {
             type: String,
-            required: true,
+            required: function() {
+                return !this.approvers || this.approvers.length === 0;
+            },
             trim: true, 
         },
         name: {
             type: String,
-            required: true,
+            required: function() {
+                return !this.approvers || this.approvers.length === 0;
+            },
             trim: true, 
         },
     },
+    approvers: [
+        {
+            empId: String,
+            name: String,
+            status: {
+                type: String,
+                enum: approverStatusEnums,
+            },
+            imageUrl: String,
+        },
+    ],
     messages: {
         type: [MessageSchema],
         required: true,
         validate: [arrayLimit, '{PATH} exceeds the limit of 100 messages'], 
     },
-}, { timestamps: true }); 
+}, { timestamps: true });
+
+// Custom validation to ensure only one of employee or approvers is present
+NotificationSchema.pre('validate', function(next) {
+    if ((this.employee && (this.employee.empId || this.employee.name)) && this.approvers && this.approvers.length > 0) {
+        return next(new Error('Either employee or approvers should be present, but not both.'));
+    }
+    if (!this.employee && (!this.approvers || this.approvers.length === 0)) {
+        return next(new Error('Either employee or approvers must be present.'));
+    }
+    next();
+});
+
 
 function arrayLimit(val) {
     return val.length <= 100; 
