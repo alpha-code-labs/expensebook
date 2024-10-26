@@ -196,7 +196,7 @@ const getDashboardViews = async (tenantId, empId) => {
 
         const formattedDashboardViews = dashboardViews.reduce((acc, curr) => ({ ...acc, ...curr }), {});
 
-        const notifications = await fetchEmployeeNotifications(tenantId,empId)
+        const notifications = await fetchEmployeeNotifications(tenantId,empId,applicableRoles)
 
         return {
             dashboardViews: formattedDashboardViews,
