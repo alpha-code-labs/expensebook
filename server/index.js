@@ -42,7 +42,7 @@ const app = express();
 
 const corsOptions = {
   origin: true,
-  credentials: true
+  credentials: true 
 }
 
 app.use(express.json());
@@ -90,7 +90,9 @@ scheduleToFinanceBatchJob()
 consumeFromDashboardQueue();
 // scheduleToNotificationBatchJob()
 
-
+// const list = await HRMaster.find().select({'tenantId':1,'-_id':0})
+// const tenantIds = list.map(l => l.tenantId.toString())
+// console.info("list", list, 'tenantIds', tenantIds)
 
 
 

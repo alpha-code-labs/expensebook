@@ -221,14 +221,11 @@ export async function startConsumer(receiver) {
                 handleMessageAcknowledgment(channel, msg, res5);
                 break;
 
-
-                case 'onceCash':
+              case 'onceCash':
                   console.log('trying to update CashAdvanceSchema')
                   const res51 = await onceCash(payload)
                   handleMessageAcknowledgment(channel, msg, res51);
                   break;
-
-                
 
                 default:
                   console.warn(`Unknown action '${action}' for source ${source}`);

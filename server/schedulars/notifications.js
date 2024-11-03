@@ -3,6 +3,9 @@ import dotenv from 'dotenv'
 import dashboard from "../models/dashboardSchema.js"; 
 import Notification from "../models/notification.js";
 import { earliestDate } from '../utils/date.js';
+import HRMaster from '../models/hrMasterSchema.js';
+import REIMBURSEMENT from '../models/reimbursementSchema.js';
+import EXPENSE_NOTIFICATION from '../models/reimbursementNotification.js';
 
 dotenv.config();
 
@@ -250,16 +253,25 @@ const createNotificationMessage = (trip, daysUntilTrip) => {
 };
 
 
+
 const scheduleToNotificationBatchJob = () => {
     const schedule = process.env.SCHEDULE_TIME ?? '*/5 * * * * *';
     cron.schedule(schedule, async () => {
         console.log('Running Notification batchJob...');
         try {
-            const tenantId = '66e048c79286e2f4e03bdac1'
-            await Promise.all([
-                setEmployeeNotifications(tenantId),
-                setManagerNotifications(tenantId)
-            ]);
+            const list = await HRMaster.find().select({'tenantId': 1, '_id': 0});
+            const tenantIds = list.map(doc => doc.tenantId.toString());
+            // console.info("list", list, 'tenantIds', tenantIds)
+
+            const notificationPromises = tenantIds.map(tenantId => 
+                Promise.all([
+                    setEmployeeNotifications(tenantId),
+                    setManagerNotifications(tenantId),
+                    setFinanceNotifications(tenantId)
+                ])
+            );
+
+            await Promise.all(notificationPromises);
             console.log('Notification batchJob completed successfully.');
         } catch (error) {
             console.error('Error running NotificationBatchJob:', error);
@@ -308,23 +320,37 @@ export const getApprovalDocuments = (tenantId, now, futureDate, pastDate) => {
     }).lean().exec();
 };
 
-export const getReimbursementReports = (tenantId, now, futureDate, pastDate) => {
-    return REIMBURSEMENT.find({
+export const getReimbursementReports = async(tenantId, now, futureDate, pastDate) => {
+    const projections = {
+        tenantId: 1,
+        travelRequestId: 1,
+        'createdBy': 1,
+        'approvers': 1,
+        'expenseSubmissionDate': 1,
+        'expenseHeaderNumber':1,
+        "expenseHeaderId":1,
+        "expenseHeaderStatus":1,
+        'expenseAmountStatus':1
+    };
+
+    const reports = await REIMBURSEMENT.find({
         tenantId,
         'approvers': {
             $elemMatch: {
-                empId: empId,
                 'status': 'pending approval'
             }
         }
-    });
+    },projections);
+
+    return reports.length > 1 ? reports : [];
 };
 
+
 // Manager Notifications
-const fetchDocuments = async (tenantId, filters, projections) => {
+const getDocs = async (tenantId, filters, projections) => {
     return await dashboard.find(
         { tenantId, $or: filters },
-        projections
+        projections 
     ).lean().exec();
 };
 
@@ -335,328 +361,575 @@ const getApprovalReports = async (tenantId, now, futureDate, pastDate) => {
             'travelRequestSchema.travelRequestStatus': 'pending approval',
             'travelRequestSchema.approvers.status': 'pending approval'
         },
-        // {
-        //     'cashAdvanceSchema.travelRequestData.travelRequestStatus': { $in: ['pending approval', 'approved', 'booked', 'pending booking'] },
-        //     'cashAdvanceSchema.travelRequestData.approvers': {
-        //         $elemMatch: { 'status': { $in: ['pending approval', 'approved'] } }
-        //     },
-        //     'cashAdvanceSchema.cashAdvancesData.cashAdvanceStatus': 'pending approval',
-        //     'cashAdvanceSchema.cashAdvancesData.approvers': {
-        //         $elemMatch: { 'status': 'pending approval' }
-        //     }
-        // },
-        // {
-        //     'tripSchema.travelRequestData.isAddALeg': true,
-        // },
-        // {
-        //     'tripSchema.travelExpenseData': {
-        //         $elemMatch: {
-        //             tenantId: tenantId,
-        //             expenseHeaderStatus: 'pending approval',
-        //             'approvers': {
-        //                 $elemMatch: {
-        //                     status: 'pending approval'
-        //                 }
-        //             }
-        //         }
-        //     }
-        // }
+        {
+            'cashAdvanceSchema.travelRequestData.travelRequestStatus': { $in: ['pending approval', 'approved', 'booked', 'pending booking'] },
+            'cashAdvanceSchema.travelRequestData.approvers': {
+                $elemMatch: { 'status': { $in: ['pending approval', 'approved'] } }
+            },
+            'cashAdvanceSchema.cashAdvancesData.cashAdvanceStatus': 'pending approval',
+            'cashAdvanceSchema.cashAdvancesData.approvers': {
+                $elemMatch: { 'status': 'pending approval' }
+            }
+        },
+        {
+            'tripSchema.travelRequestData.isAddALeg': true,
+        },
+        {
+            'tripSchema.travelExpenseData': {
+                $elemMatch: {
+                    tenantId: tenantId,
+                    expenseHeaderStatus: 'pending approval',
+                    'approvers': {
+                        $elemMatch: {
+                            status: 'pending approval'
+                        }
+                    }
+                }
+            }
+        }
     ];
 
     const projections = {
         tenantId: 1,
         travelRequestId: 1,
+        'travelRequestSchema.tenantId': 1,
         'travelRequestSchema.createdBy': 1,
         'travelRequestSchema.tripName': 1,
         'travelRequestSchema.itinerary': 1,
+        'travelRequestSchema.approvers': 1,
+        'travelRequestSchema.travelRequestStatus':1,
+        'travelRequestSchema.travelRequestId':1,
+        'travelRequestSchema.isCashAdvanceTaken': 1,
+        'travelRequestSchema.createdBy': 1,
+        'cashAdvanceSchema.travelRequestData.tenantId': 1,
         'cashAdvanceSchema.travelRequestData.tripName': 1,
         'cashAdvanceSchema.travelRequestData.itinerary': 1,
+        'cashAdvanceSchema.travelRequestData.approvers': 1,
+        'cashAdvanceSchema.travelRequestData.isCashAdvanceTaken': 1,
+        'cashAdvanceSchema.travelRequestData.travelRequestStatus': 1,
+        'cashAdvanceSchema.cashAdvancesData.cashAdvanceStatus': 1,
+        'cashAdvanceSchema.cashAdvancesData.createdBy': 1,
+        'cashAdvanceSchema.travelRequestData.travelRequestId': 1,
+        'cashAdvanceSchema.travelRequestData.createdBy': 1,
+        'cashAdvanceSchema.cashAdvancesData.approvers': 1,
         'tripSchema.travelRequestData.createdBy': 1,
         'tripSchema.tripStartDate': 1,
         'tripSchema.travelRequestData.tripName': 1,
         'tripSchema.tripCompletionDate': 1,
+        'tripSchema.travelExpenseData.expenseHeaderId':1,
     };
 
-    const reports = await fetchDocuments(tenantId, filters, projections);
+    const reports = await getDocs(tenantId, filters, projections);
     console.log("reports?.length before manager", reports)
-    let approvalReports
-    if(reports?.length){
-      console.log("reports?.length)", reports?.length)
-    }
-
-    return approvalReports
+    return reports?.length > 1 ? reports : [];
 };
-
 
 
 const setManagerNotifications = async (tenantId) => {
     try {
-        console.info("in notification 0 manager")
-        const {now, futureDate, pastDate } = calculateFutureAndPastDates(NOTIFICATION_DAYS);
-        const [approvalDoc, reimbursementReports] = await Promise.all([
+        console.info("in notification 0 manager");
+        const { now, futureDate, pastDate } = calculateFutureAndPastDates(NOTIFICATION_DAYS);
+
+        const [approvalDoc, nonTravelExpenseReports] = await Promise.all([
             getApprovalReports(tenantId, now, futureDate, pastDate),
-            getReimbursementReports(tenantId, now, futureDate, pastDate)
+            getReimbursementReports(tenantId)
         ]);
 
-        if (approvalDoc.length === 0 && reimbursementReports.length === 0) {
+        // console.info("approvalDoc hakum", approvalDoc);
+
+        if (approvalDoc.length === 0 && nonTravelExpenseReports.length === 0) {
             return { message: 'There are no approvals found for the user' };
         }
 
-            let travelAndCash 
-            let trips
-            let travelExpenseReports
-            let nonTravelExpenseReports
-            
-            if(approvalDoc.length > 0){
+        let travelAndCash = [];
+        let trips = [];
+        let travelExpenseReports = [];
 
-                console.info("b4 zebra", approvalDoc)
-           const travel = await Promise.all(
-                    approvalDoc
+        // console.info("set manager", approvalDoc?.length);
+
+        if (approvalDoc.length > 0) {
+            // console.info("b4 zebra", approvalDoc?.length);
+        
+            const filteredApprovals = approvalDoc.filter(approval => {
+                // console.log("Checking approval:", approval); 
+        
+                const travelRequestSchema = approval.travelRequestSchema;
+
+                if (!travelRequestSchema || !travelRequestSchema.approvers) {
+                    console.warn("No travelRequestSchema or approvers found for approval:", approval);
+                    return false;
+                }
+        
+                const isPending = travelRequestSchema.travelRequestStatus == 'pending approval';
+                const hasApprovers = travelRequestSchema.approvers.length > 0;
+                const isNotCashAdvance = !travelRequestSchema.isCashAdvanceTaken;
+                const hasPendingApprovers = travelRequestSchema.approvers.some(approver => 
+                    approver.status === 'pending approval'
+                );
+        
+                // console.log("Filter conditions:", { isPending, hasApprovers, isNotCashAdvance, hasPendingApprovers });
+        
+                return isPending && hasApprovers && isNotCashAdvance && hasPendingApprovers;
+            });
+        
+            // console.log("Filtered approvals:", filteredApprovals); 
+        
+            const travel = await Promise.all(
+                filteredApprovals.map(async approval => {
+                    // console.log("Processing approval:", approval);
+                    const { travelRequestId, approvers, tripName, createdBy, travelRequestStatus, itinerary, isCashAdvanceTaken } = approval.travelRequestSchema;
+                    const tripStartDate = approval.travelRequestSchema.tripStartDate ?? await earliestDate(itinerary);
+        
+                    return {
+                        travelRequestId,
+                        approvers,
+                        tripName,
+                        tripStartDate,
+                        createdBy,
+                        travelRequestStatus,
+                        isCashAdvanceTaken
+                    };
+                })
+            );
+        
+        } else {
+            console.warn("No approval documents found.");
+        }
+        
+
+        if (approvalDoc.length > 0) {
+            // console.info("b4 zebra", approvalDoc?.length);
+
+            const travel = await Promise.all(
+                approvalDoc
                     .filter(approval =>
-                        approval.travelRequestSchema?.travelRequestStatus === 'pending approval'&&
-                        approval.travelRequestSchema?.approvers &&
-                        approval.travelRequestSchema?.approvers.length > 0 &&
-                        approval.travelRequestSchema?.isCashAdvanceTaken === false &&
+                        approval.travelRequestSchema?.travelRequestStatus === 'pending approval' &&
+                        approval.travelRequestSchema?.approvers?.length > 0 &&
+                        !approval.travelRequestSchema.isCashAdvanceTaken &&
                         approval.travelRequestSchema.approvers.some(approver =>
-                        approver.empId === empId &&
-                        approver.status === 'pending approval'
+                            approver.status === 'pending approval'
                         )
                     )
                     .map(async approval => {
-                        const { 
-                        travelRequestId, approvers, tripName, createdBy, 
-                        travelRequestStatus, itinerary 
-                        } = approval.travelRequestSchema;
-                        
-                        // Await earliestDate if tripStartDate is not present
+                        const {tenantId, travelRequestId, approvers, tripName, createdBy, travelRequestStatus, itinerary ,isCashAdvanceTaken} = approval.travelRequestSchema;
                         const tripStartDate = approval.travelRequestSchema?.tripStartDate ?? await earliestDate(itinerary);
-                        
+
                         return {
-                        travelRequestId, approvers, tripName, tripStartDate,
-                        createdBy, travelRequestStatus, 
+                            tenantId,
+                            travelRequestId,
+                            approvers,
+                            tripName,
+                            tripStartDate,
+                            createdBy,
+                            travelRequestStatus,
+                            isCashAdvanceTaken
                         };
                     })
-                );
-        
-                const travelWithCash = await Promise.all (approvalDoc
-                        .filter(approval => 
-                            approval?.cashAdvanceSchema?.travelRequestData?.travelRequestStatus === 'pending approval' &&
-                            approval?.cashAdvanceSchema.travelRequestData.approvers?.some(approver =>
-                                approver?.empId === empId && 
-                                approver?.status === 'pending approval'
-                            )
+            );
+
+            const travelWithCash = await Promise.all(
+                approvalDoc
+                    .filter(approval =>
+                        approval?.cashAdvanceSchema?.travelRequestData?.travelRequestStatus === 'pending approval' &&
+                        approval?.cashAdvanceSchema.travelRequestData.approvers?.some(approver =>
+                            approver?.status === 'pending approval'
                         )
-                        .map(async approval => {
-                                const { travelRequestData, cashAdvancesData } = approval.cashAdvanceSchema;
-                                const isValidCashStatus = cashAdvancesData.some(cashAdvance => cashAdvance.cashAdvanceStatus === 'pending approval');
-                                const { travelRequestId, approvers, createdBy, travelRequestNumber,tripPurpose,tripName, travelRequestStatus, isCashAdvanceTaken, itinerary } = travelRequestData;
-                                const tripStartDate = travelRequestData?.tripStartDate ?? await earliestDate(itinerary)
-                                const check= "preApproval"
-                                const allBkdViolations = extractValidViolations(itinerary, check);
-                                const violationsCounter = countViolations(allBkdViolations);
-        
-                                const travelRequest = { travelRequestId,travelRequestNumber,createdBy,tripStartDate, tripPurpose,tripName, travelRequestNumber, travelRequestStatus, approvers,isCashAdvanceTaken , violationsCounter};
-        
-        
-                                if (isValidCashStatus) {
-                                    const cashAdvanceDetails = cashAdvancesData?.map(cashAdvance => ({
-                                        travelRequestNumber: cashAdvance.travelRequestNumber,
-                                        cashAdvanceNumber: cashAdvance.cashAdvanceNumber,
-                                        cashAdvanceStatus: cashAdvance.cashAdvanceStatus,
-                                        cashAdvanceId: cashAdvance.cashAdvanceId,
-                                        amountDetails: cashAdvance?.amountDetails,
-                                        cashViolationsCounter: cashAdvance?.cashAdvanceViolations ? 1:0 ,
-                                    }));
-        
-                                    return { ...travelRequest, cashAdvance: cashAdvanceDetails };
-                                } else{
-                                    return { ...travelRequest, cashAdvance: []};
-                                }
-                            })
-                        )
-                    // console.log("travelWithCash", JSON.stringify(travelWithCash,'',2))
-        
-                        // console.log("approvalDoc", approvalDoc)
-                    const cashAdvanceRaisedLater = await Promise.all(
-                            approvalDoc
-                                .filter(approval => {
-                                    const travelRequestStatus = approval?.cashAdvanceSchema?.travelRequestData?.travelRequestStatus;
-                                    const cashAdvancesData = approval?.cashAdvanceSchema?.cashAdvancesData;
-                        
-                                    const isValidTravelRequestStatus = ['booked', 'approved', 'pending booking'].includes(travelRequestStatus);
-                                    const hasPendingApprovalCashAdvance = cashAdvancesData?.some(cash =>
-                                        cash.cashAdvanceStatus === 'pending approval' &&
-                                        cash.approvers.some(approver => approver?.empId === empId && approver?.status === 'pending approval')
-                                    );
-                        
-                                    return isValidTravelRequestStatus && hasPendingApprovalCashAdvance;
-                                })
-                                .map(async approval => {
-                        
-                                    const { travelRequestData, cashAdvancesData } = approval.cashAdvanceSchema;
-                                    const { travelRequestId, travelRequestNumber, tripPurpose, tripName, createdBy, travelRequestStatus, isCashAdvanceTaken, itinerary } = travelRequestData;
-                        
-                                    const tripStartDate = travelRequestData?.tripStartDate ?? await earliestDate(itinerary);
-                                    const allBkdViolations = extractValidViolations(itinerary);
-                                    const violationsCounter = countViolations(allBkdViolations);
-                        
-                                    const travelRequest = { travelRequestId, tripPurpose, tripName, tripStartDate, travelRequestNumber, createdBy, isCashAdvanceTaken, travelRequestStatus, violationsCounter };
-                        
-                                    const cashAdvanceDetails = cashAdvancesData
-                                        .filter(cashAdvance => cashAdvance.cashAdvanceStatus === 'pending approval')
-                                        .map(cashAdvance => ({
-                                            travelRequestNumber: cashAdvance.travelRequestNumber,
-                                            cashAdvanceNumber: cashAdvance.cashAdvanceNumber,
-                                            cashAdvanceStatus: cashAdvance.cashAdvanceStatus,
-                                            cashAdvanceId: cashAdvance.cashAdvanceId,
-                                            amountDetails: cashAdvance.amountDetails,
-                                            cashViolationsCounter: cashAdvance?.cashAdvanceViolations ? 1 : 0,
-                                        }));
-                        
-                                    return { ...travelRequest, cashAdvance: cashAdvanceDetails };
-                                })
+                    )
+                    .map(async approval => {
+                        const { travelRequestData, cashAdvancesData } = approval.cashAdvanceSchema;
+                        const isValidCashStatus = cashAdvancesData.some(cashAdvance => cashAdvance.cashAdvanceStatus === 'pending approval');
+                        const {tenantId, travelRequestId, approvers, createdBy, travelRequestNumber, tripPurpose, tripName, travelRequestStatus, isCashAdvanceTaken, itinerary } = travelRequestData;
+                        const tripStartDate = travelRequestData?.tripStartDate ?? await earliestDate(itinerary);
+
+                        const travelRequest = { 
+                            tenantId,
+                            travelRequestId, 
+                            approvers,
+                            tripName, 
+                            tripStartDate,
+                            createdBy, 
+                            travelRequestStatus, 
+                            isCashAdvanceTaken };
+
+                        const cashAdvanceDetails = isValidCashStatus
+                            ? cashAdvancesData.map(cashAdvance => ({
+                                cashAdvanceStatus: cashAdvance.cashAdvanceStatus,
+                                amountDetails: cashAdvance?.amountDetails,
+                            }))
+                            : [];
+
+                        return { ...travelRequest, cashAdvance: cashAdvanceDetails };
+                    })
+            );
+
+            const cashAdvanceRaisedLater = await Promise.all(
+                approvalDoc
+                    .filter(approval => {
+                        const travelRequestStatus = approval?.cashAdvanceSchema?.travelRequestData?.travelRequestStatus;
+                        const cashAdvancesData = approval?.cashAdvanceSchema?.cashAdvancesData;
+
+                        const isValidTravelRequestStatus = ['booked', 'approved', 'pending booking'].includes(travelRequestStatus);
+                        const hasPendingApprovalCashAdvance = cashAdvancesData?.some(cash =>
+                            cash.cashAdvanceStatus === 'pending approval' &&
+                            cash.approvers.some(approver => approver?.status === 'pending approval')
                         );
-                        
-                    // console.log("cashAdvanceRaisedLater", cashAdvanceRaisedLater)
-                    const addALeg= await (async () => {
-                        if (!Array.isArray(approvalDoc) || approvalDoc.length === 0) {
-                            return {}; 
-                        }
-                    
-                        const result = approvalDoc.map(approval => {
-                        
-                            const { tripStartDate, travelRequestData = {} } = approval.tripSchema || {};
-                            const { itinerary = {} } = travelRequestData;
-                    
-                            const filteredItinerary = {};
-                            ['flights', 'hotels', 'cabs', 'trains'].forEach(category => {
-                                const items = itinerary[category] || [];
-                                const pendingApprovalItems = items
-                                .filter(item =>
-                                    item?.approvers?.some(approver =>
-                                        approver?.empId === empId && 
-                                        approver?.status === 'pending approval'
-                                    )
-                                );
-                    
-                                if (pendingApprovalItems.length > 0) {
-                                    filteredItinerary[category] = pendingApprovalItems;
-                                }
-                            });
-                
-                            // console.log("here...",JSON.stringify(filteredItinerary,null,2))
-                    
-                            return {
-                                travelRequestId: travelRequestData.travelRequestId,
-                                tripPurpose: travelRequestData.tripPurpose,
-                                createdBy: travelRequestData.createdBy,
-                                tripName: travelRequestData.tripName ?? '',
-                                travelRequestNumber: travelRequestData.travelRequestNumber,
-                                travelRequestStatus: travelRequestData.travelRequestStatus,
-                                tripStartDate:tripStartDate,
-                                violationsCounter: countViolations(extractValidViolations(itinerary)),
-                                itinerary: filteredItinerary
-                            };
-                        }).filter(item => Object.keys(item.itinerary).length > 0);
-                    
-                        return result;
-                    })();
-        
-                    const uniqueTravelWithCash = [...travel, ...travelWithCash]
-                    const filteredTravelWithCash = Object.values(uniqueTravelWithCash.reduce((uniqueItems, currentItem) => {
-                        const existingItem = uniqueItems[currentItem.travelRequestId];
-                        if (!existingItem || (currentItem.cashAdvance && currentItem.cashAdvance.length)) {
-                            uniqueItems[currentItem.travelRequestId] = currentItem;
-                        }
-                        return uniqueItems;
-                    }, {}));
-            
-                    console.log("travelExpenseReports", approvalDoc.length)
-            
-                    travelAndCash = [ ...filteredTravelWithCash, ...cashAdvanceRaisedLater,]
-                    trips =[...addALeg]
-                    
-                    travelExpenseReports = await (async () => {
-                    try {
-                        const filteredApprovals = approvalDoc.filter(approval => {
-                            return approval?.tripSchema?.travelExpenseData?.some(expense => {
-                                return expense.tenantId === tenantId &&
-                                    expense.expenseHeaderStatus === 'pending approval' &&
-                                    expense.approvers.some(approver => {
-                                        return approver.empId === empId &&
-                                            approver.status === 'pending approval';
-                                    });
-                            });
-                        });
-                        // console.log("Filtered approvals:", filteredApprovals);
-                        const travelExpenseDataList = filteredApprovals.flatMap(approval => {
-                            // console.log("Processing approval:", approval);
-                            return approval.tripSchema.travelExpenseData.map(expense => {
-                                // console.log("Processing expense:", expense);
-                                const {tripName} = approval.travelRequestSchema
-                                const { tripId, tripNumber, tripStatus, tripStartDate } = approval.tripSchema;
-                                const { tripPurpose, createdBy} = approval.tripSchema.travelRequestData
-                                const { expenseHeaderNumber,expenseHeaderId, expenseHeaderStatus, approvers, expenseLines,} = expense;
-                                return { tripId,tripName,tripNumber,tripPurpose,createdBy,tripStatus,tripStartDate, expenseHeaderNumber,expenseHeaderId, expenseHeaderStatus, approvers, expenseLines };
-                            });
-                        });
-                        // console.log(" expense reports for approval:", travelExpenseDataList);
-                
-                        return travelExpenseDataList;
-                    } catch (error) {
-                        // console.error('Error occurred:', error);
-                        return []; // Return an empty array or handle the error accordingly
-                    }
-                    })();
-                
-            //    console.log("nonTravelExpenseReports",nonTravelExpenseReports)
+
+                        return isValidTravelRequestStatus && hasPendingApprovalCashAdvance;
+                    })
+                    .map(async approval => {
+                        const { travelRequestData, cashAdvancesData } = approval.cashAdvanceSchema;
+                        const {tenantId, travelRequestId, travelRequestNumber, tripPurpose,approvers, tripName, createdBy, travelRequestStatus, isCashAdvanceTaken, itinerary } = travelRequestData;
+                        const tripStartDate = travelRequestData?.tripStartDate ?? await earliestDate(itinerary);
+
+                        const travelRequest = {tenantId, travelRequestId, tripName, approvers, tripStartDate, travelRequestNumber, createdBy, isCashAdvanceTaken, travelRequestStatus, };
+                        const cashAdvanceDetails = cashAdvancesData
+                            .filter(cashAdvance => cashAdvance.cashAdvanceStatus === 'pending approval')
+                            .map(cashAdvance => ({
+                                cashAdvanceStatus: cashAdvance.cashAdvanceStatus,
+                                cashAdvanceId: cashAdvance.cashAdvanceId,
+                                amountDetails: cashAdvance.amountDetails,
+                            }));
+
+                        return { ...travelRequest, cashAdvance: cashAdvanceDetails };
+                    })
+            );
+
+            const addALeg = await (async () => {
+                if (!Array.isArray(approvalDoc) || approvalDoc.length === 0) {
+                    return [];
                 }
 
+                return approvalDoc.map(approval => {
+                    const { tripStartDate, travelRequestData = {} } = approval.tripSchema || {};
+                    const {tenantId, itinerary = {} } = travelRequestData;
 
-            console.log("kaboom". JSON.stringify(travel[0],'',2))
+                    const filteredItinerary = {};
+                    ['flights', 'hotels', 'cabs', 'trains'].forEach(category => {
+                        const items = itinerary[category] || [];
+                        const pendingApprovalItems = items.filter(item =>
+                            item?.approvers?.some(approver =>
+                                approver?.status === 'pending approval'
+                            )
+                        );
+
+                        if (pendingApprovalItems.length > 0) {
+                            filteredItinerary[category] = pendingApprovalItems;
+                        }
+                    });
+
+                    return {
+                        tenantId,
+                        travelRequestId: travelRequestData.travelRequestId,
+                        tripPurpose: travelRequestData.tripPurpose,
+                        createdBy: travelRequestData.createdBy,
+                        tripName: travelRequestData.tripName ?? '',
+                        travelRequestStatus: travelRequestData.travelRequestStatus,
+                        tripStartDate,
+                        itinerary: filteredItinerary
+                    };
+                }).filter(item => Object.keys(item.itinerary).length > 0);
+            })();
+
+            const uniqueTravelWithCash = [...travel, ...travelWithCash];
+            const filteredTravelWithCash = Object.values(uniqueTravelWithCash.reduce((uniqueItems, currentItem) => {
+                const existingItem = uniqueItems[currentItem.travelRequestId];
+                if (!existingItem || (currentItem.cashAdvance && currentItem.cashAdvance.length)) {
+                    uniqueItems[currentItem.travelRequestId] = currentItem;
+                }
+                return uniqueItems;
+            }, {}));
+
+            travelAndCash = [...filteredTravelWithCash, ...cashAdvanceRaisedLater];
+            trips = [...addALeg];
+
+            travelExpenseReports = await (async () => {
+                try {
+                    const filteredApprovals = approvalDoc.filter(approval => {
+                        return approval?.tripSchema?.travelExpenseData?.some(expense => {
+                            return expense.tenantId === tenantId &&
+                                expense.expenseHeaderStatus === 'pending approval' &&
+                                expense.approvers.some(approver => {
+                                    return approver.status === 'pending approval';
+                                });
+                        });
+                    });
+
+                    return filteredApprovals.flatMap(approval => {
+                        return approval.tripSchema.travelExpenseData.map(expense => {
+                            const {tenantId, tripName } = approval.travelRequestSchema;
+                            const { tripId, tripNumber, tripStatus, tripStartDate } = approval.tripSchema;
+                            const { tripPurpose, createdBy } = approval.tripSchema.travelRequestData;
+                            const { expenseHeaderNumber, expenseHeaderId, expenseHeaderStatus, approvers, expenseLines } = expense;
+                            return { tenantId,tripId, tripName, tripNumber, tripPurpose, createdBy, tripStatus, tripStartDate, expenseHeaderNumber, expenseHeaderId, expenseHeaderStatus, approvers, expenseLines };
+                        });
+                    });
+                } catch (error) {
+                    console.error('Error occurred:', error);
+                    return [];
+                }
+            })();
+        }
+
+        const reports =  {
+            travelAndCash,
+            trips,
+            travelExpenseReports,
+            nonTravelExpenseReports
+        };
+        const createNotifications = await createNotificationForManager(reports)
+        return createNotifications
     } catch (error) {
-    }
-}
-
-const createNotificationForManager = async (trip, daysUntilTrip, isCompletedTrip) => {
-    const messageText = isCompletedTrip
-        ? createCompletionNotificationMessage(trip)
-        : createNotificationMessage(trip, daysUntilTrip);
-    
-    const {tenantId,travelRequestId, status} = trip
-    const employeeId = trip.tripSchema.travelRequestData.createdBy.empId;
-    const existingNotification = await Notification.findOne({
-        tenantId,
-        travelRequestId,
-        'employee.empId': employeeId,
-    });
-
-    if (existingNotification) {
-        const messageExists = existingNotification.messages.some(msg => msg.text === messageText);
-        if (!messageExists) {
-            existingNotification.messages.push({
-                text: messageText,
-                status,
-                createdAt: new Date(),
-                isRead: false,
-            });
-            await existingNotification.save();
-        } 
-    } else {
-        const newNotification = new Notification({
-            tenantId,
-            travelRequestId,
-            employee: trip.tripSchema.travelRequestData.createdBy,
-            messages: [{
-                text: messageText,
-                status,
-                createdAt: new Date(),
-                isRead: false,
-            }],
-        });
-        await newNotification.save();
+        console.error('Error in setManagerNotifications:', error);
+        return { message: 'An error occurred while fetching notifications.' };
     }
 };
+
+const createNotificationForManager = async (reports) => {
+
+    // console.log('Reports object:', reports);
+
+    const { travelAndCash = [], trips = [], travelExpenseReports = [], nonTravelExpenseReports = [] } = reports;
+
+    if (travelAndCash?.length) {
+        // console.log("travel and cash - pro", travelAndCash?.length)
+
+        const processNotifications = async (travelAndCash) => {
+            try {
+                // console.log("reports - travelAndCash", JSON.stringify(travelAndCash,'',2))
+
+                const notificationPromises = travelAndCash.map(async (trip) => {
+                    const { tenantId,createdBy, travelRequestId,approvers=[],tripName='Trip', tripStartDate,isCashAdvanceTaken,cashAdvance } = trip;
+                    const date = tripStartDate.toDateString();
+                    const status = 'action'
+                    const hasPendingCashAdvance = cashAdvance?.some(advance => advance.cashAdvanceStatus === 'pending approval');
+
+                let messageText = `Urgent! Please approve the trip "${tripName}", scheduled to start on ${date}.`;
+                if (hasPendingCashAdvance) {
+                messageText += ' This trip includes cash advance.';
+                }
+    
+                    return await createOrUpdateManagerNotification({ tenantId, travelRequestId, approvers, messageText, status });
+                });
+    
+                await Promise.all(notificationPromises);
+    
+                console.log('All notifications processed successfully.');
+            } catch (error) {
+                console.error('Error processing notifications:', error);
+            }
+        };
+        await processNotifications(travelAndCash);
+    }
+
+    if ( trips?.length) {
+        const processNotifications = async (reports) => {
+            try {
+                console.log("what trips / add a leg i get here one", trips?.length )
+
+                reports.map(async(trip) => {
+                    console.log("what trips / add a leg i get here", trip)
+                    const {tenantId,travelRequestId, status} = trip
+                    const approvers = trip.travelRequestSchema.approvers;
+                    const tripName = trip.tripSchema?.travelRequestData?.tripName || 'Unnamed Trip';
+                    const tripStartDate = new Date(trip.tripSchema?.tripStartDate).toDateString();
+                    const hasPendingCashAdvance = cashAdvance?.some(advance => advance.cashAdvanceStatus === 'pending approval');
+
+                    let messageText = `Please approve the leg item added for the trip "${tripName}", which started on ${tripStartDate}`
+                    if (hasPendingCashAdvance) {
+                        messageText += ' This trip includes cash advance.';
+                        }
+            
+                    const result = await createOrUpdateManagerNotification({ tenantId, travelRequestId, approvers, messageText, status });
+                    return result
+                });
+
+                console.log('All notifications processed successfully.');
+            } catch (error) {
+                console.error('Error processing notifications:', error);
+            }
+        };
+        await processNotifications(trips);
+    }
+    
+    if (travelExpenseReports?.length) {
+        const processNotifications = async (reports) => {
+            try {
+                // Map over reports and create notifications
+                const notificationPromises = reports.map(async (trip) => {
+                    const { tenantId, travelRequestId, status, tripStartDate } = trip;
+                    const approvers = trip.travelRequestSchema?.approvers || [];
+                    const tripName = trip.travelRequestSchema?.tripName || 'Unnamed Trip';
+                    const messageText = `Reminder!, Please approve the expense reports submitted for trip titled "${tripName},"`;
+    
+                    return await createOrUpdateManagerNotification({ tenantId,travelRequestId, approvers, messageText, status });
+                });
+    
+                await Promise.all(notificationPromises);
+    
+                console.log('All notifications processed successfully.');
+            } catch (error) {
+                console.error('Error processing notifications:', error);
+            }
+        };
+        await processNotifications(travelExpenseReports);
+    }
+
+    if (nonTravelExpenseReports?.length) {
+        const processNotifications = async (reports) => {
+            try {
+                const notificationPromises = reports.map(async (report) => {
+                    const {
+                        tenantId,
+                        expenseHeaderId,
+                        expenseHeaderNumber,
+                        approvers = [], 
+                        expenseAmountStatus = {}
+                    } = report;
+    
+                    const totalExpenseAmount = expenseAmountStatus.totalExpenseAmount || 0; 
+                    const messageText = `Action: Please approve the reimbursement report ${expenseHeaderNumber} totaling ${totalExpenseAmount}.`;
+                    const status = 'action'
+    
+                    return await createOrUpdateManagerNotifications({ tenantId,expenseHeaderId, approvers, messageText, status });
+                });
+    
+                await Promise.all(notificationPromises);
+    
+                console.log('All notifications processed successfully.');
+            } catch (error) {
+                console.error('Error processing notifications:', error);
+            }
+        };
+        await processNotifications(nonTravelExpenseReports);
+    }
+    
+};
+
+const createOrUpdateManagerNotification = async ({ tenantId,travelRequestId, approvers, messageText, status }) => {
+    try {
+        const existingNotification = await Notification.findOne({ tenantId, travelRequestId });
+
+        if (existingNotification) {
+            const messageExists = existingNotification.messages.some(msg => msg.text === messageText);
+            if (!messageExists) {
+                existingNotification.messages.push({
+                    text: messageText,
+                    status,
+                    createdAt: new Date(),
+                    isRead: false,
+                });
+                await existingNotification.save();
+            }
+        } else {
+            const newNotification = new Notification({
+                tenantId,
+                travelRequestId,
+                approvers,
+                messages: [{
+                    text: messageText,
+                    status,
+                    createdAt: new Date(),
+                    isRead: false,
+                }],
+            });
+            await newNotification.save();
+        }
+
+        return { success: true, message: 'Notification created or updated successfully.' };
+    } catch (error) {
+        console.error('Error in createOrUpdateNotification one:', error);
+        return { success: false, message: 'An error occurred while creating or updating the notification.' };
+    }
+};
+
+const createOrUpdateManagerNotifications = async ({ tenantId, expenseHeaderId, approvers, messageText, status }) => {
+    try {
+        const existingNotification = await EXPENSE_NOTIFICATION.findOne({ tenantId, expenseHeaderId });
+
+        if (existingNotification) {
+            const messageExists = existingNotification.messages.some(msg => msg.text === messageText);
+            if (!messageExists) {
+                existingNotification.messages.push({
+                    text: messageText,
+                    status,
+                    createdAt: new Date(),
+                    isRead: false,
+                });
+                await existingNotification.save();
+            }
+        } else {
+            const newNotification = new EXPENSE_NOTIFICATION({
+                tenantId,
+                expenseHeaderId,
+                approvers,
+                messages: [{
+                    text: messageText,
+                    status,
+                    createdAt: new Date(),
+                    isRead: false,
+                }],
+            });
+            await newNotification.save();
+        }
+
+        return { success: true, message: 'Notification created or updated successfully.' };
+    } catch (error) {
+        console.error('Error in createOrUpdateNotification two:', error);
+        return { success: false, message: 'An error occurred while creating or updating the notification.' };
+    }
+};
+
+
+//finance
+const setFinanceNotifications  = async (tenantId) => {
+    const statusFilters = {
+        cashAdvance: ['pending settlement', 'Paid and Cancelled'],
+        travelExpense: ['pending settlement', 'Paid'],
+        reimbursement: ['pending settlement']
+    };
+
+    const filter = {
+        tenantId,
+        $or: [
+            {
+                'cashAdvanceSchema.cashAdvancesData': {
+                    $elemMatch: {
+                        cashAdvanceStatus: { $in: statusFilters.cashAdvance }
+                    }
+                }
+            },
+            {
+                'tripSchema.travelExpenseData': {
+                    $elemMatch: {
+                        expenseHeaderStatus: { $in: statusFilters.travelExpense }
+                    }
+                }
+            },
+        ]
+    };
+
+    try {
+        const [dashboardDocuments, reimbursementDocuments] = await Promise.all([
+            dashboard.find(filter).exec(),
+            REIMBURSEMENT.find({
+                tenantId,
+                expenseHeaderStatus: { $in: statusFilters.reimbursement }
+            }).exec()
+        ]);
+
+        console.log('Dashboard Documents:', dashboardDocuments?.length);
+        console.log('Reimbursement Documents:', reimbursementDocuments?.length);
+
+        return { 
+            dashboardDocuments, 
+            reimbursementDocuments 
+        };
+    } catch (error) {
+        console.error('Error fetching settlements:', error);
+        throw new Error('Could not fetch settlements.');
+    }
+};
+
 
 export {
     scheduleToNotificationBatchJob,

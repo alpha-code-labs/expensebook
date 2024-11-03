@@ -1,3 +1,4 @@
+
 import mongoose from 'mongoose';
 
 const messageStatusEnums = [
@@ -27,7 +28,7 @@ const MessageSchema = new mongoose.Schema({
     createdAt: {
         type: Date,
         default: Date.now,
-        expires: '1024h', 
+        expires: '24h', 
     },
     isRead: {
         type: Boolean,
@@ -35,14 +36,14 @@ const MessageSchema = new mongoose.Schema({
     },
 }, { _id: false }); 
 
-const NotificationSchema = new mongoose.Schema({
+const expenseNotificationSchema = new mongoose.Schema({
     tenantId: {
         type: String,
         required: true,
     },
-    travelRequestId: {
+    expenseHeaderId: {
         type: mongoose.Schema.Types.ObjectId,
-        required: true, 
+        required: true,
     },
     employee: {
         empId: {
@@ -50,14 +51,14 @@ const NotificationSchema = new mongoose.Schema({
             required: function() {
                 return !this.approvers || this.approvers.length === 0;
             },
-            trim: true, 
+            trim: true,
         },
         name: {
             type: String,
             required: function() {
                 return !this.approvers || this.approvers.length === 0;
             },
-            trim: true, 
+            trim: true,
         },
     },
     approvers: [
@@ -74,29 +75,13 @@ const NotificationSchema = new mongoose.Schema({
     messages: {
         type: [MessageSchema],
         required: true,
-        validate: [arrayLimit, '{PATH} exceeds the limit of 100 messages'], 
+        validate: [arrayLimit, '{PATH} exceeds the limit of 100 messages'],
     },
 }, { timestamps: true });
-
-// Custom validation to ensure only one of employee or approvers is present
-NotificationSchema.pre('validate', function(next) {
-    if ((this.employee && (this.employee.empId || this.employee.name)) && this.approvers && this.approvers.length > 0) {
-        return next(new Error('Either employee or approvers should be present, but not both.'));
-    }
-    if (!this.employee && (!this.approvers || this.approvers.length === 0)) {
-        return next(new Error('Either employee or approvers must be present.'));
-    }
-    next();
-});
-
 
 function arrayLimit(val) {
     return val.length <= 100; 
 }
 
-const Notification = mongoose.model('Notification', NotificationSchema);
-export default Notification;
-
-export{
-    messageStatusEnums
-}
+const EXPENSE_NOTIFICATION = mongoose.model('reimbursementNotification', expenseNotificationSchema);
+export default EXPENSE_NOTIFICATION;
