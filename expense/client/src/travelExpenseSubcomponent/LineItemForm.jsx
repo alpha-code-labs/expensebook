@@ -7,22 +7,41 @@ import CurrencyInput from '../Components/common/currency/CurrencyInput'
 import { currenciesList } from '../utils/data/currencyList'
 import {  currencyConversionApi } from '../utils/api'
 import { categoryIcons } from '../assets/icon'
+import { totalAmountKeys,dateKeys, invoiceNoKeys } from '../utils/data/keyList'
 
-const LineItemForm = ({ categoryName,setErrorMsg,isUploading,defaultCurrency, currencyConversion, setCurrencyConversion, handleCurrencyConversion, formData,setFormData, onboardingLevel, categoryFields = [], classOptions, currencyTableData, allocationsList, handleAllocations, lineItemDetails, errorMsg}) => {
-  const totalAmountKeys = ['Total Fare','Total Amount',  'Subscription Cost', 'Cost', 'Premium Cost'];
-  const dateKeys = ['Invoice Date', 'Date', 'Visited Date', 'Booking Date',"Bill Date"];
+const LineItemForm = ({expenseLines, categoryName,setErrorMsg,isUploading,defaultCurrency, currencyConversion, setCurrencyConversion, handleCurrencyConversion, formData,setFormData, onboardingLevel, categoryFields = [], classOptions, currencyTableData, allocationsList, handleAllocations, lineItemDetails, errorMsg}) => {
+ console.log('expense lines', expenseLines, errorMsg.totalAmount, errorMsg?.invoiceNumber)
+ 
+ 
+ const checkIfRecorded = (keys, fieldName, errorMsg,value) => {
+  const isRecorded = expenseLines.some(expenseLine => 
+    keys.some(key => expenseLine[key] && expenseLine[key].toString().toLowerCase() === value.toLowerCase())
+  );
 
+  setErrorMsg(prev => ({
+    ...prev,
+    [fieldName]: { set: isRecorded, msg: isRecorded ? errorMsg : "" }
+  }));
+};
   const conversionAmount= currencyConversion?.response || {}
 
-console.log('error mgs',errorMsg.conversion)
-console.log('converted amount',currencyConversion)
+
+
 
   
   const [personalExpFlag , setPersonalExpFlag]=useState(false)
-    console.log('categoryFields', categoryFields)
+ 
 
     const handleInputChange = (key, value) => {
       console.log(`Updating ${key} with value:`, value);
+    if ( totalAmountKeys.includes(key)){
+      checkIfRecorded(totalAmountKeys, "totalAmount", "Entered amount has already been recorded.",value);
+    }
+    if ( invoiceNoKeys.includes(key)){
+      checkIfRecorded(invoiceNoKeys, "invoiceNumber", "Entered invoice no. has already been recorded.",value);
+    }
+    
+    
     
       setFormData((prevData) => {
         const updatedFields = {
@@ -153,6 +172,7 @@ console.log('converted amount',currencyConversion)
           <Input
             initialValue={lineItemDetails[field.name]}
             title={field.name}
+            
             name={field.name}
             type="text"
             placeholder={`Enter ${field.name}`}
@@ -175,6 +195,7 @@ console.log('converted amount',currencyConversion)
         ) : isTotalAmountField ? (
           <div className='w-full'>
           <CurrencyInput
+          dataMsg={errorMsg?.totalAmount}
           conversionAmount={conversionAmount}
           error={errorMsg?.conversion}
           title={field.name}
@@ -191,6 +212,7 @@ console.log('converted amount',currencyConversion)
           <Input
             initialValue={lineItemDetails[field.name]}
             error={(totalAmountKeys.includes(field.name) && errorMsg.totalAmount) || (dateKeys.includes(field.name) && errorMsg.date) || field.name=== "Class" && errorMsg.class}
+            dataMsg={invoiceNoKeys.includes(field.name) && errorMsg.invoiceNumber}
             title={field.name}
             name={field.name}
             variant={field.type === 'date' && 'w-fit'}

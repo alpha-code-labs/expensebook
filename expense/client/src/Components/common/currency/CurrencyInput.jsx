@@ -1,3 +1,7 @@
+
+
+
+
 import { CircleFlag } from 'react-circle-flags';
 // import CloseButton from './common/closeButton';
 import { useRef, useEffect, useState } from 'react';
@@ -39,8 +43,9 @@ const CurrencyInput = ({conversionAmount,dataMsg,uploading,title,id,placeholder,
   
   
     return (<>
-       <div className="w-full h-[73px] flex-col justify-start items-start gap-2 inline-flex mb-3 ">
+       <div className="w-full h-fit  flex-col justify-start items-start    inline-flex  ">
       {/* title */}
+      <div className='flex gap-2 flex-col w-full h-full'>
       <div className="text-zinc-600 text-sm font-cabin">{title}</div>
           <div className='relative flex  items-center w-full  h-full'>
               <div className='relative h-full '>
@@ -68,7 +73,7 @@ const CurrencyInput = ({conversionAmount,dataMsg,uploading,title,id,placeholder,
                   </div>
                   }
               </div>
-              <div className="text-neutral-700 w-full h-full text-sm font-normal font-cabin">
+              <div className="text-neutral-700 w-full h-[42px] text-sm font-normal font-cabin">
           <input
             ref={inputRef}
             onChange={(e) => {
@@ -82,34 +87,38 @@ const CurrencyInput = ({conversionAmount,dataMsg,uploading,title,id,placeholder,
           />
            </div>
           
-           {error?.set && (
-        <div className="absolute  top-[48px] w-full text-xs text-red-500 font-cabin">
-          {error?.msg}
+        
+              
+          </div>
+          </div>
+         <div className='space-y-0'>
+          {error?.set && (
+        <div className="   w-full text-xs text-red-500 font-cabin">
+          {error?.msg} 
         </div>
       )} 
 
            {/* {conversionAmount?.currencyFlag && (
-        <div className="absolute  top-[48px] w-full text-xs text-neutral-900 font-cabin">
+        <div className="   w-full text-xs text-neutral-900 font-cabin">
       {`Amount in ${conversionAmount?.defaultCurrencyName} ${(conversionAmount?.convertedTotalAmount).toFixed(2)} | 1 ${conversionAmount?.convertedCurrencyName} = ${conversionAmount?.defaultCurrencyName} ${conversionAmount?.conversionRate}`}
         </div>
       )}  */}
            {uploading?.set ? (
-        <div className="absolute  top-[48px] w-full text-xs text-neutral-700 font-cabin">
+        <div className="   w-full text-xs text-neutral-700 font-cabin">
           {uploading?.msg}
         </div>
       ):
       conversionAmount?.currencyFlag && (
-        <div className="absolute  top-[48px] w-full text-xs text-neutral-900 font-cabin">
+        <div className="   w-full text-xs text-neutral-900 font-cabin">
       {`Amount in ${conversionAmount?.defaultCurrencyName} ${(conversionAmount?.convertedTotalAmount)?.toFixed(2)} | 1 ${conversionAmount?.convertedCurrencyName} = ${conversionAmount?.defaultCurrencyName} ${conversionAmount?.conversionRate}`}
         </div>
       ) } 
            {dataMsg?.set && (
-        <div className="absolute  top-[48px] w-full text-xs text-neutral-700 font-cabin">
+        <div className="   w-full text-xs text-yellow-200 font-cabin">
           {dataMsg?.msg}
         </div>
       )} 
-              
-          </div>
+      </div>
       </div>
     </>)
   }

@@ -61,6 +61,7 @@ import { LineItemView } from "../travelExpenseSubcomponent/LineItemView.jsx";
 import { DocumentPreview } from "../travelExpenseSubcomponent/BillPreview.jsx";
 import Modal from "../components/common/Modal.jsx";
 import LineItemForm from "../travelExpenseSubcomponent/LineItemForm.jsx";
+import { TitleModal } from "../Components/common/TinyComponent.jsx";
 
 const currencyDropdown = [
   {
@@ -471,7 +472,6 @@ export default function () {
 
   const handleCurrencyConversion = async ( {currencyName,totalAmount,personalAmount}) => { 
     console.log('conversion _data',currencyName,totalAmount,personalAmount)
-    
     const payload = {
      totalAmount, 
      personalAmount,
@@ -749,7 +749,7 @@ export default function () {
       expenseSettlement: requiredObj?.selectedExpenseSettlement || "",
       approvers: requiredObj?.travelExpenseData?.[0]?.approvers || [],
     };
-    if (!requiredObj?.selectedSettlementOption) {
+    if (!requiredObj?.selectedExpenseSettlement) {
       setErrorMsg((prevErrors) => ({
         ...prevErrors,
         expenseSettlement: { set: true, msg: "Select the settlement mode" },
@@ -1858,7 +1858,7 @@ export default function () {
         onClose={() => setModalOpen(!modalOpen)}
         content={
           <div className="w-full h-auto">
-            <div className="flex gap-2 justify-between items-center bg-indigo-100 w-auto p-4">
+            {/* <div className="flex gap-2 justify-between items-center bg-indigo-100 w-auto p-4">
               <div className="flex gap-2">
                 <img src={info_icon} className="w-5 h-5" alt="Info icon" />
                 <p className="font-inter text-base font-semibold text-indigo-600">
@@ -1871,7 +1871,8 @@ export default function () {
               >
                 <img src={cancel_icon} className="w-5 h-5" alt="Cancel icon" />
               </div>
-            </div>
+            </div> */}
+             <TitleModal iconFlag={true} text={getTitle()} onClick={() => setModalOpen(false)}/>
 
             <div className="p-4">{getContent()}</div>
           </div>
