@@ -8,54 +8,68 @@ import IconOption from './IconOption';
 import { urlRedirection } from '../../utils/handyFunctions';
 import { TripName } from './TinyComponent';
 import { warning } from 'framer-motion';
+import NotificationBox from './NotificationBox';
 
 const Navbar = ({setSearchQuery,setSidebarOpen }) => {
 
-  const notificationData = [
-    {
-      message: "Please submit your expenses for the completed trip 'DEL-DUB-DEL (4th Oct 2024).'",
-      status: "urgent"
-    },
-    {
-      message: "Your team meeting is scheduled for tomorrow at 10 AM.",
-      status: "action"
-    },
-    {
-      message: "New updates are available for the project documentation.",
-      status: "information"
-    },
-    {
-      message: "Reminder: Submit your timesheets by the end of the week.",
-      status: "urgent"
-    },
-    {
-      message: "Don't forget the upcoming project deadline next Monday.",
-      status: "action"
-    },
-    {
-      message: "Check out the latest industry news in the newsletter.",
-      status: "information"
-    },
-    {
-      message: "Action needed: Review the draft proposal by EOD.",
-      status: "urgent"
-    },
-    {
-      message: "Your feedback on the latest version is appreciated.",
-      status: "action"
-    },
-    {
-      message: "A new feature has been added to the application.",
-      status: "information"
-    }
-  ];
+  // const notificationData = [
+  //   {
+  //     message: "Please submit your expenses for the completed trip 'DEL-DUB-DEL (4th Oct 2024).'",
+  //     status: "urgent"
+  //   },
+  //   {
+  //     message: "Your team meeting is scheduled for tomorrow at 10 AM.",
+  //     status: "action"
+  //   },
+  //   {
+  //     message: "New updates are available for the project documentation.",
+  //     status: "information"
+  //   },
+  //   {
+  //     message: "Reminder: Submit your timesheets by the end of the week.",
+  //     status: "urgent"
+  //   },
+  //   {
+  //     message: "Don't forget the upcoming project deadline next Monday.",
+  //     status: "action"
+  //   },
+  //   {
+  //     message: "Check out the latest industry news in the newsletter.",
+  //     status: "information"
+  //   },
+  //   {
+  //     message: "Action needed: Review the draft proposal by EOD.",
+  //     status: "urgent"
+  //   },
+  //   {
+  //     message: "Your feedback on the latest version is appreciated.",
+  //     status: "action"
+  //   },
+  //   {
+  //     message: "A new feature has been added to the application.",
+  //     status: "information"
+  //   }
+  // ];
+
+  
   
   const location = useLocation();
   const navigate = useNavigate()
   const pathname = location?.pathname?.split('/').pop()
-  const {employeeRoles  } = useData(); 
+  const {employeeRoles, requiredData  } = useData(); 
+
+  console.log('notifications', requiredData?.notifications?.employee)
   const employeeInfo = employeeRoles?.employeeInfo
 const LOGIN_PAGE_URL = import.meta.env.VITE_LOGIN_PAGE_URL
+
+const notificationData = [
+  ...(requiredData?.notifications?.employee ?? []),
+  ...(requiredData?.notifications?.employeeManager ?? []),
+  ...(requiredData?.notifications?.businessAdmin ?? []),
+  ...(requiredData?.notifications?.finance ?? []),
+];
+
+
 
 function alertIcon(sign) {
   switch(sign) {
@@ -130,7 +144,7 @@ function clearCookie(name) {
 
 
       <div className=" px-2 shrink-0 justify-center items-center cursor-pointer flex flex-row gap-2">
-        <IconOption
+        <NotificationBox
         disable={notificationData.length >0 ? false: true}
         buttonText={
           <div className="p-1 relative ">
@@ -162,7 +176,7 @@ function clearCookie(name) {
         }
           </div>
 
-        </IconOption>
+        </NotificationBox>
 
 
       <IconOption

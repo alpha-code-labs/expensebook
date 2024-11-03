@@ -1,7 +1,7 @@
 /* eslint-disable react/jsx-key */
 import React, { useState,useEffect } from 'react';
 import { airplane_1, briefcase, calender_icon, double_arrow,cab_purple,  house_simple, train, bus, cancel_round, cancel, modify, plus_icon, plus_violet_icon, receipt, down_arrow, chevron_down, down_left_arrow, calender_2_icon, airplane, material_flight_black_icon, material_cab_black_icon, material_hotel_black_icon, city_icon, empty_itinerary_icon, empty_travelExpense_icon, empty_nonTravelExpense_icon, expense_white_icon, expense_black_icon, plus_black_icon } from '../assets/icon';
-import {  extractTripNameStartDate, formatAmount,  getStatusClass, sortTripsByDate, splitTripName } from '../utils/handyFunctions';
+import {  extractTripNameStartDate, formatAmount,  getStatusClass, sortTripsByDate, splitTripName, tripsAsPerExpenseFlag } from '../utils/handyFunctions';
 import { useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useData } from '../api/DataProvider';
@@ -43,26 +43,7 @@ function CardLayout({icon,title,subTitle,cardTitle,children}){
          
        </div>)
 }
-// function CardLayout({icon,cardTitle,children}){
-//   return(
-//   <div className={`min-w-[400px] px-2  h-[340px] `} >
-//          <div className="border-b-2  border-neutral-700 flex flex-row items-center justify-start gap-2 overflow-hidden py-2">
-//            <img
-//              className="w-5 h-5 shrink-0"
-//              alt="briefcase_icon"
-//              src={icon}
-//            />
-//            <b className="tracking-[0.02em] font-cabin text-[16px] text-neutral-900 font-semibold">{cardTitle}</b>
-//          </div>
-//          <div className=' shadow-sm shadow-indigo-600 rounded-md'/>
-//          <div className="h-[285px] scrollbar-hide bg-white overflow-hidden overflow-y-auto space-y-2  border-[4px] border-gray-600   rounded-3xl px-2">
-         
-//           {children}
-      
-//          </div>
-         
-//        </div>)
-// }
+
 
 const Overview = ({fetchData ,isLoading,setIsLoading,loadingErrMsg, setLoadingErrMsg}) => {
 
@@ -102,6 +83,12 @@ const travelRequests     = overviewData?.allTravelRequests?.allTravelRequests?.m
 sortTripsByDate(travelRequests)
 sortTripsByDate(intransitTrips)
 sortTripsByDate(upcomingTrips)
+
+
+
+
+const ongoingTripForExpense = tripsAsPerExpenseFlag(intransitTrips,requiredData);
+console.log('raise expense trip', ongoingTripForExpense)
 
   const [visible, setVisible]=useState(false);
   const [expenseVisible, setExpenseVisible]=useState(false);
@@ -229,7 +216,7 @@ const [expenseTabs , setExpenseTabs]=useState("travelExpense");
       <TripMS visible={visible} setVisible={setVisible} src={iframeURL} /> 
     <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 w-full overflow-x-auto pb-2 ">
       
-   <CardLayout  icon={briefcase} title={"On-going Trips"} subTitle={'Activities for on-going Trips'}>
+   <CardLayout  icon={briefcase} title={"On-going Trips"} subTitle={'Activities for on-going trips'}>
    {intransitTrips.length === 0 ? (
      <EmptyTrips icon={empty_itinerary_icon} text="No in-transit trips." />
    ) : (
@@ -262,21 +249,7 @@ const [expenseTabs , setExpenseTabs]=useState("travelExpense");
    </div>
    </div>     
    
-   {/* <div
-   onClick={()=>setModalOpen(!modalOpen)}
-   onMouseEnter={() => setTextVisible({expense:true})}
-   onMouseLeave={() => setTextVisible({expense:false})}
-   className={`relative hover:px-2 w-6 h-6 hover:overflow-hidden hover:w-auto group text-indigo-600 bg-indigo-100 border border-white flex items-center justify-center  hover:gap-x-1 rounded-full cursor-pointer transition-all duration-300`}
-   >
-   <img src={plus_violet_icon} width={16} height={16} alt="Add Icon" />
-   <p
-   className={`${
-   textVisible?.expense ? 'opacity-100 ' : 'opacity-0 w-0'
-   } whitespace-nowrap text-xs transition-all duration-300 group-hover:opacity-100 group-hover:w-auto`}
-   >
-   Add an Expense
-   </p>
-   </div> */}
+   
    <TooltipBtn   onClick={()=>setModalOpen(!modalOpen)} onHover={'Add an Expense'} icon={plus_black_icon} disabled={true}/>
    </div>
    
@@ -326,21 +299,6 @@ const [expenseTabs , setExpenseTabs]=useState("travelExpense");
      {/* <div className="h-[288px] mt-2 border-4 border-indigo-600 rounded-md px-2"> */}
      <div className="flex gap-x-2 h-[40px]   px-2 flex-row items-center justify-end text-center font-cabin border-b-2  border-slate-300  text-neutral-700 text-xs">
    
-   {/* <div
-   onMouseEnter={() => setTextVisible({createTravel:true})}
-   onMouseLeave={() => setTextVisible({createTravel:false})}
-   onClick={()=>handleVisible({urlName:"travel-url"})}
-   className={`relative  hover:px-2 w-6 h-6 hover:overflow-hidden hover:w-auto group text-indigo-600 bg-indigo-100 border border-white flex items-center justify-center  hover:gap-x-1 rounded-full cursor-pointer transition-all duration-300`}
-   >
-   <img src={plus_violet_icon} width={16} height={16} alt="Add Icon" />
-   <p
-   className={`${
-     textVisible?.createTravel ? 'opacity-100 ' : 'opacity-0 w-0'
-   } whitespace-nowrap text-xs transition-all duration-300 group-hover:opacity-100 group-hover:w-auto`}
-   >
-   Raise Travel Request
-   </p>
-   </div> */}
    <TooltipBtn onClick={()=>handleVisible({urlName:"travel-url"})} onHover={'Raise Travel Request'} icon={plus_black_icon} disabled={true}/>
      
    </div>
@@ -381,7 +339,7 @@ const [expenseTabs , setExpenseTabs]=useState("travelExpense");
 
 { expenseType=== "travel_Expense" &&
  <div className='w-full'>
-  <TripSearch requestType={"travel_Expense"} validation={requiredData?.formValidations ?? {}} placeholder={"Select the trip"} error={error?.tripId} title="Apply to trip" data={[...intransitTrips, ...completedTrips]} onSelect={handleSelect} />
+  <TripSearch requestType={"travel_Expense"} validation={requiredData?.formValidations ?? {}} placeholder={"Select the trip"} error={error?.tripId} title="Apply to trip" data={[...tripsAsPerExpenseFlag(intransitTrips,requiredData), ...completedTrips]} onSelect={handleSelect} />
  </div> }
   
 {expenseType && <Button1 text={"Raise"} onClick={handleRaise} />}
@@ -405,6 +363,9 @@ const [expenseTabs , setExpenseTabs]=useState("travelExpense");
 };
 
 export default Overview;
+
+
+
 
 const IntransitTrips = ({ index, trip, lastIndex,handleVisible }) => {
   

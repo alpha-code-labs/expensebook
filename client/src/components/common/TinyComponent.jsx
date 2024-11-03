@@ -1,4 +1,4 @@
-import { briefcase, cancel, categoryIcons, info_icon, modify, plus_icon, plus_violet_icon, violation_icon } from "../../assets/icon";
+import { briefcase, cancel, categoryIcons, expene_icon, info_icon, modify, plus_icon, plus_violet_icon, violation_icon } from "../../assets/icon";
 import { formatAmount, getStatusClass, splitTripName } from "../../utils/handyFunctions";
 
 
@@ -182,7 +182,7 @@ const TripName = ({tripName})=>(
         {expenseLines?.map((line, index) => (
           <div key={`${index}-line`} className='flex  text-neutral-700 flex-row justify-between items-center font-cabin text-sm'>
             <div className='bg-indigo-50 border-2 shadow-md shadow-slate-900/50 translate-x-4 border-white p-2 rounded-full'>
-              <img src={categoryIcons?.[line?.["Category Name"]]} className='w-4 h-4' />
+              <img src={categoryIcons?.[line?.["Category Name"]] ?? categoryIcons?.["Receipt"]} className='w-4 h-4' />
             </div>
             <div className='flex border-slate-300 border flex-row justify-between text-neutral-700 flex-1 items-center gap-2 py-4 px-4 pl-6 rounded-md bg-gray-50'>
               <div>{line?.["Category Name"]}</div>
