@@ -27,28 +27,28 @@ function getItinerary(itinerary){
                     mappedItems = items
                     .filter(item => item.status === status.BOOKED)
                     .map(({
-                        itineraryId, status, bkd_location, bkd_class, bkd_checkIn, bkd_checkOut, bkd_violations, cancellationDate, cancellationReason,
+                        itineraryId, status, bkd_location, bkd_class, bkd_checkIn, bkd_checkOut, bkd_violations, cancellationDate, cancellationReason,bookingDetails:{docURL}
                     }) => ({
                         category,
-                        itineraryId, status, bkd_location, bkd_class, bkd_checkIn, bkd_checkOut, bkd_violations, cancellationDate, cancellationReason,
+                        itineraryId, status, bkd_location, bkd_class, bkd_checkIn, bkd_checkOut, bkd_violations, cancellationDate, cancellationReason,bookingDetails:{docURL}
                     }));
                 } else if (category === 'cabs') {
                     mappedItems = items
                     .filter(item => item.status === status.BOOKED)
                     .map(({
-                        itineraryId, status,isFullDayCab, bkd_date,bkd_returnDate,bkd_time, bkd_class, bkd_pickupAddress, bkd_dropAddress,
+                        itineraryId, status,isFullDayCab, bkd_date,bkd_returnDate,bkd_time, bkd_class, bkd_pickupAddress, bkd_dropAddress,bookingDetails:{docURL}
                     }) => ({
                         category,
-                        itineraryId, status,isFullDayCab, bkd_date, bkd_returnDate, bkd_time, bkd_class, bkd_pickupAddress, bkd_dropAddress,
+                        itineraryId, status,isFullDayCab, bkd_date, bkd_returnDate, bkd_time, bkd_class, bkd_pickupAddress, bkd_dropAddress,bookingDetails:{docURL}
                     }));
                 } else {
                     mappedItems = items
                     .filter(item => item.status === status.BOOKED)
                     .map(({
-                        itineraryId, status, bkd_from, bkd_to, bkd_date, bkd_time, bkd_travelClass, bkd_violations,
+                        itineraryId, status, bkd_from, bkd_to, bkd_date, bkd_time, bkd_travelClass, bkd_violations,bookingDetails:{docURL}
                     }) => ({
                         category,
-                        itineraryId, status, bkd_from, bkd_to, bkd_date, bkd_time, bkd_travelClass, bkd_violations,
+                        itineraryId, status, bkd_from, bkd_to, bkd_date, bkd_time, bkd_travelClass, bkd_violations,bookingDetails:{docURL}
                     }));
                 }
     
@@ -432,6 +432,7 @@ const travelStandAloneForEmployee = async (tenantId, empId) => {
                                 itineraryId,
                                 rejectionReason,
                                 status,
+                                bookingDetails:{docURL}
                             });
                         }
                     }));
@@ -668,6 +669,7 @@ const travelWithCashForEmployee = async (tenantId, empId) => {
                                itineraryId,
                                rejectionReason,
                                status,
+                               bookingDetails:{docURL}
                            });
                        }
                    });
@@ -693,6 +695,7 @@ const filteredDocs = travelRequestDocs.filter(doc =>
         cashAdvanceStatus,
         rejectionReason,
         amountDetails,
+        bookingDetails:{docURL}
         // amountDetails: amountDetails.map(detail => ({
         //   amount: detail.amount,
         //   shortName: detail.currency.shortName
@@ -1065,24 +1068,24 @@ try {
                     let mappedItems;
                     if (category === 'hotels') {
                         mappedItems = items.map(({
-                            itineraryId, status, bkd_location, bkd_class, bkd_checkIn, bkd_checkOut, bkd_violations, cancellationDate, cancellationReason,
+                            itineraryId, status, bkd_location, bkd_class, bkd_checkIn, bkd_checkOut, bkd_violations, cancellationDate, cancellationReason,bookingDetails:{docURL}
                         }) => ({
                             category,
-                            itineraryId, status, bkd_location, bkd_class, bkd_checkIn, bkd_checkOut, bkd_violations, cancellationDate, cancellationReason,
+                            itineraryId, status, bkd_location, bkd_class, bkd_checkIn, bkd_checkOut, bkd_violations, cancellationDate, cancellationReason,bookingDetails:{docURL}
                         }));
                     } else if (category === 'cabs') {
                         mappedItems = items.map(({
-                            itineraryId, status, bkd_date, bkd_class, bkd_pickupAddress, bkd_dropAddress,
+                            itineraryId, status, bkd_date, bkd_class, bkd_pickupAddress, bkd_dropAddress,bookingDetails:{docURL}
                         }) => ({
                             category,
                             itineraryId, status, bkd_date, bkd_class, bkd_pickupAddress, bkd_dropAddress,
                         }));
                     } else {
                         mappedItems = items.map(({
-                            itineraryId, status, bkd_from, bkd_to, bkd_date, bkd_time, bkd_travelClass, bkd_violations,
+                            itineraryId, status, bkd_from, bkd_to, bkd_date, bkd_time, bkd_travelClass, bkd_violations,bookingDetails:{docURL}
                         }) => ({
                             category,
-                            itineraryId, status, bkd_from, bkd_to, bkd_date, bkd_time, bkd_travelClass, bkd_violations,
+                            itineraryId, status, bkd_from, bkd_to, bkd_date, bkd_time, bkd_travelClass, bkd_violations,bookingDetails:{docURL}
                         }));
                     }
         
