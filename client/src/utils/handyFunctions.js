@@ -44,6 +44,29 @@
     return formattedDate;
   }
   
+  function tripsAsPerExpenseFlag(trips, requiredData) {
+    return trips.filter(trip => {
+        // Filter by travel type (international, local, domestic)
+        if (trip.travelType !== 'international' && trip.travelType !== 'local' && trip.travelType !== 'domestic') {
+            return false;
+        }
+  
+        // If status is "intransit", check the allowed permission
+        if (trip?.tripStatus === 'transit') {
+            const allowed = requiredData?.formValidation?.[trip?.travelType]?.expenseReportSubmissionDuringTravel?.permission?.allowed;
+            // If allowed is false, remove this trip
+  
+            
+            if ( allowed === false) {
+                return false;
+            }
+        }
+  
+        // Keep the trip if all conditions pass
+        return true;
+    });
+  }
+
   function addOrdinalIndicator(day) {
     if (day >= 11 && day <= 13) {
       return day + "th";
@@ -383,5 +406,5 @@ function checkUpcomingTrip(tripStartDate) {
 
   
 
-export {sortTripsForBooking,checkUpcomingTrip, filterByTimeRange,extractTripNameStartDate, sortTripsByDate, splitTripName, titleCase, formatDate, filterTravelRequests,formatDate2 ,getStatusClass ,addOrdinalIndicator ,formatDate3 ,getCashAdvanceButtonText,urlRedirection,formatAmount}  
+export {tripsAsPerExpenseFlag,sortTripsForBooking,checkUpcomingTrip, filterByTimeRange,extractTripNameStartDate, sortTripsByDate, splitTripName, titleCase, formatDate, filterTravelRequests,formatDate2 ,getStatusClass ,addOrdinalIndicator ,formatDate3 ,getCashAdvanceButtonText,urlRedirection,formatAmount}  
 

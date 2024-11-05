@@ -76,8 +76,7 @@ const TripSearch = ({requestType, validation, data, onSelect, title, error, plac
     if (!travelSettings) return { flag: false, message: "Invalid travel type." };
 
     const allowedDays = parseInt(travelSettings.expenseReportDeadline.dayLimit.days);
-    
-   
+       
     const tripCompletion = new Date(tripCompletionDate);
     const currentDate = new Date();
 
@@ -100,13 +99,13 @@ const TripSearch = ({requestType, validation, data, onSelect, title, error, plac
   return (
     <div className="relative h-[73px]" ref={dropdownRef}>
       <div className="text-zinc-600 text-sm font-cabin text-start pb-2">{title}</div>
-      <div className="rounded-md text-base bg-white box-border flex flex-row items-center justify-start py-3 px-4 border-[1px] border-solid hover:border-indigo-600 border-ebgrey-200">
+      <div className="rounded-md text-base bg-white box-border flex flex-row items-center justify-start py-3 px-4 border-[1px] border-solid hover:border-neutral-900 border-ebgrey-200">
         <input
           type="text"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           placeholder={placeholder}
-          className="relative tracking-[0.01em] text-sm text-neutral-700 placeholder:text-zinc-400 font-cabin placeholder:text-sm outline-none border-none w-full focus-visible:outline-0 focus-visible:border-indigo-600"
+          className="relative tracking-[0.01em] text-sm text-neutral-700 placeholder:text-zinc-400 font-cabin placeholder:text-sm outline-none border-none w-full focus-visible:outline-0 focus-visible:border-neutral-900"
           onFocus={() => setIsDropdownOpen(true)}
         />
       </div>
@@ -116,7 +115,7 @@ const TripSearch = ({requestType, validation, data, onSelect, title, error, plac
             <li className="p-2 text-center text-gray-500">loading...</li>
           ) : (
             filteredOptions.length === 0 ? (
-              <div className='h-12 text-center flex justify-center items-center font-inter'>trips not found.</div>
+              <div className='h-12 text-start flex justify-start px-4 items-center font-inter text-xs text-zinc-400'>trips not found...</div>
             ) : (
               filteredOptions.map((option, index) => 
                 {

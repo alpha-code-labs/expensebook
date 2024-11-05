@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { briefcase, modify, receipt, receipt_icon1,expense_white_icon, categoryIcons, filter_icon, plus_violet_icon, cancel, search_icon, info_icon, expene_icon } from '../assets/icon';
-import { formatAmount, getStatusClass, splitTripName } from '../utils/handyFunctions';
+import { formatAmount, getStatusClass, splitTripName, tripsAsPerExpenseFlag } from '../utils/handyFunctions';
 import { handleNonTravelExpense, handleTravelExpense } from '../utils/actionHandler';
 import Modal from '../components/common/Modal1';
 import { useParams } from 'react-router-dom';
@@ -42,29 +42,12 @@ const Expense = ({searchQuery,isLoading ,fetchData,loadingErrMsg}) => {
   
 
 
-  // useEffect(() => {
-  //   if (employeeData) {
-  //     const data = employeeData?.dashboardViews?.employee || [];
-     
-  //     const intransitTrips = data?.trips?.transitTrips || [];
-  
-  //     const dataForRaiseCashadvance = [ ...intransitTrips];
-  //     const pushedData = dataForRaiseCashadvance?.map(item => ({ ...item, tripName: "us - del - mum - gkr" }));
-      
-  //     setTripData(pushedData);
-      
-  //     console.log('Trip data for expense:', dataForRaiseCashadvance);
-  //   } else {
-  //     console.error('Employee data is missing.');
-  //   }
-  // }, [employeeData]);
-
   useEffect(()=>{
     const data = employeeData?.dashboardViews?.employee?.overview || [];
     const intransitTrips = data?.transitTrips || [];
     const completedTrips = employeeData?.dashboardViews?.employee?.expense?.completedTrips || []
 
-    const dataForRaiseCashadvance = [...intransitTrips, ...completedTrips];
+    const dataForRaiseCashadvance = [...tripsAsPerExpenseFlag(intransitTrips,requiredData), ...completedTrips];
     const pushedData = dataForRaiseCashadvance?.map(item => ({ ...item}));
     setTripData(pushedData)
     setExpenseData(employeeData && employeeData?.dashboardViews?.employee?.expense)

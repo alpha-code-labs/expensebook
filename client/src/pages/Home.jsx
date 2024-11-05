@@ -57,7 +57,9 @@ const fetchData = async () => {
     setIsLoading(prev => ({ ...prev, roleData: true })); // Start loading for login data
     const employeeResponse = await getEmployeeData_API(tenantId, empId);
     setEmployeeData(employeeResponse);
-    setRequiredData({"formValidations": employeeResponse?.dashboardViews?.employee?.formValidations});
+    setRequiredData({"formValidations": employeeResponse?.dashboardViews?.employee?.formValidations,
+                     "notifications": employeeResponse?.notifications ?? {}             
+    });
 
     setIsLoading(prev => ({ ...prev, roleData: false })); // Stop loading for login data
   } catch (error) {
