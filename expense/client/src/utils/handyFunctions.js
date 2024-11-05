@@ -260,5 +260,21 @@ function formatDate(date=Date.now()) {
     }
     return text;  // Return the original text if neither 'es' nor 's' is found
   }
-export {removeSuffix,rearrangeKeyForLineItem, allocationLevel,initializenonTravelFormFields, initializeFormFields, camelCaseToTitleCase, titleCase, formatDate, formatDate2 ,getStatusClass ,generateRandomId,urlRedirection,formatAmount}  
+
+  function extractValidExpenseLines (expenseData, expenseType) {
+    if(expenseData?.length ===0 ) return [];
+  if( expenseType === "travelExpense"){ 
+    return expenseData?.flatMap(item => 
+        item.expenseLines
+            .filter(line => !["cancelled"].includes(line?.lineItemStatus))
+            .map(line => ({
+                ...line,
+                expenseHeaderId: item.expenseHeaderId 
+            }))
+    );
+  }
+  if( expenseType === "nonTravelExpense")
+    return expenseData?.filter(line => !["cancelled"].includes(line?.lineItemStatus))
+  }
+export {extractValidExpenseLines,removeSuffix,rearrangeKeyForLineItem, allocationLevel,initializenonTravelFormFields, initializeFormFields, camelCaseToTitleCase, titleCase, formatDate, formatDate2 ,getStatusClass ,generateRandomId,urlRedirection,formatAmount}  
 

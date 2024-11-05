@@ -5,19 +5,33 @@ import Select from '../components/common/Select'
 import CurrencyInput from '../Components/common/currency/CurrencyInput'
 import { currenciesList } from '../utils/data/currencyList'
 import { categoryIcons } from '../assets/icon'
+import { dateKeys, invoiceNoKeys, totalAmountKeys } from '../utils/data/keyList'
 
-const LineItemForm = ({categoryName, setErrorMsg,isUploading,defaultCurrency, currencyConversion, setCurrencyConversion, handleCurrencyConversion, formData,setFormData, onboardingLevel, categoryFields = [], classOptions, currencyTableData, allocationsList, handleAllocations,  errorMsg}) => {
+const LineItemForm = ({expenseLines, categoryName, setErrorMsg,isUploading,defaultCurrency, currencyConversion, setCurrencyConversion, handleCurrencyConversion, formData,setFormData, onboardingLevel, categoryFields = [], classOptions, currencyTableData, allocationsList, handleAllocations,  errorMsg}) => {
 
-  const totalAmountKeys = ['Total Fare','Total Amount',  'Subscription Cost', 'Cost', 'Premium Cost'];
-  const dateKeys = ['Invoice Date', 'Date', 'Visited Date', 'Booking Date',"Bill Date"];
+console.log("non travel expense lines", expenseLines)
   const conversionAmount= currencyConversion?.response || {}
   
-console.log('error mgs',errorMsg?.conversion)
-console.log('form data for edit',formData,formData,categoryFields)
+  const checkIfRecorded = (keys, fieldName, errorMsg,value) => {
+    const isRecorded = expenseLines.some(expenseLine => 
+      keys.some(key => expenseLine[key] && expenseLine[key].toString().toLowerCase() === value.toLowerCase())
+    );
+  
+    setErrorMsg(prev => ({
+      ...prev,
+      [fieldName]: { set: isRecorded, msg: isRecorded ? errorMsg : "" }
+    }));
+  };
 
 
     const handleInputChange = (key, value) => {
       console.log(`Updating ${key} with value:`, value);
+      if ( totalAmountKeys.includes(key)){
+        checkIfRecorded(totalAmountKeys, "totalAmount", "Entered amount has already been recorded.",value);
+      }
+      if ( invoiceNoKeys.includes(key)){
+        checkIfRecorded(invoiceNoKeys, "invoiceNumber", "Entered invoice no. has already been recorded.",value);
+      }
     
       setFormData((prevData) => {
         const updatedFields = {
@@ -171,7 +185,7 @@ console.log('form data for edit',formData,formData,categoryFields)
         ) : isTotalAmountField ? (
           <div className='w-full'>
           <CurrencyInput
-          
+          dataMsg={errorMsg?.totalAmount}
           conversionAmount={conversionAmount}
           initialValue={formData[field.name]}
           error={errorMsg?.conversion}
@@ -187,6 +201,7 @@ console.log('form data for edit',formData,formData,categoryFields)
           </div>
         ) : (
           <Input
+          dataMsg={invoiceNoKeys.includes(field.name) && errorMsg.invoiceNumber}
             initialValue={formData[field.name]}
             error={(totalAmountKeys.includes(field.name) && errorMsg.totalAmount) || (dateKeys.includes(field.name) && errorMsg.date) || field.name=== "Class" && errorMsg.class}
             title={field.name}

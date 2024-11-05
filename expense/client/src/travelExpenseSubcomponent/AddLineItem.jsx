@@ -7,7 +7,7 @@ import Search from '../Components/common/Index';
 import Button1 from '../Components/common/Button1';
 import FileUpload from '../Components/common/FileUpload';
 import { DocumentPreview } from './BillPreview';
-import { allocationLevel, initializeFormFields, urlRedirection } from '../utils/handyFunctions';
+import { allocationLevel, extractValidExpenseLines, initializeFormFields, urlRedirection } from '../utils/handyFunctions';
 import LineItemForm from './LineItemForm';
 import { getTravelExpenseApi, postTravelExpenseLineItemApi, currencyConversionApi } from '../utils/api';
 import { useParams,useNavigate } from 'react-router-dom';
@@ -16,13 +16,6 @@ import PopupMessage from '../components/common/PopupMessage';
 import CancelButton from '../Components/common/CancelButton';
 import { BlobServiceClient } from "@azure/storage-blob";
 import useCurrencyConversion from '../utils/Conversion';
-
-
-
-
-
-
-
 
 
 const AddLineItem = () => {
@@ -103,7 +96,7 @@ useEffect(() => {
     try {
       setIsLoading(true);
       const response = await getTravelExpenseApi(tenantId, empId, tripId);
-      const travelAllocationFlag = allocationLevel(response?.companyDetails?.travelAllocationFlags)
+      const travelAllocationFlag = allocationLevel(response?.companyDetails?.travelAllocationFlags);
       //allocations for level 1 or level 2 
       if(['level1','level2'].includes(travelAllocationFlag)){
         const allocationsList = response?.companyDetails?.travelAllocations?.expenseAllocation|| []
@@ -149,7 +142,8 @@ useEffect(() => {
         defaultCurrency:response?.companyDetails?.defaultCurrency,
         expenseHeaderId:response?.flagToOpen,
         expenseAmountStatus:response?.expenseAmountStatus,
-        approvers: openedExpenseObj?.approvers
+        approvers: openedExpenseObj?.approvers,
+        "travelExpenseData": response?.travelExpenseData ?? []
       }))
 
       console.log('trip data fetched successfully', response)
@@ -181,6 +175,7 @@ const [errorMsg,setErrorMsg] = useState({
     category:{ set: false, msg: "" },
     conversion:{ set: false, msg: "" },
     date:{ set: false, msg: "" },
+    invoiceNumber:{ set: false, msg: "" },
   })
 
 
@@ -259,6 +254,8 @@ const handleMannualBtn = () => {
 
 
 
+
+
 const handleCurrencyConversion = async ( {currencyName,totalAmount,personalAmount}) => { 
   console.log('conversion _data',currencyName,totalAmount,personalAmount)
   
@@ -314,195 +311,13 @@ const handleCurrencyConversion = async ( {currencyName,totalAmount,personalAmoun
   }
 };
 
-
-
 console.log('converted data',currencyConversion)
 
-// const handleSaveLineItem = ()=>{
-
-//  let allowForm = true
-//   // for allocation validation  ----------------
-//   const newErrorMsg = {...errorMsg };
-//   Object.keys(newErrorMsg).forEach(key => {
-//     newErrorMsg[key] = { set: false, msg: "" };
-//   });
-//   for (const allocation of selectedAllocations) {
-//     if (allocation.headerValue.trim() === '') {
-//       newErrorMsg[allocation.headerName] = { set: true, msg: "Select the Allocation" };
-//     }
-//   }
-//   setErrorMsg(newErrorMsg);
-//   const anyErrorSet = Object.values(newErrorMsg).some(error => error.set);
-// // Update allowForm based on whether any error is set
-// allowForm = !anyErrorSet;
-// if(allowForm){
-//   console.log('formdata for save',formData.fields)
-// }
-// // for allocation validation  ----------------
-
-// }
 
 const handleDashboardRedirection=()=>{
   console.log(dashboardBaseUrl)
   window.parent.postMessage('closeIframe', dashboardBaseUrl);
 }
-
-
-// const handleSaveLineItem = async (action) => {
-//   console.log('line item action',action)
-//   let allowForm = true;
-
-//   // Reset error messages
-//   const newErrorMsg = {
-//     currencyFlag: { set: false, msg: "" },
-//     totalAmount: { set: false, msg: "" },
-//     personalAmount: { set: false, msg: "" },
-//     data: { set: false, msg: "" },
-//     expenseSettlement: { set: false, msg: "" },
-//     allocations: { set: false, msg: "" },
-//     category: { set: false, msg: "" },
-//     conversion: { set: false, msg: "" },
-//     date: { set: false, msg: "" },
-    
-    
-//   };
-
-//   // Check total amount keys
-//   for (const key of totalAmountKeys) {
-//     if (formData.fields[key] === "") {
-//       newErrorMsg.conversion = { set: true, msg: `${key} cannot be empty` };
-//       allowForm = false;
-//     }
-//   }
-
-//   // Check date keys
-//   for (const key of dateKeys) {
-//     if (formData.fields[key] === "") {
-//       newErrorMsg.date = { set: true, msg: `${key} cannot be empty` };
-//       allowForm = false;
-//     }
-//   }
-
-//   // Check if Class is empty
-//   for (const key of isClassField) {
-//     if (formData.fields[key] === "") {
-//       newErrorMsg.class = { set: true, msg: "Class cannot be empty" };
-//       allowForm = false;
-//     }
-//   }
-
-//   // Check if personalExpenseAmount is empty when isPersonalExpense is true
-//   if (formData.fields.isPersonalExpense) {
-//     const personalAmount = parseFloat(formData.fields.personalExpenseAmount);
-//     const totalAmount = parseFloat(currencyConversion.payload.totalAmount);
-  
-//     if (isNaN(personalAmount)) {
-//       newErrorMsg.personalAmount = { set: true, msg: "Personal Expense Amount cannot be empty" };
-//       allowForm = false;
-//     } else if (personalAmount > totalAmount) {
-//       newErrorMsg.personalAmount = { set: true, msg: "Personal Expense Amount cannot exceed Total Amount" };
-//       allowForm = false;
-//     } else {
-//       newErrorMsg.personalAmount = { set: false, msg: "" }; // Clear error if everything is valid
-//     }
-//   }
-
-//   if((formData.fields.isMultiCurrency) && (formData.fields.convertedAmountDetails===null)){
-//     newErrorMsg.conversion = { set: true, msg: `Exchange rates not available. Kindly contact your administrator.` };
-//     allowForm = false
-//   }
-  
-  
-  
-
-//   // Validate allocations
-//   for (const allocation of selectedAllocations) {
-//     if (allocation.headerValue.trim() === '') {
-//       newErrorMsg[allocation.headerName] = { set: true, msg: "Select the Allocation" };
-//       allowForm = false;
-//     }
-//   }
-  
-  
-
-
-  
-
-//   // Set the error messages only if there are any errors
-//   setErrorMsg(newErrorMsg);
-//   try {
-//     const azureUploadResponse = await uploadFileToAzure(selectedFile);
-//     if (azureUploadResponse.success) {
-//         allowForm = true;
-//         const billImageUrl = azureUploadResponse.fileUrl;
-//         setFormData(prev => ({
-//           ...prev,
-//           fields: {
-//               ...prev.fields,
-//               billImageUrl
-//           }
-//       }));
-      
-//     } else {
-//         console.error("Failed to upload file to Azure Blob Storage.");
-//     }
-// } catch (error) {
-//     allowForm=false
-//     console.error("Error uploading file to Azure Blob Storage:", error);
-// }
-
-
-//   if (allowForm) {
-//     // No errors, proceed with the save operation
-//     setIsUploading((prev) => ({ ...prev, [action]: { set: true, msg: "" } }));
-//     const params = {tenantId,empId,tripId,expenseHeaderId:requiredObj.expenseHeaderId}
-//     const payload = {
-//       "approvers":requiredObj?.approvers,
-//       allocations: [], // Default to an empty array
-//       defaultCurrency: requiredObj?.defaultCurrency,
-//       expenseAmountStatus: requiredObj.expenseAmountStatus,
-//       travelType: requiredObj?.travelType,
-//       expenseLine: {
-//         ...formData.fields,
-//         ...(requiredObj.level === 'level3' ? { allocations: selectedAllocations } : {})
-//       }
-//     };
-    
-//     // If level is not 'level3', move selectedAllocations to allocations
-//     if (requiredObj.level !== 'level3') {
-//       payload.allocations = selectedAllocations;
-//     }
-
-//     try {
-//       const response = await postTravelExpenseLineItemApi(params,payload);
-//       setIsUploading((prev) => ({ ...prev, [action]: { set: false, msg: "" } }));
-//       setShowPopup(true);
-//       setMessage(response?.message);
-//       setTimeout(() => {
-//         setShowPopup(false);
-//         setMessage(null);
-//         switch(action) {
-//           case "saveAndSubmit":
-//             return navigate(`/${tenantId}/${empId}/${tripId}/view/travel-expense`);
-//           case "saveAndNew":
-//             return window.location.reload(); // Reload the page
-//           default:
-//             break;
-//         }
-        
-        
-//       }, 5000);
-//     } catch (error) {
-//       setIsUploading((prev) => ({ ...prev, [action]: { set: false, msg: "" } }));
-//       setMessage(error.message);
-//       setShowPopup(true);
-//       setTimeout(() => {
-//         setShowPopup(false);
-//       }, 3000);
-//     }
-//   }
-// };
-
 
 const handleSaveLineItem = async (action) => {
   console.log('line item action', action);
@@ -823,23 +638,17 @@ useEffect(()=>{
     <FileUpload loading={isUploading.autoScan} onClick={handleOCRScan} selectedFile={selectedFile} setSelectedFile={setSelectedFile} isFileSelected={isFileSelected} setIsFileSelected={setIsFileSelected}  text={<div className='inline-flex items-center space-x-1'><img src={scan_icon} className='w-5 h-5'/> <p>Auto Scan</p></div>}/>
     <Button1 onClick={handleMannualBtn} text={<div className='inline-flex items-center space-x-1'><img src={modify_icon} className='w-5 h-5'/> <p>Manually</p></div>}/>
 </div>
-
 </div>    
 
-
-
-     
-
-
-      </div>
-     
-      {showForm &&
+</div>
+    {showForm &&
 <div className={` ${showForm ? 'block' : 'hidden'} w-full flex flex-col md:flex-row relative border-t-2 border-slate-300 h-screen p-4 pb-16 `}>
     <div className='w-full md:w-3/5 md:block hidden border border-slate-300 rounded-md  h-full overflow-auto'>
         <DocumentPreview isFileSelected={isFileSelected} setIsFileSelected={setIsFileSelected} selectedFile={selectedFile} setSelectedFile={setSelectedFile} initialFile=""/>
     </div>
     <div className='w-full md:w-2/5 h-full overflow-auto'>
        <LineItemForm 
+       expenseLines={extractValidExpenseLines(requiredObj?.travelExpenseData, "travelExpense")} // all expense lines for the trip
        currencyConversion={currencyConversion}
        setErrorMsg={setErrorMsg}
        isUploading={isUploading}

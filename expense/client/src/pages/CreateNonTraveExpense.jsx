@@ -42,6 +42,7 @@ import {
 } from "../assets/icon";
 import {
   allocationLevel,
+  extractValidExpenseLines,
   initializenonTravelFormFields,
   titleCase,
   urlRedirection,
@@ -200,16 +201,7 @@ const CreateNonTraveExpense = () => {
     selectCategory: false,
     updateLineItem: false,
   });
-  // const [active , setActive]=useState({
-  //   edit:{visible:false,id:null},
-  //   saveLineItem:false,
-  //   convert:false,
-  //   delete:{visible:false,id:null},
-  //   deleteHeader:false,
-  //   saveAsDraft:false,
-  //   submit:false,
-  //   autoScan:false
-  // })
+ 
 
   const [loadingErrorMsg, setLoadingErrorMsg] = useState(null);
   const [errorMsg, setErrorMsg] = useState({
@@ -1585,6 +1577,7 @@ const CreateNonTraveExpense = () => {
                         key={index}
                       >
                         <LineItemForm
+                          expenseLines={extractValidExpenseLines(requiredObj?.expenseLines, "nonTravelExpense")}
                           currencyConversion={currencyConversion}
                           categoryName={requiredObj.category}
                           setErrorMsg={setErrorMsg}
@@ -1675,6 +1668,7 @@ const CreateNonTraveExpense = () => {
                   </div>
                   <div className="w-full md:w-2/5 h-full overflow-auto">
                     <LineItemForm
+                      expenseLines={extractValidExpenseLines(requiredObj?.expenseLines, "nonTravelExpense")}
                       currencyConversion={currencyConversion}
                       categoryName={requiredObj.category}
                       setErrorMsg={setErrorMsg}
