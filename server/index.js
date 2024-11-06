@@ -88,7 +88,7 @@ startConsumer('dashboard');
 //BatchJobs
 scheduleToFinanceBatchJob()
 consumeFromDashboardQueue();
-// scheduleToNotificationBatchJob()
+scheduleToNotificationBatchJob()
 
 // const list = await HRMaster.find().select({'tenantId':1,'-_id':0})
 // const tenantIds = list.map(l => l.tenantId.toString())
