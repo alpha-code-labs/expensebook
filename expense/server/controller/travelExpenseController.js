@@ -952,8 +952,8 @@ export const onEditExpenseLine = async (req, res) => {
       console.log("totalAmount -- ", totalAmount, "totalAmountEdited", totalAmountEdited)
  
     const isLineUpdate = expenseLine?.expenseLineId.toString() === expenseLineEdited?.expenseLineId.toString()
-    const totalAmountOld = Number(totalAmount);
-    const totalAmountNew = Number(totalAmountEdited);
+    const totalAmountOld = Number(totalAmountEdited );
+    const totalAmountNew = Number(totalAmount);
   
     if(!isLineUpdate){
       res.status(404).json({ error:'Invalid request sent'});
