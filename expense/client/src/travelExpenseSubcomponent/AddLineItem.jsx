@@ -16,6 +16,7 @@ import PopupMessage from '../components/common/PopupMessage';
 import CancelButton from '../Components/common/CancelButton';
 import { BlobServiceClient } from "@azure/storage-blob";
 import useCurrencyConversion from '../utils/Conversion';
+import { TitleModal } from '../Components/common/TinyComponent';
 
 
 const AddLineItem = () => {
@@ -618,7 +619,6 @@ useEffect(()=>{
 
                                         <div className="text-neutral-700 text-normal text-sm sm:text-[14.5px] font-cabin -mt-1 sm:mt-0">{!requiredObj.category ? 'Select Category' : requiredObj?.category }</div>
                                         </div>
-      
       {categorySearchVisible &&
       <div className='absolute top-[84px] z-10'>
        <Search
@@ -654,7 +654,7 @@ useEffect(()=>{
        isUploading={isUploading}
        defaultCurrency={requiredObj.defaultCurrency}
        setCurrencyConversion={setCurrencyConversion}
-       handleCurrencyConversion={handleCurrencyConversion}
+       handleCurrencyConversion={handleCurrencyConversion}        
        setFormData={setFormData}
        formData={formData.fields}
        handleAllocations={handleAllocations}
@@ -681,17 +681,8 @@ useEffect(()=>{
         onClose={()=>setModalOpen(!modalOpen)}
         content={
           <div className='w-full h-auto'>
-          <div className='flex gap-2 justify-between items-center bg-indigo-100 w-auto p-4'>
-            <div className='flex gap-2'>
-              <img src={info_icon} className='w-5 h-5' alt="Info icon"/>
-              <p className='font-inter text-base font-semibold text-indigo-600'>
-                {getTitle()}
-              </p>
-            </div>
-            <div onClick={() => setModalOpen(false)} className='bg-red-100 cursor-pointer rounded-full border border-white'>
-              <img src={cancel_icon} className='w-5 h-5' alt="Cancel icon"/>
-            </div>
-          </div>
+          
+            <TitleModal iconFlag={true} text={getTitle()} onClick={() => setModalOpen(false)}/>
 
           <div className="p-4">
            {getContent()}

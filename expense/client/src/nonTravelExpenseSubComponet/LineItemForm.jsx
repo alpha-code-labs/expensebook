@@ -10,27 +10,37 @@ import { dateKeys, invoiceNoKeys, totalAmountKeys } from '../utils/data/keyList'
 const LineItemForm = ({expenseLines, categoryName, setErrorMsg,isUploading,defaultCurrency, currencyConversion, setCurrencyConversion, handleCurrencyConversion, formData,setFormData, onboardingLevel, categoryFields = [], classOptions, currencyTableData, allocationsList, handleAllocations,  errorMsg}) => {
 
 console.log("non travel expense lines", expenseLines)
-  const conversionAmount= currencyConversion?.response || {}
+const conversionAmount= currencyConversion?.response || {}
   
-  const checkIfRecorded = (keys, fieldName, errorMsg,value) => {
-    const isRecorded = expenseLines.some(expenseLine => 
-      keys.some(key => expenseLine[key] && expenseLine[key].toString().toLowerCase() === value.toLowerCase())
-    );
-  
-    setErrorMsg(prev => ({
-      ...prev,
-      [fieldName]: { set: isRecorded, msg: isRecorded ? errorMsg : "" }
-    }));
-  };
+const checkExpenseIfRecorded = (keys, fieldName, errorMsg, value) => {
+const isRecorded = expenseLines.some(expenseLine => 
+    keys.some(key => {
+      const lineValue = expenseLine[key];
+      // Check if key is in totalAmountKeys for numeric comparison
+      if (totalAmountKeys.includes(key)) {
+        return parseFloat(lineValue) === parseFloat(value);
+      }
+
+      // Default string comparison for other keys
+      return lineValue && lineValue.toString().toLowerCase() === value.toLowerCase();
+    })
+  );
+
+  setErrorMsg(prev => ({
+    ...prev,
+    [fieldName]: { set: isRecorded, msg: isRecorded ? errorMsg : "" }
+  }));
+};
+
 
 
     const handleInputChange = (key, value) => {
       console.log(`Updating ${key} with value:`, value);
       if ( totalAmountKeys.includes(key)){
-        checkIfRecorded(totalAmountKeys, "totalAmount", "Entered amount has already been recorded.",value);
+        checkExpenseIfRecorded(totalAmountKeys, "totalAmount", "Entered amount has already been recorded.",value);
       }
       if ( invoiceNoKeys.includes(key)){
-        checkIfRecorded(invoiceNoKeys, "invoiceNumber", "Entered invoice no. has already been recorded.",value);
+        checkExpenseIfRecorded(invoiceNoKeys, "invoiceNumber", "Entered invoice no. has already been recorded.",value);
       }
     
       setFormData((prevData) => {
@@ -218,52 +228,6 @@ console.log("non travel expense lines", expenseLines)
   );
 })}
 
-{/* {categoryFields.map((field)=>(
-          <React.Fragment key={field.name}>
-  <div key={field.name} className="w-full flex justify-center items-center px-2 py-1 ">
-          {field.name === 'From' || field.name === 'To' || field.name === 'Departure' || field.name === 'Pickup Location' ||field.name === 'DropOff Location' || field.name === 'Arrival' ? ( 
-       <>       
-        <Input
-        // inputRef={''}
-        // inputRef={autocompleteRefs[field.name] || (autocompleteRefs[field.name] = useRef())}
-        title={field.name}
-        name={field.name}
-        type={'text'}
-        // initialValue={formData[field.name]}
-        placeholder={`Enter ${field.name}`}
-        value={formData[field.name  ||""]}
-        onChange={(value)=>handleInputChange(field.name,value)}
-      />
-      </>
-      ) : (field.name ==='Class' || field.name ==='Class of Service') ? (
-          <div className="  w-full translate-y-[-6px] z-20">
-        <Select
-          title={field.name}
-          name={field.name}
-          placeholder={`Select ${field.name}`}
-          options={classOptions || []} // Define your class options here
-          currentOption={formData[field.name] || ''}
-          onSelect={(value)=>handleInputChange(field.name, value)}
-          // violationMessage={`Your violation message for ${field.name}`}
-          // error={{ set: true, message: `Your error message for ${field.name}` }}
-        />
-        </div>
-      ) :(
-        // Otherwise, render a regular input field
-        <Input
-          initialValue={formData[field.name]}
-          error={(totalAmountKeys.includes(field?.name) && errorMsg.totalAmount) || (dateKeys?.includes(field?.name) && errorMsg.dateErr )}
-          title={field.name}
-          name={field.name}
-          type={field.type === 'date' ? 'date' : field.type === 'numeric' ? 'number' : field.type === 'time' ? 'time' : 'text'}
-          placeholder={`Enter ${field.name}`}
-          value={formData[field.name || '']}
-          onChange={(value)=>handleInputChange(field.name , value)}
-        />
-      )}     
-          </div>        
-          </React.Fragment>
-         ))} */}
 
          
 

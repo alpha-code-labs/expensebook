@@ -65,6 +65,7 @@ import {
 import { LineItemView } from "../nonTravelExpenseSubComponet/LineItemView.jsx";
 import uploadFileToAzure from "../utils/azureBlob.js";
 import { act } from "react";
+import { TitleModal } from "../Components/common/TinyComponent.jsx";
 
 ///Cuurency on Save you have to save object of currency
 
@@ -1556,10 +1557,6 @@ const CreateNonTraveExpense = () => {
                 )}
             </div>
 
-            {/* {categoryElement.length>0 && <div className="w-fit my-5" >
-           <AddMore text={"Add Line Item"} onClick={()=>handleOpenModal('form')}/>
-     </div>} */}
-
             {/* //----------- edit line item--start---------------------- */}
             <div className="">
               {requiredObj?.expenseLines?.map((lineItem, index) =>
@@ -1577,7 +1574,7 @@ const CreateNonTraveExpense = () => {
                         key={index}
                       >
                         <LineItemForm
-                          expenseLines={extractValidExpenseLines(requiredObj?.expenseLines, "nonTravelExpense")}
+                          expenseLines={extractValidExpenseLines(requiredObj?.expenseLines, "nonTravelExpense", lineItem?.lineItemId )}
                           currencyConversion={currencyConversion}
                           categoryName={requiredObj.category}
                           setErrorMsg={setErrorMsg}
@@ -1802,7 +1799,7 @@ const CreateNonTraveExpense = () => {
         onClose={() => setModalOpen(!modalOpen)}
         content={
           <div className="w-full h-auto">
-            <div className="flex gap-2 justify-between items-center bg-indigo-100 w-auto p-4">
+            {/* <div className="flex gap-2 justify-between items-center bg-indigo-100 w-auto p-4">
               <div className="flex gap-2">
                 <img src={info_icon} className="w-5 h-5" alt="Info icon" />
                 <p className="font-inter text-base font-semibold text-indigo-600">
@@ -1815,7 +1812,8 @@ const CreateNonTraveExpense = () => {
               >
                 <img src={cancel_icon} className="w-5 h-5" alt="Cancel icon" />
               </div>
-            </div>
+            </div> */}
+             <TitleModal iconFlag={true} text={getTitle()} onClick={() => setModalOpen(false)}/>
 
             <div className="p-4">{getContent()}</div>
           </div>

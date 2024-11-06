@@ -9,41 +9,40 @@ import {  currencyConversionApi } from '../utils/api'
 import { categoryIcons } from '../assets/icon'
 import { totalAmountKeys,dateKeys, invoiceNoKeys } from '../utils/data/keyList'
 
-const LineItemForm = ({expenseLines, categoryName,setErrorMsg,isUploading,defaultCurrency, currencyConversion, setCurrencyConversion, handleCurrencyConversion, formData,setFormData, onboardingLevel, categoryFields = [], classOptions, currencyTableData, allocationsList, handleAllocations, lineItemDetails, errorMsg}) => {
- console.log('expense lines', expenseLines, errorMsg.totalAmount, errorMsg?.invoiceNumber)
+const LineItemForm = ({expenseLines, categoryName, setErrorMsg, isUploading, defaultCurrency, currencyConversion, setCurrencyConversion, handleCurrencyConversion, formData,setFormData, onboardingLevel, categoryFields = [], classOptions, currencyTableData, allocationsList, handleAllocations, lineItemDetails, errorMsg}) => {
+ console.log('expense lines', expenseLines, errorMsg?.totalAmount, errorMsg?.invoiceNumber);
  
- 
- const checkIfRecorded = (keys, fieldName, errorMsg,value) => {
-  const isRecorded = expenseLines.some(expenseLine => 
-    keys.some(key => expenseLine[key] && expenseLine[key].toString().toLowerCase() === value.toLowerCase())
-  );
-
-  setErrorMsg(prev => ({
-    ...prev,
-    [fieldName]: { set: isRecorded, msg: isRecorded ? errorMsg : "" }
-  }));
-};
+ const checkExpenseIfRecorded = (keys, fieldName, errorMsg, value) => {
+  const isRecorded = expenseLines?.some(expenseLine => 
+      keys.some(key => {
+        const lineValue = expenseLine[key];
+        // Check if key is in totalAmountKeys for numeric comparison
+        if (totalAmountKeys.includes(key)) {
+          return parseFloat(lineValue) === parseFloat(value);
+        }
+        // Default string comparison for other keys
+        return lineValue && lineValue.toString().toLowerCase() === value.toLowerCase();
+      })
+    );
+  
+    setErrorMsg(prev => ({
+      ...prev,
+      [fieldName]: { set: isRecorded, msg: isRecorded ? errorMsg : "" }
+    }));
+  };
   const conversionAmount= currencyConversion?.response || {}
 
-
-
-
-  
   const [personalExpFlag , setPersonalExpFlag]=useState(false)
  
-
     const handleInputChange = (key, value) => {
       console.log(`Updating ${key} with value:`, value);
     if ( totalAmountKeys.includes(key)){
-      checkIfRecorded(totalAmountKeys, "totalAmount", "Entered amount has already been recorded.",value);
+      checkExpenseIfRecorded(totalAmountKeys, "totalAmount", "Entered amount has already been recorded.",value);
     }
     if ( invoiceNoKeys.includes(key)){
-      checkIfRecorded(invoiceNoKeys, "invoiceNumber", "Entered invoice no. has already been recorded.",value);
+      checkExpenseIfRecorded(invoiceNoKeys, "invoiceNumber", "Entered invoice no. has already been recorded.",value);
     }
-    
-    
-    
-      setFormData((prevData) => {
+    setFormData((prevData) => {
         const updatedFields = {
           ...prevData.fields,
           [key]: value,
@@ -54,7 +53,7 @@ const LineItemForm = ({expenseLines, categoryName,setErrorMsg,isUploading,defaul
           setCurrencyConversion(prev => ({...prev,payload:{...prev.payload,personalAmount:""}}))
           setCurrencyConversion(prev => ({...prev,response:{...prev.payload,personalAmount:""}}))
         }
-
+    
         ///for conversion stop
 
         return {
@@ -117,7 +116,6 @@ const LineItemForm = ({expenseLines, categoryName,setErrorMsg,isUploading,defaul
     useEffect(() => {
       const totalAmount = Number(currencyConversion?.payload?.totalAmount);
       const personalExpenseAmount = Number(currencyConversion?.payload?.personalAmount);
-    
       setCurrencyConversion(prev => ({
         ...prev,
         payload: {
@@ -126,9 +124,6 @@ const LineItemForm = ({expenseLines, categoryName,setErrorMsg,isUploading,defaul
         }
       }));
     }, [currencyConversion?.payload?.totalAmount, currencyConversion?.payload?.personalAmount]);
-
-
-    
 
   return (
     <div className="w-full flex-row ">
@@ -312,64 +307,10 @@ onClick={(flag)=>handleInputChange("isPersonalExpense",flag)}/>
 </div> 
 
 
-{/* <div className="relative">
-<div className=" h-[48px] w-full sm:w-[200px]  mb-10 mr-28 mt-[-10px] ">
-   <Select
-       title='Currency'
-       currentOption={currencyDropdown[0].shortName}
-       placeholder="Select Currency"
-       options={currencyDropdown.map(currency => currency.shortName)} 
-       onSelect={(value)=>handleCurrenctySelect(value)}
-    
-       error={errorMsg.currencyFlag} 
-       />
-</div>  
-
-<div className='absolute top-6 left-[210px] w-fit'>
-{selectDropdown == null || selectDropdown.shortName !== defaultCurrency?.shortName   &&
-<ActionButton disabled={active?.convert} loading={active?.convert} active={active.convert} text="Convert" onClick={()=>handleConverter( totalAmount ,lineItemDetails?.personalExpenseAmount)}/>
-}
-</div>
-</div> */}
-{/* <div >
-{currencyTableData?.currencyFlag  ? 
-<div className={`flex gap-2 `}>
-<div className="min-w-[200px] w-full  h-auto flex-col justify-start items-start gap-2 inline-flex mb-3">
-<div className="text-zinc-600 text-sm font-cabin">Coverted Amount Details :</div>
-<div className="text-neutral-700 w-full h-full text-sm font-normal font-cabin  ">
-  <div className="w-full h-full decoration:none  rounded-md border placeholder:text-zinc-400 border-neutral-300 focus-visible:outline-0 focus-visible:border-indigo-600">
-    <div className={`sm:px-6 px-4  py-2  flex sm:flex-row flex-col  sm:items-center items-start justify-between  min-h-12 bg-slate-100  border  ${currencyTableData?.convertedPersonalAmount == undefined ? "rounded-md" :"rounded-t-md"}`}>
-      <div className="text-[16px] font-semibold text-neutral-600">Total Amount </div> 
-      <div className="text-neutral-600 font-cabin">{currencyTableData?.defaultCurrencyName} {currencyTableData?.convertedTotalAmount?.toFixed(2)}</div>
-  </div>
-{currencyTableData?.convertedPersonalAmount !== undefined &&
-<>
-    <div className="sm:px-6 px-4  py-2  flex sm:flex-row flex-col  sm:items-center items-start justify-between  min-h-12 bg-slate-100 ">
-      <div className=" text-[16px] font-semibold text-neutral-600">Personal Amount </div> 
-      <div className="text-neutral-600 font-cabin">{currencyTableData?.defaultCurrencyName} {currencyTableData?.convertedPersonalAmount?.toFixed(2)}</div>
-  </div>
-    <div className="sm:px-6 px-4  py-2  flex sm:flex-row flex-col  sm:items-center items-start justify-between  min-h-12 bg-slate-200 rounded-b-md border">
-      <div className="  text-[16px] font-semibold text-neutral-600">Final Reimbursement Amount </div> 
-      <div className="text-neutral-600 font-cabin">{currencyTableData?.defaultCurrencyName} {currencyTableData?.convertedBookableTotalAmount?.toFixed(2)}</div>
-  </div>
-  </>}
-  </div>
-
-</div>
-
-</div>
-</div>
-   : 
-  currencyTableData?.message !== undefined &&
-  <div className={`flex items-center justify-center gap-2 border-[1px] px-4 py-2 rounded border-yellow-600  text-yellow-600 mt-6`} >
-    <img src={validation_symb_icon} className='w-5 h-5'/>
-  <h2 className=''>{currencyTableData?.message}</h2>
-  </div>
- } 
-</div> */}
 
 <div className='flex w-fit mb-4'>
   <Select 
+  currentOption={lineItemDetails["Mode of Payment"] || ""}
    title="Paid Through"
    name="mode of payment"
    placeholder="Select Mode"

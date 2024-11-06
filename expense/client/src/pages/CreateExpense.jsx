@@ -12,6 +12,7 @@ import {
 import Icon from "../components/common/Icon";
 import {
   allocationLevel,
+  extractValidExpenseLines,
   formatAmount,
   getStatusClass,
   removeSuffix,
@@ -46,7 +47,6 @@ import {
   cancelTravelExpenseLineItemApi,
   getTravelExpenseApi,
   ocrScanApi,
-  postMultiCurrencyForNonTravelExpenseApi,
   currencyConversionApi,
   postTravelExpenseLineItemApi,
   submitOrSaveAsDraftApi,
@@ -62,6 +62,8 @@ import { DocumentPreview } from "../travelExpenseSubcomponent/BillPreview.jsx";
 import Modal from "../components/common/Modal.jsx";
 import LineItemForm from "../travelExpenseSubcomponent/LineItemForm.jsx";
 import { TitleModal } from "../Components/common/TinyComponent.jsx";
+import uploadFileToAzure from "../utils/azureBlob.js";
+import { dateKeys, isClassField, totalAmountKeys } from "../utils/data/keyList.js";
 
 const currencyDropdown = [
   {
@@ -121,9 +123,31 @@ export default function () {
   const { cancel, tenantId, empId, tripId } = useParams(); ///these has to send to backend get api
   const navigate = useNavigate();
 
-  const az_blob_container = import.meta.env.VITE_AZURE_BLOB_CONTAINER;
-  const blob_endpoint = import.meta.env.VITE_AZURE_BLOB_CONNECTION_URL;
-  const dashboard_url = import.meta.env.VITE_DASHBOARD_URL;
+  const az_blob_container = import.meta.env.VITE_AZURE_BLOB_CONTAINER
+  const storage_sas_token = import.meta.env.VITE_AZURE_BLOB_SAS_TOKEN
+  const storage_account = import.meta.env.VITE_AZURE_BLOB_ACCOUNT
+  const blob_endpoint = `https://${storage_account}.blob.core.windows.net/?${storage_sas_token}`
+
+  async function uploadFileToAzure(file) {
+    try{
+        const blobServiceClient = new BlobServiceClient(blob_endpoint);
+        const containerClient = blobServiceClient.getContainerClient(az_blob_container);
+        const blobClient = containerClient.getBlobClient(file.name);
+        const blockBlobClient = blobClient.getBlockBlobClient();
+      
+        const result = await blockBlobClient.uploadBrowserData(file, {
+            blobHTTPHeaders: {blobContentType: file.type},
+            blockSize: 4 * 1024 * 1024,
+            concurrency: 20,
+            onProgress: ev => console.log(ev)
+        });
+        console.log(`Upload of file '${file.name}' completed`);
+        return {success:true}
+    }catch(e){
+        console.error(e)
+        return {success:false}   
+    }
+  }
 
   const [ocrSelectedFile, setOcrSelectedFile] = useState(null);
 
@@ -171,6 +195,7 @@ export default function () {
     saveAsDraft: false,
     submit: false,
     deleteLineItem: false,
+    updateLineItem: false
   });
 
   const [active, setActive] = useState({});
@@ -204,11 +229,9 @@ export default function () {
   //const [getSavedAllocations, setGetSavedAllocations] = useState(); ///after save the allocation then i will get next time from here
   const [modalOpen, setModalOpen] = useState(false);
   const [actionType, setActionType] = useState(null);
-  //const [openLineItemForm, setOpenLineItemForm] = useState(true);
+
   const [headerReport, setHeaderReport] = useState(null);
- // const [editLineItemById, setEditLineItemById] = useState(null);
-  //const [isMultiCurrency, setIsMultiCurrency] = useState(false);
-  const [expenseAmountStatus, setExpenseAmountStatus] = useState({});
+  
 
   //for level 2
   const handleTravelType = (type) => {
@@ -318,7 +341,8 @@ export default function () {
         "expenseHeaderId":openedExpenseObj?.expenseHeaderId ?? flagToOpen,
         "travelType": openedExpenseObj?.travelType ?? "",
         "allocations": onboardingData?.travelAllocationHeaders || [],
-        "travelExpenseData": onboardingData?.travelExpenseData || []
+        "travelExpenseData": onboardingData?.travelExpenseData || [],
+        "expenseAmountStatus": onboardingData?.expenseAmountStatus
       }));      
       //console.log("saved allocations", getSavedAllocations);
       ///where is newExpenseReport = true
@@ -326,9 +350,9 @@ export default function () {
 
       setHeaderReport(openedExpenseObj);
       setFormData(prev => ({...prev, ...onboardingData }));
-      setExpenseAmountStatus(
-        onboardingData && onboardingData?.expenseAmountStatus
-      );
+      // setExpenseAmountStatus(
+      //   onboardingData && onboardingData?.expenseAmountStatus
+      // );
 
       // setGetSavedAllocations({ ...hrData });
       const initialIndex = onboardingData && onboardingData?.travelExpenseData;
@@ -344,7 +368,7 @@ export default function () {
 
   console.log("onboardingData", onboardingData);
 
-  console.log("expenseAmountStatus", expenseAmountStatus);
+  console.log("expenseAmountStatus", requiredObj?.expenseAmountStatus);
   console.log("selected Allocations", selectedAllocations);
   console.log("requiredObj", requiredObj);
   console.log("formData", formData);
@@ -358,21 +382,12 @@ export default function () {
 
   console.log("category list", categoriesList);
   console.log("travelType", selectedTravelType);
-  
   console.log("initial allocation", selectedAllocations);
   console.log("expense allocation", travelExpenseAllocation);
   console.log("travel allocations", requiredObj?.travelAllocations);
   console.log("expenseLine", headerReport?.expenseLines);
-
-  // console.log('onboardingData',onboardingData)
-  // console.log('categoryViseFields',categoryfields)
-  //categories array for search the category to get fields
-
- 
-
-
-
   console.log("total amount11", totalAmount);
+
 
   //selected category corresponding class & class of service value
   const [classDropdownValues, setClassDropdownValues] = useState(null);
@@ -421,35 +436,7 @@ export default function () {
     setSelectedAllocations(updatedExpenseAllocation);
   };
 
-  //level-1 store selected allocation in array
-  // const onAllocationSelection = (option, headerName) => {
-  //   // Check if the allocation for the headerName is already in the selectedAllocations
-  //   const existingAllocationIndex = selectedAllocations.findIndex(item => item.headerName === headerName);
 
-  //   // If the allocation exists, update it; otherwise, add a new allocation
-  //   if (existingAllocationIndex !== -1) {
-  //     const updatedExpenseAllocation = selectedAllocations.map((item, index) => {
-  //       if (index === existingAllocationIndex) {
-  //         // Update only the selected allocation
-  //         return {
-  //           ...item,
-  //           headerValue: option
-  //         };
-  //       }
-  //       return item;
-  //     });
-  //     setSelectedAllocations(updatedExpenseAllocation);
-  //   } else {
-  //     // Add a new allocation if it doesn't exist
-  //     setSelectedAllocations([
-  //       ...selectedAllocations,
-  //       {
-  //         headerName: headerName,
-  //         headerValue: option
-  //       }
-  //     ]);
-  //   }
-  // };
 
   const onReasonSelection = (option) => {
     setRequiredObj(prev => ({...prev, selectedExpenseSettlement: option}))
@@ -458,23 +445,12 @@ export default function () {
 
   const [selectDropdown, setSelectDropdown] = useState(null);
 
-  // const handleDropdownChange = (value, dropdownType) => {
-  //   if (dropdownType === 'Class' || dropdownType === 'Class of Service') {
-  //     const key = dropdownType === 'Class' ? 'Class' : 'Class of Service';
-  //     setLineItemDetails((prevState) => ({ ...prevState, [key]: value }));
-  //   } else if (dropdownType === 'categoryName') {
-  //     setExpenseLineForm({ ...expenseLineForm, categoryName: value });
-  //   } else if (dropdownType === 'currencyName') {
-  //     setLineItemDetails((prevState) => ({ ...prevState, currencyName: value }));
-  //     setSelectDropdown(value);
-  //   }
-  // };
-
   const handleCurrencyConversion = async ( {currencyName,totalAmount,personalAmount}) => { 
     console.log('conversion _data',currencyName,totalAmount,personalAmount)
+   
     const payload = {
      totalAmount, 
-     personalAmount,
+     personalAmount: personalAmount.toString(),
      currencyName,
      nonPersonalAmount:`${totalAmount-personalAmount||0}`
     }
@@ -526,6 +502,129 @@ export default function () {
           }
     }
   };
+  const handleSaveLineItem = async (action) => {
+    console.log('line item action', action);
+    let allowForm = true;  
+    // Reset error messages
+    const newErrorMsg = {
+      currencyFlag: { set: false, msg: "" },
+      totalAmount: { set: false, msg: "" },
+      personalAmount: { set: false, msg: "" },
+      data: { set: false, msg: "" },
+      expenseSettlement: { set: false, msg: "" },
+      allocations: { set: false, msg: "" },
+      category: { set: false, msg: "" },
+      conversion: { set: false, msg: "" },
+      date: { set: false, msg: "" },
+    };
+  
+    const validateFields = (keys, errorKey, errorMsg) => {
+      for (const key of keys) {
+        if (formData.fields[key] === "") {
+          newErrorMsg[errorKey] = { set: true, msg: `${errorMsg} cannot be empty` };
+          allowForm = false;
+        }
+      }
+    };
+
+    // Validate fields
+    validateFields(totalAmountKeys, 'conversion', 'Amount');
+    validateFields(dateKeys, 'date', 'Date');
+    validateFields(isClassField, 'class', 'Class');
+  
+    if (formData.fields.isPersonalExpense) {
+      const personalAmount = parseFloat(formData.fields.personalExpenseAmount);
+      const totalAmount = parseFloat(currencyConversion.payload.totalAmount);
+  
+      if (isNaN(personalAmount) || personalAmount === "") {
+        newErrorMsg.personalAmount = { set: true, msg: "Personal Expense Amount cannot be empty" };
+        allowForm = false;
+      } else if (personalAmount > totalAmount) {
+        newErrorMsg.personalAmount = { set: true, msg: "Personal Expense Amount cannot exceed Total Amount" };
+        allowForm = false;
+      }
+    }
+  
+    if (formData.fields.isMultiCurrency && !formData.fields.convertedAmountDetails) {
+      newErrorMsg.conversion = { set: true, msg: `Exchange rates not available. Kindly contact your administrator.` };
+      allowForm = false;
+    }
+  
+    for (const allocation of selectedAllocations) {
+      if (allocation.headerValue.trim() === '') {
+        newErrorMsg[allocation.headerName] = { set: true, msg: "Select the Allocation" };
+        allowForm = false;
+      }
+    }
+  
+    setErrorMsg(newErrorMsg);
+    let previewUrl = ""
+    if (allowForm && selectedFile) {
+      setIsUploading(prev => ({ ...prev, [action]: { set: true, msg: "" } }));
+      try {
+        const azureUploadResponse = await uploadFileToAzure(selectedFile);
+        if (azureUploadResponse.success) {
+           previewUrl = `https://${storage_account}.blob.core.windows.net/${az_blob_container}/${selectedFile.name}`;
+          console.log('bill url',previewUrl)
+          // setFormData(prev => ({
+          //   ...prev,
+          //   fields: { ...prev.fields, billImageUrl }
+          // }));
+        } else {
+          console.error("Failed to upload file to Azure Blob Storage.");
+          setMessage("Failed to upload file to Azure Blob Storage.");
+        setShowPopup(true);
+        setTimeout(() => setShowPopup(false), 3000);
+        allowForm = false;
+        }
+      } catch (error) {
+        console.error("Error uploading file to Azure Blob Storage:", error);
+        setMessage(error.message);
+        setShowPopup(true);
+        setTimeout(() => setShowPopup(false), 3000);
+        allowForm = false;
+      }
+    }
+
+    if (allowForm) {
+      setIsUploading(prev => ({ ...prev, [action]: { set: true, msg: "" } }));
+      const params = { tenantId, empId, tripId, expenseHeaderId: requiredObj.expenseHeaderId };
+     
+      const payload = {
+       travelType: requiredObj?.travelType,
+       expenseAmountStatus: requiredObj?.expenseAmountStatus,
+       expenseLine: formData?.fields,
+       expenseLineEdited: formData?.editedFields,
+       allocations: requiredObj.level === 'level3' ? [] : selectedAllocations,
+      };
+  
+      try {
+        const response = await updateTravelExpenseLineItemApi({params, payload});
+        // const response = await postTravelExpenseLineItemApi(params, payload);
+        setIsUploading(prev => ({ ...prev, [action]: { set: false, msg: "" } }));
+        setShowPopup(true);
+        setMessage(response?.message);
+        setTimeout(() => {
+          setShowPopup(false);
+          setMessage(null);
+          // if (action === "saveAndSubmit") {
+          //   navigate(`/${tenantId}/${empId}/${tripId}/view/travel-expense`);
+          // } else if (action === "saveAndNew") {
+          //   setShowForm(false)
+          //   setFormData({approvers:[],fields:{}})
+          //   setRequiredObj((prev)=>({...prev,"category":""}))
+          //   window.location.reload(); // Reload the page
+            
+          // }
+        }, 5000);
+      } catch (error) {
+        setIsUploading(prev => ({ ...prev, [action]: { set: false, msg: "" } }));
+        setMessage(error.message);
+        setShowPopup(true);
+        setTimeout(() => setShowPopup(false), 3000);
+      }
+    }
+  };
 
   const handleAllocations = (headerName, headerValue) => {
     console.log('allocation handle', headerName, headerValue);
@@ -539,12 +638,9 @@ export default function () {
       }
       return item;
     });
-  
     // Assuming `setSelectedAllocations` is updating the `allocations` key in the state
     setSelectedAllocations(updatedExpenseAllocation)
-    
   };
-  
 
   console.log(lineItemDetails?.personalExpenseAmount);
   //console.log("default cuurency use state", defaultCurrency);
@@ -822,11 +918,9 @@ export default function () {
   // Handle Save Line Item
   console.log("date value", selectedAllocations);
   // const handleSaveLineItemDetails = async () => {
-  
   console.log("error message for allocation", errorMsg?.allocations);
 
   // Handle Edit
-
   const [editFields, setEditFields] = useState({});
 
   const handleEdit = (lineItem) => {
@@ -1211,7 +1305,7 @@ export default function () {
                   </div>
                 </fieldset>
 
-                <div className="flex gap-2 flex-row">
+                <div className="flex gap-2 flex-row items-center">
                   <Button1
                     loading={isUploading.submit}
                     variant="fit"
@@ -1235,12 +1329,12 @@ export default function () {
                       setActionType("cancelExpense");
                     }}
                   />
-                  <div
-                    className="flex items-center justify-center rounded-sm hover:bg-slate-100 p-1 cursor-pointer"
-                    onClick={() => handleDashboardRedirection()}
-                  >
-                    <img src={cancel_icon} className="w-5 h-5" />
-                  </div>
+                   <div
+                      className="flex items-center justify-center rounded-sm bg-gray-200 p-1 h-fit cursor-pointer"
+                      onClick={() => handleDashboardRedirection()}
+                    >
+                      <img src={cancel_icon} className="w-5 h-5" />
+                    </div>
                 </div>
               </div>
              
@@ -1269,7 +1363,7 @@ export default function () {
                   tripPurpose={formData?.tripPurpose}
                   tripNumber={formData?.tripNumber}
                   name={formData?.createdBy?.name}
-                  expenseAmountStatus={expenseAmountStatus}
+                  expenseAmountStatus={requiredObj?.expenseAmountStatus}
                   isUploading={isUploading}
                   active={active}
                   cancel={cancel}
@@ -1300,7 +1394,7 @@ export default function () {
                             </p>
                           </div>
 
-                          <div className="flex gap-4 items-center  text-indigo-600">
+                          <div className="flex gap-4 items-center  text-neutral-900">
                             <div
                               className={`${getStatusClass(
                                 item?.expenseHeaderStatus
@@ -1464,6 +1558,7 @@ export default function () {
                                     </div>
                                     <div className="w-full sm:w-2/5 overflow-auto h-full">
                                       <LineItemForm 
+                                      expenseLines={extractValidExpenseLines(requiredObj?.travelExpenseData, "travelExpense", lineItem?.expenseLineId )}
                                       categoryName={lineItem?.['Category Name']}
                                       setErrorMsg={setErrorMsg}
                                       isUploading={isUploading}
@@ -1482,6 +1577,24 @@ export default function () {
                                       classOptions={requiredObj?.selectedCategoryData?.class}
                                      
                                        />
+                                    </div>
+                                    <div className="absolute -left-4 mx-4 inset-x-0 w-full  z-20 bg-slate-100   h-16 border border-slate-300 bottom-0">
+                                      <ActionBoard
+                                        showButton={true}
+                                        title1={"Delete"}
+                                        title={"Update"}
+                                        handleDeleteLineItem={() => {
+                                          setModalOpen(true);
+                                          setActionType("deleteLineItem");
+                                          setSelectedLineItemId(lineItem);
+                                        }}
+                                        handleClick={() =>
+                                          handleSaveLineItem("updateLineItem")
+                                        }
+                                        isUploading={isUploading}
+                                        setModalOpen={setModalOpen}
+                                        setActionType={setActionType}
+                                      />
                                     </div>
                                   </div>
                                 ) : (
@@ -1858,20 +1971,7 @@ export default function () {
         onClose={() => setModalOpen(!modalOpen)}
         content={
           <div className="w-full h-auto">
-            {/* <div className="flex gap-2 justify-between items-center bg-indigo-100 w-auto p-4">
-              <div className="flex gap-2">
-                <img src={info_icon} className="w-5 h-5" alt="Info icon" />
-                <p className="font-inter text-base font-semibold text-indigo-600">
-                  {getTitle()}
-                </p>
-              </div>
-              <div
-                onClick={() => setModalOpen(false)}
-                className="bg-red-100 cursor-pointer rounded-full border border-white"
-              >
-                <img src={cancel_icon} className="w-5 h-5" alt="Cancel icon" />
-              </div>
-            </div> */}
+            
              <TitleModal iconFlag={true} text={getTitle()} onClick={() => setModalOpen(false)}/>
 
             <div className="p-4">{getContent()}</div>
@@ -2194,6 +2294,25 @@ function CabCard({
       </div>
     </div>
   );
+}
+
+const ActionBoard = ({handleDeleteLineItem, isUploading, setModalOpen, setActionType, handleClick})=>{
+
+  return(
+    <div className='flex flex-col-reverse py-2 sm:flex-row justify-between px-4 items-center h-full w-full'>
+      {/* <div>
+      <Button1 loading={isUploading?.saveLineItem?.set} text='Submit' onClick={()=>handleClick()}/>
+      </div> */}
+       <p className='text-start whitespace-nowrap left-14 top-8 text-red-600 text-sm font-inter'><sup>*</sup>Kindly check the fields before saving the line item.</p>
+    <div className='flex gap-1'>
+      <Button1  loading={isUploading?.saveAndNew?.set}      text='Update'    onClick={()=>handleClick("saveAndNew")}/>
+      <Button1  loading={isUploading?.saveAndSubmit?.set}      text='Delete' onClick={()=>handleDeleteLineItem()}/>
+      <CancelButton  loading={isUploading?.saveLineItem?.set} text='Cancel'          onClick={()=>{setModalOpen(true);setActionType("closeAddExpense")}}/>
+    </div>
+
+    
+    </div>
+  )
 }
 
 // function EditView({expenseHeaderStatus,isUploading,active,flagToOpen,expenseHeaderId,lineItem, index ,newExpenseReport ,handleEdit, handleDeleteLineItem}){
@@ -2569,6 +2688,7 @@ function CabCard({
 //  fileSelected={fileSelected}
 //  setFileSelected={setFileSelected}
 //  />
+
 // </div>
 // </div>
 // <div className="w-full mt-5 px-4">

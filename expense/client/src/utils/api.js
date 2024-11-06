@@ -184,11 +184,13 @@ export const postTravelExpenseLineItemApi = async(params,payload)=>{
   }
 
 }
-export const updateTravelExpenseLineItemApi = async(tenantId,empId,tripId,expenseHeaderId,data)=>{
+export const updateTravelExpenseLineItemApi = async({params,payload})=>{
+  console.log("api for update line item", params,payload)
+  const {tenantId,empId,tripId,expenseHeaderId} = params;
+  const url = `${EXPENSE_BACKEND_API_URL}/api/fe/expense/travel/${tenantId}/${empId}/${tripId}/${expenseHeaderId}/edit`;
 
-  const url = `${EXPENSE_BACKEND_API_URL}/api/fe/expense/travel/${tenantId}/${empId}/${tripId}/${expenseHeaderId}/edit`
   try{
-     const response = await axiosRetry(axios.post,url,data)
+     const response = await axiosRetry(axios.post,url,payload)
      return response.data
 
   } catch(error){

@@ -261,12 +261,13 @@ function formatDate(date=Date.now()) {
     return text;  // Return the original text if neither 'es' nor 's' is found
   }
 
-  function extractValidExpenseLines (expenseData, expenseType) {
+  function extractValidExpenseLines (expenseData, expenseType, id=null) {
+    console.log('remove line id to duplicate',id)
     if(expenseData?.length ===0 ) return [];
   if( expenseType === "travelExpense"){ 
     return expenseData?.flatMap(item => 
         item.expenseLines
-            .filter(line => !["cancelled"].includes(line?.lineItemStatus))
+            .filter(line => (!["cancelled"].includes(line?.lineItemStatus) && line?.expenseLineId !== id))
             .map(line => ({
                 ...line,
                 expenseHeaderId: item.expenseHeaderId 
@@ -274,7 +275,9 @@ function formatDate(date=Date.now()) {
     );
   }
   if( expenseType === "nonTravelExpense")
-    return expenseData?.filter(line => !["cancelled"].includes(line?.lineItemStatus))
+    return expenseData?.filter(line => ((!["cancelled"].includes(line?.lineItemStatus) && line?.lineItemId !== id)))
   }
+
+  
 export {extractValidExpenseLines,removeSuffix,rearrangeKeyForLineItem, allocationLevel,initializenonTravelFormFields, initializeFormFields, camelCaseToTitleCase, titleCase, formatDate, formatDate2 ,getStatusClass ,generateRandomId,urlRedirection,formatAmount}  
 
