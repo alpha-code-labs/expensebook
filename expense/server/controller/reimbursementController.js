@@ -372,37 +372,85 @@ const getHighestLimitGroupPolicy = async (req, res) => {
       const { companyDetails: { companyName }, employees: [employee], policies: { nonTravelPolicies },travelAllocationFlags, expenseSettlementOptions } = employeeDocument;
       const groups = employee.group || [];
 
-      // Initializing variables to find the group with the highest limit
-      let highestGroup = {
-        limit: -Infinity,
-        group: null,
-      };
+      // // Initializing variables to find the group with the highest limit
+      // let highestGroup = {
+      //   limit: -Infinity,
+      //   group: null,
+      // };
 
-      // Function to find the group policy with the highest limit
-      const getHighestLimitGroupPolicy = (nonTravelPolicies, groups, expenseCategory) => {
-        // Iterating through each group
-        groups.forEach(groupName => {
-          const groupPolicy = nonTravelPolicies.find(policy => Object.keys(policy)[0] == groupName);
-          if (groupPolicy) {
-            const currentLimit = +groupPolicy[groupName]?.[expenseCategory]?.limit?.amount;
-            if (currentLimit > highestGroup.limit) {
-              highestGroup = {
-                limit: currentLimit,
-                group: groupName,
-              };
-            }
-          } else {
-            console.error(`No policy found for group: ${groupName}`);
-          }
-        });
-        // Result: highestGroup represents the group with the highest limit
-        return highestGroup;
-      };
+      // // Function to find the group policy with the highest limit
+      // const getHighestLimitGroupPolicy = (nonTravelPolicies, groups, expenseCategory) => {
+      //   // Iterating through each group
+      //   groups.forEach(groupName => {
+      //     const groupPolicy = nonTravelPolicies.find(policy => Object.keys(policy)[0] == groupName);
+      //     if (groupPolicy) {
+      //       const currentLimit = +groupPolicy[groupName]?.[expenseCategory]?.limit?.amount;
+      //       const getLimit = groupPolicy[groupName]?.[expenseCategory];
 
-      // Find the highest limit group policy
-      let { limit: highestLimit, group: groupName } = getHighestLimitGroupPolicy(nonTravelPolicies, groups, expenseCategory) || {};
+      //       // console.log("kaboom", JSON.stringify(groupPolicy,'',2))
+      //       console.log("kaboom  getLimit", JSON.stringify(getLimit,'',2))
 
-      // Extract additional information from the employee document
+            
+      //       if (currentLimit > highestGroup.limit) {
+      //         highestGroup = {
+      //           limit: currentLimit,
+      //           group: groupName,
+      //         };
+      //       }
+      //     } else {
+      //       console.error(`No policy found for group: ${groupName}`);
+      //     }
+      //   });
+      //   // Result: highestGroup represents the group with the highest limit
+      //   return highestGroup;
+      // };
+
+      // // Find the highest limit group policy
+      // let { limit: highestLimit, group: groupName } = getHighestLimitGroupPolicy(nonTravelPolicies, groups, expenseCategory) || {};
+
+// Initializing variables to find the group with the highest limit
+let highestGroup = {
+  limit: -Infinity,
+  group: null,
+  policyClass: null, // Add a property to store the class value
+};
+
+// Function to find the group policy with the highest limit
+const getHighestLimitGroupPolicy = (nonTravelPolicies, groups, expenseCategory) => {
+  // Iterating through each group
+  groups.forEach(groupName => {
+    // Find the group policy from nonTravelPolicies based on groupName
+    console.log("nonTravelPolicies", JSON.stringify(nonTravelPolicies,'',2))
+    const groupPolicy = nonTravelPolicies.find(policy => Object.keys(policy)[0] === groupName);
+    
+    if (groupPolicy) {
+      const categoryPolicy = groupPolicy[groupName]?.[expenseCategory];  
+
+      if (categoryPolicy) {
+        const currentLimit = +categoryPolicy.limit?.amount || -Infinity; 
+        const currentClass = categoryPolicy.class || null; 
+
+        console.log(`Group: ${groupName}, Expense Category: ${expenseCategory}, Limit: ${currentLimit}, Class: ${currentClass}`);
+
+        if (currentLimit > highestGroup.limit) {
+          highestGroup = {
+            limit: currentLimit,
+            group: groupName,
+            policyClass: currentClass, 
+          };
+        }
+      } else {
+        console.warn(`No category data found for group: ${groupName} and expense category: ${expenseCategory}`);
+      }
+    } else {
+      console.error(`No policy found for group: ${groupName}`);
+    }
+  });
+  return highestGroup;
+};
+
+let { limit: highestLimit, group: groupName, policyClass } = getHighestLimitGroupPolicy(nonTravelPolicies, groups, expenseCategory) || {};
+
       const { reimbursementExpenseCategories = [], companyDetails = {}, reimbursementAllocations = [], multiCurrencyTable = [] } = employeeDocument;
       const employeeName = employee.employeeDetails.employeeName;
       const currencyTable = multiCurrencyTable?.exchangeValue.map(item => item.currency)
@@ -417,7 +465,6 @@ const getHighestLimitGroupPolicy = async (req, res) => {
         ({ expenseAllocation: newExpenseAllocation, expenseAllocation_accountLine: newExpenseAllocation_accountLine } = selectedReimbursementAllocations);
       }
 
-      // Return error response if expense category is not found
       if (!selectedExpenseCategory) {
         return res.status(404).json({
           success: false,
@@ -425,16 +472,34 @@ const getHighestLimitGroupPolicy = async (req, res) => {
         });
       }
 
-      // Extract additional information from the selected expense category
       const { categoryName, fields,  expenseAllocation } = selectedExpenseCategory;
       const { defaultCurrency = '' } = companyDetails;
 
       const getApprovers = getApproversFromOnboarding(employeeDocument,empId)
 
-      const message = `${employeeName} is part of ${groupName}. Highest limit found: ${highestLimit}`;
+      // const message = `${employeeName} is part of ${groupName}. Highest limit found: ${highestLimit}`;
       const group = { limit: highestLimit, group: groupName, message };
 
 
+      const defaultClasses = {
+          "Economy": {
+            "allowed": true,
+            "violationMessage": ""
+          },
+          "Premium Economy": {
+            "allowed": true,
+            "violationMessage": ""
+          },
+          "Business": {
+            "allowed": true,
+            "violationMessage": ""
+          },
+          "First Class": {
+            "allowed": true,
+            "violationMessage": ""
+          }
+      }
+      
       // Return the response with the extracted information
       return res.status(200).json({
         success: true,
@@ -446,6 +511,7 @@ const getHighestLimitGroupPolicy = async (req, res) => {
         newExpenseAllocation_accountLine,
         expenseSettlementOptions,  
         group,
+        class:policyClass ? policyClass :defaultClasses,
         ...selectedExpenseCategory,
       }); 
     } catch (error) {
