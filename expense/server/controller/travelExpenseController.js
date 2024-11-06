@@ -950,7 +950,6 @@ export const onEditExpenseLine = async (req, res) => {
       let totalAmount = extractTotalAmount(expenseLine, fixedFields);
       let totalAmountEdited = extractTotalAmount(expenseLineEdited, fixedFields);
       console.log("totalAmount -- ", totalAmount, "totalAmountEdited", totalAmountEdited)
- 
     const isLineUpdate = expenseLine?.expenseLineId.toString() === expenseLineEdited?.expenseLineId.toString()
     const totalAmountOld = Number(totalAmountEdited );
     const totalAmountNew = Number(totalAmount);
@@ -1153,7 +1152,7 @@ export const onEditExpenseLine = async (req, res) => {
     }
       let updateAddOn = {
         $set:{
-          'travelExpenseData.$[header].expenseLines.$[elem]':expenseLineEdited
+          'travelExpenseData.$[header].expenseLines.$[elem]':expenseLine
         }
       }
     let totalUpdate = { ...update, ...updateAddOn}
