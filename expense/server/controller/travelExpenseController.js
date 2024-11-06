@@ -933,23 +933,13 @@ export const onEditExpenseLine = async (req, res) => {
     console.log("req.params on edit expense", req.params)
     let {travelType, expenseAmountStatus, expenseLine, expenseLineEdited, allocations,} = req.body;
     console.log("req.body for edit expense", req.body)
-    // Destructuring for better readability
 
-      // Validate required fields
-      const requiredFields = ['expenseAmountStatus', 'expenseLine', 'travelType', 'allocations'];
-      const missingFields = requiredFields.filter(field => !req.body[field]);
-      if (missingFields.length > 0) {
-        return res.status(404).json({
-          message: `Missing required fields: ${missingFields.join(", ")}`
-        });
-      }
-
-      const fixedFields = ['Total Amount', 'Premium Amount', 'Total Cost', 'License Cost', 'Subscription Cost', 'Total Fare', 'Premium Cost','Cost' ,'Tip Amount']
+    const fixedFields = ['Total Amount', 'Premium Amount', 'Total Cost', 'License Cost', 'Subscription Cost', 'Total Fare', 'Premium Cost','Cost' ,'Tip Amount']
 
       // Extract total amount
       let totalAmount = extractTotalAmount(expenseLine, fixedFields);
       let totalAmountEdited = extractTotalAmount(expenseLineEdited, fixedFields);
-      console.log("totalAmount -- ", totalAmount, "totalAmountEdited", totalAmountEdited)
+      console.log("totalAmount new-- ", totalAmount, "totalAmountEdited old", totalAmountEdited)
     const isLineUpdate = expenseLine?.expenseLineId.toString() === expenseLineEdited?.expenseLineId.toString()
     const totalAmountOld = Number(totalAmountEdited );
     const totalAmountNew = Number(totalAmount);
@@ -964,7 +954,7 @@ export const onEditExpenseLine = async (req, res) => {
         'Category Name':categoryName,
         Class:travelClass,
       } = expenseLine;
-        // Convert amounts to numbers
+
    let {
     totalExpenseAmount,
     totalPersonalExpenseAmount,
@@ -975,63 +965,232 @@ export const onEditExpenseLine = async (req, res) => {
   //policy violation added to expense Line
   expenseLineEdited.policyValidation = policyValidation;
 
-    // personal expenses and multicurrency
-    if (isPersonalExpense) {
-      console.log("is personal expense", isPersonalExpense)
-      const personalExpenseAmount = expenseLine?.personalExpenseAmount || 0;
+    // // personal expenses and multicurrency
+    // if (isPersonalExpense) {
+    //   console.log("is personal expense", isPersonalExpense)
+    //   const personalExpenseAmount = expenseLine?.personalExpenseAmount || 0;
   
-      if (!isMultiCurrency) {
+    //   if (!isMultiCurrency) {
+    //     // Logic for non-multicurrency personal expenses
+    //     if (personalExpenseAmount > totalAmountOld) {
+    //       return res.status(400).json({
+    //         message: "Personal expense amount cannot exceed total amount"
+    //       });
+    //     }
+  
+    //     const nonPersonalExpenseAmount = totalAmountOld - personalExpenseAmount;
+    //     totalExpenseAmount -= nonPersonalExpenseAmount;
+    //     totalPersonalExpenseAmount -= personalExpenseAmount;
+    //     totalRemainingCash += nonPersonalExpenseAmount;
+    //   } else {
+    //     // Logic for multicurrency personal expenses
+    //     console.log(" personal expense and multicurrency", isPersonalExpense, isMultiCurrency)
+    //     const {
+    //       convertedTotalAmount,
+    //       convertedPersonalAmount,
+    //       convertedBookableTotalAmount
+    //     } = expenseLine?.convertedAmountDetails || {};
+  
+    //     if (convertedBookableTotalAmount) {
+    //       console.log("convertedBookableTotalAmount in expenseLine", convertedBookableTotalAmount)
+    //       totalExpenseAmount -= convertedBookableTotalAmount;
+    //       totalPersonalExpenseAmount -= convertedPersonalAmount;
+    //       totalRemainingCash += convertedBookableTotalAmount ;
+    //     } else {
+    //       return res.status(400).json({
+    //         message: "Invalid converted bookable total amount"
+    //       });
+    //     }
+    //   }
+    // } else if (isMultiCurrency) {
+    //   // Logic for multicurrency non-personal expenses
+    //   const convertedTotalAmount = expenseLine?.convertedAmountDetails?.convertedTotalAmount;
+  
+    //   if (!convertedTotalAmount) {
+    //     return res.status(404).json({
+    //       success: false,
+    //       message: "Conversion total amount is missing"
+    //     });
+    //   }
+  
+    //   totalExpenseAmount -= convertedTotalAmount;
+    //   totalRemainingCash += convertedTotalAmount;
+    // } else {
+    //   // Logic for non-personal, non-multicurrency expenses
+    //   totalRemainingCash += totalAmountOld;
+    //   totalExpenseAmount -= totalAmountOld;
+    // }
+
+    // if (isPersonalExpense) {
+    //   // console.log("is personal expense", isPersonalExpense)
+    //   const personalExpenseAmount = expenseLine?.personalExpenseAmount || 0;
+
+    //   if (!isMultiCurrency) {
+    //     // Logic for non-multicurrency personal expenses
+    //     if (personalExpenseAmount > totalAmountNew) {
+    //       return res.status(400).json({
+    //         message: "Personal expense amount cannot exceed total amount"
+    //       });
+    //     }
+
+    //     const nonPersonalExpenseAmount = totalAmountNew - personalExpenseAmount;
+    //     totalExpenseAmount += nonPersonalExpenseAmount;
+    //     totalPersonalExpenseAmount += personalExpenseAmount;
+    //     totalRemainingCash -= nonPersonalExpenseAmount;
+    //   } else {
+    //     // Logic for multicurrency personal expenses
+    //     console.log(" personal expense and multicurrency", isPersonalExpense, isMultiCurrency)
+    //     const {
+    //       convertedTotalAmount,
+    //       convertedPersonalAmount,
+    //       convertedBookableTotalAmount
+    //     } = expenseLine?.convertedAmountDetails || {};
+
+    //     if (convertedBookableTotalAmount) {
+    //       console.log("convertedBookableTotalAmount in expenseLineEdited", convertedBookableTotalAmount)
+    //       totalExpenseAmount += convertedBookableTotalAmount;
+    //       totalPersonalExpenseAmount += convertedPersonalAmount;
+    //       totalRemainingCash -= convertedBookableTotalAmount ;
+    //     } else {
+    //       return res.status(400).json({
+    //         message: "Invalid converted bookable total amount"
+    //       });
+    //     }
+    //   }
+    // } else if (isMultiCurrency) {
+    //   // Logic for multicurrency non-personal expenses
+    //   const convertedTotalAmount = expenseLine?.convertedAmountDetails?.convertedTotalAmount;
+
+    //   if (!convertedTotalAmount) {
+    //     return res.status(404).json({
+    //       success: false,
+    //       message: "Conversion total amount is missing"
+    //     });
+    //   }
+
+    //   totalExpenseAmount += convertedTotalAmount;
+    //   totalRemainingCash -= convertedTotalAmount;
+    // } else {
+    //   // Logic for non-personal, non-multicurrency expenses
+    //   totalRemainingCash -= totalAmountNew;
+    //   totalExpenseAmount += totalAmountNew;
+    //   console.log("totalRemainingCash new line", totalRemainingCash, "totalAmountNew", totalAmountNew)
+    //   console.log("totalExpenseAmount new line", totalExpenseAmount)
+    // }
+  
+const personalExpenseAmountOld = expenseLineEdited?.personalExpenseAmount || 0;
+const personalExpenseAmountNew = expenseLine?.personalExpenseAmount || 0;
+
+if (isPersonalExpense) {
+    console.log("is personal expense", isPersonalExpense);
+
+    if (!isMultiCurrency) {
         // Logic for non-multicurrency personal expenses
-        if (personalExpenseAmount > totalAmountOld) {
-          return res.status(400).json({
-            message: "Personal expense amount cannot exceed total amount"
-          });
+        if (personalExpenseAmountOld > totalAmountOld) {
+            return res.status(400).json({
+                message: "Personal expense amount cannot exceed total amount"
+            });
         }
-  
-        const nonPersonalExpenseAmount = totalAmountOld - personalExpenseAmount;
+
+        const nonPersonalExpenseAmount = totalAmountOld - personalExpenseAmountOld;
         totalExpenseAmount -= nonPersonalExpenseAmount;
-        totalPersonalExpenseAmount -= personalExpenseAmount;
+        totalPersonalExpenseAmount -= personalExpenseAmountOld;
         totalRemainingCash += nonPersonalExpenseAmount;
-      } else {
-        // Logic for multicurrency personal expenses
-        console.log(" personal expense and multicurrency", isPersonalExpense, isMultiCurrency)
-        const {
-          convertedTotalAmount,
-          convertedPersonalAmount,
-          convertedBookableTotalAmount
-        } = expenseLine?.convertedAmountDetails || {};
-  
-        if (convertedBookableTotalAmount) {
-          console.log("convertedBookableTotalAmount in expenseLine", convertedBookableTotalAmount)
-          totalExpenseAmount -= convertedBookableTotalAmount;
-          totalPersonalExpenseAmount -= convertedPersonalAmount;
-          totalRemainingCash += convertedBookableTotalAmount ;
-        } else {
-          return res.status(400).json({
-            message: "Invalid converted bookable total amount"
-          });
-        }
-      }
-    } else if (isMultiCurrency) {
-      // Logic for multicurrency non-personal expenses
-      const convertedTotalAmount = expenseLine?.convertedAmountDetails?.convertedTotalAmount;
-  
-      if (!convertedTotalAmount) {
-        return res.status(404).json({
-          success: false,
-          message: "Conversion total amount is missing"
-        });
-      }
-  
-      totalExpenseAmount -= convertedTotalAmount;
-      totalRemainingCash += convertedTotalAmount;
     } else {
-      // Logic for non-personal, non-multicurrency expenses
-      totalRemainingCash += totalAmountOld;
-      totalExpenseAmount -= totalAmountOld;
+        // Logic for multicurrency personal expenses
+        console.log("personal expense and multicurrency", isPersonalExpense, isMultiCurrency);
+        const {
+            convertedTotalAmount,
+            convertedPersonalAmount,
+            convertedBookableTotalAmount
+        } = expenseLineEdited?.convertedAmountDetails || {};
+
+        if (convertedBookableTotalAmount) {
+            console.log("convertedBookableTotalAmount in expenseLine", convertedBookableTotalAmount);
+            totalExpenseAmount -= convertedBookableTotalAmount;
+            totalPersonalExpenseAmount -= convertedPersonalAmount;
+            totalRemainingCash += convertedBookableTotalAmount;
+        } else {
+            return res.status(400).json({
+                message: "Invalid converted bookable total amount"
+            });
+        }
     }
-  
-      // Replace totalRemainingCash in MongoDB and delete the expense line completely
+} else if (isMultiCurrency) {
+    // Logic for multicurrency non-personal expenses
+    const convertedTotalAmount = expenseLineEdited?.convertedAmountDetails?.convertedTotalAmount;
+
+    if (!convertedTotalAmount) {
+        return res.status(404).json({
+            success: false,
+            message: "Conversion total amount is missing"
+        });
+    }
+
+    totalExpenseAmount -= convertedTotalAmount;
+    totalRemainingCash += convertedTotalAmount;
+} else {
+    // Logic for non-personal, non-multicurrency expenses
+    totalRemainingCash += totalAmountOld;
+    totalExpenseAmount -= totalAmountOld;
+}
+
+if (isPersonalExpense) {
+    // Logic for updating with new amounts
+    if (!isMultiCurrency) {
+        // Non-multicurrency personal expenses
+        if (personalExpenseAmountNew > totalAmountNew) {
+            return res.status(400).json({
+                message: "Personal expense amount cannot exceed total amount"
+            });
+        }
+
+        const nonPersonalExpenseAmount = totalAmountNew - personalExpenseAmountNew;
+        totalExpenseAmount += nonPersonalExpenseAmount;
+        totalPersonalExpenseAmount += personalExpenseAmountNew;
+        totalRemainingCash -= nonPersonalExpenseAmount;
+    } else {
+        // Multicurrency personal expenses
+        console.log("personal expense and multicurrency", isPersonalExpense, isMultiCurrency);
+        const {
+            convertedTotalAmount,
+            convertedPersonalAmount,
+            convertedBookableTotalAmount
+        } = expenseLine?.convertedAmountDetails || {};
+
+        if (convertedBookableTotalAmount) {
+            console.log("convertedBookableTotalAmount in expenseLineEdited", convertedBookableTotalAmount);
+            totalExpenseAmount += convertedBookableTotalAmount;
+            totalPersonalExpenseAmount += convertedPersonalAmount;
+            totalRemainingCash -= convertedBookableTotalAmount;
+        } else {
+            return res.status(400).json({
+                message: "Invalid converted bookable total amount"
+            });
+        }
+    }
+} else if (isMultiCurrency) {
+    // Logic for multicurrency non-personal expenses
+    const convertedTotalAmount = expenseLine?.convertedAmountDetails?.convertedTotalAmount;
+
+    if (!convertedTotalAmount) {
+        return res.status(404).json({
+            success: false,
+            message: "Conversion total amount is missing"
+        });
+    }
+
+    totalExpenseAmount += convertedTotalAmount;
+    totalRemainingCash -= convertedTotalAmount;
+} else {
+    // Logic for non-personal, non-multicurrency expenses
+    totalRemainingCash -= totalAmountNew;
+    totalExpenseAmount += totalAmountNew;
+
+    console.log("totalRemainingCash new line", totalRemainingCash, "totalAmountNew", totalAmountNew);
+    console.log("totalExpenseAmount new line", totalExpenseAmount);
+}
+
       const removeAtLineItem = await Expense.findOneAndUpdate(
         { 
           tenantId,
@@ -1052,9 +1211,6 @@ export const onEditExpenseLine = async (req, res) => {
             'expenseAmountStatus.totalPersonalExpenseAmount': totalPersonalExpenseAmount,
             'expenseAmountStatus.totalRemainingCash': totalRemainingCash ,
           },
-          // $pull:{
-          //   'travelExpenseData.$.expenseLines':{'expenseLineId': expenseLineId},
-          // },
         },
         { new: true }
       );
@@ -1062,109 +1218,28 @@ export const onEditExpenseLine = async (req, res) => {
       if(!removeAtLineItem){
         res.status(404).json({ error:'Failed to edit expense'});
       } else {
-      const {expenseAmountStatus} = removeAtLineItem
-    // Convert amounts to numbers
-    console.log("i am go to add expenseLineEdited","expenseAmountStatus -after- update", expenseAmountStatus)
-     let {
-    totalExpenseAmount,
-    totalPersonalExpenseAmount,
-    totalRemainingCash
-     } = expenseAmountStatus;
-     console.log("totalAmountNew ---", totalAmountNew, "totalRemainingCash", totalRemainingCash)
 
-        const filter = { 
-          tenantId, 
-          tripId,
-          $or: [
-            { 'travelRequestData.createdBy.empId': empId },
-            { 'travelRequestData.createdFor.empId': empId },
-          ],
-          'travelExpenseData.expenseHeaderId': expenseHeaderId,
+    const headerIndex = removeAtLineItem.travelExpenseData.findIndex(header => header.expenseHeaderId.toString() === expenseHeaderId.toString());
+        
+    if (headerIndex !== -1) {
+        removeAtLineItem.travelExpenseData[headerIndex].allocations = allocations;
+        removeAtLineItem.travelExpenseData[headerIndex].travelType = travelType;
+
+        const elemIndex = removeAtLineItem.travelExpenseData[headerIndex].expenseLines.findIndex(line => line.expenseLineId.toString() === expenseLineEdited.expenseLineId.toString());
+        if (elemIndex !== -1) {
+            removeAtLineItem.travelExpenseData[headerIndex].expenseLines[elemIndex] = expenseLine; 
         }
-    
-        let update = {
-          $set: {
-            'expenseAmountStatus.totalPersonalExpenseAmount': totalPersonalExpenseAmount,
-            'expenseAmountStatus.totalExpenseAmount': totalExpenseAmount,
-            'expenseAmountStatus.totalRemainingCash': totalRemainingCash,
-            'travelExpenseData.$.allocations': allocations,
-            'travelExpenseData.$.travelType': travelType,
-          }
-        }
-    
-        const options = { new: true}
-    
-         // Handle personal expenses and multicurrency
-    if (isPersonalExpense) {
-      // console.log("is personal expense", isPersonalExpense)
-      const personalExpenseAmount = expenseLineEdited?.personalExpenseAmount || 0;
-
-      if (!isMultiCurrency) {
-        // Logic for non-multicurrency personal expenses
-        if (personalExpenseAmount > totalAmountNew) {
-          return res.status(400).json({
-            message: "Personal expense amount cannot exceed total amount"
-          });
-        }
-
-        const nonPersonalExpenseAmount = totalAmountNew - personalExpenseAmount;
-        totalExpenseAmount += nonPersonalExpenseAmount;
-        totalPersonalExpenseAmount += personalExpenseAmount;
-        totalRemainingCash -= nonPersonalExpenseAmount;
-      } else {
-        // Logic for multicurrency personal expenses
-        console.log(" personal expense and multicurrency", isPersonalExpense, isMultiCurrency)
-        const {
-          convertedTotalAmount,
-          convertedPersonalAmount,
-          convertedBookableTotalAmount
-        } = expenseLineEdited?.convertedAmountDetails || {};
-
-        if (convertedBookableTotalAmount) {
-          console.log("convertedBookableTotalAmount in expenseLineEdited", convertedBookableTotalAmount)
-          totalExpenseAmount += convertedBookableTotalAmount;
-          totalPersonalExpenseAmount += convertedPersonalAmount;
-          totalRemainingCash -= convertedBookableTotalAmount ;
-        } else {
-          return res.status(400).json({
-            message: "Invalid converted bookable total amount"
-          });
-        }
-      }
-    } else if (isMultiCurrency) {
-      // Logic for multicurrency non-personal expenses
-      const convertedTotalAmount = expenseLineEdited?.convertedAmountDetails?.convertedTotalAmount;
-
-      if (!convertedTotalAmount) {
-        return res.status(404).json({
-          success: false,
-          message: "Conversion total amount is missing"
-        });
-      }
-
-      totalExpenseAmount += convertedTotalAmount;
-      totalRemainingCash -= convertedTotalAmount;
     } else {
-      // Logic for non-personal, non-multicurrency expenses
-      totalRemainingCash -= totalAmountNew;
-      totalExpenseAmount += totalAmountNew;
-      console.log("totalRemainingCash", totalRemainingCash)
+        console.log("expense report not found.");
+        return res.status(404).json({message:"Document not found- Error Occured"});
     }
-      let updateAddOn = {
-        $set:{
-          'travelExpenseData.$[header].expenseLines.$[elem]':expenseLine
-        }
-      }
-    let totalUpdate = { ...update, ...updateAddOn}
-      const arrayFilters = [
-        {'header.expenseHeaderId': expenseHeaderId},
-        { 'elem.expenseLineId': expenseLineEdited.expenseLineId }];
-    const updatedExpenseReport = await Expense.findOneAndUpdate(filter, totalUpdate, { arrayFilters, ...options });
 
-    if (!updatedExpenseReport) {
-      return res.status(404).json({ message: "Expense report not found" });
-    } else {
-          const { travelExpenseData, expenseAmountStatus } = updatedExpenseReport;
+    const updatedExpenseReport = await removeAtLineItem.save();
+
+    if(!updatedExpenseReport){
+      res.status(404).json({ error:'Failed to update expense report'});
+    }
+          const { travelExpenseData, expenseAmountStatus:getUpdatedStatus } = updatedExpenseReport;
 
           const payload = { getExpenseReport: updatedExpenseReport};
           const action = 'full-update';
@@ -1176,14 +1251,12 @@ export const onEditExpenseLine = async (req, res) => {
       sendToOtherMicroservice(payload,action,'reporting',comments)
     ])
     
-      console.log("expenseLineEdited edited...........",travelExpenseData )
       return res.status(200).json({
         message: 'Expense line updated successfully.',
         travelExpenseData,
-        expenseAmountStatus,
+        expenseAmountStatus:getUpdatedStatus,
       })
-    }}
-    
+    }
   } catch (error) {
     console.error('An error occurred while saving the expense line items:', error);
     return res.status(500).json({
