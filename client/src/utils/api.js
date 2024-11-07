@@ -112,6 +112,24 @@ export const getEmployeeRoles_API = async (tenantId,empId) => {
     return { data: null, error: errorObject };
   }
 };
+export const updateNotificationReadFlagApi = async ({params,payload}) => {
+  const {tenantId,empId} = params
+  
+  const url = `${DASHBOARD_BACKEND_API_URL}/api/fe/dashboard/bell/${tenantId}/${empId}/read`;
+  
+  try {
+    const response = await axiosRetry(axios.patch, url, payload );
+    return response.data
+  } catch (error) {
+    handleRequestError(error);
+    const errorObject = {
+      status: error.response?.status || null,
+      message: error.message || 'Unknown error',
+    };
+
+    return { data: null, error: errorObject };
+  }
+};
 
 
 export const assignBusinessAdmin_API = async (tenantId,travelRequestId,data) => {

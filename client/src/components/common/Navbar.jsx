@@ -5,12 +5,13 @@ import { arrow_left, chevron_down,bell_icon, company_icon, down_arrow, down_left
 import { NavLink,useLocation ,useNavigate} from 'react-router-dom';
 import Input from './SearchInput';
 import IconOption from './IconOption';
-import { urlRedirection } from '../../utils/handyFunctions';
+import { formatDate, formatDateAndTime, urlRedirection } from '../../utils/handyFunctions';
 import { TripName } from './TinyComponent';
 import { warning } from 'framer-motion';
 import NotificationBox from './NotificationBox';
+import { updateNotificationReadFlagApi } from '../../utils/api';
 
-const Navbar = ({setSearchQuery,setSidebarOpen }) => {
+const Navbar = ({setSearchQuery,setSidebarOpen,tenantId,empId }) => {
 
   // const notificationData = [
   //   {
@@ -126,7 +127,25 @@ function clearCookie(name) {
     };
   });
 
-
+const handleIsReadNotification=async(payload)=>{
+  try {
+    // Conditionally fetch employee roles only if employeeRoles is null
+    const params = {tenantId, empId};
+    
+  
+     
+     const  response = await updateNotificationReadFlagApi({params,payload});
+     if(response?.success)
+      {
+           notificationData?.filter(item=> item?.messageId !== payload?.messageId)
+     }
+     console.log("response for notification", response)
+   
+ 
+  } catch (error) {
+    console.error('Error fetching data:', error.message);
+  }
+}
  
   return (
     <div className=" h-[48px] border-b p-2 w-full flex flex-row justify-between items-center bg-slate-50   border-slate-200">
@@ -145,7 +164,7 @@ function clearCookie(name) {
 
       <div className=" px-2 shrink-0 justify-center items-center cursor-pointer flex flex-row gap-2">
         <NotificationBox
-        disable={notificationData.length >0 ? false: true}
+        disable={notificationData.length > 0 ? false: true}
         buttonText={
           <div className="p-1 relative ">
       <span className={`${notificationData.length >0 ? 'block':'hidden'} absolute  flex h-2 w-2 right-1`}>
@@ -156,21 +175,28 @@ function clearCookie(name) {
             
             </div>
         }>
-<div className=' border-none divide-y divide-slate-300 flex  flex-col gap-1'>
+<div className='border-none divide-y divide-slate-300 flex flex-col justify-center  '>
 {notificationData?.map((ele)=>(
-            <div  key={ele.name + "navbar"}  className={`${ele.status === 'urgent' ? ' bg-gradient-to-t from-red-50/50 to-white  ' : ele.status ==='action' ? ' bg-gradient-to-t to-yellow-50/50 from-white  ': 'bg-gradient-to-t from-white to-indigo-50/50  '} bg-none flex w-[300px] gap-2 py-2  items-center text-neutral-900  hover:bg-gray-200/10 hover:rounded-md hover:border-none p-1 cursor-pointer`}>
-             {/* <p className='font-inter text-xs'>{`Trip ${ele.tripName} is scheduled to start in ${ele.daysLeft}.`}</p> */}
-             {/* Reminder: Submit your expenses for the completed trip "DEL-DUB-DEL (4th Oct 2024)." */}
-              {/* <img src={violation_icon} className='w-4 h-4'/> */}
+  <>
+   <div  key={ele.name + "navbar"}  className={`h-full ${ele.status === 'urgent' ? ' bg-gradient-to-t from-red-50/50 to-white  ' : ele.status ==='action' ? ' bg-gradient-to-t to-yellow-50/50 from-white  ': 'bg-gradient-to-t from-white to-indigo-50/50  '} bg-none flex w-[300px] gap-2 py-2  items-start  text-neutral-900  hover:bg-gray-200/10 hover:rounded-md hover:border-none p-1 cursor-pointer`}>
+           
               {alertIcon(ele?.status)}
              
-            <div className='space-y-2'>
+            <div className='space-y-2 '>
               <p className='font-inter text-xs text-neutral-900'>{ele?.message}</p>
-              <p className='text-xs font-cabin text-neutral-700'>11 Oct 2024 11:20 AM</p>
+              <p className='text-xs font-cabin text-neutral-700'>{formatDateAndTime(ele?.createdAt)}</p>
               </div>
-              {/* <img src={cancel}/> */}
               
+             <img onClick={()=>handleIsReadNotification({
+  ...(ele?.messageId && { messageId: ele.messageId }),
+  ...(ele?.travelRequestId && { travelRequestId: ele.travelRequestId }),
+  ...(ele?.expenseHeaderId && { expenseHeaderId: ele.expenseHeaderId })
+})} src={cancel} className='w-4 h-4 shrink-0 '/> 
             </div>
+   
+  
+  </>
+           
           ))
          
         }
