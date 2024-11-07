@@ -6,9 +6,25 @@ import { earliestDate } from '../utils/date.js';
 import HRMaster from '../models/hrMasterSchema.js';
 import REIMBURSEMENT from '../models/reimbursementSchema.js';
 import EXPENSE_NOTIFICATION from '../models/reimbursementNotification.js';
+import FinanceNotification from '../models/financeNotification.js';
 
 dotenv.config();
 
+
+const getTripStatus = (tripStartDate) => {
+    const today = new Date();
+    const dateDifference = Math.ceil((tripStartDate - today) / (1000 * 60 * 60 * 24)); 
+
+    if (dateDifference <= 0 || dateDifference <= 3) {
+        return 'urgent';
+    } else if(dateDifference <= 10){
+        return 'alert'
+    }else if (dateDifference <= 20) {
+        return 'reminder';
+    } else {
+        return 'information';
+    }
+};
 
 class PriorityQueue {
     constructor(comparator = (a, b) => a - b) {
@@ -420,7 +436,7 @@ const getApprovalReports = async (tenantId, now, futureDate, pastDate) => {
     };
 
     const reports = await getDocs(tenantId, filters, projections);
-    console.log("reports?.length before manager", reports)
+    // console.log("reports?.length before manager", reports)
     return reports?.length > 1 ? reports : [];
 };
 
@@ -700,7 +716,8 @@ const createNotificationForManager = async (reports) => {
                 const notificationPromises = travelAndCash.map(async (trip) => {
                     const { tenantId,createdBy, travelRequestId,approvers=[],tripName='Trip', tripStartDate,isCashAdvanceTaken,cashAdvance } = trip;
                     const date = tripStartDate.toDateString();
-                    const status = 'action'
+                    const status = getTripStatus(tripStartDate)
+                    
                     const hasPendingCashAdvance = cashAdvance?.some(advance => advance.cashAdvanceStatus === 'pending approval');
 
                 let messageText = `Urgent! Please approve the trip "${tripName}", scheduled to start on ${date}.`;
@@ -724,15 +741,16 @@ const createNotificationForManager = async (reports) => {
     if ( trips?.length) {
         const processNotifications = async (reports) => {
             try {
-                console.log("what trips / add a leg i get here one", trips?.length )
+                // console.log("what trips / add a leg i get here one", trips?.length )
 
                 reports.map(async(trip) => {
-                    console.log("what trips / add a leg i get here", trip)
-                    const {tenantId,travelRequestId, status} = trip
+                    // console.log("what trips / add a leg i get here", trip)
+                    const {tenantId,travelRequestId} = trip
                     const approvers = trip.travelRequestSchema.approvers;
                     const tripName = trip.tripSchema?.travelRequestData?.tripName || 'Unnamed Trip';
                     const tripStartDate = new Date(trip.tripSchema?.tripStartDate).toDateString();
                     const hasPendingCashAdvance = cashAdvance?.some(advance => advance.cashAdvanceStatus === 'pending approval');
+                    const status = getTripStatus(tripStartDate)
 
                     let messageText = `Please approve the leg item added for the trip "${tripName}", which started on ${tripStartDate}`
                     if (hasPendingCashAdvance) {
@@ -756,11 +774,12 @@ const createNotificationForManager = async (reports) => {
             try {
                 // Map over reports and create notifications
                 const notificationPromises = reports.map(async (trip) => {
-                    const { tenantId, travelRequestId, status, tripStartDate } = trip;
+                    const { tenantId, travelRequestId, tripStartDate } = trip;
                     const approvers = trip.travelRequestSchema?.approvers || [];
                     const tripName = trip.travelRequestSchema?.tripName || 'Unnamed Trip';
                     const messageText = `Reminder!, Please approve the expense reports submitted for trip titled "${tripName},"`;
-    
+                    const status = 'important'
+
                     return await createOrUpdateManagerNotification({ tenantId,travelRequestId, approvers, messageText, status });
                 });
     
@@ -880,6 +899,7 @@ const createOrUpdateManagerNotifications = async ({ tenantId, expenseHeaderId, a
 };
 
 
+
 //finance
 const setFinanceNotifications  = async (tenantId) => {
     const statusFilters = {
@@ -917,19 +937,128 @@ const setFinanceNotifications  = async (tenantId) => {
             }).exec()
         ]);
 
-        console.log('Dashboard Documents:', dashboardDocuments?.length);
-        console.log('Reimbursement Documents:', reimbursementDocuments?.length);
+        
+        if (dashboardDocuments.length === 0 && reimbursementDocuments.length === 0) {
+            return { message: 'There are no approvals found for the user' };
+        }
 
-        return { 
-            dashboardDocuments, 
-            reimbursementDocuments 
-        };
+
+        if (dashboardDocuments.length > 0) {
+            console.log('Dashboard Documents: For Finance batch job', dashboardDocuments);
+        
+            const processTravelWithCash = async (dashboardDocuments) => {
+                try {
+                    const notificationPromises = dashboardDocuments.map(async (cash) => {
+                        let {tripStartDate : tripDate} = cash.tripSchema || {};
+                        const { travelRequestData, cashAdvancesData } = cash.cashAdvanceSchema;
+                        const isValidCashStatus = cashAdvancesData.some(cashAdvance => cashAdvance.cashAdvanceStatus === 'pending settlement');
+                        const { tenantId,  createdBy, tripName, itinerary } = travelRequestData;
+                        const addStatus = ['booked']
+                        console.log("tripDate", tripDate)
+                        console.log("itinerary", itinerary)
+                        const tripStartDate = tripDate ?? await earliestDate(itinerary,addStatus);
+                        console.log("tripStartDate in finance",tripStartDate)
+                        const date = tripStartDate.toDateString();
+                        const status = getTripStatus(tripStartDate);
+        
+                        
+                        const formatAmountDetails = (amountDetails) => {
+                            return amountDetails.map(detail => {
+                                const { amount, currency } = detail;
+                                const currencySymbol = (currency && currency.symbol) ? currency.symbol : '-';
+                                return `${currencySymbol}${amount}`;
+                            }).join(', ');
+                        };
+        
+                        const cashAdvanceDetails = isValidCashStatus
+                            ? cashAdvancesData
+                                .filter(cashAdvance => cashAdvance.cashAdvanceStatus == 'pending settlement')
+                                .map(cashAdvance => ({
+                                    cashAdvanceStatus: cashAdvance.cashAdvanceStatus,
+                                    amountDetailsFormatted: formatAmountDetails(cashAdvance.amountDetails),
+                                }))
+                            : [];
+        
+                            const formattedString = cashAdvanceDetails.length > 0 
+                            ? cashAdvanceDetails.map(detail => detail.amountDetailsFormatted).join(', ') 
+                            : '-';
+
+                        console.log("cashAdvanceDetails kaboom", cashAdvanceDetails,"formattedString", formattedString)
+
+                        const messageText = `Urgent! Please Settle Cash Advance "${formattedString}" for trip "${tripName}", scheduled to start on ${date}.`;
+        
+                        return await createOrUpdateFinanceNotification({ tenantId, messageText, status });
+                    });
+        
+                    await Promise.all(notificationPromises);
+                    console.log('All notifications processed successfully.');
+                } catch (error) {
+                    console.error('Error processing notifications:', error);
+                }
+            };
+        
+            await processTravelWithCash(dashboardDocuments);
+        }
+
+        if(reimbursementDocuments.length > 0){
+            console.log('Reimbursement Documents:For Finance batch job ', reimbursementDocuments?.length);
+        }
+
+        return 
     } catch (error) {
         console.error('Error fetching settlements:', error);
         throw new Error('Could not fetch settlements.');
     }
 };
 
+const createOrUpdateFinanceNotification = async ({ tenantId, messageText, status }) => {
+    try {
+        const existingNotification = await FinanceNotification.findOne({ tenantId });
+
+        if (existingNotification) {
+            const messageExists = existingNotification.messages.some(msg => msg.text === messageText);
+            
+            if (!messageExists) {
+                if (existingNotification.messages.length < 100) {
+                    existingNotification.messages.push({
+                        text: messageText,
+                        status,
+                        createdAt: new Date(),
+                        isRead: false,
+                    });
+                    await existingNotification.save();
+                } else {
+                    const newNotification = new FinanceNotification({
+                        tenantId,
+                        messages: [{
+                            text: messageText,
+                            status,
+                            createdAt: new Date(),
+                            isRead: false,
+                        }],
+                    });
+                    await newNotification.save();
+                }
+            }
+        } else {
+            const newNotification = new FinanceNotification({
+                tenantId,
+                messages: [{
+                    text: messageText,
+                    status,
+                    createdAt: new Date(),
+                    isRead: false,
+                }],
+            });
+            await newNotification.save();
+        }
+
+        return { success: true, message: 'Notification created or updated successfully.' };
+    } catch (error) {
+        console.error('Error in createOrUpdateFinanceNotification:', error);
+        return { success: false, message: 'An error occurred while creating or updating the notification.' };
+    }
+};
 
 export {
     scheduleToNotificationBatchJob,
@@ -939,4 +1068,12 @@ export {
 
 
 
+
+// const getMessages = async (tenantId, pageNumber = 1, pageSize = 10) => {
+//     const skip = (pageNumber - 1) * pageSize;
+//     const notifications = await FinanceNotification.find({ tenantId })
+//         .skip(skip)
+//         .limit(pageSize);
+//     return notifications;
+// };
 

@@ -1,6 +1,7 @@
 import Joi from "joi";
 import Notification from "../models/notification.js";
 import EXPENSE_NOTIFICATION from "../models/reimbursementNotification.js";
+import FinanceNotification from "../models/financeNotification.js";
 
 
 const fetchEmployeeNotifications = async (tenantId, empId, applicableRoles) => {
@@ -62,9 +63,29 @@ const fetchEmployeeNotifications = async (tenantId, empId, applicableRoles) => {
             }
         }
 
-        if(applicableRoles.includes('finance')){
-            setFinance=[]
+        if (applicableRoles.includes('finance')) {
+            try {
+                const notifications = await FinanceNotification.find({ tenantId });
+        
+                const allMessages = notifications.flatMap(({ messages }) => 
+                    messages.map(({ text, messageId, status, isRead, createdAt }) => ({
+                        message: text,
+                        messageId,
+                        status,
+                        isRead,
+                        createdAt,
+                    }))
+                );
+        
+                let setFinance = allMessages
+                return setFinance;
+        
+            } catch (error) {
+                console.error("Error fetching employee notifications:", error);
+                throw new Error("Could not fetch notifications.");
+            }
         }
+    
 
         if(applicableRoles.includes('businessAdmin')){
             setBusinessAdmin=[]
@@ -125,11 +146,12 @@ const validationSchema = Joi.object({
 
 const markMessageAsRead = async (req, res) => { 
     try {
+        const { tenantId} = req.params
         const { value,error } = validationSchema.validate(req.body);
         if (error) {
             return res.status(400).json({ success: false, message: error.details[0].message });
         }
-        const { messageId, travelRequestId, expenseHeaderId } = value;
+        const {messageId, travelRequestId, expenseHeaderId } = value;
 
         if (!messageId) {
             return res.status(400).json({ success: false, message: 'Message ID is mandatory' });
@@ -141,7 +163,9 @@ const markMessageAsRead = async (req, res) => {
             notification = await Notification.findOne({ travelRequestId });
         } else if (expenseHeaderId) {
             notification = await EXPENSE_NOTIFICATION.findOne({ expenseHeaderId });
-        } else {
+        } else if (tenantId & !travelRequestId & !expenseHeaderId){
+            notification = await FinanceNotification.findOne({ tenantId });
+        } else{
             return res.status(400).json({ success: false, message: 'Either travelRequestId or expenseHeaderId is mandatory' });
         }
 
