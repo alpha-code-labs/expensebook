@@ -45,10 +45,10 @@ const NotificationBox = ({ buttonText, children ,disable=false}) => {
       >
         <div
           ref={dropdownRef}
-          className="relative bg-white border-none border-slate-300 rounded-md shadow-lg p-4 mt-4 h-full"
+          className="relative bg-white border-none border-slate-300 rounded-md shadow-lg p-2 pt-3 mt-4 h-full"
           onClick={(e) => e.stopPropagation()} // Prevents click from propagating to the overlay
         >
-          <div className='absolute left-8 -top-1 w-3 rotate-45 h-3 bg-white'></div>
+          <div className='absolute left-10 -top-1 w-3 rotate-45 h-3 bg-white'></div>
           {children}
         </div>
       </div>

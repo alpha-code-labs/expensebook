@@ -121,6 +121,7 @@ export {default as violation_red_icon} from './violation_red_icon.png';
 export {default as report_icon} from './report_icon.png'
 //export {default as report_white_icon} from './report_icon_white.png'
 export {default as company_icon} from './companyLogo_slate.png';
+export {default as cancel_black_icon} from './cancel_icon.svg';
 
 ///sidebar
 export {default as overview_white_icon} from './sidebar/home_24dp_FFFF_FILL1_wght400_GRAD0_opsz24.svg'
