@@ -137,10 +137,11 @@ const validationSchema = Joi.object({
         .messages({
             'string.base': 'Expense Header ID must be a string.'
         })
-}).xor('travelRequestId', 'expenseHeaderId')
-  .messages({
-      'object.xor': 'Either Travel Request ID or Expense Header ID must be provided, but not both.'
-  });
+})
+.xor('travelRequestId', 'expenseHeaderId')
+.messages({
+    'object.xor': 'Either Travel Request ID or Expense Header ID must be provided, but not both.'
+});
 
 
 
