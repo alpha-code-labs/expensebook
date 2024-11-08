@@ -67,7 +67,7 @@ const fetchEmployeeNotifications = async (tenantId, empId, applicableRoles) => {
             try {
                 const notifications = await FinanceNotification.find({ tenantId });
         
-                const allMessages = notifications.flatMap(({ messages }) => 
+                const finance = notifications.flatMap(({ messages }) => 
                     messages.map(({ text, messageId, status, isRead, createdAt }) => ({
                         message: text,
                         messageId,
@@ -77,7 +77,7 @@ const fetchEmployeeNotifications = async (tenantId, empId, applicableRoles) => {
                     }))
                 );
         
-                let setFinance = allMessages
+                let setFinance = {finance}
                 return setFinance;
         
             } catch (error) {

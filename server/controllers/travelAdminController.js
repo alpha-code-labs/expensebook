@@ -1,40 +1,6 @@
 import dashboard from "../models/dashboardSchema.js";
 import { sendToOtherMicroservice } from "../rabbitmq/publisher.js";
 
-// export const assignedToTravelAdmin = async (req, res) => {
-//     try {
-//         const { tenantId, travelRequestId } = req.params;
-//         const { isCashAdvanceTaken, assignedTo } = req.body;
-//         console.log("params", req.params, "req.body", req.body);
-
-//         let updateField;
-//         if (isCashAdvanceTaken) {
-//             updateField = 'cashAdvanceSchema.travelRequestData.assignedTo';
-//         } else {
-//             updateField = 'travelRequestSchema.assignedTo';
-//         }
-
-//         const assignTravelAdmin = await dashboard.updateOne(
-//             { tenantId, travelRequestId },
-//             { $set: { [updateField]: assignedTo } }
-//         );
-        
-//         console.log("Update result:", assignTravelAdmin);
-        
-//         // Check if the update was successful
-//         if (assignTravelAdmin.modifiedCount > 0) {
-//             const message = isCashAdvanceTaken ? "Cash advance admin assigned successfully" : "Travel admin assigned successfully";
-//             return res.status(200).json({ success: true, message });
-//         } else {
-//             // If no documents were modified, handle as a failure
-//             throw new Error("Failed to update assigned admin");
-//         }
-        
-//     } catch (error) {
-//         console.error("Error assigning travel admin:", error);
-//         return res.status(500).json({ success: false, message: error.message || "Failed to assign travel admin" });
-//     }
-// }
 
 export const assignedToTravelAdmin = async (req, res) => {
     try {
