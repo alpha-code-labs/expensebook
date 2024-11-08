@@ -28,7 +28,7 @@ const MessageSchema = new mongoose.Schema({
     createdAt: {
         type: Date,
         default: Date.now,
-        expires: '24h', 
+        // expires: '24h', 
     },
     isRead: {
         type: Boolean,

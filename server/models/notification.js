@@ -3,7 +3,11 @@ import mongoose from 'mongoose';
 const messageStatusEnums = [
     'information',
     'urgent',
-    'action'
+    'action',
+    'alert',
+    'important',
+    'reminder',
+    'mandatory'
 ]
 
 const approverStatusEnums = ["pending approval", "approved", "rejected"];
@@ -27,7 +31,7 @@ const MessageSchema = new mongoose.Schema({
     createdAt: {
         type: Date,
         default: Date.now,
-        expires: '1024h', 
+        // expires: '1024h', 
     },
     isRead: {
         type: Boolean,
@@ -100,3 +104,5 @@ export default Notification;
 export{
     messageStatusEnums
 }
+
+

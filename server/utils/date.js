@@ -19,7 +19,7 @@ const itinerary = {
     trains: []
 };
 
-export async function earliestDate(itinerary) {
+export async function earliestDate(itinerary,addStatus) {
     try{
         const allowedStatus = [  'draft', 
             'pending approval', 
@@ -29,9 +29,13 @@ export async function earliestDate(itinerary) {
             'cancelled',
             'paid and cancelled',
             'recovered',]
+            
+
+            if (Array.isArray(addStatus) && addStatus.length > 0) {
+                allowedStatus.push(...addStatus);
+            }
 
         const dateStrings=Object.entries(itinerary)
-            // .filter(([category]) => category !== 'formState')
             .flatMap(([category, items]) => {
                 const dateFields = {
                     hotels: 'checkIn_date',

@@ -8,59 +8,6 @@ const status = {
   PENDING_APPROVAL:'pending approval'
 }
 
-// const updateCashAdvanceStatus = async (cashApprovalDocs, cashAdvanceIds, empId, getAction,rejectionReason) => {
-//   const validActions = {
-//     "approved":"approved",
-//     "rejected":"rejected"
-//   }
-//   const getStatus = validActions[getAction]
-//   if(getStatus === undefined) {
-//   throw new Error('getAction is needed and must be approved or rejected')
-//   }
-
-//   const updateApproverStatus = (approvers, empId) =>
-//     approvers.map(approver => 
-//       approver.empId === empId && approver.status === 'pending approval'
-//         ? { ...approver, status: getStatus }
-//         : approver
-//     );
-
-//   const isAllApproved = approvers =>
-//     approvers.every(approver => approver.status === 'approved');
-
-//   const isRejected = approvers => 
-//     approvers.some(approver => approver.status === 'rejected')
-
-//   const updateCashAdvancesData = (cashAdvancesData, cashAdvanceIds, empId) =>
-//     cashAdvancesData.map(cashAdvance => {
-//       if (cashAdvanceIds.includes(cashAdvance?.cashAdvanceId.toString())) {
-//         const updatedApprovers = updateApproverStatus(cashAdvance.approvers, empId);
-//         let cashAdvanceStatus = isAllApproved(updatedApprovers) ? 'approved' : cashAdvance.cashAdvanceStatus;
-//         cashAdvanceStatus = isRejected(updatedApprovers) ? 'rejected': cashAdvance.cashAdvanceStatus;
-//         rejectionReason = (cashAdvanceStatus === 'rejected') ? rejectionReason : ''
-//         return { ...cashAdvance, approvers: updatedApprovers, cashAdvanceStatus,rejectionReason };
-//       }
-//       return cashAdvance;
-//     });
-
-//   const updateDocs = async cashApprovalDocs => {
-//     for (const cashApprovalDoc of cashApprovalDocs) {
-//       cashApprovalDoc.cashAdvancesData = updateCashAdvancesData(
-//         cashApprovalDoc.cashAdvancesData,
-//         cashAdvanceIds,
-//         empId,
-//       );
-//       try {
-//         await cashApprovalDoc.save();
-//         console.log(`Successfully updated cashApprovalDoc: ${cashApprovalDoc._id}`);
-//       } catch (error) {
-//         console.error(`Error updating cashApprovalDoc: ${cashApprovalDoc._id}`, error);
-//       }
-//     }
-//   };
-
-//   await updateDocs(cashApprovalDocs);
-// };
 const updateCashAdvanceStatus = async (cashApprovalDocs, cashAdvanceIds, empId, getAction,rejectionReason) => {
   console.group("updateCashAdvanceStatus")
   console.log("cashApprovalDocs, cashAdvanceIds, empId, getAction,rejectionReason",cashApprovalDocs, cashAdvanceIds, empId, getAction,rejectionReason)
@@ -1314,30 +1261,7 @@ const travelExpenseApproval = async (req, res) => {
 };
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+//Non Travel expense report Approval
 const otherExpenseSchema = Joi.object({
   tenantId:Joi.string().required(),
   empId: Joi.string().required(),

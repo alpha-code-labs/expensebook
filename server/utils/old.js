@@ -589,8 +589,8 @@ const getPolicyDetails = async (travelType) => {
   }
 };
 
-const travelType = 'international'; // Dynamic travel type
-const employeeGroups = ['Finance', 'All']; // Example groups to check against
+const travelType = 'international'
+const employeeGroups = ['Finance', 'All']
 
 
 const policyDetails = getPolicyDetails(travelType, employeeGroups);
