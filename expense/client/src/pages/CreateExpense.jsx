@@ -61,7 +61,7 @@ import { LineItemView } from "../travelExpenseSubcomponent/LineItemView.jsx";
 import { DocumentPreview } from "../travelExpenseSubcomponent/BillPreview.jsx";
 import Modal from "../components/common/Modal.jsx";
 import LineItemForm from "../travelExpenseSubcomponent/LineItemForm.jsx";
-import { TitleModal } from "../Components/common/TinyComponent.jsx";
+import { RemoveFile, TitleModal } from "../Components/common/TinyComponent.jsx";
 import uploadFileToAzure from "../utils/azureBlob.js";
 import { dateKeys, isClassField, totalAmountKeys } from "../utils/data/keyList.js";
 
@@ -589,11 +589,14 @@ export default function () {
     if (allowForm) {
       setIsUploading(prev => ({ ...prev, [action]: { set: true, msg: "" } }));
       const params = { tenantId, empId, tripId, expenseHeaderId: requiredObj.expenseHeaderId };
-     
       const payload = {
        travelType: requiredObj?.travelType,
        expenseAmountStatus: requiredObj?.expenseAmountStatus,
-       expenseLine: formData?.fields,
+       expenseLine: {
+        ...formData.fields,
+        "billImageUrl":previewUrl,
+        ...(requiredObj.level === 'level3' ? { allocations: selectedAllocations } : {})
+      },
        expenseLineEdited: formData?.editedFields,
        allocations: requiredObj.level === 'level3' ? [] : selectedAllocations,
       };
@@ -607,15 +610,8 @@ export default function () {
         setTimeout(() => {
           setShowPopup(false);
           setMessage(null);
-          // if (action === "saveAndSubmit") {
-          //   navigate(`/${tenantId}/${empId}/${tripId}/view/travel-expense`);
-          // } else if (action === "saveAndNew") {
-          //   setShowForm(false)
-          //   setFormData({approvers:[],fields:{}})
-          //   setRequiredObj((prev)=>({...prev,"category":""}))
-          //   window.location.reload(); // Reload the page
-            
-          // }
+         setRequiredObj(prev=>({...prev, travelExpenseData : response?.travelExpenseData}))
+         setFormData(prev => ({...prev, fields:{}}))
         }, 5000);
       } catch (error) {
         setIsUploading(prev => ({ ...prev, [action]: { set: false, msg: "" } }));
@@ -1547,7 +1543,14 @@ export default function () {
                               {item.expenseLines.map((lineItem, index) =>
                                 lineItem.expenseLineId === formData?.fields?.expenseLineId ? (
                                   <div key={`${index} line-item`} className="w-full border flex flex-col md:flex-row relative border-t-2 border-slate-300 h-screen p-4 pb-16 ">
-                                    <div className="w-full sm:w-3/5 h-full border border-slate-300 rounded-md hidden sm:block">
+                                    <div className="relative w-full sm:w-3/5 h-full border border-slate-300 rounded-md hidden sm:block">
+                                    <RemoveFile onClick={()=>setFormData(prev => ({
+                                              ...prev,
+                                              fields: {
+                                                ...prev.fields,
+                                                billImageUrl: ""
+                                              }
+                                            }))}/>
                                       <DocumentPreview
                                       isFileSelected={isFileSelected} 
                                       setIsFileSelected={setIsFileSelected} 
@@ -1600,8 +1603,10 @@ export default function () {
                                 ) : (
                                   <>
                                     <div className="flex flex-col lg:flex-row  w-full ">
-                                      <div className=" w-full lg:w-3/5 border border-slate-300 rounded-md">
+                                      <div className="  w-full lg:w-3/5 border border-slate-300 rounded-md">
+                                      
                                         <DocumentPreview
+                                          emptyPreview={true}
                                           initialFile={lineItem?.billImageUrl}
                                         />
                                       </div>
@@ -1637,6 +1642,7 @@ export default function () {
               {formVisible && (
                 <div className=" w-full flex flex-col  lg:flex-row">
                   <div className="border w-full lg:w-1/2  border-slate-300 rounded-md">
+                  
                     <DocumentPreview
                       selectedFile={ocrSelectedFile || selectedFile}
                     />
@@ -2305,8 +2311,8 @@ const ActionBoard = ({handleDeleteLineItem, isUploading, setModalOpen, setAction
       </div> */}
        <p className='text-start whitespace-nowrap left-14 top-8 text-red-600 text-sm font-inter'><sup>*</sup>Kindly check the fields before saving the line item.</p>
     <div className='flex gap-1'>
-      <Button1  loading={isUploading?.saveAndNew?.set}      text='Update'    onClick={()=>handleClick("saveAndNew")}/>
-      <Button1  loading={isUploading?.saveAndSubmit?.set}      text='Delete' onClick={()=>handleDeleteLineItem()}/>
+      <Button1  loading={isUploading?.updateLineItem?.set}      text='Update'    onClick={()=>handleClick("saveAndNew")}/>
+      <Button1  loading={isUploading?.deleteLineItem?.set}      text='Delete' onClick={()=>handleDeleteLineItem()}/>
       <CancelButton  loading={isUploading?.saveLineItem?.set} text='Cancel'          onClick={()=>{setModalOpen(true);setActionType("closeAddExpense")}}/>
     </div>
 

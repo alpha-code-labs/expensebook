@@ -58,6 +58,7 @@ import LineItemForm from "../nonTravelExpenseSubComponet/LineItemForm.jsx";
 import { DocumentPreview } from "../travelExpenseSubcomponent/BillPreview.jsx";
 import CancelButton from "../Components/common/CancelButton.jsx";
 import {
+  categoryClasses,
   dateKeys,
   isClassField,
   totalAmountKeys,
@@ -1590,7 +1591,8 @@ const CreateNonTraveExpense = () => {
                           onboardingLevel={requiredObj.level ?? "level3"}
                           lineItemDetails={formData?.fields}
                           categoryFields={requiredObj?.fields}
-                          classOptions={requiredObj?.class}
+                          classOptions={categoryClasses?.[requiredObj?.category]}
+                         // classOptions={requiredObj?.class}
                         />
                       </div>
                       <div className="absolute -left-4 mx-4 inset-x-0 w-full  z-20 bg-slate-100   h-16 border border-slate-300 bottom-0">
@@ -1681,7 +1683,8 @@ const CreateNonTraveExpense = () => {
                       onboardingLevel={requiredObj.level ?? "level3"}
                       lineItemDetails={formData.fields}
                       categoryFields={requiredObj?.fields}
-                      classOptions={requiredObj?.class}
+                      classOptions={categoryClasses?.[requiredObj?.category]}
+                      // classOptions={requiredObj?.class}
                     />
                   </div>
                   <div className="absolute -left-4 mx-4 inset-x-0 w-full  z-20 bg-slate-100   h-16 border border-slate-300 bottom-0">

@@ -9,7 +9,7 @@ import { dateKeys, invoiceNoKeys, totalAmountKeys } from '../utils/data/keyList'
 
 const LineItemForm = ({expenseLines, categoryName, setErrorMsg,isUploading,defaultCurrency, currencyConversion, setCurrencyConversion, handleCurrencyConversion, formData,setFormData, onboardingLevel, categoryFields = [], classOptions, currencyTableData, allocationsList, handleAllocations,  errorMsg}) => {
 
-console.log("non travel expense lines", expenseLines)
+console.log("non travel expense lines class", classOptions)
 const conversionAmount= currencyConversion?.response || {}
   
 const checkExpenseIfRecorded = (keys, fieldName, errorMsg, value) => {
