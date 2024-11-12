@@ -70,6 +70,8 @@ import { dateKeys, isClassField, totalAmountKeys } from "../utils/data/keyList.j
 
 
 
+
+
 export default function () {
   const { cancel, tenantId, empId, tripId } = useParams(); ///these has to send to backend get api
   const navigate = useNavigate();
@@ -484,9 +486,10 @@ export default function () {
     validateFields(isClassField, 'class', 'Class');
   
     if (formData.fields.isPersonalExpense) {
+
       const personalAmount = parseFloat(formData.fields.personalExpenseAmount);
       const totalAmount = parseFloat(currencyConversion.payload.totalAmount);
-  
+
       if (isNaN(personalAmount) || personalAmount === "") {
         newErrorMsg.personalAmount = { set: true, msg: "Personal Expense Amount cannot be empty" };
         allowForm = false;
@@ -545,7 +548,7 @@ export default function () {
        expenseAmountStatus: requiredObj?.expenseAmountStatus,
        expenseLine: {
         ...formData.fields,
-        "billImageUrl":previewUrl,
+        "billImageUrl":isFileSelected ? previewUrl : formData?.fields?.billImageUrl,
         ...(requiredObj.level === 'level3' ? { allocations: selectedAllocations } : {})
       },
        expenseLineEdited: formData?.editedFields,
@@ -572,7 +575,17 @@ export default function () {
       }
     }
   };
-
+const handleRemoveFile=()=>{
+  setFormData(prev => ({
+    ...prev,
+    fields: {
+      ...prev.fields,
+      billImageUrl: ""
+    }
+  }))
+  setSelectedFile(null);
+  setIsFileSelected(false);
+}
   const handleAllocations = (headerName, headerValue) => {
     console.log('allocation handle', headerName, headerValue);
   
@@ -1495,13 +1508,8 @@ export default function () {
                                 lineItem.expenseLineId === formData?.fields?.expenseLineId ? (
                                   <div key={`${index} line-item`} className="w-full border flex flex-col md:flex-row relative border-t-2 border-slate-300 h-screen p-4 pb-16 ">
                                     <div className="relative w-full sm:w-3/5 h-full border border-slate-300 rounded-md hidden sm:block">
-                                    <RemoveFile onClick={()=>setFormData(prev => ({
-                                              ...prev,
-                                              fields: {
-                                                ...prev.fields,
-                                                billImageUrl: ""
-                                              }
-                                            }))}/>
+                                    <RemoveFile 
+                                     onClick={handleRemoveFile}/>
                                       <DocumentPreview
                                       isFileSelected={isFileSelected} 
                                       setIsFileSelected={setIsFileSelected} 
@@ -1554,7 +1562,11 @@ export default function () {
                                 ) : (
                                   <>
                                     <div className="flex flex-col lg:flex-row  w-full h-screen">
+<<<<<<< HEAD
                                       <div className="  w-full lg:w-3/5 border h-full border-slate-300  rounded-md">
+=======
+                                      <div className="  w-full lg:w-3/5 border border-slate-300 h-full rounded-md">
+>>>>>>> 0ff919df8cf4ab6094837a05ba9f51a43768de37
                                       
                                         <DocumentPreview
                                           emptyPreview={true}

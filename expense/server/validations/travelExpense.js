@@ -21,7 +21,7 @@ const editBodySchema = Joi.object({
     allocations: Joi.array().items(Joi.object()).optional(),
 });
 
-// validation middleware
+
 const validateRequest = (paramSchema, bodySchema) => {
     return (req, res, next) => {
         const { error: paramError } = paramSchema.validate(req.params);
@@ -34,7 +34,7 @@ const validateRequest = (paramSchema, bodySchema) => {
             return res.status(400).json({ message: bodyError.details[0].message });
         }
 
-        next(); // Proceed to the next middleware/controller if validation passes
+        next(); 
     };
 };
 

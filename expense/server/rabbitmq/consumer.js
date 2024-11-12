@@ -1,6 +1,6 @@
 import amqp from 'amqplib';
 import { updateHRMaster } from './messageProcessor.js/onboardingMessage.js';
-import {  addALegToTravelRequestData, deleteALegFromTravelRequestData, tripArrayFullUpdate, tripFullUpdate } from './messageProcessor.js/trip.js';
+import {  addALegToTravelRequestData, deleteALegFromTravelRequestData, tripArrayFullUpdate, tripFullUpdate, updateTripToCompleteOrClosed } from './messageProcessor.js/trip.js';
 import { settleExpenseReport,  settleNonTravelExpenseReport, settleOrRecoverCashAdvance } from './messageProcessor.js/finance.js';
 import dotenv from 'dotenv';
 import { cashStatusUpdatePaid } from './messageProcessor.js/cashAdvanceMessage.js';
@@ -128,6 +128,23 @@ export async function startConsumer(receiver) {
                   console.log(res2)
                   handleMessageAcknowledgment(channel, msg, res2);
                   break;
+
+                case 'status-completed-closed':
+                    if(payload){
+                      const result = await updateTripToCompleteOrClosed(payload)
+                      console.log("results after trip status updated to completed or closed  ", result)
+                      if(result.success) {
+                          channel.ack(msg);
+                          console.log('Message processed successfully');
+                        } else {
+                          // Implement retry mechanism or handle error
+                          console.log('Update failed with error:', result.error);
+                        }
+                      }
+                    else{
+                      console.error(Error,"Payload is not an array");
+                    }
+                    break;
 
                 default:
                 console.warn(`Unknown action '${action}' for source ${source}`);
