@@ -43,6 +43,55 @@
   
     return formattedDate;
   }
+  function formatDateAndTime(date = Date.now()) {
+    // Get the current timestamp
+    const currentTimestamp = date;
+  
+    // Check if the date is already formatted
+    if (isDateInFormat(currentTimestamp)) {
+      return currentTimestamp;
+    }
+  
+    // Create a Date object from the timestamp
+    const currentDate = new Date(currentTimestamp);
+  
+    // Define an array of month names for conversion
+    const monthNames = [
+      "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+    ];
+  
+    // Get the day, month, and year
+    const day = currentDate.getDate();
+    const month = monthNames[currentDate.getMonth()];
+    const year = currentDate.getFullYear();
+  
+    // Add the appropriate ordinal indicator to the day
+    const dayWithOrdinal = addOrdinalIndicator(day);
+  
+    // Get the hour, minute, and format it to AM/PM
+    let hours = currentDate.getHours();
+    const minutes = currentDate.getMinutes().toString().padStart(2, '0');
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+  
+    // Convert 24-hour format to 12-hour format
+    hours = hours % 12 || 12;
+  
+    // Format the time as "11:24 AM"
+    const formattedTime = `${hours}:${minutes} ${ampm}`;
+  
+    // Combine the date and time as "24th Aug 2023 11:24 AM"
+    const formattedDateTime = `${dayWithOrdinal} ${month} ${year} ${formattedTime}`;
+  
+    return formattedDateTime;
+  }
+  
+  // Helper function to add the ordinal indicator
+ 
+  
+  // Placeholder for the isDateInFormat function
+
+  
   
   function tripsAsPerExpenseFlag(trips, requiredData) {
     return trips.filter(trip => {
@@ -406,5 +455,5 @@ function checkUpcomingTrip(tripStartDate) {
 
   
 
-export {tripsAsPerExpenseFlag,sortTripsForBooking,checkUpcomingTrip, filterByTimeRange,extractTripNameStartDate, sortTripsByDate, splitTripName, titleCase, formatDate, filterTravelRequests,formatDate2 ,getStatusClass ,addOrdinalIndicator ,formatDate3 ,getCashAdvanceButtonText,urlRedirection,formatAmount}  
+export {formatDateAndTime,tripsAsPerExpenseFlag,sortTripsForBooking,checkUpcomingTrip, filterByTimeRange,extractTripNameStartDate, sortTripsByDate, splitTripName, titleCase, formatDate, filterTravelRequests,formatDate2 ,getStatusClass ,addOrdinalIndicator ,formatDate3 ,getCashAdvanceButtonText,urlRedirection,formatAmount}  
 
