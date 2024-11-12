@@ -16,7 +16,7 @@ import PopupMessage from '../components/common/PopupMessage';
 import CancelButton from '../Components/common/CancelButton';
 import { BlobServiceClient } from "@azure/storage-blob";
 import useCurrencyConversion from '../utils/Conversion';
-import { TitleModal } from '../Components/common/TinyComponent';
+import { RemoveFile, TitleModal } from '../Components/common/TinyComponent';
 
 
 const AddLineItem = () => {
@@ -647,6 +647,9 @@ useEffect(()=>{
         <DocumentPreview isFileSelected={isFileSelected} setIsFileSelected={setIsFileSelected} selectedFile={selectedFile} setSelectedFile={setSelectedFile} initialFile=""/>
     </div>
     <div className='w-full md:w-2/5 h-full overflow-auto'>
+    {selectedFile && (
+                    <RemoveFile onClick={()=>setSelectedFile(null)}/>
+                  )}
        <LineItemForm 
        expenseLines={extractValidExpenseLines(requiredObj?.travelExpenseData, "travelExpense")} // all expense lines for the trip
        currencyConversion={currencyConversion}

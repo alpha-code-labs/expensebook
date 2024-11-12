@@ -132,10 +132,7 @@ const LineItemForm = ({expenseLines, categoryName, setErrorMsg, isUploading, def
           <div className="bg-slate-100 p-2 rounded-full">
             <img src={categoryIcons[categoryName]} className="w-4 h-4 rounded-full" />
           </div>
-         
           <p>{categoryName}</p>
-         
-        
         </div>
         
       </div>
