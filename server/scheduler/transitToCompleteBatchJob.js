@@ -202,150 +202,6 @@ const getLastBookingDate = (itinerary, bookingType) => {
   return new Date(0); // Return a default date if no valid booking is found
 };
 
-// const getCompletedTravelRequests = async () => {
-//   try{
-//     const yesterday = new Date();
-//     yesterday.setDate(yesterday.getDate() - 1);
-//     yesterday.setHours(0, 0, 0, 0); 
-  
-//     const today = new Date();
-//     today.setHours(0, 0, 0, 0);
-  
-//     console.info({ yesterday });
-
-//     const filter = {
-//       tripCompletionDate: {
-//         $gte: yesterday, 
-//         $lt: today 
-//       },
-//       tripStatus: 'completed',
-//       isCompleted:{nin:['true']}
-//     }
-  
-//     const completedTrips = await Trip.find(filter);
-  
-  
-//     console.log("whats from db",completedTrips?.length)
-//     // Initialize arrays for completed travel requests
-//     const listOfCompletedTravelRequestsWithCashAdvances = [];
-//     const listOfCompletedCashAdvances = [];
-//     const listOfCompletedStandaloneTravelRequests = [];
-  
-//     // Process each completed trip
-//     completedTrips.forEach(trip => {
-//       const travelRequestId = trip.travelRequestData.travelRequestId;
-  
-//       // Check if cash advance was taken
-//       if (trip.isCashAdvanceTaken) {
-//         listOfCompletedTravelRequestsWithCashAdvances.push(travelRequestId);
-//         const cashAdvanceIds = trip.cashAdvancesData.map(advance => advance.cashAdvanceId);
-//         listOfCompletedCashAdvances.push(...cashAdvanceIds);
-//       } else {
-//         listOfCompletedStandaloneTravelRequests.push(travelRequestId);
-//       }
-//     });
-  
-//     return {
-//       listOfCompletedTravelRequestsWithCashAdvances,
-//       listOfCompletedCashAdvances,
-//       listOfCompletedStandaloneTravelRequests,
-//       completedTrips
-//     };
-//   } catch(e){
-//     throw e
-//   }
-//   }
-
-
-// Define the batch job
-// const transitToCompleteBatchJob = ()=>{ 
-//   cron.schedule(scheduleTime, async () => {
-//   try {
-//     // Find all trips with status "transit"
-//     const transitTrips = await Trip.find({ tripStatus: 'transit' });
-
-//     // Update transit trips
-//     const { listOfClosedStandAloneTravelRequests , listOfClosedTravelRequests , listOfClosedCashAdvances  } = await updateTransitTrips(transitTrips);
-
-//     //RabbitMq 
-//     const destinationDash = 'dashboard'
-
-//     if(listOfClosedStandAloneTravelRequests.length > 0){
-//       const payload = {listOfClosedStandAloneTravelRequests}
-//       const action = 'status-completed-closed'
-//       const destination = 'travel'
-//      const source='trip'
-//       const comments = 'Status change of transit Trips to CLOSED, travel request status change to CLOSED'
-//       const onlineVsBatch = 'batch'
-
-//       try {
-//         const promises = [ sendToOtherMicroservice(payload, action, 'travel', comments, source, onlineVsBatch),
-//           sendToOtherMicroservice(payload,action, 'dashboard',comments, source,onlineVsBatch),
-//           sendToOtherMicroservice(payload,action, 'reporting',comments, source,onlineVsBatch)]
-
-//         const [travelResult, dashboardResult, reportingResult] = await Promise.all(promises);
-//       } catch (error) {
-//         // Handle errors here
-//         console.error('One or more microservice calls failed:', error);
-//       }
-      
-//     } else if(listOfClosedTravelRequests.length > 0 || listOfClosedCashAdvances.length > 0){
-//       const payload = {listOfClosedTravelRequests, listOfClosedCashAdvances }
-//       const action = 'status-completed-closed'
-//       const destination = 'cash'
-//       const source='trip'
-//       const comments = 'Status change of transit Trips to CLOSED, travel request status change to CLOSED and cashAdvance status is changed to CLOSED'
-//       const onlineVsBatch = 'batch'
-
-//       try {
-//         const promises = [ sendToOtherMicroservice(payload, action, 'cash', comments, source, onlineVsBatch),
-//           sendToOtherMicroservice(payload,action, 'dashboard',comments, source,onlineVsBatch),
-//           sendToOtherMicroservice(payload,action, 'reporting',comments, source,onlineVsBatch)]
-
-//         const [travelResult, dashboardResult, reportingResult] = await Promise.all(promises);
-//       } catch (error) {
-//         // Handle errors here
-//         console.error('One or more microservice calls failed:', error);
-//       }
-//     }
-
-//   // Collect completed standalone travel requests
-//   const { listOfCompletedStandaloneTravelRequests } = await getCompletedStandaloneTravelRequests();
-
-//     // Collect completed travel requests with cash advances taken
-//     const {
-//       listOfCompletedTravelRequests,
-//       listOfCompletedCashAdvances,
-//     } = await getCompletedTravelRequestsWithCashAdvances();
-
-
-//     if(listOfCompletedStandaloneTravelRequests.length > 0){
-//       const payload = {listOfCompletedStandaloneTravelRequests}
-//       const action = 'status-completed-closed'
-//       const destination = 'travel'
-//       const source='trip'
-//       const comments = 'Status change of transit Trips to COMPLETED, travel request status change to COMPLETED'
-//       const onlineVsBatch = 'batch'
-//       await sendToOtherMicroservice(payload, action, destination, comments, source, onlineVsBatch)
-//       await sendToOtherMicroservice(payload, action, destinationDash, comments, source, onlineVsBatch)
-//     }
-//     else if(listOfCompletedTravelRequests.length > 0 || listOfCompletedCashAdvances.length > 0){
-//       const payload = {listOfCompletedTravelRequests, listOfCompletedCashAdvances }
-//       const action = 'status-completed-closed'
-//       const destination = 'cash'
-//       const source='trip'
-//       const comments = 'Status change of transit Trips to COMPLETED, travel request status change to COMPLETED and cashAdvance status is changed to COMPLETED'
-//       const onlineVsBatch = 'batch'
-//       await sendToOtherMicroservice(payload, action, destination, comments, source, onlineVsBatch)
-//       await sendToOtherMicroservice(payload, action, destinationDash, comments, source, onlineVsBatch)
-//     }
-
-//     console.log('Status change Transit to complete batch job completed successfully.');
-//   } catch (error) {
-//     console.error('Status change Transit to complete batch job error:', error);
-//   }
-// });
-// }
 // Helper function to handle database operations
 const getCompletedTravelRequests = async () => {
   try {
@@ -400,14 +256,14 @@ const getCompletedTravelRequests = async () => {
   console.error('Error fetching completed trips:', error);
   throw error;
   }
-  };
+};
 
 const transitToCompleteBatchJob = () => {
   cron.schedule(scheduleTime, async () => {
     try {
     // Function to send payload to multiple microservices
     const sendToMicroservices = async (payload, action, comments, source) => {
-      const destinations = ['travel', 'dashboard', 'reporting', 'cash'];
+      const destinations = ['travel', 'dashboard', 'reporting', 'cash', 'expense'];
       const promises = destinations.map(destination => 
         sendToOtherMicroservice(payload, action, destination, comments, source, 'batch')
       );
@@ -532,100 +388,6 @@ const transitToCompleteBatchJob = () => {
 };
 
 
-
-
-
-
-// Export the batch job for use in other modules
-export {transitToCompleteBatchJob};
-// const updateTransitTrips = async (transitTrips) => {
-//   const todayDate = new Date();
-
-//   for (const trip of transitTrips) {
-//     const lastLineItemDate = getLastLineItemDate(trip.travelRequestData);
-
-//     if (todayDate > lastLineItemDate) {
-//       // Asynchronous RabbitMQ call to update briefcase icon for individual users
-//       await sendNotificationToDashboard(trip);
-
-//       const dateDifference = calculateDateDifferenceInDays(lastLineItemDate, todayDate);
-
-//       if (dateDifference > 1) {
-//         // Update documents in the Trip collection
-//         await Trip.updateMany(
-//           {
-//             // _id: trip._id,
-//             tripStatus: 'transit',
-//             tripStartDate: { $lte: todayDate },
-//             'travelRequestData.itinerary.lineItems.isCancelled': { $ne: true },
-//           },
-//           {
-//             $set: {
-//               tripStatus: 'completed',
-//               'travelRequestData.travelRequestStatus': 'completed',
-//               'cashAdvanceData.travelRequestData.travelRequestStatus': 'completed',
-//             },
-//           }
-//         );
-
-//         // Additional data processing, if needed
-//         trip.status = 'completed';
-//         await saveDataInTripContainer(trip);
-
-//         // Check if expenses have been submitted
-//         if (!trip.expensesSubmitted) {
-//           // Asynchronous RabbitMQ call to remind the employee to submit expenses
-//           await sendNotificationToEmployee(trip);
-//         }
-//       }
-//     }
-//   }
-// };
-
-// Function to update documents in the Trip collection
-
-
-
-
-
-
-
-
-
-
-// const updateTransitTrips = async (transitTrips) => {
-//   const todayDate = new Date();
-
-//   for (const trip of transitTrips) {
-//     const lastLineItemDate = getLastLineItemDate(trip.travelRequestData.itinerary);
-
-//     if (todayDate > lastLineItemDate) {
-//       await processCompletionIfApplicable(trip, todayDate, lastLineItemDate);
-
-//       await processClosureIfApplicable(trip);
-//     }
-//   }
-// };
-
-
-
-// Define the batch job
-// const transitBatchJob = cron.schedule(scheduleTime, async () => {
-//   try {
-//     // Find all trips with status "transit"
-//     const transitTrips = await Trip.find({ tripStatus: 'transit' });
-
-//     // Update transit trips
-//     await updateTransitTrips(transitTrips);
-
-//     console.log('Status change Transit to complete batch job completed successfully.');
-//   } catch (error) {
-//     console.error('Status change Transit to complete batch job error:', error);
-//   }
-// });
-
-// // Start the batch job immediately (useful for testing)
-// transitBatchJob.start();
-
-// // Export the batch job for use in other modules
-// export default transitBatchJob;
+export {
+  transitToCompleteBatchJob
+};

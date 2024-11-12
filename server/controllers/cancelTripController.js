@@ -333,7 +333,7 @@ export const cancelTripAtHeaderLevel = async (req, res) => {
     trip.travelRequestData.travelRequestStatus = trip.travelRequestData.travelRequestStatus === 'booked' ? 'paid and cancelled' : 'cancelled';
 
     // Save the updated trip asynchronously
-   const tripCancelled = await trip.save();
+  const tripCancelled = await trip.save();
 
    if(!tripCancelled){
     return res.status(500).json({ error: 'Internal Server Error - Trip cancellation failed', error });
