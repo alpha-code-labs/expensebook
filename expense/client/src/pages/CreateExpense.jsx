@@ -65,59 +65,10 @@ import { RemoveFile, TitleModal } from "../Components/common/TinyComponent.jsx";
 import uploadFileToAzure from "../utils/azureBlob.js";
 import { dateKeys, isClassField, totalAmountKeys } from "../utils/data/keyList.js";
 
-const currencyDropdown = [
-  {
-    fullName: "Argentine Peso",
-    shortName: "ARS",
-    symbol: "$",
-    countryCode: "AR",
-  },
-  {
-    fullName: "Australian Dollar",
-    shortName: "AUD",
-    symbol: "A$",
-    countryCode: "AU",
-  },
-  {
-    fullName: "United States Dollar",
-    shortName: "USD",
-    symbol: "$",
-    countryCode: "US",
-  },
-  {
-    fullName: "Chinese Yuan Renminbi",
-    shortName: "CNY",
-    symbol: "¥",
-    countryCode: "CN",
-  },
-  {
-    fullName: "Bangladeshi Taka",
-    shortName: "BDT",
-    symbol: "৳",
-    countryCode: "BD",
-  },
-  {
-    countryCode: "IN",
-    fullName: "Indian Rupee",
-    shortName: "INR",
-    symbol: "₹",
-  },
-];
 
-const totalAmountNames = [
-  "Total Fare",
-  "Total Amount",
-  "Subscription cost",
-  "Cost",
-  "Premium Cost",
-];
-const dateForms = [
-  "Invoice Date",
-  "Date",
-  "Visited Date",
-  "Booking Date",
-  "Bill Date",
-];
+
+
+
 
 export default function () {
   const { cancel, tenantId, empId, tripId } = useParams(); ///these has to send to backend get api
@@ -664,10 +615,10 @@ export default function () {
     console.log(`Updating ${name} with value:`, value);
     setLineItemDetails((prevState) => ({ ...prevState, [name]: value || "" }));
 
-    if (totalAmountNames.includes(name)) {
+    if (totalAmountKeys.includes(name)) {
       setTotalAmount(value);
     }
-    if (dateForms.includes(name)) {
+    if (dateKeys.includes(name)) {
       setDate({ [name]: value });
     }
   };
@@ -1602,8 +1553,8 @@ export default function () {
                                   </div>
                                 ) : (
                                   <>
-                                    <div className="flex flex-col lg:flex-row  w-full ">
-                                      <div className="  w-full lg:w-3/5 border border-slate-300 rounded-md">
+                                    <div className="flex flex-col lg:flex-row  w-full h-screen">
+                                      <div className="  w-full lg:w-3/5 border h-full border-slate-300  rounded-md">
                                       
                                         <DocumentPreview
                                           emptyPreview={true}
@@ -1611,7 +1562,7 @@ export default function () {
                                         />
                                       </div>
 
-                                      <div className="w-full lg:w-2/5 h-full">
+                                      <div className="w-full  lg:w-2/5 h-full">
                                         <LineItemView
                                           expenseHeaderStatus={item?.expenseHeaderStatus}
                                           lineItem={lineItem}
@@ -1642,7 +1593,6 @@ export default function () {
               {formVisible && (
                 <div className=" w-full flex flex-col  lg:flex-row">
                   <div className="border w-full lg:w-1/2  border-slate-300 rounded-md">
-                  
                     <DocumentPreview
                       selectedFile={ocrSelectedFile || selectedFile}
                     />
@@ -1729,13 +1679,13 @@ export default function () {
                                           lineItemDetails[field.name]
                                         }
                                         // error={field.name=== 'Total Amount' ? errorMsg.totalAmount : null}
-                                        // error={totalAmountNames.includes(field?.name) ? errorMsg.totalAmount : null}
+                                        // error={totalAmountKeys.includes(field?.name) ? errorMsg.totalAmount : null}
                                         error={
-                                          (totalAmountNames.includes(
+                                          (totalAmountKeys.includes(
                                             field?.name
                                           ) &&
                                             errorMsg.totalAmount) ||
-                                          (dateForms.includes(field?.name) &&
+                                          (dateKeys.includes(field?.name) &&
                                             errorMsg.dateErr)
                                         }
                                         title={field.name}
@@ -1799,11 +1749,11 @@ export default function () {
                               <div className=" h-[48px] w-full sm:w-[200px]  mb-10 mr-28 mt-[-10px] ">
                                 <Select
                                   title="Currency"
-                                  currentOption={currencyDropdown[0].shortName}
+                                  //currentOption={currencyDropdown[0].shortName}
                                   placeholder="Select Currency"
-                                  options={currencyDropdown.map(
-                                    (currency) => currency.shortName
-                                  )}
+                                  //options={currencyDropdown.map(
+                                  //   (currency) => currency.shortName
+                                  // )}
                                   // onSelect={(value) =>
                                   //   handleCurrenctySelect(value)
                                   // }
@@ -2386,10 +2336,10 @@ const ActionBoard = ({handleDeleteLineItem, isUploading, setModalOpen, setAction
 //   //     // Set the initial file when the component is mounted
 //   //     setInitialFile(lineItem?.Document);
 //   //     console.log('line item form edit',lineItem)
-//   //     const foundKey = totalAmountNames.find(key => Object.keys(lineItem).includes(key));
+//   //     const foundKey = totalAmountKeys.find(key => Object.keys(lineItem).includes(key));
 //   //     const totalAmountValue = foundKey ? lineItem[foundKey] : undefined;
 //   //     setTotalAmount(totalAmountValue)
-//   //     const foundDateKey = dateForms.find(key => Object.keys(lineItem).includes(key));
+//   //     const foundDateKey = dateKeys.find(key => Object.keys(lineItem).includes(key));
 //   //     const dateValue = foundDateKey ? lineItem[foundDateKey] : undefined;
 //   //     setDate(dateValue)
 //   //     setPersonalFlag(lineItem?.isPersonalExpense)
@@ -2460,10 +2410,10 @@ const ActionBoard = ({handleDeleteLineItem, isUploading, setModalOpen, setAction
 //   // const handleEditChange = (key , value)=>{
 
 //   //   setEditFormData((prevData)=>({...prevData , [key]: value}))
-//   //   if (totalAmountNames.includes(key)) {
+//   //   if (totalAmountKeys.includes(key)) {
 //   //     setTotalAmount(value);
 //   //   }
-//   //   if (dateForms.includes(key)) {
+//   //   if (dateKeys.includes(key)) {
 //   //     setDate(value);
 //   //   }
 
@@ -2599,7 +2549,7 @@ const ActionBoard = ({handleDeleteLineItem, isUploading, setModalOpen, setAction
 //          placeholder={`Enter ${field.name}`}
 //          initialValue={editFormData[field.name]}
 //          onChange={(value)=> handleEditChange(field.name,value)}
-//          error={(totalAmountNames.includes(field?.name) && errorMsg.totalAmount) || (dateForms.includes(field?.name) && errorMsg.dateErr )}
+//          error={(totalAmountKeys.includes(field?.name) && errorMsg.totalAmount) || (dateKeys.includes(field?.name) && errorMsg.dateErr )}
 //        />
 //      )} </div>
 

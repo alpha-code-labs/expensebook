@@ -57,7 +57,7 @@ export function LineItemView({
   const arrangedItems = rearrangeKeyForLineItem(lineItem, includedKeys);
   console.log("arranged lineitem", arrangedItems);
   return (
-    <div className="flex justify-between flex-col h-[600px] sm:h-screen">
+    <div className="flex justify-between flex-col h-[600px] sm:h-screen ">
       <div className="w-full flex-row   overflow-y-auto scrollbar-hide">
         <div className="sticky top-0 bg-white z-20 w-full flex justify-between flex-row items-center h-12 px-4 border-dashed  border-y border-slate-300 py-4">
           <div className="flex items-center justify-center gap-2">

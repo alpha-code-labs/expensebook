@@ -258,6 +258,7 @@ const CreateNonTraveExpense = () => {
     setIsUploading((prev) => ({ ...prev, editLineItem: true }));
     setActionType("editLineItem");
     setSelectedLineItemId(lineItem?.lineItemId);
+    setSelectedAllocations(lineItem?.allocations);
     setFormData((prev) => ({
       ...prev,
       editedFields: lineItem,
@@ -1184,7 +1185,11 @@ const CreateNonTraveExpense = () => {
         }));
 
       console.log("intial allocation on category11", initialExpenseAllocation);
-      setSelectedAllocations(initialExpenseAllocation);
+      if(action !="editLineItem")
+      {
+        setSelectedAllocations(initialExpenseAllocation);
+      }
+      
 
       // sessionStorage.setItem('sessionExpenseHeaderId', (response?.expenseHeaderId ?? null));
       console.log("required fields", response?.fields);
