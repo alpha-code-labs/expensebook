@@ -1,9 +1,7 @@
 import Expense from "../../models/tripSchema.js"
 
-
-
 // trip cancelled at header line or line item level is updated using this route
-export const tripFullUpdate = async (payload) => {
+const tripFullUpdate = async (payload) => {
   console.log("full update from trip", payload)
     try {
       const { travelRequestData, cashAdvancesData } = payload;
@@ -32,37 +30,8 @@ export const tripFullUpdate = async (payload) => {
     }
   };
 
-// export const tripFullUpdate = async (payload) => {
-//     console.log("full update from trip", payload);
-//     try {
-//       const { travelRequestData, cashAdvancesData } = payload;
-  
-//       const updated = await Expense.findOneAndUpdate(
-//         {
-//           'tenantId': payload.travelRequestData.tenantId,
-//           'travelRequestData.travelRequestId': payload.travelRequestData.travelRequestId,
-//         },
-//         {
-//           $set: {
-//             'travelRequestData': travelRequestData,
-//             'cashAdvancesData': cashAdvancesData
-//           }
-//         },
-//         { upsert: true, new: true } // Create new document if not found, return updated document
-//       );
-  
-//       if (updated) {
-//         return { success: true, message: 'Document updated successfully' };
-//       } else {
-//         return { success: false, message: 'Error updating document' };
-//       }
-//     } catch (error) {
-//       console.log('Error updating document:', error);
-//       return { success: false, message: 'Error updating document', error: error.message };
-//     }
-//   };
-  
-export const tripArrayFullUpdate = async (payload) => {
+
+const tripArrayFullUpdate = async (payload) => {
   console.log("Full update from trip", payload);
   try {
     // Iterate over each object in the payload array asynchronously
@@ -116,7 +85,7 @@ export const tripArrayFullUpdate = async (payload) => {
 
 
 //Add a leg - flights,cabs,trains,buses, hotels,public transportation
-export const addALegToTravelRequestData = async (payload) => {
+const addALegToTravelRequestData = async (payload) => {
   const { tenantId, travelRequestId, isAddALeg, itineraryType, itineraryDetails: itinerary } = payload;
 
   const processArray = async (currentArray, targetArray) => {
@@ -183,7 +152,7 @@ export const addALegToTravelRequestData = async (payload) => {
 };
 
 //delete add a leg
-export const deleteALegFromTravelRequestData = async (payload) => {
+const deleteALegFromTravelRequestData = async (payload) => {
   const { tenantId, travelRequestId, isAddALeg, itineraryType, itineraryDetails: itinerary } = payload;
 
   const processArray = async (currentArray, targetArray) => {
@@ -249,5 +218,139 @@ export const deleteALegFromTravelRequestData = async (payload) => {
   }
 };
 
+// update trip to completed or closed
+const updateTripToCompleteOrClosed = async (payload) => {
+  const {
+    listOfCompletedStandaloneTravelRequests = [],
+    listOfClosedStandAloneTravelRequests = [],
+    listOfCompletedTravelRequests = [],
+    listOfClosedTravelRequests = []
+  } = payload;
+
+  // Consolidated configuration for updates
+  const updateConfigs = [
+    {
+      lists: [listOfCompletedStandaloneTravelRequests, listOfCompletedTravelRequests],
+      updateData: {
+        'travelRequestData.travelRequestStatus': 'completed',
+        'tripStatus': 'completed'
+      }
+    },
+    {
+      lists: [listOfClosedStandAloneTravelRequests, listOfClosedTravelRequests],
+      updateData: {
+        'travelRequestData.travelRequestStatus': 'closed',
+        'tripStatus': 'closed'
+      }
+    }
+  ];
+
+  // Create an array of update promises
+  const promises = updateConfigs.flatMap(({ lists, updateData }) =>
+    lists.filter(list => list.length > 0)
+        .map(list => updateRequests(list, updateData))
+  );
+
+  // Early return if there are no requests to update
+  if (promises.length === 0) {
+    return { success: true, message: 'No requests to update.' };
+  }
+
+  try {
+    const results = await Promise.all(promises);
+
+    // Collect errors from the results
+    const errors = results
+      .map((result, index) => result.success ? null : `Request ${index + 1}: ${result.error || 'Unknown error'}`)
+      .filter(Boolean);
+
+    if (errors.length > 0) {
+      throw new Error(`Update failed for some requests: ${errors.join('; ')}`);
+    }
+
+    return { success: true, error: null };
+    
+  } catch (error) {
+    console.error('Error during updates:', error);
+    return { success: false, error: error.message || 'An unknown error occurred during the update process.' };
+  }
+};
+
+const updateRequests = async (requestIds, updateFields) => {
+  try {
+    console.log(`Processing requests:`, requestIds);
+
+    const currentDocs = await Expense.find({
+      travelRequestId: { $in: requestIds }
+    }).toArray();
+
+    if (currentDocs.length === 0) {
+      return {
+        success: false,
+        error: 'No requests found with the provided IDs',
+      };
+    }
+
+    // Filter out requests that do not need updating
+    const needsUpdate = requestIds.filter(requestId => {
+      const doc = currentDocs.find(d => d.travelRequestId === requestId);
+      if (!doc) return false;
+
+      const { travelRequestStatus: currentMainStatus } = doc.travelRequestData || {};
+      const currentTripStatus = doc.tripStatus;
+
+      return (
+        currentMainStatus !== updateFields['travelRequestData.travelRequestStatus'] ||
+        currentTripStatus !== updateFields.tripStatus
+      );
+    });
+
+    if (needsUpdate.length === 0) {
+      console.log('All documents are already in the desired state.');
+      return {
+        success: true,
+        message: 'All documents are already in the desired state.',
+      };
+    }
+
+    const updateResult = await Expense.updateMany(
+      { travelRequestId: { $in: needsUpdate } },
+      { $set: updateFields }
+    );
+
+    console.log('Update result:', updateResult);
+
+    if (updateResult.modifiedCount !== needsUpdate.length) {
+      return {
+        success: false,
+        error: 'Failed to update some requests to the desired status',
+        attempted: needsUpdate.length,
+        modified: updateResult.modifiedCount,
+      };
+    }
+
+    return {
+      success: true,
+      updated: needsUpdate.length,
+      skipped: requestIds.length - needsUpdate.length,
+    };
+  } catch (error) {
+    console.error('Error updating requests:', error);
+    return {
+      success: false,
+      error: error.message || 'Unknown error',
+    };
+  }
+};
 
 
+
+
+
+export {
+  tripFullUpdate,
+  tripArrayFullUpdate,
+  addALegToTravelRequestData,
+  deleteALegFromTravelRequestData,
+  updateTripToCompleteOrClosed
+}
