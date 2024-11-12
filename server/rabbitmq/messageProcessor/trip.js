@@ -12,7 +12,7 @@ const logger = pino({
  * @param {Array} payload - Array of objects containing tenantId and tripId.
  * @returns {Promise} - Promise representing the update operation.
  */
-export const updateTrip = async (payload) => {
+const updateTrip = async (payload) => {
   try {
     console.log("trip creation process", payload);
     if (!Array.isArray(payload)) {
@@ -55,7 +55,7 @@ export const updateTrip = async (payload) => {
 };
 
 
-export const updateTripStatus = async (payload) => {
+const updateTripStatus = async (payload) => {
   console.log("Payload received for status update - trip :", payload);
   
   if (!Array.isArray(payload)) {
@@ -98,7 +98,7 @@ export const updateTripStatus = async (payload) => {
 
 // Process transit trip message (received from - trip microservice, received -All transit trips (batch job))
 //Trip microservice --All trip updates --- asynchronous rabbitmq route --- 
-export const processTransitTrip = async (message) => {
+const processTransitTrip = async (message) => {
   // const failedUpdates = [];
   // const successMessage = {
   //   message: 'Successfully updated reporting database',
@@ -180,7 +180,7 @@ export const processTransitTrip = async (message) => {
 }
 
 // Trip microservice ---All trip updates -- synchronous rabbitmq route
-export const updateTripToreportingSync = async (message,correlationId) => {
+const updateTripToreportingSync = async (message,correlationId) => {
   const failedUpdates = [];
   const successMessage = {
     message: 'Successfully updated reporting database',
@@ -263,97 +263,132 @@ if (failedUpdates.length > 0) {
 }
 
 
-export const updateTripToCompleteOrClosed = async (payload) => {
+const updateTripToCompleteOrClosed = async (payload) => {
   const {
     listOfCompletedStandaloneTravelRequests = [],
-    listOfClosedStandAloneTravelRequests = [], 
+    listOfClosedStandAloneTravelRequests = [],
     listOfCompletedTravelRequests = [],
-    listOfClosedTravelRequests = [],
+    listOfClosedTravelRequests = []
   } = payload;
 
-  const promises = [];
+  // Consolidated configuration for updates
+  const updateConfigs = [
+    {
+      lists: [listOfCompletedStandaloneTravelRequests, listOfCompletedTravelRequests],
+      updateData: {
+        'travelRequestData.travelRequestStatus': 'completed',
+        'tripStatus': 'completed'
+      }
+    },
+    {
+      lists: [listOfClosedStandAloneTravelRequests, listOfClosedTravelRequests],
+      updateData: {
+        'travelRequestData.travelRequestStatus': 'closed',
+        'tripStatus': 'closed'
+      }
+    }
+  ];
 
-  if (listOfCompletedStandaloneTravelRequests.length > 0) {
-    promises.push(updateTravelRequests(listOfCompletedStandaloneTravelRequests, 'travelRequestSchema.travelRequestStatus', getTravelRequestStatus.COMPLETED));
-  }
+  // Create an array of update promises
+  const promises = updateConfigs.flatMap(({ lists, updateData }) =>
+    lists.filter(list => list.length > 0)
+        .map(list => updateRequests(list, updateData))
+  );
 
-  if (listOfClosedStandAloneTravelRequests.length > 0) {
-    promises.push(updateTravelRequests(listOfClosedStandAloneTravelRequests, 'travelRequestSchema.travelRequestStatus', getTravelRequestStatus.CLOSED));
-  }
-
-  if (listOfCompletedTravelRequests.length > 0) {
-    promises.push(updateCashAdvanceRequests(listOfCompletedTravelRequests, 'cashAdvanceSchema.travelRequestData.travelRequestStatus', getTravelRequestStatus.COMPLETED));
-  }
-
-  if (listOfClosedTravelRequests.length > 0) {
-    promises.push(updateCashAdvanceRequests(listOfClosedTravelRequests, 'cashAdvanceSchema.travelRequestData.travelRequestStatus', getTravelRequestStatus.CLOSED));
+  // Early return if there are no requests to update
+  if (promises.length === 0) {
+    return { success: true, message: 'No requests to update.' };
   }
 
   try {
     const results = await Promise.all(promises);
 
-    // Check if all updates were successful
-    results.forEach(result => {
-      if (!result.success) {
-        throw new Error(result.error || 'Unknown error');
-      }
-    });
+    // Collect errors from the results
+    const errors = results
+      .map((result, index) => result.success ? null : `Request ${index + 1}: ${result.error || 'Unknown error'}`)
+      .filter(Boolean);
+
+    if (errors.length > 0) {
+      throw new Error(`Update failed for some requests: ${errors.join('; ')}`);
+    }
 
     return { success: true, error: null };
+    
   } catch (error) {
-    console.error('Error occurred during updates:', error);
-    return { success: false, error: error.message || 'Unknown error' };
+    console.error('Error during updates:', error);
+    return { success: false, error: error.message || 'An unknown error occurred during the update process.' };
   }
 };
 
-async function updateTravelRequests(travelRequestIds, updateField, updateValue) {
+const updateRequests = async (requestIds, updateFields) => {
   try {
-    const updateTravel = await reporting.updateMany({
-      'travelRequestSchema.travelRequestId': { $in: travelRequestIds }
-    }, {
-      $set: {
-        [updateField]: updateValue
-      }
+    console.log(`Processing requests:`, requestIds);
+
+    const currentDocs = await reporting.find({
+      travelRequestId: { $in: requestIds }
+    }).toArray();
+
+    if (currentDocs.length === 0) {
+      return {
+        success: false,
+        error: 'No requests found with the provided IDs',
+      };
+    }
+
+    // Filter out requests that do not need updating
+    const needsUpdate = requestIds.filter(requestId => {
+      const doc = currentDocs.find(d => d.travelRequestId === requestId);
+      if (!doc) return false;
+
+      const { travelRequestStatus: currentMainStatus } = doc.travelRequestData || {};
+      const currentTripStatus = doc.tripStatus;
+
+      return (
+        currentMainStatus !== updateFields['travelRequestData.travelRequestStatus'] ||
+        currentTripStatus !== updateFields.tripStatus
+      );
     });
 
-    if (updateTravel.modifiedCount !== travelRequestIds.length) {
-      console.log('Failed to update travel requests:', updateTravel);
-      return { success: false, error: 'Failed to update travel requests to desired status' };
-    } else {
-      console.log('Successfully updated travel requests');
-      return { success: true, error: null };
+    if (needsUpdate.length === 0) {
+      console.log('All documents are already in the desired state.');
+      return {
+        success: true,
+        message: 'All documents are already in the desired state.',
+      };
     }
-  } catch (error) {
-    console.error('Error updating travel requests:', error);
-    return { success: false, error: error.message || 'Unknown error' };
-  }
-}
 
-async function updateCashAdvanceRequests(travelRequestIds, updateField, updateValue) {
-  try {
-    const updateTravel = await reporting.updateMany({
-      'cashAdvanceSchema.travelRequestData.travelRequestId': { $in: travelRequestIds }
-    }, {
-      $set: {
-        [updateField]: updateValue
-      }
-    });
+    const updateResult = await Expense.updateMany(
+      { travelRequestId: { $in: needsUpdate } },
+      { $set: updateFields }
+    );
 
-    if (updateTravel.modifiedCount !== travelRequestIds.length) {
-      console.log('Failed to update cash advance requests:', updateTravel);
-      return { success: false, error: 'Failed to update cash advance requests to desired status' };
-    } else {
-      console.log('Successfully updated cash advance requests');
-      return { success: true, error: null };
+    console.log('Update result:', updateResult);
+
+    if (updateResult.modifiedCount !== needsUpdate.length) {
+      return {
+        success: false,
+        error: 'Failed to update some requests to the desired status',
+        attempted: needsUpdate.length,
+        modified: updateResult.modifiedCount,
+      };
     }
+
+    return {
+      success: true,
+      updated: needsUpdate.length,
+      skipped: requestIds.length - needsUpdate.length,
+    };
   } catch (error) {
-    console.error('Error updating cash advance requests:', error);
-    return { success: false, error: error.message || 'Unknown error' };
+    console.error('Error updating requests:', error);
+    return {
+      success: false,
+      error: error.message || 'Unknown error',
+    };
   }
-}
+};
 
 
-export async function addALeg(payload) {
+async function addALeg(payload) {
   try {
       const { travelRequestId, tenantId, itineraryType, itineraryDetails } = payload;
 
@@ -386,7 +421,7 @@ export async function addALeg(payload) {
   }
 }
 
-export const addLeg = async (payload) => {
+const addLeg = async (payload) => {
   try {
     if (!payload || typeof payload !== 'object') {
       throw new Error('Invalid payload format.');
@@ -425,7 +460,16 @@ export const addLeg = async (payload) => {
 
 
 
+export {
+  updateTrip,
+  updateTripStatus,
+  processTransitTrip,
+  updateTripToreportingSync,
+  updateTripToCompleteOrClosed,
+  addALeg,
+  addLeg
 
+}
 
 
 

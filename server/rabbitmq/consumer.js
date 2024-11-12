@@ -116,7 +116,7 @@ export async function startConsumer(receiver) {
           handleMessageAcknowledgment(channel,msg,res)  
           break;
 
-          case 'travel':
+        case 'travel':
             switch (action) {
               case 'full-update':
                 console.log('trying to update Travel')
@@ -136,7 +136,7 @@ export async function startConsumer(receiver) {
             }
             break;
 
-          case 'cash':
+        case 'cash':
             switch (action) {
               case 'full-update':
                 console.log('trying to update CashAdvanceSchema')
