@@ -118,7 +118,6 @@ const fetchEmployeeNotifications = async (tenantId, empId, applicableRoles) => {
 };
 
 
-
 const validationSchema = Joi.object({
     messageId: Joi.string()
         .required()
@@ -127,22 +126,35 @@ const validationSchema = Joi.object({
             'string.empty': 'Message ID is mandatory.',
             'any.required': 'Message ID is mandatory.'
         }),
+
     travelRequestId: Joi.string()
         .optional()
         .messages({
             'string.base': 'Travel Request ID must be a string.'
         }),
+
     expenseHeaderId: Joi.string()
         .optional()
         .messages({
             'string.base': 'Expense Header ID must be a string.'
         })
 })
-.xor('travelRequestId', 'expenseHeaderId')
-.messages({
-    'object.xor': 'Either Travel Request ID or Expense Header ID must be provided, but not both.'
-});
+    .custom((value, helpers) => {
+        const { travelRequestId, expenseHeaderId } = value;
 
+        if (travelRequestId && expenseHeaderId) {
+            return helpers.error('object.xor');
+        }
+
+        if (!travelRequestId && !expenseHeaderId) {
+            return value; 
+        }
+
+        return value;
+    })
+    .messages({
+        'object.xor': 'Either Travel Request ID or Expense Header ID must be provided, but not both.',
+    });
 
 
 const markMessageAsRead = async (req, res) => { 

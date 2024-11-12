@@ -96,7 +96,7 @@ const updateTripStatus = async (payload) => {
   };
 };
 
-// Process transit trip message (received from - trip microservice, received -All transit trips (batchjob))
+// Process transit trip message (received from - trip microservice, received -All transit trips (batch job))
 //Trip microservice --All trip updates --- asynchronous rabbitmq route --- 
 const processTransitTrip = async (message) => {
   // const failedUpdates = [];
@@ -228,7 +228,7 @@ const updateTripToDashboardSync = async (message,correlationId) => {
       },
       { upsert: true, new: true }
     );
-    console.log('Saved to dashboard: using synchrnous queue', updated);
+    console.log('Saved to dashboard: using synchronous queue', updated);
 
   } catch (error) {
     console.error('Failed to update dashboard: using synchronous queue', error);
@@ -243,9 +243,9 @@ const updateTripToDashboardSync = async (message,correlationId) => {
   try {
     // Send the success message and correlationId to another service or queue for further processing
     await sendSuccessConfirmationToTripMicroservice(successMessage, correlationId);
-    console.log('Success confirmation sent, using synchrnous queue:', successMessage);
+    console.log('Success confirmation sent, using synchronous queue:', successMessage);
   } catch (error) {
-    console.error('Failed to send success confirmation,using synchrnous queue:', error);
+    console.error('Failed to send success confirmation,using synchronous queue:', error);
     // Handle error while sending confirmation
   }
 }
@@ -255,13 +255,14 @@ if (failedUpdates.length > 0) {
   try {
     // Send the failed updates to another service or queue for further processing
     await sendFailedConfirmationToTripMicroservice(failedUpdates,correlationId );
-    console.log(' dashboard update failed and is sent to rabbitmq sent as confirmation,using synchrnous queue:', failedUpdates,correlationId);
+    console.log(' dashboard update failed and is sent to rabbitmq sent as confirmation,using synchronous queue:', failedUpdates,correlationId);
   } catch (error) {
-    console.error('Failed to send failed updates confirmation,using synchrnous queue:', error);
+    console.error('Failed to send failed updates confirmation,using synchronous queue:', error);
   }
 }
 }
 
+// update trip to completed or closed
 const updateTripToCompleteOrClosed = async (payload) => {
   const {
     listOfCompletedStandaloneTravelRequests = [],
@@ -273,23 +274,55 @@ const updateTripToCompleteOrClosed = async (payload) => {
   const promises = [];
 
   if (listOfCompletedStandaloneTravelRequests.length > 0) {
-    promises.push(updateTravelRequests(listOfCompletedStandaloneTravelRequests, 'travelRequestSchema.travelRequestStatus', 'completed'));
+    promises.push(
+      updateRequests(
+        listOfCompletedStandaloneTravelRequests,
+        {
+          'travelRequestSchema.travelRequestStatus': 'completed',
+          'tripSchema.travelRequestData.travelRequestStatus': 'completed',
+          'tripSchema.tripStatus': 'completed'
+        },
+        'travel'
+      )
+    );
   }
+  
 
   if (listOfClosedStandAloneTravelRequests.length > 0) {
-    promises.push(updateTravelRequests(listOfClosedStandAloneTravelRequests, 'travelRequestSchema.travelRequestStatus', getTravelRequestStatus.CLOSED));
+    promises.push(updateRequests(listOfClosedStandAloneTravelRequests, {
+        'travelRequestSchema.travelRequestStatus': 'closed',
+        'tripSchema.travelRequestData.travelRequestStatus': 'closed',
+        'tripSchema.tripStatus': 'closed'
+      },
+      'travel'
+    ));
   }
 
   if (listOfCompletedTravelRequests.length > 0) {
-    promises.push(updateCashAdvanceRequests(listOfCompletedTravelRequests, 'cashAdvanceSchema.travelRequestData.travelRequestStatus', 'completed'));
+    promises.push(updateRequests(listOfCompletedTravelRequests, {
+      'cashAdvanceSchema.travelRequestData.travelRequestStatus': 'completed',
+      'tripSchema.travelRequestData.travelRequestStatus': 'completed',
+      'tripSchema.tripStatus': 'completed'
+    },
+    'cashAdvance'
+    ));
   }
 
+
   if (listOfClosedTravelRequests.length > 0) {
-    promises.push(updateCashAdvanceRequests(listOfClosedTravelRequests, 'cashAdvanceSchema.travelRequestData.travelRequestStatus', getTravelRequestStatus.CLOSED));
+    promises.push(updateRequests(listOfClosedTravelRequests, 
+      {
+        'cashAdvanceSchema.travelRequestData.travelRequestStatus': 'closed',
+        'tripSchema.travelRequestData.travelRequestStatus': 'closed',
+        'tripSchema.tripStatus': 'closed'
+      },
+      'cashAdvance'
+      ));
   }
 
   try {
     const results = await Promise.all(promises);
+    console.log('get all promises', promises)
 
     // Check if all updates were successful
     results.forEach(result => {
@@ -305,53 +338,129 @@ const updateTripToCompleteOrClosed = async (payload) => {
   }
 };
 
-async function updateTravelRequests(travelRequestIds, updateField, updateValue) {
+async function updateRequests(requestIds, updateFields, requestType = 'travel') {
   try {
-    const updateTravel = await dashboard.updateMany({
-      'travelRequestId': { $in: travelRequestIds }
-    }, {
-      $set: {
-        [updateField]: updateValue
+    console.log(`Processing ${requestType} requests:`, typeof requestIds, requestIds);
+
+    const currentDocs = await dashboard.find({
+      'travelRequestId': { $in: requestIds }
+    }).toArray();
+
+    if (!currentDocs.length) {
+      return { 
+        success: false, 
+        error: 'No requests found with the provided IDs',
+        type: requestType
+      };
+    }
+
+    const getStatusFields = (doc) => {
+      if (requestType === 'travel') {
+        return {
+          currentMainStatus: doc.travelRequestSchema?.travelRequestStatus,
+          targetMainStatus: updateFields['travelRequestSchema.travelRequestStatus'],
+          currentTripRequestStatus: doc.tripSchema?.travelRequestData?.travelRequestStatus,
+          targetTripRequestStatus: updateFields['tripSchema.travelRequestData.travelRequestStatus'],
+          currentTripStatus: doc.tripSchema?.tripStatus,
+          targetTripStatus: updateFields['tripSchema.tripStatus']
+        };
+      } else { 
+        return {
+          currentMainStatus: doc.cashAdvanceSchema?.travelRequestData?.travelRequestStatus,
+          targetMainStatus: updateFields['cashAdvanceSchema.travelRequestData.travelRequestStatus'],
+          currentTripRequestStatus: doc.tripSchema?.travelRequestData?.travelRequestStatus,
+          targetTripRequestStatus: updateFields['tripSchema.travelRequestData.travelRequestStatus'],
+          currentTripStatus: doc.tripSchema?.tripStatus,
+          targetTripStatus: updateFields['tripSchema.tripStatus']
+        };
       }
+    };
+
+    // Filter out IDs that don't need updates
+    const needsUpdate = requestIds.filter(requestId => {
+      const doc = currentDocs.find(d => d.travelRequestId === requestId);
+      if (!doc) return false;
+
+      const statusFields = getStatusFields(doc);
+      
+      // Check To see , if any of the fields need updating
+      const needsStatusUpdate = 
+        statusFields.currentMainStatus !== statusFields.targetMainStatus ||
+        statusFields.currentTripRequestStatus !== statusFields.targetTripRequestStatus ||
+        statusFields.currentTripStatus !== statusFields.targetTripStatus;
+
+      if (needsStatusUpdate) {
+        console.log(`Status update needed for ${requestId}:`, {
+          current: {
+            mainStatus: statusFields.currentMainStatus,
+            tripRequestStatus: statusFields.currentTripRequestStatus,
+            tripStatus: statusFields.currentTripStatus
+          },
+          target: {
+            mainStatus: statusFields.targetMainStatus,
+            tripRequestStatus: statusFields.targetTripRequestStatus,
+            tripStatus: statusFields.targetTripStatus
+          }
+        });
+      }
+
+      return needsStatusUpdate;
     });
 
-    if (updateTravel.modifiedCount !== travelRequestIds.length) {
-      console.log('Failed to update travel requests:', updateTravel);
-      return { success: false, error: 'Failed to update travel requests to desired status' };
+    // If no documents need updates, return success
+    if (needsUpdate.length === 0) {
+      console.log(`All ${requestType} documents already in desired state`);
+      return { 
+        success: true, 
+        error: null,
+        message: `All ${requestType} documents already in desired state`,
+        type: requestType
+      };
+    }
+
+    // Proceed with update only for documents that need it
+    const updateResult = await dashboard.updateMany(
+      {
+        'travelRequestId': { $in: needsUpdate }
+      },
+      {
+        $set: updateFields
+      }
+    );
+
+    console.log(`${requestType} update result:`, updateResult);
+
+    // Check if all required updates were successful
+    if (updateResult.modifiedCount !== needsUpdate.length) {
+      console.log(`Failed to update some ${requestType} requests:`, updateResult);
+      return { 
+        success: false, 
+        error: `Failed to update ${requestType} requests to desired status`,
+        attempted: needsUpdate.length,
+        modified: updateResult.modifiedCount,
+        type: requestType
+      };
     } else {
-      console.log('Successfully updated travel requests');
-      return { success: true, error: null };
+      console.log(`Successfully updated ${requestType} requests`);
+      return { 
+        success: true, 
+        error: null,
+        updated: needsUpdate.length,
+        skipped: requestIds.length - needsUpdate.length,
+        type: requestType
+      };
     }
   } catch (error) {
-    console.error('Error updating travel requests:', error);
-    return { success: false, error: error.message || 'Unknown error' };
+    console.error(`Error updating ${requestType} requests:`, error);
+    return { 
+      success: false, 
+      error: error.message || 'Unknown error',
+      type: requestType
+    };
   }
 }
 
-async function updateCashAdvanceRequests(travelRequestIds, updateField, updateValue) {
-  try {
-    const updateTravel = await dashboard.updateMany({
-      'cashAdvanceSchema.travelRequestData.travelRequestId': { $in: travelRequestIds }
-    }, {
-      $set: {
-        [updateField]: updateValue
-      }
-    });
-
-    if (updateTravel.modifiedCount !== travelRequestIds.length) {
-      console.log('Failed to update cash advance requests:', updateTravel);
-      return { success: false, error: 'Failed to update cash advance requests to desired status' };
-    } else {
-      console.log('Successfully updated cash advance requests');
-      return { success: true, error: null };
-    }
-  } catch (error) {
-    console.error('Error updating cash advance requests:', error);
-    return { success: false, error: error.message || 'Unknown error' };
-  }
-}
-
-
+// add a leg
 async function addALeg(payload) {
   try {
       const { travelRequestId, tenantId, itineraryType, itineraryDetails } = payload;
@@ -421,7 +530,6 @@ const addLeg = async (payload) => {
     return { success: false, error: err.message };
   }
 };
-
 
 
 
