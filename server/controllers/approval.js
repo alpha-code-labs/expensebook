@@ -400,7 +400,7 @@ const approveAllTravelWithCash = async (tenantId, empId, travelReports) => {
       return ({ success:true, message: `Travel requests are approved` });
     }
   } 
-   catch (error) {
+  catch (error) {
     console.error('An error occurred while updating approval:', error.message);
     throw new Error({ error: 'Failed to update approval.', error });
   }

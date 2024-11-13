@@ -1072,8 +1072,8 @@ const getBookingAdminReports = async (tenantId, now, futureDate, pastDate) => {
     const filters = [
         {
             'travelRequestSchema.isCashAdvanceTaken': false,
-            'travelRequestSchema.travelRequestStatus': 'pending approval',
-            'travelRequestSchema.approvers.status': 'pending approval'
+            'travelRequestSchema.travelRequestStatus': 'approved',
+            'travelRequestSchema.approvers.status': 'approved'
         },
         {
             'cashAdvanceSchema.travelRequestData.travelRequestStatus': { $in: ['pending approval', 'approved', 'booked', 'pending booking'] },
@@ -1598,6 +1598,8 @@ const createOrUpdateBookingAdminNotifications = async ({ tenantId, expenseHeader
 
 export {
     scheduleToNotificationBatchJob,
+    createOrUpdateBookingNotification,
+    createOrUpdateBookingAdminNotifications
 }
 
 
