@@ -3,6 +3,8 @@ import { attachment_icon, loading_icon } from '../assets/icon';
 
 export default function FileUpload(props) {
   const {
+    id,
+    setFileId,
     text,
     onClick,
     variant = 'fit',
@@ -12,7 +14,7 @@ export default function FileUpload(props) {
     selectedFile, 
     setSelectedFile, 
     isFileSelected, 
-    setIsFileSelected,
+    setIsFileSelected, 
   } = props;
   
   const fileInputRef = useRef(null);
@@ -27,6 +29,7 @@ export default function FileUpload(props) {
       onClick && onClick(e); // Call the onClick handler if provided
     } else {
       console.log('disabled or already loading', disabled);
+      
     }
   };
 
@@ -36,7 +39,11 @@ export default function FileUpload(props) {
       setSelectedFile(file); // Store the uploaded file in state
       setIsFileSelected(true); // Set the flag to true
       onFileSelect && onFileSelect(file); // Trigger the callback with the selected file
-    
+      if (id){
+        console.log('uploadId',id)
+        setFileId(id);
+      }
+      
     } else {
       setIsFileSelected(false); // If no file is selected, reset the flag
     }

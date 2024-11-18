@@ -1,8 +1,9 @@
 import React from 'react'
 import { CardLayout, SettleNowBtn, TripName, Violation } from '../common/TinyComponent'
 import { formatAmount } from '../utilis/handyFunctions'
+import FileUpload from '../common/FileUpload'
 
-const RecoverCashAdvance = ({trip,handleActionConfirm,handleRemoveFile, fileSelected, setFileSelected, selectedFile, setSelectedFile}) => {
+const RecoverCashAdvance = ({fileId, setFileId,trip,handleActionConfirm,handleRemoveFile, fileSelected, setFileSelected, selectedFile, setSelectedFile}) => {
   return (
     <CardLayout index={trip?.tripId}>
     <div  className='w-full py-1 '>
@@ -46,8 +47,10 @@ const RecoverCashAdvance = ({trip,handleActionConfirm,handleRemoveFile, fileSele
 
 </div>
             <div className='flex justify-center items-center gap-2'>
-            {fileSelected  ?<> <div className='flex justify-center cursor-default items-center px-2 py-1 bg-slate-100 rounded-md text-xs'><img src={file_icon} className='w-4 h-4' /><p className='w-20 truncate'>{selectedFile?.name}</p></div><img src={close_icon} className='w-4 h-4' onClick={handleRemoveFile}/></> :
-              <FileUpload 
+            {(fileSelected && fileId === trip?.travelRequestId)  ?<> <div className='flex justify-center cursor-default items-center px-2 py-1 bg-slate-100 rounded-md text-xs'><img src={file_icon} className='w-4 h-4' /><p className='w-20 truncate'>{selectedFile?.name}</p></div><img src={close_icon} className='w-4 h-4' onClick={handleRemoveFile}/></> :
+              <FileUpload
+              id={trip?.travelRequestId} 
+              setFileId={setFileId} 
               isFileSelected={fileSelected} 
               setIsFileSelected={setFileSelected} 
               setSelectedFile={setSelectedFile} 

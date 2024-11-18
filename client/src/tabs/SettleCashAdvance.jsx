@@ -4,7 +4,7 @@ import { formatAmount, isMultiCurrencyAvailable } from '../utilis/handyFunctions
 import { attachment_icon, cancel, close_icon, file_icon } from '../assets/icon'
 import FileUpload from '../common/FileUpload'
 
-const SettleCashAdvance = ({trip,handleActionConfirm,handleRemoveFile, fileSelected, setFileSelected, selectedFile, setSelectedFile}) => {
+const SettleCashAdvance = ({fileId, setFileId, trip,handleActionConfirm,handleRemoveFile, fileSelected, setFileSelected, selectedFile, setSelectedFile}) => {
   console.log('attachment for finance', selectedFile, fileSelected)
   
  
@@ -68,9 +68,11 @@ const SettleCashAdvance = ({trip,handleActionConfirm,handleRemoveFile, fileSelec
   ))}
   </div>
   </div>
-        <div className='flex justify-center items-center gap-2'>
-            {fileSelected  ?<> <div className='flex justify-center cursor-default items-center px-2 py-1 bg-slate-100 rounded-md text-xs'><img src={file_icon} className='w-4 h-4' /><p className='w-20 truncate'>{selectedFile?.name}</p></div><img src={close_icon} className='w-4 h-4' onClick={handleRemoveFile}/></> :
+  <div className='flex justify-center items-center gap-2'>
+            {(fileSelected && fileId === trip?.travelRequestId) ? <> <div className='flex justify-center cursor-default items-center px-2 py-1 bg-slate-100 rounded-md text-xs'><img src={file_icon} className='w-4 h-4' /><p className='w-20 truncate'>{selectedFile?.name}</p></div><img src={close_icon} className='w-4 h-4' onClick={handleRemoveFile}/></> :
             <FileUpload 
+            id={trip?.travelRequestId} 
+            setFileId={setFileId} 
             isFileSelected={fileSelected} 
             setIsFileSelected={setFileSelected} 
             setSelectedFile={setSelectedFile} 

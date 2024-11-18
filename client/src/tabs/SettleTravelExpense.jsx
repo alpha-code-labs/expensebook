@@ -4,7 +4,7 @@ import { CardLayout, SettleNowBtn, TripName } from '../common/TinyComponent';
 import { formatAmount } from '../utilis/handyFunctions';
 import FileUpload from '../common/FileUpload';
 
-const SettleTravelExpense = ({trip, handleActionConfirm, handleRemoveFile, fileSelected, setFileSelected, selectedFile, setSelectedFile}) => {
+const SettleTravelExpense = ({fileId, setFileId, trip, handleActionConfirm, handleRemoveFile, fileSelected, setFileSelected, selectedFile, setSelectedFile}) => {
 
 function financeMsg(amt, cashAdvance, currency){
   const amt1 = formatAmount(amt)
@@ -88,14 +88,16 @@ function financeMsg(amt, cashAdvance, currency){
               {`${expense?.defaultCurrency?.shortName} ${formatAmount(expense?.expenseAmountStatus?.totalAlreadyBookedExpenseAmount - expense?.expenseAmountStatus?.totalExpenseAmount)}`}
             </div>
         
-          </div>
+                      </div>
                         <p className='header-text'> {financeMsg(expense?.expenseAmountStatus?.totalRemainingCash,expense?.expenseAmountStatus?.totalCashAmount,expense.defaultCurrency.shortName)}</p>
                       </div>
                       </div>
                             
-                            <div className='flex items-center justify-center gap-2 '>
-                            {fileSelected  ?<> <div className='flex justify-center cursor-default items-center px-2 py-1 bg-slate-100 rounded-md text-xs'><img src={file_icon} className='w-4 h-4' /><p className='w-20 truncate'>{selectedFile?.name}</p></div><img src={close_icon} className='w-4 h-4' onClick={handleRemoveFile}/></> :
+                            <div className='flex items-center justify-center gap-2'>
+                            {(fileSelected && fileId === expense?.expenseHeaderNumber)  ? <> <div className='flex justify-center cursor-default items-center px-2 py-1 bg-slate-100 rounded-md text-xs'><img src={file_icon} className='w-4 h-4' /><p className='w-20 truncate'>{selectedFile?.name}</p></div><img src={close_icon} className='w-4 h-4' onClick={handleRemoveFile}/></> :
                               <FileUpload 
+                              setFileId={setFileId}
+                              id={expense?.expenseHeaderNumber}
                               isFileSelected={fileSelected} 
                               setIsFileSelected={setFileSelected} 
                               setSelectedFile={setSelectedFile} 
