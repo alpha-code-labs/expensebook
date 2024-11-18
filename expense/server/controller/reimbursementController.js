@@ -106,7 +106,6 @@ const createReimbursementReport = async(tenantId,empId,companyName,employeeName,
     );
 
     if (updatedExpense) {
-      // console.log('Updated expense', updatedExpense);
       ({ expenseHeaderNumber, expenseHeaderId, approvers=[],expenseHeaderStatus  } = updatedExpense);
       return updatedExpense
     }
@@ -415,12 +414,8 @@ let highestGroup = {
   policyClass: null, // Add a property to store the class value
 };
 
-// Function to find the group policy with the highest limit
 const getHighestLimitGroupPolicy = (nonTravelPolicies, groups, expenseCategory) => {
-  // Iterating through each group
   groups.forEach(groupName => {
-    // Find the group policy from nonTravelPolicies based on groupName
-    console.log("nonTravelPolicies", JSON.stringify(nonTravelPolicies,'',2))
     const groupPolicy = nonTravelPolicies.find(policy => Object.keys(policy)[0] === groupName);
     
     if (groupPolicy) {
@@ -429,8 +424,6 @@ const getHighestLimitGroupPolicy = (nonTravelPolicies, groups, expenseCategory) 
       if (categoryPolicy) {
         const currentLimit = +categoryPolicy.limit?.amount || -Infinity; 
         const currentClass = categoryPolicy.class || null; 
-
-        console.log(`Group: ${groupName}, Expense Category: ${expenseCategory}, Limit: ${currentLimit}, Class: ${currentClass}`);
 
         if (currentLimit > highestGroup.limit) {
           highestGroup = {
@@ -477,7 +470,7 @@ let { limit: highestLimit, group: groupName, policyClass } = getHighestLimitGrou
 
       const getApprovers = getApproversFromOnboarding(employeeDocument,empId)
 
-      // const message = `${employeeName} is part of ${groupName}. Highest limit found: ${highestLimit}`;
+      const message = `${employeeName} is part of ${groupName}. Highest limit found: ${highestLimit}`;
       const group = { limit: highestLimit, group: groupName, message };
 
 
@@ -500,7 +493,6 @@ let { limit: highestLimit, group: groupName, policyClass } = getHighestLimitGrou
           }
       }
       
-      // Return the response with the extracted information
       return res.status(200).json({
         success: true,
         getApprovers,
@@ -728,175 +720,116 @@ const saveReimbursementExpenseLine = async (req, res) => {
  * @param {Object} res - The response object.
  * @returns {Object} The response object.
  */
-const v0editReimbursementExpenseLine = async (req, res) => {
-  try {
-    const { tenantId, empId, expenseHeaderId, lineItemId } = req.params;
-
-    // Check if any of the required parameters are missing
-    if (!expenseHeaderId || !empId || !tenantId) {
-      return res.status(404).json({ message: 'Error params are missing' });
-    }
-
-    const { prevLineItem , lineItem } = req.body;
-
-    if (!prevLineItem || !lineItem ) {
-      return res.status(404).json({ message: 'Error in lineItem,prevLineItem' });
-    }
-
-    // console.log("prevLineItem KABOOM ", JSON.stringify(prevLineItem,'',2) ,"lineItem KAKOOM" ,lineItem)
-
-   const fixedFields = ['Total Amount', 'Total Fare', 'Premium Amount', 'Total Cost', 'License Cost', 'Subscription Cost',  'Premium Cost','Cost', 'Tip Amount', ]
-
-    // Extract total amount
-    let prevTotalAmount = extractTotalAmount(prevLineItem, fixedFields);
-
-    if(!prevTotalAmount){
-      throw new Error(`prevTotalAmount Not found: ${prevTotalAmount}, `, "prevTotalAmount type on save",typeof prevTotalAmount)
-    }  
-
-    let currentTotalAmount = extractTotalAmount(lineItem, fixedFields)
-    if(!currentTotalAmount){
-      throw new Error(`currentTotalAmount Not found: ${currentTotalAmount}, `, "currentTotalAmount type on save",typeof currentTotalAmount)
-    } 
-
-    // console.log("prevTotalAmount", prevTotalAmount , "currentTotalAmount", currentTotalAmount)
-
-    const getReport = await Reimbursement.findOne({ tenantId, expenseHeaderId, 'expenseLines.lineItemId': lineItemId },
-      {'expenseLines.$':1,'expenseAmountStatus':1}
-    );
-    if (!getReport) {
-      return res.status(404).json({ message: 'Expense not found' , success:false});
-    }
-
-    let {expenseAmountStatus:{totalRemainingCash,totalExpenseAmount}} = getReport
-    console.log("expenseAmountStatus - on save nte", JSON.stringify(getReport.expenseAmountStatus,'',2))
-    
-    const prevTotalAmountField = +prevTotalAmount;
-    const currentTotalAmountField = +currentTotalAmount;
-    const newTotalAmount = prevTotalAmountField - currentTotalAmount
-    console.log("prevTotalAmountField", prevTotalAmountField, "currentTotalAmountField", currentTotalAmountField)
-
-    let newTotalRemainingCash
-    let newTotalExpenseAmount 
-
-    switch (true) {
-    case (newTotalAmount > 0):
-        newTotalRemainingCash = +totalRemainingCash + newTotalAmount;
-        newTotalExpenseAmount = +totalExpenseAmount - newTotalAmount;
-        break;
-    case (newTotalAmount < 0):
-        newTotalRemainingCash = +totalRemainingCash - Math.abs(newTotalAmount);
-        newTotalExpenseAmount = +totalExpenseAmount + Math.abs(newTotalAmount);
-        break;
-    default:
-        newTotalRemainingCash = +totalRemainingCash;
-        newTotalExpenseAmount = +totalExpenseAmount;
-        break;
-    }
-
-console.log('New Total Remaining Cash:', newTotalRemainingCash);
-console.log('New Total Expense Amount:', newTotalExpenseAmount);
-
-
-    getReport.expenseAmountStatus.totalExpenseAmount = newTotalExpenseAmount
-    getReport.expenseAmountStatus.totalRemainingCash = newTotalRemainingCash
-
-    if (lineItem && getReport.expenseLines.length) {
-      Object.assign(getReport.expenseLines[0], lineItem); 
-    }
-
-    const updatedExpense = await getReport.save()
-
-    const { name } = updatedExpense.createdBy;
-    const { expenseLines,approvers , expenseAmountStatus} = updatedExpense;
-    const isApproval = approvers?.length > 0
-
-    // Find the updated line
-    const savedLineItem = expenseLines.find(line => line.lineItemId.toString() === lineItemId);
-
-    const payload = { reimbursementReport : updatedExpense };
-    const source = 'reimbursement';
-    const onlineVsBatch = 'online';
-    const action = 'full-update';
-    const comments = 'expense report edited';
-
-  await sendToMicroservices(payload, action, comments, source, onlineVsBatch, isApproval);
-
-    return res.status(200).json({
-      success: true,
-      message: `Expense line saved successfully by ${name}`,
-      expenseAmountStatus,
-      updatedLine: savedLineItem,
-    });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: 'Failed to process the request' });
-  }
-};
-
-
 const editReimbursementExpenseLine = async (req, res) => {
   try {
     const { tenantId, empId, expenseHeaderId, lineItemId } = req.params;
-    const { prevLineItem, lineItem } = req.body;
 
-    if (!expenseHeaderId || !empId || !tenantId || !prevLineItem || !lineItem) {
-      return res.status(400).json({ message: 'Missing required parameters', success: false });
+    if (!expenseHeaderId || !empId || !tenantId) {
+      return res.status(404).json({ message: 'Error: Missing required parameters' });
     }
 
-    const fixedFields = ['Total Amount', 'Total Fare', 'Premium Amount', 'Total Cost', 'License Cost', 'Subscription Cost', 'Premium Cost', 'Cost', 'Tip Amount'];
+    const { prevLineItem, lineItem } = req.body;
+
+    if (!prevLineItem || !lineItem) {
+      return res.status(404).json({ message: 'Error: Missing lineItem or prevLineItem' });
+    }
+
+    const fixedFields = [
+      'Total Amount', 'Total Fare', 'Premium Amount', 'Total Cost', 
+      'License Cost', 'Subscription Cost', 'Premium Cost', 'Cost', 'Tip Amount'
+    ];
 
     const prevTotalAmount = extractTotalAmount(prevLineItem, fixedFields);
     const currentTotalAmount = extractTotalAmount(lineItem, fixedFields);
 
     if (!prevTotalAmount || !currentTotalAmount) {
-      throw new Error(`Invalid total amounts: prev=${prevTotalAmount}, current=${currentTotalAmount}`);
+      throw new Error('Invalid total amounts for line items');
     }
 
-    const getReport = await Reimbursement.findOneAndUpdate(
+    // Fetch the report to get current expenseAmountStatus
+    const getReport = await Reimbursement.findOne(
       { tenantId, expenseHeaderId, 'expenseLines.lineItemId': lineItemId },
-      {
-        $set: {
-          'expenseLines.$': lineItem,
-          'expenseAmountStatus.totalExpenseAmount': {
-            $subtract: [
-              '$expenseAmountStatus.totalExpenseAmount',
-              { $subtract: [prevTotalAmount, currentTotalAmount] }
-            ]
-          },
-          'expenseAmountStatus.totalRemainingCash': {
-            $add: [
-              '$expenseAmountStatus.totalRemainingCash',
-              { $subtract: [prevTotalAmount, currentTotalAmount] }
-            ]
-          }
-        }
-      },
-      { new: true, runValidators: true, projection: { expenseLines: { $elemMatch: { lineItemId } }, expenseAmountStatus: 1, createdBy: 1, approvers: 1 } }
+      { 'expenseAmountStatus': 1 }
     );
 
     if (!getReport) {
-      return res.status(404).json({ message: 'Expense not found', success: false });
+      return res.status(404).json({ message: 'Expense not found' });
     }
 
-    const { name } = getReport.createdBy;
-    const { expenseLines, approvers, expenseAmountStatus } = getReport;
+    const { expenseAmountStatus } = getReport;
+    const { totalRemainingCash, totalExpenseAmount } = expenseAmountStatus;
+
+    // Calculate updated totals
+    const prevTotalAmountField = +prevTotalAmount;
+    const currentTotalAmountField = +currentTotalAmount;
+    const newTotalAmount = prevTotalAmountField - currentTotalAmount;
+
+    let newTotalRemainingCash;
+    let newTotalExpenseAmount;
+
+    if (newTotalAmount > 0) {
+      newTotalRemainingCash = +totalRemainingCash + newTotalAmount;
+      newTotalExpenseAmount = +totalExpenseAmount - newTotalAmount;
+    } else if (newTotalAmount < 0) {
+      newTotalRemainingCash = +totalRemainingCash - Math.abs(newTotalAmount);
+      newTotalExpenseAmount = +totalExpenseAmount + Math.abs(newTotalAmount);
+    } else {
+      newTotalRemainingCash = +totalRemainingCash;
+      newTotalExpenseAmount = +totalExpenseAmount;
+    }
+
+    // Update the specific line and expenseAmountStatus
+    const updatedReport = await Reimbursement.updateOne(
+      {
+        tenantId,
+        expenseHeaderId,
+        'expenseLines.lineItemId': lineItemId,
+      },
+      {
+        $set: {
+          'expenseLines.$': { ...lineItem, lineItemId }, 
+          'expenseAmountStatus.totalExpenseAmount': newTotalExpenseAmount,
+          'expenseAmountStatus.totalRemainingCash': newTotalRemainingCash,
+        },
+      }
+    );
+
+    if (updatedReport.nModified === 0) {
+      return res.status(400).json({ message: 'No updates were made to the report' });
+    }
+
+    // Fetch updated document for response
+    const updatedDocument = await Reimbursement.findOne(
+      { tenantId, expenseHeaderId },
+      { expenseLines: 1, expenseAmountStatus: 1, createdBy: 1, approvers: 1 }
+    );
+
+    const { name } = updatedDocument.createdBy;
+    const { expenseLines, approvers } = updatedDocument;
     const isApproval = approvers?.length > 0;
 
-    const payload = { reimbursementReport: getReport };
-    await sendToMicroservices(payload, 'full-update', 'expense report edited', 'reimbursement', 'online', isApproval);
+    const savedLineItem = expenseLines.find(line => line.lineItemId.toString() === lineItemId.toString());
+
+    const payload = { reimbursementReport: updatedDocument };
+    const source = 'reimbursement';
+    const onlineVsBatch = 'online';
+    const action = 'full-update';
+    const comments = 'Expense report edited';
+
+    await sendToMicroservices(payload, action, comments, source, onlineVsBatch, isApproval);
 
     return res.status(200).json({
       success: true,
       message: `Expense line saved successfully by ${name}`,
-      expenseAmountStatus,
-      updatedLine: expenseLines[0],
+      expenseAmountStatus: updatedDocument.expenseAmountStatus,
+      updatedLine: savedLineItem,
     });
   } catch (error) {
-    console.error('Failed to edit reimbursement expense line:', error);
-    return res.status(500).json({ message: 'Failed to process the request', success: false });
+    console.error(error);
+    return res.status(500).json({ message: 'Failed to process the request', error: error.message });
   }
 };
+
 
 /**
  * Updates the status of an expense report to "draft" and sends a success message and the updated expense report as a response.
