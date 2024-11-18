@@ -66,7 +66,7 @@ import {
 import { LineItemView } from "../nonTravelExpenseSubComponet/LineItemView.jsx";
 import uploadFileToAzure from "../utils/azureBlob.js";
 import { act } from "react";
-import { TitleModal } from "../Components/common/TinyComponent.jsx";
+import { RemoveFile, TitleModal } from "../Components/common/TinyComponent.jsx";
 
 ///Cuurency on Save you have to save object of currency
 
@@ -259,6 +259,7 @@ const CreateNonTraveExpense = () => {
     setActionType("editLineItem");
     setSelectedLineItemId(lineItem?.lineItemId);
     setSelectedAllocations(lineItem?.allocations);
+    setInitialFile(lineItem?.billImageUrl)
     setFormData((prev) => ({
       ...prev,
       editedFields: lineItem,
@@ -384,6 +385,7 @@ const CreateNonTraveExpense = () => {
 
   const [selectedFile, setSelectedFile] = useState(null);
   const [isFileSelected, setIsFileSelected] = useState(false);
+  const [initialFile, setInitialFile] = useState(false);
 
   console.log("total amount", totalAmount);
   //console.log("expense line",lineItemsData)
@@ -537,10 +539,18 @@ const CreateNonTraveExpense = () => {
   //   }
   // };
 
-  const handleRemoveFile = () => {
-    console.log("file removed");
+  const handleRemoveFile=()=>{
+    setFormData(prev => ({
+      ...prev,
+      fields: {
+        ...prev.fields,
+        billImageUrl: ""
+      }
+    }))
     setSelectedFile(null);
-  };
+    setIsFileSelected(false);
+    setInitialFile("");
+  }
 
   const handleSaveLineItem = async (action) => {
     console.log("line item action", action);
@@ -1569,11 +1579,16 @@ const CreateNonTraveExpense = () => {
                 lineItem.lineItemId === selectedLineItemId &&
                 requiredObj?.fields?.length > 0 &&
                 actionType === "editLineItem" ? (
-                  //edit form view
                   <>
                     <div className="w-full border flex flex-col md:flex-row relative border-t-2 border-slate-300 h-screen p-4 pb-16 ">
-                      <div className="w-full sm:w-3/5 h-full border border-slate-300 rounded-md hidden sm:block">
-                        <DocumentPreview initialFile={lineItem.billImageUrl} />
+                      <div className="relative w-full sm:w-3/5 h-full border border-slate-300 rounded-md hidden sm:block">
+                      {(isFileSelected || initialFile) && <RemoveFile onClick={handleRemoveFile}/>}
+                      <DocumentPreview 
+                      isFileSelected={isFileSelected} 
+                      setIsFileSelected={setIsFileSelected} 
+                      selectedFile={selectedFile} 
+                      setSelectedFile={setSelectedFile}
+                      initialFile={initialFile} />
                       </div>
                       <div
                         className="w-full sm:w-2/5 overflow-auto h-full"

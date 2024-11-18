@@ -117,22 +117,12 @@ const isRecorded = expenseLines.some(expenseLine =>
               ...prev.fields, 
               isMultiCurrency: false, 
               convertedAmountDetails:null
-            }
-            
-            
+            } 
           }));
          
          setCurrencyConversion(prev =>({...prev, response:null}))
-          
-         
-          //setErrorMsg((prevErrors) => ({ ...prevErrors, personalAmount: { set: true, msg: "Enter the amount" } }));
         }
     };
-
-
-
-    
-
   return (
  <div className="w-full flex-row h-full">
    <div className="sticky top-0 bg-white z-20 w-full flex items-center h-12 px-4 border-dashed  border-y border-slate-300 py-4">
@@ -160,7 +150,7 @@ const isRecorded = expenseLines.some(expenseLine =>
   </>
   )
    }
-  {/* <div className="w-full border flex flex-wrap items-center justify-center"> */}
+  
   {categoryFields.map((field) => {
   const isLocationOrDateField = ['From', 'To', 'Departure', 'Pickup Location', 'DropOff Location', 'Arrival'].includes(field.name);
   const isClassField = ['Class', 'Class of Service'].includes(field.name);
@@ -176,7 +166,6 @@ const isRecorded = expenseLines.some(expenseLine =>
             name={field.name}
             type="text"
             placeholder={`Enter ${field.name}`}
-            //value={formData[field.name] || ""}
             onChange={(value) => handleInputChange(field.name, value)}
           />
         ) : isClassField ? (
@@ -227,20 +216,11 @@ const isRecorded = expenseLines.some(expenseLine =>
     </React.Fragment>
   );
 })}
-
-
-         
-
-  </div>
+</div>
 
 {/* //personal expense */}
 
-
-
-
 <div className='px-2'>
-
-
 <div className='flex w-fit mb-4'>
   <Select 
   currentOption={formData['Mode of Payment']}
@@ -250,13 +230,10 @@ const isRecorded = expenseLines.some(expenseLine =>
    options={["Cash",'Cheque','Salary Account','Prepaid Card', "NEFT Bank Transfer"]}
    onSelect={(value)=>handleInputChange( ['Mode of Payment'],value)}/>
 </div>
-
-
-
 </div>
-     
-     </div>
+</div>
   )
 }
+
 
 export default LineItemForm

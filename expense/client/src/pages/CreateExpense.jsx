@@ -156,7 +156,7 @@ export default function () {
   const [isLoading, setIsLoading] = useState(true);
 
   const [loadingErrMsg, setLoadingErrMsg] = useState(null);
-  const [lineItemDetails, setLineItemDetails] = useState(); //line item save
+  const [lineItemDetails, setLineItemDetails] = useState(); 
   const [selectedFile, setSelectedFile] = useState(null);
   const [currencyConversion, setCurrencyConversion]=useState({
     payload:{
@@ -167,7 +167,8 @@ export default function () {
     },
     response:{}
   }) 
-  const [isFileSelected, setIsFileSelected] = useState(null);
+  const [isFileSelected, setIsFileSelected] = useState(false);
+  const [initialFile, setInitialFile] = useState("");
 
   const [personalFlag, setPersonalFlag] = useState(false);
 
@@ -325,6 +326,7 @@ export default function () {
   console.log("selected Allocations", selectedAllocations);
   console.log("requiredObj", requiredObj);
   console.log("formData", formData);
+  console.log("is file selected", isFileSelected)
 
   const [categoriesList, setCategoriesList] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -585,6 +587,7 @@ const handleRemoveFile=()=>{
   }))
   setSelectedFile(null);
   setIsFileSelected(false);
+  setInitialFile("");
 }
   const handleAllocations = (headerName, headerValue) => {
     console.log('allocation handle', headerName, headerValue);
@@ -886,6 +889,7 @@ const handleRemoveFile=()=>{
   const handleEdit = (lineItem) => {
 
 
+
     if(['level3'].includes(requiredObj?.level)){
       const selectedCategoryData =  requiredObj?.travelExpenseCategories?.find(item => item?.categoryName === lineItem?.["Category Name"])
       setRequiredObj(prev=> ({...prev, selectedCategoryData}));
@@ -898,7 +902,8 @@ const handleRemoveFile=()=>{
       fields: lineItem})); //line item
 
       setSelectedAllocations(lineItem?.allocations);
-      setCurrencyConversion(prev => ({...prev, response:lineItem?.convertedAmountDetails}))
+      setCurrencyConversion(prev => ({...prev, response:lineItem?.convertedAmountDetails}));
+      setInitialFile(lineItem?.billImageUrl)
 
 
     // if (requiredObj?.level === "level2") {
@@ -1508,14 +1513,15 @@ const handleRemoveFile=()=>{
                                 lineItem.expenseLineId === formData?.fields?.expenseLineId ? (
                                   <div key={`${index} line-item`} className="w-full border flex flex-col md:flex-row relative border-t-2 border-slate-300 h-screen p-4 pb-16 ">
                                     <div className="relative w-full sm:w-3/5 h-full border border-slate-300 rounded-md hidden sm:block">
-                                    <RemoveFile 
-                                     onClick={handleRemoveFile}/>
+                                    
+                                    {(isFileSelected || initialFile )&& <RemoveFile 
+                                     onClick={handleRemoveFile}/>}
                                       <DocumentPreview
-                                      isFileSelected={isFileSelected} 
-                                      setIsFileSelected={setIsFileSelected} 
-                                      selectedFile={selectedFile} 
-                                      setSelectedFile={setSelectedFile}
-                                      initialFile={lineItem?.billImageUrl}
+                                        isFileSelected={isFileSelected} 
+                                        setIsFileSelected={setIsFileSelected} 
+                                        selectedFile={selectedFile} 
+                                        setSelectedFile={setSelectedFile}
+                                        initialFile={initialFile}
                                       />
                                     </div>
                                     <div className="w-full sm:w-2/5 overflow-auto h-full">

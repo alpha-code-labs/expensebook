@@ -16,6 +16,7 @@ export function DocumentPreview({
   const [fileUrl, setFileUrl] = useState(null);
 
   useEffect(() => {
+    
     if (fileUrl) {
       URL.revokeObjectURL(fileUrl);
     }
@@ -23,6 +24,8 @@ export function DocumentPreview({
     if (selectedFile) {
       const newFileUrl = URL.createObjectURL(selectedFile);
       setFileUrl(newFileUrl);
+      setIsFileSelected(true);
+      
     }
 
     return () => {
