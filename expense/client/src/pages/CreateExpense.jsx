@@ -1562,11 +1562,9 @@ const handleRemoveFile=()=>{
                                 ) : (
                                   <>
                                     <div className="flex flex-col lg:flex-row  w-full h-screen">
-<<<<<<< HEAD
-                                      <div className="  w-full lg:w-3/5 border h-full border-slate-300  rounded-md">
-=======
+
                                       <div className="  w-full lg:w-3/5 border border-slate-300 h-full rounded-md">
->>>>>>> 0ff919df8cf4ab6094837a05ba9f51a43768de37
+
                                       
                                         <DocumentPreview
                                           emptyPreview={true}
