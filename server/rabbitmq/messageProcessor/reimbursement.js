@@ -3,27 +3,29 @@ import REIMBURSEMENT from "../../models/reimbursementSchema.js";
 
 const updateReimbursement = async (payload) => {
     try {
-        console.log("update updateReimbursement", payload)
         const { reimbursementReport } = payload;
         const { tenantId,expenseHeaderId, createdBy } = reimbursementReport;
         const { empId } = createdBy;
-        console.log("updateReimbursement ....", payload);
 
-        const reimbursement = await REIMBURSEMENT.findOneAndUpdate(
+        const reimbursement = await REIMBURSEMENT.findOneAndReplace(
             { tenantId, 'createdBy.empId': empId ,expenseHeaderId},
-            { $set: { ...reimbursementReport } },
-            { upsert: true, new: true }
+            { ...reimbursementReport},
+            { upsert: true}
         );
 
         console.log("Reimbursement update result:", reimbursement);
 
-        if (reimbursement) {
-            console.log("Success: Reimbursement updated successfully.");
-            return { success: true, error: null };
-        } else {
-            console.log("Failed: Unable to save reimbursement expense in dashboard.");
-            return { success: false, error: "Failed to save reimbursement expense in dashboard." };
-        }
+        if (result.lastErrorObject.updatedExisting) {
+    console.log("Success: Reimbursement updated successfully."); 
+    return { success: true, error: null }; 
+    } else if (result.lastErrorObject.upserted) { 
+        console.log("Success: Reimbursement created successfully."); 
+        return { success: true, error: null }; 
+    }  else { 
+        console.log("Failed: Unable to save reimbursement expense in dashboard."); 
+        return { success: false, error: "Failed to save reimbursement expense in dashboard." 
+        };
+    }
     } catch (error) {
         console.error('Failed to update dashboard: using synchronous queue', error);
         return { success: false, error: error.message };
@@ -33,8 +35,6 @@ const updateReimbursement = async (payload) => {
 
 const deleteReimbursement = async (payload) => {
     try {
-        console.log("delete", payload)
-        // const { reimbursementReport } = payload;
         const { tenantId,empId, expenseHeaderId } = payload;
 
         console.log("deleteReimbursement....", payload);
