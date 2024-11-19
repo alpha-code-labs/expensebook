@@ -11,6 +11,7 @@ import { scheduleToFinanceBatchJob } from './schedulars/finance.js';
 import cookieParser from 'cookie-parser';
 import { scheduleToNotificationBatchJob } from './schedulars/notifications.js';
 import HRMaster from './models/hrMasterSchema.js';
+import FinanceNotification from './models/financeNotification.js';
 
 
 const environment = process.env.NODE_ENV == 'production' ? '.env.prod' : '.env';
@@ -88,14 +89,11 @@ startConsumer('dashboard');
 //BatchJobs
 scheduleToFinanceBatchJob()
 consumeFromDashboardQueue();
-// scheduleToNotificationBatchJob()
+scheduleToNotificationBatchJob()
 
 // const list = await HRMaster.find().select({'tenantId':1,'-_id':0})
 // const tenantIds = list.map(l => l.tenantId.toString())
 // console.info("list", list, 'tenantIds', tenantIds)
-
-
-
 
 
 
