@@ -139,33 +139,30 @@ const validationSchema = Joi.object({
             'string.base': 'Expense Header ID must be a string.'
         })
 })
-    .custom((value, helpers) => {
-        const { travelRequestId, expenseHeaderId } = value;
+.custom((value, helpers) => {
+    const { travelRequestId, expenseHeaderId } = value;
+    if (travelRequestId && expenseHeaderId) {
+        return helpers.error('object.xor');
+    }
 
-        if (travelRequestId && expenseHeaderId) {
-            return helpers.error('object.xor');
-        }
-
-        if (!travelRequestId && !expenseHeaderId) {
-            return value; 
-        }
-
-        return value;
-    })
-    .messages({
-        'object.xor': 'Either Travel Request ID or Expense Header ID must be provided, but not both.',
-    });
-
+    if (!travelRequestId && !expenseHeaderId) {
+        return value; 
+    }
+    return value;
+})
+.messages({
+    'object.xor': 'Either Travel Request ID or Expense Header ID must be provided, but not both.',
+});
 
 const markMessageAsRead = async (req, res) => { 
     try {
         const { tenantId} = req.params
         const { value,error } = validationSchema.validate(req.body);
+    
         if (error) {
             return res.status(400).json({ success: false, message: error.details[0].message });
         }
         const {messageId, travelRequestId, expenseHeaderId } = value;
-
         if (!messageId) {
             return res.status(400).json({ success: false, message: 'Message ID is mandatory' });
         }
@@ -176,14 +173,18 @@ const markMessageAsRead = async (req, res) => {
             notification = await Notification.findOne({ travelRequestId });
         } else if (expenseHeaderId) {
             notification = await EXPENSE_NOTIFICATION.findOne({ expenseHeaderId });
-        } else if (tenantId & !travelRequestId & !expenseHeaderId){
-            notification = await FinanceNotification.findOne({ tenantId });
-        } else{
-            return res.status(400).json({ success: false, message: 'Either travelRequestId or expenseHeaderId is mandatory' });
+        } 
+
+        if (!notification && tenantId && messageId) {
+            notification = await FinanceNotification.findOne({ "tenantId": tenantId });
         }
 
         if (!notification) {
-            return res.status(404).json({ success: false, message: 'Notification not found.' });
+            return res.status(400).json({ success: false, message: 'Either travelRequestId or expenseHeaderId is mandatory' });
+        }
+
+        if (!notification.messages || !Array.isArray(notification.messages)) {
+            return res.status(404).json({ success: false, message: 'No messages found in the notification.' });
         }
 
         const message = notification.messages.find(msg => msg.messageId.toString() === messageId.toString());
