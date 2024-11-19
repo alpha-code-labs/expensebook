@@ -228,10 +228,10 @@ const handleFilterNotification = (value)=>{
           <option value="all">All</option>
           <option value="unread">Unread</option>
         </select>
-  <div className='space-y-1'>
+  <div className='space-y-1 overflow-x-auto p-2'>
 {notificationArray?.map((ele)=>(
   < >
-   <div  key={ele.name + "navbar"}  className={` w-full h-fit ${ele.status === 'urgent' ? ' bg-gradient-to-t from-red-50/50 to-white  ' : ele.status ==='action' ? ' bg-gradient-to-t to-yellow-50/50 from-white  ': 'bg-gradient-to-t from-white to-indigo-50/50  '} bg-none flex w-[300px] gap-2 py-2  items-start  text-neutral-900  bg-gray-200/10 rounded-md hover:border-none p-1 cursor-pointer `}>
+   <div  key={ele.name + "navbar"}  className={`   w-full h-fit ${ele.status === 'urgent' ? ' bg-gradient-to-t from-red-50/50 to-white  ' : ele.status ==='action' ? ' bg-gradient-to-t to-yellow-50/50 from-white  ': 'bg-gradient-to-t from-white to-indigo-50/50  '} bg-none flex w-[300px] gap-2 py-2  items-start  text-neutral-900  bg-gray-200/10 rounded-md hover:border-none p-1 cursor-pointer `}>
            
               {alertIcon(ele?.status)}
              
