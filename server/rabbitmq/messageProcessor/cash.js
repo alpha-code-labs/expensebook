@@ -1,4 +1,5 @@
 import dashboard from "../../models/dashboardSchema.js";
+import { earliestDate } from "../../utils/date.js";
 
 const updateCashToDashboardSync = async (message,correlationId) => {
     const failedUpdates = [];
@@ -22,7 +23,7 @@ const updateCashToDashboardSync = async (message,correlationId) => {
         },
         { upsert: true, new: true }
       );
-      console.log('Saved to dashboard: using synchrnous queue', updated);
+      // console.log('Saved to dashboard: using synchrnous queue', updated);
   
     } catch (error) {
       console.error('Failed to update dashboard: using synchronous queue', error);
@@ -56,11 +57,13 @@ const updateCashToDashboardSync = async (message,correlationId) => {
   }
 }
 
- const fullUpdateCash = async (payload) => {
-  console.log('full update cashAdvanceSchema', payload)
+const fullUpdateCash = async (payload) => {
+  // console.log('full update cashAdvanceSchema', payload)
   const{ travelRequestData, cashAdvancesData} = payload
-  const { tenantId, travelRequestId } = travelRequestData;
-console.log("fullUpdateCash --tenantId,travelRequestId", tenantId, travelRequestId)
+  const { tenantId, travelRequestId,itinerary } = travelRequestData;
+  const tripStartDate = await earliestDate(itinerary)
+
+// console.log("fullUpdateCash --tenantId,travelRequestId", tenantId, travelRequestId)
   // Check if the tenantId is present
   if (!tenantId) {
     console.error('TenantId is missing');
@@ -75,12 +78,13 @@ console.log("fullUpdateCash --tenantId,travelRequestId", tenantId, travelRequest
       },
       {
         "travelRequestSchema": travelRequestData,
+        "travelStartDate":tripStartDate,
         "cashAdvanceSchema.travelRequestData": travelRequestData,
         "cashAdvanceSchema.cashAdvancesData": cashAdvancesData,
       },
       { upsert: true, new: true }
     );
-    console.log('Saved to dashboard: Full Update cash---', updated);
+    // console.log('Saved to dashboard: Full Update cash---', updated);
     return { success: true, error: null };
   } catch (error) {
     console.error('Failed to update dashboard: using rabbitmq m2m', error);
@@ -88,11 +92,12 @@ console.log("fullUpdateCash --tenantId,travelRequestId", tenantId, travelRequest
   }
 }
 
- const fullUpdateCashBatchJob = async (payloadArray) => {
+const fullUpdateCashBatchJob = async (payloadArray) => {
   try {
     const updatePromises = payloadArray.map(async (payload) => {
       const { travelRequestData, cashAdvancesData } = payload;
-      const { tenantId, travelRequestId } = travelRequestData;
+      const { tenantId, travelRequestId, itinerary } = travelRequestData;
+      const tripStartDate = await earliestDate(itinerary)
 
       // Check if the tenantId is present
       if (!tenantId) {
@@ -107,13 +112,20 @@ console.log("fullUpdateCash --tenantId,travelRequestId", tenantId, travelRequest
         },
         {
           "travelRequestSchema": travelRequestData,
+          "travelStartDate": tripStartDate,
           "cashAdvanceSchema.travelRequestData": travelRequestData,
           "cashAdvanceSchema.cashAdvancesData": cashAdvancesData,
         },
         { upsert: true, new: true }
       );
-      console.log('Saved to dashboard: using async queue', updated);
-      return { success: true, error: null };
+
+      if (updated.matchedCount > 0 || updated.upsertedCount > 0) {
+        console.log("Saved to dashboard: using async queue", updated); 
+        return { success: true, error: null }; 
+      } else {
+      console.log("Failed to save reimbursement expense in dashboard."); 
+      return { success: false, error: "Failed to save reimbursement expense in dashboard." };
+      }
     });
 
     // Wait for all updates to complete
@@ -130,7 +142,7 @@ console.log("fullUpdateCash --tenantId,travelRequestId", tenantId, travelRequest
 }
 
 
- const cashStatusUpdatePaid = async (payloadArray) => {
+const cashStatusUpdatePaid = async (payloadArray) => {
   try {
     // Initialize an array to keep track of results
     const results = [];
@@ -189,11 +201,11 @@ console.log("fullUpdateCash --tenantId,travelRequestId", tenantId, travelRequest
 };
 
 
- const onceCash = async (payload) => {
-  console.log('full update cashAdvanceSchema', payload)
+const onceCash = async (payload) => {
+  // console.log('full update cashAdvanceSchema', payload)
   const{ travelRequestData, cashAdvancesData} = payload
   const { tenantId, travelRequestId } = travelRequestData;
-console.log("fullUpdateCash --tenantId,travelRequestId", tenantId, travelRequestId)
+// console.log("fullUpdateCash --tenantId,travelRequestId", tenantId, travelRequestId)
   // Check if the tenantId is present
   if (!tenantId) {
     console.error('TenantId is missing');
@@ -213,8 +225,15 @@ console.log("fullUpdateCash --tenantId,travelRequestId", tenantId, travelRequest
       },
       { upsert: true, new: true }
     );
-    console.log('Saved to dashboard: Full Update cash---', updated);
-    return { success: true, error: null };
+
+    if (updated.matchedCount > 0 || updated.upsertedCount > 0) {
+      console.log("Saved to dashboard: using async queue", updated); 
+      return { success: true, error: null }; 
+    } else { 
+      console.log("Failed to save reimbursement expense in dashboard."); 
+      return { success: false, error: "Failed to save reimbursement expense in dashboard." 
+      };
+    }
   } catch (error) {
     console.error('Failed to update dashboard: using rabbitmq m2m', error);
     return { success: false, error: error };

@@ -21,6 +21,9 @@ const dashboardSchema = new mongoose.Schema({
       // unique: true,
       required: true
     },
+    travelStartDate:{ // temporary added, tripStartDate should be here when a new TR is raised, update this when ever any change in TR.
+      type: Date,
+    },
     travelRequestSchema:travelRequestSchema,
     cashAdvanceSchema: cashAdvanceSchema,
     tripSchema: tripSchema, // trip Schema has travel,cash,travel expenses included.

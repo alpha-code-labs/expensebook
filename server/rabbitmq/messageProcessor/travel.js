@@ -1,9 +1,11 @@
 import dashboard from "../../models/dashboardSchema.js";
+import { earliestDate } from "../../utils/date.js";
 
 
 const fullUpdateTravel = async (payload) => {
   console.log("trying to update travel", payload);
-  const { tenantId, travelRequestId } = payload;
+  const { tenantId, travelRequestId, itinerary } = payload;
+  const tripStartDate = await earliestDate(itinerary)
 
   // Check if the tenantId is present
   if (!tenantId) {
@@ -20,6 +22,7 @@ const fullUpdateTravel = async (payload) => {
       },
       {
         "tenantId": tenantId,
+        "travelStartDate":tripStartDate,
         "travelRequestId": travelRequestId, 
         "travelRequestSchema": payload,
       },
@@ -38,7 +41,9 @@ const fullUpdateTravelBatchJob = async (payloadArray) => {
   try {
     console.log("batchjob travel", payloadArray)
     const updatePromises = payloadArray.map(async (payload) => {
-      const { tenantId, travelRequestId } = payload;
+      const { tenantId, travelRequestId, itinerary } = payload;
+      const tripStartDate = await earliestDate(itinerary)
+
 
       // Check if the tenantId is present
       if (!tenantId) {
@@ -53,6 +58,7 @@ const fullUpdateTravelBatchJob = async (payloadArray) => {
         },
         {
           "travelRequestSchema": payload,
+          "travelStartDate": tripStartDate
         },
         { upsert: true, new: true }
       );
