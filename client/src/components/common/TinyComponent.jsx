@@ -124,8 +124,8 @@ const TripName = ({tripName})=>(
     );
   }
 
-  function TooltipBtn( {onClick,onHover,icon,disabled}){
-    return(<div onClick={onClick}  className={`cursor-pointer ${disabled ? 'group text-gray-400 ': '  text-white cursor-pointer' } relative px-2 py-1 font-cabin text-xs  rounded-md text-white` }>
+  function TooltipBtn( {onClick,onHover,icon,disabled = false}){
+    return(<div onClick={onClick}  className={` group ${disabled ? ' text-gray-400 cursor-not-allowed ': '  text-white cursor-pointer' } relative px-2 py-1 font-cabin text-xs rounded-md text-white` }>
            <img src={icon} className='w-4 h-4' alt="Add Icon" />
            <div className="absolute truncate -top-0  right-8   rounded-md px-2 py-1 bg-neutral-900 text-gray-100 text-xs z-[10] font-cabin hidden scale-0 group-hover:block group-hover:origin-bottom-left group-hover:scale-100">
             {onHover}

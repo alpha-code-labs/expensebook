@@ -142,6 +142,7 @@ export {default as approval_black_icon} from './sidebar/approval_black_icon.svg'
 export {default as booking_black_icon} from './sidebar/airplane_black_icon.svg'
 export {default as report_black_icon} from './sidebar/report_black_icon.svg'
 export {default as configure_black_icon} from './sidebar/setting_black_icon.svg'
+export {default as download_ticket_icon} from './download_ticket_icon.svg';
 
 
 

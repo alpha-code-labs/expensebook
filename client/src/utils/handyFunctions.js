@@ -452,8 +452,29 @@ function checkUpcomingTrip(tripStartDate) {
   } 
 }
 
+const handleDownloadFile = async (url) => {
+  const fileName = url.split('/').pop();
+  console.log('file name:', fileName);
 
+  try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const downloadUrl = URL.createObjectURL(blob);
+
+      const aTag = document.createElement("a");
+      aTag.href = downloadUrl;
+      aTag.setAttribute('download', fileName);
+      document.body.appendChild(aTag);
+      aTag.click();
+
+      // Clean up
+      aTag.remove();
+      URL.revokeObjectURL(downloadUrl);
+  } catch (error) {
+      console.error("Download failed:", error);
+  }
+};
   
 
-export {formatDateAndTime,tripsAsPerExpenseFlag,sortTripsForBooking,checkUpcomingTrip, filterByTimeRange,extractTripNameStartDate, sortTripsByDate, splitTripName, titleCase, formatDate, filterTravelRequests,formatDate2 ,getStatusClass ,addOrdinalIndicator ,formatDate3 ,getCashAdvanceButtonText,urlRedirection,formatAmount}  
+export {handleDownloadFile,formatDateAndTime,tripsAsPerExpenseFlag,sortTripsForBooking,checkUpcomingTrip, filterByTimeRange,extractTripNameStartDate, sortTripsByDate, splitTripName, titleCase, formatDate, filterTravelRequests,formatDate2 ,getStatusClass ,addOrdinalIndicator ,formatDate3 ,getCashAdvanceButtonText,urlRedirection,formatAmount}  
 

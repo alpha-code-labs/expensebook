@@ -17,16 +17,16 @@ import {
     smoking_icon,
     no_smoking_icon,
     restraunt_icon,
+    download_ticket_icon,
  } from "../../assets/icon";
 import { getStatusClass, titleCase } from "../../utils/handyFunctions";
 import moment from "moment";
+import { TooltipBtn } from "../common/TinyComponent";
 
-export function FlightCard({ status,from, to, date, returnDate, time, travelClass, onClick, mode = 'Flight', id, handleEdit, handleDelete }) {
+export function FlightCard({handleDownloadFile,disabled, status,from, to, date, returnDate, time, travelClass, onClick, mode = 'Flight', id, handleEdit, handleDelete }) {
+  console.log("disabled flag for download", disabled)
     return (
-        <CardLayout status={status}>
-            
-            
-
+        <CardLayout status={status} >
             <div className="flex flex-col gap-1 justify-center items-center ">
                 <img src={spitImageSource(mode)} className='w-6 h-6 shrink-0' />
                 {['pending booking'].includes(status) && 
@@ -47,13 +47,14 @@ export function FlightCard({ status,from, to, date, returnDate, time, travelClas
                 <CardItemLayout title="Departure Date" imageSource={calender_icon} value={isoString(date)}  />
                 <CardItemLayout title="Time" imageSource={clock_icon} value={formattedTime(time)}  />
             </CardItemsLayout>
-           
-            {/* <ActionButtons id={id} handleDelete={handleDelete} handleEdit={handleEdit} /> */}
+
+            <TooltipBtn onClick={handleDownloadFile} onHover={'Download Ticket'} icon={download_ticket_icon} disabled={disabled}/>
+            {/* <ActionButtons id={id} handleDelete={handleDelete} handleEdit={handleEdit} /> */} 
         </CardLayout>
     )
 }
 
-export function CabCard({status, from, to, date, returnDate, time, isFullDayCab, travelClass, mode, id, handleDelete, handleEdit }) {
+export function CabCard({handleDownloadFile, disabled, status, from, to, date, returnDate, time, isFullDayCab, travelClass, mode, id, handleDelete, handleEdit }) {
     console.log('isFullDay cab', isFullDayCab)
     return (
         <CardLayout status={status} >
@@ -85,13 +86,14 @@ export function CabCard({status, from, to, date, returnDate, time, isFullDayCab,
                 
                 
             </CardItemsLayout>
+            <TooltipBtn onClick={handleDownloadFile} onHover={'Download Ticket'} icon={download_ticket_icon} disabled={disabled}/>
             
 
             {/* <ActionButtons id={id} handleDelete={handleDelete} handleEdit={handleEdit} /> */}
     </CardLayout>)
 }
 
-export function RentalCabCard({ status,from, to, date, returnDate, time, travelClass, mode, id, handleDelete, handleEdit }) {
+export function RentalCabCard({handleDownloadFile, disabled, status,from, to, date, returnDate, time, travelClass, mode, id, handleDelete, handleEdit }) {
     return (
         <CardLayout status={status}>
            
@@ -120,12 +122,14 @@ export function RentalCabCard({ status,from, to, date, returnDate, time, travelC
                 
                 
             </CardItemsLayout>
+            <TooltipBtn onClick={handleDownloadFile} onHover={'Download Ticket'} icon={download_ticket_icon} disabled={disabled}/>
+            
             
             {/* <ActionButtons id={id} handleDelete={handleDelete} handleEdit={handleEdit} /> */}
         </CardLayout>)
 }
 
-export function HotelCard({status, checkIn, checkOut, location, ratings='any', onClick, id, handleDelete, handleEdit, needBreakfast, needLunch, needDinner, needNonSmokingRoom }) {
+export function HotelCard({handleDownloadFile, disabled, status, checkIn, checkOut, location, ratings='any', onClick, id, handleDelete, handleEdit, needBreakfast, needLunch, needDinner, needNonSmokingRoom }) {
     return (
         <CardLayout status={status}>
           <div className="flex flex-col gap-1 items-center justify-center">
@@ -154,6 +158,7 @@ export function HotelCard({status, checkIn, checkOut, location, ratings='any', o
                 
                 </div>
             </CardItemsLayout>
+            <TooltipBtn onClick={handleDownloadFile} onHover={'Download Ticket'} icon={download_ticket_icon} disabled={disabled}/>
 
             {/* <ActionButtons id={id} handleDelete={handleDelete} handleEdit={handleEdit} /> */}
         </CardLayout>)

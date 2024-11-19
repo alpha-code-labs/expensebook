@@ -1,7 +1,7 @@
 /* eslint-disable react/jsx-key */
 import React, { useState,useEffect } from 'react';
 import { airplane_1, briefcase, calender_icon, double_arrow,cab_purple,  house_simple, train, bus, cancel_round, cancel, modify, plus_icon, plus_violet_icon, receipt, down_arrow, chevron_down, down_left_arrow, calender_2_icon, airplane, material_flight_black_icon, material_cab_black_icon, material_hotel_black_icon, city_icon, empty_itinerary_icon, empty_travelExpense_icon, empty_nonTravelExpense_icon, expense_white_icon, expense_black_icon, plus_black_icon } from '../assets/icon';
-import {  extractTripNameStartDate, formatAmount,  getStatusClass, sortTripsByDate, splitTripName, tripsAsPerExpenseFlag } from '../utils/handyFunctions';
+import {  extractTripNameStartDate, formatAmount,  getStatusClass, handleDownloadFile, sortTripsByDate, splitTripName, tripsAsPerExpenseFlag } from '../utils/handyFunctions';
 import { useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useData } from '../api/DataProvider';
@@ -250,7 +250,7 @@ const [expenseTabs , setExpenseTabs]=useState("travelExpense");
    </div>     
    
    
-   <TooltipBtn   onClick={()=>setModalOpen(!modalOpen)} onHover={'Add an Expense'} icon={plus_black_icon} disabled={true}/>
+   <TooltipBtn   onClick={()=>setModalOpen(!modalOpen)} onHover={'Add an Expense'} icon={plus_black_icon} />
    </div>
    
    <div className='h-[224px] overflow-y-auto px-2 mt-2'>
@@ -299,7 +299,7 @@ const [expenseTabs , setExpenseTabs]=useState("travelExpense");
      {/* <div className="h-[288px] mt-2 border-4 border-indigo-600 rounded-md px-2"> */}
      <div className="flex gap-x-2 h-[40px]   px-2 flex-row items-center justify-end text-center font-cabin border-b-2  border-slate-300  text-neutral-700 text-xs">
    
-   <TooltipBtn onClick={()=>handleVisible({urlName:"travel-url"})} onHover={'Raise Travel Request'} icon={plus_black_icon} disabled={true}/>
+   <TooltipBtn onClick={()=>handleVisible({urlName:"travel-url"})} onHover={'Raise Travel Request'} icon={plus_black_icon} />
      
    </div>
    
@@ -419,7 +419,7 @@ const IntransitTrips = ({ index, trip, lastIndex,handleVisible }) => {
         }
       }
     }
-  
+    
     itinerary.flights.forEach(flight => checkAndPush(flight, 'bkd_date', 'flights', 'bkd_time'));
     itinerary.hotels.forEach(hotel => checkAndPush(hotel, 'bkd_checkOut', 'hotels'));
     itinerary.buses.forEach(bus => checkAndPush(bus, 'bkd_date', 'buses', 'bkd_time'));
@@ -461,6 +461,7 @@ const IntransitTrips = ({ index, trip, lastIndex,handleVisible }) => {
 
   const [textVisible, setTextVisible] = useState({ modify: false });
 
+
   return (
     <div className={`h-[275px]  rounded-md    `}>
       <div className="flex gap-2 px-2 flex-row items-center justify-between text-center font-inter border-b-2 border-slate-300 shadow-sm  py-2 text-neutral-700 text-xs">
@@ -484,7 +485,7 @@ const IntransitTrips = ({ index, trip, lastIndex,handleVisible }) => {
         
         {activeTabs === 'upcoming' && upcomingItinerary.length >0 &&
      
-        <TooltipBtn onClick={()=>handleVisible({urlName:'trip-url',tripId:trip?.tripId})} onHover={'Modify Trip'} icon={modify} disabled={true}/>
+        <TooltipBtn onClick={()=>handleVisible({urlName:'trip-url',tripId:trip?.tripId})} onHover={'Modify Trip'} icon={modify} />
           
           }  
           
@@ -508,8 +509,11 @@ const IntransitTrips = ({ index, trip, lastIndex,handleVisible }) => {
               if(item?.category === "flights"){
                 return ( 
                 <FlightCard 
+                handleDownloadFile={()=>handleDownloadFile(item?.bookingDetails?.docURL)}
+                  disabled={item?.bookingDetails?.docURL ? false : true}
                 key={index}
                 status={item.status}
+                
                 id={item.id} 
                 from={['pending booking'].includes(item?.status) ? item.from :item.bkd_from} 
                 to={['pending booking'].includes(item?.status) ? item.to :item.bkd_to} 
@@ -524,6 +528,8 @@ const IntransitTrips = ({ index, trip, lastIndex,handleVisible }) => {
               if(item?.category === "trains"){
                 return ( 
                   <FlightCard 
+                  handleDownloadFile={()=>handleDownloadFile(item?.bookingDetails?.docURL)}
+                  disabled={item?.bookingDetails?.docURL ? false : true}
                   key={index}
                   status={item.status}
                   id={item.id} 
@@ -540,6 +546,8 @@ const IntransitTrips = ({ index, trip, lastIndex,handleVisible }) => {
               if(item?.category === "buses"){
                 return (                 
                   <FlightCard 
+                  handleDownloadFile={()=>handleDownloadFile(item?.bookingDetails?.docURL)}
+                  disabled={item?.bookingDetails?.docURL ? false : true}
                   key={index}
                   status={item.status}
                   id={item.id} 
@@ -556,6 +564,8 @@ const IntransitTrips = ({ index, trip, lastIndex,handleVisible }) => {
               if(item?.category === "cabs"){
                 return (                 
                   <CabCard
+                  handleDownloadFile={()=>handleDownloadFile(item?.bookingDetails?.docURL)}
+                  disabled={item?.bookingDetails?.docURL ? false : true}
                   key={index}
                   status={item.status}
                   id={item.id} 
@@ -572,6 +582,8 @@ const IntransitTrips = ({ index, trip, lastIndex,handleVisible }) => {
               if(item.category == 'carRentals'){
                 return (
                   <RentalCabCard
+                  handleDownloadFile={()=>handleDownloadFile(item?.bookingDetails?.docURL)}
+                  disabled={item?.bookingDetails?.docURL ? false : true}
                   key={index}
                   status={item.status}
                   id={item.id}
@@ -590,6 +602,8 @@ const IntransitTrips = ({ index, trip, lastIndex,handleVisible }) => {
 
 
                 <HotelCard
+                handleDownloadFile={()=>handleDownloadFile(item?.bookingDetails?.docURL)}
+                disabled={item?.bookingDetails?.docURL ? false : true}
                 key={index}
                 status={item.status}
                 id={item.id}
@@ -605,8 +619,6 @@ const IntransitTrips = ({ index, trip, lastIndex,handleVisible }) => {
             
               )
           }
-
-
             })
            } 
           </div>
@@ -616,9 +628,6 @@ const IntransitTrips = ({ index, trip, lastIndex,handleVisible }) => {
 };
 
 const UpcomingTrips = ({ index, trip,lastIndex ,handleVisible}) => {
-  
-
-
 
   function flattenObjectToArray(obj) {
     return Object.entries(obj).reduce((acc, [key, val]) => {
@@ -649,7 +658,7 @@ const [textVisible ,setTextVisible]=useState(false)
         <div className='gap-4 flex '>
 
        
-          <TooltipBtn onClick={()=>handleVisible({urlName:'trip-url',tripId:trip?.tripId})} onHover={'Modify Trip'} icon={modify} disabled={true}/>
+          <TooltipBtn onClick={()=>handleVisible({urlName:'trip-url',tripId:trip?.tripId})} onHover={'Modify Trip'} icon={modify} />
 
           </div>
         
@@ -808,8 +817,6 @@ const TravelRequests = ({travel,index,lastIndex})=>{
           <TripName tripName={travel?.tripName}/>
           
         }
-         
-
       </div>
       {/* <img  src={chevron_down} className='w-5 h-5' alt="Toggle Dropdown" /> */}
       <div className={`text-center rounded-sm ${getStatusClass(travel?.travelRequestStatus ?? "-")}`}>

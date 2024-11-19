@@ -178,7 +178,7 @@ const handleFilterNotification = (value)=>{
   if(value === "unread")
   {
     const updatedArray = notificationArray.filter(
-      (item) => item.isRead == true
+      (item) => item.isRead == false
     );
     setNotificationArray(updatedArray)
   }
@@ -219,7 +219,7 @@ const handleFilterNotification = (value)=>{
             
             </div>
         }>
-<div className=' flex flex-col justify-start  gap-2 p-2 px-3 border border-slate-300 h-full rounded-md min-w-64'>
+<div className=' flex flex-col justify-start  gap-2 p-2 px-3 border border-slate-300 h-full rounded-md w-full '>
 <select
           
           onChange={(e) => handleFilterNotification(e.target.value)}
@@ -228,18 +228,18 @@ const handleFilterNotification = (value)=>{
           <option value="all">All</option>
           <option value="unread">Unread</option>
         </select>
-  <div className='divide divide-y space-y-1 divide-slate-300'>
+  <div className='space-y-1'>
 {notificationArray?.map((ele)=>(
   < >
-   <div  key={ele.name + "navbar"}  className={` h-fit ${ele.status === 'urgent' ? ' bg-gradient-to-t from-red-50/50 to-white  ' : ele.status ==='action' ? ' bg-gradient-to-t to-yellow-50/50 from-white  ': 'bg-gradient-to-t from-white to-indigo-50/50  '} bg-none flex w-[300px] gap-2 py-2  items-start  text-neutral-900  hover:bg-gray-200/10 hover:rounded-md hover:border-none p-1 cursor-pointer`}>
+   <div  key={ele.name + "navbar"}  className={` w-full h-fit ${ele.status === 'urgent' ? ' bg-gradient-to-t from-red-50/50 to-white  ' : ele.status ==='action' ? ' bg-gradient-to-t to-yellow-50/50 from-white  ': 'bg-gradient-to-t from-white to-indigo-50/50  '} bg-none flex w-[300px] gap-2 py-2  items-start  text-neutral-900  bg-gray-200/10 rounded-md hover:border-none p-1 cursor-pointer `}>
            
               {alertIcon(ele?.status)}
              
             <div className='space-y-2  '>
-              <p className='font-inter text-xs text-neutral-900 break-all'>{ele?.message}</p>
+              <p className='font-inter text-xs text-neutral-900 '>{ele?.message}</p>
               <p className='text-xs font-cabin text-neutral-700'>{formatDateAndTime(ele?.createdAt)}</p>
               </div>
-              <div className='p-1 bg-slate-100 h-6 w-6 shrink-0 flex items-center justify-center'>
+              <div className='p-1 ring-1 ring-white bg-slate-100 h-6 w-6 shrink-0 flex items-center justify-center'>
 
               <img onClick={()=>handleIsReadNotification({
                 ...(ele?.messageId && { messageId: ele.messageId }),
