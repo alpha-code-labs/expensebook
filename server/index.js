@@ -10,9 +10,6 @@ import { consumeFromDashboardQueue } from './rabbitmq/dashboardConsumer.js';
 import { scheduleToFinanceBatchJob } from './schedulars/finance.js';
 import cookieParser from 'cookie-parser';
 import { scheduleToNotificationBatchJob } from './schedulars/notifications.js';
-import HRMaster from './models/hrMasterSchema.js';
-import FinanceNotification from './models/financeNotification.js';
-
 
 const environment = process.env.NODE_ENV == 'production' ? '.env.prod' : '.env';
 dotenv.config({path:environment});
@@ -59,7 +56,7 @@ app.use((req,res,next) =>{
   res.status(404).json({success:false, message:"Wrong route. Please check the URL."})
 })
 app.use((err, req, res, next) => {
-  console.error(err.stack); // Log the error stack for debugging
+  console.error(err.stack); 
   res.status(500).json({ message: 'Internal Server Error' });
 });
 
@@ -91,9 +88,7 @@ scheduleToFinanceBatchJob()
 consumeFromDashboardQueue();
 scheduleToNotificationBatchJob()
 
-// const list = await HRMaster.find().select({'tenantId':1,'-_id':0})
-// const tenantIds = list.map(l => l.tenantId.toString())
-// console.info("list", list, 'tenantIds', tenantIds)
+
 
 
 
