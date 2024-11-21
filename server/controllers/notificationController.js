@@ -2,6 +2,7 @@ import Joi from "joi";
 import Notification from "../models/notification.js";
 import EXPENSE_NOTIFICATION from "../models/reimbursementNotification.js";
 import FinanceNotification from "../models/financeNotification.js";
+import FB_NOTIFICATION from "../models/fbNotification.js";
 
 
 const fetchEmployeeNotifications = async (tenantId, empId, applicableRoles) => {
@@ -88,7 +89,26 @@ const fetchEmployeeNotifications = async (tenantId, empId, applicableRoles) => {
     
 
         if(applicableRoles.includes('businessAdmin')){
-            setBusinessAdmin=[]
+            try {
+                const notifications = await FB_NOTIFICATION.find({ tenantId });
+        
+                const businessAdmin = notifications.flatMap(({ messages }) => 
+                    messages.map(({ text, messageId, status, isRead, createdAt }) => ({
+                        message: text,
+                        messageId,
+                        status,
+                        isRead,
+                        createdAt,
+                    }))
+                );
+        
+                let setBusinessAdmin = {businessAdmin}
+                return setBusinessAdmin;
+        
+            } catch (error) {
+                console.error("Error fetching employee notifications:", error);
+                throw new Error("Could not fetch notifications.");
+            }
         }
 
         const roleSets = {

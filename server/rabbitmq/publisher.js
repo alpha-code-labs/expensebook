@@ -21,20 +21,20 @@ const connectToRabbitMQ = async () => {
 
 export async function sendToOtherMicroservice(payload, action, destination, comments, source='dashboard', onlineVsBatch='online'){
     try {
-        console.log('Sending message to RabbitMQ...');
+        // console.log('Sending message to RabbitMQ...');
     
         const channel = await connectToRabbitMQ();
         const exchangeName = 'amqp.dashboard';
         const queue = `q.${destination}`
         const routingKey = `rk.${destination}`
     
-        console.log(`Asserting exchange: ${exchangeName}`);
+        // console.log(`Asserting exchange: ${exchangeName}`);
         await channel.assertExchange(exchangeName, 'direct', { durable: true });
     
-        console.log(`Asserting queue: ${queue}`);
+        // console.log(`Asserting queue: ${queue}`);
         await channel.assertQueue(queue, { durable: true });
     
-        console.log(`Binding queue ${queue} to exchange ${exchangeName}`);
+        // console.log(`Binding queue ${queue} to exchange ${exchangeName}`);
         await channel.bindQueue(queue, exchangeName, routingKey);
     
         // Set different headers based on needConfirmation
@@ -52,7 +52,7 @@ export async function sendToOtherMicroservice(payload, action, destination, comm
           payload
          };
     
-        console.log('Publishing message to RabbitMQ:', messageToSend);
+        // console.log('Publishing message to RabbitMQ:', messageToSend);
     
         try {
           
@@ -61,7 +61,7 @@ export async function sendToOtherMicroservice(payload, action, destination, comm
               persistent: true,
             });
           
-          console.log('Message sent to RabbitMQ:', messageToSend);
+          // console.log('Message sent to RabbitMQ:', messageToSend);
   
         } catch (error) {
           console.log('Error sending message to RabbitMQ:', error);

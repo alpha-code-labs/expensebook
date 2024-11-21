@@ -3,6 +3,7 @@ import { employeeSchema } from "../controllersRoleBased/roleBasedController.js";
 import dashboard from "../models/dashboardSchema.js";
 import { sendToOtherMicroservice } from "../rabbitmq/publisher.js";
 import REIMBURSEMENT from "../models/reimbursementSchema.js";
+import { createOrUpdateNotification, determineTravelStatus } from "../schedulars/notifications.js";
 
 const status = {
   PENDING_APPROVAL:'pending approval'
@@ -242,14 +243,12 @@ async function approveAll(req,res){
 // approve travel Request with/without cash advance
 const approveAllTravelWithCash = async (tenantId, empId, travelReports) => {
   try {
-    console.log("approveAllTravelWithCash",tenantId, empId, )
     const allTravelRequests = []
     const allTravelRequestsWithCash=[]
 
     const approvedDocs = await Promise.all(travelReports.map(async (travelReport) => {
-      const { travelRequestSchema={} } = travelReport;
-      console.log("travelRequestSchema - 1", travelRequestSchema)
-     const {travelRequestStatus='',isCashAdvanceTaken=false, approvers} = travelRequestSchema
+      const {travelStartDate, travelRequestSchema={} } = travelReport;
+     const {tripName,travelRequestId, travelRequestStatus='',isCashAdvanceTaken=false, approvers} = travelRequestSchema
      const isApproval = travelRequestStatus == 'pending approval'
     if(isCashAdvanceTaken && isApproval){
       const { travelRequestData } = travelReport?.cashAdvanceSchema;
@@ -315,7 +314,7 @@ const approveAllTravelWithCash = async (tenantId, empId, travelReports) => {
       console.log("travelRequestSchema - 2", itinerary, approvers)
 
       if (!itinerary || typeof itinerary !== 'object' || Object.keys(itinerary)?.length === 0) {
-        throw new Error('Travel Request doesn\'t have anything in the itinerary to approve');
+        throw new Error("Travel Request doesn't have anything in the itinerary to approve");
       }
 
       Object.values(itinerary).flatMap(Object.values).forEach(booking => {
@@ -347,9 +346,24 @@ const approveAllTravelWithCash = async (tenantId, empId, travelReports) => {
 
     }
     await travelReport.save();
+
+    console.group("approved notification")
+
+    const today = new Date();
+console.groupCollapsed("approved cash advance")
+    const { status, messageText } = await determineTravelStatus(travelStartDate, today,tripName,travelStartDate);
+    const employeeType = 'bookingAdmin'
+    console.log("status, message", status, messageText)
+    if (status === 'urgent' || status === 'action') {
+    await createOrUpdateNotification({
+          tenantId, 
+          messageText, 
+          status, 
+          employeeType
+      });
+    }
     }));
 
-    console.log("allTravelRequests", allTravelRequests)
     const payloadToTravel = allTravelRequests.map(doc => ({
      tenantId:doc.tenantId,
      travelRequestId: doc.travelRequestId ?doc.travelRequestId.toString() : null,
@@ -379,18 +393,12 @@ const approveAllTravelWithCash = async (tenantId, empId, travelReports) => {
 
 
     console.log("total approved",approvedDocs.length)
-
-    console.log("payloadToTravel", payloadToTravel, "payloadToCash", payloadToCash)
-
+    console.groupEnd("approval successful")
     if(allTravelRequests?.length > 0){
-      console.log("allTravelRequests", payloadToTravel)
       sendToOtherMicroservice(payloadToTravel,  'approve-reject-tr', 'travel', 'approve travelRequests', 'dashboard', 'online')
       sendToOtherMicroservice(payloadToTravel,  'approve-reject-tr', 'approval', 'approve travelRequests', 'dashboard', 'online')
       sendToOtherMicroservice(payloadToTravel,  'approve-reject-tr', 'reporting', 'approve travelRequests', 'dashboard', 'online')
-
-
     } else if (allTravelRequestsWithCash?.length > 0){
-      console.log("payloadToCash", payloadToCash)
       sendToOtherMicroservice(payloadToCash,  'approve-reject-ca', 'cash', 'approve travelRequests with cash','dashboard','online')
       sendToOtherMicroservice(payloadToCash,  'approve-reject-ca', 'approval', 'approve travelRequests with cash','dashboard','online')
       sendToOtherMicroservice(payloadToCash,  'approve-reject-ca', 'reporting', 'approve travelRequests with cash','dashboard','online')

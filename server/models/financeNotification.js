@@ -10,6 +10,7 @@ const messageStatusEnums = [
     'mandatory'
 ];
 
+
 const MessageSchema = new mongoose.Schema({
     messageId: {
         type: mongoose.Schema.Types.ObjectId,
