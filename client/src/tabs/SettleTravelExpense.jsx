@@ -1,9 +1,10 @@
 import React from 'react'
-import { info_icon, receipt } from '../assets/icon';
+import { close_icon, file_icon, info_icon, receipt } from '../assets/icon';
 import { CardLayout, SettleNowBtn, TripName } from '../common/TinyComponent';
 import { formatAmount } from '../utilis/handyFunctions';
+import FileUpload from '../common/FileUpload';
 
-const SettleTravelExpense = ({trip, handleActionConfirm}) => {
+const SettleTravelExpense = ({fileId, setFileId, trip, handleActionConfirm, handleRemoveFile, fileSelected, setFileSelected, selectedFile, setSelectedFile}) => {
 
 function financeMsg(amt, cashAdvance, currency){
   const amt1 = formatAmount(amt)
@@ -66,7 +67,6 @@ function financeMsg(amt, cashAdvance, currency){
                      </div>
                      </div>
                     } */}
-                    
                     <div className='mt-2 space-y-2'>
                       {/* {filteredTripExpenses?.map((trExpense, index) => ( */}
                        {trip?.travelExpenseData.map((expense,index)=>(
@@ -88,45 +88,34 @@ function financeMsg(amt, cashAdvance, currency){
               {`${expense?.defaultCurrency?.shortName} ${formatAmount(expense?.expenseAmountStatus?.totalAlreadyBookedExpenseAmount - expense?.expenseAmountStatus?.totalExpenseAmount)}`}
             </div>
         
-          </div>
+                      </div>
                         <p className='header-text'> {financeMsg(expense?.expenseAmountStatus?.totalRemainingCash,expense?.expenseAmountStatus?.totalCashAmount,expense.defaultCurrency.shortName)}</p>
                       </div>
                       </div>
                             
-                            <div className='flex items-center justify-center'>
-                      {/* <img src={info_icon} className='w-4 h-4'/> */}
-                        {/* <div className='text-sm font-cabin px-2 py-1 cursor-pointer' onClick={()=>{if(!disableButton(trip?.travelRequestStatus)){handleVisible(trip?.travelRequestId,  'travel-approval-view' )}}}>
-                          <p className='text-indigo-600 font-semibold'>View Details</p>
-                        </div> */}
+                            <div className='flex items-center justify-center gap-2'>
+                            {(fileSelected && fileId === expense?.expenseHeaderNumber)  ? <> <div className='flex justify-center cursor-default items-center px-2 py-1 bg-slate-100 rounded-md text-xs'><img src={file_icon} className='w-4 h-4' /><p className='w-20 truncate'>{selectedFile?.name}</p></div><img src={close_icon} className='w-4 h-4' onClick={handleRemoveFile}/></> :
+                              <FileUpload 
+                              setFileId={setFileId}
+                              id={expense?.expenseHeaderNumber}
+                              isFileSelected={fileSelected} 
+                              setIsFileSelected={setFileSelected} 
+                              setSelectedFile={setSelectedFile} 
+                              selectedFile={selectedFile} 
+                            />}
+                     
                          <SettleNowBtn
                           onClick={()=>handleActionConfirm('settleTravelExpense',{ travelRequestId : trip?.travelRequestId, expenseHeaderId:expense?.expenseHeaderId})}
                           text={"Settle Now"}/>
                         </div>
-                                    {/* <div className={`text-center rounded-sm ${getStatusClass(trip?.expenseHeaderStatus ?? "-")}`}>
-                                      <p className='px-1 py-1 text-xs text-center capitalize font-cabin'>{trip?.expenseHeaderStatus ?? "-"}</p>
-                                    </div> */}
-                                    {/* <div onClick={()=>{if(!disableButton(trip?.travelRequestStatus)){handleTravelExpense(trip?.tripId, filteredTripExpenses?.expenseHeaderId,  'trip-ex-modify' ,)}}} className={`w-7 h-7 bg-indigo-100 rounded-full border border-white flex items-center justify-center ${disableButton(trip?.travelRequestStatus) ? ' cursor-not-allowed opacity-50' : ' cursor-pointer'}`}>
-                                      <img src={modify} className='w-4 h-4' alt="modify_icon" />
-                                    </div> */}
+                                   
                                   </div>
                                   
-                                  {/* <div className='overflow-x-hidden overflow-y-auto max-h-[236px] py-1 pt-2 h-auto px-2 space-y-2'>
-                                    {trip?.expenseLines?.map((line, index) => (
-                                      <div key={`${index}-line`} className='flex  text-neutral-700 flex-row justify-between items-center font-cabin text-sm'>
-                                        <div className='bg-indigo-50 border-2 shadow-md shadow-slate-900/50 translate-x-4 border-white p-2 rounded-full'>
-                                          <img src={categoryIcons?.[line?.["Category Name"]]} className='w-4 h-4' />
-                                        </div>
-                                        <div className='flex border-slate-400 border flex-row justify-between text-neutral-700 flex-1 items-center gap-2 py-4 px-4 pl-6 rounded-md bg-slate-100'>
-                                          <div>{line?.["Category Name"]}</div>
-                                          <div>{line?.["Currency"]?.shortName} {formatAmount(line?.["Total Amount"])}</div>
-                                        </div>
-                                      </div>
-                                    ))}
-                                  </div> */}
+                               
                                 </div>
 
                        ))} 
-                      {/* // ))} */}
+                     
                     </div>
                   </div>
                   </CardLayout>

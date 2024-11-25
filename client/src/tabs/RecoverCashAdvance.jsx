@@ -1,8 +1,9 @@
 import React from 'react'
 import { CardLayout, SettleNowBtn, TripName, Violation } from '../common/TinyComponent'
 import { formatAmount } from '../utilis/handyFunctions'
+import FileUpload from '../common/FileUpload'
 
-const RecoverCashAdvance = ({trip,handleActionConfirm}) => {
+const RecoverCashAdvance = ({fileId, setFileId,trip,handleActionConfirm,handleRemoveFile, fileSelected, setFileSelected, selectedFile, setSelectedFile}) => {
   return (
     <CardLayout index={trip?.tripId}>
     <div  className='w-full py-1 '>
@@ -19,31 +20,14 @@ const RecoverCashAdvance = ({trip,handleActionConfirm}) => {
     {/* / */}
     <div className='flex items-center justify-center'>
 
-      {/* <div className={`${trip?.violationsCounter?.total === 0 ? 'hidden':'block'}  flex flex-row gap-2 justify-center items-center text-yellow-200 font-cabin  text-sm`}>
-        <img src={violation_icon} className='w-4 h-4'/>
-        <p>
-{trip?.violationsCounter?.total} 
-{trip?.violationsCounter?.total === 1 ? ' violation' : ' violations'}
-</p>
-
-    </div> */}
-    {/* <Violation violationCount={trip?.violationsCounter?.total}/> */}
-     
-      {/* <div className='text-sm font-cabin px-2 py-1 cursor-pointer' onClick={()=>{if(!disableButton(trip?.travelRequestStatus)){handleVisible(trip?.travelRequestId,  'travel-approval-view' )}}}>
-        <p className='text-indigo-600 font-semibold'>View Details</p>
-      </div> */}
+  
       </div>
     {/* / */}
       </div>
      <div className='flex flex-row justify-between'>
       
      <TripName tripName={trip?.tripName} />
-     {/* <div className='flex items-center justify-center'>
-     <img src={info_icon} className='w-4 h-4'/>
-      <div className='text-sm font-cabin px-2 py-1 cursor-pointer' onClick={()=>{if(!disableButton(trip?.travelRequestStatus)){handleVisible(trip?.travelRequestId,  'travel-approval-view' )}}}>
-        <p className='text-indigo-600 font-semibold'>View Details</p>
-      </div>
-      </div> */}
+    
      </div>
       </div>
       
@@ -63,12 +47,15 @@ const RecoverCashAdvance = ({trip,handleActionConfirm}) => {
 
 </div>
             <div className='flex justify-center items-center gap-2'>
-            {/* <div className={`text-center rounded-sm ${getStatusClass(advance?.cashAdvanceStatus ?? "-")}`}>
-               <p className='px-1 py-1 text-xs text-center capitalize font-cabin'>{advance?.cashAdvanceStatus ?? "-"}</p>
-            </div> */}
-
-    {/* <Violation violationCount={advance?.cashViolationsCounter}/> */}
-    {/* <input  type='checkbox' className='w-4 h-4 accent-indigo-600' checked={true}/>  */}
+            {(fileSelected && fileId === trip?.travelRequestId)  ?<> <div className='flex justify-center cursor-default items-center px-2 py-1 bg-slate-100 rounded-md text-xs'><img src={file_icon} className='w-4 h-4' /><p className='w-20 truncate'>{selectedFile?.name}</p></div><img src={close_icon} className='w-4 h-4' onClick={handleRemoveFile}/></> :
+              <FileUpload
+              id={trip?.travelRequestId} 
+              setFileId={setFileId} 
+              isFileSelected={fileSelected} 
+              setIsFileSelected={setFileSelected} 
+              setSelectedFile={setSelectedFile} 
+              selectedFile={selectedFile} 
+            />}
     <SettleNowBtn
     onClick={()=>handleActionConfirm('recoverCashAdvance',{ travelRequestId : trip?.travelRequestId, cashAdvanceId:advance?.cashAdvanceId})}
     text={"Recover Now"}/>
