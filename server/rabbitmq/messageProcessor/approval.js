@@ -94,7 +94,7 @@ export const travelWithCashApproval = async(payload) =>{
 export const expenseReportApproval = async (payload) => {
     const { tenantId, expenseHeaderId, expenseHeaderStatus, expenseRejectionReason, approvers } = payload;
 
-    console.log("Payload for travelExpenseData - expense report approval", payload);
+    console.log("Payload for travelExpenseData - expense report approval -approval", payload);
 
     try {
         const updated = await dashboard.findOneAndUpdate(

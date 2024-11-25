@@ -8,15 +8,75 @@ import { handleErrors } from './errorHandler/errorHandler.js';
 import { startConsumer } from './rabbitmq/consumer.js';
 import HRCompany from './models/hrCompanySchema.js';
 import cookieParser from 'cookie-parser';
+import { closeRabbitMQConnection, getRabbitMQConnection } from './rabbitmq/connection.js';
+import { closeMongoDBConnection, connectToMongoDB } from './db/db.js';
 
 dotenv.config();
 const app = express();
 
+const port = process.env.PORT || 8098;
+
+let server;
+let shutdownInProgress = false;
+
+const shutdown = async (reason) => {
+  try {
+      if (shutdownInProgress) {
+          console.log('Shutdown already in progress...');
+          return;
+      }
+
+      shutdownInProgress = true;
+      console.log(`Shutdown initiated: ${reason}`);
+
+      const cleanupTasks = [];
+
+      if (typeof closeRabbitMQConnection === 'function') {
+          cleanupTasks.push(
+              closeRabbitMQConnection()
+                  .then(() => console.log('RabbitMQ connection closed'))
+                  .catch(err => console.error('RabbitMQ cleanup error:', err))
+          );
+      }
+
+      cleanupTasks.push(
+          closeMongoDBConnection()
+              .then(() => console.log('MongoDB connection closed'))
+              .catch(err => console.error('MongoDB cleanup error:', err))
+      );
+
+      if (server) {
+          cleanupTasks.push(
+              new Promise((resolve) => {
+                  server.close(() => {
+                      console.log('Server connections closed');
+                      resolve();
+                  });
+              })
+          );
+      }
+
+      const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Shutdown timeout')), 10000)
+      );
+
+      await Promise.race([
+          Promise.allSettled(cleanupTasks),
+          timeoutPromise
+      ]);
+
+      console.log('Cleanup completed');
+      process.exit(0);
+  } catch (error) {
+      console.error('Error during shutdown:', error);
+      process.exit(1);
+  }
+};
+
 const environment = process.env.NODE_ENV || 'development';
 console.log(`Running in ${environment} environment`);
 const allowedOrigins = JSON.parse(process.env.ALLOWED_ORIGINS);
-const rabbitMQUrl = process.env.rabbitMQUrl;
-const mongoURI = process.env.MONGODB_URI;
+
 
 // const corsOptions = {
 //   origin: function (origin, callback) {
@@ -46,29 +106,62 @@ app.use((req,res,next) =>{
 app.use(handleErrors);
 app.get('/test', (req,res) => { return res.status(200).json({message:'Reporting microservice is live'})})
 
-const connectToMongoDB = async () => {
-  try {
-    await mongoose.connect(mongoURI);
-    console.log('Connected to MongoDB');
-  } catch (error) {
-    console.error('Error connecting to MongoDB:', error);
-  }
-};
+// const connectToMongoDB = async () => {
+//   try {
+//     await mongoose.connect(mongoURI);
+//     console.log('Connected to MongoDB');
+//   } catch (error) {
+//     console.error('Error connecting to MongoDB:', error);
+//   }
+// };
 
-connectToMongoDB();
+// connectToMongoDB();
 
 app.use((err, req, res, next) => {
   handleErrors(err, req, res, next);
 });
 
-const port = process.env.PORT || 8098;
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
+
+
+
+const initializeServer = async () => {
+  try {
+      await Promise.all([
+        connectToMongoDB(),
+        getRabbitMQConnection(),
+        startConsumer('reporting')
+      ])
+
+      server = app.listen(port, () => {
+          console.log(`Server is running on port ${port}`);
+      });
+
+      server.on('error', (error) => {
+          console.error('Server error:', error);
+          shutdown('Server error').catch(console.error);
+      });
+
+  } catch (error) {
+      console.error('Initialization error:', error);
+      shutdown('Initialization failure').catch(console.error);
+  }
+};
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  shutdown('Unhandled Rejection').catch(console.error);
 });
 
-// start consuming messages..
-startConsumer('reporting');
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error);
+  shutdown('Uncaught Exception').catch(console.error);
+});
 
+process.on('SIGTERM', () => shutdown('SIGTERM').catch(console.error));
+process.on('SIGINT', () => shutdown('SIGINT').catch(console.error));
+
+// Start the server
+initializeServer().catch(console.error);
 
 
 

@@ -1,37 +1,81 @@
 import reporting from "../../models/reportingSchema.js";
 
 
-export const fullUpdateExpense = async (payload) => {
-  const {getExpenseReport} = payload
-  const { 
-    tenantId,
-    tripId,
-    travelRequestData,
-  } = getExpenseReport;
+// export const fullUpdateExpense = async (payload) => {
+//   const {getExpenseReport} = payload
+//   const { 
+//     tenantId,
+//     tripId,
+//     travelRequestData,
+//   } = getExpenseReport;
   
-    const {travelRequestId} = travelRequestData
-    console.log("payload for travelExpenseData", payload )
+//     const {travelRequestId} = travelRequestData
+//     console.log("payload for travelExpenseData: full update expense", payload )
 
 
-    try {
-    const updated = await reporting.updateOne(
-      { tenantId, 'travelRequestData.travelRequestId':travelRequestId, tripId },
-      {
-      $set:{...getExpenseReport}
-      },
-      { upsert: true, new: true }
-    );
-    console.log('Saved to dashboard: TravelExpenseData updated successfully', updated);
-    return { success: true, error: null}
-  } catch (error) {
-    console.error('Failed to update dashboard: TravelExpenseData updation failed', error);
-    return { success: false, error: error}
-  }
-}
+//     try {
+//     const updated = await reporting.updateOne(
+//       { tenantId, travelRequestId, tripId },
+//       {
+//       $set:{...getExpenseReport}
+//       },
+//       { upsert: true, new: true }
+//     );
+//     console.log('Saved to dashboard: TravelExpenseData updated successfully', updated);
+//     return { success: true, error: null}
+//   } catch (error) {
+//     console.error('Failed to update dashboard: TravelExpenseData updation failed', error);
+//     return { success: false, error: error}
+//   }
+// }
 
 
 
 //travel expense header 'paid'
+
+
+export const fullUpdateExpense = async (payload) => {
+  const { getExpenseReport } = payload;
+  const { tenantId, tripId, travelRequestData } = getExpenseReport;
+  const { travelRequestId } = travelRequestData;
+  console.log("payload for travelExpenseData: full update expense", payload);
+
+  try {
+    // Check if the document exists
+    const existingDocument = await reporting.findOne({
+      tenantId,
+      $or: [
+        { 'travelRequestData.travelRequestId': travelRequestId },
+        { tripId }
+      ]
+    });
+    
+    if (existingDocument) {
+      // Update the existing document
+      const updated = await reporting.updateOne(
+        { tenantId, 'travelRequestData.travelRequestId': travelRequestId, tripId },
+        { $set: { ...getExpenseReport } },
+        { new: true }
+      );
+      console.log('Updated document successfully', updated);
+    } else {
+      // Insert a new document
+      const newDocument = await reporting.insertOne(getExpenseReport);
+      console.log('Inserted new document successfully', newDocument);
+    }
+
+    return { success: true, error: null };
+  } catch (error) {
+    console.error('Failed to update dashboard: TravelExpenseData updation failed', error);
+    return { success: false, error: error };
+  }
+};
+
+
+
+
+
+
 export const settleExpenseReport= async (payload) => {
   try {
       const {  tenantId,travelRequestId, expenseHeaderId, settlementBy, expenseHeaderStatus, 

@@ -97,7 +97,7 @@ const updateTripStatus = async (payload) => {
 };
 
 // Process transit trip message (received from - trip microservice, received -All transit trips (batch job))
-//Trip microservice --All trip updates --- asynchronous rabbitmq route --- 
+//Trip microservice --All trip updates --- asynchronous rabbit mq route --- 
 const processTransitTrip = async (message) => {
   // const failedUpdates = [];
   // const successMessage = {
@@ -179,7 +179,7 @@ const processTransitTrip = async (message) => {
 // }
 }
 
-// Trip microservice ---All trip updates -- synchronous rabbitmq route
+// Trip microservice ---All trip updates -- synchronous rabbit mq route
 const updateTripToreportingSync = async (message,correlationId) => {
   const failedUpdates = [];
   const successMessage = {
@@ -263,130 +263,247 @@ if (failedUpdates.length > 0) {
 }
 
 
-const updateTripToCompleteOrClosed = async (payload) => {
-  const {
-    listOfCompletedStandaloneTravelRequests = [],
-    listOfClosedStandAloneTravelRequests = [],
-    listOfCompletedTravelRequests = [],
-    listOfClosedTravelRequests = []
-  } = payload;
+// const updateTripToCompleteOrClosed = async (payload) => {
+//   try {
+//     const requestGroups = [
+//       {
+//         requests: [
+//           ...(payload.listOfCompletedStandaloneTravelRequests || []),
+//           ...(payload.listOfCompletedTravelRequests || [])
+//         ],
+//         status: 'completed'
+//       },
+//       {
+//         requests: [
+//           ...(payload.listOfClosedStandAloneTravelRequests || []),
+//           ...(payload.listOfClosedTravelRequests || [])
+//         ],
+//         status: 'closed'
+//       }
+//     ];
 
-  // Consolidated configuration for updates
-  const updateConfigs = [
-    {
-      lists: [listOfCompletedStandaloneTravelRequests, listOfCompletedTravelRequests],
-      updateData: {
-        'travelRequestData.travelRequestStatus': 'completed',
-        'tripStatus': 'completed'
-      }
-    },
-    {
-      lists: [listOfClosedStandAloneTravelRequests, listOfClosedTravelRequests],
-      updateData: {
-        'travelRequestData.travelRequestStatus': 'closed',
-        'tripStatus': 'closed'
-      }
-    }
-  ];
+//     const updatePromises = requestGroups
+//       .filter(group => group.requests.length > 0)
+//       .map(group => updateRequests(
+//         group.requests,
+//         {
+//           'travelRequestData.travelRequestStatus': group.status,
+//           'tripStatus': group.status
+//         }
+//       ));
 
-  // Create an array of update promises
-  const promises = updateConfigs.flatMap(({ lists, updateData }) =>
-    lists.filter(list => list.length > 0)
-        .map(list => updateRequests(list, updateData))
-  );
-
-  // Early return if there are no requests to update
-  if (promises.length === 0) {
-    return { success: true, message: 'No requests to update.' };
-  }
-
-  try {
-    const results = await Promise.all(promises);
-
-    // Collect errors from the results
-    const errors = results
-      .map((result, index) => result.success ? null : `Request ${index + 1}: ${result.error || 'Unknown error'}`)
-      .filter(Boolean);
-
-    if (errors.length > 0) {
-      throw new Error(`Update failed for some requests: ${errors.join('; ')}`);
-    }
-
-    return { success: true, error: null };
+//     const results = await Promise.all(updatePromises);
     
+//     const hasErrors = results.some(result => !result.success);
+//     if (hasErrors) {
+//       throw new Error(results.find(r => !r.success)?.error || 'Update failed');
+//     }
+
+//     return { success: true, error: null };
+//   } catch (error) {
+//     console.error('Error occurred during updates:', error);
+//     return { success: false, error: error.message || 'Unknown error' };
+//   }
+// };
+
+// async function updateRequests(requestIds, updateFields) {
+//   try {
+//     console.log(`Processing requests:`, typeof requestIds, requestIds);
+
+//     // Ensure reporting.find() is correctly awaited
+//     const currentDocs = reporting.find({
+//       travelRequestId: { $in: requestIds }
+//     }).lean();
+
+//     if (!currentDocs.length) {
+//       return { 
+//         success: false, 
+//         error: 'No requests found with the provided IDs',
+//       };
+//     }
+
+//     const getStatusFields = (doc) => ({
+//       currentTripRequestStatus: doc.travelRequestData?.travelRequestStatus,
+//       targetTripRequestStatus: updateFields['travelRequestData.travelRequestStatus'],
+//       currentTripStatus: doc?.tripStatus,
+//       targetTripStatus: updateFields['tripStatus'],
+//     });
+
+//     const needsUpdate = requestIds.filter(requestId => {
+//       const doc = currentDocs.find(d => d.travelRequestId === requestId);
+//       if (!doc) return false;
+
+//       const statusFields = getStatusFields(doc);
+
+//       const needsStatusUpdate = 
+//         statusFields.currentTripRequestStatus !== statusFields.targetTripRequestStatus ||
+//         statusFields.currentTripStatus !== statusFields.targetTripStatus;
+
+//       if (needsStatusUpdate) {
+//         console.log(`Status update needed for ${requestId}:`, {
+//           current: {
+//             tripRequestStatus: statusFields.currentTripRequestStatus,
+//             tripStatus: statusFields.currentTripStatus,
+//           },
+//           target: {
+//             tripRequestStatus: statusFields.targetTripRequestStatus,
+//             tripStatus: statusFields.targetTripStatus,
+//           }
+//         });
+//       }
+
+//       return needsStatusUpdate;
+//     });
+
+//     if (needsUpdate.length === 0) {
+//       console.log(`All documents already in desired state`);
+//       return { 
+//         success: true, 
+//         error: null,
+//         message: `All documents already in desired state`,
+//       };
+//     }
+
+//     const updateResult = await reporting.updateMany(
+//       { travelRequestId: { $in: needsUpdate } },
+//       { $set: updateFields }
+//     );
+
+//     console.log(`Update result:`, updateResult);
+
+//     if (updateResult.modifiedCount !== needsUpdate.length) {
+//       console.log(`Failed to update some requests:`, updateResult);
+//       return { 
+//         success: false, 
+//         error: `Failed to update requests to desired status`,
+//         attempted: needsUpdate.length,
+//         modified: updateResult.modifiedCount,
+//       };
+//     } else {
+//       console.log(`Successfully updated requests`);
+//       return { 
+//         success: true, 
+//         error: null,
+//         updated: needsUpdate.length,
+//         skipped: requestIds.length - needsUpdate.length,
+//       };
+//     }
+//   } catch (error) {
+//     console.error(`Error updating requests:`, error);
+//     return { 
+//       success: false, 
+//       error: error.message || 'Unknown error',
+//     };
+//   }
+// }
+
+
+
+// add a leg
+
+
+/**
+ * Main function to update trip statuses to 'completed' or 'closed'
+ * @param {Object} payload - Payload containing list of request IDs
+ * @returns {Object} Result of the update operation
+ */
+const updateTripToCompleteOrClosed = async (payload) => {
+  try {
+    // Define request groups and statuses
+    const requestGroups = [
+      {
+        requests: [
+          ...(payload.listOfCompletedStandaloneTravelRequests || []),
+          ...(payload.listOfCompletedTravelRequests || [])
+        ],
+        status: 'completed'
+      },
+      {
+        requests: [
+          ...(payload.listOfClosedStandAloneTravelRequests || []),
+          ...(payload.listOfClosedTravelRequests || [])
+        ],
+        status: 'closed'
+      }
+    ];
+
+    // Process updates for each group
+    const updatePromises = requestGroups
+      .filter(group => group.requests.length > 0)
+      .map(group => updateRequests(group.requests, {
+        'travelRequestData.travelRequestStatus': group.status,
+        tripStatus: group.status,
+      }));
+
+    const results = await Promise.all(updatePromises);
+
+    // Check for errors in results
+    const hasErrors = results.some(result => !result.success);
+    if (hasErrors) {
+      const failedResult = results.find(r => !r.success);
+      throw new Error(failedResult?.error || 'One or more updates failed.');
+    }
+
+    return { success: true, message: 'Trips updated successfully.', results };
   } catch (error) {
-    console.error('Error during updates:', error);
-    return { success: false, error: error.message || 'An unknown error occurred during the update process.' };
+    console.error('Error occurred during trip updates:', error);
+    return { success: false, error: error.message || 'Unknown error' };
   }
 };
 
-const updateRequests = async (requestIds, updateFields) => {
+/**
+ * Function to update specific requests in the reporting collection
+ * @param {Array} requestIds - List of request IDs to update
+ * @param {Object} updateFields - Fields to update in the documents
+ * @returns {Object} Update operation result
+ */
+async function updateRequests(requestIds, updateFields) {
   try {
-    console.log(`Processing requests:`, requestIds);
+    console.log('Processing requests:', requestIds);
 
-    const currentDocs = await reporting.find({
-      travelRequestId: { $in: requestIds }
-    }).toArray();
-
-    if (currentDocs.length === 0) {
-      return {
-        success: false,
-        error: 'No requests found with the provided IDs',
-      };
+    // Fetch current documents
+    const currentDocs = await reporting.find({ travelRequestId: { $in: requestIds } }).lean();
+    if (!currentDocs.length) {
+      return { success: false, error: 'No matching documents found for the provided IDs.' };
     }
 
-    // Filter out requests that do not need updating
-    const needsUpdate = requestIds.filter(requestId => {
-      const doc = currentDocs.find(d => d.travelRequestId === requestId);
-      if (!doc) return false;
-
-      const { travelRequestStatus: currentMainStatus } = doc.travelRequestData || {};
-      const currentTripStatus = doc.tripStatus;
-
+    // Identify documents needing updates
+    const needsUpdate = currentDocs.filter(doc => {
       return (
-        currentMainStatus !== updateFields['travelRequestData.travelRequestStatus'] ||
-        currentTripStatus !== updateFields.tripStatus
+        doc.travelRequestData?.travelRequestStatus !== updateFields['travelRequestData.travelRequestStatus'] ||
+        doc.tripStatus !== updateFields.tripStatus
       );
     });
 
-    if (needsUpdate.length === 0) {
-      console.log('All documents are already in the desired state.');
-      return {
-        success: true,
-        message: 'All documents are already in the desired state.',
-      };
+    if (!needsUpdate.length) {
+      return { success: true, message: 'All documents are already in the desired state.' };
     }
 
-    const updateResult = await Expense.updateMany(
-      { travelRequestId: { $in: needsUpdate } },
+    // Perform the update
+    const updateResult = await reporting.updateMany(
+      { travelRequestId: { $in: needsUpdate.map(doc => doc.travelRequestId) } },
       { $set: updateFields }
     );
-
-    console.log('Update result:', updateResult);
 
     if (updateResult.modifiedCount !== needsUpdate.length) {
       return {
         success: false,
-        error: 'Failed to update some requests to the desired status',
-        attempted: needsUpdate.length,
+        error: 'Some documents failed to update.',
         modified: updateResult.modifiedCount,
+        attempted: needsUpdate.length,
       };
     }
 
     return {
       success: true,
-      updated: needsUpdate.length,
-      skipped: requestIds.length - needsUpdate.length,
+      message: 'Documents updated successfully.',
+      updatedCount: updateResult.modifiedCount,
     };
   } catch (error) {
     console.error('Error updating requests:', error);
-    return {
-      success: false,
-      error: error.message || 'Unknown error',
-    };
+    return { success: false, error: error.message || 'Unknown error during update.' };
   }
-};
-
+}
 
 async function addALeg(payload) {
   try {
