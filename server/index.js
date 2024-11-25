@@ -8,7 +8,7 @@ import cashAdvance from './routes/cashAdvance.js';
 import { errorHandler } from './errorHandler/errorHandler.js';
 import startConsumer from './rabbitmq/consumer.js'
 import { closeMongoDBConnection, connectToMongoDB } from './db/db.js';
-import { closeRabbitMQConnection } from './rabbitmq/connection.js';
+import { closeRabbitMQConnection, getRabbitMQConnection } from './rabbitmq/connection.js';
 
 const environment = process.env.NODE_ENV == 'prod' ? '.env.prod' :'.env';
 dotenv.config({path:environment});
@@ -99,6 +99,7 @@ const initializeServer = async () => {
   try {
       await Promise.all([
         connectToMongoDB(),
+        getRabbitMQConnection(),
         startConsumer('approval')
       ])
 

@@ -279,7 +279,7 @@ export const viewTravelExpenseDetails = async (req, res) => {
       'tripSchema.travelExpenseData':{
         $elemMatch:{
           'expenseHeaderId':expenseHeaderId,
-          'expenseHeaderStatus': 'pending approval',
+          // 'expenseHeaderStatus': 'pending approval',
           'approvers':{
             $elemMatch:{
               'empId':empId,
