@@ -89,7 +89,7 @@ const TripName = ({tripName})=>(
         </div>
         <div className="font-cabin">
           <p className="text-neutral-600 text-xs">{item.label}</p>
-          <p className="text-purple-500 text-sm ">{item.value}</p>
+          <p className="text-neutral-900 text-sm ">{item.value}</p>
         </div>
       </div>
     ))}
@@ -105,7 +105,7 @@ const TripName = ({tripName})=>(
       ].map((item, index) => (
         <div key={index} className="flex-1 px-2 font-cabin">
           <p className="text-neutral-600 text-xs line-clamp-1">{item.label}</p>
-          <p className="text-purple-500 text-sm">{item.value}</p>
+          <p className="text-neutral-900 text-sm">{item.value}</p>
         </div>
       ))}
     </div>
@@ -140,7 +140,7 @@ const TripName = ({tripName})=>(
         </div>
         <div className="font-cabin">
           <p className="text-neutral-600 text-xs">{item.label}</p>
-          <p className="text-purple-500 text-sm ">{item.value}</p>
+          <p className="text-neutral-900 text-sm ">{item.value}</p>
         </div>
       </div>
     ))}
@@ -156,7 +156,7 @@ const TripName = ({tripName})=>(
       ].map((item, index) => (
         <div key={index} className="flex-1 px-2 font-cabin">
           <p className="text-neutral-600 text-xs line-clamp-1">{item.label}</p>
-          <p className="text-purple-500 text-sm">{item.value}</p>
+          <p className="text-neutral-900 text-sm">{item.value}</p>
         </div>
       ))}
     </div> */}
