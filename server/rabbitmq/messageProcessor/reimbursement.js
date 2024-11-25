@@ -7,13 +7,14 @@ const updateReimbursement = async (payload) => {
         const { tenantId,expenseHeaderId, createdBy } = reimbursementReport;
         const { empId } = createdBy;
 
+        console.log("update reimbursement", JSON.stringify(reimbursementReport,'',2))
         const reimbursement = await REIMBURSEMENT.findOneAndReplace(
             { tenantId, 'createdBy.empId': empId ,expenseHeaderId},
             { ...reimbursementReport},
             { upsert: true}
         );
 
-        console.log("Reimbursement update result:", reimbursement);
+        console.log("Reimbursement update result:", JSON.stringify(reimbursement,'',2));
 
         if (result.lastErrorObject.updatedExisting) {
     console.log("Success: Reimbursement updated successfully."); 
@@ -39,7 +40,7 @@ const deleteReimbursement = async (payload) => {
 
         console.log("deleteReimbursement....", payload);
     const deleteReimbursementReport = await REIMBURSEMENT.findOneAndDelete({ 
-        tenantId, expenseHeaderId })
+        expenseHeaderId })
 
         if(!deleteReimbursementReport){
             return {success: false, error: "Failed to delete reimbursement expense in dashboard."}

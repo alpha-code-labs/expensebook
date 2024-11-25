@@ -206,7 +206,10 @@ async function approveAll(req,res){
 
      console.log("travelReports, cashReports", travelReports)
      if(!travelReports.length && !cashReports.length){
-      return res.status(404).json({error: 'Documents Not found for approval'})
+      return res.status(404).json({
+        success: false,
+        message: 'No documents found for approval',
+      });
      } 
 
     const approvalDocs = []
@@ -234,9 +237,9 @@ async function approveAll(req,res){
       }catch(error){
      console.error('error', error.message)
      if(error.isJoi){
-       return res.status(400).json({ error: error.details[0].message})
+       return res.status(400).json({ success:false, error: error.details[0].message , message:"Missing fields"})
      }
-     return res.status(500).json({ success: false, error: error.message})
+     return res.status(500).json({ success: false, error: error.message , message:"Not Found, incorrect data"})
     }
 }
 
@@ -485,7 +488,7 @@ async function rejectAll(req,res){
 try{
   const {error : paramsError, value: paramsValue} = approveSchema.validate(req.params)
   if(paramsError){
-    return res.status(400).json({error: paramsError.details[0].message})
+    return res.status(400).json({success:false, error: paramsError.details[0].message})
   }
 
   const { error:bodyError , value: bodyValue} = rejBodySchema.validate(req.body)
@@ -501,7 +504,7 @@ try{
       const [travelReports, cashReports] = await getReportsForApproval(tenantId,empId, travelRequestIds)
 
       if(!travelReports.length && !cashReports.length){
-      return res.status(404).json({error: 'Documents Not found for approval'})
+      return res.status(404).json({success:false, message: 'Documents Not found for approval'})
       } 
 
     const approvalDocs = []
@@ -724,7 +727,7 @@ console.log("payload",payload)
    } 
     catch (error) {
      console.error('An error occurred while updating approval:', error.message);
-     throw new Error({ error: 'Failed to update approval.', error });
+     throw new Error({ error: 'Failed to update approval.', error , message:"error in approval", success:false});
    }
 }
 

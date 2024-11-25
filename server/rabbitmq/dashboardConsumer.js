@@ -12,7 +12,7 @@ export const consumeFromDashboardQueue = async () => {
   try {
      console.log('Connecting to RabbitMQ...');
      const connection = await getRabbitMQConnection();
-     const channel = await connection.createChannel();
+     const channel = await connection.createConfirmChannel();
      console.log('Connected to RabbitMQ.');
      const exchangeName = 'amqp.dashboard';
      const queue = 'sync';
