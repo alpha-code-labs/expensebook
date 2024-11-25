@@ -153,7 +153,7 @@ const settleNonTravelExpenseCount = financeData?.nonTravelExpense?.length || 0;
       case "Settle Travel Expenses":
         return settleTravelExpenseData?.map((expense,index)=>(<SettleTravelExpense trip={expense} key={index} handleActionConfirm={handleActionConfirm} handleRemoveFile={handleRemoveFile} fileSelected={fileSelected} setFileId={setFileId} fileId={fileId} setFileSelected={setFileSelected} selectedFile={selectedFile} setSelectedFile={setSelectedFile}/>));
       case "Settle Non-Travel Expenses":
-        return settleNonTravelExpenseData.map((expense,index)=>(<SettleNonTravelExpense trip={expense} key={index} handleActionConfirm={handleActionConfirm} handleRemoveFile={handleRemoveFile} fileSelected={fileSelected} setFileId={setFileId} fileId={fileId} setFileSelected={setFileSelected} selectedFile={selectedFile} setSelectedFile={setSelectedFile} Upload={FileUploadComponent}/>));
+        return settleNonTravelExpenseData.map((expense,index)=>(<SettleNonTravelExpense trip={expense} key={index} handleActionConfirm={handleActionConfirm} handleRemoveFile={handleRemoveFile} fileSelected={fileSelected} setFileId={setFileId} fileId={fileId} setFileSelected={setFileSelected} selectedFile={selectedFile} setSelectedFile={setSelectedFile} />));
       case "Account Entries":
         return <AccountEntry data={AcEntryData}/>;
       default:
