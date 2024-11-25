@@ -20,6 +20,15 @@ export async function statusUpdateBatchJob(){
         //modify records
         const updatedResults = results.map(async result=>{
             result.travelRequestData.travelRequestStatus = 'pending booking'
+            // //check cash advances and update their staus as well
+            // if(result.cashAdvancesData.length > 0){
+            //     for(let i=0; i<result.cashAdvancesData.length; i++){
+            //         if(result.cashAdvancesData[i].cashAdvanceStatus == "approved"){
+            //             result.cashAdvancesData[i].cashAdvanceStatus = "awaiting pending settlement";
+            //         }
+            //     }
+            // }
+            
             const travelItemsList = ['cabs', 'flights', 'trains', 'buses', 'carRentals', 'hotels']
             travelItemsList.forEach(itineraryItemType=>{
                 result.travelRequestData.itinerary[itineraryItemType].forEach((item,ind)=>{

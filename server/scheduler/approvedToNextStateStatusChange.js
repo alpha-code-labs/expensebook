@@ -14,9 +14,12 @@ export async function batchJob(){
     
         const results = await CashAdvance.find({
             'cashAdvancesData': {
-            $elemMatch: { 'cashAdvanceStatus': 'approved'}
+              $elemMatch: { 'cashAdvanceStatus': 'approved' }
+            },
+            'travelRequestData.travelRequestStatus': { 
+              $in: ['booked', 'pending booking']
             }
-        });
+          });          
 
         const updatedResults = results.map(async result=>{
             const cashAdvanceData = result.cashAdvancesData
@@ -27,7 +30,7 @@ export async function batchJob(){
 
                     if(travelRequestData.travelRequestStatus === 'booked'){
                         cashAdvance.cashAdvanceStatus = 'pending settlement';
-                    }else{
+                    }else {
                         cashAdvance.cashAdvanceStatus = 'awaiting pending settlement';
                     }
                     // if(cashAdvance.approvers.length>0){
