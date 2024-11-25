@@ -24,9 +24,6 @@ const getMultiCurrencyTable = async(tenantId) => {
 }
 
 
-
-
-
 export const getPaidAndCancelledCash = async(tenantId, empId)=>{
     try { 
 
