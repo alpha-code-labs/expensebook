@@ -7,6 +7,7 @@ import { left_arrow_icon } from "../assets/icon";
 import { getCashAdvance_API } from "../utils/api";
 
 export default function () {
+    const DASHBOARD_URL = import.meta.env.DASHBOARD_URL;
 
   //get travel request Id from params
     const {travelRequestId, cashAdvanceId} = useParams()
@@ -24,7 +25,10 @@ export default function () {
         (async function(){
             const res = await getCashAdvance_API({travelRequestId, cashAdvanceId})
             if(res.err){
-                setLoadingErrMsg(res.err)
+                //setLoadingErrMsg(res.err)
+                window.parent.postMessage({message:"cash message posted" , 
+                popupMsgData: { showPopup:true, message:res.err, iconCode: "102" }}, DASHBOARD_URL);
+
                 return;
             }
             console.log(res.data)

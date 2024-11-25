@@ -60,7 +60,9 @@ export default function(){
           //const ca_res = await axios.get(`${CASH_API_URL}/cash-advances/${travelRequestId}/${cashAdvanceId}`)
           const ca_res = await getCashAdvance_API({travelRequestId, cashAdvanceId})
           if(ca_res.err){
-            setLoadingErrMsg(ca_res.err)
+            //setLoadingErrMsg(ca_res.err)
+            window.parent.postMessage({message:"cash message posted" , 
+            popupMsgData: { showPopup:true, message:res.err, iconCode: "102" }}, DASHBOARD_URL);
             return;
           }
 
@@ -80,7 +82,9 @@ export default function(){
 
           const onboardingData_res = await getOnboardingDataForCash_API({tenantId, EMPLOYEE_ID:employeeId, travelType})
           if(onboardingData_res.err){
-            setLoadingErrMsg(onboardingData_res.err)
+            //setLoadingErrMsg(onboardingData_res.err)
+            window.parent.postMessage({message:"cash message posted" , 
+            popupMsgData: { showPopup:true, message:res.err, iconCode: "102" }}, DASHBOARD_URL);
             return;
           }
           if(!onboardingData_res.err){
@@ -94,12 +98,16 @@ export default function(){
         }
 
         else{
-          setLoadingErrMsg(res.message)
+          //setLoadingErrMsg(res.message)
+          window.parent.postMessage({message:"cash message posted" , 
+          popupMsgData: { showPopup:true, message:res.err, iconCode: "102" }}, DASHBOARD_URL);
         }
 
 
       }catch(e){
-        setLoadingErrMsg(e?.response?.data?.error??'Some error occured. Please try again later.')
+        //setLoadingErrMsg(e?.response?.data?.error??'Some error occured. Please try again later.')
+        window.parent.postMessage({message:"cash message posted" , 
+        popupMsgData: { showPopup:true, message:res.err, iconCode: "102" }}, DASHBOARD_URL);
         console.log(e?.response?.data?.error)
       }
     })();
@@ -203,19 +211,23 @@ export default function(){
         console.log(res.data)
   
         if(res.status == 200){
-          setPopupMessage("Your cash advance has been saved in draft")
-          setShowPopup(true)
+          // setPopupMessage("Your cash advance has been saved in draft")
+          // setShowPopup(true)
+          
+          window.parent.postMessage({message:"cash message posted" , 
+          popupMsgData: { showPopup:true, message:"Your cash advance has been saved in draft", iconCode: "101" }}, DASHBOARD_URL);
   
           //redirect to desktop after 5 seconds
           setTimeout(()=>{
-            setShowPopup(false)
+            //setShowPopup(false)
             //window.location.href = `${DASHBOARD_URL}/${tenantId}/${employeeId}/overview`
             window.parent.postMessage('closeIframe', DASHBOARD_URL);
           }, 5000)
         }
   
       }catch(e){
-        console.log(e)
+        console.log(e);
+
       }
   }
 
@@ -249,12 +261,15 @@ export default function(){
       console.log(res.data)
 
       if(res.status == 200){
-        setPopupMessage(res.data.message)
-        setShowPopup(true)
+        // setPopupMessage(res.data.message)
+        // setShowPopup(true)
+        window.parent.postMessage({message:"cash message posted" , 
+        popupMsgData: { showPopup:true, message: res.data.message, iconCode: "101" }}, DASHBOARD_URL);
+        
 
         //redirect to desktop after 5 seconds
         setTimeout(()=>{
-          setShowPopup(false)
+          //setShowPopup(false)
           //window.location.href = `${DASHBOARD_URL}/${tenantId}/${employeeId}/overview`
           
           window.parent.postMessage('closeIframe', DASHBOARD_URL);

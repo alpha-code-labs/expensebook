@@ -21,11 +21,13 @@ import Search from '../../components/Search/Index'
 
 
 export default function BasicDetails({ onBoardingData, formData, setFormData }) {
+    const DASHBOARD_URL = import.meta.env.DASHBOARD_URL;
 
     const navigate = useNavigate()
     //loader state
     const [isLoading, setIsLoading] = useState(false)
     const [loadingErrMsg, setLoadingErrMsg] = useState(null)
+    
 
     //onboarding data...
     const APPROVAL_FLAG = onBoardingData?.APPROVAL_FLAG
@@ -134,7 +136,9 @@ export default function BasicDetails({ onBoardingData, formData, setFormData }) 
 
                 if (res.err) {
                     //console.log('Error in submission')
-                    setLoadingErrMsg(res.err)
+                    //setLoadingErrMsg(res.err)
+                    window.parent.postMessage({message:"cash message posted" , 
+                    popupMsgData: { showPopup:true, message:res.err, iconCode: "102" }}, DASHBOARD_URL);
                     return
                 }
 

@@ -9,6 +9,8 @@ import { left_arrow_icon } from "../components/common/Icons";
 
 export default function () {
 
+    const DASHBOARD_URL = import.meta.env.DASHBOARD_URL;
+
   //get travel request Id from params
     const {travelRequestId} = useParams()
     console.log(travelRequestId, 'travelRequestId')
@@ -24,7 +26,10 @@ export default function () {
         (async function(){
             const res = await getTravelRequest_API({travelRequestId})
             if(res.err){
-                setLoadingErrMsg(res.err)
+                //setLoadingErrMsg(res.err)
+                window.parent.postMessage({message:"cash message posted" , 
+                popupMsgData: { showPopup:true, message:res.err, iconCode: "102" }}, DASHBOARD_URL);
+
                 return;
             }
             setRejectionReason(res?.data?.travelRequest?.rejectionReason??'Not Provided');

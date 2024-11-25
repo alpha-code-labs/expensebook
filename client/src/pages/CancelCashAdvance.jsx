@@ -71,8 +71,11 @@ export default function(){
     const res = await cancelCashAdvance_API({travelRequestId, cashAdvanceId})
 
     if(res.err) return
-    setPopupMessage('Advance cancelled')
-    setShowPopup(true)
+    // setPopupMessage('Advance cancelled')
+    // setShowPopup(true)
+
+    window.parent.postMessage({message:"cash message posted" , 
+    popupMsgData: { showPopup:true, message:"Advance cancelled", iconCode: "102" }}, DASHBOARD_URL);
 
     //redirect to desktop after 5 seconds
     setTimeout(()=>{

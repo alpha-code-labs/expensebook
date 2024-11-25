@@ -394,7 +394,10 @@ const handleNext = async ()=>{
       const res = await updateTravelRequest_API({travelRequest:{...formData, isCashAdvanceTaken:false}, submitted:true})
       
       if(res.err){
-          setLoadingErrMsg(res.err)
+          //setLoadingErrMsg(res.err)
+          window.parent.postMessage({message:"cash message posted" , 
+          popupMsgData: { showPopup:true, message:res.err, iconCode: "102" }}, DASHBOARD_URL);
+          
           return
       }
       else{

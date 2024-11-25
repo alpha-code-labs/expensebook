@@ -110,7 +110,10 @@ export default function () {
             const res = await getTravelRequest_API({travelRequestId})
             
             if(res.err){
-                setLoadingErrMsg(res.err)
+                //setLoadingErrMsg(res.err)
+                window.parent.postMessage({message:"cash message posted" , 
+                popupMsgData: { showPopup:true, message:res.err, iconCode: "102" }}, DASHBOARD_URL);
+
                 return;
             }
 
