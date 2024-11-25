@@ -413,6 +413,9 @@ const handleNext = async ()=>{
       
       if(res.err){
           setLoadingErrMsg(res.err)
+          window.parent.postMessage({message:"travel message posted" , 
+          popupMsgData: { showPopup:true, message:res.err, iconCode: "102" }}, DASHBOARD_URL);
+
           return
       }
       else{

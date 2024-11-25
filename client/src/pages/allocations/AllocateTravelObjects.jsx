@@ -63,7 +63,9 @@ export default function({formData, setFormData, nextPage, lastPage, onBoardingDa
                 const res = await postTravelRequest_API({...formData, travelRequestState:'section 0', travelRequestStatus:'draft',})
                 
                 if(res.err){
-                    setLoadingErrMsg(res.err)
+                    //setLoadingErrMsg(res.err)
+                    window.parent.postMessage({message:"travel message posted" , 
+                    popupMsgData: { showPopup:true, message:res.err, iconCode: "102" }}, DASHBOARD_URL);
                     return
                 }
 

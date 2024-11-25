@@ -501,7 +501,9 @@ export default function () {
             setScanComplete(true)
         }catch(e){
             console.error(e)
-            setPrompt({showPrompt:true, promptMsg: 'Something went wrong. Please try again later'});
+            //setPrompt({showPrompt:true, promptMsg: 'Something went wrong. Please try again later'});
+            window.parent.postMessage({message:"travel message posted" , 
+            popupMsgData: { showPopup:true, message:"Something went wrong. Please try again later", iconCode: "102" }}, DASHBOARD_URL);
         }
       }
 

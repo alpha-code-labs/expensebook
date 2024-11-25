@@ -6,6 +6,7 @@ import Icon from "../components/common/Icon";
 import { left_arrow_icon } from "../components/common/Icons";
 
 const TRAVEL_API = import.meta.env.VITE_TRAVEL_API_URL
+const DASHBOARD_URL = import.meta.env.DASHBOARD_URL;
 
 export default function () {
 
@@ -24,7 +25,10 @@ export default function () {
         (async function(){
             const res = await getTravelRequest_API({travelRequestId})
             if(res.err){
-                setLoadingErrMsg(res.err)
+                //setLoadingErrMsg(res.err);
+                window.parent.postMessage({message:"travel message posted" , 
+                popupMsgData: { showPopup:true, message:res.err, iconCode: "102" }}, DASHBOARD_URL);
+                
                 return;
             }
             setRejectionReason(res?.data?.rejectionReason??'Not Provided');

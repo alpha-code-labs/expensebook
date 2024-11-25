@@ -6,6 +6,8 @@ import Error from "../components/common/Error";
 
 export default function () {
 
+  const DASHBOARD_URL = import.meta.env.DASHBOARD_URL;
+
   const { tenantId, employeeId } = useParams();
 
   //console.log(tenantId, employeeId, 'tId, employeeId')
@@ -77,7 +79,10 @@ export default function () {
       setIsLoading(true);
       const response = await getOnboardingData_API({ tenantId, employeeId, travelType: formData.travelType })
       if (response.err) {
-        setLoadingErrMsg(response.err)
+        //setLoadingErrMsg(response.err)
+        
+        window.parent.postMessage({message:"travel message posted" , 
+        popupMsgData: { showPopup:true, message:response.err, iconCode: "102" }}, DASHBOARD_URL);
       }
       else {
         setOnBoardingData(response.data.onboardingData)

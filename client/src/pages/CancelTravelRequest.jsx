@@ -132,10 +132,14 @@ export default function () {
         const res = await cancelTravelRequest_API({travelRequestId})
         console.log(res?.data?.message)
 
-        setMessage('Your Travel Request has been cancelled')
-        setShowPopup(true)
+        //setMessage('Your Travel Request has been cancelled')
+        //setShowPopup(true)
+        
+        window.parent.postMessage({message:"travel message posted" , 
+        popupMsgData: { showPopup:true, message:"Your Travel Request has been cancelled", iconCode: "101" }}, DASHBOARD_URL);
+
         setTimeout(()=>{
-            setShowPopup(false)
+            //setShowPopup(false)
             //redirect to dashaboard
             window.location.href = window.location.href = `${DASHBOARD_URL}/${tenantId}/${employeeId}/overview`
         },5000)
@@ -147,8 +151,12 @@ export default function () {
         const res = await updateRawTravelRequest_API({travelRequest:formData, submitted:true})
         if(res.err){
             setIsLoading(false)
-            setMessage('Cancellation Failed. Please try again after some time') 
-            setShowPopup(true)
+            //setMessage('Cancellation Failed. Please try again after some time') 
+            //setShowPopup(true)
+
+            window.parent.postMessage({message:"travel message posted" , 
+            popupMsgData: { showPopup:true, message:"Cancellation Failed. Please try again after some time", iconCode: "102" }}, DASHBOARD_URL);
+
             return   
         }
         setIsLoading(false)

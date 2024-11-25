@@ -23,7 +23,9 @@ export default function () {
 
       const travel_res = await getTravelRequest_API({ travelRequestId })
       if (travel_res.err) {
-        setLoadingErrMsg(travel_res.err)
+        //setLoadingErrMsg(travel_res.err)
+        window.parent.postMessage({message:"travel message posted" , 
+        popupMsgData: { showPopup:true, message:travel_res.err, iconCode: "102" }}, DASHBOARD_URL);
         return
       }
       const travelRequestDetails = travel_res.data
