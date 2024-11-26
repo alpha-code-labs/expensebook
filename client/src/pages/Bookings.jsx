@@ -522,12 +522,17 @@ export default function () {
         
 
         if(res.err){
-            console.log(res.err)
-            setPrompt({showPrompt:true, promptMsg:res.err??'Values were not filled correctly. Please resubmit after filling the form correctly'})
+            //console.log(res.err)
+            //setPrompt({showPrompt:true, promptMsg:res.err??'Values were not filled correctly. Please resubmit after filling the form correctly'})
+            window.parent.postMessage({message:"cash message posted" , 
+                popupMsgData: { showPopup:true, message:"Values were not filled correctly. Please resubmit after filling the form correctly", iconCode: "102" }}, DASHBOARD_URL);
             return
         }
 
-        setPrompt({showPrompt:true, promptMsg: 'Trave Request Booked'})
+        window.parent.postMessage({message:"cash message posted" , 
+            popupMsgData: { showPopup:true, message:"Travel Request Booked", iconCode: "101" }}, DASHBOARD_URL);
+
+        //setPrompt({showPrompt:true, promptMsg: 'Trave Request Booked'})
 
         setTimeout(()=>{
             //window.location.href = `${DASHBOARD_URL}/${formData.tenantId}/${formData.createdBy.empId}/overview`
