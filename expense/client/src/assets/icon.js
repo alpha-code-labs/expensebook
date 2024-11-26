@@ -48,10 +48,12 @@ export {default as validation_symb_icon} from './validation_sym_c.svg';
 export {default as plus_icon} from './plus.svg';
 export {default as scan_icon }  from './scan-doc.png';
 export {default as info_icon }  from './info_icon.svg';
-export {default as close_gray_icon} from './close.svg'
-export {default as delete_icon} from './delete.svg'
-export {default as add_icon} from './add_icon.svg'
-export {default as remove_icon} from './remove_icon.svg'
+export {default as close_gray_icon} from './close.svg';
+export {default as delete_icon} from './delete.svg';
+export {default as add_icon} from './add_icon.svg';
+export {default as remove_icon} from './remove_icon.svg';
+export {default as download_ticket_icon} from './download_ticket_icon.svg';
+
 
 
 

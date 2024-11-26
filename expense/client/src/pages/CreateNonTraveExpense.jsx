@@ -125,6 +125,7 @@ const CreateNonTraveExpense = () => {
         const travelAllocationFlag = allocationLevel(
           response?.travelAllocationFlags
         );
+        setFormData(prev => ({...prev, expenseSettlement:response?.expenseReport?.expenseSettlementOptions}));
         setRequiredObj((prev) => ({
           ...prev,
           expenseCategories: response?.reimbursementExpenseCategory || [],
@@ -218,8 +219,8 @@ const CreateNonTraveExpense = () => {
 
   const [showForm, setShowForm] = useState(false);
   const [openModal, setOpenModal] = useState(null);
-  const [showPopup, setShowPopup] = useState(false);
-  const [message, setMessage] = useState(null);
+  // const [showPopup, setShowPopup] = useState(false);
+  // const [message, setMessage] = useState(null);
 
   const handleMannualBtn = async () => {
     if (requiredObj.category) {
@@ -284,8 +285,10 @@ const CreateNonTraveExpense = () => {
         expenseHeaderIds,
         lineItemIds
       );
-      setShowPopup(true);
-      setMessage(response?.message);
+      // setShowPopup(true);
+      // setMessage(response?.message);
+      window.parent.postMessage({message:"expense message posted", 
+      popupMsgData: { showPopup:true, message:response?.message, iconCode: "101" }}, dashboardBaseUrl);
       console.log("line item deleted successfully", response);
       setIsUploading((prev) => ({ ...prev, deleteLineItem: false }));
       setModalOpen(false);
@@ -297,10 +300,10 @@ const CreateNonTraveExpense = () => {
         expenseLines: updatedLineItems,
         expenseAmountStatus: response?.expenseAmountStatus,
       }));
-      setTimeout(() => {
-        setShowPopup(false);
-        setMessage(null);
-      }, 3000);
+      // setTimeout(() => {
+      //   setShowPopup(false);
+      //   setMessage(null);
+      // }, 3000);
     } catch (error) {
       console.log("Error in deleting line item", error.message);
       setLoadingErrorMsg(error.message);
@@ -642,9 +645,11 @@ const CreateNonTraveExpense = () => {
         }
       } catch (error) {
         console.error("Error uploading file to Azure Blob Storage:", error);
-        setMessage(error.message);
-        setShowPopup(true);
-        setTimeout(() => setShowPopup(false), 3000);
+        // setMessage(error.message);
+        // setShowPopup(true);
+        window.parent.postMessage({message:"expense message posted" , 
+          popupMsgData: { showPopup:true, message:error.message, iconCode: "102" }}, dashboardBaseUrl);
+       // setTimeout(() => setShowPopup(false), 3000);
         setIsUploading((prev) => ({
           ...prev,
           [action]: { set: false, msg: "" },
@@ -695,15 +700,17 @@ const CreateNonTraveExpense = () => {
 
     try {
       const response = await api;
-      // const response = await postNonTravelExpenseLineItemApi(params, payload);
-      setShowPopup(true);
-      setMessage(response?.message);
+      // setShowPopup(true);
+      // setMessage(response?.message);
+      window.parent.postMessage({message:"expense message posted" , 
+      popupMsgData: { showPopup:true, message:response?.message, iconCode: "101" }}, dashboardBaseUrl);
       setShowForm(false);
+
       setFormData({ approvers: [], fields: {} });
       setRequiredObj((prev) => ({ ...prev, category: "" }));
       setTimeout(async () => {
-        setShowPopup(false);
-        setMessage(null);
+        // setShowPopup(false);
+        // setMessage(null);
         setShowForm(false);
 
         if (action === "saveAndSubmit") {
@@ -740,9 +747,12 @@ const CreateNonTraveExpense = () => {
     } catch (error) {
       console.error("Error saving line item:", error);
       setIsUploading((prev) => ({ ...prev, saveLineItem: false }));
-      setMessage(error.message);
-      setShowPopup(true);
-      setTimeout(() => setShowPopup(false), 3000);
+      // setMessage(error.message);
+      // setShowPopup(true);
+      window.parent.postMessage({message:"expense message posted" , 
+      popupMsgData: { showPopup:true, message:error?.message, iconCode: "102" }}, dashboardBaseUrl);
+      
+      //setTimeout(() => setShowPopup(false), 3000);
     } finally {
       setIsUploading((prev) => ({ ...prev, saveLineItem: false }));
     }
@@ -913,12 +923,14 @@ const CreateNonTraveExpense = () => {
           ...prev,
           conversion: { set: false, msg: "" },
         }));
-        setShowPopup(true);
-        setMessage(error.message);
-        setTimeout(() => {
-          setMessage(null);
-          setShowPopup(false);
-        }, 5000);
+        // setShowPopup(true);
+        // setMessage(error.message);
+        window.parent.postMessage({message:"expense message posted" , 
+        popupMsgData: { showPopup:true, message:error.message, iconCode: "102" }}, dashboardBaseUrl);
+        // setTimeout(() => {
+        //   setMessage(null);
+        //   setShowPopup(false);
+        // }, 5000);
       }
     }
   };
@@ -1014,8 +1026,12 @@ const CreateNonTraveExpense = () => {
           payload,
         });
         setIsLoading(false);
-        setShowPopup(true);
-        setMessage(response.message);
+        setModalOpen(false)
+        // setShowPopup(true);
+        // setMessage(response.message);
+        window.parent.postMessage({message:"expense message posted" , 
+        popupMsgData: { showPopup:true, message:response.message, iconCode: "101" }}, dashboardBaseUrl);
+        
 
         setIsUploading(false);
         if (action === "draft") {
@@ -1029,8 +1045,8 @@ const CreateNonTraveExpense = () => {
           }));
         }
         setTimeout(() => {
-          setShowPopup(false);
-          setMessage(null);
+          // setShowPopup(false);
+          // setMessage(null);
 
           if (action === "deleteHeader" || action === "submit") {
             // urlRedirection(`${dashboard_url}/${tenantId}/${empId}/overview`)}
@@ -1049,12 +1065,14 @@ const CreateNonTraveExpense = () => {
             deleteHeader: false,
           }));
         }
-        setShowPopup(true);
-        setMessage(error.message);
-        setTimeout(() => {
-          setShowPopup(false);
-          setMessage(null);
-        }, 3000);
+        // setShowPopup(true);
+        // setMessage(error.message);
+        window.parent.postMessage({message:"expense message posted" , 
+        popupMsgData: { showPopup:true, message:error.message, iconCode: "102" }}, dashboardBaseUrl);
+        // setTimeout(() => {
+        //   setShowPopup(false);
+        //   setMessage(null);
+        // }, 3000);
         console.error("Error confirming trip:", error.message);
       }
     }
@@ -1720,27 +1738,7 @@ const CreateNonTraveExpense = () => {
               )}
             </div>
 
-            {/* //---------save line item form end----------------------- */}
-
-            {/* {openModal==='form' && <div className="fixed overflow-hidden max-h-4/5 flex justify-center items-center inset-0 backdrop-blur-sm w-full h-full left-0 top-0 bg-gray-800/60 " >
-                <div className='z-10 max-w-4/5  md:mx-0 mx-4   sm:w-2/5 w-full min-h-4/5 max-h-4/5  bg-white  rounded-lg shadow-md'>
-                <div onClick={()=>setOpenModal(null)} className=' w-10 h-10 flex mr-5 mt-5 justify-center items-center float-right   hover:bg-red-300 rounded-full'>
-                      <img src={cancel_icon} className='w-8 h-8'/>
-                  </div>
-                    <div className="p-10">
-                        <p className="text-xl  text-center font-cabin">Seletct option for Enter Expense Line</p>
-                        <div className="flex mt-10 md:gap-24  gap-4 justify-between md:flex-row flex-col">
-                          <div className='w-full'> 
-                            <Button className='fit' variant='' text='Scan' onClick={()=>handleOpenModal('upload')}  />
-                            </div>
-                            <div className='w-full'> 
-                            <Button variant='' text='Manually' onClick={()=>{setShowForm(true);handleModal()}} />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                </div>
-            } */}
+            
 
             {/* {openModal==='upload' && <div className="fixed overflow-hidden max-h-4/5 flex justify-center items-center inset-0 backdrop-blur-sm w-full h-full left-0 top-0 bg-gray-800/60 scroll-none " >
                 <div className='z-10  md:w-3/5 w-full mx-8  min-h-4/5 max-h-4/5 scroll-none bg-white  rounded-lg shadow-md'>
@@ -1812,11 +1810,11 @@ const CreateNonTraveExpense = () => {
         </>
       )}
 
-      <PopupMessage
+      {/* <PopupMessage
         showPopup={showPopup}
         setShowPopup={setShowPopup}
         message={message}
-      />
+      /> */}
       <Modal
         isOpen={modalOpen}
         onClose={() => setModalOpen(!modalOpen)}

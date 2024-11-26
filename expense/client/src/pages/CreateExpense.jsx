@@ -133,8 +133,8 @@ export default function () {
   //const [flagExpenseHeaderStatus, setFlagExpenseHeaderStatus] = useState(null);
   const [selectedLineItemId, setSelectedLineItemId] = useState(null);
 
-  const [showPopup, setShowPopup] = useState(false);
-  const [message, setMessage] = useState(null);
+  // const [showPopup, setShowPopup] = useState(false);
+  // const [message, setMessage] = useState(null);
   // const [ocrField , setOcrField]=useState(null)
   const [travelRequestStatus, setTravelRequestStatus] =
     useState("pending approval");
@@ -213,11 +213,13 @@ export default function () {
         setIsLoading(false);
       } catch (error) {
         setLoadingErrMsg(error.message);
-        setMessage(error.message);
-        setShowPopup(true);
-        setTimeout(() => {
-          setShowPopup(false);
-        }, 3000);
+        window.parent.postMessage({message:"expense message posted", 
+        popupMsgData: { showPopup:true, message:error?.message, iconCode: "102" }}, dashboardBaseUrl);
+        // setMessage(error.message);
+        // setShowPopup(true);
+        // setTimeout(() => {
+        //   setShowPopup(false);
+        // }, 3000);
       } finally {
         setIsLoading(false);
       }
@@ -451,9 +453,11 @@ export default function () {
             setIsUploading(prev=>({...prev,conversion:{set:false,msg:''}}))
             // setShowPopup(true)
             // setMessage(error.message);
+            window.parent.postMessage({message:"expense message posted", 
+            popupMsgData: { showPopup:true, message:error?.message, iconCode: "102" }}, dashboardBaseUrl);
             setCurrencyConversion(prev=>({...prev,response:{}}))
             setErrorMsg((prev) => ({ ...prev, conversion: { set: true, msg: "Exchange rates not available. Kindly contact your administrator." } }))
-            setTimeout(() => {setMessage(null);setShowPopup(false);},5000);
+            //setTimeout(() => {setMessage(null);setShowPopup(false);},5000);
           }
     }
   };
@@ -528,16 +532,20 @@ export default function () {
           // }));
         } else {
           console.error("Failed to upload file to Azure Blob Storage.");
-          setMessage("Failed to upload file to Azure Blob Storage.");
-        setShowPopup(true);
-        setTimeout(() => setShowPopup(false), 3000);
+        // setMessage("Failed to upload file to Azure Blob Storage.");
+        // setShowPopup(true);
+        window.parent.postMessage({message:"expense message posted", 
+        popupMsgData: { showPopup:true, message:"Failed to upload file to Azure Blob Storage.", iconCode: "101" }}, dashboardBaseUrl);
+        //setTimeout(() => setShowPopup(false), 3000);
         allowForm = false;
         }
       } catch (error) {
         console.error("Error uploading file to Azure Blob Storage:", error);
-        setMessage(error.message);
-        setShowPopup(true);
-        setTimeout(() => setShowPopup(false), 3000);
+        // setMessage(error.message);
+        // setShowPopup(true);
+         window.parent.postMessage({message:"expense message posted", 
+          popupMsgData: { showPopup:true, message:error?.message, iconCode: "102" }}, dashboardBaseUrl);
+        //setTimeout(() => setShowPopup(false), 3000);
         allowForm = false;
       }
     }
@@ -561,19 +569,21 @@ export default function () {
         const response = await updateTravelExpenseLineItemApi({params, payload});
         // const response = await postTravelExpenseLineItemApi(params, payload);
         setIsUploading(prev => ({ ...prev, [action]: { set: false, msg: "" } }));
-        setShowPopup(true);
-        setMessage(response?.message);
+        // setShowPopup(true);
+        // setMessage(response?.message);
+        window.parent.postMessage({message:"expense message posted", 
+        popupMsgData: { showPopup:true, message:response?.message, iconCode: "101" }}, dashboardBaseUrl);
         setTimeout(() => {
-          setShowPopup(false);
-          setMessage(null);
+          // setShowPopup(false);
+          // setMessage(null);
          setRequiredObj(prev=>({...prev, travelExpenseData : response?.travelExpenseData}))
          setFormData(prev => ({...prev, fields:{}}))
         }, 5000);
       } catch (error) {
         setIsUploading(prev => ({ ...prev, [action]: { set: false, msg: "" } }));
-        setMessage(error.message);
-        setShowPopup(true);
-        setTimeout(() => setShowPopup(false), 3000);
+        // setMessage(error.message);
+        // setShowPopup(true);
+        //setTimeout(() => setShowPopup(false), 3000);
       }
     }
   };
@@ -742,11 +752,14 @@ const handleRemoveFile=()=>{
           "Error in fetching expense data for approval:",
           error.message
         );
-        setShowPopup(true);
-        setMessage(error.message);
+        // setShowPopup(true);
+        // setMessage(error.message);
+        window.parent.postMessage({message:"expense message posted", 
+        popupMsgData: { showPopup:true, message:error.message, iconCode: "101" }}, dashboardBaseUrl);
+        
         setTimeout(() => {
-          setMessage(null);
-          setShowPopup(false);
+          // setMessage(null);
+          // setShowPopup(false);
           setActive((prevState) => ({ ...prevState, convert: false }));
         }, 5000);
       }
@@ -778,22 +791,26 @@ const handleRemoveFile=()=>{
     try {
       setIsUploading((prevState) => ({ ...prevState, deleteHeader: true }));
       const response = await cancelTravelExpenseHeaderApi({ tenantId, empId, tripId, expenseHeaderId:requiredObj?.expenseHeaderId, data});
-      setShowPopup(true);
-      setMessage(response.message);
+      // setShowPopup(true);
+      // setMessage(response.message);
+      window.parent.postMessage({message:"expense message posted", 
+        popupMsgData: { showPopup:true, message:response?.message, iconCode: "101" }}, dashboardBaseUrl);
       setIsUploading((prevState) => ({ ...prevState, deleteHeader: false }));
       setTimeout(() => {
-        setShowPopup(false);
-        setMessage(null);
+        // setShowPopup(false);
+        // setMessage(null);
         handleDashboardRedirection();
       }, 5000);
     } catch (error) {
       setIsUploading((prevState) => ({ ...prevState, deleteHeader: false }));
-      setShowPopup(true);
-      setMessage(error.message);
-      setTimeout(() => {
-        setShowPopup(false);
-        setMessage(null);
-      }, 5000);
+      // setShowPopup(true);
+      // setMessage(error.message);
+      window.parent.postMessage({message:"expense message posted", 
+      popupMsgData: { showPopup:true, message:error?.message, iconCode: "101" }}, dashboardBaseUrl);
+      // setTimeout(() => {
+      //   setShowPopup(false);
+      //   setMessage(null);
+      // }, 5000);
       console.error("Error confirming trip:", error.message);
     }
   };
@@ -840,8 +857,10 @@ const handleRemoveFile=()=>{
           data}
         );
         setIsLoading(false);
-        setShowPopup(true);
-        setMessage(response.message);
+        // setShowPopup(true);
+        // setMessage(response.message);
+        window.parent.postMessage({message:"expense message posted", 
+        popupMsgData: { showPopup:true, message:response?.message, iconCode: "101" }}, dashboardBaseUrl);
 
         setIsUploading(false);
         if (action === "draft") {
@@ -850,8 +869,8 @@ const handleRemoveFile=()=>{
           setActive((prevState) => ({ ...prevState, submit: false }));
         }
         setTimeout(() => {
-          setShowPopup(false);
-          setMessage(null);
+          // setShowPopup(false);
+          // setMessage(null);
 
           if (action === "submit") {
             // urlRedirection(`${dashboard_url}/${tenantId}/${empId}/overview`)}
@@ -867,12 +886,14 @@ const handleRemoveFile=()=>{
         } else if (action === "submit") {
           setActive((prevState) => ({ ...prevState, submit: false }));
         }
-        setShowPopup(true);
-        setMessage(error.message);
-        setTimeout(() => {
-          setShowPopup(false);
-          setMessage(null);
-        }, 3000);
+        // setShowPopup(true);
+        // setMessage(error.message);
+        window.parent.postMessage({message:"expense message posted", 
+        popupMsgData: { showPopup:true, message:error?.message, iconCode: "101" }}, dashboardBaseUrl);
+        // setTimeout(() => {
+        //   setShowPopup(false);
+        //   setMessage(null);
+        // }, 3000);
         console.error("Error confirming trip:", error.message);
       }
     }
@@ -986,20 +1007,22 @@ const handleRemoveFile=()=>{
       //setGetExpenseData(updatedExpenseData);
       setRequiredObj( prev => ({...prev, "travelExpenseData":updatedExpenseData}))
       setModalOpen(false);
-      setShowPopup(true);
-      setMessage(response?.message);
+      // setShowPopup(true);
+      // setMessage(response?.message);
+      window.parent.postMessage({message:"expense message posted", 
+      popupMsgData: { showPopup:true, message:response?.message, iconCode: "101" }}, dashboardBaseUrl);
       setIsUploading((prev) => ({ ...prev, deleteLineItem: false }));
-      setTimeout(() => {
-        setShowPopup(false);
-        setMessage(null);
-      }, 5000);
+      // setTimeout(() => {
+      //   setShowPopup(false);
+      //   setMessage(null);
+      // }, 5000);
     } catch (error) {
       setIsUploading((prev) => ({ ...prev, deleteLineItem: false }));
-      setMessage(error.message);
-      setShowPopup(true);
-      setTimeout(() => {
-        setShowPopup(false);
-      }, 3000);
+      window.parent.postMessage({message:"expense message posted", 
+      popupMsgData: { showPopup:true, message:error?.message, iconCode: "101" }}, dashboardBaseUrl);
+      // setTimeout(() => {
+      //   setShowPopup(false);
+      // }, 3000);
     }
   };
   console.log("expense lines before deleting", headerReport);
@@ -1568,17 +1591,13 @@ const handleRemoveFile=()=>{
                                 ) : (
                                   <>
                                     <div className="flex flex-col lg:flex-row  w-full h-screen">
-
-                                      <div className="  w-full lg:w-3/5 border border-slate-300 h-full rounded-md">
-
-                                      
+                                      <div className="  w-full lg:w-3/5 border border-slate-300 h-[800px] md:h-full rounded-md">
                                         <DocumentPreview
                                           emptyPreview={true}
                                           initialFile={lineItem?.billImageUrl}
                                         />
                                       </div>
-
-                                      <div className="w-full  lg:w-2/5 h-full">
+                                      <div className="w-full lg:w-2/5 h-full">
                                         <LineItemView
                                           expenseHeaderStatus={item?.expenseHeaderStatus}
                                           lineItem={lineItem}
@@ -1933,11 +1952,11 @@ const handleRemoveFile=()=>{
         </>
       )}
 
-      <PopupMessage
+      {/* <PopupMessage
         showPopup={showPopup}
         setShowPopup={setShowPopup}
         message={message}
-      />
+      /> */}
       <Modal
         isOpen={modalOpen}
         onClose={() => setModalOpen(!modalOpen)}

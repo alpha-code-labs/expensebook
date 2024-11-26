@@ -10,11 +10,16 @@ const EXPENSE_BACKEND_API_URL = import.meta.env.VITE_EXPENSE_API_URL
 // http://192.168.1.11:8089/65c5c3bef21cc9ab3038e21f/1003/65e1b40c80f4848c20f6f118/65e3522cbd53887508dd7c0b/clear-rejection/travel-expense
 
 const errorMessages = {
-  '404': 'Resource Not Found',
-  '400': 'Cannot fetch data at the moment',
-  '500': 'Internal Server Error',
-  'request': 'Network Error from backend',
-  'else': 'Something went wrong. Please try again later'
+  '404': 'Something went wrong. Please try again later.',
+  '400': 'Something went wrong. Please try again later.',
+  '500': 'Something went wrong. Please try again later.',
+  'request': 'Something went wrong. Please try again later.',
+  'else': 'Something went wrong. Please try again later.'
+  // '404': 'Resource Not Found',
+  // '400': 'Cannot fetch data at the moment',
+  // '500': 'Internal Server Error',
+  // 'request': 'Network Error from backend',
+  // 'else': 'Something went wrong. Please try again later'
 };
 
 const handleRequestError = (e) => {
