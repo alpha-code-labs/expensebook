@@ -12,7 +12,7 @@ import Expense from './models/tripSchema.js';
 import Reimbursement from './models/reimbursementSchema.js';
 import { getExpenseCategoryFields } from './ocr/categoryFields.js';
 import { calculateTotalCashAdvances } from './rabbitmq/messageProcessor.js/finance.js';
-import { closeRabbitMQConnection } from './rabbitmq/connection.js';
+import { closeRabbitMQConnection, getRabbitMQConnection } from './rabbitmq/connection.js';
 import { closeMongoDBConnection, connectToMongoDB } from './db/db.js';
 // import logger from './logger/logger.js';
 
@@ -118,6 +118,7 @@ const initializeServer = async () => {
   try {
       await Promise.all([
         connectToMongoDB(),
+        getRabbitMQConnection(),
         startConsumer("expense")
       ])
 

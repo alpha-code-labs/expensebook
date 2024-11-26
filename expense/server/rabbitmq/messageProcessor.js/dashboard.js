@@ -143,7 +143,7 @@ const expenseReportApproval = async (payload) => {
     const { tenantId,tripId, expenseHeaderId, approve, empId,
         reject,  rejectionReason,} = payload;
 
-    console.log("Payload for travelExpenseData - expense report approval", payload);
+    console.log("Payload for travelExpenseData - expense report approval", JSON.stringify(payload,'',2));
 
     try {
         const approvalDocument = await getExpenseReport(tenantId,empId,tripId,expenseHeaderId)

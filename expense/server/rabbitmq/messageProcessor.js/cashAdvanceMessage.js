@@ -4,8 +4,8 @@ import Expense from "../../models/tripSchema.js";
 
 export const cashStatusUpdatePaid = async(payloadArray)=>{
   try{
-    // console.log("cash status update batchJob", JSON.stringify(payloadArray,'',2))
-    // console.log("payload length",payloadArray.length)
+    console.log("cash status update batchJob", JSON.stringify(payloadArray,'',2))
+    console.log("payload length",payloadArray.length)
 
     const results =[]
 
