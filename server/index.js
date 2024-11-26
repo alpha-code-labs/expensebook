@@ -15,6 +15,8 @@ import { filterFutureFlights, filterFutureHotels } from './utils/dateUtils.js';
 import pino from 'pino';
 import PinoPretty from 'pino-pretty';
 import { lastDate } from './utils/date.js';
+import { closeRabbitMQConnection, getRabbitMQConnection } from './rabbitmq/connection.js';
+import { closeMongoDBConnection, connectToMongoDB } from './db/db.js';
 
 // Load environment variables using dotenv
 config();
@@ -25,6 +27,65 @@ console.log(`Running in ${environment} environment`);
 const MONGODB_URI = process.env.MONGODB_URI;
 
 const app = express();
+const port = process.env.PORT || 8081;
+
+let server;
+let shutdownInProgress = false;
+
+const shutdown = async (reason) => {
+  try {
+      if (shutdownInProgress) {
+          console.log('Shutdown already in progress...');
+          return;
+      }
+
+      shutdownInProgress = true;
+      console.log(`Shutdown initiated: ${reason}`);
+
+      const cleanupTasks = [];
+
+      if (typeof closeRabbitMQConnection === 'function') {
+          cleanupTasks.push(
+              closeRabbitMQConnection()
+                  .then(() => console.log('RabbitMQ connection closed'))
+                  .catch(err => console.error('RabbitMQ cleanup error:', err))
+          );
+      }
+
+      cleanupTasks.push(
+          closeMongoDBConnection()
+              .then(() => console.log('MongoDB connection closed'))
+              .catch(err => console.error('MongoDB cleanup error:', err))
+      );
+
+      if (server) {
+          cleanupTasks.push(
+              new Promise((resolve) => {
+                  server.close(() => {
+                      console.log('Server connections closed');
+                      resolve();
+                  });
+              })
+          );
+      }
+
+      const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Shutdown timeout')), 10000)
+      );
+
+      await Promise.race([
+          Promise.allSettled(cleanupTasks),
+          timeoutPromise
+      ]);
+
+      console.log('Cleanup completed');
+      process.exit(0);
+  } catch (error) {
+      console.error('Error during shutdown:', error);
+      process.exit(1);
+  }
+};
+
 
 // middleware
 app.use(express.json());
@@ -44,27 +105,46 @@ transitToCompleteBatchJob()
 
 
 
-const mongodb = async () => {
+
+const initializeServer = async () => {
   try {
-    await mongoose.connect(MONGODB_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
-    console.log('You are Connected to Mongodb');
+      await Promise.all([
+        connectToMongoDB(),
+        getRabbitMQConnection(),
+        startConsumer('trip')
+      ])
+
+      server = app.listen(port, () => {
+          console.log(`Server is running on port ${port}`);
+      });
+
+      server.on('error', (error) => {
+          console.error('Server error:', error);
+          shutdown('Server error').catch(console.error);
+      });
+
   } catch (error) {
-    console.error('Error connecting to Mongodb:', error);
+      console.error('Initialization error:', error);
+      shutdown('Initialization failure').catch(console.error);
   }
 };
 
-mongodb();
-
-const port = process.env.PORT || 8081;
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  shutdown('Unhandled Rejection').catch(console.error);
 });
 
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error);
+  shutdown('Uncaught Exception').catch(console.error);
+});
 
-startConsumer('trip');
+process.on('SIGTERM', () => shutdown('SIGTERM').catch(console.error));
+process.on('SIGINT', () => shutdown('SIGINT').catch(console.error));
+
+// Start the server
+initializeServer().catch(console.error);
+
 
 
 // const tripp = '66b0b254b565699533846bfa'
@@ -90,69 +170,6 @@ startConsumer('trip');
 // console.log("trip ...", trip)
 // const res = await sendToOtherMicroservice(trip, 'trip-creation', 'dashboard', 'Trip creation successful and sent to dashboard', 'trip', 'online');
 
-const exampleTripArray = [
-  {
-      travelRequestData: {
-      tenantId: 'Tenant1',
-      tenantName: 'Corp1',
-      travelRequestId: '658d5fc21244646bcd76ae66',
-      itinerary: {
-        key1: [
-          { bkd_date: '2024-02-15T10:00:00.000Z' },
-          { bkd_date: '2024-02-15T12:00:00.000Z' },
-        ],
-        key2: [
-          { bkd_date: '2024-02-15T08:00:00.000Z' },
-          { bkd_date: '2024-02-15T14:00:00.000Z' },
-        ],
-      },
-    },
-  },
-  {
-    travelRequestData: {
-      tenantId: 'Tenant2',
-    tenantName: 'Corp2',
-      travelRequestId: '658d5fc21244646bcd76ae13',
-      itinerary: {
-        key1: [
-          { bkd_date: '2024-02-16T09:00:00.000Z' },
-          { bkd_date: '2024-02-16T11:00:00.000Z' },
-        ],
-        key2: [
-          { bkd_date: '2024-02-16T07:00:00.000Z' },
-          { bkd_date: '2024-02-16T15:00:00.000Z' },
-        ],
-      },
-    },
-  },
-  {
-    travelRequestData: {
-      tenantId: 'Tenant3',
-      tenantName: 'Corp3',
-      travelRequestId: '658d5fc21244646bcd76ae82',
-      itinerary: {
-        key1: [
-          { bkd_date: '2024-02-17T13:00:00.000Z' },
-          { bkd_date: '2024-02-17T15:00:00.000Z' },
-        ],
-        key2: [
-          { bkd_date: '2024-02-17T11:00:00.000Z' },
-          { bkd_date: '2024-02-17T17:00:00.000Z' },
-        ],
-      },
-    },
-  },
-];
 
-
-// Usage of the "After" version
-// try {
-//   const resultDataAfter = await processTravelRequests(exampleTripArray);
-//   console.log('After: Processing completed. Result:', resultDataAfter);
-// } catch (error) {
-//   console.error('After: Error processing travel requests:', error);
-// }
-
-// processTravelRequests(exampleTripArray)
 
 

@@ -69,7 +69,7 @@ const settleOrRecoverCashAdvance = async (payload) => {
       }
     }
 
-    const trip = await reporting.findOneAndUpdate(
+    const trip = await Trip.findOneAndUpdate(
       { 
         tenantId,
         'cashAdvancesData': { $elemMatch: { cashAdvanceId,travelRequestId } }
