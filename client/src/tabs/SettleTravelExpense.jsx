@@ -94,16 +94,15 @@ function financeMsg(amt, cashAdvance, currency){
                       </div>
                             
                             <div className='flex items-center justify-center gap-2'>
-                            {(fileSelected && fileId === expense?.expenseHeaderNumber)  ? <> <div className='flex justify-center cursor-default items-center px-2 py-1 bg-slate-100 rounded-md text-xs'><img src={file_icon} className='w-4 h-4' /><p className='w-20 truncate'>{selectedFile?.name}</p></div><img src={close_icon} className='w-4 h-4' onClick={handleRemoveFile}/></> :
+                            {(fileSelected && fileId === expense?.expenseHeaderId)  ? <> <div className='flex justify-center cursor-default items-center px-2 py-1 bg-slate-100 rounded-md text-xs'><img src={file_icon} className='w-4 h-4' /><p className='w-20 truncate'>{selectedFile?.name}</p></div><img src={close_icon} className='w-4 h-4' onClick={handleRemoveFile}/></> :
                               <FileUpload 
                               setFileId={setFileId}
-                              id={expense?.expenseHeaderNumber}
+                              id={expense?.expenseHeaderId}
                               isFileSelected={fileSelected} 
                               setIsFileSelected={setFileSelected} 
                               setSelectedFile={setSelectedFile} 
                               selectedFile={selectedFile} 
-                            />}
-                     
+                            />}                     
                          <SettleNowBtn
                           onClick={()=>handleActionConfirm('settleTravelExpense',{ travelRequestId : trip?.travelRequestId, expenseHeaderId:expense?.expenseHeaderId})}
                           text={"Settle Now"}/>

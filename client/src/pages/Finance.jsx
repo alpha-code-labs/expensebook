@@ -147,13 +147,13 @@ const settleNonTravelExpenseCount = financeData?.nonTravelExpense?.length || 0;
   function Tab () {
     switch (activeTab) {
       case "Settle Cash-Advances":
-        return dataFilterByDate(settleCashAdvanceData).map((trip, index)=>(<SettleCashAdvance trip={trip} key={index} handleActionConfirm={handleActionConfirm} handleRemoveFile={handleRemoveFile} setFileId={setFileId} fileId={fileId} fileSelected={fileSelected} setFileSelected={setFileSelected} selectedFile={selectedFile} setSelectedFile={setSelectedFile}/>));
+        return dataFilterByDate(settleCashAdvanceData).map((trip, index)=>(<SettleCashAdvance       trip={trip} key={index} handleActionConfirm={handleActionConfirm} handleRemoveFile={handleRemoveFile} setFileId={setFileId} fileId={fileId} fileSelected={fileSelected} setFileSelected={setFileSelected} selectedFile={selectedFile} setSelectedFile={setSelectedFile}/>));
       case "Recover Cash-Advances":
-        return dataFilterByDate(recoverCashAdvanceData).map((trip, index)=>(<RecoverCashAdvance trip={trip} key={index} handleActionConfirm={handleActionConfirm} handleRemoveFile={handleRemoveFile} setFileId={setFileId} fileId={fileId} fileSelected={fileSelected} setFileSelected={setFileSelected} selectedFile={selectedFile} setSelectedFile={setSelectedFile}/>));
+        return dataFilterByDate(recoverCashAdvanceData).map((trip, index)=>(<RecoverCashAdvance     trip={trip} key={index} handleActionConfirm={handleActionConfirm} handleRemoveFile={handleRemoveFile} setFileId={setFileId} fileId={fileId} fileSelected={fileSelected} setFileSelected={setFileSelected} selectedFile={selectedFile} setSelectedFile={setSelectedFile}/>));
       case "Settle Travel Expenses":
-        return settleTravelExpenseData?.map((expense,index)=>(<SettleTravelExpense trip={expense} key={index} handleActionConfirm={handleActionConfirm} handleRemoveFile={handleRemoveFile} fileSelected={fileSelected} setFileId={setFileId} fileId={fileId} setFileSelected={setFileSelected} selectedFile={selectedFile} setSelectedFile={setSelectedFile}/>));
+        return settleTravelExpenseData?.map((expense,index)=>(              <SettleTravelExpense    trip={expense} key={index} handleActionConfirm={handleActionConfirm} handleRemoveFile={handleRemoveFile} fileSelected={fileSelected} setFileId={setFileId} fileId={fileId} setFileSelected={setFileSelected} selectedFile={selectedFile} setSelectedFile={setSelectedFile}/>));
       case "Settle Non-Travel Expenses":
-        return settleNonTravelExpenseData.map((expense,index)=>(<SettleNonTravelExpense trip={expense} key={index} handleActionConfirm={handleActionConfirm} handleRemoveFile={handleRemoveFile} fileSelected={fileSelected} setFileId={setFileId} fileId={fileId} setFileSelected={setFileSelected} selectedFile={selectedFile} setSelectedFile={setSelectedFile} />));
+        return settleNonTravelExpenseData.map((expense,index)=>(            <SettleNonTravelExpense trip={expense} key={index} handleActionConfirm={handleActionConfirm} handleRemoveFile={handleRemoveFile} fileSelected={fileSelected} setFileId={setFileId} fileId={fileId} setFileSelected={setFileSelected} selectedFile={selectedFile} setSelectedFile={setSelectedFile} />));
       case "Account Entries":
         return <AccountEntry data={AcEntryData}/>;
       default:
