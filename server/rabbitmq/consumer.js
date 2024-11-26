@@ -6,7 +6,6 @@ import dotenv from 'dotenv';
 import { processTravelRequestsWithCash } from './messageProcessor/cashAdvanceProcessor.js';
 import { fullUpdateExpense } from './messageProcessor/expense.js';
 import { approveRejectCashRaisedLater, expenseReportApproval } from './messageProcessor/approval.js';
-import { settleExpenseReport, settleOrRecoverCashAdvance } from './messageProcessor/finance.js';
 import { getRabbitMQConnection } from './connection.js';
 
 dotenv.config();
@@ -165,26 +164,6 @@ export async function startConsumer(receiver) {
                   handleMessageAcknowledgment(channel,msg,res)
                   break;
 
-            }
-            break;
-
-          case 'finance':
-            switch (action) {
-              case 'settle-ca':
-                console.log("settle-ca")
-                res = await settleOrRecoverCashAdvance(payload);
-                handleMessageAcknowledgment(channel,msg,res)
-                break;
-
-                case 'expense-paid':
-                  console.log('expense-paid')
-                  res = await settleExpenseReport(payload);
-                  handleMessageAcknowledgment(channel,msg,res)
-                  break;
-            
-              default:
-                console.warn(`Unknown action ${action} for source ${source}`)
-                break;
             }
             break;
 

@@ -9,6 +9,7 @@ dotenv.config();
 const statusChangeBatchJob = async () => {
   try {
       const todayDate = new Date();
+      console.log("today date", todayDate)
       const condition = {
         tripStatus: 'upcoming',
         tripStartDate: { $lte: todayDate },
