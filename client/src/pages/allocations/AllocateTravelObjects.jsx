@@ -20,7 +20,7 @@ import Modal from '../../components/common/Modal';
 
 export default function({addedItineraries, bookedItineraryIds, modifiedTripsIds, setAllocations, allocation,formData, setFormData, nextPage, lastPage, onBoardingData}){
     console.log('form data form allocations',formData)
-    const DASHBOARD_URL = import.meta.env.VITE_DASHBOARD_URL
+    const dashboardBaseUrl = import.meta.env.VITE_DASHBOARD_URL
     const navigate = useNavigate()
     const {tenantId,empId,tripId}= useParams()
     const employeeId = empId
@@ -71,7 +71,9 @@ export default function({addedItineraries, bookedItineraryIds, modifiedTripsIds,
                 const res = await postTravelRequest_API({...formData, travelRequestState:'section 0', travelRequestStatus:'draft',})
                 
                 if(res.err){
-                    setLoadingErrMsg(res.err)
+                    //setLoadingErrMsg(res.err)
+                    window.parent.postMessage({message:"expense message posted", 
+                        popupMsgData: { showPopup:true, message:res.err, iconCode: "102" }}, dashboardBaseUrl);
                     return
                 }
 
@@ -120,7 +122,7 @@ export default function({addedItineraries, bookedItineraryIds, modifiedTripsIds,
                 setTimeout(()=>{
                     
                     setPopupMessage(null)
-                    window.parent.postMessage('closeIframe', DASHBOARD_URL);
+                    window.parent.postMessage('closeIframe', dashboardBaseUrl);
 
                 },3000)
             }
@@ -130,12 +132,12 @@ export default function({addedItineraries, bookedItineraryIds, modifiedTripsIds,
 
     const handleCashAdvance = async (needed)=>{
         if(needed){
-            window.parent.postMessage(`raiseAdvance ${tenantId} ${formData.travelRequestId}`, DASHBOARD_URL);
+            window.parent.postMessage(`raiseAdvance ${tenantId} ${formData.travelRequestId}`, dashboardBaseUrl);
             setShowModal(false)
         }    
         else{
             //post message to close iframe
-            window.parent.postMessage('closeIframe', DASHBOARD_URL);
+            window.parent.postMessage('closeIframe', dashboardBaseUrl);
         }
     }
 
