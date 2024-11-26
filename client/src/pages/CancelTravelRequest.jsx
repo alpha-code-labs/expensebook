@@ -142,7 +142,7 @@ export default function () {
             //setShowPopup(false)
             //redirect to dashaboard
             window.location.href = window.location.href = `${DASHBOARD_URL}/${tenantId}/${employeeId}/overview`
-        },5000)
+        },0)
     }
 
     const handleSubmit = async ()=>{
@@ -160,11 +160,14 @@ export default function () {
             return   
         }
         setIsLoading(false)
-        setMessage('Cancellation processed')
-        setShowPopup(true)
+        // setMessage('Cancellation processed')
+        // setShowPopup(true)
+        window.parent.postMessage({message:"travel message posted" , 
+        popupMsgData: { showPopup:true, message:"Cancellation processed", iconCode: "101" }}, DASHBOARD_URL);
+        
         //wait for 5 seconds
         setTimeOut(()=>{
-            setShowPopup(false)
+            //setShowPopup(false);
             //redirect to dashboard
             window.location.href = `${DASHBOARD_URL}/${tenantId}/${employeeId}/overview`
         },5000)

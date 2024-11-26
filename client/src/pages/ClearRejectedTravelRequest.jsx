@@ -32,7 +32,7 @@ export default function () {
                 return;
             }
             setRejectionReason(res?.data?.rejectionReason??'Not Provided');
-            setTravelRequestNumber(res?.data?.travelRequestNumber??"...")
+            setTravelRequestNumber(res?.data?.travelRequestNumber??"...");
             setIsLoading(false)
         })()
     },[])
