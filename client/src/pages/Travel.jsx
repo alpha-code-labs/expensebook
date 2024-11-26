@@ -25,7 +25,7 @@ const tripBaseUrl = import.meta.env.VITE_TRIP_BASE_URL;
   const [modalOpen , setModalOpen]=useState(false);
   const [tripData, setTripData]=useState([]);
   const {tenantId,empId,page}= useParams();
-  const { employeeData } = useData();
+  const { employeeData , setPopupMsgData} = useData();
   const [error , setError]= useState({
     tripId: {set:false, message:""}
   }); 
@@ -140,6 +140,11 @@ const handleVisible = (data) => {
           setIframeURL(`${cashBaseUrl}/create/advance/${travelRequestId}`);
           setVisible(true);
         }
+        else if(event.data.popupMsgData)
+          {
+            const expensePopupData = event.data.popupMsgData;
+            setPopupMsgData(expensePopupData)
+          }
       }
     };
     // Listen for messages from the iframe

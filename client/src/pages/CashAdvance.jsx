@@ -27,7 +27,7 @@ const CashAdvance = ({searchQuery,isLoading, fetchData, loadingErrMsg}) => {
     travelRequestId: {set:false, message:""}
   }) 
 
-  const { employeeData } = useData();
+  const { employeeData, setPopupMsgData ,initialPopupData} = useData();
   const [travelData, setTravelData]=useState([]);
   const [cashAdvanceData, setCashAdvanceData]=useState([]);
 
@@ -130,6 +130,14 @@ const handleVisible = (travelRequestId, action, cashadvanceId) => {
           //window.location.href = window.location.href;
           fetchData()
         }
+        else if(event.data.popupMsgData)
+          {
+            const expensePopupData = event.data.popupMsgData;
+            setPopupMsgData(expensePopupData)
+             setTimeout(() => {
+              setPopupMsgData(initialPopupData); 
+            }, 5000);
+          }
       // }
     };
     // Listen for messages from the iframe
@@ -142,8 +150,8 @@ const handleVisible = (travelRequestId, action, cashadvanceId) => {
   }, []);
 
 
-  console.log(error.travelRequestId)
 
+  console.log(error.travelRequestId)
   const handleSelect=(option)=>{
     console.log(option)
     setTravelRequestId(option?.travelRequestId)

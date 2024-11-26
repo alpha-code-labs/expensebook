@@ -14,17 +14,17 @@ import ExpenseMS from '../microservice/Expense';
 import { act } from 'react';
 
 
-const Expense = ({searchQuery,isLoading ,fetchData,loadingErrMsg}) => {
+const Expense = ({searchQuery, isLoading, fetchData, loadingErrMsg}) => {
   const expenseBaseUrl = import.meta.env.VITE_EXPENSE_PAGE_URL;
 
   const [tripId , setTripId]=useState(null);
   const [expenseType , setExpenseType]=useState(null);
   const [selectedStatuses, setSelectedStatuses] = useState([]);
-  
+
   const [modalOpen , setModalOpen]=useState(false);
   const [tripData, setTripData]=useState([]);
   const {tenantId,empId,page}= useParams();
-  const { employeeData, requiredData } = useData();
+  const { employeeData, requiredData, setPopupMsgData, initialPopupData } = useData();
   const [error , setError]= useState({
     tripId: {set:false, message:""}
   }); 
@@ -94,7 +94,6 @@ const Expense = ({searchQuery,isLoading ,fetchData,loadingErrMsg}) => {
   }
 
 
-
   const handleVisible = (data) => {
     let { urlName} = data;
     setExpenseVisible(!expenseVisible)
@@ -124,6 +123,7 @@ const Expense = ({searchQuery,isLoading ,fetchData,loadingErrMsg}) => {
     }
   };
 
+
   useEffect(() => {
     const handleMessage = event => {
       console.log('event',event)
@@ -136,9 +136,17 @@ const Expense = ({searchQuery,isLoading ,fetchData,loadingErrMsg}) => {
           setExpenseVisible(false)
           //window.location.href = window.location.href;
           fetchData()
-         
           
         }
+
+       else if(event.data.popupMsgData)
+        {
+          const expensePopupData = event.data.popupMsgData;
+          setPopupMsgData(expensePopupData)
+          setTimeout(() => {
+            setPopupMsgData(initialPopupData); 
+          }, 5000);
+        } 
         
       }
     };

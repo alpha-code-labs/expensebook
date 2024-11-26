@@ -15,9 +15,17 @@ export {default as material_personal_black_icon} from './material_icon/outline_c
 export {default as material_personalVehicle_w_icon} from './material_icon/outline_commute_white_48dp.png';
 
 //notifications icons
-export {default as alert_bell_icon} from './notification/alert_icon.svg'
-export {default as info_bell_icon} from './notification/info_icon.svg'
-export {default as warning_bell_icon} from './notification/warning_icon.svg'
+export {default as alert_bell_icon} from './notification/alert_icon.svg';
+export {default as info_bell_icon} from './messageSign/information_icon.svg';
+export {default as warning_bell_icon} from './messageSign/information_icon.svg';
+
+//popup message icons
+export {default as success_icon} from './messageSign/success_icon.svg';
+export {default as failure_icon} from './messageSign/failure_icon.svg';
+export {default as msg_icon} from './messageSign/information_icon.svg';
+
+
+
 
 // export {default as alert_bell_icon} from './notification/notifications_24dp_434343_FILL0_wght400_GRAD0_opsz24.svg'
 // export {default as info_bell_icon} from './notification/info_24dp_434343_FILL0_wght400_GRAD0_opsz24.svg'

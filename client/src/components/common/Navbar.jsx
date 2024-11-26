@@ -14,67 +14,11 @@ import { useEffect, useState } from 'react';
 
 const Navbar = ({setSearchQuery,setSidebarOpen,tenantId,empId }) => {
 
-  // const notificationData = [
-  //   {
-  //     message: "Please submit your expenses for the completed trip 'DEL-DUB-DEL (4th Oct 2024).'",
-  //     status: "urgent"
-  //   },
-  //   {
-  //     message: "Your team meeting is scheduled for tomorrow at 10 AM.",
-  //     status: "action"
-  //   },
-  //   {
-  //     message: "New updates are available for the project documentation.",
-  //     status: "information"
-  //   },
-  //   {
-  //     message: "Reminder: Submit your timesheets by the end of the week.",
-  //     status: "urgent"
-  //   },
-  //   {
-  //     message: "Don't forget the upcoming project deadline next Monday.",
-  //     status: "action"
-  //   },
-  //   {
-  //     message: "Check out the latest industry news in the newsletter.",
-  //     status: "information"
-  //   },
-  //   {
-  //     message: "Action needed: Review the draft proposal by EOD.",
-  //     status: "urgent"
-  //   },
-  //   {
-  //     message: "Your feedback on the latest version is appreciated.",
-  //     status: "action"
-  //   },
-  //   {
-  //     message: "A new feature has been added to the application.",
-  //     status: "information"
-  //   }
-  // ];
-//   const notificationData = [
-//     {
-//         "message": "Urgent! Please Settle Cash Advance \"₹4000\" for trip \"SAN-LUC(6th Oct 2024)\", scheduled to start on Sun Oct 06 2024.",
-//         "messageId": "672cadd7c9c70199866b0b1f",
-//         "status": "urgent",
-//         "isRead": true,
-//         "createdAt": "2024-11-07T12:08:55.442Z"
-//     },
-//     {
-//         "message": "Urgent! Please Settle Cash Advance \"₹8000\" for trip \"DEL-GOA-GOA-DEL(6th Nov 2024)\", scheduled to start on Wed Nov 06 2024.",
-//         "messageId": "672cae6933daeea34ef448ae",
-//         "status": "urgent",
-//         "isRead": true,
-//         "createdAt": "2024-11-07T12:11:21.260Z"
-//     }
-// ]
-  
-  
   const location = useLocation();
-  const navigate = useNavigate()
-  const pathname = location?.pathname?.split('/').pop()
+  const navigate = useNavigate();
+  const pathname = location?.pathname?.split('/').pop();
   const {employeeRoles, requiredData  } = useData(); 
-  const employeeInfo = employeeRoles?.employeeInfo
+  const employeeInfo = employeeRoles?.employeeInfo;
 
 const LOGIN_PAGE_URL = import.meta.env.VITE_LOGIN_PAGE_URL
 const notificationData = [
@@ -84,12 +28,14 @@ const notificationData = [
   ...(requiredData?.notifications?.finance ?? []),
 ]
 
+
+
 const [notificationArray, setNotificationArray]=useState([])
 useEffect(() => {
   setNotificationArray(notificationData);
   //setNotificationArray(notificationData)
 }, [requiredData]);
-console.log("notification data", notificationArray)
+console.log("notification data", notificationArray ,notificationData.some(notification => notification.isRead))
 
 
 
@@ -97,20 +43,20 @@ function alertIcon(sign) {
   switch(sign) {
     case 'urgent':
       return (
-        <div className='p-2 shrink-0'>
-          <img src={alert_bell_icon} className='w-4 h-4 ' alt="Urgent Icon" />
+        <div className='p-1 ring-1 ring-white rounded-full shrink-0 bg-red-600'>
+          <img src={alert_bell_icon} className='w-3 h-3 ' alt="Urgent Icon" />
         </div>
       );
     case 'information':
       return (
-        <div className='p-2 shrink-0'>
-          <img src={info_bell_icon} className='w-4 h-4 ' alt="Urgent Icon" />
+        <div className='p-1 ring-1 ring-white rounded-full shrink-0 bg-neutral-900 rotate-180'>
+          <img src={info_bell_icon} className='w-3 h-3 ' alt="Urgent Icon" />
         </div>
       );
     case 'action':
       return (
-        <div className='p-2 shrink-0'>
-        <img src={warning_bell_icon} className='w-4 h-4 ' alt="Urgent Icon" />
+        <div className='p-1 ring-1 ring-white rounded-full shrink-0 bg-yellow-200 '>
+        <img src={warning_bell_icon} className='w-3 h-3 ' alt="Urgent Icon" />
       </div>
       );
     default:
@@ -189,8 +135,6 @@ const handleFilterNotification = (value)=>{
 
 }
 
-  
- 
   return (
     <div className=" h-[48px] border-b p-2 w-full flex flex-row justify-between items-center bg-slate-50   border-slate-200">
 
@@ -211,7 +155,7 @@ const handleFilterNotification = (value)=>{
         disable={notificationData.length > 0 ? false: true}
         buttonText={
           <div className="p-1 relative ">
-      <span className={`${notificationData.length >0 ? 'block':'hidden'} absolute  flex h-2 w-2 right-1`}>
+      <span className={`${(notificationData.length > 0  && notificationData.some(notification => notification.isRead)) ? 'block':'hidden'} absolute  flex h-2 w-2 right-1`}>
   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-600 opacity-75"></span>
   <span className="relative inline-flex rounded-full h-2 w-2 bg-red-600"></span>
 </span>
@@ -231,23 +175,20 @@ const handleFilterNotification = (value)=>{
   <div className='space-y-1 overflow-x-auto p-2'>
 {notificationArray?.map((ele)=>(
   < >
-   <div  key={ele.name + "navbar"}  className={`   w-full h-fit ${ele.status === 'urgent' ? ' bg-gradient-to-t from-red-50/50 to-white  ' : ele.status ==='action' ? ' bg-gradient-to-t to-yellow-50/50 from-white  ': 'bg-gradient-to-t from-white to-indigo-50/50  '} bg-none flex w-[300px] gap-2 py-2  items-start  text-neutral-900  bg-gray-200/10 rounded-md hover:border-none p-1 cursor-pointer `}>
+   <div  key={ele.name + "navbar"}  className={`w-full h-fit ${ele.status === 'urgent' ? ' bg-gradient-to-t from-red-50/50 to-white  ' : ele.status ==='action' ? ' bg-gradient-to-t to-yellow-50/50 from-white  ': 'bg-gradient-to-t from-white to-indigo-50/50  '} bg-none flex w-[300px] gap-2 py-2  items-start  text-neutral-900  bg-gray-200/10 rounded-md hover:border-none p-2 cursor-pointer `}>
            
               {alertIcon(ele?.status)}
-             
             <div className='space-y-2  '>
               <p className='font-inter text-xs text-neutral-900 '>{ele?.message}</p>
               <p className='text-xs font-cabin text-neutral-700'>{formatDateAndTime(ele?.createdAt)}</p>
               </div>
               <div className='p-1 ring-1 ring-white bg-slate-100 h-6 w-6 shrink-0 flex items-center justify-center'>
-
               <img onClick={()=>handleIsReadNotification({
                 ...(ele?.messageId && { messageId: ele.messageId }),
                 ...(ele?.travelRequestId && { travelRequestId: ele.travelRequestId }),
                 ...(ele?.expenseHeaderId && { expenseHeaderId: ele.expenseHeaderId }),
-              
-})} src={cancel_black_icon}
- className='w-3 h-3 shrink-0 '/> 
+              })} src={cancel_black_icon}
+              className='w-3 h-3 shrink-0 '/> 
               </div>
           
             </div>
