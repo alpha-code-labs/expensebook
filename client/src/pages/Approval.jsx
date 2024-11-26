@@ -239,13 +239,6 @@ const handleVisible = ({travelRequestId,tripId,expenseHeaderId, action}) => {
       document.body.style.overflow = 'visible';
     }
   }, [visible || modalOpen]);
-
-  
- 
-  
-
-
-  
   
   const filterCashadvances = (cashadvances) => {
     if(searchQuery){
