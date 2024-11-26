@@ -291,7 +291,7 @@ export default function () {
                     return;
                 }
                 case 'hotels':{
-                    if(item.bkd_location && item.bkd_checkIn && item.bkd_checkOut && bkd_checkInTime && bkd_checkOutTime  && item.bookingDetails.billDetails.vendorName && item.bookingDetails.billDetails.taxAmount && item.bookingDetails.billDetails.totalAmount){
+                    if(item.bkd_location && item.bkd_checkIn && item.bkd_checkOut && item.bkd_checkInTime && item.bkd_checkOutTime  && item.bookingDetails.billDetails.vendorName && item.bookingDetails.billDetails.taxAmount && item.bookingDetails.billDetails.totalAmount){
                         formData_copy.itinerary[toSet][index].status = 'booked';
                     }
                 }
