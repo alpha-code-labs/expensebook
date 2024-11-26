@@ -67,96 +67,6 @@ const cashSchema = Joi.object({
   expenseHeaderId: Joi.string().required(),
 })
 
-//Expense Header Reports with status as pending Settlement updated to paid(Full Trip).
-// export const paidExpenseReports = async (req, res, next) => {
-// const [params, body] = await Promise.all([
-//   cashSchema.validateAsync(req.params),
-//   settlementSchema.validateAsync(req.body)
-// ])
-//   const { tenantId, travelRequestId, expenseHeaderId } = params;
-//   const { settlementBy } = body;
-
-//   console.log("Received Parameters:", { tenantId, travelRequestId, expenseHeaderId });
-//   console.log("Received Body Data:", { settlementBy });
-
-//   if (!tenantId || !travelRequestId || !expenseHeaderId || !settlementBy) {
-//     return res.status(400).json({ message: 'Missing required field' });
-//   }
-
-//   const status = {
-//     PENDING_SETTLEMENT:'pending settlement'
-//   };
-
-//   const newStatus ={
-//     PAID: 'paid',
-//   }
-
-//   const filter = {
-//     tenantId,
-//     travelRequestId,
-//     'tripSchema.travelExpenseData': {
-//       $elemMatch: {
-//         expenseHeaderId,
-//         'expenseHeaderStatus': status.PENDING_SETTLEMENT,
-//         actionedUpon:false,
-//       // $or: [
-//       //   { expenseHeaderId,'paidFlag': false, 'expenseHeaderStatus': status.PENDING_SETTLEMENT },
-//       //   { expenseHeaderId,'recoveredFlag': false, 'expenseHeaderStatus': status.PENDING_SETTLEMENT }
-//       // ]
-//     }
-//   }
-// }
-
-// const update = {
-//   $set: {
-//     'tripSchema.travelExpenseData.$[elem].settlementBy': settlementBy,
-//     'tripSchema.travelExpenseData.$[elem].actionedUpon': true,
-//     'tripSchema.travelExpenseData.$[elem].expenseHeaderStatus': newStatus.PAID,
-//     'tripSchema.travelExpenseData.$[elem].submissionDate': new Date(), // IMPORTANT --this need to be renamed as paidDate , for report extraction testing purpose added submission date
-//   }
-// }
-
-// const arrayFilters = {
-//   arrayFilters: [{ 'elem.expenseHeaderId': expenseHeaderId }],
-//   new: true
-// }
-
-//   try {
-//     const expenseReport = await Finance.findOne(filter);
-
-//     if (!expenseReport) {
-//       return res.status(404).json({ message: 'No matching document found' });
-//     }
-
-//     const {expenseAmountStatus} = expenseReport.tripSchema
-
-//     const {totalRemainingCash} = expenseAmountStatus
-
-//     const expenseHeaderIndex = expenseReport.tripSchema?.travelExpenseData.findIndex(
-//       (expense) => JSON.stringify(expense.expenseHeaderId) === JSON.stringify(expenseHeaderId)
-//     )
-
-//     if (expenseHeaderIndex === -1) {
-//       return res.status(404).json({ message: 'No matching cash advance found' });
-//     }
-
-//     const updateResult = await Finance.updateOne(
-//       filter,
-//       update,
-//       arrayFilters
-//     );
-
-//     if (updateResult.modifiedCount === 0) {
-//       return res.status(404).json({ message: 'No matching document found for update' });
-//     }
-
-//     console.log("Update successful:", updateResult);
-//     return res.status(200).json({ message: 'Update successful', result: updateResult });
-//   } catch (error) {
-//     console.error('Error updating cashAdvance status:', error.message);
-//     next(error)
-//   }
-// };
 
 export const paidExpenseReports = async (req, res, next) => {
   try {
@@ -177,8 +87,6 @@ export const paidExpenseReports = async (req, res, next) => {
     status: 'paid',
     }));
     }
-    // console.log("Received Parameters:", { tenantId, travelRequestId, expenseHeaderId });
-    // console.log("Received Body Data:", { getFinance });
 
     const status = {
       PENDING_SETTLEMENT: 'pending settlement',
@@ -247,7 +155,7 @@ export const paidExpenseReports = async (req, res, next) => {
 
     console.log("Update successful:", updatedExpenseReport);
     await sendUpdate(payload,options)
-    return res.status(200).json({ message: 'Update successful', result: updatedExpenseReport });
+    return res.status(200).json({ message: "Travel expense has been successfully settled.", result: updatedExpenseReport });
   } catch (error) {
     console.error('Error updating expense report status:', error.message);
     next(error); 

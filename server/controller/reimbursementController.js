@@ -186,7 +186,7 @@ export const paidNonTravelExpenseReports = async (req, res, next) => {
     }
 
     await sendUpdate(payload,options)
-    return res.status(200).json({ message: 'Expense Paid successfully', result: updateResult });
+    return res.status(200).json({ message: "Non-travel expense has been successfully settled.", result: updateResult });
 
   } catch (error) {
     console.error('Error updating non travel expense report status:', error.message);

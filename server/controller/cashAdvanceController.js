@@ -175,88 +175,6 @@ console.info(shortNames)
   }
 }
 
-//All Cash advances with status as pending settlement. 
-// export const paidCashAdvance = async (req, res) => {
-//   const { tenantId, travelRequestId, cashAdvanceId } = req.params;
-//   const { paidBy } = req.body;
-
-//   console.log("Received Parameters:", { tenantId, travelRequestId, cashAdvanceId });
-//   console.log("Received Body Data:", { paidBy });
-
-//   if (!tenantId || !travelRequestId || !cashAdvanceId || !paidBy) {
-//     return res.status(400).json({ message: 'Missing required field' });
-//   }
-
-//   const status = {
-//     PENDING_SETTLEMENT:'pending settlement'
-//   };
-
-//   const newStatus ={
-//     PAID: 'paid',
-//   }
-
-
-//   try {
-//     const travelRequest = await Finance.findOne({
-//       tenantId,
-//       travelRequestId,
-//       'cashAdvanceSchema.cashAdvancesData': {
-//         $elemMatch: {
-//           cashAdvanceId,
-//           cashAdvanceStatus: status.PENDING_SETTLEMENT,
-//           paidFlag: false
-//         }
-//       }
-//     });
-
-//     if (!travelRequest) {
-//       return res.status(404).json({ message: 'No matching document found' });
-//     }
-
-//     const cashAdvanceIndex = travelRequest.cashAdvanceSchema.cashAdvancesData.findIndex(
-//       (item) => JSON.stringify(item.cashAdvanceId) === JSON.stringify(cashAdvanceId)
-//     );
-
-//     if (cashAdvanceIndex === -1) {
-//       return res.status(404).json({ message: 'No matching cash advance found' });
-//     }
-
-//     const updateResult = await Finance.updateOne(
-//       {
-//         tenantId,
-//         travelRequestId,
-//         'cashAdvanceSchema.cashAdvancesData': {
-//           $elemMatch: {
-//             cashAdvanceId,
-//             cashAdvanceStatus: status.PENDING_SETTLEMENT,
-//             paidFlag: false
-//           }
-//         }
-//       },
-//       {
-//         $set: {
-//           'cashAdvanceSchema.cashAdvancesData.$[elem].paidBy': paidBy,
-//           'cashAdvanceSchema.cashAdvancesData.$[elem].paidFlag': true,
-//           'cashAdvanceSchema.cashAdvancesData.$[elem].cashAdvanceStatus': newStatus.PAID
-//         }
-//       },
-//       {
-//         arrayFilters: [{ 'elem.cashAdvanceId': cashAdvanceId }],
-//         new: true
-//       }
-//     );
-
-//     if (updateResult.modifiedCount === 0) {
-//       return res.status(404).json({ message: 'No matching document found for update' });
-//     }
-
-//     console.log("Update successful:", updateResult);
-//     return res.status(200).json({ message: 'Update successful', result: updateResult });
-//   } catch (error) {
-//     console.error('Error updating cashAdvance status:', error.message);
-//     return res.status(500).json({ message: 'Internal server error', error: error.message });
-//   }
-// };
 const cashSchema = Joi.object({
   tenantId:Joi.string().required(),
   travelRequestId:Joi.string().required(),
@@ -399,91 +317,13 @@ setSettlementDetails = settlementDetails.map(details => ({
     }
 
     await sendUpdate(payload,options)
-    return res.status(200).json({ message: 'cash Advance paid Successfully'});
+    return res.status(200).json({ message: "Cash advance has been successfully settled."});
   } catch (error) {
     console.error("paidCashAdvance error",error.message)
     next(error);
   }
 };
 
-// All cash advances as status Paid and Cancelled. 
-// export const recoverCashAdvance = async (req, res,next) => {
-//   const { tenantId, travelRequestId, cashAdvanceId } = req.params;
-//   const { recoveredBy } = req.body;
-
-//   console.log("Received Parameters:", { tenantId, travelRequestId, cashAdvanceId });
-//   console.log("Received Body Data:", { recoveredBy });
-
-//   if (!tenantId || !travelRequestId || !cashAdvanceId || !recoveredBy) {
-//     return res.status(400).json({ message: 'Missing required field' });
-//   }
-
-//   const status = {
-//     PAID_AND_CANCELLED: 'paid and cancelled',
-//     RECOVERED: 'recovered'
-//   };
-
-//   try {
-//     const travelRequest = await Finance.findOne({
-//       tenantId,
-//       travelRequestId,
-//       'cashAdvanceSchema.cashAdvancesData': {
-//         $elemMatch: {
-//           cashAdvanceId,
-//           cashAdvanceStatus: status.PAID_AND_CANCELLED,
-//           recoveryFlag: false
-//         }
-//       }
-//     });
-
-//     if (!travelRequest) {
-//       return res.status(404).json({ message: 'No matching document found' });
-//     }
-
-//     const cashAdvanceIndex = travelRequest.cashAdvanceSchema.cashAdvancesData.findIndex(
-//       (item) => JSON.stringify(item.cashAdvanceId) === JSON.stringify(cashAdvanceId)
-//     );
-
-//     if (cashAdvanceIndex === -1) {
-//       return res.status(404).json({ message: 'No matching cash advance found' });
-//     }
-
-//     const updateResult = await Finance.updateOne(
-//       {
-//         tenantId,
-//         travelRequestId,
-//         'cashAdvanceSchema.cashAdvancesData': {
-//           $elemMatch: {
-//             cashAdvanceId,
-//             cashAdvanceStatus: status.PAID_AND_CANCELLED,
-//             recoveryFlag: false
-//           }
-//         }
-//       },
-//       {
-//         $set: {
-//           'cashAdvanceSchema.cashAdvancesData.$[elem].recoveredBy': recoveredBy,
-//           'cashAdvanceSchema.cashAdvancesData.$[elem].recoveryFlag': true,
-//           'cashAdvanceSchema.cashAdvancesData.$[elem].cashAdvanceStatus': status.RECOVERED
-//         }
-//       },
-//       {
-//         arrayFilters: [{ 'elem.cashAdvanceId': cashAdvanceId }],
-//         new: true
-//       }
-//     );
-
-//     if (updateResult.modifiedCount === 0) {
-//       return res.status(404).json({ message: 'No matching document found for update' });
-//     }
-
-//     console.log("Update successful:", updateResult);
-//     return res.status(200).json({ message: 'Update successful', result: updateResult });
-//   } catch (error) {
-//     console.error('Error updating cashAdvance status:', error.message);
-//     next(error)
-//   }
-// };
 
 const status = {
   PAID_AND_CANCELLED: 'paid and cancelled',
@@ -570,7 +410,7 @@ export const recoverCashAdvance = async (req, res, next) => {
       }
 
     await sendUpdate(payload,options)
-    return res.status(200).json({ message: 'Recovery successful'});
+    return res.status(200).json({ message: "Cash advance has been successfully recovered."});
   } catch (error) {
     console.error('Error updating cash advance status:', error);
     next(error); // Pass the error to the error handling middleware
