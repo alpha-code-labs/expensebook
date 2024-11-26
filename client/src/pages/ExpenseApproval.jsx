@@ -48,13 +48,9 @@ const [actionData , setActionData]= useState({})
         console.log('prams',paramsElement)
         setShowModal((prev) => (!prev));  
         setActionData({action,...paramsElement})
-        
     }
     
-   
-
-   const handleConfirm=async()=>{
-    
+    const handleConfirm=async()=>{
     const {action,tenantId,empId,tripId,expenseHeaderId} = actionData
     console.log('action data ', actionData)
     let api;
@@ -83,16 +79,18 @@ const [actionData , setActionData]= useState({})
        setShowPopup(true) 
        setMessage(response)
        setTimeout(() => {setIsUploading(false);setMessage(null);setShowPopup(false)},5000);
-      
-    window.parent.postMessage('closeIframe', dashboardBaseUrl);
+       window.parent.postMessage('closeIframe', dashboardBaseUrl);
       
       } catch (error) {
         console.log('error',error.message)
-        setShowPopup(true)
         handleModalVisible()
-        setMessage(`Please retry again : ${error.message}`); 
-        setTimeout(() => {setIsUploading(false);setMessage(null);setShowPopup(false)},5000);
-    
+
+        // setShowPopup(true)
+        // setMessage(`Please retry again : ${error.message}`); 
+
+        window.parent.postMessage({message:"approval message posted", 
+        popupMsgData: { showPopup:true, message:error.message, iconCode: "102" }}, dashboardBaseUrl);
+        //setTimeout(() => {setIsUploading(false);setMessage(null);setShowPopup(false)},5000);
       }
       
     //   handleModalVisible()
@@ -124,8 +122,10 @@ const [actionData , setActionData]= useState({})
             console.log('expense data for approval fetched.');
           } catch (error) {
             console.log('Error in fetching expense data for approval:', error.message);
-            setLoadingErrMsg(error.message);
+            // setLoadingErrMsg(error.message);
             // setTimeout(() => {setLoadingErrMsg(null);setIsLoading(false)},5000);
+            window.parent.postMessage({message:"approval message posted", 
+            popupMsgData: { showPopup:true, message:error.message, iconCode: "102" }}, dashboardBaseUrl);
           }
         };
     
@@ -152,12 +152,7 @@ const [actionData , setActionData]= useState({})
 
       const categories = ['flights', 'cabs', 'hotels', 'trains', 'buses'];
 
-      
-    
   
-   
-  
-
   ///for  already booked expenses start
  
   let totalAllCategories = 0;
@@ -165,7 +160,6 @@ const [actionData , setActionData]= useState({})
   const calculateTotalAmount = (category)=>{
     if(alreadyBookedExpense[category]){
       const totalAmount = alreadyBookedExpense[category].reduce(
-        
         (accumlator , item)=> accumlator + parseFloat(item?.bookingDetails?.billDetails?.totalAmount),0 );
         return totalAmount.toFixed(2)
     }
@@ -173,7 +167,6 @@ const [actionData , setActionData]= useState({})
   }
 
   // for already booked expense ended
-
 
   const [groupedExpenses, setGroupedExpenses] = useState({});
   const [grandTotal, setGrandTotal] = useState(0);
@@ -220,17 +213,7 @@ const [actionData , setActionData]= useState({})
     //     else{
     //         document.body.style.overflow = 'auto'
     //     }
-    // },[showCancelModal])
-
-
-
-    
-  
-      
- 
-      
-
-      
+    // },[showCancelModal])     
 
   return <>
       {isLoading && <Error message={loadingErrMsg}/>}
@@ -427,17 +410,7 @@ expenseAmountStatus={expenseAmtDetails}
     {`${defaultCurrency?.shortName} ${Math.abs(expenseAmtDetails?.totalRemainingCash)?.toFixed(2) ?? "-"}`}
   </div>
 </div>
-   
-      </div>
-
-
-
-
-
-     
-
-
-
+</div>
             {/* {showConfimationForCancllingTR && <div className="fixed overflow-hidden max-h-4/5 flex justify-center items-center inset-0 backdrop-blur-sm w-full h-full left-0 top-0 bg-gray-800/60 scroll-none">
                 <div className='z-10 max-w-4/5 w-2/5 min-h-4/5 max-h-4/5 scroll-none bg-white-100  rounded-lg shadow-md'>
                     <div className="p-10">

@@ -73,8 +73,10 @@ export default function () {
             console.log('travel data for approval fetched.');
           } catch (error) {
             console.log('Error in fetching travel data for approval:', error.message);
-            setLoadingErrorMsg(error.message);
-            setTimeout(() => {setLoadingErrorMsg(null);setIsLoading(false)},5000);
+            // setLoadingErrorMsg(error.message);
+            window.parent.postMessage({message:"approval message posted" , 
+            popupMsgData: { showPopup:true, message:error.message, iconCode: "102" }}, dashboardBaseUrl);
+            //setTimeout(() => {setLoadingErrorMsg(null);setIsLoading(false)},5000);
           }
         };
     

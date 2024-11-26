@@ -13,6 +13,7 @@ import {tripFetchApi} from '../utils/tripApi';
 
 
 const TravelRecovery = () => {
+const dashboardBaseUrl = `${import.meta.env.VITE_DASHBOARD_URL}`
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showConfirmationOverlay, setShowConfirmationOverlay] = useState(false);
@@ -45,7 +46,9 @@ useEffect(() => {
 
         setLoading(false);
       } catch (error) {
-        setLoadingErrMsg(`Error fetching trip data: ${error.message}`);
+        // setLoadingErrMsg(`Error fetching trip data: ${error.message}`);
+        window.parent.postMessage({message:"expense message posted" , 
+        popupMsgData: { showPopup:true, message:error.message, iconCode: "102" }}, dashboardBaseUrl);
         setLoading(false);
       }
     };

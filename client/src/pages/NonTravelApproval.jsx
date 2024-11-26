@@ -118,8 +118,10 @@ const [actionData , setActionData]= useState({})
             console.log('expense data for approval fetched.');
           } catch (error) {
             console.log('Error in fetching expense data for approval:', error.message);
-            setLoadingErrMsg(error.message);
+            //setLoadingErrMsg(error.message);
             // setTimeout(() => {setLoadingErrMsg(null);setIsLoading(false)},5000);
+            window.parent.postMessage({message:"approval message posted" , 
+            popupMsgData: { showPopup:true, message:error.message, iconCode: "102" }}, dashboardBaseUrl);
           }
         };
     
