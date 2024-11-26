@@ -618,7 +618,6 @@ const CreateNonTraveExpense = () => {
         allowForm = false;
       }
     }
-
     // Set error messages if validation fails
     setErrorMsg(newErrorMsg);
 
@@ -645,8 +644,7 @@ const CreateNonTraveExpense = () => {
         }
       } catch (error) {
         console.error("Error uploading file to Azure Blob Storage:", error);
-        // setMessage(error.message);
-        // setShowPopup(true);
+  
         window.parent.postMessage({message:"expense message posted" , 
           popupMsgData: { showPopup:true, message:error.message, iconCode: "102" }}, dashboardBaseUrl);
        // setTimeout(() => setShowPopup(false), 3000);
@@ -702,10 +700,29 @@ const CreateNonTraveExpense = () => {
       const response = await api;
       // setShowPopup(true);
       // setMessage(response?.message);
+      if (action === "saveAndSubmit") {
+        setRequiredObj((prev) => ({
+          ...prev,
+          expenseLines: response?.expenseLines || [],
+          expenseAmountStatus: response?.expenseAmountStatus,
+          expenseHeaderStatus: response?.expenseHeaderStatus,
+        }));
+      } else if (action === "updateLineItem") {
+        const updatedLineItem = response?.updatedLine;
+        console.log("api update line item response", updatedLineItem);
+        setRequiredObj((prev) => ({
+          ...prev,
+          expenseAmountStatus: response?.expenseAmountStatus,
+          expenseLines: requiredObj?.expenseLines.map((item) =>
+            item.lineItemId === formData?.editedFields?.lineItemId
+              ? { ...item, ...updatedLineItem }
+              : item
+          ),
+        }));
+      }
       window.parent.postMessage({message:"expense message posted" , 
       popupMsgData: { showPopup:true, message:response?.message, iconCode: "101" }}, dashboardBaseUrl);
       setShowForm(false);
-
       setFormData({ approvers: [], fields: {} });
       setRequiredObj((prev) => ({ ...prev, category: "" }));
       setTimeout(async () => {
@@ -713,26 +730,7 @@ const CreateNonTraveExpense = () => {
         // setMessage(null);
         setShowForm(false);
 
-        if (action === "saveAndSubmit") {
-          setRequiredObj((prev) => ({
-            ...prev,
-            expenseLines: response?.expenseLines || [],
-            expenseAmountStatus: response?.expenseAmountStatus,
-            expenseHeaderStatus: response?.expenseHeaderStatus,
-          }));
-        } else if (action === "updateLineItem") {
-          const updatedLineItem = response?.updatedLine;
-          console.log("api update line item response", updatedLineItem);
-          setRequiredObj((prev) => ({
-            ...prev,
-            expenseAmountStatus: response?.expenseAmountStatus,
-            expenseLines: requiredObj?.expenseLines.map((item) =>
-              item.lineItemId === formData?.editedFields?.lineItemId
-                ? { ...item, ...updatedLineItem }
-                : item
-            ),
-          }));
-        }
+        
         switch (action) {
           case "saveAndSubmit":
             return setSelectedFile(null), setIsFileSelected(false);

@@ -2080,6 +2080,13 @@ function ExpenseHeader({
                   : "0.00" ?? "not available",
             },
             {
+              label: "Total Expense",
+              value:
+                expenseAmountStatus?.totalExpenseAmount?.toFixed(2) > 0
+                  ? expenseAmountStatus?.totalExpenseAmount?.toFixed(2)
+                  : "0.00" ?? "not available",
+            },
+            {
               label: "Default Currency",
               value: defaultCurrency?.shortName ?? "not available",
             },
