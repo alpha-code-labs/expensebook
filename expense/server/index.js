@@ -1,6 +1,5 @@
 import express from 'express';
 import cors from 'cors';
-import mongoose from 'mongoose';
 import nodeCron from 'node-cron';
 import dotenv from 'dotenv';
 import { mainFrontendRoutes } from './routes/mainFrontendRoutes.js';
@@ -13,6 +12,8 @@ import Expense from './models/tripSchema.js';
 import Reimbursement from './models/reimbursementSchema.js';
 import { getExpenseCategoryFields } from './ocr/categoryFields.js';
 import { calculateTotalCashAdvances } from './rabbitmq/messageProcessor.js/finance.js';
+import { closeRabbitMQConnection } from './rabbitmq/connection.js';
+import { closeMongoDBConnection, connectToMongoDB } from './db/db.js';
 // import logger from './logger/logger.js';
 
 // test
@@ -30,9 +31,66 @@ dotenv.config();
 const environment = process.env.NODE_ENV || 'development';
 console.log(`Running in ${environment} environment`);
 
-const mongoURI = process.env.mongoURI;
-
 const app = express();
+const port = process.env.PORT || 8083;
+
+let server;
+let shutdownInProgress = false;
+
+const shutdown = async (reason) => {
+  try {
+      if (shutdownInProgress) {
+          console.log('Shutdown already in progress...');
+          return;
+      }
+
+      shutdownInProgress = true;
+      console.log(`Shutdown initiated: ${reason}`);
+
+      const cleanupTasks = [];
+
+      if (typeof closeRabbitMQConnection === 'function') {
+          cleanupTasks.push(
+              closeRabbitMQConnection()
+                  .then(() => console.log('RabbitMQ connection closed'))
+                  .catch(err => console.error('RabbitMQ cleanup error:', err))
+          );
+      }
+
+      cleanupTasks.push(
+          closeMongoDBConnection()
+              .then(() => console.log('MongoDB connection closed'))
+              .catch(err => console.error('MongoDB cleanup error:', err))
+      );
+
+      if (server) {
+          cleanupTasks.push(
+              new Promise((resolve) => {
+                  server.close(() => {
+                      console.log('Server connections closed');
+                      resolve();
+                  });
+              })
+          );
+      }
+
+      const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Shutdown timeout')), 10000)
+      );
+
+      await Promise.race([
+          Promise.allSettled(cleanupTasks),
+          timeoutPromise
+      ]);
+
+      console.log('Cleanup completed');
+      process.exit(0);
+  } catch (error) {
+      console.error('Error during shutdown:', error);
+      process.exit(1);
+  }
+};
+
 
 // middleware
 app.use(express.json());
@@ -50,33 +108,92 @@ app.get('/test', (req,res) =>{
   res.send('welcome to alpha code labs ')
 })
 
-const mongodb = async () => {
-  try {
-    await mongoose.connect(mongoURI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
-    console.log('You are Connected to Mongodb');
-  } catch (error) {
-    console.error('Error connecting to Mongodb:', error);
-  }
-};
-
-mongodb();
-
-
 // Error handling middleware - Should be the last middleware
 app.use((err, req, res, next) => {
   handleErrors(err, req, res, next);
 });
 
-const port = process.env.PORT || 8083;
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
+
+const initializeServer = async () => {
+  try {
+      await Promise.all([
+        connectToMongoDB(),
+        startConsumer("expense")
+      ])
+
+      server = app.listen(port, () => {
+          console.log(`Server is running on port ${port}`);
+      });
+
+      server.on('error', (error) => {
+          console.error('Server error:', error);
+          shutdown('Server error').catch(console.error);
+      });
+
+  } catch (error) {
+      console.error('Initialization error:', error);
+      shutdown('Initialization failure').catch(console.error);
+  }
+};
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  shutdown('Unhandled Rejection').catch(console.error);
 });
 
-//RabbitMq
-startConsumer("expense");
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error);
+  shutdown('Uncaught Exception').catch(console.error);
+});
+
+process.on('SIGTERM', () => shutdown('SIGTERM').catch(console.error));
+process.on('SIGINT', () => shutdown('SIGINT').catch(console.error));
+
+// Start the server
+initializeServer().catch(console.error);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // (async () => {
 //   try {
