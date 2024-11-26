@@ -11,7 +11,7 @@ import { scheduleToFinanceBatchJob } from './schedulars/finance.js';
 import cookieParser from 'cookie-parser';
 import { scheduleToNotificationBatchJob } from './schedulars/notifications.js';
 import { closeMongoDBConnection, connectToMongoDB } from './db/db.js';
-import { closeRabbitMQConnection } from './rabbitmq/connection.js';
+import { closeRabbitMQConnection, getRabbitMQConnection } from './rabbitmq/connection.js';
 
 const environment = process.env.NODE_ENV == 'production' ? '.env.prod' : '.env';
 dotenv.config({path:environment});
@@ -122,7 +122,7 @@ app.use((err, req, res, next) => {
 });
 
 
-// BatchJobs
+// // BatchJobs
 scheduleToFinanceBatchJob()
 scheduleToNotificationBatchJob()
 
@@ -130,6 +130,7 @@ const initializeServer = async () => {
   try {
       await Promise.all([
         connectToMongoDB(),
+        getRabbitMQConnection(),
         consumeFromDashboardQueue(),
         startConsumer('dashboard')
       ])
