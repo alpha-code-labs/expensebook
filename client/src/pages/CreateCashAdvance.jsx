@@ -222,7 +222,7 @@ export default function(){
             //setShowPopup(false)
             //window.location.href = `${DASHBOARD_URL}/${tenantId}/${employeeId}/overview`
             window.parent.postMessage('closeIframe', DASHBOARD_URL);
-          }, 5000)
+          }, 0)
         }
   
       }catch(e){
@@ -273,7 +273,7 @@ export default function(){
           //window.location.href = `${DASHBOARD_URL}/${tenantId}/${employeeId}/overview`
           
           window.parent.postMessage('closeIframe', DASHBOARD_URL);
-        }, 5000)
+        }, 0)
       }
 
     }catch(e){console.log(e)}

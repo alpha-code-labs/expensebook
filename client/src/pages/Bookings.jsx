@@ -112,7 +112,7 @@ export default function () {
             if(res.err){
                 //setLoadingErrMsg(res.err)
                 window.parent.postMessage({message:"cash message posted" , 
-                popupMsgData: { showPopup:true, message:res.err, iconCode: "102" }}, DASHBOARD_URL);
+                popupMsgData: { showPopup:true, message:res.err, iconCode: "101" }}, DASHBOARD_URL);
 
                 return;
             }
@@ -523,17 +523,22 @@ export default function () {
 
         if(res.err){
             console.log(res.err)
-            setPrompt({showPrompt:true, promptMsg:res.err??'Values were not filled correctly. Please resubmit after filling the form correctly'})
+            //setPrompt({showPrompt:true, promptMsg:res.err??'Values were not filled correctly. Please resubmit after filling the form correctly'})
+            
+            window.parent.postMessage({message:"cash message posted" , 
+            popupMsgData: { showPopup:true, message:"Values were not filled correctly. Please resubmit after filling the form correctly", iconCode: "102" }}, DASHBOARD_URL);
             return
         }
 
-        setPrompt({showPrompt:true, promptMsg: 'Trave Request Booked'})
+        //setPrompt({showPrompt:true, promptMsg: 'Trave Request Booked'})
+        window.parent.postMessage({message:"cash message posted" , 
+        popupMsgData: { showPopup:true, message:"Travel Request Booked", iconCode: "102" }}, DASHBOARD_URL);
 
         setTimeout(()=>{
             //window.location.href = `${DASHBOARD_URL}/${formData.tenantId}/${formData.createdBy.empId}/overview`
             //window.location.href = `${DASHBOARD_URL}/${formData.tenantId}/${formData.assignedTo.empId}/bookings`
             window.parent.postMessage('closeIframe', DASHBOARD_URL);
-        }, 3000)
+        }, 0)
         
     }
 

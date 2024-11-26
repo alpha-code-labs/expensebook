@@ -75,13 +75,13 @@ export default function(){
     // setShowPopup(true)
 
     window.parent.postMessage({message:"cash message posted" , 
-    popupMsgData: { showPopup:true, message:"Advance cancelled", iconCode: "102" }}, DASHBOARD_URL);
+    popupMsgData: { showPopup:true, message:"Advance cancelled", iconCode: "101" }}, DASHBOARD_URL);
 
     //redirect to desktop after 5 seconds
     setTimeout(()=>{
-        setShowPopup(false)
+        //setShowPopup(false)
         window.location.href = `${DASHBOARD_URL}/${tenantId}/${employeeId}/overview`
-        }, 5000)
+        }, 0)
   }
 
   function spitUnderstandableStatus(status){

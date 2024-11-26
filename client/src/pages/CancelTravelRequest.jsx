@@ -82,13 +82,13 @@ export default function () {
         setMessage('Cancellation processed')
         setShowPopup(true)
         window.parent.postMessage({message:"cash message posted" , 
-        popupMsgData: { showPopup:true, message:"Cancellation processed", iconCode: "102" }}, DASHBOARD_URL);
+        popupMsgData: { showPopup:true, message:"Cancellation processed", iconCode: "101" }}, DASHBOARD_URL);
         //wait for 5 seconds
         setTimeOut(()=>{
             setShowPopup(false)
             //redirect to dashboard
             window.location.href = `${DASHBOARD_URL}/${tenantId}/${employeeId}/overview`
-        },5000)
+        },0)
     }
 
     const [isLoading, setIsLoading] = useState(true)
