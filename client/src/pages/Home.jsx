@@ -1,4 +1,4 @@
-import React, { useState,useEffect } from 'react'
+import React, { useState,useEffect } from 'react';
 import {  Routes, Route, useParams } from 'react-router-dom';
 import Navbar from '../components/common/Navbar';
 import Sidebar from '../components/common/Sidebar';
@@ -16,14 +16,31 @@ import { getEmployeeData_API, getEmployeeRoles_API, logoutApi } from '../utils/a
 import { useData } from '../api/DataProvider';
 import { handleLoginPageUrl } from '../utils/actionHandler';
 import Report from './Report';
+import PopupMessage from '../components/common/PopupMessage';
 
 const Home = () => {
 
+const message = "You are offline. Please check your internet connection."
 const {tenantId,empId}= useParams()
 const [sidebarOpen,setSidebarOpen]=useState(false);
+const {isOnline, employeeRoles, setEmployeeRoles, setEmployeeData, setRequiredData, employeeData,popupMsgData,initialPopupData,setPopupMsgData } = useData();
+
+useEffect(()=>{
+  if (!isOnline) {
+    setPopupMsgData(prev => ({...prev, showPopup:true, message, iconCode:"102"}))
+    
+  }
+  else
+  {
+    setPopupMsgData(initialPopupData);
+  }
+
+},[isOnline])
 
 useEffect(() => {
   // Function to update state based on screen width
+  
+
   const handleResize = () => {
     setSidebarOpen(window.innerWidth <= 768);
   };
@@ -37,13 +54,16 @@ useEffect(() => {
   };
 }, []);
 
+
+
 const [authToken , setAuthToken] = useState("authtoken");
 const [isLoading, setIsLoading] = useState({ loginData: false, roleData: true });
 const [loadingErrMsg, setLoadingErrMsg] = useState(null);
-const { employeeRoles, setEmployeeRoles, setEmployeeData, setRequiredData, employeeData } = useData();
+
 const [searchQuery , setSearchQuery] = useState('');
 
 const fetchData = async () => {
+
   try {
     // Conditionally fetch employee roles only if employeeRoles is null
     setLoadingErrMsg(null)
@@ -64,7 +84,8 @@ const fetchData = async () => {
     setIsLoading(prev => ({ ...prev, roleData: false })); // Stop loading for login data
   } catch (error) {
     console.error('Error fetching data:', error.message);
-    setLoadingErrMsg(error?.message);
+    setPopupMsgData({showPopup: true , message: error?.message , iconCode: "102"})
+    //setLoadingErrMsg(error?.message);
     // Stop both loadings in case of error
     //setIsLoading({ loginData: false, roleData: false });
   }
@@ -123,11 +144,9 @@ const fetchData = async () => {
 
      <div className='bg-slate-100'>
       <section>
-      <div className='flex flex-row '>
-     
-      
+      <div className='flex flex-row'>
       <div 
-     className={`fixed inset-0 z-10 md:static w-fit bg-indigo-50 min-h-screen   transform transition-all duration-300 ease-in-out ${
+      className={`fixed inset-0 z-10 md:static w-fit bg-indigo-50 min-h-screen   transform transition-all duration-300 ease-in-out ${
       sidebarOpen ? 'opacity-0 translate-x-[-100%]' : 'opacity-100 translate-x-0'
     }`}>
            <Sidebar setSidebarOpen={setSidebarOpen} fetchData={fetchData}  tenantId={tenantId} empId={empId}  />
@@ -142,7 +161,7 @@ const fetchData = async () => {
           <Route
             exact
             path="/overview"
-            element={<Overview fetchData={fetchData} loadingErrMsg={loadingErrMsg} setLoadingErrMsg={setLoadingErrMsg} isLoading={isLoading?.roleData} setIsLoading={setIsLoading} setAuthToken={setAuthToken} />}
+            element={<Overview fetchData={fetchData} loadingErrMsg={loadingErrMsg}  isLoading={isLoading?.roleData} setIsLoading={setIsLoading} setAuthToken={setAuthToken} />}
           />
           <Route
             path="/trip"
@@ -166,7 +185,7 @@ const fetchData = async () => {
           />
           <Route
             path="/settlement"
-            element={<Settlement  fetchData={fetchData}loadingErrMsg={loadingErrMsg} isLoading={isLoading?.roleData} setAuthToken={setAuthToken} />}
+            element={<Settlement  fetchData={fetchData} loadingErrMsg={loadingErrMsg} isLoading={isLoading?.roleData} setAuthToken={setAuthToken} />}
           />
           <Route
             path="/bookings"
@@ -187,10 +206,8 @@ const fetchData = async () => {
         
       </div>
       </section>
-
-       
-     
-   
+      <PopupMessage iconCode={popupMsgData.iconCode} showPopup={popupMsgData.showPopup} setShowPopup={setPopupMsgData} message={popupMsgData.message} initialPopupData={initialPopupData}/>
+      
     </div>
     }
   </>

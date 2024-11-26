@@ -8,10 +8,13 @@ import CommentBox from '../components/common/CommentBox';
 import { settleCashAdvanceApi, settleExpenseApi } from '../utils/api';
 import { useParams } from 'react-router-dom';
 import uploadFileToAzure from '../utils/azureBlob';
+import {useData} from '../api/DataProvider'
 
 
 
 const FinanceMS = ({ visible, setVisible, src,fetchData }) => {
+
+  const {initialPopupData,setPopupMsgData} = useData();
 
   const az_blob_container = import.meta.env.VITE_AZURE_BLOB_CONTAINER
   const storage_sas_token = import.meta.env.VITE_AZURE_BLOB_SAS_TOKEN
@@ -25,8 +28,8 @@ const FinanceMS = ({ visible, setVisible, src,fetchData }) => {
   const [modalOpen , setModalOpen]=useState(false);
   const [actionType, setActionType] = useState(true); 
   const [isUploading,setIsUploading]=useState(false);
-  const [showPopup, setShowPopup] = useState(false);
-  const [message, setMessage] = useState(null);
+  // const [showPopup, setShowPopup] = useState(false);
+  // const [message, setMessage] = useState(null);
   const [apiData, setApiData] = useState(null);
   const [comment, setComment]=useState("");
 
@@ -71,9 +74,8 @@ const FinanceMS = ({ visible, setVisible, src,fetchData }) => {
       }
     } catch (error) {
       console.error("Error uploading file to Azure Blob Storage:", error);
-      setMessage(error.message);
-      setShowPopup(true);
-      setTimeout(() => setShowPopup(false), 3000);
+      setPopupMsgData({showPopup:true, message: error.message, iconCode:"102"})
+      setTimeout(() => setPopupMsgData(initialPopupData), 3000);
       setIsUploading((prev) => ({ ...prev, [action]: { set: false, msg: "" } }));
       return;
     }
@@ -99,25 +101,25 @@ const FinanceMS = ({ visible, setVisible, src,fetchData }) => {
         const response = await api;
        
         setIsUploading(false);
-        setShowPopup(true);
-        setMessage(response);
+        // setShowPopup(true);
+        // setMessage(response);
+        setPopupMsgData({showPopup:true, message:response, iconCode: "101"});
         setTimeout(() => {
           fetchData()
-          setShowPopup(false);
+          setPopupMsgData(initialPopupData);
           setIsUploading(false);
-          setMessage(null);
           setModalOpen(false)
           setApiData(null)
           iframeRef.current.src = iframeRef.current.src;
           //window.location.reload();
         }, 3000);
       } catch (error) {
-        setShowPopup(true);
-        setMessage(error.message);
+        // setShowPopup(true);
+        // setMessage(error.message);
+        setPopupMsgData({showPopup:true, message:error.message, iconCode: "102"});
         setTimeout(() => {
           setIsUploading(false);
-          setMessage(null);
-          setShowPopup(false);
+          setPopupMsgData(initialPopupData);
         }, 3000);
       }
   
@@ -140,11 +142,13 @@ const FinanceMS = ({ visible, setVisible, src,fetchData }) => {
       if (event.origin === settlementBaseUrl ) {
         // Check the message content or identifier
         if(event.data.popupMsg){
-          setShowPopup(true)
-          setMessage(event.data.popupMsg)
+          // setShowPopup(true)
+          // setMessage(event.data.popupMsg)
+          setPopupMsgData({showPopup:true, message:event.data.popupMsg, iconCode:"101"})
           setTimeout(()=>(
-            setShowPopup(false),
-             setMessage(null)
+            // setShowPopup(false),
+            //  setMessage(null)
+            setPopupMsgData(initialPopupData)
           ),5000)
         }else{
 
@@ -255,7 +259,7 @@ const FinanceMS = ({ visible, setVisible, src,fetchData }) => {
         </div>}
       /> 
 
-<PopupMessage showPopup={showPopup} setShowPopup={setShowPopup} message={message}/>
+{/* <PopupMessage showPopup={showPopup} setShowPopup={setShowPopup} message={message}/> */}
     
      </>
      

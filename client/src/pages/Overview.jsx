@@ -1,6 +1,6 @@
 /* eslint-disable react/jsx-key */
 import React, { useState,useEffect } from 'react';
-import { airplane_1, briefcase, calender_icon, double_arrow,cab_purple,  house_simple, train, bus, cancel_round, cancel, modify, plus_icon, plus_violet_icon, receipt, down_arrow, chevron_down, down_left_arrow, calender_2_icon, airplane, material_flight_black_icon, material_cab_black_icon, material_hotel_black_icon, city_icon, empty_itinerary_icon, empty_travelExpense_icon, empty_nonTravelExpense_icon, expense_white_icon, expense_black_icon, plus_black_icon } from '../assets/icon';
+import { airplane_1, briefcase, modify, plus_icon, plus_violet_icon, receipt, down_arrow, chevron_down, down_left_arrow, calender_2_icon, airplane, material_flight_black_icon, material_cab_black_icon, material_hotel_black_icon, city_icon, empty_itinerary_icon, empty_travelExpense_icon, empty_nonTravelExpense_icon, expense_white_icon, expense_black_icon, plus_black_icon } from '../assets/icon';
 import {  extractTripNameStartDate, formatAmount,  getStatusClass, handleDownloadFile, sortTripsByDate, splitTripName, tripsAsPerExpenseFlag } from '../utils/handyFunctions';
 import { useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -19,7 +19,9 @@ const cashBaseUrl    = import.meta.env.VITE_CASHADVANCE_PAGE_URL;
 const tripBaseUrl    = import.meta.env.VITE_TRIP_BASE_URL;
 const expenseBaseUrl = import.meta.env.VITE_EXPENSE_PAGE_URL;
 
-function CardLayout({icon,title,subTitle,cardTitle,children}){
+function CardLayout({icon,title,subTitle,cardTitle,children})
+{
+
   return(
   <div className={`min-w-[400px] px-2  h-[340px]  bg-slate-100/50 shadow shadow-slate-300 rounded-2xl   d`} >
          <div className=" px-2  border-neutral-700 flex flex-row items-center justify-start gap-1.5 overflow-hidden py-2">
@@ -45,9 +47,9 @@ function CardLayout({icon,title,subTitle,cardTitle,children}){
 }
 
 
-const Overview = ({fetchData ,isLoading,setIsLoading,loadingErrMsg, setLoadingErrMsg}) => {
+const Overview = ({fetchData, isLoading, setIsLoading, loadingErrMsg}) => {
 
-  const { employeeData, requiredData } = useData(); 
+  const { employeeData, requiredData ,setPopupMsgData, initialPopupData} = useData(); 
   const [overviewData,setOverviewData]=useState(null); 
   const {tenantId,empId,page}= useParams(); 
   const [modalOpen , setModalOpen]=useState(false); 
@@ -60,9 +62,6 @@ const Overview = ({fetchData ,isLoading,setIsLoading,loadingErrMsg, setLoadingEr
   useEffect(()=>{
     fetchData()
   },[])
-
-
-
 
 useEffect(()=>{
   
@@ -83,9 +82,6 @@ const travelRequests     = overviewData?.allTravelRequests?.allTravelRequests?.m
 sortTripsByDate(travelRequests)
 sortTripsByDate(intransitTrips)
 sortTripsByDate(upcomingTrips)
-
-
-
 
 const ongoingTripForExpense = tripsAsPerExpenseFlag(intransitTrips,requiredData);
 console.log('raise expense trip', ongoingTripForExpense)
@@ -133,6 +129,14 @@ console.log('raise expense trip', ongoingTripForExpense)
       console.log('event',event)
       // Check if the message is coming from the iframe
       if (event.origin === travelBaseUrl || event.origin === cashBaseUrl || event.origin === tripBaseUrl || event.origin === expenseBaseUrl) {
+         if(event.data.popupMsgData)
+          {
+            const expensePopupData = event.data.popupMsgData;
+            setPopupMsgData(expensePopupData)
+            setTimeout(() => {
+              setPopupMsgData(initialPopupData); 
+            }, 5000);
+          }
         // Check the message content or identifier
         if (event.data === 'closeIframe') {
           setVisible(false)
@@ -157,6 +161,7 @@ console.log('raise expense trip', ongoingTripForExpense)
           setIframeURL(`${cashBaseUrl}/create/advance/${travelRequestId}`);
           setVisible(true);
         }
+        
       }
     };
     // Listen for messages from the iframe
@@ -345,12 +350,7 @@ const [expenseTabs , setExpenseTabs]=useState("travelExpense");
 {expenseType && <Button1 text={"Raise"} onClick={handleRaise} />}
 
 </div>   
-</div>
-
-
- 
-   
-            
+</div>    
           </div>
 
       </div>}

@@ -33,20 +33,19 @@ const Approval = ({searchQuery,isLoading, fetchData, loadingErrMsg}) => {
   const [textVisible,setTextVisible]=useState({cashAdvance:false});
   const [modalOpen , setModalOpen]=useState(false);
   
-  const [selectAll , setSelectAll]=useState([]); // for travelrequests
+  const [selectAll , setSelectAll]=useState([]);
   const [selectedLineItems , setSelectedLineItems]=useState([]);
   const [modalContentTitle , setModalContentTitle]=useState(null);
   const [actionType, setActionType] = useState(true); 
-  const [selectedRejReason, setSelectedRejReason]=useState(null);
-  const [expenseDetails, setExpenseDetails]=useState(null);
-  const [isUploading,setIsUploading]=useState(false);
-  const [showPopup, setShowPopup] = useState(false);
-  const [message, setMessage] = useState(null);
-  const [error , setError]= useState({
+  const [selectedRejReason, setSelectedRejReason] = useState(null);
+  const [expenseDetails, setExpenseDetails] = useState(null);
+  const [isUploading,setIsUploading] = useState(false);
+  // const [showPopup, setShowPopup] = useState(false);
+  // const [message, setMessage] = useState(null);
+  const [error , setError] = useState({
     travelRequestId: {set:false, message:""},
     rejectionReason:{set:false,message:""}
   }) 
-
 
   // short by status
   const sortByStatus = (array) => {
@@ -110,7 +109,7 @@ console.log('selected lineItems',selectedLineItems)
   
  
 
-  const { employeeData } = useData();
+  const { employeeData, setPopupMsgData, initialPopupData } = useData();
  
   const [approvalData, setApprovalData]=useState([]);
 
@@ -209,6 +208,11 @@ const handleVisible = ({travelRequestId,tripId,expenseHeaderId, action}) => {
           setVisible(false)
           window.location.reload()
         }
+        if(event.data.popupMsgData)
+          {
+            const expensePopupData = event.data.popupMsgData;
+            setPopupMsgData(expensePopupData)
+          }
       }
     };
     // Listen for messages from the iframe
@@ -383,22 +387,20 @@ const handleVisible = ({travelRequestId,tripId,expenseHeaderId, action}) => {
         const response = await api;
         console.log('responsemessage', response);
         setIsUploading(false);
-        setShowPopup(true);
-        setMessage(response);
+        setPopupMsgData(prev => ({...prev, message:response, showPopup:true ,iconCode:'101'}));
+        setModalOpen(false)
+
         setTimeout(() => {
-          setShowPopup(false);
+          setPopupMsgData(initialPopupData)
           setIsUploading(false);
-          setMessage(null);
           setModalOpen(false)
           fetchData()
         }, 3000);
       } catch (error) {
-        setShowPopup(true);
-        setMessage(error.message);
+        setPopupMsgData(prev => ({...prev, message:error.message, showPopup:true, iconCode:'102'}))
         setTimeout(() => {
           setIsUploading(false);
-          setMessage(null);
-          setShowPopup(false);
+          setPopupMsgData(initialPopupData);
         }, 3000);
       }
   
@@ -406,68 +408,7 @@ const handleVisible = ({travelRequestId,tripId,expenseHeaderId, action}) => {
     }
   };
   
-//   const handleConfirm = async( action)=>{
-    
-//     console.log('action from confirm ',action)
-//     let approve = []
-//     let reject =[]
-//     if(action === 'rejectExpense'){
-//       reject = selectedLineItems
-//       }
-//     if(action === 'approveExpense'){
-//       approve = selectedLineItems
-//     }
-    
-   
-//     const rejectionReason = selectedRejReason
-//     const expenseHeaderId = expenseDetails?.expenseHeaderId
-//      let api;
-//      if (action === 'rejectTrip' ){
-//       api = rejectTravelRequestApi({tenantId,empId,travelRequests:selectAll,rejectionReason})
-//     }
-//       if(action==='approveTrip'){
-//         api=approveTravelRequestApi({tenantId , empId, travelRequests:selectAll} )
-        
-//       }if (action === 'approveExpense' ){
-//         api = nonTravelExpenseApprovalActionApi({tenantId,empId,expenseHeaderId},{approve,reject})
 
-//       }if (action === 'rejectExpense' && rejectionReason?.rejectionReason ){
-//         console.log('rejectExpense hitted')
-//         api = nonTravelExpenseApprovalActionApi({tenantId,empId,expenseHeaderId},{approve,reject,rejectionReason})
-//       }
-
-// let validConfirm = true
-//  if((['rejectTrip','rejectExpense'].includes(action)) && selectedRejReason === null){
-//   setError((prev)=>({...prev, rejectionReason:{set:true, message:"Select the rejection reason."}}))
-//   validConfirm =false
-//  }else{
-//   setError((prev)=>({...prev, rejectionReason:{set:false, message:""}}))
-//  }
-
-// if(validConfirm){
-//   try {
-//      setIsUploading(true);
-//     // const response = await postTravelPreference_API({ tenantId, empId, formData });
-//    const response = await api
-//    console.log('responsemessage',response)
-//    setIsUploading(false)
-//    setShowPopup(true)
-//    setMessage(response)
-//    setTimeout(() => {setShowPopup(false);setIsUploading(false);setMessage(null) },3000);
-//     //,window.location.reload()
-    
-//   } catch (error) {
-//     // setLoadingErrorMsg(`Please retry again : ${error.message}`); 
-//     setShowPopup(true)
-//     setMessage(error.message)
-//     setTimeout(() => {setIsUploading(false);setMessage(null);setShowPopup(false)},3000);
-//   }
-
-//   // handleModalVisible()
-//   // setActionData({})
-//   setSelectedRejReason(null)
-// }
-// }
   
   
   const getTitle = () => {
@@ -521,28 +462,7 @@ const handleVisible = ({travelRequestId,tripId,expenseHeaderId, action}) => {
                                 </div>
                     </>
         );
-      // case 'rejectTrip':
-        // return (
-        //   <>
-        //     <p className="text-md px-4 text-start font-cabin text-neutral-600">
-        //       Please select the reason for rejection before proceeding.
-        //     </p>
-        //     <div className="mt-10">
-        //       <Select 
-        //         currentOption={selectedRejReason}
-        //         title='Please select the reason for reject'
-        //         placeholder='Select Reason'
-        //         options={rejectionOptions}
-        //         onSelect={(value) => setSelectedRejReason(value)}
-        //         error={error}
-        //       />
-        //     </div>
-        //     <div className="flex items-center gap-2 mt-10">
-        //       <Button1  text='Confirm'  />
-        //       <Button   text='Cancel'  />
-        //     </div>
-        //   </>
-        // );
+     
 
       case 'expenseDetails':
         return (
@@ -761,20 +681,14 @@ const handleVisible = ({travelRequestId,tripId,expenseHeaderId, action}) => {
                 <p className='header-text'>{trip?.createdBy?.name ?? <span className='text-center'>-</span>}</p>
               </div>
               </div>
-             
               <SmallAction text="Take Action" onClick={() => {openModal("expenseDetails");setExpenseDetails({...trip,expenseType:trip?.expenseType})}}/>
-            
-            
               </div>  
               {trip?.expenseType === "Travel Expense" &&
-             <div className='flex flex-row justify-between'>
-              
-              <TripName tripName={trip?.tripName}/>
-            
+             <div className='flex flex-row justify-between'>             
+              <TripName tripName={trip?.tripName}/>           
              </div>}
               </div>  
-                    <div className='mt-2 space-y-2'>
-                     
+                    <div className='mt-2 space-y-2'>                   
                         <div key={index} className='border border-slate-300 rounded-md px-2 py-1'>
                           <div className='flex flex-row justify-between items-center py-1 border-b border-slate-300 font-cabin font-xs'>
                           <div className='flex gap-2 items-center '>
@@ -785,16 +699,13 @@ const handleVisible = ({travelRequestId,tripId,expenseHeaderId, action}) => {
                       </div>
                     </div>
                     <div className='flex items-center justify-center'>
-              {/* <img src={info_icon} className='w-4 h-4'/> */}
-                
+              {/* <img src={info_icon} className='w-4 h-4'/> */}               
                 <ModifyBtn text="View Details" onClick={()=>{if(!disableButton(trip?.travelRequestStatus)){handleVisible(trip?.expenseType ==="Non Travel Expense" ? { expenseHeaderId:trip?.expenseHeaderId,  action:'nontravelExpense-approval-view' }:{tripId:trip?.tripId, expenseHeaderId:trip?.expenseHeaderId,  action:'travelExpense-approval-view' })}}}/>
                 </div> 
-                          </div>
-                          <ExpenseLine expenseLines={trip?.expenseLines}/>
-                         
-                        </div>
-                     
-                    </div>
+                </div>
+                <ExpenseLine expenseLines={trip?.expenseLines}/>   
+                </div>
+                </div>
                   </div>
                   </CardLayout>
                   </>
@@ -811,17 +722,13 @@ const handleVisible = ({travelRequestId,tripId,expenseHeaderId, action}) => {
         onClose={()=>closeModal}
         content={
           <div className='w-full h-auto'>
-         
           <TitleModal iconFlag={true} text={getTitle()} onClick={() => setModalOpen(false)}/>
-
           <div className="p-4">
             {getContent()}
-            
           </div>
         </div>}
       />  
     </div>
-   <PopupMessage showPopup={showPopup} setShowPopup={setShowPopup} message={message}/>
    </>
     }
     

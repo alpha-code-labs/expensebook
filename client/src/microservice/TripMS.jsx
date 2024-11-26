@@ -25,7 +25,7 @@ const TripMS = ({ visible, setVisible, src }) => {
     <AnimatePresence>
       {visible && (
         <div className="relative">
-          {/* Background overlay with fade-in/out animation */}
+
           <motion.div
             className="fixed inset-0 w-[100%] h-[100%] left-0 top-0 bg-black/70 z-10"
             initial="hidden"
@@ -35,7 +35,6 @@ const TripMS = ({ visible, setVisible, src }) => {
             transition={{ duration: 0.3 }}
           />
 
-          {/* Modal content with slide-down/up animation */}
           <motion.div
             className="fixed w-[100%] left-0 top-0 md:w-[80%] lg:w-[60%] xl:w-[50%] sm:h-[95%] h-[100%] md:left-[20%] xl:left-[25%] blur-0 px-6 sm:px-0 sm:rounded-b-lg shadow-lg z-[100] bg-white shadow-black/50"
             initial="hidden"

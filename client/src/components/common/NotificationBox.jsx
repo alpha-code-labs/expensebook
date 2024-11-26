@@ -5,7 +5,7 @@ const NotificationBox = ({ buttonText, children ,disable=false}) => {
   const dropdownRef = useRef(null);
 
   const handleToggle = (event) => {
-    event.stopPropagation(); // Prevent the event from bubbling up
+    event.stopPropagation(); 
     setIsOpen(prevState => !prevState);
   };
 
