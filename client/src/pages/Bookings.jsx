@@ -532,13 +532,13 @@ export default function () {
 
         //setPrompt({showPrompt:true, promptMsg: 'Trave Request Booked'})
         window.parent.postMessage({message:"cash message posted" , 
-        popupMsgData: { showPopup:true, message:"Travel Request Booked", iconCode: "102" }}, DASHBOARD_URL);
+        popupMsgData: { showPopup:true, message:"Travel Request Booked", iconCode: "101" }}, DASHBOARD_URL);
 
         setTimeout(()=>{
             //window.location.href = `${DASHBOARD_URL}/${formData.tenantId}/${formData.createdBy.empId}/overview`
             //window.location.href = `${DASHBOARD_URL}/${formData.tenantId}/${formData.assignedTo.empId}/bookings`
             window.parent.postMessage('closeIframe', DASHBOARD_URL);
-        }, 0)
+        }, 100)
         
     }
 
