@@ -412,7 +412,7 @@ export const BookExpense = async (req, res) => {
         // getHRData = {travelAllocationFlags};
       } catch (error) {
         console.error('Error in getExpenseRelatedHrData:', error);
-        return res.status(500).json({ message: 'Server error' });
+        return res.status(500).json({ message: 'Server Error' });
       }
   
       // Destructuring additional details
@@ -864,7 +864,7 @@ export const onSaveExpenseLine = async (req, res) => {
       ])
 
       return res.status(200).json({
-        message: 'Expense line updated successfully.',
+        message: "The expense line has been recorded.",
         travelExpenseData,
         expenseAmountStatus,
       })
@@ -910,7 +910,7 @@ export const onSaveExpenseLine = async (req, res) => {
       ])
 
         return res.status(200).json({
-          message: 'Expense line added successfully.',
+          message: "The expense line has been recorded.",
           expenseLineId,
           expenseLine,
           expenseAmountStatus,
@@ -1252,7 +1252,7 @@ if (isPersonalExpense) {
     ])
     
       return res.status(200).json({
-        message: 'Expense line updated successfully.',
+        message:"The expense line has been updated.",
         travelExpenseData,
         expenseAmountStatus:getUpdatedStatus,
       })
@@ -1409,7 +1409,7 @@ export const onSaveAsDraftExpenseReport = async (req, res) => {
       ])
 
   // Process the updated expenseReport if needed
-      return  res.status(200).json({ message: 'Expense report status updated as draft' });
+      return  res.status(200).json({ message: "The expense report has been saved as a draft."});
     } 
     } catch (error) {
       console.error('An error occurred while saving the expense header:', error);
@@ -1612,7 +1612,7 @@ export const onSubmitExpenseHeader = async (req, res) => {
       sendToOtherMicroservice(payload, action, 'reporting', comments)
     ]);
 
-    return res.status(200).json({ message: 'Your Expense report submitted successfully' });
+    return res.status(200).json({ message: "The expense report has been submitted" });
   } catch (error) {
     console.error('An error occurred while updating the expense header:', error);
     return res.status(500).json({ error: 'An error occurred while updating the expense header.' });
@@ -1713,7 +1713,7 @@ export const cancelAtHeaderLevelForAReport = async (req, res) => {
         }
 
         // Process the updated expenseReport if needed
-        return res.status(200).json({ success: true, message:"Your expense Report deleted Successfully" });
+        return res.status(200).json({ success: true, message:"The expense report has been deleted."});
       } else{
         return res.status(404).json({ success: false, message:"Your expense report deletion failed"})
        }
@@ -1797,7 +1797,7 @@ if(isApproval){
 }
 
 // Process the updated expenseReport if needed
-return res.status(200).json({ success: true, message: 'Expense Report canceled successfully.' });
+return res.status(200).json({ success: true, message: "The expense report has been deleted." });
   } else{
     return res.status(404).json({ message: 'Error occured' })
   }
@@ -1931,9 +1931,9 @@ export const cancelAtLine = async (req, res) => {
           sendToOtherMicroservice(payload, action, 'trip', comments),
           sendToOtherMicroservice(payload,action,'reporting',comments)
         ])
-  
+        
         // Process the updated expenseReport if needed
-        return res.status(200).json({ success: true, travelExpenseData, expenseAmountStatus, message:"Your expense deleted Successfully" });
+        return res.status(200).json({ success: true, travelExpenseData, expenseAmountStatus, message:"The expense line has been deleted." });
       } else{
         return res.status(404).json({ success: false, message:"Your expense deletion failed"})
        }

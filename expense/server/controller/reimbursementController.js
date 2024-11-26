@@ -701,7 +701,7 @@ const saveReimbursementExpenseLine = async (req, res) => {
         console.log("expenseAmountStatus - on save expense Line", expenseAmountStatus)
         return res.status(200).json({
           success: true,
-          message: `expense line saved successfully by ${name} `,
+          message: "The expense line has been recorded.",
           expenseHeaderStatus,
           expenseAmountStatus,
           expenseLines
@@ -820,7 +820,7 @@ const editReimbursementExpenseLine = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: `Expense line saved successfully by ${name}`,
+      message: "The expense line has been updated.",
       expenseAmountStatus: updatedDocument.expenseAmountStatus,
       updatedLine: savedLineItem,
     });
@@ -903,7 +903,7 @@ const draftReimbursementExpenseLine = async (req, res) => {
 
     const response = {
       success: true,
-      message: `${name}, your expense report is saved as draft.`
+      message: "The expense report has been saved as a draft."
     };
 
     return res.status(200).json(response);
@@ -997,7 +997,7 @@ const submitReimbursementExpenseReport = async (req, res) => {
 
     const response = {
       success: true,
-      message: `${name}, your expense report is submitted.`
+      message: "The expense report has been submitted for approval."
     };
 
     return res.status(200).json(response);
@@ -1095,7 +1095,7 @@ const cancelReimbursementReport = async (req, res) => {
 
     await sendToMicroservices(payload, action, comments, source, onlineVsBatch, isApproval);
 
-    return res.status(200).json({ success: true, message: `Expense report deleted successfully ${name}` });
+    return res.status(200).json({ success: true, message: "The expense report has been deleted."});
   } catch (error) {
     return res.status(500).json({ success: false, message: 'Internal server error' });
   }
@@ -1198,7 +1198,7 @@ const cancelReimbursementReportLine = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: `Expense lines deleted successfully by ${name}`,
+      message: "The expense line has been deleted.",
       expenseAmountStatus
     });
   } catch (error) {
