@@ -282,11 +282,11 @@ export const financeSchema = Joi.object({
 
 export const sendUpdate = async(payload,options) => {
   try{
-    const {action,comments, includeTrip=false,includeCash=false, includeNonTravel=false} = options
+    const {action,comments, includeExpense=false,includeCash=false, includeNonTravel=false} = options
     const services = ['dashboard','reporting']
 
-    if(includeTrip){
-      services.push('trip','expense')
+    if(includeExpense){
+      services.push('expense')
     }
 
     if(includeCash){
@@ -378,9 +378,9 @@ setSettlementDetails = settlementDetails.map(details => ({
 
     const { travelRequestStatus} = updateResult.cashAdvanceSchema.travelRequestData
 
-    let includeTrip = false
+    let includeExpense = false
     if(travelRequestStatus =='booked'){
-      includeTrip = true
+      includeExpense = true
     }
 
     const payload = {
@@ -395,7 +395,7 @@ setSettlementDetails = settlementDetails.map(details => ({
     action :'settle-ca',
     comments:'cash advance paid by finance',
     includeCash:'true',
-    includeTrip
+    includeExpense
     }
 
     await sendUpdate(payload,options)
@@ -550,9 +550,9 @@ export const recoverCashAdvance = async (req, res, next) => {
 
     const { travelRequestStatus } = updatedTravelRequest.cashAdvanceSchema.travelRequestData
 
-    let includeTrip = false
+    let includeExpense = false
     if(travelRequestStatus =='booked'){
-      includeTrip = true
+      includeExpense = true
     }
     console.log("Update successful:", updatedTravelRequest);
 
@@ -566,7 +566,7 @@ export const recoverCashAdvance = async (req, res, next) => {
       action :"recover-ca",
       comments:'cash advance recovered by finance',
       includeCash:'true',
-      includeTrip,
+      includeExpense,
       }
 
     await sendUpdate(payload,options)
