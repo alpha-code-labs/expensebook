@@ -232,7 +232,7 @@ async function approveAll(req,res){
 
       if(reports){
         console.log("approveAll promise", reports)
-        return res.status(200).json({ success:true , message: "Approved Successfully !!", reports: reports.flat()})   
+        return res.status(200).json({ success:true , message: "The travel request has been approved.", reports: reports.flat()})   
       } 
       }catch(error){
      console.error('error', error.message)

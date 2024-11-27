@@ -35,7 +35,7 @@ export const mainRouter = express.Router();
 // Use the JWT verification middleware for all routes except the specified ones
 mainRouter.use("/role",  roleBasedRouter);
 mainRouter.use("/travel-admin",  travelAdminRoutes);
-mainRouter.use("/profile", verifyJwt, profileRouter);
+mainRouter.use("/profile", profileRouter);
 mainRouter.use('/bell', notificationRouter)
 
 // No JWT verification for the following routes
