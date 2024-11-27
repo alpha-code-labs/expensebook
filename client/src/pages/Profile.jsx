@@ -165,16 +165,15 @@ const Profile = ({fetchData}) => {
     <>
       {isLoading && <Error message={loadingErrMsg} />}
       {!isLoading && 
-        <div className="w-full min-h-screen bg-white px-4 sm:px-6 md:px-12 lg:px-24 py-8">
+        <div className="w-full min-h-screen bg-white px-4 sm:px-6 md:px-12 lg:px-7 py-6">
           <div className="flex flex-col h-full">
             {/* Header Section */}
             <div className="flex rounded-t-[16px] bg-slate-50 border border-slate-300 flex-col sm:flex-row justify-between px-4 py-5 mb-4">
               <div className="inline-flex gap-2 p-4 font-cabin text-base font-medium items-center mb-2 sm:mb-0">
-                <img src={arrow_left} alt="arrow-left" className="w-5 h-5 mr-2" />
                 <p>Your Profile</p>
               </div>
 
-              <div className="w-full sm:w-auto">
+              <div className="flex items-center w-full sm:w-auto">
                 <Button 
                   onClick={handleSaveProfile} 
                   text='Save' 
