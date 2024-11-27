@@ -254,25 +254,20 @@ export default function({addedItineraries, bookedItineraryIds, modifiedTripsIds,
                                 </div>
                             )
                         })}
-                            
-                                    
+                                                         
                         { selectedTravelAllocationHeaders && selectedTravelAllocationHeaders.length == 0 && 
                         <div className='mt-6 flex gap-4'>
                             <input type='radio' />
                             <p className='text-zinc-800 text-sm font-medium font-cabin'>Not Sure</p>
-                        </div>}
-                        
+                        </div>} 
                     </div> }
-
                     </div>
 
                     <div className='my-8 w-full flex justify-end items-center'>
-                       
                         <Button 
-                           
-                            variant='fit'
-                            text='Submit' 
-                            onClick={handleSubmit} />
+                        variant='fit'
+                        text='Submit' 
+                        onClick={handleSubmit} />
                     </div>
                 </div> 
             </div>
