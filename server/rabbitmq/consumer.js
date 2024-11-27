@@ -39,23 +39,23 @@ export async function startConsumer(receiver) {
  const queue = `q.${receiver}`;
  const routingKey = `rk.${receiver}`;
  
- console.log(`Asserting exchange: ${exchangeName}`);
+//  console.log(`Asserting exchange: ${exchangeName}`);
  await channel.assertExchange(exchangeName, 'direct', { durable: true });
- console.log(`Asserting queue: ${queue}`);
+//  console.log(`Asserting queue: ${queue}`);
  await channel.assertQueue(queue, { durable: true });
- console.log(`Binding queue ${queue} to exchange ${exchangeName}`);
+//  console.log(`Binding queue ${queue} to exchange ${exchangeName}`);
  await channel.bindQueue(queue, exchangeName, routingKey);
- console.log('listening for messages. To exit press CTRL+C');
+//  console.log('listening for messages. To exit press CTRL+C');
  
    channel.consume(queue, async (msg) => {
        if (msg && msg.content) {
 
      const content = JSON.parse(msg.content.toString());
 
-     console.log(`coming from ${content.headers?.source} meant for ${content.headers?.destination}`)
+    console.log(`coming from ${content.headers?.source} meant for ${content.headers?.destination}`)
      //console.log('payload', content?.payload)
-     console.log('payload', content?.payload)
-     console.log('action', content?.headers?.action)
+    //  console.log('payload', content?.payload)
+    console.log('action', content?.headers?.action)
      const payload = content?.payload
      const source = content?.headers?.source
      const action = content?.headers?.action
@@ -148,25 +148,25 @@ export async function startConsumer(receiver) {
           case 'cash':
             switch (action) {
               case 'full-update':
-                console.log('trying to update CashAdvanceSchema')
+               // console.log('trying to update CashAdvanceSchema')
               const res3 = await fullUpdateCash(payload)
               handleMessageAcknowledgment(channel, msg, res3);
                 break;
             
               case 'full-update-batch-job':
-                console.log('trying to update CashAdvanceSchema')
+               // console.log('trying to update CashAdvanceSchema')
                 const res4 = await fullUpdateCashBatchJob(payload)
                 handleMessageAcknowledgment(channel, msg, res4);
                 break;
               
               case 'status-update-batch-job':
-                console.log('trying to update CashAdvanceSchema')
+               // console.log('trying to update CashAdvanceSchema')
                 const res5 = await cashStatusUpdatePaid(payload)
                 handleMessageAcknowledgment(channel, msg, res5);
                 break;
 
               case 'onceCash':
-                  console.log('trying to update CashAdvanceSchema')
+                 // console.log('trying to update CashAdvanceSchema')
                   const res51 = await onceCash(payload)
                   handleMessageAcknowledgment(channel, msg, res51);
                   break;

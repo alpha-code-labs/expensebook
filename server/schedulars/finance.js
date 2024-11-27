@@ -78,7 +78,7 @@ const updateSentToFinanceStatus = async (settlementsFilter,reimbursementFilter) 
     // Perform bulk write operation
     const result2 = await REIMBURSEMENT.bulkWrite(bulkOps2);
     
-    console.log('Modified documents:', result.modifiedCount , result2.modifiedCount);
+    // console.log('Modified documents:', result.modifiedCount , result2.modifiedCount);
   } catch (error) {
     console.error('Error updating documents:', error);
   }
@@ -141,7 +141,7 @@ const processPendingSettlements = (dashboardDocs, reimbursementDocs) => {
     }
   });
 
-  console.log("reimbursementDocs finance", reimbursementDocs)
+  // console.log("reimbursementDocs finance", reimbursementDocs)
   reimbursementDocs.forEach(doc => {
     if (doc.expenseHeaderStatus === 'pending settlement') {
       pendingSettlements.pendingReimbursementSettlements.push(doc);
@@ -170,7 +170,7 @@ const financeBatchJob = async () => {
       'batch'
     );
 
-    console.log("Settlements sent to finance:", payload);
+    // console.log("Settlements sent to finance:", payload);
     await updateSentToFinanceStatus({ 
       $or: [
         { 'cashAdvanceSchema.cashAdvancesData.actionedUpon': false },
@@ -191,15 +191,15 @@ const financeBatchJob = async () => {
 const scheduleToFinanceBatchJob = () => {
     const schedule = process.env.SCHEDULE_TIME??'*/5 * * * * *';
     cron.schedule(schedule, async () => {
-      console.log('Running Finance batchJob...');
+      // console.log('Running Finance batchJob...');
       try {
         await financeBatchJob();
-        console.log('Finance batchJob completed successfully.');
+        // console.log('Finance batchJob completed successfully.');
       } catch (error) {
         console.error('Error running Finance batchJob :', error);
       }
     });
-    console.log('scheduled Send to Finance batchJob ')
+    // console.log('scheduled Send to Finance batchJob ')
 }
 
 

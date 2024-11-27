@@ -125,7 +125,7 @@ function getAddALegItinerary(itinerary) {
 
 const getEmployeeRoles = async (tenantId, empId) => {
 
-    console.log("tenantId type", typeof tenantId)
+    // console.log("tenantId type", typeof tenantId)
     const hrDocument = await HRMaster.findOne({
         tenantId,
         'employees.employeeDetails.employeeId': empId,
@@ -147,7 +147,7 @@ const roleBasedLayout = async (req, res) => {
     let { tenantId,empId} = req.params
 
     const { error, value} = employeeSchema.validate({tenantId,empId})
-    console.log("jwt in controller - req.user",JSON.stringify(req.user,'',2))
+    // console.log("jwt in controller - req.user",JSON.stringify(req.user,'',2))
 
     if(error){
         return res.status(400).json({error: error.details[0].message})
@@ -182,7 +182,7 @@ const getDashboardViews = async (tenantId, empId) => {
 
         const applicableRoles = Object.keys(employeeRoles).filter(role => employeeRoles[role]);
 
-        console.log("applicableRoles", applicableRoles)
+        // console.log("applicableRoles", applicableRoles)
 
         const dashboardViews = await Promise.all(applicableRoles.map(async role => {
             try {
@@ -257,7 +257,7 @@ const { completedFormValidations, ...getExpense} = expense
 };
 
 const getOverView = async(tenantId,empId) => {
-    console.log("getOverView",tenantId,empId)
+    // console.log("getOverView",tenantId,empId)
 try{
 
 const getAllTravelRequests = await dashboard.find({
@@ -912,7 +912,7 @@ const allTransitTravelTypes = new Set()
           const rejectedTrips = tripDocs
           .filter(trip => trip?.tripSchema?.tripStatus === 'rejected')
           .flatMap(trip => {
-              console.log("travelExpenseData", trip.tripSchema.travelExpenseData);
+            //   console.log("travelExpenseData", trip.tripSchema.travelExpenseData);
               return trip.tripSchema.travelExpenseData.map(({ tripId, tripNumber, expenseHeaderId, expenseHeaderNumber, expenseAmountStatus }) => ({
                   tripId,
                   tripPurpose: trip.tripSchema.tripPurpose,
@@ -1560,7 +1560,7 @@ const managerLayout = async (tenantId,empId) => {
  * @throws {Error} - If there is an error in fetching approvals for the dashboard.
  */
 const approvalsForManager = async (tenantId, empId) => {
-    console.log("entering manager - approvals", tenantId, empId);
+    // console.log("entering manager - approvals", tenantId, empId);
     try {
         const [approvalDoc, reimbursementReports] = await Promise.all([
             fetchApprovalDocuments(tenantId, empId),
@@ -1743,7 +1743,7 @@ const approvalsForManager = async (tenantId, empId) => {
                 return uniqueItems;
             }, {}));
     
-            console.log("travelExpenseReports", approvalDoc.length)
+            // console.log("travelExpenseReports", approvalDoc.length)
     
             travelAndCash = [ ...filteredTravelWithCash, ...cashAdvanceRaisedLater,]
             trips =[...addALeg]
@@ -2153,7 +2153,7 @@ const gradeForEmployee = async (empId) => {
 
 const businessAdminLayout = async (tenantId, empId) => {
     try {
-console.log("verified business admin layout", tenantId, empId);
+// console.log("verified business admin layout", tenantId, empId);
 
             const bookingDoc = await dashboard.find({
                 tenantId,

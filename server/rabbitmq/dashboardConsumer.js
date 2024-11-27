@@ -8,22 +8,22 @@ import { getRabbitMQConnection } from './connection.js';
 dotenv.config();
 
 export const consumeFromDashboardQueue = async () => {
-  console.log("sync - consumeFromDashboardQueue");
+  // console.log("sync - consumeFromDashboardQueue");
   try {
-     console.log('Connecting to RabbitMQ...');
+    //  console.log('Connecting to RabbitMQ...');
      const connection = await getRabbitMQConnection();
      const channel = await connection.createConfirmChannel();
-     console.log('Connected to RabbitMQ.');
+    //  console.log('Connected to RabbitMQ.');
      const exchangeName = 'amqp.dashboard';
      const queue = 'sync';
  
-     console.log(`Asserting exchange: ${exchangeName}`);
+    //  console.log(`Asserting exchange: ${exchangeName}`);
      await channel.assertExchange(exchangeName, 'direct', { durable: true });
  
-     console.log(`Asserting queue: ${queue}`);
+    //  console.log(`Asserting queue: ${queue}`);
      await channel.assertQueue(queue, { durable: true });
  
-     console.log(`Binding queue ${queue} to exchange ${exchangeName}`);
+    //  console.log(`Binding queue ${queue} to exchange ${exchangeName}`);
      await channel.bindQueue(queue, exchangeName, '');
  
      channel.consume(queue, async (msg) => {
@@ -38,8 +38,8 @@ export const consumeFromDashboardQueue = async () => {
 
            // Process only messages with type 'new'
            if (headers.type === 'new') {
-             console.log("Processing message of type 'new'", payload);
-             console.log("Headers:", headers, "Source:", source, "Need Confirmation:", isNeedConfirmation);
+            //  console.log("Processing message of type 'new'", payload);
+            //  console.log("Headers:", headers, "Source:", source, "Need Confirmation:", isNeedConfirmation);
 
              // Determine the confirmation status based on the success of the database update
              let success = false;

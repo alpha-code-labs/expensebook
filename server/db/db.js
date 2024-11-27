@@ -12,7 +12,7 @@ export const connectToMongoDB = async () => {
         }
 
         const mongodb_url = process.env.MONGODB_URI;
-        console.log("Connecting to MongoDB ...");
+        // console.log("Connecting to MongoDB ...");
         
         const options = {
             serverSelectionTimeoutMS: 5000,
@@ -20,7 +20,7 @@ export const connectToMongoDB = async () => {
         };
 
         await mongoose.connect(mongodb_url, options);
-        console.log("Connected to MongoDB");
+        // console.log("Connected to MongoDB");
         return mongoose.connection;
     } catch (e) {
         console.error("MongoDB connection error:", e);

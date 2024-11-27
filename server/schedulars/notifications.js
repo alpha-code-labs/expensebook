@@ -274,7 +274,7 @@ const createNotificationMessage = (trip, daysUntilTrip) => {
 const scheduleToNotificationBatchJob = () => {
     const schedule = process.env.SCHEDULE_TIME ?? '*/5 * * * * *';
     cron.schedule(schedule, async () => {
-        console.log('Running Notification batchJob...');
+        // console.log('Running Notification batchJob...');
         try {
             const list = await HRMaster.find().select({'tenantId': 1, '_id': 0});
             const tenantIds = list.map(doc => doc.tenantId.toString());
@@ -289,12 +289,12 @@ const scheduleToNotificationBatchJob = () => {
             );
 
             await Promise.all(notificationPromises);
-            console.log('Notification batchJob completed successfully.');
+            // console.log('Notification batchJob completed successfully.');
         } catch (error) {
             console.error('Error running NotificationBatchJob:', error);
         }
     });
-    console.log('Scheduled Notification batchJob to run successfully.');
+    // console.log('Scheduled Notification batchJob to run successfully.');
 };
 
 
@@ -444,7 +444,7 @@ const getApprovalReports = async (tenantId, now, futureDate, pastDate) => {
 
 const setManagerNotifications = async (tenantId) => {
     try {
-        console.info("in notification 0 manager");
+        // console.info("in notification 0 manager");
         const { now, futureDate, pastDate } = calculateFutureAndPastDates(NOTIFICATION_DAYS);
 
         const [approvalDoc, nonTravelExpenseReports] = await Promise.all([
@@ -473,7 +473,7 @@ const setManagerNotifications = async (tenantId) => {
                 const travelRequestSchema = approval.travelRequestSchema;
 
                 if (!travelRequestSchema || !travelRequestSchema.approvers) {
-                    console.warn("No travelRequestSchema or approvers found for approval:", approval);
+                    // console.warn("No travelRequestSchema or approvers found for approval:", approval);
                     return false;
                 }
         
@@ -509,9 +509,7 @@ const setManagerNotifications = async (tenantId) => {
                 })
             );
         
-        } else {
-            console.warn("No approval documents found.");
-        }
+        } 
         
 
         if (approvalDoc.length > 0) {
@@ -731,7 +729,7 @@ const createNotificationForManager = async (reports) => {
     
                 await Promise.all(notificationPromises);
     
-                console.log('All notifications processed successfully.');
+                // console.log('All notifications processed successfully.');
             } catch (error) {
                 console.error('Error processing notifications:', error);
             }
@@ -762,7 +760,7 @@ const createNotificationForManager = async (reports) => {
                     return result
                 });
 
-                console.log('All notifications processed successfully.');
+                // console.log('All notifications processed successfully.');
             } catch (error) {
                 console.error('Error processing notifications:', error);
             }
@@ -786,7 +784,7 @@ const createNotificationForManager = async (reports) => {
     
                 await Promise.all(notificationPromises);
     
-                console.log('All notifications processed successfully.');
+                // console.log('All notifications processed successfully.');
             } catch (error) {
                 console.error('Error processing notifications:', error);
             }
@@ -815,7 +813,7 @@ const createNotificationForManager = async (reports) => {
     
                 await Promise.all(notificationPromises);
     
-                console.log('All notifications processed successfully.');
+                // console.log('All notifications processed successfully.');
             } catch (error) {
                 console.error('Error processing notifications:', error);
             }
@@ -945,7 +943,7 @@ const setFinanceNotifications  = async (tenantId) => {
 
 
         if (dashboardDocuments.length > 0) {
-            console.log('Dashboard Documents: For Finance batch job', dashboardDocuments);
+            // console.log('Dashboard Documents: For Finance batch job', dashboardDocuments);
         
             const processTravelWithCash = async (dashboardDocuments) => {
                 try {
@@ -955,10 +953,10 @@ const setFinanceNotifications  = async (tenantId) => {
                         const isValidCashStatus = cashAdvancesData.some(cashAdvance => cashAdvance.cashAdvanceStatus === 'pending settlement');
                         const { tenantId,  createdBy, tripName, itinerary } = travelRequestData;
                         const addStatus = ['booked']
-                        console.log("tripDate", tripDate)
-                        console.log("itinerary", itinerary)
+                        // console.log("tripDate", tripDate)
+                        // console.log("itinerary", itinerary)
                         const tripStartDate = tripDate ?? await earliestDate(itinerary,addStatus);
-                        console.log("tripStartDate in finance",tripStartDate)
+                        // console.log("tripStartDate in finance",tripStartDate)
                         const date = tripStartDate.toDateString();
                         const status = getTripStatus(tripStartDate);
         
@@ -984,7 +982,7 @@ const setFinanceNotifications  = async (tenantId) => {
                             ? cashAdvanceDetails.map(detail => detail.amountDetailsFormatted).join(', ') 
                             : '-';
 
-                        console.log("cashAdvanceDetails kaboom", cashAdvanceDetails,"formattedString", formattedString)
+                        // console.log("cashAdvanceDetails kaboom", cashAdvanceDetails,"formattedString", formattedString)
 
                         const messageText = `Urgent! Please Settle Cash Advance "${formattedString}" for trip "${tripName}", scheduled to start on ${date}.`;
         
@@ -992,7 +990,7 @@ const setFinanceNotifications  = async (tenantId) => {
                     });
         
                     await Promise.all(notificationPromises);
-                    console.log('All notifications processed successfully.');
+                    // console.log('All notifications processed successfully.');
                 } catch (error) {
                     console.error('Error processing notifications:', error);
                 }
@@ -1002,7 +1000,7 @@ const setFinanceNotifications  = async (tenantId) => {
         }
 
         if(reimbursementDocuments.length > 0){
-            console.log('Reimbursement Documents:For Finance batch job ', reimbursementDocuments?.length);
+            // console.log('Reimbursement Documents:For Finance batch job ', reimbursementDocuments?.length);
         }
 
         return 
@@ -1150,7 +1148,7 @@ const createOrUpdateBookingNotification = async ({ tenantId, messageText, status
 //to handle both finance and booking admin notifications
 const createOrUpdateNotification = async ({ tenantId, messageText, status, employeeType }) => {
     try {
-        console.log("createOrUpdateNotification", tenantId, messageText, status, employeeType);
+        // console.log("createOrUpdateNotification", tenantId, messageText, status, employeeType);
 
         if (!notificationTypeEnums.includes(employeeType)) {
             throw new Error(`Invalid employeeType: ${employeeType}`);
@@ -1178,7 +1176,7 @@ const createOrUpdateNotification = async ({ tenantId, messageText, status, emplo
             }
         );
 
-        console.log('Notification updated or created:', updatedNotification);
+        // console.log('Notification updated or created:', updatedNotification);
         return { success: true, message: 'Notification created or updated successfully.' };
     } catch (error) {
         console.error('Error in createOrUpdateNotification:', error);
