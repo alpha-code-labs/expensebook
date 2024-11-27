@@ -266,7 +266,7 @@ const createCompletionNotificationMessage = (trip) => {
 const createNotificationMessage = (trip, daysUntilTrip) => {
     const tripName = trip.tripSchema.travelRequestData.tripName;
     const tripStartDate = new Date(trip.tripSchema.tripStartDate).toDateString();
-    return `Your trip "${tripName}" starts in ${daysUntilTrip} day${daysUntilTrip !== 1 ? 's' : ''} on ${tripStartDate}.`;
+    return `Info:Your trip "${tripName}" starts in ${daysUntilTrip} day${daysUntilTrip !== 1 ? 's' : ''} on ${tripStartDate}.`;
 };
 
 
@@ -753,7 +753,7 @@ const createNotificationForManager = async (reports) => {
                     const hasPendingCashAdvance = cashAdvance?.some(advance => advance.cashAdvanceStatus === 'pending approval');
                     const status = getTripStatus(tripStartDate)
 
-                    let messageText = `Please approve the leg item added for the trip "${tripName}", which started on ${tripStartDate}`
+                    let messageText = `Urgent!, Please approve the leg item added for the trip "${tripName}", which started on ${tripStartDate}`
                     if (hasPendingCashAdvance) {
                         messageText += ' This trip includes cash advance.';
                         }
@@ -1076,17 +1076,17 @@ const determineTravelStatus = async (travelDate, currentDate, tripName, travelSt
         if (daysDifference < 0) {
             return {
                 status: 'urgent',
-                messageText: `'urgent': Travel date has passed. Please book the travel request for ${tripName} starting on ${travelStartDate}.`,
+                messageText: `Urgent: Travel date has passed. Please book the travel request for ${tripName} starting on ${travelStartDate}.`,
             };
         } else if (daysDifference <= 3) {
             return {
                 status: 'urgent',
-                messageText: `'urgent': Please book the travel request for ${tripName} starting on ${travelStartDate}.`,
+                messageText: `Urgent: Please book the travel request for ${tripName} starting on ${travelStartDate}.`,
             };
         } else {
             return {
                 status: 'action',
-                messageText: `'action': Please book the travel request for ${tripName} starting on ${travelStartDate}.`,
+                messageText: `Action: Please book the travel request for ${tripName} starting on ${travelStartDate}.`,
             };
         }
     } catch (error) {
@@ -1185,15 +1185,6 @@ const createOrUpdateNotification = async ({ tenantId, messageText, status, emplo
         return { success: false, message: 'An error occurred while creating or updating the notification.' };
     }
 };
-
-
-// For finance notification
-// await createOrUpdateNotification({
-//     tenantId: 'tenant123', 
-//     messageText: 'Finance update', 
-//     status: 'info', 
-//     employeeType: 'finance'
-// });
 
 
 

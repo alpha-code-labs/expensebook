@@ -233,7 +233,7 @@ const { completedFormValidations, ...getExpense} = expense
 // const travelRequestCombined = [ ...travelStandAlone.travelRequests, ...travelWithCash.travelRequests]
 // const rejectedTravelRequestsCombined = [ ...travelStandAlone.rejectedTravelRequests, ...travelWithCash.rejectedTravelRequests]
 
-console.log("completedFormValidations", completedFormValidations)
+// console.log("completedFormValidations", completedFormValidations)
     //screens
     const overviewUi = {transitTrips,upcomingTrips,allTravelRequests , expense}
     const cashAdvanceUi = {...allCashAdvance}
@@ -848,7 +848,7 @@ const allTransitTravelTypes = new Set()
               const {travelRequestId,travelRequestNumber,travelRequestStatus,tripName,tripPurpose, travelType, isCashAdvanceTaken, itinerary} = travelRequestData || {};
 
             if(travelType){
-                console.log("inside transit trips", travelType)
+                // console.log("inside transit trips", travelType)
                 allTransitTravelTypes.add(travelType)
             }
             const itineraryToSend = getItinerary(itinerary)

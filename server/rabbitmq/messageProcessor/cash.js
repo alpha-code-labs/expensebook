@@ -97,57 +97,65 @@ const fullUpdateCashBatchJob = async (payloadArray) => {
     const updatePromises = payloadArray.map(async (payload) => {
       const { travelRequestData, cashAdvancesData } = payload;
       const { tenantId, travelRequestId, itinerary } = travelRequestData;
-      const tripStartDate = await earliestDate(itinerary)
 
-      // Check if the tenantId is present
+      const tripStartDate = await earliestDate(itinerary);
+
       if (!tenantId) {
-        console.error('TenantId is missing');
-        return { success: false, error: 'TenantId is missing' };
+        console.error("TenantId is missing for payload:", payload);
+        return { success: false, error: "TenantId is missing" };
       }
 
       const updated = await dashboard.updateOne(
-        { 
-          "tenantId": tenantId,
-          "travelRequestId": travelRequestId,
+        {
+          tenantId,
+          travelRequestId,
         },
         {
-          "travelRequestSchema": travelRequestData,
-          "travelStartDate": tripStartDate,
-          "cashAdvanceSchema.travelRequestData": travelRequestData,
-          "cashAdvanceSchema.cashAdvancesData": cashAdvancesData,
+          $set: {
+            "travelRequestSchema": travelRequestData,
+            "travelStartDate": tripStartDate,
+            "cashAdvanceSchema.travelRequestData": travelRequestData,
+            "cashAdvanceSchema.cashAdvancesData": cashAdvancesData,
+          },
         },
-        { upsert: true, new: true }
+        { upsert: true }
       );
 
       if (updated.matchedCount > 0 || updated.upsertedCount > 0) {
-        console.log("Saved to dashboard: using async queue", updated); 
-        return { success: true, error: null }; 
+        console.log("Successfully updated dashboard record:", updated);
+        return { success: true, error: null };
       } else {
-      console.log("Failed to save reimbursement expense in dashboard."); 
-      return { success: false, error: "Failed to save reimbursement expense in dashboard." };
+        console.error("No record updated or inserted for:", payload);
+        return {
+          success: false,
+          error: "No record matched or upserted for the dashboard.",
+        };
       }
     });
 
-    // Wait for all updates to complete
     const results = await Promise.all(updatePromises);
-    const isSuccess = results.every(result => result.success);
-    if(isSuccess){
-      return { success: true, error: null}
+
+    const isSuccess = results.every((result) => result.success);
+    if (isSuccess) {
+      return { success: true, error: null };
     } else {
-      return {success: true, error: null}}
+      const errors = results
+        .filter((result) => !result.success)
+        .map((result) => result.error);
+      return { success: false, error: errors };
+    }
   } catch (error) {
-    console.error('Failed to update dashboard: using rabbitmq m2m', error);
-    return { success: false, error: error };
+    console.error("Failed to update dashboard via RabbitMQ m2m:", error);
+    return { success: false, error: error.message || error };
   }
-}
+};
+
 
 
 const cashStatusUpdatePaid = async (payloadArray) => {
   try {
-    // Initialize an array to keep track of results
     const results = [];
 
-    // Iterate over each object in the payload array
     for (const payload of payloadArray) {
       const { travelRequestData, cashAdvancesData } = payload;
       const { travelRequestId } = travelRequestData;
@@ -246,6 +254,4 @@ export {
   fullUpdateCashBatchJob,
   cashStatusUpdatePaid,
   onceCash,
-  
-
 }
