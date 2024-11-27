@@ -793,6 +793,7 @@ const handleRemoveFile=()=>{
       const response = await cancelTravelExpenseHeaderApi({ tenantId, empId, tripId, expenseHeaderId:requiredObj?.expenseHeaderId, data});
       // setShowPopup(true);
       // setMessage(response.message);
+      setModalOpen(false);
       window.parent.postMessage({message:"expense message posted", 
         popupMsgData: { showPopup:true, message:response?.message, iconCode: "101" }}, dashboardBaseUrl);
       setIsUploading((prevState) => ({ ...prevState, deleteHeader: false }));

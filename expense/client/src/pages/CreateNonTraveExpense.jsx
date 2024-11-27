@@ -1023,8 +1023,8 @@ const CreateNonTraveExpense = () => {
           expenseHeaderId: expenseHeaderIds,
           payload,
         });
-        setIsLoading(false);
-        setModalOpen(false)
+        setIsLoading(false);  
+        setModalOpen(false); //
         // setShowPopup(true);
         // setMessage(response.message);
         window.parent.postMessage({message:"expense message posted" , 

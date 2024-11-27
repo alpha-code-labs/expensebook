@@ -83,8 +83,8 @@ const [isUploading,setIsUploading]=useState({
   saveLineItem:{set:false,msg:""},
   autoScan:false
 })
-const [showPopup, setShowPopup] = useState(false);
-const [message, setMessage] = useState(null);
+// const [showPopup, setShowPopup] = useState(false);
+// const [message, setMessage] = useState(null);
 const [loadingErrMsg, setLoadingErrMsg] = useState(null)
 const [formData, setFormData]=useState({
     'fields': {}
@@ -150,8 +150,10 @@ useEffect(() => {
       console.log('trip data fetched successfully', response)
       setIsLoading(false);  
     } catch (error) {
-      setLoadingErrMsg(error.message);
-      setMessage(error.message);
+      //setLoadingErrMsg(error.message);
+      //setMessage(error.message);
+      window.parent.postMessage({message:"approval message posted", 
+      popupMsgData: { showPopup:true, message:error?.message, iconCode: "102" }}, dashboardBaseUrl);
       // setShowPopup(true);
       // setTimeout(() => {
       //   setShowPopup(false);
@@ -305,9 +307,11 @@ const handleCurrencyConversion = async ( {currencyName,totalAmount,personalAmoun
         } catch (error) {
           console.log('Error in fetching expense data for approval:', error.message);
           setIsUploading(prev=>({...prev,conversion:{set:false,msg:''}}))
-          setShowPopup(true)
-          setMessage(error.message);
-          setTimeout(() => {setMessage(null);setShowPopup(false)},5000);
+          // setShowPopup(true)
+          // setMessage(error.message);
+          // setTimeout(() => {setMessage(null);setShowPopup(false)},5000);
+          window.parent.postMessage({message:"approval message posted", 
+          popupMsgData: { showPopup:true, message:error?.message, iconCode: "102" }}, dashboardBaseUrl);
         }
   }
 };
@@ -393,17 +397,21 @@ const handleSaveLineItem = async (action) => {
         // }));
       } else {
         console.error("Failed to upload file to Azure Blob Storage.");
-        setMessage("Failed to upload file to Azure Blob Storage.");
-      setShowPopup(true);
-      setTimeout(() => setShowPopup(false), 3000);
+      //   setMessage("Failed to upload file to Azure Blob Storage.");
+      // setShowPopup(true);
+      // setTimeout(() => setShowPopup(false), 3000);
+      window.parent.postMessage({message:"approval message posted", 
+      popupMsgData: { showPopup:true, message:"Failed to upload file to Azure Blob Storage.", iconCode: "102" }}, dashboardBaseUrl);
       allowForm = false;
         
       }
     } catch (error) {
       console.error("Error uploading file to Azure Blob Storage:", error);
-      setMessage(error.message);
-      setShowPopup(true);
-      setTimeout(() => setShowPopup(false), 3000);
+      // setMessage(error.message);
+      // setShowPopup(true);
+      // setTimeout(() => setShowPopup(false), 3000);
+      window.parent.postMessage({message:"approval message posted", 
+      popupMsgData: { showPopup:true, message:error?.message, iconCode: "102" }}, dashboardBaseUrl);
       allowForm = false;
     }
   }
@@ -427,11 +435,13 @@ const handleSaveLineItem = async (action) => {
     try {
       const response = await postTravelExpenseLineItemApi(params, payload);
       setIsUploading(prev => ({ ...prev, [action]: { set: false, msg: "" } }));
-      setShowPopup(true);
-      setMessage(response?.message);
+      // setShowPopup(true);
+      // setMessage(response?.message);
+      window.parent.postMessage({message:"approval message posted", 
+      popupMsgData: { showPopup:true, message:response?.message, iconCode: "101" }}, dashboardBaseUrl);
       setTimeout(() => {
-        setShowPopup(false);
-        setMessage(null);
+        // setShowPopup(false);
+        // setMessage(null);
         if (action === "saveAndSubmit") {
           navigate(`/${tenantId}/${empId}/${tripId}/view/travel-expense`);
         } else if (action === "saveAndNew") {
@@ -441,12 +451,14 @@ const handleSaveLineItem = async (action) => {
           window.location.reload(); // Reload the page
           
         }
-      }, 5000);
+      }, 2000);
     } catch (error) {
       setIsUploading(prev => ({ ...prev, [action]: { set: false, msg: "" } }));
-      setMessage(error.message);
-      setShowPopup(true);
-      setTimeout(() => setShowPopup(false), 3000);
+      // setMessage(error.message);
+      // setShowPopup(true);
+      window.parent.postMessage({message:"approval message posted", 
+      popupMsgData: { showPopup:true, message:error?.message, iconCode: "102" }}, dashboardBaseUrl);
+      // setTimeout(() => setShowPopup(false), 3000);
     }
   }
 };
@@ -693,7 +705,7 @@ useEffect(()=>{
           </div>
         </div>}
       />  
-<PopupMessage skipable={true} showPopup={showPopup} setShowPopup={setShowPopup} message={message}/>
+{/* <PopupMessage skipable={true} showPopup={showPopup} setShowPopup={setShowPopup} message={message}/> */}
     </>
   )
 }
