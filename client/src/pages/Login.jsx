@@ -14,7 +14,11 @@ import { urlRedirection } from '../utils/handyFunctions';
 
 //inputs: company name, full name of user, mobile number, company HQ, email Id, password and confirm Password
 
-export default function CompanyAndHRInformation(){
+export default function CompanyAndHRInformation(props){
+
+  const setPopupMsgData = props.setPopupMsgData
+  const popupMsgData = props.popupMsgData
+  const initialPopupData = props.initialPopupData
 
   const emailRef = useRef()
   const passwordRef = useRef()
@@ -27,7 +31,7 @@ export default function CompanyAndHRInformation(){
   const [isLoading,setIsLoading]=useState(false)
   const [loadingErrorMsg, setLoadingErrorMsg]=useState(false)
   const [showPopup ,setShowPopup]=useState(false);
-  const [message,setMessage]=useState(null)  ///this is for modal message
+  const [message,setMessage]=useState(null) 
   const [errors, setErrors] = useState({companyNameError:{set:false, message:null},  emailError:{set:false, message:null}, passwordError:{set:false, message:null}, confirmPasswordError:{set:false, message:null}})
   const [isUploading,setIsUploading]=useState({logFog:false,login:false})
 
@@ -45,12 +49,15 @@ export default function CompanyAndHRInformation(){
         const { data, error } = await getCompanyList_API();
 
         if (error) {
-          setLoadingErrorMsg(error.message);
+          // setLoadingErrorMsg(error.message);
+          setPopupMsgData({showPopup:true, message:error?.message, iconCode: "102"})
+          setIsLoading(false)
         } else {
           setCompanyList(data.companyNames);
         }
       } catch (error) {
-        setLoadingErrorMsg(error.message);
+        setPopupMsgData({showPopup:true, message:error?.message, iconCode: "102"})
+        setIsLoading(false)
       } finally {
         setIsLoading(false);
       }
@@ -128,31 +135,33 @@ export default function CompanyAndHRInformation(){
   
        // navigate('/success-page');
         
-       setIsUploading(prevState => ({ ...prevState, logFog: true }));
-          const {error,data} = await postLogin_API({companyName:formData.companyName , email, password})
+          setIsUploading(prevState => ({ ...prevState, logFog: true }));
+          const {error,data} = await postLogin_API({companyName:formData.companyName, email, password})
           // Redirect to the dashboard page with the authToken as a query parameter
           if (error) {
           console.error('API Error:', error);
-
-          setMessage(error.message || "An unexpected error occurred.");
           setIsUploading(prevState => ({ ...prevState, logFog: false }));
-          setShowPopup(true)
+          // setShowPopup(true)
+          // setMessage(error.message || "An unexpected error occurred.");
+          setPopupMsgData({showPopup:true, message:error?.message, iconCode:'102'})
           setTimeout(()=>{
-            setMessage(null)
-            setShowPopup(false)
+            // setMessage(null)
+            // setShowPopup(false)
+            setPopupMsgData(initialPopupData);
           },3000)
           }else{
             const temporaryPasswordFlag = data.temporaryPasswordFlag
             const onboardingFlag = data.onboardingFlag
             document.cookie = `authToken=${data.data}; path=/;`;
             console.log('API Response:', data.message);
-            sessionStorage.setItem('email', formData.email);
+            sessionStorage.setItem('email', `${email}`);
             setIsUploading(prevState => ({ ...prevState, logFog: false }));
-            setMessage(data.message);
-            setShowPopup(true)
+            setPopupMsgData({showPopup:true, message:data.message, iconCode:'101'})
+            // setMessage(data.message);
+            // setShowPopup(true)
+            
             setTimeout(()=>{
-              setMessage(null)
-              setShowPopup(false)
+              setPopupMsgData(initialPopupData)
             },3000)
             if(temporaryPasswordFlag){
               navigate(`/update-password`);
@@ -217,12 +226,15 @@ export default function CompanyAndHRInformation(){
             // Handle API error here
            
             // console.error('API Error:', error);
-            setMessage(error.message || "An unexpected error occurred.");
+           
             setIsUploading(prevState => ({ ...prevState, logFog: false }));
-            setShowPopup(true)
+            // setMessage(error.message || "An unexpected error occurred.");
+            // setShowPopup(true)
+            setPopupMsgData({showPopup:true, message:error.message, iconCode:'102'})
             setTimeout(()=>{
-              setMessage(null)
-              setShowPopup(false)
+              // setMessage(null)
+              // setShowPopup(false)
+              setPopupMsgData(initialPopupData)
   
             },3000)
           } else {
@@ -230,11 +242,12 @@ export default function CompanyAndHRInformation(){
             console.log('API Response:', data.message);
   
             setIsUploading(prevState => ({ ...prevState, logFog: false }));
-            setMessage(data.message);
-            setShowPopup(true)
+            // setMessage(data.message);
+            // setShowPopup(true)
+            setPopupMsgData({showPopup:true, message:error.message, iconCode:'101'})
+            
             setTimeout(()=>{
-              setMessage(null)
-              setShowPopup(false)
+             setPopupMsgData(initialPopupData)
             },3000)
             setIsForgotPassword(false)
             // For example, you can redirect to another page after successful signup
@@ -306,7 +319,7 @@ export default function CompanyAndHRInformation(){
       titleCase={false}
       error={errors.emailError} 
       
-      onBlur={(e) => setFormData(prev => ({ ...prev, email: e.target.value.trim().toLowerCase() }))}
+      onBlur={(e) => setFormData(prev => ({ ...prev, email: e.target.value.trim() }))}
     />
             </div>
 {isForgotPassword ? null :
@@ -351,7 +364,7 @@ export default function CompanyAndHRInformation(){
 
       </div>
     </div>
-    <PopupMessage showPopup={showPopup} setShowPopup={setShowPopup} message={message}/>
+    {/* <PopupMessage showPopup={showPopup} setShowPopup={setShowPopup} message={message}/> */}
   </div> 
 
 

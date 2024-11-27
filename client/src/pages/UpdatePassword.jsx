@@ -10,7 +10,13 @@ import { login_icon } from '../assets/icon';
 // update password after forgot password
 //inputs: company name, full name of user, mobile number, company HQ, email Id, password and confirm Password
 
-export default function UpdatePassword(){
+export default function UpdatePassword(props){
+  const setPopupMsgData = props.setPopupMsgData
+  const popupMsgData = props.popupMsgData
+  const initialPopupData = props.initialPopupData
+
+
+
   const {companyName }=useParams()
   const [formData, setFormData] = useState({email:'',password:'', confirmPassword:''})
   const [showPopup ,setShowPopup]=useState(false);
@@ -21,8 +27,6 @@ export default function UpdatePassword(){
 
 
   const navigate = useNavigate()
-
-
   const [errors, setErrors] = useState({  emailError:{set:false, message:null}, passwordError:{set:false, message:null}, confirmPasswordError:{set:false, message:null}})
 //for otp submit
 
@@ -31,7 +35,6 @@ useEffect(()=>{
   const storedEmail = sessionStorage.getItem('email');
   setFormData(prevState => ({ ...prevState, email:storedEmail }));
   console.log('storedEmail',storedEmail)
-
 },[])
 
 console.log('email from update',formData.email)
@@ -82,23 +85,27 @@ const handleUpdate = async () => {
       // Handle API error here
      
       console.error('API Error:', error);
-      setMessage(error.message || "An unexpected error occurred.");
+      
       setIsUploading(prevState => ({ ...prevState, update: false }));
-      setShowPopup(true)
+      // setMessage(error.message || "An unexpected error occurred.");
+      // setShowPopup(true)
+      setPopupMsgData({showPopup:true, message:error?.message, iconCode:'102'})
       setTimeout(()=>{
-        setMessage(null)
-        setShowPopup(false)
-
+        setPopupMsgData(initialPopupData)
       },5000)
     } else {
       // Check the result and perform necessary actions
       console.log('API Response:', data.message);
       setIsUploading(prevState => ({ ...prevState, update: false }));
-      setMessage(data.message);
-      setShowPopup(true)
+      // setMessage(data.message);
+      // setShowPopup(true)
+      // setTimeout(()=>{
+      //   setMessage(null)
+      //   setShowPopup(false)
+      // },5000)
+      setPopupMsgData({showPopup:true, message:data?.message, iconCode:'101'})
       setTimeout(()=>{
-        setMessage(null)
-        setShowPopup(false)
+        setPopupMsgData(initialPopupData);
       },5000)
       
       // For example, you can redirect to another page after successful update

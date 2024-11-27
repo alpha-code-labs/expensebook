@@ -16,7 +16,10 @@ import { verify_icon } from '../assets/icon';
 //after done onboarding user get email and otp
 
 
-export default function CompanyAndHRInformation(){
+export default function CompanyAndHRInformation(props){
+  const setPopupMsgData = props.setPopupMsgData
+  const popupMsgData = props.popupMsgData
+  const initialPopupData = props.initialPopupData
   const inputRefs = useRef([]);
 
   const navigate = useNavigate()
@@ -69,21 +72,25 @@ const handleVerifyOtp = async () => {
     if (error) {
       console.error('API Error:', error);
       setIsUploading(false)
-      setMessage(error.message || 'An unexpected error occurred.');
-      setShowPopup(true);
+      // setMessage(error.message || 'An unexpected error occurred.');
+      // setShowPopup(true);
+      setPopupMsgData({showPopup:true, message:error?.message, iconCode: '102'})
       setTimeout(() => {
-        setMessage(null);
-        setShowPopup(false);
+        // setMessage(null);
+        // setShowPopup(false);
+        setPopupMsgData(initialPopupData)
       }, 3000);
     } else {
       console.log('API Response:', data.message);
       sessionStorage.setItem('email', formData.email);
       setIsUploading(false);
-      setMessage(data.message);
-      setShowPopup(true);
+      // setMessage(data.message);
+      // setShowPopup(true);
+      setPopupMsgData({showPopup:true, message:data?.message, iconCode: '101'})
       setTimeout(() => {
-        setMessage(null);
-        setShowPopup(false);
+        // setMessage(null);
+        // setShowPopup(false);
+        setPopupMsgData(initialPopupData);
       }, 3000);
       if(!data.alreadyVerified){
       setVerifyFlag(true);
@@ -137,12 +144,14 @@ let allowSubmit =true
               if (error) {
               console.error('API Error:', error);
     
-              setMessage(error.message || "An unexpected error occurred.");
+              //setMessage(error.message || "An unexpected error occurred.");
               setIsUploading(prevState => ({ ...prevState, logFog: false }));
-              setShowPopup(true)
+              //setShowPopup(true)
+              setPopupMsgData({showPopup:true, message: error?.message, iconCode:'102'})
               setTimeout(()=>{
-                setMessage(null)
-                setShowPopup(false)
+                // setMessage(null)
+                // setShowPopup(false)
+                setPopupMsgData(initialPopupData);
               },3000)
               }else{
                 const temporaryPasswordFlag = data.temporaryPasswordFlag
@@ -150,11 +159,13 @@ let allowSubmit =true
                 console.log('API Response:', data.message);
                 sessionStorage.setItem('email', formData.email);
                 setIsUploading(prevState => ({ ...prevState, logFog: false }));
-                setMessage(data.message);
-                setShowPopup(true)
+                // setMessage(data.message);
+                // setShowPopup(true);
+                setPopupMsgData({showPopup:true, message:data?.message, iconCode:'101'})
                 setTimeout(()=>{
-                  setMessage(null)
-                  setShowPopup(false)
+                  // setMessage(null)
+                  // setShowPopup(false)
+                  setPopupMsgData(initialPopupData)
                 },3000)
                 if(temporaryPasswordFlag){
                   navigate(`/update-password`);
@@ -318,7 +329,7 @@ const handlePaste = (e) => {
 
 
   
-  <PopupMessage showPopup={showPopup} setShowPopup={setShowPopup} message={message}/>
+  {/* <PopupMessage showPopup={showPopup} setShowPopup={setShowPopup} message={message}/> */}
   </>
   );
 }
