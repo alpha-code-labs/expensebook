@@ -91,6 +91,8 @@ const fetchData = async () => {
   }
 };
 
+
+
   const handleLogout = async () => {
     logoutApi(authToken)
     handleLoginPageUrl('login-page')
