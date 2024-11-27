@@ -4,7 +4,14 @@ import { useState, useEffect } from "react";
 import { titleCase } from "../utils/handyFunctions";
 import Error from "../components/common/Error";
 import PopupMessage from "../components/common/PopupMessage";
-import {profile_bg, app_icon, airplane_1 as airplane_icon, arrow_left, mail_icon, location_pin, categoryIcons} from "../assets/icon";
+import {profile_bg, app_icon, airplane_1 as airplane_icon, arrow_left, mail_icon, location_pin, categoryIcons, user_icon, city_icon, profile_newBg, profile_buildBg, dietary} from "../assets/icon";
+
+import { 
+  material_flight_black_icon, 
+  material_bus_black_icon, 
+  material_hotel_black_icon, 
+  material_personal_black_icon, 
+} from "../assets/icon";
 import Select from "../components/common/Select";
 import Button from "../components/common/Button";
 import Input from "../components/common/SearchInput";
@@ -14,43 +21,27 @@ import { travelPreferences,preference } from "../dummyData/profile";
 import { getTravelPreference_API, postTravelPreference_API } from "../utils/api";
 import { useData } from "../api/DataProvider";
 
-// import ImageUploader from "../components/common/ImageUploader";
-
 const Profile = ({fetchData}) => {
-
   const { employeeData, employeeRoles} = useData()
   const {tenantId, empId, page} = useParams()
   const [formData, setFormData] = useState({
-      flightPreference: { seat: '', meal: '' },
-      busPreference: { seat: '', meal: '' },
-      trainPreference: { seat: '', meal: '' },
-      hotelPreference: { roomType: '', bedType: '' },
-      emergencyContact: { contactNumber: '', relationship: '' },
-      dietaryAllergy: '',
-      imageUrl: '',
-      employeeName: '',
-      location:'',
-      emailId:'',
-      department:'',
+    flightPreference: { seat: '', meal: '' },
+    busPreference: { seat: '', meal: '' },
+    trainPreference: { seat: '', meal: '' },
+    hotelPreference: { roomType: '', bedType: '' },
+    emergencyContact: { contactNumber: '', relationship: '' },
+    dietaryAllergy: '',
+    imageUrl: '',
+    employeeName: '',
+    location:'',
+    emailId:'',
+    department:'',
   });
-
-  
 
   const [isLoading, setIsLoading] = useState(false)
   const [loadingErrMsg, setLoadingErrMsg] = useState(null)
   const [showPopup , setShowPopup]= useState(false)
   const [message , setMessage]=useState(null)
-  // console.log(JSON.stringify(formData, null, 2)) 
-
-  //get data 
-      // const backendData = {
-      // flightPreference: { seat: 'aisle seat', meal: 'veg meal' },
-      // busPreference: { seat: 'window seat', meal: 'non-veg meal' },
-      // trainPreference: { seat: 'upper birth', meal: 'vegan' },
-      // hotelPreference: { roomType: 'single', bedType: 'king' },
-      // emergencyContact: { contactNumber: '1234567890', relationship: 'sister' },
-      // dietaryAllergy: 'No allergies',
-    // };
 
   useEffect(() => {
     console.log('Profile Tenant ID:', tenantId);
@@ -60,7 +51,6 @@ const Profile = ({fetchData}) => {
       fetchData(tenantId, empId, page);
     }
   }, []);
-
 
   useEffect(()=>{
     console.log('profile Tenant ID:', tenantId);
@@ -108,17 +98,6 @@ const Profile = ({fetchData}) => {
   
   },[tenantId, empId])
   
-
-  
-  // useEffect(() => {
-  //   if (showCancelModal) {
-  //     document.body.style.overflow = 'hidden'
-  //   }
-  //   else {
-  //     document.body.style.overflow = 'auto'
-  //   }
-  // }, [showCancelModal])
-
   const handleChange = (field, value, fieldFor) => {
     setFormData((prevData) => {
       let updatedData = {};
@@ -144,7 +123,6 @@ const Profile = ({fetchData}) => {
     });
   };
   
-  
   const handleSaveProfile = async () => {
     console.log('Form Data before saving:', formData);
     console.log('Tenant ID:', tenantId);
@@ -169,193 +147,214 @@ const Profile = ({fetchData}) => {
       setIsLoading(false);
     }
   };
-  
-const handleImageUpload = (url) => {
- setFormData({
-  ...formData,
-  imageUrl:url,
- });
-};
 
-// function getInitials(name) {
-//   if (!name) {
-//     return '';
-//   }
+  const handleImageUpload = (url) => {
+   setFormData({
+    ...formData,
+    imageUrl:url,
+   });
+  };
 
-//   const words = name.trim().split(' ');
-//   if (words.length === 1) {
-//     return words[0].slice(0, 2);
-//   } else {
-//     return words.map(word => word.charAt(0)).join(' ');
-//   }
-// }
-
-
-const getInitials = (name) => {
-  if (!name) return '';
-  const initials = name.split(' ').map(word => word[0]).join('');
-  return initials.toUpperCase();
-};
-
+  const getInitials = (name) => {
+    if (!name) return '';
+    const initials = name.split(' ').map(word => word[0]).join('');
+    return initials.toUpperCase();
+  };
 
   return (
     <>
       {isLoading && <Error message={loadingErrMsg} />}
       {!isLoading && 
-        <div className="w-full h-full relative bg-white md:px-24 md:mx-0 sm:px-0 sm:mx-auto py-12 select-none">
-          <div className="flex flex-col h-full  ">
-            <div className="flex rounded-t-[16px] bg-slate-50  border-[1px] border-slate-300 flex-row justify-between px-4 py-5">
-            <div className="inline-flex gap-2 p-4 font-cabin text-base font-medium">
-            <div>
-            {/* <ImageUploader onSuccess={handleImageUpload} /> */}
-            {formData?.imageUrl && (
-                <div>
-                    <h3>Uploaded Image URL:</h3>
-                    <p>{formData?.imageUrl}</p>
-                    <img src={formData?.imageUrl} alt="Upload " style={{ maxWidth: '100%', maxHeight: '200px' }} />
-                </div>
-            )}
-        </div>
+        <div className="w-full min-h-screen bg-white px-4 sm:px-6 md:px-12 lg:px-24 py-8">
+          <div className="flex flex-col h-full">
+            {/* Header Section */}
+            <div className="flex rounded-t-[16px] bg-slate-50 border border-slate-300 flex-col sm:flex-row justify-between px-4 py-5 mb-4">
+              <div className="inline-flex gap-2 p-4 font-cabin text-base font-medium items-center mb-2 sm:mb-0">
+                <img src={arrow_left} alt="arrow-left" className="w-5 h-5 mr-2" />
+                <p>Your Profile</p>
+              </div>
 
-              <img src={arrow_left} alt="arrow-left" />
-              <p>Your Profile</p>
+              <div className="w-full sm:w-auto">
+                <Button 
+                  onClick={handleSaveProfile} 
+                  text='Save' 
+                  textAndBgColor='bg-indigo-600 text-white w-full sm:w-auto'
+                />
+              </div>
             </div>
 
-            <div className="w-fit">
-              <Button onClick={handleSaveProfile} text='Save' textAndBgColor='bg-indigo-600 text-white' />
-            </div>
-            </div>
-
-            {/* <ImageUploader onSuccess={handleImageUpload} /> */}
+            {/* Profile Image Section */}
             <div className="flex justify-center items-center flex-col">
-              <div className=' w-full  lg:h-[200px] h-[150px] flex justify-center  md:justify-start lg:justify-start'>
-                <img src='/image1.jpg' alt="profile-bg" />
+              <div className='w-full h-[150px] md:h-[200px] flex justify-center md:justify-start lg:justify-start overflow-hidden'>
+                <img 
+                  src={profile_buildBg} 
+                  alt="profile-bg" 
+                  className="w-full h-full object-cover"
+                />
               </div>
-              <div className="translate-y-[-50px] bottom-[-50px]">
-                <div className=" rounded-full bg-indigo-100 flex shrink  w-[104px] h-[104px] items-center justify-center  mx-auto  shadow-md border-4 border-white transition duration-200 transform hover:scale-110">
-                  <div className="relative w-full h-full">
-      {formData ? (
-        <img 
-          src='/profilepic.jpg' 
-          alt={getInitials(formData.employeeName)} 
-          className="rounded-full w-full h-full object-cover" 
-        />
-      ) : (
-        <div className="absolute inset-0 flex items-center justify-center text-white font-italic text-2xl tracking-wide">
-          {getInitials(formData.employeeName)}
-        </div>
-      )}
-    </div>
+              
+              <div className="-mt-12 md:-mt-16 text-center">
+                <div className="rounded-full bg-black-400 w-24 h-24 md:w-32 md:h-32 flex items-center justify-center mx-auto shadow-md border-4 border-white hover:scale-110 transition duration-200">
+                  {formData ? (
+                    <img 
+                      src={profile_newBg}
+                      alt={getInitials(formData.employeeName)} 
+                      className="rounded-full w-full h-full object-cover" 
+                    />
+                  ) : (
+                    <div className="flex items-center justify-center text-white font-italic text-2xl tracking-wide">
+                      {getInitials(formData.employeeName)}
+                    </div>
+                  )}
                 </div>
-              { formData?.employeeName  && (
-                <div className="flex flex-col items-center">
-                  <div className="font-cabin text-lg text-neutral-800">{formData?.employeeName}</div>
-                  <div className="font-cabin text-medium text-neutral-600">{formData?.department}</div>
-                </div>
-              )}
+
+                
+                {formData?.employeeName && (
+                  <div className="mt-4">
+                    <div className="font-cabin text-lg md:text-xl text-neutral-800">
+                      {formData?.employeeName}
+                    </div>
+                    <div className="font-cabin text-sm text-neutral-600">
+                      {formData?.department}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
-         
 
-
-            { formData && (
-            <div className="border-[1px] border-slate-300 gap-8 rounded-[16px] bg-slate-50 w-full flex justify-center items-center h-[70px] ">
-              <div className="w-full flex md:flex-row flex-col justify-center items-center gap-2">
-                <div className="flex-1 inline-flex items-center justify-center ">
-                  <img src={mail_icon} alt="mail-icon" className="w-5 h-5" />
-                  <div className="text-center text-base font-cabin">{formData?.emailId}</div>
-                </div>
-                <div className="flex-1 inline-flex items-center justify-center">
-                  <img src={location_pin} alt="mail-icon" className="w-5 h-5" />
-                  <div className="text-center text-base font-cabin">{formData?.location}</div>
-                </div>
-              </div>
-            </div>
-      )}
-            <div className="flex-col mt-4 py-4 border-[1px] border-slate-300 gap-8 rounded-[16px] bg-slate-50 w-full flex justify-center items-center h-full px-4">
+            {/* Contact Info Section */}
             {formData && (
-            <>
-            <div className="mt-0 px-2 border-[1px] flex-col lg:flex-row border-slate-300 gap-8 rounded-[16px] bg-slate-50 w-full flex justify-center items-center h-auto py-5">
-    <div className="font-cabin">
-      Flight Preference:
-    </div>
-    <Select
-      currentOption={titleCase(formData?.flightPreference?.seat ?? "Select Seat Preference")}
-      title='Seat preference'
-      options={preference.flightSeatPreference}
-      onSelect={(value) => handleChange('seat', value, 'flight')}
-    />
-    <Select
-      currentOption={titleCase(formData.flightPreference?.meal ?? "Select Meal Preference")}
-      title='Meal preference'
-      options={preference.mealPreference}
-      onSelect={(value) => handleChange('meal', value, 'flight')}
-    />
+              <div className="mt-4 border border-slate-300 rounded-[16px] bg-slate-50 w-full flex justify-center items-center h-[70px]">
+                <div className="w-full flex flex-col md:flex-row justify-center items-center gap-4">
+                  <div className="flex-1 inline-flex items-center justify-center">
+                    <img src={mail_icon} alt="mail-icon" className="w-5 h-5 mr-2" />
+                    <div className="text-center text-base font-cabin">{formData?.emailId}</div>
+                  </div>
+                  <div className="flex-1 inline-flex items-center justify-center">
+                    <img src={location_pin} alt="location-icon" className="w-5 h-5 mr-2" />
+                    <div className="text-center text-base font-cabin">{formData?.location}</div>
+                  </div>
+                </div>
               </div>
-              <div className="mt-0 px-2 border-[1px] flex-col lg:flex-row border-slate-300 gap-8 rounded-[16px] bg-slate-50 w-full flex justify-center items-center h-auto py-5">
-                <div className="font-cabin">
-                  Bus Preference :
+            )}
+
+            {/* Preferences Section */}
+            <div className="flex-col mt-4 py-4 border border-slate-300 rounded-[16px] bg-slate-50 w-full flex justify-center items-center h-full px-4 space-y-4">
+              {formData && (
+                <>
+                  {/* Flight Preference */}
+                  <div className="mt-0 px-2 border border-slate-300 flex-col lg:flex-row rounded-[16px] bg-slate-50 w-full flex justify-center items-center h-auto py-5">
+                    <div className="font-cabin mr-4 mb-2 lg:mb-0">
+                    <img src={material_flight_black_icon} alt="Flight-icon" className="w-5 h-5"/>
+                    </div>
+                    <div className="flex flex-col sm:flex-row gap-4 w-full justify-center">
+                      <Select
+                        currentOption={titleCase(formData?.flightPreference?.seat ?? "Select Seat")}
+                        title='Seat preference'
+                        options={preference.flightSeatPreference}
+                        onSelect={(value) => handleChange('seat', value, 'flight')}
+                      />
+                      <Select
+                        currentOption={titleCase(formData.flightPreference?.meal ?? "Select Meal")}
+                        title='Meal preference'
+                        options={preference.mealPreference}
+                        onSelect={(value) => handleChange('meal', value, 'flight')}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Bus Preference */}
+                  <div className="mt-0 px-2 border border-slate-300 flex-col lg:flex-row rounded-[16px] bg-slate-50 w-full flex justify-center items-center h-auto py-5">
+                    <div className="font-cabin mr-4 mb-2 lg:mb-0">
+                    <img src={material_bus_black_icon} alt="Bus-Icon" className="w-5 h-5"/>
+                    </div>
+                    <div className="flex flex-col sm:flex-row gap-4 w-full justify-center">
+                      <Select
+                        currentOption={titleCase(formData.busPreference?.seat ?? "")}
+                        title='Seat preference'
+                        placeholder='Select Seat'
+                        options={preference.busSeatPreference}
+                        onSelect={(value) => handleChange('seat', value, 'bus')}
+                      />
+                      <Select
+                        currentOption={titleCase(formData.busPreference?.meal ?? "")}
+                        title='Meal preference'
+                        placeholder='Select Meal'
+                        options={preference.mealPreference}
+                        onSelect={(value) => handleChange('meal', value, 'bus')}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Hotel Preference */}
+                  <div className="mt-0 px-2 border border-slate-300 flex-col lg:flex-row rounded-[16px] bg-slate-50 w-full flex justify-center items-center h-auto py-5">
+                    <div className="font-cabin mr-4 mb-2 lg:mb-0">
+                      <img src={material_hotel_black_icon} alt="Hotel-icon" className="w-5 h-5"/>
+                    </div>
+                    <div className="flex flex-col sm:flex-row gap-4 w-full justify-center">
+                      <Select
+                        currentOption={titleCase(formData.hotelPreference?.roomType ?? "")}
+                        options={preference.hotelPreference.roomType}
+                        title='Room preference'
+                        placeholder='Select Room Type'
+                        onSelect={(value) => handleChange('roomType', value, 'hotel')}
+                      />
+                      <Select
+                        title='Bed preference'
+                        placeholder='Select Bed Type'
+                        currentOption={titleCase(formData.hotelPreference?.bedType ?? "")}
+                        options={preference.hotelPreference.bedType}
+                        onSelect={(value) => handleChange('bedType', value, 'hotel')}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Emergency Contact */}
+                <div className="mt-0 px-2 border border-slate-300 flex-col lg:flex-row rounded-[16px] bg-slate-50 w-full flex justify-center items-center h-auto py-5">
+                    <div className="font-cabin mr-4 mb-2 lg:mb-0">
+                      <img src={material_personal_black_icon} alt="Emergency-contact-icon" className="w-5 h-5"/>
+                    </div>
+                    <div className="flex flex-col sm:flex-row gap-4 w-full justify-center items-center">
+                      <div className="w-full max-w-sm">
+                        <label
+                        htmlFor="contactNumber"
+                        className="text-sm font-medium text-gray-400 mb-1"
+                        >
+                        Emergency Contact Number
+                        </label>
+                        <Input
+                          initialValue={formData.emergencyContact?.contactNumber}
+                          value={formData.emergencyContact?.contactNumber}
+                          onChange={(value) => {
+                            const numericAndSpecial = value.replace(/[a-zA-Z]/g, "");
+                            if (value !== numericAndSpecial) {
+                              alert("Only numbers and special characters are allowed");
+                            }
+                          handleChange('contactNumber', numericAndSpecial, 'contactDetails')
+                          }}
+                          title='Contact Number'
+                          placeholder='Enter Contact Number'
+                        />
+                      </div>
+                      <div className="w-full max-w-sm">
+                        <Select
+                          title='Relationship'
+                          placeholder='Select Relationship'
+                          currentOption={titleCase(formData.emergencyContact?.relationship ?? "")}
+                          options={preference.relationship}
+                          onSelect={(value) => handleChange('relationship', value, 'contactDetails')}
+                        />
+                      </div>
+                    </div>
+                  </div> 
+
+                  {/* Dietary Allergies */}
+                  <div className="mt-0 px-2 border border-slate-300 flex-col lg:flex-row rounded-[16px] bg-slate-50 w-full flex justify-evenly items-center h-auto py-5">
+                <div className="font-cabin mr-4 mb-2 lg:mb-0">
+                  <img src={dietary} alt="Dietary-Allergies-icon" className="w-5 h-5"/>
                 </div>
-                <Select
-                  currentOption={titleCase(formData.busPreference?.seat ?? "")}
-                  title='Seat preference'
-                  placeholder='Select Seat Preference'
-                  options={preference.busSeatPreference}
-                  onSelect={(value) => handleChange('seat', value, 'bus')}
-                />
-                <Select
-                  currentOption={titleCase(formData.busPreference?.meal ?? "")}
-                  title='Meal preference'
-                  placeholder='Select Meal Preference'
-                  options={preference.mealPreference}
-                  onSelect={(value) => handleChange('meal', value, 'bus')}
-                />
-              </div>
-              <div className="mt-0 px-2 border-[1px] flex-col lg:flex-row border-slate-300 gap-8 rounded-[16px] bg-slate-50 w-full flex justify-center items-center h-auto py-5">
-                <div className="font-cabin">
-                  Hotel Preference :
-                </div>
-                <Select
-                  currentOption={titleCase(formData.hotelPreference?.roomType ?? "")}
-                  options={preference.hotelPreference.roomType}
-                  title='Room preference'
-                  placeholder='Select Seat Preference'
-                  onSelect={(value) => handleChange('roomType', value, 'hotel')}
-                />
-                <Select
-                  title='Bed preference'
-                  placeholder='Select Meal Preference'
-                  currentOption={titleCase(formData.hotelPreference?.bedType ?? "")}
-                  options={preference.hotelPreference.bedType}
-                  onSelect={(value) => handleChange('bedType', value, 'hotel')}
-                />
-              </div>
-              <div className="mt-0 px-2 border-[1px] flex-col lg:flex-row border-slate-300 gap-8 rounded-[16px] bg-slate-50 w-full flex justify-center items-center h-auto py-5">
-                <div className="font-cabin">
-                  Emergency Contact  :
-                </div>
-                <div className="translate-y-1 w-[400px]">
-                  <Input
-                    initialValue={formData.emergencyContact?.contactNumber}
-                    value={formData.emergencyContact?.contactNumber}
-                    onChange={(value) => handleChange('contactNumber', value, 'contactDetails')}
-                    title='Contact Number'
-                    placeholder='Select Contact Number'
-                  />
-                </div>
-                <Select
-                  title='Relationship'
-                  placeholder='Select Relationship'
-                  currentOption={titleCase(formData.emergencyContact?.relationship ?? "")}
-                  options={preference.relationship}
-                  onSelect={(value) => handleChange('relationship', value, 'contactDetails')}
-                />
-              </div>
-              <div className="mt-0 px-2 border-[1px] flex-col lg:flex-row border-slate-300 gap-8 rounded-[16px] bg-slate-50 w-full flex justify-evenly items-center h-auto py-5">
-                <div className="font-cabin">
-                  Dietary Allergic  :
-                </div>
-                <div className="translate-y-1 w-[400px] h-[150px]">
+                <div className="flex flex-col sm:flex-row gap-4 w-full justify-center items-center">
+                <div className="w-full max-w-sm">
                   <TextBox
                     title='Enter Allergic'
                     placeholder='Type about allergy related...'
@@ -365,6 +364,7 @@ const getInitials = (name) => {
                     onChange={(value) => handleChange('dietaryAllergy', value, 'dietary') }
                   />
                 </div>
+              </div>
               </div>
               </>
             )}
@@ -379,164 +379,38 @@ const getInitials = (name) => {
 
 export default Profile;
 
-// return (
-//   <>
-//     {isLoading && <Error message={loadingErrMsg} />}
-//     {!isLoading && 
-//       <div className="w-full h-full relative bg-white md:px-24 md:mx-0 sm:px-0 sm:mx-auto py-12 select-none">
-//         <div className="flex flex-col h-full  ">
-//           <div className="flex rounded-t-[16px] bg-slate-50  border-[1px] border-slate-300 flex-row justify-between px-4 py-5">
-//           <div className="inline-flex gap-2 p-4 font-cabin text-base font-medium">
-//             <img src={arrow_left} alt="arrow-left" />
-//             <p>Your Profile</p>
-//           </div>
-//           <div className="w-fit">
-//             <Button onClick={handleSaveProfile} text='Save' textAndBgColor='bg-indigo-600 text-white' />
-//           </div>
-//           </div>
-//           <div className="flex justify-center items-center flex-col">
-//             <div className=' w-full  lg:h-[200px] h-[150px] flex justify-center  md:justify-start lg:justify-start'>
-//               <img src={profile_bg} alt="profile-bg" />
-//             </div>
-//             <div className="translate-y-[-50px] bottom-[-50px]">
-//               <div className="  rounded-full bg-indigo-100 flex shrink  w-[104px] h-[104px] items-center justify-center  mx-auto  shadow-md border-4 border-white transition duration-200 transform hover:scale-110">
-//                 <h2 className="text-white">K V</h2>
-//               </div>
-//               <div className="flex flex-col items-center">
-//                 <div className="font-cabin text-lg text-neutral-800">Ashneer Grover</div>
-//                 <div className="font-cabin text-medium text-neutral-600">CEO</div>
-//               </div>
-//             </div>
-//           </div>
-//           <div className="border-[1px] border-slate-300 gap-8 rounded-[16px] bg-slate-50 w-full flex justify-center items-center h-[70px] ">
-//             <div className="w-full flex md:flex-row flex-col justify-center items-center gap-2">
-//               <div className="flex-1 inline-flex items-center justify-center ">
-//                 <img src={mail_icon} alt="mail-icon" className="w-5 h-5" />
-//                 <div className="text-center text-base font-cabin">ashneergrover@bharatpay.com</div>
-//               </div>
-//               <div className="flex-1 inline-flex items-center justify-center">
-//                 <img src={location_pin} alt="mail-icon" className="w-5 h-5" />
-//                 <div className="text-center text-base font-cabin">Delhi,India</div>
-//               </div>
-//             </div>
-//           </div>
-//           <div className="flex-col mt-4 py-4 border-[1px] border-slate-300 gap-8 rounded-[16px] bg-slate-50 w-full flex justify-center items-center h-full px-4">
-//             <div className="mt-0 px-2 border-[1px] flex-col lg:flex-row border-slate-300 gap-8 rounded-[16px] bg-slate-50 w-full flex justify-center items-center h-auto py-5">
-//               <div className="font-cabin">
-//                 Flight Preference :
-//               </div>
-//               <Select
-//                 currentOption={titleCase(formData.busPreference?.seat ?? "")}
-//                 title='Seat preference'
-//                 placeholder='Select Seat Preference'
-//                 options={preference.flightSeatPreference}
-//                 onSelect={(value) => handleChange('seat', value, 'flight')}
-//               />
-//               <Select
-//                 currentOption={titleCase(formData.flightPreference?.meal ?? "")}
-//                 title='Meal preference'
-//                 placeholder='Select Meal Preference'
-//                 options={preference.mealPreference}
-//                 onSelect={(value) => handleChange('meal', value, 'flight')}
-//               />
-//             </div>
-//             <div className="mt-0 px-2 border-[1px] flex-col lg:flex-row border-slate-300 gap-8 rounded-[16px] bg-slate-50 w-full flex justify-center items-center h-auto py-5">
-//               <div className="font-cabin">
-//                 Train Preference :
-//               </div>
-//               <Select
-//                 currentOption={titleCase(formData.trainPreference?.seat ?? "")}
-//                 title='Seat preference'
-//                 placeholder='Select Seat Preference'
-//                 options={preference.trainSeatPreference}
-//                 onSelect={(value) => handleChange('seat', value, 'train')}
-//               />
-//               <Select
-//                 currentOption={titleCase(formData.trainPreference?.meal ?? "")}
-//                 title='Meal preference'
-//                 placeholder='Select Meal Preference'
-//                 options={preference.mealPreference}
-//                 onSelect={(value) => handleChange('meal', value, 'train')}
-//               />
-//             </div>
-//             <div className="mt-0 px-2 border-[1px] flex-col lg:flex-row border-slate-300 gap-8 rounded-[16px] bg-slate-50 w-full flex justify-center items-center h-auto py-5">
-//               <div className="font-cabin">
-//                 Bus Preference :
-//               </div>
-//               <Select
-//                 currentOption={titleCase(formData.busPreference?.seat ?? "")}
-//                 title='Seat preference'
-//                 placeholder='Select Seat Preference'
-//                 options={preference.busSeatPreference}
-//                 onSelect={(value) => handleChange('seat', value, 'bus')}
-//               />
-//               <Select
-//                 currentOption={titleCase(formData.busPreference?.meal ?? "")}
-//                 title='Meal preference'
-//                 placeholder='Select Meal Preference'
-//                 options={preference.mealPreference}
-//                 onSelect={(value) => handleChange('meal', value, 'bus')}
-//               />
-//             </div>
-//             <div className="mt-0 px-2 border-[1px] flex-col lg:flex-row border-slate-300 gap-8 rounded-[16px] bg-slate-50 w-full flex justify-center items-center h-auto py-5">
-//               <div className="font-cabin">
-//                 Hotel Preference :
-//               </div>
-//               <Select
-//                 currentOption={titleCase(formData.hotelPreference?.roomType ?? "")}
-//                 options={preference.hotelPreference.roomType}
-//                 title='Room preference'
-//                 placeholder='Select Seat Preference'
-//                 onSelect={(value) => handleChange('roomType', value, 'hotel')}
-//               />
-//               <Select
-//                 title='Bed preference'
-//                 placeholder='Select Meal Preference'
-//                 currentOption={titleCase(formData.hotelPreference?.bedType ?? "")}
-//                 options={preference.hotelPreference.bedType}
-//                 onSelect={(value) => handleChange('bedType', value, 'hotel')}
-//               />
-//             </div>
-//             <div className="mt-0 px-2 border-[1px] flex-col lg:flex-row border-slate-300 gap-8 rounded-[16px] bg-slate-50 w-full flex justify-center items-center h-auto py-5">
-//               <div className="font-cabin">
-//                 Emergency Contact  :
-//               </div>
-//               <div className="translate-y-1 w-[400px]">
-//                 <Input
-//                   initialValue={formData.emergencyContact?.contactNumber}
-//                   // value={"formData.emergencyContact?.contactNumber"}
-//                   onChange={(value) => handleChange('contactNumber', value, 'contactDetails')}
-//                   title='Contact Number'
-//                   placeholder='Select Contact Number'
-//                 />
-//               </div>
-//               <Select
-//                 title='Relationship'
-//                 placeholder='Select Relationship'
-//                 currentOption={titleCase(formData.emergencyContact?.relationship ?? "")}
-//                 options={preference.relationship}
-//                 onSelect={(value) => handleChange('relationship', value, 'contactDetails')}
-//               />
-//             </div>
-//             <div className="mt-0 px-2 border-[1px] flex-col lg:flex-row border-slate-300 gap-8 rounded-[16px] bg-slate-50 w-full flex justify-evenly items-center h-auto py-5">
-//               <div className="font-cabin">
-//                 Dietary Allergic  :
-//               </div>
-//               <div className="translate-y-1 w-[400px] h-[150px]">
-//                 <TextBox
-//                   title='Enter Allergic'
-//                   placeholder='Type about allergy related...'
-//                   name="myText"
-//                   initialValue={dietaryAllergyField}
-//                   onChange={(value) => handleChange('dietaryAllergy', value, 'dietary') }
-//                 />
-//               </div>
-//             </div>
-//           </div>
-//         </div>
-//       </div>
-//     }
-//      <PopupMessage showPopup={showPopup} setShowPopup={setShowPopup} message={message}/>
-//   </>
-// )
-// }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
