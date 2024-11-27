@@ -30,8 +30,6 @@ export default function CompanyAndHRInformation(props){
   const [formData, setFormData] = useState({companyName:'',  email:'', password:'', })
   const [isLoading,setIsLoading]=useState(false)
   const [loadingErrorMsg, setLoadingErrorMsg]=useState(false)
-  const [showPopup ,setShowPopup]=useState(false);
-  const [message,setMessage]=useState(null) 
   const [errors, setErrors] = useState({companyNameError:{set:false, message:null},  emailError:{set:false, message:null}, passwordError:{set:false, message:null}, confirmPasswordError:{set:false, message:null}})
   const [isUploading,setIsUploading]=useState({logFog:false,login:false})
 

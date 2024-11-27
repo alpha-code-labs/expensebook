@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect} from 'react';
 import {BrowserRouter, Routes, Route} from 'react-router-dom';
 import SignUp from './pages/SignUp';
 import VerifyUser from './pages/VerifyUser';
@@ -7,6 +7,36 @@ import UpdatePassword from './pages/UpdatePassword';
 import PopupMessage from './components/common/PopupMessage';
 
 function App() {
+
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, []);
+  const message = "You are offline. Please check your internet connection."
+  useEffect(()=>{
+    if (!isOnline) {
+      setPopupMsgData(prev => ({...prev, showPopup:true, message, iconCode:"102"}))
+      
+    }
+    else
+    {
+      setPopupMsgData(initialPopupData);
+    }
+  
+  },[isOnline])
+
+
+
   const initialPopupData = {
     showPopup:false,
     message:null,

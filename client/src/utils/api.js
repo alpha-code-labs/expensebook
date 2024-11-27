@@ -7,11 +7,17 @@ const retryDelay = 3000;
 
 
 const errorMessages = {
-  '404': 'Resource Not Found',
-  '400': 'Cannot fetch data at the moment',
+  '404': 'Something went wrong. Please try again later',
+  '400': 'Something went wrong. Please try again later',
   // '500': 'Internal Server Error',
-  'request': 'Network Error',
+  'request': 'Something went wrong. Please try again later',
   'else': 'Something went wrong. Please try again later'
+  
+  // '404': 'Resource Not Found',
+  // '400': 'Cannot fetch data at the moment',
+  // // '500': 'Internal Server Error',
+  // 'request': 'Network Error',
+  // 'else': 'Something went wrong. Please try again later'
 };
 
 const handleRequestError = (e) => {

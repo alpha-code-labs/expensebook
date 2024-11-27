@@ -44,13 +44,13 @@ export default function (props){
         switch(sign) {
           case '101':
             return (
-              <div className='p-1 ring-1 ring-white rounded-full shrink-0 bg-green-200'>
+              <div className='p-1 ring-1 ring-white rounded-full shrink-0 bg-green-600'>
                 <img src={success_icon} className='w-3 h-3 ' alt="Urgent Icon" />
               </div>
             );
           case '102':
             return (
-              <div className='p-1 ring-1 ring-white rounded-full shrink-0 bg-red-200 rotate-180 w-fit h-fit'>
+              <div className='p-1 ring-1 ring-white rounded-full shrink-0 bg-red-600 rotate-180 w-fit h-fit'>
                 <img src={failure_icon} className='w-3 h-3 ' alt="Urgent Icon" />
               </div>
             );
