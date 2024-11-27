@@ -22,7 +22,6 @@ export const getExpenseCategoryFields = async (tenantId, travelType, expenseCate
         tenantId,
     });
 
-      // Return error response if employee document is not found
     if (!employeeDocument) {
         throw new Error({
         success: false,
@@ -30,34 +29,64 @@ export const getExpenseCategoryFields = async (tenantId, travelType, expenseCate
         });
     }
 
-    // Extract additional information from the employee document
     const { travelExpenseCategories={} } = employeeDocument;
 
- // Convert input categories to lowercase for case-insensitive comparison
- const lowerCaseTravelExpenseCategory = travelType.toLowerCase();
- const lowerCaseExpenseCategory = expenseCategory.toLowerCase();
+//  // Convert input categories to lowercase for case-insensitive comparison
+//  const lowerCaseTravelExpenseCategory = travelType.toLowerCase();
+//  const lowerCaseExpenseCategory = expenseCategory.toLowerCase();
 
- // Flatten the array of category objects to a single array of values
- const flattenedCategories = travelExpenseCategories.flatMap(categoryObject => {
-   const key = Object.keys(categoryObject).find(
-     key => key.toLowerCase() === lowerCaseTravelExpenseCategory
-   );
-   return key ? categoryObject[key] : [];
- });
+//  // Flatten the array of category objects to a single array of values
+//  const flattenedCategories = travelExpenseCategories.flatMap(categoryObject => {
+//    const key = Object.keys(categoryObject).find(
+//      key => key.toLowerCase() === lowerCaseTravelExpenseCategory
+//    );
+//    return key ? categoryObject[key] : [];
+//  });
 
- // Find the expense object within the flattened array
- const expenseObject = flattenedCategories.find(
-   expense => expense.categoryName.toLowerCase() === lowerCaseExpenseCategory
- );
 
- const  fields = expenseObject ? expenseObject.fields : null
+//  // Find the expense object within the flattened array
+//  const expenseObject = flattenedCategories.find(
+//    expense => expense.categoryName.toLowerCase() === lowerCaseExpenseCategory
+//  );
 
- console.log("return",
-    tenantId,
-    travelType,
-    expenseCategory,
-    fields)
-      // Return the response with the extracted information
+//  const  fields = expenseObject ? expenseObject.fields : null
+
+const normalizeString = (str) => str.toLowerCase().replace(/\s+/g, '');
+
+const lowerCaseTravelExpenseCategory = normalizeString(travelType);
+const lowerCaseExpenseCategory = normalizeString(expenseCategory);
+
+
+const flattenedCategories = travelExpenseCategories.flatMap(categoryObject => {
+    const key = Object.keys(categoryObject).find(
+        key => normalizeString(key) === lowerCaseTravelExpenseCategory
+    );
+    return key ? categoryObject[key] : [];
+});
+
+// console.log("Flattened categories:", flattenedCategories);
+
+const expenseObject = flattenedCategories.find(
+    expense => {
+        const normalizedCategoryName = normalizeString(expense.categoryName);
+        console.log("Checking normalized expense object:", normalizedCategoryName);
+        return normalizedCategoryName === lowerCaseExpenseCategory;
+    }
+);
+
+// console.log("Expense object:", expenseObject);
+
+const fields = expenseObject ? expenseObject.fields : null;
+
+// console.log("Fields:", fields);
+
+
+//  console.log("return",
+//     tenantId,
+//     travelType,
+//     expenseCategory,
+//     fields)
+
       return ({
         tenantId,
         travelType,
