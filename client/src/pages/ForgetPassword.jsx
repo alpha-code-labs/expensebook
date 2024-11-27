@@ -19,7 +19,12 @@ import { urlRedirection } from '../utils/handyFunctions';
 
 //inputs: company name, full name of user, mobile number, company HQ, email Id, password and confirm Password
 
-export default function CompanyAndHRInformation(){
+export default function CompanyAndHRInformation(props){
+  const setPopupMsgData = props.setPopupMsgData
+  const popupMsgData = props.popupMsgData
+  const initialPopupData = props.initialPopupData
+
+
   const navigate= useNavigate()
   const [companyList, setCompanyList] = useState([])
   const [businessCategoriesList, setBusinessCategoriesList] = useState(['Mining', 'Construction', 'Manufacturing', 'Transportation', 'Information', 'Finance and Insurance', 'Real State and Rental Leasing', 'Accomodation and Food', 'Educational', 'Health Care', 'Others'])
@@ -30,6 +35,7 @@ export default function CompanyAndHRInformation(){
   const [openModal,setOpenModal]=useState(false);
   const [showPopup ,setShowPopup]=useState(false);
   const [message,setMessage]=useState(null)  ///this is for modal message
+ 
   const [errors, setErrors] = useState({companyNameError:{set:false, message:null},  emailError:{set:false, message:null}, passwordError:{set:false, message:null}, confirmPasswordError:{set:false, message:null}})
 
   const [prompt, setPrompt] = useState(null);
@@ -46,12 +52,14 @@ export default function CompanyAndHRInformation(){
         const { data, error } = await getCompanyList_API();
 
         if (error) {
-          setLoadingErrorMsg(error.message);
+          // setLoadingErrorMsg(error.message);
+          setPopupMsgData({showPopup:true, message:error?.message, iconCode: '102'})
         } else {
           setCompanyList(data);
         }
       } catch (error) {
-        setLoadingErrorMsg(error.message);
+        setPopupMsgData({showPopup:true, message:error?.message, iconCode: '102'})
+        setIsLoading(false)
       } finally {
         setIsLoading(false);
       }
@@ -232,7 +240,7 @@ export default function CompanyAndHRInformation(){
 
       </div>
     </div>
-    <PopupMessage showPopup={showPopup} setShowPopup={setShowPopup} message={message}/>
+    {/* <PopupMessage showPopup={showPopup} setShowPopup={setShowPopup} message={message}/> */}
   </div> 
 
 
@@ -282,7 +290,6 @@ export default function CompanyAndHRInformation(){
 
 const validateEmail = (email) => {
     return String(email)
-      .toLowerCase()
       .match(
         /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
       );

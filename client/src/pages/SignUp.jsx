@@ -16,7 +16,10 @@ import { validatePassword } from '../utils/handyFunctions';
 //signup  with  set password first time
 //inputs: company name, full name of user, mobile number, company HQ, email Id, password and confirm Password
 
-export default function CompanyAndHRInformation(){
+export default function CompanyAndHRInformation(props){
+  const setPopupMsgData = props.setPopupMsgData
+  const popupMsgData = props.popupMsgData
+  const initialPopupData = props.initialPopupData
   const [locationsList, setLocationsList] = useState([])
   const [formData, setFormData] = useState({companyName:'', fullName:'', email:'', password:'', confirmPassword:'', companyHQ:'', mobileNumber:''})
   const [isLoading,setIsLoading]=useState(false)
@@ -39,12 +42,13 @@ export default function CompanyAndHRInformation(){
       
        setIsLoading(false)
         console.error('API Error:', error);
-        setMessage(error.message || "An unexpected error occurred.");
-     
-        setShowPopup(true)
+        // setMessage(error.message || "An unexpected error occurred.");
+        // setShowPopup(true)
+        setPopupMsgData({showPopup:true, message:error?.message, iconCode: '102'})
         setTimeout(()=>{
-          setMessage(null)
-          setShowPopup(false)
+          // setMessage(null)
+          // setShowPopup(false)
+          setPopupMsgData(initialPopupData)
         
 
         },3000)
@@ -147,14 +151,15 @@ export default function CompanyAndHRInformation(){
           // Handle API error here
          
           console.error('API Error:', error);
-          setMessage(error.message || "An unexpected error occurred.");
+         // setMessage(error.message || "An unexpected error occurred.");
           setIsUploading(prevState => ({ ...prevState, signup: false }));
-          setShowPopup(true)
+         // setShowPopup(true)
+         setPopupMsgData({showPopup:true, message: error?.message, iconCode: '102'})
           setTimeout(()=>{
-            setMessage(null)
-            setShowPopup(false)
+            setPopupMsgData(initialPopupData)
+            // setMessage(null)
+            // setShowPopup(false)
            // navigate("/sign-in")
-
           },3000)
         } else {
           // Check the result and perform necessary actions
@@ -208,24 +213,23 @@ export default function CompanyAndHRInformation(){
           // Handle API error here
          
           console.error('API Error:', error);
-          setMessage(error.message || "An unexpected error occurred.");
+          //setMessage(error.message || "An unexpected error occurred.");
           setIsUploading(prevState => ({ ...prevState, otpValidation: false }));
-          setShowPopup(true)
+          //setShowPopup(true)
+          setPopupMsgData({showPopup:true, message:error?.message, iconCode:'102'})
           setTimeout(()=>{
-            setMessage(null)
-            setShowPopup(false)
-
+            setPopupMsgData(initialPopupData)
           },3000)
         } else {
           // Check the result and perform necessary actions
           console.log('API Response:', data.message);
 
           setIsUploading(prevState => ({ ...prevState, otpValidation: false }));
-          setMessage(data.message);
-          setShowPopup(true)
+          // setMessage(data.message);
+          // setShowPopup(true)
+          setPopupMsgData({showPopup:true, message:data?.message, iconCode: '101'})
           setTimeout(()=>{
-            setMessage(null)
-            setShowPopup(false)
+           setPopupMsgData(initialPopupData)
           },3000)
           // For example, you can redirect to another page after successful signup
           // navigate('/success-page');
@@ -386,7 +390,7 @@ export default function CompanyAndHRInformation(){
       </div>
    
     </Modal>
-    <PopupMessage showPopup={showPopup} setShowPopup={setShowPopup} message={message}/>
+    {/* <PopupMessage showPopup={showPopup} setShowPopup={setShowPopup} message={message}/> */}
     </>
     }
 
