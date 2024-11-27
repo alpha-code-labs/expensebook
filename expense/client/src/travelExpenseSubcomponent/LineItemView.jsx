@@ -1,13 +1,13 @@
 /* eslint-disable no-unreachable */
 import React from "react";
 import { categoryIcons } from "../assets/icon";
-import Button1 from "../Components/common/Button1";
+import Button1 from "../components/common/Button1";
 import {
   camelCaseToTitleCase,
   rearrangeKeyForLineItem,
 } from "../utils/handyFunctions";
 import { lineItems } from "../utils/dummyData";
-import { StatusBox } from "../Components/common/TinyComponent";
+import { StatusBox } from "../components/common/TinyComponent";
 
 export function LineItemView({
   expenseHeaderStatus,

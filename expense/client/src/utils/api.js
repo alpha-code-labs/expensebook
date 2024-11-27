@@ -77,11 +77,13 @@ export const getTravelExpenseApi = async (tenantId,empId,tripId) => {
 };
 
 
-export const ocrScanApi = async (data) => {
+export const ocrScanApi = async (params, payload) => {
+  const {categoryName, travelType, tenantId} = params
+  const {file} = payload
  
-  const url = `${EXPENSE_BACKEND_API_URL}/api/fe/expense/travel/upload`;
+  const url = `${EXPENSE_BACKEND_API_URL}/api/fe/expense/upload/:${tenantId}/:${travelType}/:${categoryName}`;
   try {
-    const response = await axiosRetry(axios.post, url,data);
+    const response = await axiosRetry(axios.post, url,{file});
     return { data: response.data, error: null };
   } catch (error) {
     handleRequestError(error);

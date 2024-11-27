@@ -55,13 +55,13 @@ import {
 import { classDropdown } from "../utils/data.js";
 import Toggle from "../components/common/Toggle.jsx";
 import { BlobServiceClient } from "@azure/storage-blob";
-import Button1 from "../Components/common/Button1.jsx";
-import CancelButton from "../Components/common/CancelButton.jsx";
+import Button1 from "../components/common/Button1.jsx";
+import CancelButton from "../components/common/CancelButton.jsx";
 import { LineItemView } from "../travelExpenseSubcomponent/LineItemView.jsx";
 import { DocumentPreview } from "../travelExpenseSubcomponent/BillPreview.jsx";
 import Modal from "../components/common/Modal.jsx";
 import LineItemForm from "../travelExpenseSubcomponent/LineItemForm.jsx";
-import { RemoveFile, TitleModal } from "../Components/common/TinyComponent.jsx";
+import { RemoveFile, TitleModal } from "../components/common/TinyComponent.jsx";
 import uploadFileToAzure from "../utils/azureBlob.js";
 import { dateKeys, isClassField, totalAmountKeys } from "../utils/data/keyList.js";
 

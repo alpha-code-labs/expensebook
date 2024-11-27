@@ -2,21 +2,21 @@ import React, { useEffect, useState,useRef } from 'react';
 import { allocationLevel1,  lineItems,  } from '../utils/dummyData';
 import { cancel_icon, categoryIcons, close_gray_icon, info_icon, modify_icon, receipt,scan_icon } from '../assets/icon';
 import Allocations from './Allocations';
-import Modal from '../Components/common/Modal'
-import Search from '../Components/common/Index';
-import Button1 from '../Components/common/Button1';
-import FileUpload from '../Components/common/FileUpload';
+import Modal from '../components/common/Modal'
+import Search from '../components/common/Index';
+import Button1 from '../components/common/Button1';
+import FileUpload from '../components/common/FileUpload';
 import { DocumentPreview } from './BillPreview';
 import { allocationLevel, extractValidExpenseLines, initializeFormFields, urlRedirection } from '../utils/handyFunctions';
 import LineItemForm from './LineItemForm';
-import { getTravelExpenseApi, postTravelExpenseLineItemApi, currencyConversionApi } from '../utils/api';
+import { getTravelExpenseApi, postTravelExpenseLineItemApi, currencyConversionApi, ocrScanApi } from '../utils/api';
 import { useParams,useNavigate } from 'react-router-dom';
 import Error from '../components/common/Error';
 import PopupMessage from '../components/common/PopupMessage';
-import CancelButton from '../Components/common/CancelButton';
+import CancelButton from '../components/common/CancelButton';
 import { BlobServiceClient } from "@azure/storage-blob";
 import useCurrencyConversion from '../utils/Conversion';
-import { RemoveFile, TitleModal } from '../Components/common/TinyComponent';
+import { RemoveFile, TitleModal } from '../components/common/TinyComponent';
 
 
 const AddLineItem = () => {
@@ -83,6 +83,7 @@ const [isUploading,setIsUploading]=useState({
   saveLineItem:{set:false,msg:""},
   autoScan:false
 })
+
 // const [showPopup, setShowPopup] = useState(false);
 // const [message, setMessage] = useState(null);
 const [loadingErrMsg, setLoadingErrMsg] = useState(null)
@@ -254,9 +255,6 @@ const handleMannualBtn = () => {
     }));
   }
 };
-
-
-
 
 
 const handleCurrencyConversion = async ( {currencyName,totalAmount,personalAmount}) => { 
@@ -463,7 +461,7 @@ const handleSaveLineItem = async (action) => {
   }
 };
 
-const handleOCRScan=()=>{
+const handleOCRScan=async()=>{
   if(requiredObj.category=== 'Flight'){
     setFormData(prev => ({...prev,fields:{
       ...prev.fields,
@@ -514,6 +512,19 @@ const handleOCRScan=()=>{
     }}))
     setCurrencyConversion(prev=>({...prev,payload:{...prev.payload,totalAmount:"318.15"}}))
 
+  }
+
+  try
+  {
+    setIsUploading(prev=> ({...prev,autoScan:true}))
+    const response = await ocrScanApi({tenantId, categoryName:requiredObj?.category, travelType:requiredObj?.travelType }, {selectedFile})
+    console.log("OCR scan response", response);
+    setIsUploading(prev=> ({...prev,autoScan:false}))
+  }
+  catch(error)
+  {
+    console.error("some went wrong with OCR scan". error)
+    setIsUploading(prev=> ({...prev,autoScan:false}))
   }
 }
 
