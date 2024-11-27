@@ -104,6 +104,7 @@ export {default as briefcaseMap} from './suitcase/breifcase03.jpg';
 export {default as user_icon} from './profile.png';
 export {default as plus_icon} from './plus.svg';
 export { default as dietary} from './diet.svg';
+export { default as contact} from './emergencyContact.svg';
 export {default as plus_black_icon} from './plus_black_icon.svg';
 export {default as plus_violet_icon} from './plus copy.svg';
 export {default as calender_2_icon} from './calender-2.png';

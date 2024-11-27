@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { titleCase } from "../utils/handyFunctions";
 import Error from "../components/common/Error";
 import PopupMessage from "../components/common/PopupMessage";
-import {profile_bg, app_icon, airplane_1 as airplane_icon, arrow_left, mail_icon, location_pin, categoryIcons, user_icon, city_icon, profile_newBg, profile_buildBg, dietary} from "../assets/icon";
+import {profile_bg, app_icon, airplane_1 as airplane_icon, arrow_left, mail_icon, location_pin, categoryIcons, user_icon, city_icon, profile_newBg, profile_buildBg, dietary, contact} from "../assets/icon";
 
 import { 
   material_flight_black_icon, 
@@ -312,7 +312,7 @@ const Profile = ({fetchData}) => {
                   {/* Emergency Contact */}
                 <div className="mt-0 px-2 border border-slate-300 flex-col lg:flex-row rounded-[16px] bg-slate-50 w-full flex justify-center items-center h-auto py-5">
                     <div className="font-cabin mr-4 mb-2 lg:mb-0">
-                      <img src={material_personal_black_icon} alt="Emergency-contact-icon" className="w-5 h-5"/>
+                      <img src={contact} alt="Emergency-contact-icon" className="w-5 h-5"/>
                     </div>
                     <div className="flex flex-col sm:flex-row gap-4 w-full justify-center items-center">
                       <div className="w-full max-w-sm">
