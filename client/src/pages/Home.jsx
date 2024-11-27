@@ -84,7 +84,10 @@ const fetchData = async () => {
     setIsLoading(prev => ({ ...prev, roleData: false })); // Stop loading for login data
   } catch (error) {
     console.error('Error fetching data:', error.message);
-    setPopupMsgData({showPopup: true , message: error?.message , iconCode: "102"})
+    if(isOnline){
+      setPopupMsgData({showPopup: true , message: error?.message , iconCode: "102"})
+    }
+    
     //setLoadingErrMsg(error?.message);
     // Stop both loadings in case of error
     //setIsLoading({ loginData: false, roleData: false });
