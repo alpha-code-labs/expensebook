@@ -864,6 +864,7 @@ export const onSaveExpenseLine = async (req, res) => {
       ])
 
       return res.status(200).json({
+        success:true,
         message: "The expense line has been recorded.",
         travelExpenseData,
         expenseAmountStatus,
@@ -910,6 +911,7 @@ export const onSaveExpenseLine = async (req, res) => {
       ])
 
         return res.status(200).json({
+          success:true,
           message: "The expense line has been recorded.",
           expenseLineId,
           expenseLine,

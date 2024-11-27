@@ -212,12 +212,10 @@ async function getNonTravelExpenseReport(tenantId, empId, expenseHeaderId) {
       if (report) {
         console.log("Retrieved report:", report);
         return report;
-      } else {
-        throw new Error("Report not found for the specified criteria."); 
-      }
+      } 
     } catch (error) {
       console.error("Error occurred while fetching the report:", error); 
-      throw error
+      return { success:false , error:error}
     }
 }
 
@@ -436,7 +434,7 @@ const nonTravelReportApproval = async (payload) => {
  
        } catch (error) {
     console.error('An error occurred while updating Travel Expense status:', error.message);
-    throw error
+    return { success:false , error:error}
   }
 }
 

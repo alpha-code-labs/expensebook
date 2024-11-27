@@ -47,8 +47,18 @@ export const handleFileUpload = async (req, res) => {
     console.log(resultId);
 
     const tenantData = await getExpenseCategoryFields(tenantId, travelType, category) 
-    //Assuming you have a function makeApiCall defined somewhere
+
+    console.log("tenantData fields ", JSON.stringify(tenantData,'',2))
+    if (!tenantData) {
+      return res.status(404).json({ error: 'Tenant data not found for the specified criteria', message: `Requested data not found for Tenant ID: ${tenantId}, Travel Type: ${travelType}, and Category: ${category}. Please verify these details and try again.`});
+    }
+
+    //to get form data 
     const finalResult = await makeApiCall(resultId, category, tenantData);
+
+    if (!finalResult) {
+      return res.status(500).json({ error: 'Failed to retrieve data from the external API.' });
+    }
 
     return res.status(200).json(finalResult);
 
@@ -57,7 +67,7 @@ export const handleFileUpload = async (req, res) => {
     console.error("Error calling Azure Form Recognizer:");
     console.error(error);
 
-    res.status(500).json({ success: false, error: "Internal Server Error" });
+    res.status(500).json({ success: false, error: "An unexpected error occurred. Please try again later." });
   }
 };
 
@@ -88,8 +98,31 @@ export const getResult = async (resultId,category,tenantData,res) => {
         }
       }
     );
-    console.log("get from Azure Form Recognizer:", response);
     
+    console.log("get from Azure Form Recognizer:", response);
+    console.log("typeof:", typeof response);
+
+    if (response.status === 200 && response.data?.status === "succeeded") { 
+      const getKeyValuePairs = response.data?.analyzeResult?.keyValuePairs
+      .filter(pair => pair.confidence > 0.80)
+      // .map(pair => ({
+      //     [pair.key.content.trim()]: pair.value.content
+      // }));
+      .map(pair=>{
+        return {key: pair.key.content, value: pair.value.content}
+      })
+      console.log("extracted data successfully", getKeyValuePairs); 
+      const[ ocrOutput, formFields, testing] = await  Promise.all([
+      extractFormFields(response.data, category),
+      findMatchingFields(tenantData,getKeyValuePairs, response.data),
+      formFieldsBasedOnCategory(response.data,category)
+      ]) 
+      const matched = formFields?.success === true ? { fields: formFields.data.fields } : null
+      return { success: true, getKeyValuePairs , ocrOutput, ...matched, testing};
+  } else {
+      console.log("failed to extract, please try again");
+      return { success: false, message: "failed to extract, please try again" }; 
+  }
     const ocrOutput = await extractFormFields(response.data, category)
     
     const allKeyValuePairs = response.data.analyzeResult.keyValuePairs
@@ -99,11 +132,12 @@ export const getResult = async (resultId,category,tenantData,res) => {
     })
 
     console.log("allKeyValuePairs", allKeyValuePairs ,tenantData )
+    console.log(" response.data",  response.data)
 
     const formFields = await findMatchingFields(tenantData,allKeyValuePairs, response.data)
     return { success: true, data: ocrOutput, keyValuePairs: allKeyValuePairs, tenantData , formFields };
   } catch (error) {
-    console.error("Error calling Azure Form Recognizer:");
+    console.error("Error calling Azure Form Recognizer:", error);
     console.error(error);
 
     return { success: false, error: "Internal Server Error" };
@@ -184,6 +218,7 @@ export const findMatchingFields = async (tenantData, keyValuePairs, data) => {
     return '';
   };
 
+  console.log("tenanat data fields", JSON.stringify(tenantData,'',2))
 if(!tenantData.fields){
   return ( `message:"Contact Admin for further information"`)
 }
@@ -333,10 +368,11 @@ if(!tenantData.fields){
 
 // for all
 export const formFieldsBasedOnCategory = async (data, category) => {
-  const categoryNames = ['hotels', 'trains', 'cab', 'bus'];
-  const flightCategory = 'flights';
+  const categoryNames = ['hotel', 'train', 'cab', 'bus'];
+  const flightCategory = 'flight';
 
   if (flightCategory === category) {
+    console.log("flight category",)
     const [fromAndTo, otherFields] = await Promise.allSettled([
       extractAirportPairs(data), extractFormFieldsForAll(data)
     ]);
@@ -726,7 +762,7 @@ const extractTo = (data)=>{
 const extractFormFields = async (data, category)=>{
   let from, to;
 
-  if(category == 'flights'){
+  if(category == 'flight'){
    const pair =  extractAirportPairs(data)
    from = pair.from;
    to = pair.to;
