@@ -101,6 +101,7 @@ const FinanceMS = ({ visible, setVisible, src,fetchData }) => {
         const response = await api;
        
         setIsUploading(false);
+        setModalOpen(false);
         // setShowPopup(true);
         // setMessage(response);
         setPopupMsgData({showPopup:true, message:response, iconCode: "101"});

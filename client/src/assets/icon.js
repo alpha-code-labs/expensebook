@@ -24,14 +24,10 @@ export {default as success_icon} from './messageSign/success_icon.svg';
 export {default as failure_icon} from './messageSign/failure_icon.svg';
 export {default as msg_icon} from './messageSign/information_icon.svg';
 
-
-
-
 // export {default as alert_bell_icon} from './notification/notifications_24dp_434343_FILL0_wght400_GRAD0_opsz24.svg'
 // export {default as info_bell_icon} from './notification/info_24dp_434343_FILL0_wght400_GRAD0_opsz24.svg'
 // export {default as warning_bell_icon} from './notification/warning_24dp_434343_FILL0_wght400_GRAD0_opsz24.svg'
 // export {default as error_bell_icon} from './notification/error_24dp_434343_FILL0_wght400_GRAD0_opsz24.svg'
-
 
 //gif icons
 export {default as cashadvance_icon} from './gif_icon/cashadvance_icon.gif'
