@@ -7,7 +7,7 @@ import FB_NOTIFICATION from "../models/fbNotification.js";
 
 const fetchEmployeeNotifications = async (tenantId, empId, applicableRoles) => {
     try {
-        console.log("applicableRoles", applicableRoles);
+        // console.log("applicableRoles", applicableRoles);
         let setEmployee = [];
         let setEmployeeManager = [];
         let setFinance = [];
@@ -119,7 +119,7 @@ const fetchEmployeeNotifications = async (tenantId, empId, applicableRoles) => {
             superAdmin: superAdmin
         };
 
-    console.log("applicableRoles", applicableRoles);
+    // console.log("applicableRoles", applicableRoles);
 
     const rolesToReturn = {};
 

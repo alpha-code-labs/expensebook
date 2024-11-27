@@ -65,7 +65,7 @@ const countSettlements = async (tenantId) => {
 export const financeLayout = async (tenantId) => {
     try {
       const {totalCount} = await countSettlements(tenantId);
-      console.log("count finance", totalCount);
+      // console.log("count finance", totalCount);
       return totalCount;
     } catch (error) {
       console.error("Error in fetching employee Dashboard:", error);
@@ -118,59 +118,6 @@ export const financeLayout = async (tenantId) => {
 
 
 
-
-
-
-
-const oldfindSettlements = async (tenantId) => {
-    const cashAdvanceStatus = ['pending settlement', 'Paid and Cancelled'];
-    const travelExpenseStatus = ['pending settlement', 'Paid'];
-    const reimbursementStatus = ['pending settlement'];
-  
-    const settlementsFilter = {
-        tenantId,
-        $or: [
-            {
-                'cashAdvanceSchema.cashAdvancesData.actionedUpon': false,
-                'cashAdvanceSchema.cashAdvancesData.cashAdvanceStatus': {
-                    $in: cashAdvanceStatus,
-                },
-            },
-            {
-                'tripSchema.travelExpenseData.actionedUpon': false,
-                'tripSchema.travelExpenseData.expenseHeaderStatus': {
-                    $in: travelExpenseStatus,
-                },
-            },
-            {
-                'reimbursementSchema.actionedUpon': false,
-                'reimbursementSchema.expenseHeaderStatus': {
-                    $in: reimbursementStatus,
-                },
-            },
-        ],
-    };
-  
-    return await dashboard.find(settlementsFilter);
-};
-
-export const oldfinanceLayout = async (tenantId, empId) => {
-    try {
-        // const settlements = await Dashboard.find({
-        //     tenantId,
-        //     'cashAdvanceSchema.cashAdvancesData.cashAdvanceStatus': { $in: ['pending settlement', 'Paid and Cancelled'] },
-        //     'tripSchema.travelExpenseData.expenseHeaderStatus':{$in: ['pending settlement', 'Paid']},
-        //     'reimbursementSchema.expenseHeaderStatus':{$in: ['pending settlement']},
-        // });
-    const settlements = await findSettlements(tenantId)
-    let count = settlements?.length
-    console.log("count finance", count)
-    return count
-    }catch (error) {
-        console.error("Error in fetching employee Dashboard:", error);
-        throw new Error('Error in fetching employee Dashboard');
-    }
-};
 
 
 
