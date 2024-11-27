@@ -21,25 +21,21 @@ export default function () {
   //get travel request Id from params
   const dashboardBaseUrl = `${import.meta.env.VITE_DASHBOARD_URL}`
     const {tenantId,empId,tripId ,expenseHeaderId} = useParams()
-    
     const [showPopup, setShowPopup] = useState(false)
     const [message, setMessage] = useState(false)
     const [showModal, setShowModal] = useState(false)
     const [travelRequestStatus, setTravelRequestStatus] = useState('pending approval')
-
     const [isLoading, setIsLoading] = useState(true)
     const [loadingErrMsg, setLoadingErrMsg] = useState(null)
     const [isUploading, setIsUploading] = useState(false)
     const [expenseData , setExpenseData]=useState(null);
     const [alreadyBookedExpense,setAlreadyBookedExpense]=useState(null);
-    const [expenseAmtDetails , setExpenseAmtDetails]=useState({})
-    const [defaultCurrency,setDefaultCurrency]=useState(null)
-    const [lineItems,setLineItems]=useState(null)
-    const [selectedRejReason, setSelectedRejReason]=useState(null)
-    const [error , setError] = useState({set: false , message:""})
-     
-
-const paramsElement = {tenantId, empId,tripId,expenseHeaderId}
+    const [expenseAmtDetails , setExpenseAmtDetails]=useState({});
+    const [defaultCurrency,setDefaultCurrency]=useState(null);
+    const [lineItems,setLineItems]=useState(null);
+    const [selectedRejReason, setSelectedRejReason]=useState(null);
+    const [error , setError] = useState({set: false , message:""});
+    const paramsElement = {tenantId, empId,tripId,expenseHeaderId};
 
 
 const [actionData , setActionData]= useState({})
@@ -97,7 +93,6 @@ const [actionData , setActionData]= useState({})
       setActionData({})
       setSelectedRejReason(null)
     }
-
     
    }
 
