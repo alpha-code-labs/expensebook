@@ -35,10 +35,10 @@ const tripBaseUrl = import.meta.env.VITE_TRIP_BASE_URL;
   const [recoverAmtDetails , setRecoverAmtDetails]=useState({amount:null, currency:null})
 
   const [isUploading,setIsUploading]=useState(false);
-  const [showPopup, setShowPopup] = useState(false)
-  const [message, setMessage] = useState(null)
+  // const [showPopup, setShowPopup] = useState(false)
+  // const [message, setMessage] = useState(null)
   const {tenantId,empId,page}= useParams();
-  const { employeeData } = useData();
+  const { employeeData, setPopupMsgData, initialPopupData } = useData();
   const [error , setError]= useState({
     tripId: {set:false, message:""}
   }); 
@@ -104,21 +104,21 @@ const handleConfirm = async (action) => {
       const response = await api;
       console.log('responsemessage', response);
       setIsUploading(false);
-      setShowPopup(true);
-      setMessage(response);
+      // setShowPopup(true);
+      // setMessage(response);
+      setPopupMsgData(prev => ({...prev, showPopup:true, message:response, iconCode:"101"}));
       setTimeout(() => {
-        setShowPopup(false);
+        setPopupMsgData(initialPopupData)
         setIsUploading(false);
-        setMessage(null);
         window.location.reload()
       }, 3000);
     } catch (error) {
-      setShowPopup(true);
-      setMessage(error.message);
+      // setShowPopup(true);
+      // setMessage(error.message);
+      setPopupMsgData(prev => ({...prev, showPopup:true, message:error.message, iconCode:"102"}))
       setTimeout(() => {
         setIsUploading(false);
-        setMessage(null);
-        setShowPopup(false);
+        setPopupMsgData(initialPopupData);
       }, 3000);
     }
 
@@ -310,6 +310,14 @@ const handleConfirm = async (action) => {
       // Check if the message is coming from the iframe
       if (event.origin === travelBaseUrl || event.origin === cashBaseUrl) {
         console.log('event data from booking', event)
+        if(event.data.popupMsgData)
+          {
+            const expensePopupData = event.data.popupMsgData;
+            setPopupMsgData(expensePopupData)
+            setTimeout(() => {
+              setPopupMsgData(initialPopupData); 
+            }, 5000);
+          }
         // Check the message content or identifier
         if (event.data === 'closeIframe') {
           setVisible(false)
@@ -586,7 +594,7 @@ setSelectedStatuses={setSelectedDateRange}
         </div>}
       />  
     </div>
-    <PopupMessage showPopup={showPopup} setShowPopup={setShowPopup} message={message}/>
+    {/* <PopupMessage showPopup={showPopup} setShowPopup={setShowPopup} message={message}/> */}
     </>}
     </>
   );

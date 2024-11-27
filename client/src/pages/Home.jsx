@@ -91,8 +91,6 @@ const fetchData = async () => {
   }
 };
 
-
-  
   const handleLogout = async () => {
     logoutApi(authToken)
     handleLoginPageUrl('login-page')
@@ -135,9 +133,6 @@ const fetchData = async () => {
   //     clearTimeout(timer);
   //   };
   // }, [authToken]);
-  
-
-
   return (
     <>
     {isLoading.loginData ? <Error message={loadingErrMsg}/> : 
@@ -154,7 +149,7 @@ const fetchData = async () => {
       <div className='h-screen overflow-y-auto scrollbar-hide w-full  bg-white'>
       <section>
 
-<Navbar setSearchQuery={setSearchQuery} setSidebarOpen={setSidebarOpen} notificationData={employeeData?.notifications|| []}  tenantId={tenantId} empId={empId}  />
+      <Navbar setSearchQuery={setSearchQuery} setSidebarOpen={setSidebarOpen} notificationData={employeeData?.notifications|| []}  tenantId={tenantId} empId={empId}  />
 
 </section>
         <Routes>
@@ -199,11 +194,8 @@ const fetchData = async () => {
             path="/configure"
             element={<Configure fetchData={fetchData} loadingErrMsg={loadingErrMsg} isLoading={isLoading?.roleData} setAuthToken={setAuthToken}/>}
           />
-        </Routes>
-        
+        </Routes>  
         </div>
-     
-        
       </div>
       </section>
       <PopupMessage iconCode={popupMsgData.iconCode} showPopup={popupMsgData.showPopup} setShowPopup={setPopupMsgData} message={popupMsgData.message} initialPopupData={initialPopupData}/>
