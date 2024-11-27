@@ -73,7 +73,7 @@ function financeMsg(amt, cashAdvance, currency){
                         <div key={index}  className='border border-slate-300 rounded-md px-2 py-1'>
                         <div className='flex flex-row justify-between items-center py-1  font-cabin font-xs'>
                           <div className='flex gap-4'>
-                            <div className='flex gap-2 items-center '>
+                            <div className='flex gap-2 items-center'>
                               <img src={receipt} className='w-5 h-5'/>
                               <div>
                                 <div className='header-title'>Expense Header No.</div>
