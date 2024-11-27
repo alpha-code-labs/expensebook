@@ -1024,7 +1024,7 @@ const CreateNonTraveExpense = () => {
           payload,
         });
         setIsLoading(false);  
-        setModalOpen(false); //
+        setModalOpen(false); 
         // setShowPopup(true);
         // setMessage(response.message);
         window.parent.postMessage({message:"expense message posted" , 
