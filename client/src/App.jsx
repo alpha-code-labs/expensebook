@@ -2,6 +2,7 @@ import {BrowserRouter as Router, Routes, Route} from 'react-router-dom'
 import React from 'react';
 import axios from 'axios'
 import "./App.css";
+import Playgroung from './pages/Playground';
 
 // import ModifyTravelRequest from './pages/ModifyTravelRequest';
 // import Bookings from './pages/Bookings'
@@ -37,6 +38,7 @@ function App() {
         <Route path='/modify/advance/:travelRequestId/:cashAdvanceId' element={<ModifyCashAdvance />} />
         <Route path='/cancel/advance/:travelRequestId/:cashAdvanceId' element={<CancelCashAdvance/>} />
         <Route path='/rejected/advance/:travelRequestId/:cashAdvanceId' element={<ClearRejectedCashAdvance/>} />
+        <Route path='/playground' element={<Playgroung />} />
       </Routes>
     </Router>
   </>;

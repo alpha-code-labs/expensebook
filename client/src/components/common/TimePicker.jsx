@@ -15,17 +15,23 @@ export default function TimePicker(props){
     
     const title = props.title || 'Title'
     const time = props.time || '11:00'
+    const highlightIfNull = props.highlightIfNull;
+    console.log(props.time == null && {set: true, message:''}, 'highlight if null', highlightIfNull)
+
     const onTimeChange = props.onTimeChange
     const [timeValue, setTimeValue] = useState(time)
     const [hours, setHours] = useState(time.split(':')[0]>=12? time.split(':')[0]-12 : time.split(':')[0])
     const [minutes, setMinutes] = useState(time.split(':')[1])
     const [suffix, setSuffix] = useState(time.split(':')[0]>=12? 'PM' : 'AM')
-    const error = props.error || {set:false, message:''}
+    const [removeError, setRemoveError] = useState(false);
+
+    const error = highlightIfNull ? !removeError && props.time == null && {set: true, message:'correct time not picked'} : props.error || {set:false, message:''}
 
 
 
     const handleTimeChange= (e)=>{
         setTimeValue(e.target.value)
+        setRemoveError(true);
 
         console.log(e.target.value)
         onTimeChange(e)
@@ -53,7 +59,7 @@ return(<>
         </div>
         </div>
     </div>
-    <div className="absolute text-xs left-0 px-6 w-full top-[137px] text-red-600">
+    <div className="absolute text-xs left-0 px-6 w-full top-[65px] text-red-600">
         {error.set && error.message}
     </div>
 </div>

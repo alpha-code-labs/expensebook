@@ -1,4 +1,5 @@
 function titleCase(str){
+  try{
     str = str.toLowerCase().split(' ')
     str = str.map(word=>{
         if(word.length>0 && word){
@@ -8,6 +9,11 @@ function titleCase(str){
    str = str.filter(word=>word!=undefined)
     str= str.map(word=>word.replace(word[0],word[0].toUpperCase()))
     return str.join(' ')
+  }catch(e){
+    console.error(e);
+    return str;
+  }
+   
 }
 
 function formatDate(date=Date.now()) {

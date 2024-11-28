@@ -393,10 +393,13 @@ export default function () {
             //     },
             //   } )
             
-            if(res.err){
+            if(res.err || !res.data.response?.success){
                 console.log('Error in Scanning bill')
                 setScanningInProgress(false)
                 alert('Scanning failed. Please upload ticket manually')
+                window.parent.postMessage({message:"cash message posted" , 
+                popupMsgData: { showPopup:true, message:"Scanning failed. Please upload ticket manually", iconCode: "102" }}, DASHBOARD_URL);
+
                 setEntryMode('manual')
                 setScanComplete(false)
                 return
@@ -414,6 +417,16 @@ export default function () {
                 const itineraryItem = formData_copy.itinerary[categoryToScan][addTicketVariables.itemIndex]
                 console.log(itineraryItem)
                 const newData = res.data.response.data
+                
+                const newDataKeys = Object.keys(newData);
+
+                for(let i=0; i<newDataKeys.length; i++){
+                    if(newData[newDataKeys[i]] == null){
+                        window.parent.postMessage({message:"cash message posted" , 
+                        popupMsgData: { showPopup:true, message:"Values not picked correctly. Please enter them manually", iconCode: "102" }}, DASHBOARD_URL);
+                        break;
+                    }
+                }
                 
                 if(categoryToScan == 'flights'){
                     if(newData.from != null) itineraryItem.bkd_from = newData.from
@@ -1062,6 +1075,7 @@ function AddTicketManually(
                     case 'text' : return(  
                                     <div className='' key={index}>
                                         <Input 
+                                            highlightIfNull = {true}
                                             title={field.name} 
                                             value={
                                                 field.toSet == field.id ? itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet] ? itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet] : itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet.split('_')[1]]  : itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet].billDetails?.[field.id]} 
@@ -1093,6 +1107,7 @@ function AddTicketManually(
                     case 'time' : return(  
                         <div className='' key={index}>
                             <TimePicker 
+                                highlightIfNull = {true}
                                 time={itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet]} title={field.name} 
                                 onTimeChange={(e)=>handleFieldValueChange(field.toSet, field.id, e)} />
                         </div>)
@@ -1320,6 +1335,7 @@ function AddScannedTicket(
                                         <Input 
                                             title={field.name} 
                                             value={field.toSet == field.id ? itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet] : itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet].billDetails[field.id]} 
+                                            //value={itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet]}
                                             onChange={(e)=>handleFieldValueChange(field.toSet, field.id, e)} />
                                     </div>)
 
@@ -1336,7 +1352,7 @@ function AddScannedTicket(
                                         <input 
                                         type='date' 
                                         min={getDateXDaysAway(Number(minDaysBeforeBooking))}
-                                        className="w-full h-full decoration:none px-6 py-2 border rounded-md border border-neutral-300 focus-visible:outline-0 focus-visible:border-indigo-600 "
+                                        className={`w-full h-full decoration:none px-6 py-2 border rounded-md border ${itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet]!=null ? 'border-neutral-300' : 'border-red-300'} focus-visible:outline-0 focus-visible:border-indigo-600 `}
                                         name={field.name} 
                                         value={itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet]}
                                         onChange={(e)=>handleFieldValueChange(field.toSet, field.id, e)} />

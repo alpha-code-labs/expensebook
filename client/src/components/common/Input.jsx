@@ -11,10 +11,12 @@ export default function Input(props){
     const onBlur = props.onBlur
     const onChange = props.onChange
     const showLocationSymbol = props.showLocationSymbol??false;
+    const highlightIfNull = props.highlightIfNull;
+
     const inputRef = useRef(null)
     const [textInput, setTextInput] = useState(value? titleCase(value) : '')
-    const error = props.error || {set:false, message:''}
-    const [inputEntered, setInputEntered] = useState(false)
+    const error = highlightIfNull ? value == null && {set: true, message: ''}   : props.error || {set:false, message:''}
+    const [inputEntered, setInputEntered] = useState(false);
 
     const handleChange = (e)=>{
         e.preventDefault()

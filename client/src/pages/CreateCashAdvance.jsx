@@ -276,7 +276,9 @@ export default function(){
         }, 0)
       }
 
-    }catch(e){console.log(e)}
+    }catch(e){
+      console.log(e)
+    }
   }
 
   function handleReasonChange(e){
