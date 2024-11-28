@@ -900,6 +900,9 @@ const CreateNonTraveExpense = () => {
     
     
     }}))
+    document
+    .getElementById("newLineItem")
+    .scrollIntoView({ behavior: "smooth" });
     const matchingKey = totalAmountKeys.find(key => result[key] && result[key].trim() !== "");
   
   if (matchingKey) {

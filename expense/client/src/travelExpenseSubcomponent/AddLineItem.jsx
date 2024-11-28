@@ -530,7 +530,6 @@ const handleOCRScan = () => {
     }));
   }
 };
-
 const OCRScan = async (file) => {
   setIsUploading((prev) => ({ ...prev, autoScan: true }));
   try {
@@ -547,61 +546,140 @@ const OCRScan = async (file) => {
       formData // Pass FormData as payload
     );
 
-    // Log the response from the OCR scan
+    // Process the response from the OCR scan
     setIsUploading((prev) => ({ ...prev, autoScan: false }));
-   
-    setShowForm(true)
-    const fields = response.data.fields
+    setShowForm(true);
+
+    const fields = response.data.fields;
     const result = fields?.reduce((acc, item) => {
       acc[item.name] = item.value;
       return acc;
-  }, {});
+    }, {});
 
-  setFormData(prev => ({...prev,fields:{
-    ...prev.fields,
-    ...result
-      ,
-      "Currency": {
-          "countryCode": "IN",
-          "fullName": "Indian Rupee",
-          "shortName": "INR",
-          "symbol": "₹"
+    setFormData((prev) => ({
+      ...prev,
+      fields: {
+        ...prev.fields,
+        ...result,
+        "Currency": {
+          countryCode: "IN",
+          fullName: "Indian Rupee",
+          shortName: "INR",
+          symbol: "₹",
+        },
+        "Category Name": requiredObj?.category,
       },
-      "Category Name": requiredObj?.category
-  
-  
-  }}))
-  const matchingKey = totalAmountKeys.find(key => result[key] && result[key].trim() !== "");
+    }));
 
-if (matchingKey) {
-    // Set the matched value to totalAmount
-    setCurrencyConversion(prev => ({
+    document
+      .getElementById("newLineItem")
+      .scrollIntoView({ behavior: "smooth" });
+
+    const matchingKey = totalAmountKeys.find(
+      (key) => result[key] && result[key].trim() !== ""
+    );
+
+    if (matchingKey) {
+      // Set the matched value to totalAmount
+      setCurrencyConversion((prev) => ({
         ...prev,
         payload: {
-            ...prev.payload,
-            totalAmount: result[matchingKey] 
-        }
-    }));
-} else {
-    setCurrencyConversion(prev => ({
+          ...prev.payload,
+          totalAmount: result[matchingKey],
+        },
+      }));
+    } else {
+      setCurrencyConversion((prev) => ({
         ...prev,
         payload: {
-            ...prev.payload,
-            totalAmount: ""
-        }
-    }));
-}
-    console.log('OCR scan response:', response.data,result,fields);
+          ...prev.payload,
+          totalAmount: "",
+        },
+      }));
+    }
+
+    console.log("OCR scan response:", response.data, result, fields);
   } catch (error) {
-    // Log the error message if OCR scan fails
-    console.error('Something went wrong with OCR scan:', error?.message);
-    const errorMsg = 'Unable to retrieve the value. Please enter it manually.'
-    window.parent.postMessage({message:"expense message posted", 
-    popupMsgData: { showPopup:true, message:errorMsg, iconCode: "104" }}, dashboardBaseUrl);
-    setIsUploading((prev) => ({ ...prev, autoScan: false }));
-    setShowForm(true)
+    console.error("Something went wrong with OCR scan:", error?.message);
   } 
 };
+
+
+// const OCRScan = async (file) => {
+//   setIsUploading((prev) => ({ ...prev, autoScan: true }));
+//   try {
+//     const formData = new FormData();
+//     formData.append('file', file);
+
+//     // Call the OCR scan API with required data
+//     const response = await ocrScanApi(
+//       {
+//         tenantId,
+//         categoryName: requiredObj?.category,
+//         travelType: requiredObj?.travelType,
+//       },
+//       formData // Pass FormData as payload
+//     );
+
+//     // Log the response from the OCR scan
+//     setIsUploading((prev) => ({ ...prev, autoScan: false }));
+   
+//     setShowForm(true)
+//     const fields = response.data.fields
+//     const result = fields?.reduce((acc, item) => {
+//       acc[item.name] = item.value;
+//       return acc;
+//   }, {});
+
+//   setFormData(prev => ({...prev,fields:{
+//     ...prev.fields,
+//     ...result
+//       ,
+//       "Currency": {
+//           "countryCode": "IN",
+//           "fullName": "Indian Rupee",
+//           "shortName": "INR",
+//           "symbol": "₹"
+//       },
+//       "Category Name": requiredObj?.category
+  
+  
+//   }}))
+//   document
+//   .getElementById("newLineItem")
+//   .scrollIntoView({ behavior: "smooth" });
+//   const matchingKey = totalAmountKeys.find(key => result[key] && result[key].trim() !== "");
+  
+
+// if (matchingKey) {
+//     // Set the matched value to totalAmount
+//     setCurrencyConversion(prev => ({
+//         ...prev,
+//         payload: {
+//             ...prev.payload,
+//             totalAmount: result[matchingKey] 
+//         }
+//     }));
+// } else {
+//     setCurrencyConversion(prev => ({
+//         ...prev,
+//         payload: {
+//             ...prev.payload,
+//             totalAmount: ""
+//         }
+//     }));
+// }
+//     console.log('OCR scan response:', response.data,result,fields);
+//   } catch (error) {
+//     // Log the error message if OCR scan fails
+//     console.error('Something went wrong with OCR scan:', error?.message);
+//     const errorMsg = 'Unable to retrieve the value. Please enter it manually.'
+//     window.parent.postMessage({message:"expense message posted", 
+//     popupMsgData: { showPopup:true, message:errorMsg, iconCode: "104" }}, dashboardBaseUrl);
+//     setIsUploading((prev) => ({ ...prev, autoScan: false }));
+//     setShowForm(true)
+//   } 
+// };
 
 
 useEffect(()=>{
