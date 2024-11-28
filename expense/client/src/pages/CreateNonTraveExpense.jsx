@@ -881,14 +881,11 @@ const CreateNonTraveExpense = () => {
      
       setShowForm(true)
       const fields = response.data.fields
-      const result = fields?.reduce((acc, item) => {
-        acc[item.name] = item.value;
-        return acc;
-    }, {});
+      
   
     setFormData(prev => ({...prev,fields:{
       ...prev.fields,
-      ...result
+      ...fields
         ,
         "Currency": {
             "countryCode": "IN",
@@ -903,7 +900,7 @@ const CreateNonTraveExpense = () => {
     document
     .getElementById("newLineItem")
     .scrollIntoView({ behavior: "smooth" });
-    const matchingKey = totalAmountKeys.find(key => result[key] && result[key].trim() !== "");
+    const matchingKey = totalAmountKeys.find(key => fields[key] && fields[key].trim() !== "");
   
   if (matchingKey) {
       // Set the matched value to totalAmount
@@ -911,7 +908,7 @@ const CreateNonTraveExpense = () => {
           ...prev,
           payload: {
               ...prev.payload,
-              totalAmount: result[matchingKey] 
+              totalAmount: fields[matchingKey] 
           }
       }));
   } else {
@@ -923,7 +920,7 @@ const CreateNonTraveExpense = () => {
           }
       }));
   }
-      console.log('OCR scan response:', response.data,result,fields);
+      console.log('OCR scan response:', response.data,fields,fields);
     } catch (error) {
       // Log the error message if OCR scan fails
       console.error('Something went wrong with OCR scan:', error?.message);

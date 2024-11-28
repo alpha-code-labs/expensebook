@@ -551,16 +551,16 @@ const OCRScan = async (file) => {
     setShowForm(true);
 
     const fields = response.data.fields;
-    const result = fields?.reduce((acc, item) => {
-      acc[item.name] = item.value;
-      return acc;
-    }, {});
+    // const result = fields?.reduce((acc, item) => {
+    //   acc[item.name] = item.value;
+    //   return acc;
+    // }, {});
 
     setFormData((prev) => ({
       ...prev,
       fields: {
         ...prev.fields,
-        ...result,
+        ...fields,
         "Currency": {
           countryCode: "IN",
           fullName: "Indian Rupee",
@@ -576,7 +576,7 @@ const OCRScan = async (file) => {
       .scrollIntoView({ behavior: "smooth" });
 
     const matchingKey = totalAmountKeys.find(
-      (key) => result[key] && result[key].trim() !== ""
+      (key) => fields[key] && fields[key].trim() !== ""
     );
 
     if (matchingKey) {
@@ -585,7 +585,7 @@ const OCRScan = async (file) => {
         ...prev,
         payload: {
           ...prev.payload,
-          totalAmount: result[matchingKey],
+          totalAmount: fields[matchingKey],
         },
       }));
     } else {
@@ -598,7 +598,7 @@ const OCRScan = async (file) => {
       }));
     }
 
-    console.log("OCR scan response:", response.data, result, fields);
+    console.log("OCR scan response:", response.data, fields, fields);
   } catch (error) {
     console.error("Something went wrong with OCR scan:", error?.message);
   } 
