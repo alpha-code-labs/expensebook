@@ -177,6 +177,7 @@ const [errorMsg,setErrorMsg] = useState({
     conversion:{ set: false, msg: "" },
     date:{ set: false, msg: "" },
     invoiceNumber:{ set: false, msg: "" },
+    uploadFlag:{ set: true, msg: "" },
   })
 
 
@@ -200,6 +201,7 @@ const handleAllocations = (headerName, headerValue) => {
 
 const handleSelectCategory = (option) => {
   console.log('handle category',option)
+  setErrorMsg(prev=>({...prev,uploadFlag:{ set: false, msg: "" }}))
   setRequiredObj((prev) => ({
     ...prev,
     category: option.categoryName,
@@ -743,7 +745,7 @@ useEffect(()=>{
 </div>
 
 <div className='mt-12 inline-flex space-x-2'>
-    <FileUpload uploadFlag={errorMsg?.category?.set}  loading={isUploading.autoScan} onClick={handleOCRScan} selectedFile={selectedFile} setSelectedFile={setSelectedFile} isFileSelected={isFileSelected} setIsFileSelected={setIsFileSelected}  text={<div className='inline-flex items-center space-x-1'><img src={scan_icon} className='w-5 h-5'/> <p>Auto Scan</p></div>}/>
+    <FileUpload uploadFlag={errorMsg?.uploadFlag?.set}  loading={isUploading.autoScan} onClick={handleOCRScan} selectedFile={selectedFile} setSelectedFile={setSelectedFile} isFileSelected={isFileSelected} setIsFileSelected={setIsFileSelected}  text={<div className='inline-flex items-center space-x-1'><img src={scan_icon} className='w-5 h-5'/> <p>Auto Scan</p></div>}/>
     <Button1 onClick={handleMannualBtn} text={<div className='inline-flex items-center space-x-1'><img src={modify_icon} className='w-5 h-5'/> <p>Manually</p></div>}/>
 </div>
 </div>    

@@ -216,6 +216,7 @@ const CreateNonTraveExpense = () => {
     allocations: { set: false, msg: "" },
     approversError: { set: false, msg: "" },
     settlementError: { set: false, msg: "" },
+    uploadFlag:{ set: true, msg: "" },
   });
 
   const [showForm, setShowForm] = useState(false);
@@ -1279,6 +1280,7 @@ const CreateNonTraveExpense = () => {
 
   const handleSelectCategory = async (option, action) => {
     console.log("handle category", option, action);
+    setErrorMsg(prev => ({...prev, uploadFlag:{set:false,msg:""}}))
     let expenseHeaderId;
     let api;
 
@@ -1488,7 +1490,7 @@ const CreateNonTraveExpense = () => {
 
                   <div className="mt-4 sm:mt-12 inline-flex space-x-2">
                     <FileUpload
-                      uploadFlag = {errorMsg?.category?.set}
+                      uploadFlag = {errorMsg?.uploadFlag?.set}
                       loading={isUploading.autoScan}
                       onClick={handleOCRScan}
                       selectedFile={selectedFile}
