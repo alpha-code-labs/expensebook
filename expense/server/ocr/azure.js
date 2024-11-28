@@ -99,15 +99,12 @@ export const getResult = async (resultId,category,tenantData,res) => {
       }
     );
     
-    // console.log("get from Azure Form Recognizer:", response);
-    // console.log("typeof:", typeof response);
+    console.log("get from Azure Form Recognizer:", response);
+    console.log("typeof:", typeof response);
 
     if (response.status === 200 && response.data?.status === "succeeded") { 
       const getKeyValuePairs = response.data?.analyzeResult?.keyValuePairs
       .filter(pair => pair.confidence > 0.80)
-      // .map(pair => ({
-      //     [pair.key.content.trim()]: pair.value.content
-      // }));
       .map(pair=>{
         return {key: pair.key.content, value: pair.value.content}
       })

@@ -78,7 +78,7 @@ const expenseObject = flattenedCategories.find(
 
 const fields = expenseObject ? expenseObject.fields : null;
 
-// console.log("Fields:", fields);
+console.log("Fields:", fields);
 
 
 //  console.log("return",
