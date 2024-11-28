@@ -1,10 +1,10 @@
 import React from "react";
 import { categoryIcons } from "../assets/icon";
-import Button1 from "../Components/common/Button1";
+import Button1 from "../components/common/Button1";
 import { camelCaseToTitleCase, rearrangeKeyForLineItem } from "../utils/handyFunctions";
 import { lineItems } from "../utils/dummyData";
-import { StatusBox } from "../Components/common/TinyComponent";
-import CancelButton from "../Components/common/CancelButton";
+import { StatusBox } from "../components/common/TinyComponent";
+import CancelButton from "../components/common/CancelButton";
 import { disableDeleteLine, disableEditLine } from "../utils/data/keyList";
 
 export function LineItemView({selectedLineItemId, expenseHeaderStatus, isUploading, active, flagToOpen, expenseHeaderId, lineItem, index, newExpenseReport, handleEdit, handleDeleteLineItem }) {

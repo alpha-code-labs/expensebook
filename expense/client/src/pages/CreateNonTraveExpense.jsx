@@ -51,12 +51,12 @@ import Upload from "../components/common/Upload";
 import Select from "../components/common/Select";
 import ActionButton from "../components/common/ActionButton";
 import Modal from "../components/common/Modal";
-import Button1 from "../Components/common/Button1.jsx";
-import FileUpload from "../Components/common/FileUpload.jsx";
-import Search from "../Components/common/Index.jsx";
+import Button1 from "../components/common/Button1.jsx";
+import FileUpload from "../components/common/FileUpload.jsx";
+import Search from "../components/common/Index.jsx";
 import LineItemForm from "../nonTravelExpenseSubComponet/LineItemForm.jsx";
 import { DocumentPreview } from "../travelExpenseSubcomponent/BillPreview.jsx";
-import CancelButton from "../Components/common/CancelButton.jsx";
+import CancelButton from "../components/common/CancelButton.jsx";
 import {
   categoryClasses,
   dateKeys,
@@ -66,7 +66,7 @@ import {
 import { LineItemView } from "../nonTravelExpenseSubComponet/LineItemView.jsx";
 import uploadFileToAzure from "../utils/azureBlob.js";
 import { act } from "react";
-import { RemoveFile, TitleModal } from "../Components/common/TinyComponent.jsx";
+import { RemoveFile, TitleModal } from "../components/common/TinyComponent.jsx";
 
 ///Cuurency on Save you have to save object of currency
 
