@@ -13,12 +13,12 @@ export default function FileUpload(props) {
     setSelectedFile, 
     isFileSelected, 
     setIsFileSelected,
+    uploadFlag = true
   } = props;
   
   const fileInputRef = useRef(null);
 
   
-
   const handleClick = (e) => {
     if (!disabled && !loading) {
       if (fileInputRef.current) {
@@ -31,15 +31,17 @@ export default function FileUpload(props) {
   };
 
   const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setSelectedFile(file); // Store the uploaded file in state
-      setIsFileSelected(true); // Set the flag to true
-      onFileSelect && onFileSelect(file); // Trigger the callback with the selected file
     
-    } else {
-      setIsFileSelected(false); // If no file is selected, reset the flag
-    }
+      const file = e.target.files[0];
+      if (file) {
+        setSelectedFile(file); // Store the uploaded file in state
+        setIsFileSelected(true); // Set the flag to true
+        onFileSelect && onFileSelect(file); // Trigger the callback with the selected file
+      
+      } else {
+        setIsFileSelected(false); // If no file is selected, reset the flag
+      }
+   
   };
 
   return (
@@ -73,6 +75,11 @@ export default function FileUpload(props) {
         ref={fileInputRef} 
         style={{ display: 'none' }} 
         onChange={handleFileChange} 
+        onClick={(e) => {
+          if (uploadFlag) {
+            e.preventDefault(); // Prevent the default click behavior
+          }
+        }}
       />
 
       {/* Conditionally render a message or visual indicator if a file is selected */}

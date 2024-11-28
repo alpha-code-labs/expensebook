@@ -17,6 +17,7 @@ import CancelButton from '../components/common/CancelButton';
 import { BlobServiceClient } from "@azure/storage-blob";
 import useCurrencyConversion from '../utils/Conversion';
 import { RemoveFile, TitleModal } from '../components/common/TinyComponent';
+import { dateKeys, isClassField, totalAmountKeys } from '../utils/data/keyList';
 
 
 const AddLineItem = () => {
@@ -45,12 +46,9 @@ const AddLineItem = () => {
         return {success:false}   
     }
   }
- 
+
   const navigate = useNavigate()
   
-  const totalAmountKeys = ['Total Fare','Total Amount',  'Subscription Cost', 'Cost', 'Premium Cost'];
-  const dateKeys = ['Invoice Date', 'Date', 'Visited Date', 'Booking Date',"Bill Date"];
-  const isClassField = ['Class', 'Class of Service']
 const {tenantId,empId,tripId} = useParams();
 const [showForm , setShowForm]=useState(false);  
 const [selectedFile, setSelectedFile] = useState(null);
@@ -64,6 +62,7 @@ const [currencyConversion, setCurrencyConversion]=useState({
   },
   response:{}
 }) 
+
 const dashboardBaseUrl = `${import.meta.env.VITE_DASHBOARD_URL}`
 // const dashboardBaseUrl = `${import.meta.env.VITE_DASHBOARD_URL}/${tenantId}/${empId}/overview`
 
@@ -110,7 +109,6 @@ useEffect(() => {
           level:travelAllocationFlag
 
         }))
-
         //level1 or level 2 allocation will save with empty string
         const allocations = allocationsList.map((allocation) => ({
           headerName: allocation.headerName,
@@ -119,7 +117,6 @@ useEffect(() => {
         setSelectedAllocations(allocations)
     
       }
-
 
       const flagToOpen = response?.flagToOpen;
       const openedExpenseObj = (response?.travelExpenseData)?.find(expense => expense.expenseHeaderId === flagToOpen);
@@ -414,6 +411,7 @@ const handleSaveLineItem = async (action) => {
     }
   }
 
+
   if (allowForm) {
     setIsUploading(prev => ({ ...prev, [action]: { set: true, msg: "" } }));
     const params = { tenantId, empId, tripId, expenseHeaderId: requiredObj.expenseHeaderId };
@@ -461,84 +459,171 @@ const handleSaveLineItem = async (action) => {
   }
 };
 
-const handleOCRScan=async()=>{
-  if(requiredObj.category=== 'Flight'){
-    setFormData(prev => ({...prev,fields:{
-      ...prev.fields,
+// const handleOCRScan=async()=>{
+//   if(requiredObj.category=== 'Flight'){
+//     setFormData(prev => ({...prev,fields:{
+//       ...prev.fields,
       
-        "Invoice Date": "2023-08-04",
-        "Departure": "DEL",
-        "Arrival": "BLR",
-        "Airlines name": "",
-        "Travelers Name": "kurpath S Sumesh kurpath S Sumesh",
-        "Class": "",
-        "Booking Reference Number": "NF7TKQXJLD1PSQCM0529",
-        "Total Amount": "4713",
-        "Tax Amount": "",
-        "Flight Number": ""
-        ,
+//         "Invoice Date": "2023-08-04",
+//         "Departure": "DEL",
+//         "Arrival": "BLR",
+//         "Airlines name": "",
+//         "Travelers Name": "kurpath S Sumesh kurpath S Sumesh",
+//         "Class": "",
+//         "Booking Reference Number": "NF7TKQXJLD1PSQCM0529",
+//         "Total Amount": "4713",
+//         "Tax Amount": "",
+//         "Flight Number": ""
+//         ,
         
         
-        "Currency": {
-            "countryCode": "IN",
-            "fullName": "Indian Rupee",
-            "shortName": "INR",
-            "symbol": "₹"
-        },
-        "Category Name": "Flight"
+//         "Currency": {
+//             "countryCode": "IN",
+//             "fullName": "Indian Rupee",
+//             "shortName": "INR",
+//             "symbol": "₹"
+//         },
+//         "Category Name": "Flight"
     
     
-    }}))
-    setCurrencyConversion(prev=>({...prev,payload:{...prev.payload,totalAmount:"4713"}}))
-  }if (requiredObj.category=== 'Meals' ){
-    setFormData(prev => ({...prev,fields:{
-      ...prev.fields,
+//     }}))
+//     setCurrencyConversion(prev=>({...prev,payload:{...prev.payload,totalAmount:"4713"}}))
+//   }
+//   if (requiredObj.category=== 'Meals' ){
+//     setFormData(prev => ({...prev,fields:{
+//       ...prev.fields,
       
       
-        "Bill Date": "2024-07-21",
-        "Bill Number": "24VHMPXU00013373",
-        "Category Name": "Meals",
-        "Currency": {
-            countryCode: 'IN',
-            fullName: 'Indian Rupee',
-            shortName: 'INR',
-            symbol: '₹'
-        },
+//         "Bill Date": "2024-07-21",
+//         "Bill Number": "24VHMPXU00013373",
+//         "Category Name": "Meals",
+//         "Currency": {
+//             countryCode: 'IN',
+//             fullName: 'Indian Rupee',
+//             shortName: 'INR',
+//             symbol: '₹'
+//         },
         
-        "Quantity": "5",
-        "Tax Amount": "7.575",
-        "Total Amount": "318.15",
-        "Vendor Name": "The Burger Club",
-    }}))
-    setCurrencyConversion(prev=>({...prev,payload:{...prev.payload,totalAmount:"318.15"}}))
+//         "Quantity": "5",
+//         "Tax Amount": "7.575",
+//         "Total Amount": "318.15",
+//         "Vendor Name": "The Burger Club",
+//     }}))
+//     setCurrencyConversion(prev=>({...prev,payload:{...prev.payload,totalAmount:"318.15"}}))
 
-  }
+//   }
+// }
 
-  try
-  {
-    setIsUploading(prev=> ({...prev,autoScan:true}))
-    const response = await ocrScanApi({tenantId, categoryName:requiredObj?.category, travelType:requiredObj?.travelType }, {selectedFile})
-    console.log("OCR scan response", response);
-    setIsUploading(prev=> ({...prev,autoScan:false}))
+// Trigger OCRScan when a file is selected
+const handleOCRScan = () => {
+  if (requiredObj?.category) {
+    setErrorMsg(prev => ({
+      ...prev,
+      category: { set: false, msg: "" },
+    }));
+  } else {
+    setErrorMsg(prev => ({
+      ...prev,
+      category: { set: true, msg: "Select the category" },
+    }));
   }
-  catch(error)
-  {
-    console.error("some went wrong with OCR scan". error)
-    setIsUploading(prev=> ({...prev,autoScan:false}))
-  }
+};
+
+const OCRScan = async (file) => {
+  setIsUploading((prev) => ({ ...prev, autoScan: true }));
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    // Call the OCR scan API with required data
+    const response = await ocrScanApi(
+      {
+        tenantId,
+        categoryName: requiredObj?.category,
+        travelType: requiredObj?.travelType,
+      },
+      formData // Pass FormData as payload
+    );
+
+    // Log the response from the OCR scan
+    setIsUploading((prev) => ({ ...prev, autoScan: false }));
+   
+    setShowForm(true)
+    const fields = response.data.fields
+    const result = fields?.reduce((acc, item) => {
+      acc[item.name] = item.value;
+      return acc;
+  }, {});
+
+  setFormData(prev => ({...prev,fields:{
+    ...prev.fields,
+    ...result
+      ,
+      "Currency": {
+          "countryCode": "IN",
+          "fullName": "Indian Rupee",
+          "shortName": "INR",
+          "symbol": "₹"
+      },
+      "Category Name": requiredObj?.category
+  
+  
+  }}))
+  const matchingKey = totalAmountKeys.find(key => result[key] && result[key].trim() !== "");
+
+if (matchingKey) {
+    // Set the matched value to totalAmount
+    setCurrencyConversion(prev => ({
+        ...prev,
+        payload: {
+            ...prev.payload,
+            totalAmount: result[matchingKey] 
+        }
+    }));
+} else {
+    setCurrencyConversion(prev => ({
+        ...prev,
+        payload: {
+            ...prev.payload,
+            totalAmount: ""
+        }
+    }));
 }
+    console.log('OCR scan response:', response.data,result,fields);
+  } catch (error) {
+    // Log the error message if OCR scan fails
+    console.error('Something went wrong with OCR scan:', error?.message);
+    const errorMsg = 'Unable to retrieve the value. Please enter it manually.'
+    window.parent.postMessage({message:"expense message posted", 
+    popupMsgData: { showPopup:true, message:errorMsg, iconCode: "104" }}, dashboardBaseUrl);
+    setIsUploading((prev) => ({ ...prev, autoScan: false }));
+    setShowForm(true)
+  } 
+};
+
+
+useEffect(()=>{
+  console.log("selected file", selectedFile)
+  if(isFileSelected)
+  OCRScan(selectedFile)
+},[isFileSelected])
+
+
+
+
+
 
 ///for demo purpose
-useEffect(()=>{
-  if(isFileSelected){
-    setIsUploading(prev=> ({...prev,autoScan:true}))
-    setTimeout(()=>{
-      setIsUploading(prev=> ({...prev,autoScan:false}))
-      setShowForm(true)
-    },5000)}
+// useEffect(()=>{
+//   if(isFileSelected){
+//     setIsUploading(prev=> ({...prev,autoScan:true}))
+//     setTimeout(()=>{
+//       setIsUploading(prev=> ({...prev,autoScan:false}))
+//       setShowForm(true)
+//     },5000)}
   
 
-},[isFileSelected])
+// },[isFileSelected])
 ///for demo purpose
 
 
@@ -658,7 +743,7 @@ useEffect(()=>{
 </div>
 
 <div className='mt-12 inline-flex space-x-2'>
-    <FileUpload loading={isUploading.autoScan} onClick={handleOCRScan} selectedFile={selectedFile} setSelectedFile={setSelectedFile} isFileSelected={isFileSelected} setIsFileSelected={setIsFileSelected}  text={<div className='inline-flex items-center space-x-1'><img src={scan_icon} className='w-5 h-5'/> <p>Auto Scan</p></div>}/>
+    <FileUpload uploadFlag={errorMsg?.category?.set}  loading={isUploading.autoScan} onClick={handleOCRScan} selectedFile={selectedFile} setSelectedFile={setSelectedFile} isFileSelected={isFileSelected} setIsFileSelected={setIsFileSelected}  text={<div className='inline-flex items-center space-x-1'><img src={scan_icon} className='w-5 h-5'/> <p>Auto Scan</p></div>}/>
     <Button1 onClick={handleMannualBtn} text={<div className='inline-flex items-center space-x-1'><img src={modify_icon} className='w-5 h-5'/> <p>Manually</p></div>}/>
 </div>
 </div>    

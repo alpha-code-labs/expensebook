@@ -14,6 +14,7 @@ import {
   submitNonTravelExpenseApi,
   submitOrSaveAsDraftApi,
   submitOrSaveAsDraftNonTravelExpenseApi,
+  ocrScanApi,
 } from "../utils/api";
 import { useParams } from "react-router-dom";
 import Error from "../components/common/Error";
@@ -383,7 +384,6 @@ const CreateNonTraveExpense = () => {
 
   console.log("grouplimit", requiredObj?.groupLimit);
   console.log("initial values", formDataValues);
-
   console.log("selected category", selectedCategory);
 
   const [selectedFile, setSelectedFile] = useState(null);
@@ -756,91 +756,187 @@ const CreateNonTraveExpense = () => {
     }
   };
 
+
+
+  // const handleOCRScan = () => {
+  //   if (requiredObj?.category) {
+  //     console.log("scanning for ocr...", requiredObj?.category);
+  //     setErrorMsg((prev) => ({ ...prev, category: { set: false, msg: "" } }));
+  //     if (requiredObj.category === "Utilities") {
+  //       setCurrencyConversion((prev) => ({
+  //         ...prev,
+  //         payload: { ...prev.payload, totalAmount: "209.00" },
+  //       }));
+  //       setFormData((prev) => ({
+  //         ...prev,
+  //         fields: {
+  //           ...prev.fields,
+  //           "Type of Utilities": "",
+  //           "Bill Date": "2024-08-26",
+  //           "Bill Number": "405-9950112-2887558",
+  //           "Vender Name": "Jio Prepaid",
+  //           Description: "",
+  //           Quantity: "",
+  //           "Unit Cost": "",
+  //           "Tax Amount": "",
+  //           "Total Amount": "209.00",
+  //           "Mode of Payment": "",
+  //           Currency: {
+  //             countryCode: "IN",
+  //             fullName: "Indian Rupee",
+  //             shortName: "INR",
+  //             symbol: "₹",
+  //           },
+
+  //           "Category Name": "Utilities",
+  //         },
+  //       }));
+  //     }
+  //     if (requiredObj.category === "Meals") {
+  //       setFormData((prev) => ({
+  //         ...prev,
+  //         fields: {
+  //           ...prev.fields,
+  //           "Bill Date": "2024-07-21",
+  //           "Bill Number": "24VHMPXU00013373",
+  //           "Category Name": "Meals",
+  //           Currency: {
+  //             countryCode: "IN",
+  //             fullName: "Indian Rupee",
+  //             shortName: "INR",
+  //             symbol: "₹",
+  //           },
+  //           Quantity: "5",
+  //           "Tax Amount": "7.575",
+  //           "Total Amount": "318.15",
+  //           "Vendor Name": "The Burger Club",
+  //         },
+  //       }));
+  //       setCurrencyConversion((prev) => ({
+  //         ...prev,
+  //         payload: { ...prev.payload, totalAmount: "318.15" },
+  //       }));
+  //     }
+  //   } else {
+  //     setErrorMsg((prev) => ({
+  //       ...prev,
+  //       category: { set: true, msg: "Select the category" },
+  //     }));
+  //   }
+  // };
+
+  // useEffect(() => {
+  //   if (isFileSelected) {
+  //     setIsUploading((prev) => ({ ...prev, autoScan: true }));
+
+  //     setTimeout(() => {
+  //       setIsUploading((prev) => ({ ...prev, autoScan: false }));
+  //       setShowForm(true);
+
+  //       // Ensure that scroll happens after the form is shown
+  //       setTimeout(() => {
+  //         const element = document.getElementById("newLineItem");
+  //         if (element) {
+  //           element.scrollIntoView({ behavior: "smooth" });
+  //         }
+  //       }, 0); // Immediate timeout to allow DOM update
+  //     }, 5000);
+  //   }
+  // }, [isFileSelected]);
+
+
   const handleOCRScan = () => {
     if (requiredObj?.category) {
-      console.log("scanning for ocr...", requiredObj?.category);
-      setErrorMsg((prev) => ({ ...prev, category: { set: false, msg: "" } }));
-      if (requiredObj.category === "Utilities") {
-        setCurrencyConversion((prev) => ({
-          ...prev,
-          payload: { ...prev.payload, totalAmount: "209.00" },
-        }));
-        setFormData((prev) => ({
-          ...prev,
-          fields: {
-            ...prev.fields,
-            "Type of Utilities": "",
-            "Bill Date": "2024-08-26",
-            "Bill Number": "405-9950112-2887558",
-            "Vender Name": "Jio Prepaid",
-            Description: "",
-            Quantity: "",
-            "Unit Cost": "",
-            "Tax Amount": "",
-            "Total Amount": "209.00",
-            "Mode of Payment": "",
-            Currency: {
-              countryCode: "IN",
-              fullName: "Indian Rupee",
-              shortName: "INR",
-              symbol: "₹",
-            },
-
-            "Category Name": "Utilities",
-          },
-        }));
-      }
-      if (requiredObj.category === "Meals") {
-        setFormData((prev) => ({
-          ...prev,
-          fields: {
-            ...prev.fields,
-            "Bill Date": "2024-07-21",
-            "Bill Number": "24VHMPXU00013373",
-            "Category Name": "Meals",
-            Currency: {
-              countryCode: "IN",
-              fullName: "Indian Rupee",
-              shortName: "INR",
-              symbol: "₹",
-            },
-            Quantity: "5",
-            "Tax Amount": "7.575",
-            "Total Amount": "318.15",
-            "Vendor Name": "The Burger Club",
-          },
-        }));
-        setCurrencyConversion((prev) => ({
-          ...prev,
-          payload: { ...prev.payload, totalAmount: "318.15" },
-        }));
-      }
+      setErrorMsg(prev => ({
+        ...prev,
+        category: { set: false, msg: "" },
+      }));
     } else {
-      setErrorMsg((prev) => ({
+      setErrorMsg(prev => ({
         ...prev,
         category: { set: true, msg: "Select the category" },
       }));
     }
   };
-
-  useEffect(() => {
-    if (isFileSelected) {
-      setIsUploading((prev) => ({ ...prev, autoScan: true }));
-
-      setTimeout(() => {
-        setIsUploading((prev) => ({ ...prev, autoScan: false }));
-        setShowForm(true);
-
-        // Ensure that scroll happens after the form is shown
-        setTimeout(() => {
-          const element = document.getElementById("newLineItem");
-          if (element) {
-            element.scrollIntoView({ behavior: "smooth" });
+  
+  const OCRScan = async (file) => {
+    setIsUploading((prev) => ({ ...prev, autoScan: true }));
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+  
+      // Call the OCR scan API with required data
+      const response = await ocrScanApi(
+        {
+          tenantId,
+          categoryName: requiredObj?.category,
+          travelType: "domestic", 
+        },
+        formData // Pass FormData as payload
+      );
+  
+      // Log the response from the OCR scan
+      setIsUploading((prev) => ({ ...prev, autoScan: false }));
+     
+      setShowForm(true)
+      const fields = response.data.fields
+      const result = fields?.reduce((acc, item) => {
+        acc[item.name] = item.value;
+        return acc;
+    }, {});
+  
+    setFormData(prev => ({...prev,fields:{
+      ...prev.fields,
+      ...result
+        ,
+        "Currency": {
+            "countryCode": "IN",
+            "fullName": "Indian Rupee",
+            "shortName": "INR",
+            "symbol": "₹"
+        },
+        "Category Name": requiredObj?.category
+    
+    
+    }}))
+    const matchingKey = totalAmountKeys.find(key => result[key] && result[key].trim() !== "");
+  
+  if (matchingKey) {
+      // Set the matched value to totalAmount
+      setCurrencyConversion(prev => ({
+          ...prev,
+          payload: {
+              ...prev.payload,
+              totalAmount: result[matchingKey] 
           }
-        }, 0); // Immediate timeout to allow DOM update
-      }, 5000);
-    }
-  }, [isFileSelected]);
+      }));
+  } else {
+      setCurrencyConversion(prev => ({
+          ...prev,
+          payload: {
+              ...prev.payload,
+              totalAmount: ""
+          }
+      }));
+  }
+      console.log('OCR scan response:', response.data,result,fields);
+    } catch (error) {
+      // Log the error message if OCR scan fails
+      console.error('Something went wrong with OCR scan:', error?.message);
+      const errorMsg = 'Unable to retrieve the value. Please enter it manually.'
+      window.parent.postMessage({message:"expense message posted", 
+      popupMsgData: { showPopup:true, message:errorMsg, iconCode: "104" }}, dashboardBaseUrl);
+      setIsUploading((prev) => ({ ...prev, autoScan: false }));
+      setShowForm(true)
+    } 
+  };
+  
+  
+  useEffect(()=>{
+    console.log("selected file", selectedFile)
+    if(isFileSelected)
+    OCRScan(selectedFile)
+  },[isFileSelected])
 
   console.log("currency conversion", currencyConversion);
   const handleCurrencyConversion = async ({ currencyName, totalAmount }) => {
@@ -953,6 +1049,7 @@ const CreateNonTraveExpense = () => {
     //   setErrorMsg((prevErrors)=>({...prevErrors,expenseSettlement:{set:false, msg:''}}))
     //   allowForm = true
     // }
+
     const expenseHeaderIds = requiredObj?.expenseHeaderId || expenseHeaderId;
     console.log("main action ", expenseHeaderIds);
     if (action === "submit") {
@@ -1215,8 +1312,6 @@ const CreateNonTraveExpense = () => {
       {
         setSelectedAllocations(initialExpenseAllocation);
       }
-      
-
       // sessionStorage.setItem('sessionExpenseHeaderId', (response?.expenseHeaderId ?? null));
       console.log("required fields", response?.fields);
       //const expenseSettlementOptions = Object.keys(response?.expenseSettlementOptions).filter((option) => response?.expenseSettlementOptions[option]) || [];
@@ -1224,7 +1319,6 @@ const CreateNonTraveExpense = () => {
         "expense settlement options",
         response?.expenseSettlementOptions
       );
-
       setRequiredObj((prev) => ({
         ...prev,
         companyName: response?.companyName,
@@ -1299,13 +1393,9 @@ const CreateNonTraveExpense = () => {
     setSelectedAllocations(updatedExpenseAllocation);
   };
 
-  console.log("required object", requiredObj);
-  console.log("form data", formData);
-  console.log("selected allocation", selectedAllocations);
   const updateApprovers = (option) => {
     // Create a deep copy of formData
     const formData_copy = JSON.parse(JSON.stringify(formData));
-
     // Push the new approver to the approvers array
     formData_copy.approvers.push({
       name: option.employeeName,
@@ -1398,6 +1488,7 @@ const CreateNonTraveExpense = () => {
 
                   <div className="mt-4 sm:mt-12 inline-flex space-x-2">
                     <FileUpload
+                      uploadFlag = {errorMsg?.category?.set}
                       loading={isUploading.autoScan}
                       onClick={handleOCRScan}
                       selectedFile={selectedFile}
