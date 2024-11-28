@@ -601,25 +601,7 @@ const OCRScan = async (file) => {
     console.log("OCR scan response:", response.data, result, fields);
   } catch (error) {
     console.error("Something went wrong with OCR scan:", error?.message);
-  } finally {
-    // Always set the popup message, even if there's no error
-    const errorMsg =
-      "Unable to retrieve the value. Please enter it manually.";
-    window.parent.postMessage(
-      {
-        message: "expense message posted",
-        popupMsgData: {
-          showPopup: true,
-          message: errorMsg,
-          iconCode: "104",
-        },
-      },
-      dashboardBaseUrl
-    );
-
-    setIsUploading((prev) => ({ ...prev, autoScan: false }));
-    setShowForm(true);
-  }
+  } 
 };
 
 
