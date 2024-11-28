@@ -42,23 +42,23 @@ const filterCashAdvance = cashAdvancesData?.filter(item => item?.cashAdvanceStat
   </div>
   <div className='flex justify-start gap-4 w-full'>
   <div className='flex flex-col  text-xs'>
-    <p className='header-title'>Date</p>
+    <p className='header-title text-neutral-600'>Date</p>
     <div className='flex items-center gap-1'>
       <img src={calender} className='w-3 h-3' />
-      <p className='header-text font-medium tracking-wide text-neutral-800 lg:truncate'>
+      <p className='header-text font-medium tracking-wide text-neutral-900 lg:truncate'>
         {formatDate(item?.cashAdvanceRequestDate)}
       </p>
     </div>
   </div>
   <div className='flex flex-col text-xs'>
-    <p className='header-title'>Cash-Advance No.</p>
-    <p className='header-text'>{item?.cashAdvanceNumber}</p>
+    <p className='header-title text-neutral-600'>Cash-Advance No.</p>
+    <p className='header-text text-neutral-900'>{item?.cashAdvanceNumber}</p>
   </div>
   </div>
   
   <div className="flex flex-col gap-1 text-xs whitespace-nowrap">
-    <p className="header-title">Advance Amount</p>
-    <div className='flex flex-col gap-1'>
+    <p className="header-title text-neutral-600">Advance Amount</p>
+    <div className='flex flex-col gap-1 text-neutral-900'>
       {item.amountDetails.map((caItem, index) => (
         <p key={index} className='header-text'>
           {caItem?.currency?.shortName ?? ""} {formatAmount(caItem?.amount)}

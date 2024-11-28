@@ -278,20 +278,16 @@ totalViolations = totalTravelViolations +  totalCashViolations || 0;
            
            
             <div className="border-y-[1px] border-slate-300 py-4">
-<div className=" md:w-1/5 w-full  flex  border-[1px] border-slate-300 rounded-md flex-row items-center gap-2 p-2 ">
-    <div className="bg-slate-200 rounded-full p-4 shrink-0 w-auto">
-      <img src={user_icon} className="w-[22px] h-[22px] "/>
-    </div>
-   <div className='font-cabin '>
-      <p className=" text-neutral-600 text-xs ">
-        Created By
-        </p>
-    
-    <p className="text-neutral-900 capitalize">
-        {travelData?.createdBy?.name}
-    </p>
-</div>
-</div>
+
+<div  className="flex flex-row  items-center gap-2 p-2 w-1/3  border border-slate-300 rounded-md">
+        <div className="bg-slate-200 rounded-full p-2 shrink-0">
+          <img src={user_icon} className="w-4 h-4" />
+        </div>
+        <div className="font-cabin">
+          <p className="text-neutral-600 text-xs"> Created By</p>
+          <p className="text-neutral-900 text-sm ">{travelData?.createdBy?.name}</p>
+        </div>
+      </div>
                 
                 {/* <div className="flex gap-2 font-cabin text-xs tracking-tight">
                     <p className="w-[100px] text-neutral-600">Raised For:</p>
@@ -626,7 +622,7 @@ function FlightCard({from, to, date, returnDate, time, returnTime, travelClass, 
           <img src={spitImageSource(mode)} className='w-4 h-4 md:w-6 md:h-6' />
         </div>
         <div className="w-full flex sm:block">
-              <div className="mx-2 text-sm w-full flex gap-1 flex-col lg:flex-row lg:justify-between lg:items-center">
+              <div className="mx-2 text-sm w-full flex gap-1 flex-col lg:flex-row lg:justify-between lg:items-center text-neutral-900">
                   <div className='flex items-center gap-1 lg:justify-center flex-1'>
                       <div className="text-lg semibold">
                           {titleCase(from)}     
@@ -640,7 +636,7 @@ function FlightCard({from, to, date, returnDate, time, returnTime, travelClass, 
                       <p className="text-xs text-neutral-600 flex justify-between flex-col sm:flex-row">Departure Date</p>
                       <div className="flex items-center gap-1">
                           <img src={calender} className='w-4'/>
-                          <p>{isoString(date)}</p>
+                          <p className="">{isoString(date)}</p>
                       </div>
                   </div>
                   {returnDate!=null && returnDate != undefined && 
@@ -685,7 +681,7 @@ function HotelCard({checkIn, checkOut, location, onClick}){
         <div className="shadow-sm min-h-[76px] bg-slate-50 rounded-md border border-slate-300 w-full px-6 py-4 flex flex-col sm:flex-row gap-4 items-center sm:divide-x">
         <img src={material_hotel_icon} className="w-4 h-4 md:w-6 md:h-6"/>
         <div className="w-full flex sm:block">
-            <div className="mx-2 text-sm w-full flex justify-between flex-col sm:flex-row">
+            <div className="mx-2 text-sm w-full flex justify-between flex-col sm:flex-row text-neutral-900">
             <div className="flex-1 justify-center">
                       <p className="text-xs text-neutral-600 flex justify-between flex-col sm:flex-row">CheckIn Date</p>
                       <div className="flex items-center gap-1">
@@ -714,7 +710,7 @@ function HotelCard({checkIn, checkOut, location, onClick}){
 
 function CabCard({isFullDayCab,from, to, date, time, travelClass, onClick, mode, isTransfer=false}){
     return(
-        <div className="shadow-sm min-h-[76px] bg-slate-50 rounded-md border border-slate-300 w-full px-6 py-4 flex flex-col sm:flex-row gap-4 items-center sm:divide-x">
+        <div className="text-neutral-900 shadow-sm min-h-[76px] bg-slate-50 rounded-md border border-slate-300 w-full px-6 py-4 flex flex-col sm:flex-row gap-4 items-center sm:divide-x">
         <div className='font-semibold items-center flex flex-col text-base text-neutral-600'>
         <img src={spitImageSource(mode)} className='w-4 h-4 md:w-6 md:h-6' />
           {isFullDayCab && <p className="text-xs whitespace-nowrap ">Full Day</p>}

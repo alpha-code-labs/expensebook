@@ -218,21 +218,12 @@ const [actionData , setActionData]= useState({})
     //     }
     // },[showCancelModal])
 
-
-
-    
-  
-      
- 
-      
-
-      
-
   return <>
       {isLoading && <Error message={loadingErrMsg}/>}
       {!isLoading && 
         <div className=" w-full h-full relative bg-white-100 px-4 py-4 select-none custom-scrollbar ">
-        <div className=" w-full h-full  font-cabin tracking-tight ">
+        <div className=" w-full h-full  font-cabin tracking-tight">
+            
 <NonTravelExpenseHeader 
 name={expenseData?.createdBy?.name?? "not available"}
 tripNumber={expenseData?.tripNumber?? "not available"}
@@ -240,11 +231,9 @@ defaultCurrency={expenseData?.defaultCurrency}
 expenseAmountStatus={expenseAmtDetails}
 />
 
-<div className="flex w-full justify-between  items-center bg-indigo-50 py-2 px-6 mt-2 border-[1px] rounded-sm border-indigo-600 cursor-pointer">
-  <p className=" whitespace-nowrap text-indigo-600"> {`Header Report No. ${expenseData?.expenseHeaderNumber}`}</p>
+<div className="flex w-full justify-between  items-center bg-gray-200/10 py-2 px-6 mt-2 border rounded-md border-slate-300 cursor-pointer">
+  <p className=" whitespace-nowrap text-neutral-900">Header Report No.{expenseData?.expenseHeaderNumber}</p>
 </div>
-           
-        
             <hr/>
             <div className=' '>
 <div>
@@ -285,15 +274,6 @@ expenseAmountStatus={expenseAmtDetails}
 </div>
    
       </div>
-
-
-
-
-
-     
-
-
-
             {/* {showConfimationForCancllingTR && <div className="fixed overflow-hidden max-h-4/5 flex justify-center items-center inset-0 backdrop-blur-sm w-full h-full left-0 top-0 bg-gray-800/60 scroll-none">
                 <div className='z-10 max-w-4/5 w-2/5 min-h-4/5 max-h-4/5 scroll-none bg-white-100  rounded-lg shadow-md'>
                     <div className="p-10">

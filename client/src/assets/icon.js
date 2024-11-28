@@ -33,7 +33,7 @@ export {default as double_arrow} from './double-arrow.svg';
 export {default as calender} from './calender.svg';
 export {default as location_icon} from './location.svg';
 export {default as cab} from './cab.svg';
-export {default as briefcase} from './briefcase.svg';
+export {default as briefcase} from './breifcase_icon.svg';
 export {default as receipt} from './receipt.svg';
 export {default as money} from './cash_black_icon.svg';
 export {default as house_simple} from './house-simple.svg';
@@ -53,7 +53,7 @@ export {default as cab_purple} from './cab-purple.svg';
 export {default as train} from './train.png';
 export {default as bus} from './bus.png'
 export {default as check_tick} from './check-tick.svg';
-export {default as user_icon} from './usericon.png';
+export {default as user_icon} from './profile_icon.svg';
 export {default as spinner_icon} from './spinner.gif';
 export {default as violation_ySym_icon} from './violation_icon.png';
 export {default as loading_icon} from './loading2.svg';
