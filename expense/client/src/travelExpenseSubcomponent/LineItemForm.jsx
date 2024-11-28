@@ -10,7 +10,6 @@ import { categoryIcons } from '../assets/icon'
 import { totalAmountKeys,dateKeys, invoiceNoKeys } from '../utils/data/keyList'
 
 const LineItemForm = ({expenseLines, categoryName, setErrorMsg, isUploading, defaultCurrency, currencyConversion, setCurrencyConversion, handleCurrencyConversion, formData,setFormData, onboardingLevel, categoryFields = [], classOptions, currencyTableData, allocationsList, handleAllocations, lineItemDetails, errorMsg}) => {
- console.log('expense lines', expenseLines, errorMsg?.totalAmount, errorMsg?.invoiceNumber);
  
  const checkExpenseIfRecorded = (keys, fieldName, errorMsg, value) => {
   const isRecorded = expenseLines?.some(expenseLine => 
@@ -138,7 +137,7 @@ const LineItemForm = ({expenseLines, categoryName, setErrorMsg, isUploading, def
       </div>
 
  <div className="w-full  flex-wrap flex items-center justify-center">
- {onboardingLevel=== 'level3'&& allocationsList.length > 0 && 
+ {onboardingLevel=== 'level3'&& allocationsList?.length > 0 && 
 ( <>
 <p className='text-start w-full  px-2 py-2 text-base text-neutral-700 font-inter'>Allocations</p>
  <div className='border-y flex items-center justify-center w-full  border-slate-300 px-2  pb-2'>
