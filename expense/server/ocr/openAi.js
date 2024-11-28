@@ -60,7 +60,7 @@ export const handleFileUpload = async (req, res) => {
       return res.status(200).json(({success: false, data: {}}))
     }
 
-    return res.status(200).json({ success: true, data: finalResult_res.finalResult});
+    return res.status(200).json({ success: true, fields: finalResult_res.finalResult});
 
     //return res.status(200).json({ success: true, data: {from:'Chhatrapati Shivaji Maharaj International Airport', to:'John F. Kennedy International Airport', date:'2024-02-18', time:'11:30', 'Tax Amount': 2394, 'Total Amount':24000} });
   } catch (error) {
