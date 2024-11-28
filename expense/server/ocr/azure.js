@@ -112,13 +112,20 @@ export const getResult = async (resultId,category,tenantData,res) => {
         return {key: pair.key.content, value: pair.value.content}
       })
       console.log("extracted data successfully", getKeyValuePairs); 
-      const[ ocrOutput, formFields, testing] = await  Promise.all([
+      const[ ocrOutput, formFields] = await  Promise.all([
       extractFormFields(response.data, category),
       findMatchingFields(tenantData,getKeyValuePairs, response.data),
-      formFieldsBasedOnCategory(response.data,category)
       ]) 
+
+      // const[ ocrOutput, formFields, testing] = await  Promise.all([
+      //   extractFormFields(response.data, category),
+      //   findMatchingFields(tenantData,getKeyValuePairs, response.data),
+      //   formFieldsBasedOnCategory(response.data,category)
+      //   ]) 
+      // const matched = formFields?.success === true ? { fields: formFields.data.fields } : null
+      // return { success: true, getKeyValuePairs , ocrOutput, ...matched, testing};
       const matched = formFields?.success === true ? { fields: formFields.data.fields } : null
-      return { success: true, getKeyValuePairs , ocrOutput, ...matched, testing};
+      return { success: true, getKeyValuePairs , ocrOutput, ...matched};
   } else {
       console.log("failed to extract, please try again");
       res.status(500).json({ success: false, error: "An unexpected error occurred. Please try again later." });
