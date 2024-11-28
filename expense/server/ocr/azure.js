@@ -99,8 +99,8 @@ export const getResult = async (resultId,category,tenantData,res) => {
       }
     );
     
-    console.log("get from Azure Form Recognizer:", response);
-    console.log("typeof:", typeof response);
+    // console.log("get from Azure Form Recognizer:", response);
+    // console.log("typeof:", typeof response);
 
     if (response.status === 200 && response.data?.status === "succeeded") { 
       const getKeyValuePairs = response.data?.analyzeResult?.keyValuePairs
@@ -111,11 +111,8 @@ export const getResult = async (resultId,category,tenantData,res) => {
       .map(pair=>{
         return {key: pair.key.content, value: pair.value.content}
       })
-      console.log("extracted data successfully", getKeyValuePairs); 
-      const[ ocrOutput, formFields] = await  Promise.all([
-      extractFormFields(response.data, category),
-      findMatchingFields(tenantData,getKeyValuePairs, response.data),
-      ]) 
+      // console.log("extracted data successfully", getKeyValuePairs); 
+      const formFields = await  findMatchingFields(tenantData,getKeyValuePairs, response.data)
 
       // const[ ocrOutput, formFields, testing] = await  Promise.all([
       //   extractFormFields(response.data, category),
@@ -125,9 +122,10 @@ export const getResult = async (resultId,category,tenantData,res) => {
       // const matched = formFields?.success === true ? { fields: formFields.data.fields } : null
       // return { success: true, getKeyValuePairs , ocrOutput, ...matched, testing};
       const matched = formFields?.success === true ? { fields: formFields.data.fields } : null
-      return { success: true, getKeyValuePairs , ocrOutput, ...matched};
+      const Currency = formFields?.success === true ? { Currency: formFields.data.Currency } : null
+      return { success: true, getKeyValuePairs , ...matched , Currency};
   } else {
-      console.log("failed to extract, please try again");
+      // console.log("failed to extract, please try again");
       res.status(500).json({ success: false, error: "An unexpected error occurred. Please try again later." });
   }
     const ocrOutput = await extractFormFields(response.data, category)
@@ -138,8 +136,8 @@ export const getResult = async (resultId,category,tenantData,res) => {
       return {key: pair.key.content, value: pair.value.content}
     })
 
-    console.log("allKeyValuePairs", allKeyValuePairs ,tenantData )
-    console.log(" response.data",  response.data)
+    // console.log("allKeyValuePairs", allKeyValuePairs ,tenantData )
+    // console.log(" response.data",  response.data)
 
     const formFields = await findMatchingFields(tenantData,allKeyValuePairs, response.data)
     return { success: true, data: ocrOutput, keyValuePairs: allKeyValuePairs, tenantData , formFields };
@@ -166,10 +164,10 @@ const regexPattern = {
     taxAmount: /tax amount|tax/i
   },
   cab: {
-  date: /date|invoicedate|traveldate|bookingdate/i,
+  date: /date|invoicedate|traveldate|bookingdate|billdate|bill date/i,
   cabNumber: /cabnumber|vehiclenumber/i,
-  pickupLocation: /pickuplocation|from|fromlocation|pickup|pickuploc/i,
-  dropLocation: /droplocation|to|tolocation|drop|droploc/i,
+  pickupLocation: /pickuplocation|from|fromlocation|pickup|pickuploc|Pickup Location/i,
+  dropLocation: /droplocation|to|tolocation|drop|droploc|DropOff Location/i,
   driverName: /drivername|driver/i,
   travelersName: /travelersname|passengername|travellername/i,
   class: /class|type|cartype|cabclass/i,
@@ -178,12 +176,12 @@ const regexPattern = {
   taxAmount: /taxamount|tax/i
 },
 hotel: {
-  date: /date|invoicedate|checkindate|checkoutdate/i,
+  date: /date|invoicedate|checkindate|checkoutdate|bill date/i,
   hotelName: /hotelname|hotel/i,
   roomNumber: /roomnumber|roomno|room/i,
   checkinDate: /checkindate|checkin/i,
   checkoutDate: /checkoutdate|checkout/i,
-  travelersName: /travelersname|guestname|travellername/i,
+  travelersName: /travelersname|guestname|travellername|booking name|name/i,
   bookingReferenceNumber: /bookingreferencenumber|bookingid|bookingref/i,
   totalAmount: /totalamount|amount|total/i,
   taxAmount: /taxamount|tax/i
@@ -207,16 +205,16 @@ export const findMatchingFields = async (tenantData, keyValuePairs, data) => {
 
   const matchFieldWithKey = (fieldName, category) => {
     const lowerCaseFieldName = trimAndNormalize(fieldName);
-    console.log(`Normalized field name: ${lowerCaseFieldName}`);
+    // console.log(`Normalized field name: ${lowerCaseFieldName}`);
 
     const categoryRegexPattern = regexPattern[category] || {};
-    console.log(`Category regex pattern:`, categoryRegexPattern);
+    // console.log(`Category regex pattern:`, categoryRegexPattern);
 
     for (const [key, regex] of Object.entries(categoryRegexPattern)) {
-      console.log(`Checking key: ${key} with regex: ${regex}`);
+      // console.log(`Checking key: ${key} with regex: ${regex}`);
       if (regex.test(lowerCaseFieldName)) {
         const matchingPair = keyValuePairs.find(pair => regex.test(trimAndNormalize(pair.key)));
-        console.log(`Matching pair for ${key}:`, matchingPair);
+        // console.log(`Matching pair for ${key}:`, matchingPair);
         return matchingPair ? matchingPair.value : '';
       }
     }
@@ -224,13 +222,14 @@ export const findMatchingFields = async (tenantData, keyValuePairs, data) => {
     return '';
   };
 
-  console.log("tenanat data fields", JSON.stringify(tenantData,'',2))
+  // console.log("tenanat data fields", JSON.stringify(tenantData,'',2))
 if(!tenantData.fields){
   return ( `message:"Contact Admin for further information"`)
 }
+   let Currency = {}
   const fields = await Promise.all(tenantData?.fields?.map(async field => {
     const { name, type } = field;
-    console.log(`Processing field: ${name} of type: ${type}`);
+    // console.log(`Processing field: ${name} of type: ${type}`);
     
     let value = await matchFieldWithKey(name, tenantData?.expenseCategory);
     console.log(`Matched value for ${name}: ${value}`);
@@ -244,6 +243,8 @@ if(!tenantData.fields){
     const billNumberRegex = /(?:INVOICE\s*NO\.\s*|invoice\s*no(?:\.\s*)?|invoice\s*number|bill number|bill no|bill nos|invoice no|invoice nos|bill ref|bill reference|invoice ref|invoice reference)\s*:\s*([\w\d]+)/i;
     const vendorNameRegex=/vendor name|restaurant name/i;
     const extractTaxAmountRegex = /(?:tax\s*amount|total\s*tax|tax|gst|cgst|sgst|igst|service\s*tax|vat)\s*(?:amount|value|charge|paid|payable)\s*(?:@|at|on|is|:)?\s*(?:INR|rs|₹)?\s*[\d,]+(?:\.\d+)?/i;
+    const improvedTaxAmountRegex = /(?:tax\s*(?:amount|amt|amont|\s)?(?:@|at|on|is|:)?\s*(?:INR|rs|₹)?\s*[\d,]+(?:\.\d+)?)/i;
+
 
     if (Departure.test(name)) {
       const res = extractAirportPairs(data);
@@ -274,7 +275,10 @@ if(!tenantData.fields){
       if(!res){
         return {name,type,value}
       }
-      value = res; // Update value with total amount
+      const {total, getCurrency} = handleResponse(res); 
+      // console.log("Final Response:Currency and total",total, getCurrency , typeof total , typeof getCurrency);
+      value = total;
+      Currency = getCurrency
     } else if(billNumberRegex.test(name)){
       const res = extractBillNumber(keyValuePairs);
       if(!res){
@@ -287,19 +291,20 @@ if(!tenantData.fields){
       return {name,type,value}
      }
      value=res
-    } else if (extractTaxAmountRegex.test(name)){
-      const res = extractTaxAmount(data);
+    } else if (improvedTaxAmountRegex.test(name)){
+      const res = extractTaxAmount(keyValuePairs);
       if(!res){
         return {name,type,value}
       }
-      value = res; // Update value with tax amount
+      const {total, getCurrency} = handleResponse(res); 
+      // console.log("res", res, "Tax amount Response:Currency and total",total, getCurrency , typeof total , typeof getCurrency);
+      value = total;
     }
-  
-    return { name, type, value }; // Return as an object
+    return { name, type, value };
   }));
 
-  console.log(`Final fields:`, fields);
-  return { success: true, data: { fields } };
+  // console.log(`Final fields:`, fields);
+  return { success: true, data: { fields,Currency } };
 };
 
 
@@ -673,24 +678,90 @@ const extractTotalAmount = (keyValuePairs) => {
   return undefined;
 }
 
-const extractTaxAmount = (data)=>{
-  let totalAmount;
-  const pairs = data.analyzeResult.keyValuePairs;
 
-  for(let i=0; i<pairs.length; i++){
-    const pair = pairs[i];
+const handleResponse = (response) => {
+  const defaultResponse = {
+    countryCode: "",
+    fullName: "",
+    shortName: "",
+    symbol: "",
+    total: ""
+  };
 
-    if(pair.value != undefined){
-      const validTokens = ['tax amount', 'total tax', 'tax', 'gst', 'cgst', 'igst']
-      let key = pair.key.content.toLowerCase();
+  if (!response) {
+    return defaultResponse;
+  }
 
-      //sanitize key
-      key = key.replace(/[^a-z]/gi, '').trim()
+  let result = response.match(/([A-Za-z]+|\d+(\.\d+)?|[^\w\s])/g);
+  result = result || [];
 
-      if(validTokens.includes(key)){
-        return pair.value.content
+  const responseObj = result.reduce((acc, item) => {
+    if (/^\d+(\.\d+)?$/.test(item)) {
+      acc.total = item;
+    } else if (/^[A-Za-z]{1,4}$/.test(item)) {
+      acc.shortName += item;
+    } else if (/^[A-Za-z]{5,}$/.test(item)) {
+      acc.fullName += item;
+    } else if (item !== '.') {
+      acc.symbol += item;
+    }
+    return acc;
+  }, {...defaultResponse});
+
+  const {total , ...getCurrency} = responseObj
+  console.log("Response Object:", total , getCurrency);
+  return {total, getCurrency};
+};
+
+// const extractTaxAmount = (data)=>{
+//   let totalAmount;
+//   const pairs = data.analyzeResult.keyValuePairs;
+
+//   for(let i=0; i<pairs.length; i++){
+//     const pair = pairs[i];
+
+//     if(pair.value != undefined){
+//       const validTokens = ['tax amount', 'total tax', 'tax', 'gst', 'cgst', 'igst']
+//       let key = pair.key.content.toLowerCase();
+
+//       //sanitize key
+//       key = key.replace(/[^a-z]/gi, '').trim()
+
+//       if(validTokens.includes(key)){
+//         return pair.value.content
+//       }
+
+//     }
+//   }
+
+//   return undefined;
+// }
+
+
+const extractTaxAmount = (keyValuePairs) => {
+  let taxAmount;
+
+  const validTokens = ['tax amount', 'total tax', 'tax', 'gst', 'cgst', 'igst','taxes','taxs','Tax','TAX','Tax Amount','tax amount','Tax amount']
+
+  // Log the input key-value pairs
+  // console.log("I am inside Tax amount", keyValuePairs);
+
+  for (let i = 0; i < keyValuePairs.length; i++) {
+    const pair = keyValuePairs[i];
+
+    if (pair.value !== undefined) {
+      // Normalize the key by removing special characters and spaces, and converting to lowercase
+      let key = pair.key.toLowerCase().replace(/[^a-z]/gi, '');
+
+      // Check if the normalized key matches any of the valid tokens
+      for (let j = 0; j < validTokens.length; j++) {
+        const token = validTokens[j];
+        if (key.includes(token)) {
+          taxAmount = pair.value;
+          console.log("Tax Amount:", taxAmount);
+          return taxAmount;
+        }
       }
-
     }
   }
 
@@ -857,3 +928,24 @@ const extractFormFields = async (data, category)=>{
 //     return { success: false, error: "Internal Server Error" };
 //   }
 // }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
