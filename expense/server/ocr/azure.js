@@ -112,16 +112,23 @@ export const getResult = async (resultId,category,tenantData,res) => {
         return {key: pair.key.content, value: pair.value.content}
       })
       console.log("extracted data successfully", getKeyValuePairs); 
-      const[ ocrOutput, formFields, testing] = await  Promise.all([
+      const[ ocrOutput, formFields] = await  Promise.all([
       extractFormFields(response.data, category),
       findMatchingFields(tenantData,getKeyValuePairs, response.data),
-      formFieldsBasedOnCategory(response.data,category)
       ]) 
+
+      // const[ ocrOutput, formFields, testing] = await  Promise.all([
+      //   extractFormFields(response.data, category),
+      //   findMatchingFields(tenantData,getKeyValuePairs, response.data),
+      //   formFieldsBasedOnCategory(response.data,category)
+      //   ]) 
+      // const matched = formFields?.success === true ? { fields: formFields.data.fields } : null
+      // return { success: true, getKeyValuePairs , ocrOutput, ...matched, testing};
       const matched = formFields?.success === true ? { fields: formFields.data.fields } : null
-      return { success: true, getKeyValuePairs , ocrOutput, ...matched, testing};
+      return { success: true, getKeyValuePairs , ocrOutput, ...matched};
   } else {
       console.log("failed to extract, please try again");
-      return { success: false, message: "failed to extract, please try again" }; 
+      res.status(500).json({ success: false, error: "An unexpected error occurred. Please try again later." });
   }
     const ocrOutput = await extractFormFields(response.data, category)
     
@@ -139,8 +146,7 @@ export const getResult = async (resultId,category,tenantData,res) => {
   } catch (error) {
     console.error("Error calling Azure Form Recognizer:", error);
     console.error(error);
-
-    return { success: false, error: "Internal Server Error" };
+    res.status(500).json({ success: false, error: "An unexpected error occurred. Please try again later." });
   }
 }
 
@@ -789,4 +795,65 @@ const extractFormFields = async (data, category)=>{
 
 
 
+// export const getResult = async (resultId,category,tenantData,res) => {
+//   try {
+//     console.log("i am inside get result", resultId)
+//     const endpoint = process.env.FORM_RECOGNIZER_ENDPOINT;
+//     const apiKey = process.env.FORM_RECOGNIZER_API_KEY;
+//     const modelId = process.env.FORM_RECOGNIZER_MODELID;
 
+//     // `${endpoint}/documentintelligence/documentModels/${modelId}/analyzeResults/${resultId}?api-version=2023-10-31-preview&features=keyValuePairs`,
+//     const apiUrl = `${endpoint}/formrecognizer/documentModels/${modelId}/analyzeResults/${resultId}?api-version=2023-07-31`;
+//     const response = await axios.get(
+//       apiUrl,
+//       {
+//         headers: {
+//           'Ocp-Apim-Subscription-Key': apiKey
+//         }
+//       }
+//     );
+    
+//     console.log("get from Azure Form Recognizer:", response);
+//     console.log("typeof:", typeof response);
+
+//     if (response.status === 200 && response.data?.status === "succeeded") { 
+//       const getKeyValuePairs = response.data?.analyzeResult?.keyValuePairs
+//       .filter(pair => pair.confidence > 0.80)
+//       // .map(pair => ({
+//       //     [pair.key.content.trim()]: pair.value.content
+//       // }));
+//       .map(pair=>{
+//         return {key: pair.key.content, value: pair.value.content}
+//       })
+//       console.log("extracted data successfully", getKeyValuePairs); 
+//       const[ ocrOutput, formFields, testing] = await  Promise.all([
+//       extractFormFields(response.data, category),
+//       findMatchingFields(tenantData,getKeyValuePairs, response.data),
+//       formFieldsBasedOnCategory(response.data,category)
+//       ]) 
+//       const matched = formFields?.success === true ? { fields: formFields.data.fields } : null
+//       return { success: true, getKeyValuePairs , ocrOutput, ...matched, testing};
+//   } else {
+//       console.log("failed to extract, please try again");
+//       return { success: false, message: "failed to extract, please try again" }; 
+//   }
+//     const ocrOutput = await extractFormFields(response.data, category)
+    
+//     const allKeyValuePairs = response.data.analyzeResult.keyValuePairs
+//     .filter(pair=>pair.value!=undefined)
+//     .map(pair=>{
+//       return {key: pair.key.content, value: pair.value.content}
+//     })
+
+//     console.log("allKeyValuePairs", allKeyValuePairs ,tenantData )
+//     console.log(" response.data",  response.data)
+
+//     const formFields = await findMatchingFields(tenantData,allKeyValuePairs, response.data)
+//     return { success: true, data: ocrOutput, keyValuePairs: allKeyValuePairs, tenantData , formFields };
+//   } catch (error) {
+//     console.error("Error calling Azure Form Recognizer:", error);
+//     console.error(error);
+
+//     return { success: false, error: "Internal Server Error" };
+//   }
+// }
