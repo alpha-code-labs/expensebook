@@ -361,6 +361,7 @@ export default function () {
 
             if(!fileURL){
                 alert('No file selected')
+                
                 return;
             }
     
@@ -397,7 +398,7 @@ export default function () {
             if(res.err || !res.data.response?.success){
                 console.log('Error in Scanning bill')
                 setScanningInProgress(false)
-                alert('Scanning failed. Please upload ticket manually')
+                //alert('Scanning failed. Please upload ticket manually')
                 window.parent.postMessage({message:"cash message posted" , 
                 popupMsgData: { showPopup:true, message:"Scanning failed. Please upload ticket manually", iconCode: "102" }}, DASHBOARD_URL);
 
@@ -502,11 +503,13 @@ export default function () {
 
                 if(categoryToScan == 'hotels'){
                     itineraryItem.bkd_location = newData.location
+                    itineraryItem.bkd_location = newData.location
                     itineraryItem.bkd_checkIn = newData.checkIn
                     itineraryItem.bkd_checkOut = newData.checkOut
                     itineraryItem.bkd_checkInTime = newData.checkInTime
                     itineraryItem.bkd_checkOutTime = newData.checkOutTime
                     itineraryItem.bookingDetails.billDetails.vendorName =  newData.vendorName;
+                    itineraryItem.bookingDetails.billDetails.hotelName =  newData.hotelName;
                     itineraryItem.bookingDetails = {...itineraryItem.bookingDetails, billDetails: {...itineraryItem.bookingDetails.billDetails, taxAmount: newData.taxAmount} }
                     itineraryItem.bookingDetails = {...itineraryItem.bookingDetails, billDetails: {...itineraryItem.bookingDetails.billDetails, totalAmount: newData.totalAmount}}
                     
@@ -1066,7 +1069,10 @@ function AddTicketManually(
             presentURL = `https://${storage_account}.blob.core.windows.net/${az_blob_container}/${selectedFile.name}`;
         }
         else{
-            alert('Something went wrong while uploading file. Please try again after some time.')
+            //alert('Something went wrong while uploading file. Please try again after some time.')
+            window.parent.postMessage({message:"cash message posted" , 
+            popupMsgData: { showPopup:true, message:"Something went wrong while uploading file. Please try again after some time.", iconCode: "102" }}, DASHBOARD_URL);
+
             console.error(res, selectedFile)
             setSelectedFile(null);
             setFileSelected(false);
@@ -1114,7 +1120,7 @@ function AddTicketManually(
                     case 'time' : return(  
                         <div className='' key={index}>
                             <TimePicker 
-                                highlightIfNull = {true}
+                                // highlightIfNull = {true}
                                 time={itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet]} title={field.name} 
                                 onTimeChange={(e)=>handleFieldValueChange(field.toSet, field.id, e)} />
                         </div>)
@@ -1224,7 +1230,10 @@ function AddScannedTicket(
         }){
     
      if(scanComplete && scannedData==null){
-        alert('OCR Scan failed. Please upload manually')
+        //alert('OCR Scan failed. Please upload manually')
+        window.parent.postMessage({message:"cash message posted" , 
+        popupMsgData: { showPopup:true, message:"OCR Scan failed. Please enter the details manually", iconCode: "102" }}, DASHBOARD_URL);
+        
         setEntryMode('manual')
         return;
      }
@@ -1237,6 +1246,14 @@ function AddScannedTicket(
     const [fileSelected, setFileSelected] = useState(presentURL!=undefined && presentURL!=null ? true : false)
     const [preview, setPreview] = useState(presentURL)
     const [uploading, setUploading] = useState(false)
+    const [scanCompleteModal, setScanCompleteModal] = useState(false);
+    const [modalClosed, setModalClosed] = useState(false);
+
+    useEffect(()=>{
+        if(scanComplete && !modalClosed){
+            setScanCompleteModal(true);
+        }
+    })
 
      let firstTime  = true;
     useEffect(()=>{
@@ -1260,7 +1277,10 @@ function AddScannedTicket(
             presentURL = `https://${storage_account}.blob.core.windows.net/${az_blob_container}/${selectedFile.name}`;
         }
         else{
-            alert('Something went wrong while uploading file. Please try again after some time.')
+            //alert('Something went wrong while uploading file. Please try again after some time.')
+            window.parent.postMessage({message:"cash message posted" , 
+            popupMsgData: { showPopup:true, message:"Something went wrong while uploading file. Please try again after some time.", iconCode: "102" }}, DASHBOARD_URL);
+            
             console.error(res, selectedFile)
             setSelectedFile(null);
             setFileSelected(false);
@@ -1334,6 +1354,20 @@ function AddScannedTicket(
             </div>}
            {scanComplete && <div className=" m-4 p-4 flex-1 grid grid-cols-1 md:grid-cols-2 gap-2 overflow-y-scroll scroll">
             {console.log(expenseCategories, addTicketVariables)}
+            
+            <Modal showModal={scanCompleteModal} setShowModal={setScanCompleteModal} >
+                <div className="px-6 py-4">
+                    <p className="font-cabin text-zinc-500 text-xl">Review Scanned Details</p>
+                    <div className="mt-6 mb-6 text-normal text-neutral-800 font-cabin">
+                        <p>We’ve scanned the bill and extracted its details. Please review the following information carefully before submission:</p>
+                        <p className="mt-4">Verify that all the extracted values are accurate.</p>
+                        <p>Enter any missing values or correct errors if necessary.</p>
+                        <p className="mt-4">This step ensures that the information submitted is accurate. Once you’re satisfied with the details, click Submit to proceed.</p>
+                    </div>
+                    <Button text='OK' onClick={()=>{setScanCompleteModal(false); setModalClosed(true)}}/>
+                </div>
+            </Modal>
+
             {expenseCategories[addTicketVariables.transportType.toLowerCase()]?.length>0 && expenseCategories[addTicketVariables.transportType.toLowerCase()].map((field,index)=>{
 
                 switch(field.type){
@@ -1379,11 +1413,12 @@ function AddScannedTicket(
                                 <div className="relative w-full h-full bg-white items-center flex">
                                     <div className="text-neutral-700 w-full  h-full text-sm font-normal font-cabin">
                                         <input 
-                                        type='date' 
+                                        type='date'
+                                        highlightIfNull = {true} 
                                         // min={getDateXDaysAway(Number(minDaysBeforeBooking))}
                                         className={`w-full h-full decoration:none px-6 py-2 border rounded-md border ${itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet]!=null ? 'border-neutral-300' : 'border-red-300'} focus-visible:outline-0 focus-visible:border-indigo-600 `}
                                         name={field.name} 
-                                        value={itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet] ? formattedDate(itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet]) : formattedDate(itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet.split('_')[1]])}
+                                        value={itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet] ? itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet] : itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet.split('_')[1]]}
                                         onChange={(e)=>handleFieldValueChange(field.toSet, field.id, e)} />
                                     </div>
                                 </div>
@@ -1393,6 +1428,7 @@ function AddScannedTicket(
                     case 'time' : return(  
                         <div className='' key={index}>
                             <TimePicker 
+                                //highlightIfNull = {true} 
                                 time={itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet]} title={field.name} 
                                 onTimeChange={(e)=>handleFieldValueChange(field.toSet, field.id, e)} />
                         </div>)

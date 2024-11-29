@@ -142,12 +142,12 @@ export const getResult = async (resultId, category,res) => {
         vendorName: (value should be name of the vendor which facilitated the booking or the hotel name itself), 
         location: (value should be address or location of the hotel), 
         hotelName: (value should be the name of the hotel), 
-        checkIn: (value should be the check in date or arrival date in the hotel), 
-        checkOut: (value should be the check out date or departure date from the hotel), 
+        checkIn: (value should be the check in date or arrival date in the hotel in YYYY-MM-DD format), 
+        checkOut: (value should be the check out date or departure date from the hotel in YYYY-MM-DD format), 
         checkInTime: (value should be the check in time), 
         checkOutTime: (value should be the check out time), 
-        taxAmount : (value should be the total tax amount), 
-        totalAmount : (value should be total amount paid)`;
+        taxAmount : (value should be the total tax amount only numbers no formatting), 
+        totalAmount : (value should be total amount paid only number no formatting)`;
         break;
       }
 
