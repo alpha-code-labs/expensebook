@@ -101,8 +101,8 @@ app.use('/api/fe/expense', mainFrontendRoutes);
 
 
 // Start the batch job
-runApproveToNextState()
-scheduleTripTransitBatchJob()
+// runApproveToNextState()
+// scheduleTripTransitBatchJob()
 
 app.get('/test', (req,res) =>{
   res.send('welcome to alpha code labs ')

@@ -23,6 +23,7 @@ export const handleFileUpload = async (req, res) => {
     const fileContent = req.file.buffer;
     const {tenantId, travelType, category} = req.params
 
+ 
     // console.log(category, fileURL , 'category, fileURL');
 
     // console.log(category, fileURL , 'category, fileURL');
@@ -54,15 +55,16 @@ export const handleFileUpload = async (req, res) => {
 
     //Assuming you have a function makeApiCall defined somewhere
     const finalResult_res = await makeApiCall(resultId,tenantId,travelType, category);
-    console.log(finalResult_res, 'final result res')
+    console.log("finalResult - after openai",finalResult_res, 'final result res')
 
     if(!finalResult_res.success){
       return res.status(200).json(({success: false, data: {}}))
     }
 
-    const currency = finalResult_res.finalResult.fields.currency ?? finalResult_res.finalResult.Currency;
+    const currency = finalResult_res?.currency;
+    const fields =finalResult_res?.fields 
 
-    return res.status(200).json({ success: true, fields: finalResult_res.finalResult.fields, currency});
+    return res.status(200).json({ success: true, fields, currency});
 
     //return res.status(200).json({ success: true, data: {from:'Chhatrapati Shivaji Maharaj International Airport', to:'John F. Kennedy International Airport', date:'2024-02-18', time:'11:30', 'Tax Amount': 2394, 'Total Amount':24000} });
   } catch (error) {
@@ -120,13 +122,24 @@ export const getResult = async (resultId,tenantId,travelType, category,res) => {
 
     const dateFormat = JSON.stringify(`from text next- extract any kind of date in this format - "2024-11-22", yyyy-mm-date`)
     
-    let dataLogic; 
-    switch (tenantData.expenseCategory) { 
+    let dataLogic = ""; 
+    switch (tenantData.expenseCategory.toLowerCase()) { 
       case 'flight': 
-        dataLogic = 'If airport codes are found for departure and arrival fields, convert them to city names (e.g., DEL -> Delhi).'; 
+        dataLogic = 'while extracting fields after this -If airport codes are found for departure/from and arrival/to fields, convert them to city names (e.g., DEL -> Delhi). extract bookingId'; 
         break;
     }
-     
+
+    switch (tenantData.fields.name) { 
+      case 'Booking Reference Number': 
+      case 'Booking Reference No':
+        dataLogic = "extract BOOKING ID/ booking reference number, don't take PNR/pnr,if not found send ''"; 
+        break;
+      case 'Invoice Date':
+        dataLogic = "extract Invoice Date/booking Date, don't take date or start date , if not found send ''"
+        case 'Total Amount':
+
+    }
+
 
     let getCurrencyString=JSON.stringify(getCurrency)
     // switch(category){
@@ -182,14 +195,14 @@ export const getResult = async (resultId,tenantId,travelType, category,res) => {
       return {key: pair.key.content, value: pair.value.content}
     })
 
-    console.log("system prompt: ", `You are a helpful assistant. Extract following fields, ${fieldsString} ,from the provided data and return them in the JSON format:`);
+    console.log("system prompt: ", `You are a helpful assistant. Extract following fields,if confidence is <75 , send that fields as "", ${fieldsString} ,from the provided data and return them in the JSON format: enclose the JSON with starting characters`);
     console.log("user prompt :", `data: ${JSON.stringify(response.data.analyzeResult.content)}` )
     console.log("getting structured result from chat-gpt...")
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
-          { role: "system", content: `You are a helpful assistant.1)${dateFormat}${dataLogic}, Extract following fields, fieldsString: ${fieldsString},from the provided data and return them in the JSON format:2)from the fieldsString extract currency used for total ${CurrencyPrompt}`},
+          { role: "system", content: `You are a helpful assistant.1)${dateFormat}${dataLogic}, Extract following fields, fieldsString: ${fieldsString},from the provided data and return them in the JSON format like key and value pairs,like 1st one with key fields, 2nd object with key currency, do not add any comments send only JSON in response 2)from the fieldsString extract currency used for total ${CurrencyPrompt}`},
     
           {
               role: "user",
@@ -198,34 +211,36 @@ export const getResult = async (resultId,tenantId,travelType, category,res) => {
       ],
     });
 
-    console.log("OPENAI_EXTRACTION",completion.choices[0].message.content)
-    const finalResult = extractJsonFromCodeBlock(completion.choices[0].message.content)
+    console.log("OPENAI_EXTRACTION",completion.choices[0].message.content , typeof completion.choices[0].message.content)
+    // const finalResult = extractJsonFromCodeBlock(completion.choices[0].message.content)
     
-    function extractAllJSON(content) {
-      const regex = /```json\n([\s\S]*?)\n```/g;
-      const matches = [];
-      let match;
+    // function extractAllJSON(content) {
+    //   const regex = /```json\n([\s\S]*?)\n```/g;
+    //   const matches = [];
+    //   let match;
     
-      while ((match = regex.exec(content)) !== null) {
-        try {
-          matches.push(JSON.parse(match[1].trim()));
-        } catch (error) {
-          console.error('Failed to parse JSON:', error);
-        }
-      }
+    //   while ((match = regex.exec(content)) !== null) {
+    //     try {
+    //       matches.push(JSON.parse(match[1].trim()));
+    //     } catch (error) {
+    //       console.error('Failed to parse JSON:', error);
+    //     }
+    //   }
     
-      return matches;
-    }
+    //   return matches;
+    // }
     
-    const data = completion.choices[0].message.content;
-    const jsonObjects = extractAllJSON(data);
-    const fieldsJSON = jsonObjects[0] || null;
-    const currencyJSON = jsonObjects[1] || null;
+    // const data = completion.choices[0].message.content;
+    // const jsonObjects = extractAllJSON(data);
+    // const currencyJSON = jsonObjects[1] || {};
     
     // console.log("OPENAI_EXTRACTION", JSON.stringify({ fields: fieldsJSON, currency: currencyJSON }, null, 2));
+    const fields = JSON.parse(completion.choices[0].message.content.fields)
+    const currency = JSON.parse(completion.choices[0].message.content.currency)
+
     
-    
-    return { success: true, keyValuePairs: allKeyValuePairs, finalResult ,currency: currencyJSON  };
+    console.log("data found: finalResult", fields,currency )
+    return { success: true, keyValuePairs: allKeyValuePairs, fields,currency };
 
   } catch (error) {
     console.error("Error calling Azure Form Recognizer:");
@@ -244,8 +259,8 @@ function extractJsonFromCodeBlock(input) {
           throw new Error("No valid JSON content found in the code block.");
       }
 
-      // Parse the extracted JSON string into a JavaScript object
-      const jsonContent = match[1];
+      const jsonContent = match[1] !== undefined ? match[1] : input?.fields;
+
       return JSON.parse(jsonContent);
   } catch (error) {
       console.error("Error parsing JSON:", error.message);
