@@ -99,6 +99,13 @@ export const getResult = async (resultId,tenantId,travelType, category,res) => {
 
     fieldsString= JSON.stringify(tenantData.fields)
 
+    let getCurrency={
+        "countryCode": "",
+        "fullName": "",
+        "shortName": "",
+        "symbol": ""
+    }
+
     // switch(category){
     //   case 'flights' : { 
     //     fieldsString = "field name: 'from' field value: 'departure airport full name', field name : 'to', field value: 'arrival airport full name', field name : date  field value: 'date of flight in format ISO 8601', field name : 'vendorName' field value: 'name of vendor', field name : 'totalAmount' field value: 'total fare for the ride', field name : 'taxAmount', field value:  'tax amount for the ride' ";
@@ -130,6 +137,8 @@ export const getResult = async (resultId,tenantId,travelType, category,res) => {
     //   }
     // }
 
+    // const formFields = await  findCurrency(tenantData,getKeyValuePairs, response.data)
+
     console.log("making api call");
 
     const apiUrl = `${endpoint}/formrecognizer/documentModels/${modelId}/analyzeResults/${resultId}?api-version=2023-07-31`;
@@ -157,7 +166,7 @@ export const getResult = async (resultId,tenantId,travelType, category,res) => {
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
-          { role: "system", content: `You are a helpful assistant. Extract following fields, ${fieldsString} ,from the provided data and return them in the JSON format:`},
+          { role: "system", content: `You are a helpful assistant.1) Extract following fields, fieldsString: ${fieldsString},from the provided data and return them in the JSON format:2)from the fieldsString extract currency used for total ${getCurrency}`},
     
           {
               role: "user",
@@ -202,6 +211,148 @@ function extractJsonFromCodeBlock(input) {
       return null; // Return null or handle the error as needed
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+export const findMatchingFields = async (tenantData, keyValuePairs, data) => {
+    // const trimAndNormalize = (str) => str.trim().replace(/\s+/g, '').toLowerCase();
+    const trimAndNormalize = (str) => str.trim().replace(/\s+/g, '').replace(/[.,|:-]/g, '').toLowerCase();
+  
+  
+    const matchFieldWithKey = (fieldName, category) => {
+      const lowerCaseFieldName = trimAndNormalize(fieldName);
+      // console.log(`Normalized field name: ${lowerCaseFieldName}`);
+  
+      const categoryRegexPattern = regexPattern[category] || {};
+      // console.log(`Category regex pattern:`, categoryRegexPattern);
+  
+      for (const [key, regex] of Object.entries(categoryRegexPattern)) {
+        // console.log(`Checking key: ${key} with regex: ${regex}`);
+        if (regex.test(lowerCaseFieldName)) {
+          const matchingPair = keyValuePairs.find(pair => regex.test(trimAndNormalize(pair.key)));
+          // console.log(`Matching pair for ${key}:`, matchingPair);
+          return matchingPair ? matchingPair.value : '';
+        }
+      }
+  
+      return '';
+    };
+  
+    // console.log("tenanat data fields", JSON.stringify(tenantData,'',2))
+  if(!tenantData.fields){
+    return ( `message:"Contact Admin for further information"`)
+  }
+     let Currency = {}
+    const fields = await Promise.all(tenantData?.fields?.map(async field => {
+      const { name, type } = field;
+      // console.log(`Processing field: ${name} of type: ${type}`);
+      
+      let value = await matchFieldWithKey(name, tenantData?.expenseCategory);
+      console.log(`Matched value for ${name}: ${value}`);
+    
+      // const Departure = /departure|departure from|from|departure city|from city/i;
+      // const Arrival = /arrival to|to|arrival city|to city|arrival/i;
+  
+      const Departure = /\b(departure|departure from|from|departure city|from city)\b/i;
+      const Arrival = /\b(arrival to|to|arrival city|to city|arrival)\b/i;
+      const totalAmountRegex = /^total\s*(amount|cash|paid|booking\s*amount)$/i;
+      const billNumberRegex = /(?:INVOICE\s*NO\.\s*|invoice\s*no(?:\.\s*)?|invoice\s*number|bill number|bill no|bill nos|invoice no|invoice nos|bill ref|bill reference|invoice ref|invoice reference)\s*:\s*([\w\d]+)/i;
+      const vendorNameRegex=/vendor name|restaurant name/i;
+      const extractTaxAmountRegex = /(?:tax\s*amount|total\s*tax|tax|gst|cgst|sgst|igst|service\s*tax|vat)\s*(?:amount|value|charge|paid|payable)\s*(?:@|at|on|is|:)?\s*(?:INR|rs|₹)?\s*[\d,]+(?:\.\d+)?/i;
+      const improvedTaxAmountRegex = /(?:tax\s*(?:amount|amt|amont|\s)?(?:@|at|on|is|:)?\s*(?:INR|rs|₹)?\s*[\d,]+(?:\.\d+)?)/i;
+  
+  
+      if (Departure.test(name)) {
+        const res = extractAirportPairs(data);
+        console.log("the airport from and to", res);
+    
+        // Assuming res always has at least one object
+        const firstAirport = res[0];
+    
+        // Update value directly based on the match
+        if (firstAirport.Departure) {
+          value = firstAirport.Departure;
+        }
+      } else if (Arrival.test(name)) {
+        const res = extractAirportPairs(data);
+        console.log("the airport from and to", res);
+    
+        // Assuming res always has at least one object
+        const firstAirport = res[0];
+    
+        // Update value directly based on the match
+        if (firstAirport.Arrival) {
+          value = firstAirport.Arrival;
+        }
+      } 
+      else if (totalAmountRegex.test(name)) {
+        const res = extractTotalAmount(keyValuePairs);
+        console.log("dabbulu", res);
+        if(!res){
+          return {name,type,value}
+        }
+        const {total, getCurrency} = handleResponse(res); 
+        // console.log("Final Response:Currency and total",total, getCurrency , typeof total , typeof getCurrency);
+        value = total;
+        Currency = getCurrency
+      } else if(billNumberRegex.test(name)){
+        const res = extractBillNumber(keyValuePairs);
+        if(!res){
+          return {name,type,value}
+        }
+        value = res; // Update value with bill number
+      } else if (vendorNameRegex.test(name)){
+       const res = extractVendorName(data)
+       if(!res){
+        return {name,type,value}
+       }
+       value=res
+      } else if (improvedTaxAmountRegex.test(name)){
+        const res = extractTaxAmount(keyValuePairs);
+        if(!res){
+          return {name,type,value}
+        }
+        const {total, getCurrency} = handleResponse(res); 
+        // console.log("res", res, "Tax amount Response:Currency and total",total, getCurrency , typeof total , typeof getCurrency);
+        value = total;
+      }
+      return { name, type, value };
+    }));
+  
+    // console.log(`Final fields:`, fields);
+    return { success: true, data: { fields,Currency } };
+  };
+
+
+
+
+
 
 
 
