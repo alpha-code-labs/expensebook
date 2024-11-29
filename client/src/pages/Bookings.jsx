@@ -64,6 +64,7 @@ const expenseCategories = {
     'cab' : [{name:'Vendor Name', id:'vendorName', toSet:'bookingDetails', type:'text'},
                 {name:'Booking Date',  toSet:'bkd_date',  id:'bkd_date', type:'date'},
                 {name: 'Return Date', toSet:'bkd_returnDate', id:'bkd_returnDate', type:'date'}, 
+                {name:'Time',  toSet:'bkd_time',  id:'bkd_time', type:'time'},
                 {name:'Return Time',  toSet:'bkd_returnTime',  id:'bkd_returnTime', type:'time'},
                 {name:'Pickup Address', toSet:'bkd_pickupAddress',  id:'bkd_pickupAddress', type:'text'}, 
                 {name:'Drop Address', type:'text', toSet:'bkd_dropAddress', id:'bkd_dropAddress'}, 
@@ -429,12 +430,13 @@ export default function () {
                 }
                 
                 if(categoryToScan == 'flights'){
-                    if(newData.from != null) itineraryItem.bkd_from = newData.from
-                    if(newData.to != null) itineraryItem.bkd_to = newData.to
-                    if(newData.date != null) itineraryItem.bkd_date = newData.date
-                    if(newData.vendorName != null) itineraryItem.bookingDetails.billDetails.vendorName =  newData.vendorName;
-                    if(newData.taxAmount != null) itineraryItem.bookingDetails = {...itineraryItem.bookingDetails, billDetails: {...itineraryItem.bookingDetails.billDetails, taxAmount: newData.taxAmount} }
-                    if(newData.totalAmount != null) itineraryItem.bookingDetails = {...itineraryItem.bookingDetails, billDetails: {...itineraryItem.bookingDetails.billDetails, totalAmount: newData.totalAmount}}
+                    itineraryItem.bkd_from = newData.from
+                    itineraryItem.bkd_time = newData.time
+                    itineraryItem.bkd_to = newData.to
+                    itineraryItem.bkd_date = newData.date
+                    itineraryItem.bookingDetails.billDetails.vendorName =  newData.vendorName;
+                    itineraryItem.bookingDetails = {...itineraryItem.bookingDetails, billDetails: {...itineraryItem.bookingDetails.billDetails, taxAmount: newData.taxAmount} }
+                    itineraryItem.bookingDetails = {...itineraryItem.bookingDetails, billDetails: {...itineraryItem.bookingDetails.billDetails, totalAmount: newData.totalAmount}}
                     
                     console.log(newData.totalAmount, 'limit:', onBoardingData?.policies?.['Flight']?.limit)
                     if(newData.totalAmount!= null && newData.totalAmount>(onBoardingData?.policies?.['Flight']?.limit??99999999) && onBoardingData?.policies?.['Flight']?.limit != 0){
@@ -444,12 +446,13 @@ export default function () {
     
                 if(categoryToScan == 'trains'){
                     console.log(itineraryItem.bookingDetails.billDetails.vendorName, newData, 'vendor name of trains..')
-                    if(newData.from != null) itineraryItem.bkd_from = newData.from
-                    if(newData.to != null) itineraryItem.bkd_to = newData.to
-                    if(newData.date != null) itineraryItem.bkd_date = newData.date
-                    if(newData.vendorName != null) itineraryItem.bookingDetails.billDetails.vendorName =  newData.vendorName;
-                    if(newData.taxAmount != null) itineraryItem.bookingDetails = {...itineraryItem.bookingDetails, billDetails: {...itineraryItem.bookingDetails.billDetails, taxAmount: newData.taxAmount} }
-                    if(newData.totalAmount != null) itineraryItem.bookingDetails = {...itineraryItem.bookingDetails, billDetails: {...itineraryItem.bookingDetails.billDetails, totalAmount: newData.totalAmount}}
+                    itineraryItem.bkd_from = newData.from
+                    itineraryItem.bkd_time = newData.time
+                    itineraryItem.bkd_to = newData.to
+                    itineraryItem.bkd_date = newData.date
+                    itineraryItem.bookingDetails.billDetails.vendorName =  newData.vendorName;
+                    itineraryItem.bookingDetails = {...itineraryItem.bookingDetails, billDetails: {...itineraryItem.bookingDetails.billDetails, taxAmount: newData.taxAmount} }
+                    itineraryItem.bookingDetails = {...itineraryItem.bookingDetails, billDetails: {...itineraryItem.bookingDetails.billDetails, totalAmount: newData.totalAmount}}
 
                     if(newData.totalAmount!= null && newData.totalAmount>(onBoardingData?.policies?.['Train']?.limit??99999999)){
                         itineraryItem.bkd_violations.amount = `Allowed limit exceeded as per ${formData.tenantName??'your company'} policies for this employee`
@@ -457,12 +460,13 @@ export default function () {
                 }
     
                 if(categoryToScan == 'Buses'){
-                    if(newData.from != null) itineraryItem.bkd_from = newData.from
-                    if(newData.to != null) itineraryItem.bkd_to = newData.to
-                    if(newData.date != null) itineraryItem.bkd_date = newData.date
-                    if(newData.vendorName != null) itineraryItem.bookingDetails.billDetails.vendorName =  newData.vendorName;
-                    if(newData.taxAmount != null) itineraryItem.bookingDetails = {...itineraryItem.bookingDetails, billDetails: {...itineraryItem.bookingDetails.billDetails, taxAmount: newData.taxAmount} }
-                    if(newData.totalAmount != null) itineraryItem.bookingDetails = {...itineraryItem.bookingDetails, billDetails: {...itineraryItem.bookingDetails.billDetails, totalAmount: newData.totalAmount}}
+                    itineraryItem.bkd_from = newData.from
+                    itineraryItem.bkd_time = newData.time
+                    itineraryItem.bkd_to = newData.to
+                    itineraryItem.bkd_date = newData.date
+                    itineraryItem.bookingDetails.billDetails.vendorName =  newData.vendorName;
+                    itineraryItem.bookingDetails = {...itineraryItem.bookingDetails, billDetails: {...itineraryItem.bookingDetails.billDetails, taxAmount: newData.taxAmount} }
+                    itineraryItem.bookingDetails = {...itineraryItem.bookingDetails, billDetails: {...itineraryItem.bookingDetails.billDetails, totalAmount: newData.totalAmount}}
                     
                     if(newData.totalAmount!= null && newData.totalAmount>(onBoardingData?.policies?.['Cab Rental']?.limit??99999999)){
                         itineraryItem.bkd_violations.amount = `Allowed limit exceeded as per ${formData.tenantName??'your company'} policies for this employee`
@@ -470,12 +474,13 @@ export default function () {
                 }
     
                 if(categoryToScan == 'cabs'){
-                    if(newData.from != null) itineraryItem.bkd_pickupAddress = newData.from
-                    if(newData.to != null) itineraryItem.bkd_dropAddress = newData.to
-                    if(newData.date != null) itineraryItem.bkd_date = newData.date
-                    if(newData.vendorName != null) itineraryItem.bookingDetails.billDetails.vendorName =  newData.vendorName;
-                    if(newData.taxAmount != null) itineraryItem.bookingDetails = {...itineraryItem.bookingDetails, billDetails: {...itineraryItem.bookingDetails.billDetails, taxAmount: newData.taxAmount} }
-                    if(newData.totalAmount != null) itineraryItem.bookingDetails = {...itineraryItem.bookingDetails, billDetails: {...itineraryItem.bookingDetails.billDetails, totalAmount: newData.totalAmount}}
+                    itineraryItem.bkd_pickupAddress = newData.pickupAddress
+                    itineraryItem.bkd_dropAddress = newData.dropAddress
+                    itineraryItem.bkd_date = newData.date
+                    itineraryItem.bkd_time = newData.time
+                    itineraryItem.bookingDetails.billDetails.vendorName =  newData.vendorName;
+                    itineraryItem.bookingDetails = {...itineraryItem.bookingDetails, billDetails: {...itineraryItem.bookingDetails.billDetails, taxAmount: newData.taxAmount} }
+                    itineraryItem.bookingDetails = {...itineraryItem.bookingDetails, billDetails: {...itineraryItem.bookingDetails.billDetails, totalAmount: newData.totalAmount}}
                     
                     if(newData.totalAmount!= null && newData.totalAmount>(onBoardingData?.policies?.['Cab']?.limit??99999999)){
                         itineraryItem.bkd_violations.amount = `Allowed limit exceeded as per ${formData.tenantName??'your company'} policies for this employee`
@@ -483,8 +488,8 @@ export default function () {
                 }
     
                 if(categoryToScan == 'Car Rentals'){
-                    if(newData.from != null) itineraryItem.bkd_pickupAddress = newData.from
-                    if(newData.to != null) itineraryItem.bkd_dropAddress = newData.to
+                    if(newData.pickupAddress != null) itineraryItem.bkd_pickupAddress = newData.pickupAddress
+                    if(newData.dropAddress != null) itineraryItem.bkd_dropAddress = newData.dropAddress
                     if(newData.date != null) itineraryItem.bkd_date = newData.date
                     if(newData.vendorName != null) itineraryItem.bookingDetails.billDetails.vendorName =  newData.vendorName;
                     if(newData.taxAmount != null) itineraryItem.bookingDetails = {...itineraryItem.bookingDetails, billDetails: {...itineraryItem.bookingDetails.billDetails, taxAmount: newData.taxAmount} }
@@ -496,12 +501,14 @@ export default function () {
                 }
 
                 if(categoryToScan == 'hotels'){
-                    if(newData.location != null) itineraryItem.bkd_location = newData.location
-                    if(newData.checkIn != null) itineraryItem.bkd_checkIn = newData.checkIn
-                    if(newData.checkOut != null) itineraryItem.bkd_checkOut = newData.checkOut
-                    if(newData.vendorName != null) itineraryItem.bookingDetails.billDetails.vendorName =  newData.vendorName;
-                    if(newData.taxAmount != null) itineraryItem.bookingDetails = {...itineraryItem.bookingDetails, billDetails: {...itineraryItem.bookingDetails.billDetails, taxAmount: newData.taxAmount} }
-                    if(newData.totalAmount != null) itineraryItem.bookingDetails = {...itineraryItem.bookingDetails, billDetails: {...itineraryItem.bookingDetails.billDetails, totalAmount: newData.totalAmount}}
+                    itineraryItem.bkd_location = newData.location
+                    itineraryItem.bkd_checkIn = newData.checkIn
+                    itineraryItem.bkd_checkOut = newData.checkOut
+                    itineraryItem.bkd_checkInTime = newData.checkInTime
+                    itineraryItem.bkd_checkOutTime = newData.checkOutTime
+                    itineraryItem.bookingDetails.billDetails.vendorName =  newData.vendorName;
+                    itineraryItem.bookingDetails = {...itineraryItem.bookingDetails, billDetails: {...itineraryItem.bookingDetails.billDetails, taxAmount: newData.taxAmount} }
+                    itineraryItem.bookingDetails = {...itineraryItem.bookingDetails, billDetails: {...itineraryItem.bookingDetails.billDetails, totalAmount: newData.totalAmount}}
                     
                     if(newData.totalAmount!= null && newData.totalAmount>(onBoardingData?.policies?.['Hotels']?.limit??99999999)){
                         itineraryItem.bkd_violations.amount = `Allowed limit exceeded as per ${formData.tenantName??'your company'} policies for this employee`
@@ -1094,7 +1101,7 @@ function AddTicketManually(
                                     <div className="text-neutral-700 w-full  h-full text-sm font-normal font-cabin">
                                         <input 
                                         type='date' 
-                                        min={getDateXDaysAway(Number(minDaysBeforeBooking))}
+                                        // min={getDateXDaysAway(Number(minDaysBeforeBooking))}
                                         className="w-full h-full decoration:none px-6 py-2 border rounded-md border border-neutral-300 focus-visible:outline-0 focus-visible:border-indigo-600 "
                                         name={field.name} 
                                         value={itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet] ? formattedDate(itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet]) : formattedDate(itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet.split('_')[1]])}
@@ -1339,7 +1346,29 @@ function AddScannedTicket(
                                             onChange={(e)=>handleFieldValueChange(field.toSet, field.id, e)} />
                                     </div>)
 
-                    case 'date' : return(  
+                    // case 'date' : return(  
+                    //     <div className='' key={index}>
+
+                    //         <div className="min-w-[200px] w-full md:w-fit max-w-[403px] h-[73px] flex-col justify-start items-start gap-2 inline-flex">
+                    //             {/* title */}
+                    //             <div className="text-zinc-600 text-sm font-cabin">{field.name}</div>
+
+                    //             {/* input */}
+                    //             <div className="relative w-full h-full bg-white items-center flex">
+                    //                 <div className="text-neutral-700 w-full  h-full text-sm font-normal font-cabin">
+                    //                     <input 
+                    //                     type='date' 
+                    //                     min={getDateXDaysAway(Number(minDaysBeforeBooking))}
+                    //                     className={`w-full h-full decoration:none px-6 py-2 border rounded-md border ${itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet]!=null ? 'border-neutral-300' : 'border-red-300'} focus-visible:outline-0 focus-visible:border-indigo-600 `}
+                    //                     name={field.name} 
+                    //                     value={itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet]}
+                    //                     onChange={(e)=>handleFieldValueChange(field.toSet, field.id, e)} />
+                    //                 </div>
+                    //             </div>
+                    //         </div>
+                    //     </div>)
+
+                        case 'date' : return( (field.toSet != 'bkd_returnDate' || addTicketVariables.toSet != 'cabs' ||   itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex].isFullDayCab) &&
                         <div className='' key={index}>
 
                             <div className="min-w-[200px] w-full md:w-fit max-w-[403px] h-[73px] flex-col justify-start items-start gap-2 inline-flex">
@@ -1351,10 +1380,10 @@ function AddScannedTicket(
                                     <div className="text-neutral-700 w-full  h-full text-sm font-normal font-cabin">
                                         <input 
                                         type='date' 
-                                        min={getDateXDaysAway(Number(minDaysBeforeBooking))}
+                                        // min={getDateXDaysAway(Number(minDaysBeforeBooking))}
                                         className={`w-full h-full decoration:none px-6 py-2 border rounded-md border ${itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet]!=null ? 'border-neutral-300' : 'border-red-300'} focus-visible:outline-0 focus-visible:border-indigo-600 `}
                                         name={field.name} 
-                                        value={itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet]}
+                                        value={itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet] ? formattedDate(itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet]) : formattedDate(itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet.split('_')[1]])}
                                         onChange={(e)=>handleFieldValueChange(field.toSet, field.id, e)} />
                                     </div>
                                 </div>

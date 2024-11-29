@@ -3,7 +3,7 @@ import Input from "../components/common/Input"
 import TimePicker from "../components/common/TimePicker"
 
 export default function Playgroung(){
-    const [date, setDate] = useState(null);
+    const [date, setDate] = useState('2023-08-26');
 
     return(<div className="p-4">
         <Input
