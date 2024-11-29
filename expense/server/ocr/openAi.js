@@ -136,8 +136,8 @@ export const getResult = async (resultId,tenantId,travelType, category,res) => {
         break;
       case 'Invoice Date':
         dataLogic = "extract Invoice Date/booking Date, don't take date or start date , if not found send ''"
-        case 'Total Amount':
-
+      case 'Total Amount':
+          dataLogic = "only numeric and period is allowed, remove any other special characters expect period in between"
     }
 
 
@@ -202,7 +202,7 @@ export const getResult = async (resultId,tenantId,travelType, category,res) => {
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
-          { role: "system", content: `You are a helpful assistant.1)${dateFormat}${dataLogic}, Extract following fields, fieldsString: ${fieldsString},from the provided data and return them in the JSON format like key and value pairs,like 1st one with key fields, 2nd object with key currency, do not add any comments send only JSON in response 2)from the fieldsString extract currency used for total ${CurrencyPrompt}`},
+          { role: "system", content: `You are a helpful assistant.1)${dateFormat}${dataLogic}, Extract following fields, For any kind of amount field should have only numeric and period, remove others. fieldsString: ${fieldsString},from the provided data and return them in the JSON format like key and value pairs,like 1st one with key fields, 2nd object with key currency, do not add any comments send only JSON in response 2)from the fieldsString extract currency used for total ${CurrencyPrompt}`},
     
           {
               role: "user",
@@ -234,9 +234,12 @@ export const getResult = async (resultId,tenantId,travelType, category,res) => {
     // const jsonObjects = extractAllJSON(data);
     // const currencyJSON = jsonObjects[1] || {};
     
-    // console.log("OPENAI_EXTRACTION", JSON.stringify({ fields: fieldsJSON, currency: currencyJSON }, null, 2));
-    const fields = JSON.parse(completion.choices[0].message.content.fields)
-    const currency = JSON.parse(completion.choices[0].message.content.currency)
+    console.log("what is typeof fields",typeof completion.choices[0].message.content.fields);
+
+    const getData = JSON.parse(completion.choices[0].message.content)
+    console.log("getData", typeof getData , getData)
+    const fields = getData.fields
+    const currency = getData.currency
 
     
     console.log("data found: finalResult", fields,currency )
