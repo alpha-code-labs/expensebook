@@ -278,6 +278,21 @@ function formatDate(date=Date.now()) {
     return expenseData?.filter(line => ((!["cancelled"].includes(line?.lineItemStatus) && line?.lineItemId !== id)))
   }
 
+
+  function formatDateToYYYYMMDD(dateInput) {
+    // Parse the input date
+    const date = new Date(dateInput);
+    // Check if the date is valid
+    if (isNaN(date)) {
+        return dateInput;
+    }
+    // Format the date components
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-based
+    const day = String(date.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
+}
   
-export {extractValidExpenseLines,removeSuffix,rearrangeKeyForLineItem, allocationLevel,initializenonTravelFormFields, initializeFormFields, camelCaseToTitleCase, titleCase, formatDate, formatDate2 ,getStatusClass ,generateRandomId,urlRedirection,formatAmount}  
+export {formatDateToYYYYMMDD,extractValidExpenseLines,removeSuffix,rearrangeKeyForLineItem, allocationLevel,initializenonTravelFormFields, initializeFormFields, camelCaseToTitleCase, titleCase, formatDate, formatDate2 ,getStatusClass ,generateRandomId,urlRedirection,formatAmount}  
 

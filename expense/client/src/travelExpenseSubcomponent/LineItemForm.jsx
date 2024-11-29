@@ -8,6 +8,7 @@ import { currenciesList } from '../utils/data/currencyList'
 import {  currencyConversionApi } from '../utils/api'
 import { categoryIcons } from '../assets/icon'
 import { totalAmountKeys,dateKeys, invoiceNoKeys } from '../utils/data/keyList'
+import { formatDateToYYYYMMDD } from '../utils/handyFunctions'
 
 const LineItemForm = ({expenseLines, categoryName, setErrorMsg, isUploading, defaultCurrency, currencyConversion, setCurrencyConversion, handleCurrencyConversion, formData,setFormData, onboardingLevel, categoryFields = [], classOptions, currencyTableData, allocationsList, handleAllocations, lineItemDetails, errorMsg}) => {
  
@@ -201,7 +202,7 @@ const LineItemForm = ({expenseLines, categoryName, setErrorMsg, isUploading, def
           </div>
         ) : (
           <Input
-            initialValue={lineItemDetails[field.name]}
+            initialValue={field.type === "date" ? formatDateToYYYYMMDD(formData[field.name]) :formData[field.name]}
             error={(totalAmountKeys.includes(field.name) && errorMsg.totalAmount) || (dateKeys.includes(field.name) && errorMsg.date) || field.name=== "Class" && errorMsg.class}
             dataMsg={invoiceNoKeys.includes(field.name) && errorMsg.invoiceNumber}
             title={field.name}
