@@ -6,6 +6,7 @@ import CurrencyInput from '../components/common/currency/CurrencyInput'
 import { currenciesList } from '../utils/data/currencyList'
 import { categoryIcons } from '../assets/icon'
 import { dateKeys, invoiceNoKeys, totalAmountKeys } from '../utils/data/keyList'
+import { formatDateToYYYYMMDD } from '../utils/handyFunctions'
 
 const LineItemForm = ({expenseLines, categoryName, setErrorMsg,isUploading,defaultCurrency, currencyConversion, setCurrencyConversion, handleCurrencyConversion, formData,setFormData, onboardingLevel, categoryFields = [], classOptions, currencyTableData, allocationsList, handleAllocations,  errorMsg}) => {
 
@@ -201,7 +202,7 @@ const isRecorded = expenseLines.some(expenseLine =>
         ) : (
           <Input
           dataMsg={invoiceNoKeys.includes(field.name) && errorMsg.invoiceNumber}
-            initialValue={formData[field.name]}
+            initialValue={field.type === "date" ? formatDateToYYYYMMDD(formData[field.name]) :formData[field.name] }
             error={(totalAmountKeys.includes(field.name) && errorMsg.totalAmount) || (dateKeys.includes(field.name) && errorMsg.date) || field.name=== "Class" && errorMsg.class}
             title={field.name}
             name={field.name}
