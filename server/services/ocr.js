@@ -7,9 +7,11 @@ import { indianAirports } from '../data/airports.js';
 
 dotenv.config()
 
+const openAiApiKey = process.env.OPENAI_API_KEY;
+
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
-const openai = new OpenAI();
+const openai = new OpenAI({ apiKey: openAiApiKey });
 
 // Middleware to handle file upload
 export const uploadMiddleware = upload.single('file');
@@ -92,23 +94,60 @@ export const getResult = async (resultId, category,res) => {
 
     switch(category){
       case 'flights' : { 
-        fieldsString = "field name: 'from' field value: 'departure airport full name', field name : 'to', field value: 'arrival airport full name', field name : date  field value: 'date of flight in format ISO 8601', field name : 'vendorName' field value: 'name of vendor', field name : 'totalAmount' field value: 'total fare for the ride', field name : 'taxAmount', field value:  'tax amount for the ride' ";
+        fieldsString = `
+        from : (value should be departure city), 
+        to: ( value should be arrival city), 
+        time (departure time in 24h format), 
+        date: (value should be date of flight YYYY-MM-DD format), 
+        vendorName: (value should be name of the vendor), 
+        totalAmount: (value should be total fare for the ride send only amount), 
+        taxAmount: (value should be tax amount for the ride send only amount)`;
         break;
       }
       case 'trains' : { 
-        fieldsString = "field name: 'from' field value: 'departure station full name', field name : 'to', field value: 'arrival station full name', field name : date  field value: 'date of train in format ISO 8601', field name : 'vendorName' field value: 'name of vendor', field name : 'totalAmount' field value: 'total fare for the ride', field name : 'taxAmount', field value:  'tax amount for the ride' ";
+        fieldsString = `
+        from : (value should be departure city), 
+        to: ( value should be arrival city), 
+        time (departure time in 24h format), 
+        date: (value should be date of flight YYYY-MM-DD format), 
+        vendorName: (value should be name of the vendor), 
+        totalAmount: (value should be total fare for the ride send only amount), 
+        taxAmount: (value should be tax amount for the ride send only amount)`;
         break;
       }
       case 'buses' : { 
-        fieldsString = "field name: 'from' field value: 'departure address', field name : 'to', field value: 'arrival address', field name : date  field value: 'date of bus in format ISO 8601', field name : 'vendorName' field value: 'name of vendor', field name : 'totalAmount' field value: 'total fare for the ride', field name : 'taxAmount', field value:  'tax amount for the ride' ";
+        fieldsString = `
+        from : (value should be departure city), 
+        to: ( value should be arrival city), 
+        time: (departure time in 24h format), 
+        date: (value should be date of flight YYYY-MM-DD format), 
+        vendorName: (value should be name of the vendor), 
+        totalAmount: (value should be total fare for the ride send only amount), 
+        taxAmount: (value should be tax amount for the ride send only amount)`;
         break;
       }
       case 'cabs' : { 
-        fieldsString = "pickupAddress, dropAddress, date (date of cab in format ISO 8601), vendorName, totalAmount (total fare for the ride), taxAmount (tax amount for the ride)";
+        fieldsString = `
+        pickupAddress: (value should be pick up address for the cab), 
+        dropAddress: (value should be drop address for the cab), 
+        date : (date of cab in YYYY-MM-DD format), 
+        time: (time when rides start in 24h format)
+        vendorName: (value should be name of the vendor), 
+        totalAmount (total fare for the ride only amount), 
+        taxAmount (total tax amount for the ride, only amount)`;
         break;
       }
       case 'hotels': {
-        `location (location of the hotel), hotelName (Name of hotel), field name : checkIn field value : 'check in date in format ISO 8601', field name : checkOut field value : 'check out date in format ISO 8601' , field name : checkInTime field value: checkIn Time, field name : checkOutTime,  field value : check Out Time), totalAmount, taxAmount`;
+        fieldsString = `
+        vendorName: (value should be name of the vendor which facilitated the booking or the hotel name itself), 
+        location: (value should be address or location of the hotel), 
+        hotelName: (value should be the name of the hotel), 
+        checkIn: (value should be the check in date or arrival date in the hotel), 
+        checkOut: (value should be the check out date or departure date from the hotel), 
+        checkInTime: (value should be the check in time), 
+        checkOutTime: (value should be the check out time), 
+        taxAmount : (value should be the total tax amount), 
+        totalAmount : (value should be total amount paid)`;
         break;
       }
 
@@ -141,7 +180,7 @@ export const getResult = async (resultId, category,res) => {
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
-          { role: "system", content: `You are a helpful assistant. Extract following fields, ${fieldsString} ,from the provided data and return them in the JSON format:`},
+          { role: "system", content: `You are a helpful assistant. Extract following fields, ${fieldsString} ,from the provided data and return them in the JSON format, give null value for fields can not be found`},
     
           {
               role: "user",
@@ -183,7 +222,7 @@ function extractJsonFromCodeBlock(input) {
       return JSON.parse(jsonContent);
   } catch (error) {
       console.error("Error parsing JSON:", error.message);
-      return null; // Return null or handle the error as needed
+      return input; // Return null or handle the error as needed
   }
 }
 
