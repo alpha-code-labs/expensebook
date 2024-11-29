@@ -60,7 +60,9 @@ export const handleFileUpload = async (req, res) => {
       return res.status(200).json(({success: false, data: {}}))
     }
 
-    return res.status(200).json({ success: true, fields: finalResult_res.finalResult});
+    const currency = finalResult_res.finalResult.fields.currency ?? finalResult_res.finalResult.Currency;
+
+    return res.status(200).json({ success: true, fields: finalResult_res.finalResult.fields, currency});
 
     //return res.status(200).json({ success: true, data: {from:'Chhatrapati Shivaji Maharaj International Airport', to:'John F. Kennedy International Airport', date:'2024-02-18', time:'11:30', 'Tax Amount': 2394, 'Total Amount':24000} });
   } catch (error) {
@@ -106,6 +108,27 @@ export const getResult = async (resultId,tenantId,travelType, category,res) => {
         "symbol": ""
     }
 
+    const CurrencyPrompt = JSON.stringify(`send this as separate Currency json object, Identify the currency in the provided text and return the corresponding JSON object in the following format:
+    {
+        "countryCode": "IN",
+        "fullName": "Indian Rupee",
+        "shortName": "INR",
+        "symbol": "₹"
+    }
+    If no currency match is found, return an empty object.`);
+
+
+    const dateFormat = JSON.stringify(`from text next- extract any kind of date in this format - "2024-11-22", yyyy-mm-date`)
+    
+    let dataLogic; 
+    switch (tenantData.expenseCategory) { 
+      case 'flight': 
+        dataLogic = 'If airport codes are found for departure and arrival fields, convert them to city names (e.g., DEL -> Delhi).'; 
+        break;
+    }
+     
+
+    let getCurrencyString=JSON.stringify(getCurrency)
     // switch(category){
     //   case 'flights' : { 
     //     fieldsString = "field name: 'from' field value: 'departure airport full name', field name : 'to', field value: 'arrival airport full name', field name : date  field value: 'date of flight in format ISO 8601', field name : 'vendorName' field value: 'name of vendor', field name : 'totalAmount' field value: 'total fare for the ride', field name : 'taxAmount', field value:  'tax amount for the ride' ";
@@ -166,7 +189,7 @@ export const getResult = async (resultId,tenantId,travelType, category,res) => {
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
-          { role: "system", content: `You are a helpful assistant.1) Extract following fields, fieldsString: ${fieldsString},from the provided data and return them in the JSON format:2)from the fieldsString extract currency used for total ${getCurrency}`},
+          { role: "system", content: `You are a helpful assistant.1)${dateFormat}${dataLogic}, Extract following fields, fieldsString: ${fieldsString},from the provided data and return them in the JSON format:2)from the fieldsString extract currency used for total ${CurrencyPrompt}`},
     
           {
               role: "user",
@@ -175,16 +198,34 @@ export const getResult = async (resultId,tenantId,travelType, category,res) => {
       ],
     });
 
-    console.log(completion.choices[0].message.content)
+    console.log("OPENAI_EXTRACTION",completion.choices[0].message.content)
     const finalResult = extractJsonFromCodeBlock(completion.choices[0].message.content)
-
-
-
     
-
-    return { success: true, keyValuePairs: allKeyValuePairs, finalResult };
-
-
+    function extractAllJSON(content) {
+      const regex = /```json\n([\s\S]*?)\n```/g;
+      const matches = [];
+      let match;
+    
+      while ((match = regex.exec(content)) !== null) {
+        try {
+          matches.push(JSON.parse(match[1].trim()));
+        } catch (error) {
+          console.error('Failed to parse JSON:', error);
+        }
+      }
+    
+      return matches;
+    }
+    
+    const data = completion.choices[0].message.content;
+    const jsonObjects = extractAllJSON(data);
+    const fieldsJSON = jsonObjects[0] || null;
+    const currencyJSON = jsonObjects[1] || null;
+    
+    // console.log("OPENAI_EXTRACTION", JSON.stringify({ fields: fieldsJSON, currency: currencyJSON }, null, 2));
+    
+    
+    return { success: true, keyValuePairs: allKeyValuePairs, finalResult ,currency: currencyJSON  };
 
   } catch (error) {
     console.error("Error calling Azure Form Recognizer:");
