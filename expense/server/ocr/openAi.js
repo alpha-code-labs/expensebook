@@ -125,23 +125,36 @@ export const getResult = async (resultId,tenantId,travelType, category,res) => {
     let dataLogic = ""; 
     switch (tenantData.expenseCategory.toLowerCase()) { 
       case 'flight': 
-        dataLogic = 'while extracting fields after this -If airport codes are found for departure/from and arrival/to fields, convert them to city names (e.g., DEL -> Delhi). extract bookingId'; 
+        dataLogic += 'while extracting fields after this -If airport codes are found for departure/from and arrival/to fields, convert them to city names (e.g., DEL -> Delhi). extract bookingId'; 
         break;
+      case 'meals':
+        dataLogic = "Field name: 'Bill Date', Field value: Extract the date when the transaction occurred, labeled as 'Invoice Date' or 'Bill Date', " +
+        "Field name: 'Bill Number', Field value: Extract the number uniquely identifying this bill, often labeled as 'Invoice No.' or 'Bill Number', " +
+        "Field name: 'Vendor Name', Field value: Extract the name of the vendor or restaurant from the invoice, typically found near 'Restaurant Name' or 'Legal Entity Name', " +
+        "Field name: 'Description', Field value: Summarize the description of items or services provided, look for labels like 'Service Description' or 'Particulars', " +
+        "Field name: 'Quantity', Field value: Count the number of items purchased, detailed under 'Particulars' or 'Item(s) Total', exclude charges like 'Restaurant Packaging Charge', " +
+        "Field name: 'Unit Cost', Field value: Extract the cost per item, look for patterns around each listed item under 'Particulars', do not consider additional fees or taxes, " +
+        "Field name: 'Tax Amount', Field value: Sum the values of CGST and SGST if present to calculate total tax; if not, extract the total tax from a single 'Tax Amount' entry, " +
+        "Field name: 'Total Amount', Field value: Extract the total payable amount, often found at the bottom of the invoice as 'Total Value' or 'Amount'.";
     }
 
     switch (tenantData.fields.name) { 
       case 'Booking Reference Number': 
       case 'Booking Reference No':
-        dataLogic = "extract BOOKING ID/ booking reference number, don't take PNR/pnr,if not found send ''"; 
+        dataLogic += "extract BOOKING ID/ booking reference number, don't take PNR/pnr,if not found send ''"; 
         break;
       case 'Invoice Date':
-        dataLogic = "extract Invoice Date/booking Date, don't take date or start date , if not found send ''"
+        dataLogic += "extract Invoice Date/booking Date, don't take date or start date , if not found send ''"
+        break;
       case 'Total Amount':
-          dataLogic = "only numeric and period is allowed, remove any other special characters expect period in between"
+          dataLogic += "only numeric and period is allowed, remove any other special characters expect period in between"
+          break;
+        
+      default:
+        dataLogic += "extract the fields by analyzing the invoice structure and how they are extracted as per standard"
+        break;
     }
 
-
-    let getCurrencyString=JSON.stringify(getCurrency)
     // switch(category){
     //   case 'flights' : { 
     //     fieldsString = "field name: 'from' field value: 'departure airport full name', field name : 'to', field value: 'arrival airport full name', field name : date  field value: 'date of flight in format ISO 8601', field name : 'vendorName' field value: 'name of vendor', field name : 'totalAmount' field value: 'total fare for the ride', field name : 'taxAmount', field value:  'tax amount for the ride' ";
@@ -186,9 +199,9 @@ export const getResult = async (resultId,tenantId,travelType, category,res) => {
         }
       }
     );
-    console.log("get from Azure Form Recognizer:", response);
+    // console.log("get from Azure Form Recognizer:", response);
     
-    
+    console.log("dataLogic right before query", JSON.stringify(dataLogic,'',2))
     const allKeyValuePairs = response.data.analyzeResult.keyValuePairs
     .filter(pair=>pair.value!=undefined)
     .map(pair=>{
@@ -212,27 +225,6 @@ export const getResult = async (resultId,tenantId,travelType, category,res) => {
     });
 
     console.log("OPENAI_EXTRACTION",completion.choices[0].message.content , typeof completion.choices[0].message.content)
-    // const finalResult = extractJsonFromCodeBlock(completion.choices[0].message.content)
-    
-    // function extractAllJSON(content) {
-    //   const regex = /```json\n([\s\S]*?)\n```/g;
-    //   const matches = [];
-    //   let match;
-    
-    //   while ((match = regex.exec(content)) !== null) {
-    //     try {
-    //       matches.push(JSON.parse(match[1].trim()));
-    //     } catch (error) {
-    //       console.error('Failed to parse JSON:', error);
-    //     }
-    //   }
-    
-    //   return matches;
-    // }
-    
-    // const data = completion.choices[0].message.content;
-    // const jsonObjects = extractAllJSON(data);
-    // const currencyJSON = jsonObjects[1] || {};
     
     console.log("what is typeof fields",typeof completion.choices[0].message.content.fields);
 
@@ -252,25 +244,6 @@ export const getResult = async (resultId,tenantId,travelType, category,res) => {
     return { success: false, error: "Internal Server Error" };
   }
 }
-
-
-function extractJsonFromCodeBlock(input) {
-  try {
-      // Use a regular expression to extract the content between the triple backticks
-      const match = input.match(/```json\n([\s\S]*?)\n```/);
-      if (!match || match.length < 2) {
-          throw new Error("No valid JSON content found in the code block.");
-      }
-
-      const jsonContent = match[1] !== undefined ? match[1] : input?.fields;
-
-      return JSON.parse(jsonContent);
-  } catch (error) {
-      console.error("Error parsing JSON:", error.message);
-      return null; // Return null or handle the error as needed
-  }
-}
-
 
 
 
