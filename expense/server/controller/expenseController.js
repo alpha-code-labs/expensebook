@@ -1,4 +1,4 @@
-import { onSaveAsDraftExpenseHeaderToTrip, onSaveLineItemToTrip } from "../internalControllers/controllers/tripMicroservice.js";
+// import { onSaveAsDraftExpenseHeaderToTrip, onSaveLineItemToTrip } from "../internalControllers/controllers/tripMicroservice.js";
 import { sendToDashboardMicroservice, sendTravelExpenseToDashboardQueue } from "../rabbitmq/dashboardMicroservice.js";
 import Expense from '../models/tripSchema.js';
 import HRMaster from '../models/hrCompanySchema.js';
@@ -414,7 +414,7 @@ export const onSaveOld = async (req, res) => {
       const { tenantId, totalCashAmount, totalExpenseAmount, remainingCash } = updatedExpenseReport;
 
       // send it to trip
-      await onSaveLineItemToTrip(updatedExpenseReport);
+      // await onSaveLineItemToTrip(updatedExpenseReport);
 
       return res.status(200).json({
         message: 'Expense line items updated successfully.',
@@ -460,7 +460,7 @@ const onSaveAsDraftExpenseHeader = async (req, res) => {
       }
 
       // send it to trip
-      await onSaveAsDraftExpenseHeaderToTrip(draftExpenseReport);
+      // await onSaveAsDraftExpenseHeaderToTrip(draftExpenseReport);
 
       const payload = {...draftExpenseReport};
       const needConfirmation = false;
