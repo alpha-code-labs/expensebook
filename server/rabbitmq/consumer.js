@@ -247,7 +247,7 @@ export async function startConsumer(receiver) {
       }
     }}, { noAck: false });
   } catch (e) {
-    console.error("Failed to establish RabbitMQ connection:", error.message);
+    console.error("Failed to establish RabbitMQ connection:", e.message);
       throw e;
   }
 }
