@@ -166,6 +166,9 @@ const settleOrRecoverCashAdvance = async (payload) => {
     }
 
     const { expenseAmountStatus, cashAdvancesData } = report;
+    if(!cashAdvancesData?.length){
+      return { success: false, error: "cashAdvanceData is not an array in expense ms" };
+    }
     const cashAdvance = cashAdvancesData.find(c => c.cashAdvanceId.toString() === cashAdvanceId.toString());
 
     if (!cashAdvance) {
@@ -177,18 +180,21 @@ const settleOrRecoverCashAdvance = async (payload) => {
 
     const { totalCashAmount: currentTotalCashAmount, totalRemainingCash: currentTotalRemainingCash } = expenseAmountStatus;
 
-    const updateCashAmounts = (current, total) => {
-      const difference = Math.abs(total - current);
-      const updatedTotal = current < total ? current + difference : current - difference;
+    const updateCashAmounts = (current, total,remaining) => {
+      const difference = total - current
+      const updatedTotalCashAmount = current + difference;
+      const updatedTotalRemainingCash = remaining === 0 ? difference : difference + remaining
+
       return {
-        updatedTotalCashAmount: updatedTotal,
-        updatedTotalRemainingCash: updatedTotal === 0 ? 0 : updatedTotal
+        updatedTotalCashAmount,
+        updatedTotalRemainingCash
       };
     };
 
     const { updatedTotalCashAmount, updatedTotalRemainingCash } = updateCashAmounts(
       Number(currentTotalCashAmount), 
-      Number(totalCashAmount)
+      Number(totalCashAmount),
+      Number(currentTotalRemainingCash)
     );
 
     const updatedTrip = await Expense.findOneAndUpdate(
@@ -442,7 +448,20 @@ export {
 
 
 
+// const updateCashAmounts = (current, total,remaining) => {
+//   const difference = Math.abs(total - current);
+//   const updatedTotal = current < total ? current + difference : current - difference;
+//   return {
+//     updatedTotalCashAmount: updatedTotal,
+//     updatedTotalRemainingCash: updatedTotal === 0 ? 0 : updatedTotal
+//   };
+// };
 
+// const { updatedTotalCashAmount, updatedTotalRemainingCash } = updateCashAmounts(
+//   Number(currentTotalCashAmount), 
+//   Number(totalCashAmount),
+//   Number(currentTotalRemainingCash)
+// );
 
 
 
