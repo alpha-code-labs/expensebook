@@ -49,7 +49,7 @@ function CardLayout({icon,title,subTitle,cardTitle,children})
 
 const Overview = ({fetchData, isLoading, setIsLoading, loadingErrMsg}) => {
 
-  const { employeeData, requiredData ,setPopupMsgData, initialPopupData} = useData(); 
+  const { employeeData, requiredData ,setPopupMsgData, initialPopupData,setMicroserviceModal} = useData(); 
   const [overviewData,setOverviewData]=useState(null); 
   const {tenantId,empId,page}= useParams(); 
   const [modalOpen , setModalOpen]=useState(false); 
@@ -151,7 +151,21 @@ console.log('raise expense trip', ongoingTripForExpense)
           fetchData();
          
           
-        }else if(event.data.split(' ')[0] == 'raiseAdvance'){
+        }
+        if(event.data.ocrMsgData)
+          {
+            const ocrPopupData = event.data.ocrMsgData;
+            setMicroserviceModal(ocrPopupData);
+            // if(ocrPopupData?.autoSkip === undefined)
+            // {
+            //   setTimeout(() => {
+            //     setMicroserviceModal(initialPopupData); 
+            //   }, 5000);
+            // }
+  
+            
+          } 
+        else if(event.data.split(' ')[0] == 'raiseAdvance'){
           //we have to open an Iframe to raise cash advance
           setVisible(false)
           
@@ -161,6 +175,7 @@ console.log('raise expense trip', ongoingTripForExpense)
           setIframeURL(`${cashBaseUrl}/create/advance/${travelRequestId}`);
           setVisible(true);
         }
+       
         
       }
     };
@@ -180,7 +195,7 @@ const handleSelect=(option)=>{
 }
 
 const handleRaise = () => {
-  if (expenseType=== "travel_Cash-Advance") {
+  if (expenseType=== "travel_Expense") {
     if (!tripId) {
       setError(prev => ({ ...prev, tripId: { set: true, message: "Select the trip" } }));
       

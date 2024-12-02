@@ -17,13 +17,15 @@ import { useData } from '../api/DataProvider';
 import { handleLoginPageUrl } from '../utils/actionHandler';
 import Report from './Report';
 import PopupMessage from '../components/common/PopupMessage';
+import Button1 from '../components/common/Button1';
+import PopupModal from '../components/common/PopupModal';
 
 const Home = () => {
 
-const message = "You are offline. Please check your internet connection."
+
 const {tenantId,empId}= useParams()
 const [sidebarOpen,setSidebarOpen]=useState(false);
-const {isOnline, employeeRoles, setEmployeeRoles, setEmployeeData, setRequiredData, employeeData,popupMsgData,initialPopupData,setPopupMsgData } = useData();
+const {microserviceModal,setMicroserviceModal,isOnline, employeeRoles, setEmployeeRoles, setEmployeeData, setRequiredData, employeeData,popupMsgData,initialPopupData,setPopupMsgData } = useData();
 
 useEffect(()=>{
   if (!isOnline) {
@@ -204,7 +206,19 @@ const fetchData = async () => {
       </div>
       </section>
       <PopupMessage iconCode={popupMsgData.iconCode} showPopup={popupMsgData.showPopup} setShowPopup={setPopupMsgData} message={popupMsgData.message} initialPopupData={initialPopupData}/>
-      
+      <PopupModal  showModal={microserviceModal?.showPopup} >
+            <div className="px-6 py-4">
+                <p className="font-cabin text-zinc-500 text-xl">Review Scanned Details</p>
+                <div className="mt-6 mb-6 text-normal text-neutral-800 font-cabin">
+                    <p>We’ve scanned the bill and extracted its details. Please review the following information carefully before submission:</p>
+                    <p className="mt-4">Verify that all the extracted values are accurate.</p>
+                    <p>Enter any missing values or correct errors if necessary.</p>
+                    <p className="mt-4">This step ensures that the information submitted is accurate. Once you’re satisfied with the details, click Submit to proceed.</p>
+    
+                </div>
+                <Button1 text='OK' onClick={()=>setMicroserviceModal(false)}/>
+            </div>
+    </PopupModal>
     </div>
     }
   </>

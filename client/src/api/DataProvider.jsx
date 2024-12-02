@@ -29,6 +29,7 @@ export const DataProvider = ({ children }) => {
   const [employeeRoles , setEmployeeRoles]=useState(null);
   const [routeData, setRouteData] = useState(null);
   const [requiredData, setRequiredData] = useState({});
+  const [microserviceModal, setMicroserviceModal]=useState(initialPopupData);
 
   const [popupMsgData, setPopupMsgData] = useState(initialPopupData);
   
@@ -51,7 +52,9 @@ export const DataProvider = ({ children }) => {
         popupMsgData,
         setPopupMsgData,
         initialPopupData,
-        isOnline
+        isOnline,
+        microserviceModal,
+        setMicroserviceModal
       }}
     >
       {children}

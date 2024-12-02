@@ -28,7 +28,6 @@ const tripBaseUrl = import.meta.env.VITE_TRIP_BASE_URL;
 
   const [tripId , setTripId]=useState(null);
   const [expenseType , setExpenseType]=useState(null);
- 
   const [textVisible,setTextVisible]=useState({tripId:false}); 
   const [modalOpen , setModalOpen]=useState(false);
   const [tripData, setTripData]=useState({tripsForBooking:[],tripsForRecover:[]});
@@ -38,7 +37,7 @@ const tripBaseUrl = import.meta.env.VITE_TRIP_BASE_URL;
   // const [showPopup, setShowPopup] = useState(false)
   // const [message, setMessage] = useState(null)
   const {tenantId,empId,page}= useParams();
-  const { employeeData, setPopupMsgData, initialPopupData } = useData();
+  const { employeeData, setPopupMsgData, initialPopupData, setMicroserviceModal } = useData();
   const [error , setError]= useState({
     tripId: {set:false, message:""}
   }); 
@@ -211,10 +210,21 @@ const handleConfirm = async (action) => {
           setVisible(false)
           fetchData()
           // window.location.href = window.location.href;
-        }else if(event.data.split(' ')[0] == 'raiseAdvance'){
+        }
+        if(event.data.ocrMsgData)
+          {
+            const ocrPopupData = event.data.ocrMsgData;
+            setMicroserviceModal(ocrPopupData);
+            // if(ocrPopupData?.autoSkip === undefined)
+            // {
+            //   setTimeout(() => {
+            //     setMicroserviceModal(initialPopupData); 
+            //   }, 5000);
+            // }
+          } 
+        else if(event.data.split(' ')[0] == 'raiseAdvance'){
           //we have to open an Iframe to raise cash advance
           setVisible(false)
-          
           const tenantId = event.data.split(' ')[1];
           const travelRequestId = event.data.split(' ')[2];
           console.log(event.data, ' event data ', travelRequestId, ' trId ', tenantId, ' tenant Id');
