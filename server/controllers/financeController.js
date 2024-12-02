@@ -1,4 +1,3 @@
-
 /**
  * Picks up all the actionables that the Finance Role has to perform.
  *
@@ -14,165 +13,61 @@
 import dashboard from "../models/dashboardSchema.js";
 import REIMBURSEMENT from "../models/reimbursementSchema.js";
 
-
-
 const countSettlements = async (tenantId) => {
-    const statusFilters = {
-      cashAdvance: ['pending settlement', 'Paid and Cancelled'],
-      travelExpense: ['pending settlement', 'Paid'],
-      reimbursement: ['pending settlement']
-    };
+  const statusFilters = {
+    cashAdvance: ["pending settlement", "Paid and Cancelled"],
+    travelExpense: ["pending settlement", "Paid"],
+    reimbursement: ["pending settlement"],
+  };
 
-    const filter = {
+  const filter = {
     tenantId,
     $or: [
-        {
-          'cashAdvanceSchema.cashAdvancesData': {
-            $elemMatch: {
-              cashAdvanceStatus: { $in: statusFilters.cashAdvance }
-            }
-          }
+      {
+        "cashAdvanceSchema.cashAdvancesData": {
+          $elemMatch: {
+            cashAdvanceStatus: { $in: statusFilters.cashAdvance },
+          },
         },
-        {
-          'tripSchema.travelExpenseData': {
-            $elemMatch: {
-              expenseHeaderStatus: { $in: statusFilters.travelExpense }
-            }
-          }
+      },
+      {
+        "tripSchema.travelExpenseData": {
+          $elemMatch: {
+            expenseHeaderStatus: { $in: statusFilters.travelExpense },
+          },
         },
-      ]
-    };
-  
-    // Get the counts of documents
-    const [dashboardCount, reimbursementCount] = await Promise.all([
-      dashboard.countDocuments(filter),
-      REIMBURSEMENT.countDocuments({
-        tenantId,
-        expenseHeaderStatus: { $in: statusFilters.reimbursement }
-      })
-    ]);
-  
-    const totalCount = dashboardCount + reimbursementCount;
-  
-    return { 
-      dashboardCount, 
-      reimbursementCount, 
-      totalCount 
-    };
-};
+      },
+    ],
+  };
 
+  // Get the counts of documents
+  const [dashboardCount, reimbursementCount] = await Promise.all([
+    dashboard.countDocuments(filter),
+    REIMBURSEMENT.countDocuments({
+      tenantId,
+      expenseHeaderStatus: { $in: statusFilters.reimbursement },
+    }),
+  ]);
+
+  const totalCount = dashboardCount + reimbursementCount;
+
+  return {
+    dashboardCount,
+    reimbursementCount,
+    totalCount,
+  };
+};
 
 export const financeLayout = async (tenantId) => {
-    try {
-      const {totalCount} = await countSettlements(tenantId);
-      console.log("count finance", totalCount);
-      return totalCount;
-    } catch (error) {
-      console.error("Error in fetching employee Dashboard:", error);
-      throw new Error('Error in fetching employee Dashboard');
-    }
+  try {
+    const { totalCount } = await countSettlements(tenantId);
+    // console.log("count finance", totalCount);
+    return totalCount;
+  } catch (error) {
+    console.error("Error in fetching employee Dashboard:", error);
+    throw new Error("Error in fetching employee Dashboard");
+  }
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-const oldfindSettlements = async (tenantId) => {
-    const cashAdvanceStatus = ['pending settlement', 'Paid and Cancelled'];
-    const travelExpenseStatus = ['pending settlement', 'Paid'];
-    const reimbursementStatus = ['pending settlement'];
-  
-    const settlementsFilter = {
-        tenantId,
-        $or: [
-            {
-                'cashAdvanceSchema.cashAdvancesData.actionedUpon': false,
-                'cashAdvanceSchema.cashAdvancesData.cashAdvanceStatus': {
-                    $in: cashAdvanceStatus,
-                },
-            },
-            {
-                'tripSchema.travelExpenseData.actionedUpon': false,
-                'tripSchema.travelExpenseData.expenseHeaderStatus': {
-                    $in: travelExpenseStatus,
-                },
-            },
-            {
-                'reimbursementSchema.actionedUpon': false,
-                'reimbursementSchema.expenseHeaderStatus': {
-                    $in: reimbursementStatus,
-                },
-            },
-        ],
-    };
-  
-    return await dashboard.find(settlementsFilter);
-};
-
-export const oldfinanceLayout = async (tenantId, empId) => {
-    try {
-        // const settlements = await Dashboard.find({
-        //     tenantId,
-        //     'cashAdvanceSchema.cashAdvancesData.cashAdvanceStatus': { $in: ['pending settlement', 'Paid and Cancelled'] },
-        //     'tripSchema.travelExpenseData.expenseHeaderStatus':{$in: ['pending settlement', 'Paid']},
-        //     'reimbursementSchema.expenseHeaderStatus':{$in: ['pending settlement']},
-        // });
-    const settlements = await findSettlements(tenantId)
-    let count = settlements?.length
-    console.log("count finance", count)
-    return count
-    }catch (error) {
-        console.error("Error in fetching employee Dashboard:", error);
-        throw new Error('Error in fetching employee Dashboard');
-    }
-};
-
-
 
 // to-do - (empId in params -to be added)Finance employee must be verified using hrCompanyStructure
 // export const financeLayout = async (tenantId, empId) => {
@@ -214,7 +109,7 @@ export const oldfinanceLayout = async (tenantId, empId) => {
 //     pendingNonTravelExpenseSettlements = settlements.filter(doc => {
 //         return doc.reimbursementSchema.some(
 //             data =>
-//                 data.expenseHeaderStatus === 'pending settlement' 
+//                 data.expenseHeaderStatus === 'pending settlement'
 //         );
 //     });
 
@@ -232,11 +127,3 @@ export const oldfinanceLayout = async (tenantId, empId) => {
 //         throw new Error('Error in fetching employee Dashboard');
 //     }
 // };
-
-
-
-
-
-
-
-

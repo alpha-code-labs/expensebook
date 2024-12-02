@@ -56,7 +56,7 @@ const updateTrip = async (payload) => {
 
 
 const updateTripStatus = async (payload) => {
-  console.log("Payload received for status update - trip :", payload);
+  // console.log("Payload received for status update - trip :", payload);
   
   if (!Array.isArray(payload)) {
       throw new Error('Invalid input. Payload must be an array.');
@@ -143,7 +143,7 @@ const processTransitTrip = async (message) => {
       },
       { upsert: true, new: true }
     );
-    console.log('Saved to dashboard:', updated);
+    // console.log('Saved to dashboard:', updated);
 
   } catch (error) {
     console.error('Failed to update dashboard:', error);
@@ -154,29 +154,6 @@ const processTransitTrip = async (message) => {
 
   }
 }
-//  // Send success message if updates were successful
-//  if (failedUpdates.length === 0) {
-//   try {
-//     // Send the success message and correlationId to another service or queue for further processing
-//     await sendSuccessConfirmationToTripMicroservice(successMessage, correlationId);
-//     console.log('Success confirmation sent:', successMessage);
-//   } catch (error) {
-//     console.error('Failed to send success confirmation:', error);
-//     // Handle error while sending confirmation
-//   }
-// }
-
-// // Send failed updates as confirmation message
-// if (failedUpdates.length > 0) {
-//   try {
-//     // Send the failed updates to another service or queue for further processing
-//     await sendFailedConfirmationToTripMicroservice(failedUpdates,correlationId );
-//     console.log(' dashboard update failed and is sent to rabbitmq sent as confirmation:', failedUpdates,correlationId);
-//   } catch (error) {
-//     console.error('Failed to send failed updates confirmation:', error);
-//     // Handle error while sending confirmation
-//   }
-// }
 }
 
 // Trip microservice ---All trip updates -- synchronous rabbitmq route
@@ -228,7 +205,7 @@ const updateTripToDashboardSync = async (message,correlationId) => {
       },
       { upsert: true, new: true }
     );
-    console.log('Saved to dashboard: using synchronous queue', updated);
+    // console.log('Saved to dashboard: using synchronous queue', updated);
 
   } catch (error) {
     console.error('Failed to update dashboard: using synchronous queue', error);
@@ -243,7 +220,7 @@ const updateTripToDashboardSync = async (message,correlationId) => {
   try {
     // Send the success message and correlationId to another service or queue for further processing
     await sendSuccessConfirmationToTripMicroservice(successMessage, correlationId);
-    console.log('Success confirmation sent, using synchronous queue:', successMessage);
+    // console.log('Success confirmation sent, using synchronous queue:', successMessage);
   } catch (error) {
     console.error('Failed to send success confirmation,using synchronous queue:', error);
     // Handle error while sending confirmation
@@ -255,7 +232,7 @@ if (failedUpdates.length > 0) {
   try {
     // Send the failed updates to another service or queue for further processing
     await sendFailedConfirmationToTripMicroservice(failedUpdates,correlationId );
-    console.log(' dashboard update failed and is sent to rabbitmq sent as confirmation,using synchronous queue:', failedUpdates,correlationId);
+    // console.log(' dashboard update failed and is sent to rabbitmq sent as confirmation,using synchronous queue:', failedUpdates,correlationId);
   } catch (error) {
     console.error('Failed to send failed updates confirmation,using synchronous queue:', error);
   }
@@ -322,7 +299,7 @@ const updateTripToCompleteOrClosed = async (payload) => {
 
   try {
     const results = await Promise.all(promises);
-    console.log('get all promises', promises)
+    // console.log('get all promises', promises)
 
     // Check if all updates were successful
     results.forEach(result => {
@@ -340,7 +317,7 @@ const updateTripToCompleteOrClosed = async (payload) => {
 
 async function updateRequests(requestIds, updateFields, requestType = 'travel') {
   try {
-    console.log(`Processing ${requestType} requests:`, typeof requestIds, requestIds);
+    // console.log(`Processing ${requestType} requests:`, typeof requestIds, requestIds);
 
     const currentDocs = await dashboard.find({
       'travelRequestId': { $in: requestIds }
@@ -390,7 +367,8 @@ async function updateRequests(requestIds, updateFields, requestType = 'travel') 
         statusFields.currentTripStatus !== statusFields.targetTripStatus;
 
       if (needsStatusUpdate) {
-        console.log(`Status update needed for ${requestId}:`, {
+        console.log(`Status update needed for ${requestId}:`, 
+          {
           current: {
             mainStatus: statusFields.currentMainStatus,
             tripRequestStatus: statusFields.currentTripRequestStatus,
