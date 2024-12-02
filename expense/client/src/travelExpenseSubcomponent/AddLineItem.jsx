@@ -18,6 +18,8 @@ import { BlobServiceClient } from "@azure/storage-blob";
 import useCurrencyConversion from '../utils/Conversion';
 import { RemoveFile, TitleModal } from '../components/common/TinyComponent';
 import { dateKeys, isClassField, totalAmountKeys } from '../utils/data/keyList';
+import PopupModal from '../components/common/PopupModal';
+import Button from '../components/common/Button';
 
 
 const AddLineItem = () => {
@@ -62,6 +64,7 @@ const [currencyConversion, setCurrencyConversion]=useState({
   },
   response:{}
 }) 
+
 
 const dashboardBaseUrl = `${import.meta.env.VITE_DASHBOARD_URL}`
 // const dashboardBaseUrl = `${import.meta.env.VITE_DASHBOARD_URL}/${tenantId}/${empId}/overview`
@@ -535,7 +538,6 @@ const OCRScan = async (file) => {
   try {
     const formData = new FormData();
     formData.append('file', file);
-
     // Call the OCR scan API with required data
     const response = await ocrScanApi(
       {
@@ -545,17 +547,10 @@ const OCRScan = async (file) => {
       },
       formData // Pass FormData as payload
     );
-
     // Process the response from the OCR scan
     setIsUploading((prev) => ({ ...prev, autoScan: false }));
     setShowForm(true);
-
     const fields = response.data.fields;
-    // const result = fields?.reduce((acc, item) => {
-    //   acc[item.name] = item.value;
-    //   return acc;
-    // }, {});
-
     setFormData((prev) => ({
       ...prev,
       fields: {
@@ -571,12 +566,17 @@ const OCRScan = async (file) => {
       },
     }));
 
-    document
-      .getElementById("newLineItem")
-      .scrollIntoView({ behavior: "smooth" });
+    // document
+    //   .getElementById("newLineItem")
+    //   .scrollIntoView({ behavior: "smooth" });
 
     const matchingKey = totalAmountKeys.find(
-      (key) => fields[key] && fields[key].trim() !== ""
+      (key) => {
+        // First, check if the key exists and is not null or undefined
+        const value = fields?.[key];
+        // Check if the value is a string and trim it, otherwise treat it as an empty string
+        return typeof value === 'string' && value.trim() !== "";
+      }
     );
 
     if (matchingKey) {
@@ -597,12 +597,22 @@ const OCRScan = async (file) => {
         },
       }));
     }
-
-    console.log("OCR scan response:", response.data, fields, fields);
-  } catch (error) {
+    window.parent.postMessage({message:"ocr message posted", 
+    ocrMsgData: { showPopup:true, message:"ocrMsg", iconCode: "103", autoSkip:false }}, dashboardBaseUrl);
+    
+    
+  } 
+  catch (error) {
     console.error("Something went wrong with OCR scan:", error?.message);
+    const errorMsg = 'Unable to retrieve the value. Please enter it manually.'
+    window.parent.postMessage({message:"expense message posted", 
+    popupMsgData: { showPopup:true, message:errorMsg, iconCode: "104" }}, dashboardBaseUrl);
+    setIsUploading((prev) => ({ ...prev, autoScan: false }));
+    setShowForm(true)
   } 
 };
+
+
 
 
 // const OCRScan = async (file) => {
@@ -826,6 +836,7 @@ useEffect(()=>{
     <FileUpload uploadFlag={errorMsg?.uploadFlag?.set}  loading={isUploading.autoScan} onClick={handleOCRScan} selectedFile={selectedFile} setSelectedFile={setSelectedFile} isFileSelected={isFileSelected} setIsFileSelected={setIsFileSelected}  text={<div className='inline-flex items-center space-x-1'><img src={scan_icon} className='w-5 h-5'/> <p>Auto Scan</p></div>}/>
     <Button1 onClick={handleMannualBtn} text={<div className='inline-flex items-center space-x-1'><img src={modify_icon} className='w-5 h-5'/> <p>Manually</p></div>}/>
 </div>
+
 </div>    
 
 </div>
@@ -881,6 +892,7 @@ useEffect(()=>{
           </div>
         </div>}
       />  
+
 {/* <PopupMessage skipable={true} showPopup={showPopup} setShowPopup={setShowPopup} message={message}/> */}
     </>
   )

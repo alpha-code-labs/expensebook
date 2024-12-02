@@ -68,6 +68,7 @@ import { LineItemView } from "../nonTravelExpenseSubComponet/LineItemView.jsx";
 import uploadFileToAzure from "../utils/azureBlob.js";
 import { act } from "react";
 import { RemoveFile, TitleModal } from "../components/common/TinyComponent.jsx";
+import PopupModal from "../components/common/PopupModal.jsx";
 
 ///Cuurency on Save you have to save object of currency
 
@@ -102,11 +103,10 @@ const CreateNonTraveExpense = () => {
     fields: {}, //line item
     editedFields: {}, //prev line item
   });
+ 
 
   const [headerDetails, setHeaderDetails] = useState(null);
   const [categoryList, setCategoryList] = useState(null);
-  //this is for miscellaneous data
-  //for get categories , dashboard to non tr expense ms
 
   useEffect(() => {
     console.log("fetching data...");
@@ -900,7 +900,14 @@ const CreateNonTraveExpense = () => {
     document
     .getElementById("newLineItem")
     .scrollIntoView({ behavior: "smooth" });
-    const matchingKey = totalAmountKeys.find(key => fields[key] && fields[key].trim() !== "");
+    const matchingKey = totalAmountKeys.find(
+      (key) => {
+        // First, check if the key exists and is not null or undefined
+        const value = fields?.[key];
+        // Check if the value is a string and trim it, otherwise treat it as an empty string
+        return typeof value === 'string' && value.trim() !== "";
+      }
+    );
   
   if (matchingKey) {
       // Set the matched value to totalAmount
@@ -920,7 +927,10 @@ const CreateNonTraveExpense = () => {
           }
       }));
   }
-      console.log('OCR scan response:', response.data,fields,fields);
+      
+      window.parent.postMessage({message:"ocr message posted", 
+      ocrMsgData: { showPopup:true, message:"ocrMsg", iconCode: "103",autoSkip:false }}, dashboardBaseUrl);
+      
     } catch (error) {
       // Log the error message if OCR scan fails
       console.error('Something went wrong with OCR scan:', error?.message);
@@ -1411,7 +1421,7 @@ const CreateNonTraveExpense = () => {
 
   const listOfAllManagers = requiredObj?.listOfAllManagers;
   const APPROVAL_FLAG = requiredObj?.APPROVAL_FLAG;
-
+ 
   return (
     <div>
       {isLoading ? (
@@ -1931,6 +1941,7 @@ const CreateNonTraveExpense = () => {
           </div>
         }
       />
+     
     </div>
   );
 };
