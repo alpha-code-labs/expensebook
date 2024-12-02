@@ -23,12 +23,12 @@ const Block1 = () => {
      </div>
      <Form/>
     </div>
-    <div className='sm:border-[1px] border-0  border-slate-300 rounded-[14px] sm:mx-[120px] mx-0  '>
+    {/* <div className='sm:border-[1px] border-0  border-slate-300 rounded-[14px] sm:mx-[120px] mx-0  '>
       <div className='w-auto max-w-full sm:px-16 px-0 pt-8 pb-10 flex flex-col justify-center gap-y-8'>
       <h1 className='text-center leading-5 font-normal w-auto text-neutral-400 tracking-[.25em] text-[16px]'>USED BY OVER 50 ENTERPRISES</h1>
         <div className="flex flex-row overflow-hidden  items-center justify-center w-full before:bg-gradient-to-r before:from-indigo-500 before:h-full before:w-4  "    >
         <div className="flex space-x-4 ">
-        {/* <div className="flex space-x-4 animate-moveRightToLeft "> */}
+        
         {applicationUsers.map((users, usersIndex)=>(
           <React.Fragment key={usersIndex}>
           <div className='w-[108px] h-[30px] animate-loop-scroll' >
@@ -44,7 +44,7 @@ const Block1 = () => {
        </div>
       </div>
 
-    </div>
+    </div> */}
     </>
   )
 }
