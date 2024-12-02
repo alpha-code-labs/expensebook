@@ -5,153 +5,189 @@ import { sendToOtherMicroservice } from "../rabbitmq/publisher.js";
 import Joi from "joi";
 import { extractTotalAmount } from "./travelExpenseController.js";
 
-
-const sendToMicroservices = async (payload, action, comments, source, onlineVsBatch, isApproval) => {
-  const services = ['dashboard', 'reporting'];
+const sendToMicroservices = async (
+  payload,
+  action,
+  comments,
+  source,
+  onlineVsBatch,
+  isApproval
+) => {
+  const services = ["dashboard", "reporting"];
   if (isApproval) {
-      services.unshift('approval');
+    services.unshift("approval");
   }
 
   for (const service of services) {
-      try {
-          await sendToOtherMicroservice(payload, action, service, comments, source, onlineVsBatch);
-      } catch (error) {
-          console.error(`Error sending to ${service}:`, error);
-          // logging or retrying need to be added
-      }
+    try {
+      await sendToOtherMicroservice(
+        payload,
+        action,
+        service,
+        comments,
+        source,
+        onlineVsBatch
+      );
+    } catch (error) {
+      console.error(`Error sending to ${service}:`, error);
+      // logging or retrying need to be added
+    }
   }
 };
 
-
-
 const getReimbursementReport = async (tenantId, empId, expenseHeaderId) => {
   try {
-
     if (!expenseHeaderId || !empId || !tenantId) {
-      throw new Error(' Required parameters are missing - expenseHeaderId , empId,tenantId' )
+      throw new Error(
+        " Required parameters are missing - expenseHeaderId , empId,tenantId"
+      );
     }
 
     const expenseReport = await Reimbursement.findOne({
       tenantId,
       expenseHeaderId,
-      'createdBy.empId': empId,
+      "createdBy.empId": empId,
     });
 
     if (!expenseReport) {
-      throw new Error('Expense report not found for the given IDs.');
+      throw new Error("Expense report not found for the given IDs.");
     }
 
-    return expenseReport
+    return expenseReport;
   } catch (error) {
-    console.error("error finding expense categories",error);
-    throw error
+    console.error("error finding expense categories", error);
+    throw error;
   }
 };
 
 /**
  * Generates an incremental number for a given tenant ID and incremental value.
- * 
+ *
  * @param {string} tenantId - The ID of the tenant.
  * @param {number} incrementalValue - The incremental value used to generate the number.
  * @returns {string} - The generated incremental number.
  */
 
-
 const formatTenant = (companyName) => {
-  return companyName.toUpperCase(); 
+  return companyName.toUpperCase();
 };
 
 const nonTravelSchema = Joi.object({
   expenseHeaderId: Joi.string().required(),
   tenantId: Joi.string().required(),
-  empId:Joi.string().required()
-})
+  empId: Joi.string().required(),
+});
 
 // to generate and add expense report number
 const generateIncrementalNumber = (companyName, incrementalValue) => {
-  console.log("generateIncrementalNumber - ", companyName, typeof companyName , "incrementalValue", incrementalValue , typeof incrementalValue)
-  if (typeof companyName !== 'string' || typeof incrementalValue !== 'number') {
-    throw new Error('Invalid input parameters');
+  console.log(
+    "generateIncrementalNumber - ",
+    companyName,
+    typeof companyName,
+    "incrementalValue",
+    incrementalValue,
+    typeof incrementalValue
+  );
+  if (typeof companyName !== "string" || typeof incrementalValue !== "number") {
+    throw new Error("Invalid input parameters");
   }
-  console.log("companyName",companyName, "incrementalValue", incrementalValue)
+  console.log("companyName", companyName, "incrementalValue", incrementalValue);
   const formattedTenant = formatTenant(companyName).substring(0, 2);
-  const paddedIncrementalValue = (incrementalValue !== null && incrementalValue !== undefined && incrementalValue !== 0) ?
-    (incrementalValue).toString().padStart(6, '0') :
-    '000001';
+  const paddedIncrementalValue =
+    incrementalValue !== null &&
+    incrementalValue !== undefined &&
+    incrementalValue !== 0
+      ? incrementalValue.toString().padStart(6, "0")
+      : "000001";
 
   return `RE${formattedTenant}${paddedIncrementalValue}`;
-}
+};
 
-const createReimbursementReport = async(tenantId,empId,companyName,employeeName,defaultCurrency) => {
-  try{
+const createReimbursementReport = async (
+  tenantId,
+  empId,
+  companyName,
+  employeeName,
+  defaultCurrency
+) => {
+  try {
+    console.log(
+      "createReimbursementReport",
+      "tenantId,empId,companyName",
+      tenantId,
+      empId,
+      companyName
+    );
+    let expenseHeaderStatus;
+    let expenseHeaderNumber;
+    let expenseHeaderId;
+    let approvers;
 
-    console.log("createReimbursementReport", "tenantId,empId,companyName", tenantId,empId,companyName)
-    let expenseHeaderStatus
-    let expenseHeaderNumber
-    let expenseHeaderId
-    let approvers
-
-    const getExpenseHeaderStatus = [
-      'new',
-      null
-    ];
+    const getExpenseHeaderStatus = ["new", null];
 
     // Find the updated expense header
-    const updatedExpense = await Reimbursement.findOne(
-      {
-        tenantId,
-        'createdBy.empId': empId,
-        expenseHeaderStatus: { $in: getExpenseHeaderStatus },
-      },
-    );
+    const updatedExpense = await Reimbursement.findOne({
+      tenantId,
+      "createdBy.empId": empId,
+      expenseHeaderStatus: { $in: getExpenseHeaderStatus },
+    });
 
     if (updatedExpense) {
-      ({ expenseHeaderNumber, expenseHeaderId, approvers=[],expenseHeaderStatus  } = updatedExpense);
-      return updatedExpense
+      ({
+        expenseHeaderNumber,
+        expenseHeaderId,
+        approvers = [],
+        expenseHeaderStatus,
+      } = updatedExpense);
+      return updatedExpense;
     }
-  
-    if(!expenseHeaderId){
-      console.log("expenseHeaderId from req body",expenseHeaderId)
-      const maxIncrementalValue = await Reimbursement.findOne({ tenantId})
-      .sort({ expenseHeaderNumber: -1 })
-      .limit(1)
-      .select('expenseHeaderNumber');
-  
-  let nextIncrementalValue = 0;
-  
-  if (maxIncrementalValue && maxIncrementalValue.expenseHeaderNumber) {
-      const numericPart = maxIncrementalValue.expenseHeaderNumber.match(/\d+$/);
-      if (numericPart) {
+
+    if (!expenseHeaderId) {
+      console.log("expenseHeaderId from req body", expenseHeaderId);
+      const maxIncrementalValue = await Reimbursement.findOne({ tenantId })
+        .sort({ expenseHeaderNumber: -1 })
+        .limit(1)
+        .select("expenseHeaderNumber");
+
+      let nextIncrementalValue = 0;
+
+      if (maxIncrementalValue && maxIncrementalValue.expenseHeaderNumber) {
+        const numericPart =
+          maxIncrementalValue.expenseHeaderNumber.match(/\d+$/);
+        if (numericPart) {
           nextIncrementalValue = parseInt(numericPart[0], 10) + 1;
+        }
       }
-  }
 
-    expenseHeaderNumber = generateIncrementalNumber(companyName, nextIncrementalValue);
+      expenseHeaderNumber = generateIncrementalNumber(
+        companyName,
+        nextIncrementalValue
+      );
 
-    // Create a new expense headerId
-    expenseHeaderId = new mongoose.Types.ObjectId()
+      // Create a new expense headerId
+      expenseHeaderId = new mongoose.Types.ObjectId();
 
-    expenseHeaderStatus = 'new'
+      expenseHeaderStatus = "new";
 
-    const newExpense = {
-      tenantId,
-      companyName,
-      tenantName:companyName,
-      expenseHeaderId,
-      expenseHeaderNumber,
-      expenseHeaderStatus,
-      createdBy: {
-        empId,
-        name: employeeName,
-      },
-      defaultCurrency,
-      approvers : []
+      const newExpense = {
+        tenantId,
+        companyName,
+        tenantName: companyName,
+        expenseHeaderId,
+        expenseHeaderNumber,
+        expenseHeaderStatus,
+        createdBy: {
+          empId,
+          name: employeeName,
+        },
+        defaultCurrency,
+        approvers: [],
+      };
+      const expenseReport = await Reimbursement.create(newExpense);
+      return expenseReport;
     }
-    const expenseReport = await Reimbursement.create(newExpense)
-    return expenseReport
-  }
 
-     // Return the response with the extracted information
+    // Return the response with the extracted information
     return res.status(200).json({
       success: true,
       tenantId,
@@ -163,87 +199,92 @@ const createReimbursementReport = async(tenantId,empId,companyName,employeeName,
         empId,
         name: employeeName,
       },
-      approvers:updatedExpense ? approvers : [],
-      defaultCurrency: defaultCurrency || '',
-      currencyTable: currencyTable || '',
-    }); 
-  } catch(error){
+      approvers: updatedExpense ? approvers : [],
+      defaultCurrency: defaultCurrency || "",
+      currencyTable: currencyTable || "",
+    });
+  } catch (error) {
     console.log(error);
-    throw error
+    throw error;
   }
-}
+};
 
-const getPolicy = (group, policy, travelType, policies)=>{
-  let result = null
-  policies.forEach(groupPolicy=>{
-    if(groupPolicy[group]!=null && groupPolicy[group]!=undefined){
-        result = groupPolicy[group][travelType][policy] 
-        return
+const getPolicy = (group, policy, travelType, policies) => {
+  let result = null;
+  policies.forEach((groupPolicy) => {
+    if (groupPolicy[group] != null && groupPolicy[group] != undefined) {
+      result = groupPolicy[group][travelType][policy];
+      return;
     }
-  })
-  return result
-}
+  });
+  return result;
+};
 
+const getApproversFromOnboarding = (employeeDocument, empId) => {
+  try {
+    const travelType = "international";
+    let approvalFlow = null;
+    let APPROVAL_FLAG = false;
 
-const getApproversFromOnboarding = (employeeDocument,empId) => {
-  try{
-    const travelType='international'
-    let approvalFlow = null
-    let APPROVAL_FLAG = false
-  
-    const flags = employeeDocument.flags
-    const isPolicy = flags.POLICY_SETUP_FLAG
-    const tenantPolicies = employeeDocument?.policies.travelPolicies??[]
-    const employeeData = employeeDocument.employees.find(emp => emp.employeeDetails.employeeId.toString() === empId.toString());
-    const employeeRoles = employeeData.employeeRoles
-    const employeeGroups = employeeData.group
-    const MANAGER_FLAG = employeeRoles.employeeManager
-    const listOfManagers = employeeDocument.employees.filter(employee=>employee.employeeRoles.employeeManager).map(emp=> ({...emp.employeeDetails, imageUrl:emp?.imageUrl??getRandomAvatarUrl()}));
-    
-    if(isPolicy){
-      employeeGroups.forEach(group=>{
-        const res = getPolicy(group, 'Approval Flow', travelType, tenantPolicies)
-        console.log(res, 'Approval flow...')
-  
-        if(res.approval.approvers){
-          if(approvalFlow == null){
-            approvalFlow = res.approval.approvers
-            if(res.approval.approvers.length>0){
-              APPROVAL_FLAG = true
-            }
-            else APPROVAL_FLAG = false
-          }
-  
-          else if(approvalFlow.length > res.approval.approvers.length){
-              approvalFlow = res.approval.approvers
-              if(res.approval.approvers.length>0){
-                APPROVAL_FLAG = true
-              }
-              else APPROVAL_FLAG = false
+    const flags = employeeDocument.flags;
+    const isPolicy = flags.POLICY_SETUP_FLAG;
+    const tenantPolicies = employeeDocument?.policies.travelPolicies ?? [];
+    const employeeData = employeeDocument.employees.find(
+      (emp) => emp.employeeDetails.employeeId.toString() === empId.toString()
+    );
+    const employeeRoles = employeeData.employeeRoles;
+    const employeeGroups = employeeData.group;
+    const MANAGER_FLAG = employeeRoles.employeeManager;
+    const listOfManagers = employeeDocument.employees
+      .filter((employee) => employee.employeeRoles.employeeManager)
+      .map((emp) => ({
+        ...emp.employeeDetails,
+        imageUrl: emp?.imageUrl ?? getRandomAvatarUrl(),
+      }));
+
+    if (isPolicy) {
+      employeeGroups.forEach((group) => {
+        const res = getPolicy(
+          group,
+          "Approval Flow",
+          travelType,
+          tenantPolicies
+        );
+        console.log(res, "Approval flow...");
+
+        if (res.approval.approvers) {
+          if (approvalFlow == null) {
+            approvalFlow = res.approval.approvers;
+            if (res.approval.approvers.length > 0) {
+              APPROVAL_FLAG = true;
+            } else APPROVAL_FLAG = false;
+          } else if (approvalFlow.length > res.approval.approvers.length) {
+            approvalFlow = res.approval.approvers;
+            if (res.approval.approvers.length > 0) {
+              APPROVAL_FLAG = true;
+            } else APPROVAL_FLAG = false;
           }
         }
-  
-      })
+      });
     }
-  
+
     return {
       APPROVAL_FLAG,
       approvalFlow,
       MANAGER_FLAG,
-      listOfManagers
-    }
-  } catch(error){
-    console.error('Error finding approvers from onboarding:', error);
-    throw new Error(error.message)
+      listOfManagers,
+    };
+  } catch (error) {
+    console.error("Error finding approvers from onboarding:", error);
+    throw new Error(error.message);
   }
-}
+};
 
 const employeeSchema = Joi.object({
   empId: Joi.string().required(),
   tenantId: Joi.string().required(),
   expenseHeaderId: Joi.string().optional(),
-})
-
+});
 
 /**
  * Retrieves expense categories for a given employee ID.
@@ -253,7 +294,10 @@ const employeeSchema = Joi.object({
  */
 const getExpenseCategoriesForEmpId = async (req, res) => {
   try {
-    const { error, value } = employeeSchema.validate({ ...req.params, ...req.query });
+    const { error, value } = employeeSchema.validate({
+      ...req.params,
+      ...req.query,
+    });
 
     if (error) {
       return res.status(400).send({ message: error.details[0].message });
@@ -264,55 +308,87 @@ const getExpenseCategoriesForEmpId = async (req, res) => {
     // console.log("non travel expense booking",  tenantId, empId )
     const employeeDocument = await HRCompany.findOne({
       tenantId,
-      'employees.employeeDetails.employeeId': empId
+      "employees.employeeDetails.employeeId": empId,
     });
 
     if (!employeeDocument) {
       return res.status(404).json({
         success: false,
-        message: 'Employee not found for the given IDs',
+        message: "Employee not found for the given IDs",
       });
     }
 
-const employee = employeeDocument?.employees.find(emp => emp.employeeDetails.employeeId.toString() === empId.toString());
+    const employee = employeeDocument?.employees.find(
+      (emp) => emp.employeeDetails.employeeId.toString() === empId.toString()
+    );
 
-const { employeeName, employeeId } = employee?.employeeDetails || {};
+    const { employeeName, employeeId } = employee?.employeeDetails || {};
 
-    console.log("employeeName, employeeId", employeeName, employeeId)
+    console.log("employeeName, employeeId", employeeName, employeeId);
     if (!employeeId) {
       return res.status(404).json({
         success: false,
-        message: 'Employee not found for the provided ID',
+        message: "Employee not found for the provided ID",
       });
     }
 
     const {
-      companyDetails: { defaultCurrency, companyName} = {},
+      companyDetails: { defaultCurrency, companyName } = {},
       reimbursementExpenseCategories,
       travelAllocationFlags,
-      expenseSettlementOptions
+      expenseSettlementOptions,
     } = employeeDocument || {};
 
-    const reimbursementExpenseCategory = Array.isArray(reimbursementExpenseCategories)
-      ? reimbursementExpenseCategories.map(category => category?.categoryName)
+    const reimbursementExpenseCategory = Array.isArray(
+      reimbursementExpenseCategories
+    )
+      ? reimbursementExpenseCategories.map((category) => category?.categoryName)
       : [];
 
-      const getApprovers = getApproversFromOnboarding(employeeDocument,empId)
-      console.log("before","tenantId,empId,companyName, defaultCurrency", tenantId,empId,companyName, defaultCurrency )
+    const getApprovers = getApproversFromOnboarding(employeeDocument, empId);
+    console.log(
+      "before",
+      "tenantId,empId,companyName, defaultCurrency",
+      tenantId,
+      empId,
+      companyName,
+      defaultCurrency
+    );
 
-      let getReport
-      if(!expenseHeaderId){
-        getReport = await createReimbursementReport(tenantId,empId,companyName,employeeName,defaultCurrency)
-        if(!getReport){
-          return res.status(404).json({success: false, message: 'report creation or retrial failed', error:error.message})
-        }
-      } else {
-        getReport = await getReimbursementReport(tenantId,empId,expenseHeaderId)
-        if(!getReport){
-          return res.status(404).json({success: false, message: 'report retrial failed', error:error.message})
-        }
+    let getReport;
+    if (!expenseHeaderId) {
+      getReport = await createReimbursementReport(
+        tenantId,
+        empId,
+        companyName,
+        employeeName,
+        defaultCurrency
+      );
+      if (!getReport) {
+        return res
+          .status(404)
+          .json({
+            success: false,
+            message: "report creation or retrial failed",
+            error: error.message,
+          });
       }
-    
+    } else {
+      getReport = await getReimbursementReport(
+        tenantId,
+        empId,
+        expenseHeaderId
+      );
+      if (!getReport) {
+        return res
+          .status(404)
+          .json({
+            success: false,
+            message: "report retrial failed",
+            error: error.message,
+          });
+      }
+    }
 
     return res.status(200).json({
       success: true,
@@ -322,14 +398,14 @@ const { employeeName, employeeId } = employee?.employeeDetails || {};
       reimbursementExpenseCategory,
       travelAllocationFlags,
       getApprovers,
-      expenseSettlementOptions,  
-      expenseReport:getReport
+      expenseSettlementOptions,
+      expenseReport: getReport,
     });
   } catch (error) {
-    console.error('Error finding expense categories:', error);
+    console.error("Error finding expense categories:", error);
     return res.status(500).json({
       success: false,
-      message: 'Internal Server Error',
+      message: "Internal Server Error",
       error: error.message || error,
       groups: [],
       expenseCategories: [],
@@ -337,260 +413,300 @@ const { employeeName, employeeId } = employee?.employeeDetails || {};
   }
 };
 
-
-
 const expenseCatSchema = Joi.object({
   expenseCategory: Joi.string().required(),
   tenantId: Joi.string().required(),
   empId: Joi.string().required(),
-})
+});
 
 // 2) group limit, policies, expense header number
 const getHighestLimitGroupPolicy = async (req, res) => {
-    try {
-      const {error, value} = expenseCatSchema.validate(req.params)
-      if (error) {
-        return res.status(400).json({success: false, message: error.details[0].message})
-      }
-      const { tenantId, empId, expenseCategory } = value;
-
-      const employeeDocument = await HRCompany.findOne({
-        tenantId,
-        'employees.employeeDetails.employeeId': empId,
-      });
-
-      // Return error response if employee document is not found
-      if (!employeeDocument) {
-        return res.status(404).json({
-          success: false,
-          message: 'Employee not found for the given IDs',
-        });
-      }
-
-      // Extract relevant information from the employee document
-      const { companyDetails: { companyName }, employees: [employee], policies: { nonTravelPolicies },travelAllocationFlags, expenseSettlementOptions } = employeeDocument;
-      const groups = employee.group || [];
-
-      // // Initializing variables to find the group with the highest limit
-      // let highestGroup = {
-      //   limit: -Infinity,
-      //   group: null,
-      // };
-
-      // // Function to find the group policy with the highest limit
-      // const getHighestLimitGroupPolicy = (nonTravelPolicies, groups, expenseCategory) => {
-      //   // Iterating through each group
-      //   groups.forEach(groupName => {
-      //     const groupPolicy = nonTravelPolicies.find(policy => Object.keys(policy)[0] == groupName);
-      //     if (groupPolicy) {
-      //       const currentLimit = +groupPolicy[groupName]?.[expenseCategory]?.limit?.amount;
-      //       const getLimit = groupPolicy[groupName]?.[expenseCategory];
-
-      //       // console.log("kaboom", JSON.stringify(groupPolicy,'',2))
-      //       console.log("kaboom  getLimit", JSON.stringify(getLimit,'',2))
-
-            
-      //       if (currentLimit > highestGroup.limit) {
-      //         highestGroup = {
-      //           limit: currentLimit,
-      //           group: groupName,
-      //         };
-      //       }
-      //     } else {
-      //       console.error(`No policy found for group: ${groupName}`);
-      //     }
-      //   });
-      //   // Result: highestGroup represents the group with the highest limit
-      //   return highestGroup;
-      // };
-
-      // // Find the highest limit group policy
-      // let { limit: highestLimit, group: groupName } = getHighestLimitGroupPolicy(nonTravelPolicies, groups, expenseCategory) || {};
-
-// Initializing variables to find the group with the highest limit
-let highestGroup = {
-  limit: -Infinity,
-  group: null,
-  policyClass: null, // Add a property to store the class value
-};
-
-const getHighestLimitGroupPolicy = (nonTravelPolicies, groups, expenseCategory) => {
-  groups.forEach(groupName => {
-    const groupPolicy = nonTravelPolicies.find(policy => Object.keys(policy)[0] === groupName);
-    
-    if (groupPolicy) {
-      const categoryPolicy = groupPolicy[groupName]?.[expenseCategory];  
-
-      if (categoryPolicy) {
-        const currentLimit = +categoryPolicy.limit?.amount || -Infinity; 
-        const currentClass = categoryPolicy.class || null; 
-
-        if (currentLimit > highestGroup.limit) {
-          highestGroup = {
-            limit: currentLimit,
-            group: groupName,
-            policyClass: currentClass, 
-          };
-        }
-      } else {
-        console.warn(`No category data found for group: ${groupName} and expense category: ${expenseCategory}`);
-      }
-    } else {
-      console.error(`No policy found for group: ${groupName}`);
+  try {
+    const { error, value } = expenseCatSchema.validate(req.params);
+    if (error) {
+      return res
+        .status(400)
+        .json({ success: false, message: error.details[0].message });
     }
-  });
-  return highestGroup;
-};
+    const { tenantId, empId, expenseCategory } = value;
 
-let { limit: highestLimit, group: groupName, policyClass } = getHighestLimitGroupPolicy(nonTravelPolicies, groups, expenseCategory) || {};
+    const employeeDocument = await HRCompany.findOne({
+      tenantId,
+      "employees.employeeDetails.employeeId": empId,
+    });
 
-      const { reimbursementExpenseCategories = [], companyDetails = {}, reimbursementAllocations = [], multiCurrencyTable = [] } = employeeDocument;
-      const employeeName = employee.employeeDetails.employeeName;
-      const currencyTable = multiCurrencyTable?.exchangeValue.map(item => item.currency)
-      const selectedExpenseCategory = reimbursementExpenseCategories?.find(category => 
-        category.categoryName.toLowerCase() === expenseCategory.toLowerCase()
-      );
-      
-      const selectedReimbursementAllocations = reimbursementAllocations?.find(allocation => allocation.categoryName == expenseCategory)
-      let newExpenseAllocation;
-      let newExpenseAllocation_accountLine;
-      if (selectedReimbursementAllocations) {
-        ({ expenseAllocation: newExpenseAllocation, expenseAllocation_accountLine: newExpenseAllocation_accountLine } = selectedReimbursementAllocations);
-      }
-
-      if (!selectedExpenseCategory) {
-        return res.status(404).json({
-          success: false,
-          message: 'Expense category not found for the employee',
-        });
-      }
-
-      const { categoryName, fields,  expenseAllocation } = selectedExpenseCategory;
-      const { defaultCurrency = '' } = companyDetails;
-
-      const getApprovers = getApproversFromOnboarding(employeeDocument,empId)
-
-      const message = `${employeeName} is part of ${groupName}. Highest limit found: ${highestLimit}`;
-      const group = { limit: highestLimit, group: groupName, message };
-
-
-      const defaultClasses = {
-          "Economy": {
-            "allowed": true,
-            "violationMessage": ""
-          },
-          "Premium Economy": {
-            "allowed": true,
-            "violationMessage": ""
-          },
-          "Business": {
-            "allowed": true,
-            "violationMessage": ""
-          },
-          "First Class": {
-            "allowed": true,
-            "violationMessage": ""
-          }
-      }
-      
-      return res.status(200).json({
-        success: true,
-        getApprovers,
-        levels:travelAllocationFlags,
-        defaultCurrency: defaultCurrency || '',
-        currencyTable: currencyTable || '',
-        newExpenseAllocation,
-        newExpenseAllocation_accountLine,
-        expenseSettlementOptions,  
-        group,
-        class:policyClass ? policyClass :defaultClasses,
-        ...selectedExpenseCategory,
-      }); 
-    } catch (error) {
-      console.error('Error fetching highest limit group policy:', error);
-      return res.status(500).json({
+    // Return error response if employee document is not found
+    if (!employeeDocument) {
+      return res.status(404).json({
         success: false,
-        message: 'Internal Server Error',
-        error: error.message || 'Something went wrong',
+        message: "Employee not found for the given IDs",
       });
     }
+
+    // Extract relevant information from the employee document
+    const {
+      companyDetails: { companyName },
+      employees: [employee],
+      policies: { nonTravelPolicies },
+      travelAllocationFlags,
+      expenseSettlementOptions,
+    } = employeeDocument;
+    const groups = employee.group || [];
+
+    // // Initializing variables to find the group with the highest limit
+    // let highestGroup = {
+    //   limit: -Infinity,
+    //   group: null,
+    // };
+
+    // // Function to find the group policy with the highest limit
+    // const getHighestLimitGroupPolicy = (nonTravelPolicies, groups, expenseCategory) => {
+    //   // Iterating through each group
+    //   groups.forEach(groupName => {
+    //     const groupPolicy = nonTravelPolicies.find(policy => Object.keys(policy)[0] == groupName);
+    //     if (groupPolicy) {
+    //       const currentLimit = +groupPolicy[groupName]?.[expenseCategory]?.limit?.amount;
+    //       const getLimit = groupPolicy[groupName]?.[expenseCategory];
+
+    //       // console.log("kaboom", JSON.stringify(groupPolicy,'',2))
+    //       console.log("kaboom  getLimit", JSON.stringify(getLimit,'',2))
+
+    //       if (currentLimit > highestGroup.limit) {
+    //         highestGroup = {
+    //           limit: currentLimit,
+    //           group: groupName,
+    //         };
+    //       }
+    //     } else {
+    //       console.error(`No policy found for group: ${groupName}`);
+    //     }
+    //   });
+    //   // Result: highestGroup represents the group with the highest limit
+    //   return highestGroup;
+    // };
+
+    // // Find the highest limit group policy
+    // let { limit: highestLimit, group: groupName } = getHighestLimitGroupPolicy(nonTravelPolicies, groups, expenseCategory) || {};
+
+    // Initializing variables to find the group with the highest limit
+    let highestGroup = {
+      limit: -Infinity,
+      group: null,
+      policyClass: null, // Add a property to store the class value
+    };
+
+    const getHighestLimitGroupPolicy = (
+      nonTravelPolicies,
+      groups,
+      expenseCategory
+    ) => {
+      groups.forEach((groupName) => {
+        const groupPolicy = nonTravelPolicies.find(
+          (policy) => Object.keys(policy)[0] === groupName
+        );
+
+        if (groupPolicy) {
+          const categoryPolicy = groupPolicy[groupName]?.[expenseCategory];
+
+          if (categoryPolicy) {
+            const currentLimit = +categoryPolicy.limit?.amount || -Infinity;
+            const currentClass = categoryPolicy.class || null;
+
+            if (currentLimit > highestGroup.limit) {
+              highestGroup = {
+                limit: currentLimit,
+                group: groupName,
+                policyClass: currentClass,
+              };
+            }
+          } else {
+            console.warn(
+              `No category data found for group: ${groupName} and expense category: ${expenseCategory}`
+            );
+          }
+        } else {
+          console.error(`No policy found for group: ${groupName}`);
+        }
+      });
+      return highestGroup;
+    };
+
+    let {
+      limit: highestLimit,
+      group: groupName,
+      policyClass,
+    } = getHighestLimitGroupPolicy(
+      nonTravelPolicies,
+      groups,
+      expenseCategory
+    ) || {};
+
+    const {
+      reimbursementExpenseCategories = [],
+      companyDetails = {},
+      reimbursementAllocations = [],
+      multiCurrencyTable = [],
+    } = employeeDocument;
+    const employeeName = employee.employeeDetails.employeeName;
+    const currencyTable = multiCurrencyTable?.exchangeValue.map(
+      (item) => item.currency
+    );
+    const selectedExpenseCategory = reimbursementExpenseCategories?.find(
+      (category) =>
+        category.categoryName.toLowerCase() === expenseCategory.toLowerCase()
+    );
+
+    const selectedReimbursementAllocations = reimbursementAllocations?.find(
+      (allocation) => allocation.categoryName == expenseCategory
+    );
+    let newExpenseAllocation;
+    let newExpenseAllocation_accountLine;
+    if (selectedReimbursementAllocations) {
+      ({
+        expenseAllocation: newExpenseAllocation,
+        expenseAllocation_accountLine: newExpenseAllocation_accountLine,
+      } = selectedReimbursementAllocations);
+    }
+
+    if (!selectedExpenseCategory) {
+      return res.status(404).json({
+        success: false,
+        message: "Expense category not found for the employee",
+      });
+    }
+
+    const { categoryName, fields, expenseAllocation } = selectedExpenseCategory;
+    const { defaultCurrency = "" } = companyDetails;
+
+    const getApprovers = getApproversFromOnboarding(employeeDocument, empId);
+
+    const message = `${employeeName} is part of ${groupName}. Highest limit found: ${highestLimit}`;
+    const group = { limit: highestLimit, group: groupName, message };
+
+    const defaultClasses = {
+      Economy: {
+        allowed: true,
+        violationMessage: "",
+      },
+      "Premium Economy": {
+        allowed: true,
+        violationMessage: "",
+      },
+      Business: {
+        allowed: true,
+        violationMessage: "",
+      },
+      "First Class": {
+        allowed: true,
+        violationMessage: "",
+      },
+    };
+
+    return res.status(200).json({
+      success: true,
+      getApprovers,
+      levels: travelAllocationFlags,
+      defaultCurrency: defaultCurrency || "",
+      currencyTable: currencyTable || "",
+      newExpenseAllocation,
+      newExpenseAllocation_accountLine,
+      expenseSettlementOptions,
+      group,
+      class: policyClass ? policyClass : defaultClasses,
+      ...selectedExpenseCategory,
+    });
+  } catch (error) {
+    console.error("Error fetching highest limit group policy:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+      error: error.message || "Something went wrong",
+    });
+  }
 };
 
 const currencySchema = Joi.object({
-  tenantId:Joi.string().required(),
-  amount:Joi.string().required,
-  currencyName:Joi.string().required,
-})
+  tenantId: Joi.string().required(),
+  amount: Joi.string().required,
+  currencyName: Joi.string().required,
+});
 
-
-//3) currency converter for non travel expense 
+//3) currency converter for non travel expense
 const reimbursementCurrencyConverter = async (req, res) => {
   try {
-    const {error, value} = currencySchema.validate(req.params)
-    if (error) return res.status(400).json({success: false, message: error.details[0].message})
+    const { error, value } = currencySchema.validate(req.params);
+    if (error)
+      return res
+        .status(400)
+        .json({ success: false, message: error.details[0].message });
 
     const { tenantId, amount, currencyName } = value;
-    console.log("params", req.params)
-    const hrDocument = await HRCompany.findOne({ tenantId});
+    console.log("params", req.params);
+    const hrDocument = await HRCompany.findOne({ tenantId });
 
     if (!hrDocument) {
-      return res.status(404).json({ message: 'Tenant not found' });
+      return res.status(404).json({ message: "Tenant not found" });
     }
-     
-    const {multiCurrencyTable} = hrDocument;
-    const { defaultCurrency, exchangeValue} = multiCurrencyTable;
-     console.log("found", defaultCurrency)
-    const foundDefaultCurrency = defaultCurrency?.shortName.toUpperCase() === currencyName.toUpperCase();
-    console.log("found 2", foundDefaultCurrency)
+
+    const { multiCurrencyTable } = hrDocument;
+    const { defaultCurrency, exchangeValue } = multiCurrencyTable;
+    console.log("found", defaultCurrency);
+    const foundDefaultCurrency =
+      defaultCurrency?.shortName.toUpperCase() === currencyName.toUpperCase();
+    console.log("found 2", foundDefaultCurrency);
 
     if (foundDefaultCurrency) {
       const currencyConverterData = {
         currencyFlag: true,
-        companyName: hrDocument?.companyDetails?.companyName || 'Company',
+        companyName: hrDocument?.companyDetails?.companyName || "Company",
         defaultCurrency: defaultCurrency.shortName,
         convertedCurrency: currencyName.toUpperCase(),
         convertedAmount: amount,
-        message: 'This is your company default currency',
+        message: "This is your company default currency",
       };
-      return res.status(200).json({ success: true,
-        currencyConverterData });
+      return res.status(200).json({ success: true, currencyConverterData });
     }
 
-    const foundCurrency = exchangeValue.find(currency => currency?.currency?.shortName.toUpperCase() === currencyName.toUpperCase());
+    const foundCurrency = exchangeValue.find(
+      (currency) =>
+        currency?.currency?.shortName.toUpperCase() ===
+        currencyName.toUpperCase()
+    );
 
     if (!foundCurrency) {
-      const currencyConverterData= {
+      const currencyConverterData = {
         currencyFlag: false,
-        message: 'This currency is not available in your multiCurrency table.Before submitting this bill, talk to your company admin to update the multiCurrency value in the table' 
-      }
-      return res.status(200).json({ 
+        message:
+          "This currency is not available in your multiCurrency table.Before submitting this bill, talk to your company admin to update the multiCurrency value in the table",
+      };
+      return res.status(200).json({
         success: false,
-        currencyConverterData
+        currencyConverterData,
       });
     }
 
     const conversionPrice = foundCurrency.value;
     const convertedAmount = amount * conversionPrice;
-    console.log("converted currency",convertedAmount )
+    console.log("converted currency", convertedAmount);
     const currencyConverterData = {
       currencyFlag: true,
-      companyName: hrDocument?.companyDetails?.companyName ?? 'Company Name',
+      companyName: hrDocument?.companyDetails?.companyName ?? "Company Name",
       defaultCurrency: defaultCurrency?.shortName,
       convertedCurrency: currencyName,
       convertedAmount,
     };
 
-    return res.status(200).json({success: true,        
-      currencyConverterData });
+    return res.status(200).json({ success: true, currencyConverterData });
   } catch (error) {
-    return res.status(500).json({ success: false,
-      message: 'Internal server error' });
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal server error" });
   }
 };
 
 const saveSchema = Joi.object({
-  lineItem:Joi.object().required(),
-})
+  lineItem: Joi.object().required(),
+});
 
 const validateRequest = (schema, data) => {
   const { error, value } = schema.validate(data, { abortEarly: false });
@@ -602,117 +718,158 @@ const validateRequest = (schema, data) => {
 
 const extractCategoryAndTotalAmount = async (expenseLines, onSave) => {
   const fixedFields = [
-      'Total Amount', 
-      'Total Fare', 
-      'Premium Amount', 
-      'Total Cost', 
-      'License Cost', 
-      'Subscription Cost',  
-      'Premium Cost',
-      'Cost', 
-      'Tip Amount',
+    "Total Amount",
+    "Total Fare",
+    "Premium Amount",
+    "Total Cost",
+    "License Cost",
+    "Subscription Cost",
+    "Premium Cost",
+    "Cost",
+    "Tip Amount",
   ];
 
   const results = [];
-  let totalExpenseAmount = 0; 
+  let totalExpenseAmount = 0;
 
-  let getStatus = onSave ?? 
-  expenseLines.forEach(expenseLine => {
-      if (expenseLine.lineItemStatus === 'approved') {
-          const categoryName = expenseLine['Category Name'] || ''; 
-          const keyFound = Object.entries(expenseLine).find(([key]) =>
-              fixedFields.some(name => name.trim().toUpperCase() === key.trim().toUpperCase())
-          );
-          const totalAmount = keyFound ? Number(keyFound[1]) || 0 : 0; 
-          totalExpenseAmount += totalAmount; 
-          results.push({ categoryName, totalAmount });
+  let getStatus =
+    onSave ??
+    expenseLines.forEach((expenseLine) => {
+      if (expenseLine.lineItemStatus === "approved") {
+        const categoryName = expenseLine["Category Name"] || "";
+        const keyFound = Object.entries(expenseLine).find(([key]) =>
+          fixedFields.some(
+            (name) => name.trim().toUpperCase() === key.trim().toUpperCase()
+          )
+        );
+        const totalAmount = keyFound ? Number(keyFound[1]) || 0 : 0;
+        totalExpenseAmount += totalAmount;
+        results.push({ categoryName, totalAmount });
       }
-  });
+    });
 
   return { results, totalExpenseAmount };
 };
 
-// 4) save line item 
+// 4) save line item
 const saveReimbursementExpenseLine = async (req, res) => {
-    try {
-      const params = validateRequest(nonTravelSchema, req.params);
-      const body = validateRequest(saveSchema, req.body);
-  
-      const { tenantId, empId, expenseHeaderId } = params;
-      const {lineItem  } = body;
-  
-      //  console.log("req body", req.body)
-      //  console.log("lineItem ......", lineItem)
-      console.log("Type of 'Booking Reference No':", typeof lineItem['Booking Reference No']);
-    
-      const fixedFields = ['Total Amount', 'Total Fare', 'Premium Amount', 'Total Cost', 'License Cost', 'Subscription Cost',  'Premium Cost','Cost', 'Tip Amount', ]
+  try {
+    const params = validateRequest(nonTravelSchema, req.params);
+    const body = validateRequest(saveSchema, req.body);
 
-      // Extract total amount
-      let totalAmount = extractTotalAmount(lineItem, fixedFields);
+    const { tenantId, empId, expenseHeaderId } = params;
+    const { lineItem } = body;
 
-      if(!totalAmount){
-        throw new Error(`totalAmount Not found: ${totalAmount}, `, "totalAmount type on save",typeof totalAmount)
-      } 
+    //  console.log("req body", req.body)
+    //  console.log("lineItem ......", lineItem)
+    console.log(
+      "Type of 'Booking Reference No':",
+      typeof lineItem["Booking Reference No"]
+    );
 
-      console.log("totalAmount", totalAmount)
+    const fixedFields = [
+      "Total Amount",
+      "Total Fare",
+      "Premium Amount",
+      "Total Cost",
+      "License Cost",
+      "Subscription Cost",
+      "Premium Cost",
+      "Cost",
+      "Tip Amount",
+    ];
 
-      const expenseLineId = new mongoose.Types.ObjectId().toString();
+    // Extract total amount
+    let totalAmount = extractTotalAmount(lineItem, fixedFields);
 
-      const expenseLineData ={
-      ...lineItem,
-      lineItemId:expenseLineId,
-      lineItemStatus:'save'
-      }
-
-      const getReport = await Reimbursement.findOne({ tenantId, expenseHeaderId });
-
-      if(!getReport){
-        return res.status(404).json({success: false, error:'document not found' })
-      }
-
-      let {expenseAmountStatus:{totalRemainingCash,totalExpenseAmount},createdBy,expenseHeaderStatus} = getReport
-      const {name} = createdBy
-
-      console.log("expenseAmountStatus - on save nte", JSON.stringify(getReport.expenseAmountStatus,'',2))
-
-      
-      const totalAmountField = +totalAmount;
-      const newTotalRemainingCash = +totalRemainingCash - totalAmountField
-      const newTotalExpenseAmount =  +totalExpenseAmount +totalAmountField;
-
-      // console.log("totalExpenseAmount kaboom",totalExpenseAmount, typeof totalExpenseAmount , typeof newTotalRemainingCash)
-      // console.log("totalRemainingCash kaboom2",totalRemainingCash, typeof totalRemainingCash, typeof totalRemainingCash)
-
-      getReport.expenseAmountStatus.totalExpenseAmount = newTotalExpenseAmount
-      getReport.expenseAmountStatus.totalRemainingCash = newTotalRemainingCash
-      if(expenseLineData) getReport.expenseLines.push(expenseLineData)
-      getReport.expenseHeaderStatus = (expenseHeaderStatus === 'pending settlement') ? 'draft' : getReport.expenseHeaderStatus;
-      const newExpense = await getReport.save()
-      // const newExpense = await Reimbursement.findOneAndUpdate(filter, update, options);
-      if(newExpense){
-        console.log("newExpense", JSON.stringify(newExpense,'',2))
-        const {expenseAmountStatus, expenseLines} = newExpense
-        const savedLineItemId = expenseLines[expenseLines.length - 1];
-  
-        const lastLineItemId = savedLineItemId.lineItemId
-  
-        console.log("saved Itinerary ID:", lastLineItemId);
-    
-        console.log("expenseAmountStatus - on save expense Line", expenseAmountStatus)
-        return res.status(200).json({
-          success: true,
-          message: "The expense line has been recorded.",
-          expenseHeaderStatus,
-          expenseAmountStatus,
-          expenseLines
-        });
-      }
-    } catch (error) {
-      console.error(error);
-      return res.status(500).json({ message: 'Failed to process non_Travel expense LINE' , error:error.message});
+    if (!totalAmount) {
+      throw new Error(
+        `totalAmount Not found: ${totalAmount}, `,
+        "totalAmount type on save",
+        typeof totalAmount
+      );
     }
-};
 
+    console.log("totalAmount", totalAmount);
+
+    const expenseLineId = new mongoose.Types.ObjectId().toString();
+
+    const expenseLineData = {
+      ...lineItem,
+      lineItemId: expenseLineId,
+      lineItemStatus: "save",
+    };
+
+    const getReport = await Reimbursement.findOne({
+      tenantId,
+      expenseHeaderId,
+    });
+
+    if (!getReport) {
+      return res
+        .status(404)
+        .json({ success: false, error: "document not found" });
+    }
+
+    let {
+      expenseAmountStatus: { totalRemainingCash, totalExpenseAmount },
+      createdBy,
+      expenseHeaderStatus,
+    } = getReport;
+    const { name } = createdBy;
+
+    console.log(
+      "expenseAmountStatus - on save nte",
+      JSON.stringify(getReport.expenseAmountStatus, "", 2)
+    );
+
+    const totalAmountField = +totalAmount;
+    const newTotalRemainingCash = +totalRemainingCash - totalAmountField;
+    const newTotalExpenseAmount = +totalExpenseAmount + totalAmountField;
+
+    // console.log("totalExpenseAmount kaboom",totalExpenseAmount, typeof totalExpenseAmount , typeof newTotalRemainingCash)
+    // console.log("totalRemainingCash kaboom2",totalRemainingCash, typeof totalRemainingCash, typeof totalRemainingCash)
+
+    getReport.expenseAmountStatus.totalExpenseAmount = newTotalExpenseAmount;
+    getReport.expenseAmountStatus.totalRemainingCash = newTotalRemainingCash;
+    if (expenseLineData) getReport.expenseLines.push(expenseLineData);
+    getReport.expenseHeaderStatus =
+      expenseHeaderStatus === "pending settlement"
+        ? "draft"
+        : getReport.expenseHeaderStatus;
+    const newExpense = await getReport.save();
+    // const newExpense = await Reimbursement.findOneAndUpdate(filter, update, options);
+    if (newExpense) {
+      console.log("newExpense", JSON.stringify(newExpense, "", 2));
+      const { expenseAmountStatus, expenseLines } = newExpense;
+      const savedLineItemId = expenseLines[expenseLines.length - 1];
+
+      const lastLineItemId = savedLineItemId.lineItemId;
+
+      console.log("saved Itinerary ID:", lastLineItemId);
+
+      console.log(
+        "expenseAmountStatus - on save expense Line",
+        expenseAmountStatus
+      );
+      return res.status(200).json({
+        success: true,
+        message: "The expense line has been recorded.",
+        expenseHeaderStatus,
+        expenseAmountStatus,
+        expenseLines,
+      });
+    }
+  } catch (error) {
+    console.error(error);
+    return res
+      .status(500)
+      .json({
+        message: "Failed to process non_Travel expense LINE",
+        error: error.message,
+      });
+  }
+};
 
 /**
  * Edits a specific expense line item in a reimbursement document.
@@ -725,35 +882,46 @@ const editReimbursementExpenseLine = async (req, res) => {
     const { tenantId, empId, expenseHeaderId, lineItemId } = req.params;
 
     if (!expenseHeaderId || !empId || !tenantId) {
-      return res.status(404).json({ message: 'Error: Missing required parameters' });
+      return res
+        .status(404)
+        .json({ message: "Error: Missing required parameters" });
     }
 
     const { prevLineItem, lineItem } = req.body;
 
     if (!prevLineItem || !lineItem) {
-      return res.status(404).json({ message: 'Error: Missing lineItem or prevLineItem' });
+      return res
+        .status(404)
+        .json({ message: "Error: Missing lineItem or prevLineItem" });
     }
 
     const fixedFields = [
-      'Total Amount', 'Total Fare', 'Premium Amount', 'Total Cost', 
-      'License Cost', 'Subscription Cost', 'Premium Cost', 'Cost', 'Tip Amount'
+      "Total Amount",
+      "Total Fare",
+      "Premium Amount",
+      "Total Cost",
+      "License Cost",
+      "Subscription Cost",
+      "Premium Cost",
+      "Cost",
+      "Tip Amount",
     ];
 
     const prevTotalAmount = extractTotalAmount(prevLineItem, fixedFields);
     const currentTotalAmount = extractTotalAmount(lineItem, fixedFields);
 
     if (!prevTotalAmount || !currentTotalAmount) {
-      throw new Error('Invalid total amounts for line items');
+      throw new Error("Invalid total amounts for line items");
     }
 
     // Fetch the report to get current expenseAmountStatus
     const getReport = await Reimbursement.findOne(
-      { tenantId, expenseHeaderId, 'expenseLines.lineItemId': lineItemId },
-      { 'expenseAmountStatus': 1 }
+      { tenantId, expenseHeaderId, "expenseLines.lineItemId": lineItemId },
+      { expenseAmountStatus: 1 }
     );
 
     if (!getReport) {
-      return res.status(404).json({ message: 'Expense not found' });
+      return res.status(404).json({ message: "Expense not found" });
     }
 
     const { expenseAmountStatus } = getReport;
@@ -783,19 +951,21 @@ const editReimbursementExpenseLine = async (req, res) => {
       {
         tenantId,
         expenseHeaderId,
-        'expenseLines.lineItemId': lineItemId,
+        "expenseLines.lineItemId": lineItemId,
       },
       {
         $set: {
-          'expenseLines.$': { ...lineItem, lineItemId }, 
-          'expenseAmountStatus.totalExpenseAmount': newTotalExpenseAmount,
-          'expenseAmountStatus.totalRemainingCash': newTotalRemainingCash,
+          "expenseLines.$": { ...lineItem, lineItemId },
+          "expenseAmountStatus.totalExpenseAmount": newTotalExpenseAmount,
+          "expenseAmountStatus.totalRemainingCash": newTotalRemainingCash,
         },
       }
     );
 
     if (updatedReport.nModified === 0) {
-      return res.status(400).json({ message: 'No updates were made to the report' });
+      return res
+        .status(400)
+        .json({ message: "No updates were made to the report" });
     }
 
     // Fetch updated document for response
@@ -808,15 +978,24 @@ const editReimbursementExpenseLine = async (req, res) => {
     const { expenseLines, approvers } = updatedDocument;
     const isApproval = approvers?.length > 0;
 
-    const savedLineItem = expenseLines.find(line => line.lineItemId.toString() === lineItemId.toString());
+    const savedLineItem = expenseLines.find(
+      (line) => line.lineItemId.toString() === lineItemId.toString()
+    );
 
     const payload = { reimbursementReport: updatedDocument };
-    const source = 'reimbursement';
-    const onlineVsBatch = 'online';
-    const action = 'full-update';
-    const comments = 'Expense report edited';
+    const source = "reimbursement";
+    const onlineVsBatch = "online";
+    const action = "full-update";
+    const comments = "Expense report edited";
 
-    await sendToMicroservices(payload, action, comments, source, onlineVsBatch, isApproval);
+    await sendToMicroservices(
+      payload,
+      action,
+      comments,
+      source,
+      onlineVsBatch,
+      isApproval
+    );
 
     return res.status(200).json({
       success: true,
@@ -826,10 +1005,11 @@ const editReimbursementExpenseLine = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: 'Failed to process the request', error: error.message });
+    return res
+      .status(500)
+      .json({ message: "Failed to process the request", error: error.message });
   }
 };
-
 
 /**
  * Updates the status of an expense report to "draft" and sends a success message and the updated expense report as a response.
@@ -840,76 +1020,96 @@ const editReimbursementExpenseLine = async (req, res) => {
  */
 
 const draftExpense = Joi.object({
-  approvers: Joi.array().items(
-    Joi.object({
-      empId: Joi.string().optional(),
-      name: Joi.string().optional(),
-      status: Joi.string().optional(),
-      imageUrl: Joi.string().optional(),
-      _id: Joi.string().optional()
-    })
-  ).default([]),
-  expenseSettlement: Joi.string().allow('').default('')
-})
+  approvers: Joi.array()
+    .items(
+      Joi.object({
+        empId: Joi.string().optional(),
+        name: Joi.string().optional(),
+        status: Joi.string().optional(),
+        imageUrl: Joi.string().optional(),
+        _id: Joi.string().optional(),
+      })
+    )
+    .default([]),
+  expenseSettlement: Joi.string().allow("").default(""),
+});
 
 const draftReimbursementExpenseLine = async (req, res) => {
   try {
-    const params = validateRequest(nonTravelSchema,req.params)
-    const body = validateRequest(draftExpense, req.body)
+    const params = validateRequest(nonTravelSchema, req.params);
+    const body = validateRequest(draftExpense, req.body);
 
     const { tenantId, empId, expenseHeaderId } = params;
-    const { approvers=[] , expenseSettlement=''} = body;
-    const status ={
-      PENDING_SETTLEMENT :'pending settlement',
-      PENDING_APPROVAL:'pending approval',
-      DRAFT: 'draft'
-    }
+    const { approvers = [], expenseSettlement = "" } = body;
+    const status = {
+      PENDING_SETTLEMENT: "pending settlement",
+      PENDING_APPROVAL: "pending approval",
+      DRAFT: "draft",
+    };
 
-    console.log("approvers", approvers)
-    const isApproval = approvers?.length > 0
+    console.log("approvers", approvers);
+    const isApproval = approvers?.length > 0;
 
-   const getStatus = status.DRAFT
+    const getStatus = status.DRAFT;
 
     const report = await Reimbursement.findOne({
-    tenantId, expenseHeaderId, 'createdBy.empId': empId
-  });
+      tenantId,
+      expenseHeaderId,
+      "createdBy.empId": empId,
+    });
 
     if (!report) {
-      return res.status(404).json({ message: 'Expense Report not found or unauthorized.' });
+      return res
+        .status(404)
+        .json({ message: "Expense Report not found or unauthorized." });
     }
 
-    report.expenseLines.map(lineItem => ({
-    ...lineItem,
-    lineItemStatus: getStatus,
-    approvers: approvers ?? []
-    }))
+    report.expenseLines.map((lineItem) => ({
+      ...lineItem,
+      lineItemStatus: getStatus,
+      approvers: approvers ?? [],
+    }));
 
-    report.expenseHeaderStatus = getStatus
-    report.approvers = approvers ?? []
-    report.expenseSettlement = expenseSettlement ?? null
-    const updatedExpense = await report.save()
+    report.expenseHeaderStatus = getStatus;
+    report.approvers = approvers ?? [];
+    report.expenseSettlement = expenseSettlement ?? null;
+    const updatedExpense = await report.save();
 
-      const { name } = updatedExpense.createdBy ?? { name: 'user' };
-      const payload = { reimbursementReport : updatedExpense };
-      const source = 'reimbursement';
-      const onlineVsBatch = 'online';
-      const action = 'full-update';
-      const comments = 'expense report saved as Draft';
-  
-    if(isApproval){
-      await  sendToOtherMicroservice(payload, action, 'approval', comments, source, onlineVsBatch) 
-    }     
-    await  sendToOtherMicroservice(payload, action, 'dashboard', comments, source, onlineVsBatch)   
+    const { name } = updatedExpense.createdBy ?? { name: "user" };
+    const payload = { reimbursementReport: updatedExpense };
+    const source = "reimbursement";
+    const onlineVsBatch = "online";
+    const action = "full-update";
+    const comments = "expense report saved as Draft";
+
+    if (isApproval) {
+      await sendToOtherMicroservice(
+        payload,
+        action,
+        "approval",
+        comments,
+        source,
+        onlineVsBatch
+      );
+    }
+    await sendToOtherMicroservice(
+      payload,
+      action,
+      "dashboard",
+      comments,
+      source,
+      onlineVsBatch
+    );
 
     const response = {
       success: true,
-      message: "The expense report has been saved as a draft."
+      message: "The expense report has been saved as a draft.",
     };
 
     return res.status(200).json(response);
-    } catch (error) {
+  } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: 'Error Occurred' });
+    return res.status(500).json({ message: "Error Occurred" });
   }
 };
 
@@ -922,91 +1122,123 @@ const draftReimbursementExpenseLine = async (req, res) => {
  */
 
 const submitExpense = Joi.object({
-  approvers: Joi.array().items(
-    Joi.object({
-      empId: Joi.string().optional(),
-      name: Joi.string().optional(),
-      status: Joi.string().optional(),
-      imageUrl: Joi.string().optional(),
-      _id: Joi.string().optional()
-    })
-  ).optional(),
-  expenseSettlement: Joi.string().optional()
-})
+  approvers: Joi.array()
+    .items(
+      Joi.object({
+        empId: Joi.string().optional(),
+        name: Joi.string().optional(),
+        status: Joi.string().optional(),
+        imageUrl: Joi.string().optional(),
+        _id: Joi.string().optional(),
+      })
+    )
+    .optional(),
+  expenseSettlement: Joi.string().optional(),
+});
 
 const submitReimbursementExpenseReport = async (req, res) => {
   try {
-    const params = validateRequest(nonTravelSchema,req.params)
-    const body = validateRequest(submitExpense, req.body)
+    const params = validateRequest(nonTravelSchema, req.params);
+    const body = validateRequest(submitExpense, req.body);
 
     const { tenantId, empId, expenseHeaderId } = params;
-    const { approvers , expenseSettlement} = body;
+    const { approvers, expenseSettlement } = body;
 
-    console.log("on submit reim", approvers, "expenseSettlement" , expenseSettlement )
-    const status ={
-      PENDING_SETTLEMENT :'pending settlement',
-      PENDING_APPROVAL:'pending approval'
-    }
+    console.log(
+      "on submit reim",
+      approvers,
+      "expenseSettlement",
+      expenseSettlement
+    );
+    const status = {
+      PENDING_SETTLEMENT: "pending settlement",
+      PENDING_APPROVAL: "pending approval",
+    };
 
-    console.log("approvers", approvers)
-    const isApproval = approvers?.length > 0
-    approvers?.forEach(approver => {
-      if(isApproval) approver.status = status.PENDING_APPROVAL
-    })
+    console.log("approvers", approvers);
+    const isApproval = approvers?.length > 0;
+    approvers?.forEach((approver) => {
+      if (isApproval) approver.status = status.PENDING_APPROVAL;
+    });
 
-  const getStatus =  isApproval ? status.PENDING_APPROVAL :  status.PENDING_SETTLEMENT
+    const getStatus = isApproval
+      ? status.PENDING_APPROVAL
+      : status.PENDING_SETTLEMENT;
 
     const report = await Reimbursement.findOne({
-    tenantId, expenseHeaderId, 'createdBy.empId': empId
-  });
+      tenantId,
+      expenseHeaderId,
+      "createdBy.empId": empId,
+    });
 
     if (!report) {
-      return res.status(404).json({ message: 'Expense Report not found or unauthorized.' });
+      return res
+        .status(404)
+        .json({ message: "Expense Report not found or unauthorized." });
     }
 
-    const {expenseLines} = report
-    console.log("did i get", JSON.stringify(expenseLines,'',2))
-    const {totalExpenseAmount,results} = await extractCategoryAndTotalAmount(expenseLines);
-    console.log("totalExpenseAmount - result",JSON.stringify(totalExpenseAmount,'',2), "results", results)
+    const { expenseLines } = report;
+    console.log("did i get", JSON.stringify(expenseLines, "", 2));
+    const { totalExpenseAmount, results } =
+      await extractCategoryAndTotalAmount(expenseLines);
+    console.log(
+      "totalExpenseAmount - result",
+      JSON.stringify(totalExpenseAmount, "", 2),
+      "results",
+      results
+    );
 
-    console.log("the report 0", JSON.stringify(expenseLines, '',2))
-    report.expenseLines = expenseLines.map(lineItem => ({
+    console.log("the report 0", JSON.stringify(expenseLines, "", 2));
+    report.expenseLines = expenseLines.map((lineItem) => ({
       ...lineItem,
-      lineItemStatus:getStatus,
-      approvers:approvers
-    }))
+      lineItemStatus: getStatus,
+      approvers: approvers,
+    }));
 
-    totalExpenseAmount && (report.expenseAmountStatus.totalExpenseAmount = totalExpenseAmount)
-    approvers && (report.approvers = approvers)
-    report.expenseHeaderStatus = getStatus ? getStatus : report.expenseHeaderStatus
-    report.expenseSettlementOptions = expenseSettlement ? expenseSettlement: report.expenseSettlementOptions
-    report.expenseSubmissionDate = new Date()
+    totalExpenseAmount &&
+      (report.expenseAmountStatus.totalExpenseAmount = totalExpenseAmount);
+    approvers && (report.approvers = approvers);
+    report.expenseHeaderStatus = getStatus
+      ? getStatus
+      : report.expenseHeaderStatus;
+    report.expenseSettlementOptions = expenseSettlement
+      ? expenseSettlement
+      : report.expenseSettlementOptions;
+    report.expenseSubmissionDate = new Date();
 
-    const updatedExpense = await report.save()
+    const updatedExpense = await report.save();
 
-      const { name } = updatedExpense.createdBy ?? { name: 'user' };
-      const payload = { reimbursementReport : updatedExpense };
-      const source = 'reimbursement';
-      const onlineVsBatch = 'online';
-      const action = 'full-update';
-      const comments = 'expense report submitted';
+    const { name } = updatedExpense.createdBy ?? { name: "user" };
+    const payload = { reimbursementReport: updatedExpense };
+    const source = "reimbursement";
+    const onlineVsBatch = "online";
+    const action = "full-update";
+    const comments = "expense report submitted";
 
-    await sendToMicroservices(payload, action, comments, source, onlineVsBatch, isApproval);
+    await sendToMicroservices(
+      payload,
+      action,
+      comments,
+      source,
+      onlineVsBatch,
+      isApproval
+    );
 
-    console.log("sending reim payload - dashboard")
+    console.log("sending reim payload - dashboard");
 
     const response = {
       success: true,
-      message: "The expense report has been submitted for approval."
+      message: "The expense report has been submitted for approval.",
     };
 
     return res.status(200).json(response);
-    } catch (error) {
+  } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: 'Failed to submit expense report.' });
+    return res
+      .status(500)
+      .json({ message: "Failed to submit expense report." });
   }
 };
-
 
 /**
  * Retrieves an expense report based on the provided parameters.
@@ -1019,19 +1251,21 @@ const getReimbursementExpenseReport = async (req, res) => {
     const { tenantId, empId, expenseHeaderId } = req.params;
 
     if (!expenseHeaderId || !empId || !tenantId) {
-      return res.status(404).json({ message: 'Error: Required parameters are missing.' });
+      return res
+        .status(404)
+        .json({ message: "Error: Required parameters are missing." });
     }
 
     const expenseReport = await Reimbursement.findOne({
       tenantId,
       expenseHeaderId,
-      'createdBy.empId': empId,
+      "createdBy.empId": empId,
     });
 
     if (!expenseReport) {
       return res.status(404).json({
         success: false,
-        message: 'Expense report not found for the given IDs.',
+        message: "Expense report not found for the given IDs.",
       });
     }
 
@@ -1047,11 +1281,10 @@ const getReimbursementExpenseReport = async (req, res) => {
 
     return res.status(500).json({
       success: false,
-      message: 'Failed to retrieve non_Travel expense LINE.',
+      message: "Failed to retrieve non_Travel expense LINE.",
     });
   }
 };
-
 
 /**
  * Cancels a reimbursement report.
@@ -1066,54 +1299,72 @@ const cancelReimbursementReport = async (req, res) => {
 
     if (!tenantId || !empId || !expenseHeaderId) {
       const missingParams = [];
-      if (!tenantId) missingParams.push('tenantId');
-      if (!empId) missingParams.push('empId');
-      if (!expenseHeaderId) missingParams.push('expenseHeaderId');
-      return res.status(404).json({ message: `Missing params: ${missingParams.join(',')}` });
+      if (!tenantId) missingParams.push("tenantId");
+      if (!empId) missingParams.push("empId");
+      if (!expenseHeaderId) missingParams.push("expenseHeaderId");
+      return res
+        .status(404)
+        .json({ message: `Missing params: ${missingParams.join(",")}` });
     }
 
     const expenseReport = await Reimbursement.findOneAndDelete({
-      tenantId,'createdBy.empId': empId,expenseHeaderId,
+      tenantId,
+      "createdBy.empId": empId,
+      expenseHeaderId,
     });
 
     if (!expenseReport) {
-      console.log('expense report deleted', !expenseReport)
-      return res.status(404).json({ success: false, message: 'Expense report not found' });
+      console.log("expense report deleted", !expenseReport);
+      return res
+        .status(404)
+        .json({ success: false, message: "Expense report not found" });
     }
 
-    console.log('expense report failed to delete', expenseReport)
+    console.log("expense report failed to delete", expenseReport);
 
-    const { approvers, createdBy} = expenseReport
+    const { approvers, createdBy } = expenseReport;
     const { name } = createdBy;
 
-    const isApproval = approvers?.length > 0
-    const payload = {  tenantId, empId, expenseHeaderId };
-    const source = 'reimbursement';
-    const onlineVsBatch = 'online';
-    const action = 'delete';
-    const comments = 'reimbursement expense report deleted'; 
+    const isApproval = approvers?.length > 0;
+    const payload = { tenantId, empId, expenseHeaderId };
+    const source = "reimbursement";
+    const onlineVsBatch = "online";
+    const action = "delete";
+    const comments = "reimbursement expense report deleted";
 
-    await sendToMicroservices(payload, action, comments, source, onlineVsBatch, isApproval);
+    await sendToMicroservices(
+      payload,
+      action,
+      comments,
+      source,
+      onlineVsBatch,
+      isApproval
+    );
 
-    return res.status(200).json({ success: true, message: "The expense report has been deleted."});
+    return res
+      .status(200)
+      .json({ success: true, message: "The expense report has been deleted." });
   } catch (error) {
-    return res.status(500).json({ success: false, message: 'Internal server error' });
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal server error" });
   }
 };
 
-
 const lineItemSchema = Joi.object({
   lineItemIds: Joi.array()
-    .items(Joi.string().messages({
-      'string.base': 'lineItemIds must be strings',
-      'string.empty': 'lineItemIds cannot be empty'
-    }))
+    .items(
+      Joi.string().messages({
+        "string.base": "lineItemIds must be strings",
+        "string.empty": "lineItemIds cannot be empty",
+      })
+    )
     .required()
     .messages({
-      'array.base': 'lineItemIds must be an array',
-      'array.empty': 'lineItemIds cannot be empty',
-      'any.required': 'lineItemIds is a required field'
-    })
+      "array.base": "lineItemIds must be an array",
+      "array.empty": "lineItemIds cannot be empty",
+      "any.required": "lineItemIds is a required field",
+    }),
 });
 /**
  * Cancels non-travel expense lines in an expense report.
@@ -1125,93 +1376,128 @@ const cancelReimbursementReportLine = async (req, res) => {
   try {
     const { tenantId, empId, expenseHeaderId } = req.params;
 
-    const { error , value} = lineItemSchema.validate(req.body);
-    if (error) return res.status(400).json({success: false, message: error.details[0].message})
+    const { error, value } = lineItemSchema.validate(req.body);
+    if (error)
+      return res
+        .status(400)
+        .json({ success: false, message: error.details[0].message });
 
     const { lineItemIds } = value;
     console.log("params cancelNonTravelReportLine", req.params);
-    console.log("lineItemIds cancelNonTravelReportLine", lineItemIds)
+    console.log("lineItemIds cancelNonTravelReportLine", lineItemIds);
 
     const expenseReport = await Reimbursement.findOne({
       tenantId,
-      'createdBy.empId': empId,
+      "createdBy.empId": empId,
       expenseHeaderId,
     });
 
     if (!expenseReport) {
       return res.status(404).json({
         success: false,
-        message: 'Expense report not found',
+        message: "Expense report not found",
       });
     }
 
-    const { createdBy , approvers , expenseAmountStatus:{totalExpenseAmount,totalRemainingCash}} = expenseReport;
+    const {
+      createdBy,
+      approvers,
+      expenseAmountStatus: { totalExpenseAmount, totalRemainingCash },
+    } = expenseReport;
     const { name } = createdBy;
 
+    const fixedFields = [
+      "Total Amount",
+      "Total Fare",
+      "Premium Amount",
+      "Total Cost",
+      "License Cost",
+      "Subscription Cost",
+      "Premium Cost",
+      "Cost",
+      "Tip Amount",
+    ];
+    let totalAmount;
+    let newTotalExpenseAmount;
+    let newTotalRemainingCash;
 
-    const fixedFields = ['Total Amount', 'Total Fare', 'Premium Amount', 'Total Cost', 'License Cost', 'Subscription Cost',  'Premium Cost','Cost', 'Tip Amount', ]
-    let totalAmount
-    let newTotalExpenseAmount
-    let newTotalRemainingCash
-
-
-    const isApproval = approvers?.length > 0
+    const isApproval = approvers?.length > 0;
 
     lineItemIds.forEach((expenseLineId) => {
       const indexToRemove = expenseReport.expenseLines.findIndex(
         (line) => line.lineItemId.toString() === expenseLineId.toString()
       );
       if (indexToRemove !== -1) {
-      const lineToRemove = expenseReport.expenseLines[indexToRemove]
-       // Extract total amount
-      totalAmount = extractTotalAmount(lineToRemove, fixedFields);
+        const lineToRemove = expenseReport.expenseLines[indexToRemove];
+        // Extract total amount
+        totalAmount = extractTotalAmount(lineToRemove, fixedFields);
 
-      console.log("totalAmount type", typeof totalAmount , totalAmount)
-      if(!totalAmount){
-        throw new Error(`totalAmount Not found: ${totalAmount}, `, "totalAmount type on save",typeof totalAmount)
-      }  
+        console.log("totalAmount type", typeof totalAmount, totalAmount);
+        if (!totalAmount) {
+          throw new Error(
+            `totalAmount Not found: ${totalAmount}, `,
+            "totalAmount type on save",
+            typeof totalAmount
+          );
+        }
 
-      newTotalExpenseAmount = +totalExpenseAmount - +totalAmount
-      newTotalRemainingCash = +totalRemainingCash + +totalAmount
-      console.log("totalExpenseAmount kaboom",totalExpenseAmount, typeof totalExpenseAmount , typeof newTotalRemainingCash)
-      console.log("totalRemainingCash kaboom2",totalRemainingCash, typeof totalRemainingCash, typeof totalRemainingCash)
+        newTotalExpenseAmount = +totalExpenseAmount - +totalAmount;
+        newTotalRemainingCash = +totalRemainingCash + +totalAmount;
+        console.log(
+          "totalExpenseAmount kaboom",
+          totalExpenseAmount,
+          typeof totalExpenseAmount,
+          typeof newTotalRemainingCash
+        );
+        console.log(
+          "totalRemainingCash kaboom2",
+          totalRemainingCash,
+          typeof totalRemainingCash,
+          typeof totalRemainingCash
+        );
 
-      // Update expense report
-      expenseReport.expenseAmountStatus.totalExpenseAmount = newTotalExpenseAmount
-      expenseReport.expenseAmountStatus.totalRemainingCash =  newTotalRemainingCash 
-      // Remove the line item from the expense report
+        // Update expense report
+        expenseReport.expenseAmountStatus.totalExpenseAmount =
+          newTotalExpenseAmount;
+        expenseReport.expenseAmountStatus.totalRemainingCash =
+          newTotalRemainingCash;
+        // Remove the line item from the expense report
         expenseReport.expenseLines.splice(indexToRemove, 1);
       }
     });
 
-   const updatedReport =  await expenseReport.save();
+    const updatedReport = await expenseReport.save();
 
-    const { expenseAmountStatus} = updatedReport 
-  
-  const payload = { reimbursementReport: updatedReport };
-  const source = 'reimbursement';
-  const onlineVsBatch = 'online';
-  const action = 'full-update';
-  const comments = 'reimbursement expense line deleted';
-  
-  await sendToMicroservices(payload, action, comments, source, onlineVsBatch, isApproval);
+    const { expenseAmountStatus } = updatedReport;
+
+    const payload = { reimbursementReport: updatedReport };
+    const source = "reimbursement";
+    const onlineVsBatch = "online";
+    const action = "full-update";
+    const comments = "reimbursement expense line deleted";
+
+    await sendToMicroservices(
+      payload,
+      action,
+      comments,
+      source,
+      onlineVsBatch,
+      isApproval
+    );
 
     return res.status(200).json({
       success: true,
       message: "The expense line has been deleted.",
-      expenseAmountStatus
+      expenseAmountStatus,
     });
   } catch (error) {
     console.error(error);
     return res.status(500).json({
       success: false,
-      message: 'Internal server error',
+      message: "Internal server error",
     });
   }
 };
-
-
-
 
 export {
   getReimbursementReport,
@@ -1226,13 +1512,4 @@ export {
   getReimbursementExpenseReport,
   cancelReimbursementReport,
   cancelReimbursementReportLine,
-}
-
-
-
-
-
-
-
-
-
+};

@@ -23,6 +23,7 @@ export const handleFileUpload = async (req, res) => {
     const fileContent = req.file.buffer;
     const {tenantId, travelType, category} = req.params
 
+ 
     // console.log(category, fileURL , 'category, fileURL');
 
     // console.log(category, fileURL , 'category, fileURL');
@@ -54,13 +55,16 @@ export const handleFileUpload = async (req, res) => {
 
     //Assuming you have a function makeApiCall defined somewhere
     const finalResult_res = await makeApiCall(resultId,tenantId,travelType, category);
-    console.log(finalResult_res, 'final result res')
+    console.log("finalResult - after openai",finalResult_res, 'final result res')
 
     if(!finalResult_res.success){
       return res.status(200).json(({success: false, data: {}}))
     }
 
-    return res.status(200).json({ success: true, fields: finalResult_res.finalResult});
+    const currency = finalResult_res?.currency;
+    const fields =finalResult_res?.fields 
+
+    return res.status(200).json({ success: true, fields, currency});
 
     //return res.status(200).json({ success: true, data: {from:'Chhatrapati Shivaji Maharaj International Airport', to:'John F. Kennedy International Airport', date:'2024-02-18', time:'11:30', 'Tax Amount': 2394, 'Total Amount':24000} });
   } catch (error) {
@@ -104,6 +108,51 @@ export const getResult = async (resultId,tenantId,travelType, category,res) => {
         "fullName": "",
         "shortName": "",
         "symbol": ""
+    }
+
+    const CurrencyPrompt = JSON.stringify(`send this as separate Currency json object, Identify the currency in the provided text and return the corresponding JSON object in the following format:
+    {
+        "countryCode": "IN",
+        "fullName": "Indian Rupee",
+        "shortName": "INR",
+        "symbol": "₹"
+    }
+    If no currency match is found, return an empty object.`);
+
+
+    const dateFormat = JSON.stringify(`from text next- extract any kind of date in this format - "2024-11-22", yyyy-mm-date`)
+    
+    let dataLogic = ""; 
+    switch (tenantData.expenseCategory.toLowerCase()) { 
+      case 'flight': 
+        dataLogic += 'while extracting fields after this -If airport codes are found for departure/from and arrival/to fields, convert them to city names (e.g., DEL -> Delhi). extract bookingId'; 
+        break;
+      case 'meals':
+        dataLogic = "Field name: 'Bill Date', Field value: Extract the date when the transaction occurred, labeled as 'Invoice Date' or 'Bill Date', " +
+        "Field name: 'Bill Number', Field value: Extract the number uniquely identifying this bill, often labeled as 'Invoice No.' or 'Bill Number', " +
+        "Field name: 'Vendor Name', Field value: Extract the name of the vendor or restaurant from the invoice, typically found near 'Restaurant Name' or 'Legal Entity Name', " +
+        "Field name: 'Description', Field value: Summarize the description of items or services provided, look for labels like 'Service Description' or 'Particulars', " +
+        "Field name: 'Quantity', Field value: Count the number of items purchased, detailed under 'Particulars' or 'Item(s) Total', exclude charges like 'Restaurant Packaging Charge', " +
+        "Field name: 'Unit Cost', Field value: Extract the cost per item, look for patterns around each listed item under 'Particulars', do not consider additional fees or taxes, " +
+        "Field name: 'Tax Amount', Field value: Sum the values of CGST and SGST if present to calculate total tax; if not, extract the total tax from a single 'Tax Amount' entry, " +
+        "Field name: 'Total Amount', Field value: Extract the total payable amount, often found at the bottom of the invoice as 'Total Value' or 'Amount'.";
+    }
+
+    switch (tenantData.fields.name) { 
+      case 'Booking Reference Number': 
+      case 'Booking Reference No':
+        dataLogic += "extract BOOKING ID/ booking reference number, don't take PNR/pnr,if not found send ''"; 
+        break;
+      case 'Invoice Date':
+        dataLogic += "extract Invoice Date/booking Date, don't take date or start date , if not found send ''"
+        break;
+      case 'Total Amount':
+          dataLogic += "only numeric and period is allowed, remove any other special characters expect period in between"
+          break;
+        
+      default:
+        dataLogic += "extract the fields by analyzing the invoice structure and how they are extracted as per standard"
+        break;
     }
 
     // switch(category){
@@ -150,23 +199,23 @@ export const getResult = async (resultId,tenantId,travelType, category,res) => {
         }
       }
     );
-    console.log("get from Azure Form Recognizer:", response);
+    // console.log("get from Azure Form Recognizer:", response);
     
-    
+    console.log("dataLogic right before query", JSON.stringify(dataLogic,'',2))
     const allKeyValuePairs = response.data.analyzeResult.keyValuePairs
     .filter(pair=>pair.value!=undefined)
     .map(pair=>{
       return {key: pair.key.content, value: pair.value.content}
     })
 
-    console.log("system prompt: ", `You are a helpful assistant. Extract following fields, ${fieldsString} ,from the provided data and return them in the JSON format:`);
+    console.log("system prompt: ", `You are a helpful assistant. Extract following fields,if confidence is <75 , send that fields as "", ${fieldsString} ,from the provided data and return them in the JSON format: enclose the JSON with starting characters`);
     console.log("user prompt :", `data: ${JSON.stringify(response.data.analyzeResult.content)}` )
     console.log("getting structured result from chat-gpt...")
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
-          { role: "system", content: `You are a helpful assistant.1) Extract following fields, fieldsString: ${fieldsString},from the provided data and return them in the JSON format:2)from the fieldsString extract currency used for total ${getCurrency}`},
+          { role: "system", content: `You are a helpful assistant.1)${dateFormat}${dataLogic}, Extract following fields, For any kind of amount field should have only numeric and period, remove others. fieldsString: ${fieldsString},from the provided data and return them in the JSON format like key and value pairs,like 1st one with key fields, 2nd object with key currency, do not add any comments send only JSON in response 2)from the fieldsString extract currency used for total ${CurrencyPrompt}`},
     
           {
               role: "user",
@@ -175,16 +224,18 @@ export const getResult = async (resultId,tenantId,travelType, category,res) => {
       ],
     });
 
-    console.log(completion.choices[0].message.content)
-    const finalResult = extractJsonFromCodeBlock(completion.choices[0].message.content)
+    console.log("OPENAI_EXTRACTION",completion.choices[0].message.content , typeof completion.choices[0].message.content)
+    
+    console.log("what is typeof fields",typeof completion.choices[0].message.content.fields);
 
-
+    const getData = JSON.parse(completion.choices[0].message.content)
+    console.log("getData", typeof getData , getData)
+    const fields = getData.fields
+    const currency = getData.currency
 
     
-
-    return { success: true, keyValuePairs: allKeyValuePairs, finalResult };
-
-
+    console.log("data found: finalResult", fields,currency )
+    return { success: true, keyValuePairs: allKeyValuePairs, fields,currency };
 
   } catch (error) {
     console.error("Error calling Azure Form Recognizer:");
@@ -193,25 +244,6 @@ export const getResult = async (resultId,tenantId,travelType, category,res) => {
     return { success: false, error: "Internal Server Error" };
   }
 }
-
-
-function extractJsonFromCodeBlock(input) {
-  try {
-      // Use a regular expression to extract the content between the triple backticks
-      const match = input.match(/```json\n([\s\S]*?)\n```/);
-      if (!match || match.length < 2) {
-          throw new Error("No valid JSON content found in the code block.");
-      }
-
-      // Parse the extracted JSON string into a JavaScript object
-      const jsonContent = match[1];
-      return JSON.parse(jsonContent);
-  } catch (error) {
-      console.error("Error parsing JSON:", error.message);
-      return null; // Return null or handle the error as needed
-  }
-}
-
 
 
 
