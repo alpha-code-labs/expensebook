@@ -6,7 +6,7 @@ import Select from './common/Select';
 import { useParams } from 'react-router-dom';
 import { employees, travelRequestStatus, travelType } from '../data/userData';
 import MultiSearch from '../components/common/MultiSearch';
-import Button from './common/Button';
+import Button1 from './common/Button1';
 import TripReport from '../report/TripReport';
 import PopupMessage from './common/PopupMessage';
 import ExpenseReport from '../report/ExpenseReport';
@@ -540,10 +540,10 @@ return (
 
   <Modal showModal={showModal} setShowModal={setShowModal} skipable={true}>  
     <div className='h-full'>
-      <div className='sticky top-0 z-10 flex gap-2 justify-between items-center bg-indigo-100 w-auto  p-4'>
+      <div className='sticky top-0 z-10 flex gap-2 justify-between items-center bg-gray-100 w-auto  p-4'>
             <div className='flex gap-2'>
               {/* <img src={info_icon} className='w-5 h-5' alt="Info icon"/> */}
-              <p className='font-inter capitalize text-base font-semibold text-indigo-600'>
+              <p className='font-inter capitalize text-base font-semibold text-neutral-900'>
               {`${reportTab}s Report`}
               </p>
             </div>
@@ -714,7 +714,7 @@ return (
       }  
 
       <div className='pt-4'>
-        <Button loading={isUploading.filterReport} text="Run Report" onClick={handleRunReport}/>
+        <Button1 loading={isUploading.filterReport} text="Run Report" onClick={handleRunReport}/>
       </div>
       </div>
     
