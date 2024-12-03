@@ -747,15 +747,7 @@ export default function () {
             </div>}
 
         </div>}
-        
-        <Button text="test dashboard message" onClick={()=>{
-            console.log("posting message to dashboard ...", JSON.stringify({message:"cash message posted" , 
-                ocrMsgData: { showPopup:true, message:"ocrMsg", iconCode: "103", autoSkip:false }}), " posted to ", DASHBOARD_URL);
-            window.parent.postMessage({message:"cash message posted" , 
-            ocrMsgData: { showPopup:true, message:"ocrMsg", iconCode: "103", autoSkip:false }}, DASHBOARD_URL);
-        }}>
 
-        </Button>
 
         </div>
       }
