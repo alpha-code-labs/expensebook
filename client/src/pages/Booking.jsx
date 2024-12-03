@@ -215,6 +215,7 @@ const handleConfirm = async (action) => {
           {
             const ocrPopupData = event.data.ocrMsgData;
             setMicroserviceModal(ocrPopupData);
+            console.log(ocrPopupData)
             // if(ocrPopupData?.autoSkip === undefined)
             // {
             //   setTimeout(() => {
@@ -316,7 +317,7 @@ const handleConfirm = async (action) => {
 
   useEffect(() => {
     const handleMessage = event => {
-      console.log(event)
+      console.log(event.data)
       // Check if the message is coming from the iframe
       if (event.origin === travelBaseUrl || event.origin === cashBaseUrl) {
         console.log('event data from booking', event)
@@ -332,6 +333,18 @@ const handleConfirm = async (action) => {
         if (event.data === 'closeIframe') {
           setVisible(false)
         }
+        if(event.data.ocrMsgData)
+          {
+            const ocrPopupData = event.data.ocrMsgData;
+            setMicroserviceModal(ocrPopupData);
+            console.log(ocrPopupData)
+            // if(ocrPopupData?.autoSkip === undefined)
+            // {
+            //   setTimeout(() => {
+            //     setMicroserviceModal(initialPopupData); 
+            //   }, 5000);
+            // }
+          } 
          // Check the message content or identifier
          if (event.data === 'closeIframe') {
           setVisible(false)
