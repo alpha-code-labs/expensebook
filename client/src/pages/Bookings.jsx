@@ -24,8 +24,6 @@ const storage_sas_token = import.meta.env.VITE_AZURE_BLOB_SAS_TOKEN
 const storage_account = import.meta.env.VITE_AZURE_BLOB_ACCOUNT
 const blob_endpoint = `https://${storage_account}.blob.core.windows.net/?${storage_sas_token}`
 
-
-
 const DASHBOARD_URL = import.meta.env.VITE_DASHBOARD_URL
 
 
@@ -1056,6 +1054,7 @@ function AddTicketManually(
                     case 'text' : return(  
                                     <div className='' key={index}>
                                         <Input 
+                                            highlightIfNull = {true}
                                             title={field.name} 
                                             value={
                                                 field.toSet == field.id ? itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet] ? itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet] : itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet.split('_')[1]]  : itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet].billDetails?.[field.id]} 
@@ -1074,7 +1073,7 @@ function AddTicketManually(
                                     <div className="text-neutral-700 w-full  h-full text-sm font-normal font-cabin">
                                         <input 
                                         type='date' 
-                                        min={getDateXDaysAway(Number(minDaysBeforeBooking))}
+                                        // min={getDateXDaysAway(Number(minDaysBeforeBooking))}
                                         className="w-full h-full decoration:none px-6 py-2 border rounded-md border border-neutral-300 focus-visible:outline-0 focus-visible:border-indigo-600 "
                                         name={field.name} 
                                         value={itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet] ? formattedDate(itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet]) : formattedDate(itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet.split('_')[1]])}
@@ -1087,6 +1086,7 @@ function AddTicketManually(
                     case 'time' : return(  
                         <div className='' key={index}>
                             <TimePicker 
+                                // highlightIfNull = {true}
                                 time={itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet]} title={field.name} 
                                 onTimeChange={(e)=>handleFieldValueChange(field.toSet, field.id, e)} />
                         </div>)
@@ -1209,6 +1209,16 @@ function AddScannedTicket(
     const [fileSelected, setFileSelected] = useState(presentURL!=undefined && presentURL!=null ? true : false)
     const [preview, setPreview] = useState(presentURL)
     const [uploading, setUploading] = useState(false)
+    const [scanCompleteModal, setScanCompleteModal] = useState(false);
+    const [modalClosed, setModalClosed] = useState(false);
+
+    useEffect(()=>{
+        if(scanComplete && !modalClosed){
+            //setScanCompleteModal(true);
+            window.parent.postMessage({message:"travel message posted" , 
+            ocrMsgData: { showPopup:true, message:"ocrMsg", iconCode: "103", autoSkip:false }}, DASHBOARD_URL);
+        }
+    })
 
      let firstTime  = true;
     useEffect(()=>{
@@ -1306,6 +1316,20 @@ function AddScannedTicket(
             </div>}
            {scanComplete && <div className=" m-4 p-4 flex-1 grid grid-cols-1 md:grid-cols-2 gap-2 overflow-y-scroll scroll">
             {console.log(expenseCategories, addTicketVariables)}
+            
+            <Modal showModal={scanCompleteModal} setShowModal={setScanCompleteModal} >
+                <div className="px-6 py-4">
+                    <p className="font-cabin text-zinc-500 text-xl">Review Scanned Details</p>
+                    <div className="mt-6 mb-6 text-normal text-neutral-800 font-cabin">
+                        <p>We’ve scanned the bill and extracted its details. Please review the following information carefully before submission:</p>
+                        <p className="mt-4">Verify that all the extracted values are accurate.</p>
+                        <p>Enter any missing values or correct errors if necessary.</p>
+                        <p className="mt-4">This step ensures that the information submitted is accurate. Once you’re satisfied with the details, click Submit to proceed.</p>
+                    </div>
+                    <Button text='OK' onClick={()=>{setScanCompleteModal(false); setModalClosed(true)}}/>
+                </div>
+            </Modal>
+
             {expenseCategories[addTicketVariables.transportType.toLowerCase()]?.length>0 && expenseCategories[addTicketVariables.transportType.toLowerCase()].map((field,index)=>{
 
                 switch(field.type){
@@ -1314,10 +1338,33 @@ function AddScannedTicket(
                                         <Input 
                                             title={field.name} 
                                             value={field.toSet == field.id ? itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet] : itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet].billDetails[field.id]} 
+                                            //value={itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet]}
                                             onChange={(e)=>handleFieldValueChange(field.toSet, field.id, e)} />
                                     </div>)
 
-                    case 'date' : return(  
+                    // case 'date' : return(  
+                    //     <div className='' key={index}>
+
+                    //         <div className="min-w-[200px] w-full md:w-fit max-w-[403px] h-[73px] flex-col justify-start items-start gap-2 inline-flex">
+                    //             {/* title */}
+                    //             <div className="text-zinc-600 text-sm font-cabin">{field.name}</div>
+
+                    //             {/* input */}
+                    //             <div className="relative w-full h-full bg-white items-center flex">
+                    //                 <div className="text-neutral-700 w-full  h-full text-sm font-normal font-cabin">
+                    //                     <input 
+                    //                     type='date' 
+                    //                     min={getDateXDaysAway(Number(minDaysBeforeBooking))}
+                    //                     className={`w-full h-full decoration:none px-6 py-2 border rounded-md border ${itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet]!=null ? 'border-neutral-300' : 'border-red-300'} focus-visible:outline-0 focus-visible:border-indigo-600 `}
+                    //                     name={field.name} 
+                    //                     value={itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet]}
+                    //                     onChange={(e)=>handleFieldValueChange(field.toSet, field.id, e)} />
+                    //                 </div>
+                    //             </div>
+                    //         </div>
+                    //     </div>)
+
+                        case 'date' : return( (field.toSet != 'bkd_returnDate' || addTicketVariables.toSet != 'cabs' ||   itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex].isFullDayCab) &&
                         <div className='' key={index}>
 
                             <div className="min-w-[200px] w-full md:w-fit max-w-[403px] h-[73px] flex-col justify-start items-start gap-2 inline-flex">
@@ -1328,11 +1375,12 @@ function AddScannedTicket(
                                 <div className="relative w-full h-full bg-white items-center flex">
                                     <div className="text-neutral-700 w-full  h-full text-sm font-normal font-cabin">
                                         <input 
-                                        type='date' 
-                                        min={getDateXDaysAway(Number(minDaysBeforeBooking))}
-                                        className="w-full h-full decoration:none px-6 py-2 border rounded-md border border-neutral-300 focus-visible:outline-0 focus-visible:border-indigo-600 "
+                                        type='date'
+                                        highlightIfNull = {true} 
+                                        // min={getDateXDaysAway(Number(minDaysBeforeBooking))}
+                                        className={`w-full h-full decoration:none px-6 py-2 border rounded-md border ${itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet]!=null ? 'border-neutral-300' : 'border-red-300'} focus-visible:outline-0 focus-visible:border-indigo-600 `}
                                         name={field.name} 
-                                        value={itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet]}
+                                        value={itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet] ? itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet] : itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet.split('_')[1]]}
                                         onChange={(e)=>handleFieldValueChange(field.toSet, field.id, e)} />
                                     </div>
                                 </div>
@@ -1342,6 +1390,7 @@ function AddScannedTicket(
                     case 'time' : return(  
                         <div className='' key={index}>
                             <TimePicker 
+                                //highlightIfNull = {true} 
                                 time={itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet]} title={field.name} 
                                 onTimeChange={(e)=>handleFieldValueChange(field.toSet, field.id, e)} />
                         </div>)
@@ -1450,6 +1499,15 @@ function getDateXDaysAway(days) {
     return `${year}-${month}-${day}`;
   }
 
+function formattedDate(date){
+    const givenDate = new Date(date);
+    const day = String(givenDate.getDate()).padStart(2,'0');
+    const month = String(givenDate.getMonth()).padStart(2,'0');
+    const year = givenDate.getFullYear();
+
+    return `${year}-${month}-${day}`;
+}
+
   function formattedTime(timeValue){
     try{
         // if(timeValue == null || timeValue == undefined) return timeValue
@@ -1464,15 +1522,6 @@ function getDateXDaysAway(days) {
     catch(e){
         return timeValue
     }
-}
-
-function formattedDate(date){
-    const givenDate = new Date(date);
-    const day = String(givenDate.getDate()).padStart(2,'0');
-    const month = String(givenDate.getMonth()).padStart(2,'0');
-    const year = givenDate.getFullYear();
-
-    return `${year}-${month}-${day}`;
 }
 
 function getStatusClass(status){
