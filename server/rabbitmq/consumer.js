@@ -2,7 +2,7 @@
 import dotenv from 'dotenv';
 import { updateTrip, updateTripToCompleteOrClosed } from './messageProcessor/trip.js';
 import { deleteReimbursement, updateReimbursement } from './messageProcessor/reimbursement.js';
-import { fullUpdateExpense } from './messageProcessor/travelExpenseProcessor.js';
+import { fullUpdateExpense, settleExpenseReport } from './messageProcessor/travelExpenseProcessor.js';
 import { approveRejectCashRaisedLater, approveRejectRequests, expenseReportApproval, nonTravelReportApproval, travelStandAloneApproval, travelWithCashTravelApproval } from './messageProcessor/dashboard.js';
 import { settleNonTravelExpenseReport, settleOrRecoverCashAdvance } from './messageProcessor/finance.js';
 import { fullUpdateTravel, fullUpdateTravelBatchJob } from './messageProcessor/travel.js';
@@ -181,7 +181,7 @@ export async function startConsumer(receiver) {
                 break;
             
               case 'delete':
-                console.log('Trying to update reimbursement Data');
+                console.log('Trying to delete reimbursement Data');
                 const res8 = await deleteReimbursement(payload);
                 handleMessageAcknowledgment(channel, msg, res8);
                 break;
@@ -295,11 +295,11 @@ export async function startConsumer(receiver) {
               handleMessageAcknowledgment(channel, msg, res8);
               break;
 
-            case 'expense-approval':
-              const res9 = await expenseReportApproval(payload);
-              console.log(res9)
-              handleMessageAcknowledgment(channel, msg, res9);
-              break;
+            // case 'expense-approval':
+            //   const res9 = await expenseReportApproval(payload);
+            //   console.log(res9)
+            //   handleMessageAcknowledgment(channel, msg, res9);
+            //   break;
 
             case 'nte-full-update':
               const res10 = await nonTravelReportApproval(payload);
@@ -455,7 +455,7 @@ export async function startConsumer(receiver) {
       }
     }}, { noAck: false });
  } catch (e) {
-  console.error("Failed to establish RabbitMQ connection:", error.message);
+  console.error("Failed to establish RabbitMQ connection:", e.message);
     throw e;
 }
 }

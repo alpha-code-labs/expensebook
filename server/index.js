@@ -10,6 +10,8 @@ import HRCompany from './models/hrCompanySchema.js';
 import cookieParser from 'cookie-parser';
 import { closeRabbitMQConnection, getRabbitMQConnection } from './rabbitmq/connection.js';
 import { closeMongoDBConnection, connectToMongoDB } from './db/db.js';
+import REIMBURSEMENT from './models/reimbursementSchema.js';
+import { deleteReimbursement } from './rabbitmq/messageProcessor/reimbursement.js';
 
 dotenv.config();
 const app = express();
@@ -164,5 +166,7 @@ process.on('SIGINT', () => shutdown('SIGINT').catch(console.error));
 initializeServer().catch(console.error);
 
 
-
-
+// const datas = await deleteReimbursement({"expenseHeaderId":"6707cf303997100189957049"})
+// console.log("what data", datas)
+// const data = await REIMBURSEMENT.find({"expenseHeaderId":"6707cf303997100189957049"})
+// console.log("data", JSON.stringify(data,'',2))

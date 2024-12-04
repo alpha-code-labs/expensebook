@@ -36,44 +36,48 @@ import reporting from "../../models/reportingSchema.js";
 
 export const fullUpdateExpense = async (payload) => {
   const { getExpenseReport } = payload;
-  const { tenantId, tripId, travelRequestData } = getExpenseReport;
+  const { tenantId, travelRequestData, tripId } = getExpenseReport;
   const { travelRequestId } = travelRequestData;
   console.log("payload for travelExpenseData: full update expense", payload);
 
   try {
-    // Check if the document exists
-    const existingDocument = await reporting.findOne({
+    const filter = {
       tenantId,
       $or: [
         { 'travelRequestData.travelRequestId': travelRequestId },
         { tripId }
       ]
-    });
-    
-    if (existingDocument) {
-      // Update the existing document
-      const updated = await reporting.updateOne(
-        { tenantId, 'travelRequestData.travelRequestId': travelRequestId, tripId },
-        { $set: { ...getExpenseReport } },
-        { new: true }
-      );
-      console.log('Updated document successfully', updated);
-    } else {
-      // Insert a new document
-      const newDocument = await reporting.insertOne(getExpenseReport);
-      console.log('Inserted new document successfully', newDocument);
-    }
+    };
 
-    return { success: true, error: null };
+    const updateOptions = {
+      upsert: true,
+      returnDocument: 'after'
+    };
+
+    const result = await reporting.findOneAndUpdate(
+      filter,
+      { $set: { travelExpenseData: getExpenseReport } },
+      updateOptions
+    );
+
+    console.log(result
+      ? 'Expense report successfully updated/inserted'
+      : 'No document matched the update criteria'
+    );
+
+    return {
+      success: true,
+      data: result
+    };
+
   } catch (error) {
-    console.error('Failed to update dashboard: TravelExpenseData updation failed', error);
-    return { success: false, error: error };
+    console.error('Failed to update travel expense data', error);
+    return {
+      success: false,
+      error: error.message
+    };
   }
 };
-
-
-
-
 
 
 export const settleExpenseReport= async (payload) => {

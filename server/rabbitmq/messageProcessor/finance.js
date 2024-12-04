@@ -47,67 +47,175 @@ export const settleExpenseReport= async (payload) => {
 };
 
 
-//settle cashAdvance
+// export const settleOrRecoverCashAdvance = async (payload) => {
+//     try {
+//       const { tenantId, travelRequestId, cashAdvanceId, paidBy ,cashAdvanceStatus,paidFlag,
+//           recoveredBy,recoveredFlag,settlementDetails
+//       } = payload;
+  
+//       const report = await reporting.findOne(
+//         { 
+//           tenantId,
+//           'cashAdvancesData': { $elemMatch: { travelRequestId } }
+//           // 'cashAdvancesData': { $elemMatch: { cashAdvanceId,travelRequestId } }
+//         },)
+
+//         console.log("report", JSON.stringify(report,'',2))
+
+//         const { expenseAmountStatus,cashAdvancesData,} = report
+//         const isCash = cashAdvancesData.find(c => c.cashAdvanceId.toString() === cashAdvanceId.toString())
+
+
+//       console.log("settle ca payload", payload)
+//       const updateCashDoc = {
+//           'cashAdvancesData.$.cashAdvanceStatus': cashAdvanceStatus, 
+//       }
+
+//       if(paidBy !== undefined && paidFlag !== undefined){
+//         updateCashDoc['cashAdvancesData.$.paidBy'] = paidBy,
+//         updateCashDoc['cashAdvancesData.$.paidFlag'] = paidFlag
+//       }
+
+//       if(recoveredBy !== undefined && recoveredFlag !== undefined){
+//         updateCashDoc['cashAdvancesData.$.recoveredBy'] = recoveredBy,
+//         updateCashDoc['cashAdvancesData.$.recoveredFlag'] = recoveredFlag
+//       }
+
+//       if(Array.isArray(settlementDetails) && settlementDetails.length>0){
+//         updateCashDoc['push']={
+//           'cashAdvancesData.$.settlementDetails':settlementDetails
+//         }
+//       }
+
+//       const trip = await reporting.findOneAndUpdate(
+//         { 
+//           tenantId,
+//           'cashAdvancesData': { $elemMatch: { cashAdvanceId,travelRequestId } }
+//         },
+//         { 
+//           $set: updateCashDoc
+//         },
+//         { new: true }
+//       );
+  
+//       if(!trip){
+//       throw new Error('cash advance status change to paid failed : while updating db')
+//       }
+//       console.log('Travel request status updated in approval microservice:', trip);
+//       return { success: true, error: null };
+//     } catch (error) {
+//       console.error('Failed to update travel request status in approval microservice:', error.message);
+//       return { success: false, error: error.message };
+//     }
+// };
+
+
 export const settleOrRecoverCashAdvance = async (payload) => {
-    try {
-      const { tenantId, travelRequestId, cashAdvanceId, paidBy ,cashAdvanceStatus,paidFlag,
-          recoveredBy,recoveredFlag,settlementDetails
-      } = payload;
-  
-      const report = await reporting.findOne(
-        { 
-          tenantId,
-          'cashAdvancesData': { $elemMatch: { travelRequestId } }
-          // 'cashAdvancesData': { $elemMatch: { cashAdvanceId,travelRequestId } }
-        },)
+  const { 
+    tenantId, 
+    travelRequestId, 
+    cashAdvanceId, 
+    paidBy,
+    cashAdvanceStatus,
+    paidFlag,
+    recoveredBy,
+    recoveredFlag,
+    settlementDetails
+  } = payload;
 
-        console.log("report", JSON.stringify(report,'',2))
+  const update = {
+    cashAdvanceId,
+    paidBy, 
+    cashAdvanceStatus,
+    recoveredBy,
+    settlementDetails
+  }
 
-        const { expenseAmountStatus,cashAdvancesData,} = report
-        const isCash = cashAdvancesData.find(c => c.cashAdvanceId.toString() === cashAdvanceId.toString())
-
-
-      console.log("settle ca payload", payload)
-      const updateCashDoc = {
-          'cashAdvancesData.$.cashAdvanceStatus': cashAdvanceStatus, 
-      }
-
-      if(paidBy !== undefined && paidFlag !== undefined){
-        updateCashDoc['cashAdvancesData.$.paidBy'] = paidBy,
-        updateCashDoc['cashAdvancesData.$.paidFlag'] = paidFlag
-      }
-
-      if(recoveredBy !== undefined && recoveredFlag !== undefined){
-        updateCashDoc['cashAdvancesData.$.recoveredBy'] = recoveredBy,
-        updateCashDoc['cashAdvancesData.$.recoveredFlag'] = recoveredFlag
-      }
-
-      if(Array.isArray(settlementDetails) && settlementDetails.length>0){
-        updateCashDoc['push']={
-          'cashAdvancesData.$.settlementDetails':settlementDetails
-        }
-      }
-
-      const trip = await reporting.findOneAndUpdate(
-        { 
-          tenantId,
-          'cashAdvancesData': { $elemMatch: { cashAdvanceId,travelRequestId } }
+  console.group("Cash Advance Paid")
+  console.log("Cash paid kaboom", payload)
+  console.groupCollapsed("Cash Advance logic");
+  try {
+    const updatedTrip = await reporting.findOneAndUpdate(
+      {
+        tenantId,
+        cashAdvancesData: {
+          $elemMatch: {
+            cashAdvanceId: cashAdvanceId.toString(),
+            travelRequestId: travelRequestId.toString(),
+          },
         },
-        { 
-          $set: updateCashDoc
+      },
+      {
+        $set: {
+          'cashAdvancesData.$[elem].cashAdvanceStatus': payload.cashAdvanceStatus,
+          'cashAdvancesData.$[elem].paidBy':payload.paidBy,
+          'cashAdvancesData.$[elem].recoveredBy': payload.recoveredBy,
+          'cashAdvancesData.$[elem].settlementDetails': payload.settlementDetails,
+
         },
-        { new: true }
+      },
+      {
+        new: true, 
+        arrayFilters: [
+          { 
+            'elem.cashAdvanceId': cashAdvanceId.toString(),
+            'elem.travelRequestId': travelRequestId.toString(),
+          },
+        ],
+        runValidators: true, 
+      }
+    );
+    
+    if (!updatedTrip) {
+      throw new Error(
+        `Failed to update cash advance status for cashAdvanceId: ${cashAdvanceId}, travelRequestId: ${travelRequestId}, tenantId: ${tenantId}`
       );
-  
-      if(!trip){
-      throw new Error('cash advance status change to paid failed : while updating db')
-      }
-      console.log('Travel request status updated in approval microservice:', trip);
-      return { success: true, error: null };
-    } catch (error) {
-      console.error('Failed to update travel request status in approval microservice:', error.message);
-      return { success: false, error: error.message };
     }
+
+    const checkCashAdvanceStatus = (cashAdvancesData, cashAdvanceId, travelRequestId, payload) => {
+      const cashAdvance = cashAdvancesData.find(
+        (c) =>
+          c.cashAdvanceId.toString() === cashAdvanceId.toString() 
+      );
+    
+      if (!cashAdvance) {
+        return {
+          success: false,
+          error: `Cash advance with ID: ${cashAdvanceId} and travelRequestId: ${travelRequestId} not found.`,
+        };
+      }
+    
+      if (cashAdvance.cashAdvanceStatus === payload.cashAdvanceStatus) {
+        return {
+          success: true,
+          error: null,
+          message: `Cash advance status updated successfully for ID: ${cashAdvanceId}, travelRequestId: ${travelRequestId}`,
+        };
+      } else {
+        return {
+          success: false,
+          error: `Mismatch in status for cashAdvanceId: ${cashAdvanceId}, travelRequestId: ${travelRequestId}. Expected: ${payload.cashAdvanceStatus}, Found: ${cashAdvance.status}`,
+        };
+      }
+    };
+    
+    const result = checkCashAdvanceStatus(
+      updatedTrip.cashAdvancesData,
+      cashAdvanceId,
+      travelRequestId,
+      payload
+    );
+    
+    if (!result.success) {
+      throw new Error(result.error);
+    }
+    
+    return result;
+
+  } catch (error) {
+    console.error('Error in settleOrRecoverCashAdvance:', error);
+    return { success: false, error: error.message };
+  }
 };
 
 
