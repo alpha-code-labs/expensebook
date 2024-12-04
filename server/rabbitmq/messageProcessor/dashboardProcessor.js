@@ -165,7 +165,6 @@ export const fullUpdateExpense = async (payloadArray) => {
       { 
         tenantId,
         travelRequestId,
-        'tripSchema.travelExpenseData.actionedUpon':false,
         },
       {
        $set:{
