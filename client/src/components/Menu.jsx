@@ -6,7 +6,7 @@ import Select from './common/Select';
 import { useParams } from 'react-router-dom';
 import { employees, travelRequestStatus, travelType } from '../data/userData';
 import MultiSearch from '../components/common/MultiSearch';
-import Button from './common/Button';
+import Button1 from './common/Button1';
 import TripReport from '../report/TripReport';
 import PopupMessage from './common/PopupMessage';
 import ExpenseReport from '../report/ExpenseReport';
@@ -31,6 +31,7 @@ import "jspdf-autotable";
 const Menu = () => {
 
   const {tenantId,empId}= useParams();
+  const dashboardBaseUrl = `${import.meta.env.VITE_DASHBOARD_URL}`;
 
   const reportConfigInputs = {
     trips: [
@@ -296,7 +297,7 @@ const handleRunReport = async () => {
       
       // Check if data is empty and handle popup message for each tab
       if (newData.length === 0) {
-        setShowPopup(true);
+       
         
         let message = "";
         switch (reportTab) {
@@ -315,8 +316,10 @@ const handleRunReport = async () => {
           default:
             message = "No data found for the selected criteria.";
         }
-        setShowPopup(true)
-        setMessage(message);
+        // setShowPopup(true)
+        // setMessage(message);
+        window.parent.postMessage({message:"approval message posted" , 
+        popupMsgData: { showPopup:true, message:message, iconCode: "102" }}, dashboardBaseUrl);
         setFilterForm((prevForm) => ({
           role: prevForm?.role,
           fromDate:prevForm?.fromDate,
@@ -368,10 +371,10 @@ const handleRunReport = async () => {
       toDate: prevForm?.toDate
     }));
 
-    setTimeout(()=>{
-      setShowPopup(false)
-      setMessage(null)
-    },3000)
+    // setTimeout(()=>{
+    //   setShowPopup(false)
+    //   setMessage(null)
+    // },3000)
     setShowModal(false)
 
     console.log('Report Data Set:', response);
@@ -380,9 +383,11 @@ const handleRunReport = async () => {
     setIsUploading((prev) => ({ ...prev, filterReport: false, }));
     setShowModal(false)
   } catch (error) {
-    setShowPopup(true)
-    setMessage(error.message)
-    setTimeout(() => {setIsUploading((prev) => ({ ...prev, filterReport: false }));setMessage(null);setShowPopup(false)},3000);
+    // setShowPopup(true)
+    // setMessage(error.message)
+    window.parent.postMessage({message:"approval message posted" , 
+    popupMsgData: { showPopup:true, message:error?.message, iconCode: "102" }}, dashboardBaseUrl);
+    setTimeout(() => {setIsUploading((prev) => ({ ...prev, filterReport: false }));},3000);
   }
 
 };
@@ -535,10 +540,10 @@ return (
 
   <Modal showModal={showModal} setShowModal={setShowModal} skipable={true}>  
     <div className='h-full'>
-      <div className='sticky top-0 z-10 flex gap-2 justify-between items-center bg-indigo-100 w-auto  p-4'>
+      <div className='sticky top-0 z-10 flex gap-2 justify-between items-center bg-gray-100 w-auto  p-4'>
             <div className='flex gap-2'>
               {/* <img src={info_icon} className='w-5 h-5' alt="Info icon"/> */}
-              <p className='font-inter capitalize text-base font-semibold text-indigo-600'>
+              <p className='font-inter capitalize text-base font-semibold text-neutral-900'>
               {`${reportTab}s Report`}
               </p>
             </div>
@@ -709,7 +714,7 @@ return (
       }  
 
       <div className='pt-4'>
-        <Button loading={isUploading.filterReport} text="Run Report" onClick={handleRunReport}/>
+        <Button1 loading={isUploading.filterReport} text="Run Report" onClick={handleRunReport}/>
       </div>
       </div>
     
@@ -719,7 +724,7 @@ return (
 </div>}
 
 </div>
-<PopupMessage showPopup={showPopup} setShowPopup={setShowPopup} message={message}/>
+{/* <PopupMessage showPopup={showPopup} setShowPopup={setShowPopup} message={message}/> */}
 </>
   )
 
