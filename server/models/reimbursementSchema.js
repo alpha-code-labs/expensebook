@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 import { approverStatusEnums} from "./travelSchema.js";
 
 // Define constant enums for expenseStatus and expenseHeaderType
-const expenseHeaderStatusEnums = [
+export const expenseHeaderStatusEnums = [
   'new',
   'draft',
   'pending approval', 
@@ -212,9 +212,5 @@ expenseSettledDate: Date,
 const REIMBURSEMENT = mongoose.model('Reimbursement', reimbursementSchema);
 
 export default REIMBURSEMENT
-
-export{
-  expenseHeaderStatusEnums,
-}
 
 
