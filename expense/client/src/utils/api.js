@@ -79,7 +79,9 @@ export const getTravelExpenseApi = async (tenantId,empId,tripId) => {
 
 export const ocrScanApi = async (params, formData) => {
   const { categoryName, travelType, tenantId } = params;
-  const url = `${EXPENSE_BACKEND_API_URL}/api/fe/expense/upload/${tenantId}/${travelType}/${categoryName}`;
+  const category = categoryName.toLowerCase();
+
+  const url = `${EXPENSE_BACKEND_API_URL}/api/fe/expense/upload/${tenantId}/${travelType}/${category}`;
 
   try {
     // Send POST request with FormData payload
