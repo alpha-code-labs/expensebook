@@ -2,61 +2,60 @@ import Joi from "joi";
 import { financeSchema, sendUpdate } from "./cashAdvanceController.js";
 import REIMBURSEMENT from "../models/reimbursement.js";
 
-
 export const extractCategoryAndTotalAmount = (expenseLines) => {
   const fixedFields = [
-      'Total Amount', 
-      'Total Fare', 
-      'Premium Amount', 
-      'Total Cost', 
-      'License Cost', 
-      'Subscription Cost',  
-      'Premium Cost',
-      'Cost', 
-      'Tip Amount',
+    "Total Amount",
+    "Total Fare",
+    "Premium Amount",
+    "Total Cost",
+    "License Cost",
+    "Subscription Cost",
+    "Premium Cost",
+    "Cost",
+    "Tip Amount",
   ];
 
   const results = [];
-  let expenseTotalAmount = 0; 
+  let expenseTotalAmount = 0;
 
-  expenseLines.forEach(expenseLine => {
-      if (expenseLine.lineItemStatus === 'approved') {
-          const categoryName = expenseLine['Category Name'] || ''; 
-          const keyFound = Object.entries(expenseLine).find(([key]) =>
-              fixedFields.some(name => name.trim().toUpperCase() === key.trim().toUpperCase())
-          );
-          const totalAmount = keyFound ? Number(keyFound[1]) || 0 : 0; 
-          expenseTotalAmount += totalAmount; 
-          results.push({ categoryName, totalAmount });
-      }
+  expenseLines.forEach((expenseLine) => {
+    if (expenseLine.lineItemStatus === "approved") {
+      const categoryName = expenseLine["Category Name"] || "";
+      const keyFound = Object.entries(expenseLine).find(([key]) =>
+        fixedFields.some(
+          (name) => name.trim().toUpperCase() === key.trim().toUpperCase()
+        )
+      );
+      const totalAmount = keyFound ? Number(keyFound[1]) || 0 : 0;
+      expenseTotalAmount += totalAmount;
+      results.push({ categoryName, totalAmount });
+    }
   });
 
   return { results, expenseTotalAmount };
 };
 
+export const getReimbursement = async (tenantId, empId) => {
+  try {
+    // const {tenantId}= req.params
+    console.log("tenantId", tenantId);
 
-export const getReimbursement = async(tenantId, empId)=>{
-    try {
-      // const {tenantId}= req.params
-      console.log("tenantId", tenantId)
+    const status = {
+      PENDING_SETTLEMENT: "pending settlement",
+    };
 
-      const status = {
-        PENDING_SETTLEMENT:"pending settlement",
-      }
+    const getNonTravelExpenseReports = await REIMBURSEMENT.find({
+      tenantId,
+      actionedUpon: false,
+    });
 
-        const getNonTravelExpenseReports = await REIMBURSEMENT.find({
-          tenantId,
-          'actionedUpon': false
-      });
-
-        if(!getNonTravelExpenseReports){
-          return {success:true, message: `All are settled` };
-        } else{
-
-      console.log("non travel", getNonTravelExpenseReports )
+    if (!getNonTravelExpenseReports) {
+      return { success: true, message: `All are settled` };
+    } else {
+      // console.log("non travel", getNonTravelExpenseReports )
       const nonTravelExpense = getNonTravelExpenseReports.map((report) => {
-        // console.log("reports expense", JSON.stringify(report, null, 2)); 
-      
+        // console.log("reports expense", JSON.stringify(report, null, 2));
+
         const {
           expenseHeaderId,
           expenseHeaderNumber,
@@ -69,34 +68,38 @@ export const getReimbursement = async(tenantId, empId)=>{
           expenseAmountStatus,
         } = report;
 
-        const {expenseTotalAmount,results} = extractCategoryAndTotalAmount(expenseLines);
-      // console.log("expenseTotalAmount - result",expenseTotalAmount, "results", results)
-      // const {totalExpenseAmount} =expenseAmountStatus
+        const { expenseTotalAmount, results } =
+          extractCategoryAndTotalAmount(expenseLines);
+        // console.log("expenseTotalAmount - result",expenseTotalAmount, "results", results)
+        // const {totalExpenseAmount} =expenseAmountStatus
         return {
           expenseHeaderId,
           expenseHeaderNumber,
           expenseHeaderStatus,
-          expenseTotalAmount:expenseTotalAmount,
-          expenseLines:results,
+          expenseTotalAmount: expenseTotalAmount,
+          expenseLines: results,
           createdBy,
           defaultCurrency,
           settlementBy,
-          actionedUpon
+          actionedUpon,
         };
       });
-      
-      console.log("nonTravelExpense", JSON.stringify(nonTravelExpense, null, 2));
+
+      // console.log("nonTravelExpense", JSON.stringify(nonTravelExpense, null, 2));
       return nonTravelExpense;
-        }
-    } catch (error) {
-        throw new Error ({error: 'Error in  fetching non travel expense reports', error});
     }
+  } catch (error) {
+    throw new Error({
+      error: "Error in  fetching non travel expense reports",
+      error,
+    });
+  }
 };
 
 const nonTravelSchema = Joi.object({
   expenseHeaderId: Joi.string().required(),
   tenantId: Joi.string().required(),
-})
+});
 
 //Expense Header Reports with status as pending Settlement updated to paid(Non Travel Expense Reports).
 export const paidNonTravelExpenseReports = async (req, res, next) => {
@@ -104,106 +107,110 @@ export const paidNonTravelExpenseReports = async (req, res, next) => {
     // Validate request parameters and body
     const [params, body] = await Promise.all([
       nonTravelSchema.validateAsync(req.params),
-      financeSchema.validateAsync(req.body)
+      financeSchema.validateAsync(req.body),
     ]);
 
     const { tenantId, expenseHeaderId } = params;
     const { getFinance, settlementDetails } = body;
 
-    let setSettlementDetails
+    let setSettlementDetails;
 
     if (Array.isArray(settlementDetails) && settlementDetails.length > 0) {
-      setSettlementDetails = settlementDetails.map(details => ({
-    ...details,
-    status: 'paid',
-    }));
+      setSettlementDetails = settlementDetails.map((details) => ({
+        ...details,
+        status: "paid",
+      }));
     }
 
-    const {name, empId} = getFinance
+    const { name, empId } = getFinance;
     console.log("Received Parameters:", { tenantId, expenseHeaderId });
     console.log("Received Body Data: non travel", { getFinance });
 
     const status = {
-      APPROVED:'approved',
-      PENDING_SETTLEMENT: 'pending settlement',
-      PAID: 'paid',
+      APPROVED: "approved",
+      PENDING_SETTLEMENT: "pending settlement",
+      PAID: "paid",
     };
 
     const filter = {
-      'tenantId': tenantId,
-      'expenseHeaderId': expenseHeaderId,
-      'expenseHeaderStatus': status.PENDING_SETTLEMENT,
-      'actionedUpon': false
+      tenantId: tenantId,
+      expenseHeaderId: expenseHeaderId,
+      expenseHeaderStatus: status.PENDING_SETTLEMENT,
+      actionedUpon: false,
     };
 
     // Use findOneAndUpdate to find and update in one operation
-    const updateResult = await REIMBURSEMENT.findOne(
-      filter,
-    );
+    const updateResult = await REIMBURSEMENT.findOne(filter);
 
     if (!updateResult) {
-      return res.status(404).json({ message: 'No matching document found for update' });
+      return res
+        .status(404)
+        .json({ message: "No matching document found for update" });
     }
-  
-    const {expenseLines,settlementBy, expenseHeaderStatus } = updateResult
 
-    const updatedExpenseLines = expenseLines.map((line) =>{
-      const isPendingSettlement = line.lineItemStatus == status.APPROVED
-     if(isPendingSettlement){
-      return{
-        ...line,
-        lineItemStatus :status.PAID,
-        settlementBy :{name, empId},
-        expenseSettledDate: new Date(),
+    const { expenseLines, settlementBy, expenseHeaderStatus } = updateResult;
+
+    const updatedExpenseLines = expenseLines.map((line) => {
+      const isPendingSettlement = line.lineItemStatus == status.APPROVED;
+      if (isPendingSettlement) {
+        return {
+          ...line,
+          lineItemStatus: status.PAID,
+          settlementBy: { name, empId },
+          expenseSettledDate: new Date(),
+        };
       }
-     }
-     return line
-    })
+      return line;
+    });
 
-    console.log("updatedExpenseLines", JSON.stringify(updatedExpenseLines, '', 2))
+    console.log(
+      "updatedExpenseLines",
+      JSON.stringify(updatedExpenseLines, "", 2)
+    );
 
-    updateResult.expenseLines = updatedExpenseLines
-    updateResult.settlementBy = {name,empId}
-    updateResult.expenseHeaderStatus = status.PAID
-    updateResult.actionedUpon = true
-    updateResult.expenseSettledDate = new Date()
+    updateResult.expenseLines = updatedExpenseLines;
+    updateResult.settlementBy = { name, empId };
+    updateResult.expenseHeaderStatus = status.PAID;
+    updateResult.actionedUpon = true;
+    updateResult.expenseSettledDate = new Date();
     updateResult.settlementDetails = updateResult.settlementDetails || [];
     updateResult.settlementDetails.push(...setSettlementDetails);
 
-    const report = await updateResult.save()
+    const report = await updateResult.save();
 
     console.log("Update successful:", report);
 
-    const payload={
-      tenantId, expenseHeaderId, settlementBy:getFinance,expenseHeaderStatus:status.PAID, expenseSettledDate: new Date(),
-      settlementDetails:setSettlementDetails
-    }
+    const payload = {
+      tenantId,
+      expenseHeaderId,
+      settlementBy: getFinance,
+      expenseHeaderStatus: status.PAID,
+      expenseSettledDate: new Date(),
+      settlementDetails: setSettlementDetails,
+    };
 
-    const options={
-      action:'non-travel-paid',
-      comments:'status update to paid for non travel expense report ',
-      includeNonTravel:true
-    }
+    const options = {
+      action: "non-travel-paid",
+      comments: "status update to paid for non travel expense report ",
+      includeNonTravel: true,
+    };
 
-    await sendUpdate(payload,options)
-    return res.status(200).json({ message: "Non-travel expense has been successfully settled.", result: updateResult });
-
+    await sendUpdate(payload, options);
+    return res
+      .status(200)
+      .json({
+        message: "Non-travel expense has been successfully settled.",
+        result: updateResult,
+      });
   } catch (error) {
-    console.error('Error updating non travel expense report status:', error.message);
+    console.error(
+      "Error updating non travel expense report status:",
+      error.message
+    );
     next(error);
     // Optionally return a 500 error response
-    // return res.status(500).json({ message: 'Internal server error', error: error.message });
+    return res
+      .status(500)
+      .json({ message: "Internal server error", error: error.message });
   }
 };
-
-
-
-
-
-
-
-
-
-
-
-

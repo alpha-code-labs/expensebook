@@ -63,43 +63,45 @@ export const updateFinance = async (payload) => {
 // }
 
 export const fullUpdateReimbursement = async (settlements) => {
-  console.log("reimbursement array one..... ", JSON.stringify(settlements));
+  console.log("Reimbursement array: ", JSON.stringify(settlements));
+
   try {
     const updateAll = settlements.map(async (reimbursement) => {
       const { tenantId, expenseHeaderId } = reimbursement;
 
-      const reimbursementReport = await REIMBURSEMENT.findOneAndUpdate(
+      // Prepare the filter and replacement document
+      const filter = { tenantId, expenseHeaderId };
+      const replacement = { ...reimbursement };
+
+      // Ensure _id is not included in replacement
+      delete replacement._id;
+
+      const reimbursementReport = await REIMBURSEMENT.findOneAndReplace(
+        filter,
+        replacement,
         {
-          tenantId,
-          'actionedUpon': false,
-          'expenseHeaderId': expenseHeaderId,
-        },
-        {
-          $set: {
-            ...reimbursement,
-          },
-        },
-        {
-          upsert: true,
-          new: true,
+          upsert: true, // Create a new document if no match is found
+          returnDocument: 'after', // Return the document after the replacement
         }
       );
 
-      // console.log("reimbursementReport updated in finance db", reimbursementReport);
-      return { success: true, error: null };
+      return { success: true, reimbursement: reimbursementReport };
     });
 
     const results = await Promise.all(updateAll);
     const isSuccess = results.every(result => result.success);
+
     if (isSuccess) {
-      return { success: true, error: null };
+      return { success: true, data: results.map(result => result.reimbursement) };
     } else {
       return { success: false, error: "Some updates failed." };
     }
   } catch (error) {
+    console.error("Error updating reimbursements:", error);
     return { success: false, error: error.message };
   }
 };
+
 
 
 
