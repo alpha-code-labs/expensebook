@@ -12,7 +12,7 @@ const travelRequestStatusEnums = [
   "recovered",
   "paid and cancelled",
   "closed",
-  "completed"
+  "completed",
 ];
 
 const travelRequestStateEnums = [
@@ -25,20 +25,19 @@ const travelRequestStateEnums = [
 export const approverStatusEnums = ["pending approval", "approved", "rejected"];
 
 const itineraryStatusEnums = [
-  'draft', 
-  'pending approval', 
-  'approved', 
-  'rejected', 
-  'pending booking', 
-  'booked',
-  'cancelled',
-  'paid and cancelled',
-  'intransit',
-  'upcoming', 
-  'paid and cancelled',
-  'recovered',
+  "draft",
+  "pending approval",
+  "approved",
+  "rejected",
+  "pending booking",
+  "booked",
+  "cancelled",
+  "paid and cancelled",
+  "intransit",
+  "upcoming",
+  "paid and cancelled",
+  "recovered",
 ];
-
 
 export const itinerarySchema = {
   flights: [
@@ -230,7 +229,7 @@ export const itinerarySchema = {
       needBreakFast: Boolean,
       needLunch: Boolean,
       needDinner: Boolean,
-      needNonSmokingRoom : Boolean,
+      needNonSmokingRoom: Boolean,
       violations: {
         class: String,
         amount: String,
@@ -437,9 +436,9 @@ const formDataSchema = {
   itinerary: [
     {
       formId: String,
-      mode : String,
-      from : String,
-      to : String,
+      mode: String,
+      from: String,
+      to: String,
       date: String,
       returnDate: String,
       hotelNights: String,
@@ -447,12 +446,12 @@ const formDataSchema = {
       dropNeeded: Boolean,
       fullDayCabs: Number,
       fullDayCabDates: [String],
-      dateError:{set: Boolean, message:String},
-      returnDateError:{set: Boolean, message:String},
-      fromError: {set: Boolean, message:String},
-      toError: {set: Boolean, message:String},
-  },
-],
+      dateError: { set: Boolean, message: String },
+      returnDateError: { set: Boolean, message: String },
+      fromError: { set: Boolean, message: String },
+      toError: { set: Boolean, message: String },
+    },
+  ],
 };
 
 export const travelRequestSchema = new mongoose.Schema({
@@ -486,7 +485,7 @@ export const travelRequestSchema = new mongoose.Schema({
     type: String,
     // required: true,
   },
-  tripName:{
+  tripName: {
     type: String,
   },
   travelRequestStatus: {
@@ -546,16 +545,16 @@ export const travelRequestSchema = new mongoose.Schema({
   ],
   assignedTo: {
     empId: { type: String, default: null },
-    name: { type: String, default: null }
-},
-  bookedBy: { 
+    name: { type: String, default: null },
+  },
+  bookedBy: {
     empId: { type: String, default: null },
-    name: { type: String, default: null }
-   },
+    name: { type: String, default: null },
+  },
   recoveredBy: {
     empId: { type: String, default: null },
-    name: { type: String, default: null }
-    },
+    name: { type: String, default: null },
+  },
   preferences: [String],
   travelViolations: {},
   travelRequestDate: {
@@ -563,9 +562,9 @@ export const travelRequestSchema = new mongoose.Schema({
     default: Date.now(),
     required: true,
   },
-  actionedUpon:{
-    type:Boolean,
-    default:false
+  actionedUpon: {
+    type: Boolean,
+    default: false,
   },
   travelBookingDate: Date,
   travelCompletionDate: Date,
