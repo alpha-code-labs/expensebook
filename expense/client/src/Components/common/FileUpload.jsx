@@ -39,8 +39,9 @@ export default function FileUpload(props) {
         onFileSelect && onFileSelect(file); // Trigger the callback with the selected file
       
       } else {
-        setIsFileSelected(false); // If no file is selected, reset the flag
+        setIsFileSelected(false); 
       }
+      e.target.value = null;
    
   };
 

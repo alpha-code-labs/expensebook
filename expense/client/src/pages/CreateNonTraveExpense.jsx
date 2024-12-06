@@ -388,6 +388,7 @@ const CreateNonTraveExpense = () => {
   console.log("selected category", selectedCategory);
 
   const [selectedFile, setSelectedFile] = useState(null);
+  const [ocrUpload, setOcrUpload] = useState(false);
   const [isFileSelected, setIsFileSelected] = useState(false);
   const [initialFile, setInitialFile] = useState(false);
 
@@ -848,6 +849,7 @@ const CreateNonTraveExpense = () => {
 
   const handleOCRScan = () => {
     if (requiredObj?.category) {
+      setOcrUpload(true);
       setErrorMsg(prev => ({
         ...prev,
         category: { set: false, msg: "" },
@@ -930,6 +932,7 @@ const CreateNonTraveExpense = () => {
       
       window.parent.postMessage({message:"ocr message posted", 
       ocrMsgData: { showPopup:true, message:"ocrMsg", iconCode: "103",autoSkip:false }}, dashboardBaseUrl);
+      setOcrUpload(false);
       
     } catch (error) {
       // Log the error message if OCR scan fails
@@ -938,16 +941,18 @@ const CreateNonTraveExpense = () => {
       window.parent.postMessage({message:"expense message posted", 
       popupMsgData: { showPopup:true, message:errorMsg, iconCode: "104" }}, dashboardBaseUrl);
       setIsUploading((prev) => ({ ...prev, autoScan: false }));
-      setShowForm(true)
+      setShowForm(true);
+      setOcrUpload(false);
     } 
   };
   
   
-  useEffect(()=>{
-    console.log("selected file", selectedFile)
-    if(isFileSelected)
-    OCRScan(selectedFile)
-  },[isFileSelected])
+  useEffect(() => {
+    if (selectedFile && ocrUpload) { 
+      console.log("selected file", selectedFile);
+      OCRScan(selectedFile);
+    }
+  }, [selectedFile]);
 
   console.log("currency conversion", currencyConversion);
   const handleCurrencyConversion = async ({ currencyName, totalAmount }) => {
@@ -1289,6 +1294,14 @@ const CreateNonTraveExpense = () => {
   };
 
   const handleSelectCategory = async (option, action) => {
+    setFormData((prevData) => ({
+      ...prevData,
+      fields: {},
+    }));
+    setIsFileSelected(false);
+    setSelectedFile(null);
+    setShowForm(false);
+    setOcrUpload(false);
     console.log("handle category", option, action);
     setErrorMsg(prev => ({...prev, uploadFlag:{set:false,msg:""}}))
     let expenseHeaderId;
