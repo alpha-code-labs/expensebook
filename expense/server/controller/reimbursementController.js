@@ -13,7 +13,7 @@ const sendToMicroservices = async (
   onlineVsBatch,
   isApproval
 ) => {
-  const services = ["dashboard", "reporting"];
+  const services = ["dashboard", "reporting","finance"];
   if (isApproval) {
     services.unshift("approval");
   }
