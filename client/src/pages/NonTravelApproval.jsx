@@ -262,11 +262,11 @@ expenseAmountStatus={expenseAmtDetails}
   </div>
 )}
 
-<div className={`px-4 py-2 border-neutral-300 flex flex-row justify-between items-center ${grandTotal > 0 ? 'text-green-200' : 'text-red-500'}`}>
+<div className={`px-4 py-2 border-neutral-300 flex flex-row justify-between items-center`}>
   <div className={`text-sm text-inter font-semibold mb-1`}>
     {Number(grandTotal) > 0
-      ? 'No recovery needed. Amount to be Reimbursed.'
-      : 'Recovery needed. Amount to be Recovered.'}
+      ? 'Reimbursement Amount'
+      : 'Recovery Amount'}
   </div>
   <div className="text-sm pl-4 font-semibold">
     {`${expenseData?.defaultCurrency?.shortName} ${formatAmount(grandTotal) ?? "-"}`}
