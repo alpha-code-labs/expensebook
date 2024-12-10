@@ -826,7 +826,7 @@ const handleRemoveFile=()=>{
       expenseSettlement: requiredObj?.selectedExpenseSettlement || "",
       approvers: requiredObj?.travelExpenseData?.[0]?.approvers || [],
     };
-    if (!requiredObj?.selectedExpenseSettlement && requiredObj?.expenseAmountStatus?.totalRemainingCash?.toFixed(2) >=0) {
+    if (!requiredObj?.selectedExpenseSettlement && requiredObj?.expenseAmountStatus?.totalRemainingCash?.toFixed(2) < 0) {
       setErrorMsg((prevErrors) => ({
         ...prevErrors,
         expenseSettlement: { set: true, msg: "Select the settlement mode" },
@@ -2116,7 +2116,7 @@ function ExpenseHeader({
               </div>
             ))}
 
-          {(settlementOptions?.length > 0 && expenseAmountStatus?.totalRemainingCash?.toFixed(2) >=0 )&& (
+          {(settlementOptions?.length > 0 && expenseAmountStatus?.totalRemainingCash?.toFixed(2) <0 )&& (
             <div className="">
               <Select
                 currentOption={selectedExpenseSettlement}
