@@ -38,7 +38,7 @@ const reportingSchema = new mongoose.Schema({
   tenantId: {
     type: String,
     required: true,
-    index: true,
+    // index: true,
   },
   tenantName: {
     type: String,
@@ -50,7 +50,7 @@ const reportingSchema = new mongoose.Schema({
   },
   travelRequestId: {
     type: mongoose.Schema.Types.ObjectId,
-    unique: true,
+    // unique: true,
     // required: true,
     // index:true,
   },

@@ -1,3 +1,4 @@
+import { set } from "mongoose";
 import {
   getMonthRange,
   getQuarterRange,
@@ -93,13 +94,11 @@ export const getReimbursementExpenseReport = async (req, res) => {
     });
 
     if (error) {
-      return res
-        .status(400)
-        .json({
-          message: error.details[0].message,
-          reports: [],
-          success: false,
-        });
+      return res.status(400).json({
+        message: error.details[0].message,
+        reports: [],
+        success: false,
+      });
     }
 
     const {
@@ -114,7 +113,8 @@ export const getReimbursementExpenseReport = async (req, res) => {
       approvers,
       expenseSubmissionDate,
       expenseHeaderStatus,
-      getGroups,
+      getGroups = [],
+      getDepartments = [],
     } = value;
 
     let filterCriteria = {
@@ -125,10 +125,14 @@ export const getReimbursementExpenseReport = async (req, res) => {
 
     console.log("get Groups", typeof getGroups);
 
+    const addUniqueIds = (currentIds, newIds) => [
+      ...new Set([...currentIds, ...newIds]),
+    ];
     const forTeam = [getGroups];
+    let empIds = [empId];
+
     let getHrInfo;
     let getHrData;
-    let empIds;
     let employeeDocument,
       employeeDetails,
       group,
@@ -158,14 +162,14 @@ export const getReimbursementExpenseReport = async (req, res) => {
         getAllGroups,
         matchedEmployees,
       } = getHrInfo);
-      empIds = matchedEmployees
-        ? matchedEmployees.map((e) => e.empId)
-        : [empId];
+      const newEmpIds = matchedEmployees?.map((e) => e.empId) || [];
+      empIds = addUniqueIds(empIds, newEmpIds);
     }
 
     if (!empNames?.length || isMyView || empNames?.length) {
       getHrData = await getEmployeeDetails(tenantId, empId);
-      empIds = empNames ? empNames.map((e) => e.empId) : [empId];
+      const newEmpIds = empNames?.map((e) => e.empId) || [];
+      empIds = addUniqueIds(empIds, newEmpIds);
     }
 
     console.log("empNames", JSON.stringify(empIds, "", 2));

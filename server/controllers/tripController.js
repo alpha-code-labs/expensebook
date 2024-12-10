@@ -10,7 +10,11 @@ import {
 } from "../helpers/dateHelpers.js";
 import HRCompany from "../models/hrCompanySchema.js";
 import { expenseHeaderStatusEnums } from "../models/travelExpenseSchema.js";
-import { getEmployeeDetails, getGroupDetails } from "../utils/functions.js";
+import {
+  getEmployeeDetails,
+  getEmployeeIdsByDepartment,
+  getGroupDetails,
+} from "../utils/functions.js";
 import { tripFilterSchema } from "./financeController.js";
 
 function getItinerary(itinerary) {
@@ -402,6 +406,7 @@ const filterTrips = async (req, res) => {
       travelAllocationHeaders,
       approvers,
       getGroups = [],
+      getDepartments = [],
     } = value;
 
     console.log("role filter trips", role);
@@ -409,20 +414,55 @@ const filterTrips = async (req, res) => {
     const isMyView = role === "myView";
     const isFinanceView = role === "financeView";
     const isTeamView = role === "teamView";
+    const isSuperAdmin = role === "superAdmin";
 
     console.log("my view", typeof role);
+    // let empIds = [empId];
+    // if (isFinanceView || getGroups.length) {
+    //   const { matchedEmployees} = await getGroupDetails(
+    //     tenantId,
+    //     empId,
+    //     getGroups
+    //   );
+    //   empIds = matchedEmployees?.map((e) => e.empId) || empIds;
+    // } else if (isMyView && empNames?.length) {
+    //   await getEmployeeDetails(tenantId, empId);
+    //   empIds = empNames.map((e) => e.empId);
+    // } else if (isFinanceView) {
+    // } else if(getDepartments.length){
+    //   const getEmpIds = await getEmployeeIdsByDepartment(tenantId,empId,department)
+    //   console.log("getEmpIds for filterTrips superAdmin", getEmpIds)
+    // }
+    const addUniqueIds = (currentIds, newIds) => [
+      ...new Set([...currentIds, ...newIds]),
+    ];
+
     let empIds = [empId];
+
     if (isFinanceView || getGroups.length) {
       const { matchedEmployees } = await getGroupDetails(
         tenantId,
         empId,
         getGroups
       );
-      empIds = matchedEmployees?.map((e) => e.empId) || empIds;
-    } else if (isMyView && empNames?.length) {
+      const newEmpIds = matchedEmployees?.map((e) => e.empId) || [];
+      empIds = addUniqueIds(empIds, newEmpIds);
+    }
+
+    if (isMyView && empNames?.length) {
       await getEmployeeDetails(tenantId, empId);
-      empIds = empNames.map((e) => e.empId);
-    } else if (isFinanceView) {
+      const newEmpIds = empNames.map((e) => e.empId);
+      empIds = addUniqueIds(empIds, newEmpIds);
+    }
+
+    if (getDepartments.length) {
+      const getEmpIds = await getEmployeeIdsByDepartment(
+        tenantId,
+        empId,
+        department
+      );
+      console.log("getEmpIds for filterTrips superAdmin", getEmpIds);
+      empIds = addUniqueIds(empIds, getEmpIds);
     }
 
     console.log("empIds for filter TRips", empIds);
@@ -732,14 +772,17 @@ const filterTravelExpenses = async (req, res) => {
       expenseHeaderStatus,
       travelAllocationHeaders,
       approvers,
-      getGroups,
+      getGroups = [],
+      getDepartments = [],
     } = value;
 
     const approverEmpIds = approvers?.map((a) => a.empId);
     const forTeam = [getGroups];
     let getHrInfo;
     let getHrData;
-    let empIds = [empId];
+    // const addUniqueIds = (currentIds, newIds) => [...new Set([...currentIds, ...newIds])];
+
+    // let empIds = [empId];
     let employeeDocument,
       employeeDetails,
       group,
@@ -752,30 +795,68 @@ const filterTravelExpenses = async (req, res) => {
 
     console.log("my view", typeof role);
 
+    // if (isFinanceView && getGroups?.length) {
+    //   getHrInfo = await getGroupDetails(tenantId, empId, getGroups);
+    //   ({
+    //     employeeDocument,
+    //     employeeDetails,
+    //     group,
+    //     getAllGroups,
+    //     matchedEmployees,
+    //   } = getHrInfo);
+    //   empIds = matchedEmployees
+    //     ? matchedEmployees.map((e) => e.empId)
+    //     : [empId];
+    // }
+
+    // if (!empNames?.length || isMyView || empNames?.length) {
+    //   getHrData = await getEmployeeDetails(tenantId, empId);
+    //   empIds = empNames ? empNames.map((e) => e.empId) : [empId];
+    // }
+
+    // let filterCriteria = {
+    //   tenantId: tenantId,
+    // };
+
+    // console.log("get Groups", typeof getGroups);
+
+    // if (empIds?.length) {
+    //   filterCriteria["createdBy.empId"] = { $in: empIds };
+    // } else {
+    //   filterCriteria["createdBy.empId"] = empId;
+    // }
+    const addUniqueIds = (currentIds, newIds) => [
+      ...new Set([...currentIds, ...newIds]),
+    ];
+
+    let empIds = [empId];
+
     if (isFinanceView && getGroups?.length) {
       getHrInfo = await getGroupDetails(tenantId, empId, getGroups);
-      ({
-        employeeDocument,
-        employeeDetails,
-        group,
-        getAllGroups,
-        matchedEmployees,
-      } = getHrInfo);
-      empIds = matchedEmployees
+      const { matchedEmployees } = getHrInfo;
+      const newEmpIds = matchedEmployees
         ? matchedEmployees.map((e) => e.empId)
-        : [empId];
+        : [];
+      empIds = addUniqueIds(empIds, newEmpIds);
     }
 
     if (!empNames?.length || isMyView || empNames?.length) {
-      getHrData = await getEmployeeDetails(tenantId, empId);
-      empIds = empNames ? empNames.map((e) => e.empId) : [empId];
+      await getEmployeeDetails(tenantId, empId);
+      const newEmpIds = empNames ? empNames.map((e) => e.empId) : [];
+      empIds = addUniqueIds(empIds, newEmpIds);
     }
 
-    let filterCriteria = {
-      tenantId: tenantId,
-    };
+    if (getDepartments.length) {
+      const getEmpIds = await getEmployeeIdsByDepartment(
+        tenantId,
+        empId,
+        department
+      );
+      console.log("getEmpIds for filterTrips superAdmin", getEmpIds);
+      empIds = addUniqueIds(empIds, getEmpIds);
+    }
 
-    console.log("get Groups", typeof getGroups);
+    let filterCriteria = { tenantId };
 
     if (empIds?.length) {
       filterCriteria["createdBy.empId"] = { $in: empIds };
@@ -912,34 +993,23 @@ const filterTravelExpenses = async (req, res) => {
 export const getExpenseRelatedHrData = async (req, res) => {
   try {
     const { tenantId, tenantName } = req.params;
-
-    // Find the matching document in HRCompany based on tenantId and tenantName
     const companyDetails = await HRCompany.findOne({ tenantId, tenantName });
 
     if (!companyDetails) {
       return res.status(404).json({ message: "Company details not found" });
     }
 
-    // Extract and send the defaultCurrency
     const defaultCurrency = companyDetails.companyDetails.defaultCurrency;
-
-    // Get travelAllocations
     const travelAllocations = companyDetails?.travelAllocations;
-
-    // Get advanceSettlementOptions
     const advanceSettlementOptions = companyDetails?.advanceSettlementOptions;
-
-    // Get expenseSettlementOptions
     const expenseSettlementOptions = companyDetails?.expenseSettlementOptions;
 
-    res
-      .status(200)
-      .json({
-        defaultCurrency,
-        travelAllocations,
-        advanceSettlementOptions,
-        expenseSettlementOptions,
-      });
+    res.status(200).json({
+      defaultCurrency,
+      travelAllocations,
+      advanceSettlementOptions,
+      expenseSettlementOptions,
+    });
   } catch (error) {
     res.status(500).json({ message: "Server error" });
   }

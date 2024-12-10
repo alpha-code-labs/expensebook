@@ -12,6 +12,7 @@ import { closeRabbitMQConnection, getRabbitMQConnection } from './rabbitmq/conne
 import { closeMongoDBConnection, connectToMongoDB } from './db/db.js';
 import REIMBURSEMENT from './models/reimbursementSchema.js';
 import { deleteReimbursement } from './rabbitmq/messageProcessor/reimbursement.js';
+import { getEmployeeIdsByDepartment } from './utils/functions.js';
 
 dotenv.config();
 const app = express();
@@ -170,3 +171,10 @@ initializeServer().catch(console.error);
 // console.log("what data", datas)
 // const data = await REIMBURSEMENT.find({"expenseHeaderId":"6707cf303997100189957049"})
 // console.log("data", JSON.stringify(data,'',2))
+// const getEmpIds = await getEmployeeIdsByDepartment(
+//     "66e048c79286e2f4e03bdac1",
+//     "1005",
+//     "Finance"
+//   );
+
+//   console.log("Finance .....",getEmpIds)

@@ -33,6 +33,7 @@ const tripFilterSchema = Joi.object({
     .items(Joi.string().valid(...expenseHeaderStatusEnums))
     .optional(),
   getGroups: Joi.array().items(Joi.string()).optional(),
+  getDepartments: Joi.array().items(Joi.string()).optional(),
   travelAllocationHeaders: Joi.array().items(
     Joi.object().keys({
       headerName: Joi.string().required(),
@@ -89,6 +90,7 @@ const dataSchema = Joi.object({
     .optional(),
   expenseSubmissionDate: Joi.date(), // validation
   getGroups: Joi.array().items(Joi.string()).optional(),
+  getDepartments: Joi.array().items(Joi.string()).optional(),
   approvers: Joi.array().items(Joi.object()).optional(),
 })
   .with("fromDate", "toDate")
