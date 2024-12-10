@@ -306,7 +306,7 @@ try {
 
       const getTravelExpenseData = report.tripSchema.travelExpenseData
         .filter((expense) => expense.expenseHeaderStatus === status.PAID)
-        .map(({expenseHeaderId,expenseHeaderNumber,actionedUpon,settlementBy,defaultCurrency, expenseLines, expenseHeaderStatus, SettlementDate})=>({
+        .map(({expenseHeaderId,expenseHeaderNumber,actionedUpon,settlementBy,defaultCurrency, expenseLines, expenseHeaderStatus, SettlementDate , settlementDetails})=>({
           expenseHeaderStatus,
           expenseAmountStatus,
           expenseHeaderId,
@@ -317,6 +317,7 @@ try {
           SettlementDate,
           actionedUpon,
           expenseLines,
+          settlementDetails
           }))
 
         return{tripName,travelRequestId,expenseAmountStatus,createdBy,tripStartDate, tripCompletionDate, travelExpenseData:getTravelExpenseData}

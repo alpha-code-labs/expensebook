@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import { travelRequestSchema } from './travelSchema.js';
 import { travelExpenseSchema } from './travelExpenseData.js';
+import { documentStatusEnums } from './cashAdvance.js';
 
 
 const approverStatusEnums = [
@@ -654,6 +655,14 @@ const expenseLineSchema = new mongoose.Schema({
             default: 'section 0',
             required: true,
           },
+          settlementDetails: [{
+            url: { type: String},
+            comment:{type:String},
+            status: {
+            type: String,
+            enum: documentStatusEnums,
+          },
+        }],
           amountDetails: [
             {
               amount: Number,
