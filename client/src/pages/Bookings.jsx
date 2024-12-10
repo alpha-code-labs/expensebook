@@ -65,7 +65,7 @@ const expenseCategories = {
                 {name:'Booking Date',  toSet:'bkd_date',  id:'bkd_date', type:'date'},
                 {name: 'Return Date', toSet:'bkd_returnDate', id:'bkd_returnDate', type:'date'}, 
                 {name:'Time',  toSet:'bkd_time',  id:'bkd_time', type:'time'},
-                {name:'Return Time',  toSet:'bkd_returnTime',  id:'bkd_returnTime', type:'time'},
+                // {name:'Return Time',  toSet:'bkd_returnTime',  id:'bkd_returnTime', type:'time'},
                 {name:'Pickup Address', toSet:'bkd_pickupAddress',  id:'bkd_pickupAddress', type:'text'}, 
                 {name:'Drop Address', type:'text', toSet:'bkd_dropAddress', id:'bkd_dropAddress'}, 
                 {name:'Tax Amount', type:'amount', toSet:'bookingDetails', id:'taxAmount'}, 
@@ -1252,13 +1252,13 @@ function AddScannedTicket(
 
     useEffect(()=>{
         if(scanComplete && !modalClosed){
-           // setScanCompleteModal(true);
+           //setScanCompleteModal(true);
             window.parent.postMessage({message:"cash message posted" , 
                 ocrMsgData: { showPopup:true, message:"ocrMsg", iconCode: "103", autoSkip:false }}, DASHBOARD_URL);
         }
-    })
+    },[scanComplete]);
 
-     let firstTime  = true;
+     let firstTime  = true; 
     useEffect(()=>{
         if(fileSelected && presentURL == undefined){
             setDocURL()
