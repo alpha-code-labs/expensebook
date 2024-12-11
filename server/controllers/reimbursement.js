@@ -1,70 +1,89 @@
-import { getMonthRange, getQuarterRange, getWeekRange, getYear } from "../helpers/dateHelpers.js";
+import { set } from "mongoose";
+import {
+  getMonthRange,
+  getQuarterRange,
+  getWeekRange,
+  getYear,
+} from "../helpers/dateHelpers.js";
 import HRCompany from "../models/hrCompanySchema.js";
 import REIMBURSEMENT from "../models/reimbursementSchema.js";
-import { getEmployeeDetails, getGroupDetails } from '../utils/functions.js';
-import { dataSchema } from './financeController.js';
-
+import { getEmployeeDetails, getGroupDetails } from "../utils/functions.js";
+import { dataSchema } from "./financeController.js";
 
 export const getExpenseCategoriesForEmpId = async (req, res) => {
-    try {
-      const { tenantId, empId } = req.params;
-  
-      const employeeDocument = await HRCompany.findOne({
-        tenantId,
-        'employees.employeeDetails.employeeId': empId
-      });
-  
-      if (!employeeDocument) {
-        return res.status(404).json({
-          success: false,
-          message: 'Employee not found for the given IDs',
-        });
-      }
+  try {
+    const { tenantId, empId } = req.params;
 
-      const getEmployee = employeeDocument?.employees.find(e => e.employeeDetails.employeeId.toString() === empId.toString())
-      const { employeeName, employeeId , department, designation,grade,project} = getEmployee.employeeDetails
-      console.log("getExpenseCategoriesForEmpId -employee name and id", employeeName, employeeId )
-  
-      if (!employeeId) {
-        return res.status(404).json({
-          success: false,
-          message: 'Employee not found for the provided ID',
-        });
-      }
-  
-      const {
-        companyDetails: { defaultCurrency } = {},
-        companyName,
-        reimbursementExpenseCategories,
-      } = employeeDocument || {};
-  
-      const reimbursementExpenseCategory = Array.isArray(reimbursementExpenseCategories)
-        ? reimbursementExpenseCategories.map(category => category?.categoryName)
-        : [];
-  
-      return res.status(200).json({
-        success: true,
-        defaultCurrency,
-        employeeName,
-        companyName,
-        department, 
-        designation,
-        grade,
-        project,
-        reimbursementExpenseCategory,
-      });
-    } catch (error) {
-      console.error('Error finding expense categories:', error);
-      return res.status(500).json({
+    const employeeDocument = await HRCompany.findOne({
+      tenantId,
+      "employees.employeeDetails.employeeId": empId,
+    });
+
+    if (!employeeDocument) {
+      return res.status(404).json({
         success: false,
-        message: 'Internal Server Error',
-        error: error.message || error,
-        groups: [],
-        expenseCategories: [],
+        message: "Employee not found for the given IDs",
       });
     }
-  };
 
+    const getEmployee = employeeDocument?.employees.find(
+      (e) => e.employeeDetails.employeeId.toString() === empId.toString()
+    );
+    const {
+      employeeName,
+      employeeId,
+      department,
+      designation,
+      grade,
+      project,
+    } = getEmployee.employeeDetails;
+    console.log(
+      "getExpenseCategoriesForEmpId -employee name and id",
+      employeeName,
+      employeeId
+    );
+
+    if (!employeeId) {
+      return res.status(404).json({
+        success: false,
+        message: "Employee not found for the provided ID",
+      });
+    }
+
+    const {
+      companyDetails: { defaultCurrency } = {},
+      companyName,
+      reimbursementExpenseCategories,
+    } = employeeDocument || {};
+
+    const reimbursementExpenseCategory = Array.isArray(
+      reimbursementExpenseCategories
+    )
+      ? reimbursementExpenseCategories.map((category) => category?.categoryName)
+      : [];
+
+    return res.status(200).json({
+      success: true,
+      defaultCurrency,
+      employeeName,
+      companyName,
+      department,
+      designation,
+      grade,
+      project,
+      reimbursementExpenseCategory,
+    });
+  } catch (error) {
+    console.error("Error finding expense categories:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+      error: error.message || error,
+      groups: [],
+      expenseCategories: [],
+    });
+  }
+};
 
 //to filter reimbursement expense reports based on 'date', 'week', 'month', 'quarter', 'year' and date.
 export const getReimbursementExpenseReport = async (req, res) => {
@@ -75,158 +94,182 @@ export const getReimbursementExpenseReport = async (req, res) => {
     });
 
     if (error) {
-      return res.status(400).json({ message: error.details[0].message , reports:[],
-    success: false });
+      return res.status(400).json({
+        message: error.details[0].message,
+        reports: [],
+        success: false,
+      });
     }
 
-    const { tenantId, empId, filterBy, date,role, fromDate, toDate , empNames, approvers, expenseSubmissionDate ,expenseHeaderStatus, getGroups} = value;
+    const {
+      tenantId,
+      empId,
+      filterBy,
+      date,
+      role,
+      fromDate,
+      toDate,
+      empNames,
+      approvers,
+      expenseSubmissionDate,
+      expenseHeaderStatus,
+      getGroups = [],
+      getDepartments = [],
+    } = value;
 
     let filterCriteria = {
       tenantId,
     };
 
-    const approverEmpIds = approvers?.map(a => a.empId)
+    const approverEmpIds = approvers?.map((a) => a.empId);
 
-    console.log("get Groups",typeof getGroups)
+    console.log("get Groups", typeof getGroups);
 
-    const forTeam = [getGroups]
-let getHrInfo;
-let getHrData;
-let empIds;
-let employeeDocument, employeeDetails, group, getAllGroups, matchedEmployees;
+    const addUniqueIds = (currentIds, newIds) => [
+      ...new Set([...currentIds, ...newIds]),
+    ];
+    const forTeam = [getGroups];
+    let empIds = [empId];
+
+    let getHrInfo;
+    let getHrData;
+    let employeeDocument,
+      employeeDetails,
+      group,
+      getAllGroups,
+      matchedEmployees;
 
     // if (getGroups?.length) {
     // getHrInfo = await getGroupDetails(tenantId, empId, getGroups);
     // ({ employeeDocument, employeeDetails, group, getAllGroups, matchedEmployees } = getHrInfo);
     // empIds = matchedEmployees ? matchedEmployees.map(e => e.empId) : [empId];
-    // } 
+    // }
 
     // if(!empNames?.length){
     // getHrData = await getEmployeeDetails(tenantId,empId)
     // empIds = empNames ? empNames.map(e => e.empId) : [empId];
     // }
-    const isMyView = role === 'myView'
-    const isFinanceView = role === 'financeView'
-    const isTeamView = role === 'teamView'
+    const isMyView = role === "myView";
+    const isFinanceView = role === "financeView";
+    const isTeamView = role === "teamView";
 
-    if ( isFinanceView || getGroups?.length) {
+    if (isFinanceView || getGroups?.length) {
       getHrInfo = await getGroupDetails(tenantId, empId, getGroups);
-      ({ employeeDocument, employeeDetails, group, getAllGroups, matchedEmployees } = getHrInfo);
-      empIds = matchedEmployees ? matchedEmployees.map(e => e.empId) : [empId];
-      } 
-  
-      if(!empNames?.length || isMyView || empNames?.length){
-      getHrData = await getEmployeeDetails(tenantId,empId)
-      empIds = empNames ? empNames.map(e => e.empId) : [empId];
+      ({
+        employeeDocument,
+        employeeDetails,
+        group,
+        getAllGroups,
+        matchedEmployees,
+      } = getHrInfo);
+      const newEmpIds = matchedEmployees?.map((e) => e.empId) || [];
+      empIds = addUniqueIds(empIds, newEmpIds);
+    }
+
+    if (!empNames?.length || isMyView || empNames?.length) {
+      getHrData = await getEmployeeDetails(tenantId, empId);
+      const newEmpIds = empNames?.map((e) => e.empId) || [];
+      empIds = addUniqueIds(empIds, newEmpIds);
+    }
+
+    console.log("empNames", JSON.stringify(empIds, "", 2));
+    console.log("get Groups kaboom", typeof getGroups);
+
+    if (empIds?.length) {
+      filterCriteria["createdBy.empId"] = { $in: empIds };
+    } else if (forTeam && forTeam.length === 0) {
+      filterCriteria["createdBy.empId"] = empId;
+    }
+
+    if (approvers?.length) {
+      filterCriteria["approvers.empId"] = { $in: approverEmpIds };
+    }
+
+    console.log("my view", typeof role);
+
+    if (expenseHeaderStatus?.length) {
+      filterCriteria.expenseHeaderStatus = { $in: expenseHeaderStatus };
+    }
+
+    if (filterBy && date && !fromDate && !toDate) {
+      if (date) {
+        const parsedDate = new Date(date);
+
+        switch (filterBy) {
+          case "date":
+            filterCriteria["expenseSubmissionDate"] = {
+              $gte: parsedDate,
+              $lt: new Date(parsedDate.setDate(parsedDate.getDate() + 1)),
+            };
+            break;
+
+          case "week":
+            const { startOfWeek, endOfWeek } = getWeekRange(parsedDate);
+            filterCriteria["expenseSubmissionDate"] = {
+              $gte: startOfWeek,
+              $lt: new Date(endOfWeek.setDate(endOfWeek.getDate() + 1)),
+            };
+            break;
+
+          case "month":
+            const { startOfMonth, endOfMonth } = getMonthRange(parsedDate);
+            filterCriteria["expenseSubmissionDate"] = {
+              $gte: startOfMonth,
+              $lt: new Date(endOfMonth.setDate(endOfMonth.getDate() + 1)),
+            };
+            break;
+
+          case "quarter":
+            const { startOfQuarter, endOfQuarter } =
+              getQuarterRange(parsedDate);
+            filterCriteria["expenseSubmissionDate"] = {
+              $gte: startOfQuarter,
+              $lt: new Date(endOfQuarter.setDate(endOfQuarter.getDate() + 1)),
+            };
+            break;
+
+          case "year":
+            const { startOfYear, endOfYear } = getYear(parsedDate);
+            filterCriteria["expenseSubmissionDate"] = {
+              $gte: startOfYear,
+              $lt: new Date(endOfYear.setDate(endOfYear.getDate() + 1)),
+            };
+            break;
+
+          default:
+            break;
+        }
       }
-
-    console.log("empNames", JSON.stringify(empIds,'',2))
-    console.log("get Groups kaboom",typeof getGroups)
-
-    if(empIds?.length){
-      filterCriteria['createdBy.empId'] = { $in: empIds }
-    } else if (forTeam && forTeam.length === 0 ) { 
-    filterCriteria['createdBy.empId'] = empId;
+    } else if (fromDate && toDate) {
+      filterCriteria["expenseSubmissionDate"] = {
+        $gte: new Date(fromDate),
+        $lte: new Date(toDate),
+      };
     }
 
-    if(approvers?.length){
-      filterCriteria['approvers.empId'] = {$in:approverEmpIds}
+    if (expenseSubmissionDate) {
+      filterCriteria["expenseSubmissionDate"] = expenseSubmissionDate;
+    }
+    const expenseReports = await REIMBURSEMENT.find(filterCriteria);
+
+    if (expenseReports.length === 0) {
+      return res.status(204).json({
+        success: true,
+        reports: [],
+        message: "No reimbursement reports found for the specified filter",
+      });
     }
 
-
-    console.log("my view", typeof role)
-  
-
-    if(expenseHeaderStatus?.length){
-      filterCriteria.expenseHeaderStatus = {$in: expenseHeaderStatus}
-    }
-
-    if (filterBy && ( date ) && !fromDate && !toDate) {
-      if(date){
-      const parsedDate = new Date(date);
-
-      switch (filterBy) {
-        case 'date':
-          filterCriteria['expenseSubmissionDate'] = {
-            $gte: parsedDate,
-            $lt: new Date(parsedDate.setDate(parsedDate.getDate() + 1)),
-          };
-          break;
-
-        case 'week':
-          const { startOfWeek, endOfWeek } = getWeekRange(parsedDate);
-          filterCriteria['expenseSubmissionDate'] = {
-            $gte: startOfWeek,
-            $lt: new Date(endOfWeek.setDate(endOfWeek.getDate() + 1)),
-          };
-          break;
-
-        case 'month':
-          const { startOfMonth, endOfMonth } = getMonthRange(parsedDate);
-          filterCriteria['expenseSubmissionDate'] = {
-            $gte: startOfMonth,
-            $lt: new Date(endOfMonth.setDate(endOfMonth.getDate() + 1)),
-          };
-          break;
-
-        case 'quarter':
-          const { startOfQuarter, endOfQuarter } = getQuarterRange(parsedDate);
-          filterCriteria['expenseSubmissionDate'] = {
-            $gte: startOfQuarter,
-            $lt: new Date(endOfQuarter.setDate(endOfQuarter.getDate() + 1)),
-          };
-          break;
-
-        case 'year':
-          const { startOfYear, endOfYear } = getYear(parsedDate);
-          filterCriteria['expenseSubmissionDate'] = {
-            $gte: startOfYear,
-            $lt: new Date(endOfYear.setDate(endOfYear.getDate() + 1)),
-          };
-          break;
-
-        default:
-          break;
-      }
-    }
-  }  else if (fromDate && toDate) {
-    filterCriteria['expenseSubmissionDate'] = {
-      $gte: new Date(fromDate),
-      $lte: new Date(toDate),
-    };
-  }
-
-  if(expenseSubmissionDate){
-    filterCriteria['expenseSubmissionDate']= expenseSubmissionDate;
-  }
-  const expenseReports = await REIMBURSEMENT.find(filterCriteria);
-
-  if (expenseReports.length === 0) {
-    return res.status(204).json({
+    return res.status(200).json({
       success: true,
-      reports:[],
-      message: 'No reimbursement reports found for the specified filter',
+      reports: expenseReports,
+      message: `Reimbursement reports retrieved for the specified date range.`,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to retrieve reimbursement reports.",
     });
   }
-
-  return res.status(200).json({
-    success: true,
-    reports: expenseReports,
-    message: `Reimbursement reports retrieved for the specified date range.`,
-  });
-} catch (error) {
-console.error(error);
-return res.status(500).json({
-  success: false,
-  message: 'Failed to retrieve reimbursement reports.',
-});
-}
 };
-
-
-
-
-
-
-
-

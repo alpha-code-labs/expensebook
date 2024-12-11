@@ -263,6 +263,9 @@ const expenseReportApproval = async (payload) => {
 
     try {
         const approvalDocument = await getExpenseReport(tenantId,empId,tripId,expenseHeaderId)
+        if(!approvalDocument){
+          throw new Error("Expense report not found");
+        }
 
         if(approvalDocument){
             const { travelExpenseData} = approvalDocument
@@ -305,9 +308,10 @@ const expenseReportApproval = async (payload) => {
             return { success: true, error: null };
         }
 
-    }} catch (error) {
+    } 
+  } catch (error) {
         console.error('Failed to update Expense: TravelExpenseData update failed', error);
-        return { success: false, error: error };
+        return { success: false, error: error.message };
     }
 };
 
@@ -346,7 +350,7 @@ const nonTravelReportApproval = async (payload) => {
    
        console.log("approvalDocument",approvalDocument)
        if (!approvalDocument) {
-        throw new Error('No matching approval document found for updating expenses status.');
+        return ({success:false , error:'No matching approval document found for updating expenses status.'});
        }
   
         const {expenseLines = []} =approvalDocument
@@ -394,7 +398,7 @@ const nonTravelReportApproval = async (payload) => {
          const expenseApproved = await approvalDocument.save();
   
          if(!expenseApproved){
-           return res.status(404).json({message:`error occurred while updating expense report `})
+           return ({success:false , message:`error occurred while updating expense report `})
          }
   
          return { success: true, error: null };
