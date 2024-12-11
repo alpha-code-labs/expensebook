@@ -129,7 +129,7 @@ const getReportingViews = async (tenantId, empId) => {
     return {
       employeeRoles,
       reports: getViews.employee,
-      superAdmin:getViews.superAdmin
+      superAdmin: getViews.superAdmin,
     };
   } catch (error) {
     console.error("Error fetching Reporting views:", error);
@@ -158,7 +158,7 @@ const employeeLayout = async (tenantId, empId, options = {}, filter) => {
 
     const [hrData, monthlyTrips, monthlyTravel, reimbursement, approvers] =
       await Promise.all(promises);
-    const { hrDetails, employeeDetails, group } = hrData;
+    const { hrDetails, employeeDetails, group, getAllDepartments } = hrData;
     const {
       employeeName,
       employeeId,
@@ -191,9 +191,11 @@ const employeeLayout = async (tenantId, empId, options = {}, filter) => {
       travel: getTravel,
       trips: getTrips,
       reimbursement: getReimbursement,
-      hrDetails,
-      employeeDetails,
-      group,
+      // hrDetails,
+      // employeeDetails,
+      // group,
+      // getAllDepartments,
+      ...hrData,
       listOfApprovers: approvers,
     };
   } catch (error) {
@@ -276,6 +278,7 @@ const hrDetailsService = async (tenantId, empId, options = {}) => {
       };
     }
 
+    console.log("getAllDepartments the data for superAdmin", getAllDepartments);
     return {
       employeeDetails,
       group,
