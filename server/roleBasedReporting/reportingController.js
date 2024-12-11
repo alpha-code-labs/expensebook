@@ -87,7 +87,7 @@ const getReportingViews = async (tenantId, empId) => {
     const options = { employee: true };
     const employeeRoles = await getEmployeeRoles(tenantId, empId);
     const layoutFunctions = {
-      employee: async () => employeeLayout(tenantId, empId, options),
+      employee: async () => employeeLayout(tenantId, empId, employeeRoles),
       // employeeManager: async () => managerLayout(tenantId, empId),
       employeeManager: null,
       businessAdmin: null,
@@ -738,15 +738,15 @@ const extractUniqueEmployees = (tripDocs) => {
 
 const managerLayout = async (tenantId, empId) => {
   try {
-    const options = {
-      manager: true,
-    };
-    const [employeeRoles, getListOfEmployees, getEmpDetails] =
-      await Promise.all([
-        getEmployeeRoles(tenantId, empId),
-        findListOfEmployees(tenantId, empId, options),
-        getEmployeeDetails(tenantId, empId),
-      ]);
+    // const options = {
+    //   manager: true,
+    // };
+    const employeeRoles = await getEmployeeRoles(tenantId, empId);
+
+    const [getListOfEmployees, getEmpDetails] = await Promise.all([
+      findListOfEmployees(tenantId, empId, employeeRoles),
+      getEmployeeDetails(tenantId, empId),
+    ]);
 
     if (!getListOfEmployees) {
       return [];
@@ -754,8 +754,13 @@ const managerLayout = async (tenantId, empId) => {
 
     const { listOfEmployees, filter } = getListOfEmployees;
 
-    const { employeeDocument, employeeDetails, group, getAllGroups } =
-      getEmpDetails;
+    const {
+      employeeDocument,
+      employeeDetails,
+      group,
+      getAllGroups,
+      getAllDepartments,
+    } = getEmpDetails;
     const {
       employeeName,
       employeeId,
@@ -764,12 +769,18 @@ const managerLayout = async (tenantId, empId) => {
       grade,
       project,
     } = employeeDetails;
-    const hrDetails = getHrDataService(employeeDocument, options);
+    const hrDetails = getHrDataService(employeeDocument, employeeRoles);
 
     hrDetails.getAllGroups = getAllGroups;
+    hrDetails.getAllDepartments = getAllDepartments;
 
     const { employeeDetailsArray, allEmployeeReports, reports } =
-      await getAllEmployeeReports(tenantId, listOfEmployees, filter, options);
+      await getAllEmployeeReports(
+        tenantId,
+        listOfEmployees,
+        filter,
+        employeeRoles
+      );
 
     listOfEmployees.forEach((employee) => {
       const matchedDetails = employeeDetailsArray.find(
@@ -902,9 +913,25 @@ const getAllManagerReports = async (req, res) => {
       hrDetails,
     } = getAll;
 
+    console.log("superAdmin - manager", employeeRoles,
+      listOfEmployees,
+      reports,
+      employeeDetailsArray,
+      hrDetails, )
     reports.hrDetails = employeeDetailsArray;
     reports.listOfEmployees = listOfEmployees;
-    reports.hrDetails = hrDetails;
+
+    const get = {
+      listOfEmployees,
+      reimbursement:[],
+      travel:[],
+      trips:[],
+      hrDetails,
+    }
+
+    if(employeeRoles.superAdmin){
+      return res.status(200).json({ success: true, employeeRoles, reports:get });
+    }
     return res.status(200).json({ success: true, employeeRoles, reports });
   } catch (error) {
     console.error(error);
@@ -1016,6 +1043,39 @@ const financeLayout = async (tenantId, empId) => {
   }
 };
 
+
+const getSuperAdmin = async (req, res) => {
+  try {
+    const { error, value } = employeeSchema.validate(req.params);
+    if (error)
+      return res.status(400).json({ success: false, message: error.message });
+    const { tenantId, empId } = value;
+
+    console.info("getSuperAdmin ----tenantId, empId ", tenantId, empId);
+    const getAll = await superAdminLayout(tenantId, empId);
+    if (!getAll) {
+      return res
+        .status(200)
+        .json({ success: true, message: "No reports found", getAll: {} });
+    }
+    const {
+      employeeRoles,
+      listOfEmployees,
+      reports,
+      employeeDetailsArray,
+      hrDetails,
+    } = getAll;
+
+    reports.hrDetails = employeeDetailsArray;
+    reports.listOfEmployees = listOfEmployees;
+    reports.hrDetails = hrDetails;
+    return res.status(200).json({ success: true, employeeRoles, reports });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json("internal server error");
+  }
+};
+
 const superAdminLayout = async (tenantId, empId, options) => {
   try {
     console.log("options in super Admin", options);
@@ -1035,49 +1095,14 @@ const superAdminLayout = async (tenantId, empId, options) => {
       getAllGroups,
       getAllDepartments,
     } = getEmpDetails;
-    const {
-      employeeName,
-      employeeId,
-      department,
-      designation,
-      grade,
-      project,
-    } = employeeDetails;
     const hrDetails = getHrDataService(employeeDocument, options);
     hrDetails.getAllGroups = getAllGroups;
-
-    // const { employeeDetailsArray, allEmployeeReports, reports } =
-    //   await getAllEmployeeReports(tenantId, listOfEmployees, filter, options);
-
-    // console.info(" employeeDetailsArray", employeeDetailsArray,"allEmployeeReports", allEmployeeReports, "reports",reports)
-    // if(!employeeDetailsArray || !allEmployeeReports || !reports){
-    //   throw new Error(`Failed to getAllEmployeeReports:Finance Layout`)
-    // }
-
-    // listOfEmployees.forEach((employee) => {
-    //   const matchedDetails = employeeDetailsArray.find(
-    //     (hr) => hr.employeeId.toString() === employee.empId
-    //   );
-    //   if (matchedDetails) {
-    //     const { companyName, department, designation, grade, project } =
-    //       matchedDetails;
-
-    //     Object.assign(employee, {
-    //       companyName,
-    //       department,
-    //       designation,
-    //       grade,
-    //       project,
-    //       group,
-    //     });
-    //   }
-    // });
+    hrDetails.getAllDepartments = getAllDepartments;
 
     return {
       employeeRoles: options,
       getEmpDetails,
       hrDetails,
-      getAllDepartments,
     };
   } catch (error) {
     console.error(error.message);
