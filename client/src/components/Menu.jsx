@@ -10,7 +10,7 @@ import Button1 from './common/Button1';
 import TripReport from '../report/TripReport';
 import PopupMessage from './common/PopupMessage';
 import ExpenseReport from '../report/ExpenseReport';
-import { formatDate, formatFullDate ,formatDateToYYYYMMDD,handleCSVDownload, datePresets} from '../utils/handyFunctions';
+import { formatDate, formatFullDate ,formatDateToYYYYMMDD,handleCSVDownload, datePresets, titleCase} from '../utils/handyFunctions';
 import TripChart from './chart/TripChart';
 import Error from './common/Error';
 import Sidebar from './common/Sidebar';
@@ -76,7 +76,8 @@ const Menu = () => {
         "cashadvanceStatusList":[],
         "expenseHeaderStatusList":[],
         "tripStatusList":[]
-      }
+      },
+     "departments":[] 
     }
   });
 
@@ -232,7 +233,8 @@ const hideHeader = (header) => {
             "cashadvanceStatusList":response?.reports?.hrDetails?.getEnums?.cashAdvanceStatusEnum,
             "expenseHeaderStatusList":response?.reports?.hrDetails?.getEnums?.expenseHeaderStatusEnums,
             "tripStatusList":response?.reports?.hrDetails?.getEnums?.tripStatusEnum
-          }
+          },
+          "departments": response?.reports?.hrDetails?.getAllDepartments || []
         }
       }))
       setExportData(flattenTripData(response?.reports?.trips || []));
@@ -669,7 +671,19 @@ return (
         placeholder="Start typing approver name..."
         // error={{ set: true, message: "Please select at least one employee." }}
       />}
+
+     {(["myTeamView","financeView"].includes(activeView) && reportData?.employeeRoles?.superAdmin) && 
+    <div className='w-full'>
+    <MultiSelect
+    onSelect={(value)=>handleFilterForm('getDepartments',value)}
+    placeholder={'i.e. Finance'}
+    title={('Select Departments')} 
+    options={reportData?.filterData?.departments || []}/>
+  </div>
+      }
       </div>}
+
+    
 
     {modalTab === "columnTab" && 
       
@@ -731,3 +745,40 @@ return (
 }
 
 export default Menu
+
+function AllocationComponent({
+  errorMsg,
+  getSavedAllocations,
+  travelExpenseAllocation,
+  travelAllocationFlag,
+  onAllocationSelection,
+}) {
+  const validAllocationFlags = ["level1", "level2", "level3"];
+  console.log("saved allocation from");
+  return (
+    <div className="flex md:flex-row flex-col my-5 justify-evenly items-center flex-wrap">
+      {validAllocationFlags.includes(travelAllocationFlag)  &&
+        travelExpenseAllocation?.map((expItem, index) => (
+          <React.Fragment key={index}>
+            <div className="h-[48px] inline-flex my-4 mx-2">
+              <Select
+                // error={errorMsg.allocations}
+                error={errorMsg[expItem?.headerName]}
+                currentOption={
+                  getSavedAllocations?.find(
+                    (item) => item?.headerName === expItem?.headerName
+                  )?.headerValue ?? ""
+                }
+                options={expItem.headerValues}
+                onSelect={(option) =>
+                  onAllocationSelection(option, expItem.headerName)
+                }
+                placeholder="Select Allocation"
+                title={`${titleCase(expItem.headerName ?? "")}`}
+              />
+            </div>
+          </React.Fragment>
+        ))}
+    </div>
+  );
+}
