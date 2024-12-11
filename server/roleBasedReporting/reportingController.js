@@ -913,25 +913,32 @@ const getAllManagerReports = async (req, res) => {
       hrDetails,
     } = getAll;
 
-    console.log("superAdmin - manager", employeeRoles,
+    console.log(
+      "superAdmin - manager",
+      employeeRoles,
       listOfEmployees,
       reports,
       employeeDetailsArray,
-      hrDetails, )
+      hrDetails
+    );
     reports.hrDetails = employeeDetailsArray;
     reports.listOfEmployees = listOfEmployees;
 
     const get = {
       listOfEmployees,
-      reimbursement:[],
-      travel:[],
-      trips:[],
+      reimbursement: [],
+      travel: [],
+      trips: [],
       hrDetails,
+    };
+
+    //temporary fix , in the case of superAdmin there are no listOfEmployees, so we are getting [], to work around it i did this.
+    if (reports.length === 0 && employeeRoles.superAdmin) {
+        return res
+          .status(200)
+          .json({ success: true, employeeRoles, reports: get });
     }
 
-    if(employeeRoles.superAdmin){
-      return res.status(200).json({ success: true, employeeRoles, reports:get });
-    }
     return res.status(200).json({ success: true, employeeRoles, reports });
   } catch (error) {
     console.error(error);
@@ -1042,7 +1049,6 @@ const financeLayout = async (tenantId, empId) => {
     throw error;
   }
 };
-
 
 const getSuperAdmin = async (req, res) => {
   try {

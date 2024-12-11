@@ -51,7 +51,7 @@ const reportingSchema = new mongoose.Schema({
   travelRequestId: {
     type: mongoose.Schema.Types.ObjectId,
     // unique: true,
-    // required: true,
+    required: true,
     // index:true,
   },
   tripId: {
