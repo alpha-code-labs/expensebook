@@ -9,7 +9,10 @@ import { expenseHeaderStatusEnums } from "../models/travelExpenseSchema.js";
 import HRCompany from "../models/hrCompanySchema.js";
 import REIMBURSEMENT from "../models/reimbursementSchema.js";
 import { extractTrip, getItinerary } from "../controllers/tripController.js";
-import { getEmployeeDetails } from "../utils/functions.js";
+import {
+  getEmployeeDetails,
+  getEmployeeIdsByDepartments,
+} from "../utils/functions.js";
 import { financeCashAdvanceStatusEnum } from "../utils/enums.js";
 
 const getEnums = {
@@ -210,6 +213,7 @@ const getHrDataService = (employeeDocument, options) => {
       throw new Error(`Employee document : -error `);
     }
     const isFinance = options?.finance;
+    const isSuperAdmin = options?.superAdmin;
 
     const {
       companyDetails: { defaultCurrency, companyName } = {},
@@ -221,17 +225,25 @@ const getHrDataService = (employeeDocument, options) => {
       expenseSettlementOptions = {},
     } = employeeDocument;
 
-    const expenseCategoryNames = travelExpenseCategories.map(
-      (category) => category.categoryName
-    );
+    Object.entries(travelAllocations).forEach(([key, value]) => {
+      travelAllocations[key] = value.map((item) => item.categoryName);
+    });
+
+    const extractedCategories = {};
+
+    employeeDocument?.travelExpenseCategories?.forEach((categoryObject) => {
+      Object.entries(categoryObject).forEach(([key, value]) => {
+        extractedCategories[key] = value.map((item) => item.categoryName);
+      });
+    });
+
     const reimbursementExpenseCategory = reimbursementExpenseCategories.map(
       (category) => category?.categoryName
     );
 
     const travelData = {
       travelAllocationFlags,
-      travelExpenseCategories,
-      expenseCategoryNames,
+      travelExpenseCategories:extractedCategories,
       travelAllocations,
       expenseSettlementOptions,
     };
@@ -244,9 +256,9 @@ const getHrDataService = (employeeDocument, options) => {
       getEnums: { ...getEnums },
     };
 
-    console.log("getHrDataService", options);
-    if (isFinance) {
-      console.log({ isFinance });
+    // console.log("getHrDataService", options);
+    if (isFinance || isSuperAdmin) {
+      console.log({ isFinance, isSuperAdmin });
       response.getEnums.cashAdvanceStatusEnum = financeCashAdvanceStatusEnum;
     }
     return response;
@@ -700,23 +712,27 @@ const buildFilter = (tenantId, empId, options) => {
     filter["travelRequestData.approvers.empId"] = empId;
   }
 
+  // if (finance) {
+  //   filter.$or = [
+  //     {
+  //       cashAdvancesData: {
+  //         $elemMatch: {
+  //           $or: [{ "paidBy.empId": empId }, { "recoveredBy.empId": empId }],
+  //         },
+  //       },
+  //     },
+  //     {
+  //       travelExpenseData: {
+  //         $elemMatch: {
+  //           "recoveredBy.empId": empId,
+  //         },
+  //       },
+  //     },
+  //   ];
+  // }
+
   if (finance) {
-    filter.$or = [
-      {
-        cashAdvancesData: {
-          $elemMatch: {
-            $or: [{ "paidBy.empId": empId }, { "recoveredBy.empId": empId }],
-          },
-        },
-      },
-      {
-        travelExpenseData: {
-          $elemMatch: {
-            "recoveredBy.empId": empId,
-          },
-        },
-      },
-    ];
+    filter["travelRequestData.createdBy.empId"] = { $in: empId };
   }
 
   console.log("filter before", JSON.stringify(filter, "", 2));
@@ -726,7 +742,7 @@ const buildFilter = (tenantId, empId, options) => {
 const extractUniqueEmployees = (tripDocs) => {
   const employeesSet = new Set(
     tripDocs
-      .map((trip) => trip.createdBy)
+      .map((trip) => trip.travelRequestData.createdBy)
       .filter(Boolean)
       .map((createdBy) =>
         JSON.stringify({ empId: createdBy.empId, name: createdBy.name })
@@ -821,7 +837,7 @@ const getAllEmployeeReports = async (
   options = {}
 ) => {
   try {
-    console.info("listOfEmployees kanbam", listOfEmployees);
+    console.info("listOfEmployees kanban", listOfEmployees);
     const getAllReports = await Promise.all(
       listOfEmployees.map(async (e) => {
         const employee = await employeeLayout(
@@ -838,9 +854,14 @@ const getAllEmployeeReports = async (
       return {
         employeeDetailsArray: [],
         allReports: [],
-        reports: [],
+        reports: {
+          travel: [],
+          trips: [],
+          reimbursement: [],
+        },
       };
     }
+
     // console.info("getAllReports", getAllReports.length , JSON.stringify(getAllReports,'',2))
     console.info("getAllReports", getAllReports.length);
     const {
@@ -934,9 +955,9 @@ const getAllManagerReports = async (req, res) => {
 
     //temporary fix , in the case of superAdmin there are no listOfEmployees, so we are getting [], to work around it i did this.
     if (reports.length === 0 && employeeRoles.superAdmin) {
-        return res
-          .status(200)
-          .json({ success: true, employeeRoles, reports: get });
+      return res
+        .status(200)
+        .json({ success: true, employeeRoles, reports: get });
     }
 
     return res.status(200).json({ success: true, employeeRoles, reports });
@@ -963,7 +984,7 @@ const getAllFinanceReports = async (req, res) => {
     const {
       employeeRoles,
       listOfEmployees,
-      reports,
+      reports = {},
       employeeDetailsArray,
       hrDetails,
     } = getAll;
@@ -971,6 +992,8 @@ const getAllFinanceReports = async (req, res) => {
     reports.hrDetails = employeeDetailsArray;
     reports.listOfEmployees = listOfEmployees;
     reports.hrDetails = hrDetails;
+    console.log("get all finance reports", JSON.stringify(getAll, "", 2));
+
     return res.status(200).json({ success: true, employeeRoles, reports });
   } catch (error) {
     console.error(error);
@@ -978,26 +1001,97 @@ const getAllFinanceReports = async (req, res) => {
   }
 };
 
+//old - code --- const financeLayout = async (tenantId, empId) => {
+//   try {
+//     const options = {
+//       finance: true,
+//     };
+//     const [employeeRoles, getListOfEmployees, getEmpDetails] =
+//       await Promise.all([
+//         getEmployeeRoles(tenantId, empId),
+//         findListOfEmployees(tenantId, empId, options),
+//         getEmployeeDetails(tenantId, empId),
+//       ]);
+
+//     // console.log("finance layout - promise ,all ",employeeRoles,"listOfEmployees",listOfEmployees, "getEmpDetails" ,getEmpDetails )
+//     if (!getListOfEmployees) {
+//       return [];
+//     }
+
+//     const { listOfEmployees, filter } = getListOfEmployees;
+//     const { employeeDocument, employeeDetails, group, getAllGroups } =
+//       getEmpDetails;
+//     const {
+//       employeeName,
+//       employeeId,
+//       department,
+//       designation,
+//       grade,
+//       project,
+//     } = employeeDetails;
+//     const hrDetails = getHrDataService(employeeDocument, options);
+//     hrDetails.getAllGroups = getAllGroups;
+
+//     const { employeeDetailsArray, allEmployeeReports, reports } =
+//       await getAllEmployeeReports(tenantId, listOfEmployees, filter, options);
+
+//     // console.info(" employeeDetailsArray", employeeDetailsArray,"allEmployeeReports", allEmployeeReports, "reports",reports)
+//     // if(!employeeDetailsArray || !allEmployeeReports || !reports){
+//     //   throw new Error(`Failed to getAllEmployeeReports:Finance Layout`)
+//     // }
+
+//     listOfEmployees.forEach((employee) => {
+//       const matchedDetails = employeeDetailsArray.find(
+//         (hr) => hr.employeeId.toString() === employee.empId
+//       );
+//       if (matchedDetails) {
+//         const { companyName, department, designation, grade, project } =
+//           matchedDetails;
+
+//         Object.assign(employee, {
+//           companyName,
+//           department,
+//           designation,
+//           grade,
+//           project,
+//           group,
+//         });
+//       }
+//     });
+
+//     return {
+//       employeeRoles,
+//       listOfEmployees,
+//       allEmployeeReports,
+//       reports,
+//       employeeDetailsArray,
+//       hrDetails,
+//     };
+//   } catch (error) {
+//     console.error(error.message);
+//     throw error;
+//   }
+// };
+
+//unused code
 const financeLayout = async (tenantId, empId) => {
   try {
-    const options = {
-      finance: true,
-    };
-    const [employeeRoles, getListOfEmployees, getEmpDetails] =
-      await Promise.all([
-        getEmployeeRoles(tenantId, empId),
-        findListOfEmployees(tenantId, empId, options),
-        getEmployeeDetails(tenantId, empId),
-      ]);
+    let getListOfEmployees;
+    const [getEmpDetails] = await Promise.all([
+      // getEmployeeRoles(tenantId, empId),
+      getEmployeeDetails(tenantId, empId),
+    ]);
 
-    // console.log("finance layout - promise ,all ",employeeRoles,"listOfEmployees",listOfEmployees, "getEmpDetails" ,getEmpDetails )
-    if (!getListOfEmployees) {
-      return [];
-    }
+    const {
+      employeeRoles,
+      employeeDocument,
+      employeeDetails,
+      group,
+      getAllGroups,
+      getAllDepartments,
+    } = getEmpDetails;
 
-    const { listOfEmployees, filter } = getListOfEmployees;
-    const { employeeDocument, employeeDetails, group, getAllGroups } =
-      getEmpDetails;
+    // console.log("getEmpDetails from finance layout", getEmpDetails)
     const {
       employeeName,
       employeeId,
@@ -1006,16 +1100,60 @@ const financeLayout = async (tenantId, empId) => {
       grade,
       project,
     } = employeeDetails;
-    const hrDetails = getHrDataService(employeeDocument, options);
-    hrDetails.getAllGroups = getAllGroups;
 
-    const { employeeDetailsArray, allEmployeeReports, reports } =
-      await getAllEmployeeReports(tenantId, listOfEmployees, filter, options);
+    let hrData = {};
+    // console.log("getEmpDetails from finance layout", employeeRoles)
+    const hrDetails = getHrDataService(employeeDocument, employeeRoles);
+    hrData = {
+      ...hrDetails,
+      getAllGroups,
+      getAllDepartments,
+    };
+    console.log("hrData", JSON.stringify(hrData, "", 2));
 
-    // console.info(" employeeDetailsArray", employeeDetailsArray,"allEmployeeReports", allEmployeeReports, "reports",reports)
-    // if(!employeeDetailsArray || !allEmployeeReports || !reports){
-    //   throw new Error(`Failed to getAllEmployeeReports:Finance Layout`)
-    // }
+    const getEmpIds = await getEmployeeIdsByDepartments(
+      tenantId,
+      empId,
+      getAllDepartments
+    );
+
+    console.log(
+      "getEmpIds for departments ",
+      JSON.stringify(getEmpIds, "", 2),
+      "getEmpIds type --",
+      typeof getEmpIds
+    );
+
+    if (getEmpIds.length && employeeRoles) {
+      getListOfEmployees = await findListOfEmployees(
+        tenantId,
+        getEmpIds,
+        employeeRoles
+      );
+    }
+
+    console.log(
+      "getListOfEmployees",
+      JSON.stringify(getListOfEmployees, "", 2)
+    );
+    // console.log("finance layout - promise ,all ",employeeRoles,"listOfEmployees",listOfEmployees, "getEmpDetails" ,getEmpDetails )
+    if (!getListOfEmployees) {
+      return [];
+    }
+
+    const { listOfEmployees, filter } = getListOfEmployees;
+
+    // console.log("is available boom",tenantId, listOfEmployees, filter, employeeRoles )
+    const {
+      employeeDetailsArray,
+      allEmployeeReports,
+      reports = {},
+    } = await getAllEmployeeReports(
+      tenantId,
+      listOfEmployees,
+      filter,
+      employeeRoles
+    );
 
     listOfEmployees.forEach((employee) => {
       const matchedDetails = employeeDetailsArray.find(
@@ -1036,49 +1174,30 @@ const financeLayout = async (tenantId, empId) => {
       }
     });
 
+    console.log(
+      "finance layout - promise ,all ",
+      employeeRoles,
+      "listOfEmployees",
+      listOfEmployees
+    );
+    // console.info(" employeeDetailsArray", employeeDetailsArray,"allEmployeeReports", allEmployeeReports, "reports",reports)
+    // if(!employeeDetailsArray || !allEmployeeReports || !reports){
+    //   throw new Error(`Failed to getAllEmployeeReports:Finance Layout`)
+    // }
+
+    console.log("employeeRoles from finance layout two", employeeRoles);
+
     return {
       employeeRoles,
       listOfEmployees,
       allEmployeeReports,
       reports,
       employeeDetailsArray,
-      hrDetails,
+      hrDetails: hrData,
     };
   } catch (error) {
     console.error(error.message);
     throw error;
-  }
-};
-
-const getSuperAdmin = async (req, res) => {
-  try {
-    const { error, value } = employeeSchema.validate(req.params);
-    if (error)
-      return res.status(400).json({ success: false, message: error.message });
-    const { tenantId, empId } = value;
-
-    console.info("getSuperAdmin ----tenantId, empId ", tenantId, empId);
-    const getAll = await superAdminLayout(tenantId, empId);
-    if (!getAll) {
-      return res
-        .status(200)
-        .json({ success: true, message: "No reports found", getAll: {} });
-    }
-    const {
-      employeeRoles,
-      listOfEmployees,
-      reports,
-      employeeDetailsArray,
-      hrDetails,
-    } = getAll;
-
-    reports.hrDetails = employeeDetailsArray;
-    reports.listOfEmployees = listOfEmployees;
-    reports.hrDetails = hrDetails;
-    return res.status(200).json({ success: true, employeeRoles, reports });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json("internal server error");
   }
 };
 
@@ -1113,23 +1232,6 @@ const superAdminLayout = async (tenantId, empId, options) => {
   } catch (error) {
     console.error(error.message);
     throw error;
-  }
-};
-
-export const getListOfEmployees = async (tenantId, empId, options = {}) => {
-  try {
-    const tripDocs = await reporting.find(filter).lean().exec();
-
-    // console.log("findListOfEmployees tripDocs", tripDocs)
-    if (!tripDocs) {
-      throw new Error("Document not found :findListOfEmployees");
-    }
-
-    const listOfEmployees = extractUniqueEmployees(tripDocs);
-    return { listOfEmployees, filter };
-  } catch (error) {
-    console.error(error);
-    throw new Error("Internal server error");
   }
 };
 

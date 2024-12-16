@@ -8,7 +8,7 @@ import { expenseHeaderStatusEnums } from "../models/travelExpenseSchema.js";
 const tripFilterSchema = Joi.object({
   tenantId: Joi.string().required(),
   empId: Joi.string().required(),
-  role: Joi.string().valid("myView", "financeView", "teamView").required(),
+  role: Joi.string().valid("myView", "financeView", "myTeamView").required(),
   filterBy: Joi.string().valid("date", "week", "month", "quarter", "year"),
   date: Joi.date().when("filterBy", {
     is: Joi.exist(),
@@ -73,7 +73,7 @@ const financeSchema = Joi.object({
 const dataSchema = Joi.object({
   tenantId: Joi.string().required(),
   empId: Joi.string().required(),
-  role: Joi.string().valid("myView", "financeView", "teamView").required(),
+  role: Joi.string().valid("myView", "financeView", "myTeamView").required(),
   filterBy: Joi.string().valid("date", "week", "month", "quarter", "year"),
   date: Joi.date().when("filterBy", {
     is: Joi.exist(),

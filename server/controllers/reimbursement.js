@@ -151,9 +151,10 @@ export const getReimbursementExpenseReport = async (req, res) => {
     // }
     const isMyView = role === "myView";
     const isFinanceView = role === "financeView";
+    const isSuperAdmin = role === "financeView";
     const isTeamView = role === "teamView";
 
-    if (isFinanceView || getGroups?.length) {
+    if ((isFinanceView || isSuperAdmin) && getGroups?.length) {
       getHrInfo = await getGroupDetails(tenantId, empId, getGroups);
       ({
         employeeDocument,
