@@ -44,6 +44,7 @@ const getEmployeeDetails = async (tenantId, empId) => {
     const { groups } = employeeDocument;
     let getAllDepartments;
     let isSuperAdmin = false;
+    let isFinance = false;
 
     if (employeeDocument) {
       const employee = employeeDocument.employees.find(
@@ -53,9 +54,13 @@ const getEmployeeDetails = async (tenantId, empId) => {
       if (employee?.employeeRoles.superAdmin === true) {
         isSuperAdmin = true;
       }
+
+      if (employee?.employeeRoles.finance === true) {
+        isFinance = true;
+      }
     }
 
-    if (isSuperAdmin) {
+    if (isSuperAdmin || isFinance) {
       getAllDepartments = employeeDocument.groupingLabels
         .filter((label) => label.headerName === "department")
         .flatMap((label) => label.headerValues);
@@ -65,7 +70,11 @@ const getEmployeeDetails = async (tenantId, empId) => {
     const getEmployee = employeeDocument?.employees.find(
       (e) => e.employeeDetails.employeeId.toString() === empId.toString()
     );
-    const { employeeDetails: getEmployeeDetails, group } = getEmployee;
+    const {
+      employeeDetails: getEmployeeDetails,
+      group,
+      employeeRoles,
+    } = getEmployee;
     const {
       employeeName,
       employeeId,
@@ -74,7 +83,7 @@ const getEmployeeDetails = async (tenantId, empId) => {
       grade,
       project,
     } = getEmployeeDetails;
-    console.log("employee name man", employeeName, employeeId);
+    // console.log("employee name man", employeeName, employeeId);
     const employeeDetails = {
       employeeName,
       employeeId,
@@ -84,8 +93,9 @@ const getEmployeeDetails = async (tenantId, empId) => {
       project,
     };
 
-    console.log("getAllDepartments for superAdmin", getAllDepartments);
+    // console.log("getAllDepartments for Finance", getAllDepartments);
     return {
+      employeeRoles,
       employeeDocument,
       employeeDetails,
       group,
@@ -114,6 +124,7 @@ const getGroupDetails = async (tenantId, empId, getGroups) => {
 
     let getAllDepartments;
     let isSuperAdmin = false;
+    let isFinance = false;
 
     if (employeeDocument) {
       const employee = employeeDocument.employees.find(
@@ -123,13 +134,16 @@ const getGroupDetails = async (tenantId, empId, getGroups) => {
       if (employee?.employeeRoles.superAdmin === true) {
         isSuperAdmin = true;
       }
+      if (employee?.employeeRoles.finance === true) {
+        isFinance = true;
+      }
     }
 
     const { groups } = employeeDocument;
     const getAllGroups = groups.map((group) => group.groupName);
 
-    if (isSuperAdmin) {
-      getAllDepartments = groupingLabels
+    if (isSuperAdmin || isFinance) {
+      getAllDepartments = employeeDocument.groupingLabels
         .filter((label) => label.headerName === "department")
         .flatMap((label) => label.headerValues);
     }
@@ -193,7 +207,7 @@ const getGroupDetails = async (tenantId, empId, getGroups) => {
 };
 
 //For superAdmin
-const getEmployeeIdsByDepartment = async (tenantId, empId, department) => {
+const getEmployeeIdsByDepartments = async (tenantId, empId, departments) => {
   try {
     const employeeDocument = await getEmployeeDocument(tenantId, empId);
 
@@ -205,7 +219,8 @@ const getEmployeeIdsByDepartment = async (tenantId, empId, department) => {
     const isSuperAdmin = employeeDocument.employees.some(
       (emp) =>
         emp.employeeDetails?.employeeId === empId &&
-        emp.employeeRoles?.superAdmin === true
+        (emp.employeeRoles?.superAdmin === true ||
+          emp.employeeRoles?.finance === true)
     );
 
     if (!isSuperAdmin) {
@@ -213,8 +228,15 @@ const getEmployeeIdsByDepartment = async (tenantId, empId, department) => {
       return [];
     }
 
+    if (!Array.isArray(departments) || departments.length === 0) {
+      console.error("Departments must be a non-empty array of strings.");
+      return [];
+    }
+
     const employeeIds = employeeDocument.employees
-      .filter((employee) => employee.employeeDetails?.department === department)
+      .filter((employee) =>
+        departments.includes(employee.employeeDetails?.department)
+      )
       .map((employee) => employee.employeeDetails?.employeeId);
 
     console.log("Filtered Employee IDs:", employeeIds);
@@ -229,4 +251,4 @@ const getEmployeeIdsByDepartment = async (tenantId, empId, department) => {
   }
 };
 
-export { getEmployeeDetails, getGroupDetails, getEmployeeIdsByDepartment };
+export { getEmployeeDetails, getGroupDetails, getEmployeeIdsByDepartments };

@@ -12,7 +12,7 @@ import HRCompany from "../models/hrCompanySchema.js";
 import { expenseHeaderStatusEnums } from "../models/travelExpenseSchema.js";
 import {
   getEmployeeDetails,
-  getEmployeeIdsByDepartment,
+  getEmployeeIdsByDepartments,
   getGroupDetails,
 } from "../utils/functions.js";
 import { tripFilterSchema } from "./financeController.js";
@@ -162,6 +162,7 @@ const extractTrip = (tripDocs) => {
                   paidBy,
                   recoveredBy,
                   cashAdvanceRejectionReason,
+                  settlementDetails
                 }) => ({
                   cashAdvanceId,
                   cashAdvanceNumber,
@@ -172,6 +173,7 @@ const extractTrip = (tripDocs) => {
                   paidBy,
                   recoveredBy,
                   cashAdvanceRejectionReason,
+                  settlementDetails
                 })
               )
             : []
@@ -198,187 +200,7 @@ const extractTrip = (tripDocs) => {
   }
 };
 
-// const filterTrips = async (req, res) => {
-//   try {
-//     const { error, value } = tripFilterSchema.validate({
-//       ...req.params,
-//       ...req.body
-//     });
 
-//     if (error) {
-//       console.log("what is the error", error)
-//       return res.status(400).json({ message: error.details[0].message ,  trips:[], success: false
-//       });
-//     }
-
-//     console.log("filter trips - value", JSON.stringify(value,'',2))
-//     const { tenantId, empId, role, filterBy, date, empNames, fromDate, toDate, travelType, tripStatus,cashAdvanceStatus, travelAllocationHeaders, approvers , getGroups=[]} = value;
-
-//     console.log({role})
-//     const forTeam = [getGroups]
-// let getHrInfo;
-// let getHrData;
-// let empIds;
-// let employeeDocument, employeeDetails, group, getAllGroups, matchedEmployees;
-
-// switch (role) {
-//   case 'myView':
-
-//   break;
-
-//   case 'financeView':
-
-//   default:
-//     break;
-// }
-// console.info({empIds})
-
-//     if (getGroups?.length) {
-//       console.log({getGroups})
-//     getHrInfo = await getGroupDetails(tenantId, empId, getGroups);
-//     ({ employeeDocument, employeeDetails, group, getAllGroups, matchedEmployees } = getHrInfo);
-//     empIds = matchedEmployees ? matchedEmployees.map(e => e.empId) : [empId];
-//     }
-//     console.info({empIds})
-
-//     if(empNames?.length){
-//     getHrData = await getEmployeeDetails(tenantId,empId)
-//     empIds = empNames ? empNames.map(e => e.empId) : [empId];
-//     }
-//     console.info({empIds})
-
-//     console.log("get Groups kaboom",typeof getGroups , JSON.stringify(getGroups,'',2))
-
-//     console.log("empIds", JSON.stringify(empIds,'',2))
-//     let filterCriteria = {
-//       tenantId: tenantId,
-//     };
-
-//     if(empIds?.length){
-//       filterCriteria['createdBy.empId'] = { $in: empIds }
-//     }
-
-//     if (filterBy && date && (!fromDate && !toDate)) {
-//       if (date) {
-//         const parsedDate = new Date(date);
-
-//         switch (filterBy) {
-//           case 'date':
-//             filterCriteria['tripCompletionDate'] = {
-//                 $gte: parsedDate,
-//                 $lt: new Date(parsedDate.setDate(parsedDate.getDate() + 1)),
-//             };
-//             break;
-
-//           case 'week':
-//             const { startOfWeek, endOfWeek } = getWeekRange(parsedDate);
-//             filterCriteria['tripCompletionDate'] ={
-//                 $gte: startOfWeek,
-//                 $lt: new Date(endOfWeek.setDate(endOfWeek.getDate() + 1)),
-//               };
-//             break;
-
-//           case 'month':
-//             const { startOfMonth, endOfMonth } = getMonthRange(parsedDate);
-//             filterCriteria['tripCompletionDate'] = {
-//                 $gte: startOfMonth,
-//                 $lt: new Date(endOfMonth.setDate(endOfMonth.getDate() + 1)),
-//             };
-//             break;
-
-//           case 'quarter':
-//             const { startOfQuarter, endOfQuarter } = getQuarterRange(parsedDate);
-//             filterCriteria['tripCompletionDate'] =  {
-//                 $gte: startOfQuarter,
-//                 $lt: new Date(endOfQuarter.setDate(endOfQuarter.getDate() + 1)),
-//             };
-//             break;
-
-//           case 'year':
-//             const { startOfYear, endOfYear } = getYear(parsedDate);
-//             filterCriteria['tripCompletionDate'] = {
-//                 $gte: startOfYear,
-//                 $lt: new Date(endOfYear.setDate(endOfYear.getDate() + 1)),
-//             };
-//             break;
-
-//           default:
-//             break;
-//         }
-//       }
-//     }
-
-//     if (fromDate && toDate) {
-//       filterCriteria['tripCompletionDate'] =  {
-//           $gte: new Date(fromDate),
-//           $lte: new Date(toDate),
-//       };
-//     }
-
-//     console.log("filter applied", filterCriteria)
-//     if (travelType) {
-//       filterCriteria['travelRequestData.travelType'] = travelType;
-//     }
-
-//     if(tripStatus?.length){
-//       filterCriteria.tripStatus= {$in: tripStatus};
-//     }
-
-//     if (cashAdvanceStatus?.length) {
-//       console.log("i got here", cashAdvanceStatus)
-//       filterCriteria.cashAdvancesData = {
-//         $elemMatch:{
-//           cashAdvanceStatus: { $in: cashAdvanceStatus }
-//         }
-//       };
-//   }
-
-//     // console.log("filterCriteria", JSON.stringify(filterCriteria,'',2))
-//     if(travelAllocationHeaders){
-//       filterCriteria['travelRequestData.travelAllocationHeaders'] = {
-//         $elemMatch:{
-//           headerName:{$in:travelAllocationHeaders.map((header)=> header.headerName)},
-//           headerValue:{$in:travelAllocationHeaders.map((header)=> header.headerValue),}
-//         }
-//       };
-//     }
-
-//     if(approvers){
-//       filterCriteria['travelRequestData.approvers'] ={
-//         $elemMatch:{
-//           name:{$in:approvers.map((approver)=> approver.name)},
-//           empId:{$in:approvers.map((approver)=> approver.empId)}
-//           }
-//           }
-//     }
-
-//     if(empNames && empIds){
-//           filterCriteria['createdBy.empId'] = {$in:empIds}
-//     }
-
-//     console.info({getHrInfo,getHrData})
-//     console.log("filterCriteria finally", JSON.stringify(filterCriteria,'',2))
-//     const tripDocs = await reporting.find(filterCriteria);
-
-//     if (tripDocs.length === 0) {
-//       return res.status(204).json({
-//         success: true,
-//         trips:[],
-//         message: 'No trips found matching the filter criteria',
-//       });
-//     }
-
-//     const getTrips = extractTrip(tripDocs)
-//     const updatedTrips = getTrips.map(trip => ({
-//       ...trip,
-//       groupName:getGroups
-//     }))
-//     return res.status(200).json({success:true , trips:updatedTrips});
-//   } catch (e) {
-//     console.error(e);
-//     res.status(500).json({message:e.message });
-//   }
-// };
 const filterTrips = async (req, res) => {
   try {
     const { error, value } = tripFilterSchema.validate({
@@ -409,14 +231,14 @@ const filterTrips = async (req, res) => {
       getDepartments = [],
     } = value;
 
-    console.log("role filter trips", role);
+    // console.log("role filter trips", role);
 
     const isMyView = role === "myView";
     const isFinanceView = role === "financeView";
-    const isTeamView = role === "teamView";
-    const isSuperAdmin = role === "superAdmin";
+    const isTeamView = role === "myTeamView";
+    const isSuperAdmin = role === "financeView";
 
-    console.log("my view", typeof role);
+    // console.log("my view", typeof role);
     // let empIds = [empId];
     // if (isFinanceView || getGroups.length) {
     //   const { matchedEmployees} = await getGroupDetails(
@@ -437,16 +259,23 @@ const filterTrips = async (req, res) => {
       ...new Set([...currentIds, ...newIds]),
     ];
 
-    let empIds = [empId];
+    let empIds = [];
 
-    if (isFinanceView || getGroups.length) {
-      const { matchedEmployees } = await getGroupDetails(
-        tenantId,
-        empId,
-        getGroups
-      );
-      const newEmpIds = matchedEmployees?.map((e) => e.empId) || [];
-      empIds = addUniqueIds(empIds, newEmpIds);
+    if ((isFinanceView || isSuperAdmin) ) {
+      if(empNames?.length){
+        const newEmpIds = empNames.map((e) => e.empId);
+        empIds = addUniqueIds(empIds, newEmpIds);
+      } 
+      if(getGroups?.length){
+        const { matchedEmployees } = await getGroupDetails(
+          tenantId,
+          empId,
+          getGroups
+        );
+        const newEmpIds = matchedEmployees?.map((e) => e.empId) || [];
+        // console.log("empIds for finance view filter", newEmpIds)
+        empIds = addUniqueIds(empIds, newEmpIds);
+      }
     }
 
     if (isMyView && empNames?.length) {
@@ -456,16 +285,16 @@ const filterTrips = async (req, res) => {
     }
 
     if (getDepartments.length) {
-      const getEmpIds = await getEmployeeIdsByDepartment(
+      const getEmpIds = await getEmployeeIdsByDepartments(
         tenantId,
         empId,
-        department
+        getDepartments
       );
-      console.log("getEmpIds for filterTrips superAdmin", getEmpIds);
+      // console.log("getEmpIds for filterTrips superAdmin", getEmpIds);
       empIds = addUniqueIds(empIds, getEmpIds);
     }
 
-    console.log("empIds for filter TRips", empIds);
+    // console.log("empIds for filter TRips", empIds);
     const filterCriteria = buildFilterCriteria({
       tenantId,
       empIds,
@@ -482,7 +311,7 @@ const filterTrips = async (req, res) => {
 
     const tripDocs = await reporting.find(filterCriteria);
 
-    console.log("filterCriteria trips", filterCriteria);
+    // console.log("filterCriteria trips", filterCriteria);
     if (tripDocs.length === 0) {
       return res.status(204).json({
         success: true,
@@ -502,6 +331,7 @@ const filterTrips = async (req, res) => {
   }
 };
 
+//in this replace travelRequestDate with tripStartDate / tripCompletionDate
 const buildFilterCriteria = ({
   tenantId,
   empIds,
@@ -515,16 +345,21 @@ const buildFilterCriteria = ({
   travelAllocationHeaders,
   approvers,
 }) => {
-  const filterCriteria = { tenantId, "createdBy.empId": { $in: empIds } };
+  const filterCriteria = { tenantId, "travelRequestData.createdBy.empId": { $in: empIds } };
 
   if (filterBy && date && !fromDate && !toDate) {
     const parsedDate = new Date(date);
     const dateRange = getDateRange(filterBy, parsedDate);
     if (dateRange) {
-      filterCriteria.tripCompletionDate = dateRange;
+      // filterCriteria.tripCompletionDate = dateRange;
+      filterCriteria["travelRequestData.travelRequestDate"] = dateRange;
     }
   } else if (fromDate && toDate) {
-    filterCriteria.tripCompletionDate = {
+    // filterCriteria.tripCompletionDate = {
+    //   $gte: new Date(fromDate),
+    //   $lte: new Date(toDate),
+    // };
+    filterCriteria["travelRequestData.travelRequestDate"] = {
       $gte: new Date(fromDate),
       $lte: new Date(toDate),
     };
@@ -596,153 +431,6 @@ const getDateRange = (filterBy, date) => {
   return ranges[filterBy] ? ranges[filterBy]() : null;
 };
 
-const filterCash = async (req, res) => {
-  try {
-    const { error, value } = tripFilterSchema.validate({
-      ...req.params,
-      ...req.body,
-    });
-
-    if (error) {
-      console.log("what is the error", error);
-      return res
-        .status(400)
-        .json({ message: error.details[0].message, trips: [], success: false });
-    }
-
-    console.log("filter trips - value", JSON.stringify(value, "", 2));
-    const {
-      tenantId,
-      empId,
-      filterBy,
-      date,
-      fromDate,
-      toDate,
-      travelType,
-      tripStatus,
-      cashAdvanceStatus,
-      travelAllocationHeaders,
-      approvers,
-      getGroups,
-    } = value;
-
-    let filterCriteria = {
-      tenantId: tenantId,
-      "createdBy.empId": empId,
-    };
-
-    if (filterBy && date && !fromDate && !toDate) {
-      if (date) {
-        const parsedDate = new Date(date);
-
-        switch (filterBy) {
-          case "date":
-            filterCriteria["tripCompletionDate"] = {
-              $gte: parsedDate,
-              $lt: new Date(parsedDate.setDate(parsedDate.getDate() + 1)),
-            };
-            break;
-
-          case "week":
-            const { startOfWeek, endOfWeek } = getWeekRange(parsedDate);
-            filterCriteria["tripCompletionDate"] = {
-              $gte: startOfWeek,
-              $lt: new Date(endOfWeek.setDate(endOfWeek.getDate() + 1)),
-            };
-            break;
-
-          case "month":
-            const { startOfMonth, endOfMonth } = getMonthRange(parsedDate);
-            filterCriteria["tripCompletionDate"] = {
-              $gte: startOfMonth,
-              $lt: new Date(endOfMonth.setDate(endOfMonth.getDate() + 1)),
-            };
-            break;
-
-          case "quarter":
-            const { startOfQuarter, endOfQuarter } =
-              getQuarterRange(parsedDate);
-            filterCriteria["tripCompletionDate"] = {
-              $gte: startOfQuarter,
-              $lt: new Date(endOfQuarter.setDate(endOfQuarter.getDate() + 1)),
-            };
-            break;
-
-          case "year":
-            const { startOfYear, endOfYear } = getYear(parsedDate);
-            filterCriteria["tripCompletionDate"] = {
-              $gte: startOfYear,
-              $lt: new Date(endOfYear.setDate(endOfYear.getDate() + 1)),
-            };
-            break;
-
-          default:
-            break;
-        }
-      } else if (fromDate && toDate) {
-        filterCriteria["tripCompletionDate"] = {
-          $gte: new Date(fromDate),
-          $lte: new Date(toDate),
-        };
-      }
-    }
-
-    if (travelType) {
-      filterCriteria["travelRequestData.travelType"] = travelType;
-    }
-
-    if (tripStatus?.length) {
-      filterCriteria.tripStatus = { $in: tripStatus };
-    }
-
-    if (cashAdvanceStatus?.length) {
-      filterCriteria.cashAdvancesData.cashAdvanceStatus = {
-        $in: cashAdvanceStatus,
-      };
-    }
-
-    console.log("filterCriteria", JSON.stringify(filterCriteria, "", 2));
-    if (travelAllocationHeaders) {
-      filterCriteria["travelRequestData.travelAllocationHeaders"] = {
-        $elemMatch: {
-          headerName: {
-            $in: travelAllocationHeaders.map((header) => header.headerName),
-          },
-          headerValue: {
-            $in: travelAllocationHeaders.map((header) => header.headerValue),
-          },
-        },
-      };
-    }
-
-    if (approvers) {
-      filterCriteria["travelRequestData.approvers"] = {
-        $elemMatch: {
-          name: { $in: approvers.map((approver) => approver.name) },
-          empId: { $in: approvers.map((approver) => approver.empId) },
-        },
-      };
-    }
-
-    const tripDocs = await reporting.find(filterCriteria);
-
-    console.log("tripDocs", tripDocs);
-    if (tripDocs.length === 0) {
-      return res.status(204).json({
-        success: true,
-        trips: [],
-        message: "No trips found matching the filter criteria",
-      });
-    }
-
-    const getTrips = extractTrip(tripDocs);
-    return res.status(200).json({ success: true, trips: getTrips });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Internal server error" });
-  }
-};
-
 const filterTravelExpenses = async (req, res) => {
   try {
     const { error, value } = tripFilterSchema.validate({
@@ -757,7 +445,7 @@ const filterTravelExpenses = async (req, res) => {
         .json({ message: error.details[0].message, trips: [], success: true });
     }
 
-    console.log("filter trips - value", JSON.stringify(value, "", 2));
+    // console.log("filter trips - value", JSON.stringify(value, "", 2));
     const {
       tenantId,
       empId,
@@ -791,9 +479,10 @@ const filterTravelExpenses = async (req, res) => {
 
     const isMyView = role === "myView";
     const isFinanceView = role === "financeView";
-    const isTeamView = role === "teamView";
+    const isSuperAdmin = role === "financeView";
+    const isTeamView = role === "myTeamView";
 
-    console.log("my view", typeof role);
+    // console.log("my view", typeof role);
 
     // if (isFinanceView && getGroups?.length) {
     //   getHrInfo = await getGroupDetails(tenantId, empId, getGroups);
@@ -829,9 +518,9 @@ const filterTravelExpenses = async (req, res) => {
       ...new Set([...currentIds, ...newIds]),
     ];
 
-    let empIds = [empId];
+    let empIds = [];
 
-    if (isFinanceView && getGroups?.length) {
+    if ((isFinanceView || isSuperAdmin) && getGroups?.length) {
       getHrInfo = await getGroupDetails(tenantId, empId, getGroups);
       const { matchedEmployees } = getHrInfo;
       const newEmpIds = matchedEmployees
@@ -847,21 +536,21 @@ const filterTravelExpenses = async (req, res) => {
     }
 
     if (getDepartments.length) {
-      const getEmpIds = await getEmployeeIdsByDepartment(
+      const getEmpIds = await getEmployeeIdsByDepartments(
         tenantId,
         empId,
-        department
+        getDepartments
       );
-      console.log("getEmpIds for filterTrips superAdmin", getEmpIds);
+      // console.log("getEmpIds for filterTrips superAdmin", getEmpIds);
       empIds = addUniqueIds(empIds, getEmpIds);
     }
 
     let filterCriteria = { tenantId };
 
     if (empIds?.length) {
-      filterCriteria["createdBy.empId"] = { $in: empIds };
+      filterCriteria["travelRequestData.createdBy.empId"] = { $in: empIds };
     } else {
-      filterCriteria["createdBy.empId"] = empId;
+      filterCriteria["travelRequestData.createdBy.empId"] = empId;
     }
 
     if (approvers?.length) {
@@ -969,7 +658,7 @@ const filterTravelExpenses = async (req, res) => {
 
     const tripDocs = await reporting.find(filterCriteria);
 
-    console.log("tripDocs", tripDocs);
+    // console.log("tripDocs", tripDocs);
     if (tripDocs.length === 0) {
       return res.status(200).json({
         success: false,

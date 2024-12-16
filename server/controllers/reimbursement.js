@@ -37,11 +37,11 @@ export const getExpenseCategoriesForEmpId = async (req, res) => {
       grade,
       project,
     } = getEmployee.employeeDetails;
-    console.log(
-      "getExpenseCategoriesForEmpId -employee name and id",
-      employeeName,
-      employeeId
-    );
+    // console.log(
+    //   "getExpenseCategoriesForEmpId -employee name and id",
+    //   employeeName,
+    //   employeeId
+    // );
 
     if (!employeeId) {
       return res.status(404).json({
@@ -123,7 +123,7 @@ export const getReimbursementExpenseReport = async (req, res) => {
 
     const approverEmpIds = approvers?.map((a) => a.empId);
 
-    console.log("get Groups", typeof getGroups);
+    // console.log("get Groups", typeof getGroups);
 
     const addUniqueIds = (currentIds, newIds) => [
       ...new Set([...currentIds, ...newIds]),
@@ -151,9 +151,10 @@ export const getReimbursementExpenseReport = async (req, res) => {
     // }
     const isMyView = role === "myView";
     const isFinanceView = role === "financeView";
+    const isSuperAdmin = role === "financeView";
     const isTeamView = role === "teamView";
 
-    if (isFinanceView || getGroups?.length) {
+    if ((isFinanceView || isSuperAdmin) && getGroups?.length) {
       getHrInfo = await getGroupDetails(tenantId, empId, getGroups);
       ({
         employeeDocument,
@@ -172,8 +173,8 @@ export const getReimbursementExpenseReport = async (req, res) => {
       empIds = addUniqueIds(empIds, newEmpIds);
     }
 
-    console.log("empNames", JSON.stringify(empIds, "", 2));
-    console.log("get Groups kaboom", typeof getGroups);
+    // console.log("empNames", JSON.stringify(empIds, "", 2));
+    // console.log("get Groups kaboom", typeof getGroups);
 
     if (empIds?.length) {
       filterCriteria["createdBy.empId"] = { $in: empIds };
@@ -185,7 +186,7 @@ export const getReimbursementExpenseReport = async (req, res) => {
       filterCriteria["approvers.empId"] = { $in: approverEmpIds };
     }
 
-    console.log("my view", typeof role);
+    // console.log("my view", typeof role);
 
     if (expenseHeaderStatus?.length) {
       filterCriteria.expenseHeaderStatus = { $in: expenseHeaderStatus };
