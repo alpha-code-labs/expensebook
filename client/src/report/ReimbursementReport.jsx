@@ -56,6 +56,8 @@ const ReimbursementReport = ({ visibleHeaders, data }) => {
         return `${expense?.defaultCurrency} ${formatAmount(expense?.totalExpenseAmount)}`; 
       case 'approver':
         return expense?.approvers ?? "-"
+      case 'department':
+          return expense?.department  ??"-" 
       case 'group':
         return expense?.group         
       default:

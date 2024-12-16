@@ -67,6 +67,8 @@ const ExpenseReport = ({ visibleHeaders, expenseData }) => {
         return formatDate(expense?.tripCompletionDate);
       case 'approver':
         return expense?.approvers?? "-"
+      case 'department':
+          return expense?.department   
       case 'group':
         return expense?.group   
 

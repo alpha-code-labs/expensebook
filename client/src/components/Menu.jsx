@@ -103,7 +103,6 @@ const Menu = () => {
 
 
   if(activeView==="myTeamView"){
-
     Object.keys(reportConfigInputs).forEach((key)=>{
       if(key!=="common"){
       reportConfigInputs[key].push({ name: "Employees", type: "multisearch", options: [] })
@@ -391,8 +390,6 @@ const handleRunReport = async () => {
 
 };
 
-
-
 const generatePDF = (data) => {
   const doc = new jsPDF({ orientation: "landscape" }); // Set to landscape
 
@@ -528,13 +525,15 @@ return (
 </>} 
 
 
-{reportTab === "non-travel expense" && 
+{
+reportTab === "non-travel expense" && 
 <> 
 <div className='flex items-center justify-center'>  
   <NonTravelExpenseChart activeView={activeView} data={[...reportData?.nonTravelExpenseData]}/>
 </div> 
  <ReimbursementReport toggleModal={toggleModal} visibleHeaders={visibleHeaders} data={reportData?.nonTravelExpenseData}/>
-</>} 
+</>
+} 
 
 
   <Modal showModal={showModal} setShowModal={setShowModal} skipable={true}>  
@@ -669,7 +668,7 @@ return (
         // error={{ set: true, message: "Please select at least one employee." }}
       />}
 
-     {(["myTeamView","financeView"].includes(activeView) && reportData?.employeeRoles?.superAdmin) && 
+     {(["myTeamView","financeView"].includes(activeView) && reportData?.employeeRoles?.superAdmin) || reportData?.employeeRoles.finance && 
     <div className='w-full'>
     <MultiSelect 
     onSelect={(value)=>handleFilterForm('getDepartments',value)} 

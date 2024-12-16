@@ -9,9 +9,11 @@ const tripHeaders= [
     "trip status",
     "created by",
     "approver",
+    "department",
     "group",
     "trip purpose",
 ]
+
 
 
 const travelExpenseHeaders = [
@@ -27,6 +29,7 @@ const travelExpenseHeaders = [
   "expense status",
   "payment mode",
   "approver",
+  "department",
   "group",
   "paid by",
   
@@ -43,6 +46,7 @@ const cashAdvanceHeaders = [
   "cash-advance status",
   "payment mode",
   "approver",
+  "department",
   "group",
   "paid by",
    "recovered by"
@@ -60,6 +64,7 @@ const reimbursementHeaders=[
   "paid by",
   "expense amount",
   "approver",
+  "department",
   "group",
 
 ]

@@ -19,6 +19,7 @@ const flattedCashadvanceData = (data, subData) => {
           paidBy: obj.paidBy?.name ?? "-",
           recoveredBy: obj.recoveredBy?.name ?? "-",
           approvers: obj?.approvers?.map(approver => `${approver?.name ?? "-"} (${approver?.status ?? "-"})`).join(", "),
+          "department":obj?.department
         }))
       )
     );
@@ -45,6 +46,7 @@ const flattedCashadvanceData = (data, subData) => {
         paymentMode: expense.paymentMode,
         group:trip?.groupName?.map(group=>group).join(", ") ?? "-",
         approvers: expense?.approvers?.map(approver => `${approver?.name ?? "-"} (${approver?.status ?? "-"})`).join(", "),
+        "department":expense?.department,
         
         paidBy: expense.settlementBy?.name || null, // Assuming 'paidBy' field exists
         
@@ -77,6 +79,7 @@ const flattenTripData = (data) => {
     isCashAdvanceTaken: trip.isCashAdvanceTaken,
     travelType: trip.travelType,
     approvers: trip?.approvers?.map(approver => `${approver?.name ?? "-"} (${approver?.status ?? "-"})`).join(", "),
+    "department":trip?.department
     // Handle cash advances if they exist
     // cashAdvances: trip.cashAdvances?.map(cashAdvance => ({
     //   cashAdvanceId: cashAdvance.cashAdvanceId,
@@ -106,7 +109,8 @@ const flattenTripData = (data) => {
       defaultCurrency: expense?.defaultCurrency?.shortName,
       group:expense?.groupName?.map(group=>group).join(". ") ?? "-",
       approvers: expense?.approvers?.map(approver => `${approver?.name ?? "-"} (${approver?.status ?? "-"})`).join(", "),
-      expenseType:"Non-Travel Expense"
+      expenseType:"Non-Travel Expense",
+      "department":expense?.department
 
     }));
   };
