@@ -29,7 +29,6 @@ import "jspdf-autotable";
 // import "jspdf-autotable";
 
 const Menu = () => {
-
   const {tenantId,empId}= useParams();
   const dashboardBaseUrl = `${import.meta.env.VITE_DASHBOARD_URL}`;
 
@@ -93,7 +92,8 @@ const Menu = () => {
   const intialFilterForm ={
     'fromDate':new Date(),
     'toDate':new Date(),
-    'role':activeView
+    'role':activeView,
+    "empNames":reportData?.filterData?.listOfEmployees ||[]
   }
 
   const [reportDate, setReportDate]=useState(intialFilterForm)
@@ -161,9 +161,6 @@ const Menu = () => {
     }
     setFilterForm({...intialFilterForm,role:activeView})
   };
-  
-
-  
   
   const handlePresetChange = (value) => {
     const selectedRange = datePresets.find(preset=> preset.label === value).range    
@@ -514,7 +511,6 @@ return (
 <TripReport toggleModal={toggleModal} tripData={tripData} visibleHeaders={visibleHeaders}/>
 </>} 
 
-
 {reportTab === "cash-advance" && 
 <>
   <div className='flex items-center justify-center'>  
@@ -525,12 +521,13 @@ return (
 
 {reportTab === "travel expense" && 
 <>
-
 <div className='flex items-center justify-center'>  
   <ExpenseChart activeView={activeView} data={[...reportData?.travelExpenseData]}/>
 </div> 
  <ExpenseReport toggleModal={toggleModal} visibleHeaders={visibleHeaders} expenseData={travelExpenseData}/>
 </>} 
+
+
 {reportTab === "non-travel expense" && 
 <> 
 <div className='flex items-center justify-center'>  
@@ -561,7 +558,7 @@ return (
     <div className='h-[48px]  flex-row  px-5 flex justify-between items-center border-b w-full'>
       <div className='flex flex-row space-x-4'>
       <div className={` ${modalTab === "filterTab" ? ' border-neutral-900 text-neutral-900 ' : 'border-white text-neutral-700'}  border-b-2 hover:bg-gray-200/10 px-2 py-1   flex items-center gap-2 cursor-pointer`} onClick={()=>handleModalTab("filterTab")}> 
-      <img src={filter_icon} className='w-3 h-3'/>
+      <img src={filter_icon} className='w-4 h-5'/>
         <h1 className='text-start  text-inter text-base font-cabin '>
           Filters
         </h1>
@@ -674,9 +671,9 @@ return (
 
      {(["myTeamView","financeView"].includes(activeView) && reportData?.employeeRoles?.superAdmin) && 
     <div className='w-full'>
-    <MultiSelect
-    onSelect={(value)=>handleFilterForm('getDepartments',value)}
-    placeholder={'i.e. Finance'}
+    <MultiSelect 
+    onSelect={(value)=>handleFilterForm('getDepartments',value)} 
+    placeholder={'i.e. Finance'}  
     title={('Select Departments')} 
     options={reportData?.filterData?.departments || []}/>
   </div>
