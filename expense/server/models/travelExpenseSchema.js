@@ -6,7 +6,7 @@ const expenseHeaderTypeEnums = ['travel'];
 
 // Define constant enums for expenseStatus and expenseHeaderType
 const expenseHeaderStatusEnums = [
-  "new",
+  "new", // removed draft as default state
   'draft',
   'pending approval', 
   'approved',
@@ -139,7 +139,7 @@ export const travelExpenseSchema = new mongoose.Schema({
     expenseHeaderStatus: { 
       type: String,
       enum: expenseHeaderStatusEnums,
-      default: "new",
+      default: "draft",
     },
     alreadyBookedExpenseLines: {
       type: itinerarySchema,

@@ -320,7 +320,6 @@ const allExpenseReports = async (expenseReport) => {
       "pending approval",
       "approved",
       "pending settlement",
-      "new",
       "rejected",
     ];
 
@@ -338,8 +337,40 @@ const allExpenseReports = async (expenseReport) => {
       console.log("areAllExpenseReportsValid", areAllExpenseReportsValid);
 
       if (areAllExpenseReportsPaid) {
+        // let nextIncrementalValue = 0;
+        // console.log("nextIncrementalValue ..", nextIncrementalValue);
+        // const maxIncrementalValue = await Expense.findOne(
+        //   {},
+        //   "travelExpenseData.expenseHeaderNumber"
+        // )
+        //   .sort({ "travelExpenseData.expenseHeaderNumber": -1 })
+        //   .limit(1);
+
+        // if (
+        //   maxIncrementalValue &&
+        //   maxIncrementalValue.travelExpenseData &&
+        //   maxIncrementalValue.travelExpenseData.expenseHeaderNumber
+        // ) {
+        //   nextIncrementalValue =
+        //     parseInt(
+        //       maxIncrementalValue.travelExpenseData.expenseHeaderNumber.substring(
+        //         3
+        //       ),
+        //       10
+        //     ) + 1;
+        // }
+
+        // console.log(
+        //   "nextIncrementalValue - areAllExpenseReportsPaid",
+        //   nextIncrementalValue
+        // );
+        // expenseHeaderNumber = generateIncrementalNumber(
+        //   tenantName,
+        //   nextIncrementalValue
+        // );
         let nextIncrementalValue = 0;
         console.log("nextIncrementalValue ..", nextIncrementalValue);
+
         const maxIncrementalValue = await Expense.findOne(
           {},
           "travelExpenseData.expenseHeaderNumber"
@@ -352,23 +383,23 @@ const allExpenseReports = async (expenseReport) => {
           maxIncrementalValue.travelExpenseData &&
           maxIncrementalValue.travelExpenseData.expenseHeaderNumber
         ) {
-          nextIncrementalValue =
-            parseInt(
-              maxIncrementalValue.travelExpenseData.expenseHeaderNumber.substring(
-                3
-              ),
-              10
-            ) + 1;
+          const lastExpenseHeaderNumber =
+            maxIncrementalValue.travelExpenseData.expenseHeaderNumber;
+          const numericPart = lastExpenseHeaderNumber.substring(5); // Start from index 5 to extract the numeric part
+
+          nextIncrementalValue = parseInt(numericPart, 10) + 1; // Increment the numeric part
         }
 
         console.log(
           "nextIncrementalValue - areAllExpenseReportsPaid",
           nextIncrementalValue
         );
+
         expenseHeaderNumber = generateIncrementalNumber(
           tenantName,
           nextIncrementalValue
         );
+
         let newExpenseHeaderId = new mongoose.Types.ObjectId();
         flagToOpen = newExpenseHeaderId;
         console.log(
@@ -512,6 +543,7 @@ export const BookExpense = async (req, res) => {
 
     // Handling the case when expenseHeaderNumber is present
     if (expenseHeaderNumber) {
+      console.log("expense header Number jan2025", expenseHeaderNumber);
       const allExpenseReportsList = await allExpenseReports(expenseReport);
       // console.log(" all expense reports", allExpenseReportsList)
       let { entireExpenseReport, flagToOpen } = allExpenseReportsList;
@@ -558,6 +590,7 @@ export const BookExpense = async (req, res) => {
         tenantName,
         nextIncrementalValue
       );
+      console.log("expense header Number jan2025 2", expenseHeaderNumber);
 
       // Updating the expense header number in the travelExpenseData
       expenseReport.travelExpenseData.expenseHeaderNumber = expenseHeaderNumber;
@@ -1647,7 +1680,7 @@ export const onSaveAsDraftExpenseReport = async (req, res) => {
         travelExpenseData: {
           $elemMatch: {
             expenseHeaderId: expenseHeaderId,
-            expenseHeaderStatus: { $in: ["new", "draft"] },
+            expenseHeaderStatus: { $in: ["draft"] },
           },
         },
       },
@@ -1732,7 +1765,6 @@ export const onSubmitExpenseHeader = async (req, res) => {
           expenseHeaderId,
           expenseHeaderStatus: {
             $in: [
-              "new",
               "draft",
               "pending approval",
               "approved",
@@ -1825,6 +1857,7 @@ export const cancelAtHeaderLevelForAReport = async (req, res) => {
     let totalPersonalExpenseAmount;
     let totalRemainingCash;
     let totalCashAmount;
+    let totalAlreadyBookedExpenseAmount
 
     if (expenseAmountStatus) {
       totalExpenseAmount = parseNumber(expenseAmountStatus.totalExpenseAmount);
@@ -1833,6 +1866,7 @@ export const cancelAtHeaderLevelForAReport = async (req, res) => {
       );
       totalRemainingCash = parseNumber(expenseAmountStatus.totalRemainingCash);
       totalCashAmount = parseNumber(expenseAmountStatus.totalCashAmount);
+      totalAlreadyBookedExpenseAmount = parseNumber(expenseAmountStatus.totalAlreadyBookedExpenseAmount)
     }
 
     // const hasAlreadyBookedExpense = travelExpenseReport && travelExpenseReport.alreadyBookedExpenseLines && Array.isArray(travelExpenseReport.alreadyBookedExpenseLines) && travelExpenseReport.alreadyBookedExpenseLines.length > 0;
@@ -1864,18 +1898,22 @@ export const cancelAtHeaderLevelForAReport = async (req, res) => {
             { "travelRequestData.createdBy.empId": empId },
             { "travelRequestData.createdFor.empId": empId },
           ],
-          "travelExpenseData.expenseHeaderId": expenseHeaderId,
+          "travelExpenseData":{
+            $elemMatch:{
+              expenseHeaderId:expenseHeaderId
+            }
+          }
         },
         {
           $pull: { travelExpenseData: { expenseHeaderId: expenseHeaderId } },
           // $unset: { 'expenseAmountStatus': 1 },
           $set: {
-            "expenseAmountStatus.totalExpenseAmount": 0,
+            "expenseAmountStatus.totalExpenseAmount": totalAlreadyBookedExpenseAmount,
             "expenseAmountStatus.totalPersonalExpenseAmount": 0,
             "expenseAmountStatus.totalRemainingCash": totalCashAmount,
           },
         },
-        { new: true }
+        { returnDocument: "after" }
       );
 
       if (getExpenseReport) {
@@ -1958,7 +1996,7 @@ export const cancelAtHeaderLevelForAReport = async (req, res) => {
       });
 
       // Perform MongoDB update operation
-      const updatedExpenseReport = await Expense.updateMany(
+      const updatedExpenseReport = await Expense.findOneAndUpdate(
         {
           tenantId,
           tripId,
@@ -1977,10 +2015,9 @@ export const cancelAtHeaderLevelForAReport = async (req, res) => {
               totalPersonalExpenseAmount,
             "expenseAmountStatus.totalRemainingCash": totalRemainingCash,
           },
-          $pull: {
-            "travelExpenseData.$": { expenseHeaderId },
-          },
-        }
+          $pull: { travelExpenseData: { expenseHeaderId: expenseHeaderId } },
+        },
+        { returnDocument: "after" }
       );
 
       if (updatedExpenseReport) {

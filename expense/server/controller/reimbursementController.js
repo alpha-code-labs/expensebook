@@ -13,7 +13,7 @@ const sendToMicroservices = async (
   onlineVsBatch,
   isApproval
 ) => {
-  const services = ["dashboard", "reporting","finance"];
+  const services = ["dashboard", "reporting"];
   if (isApproval) {
     services.unshift("approval");
   }
@@ -123,7 +123,7 @@ const createReimbursementReport = async (
     let expenseHeaderId;
     let approvers;
 
-    const getExpenseHeaderStatus = ["new", null];
+    const getExpenseHeaderStatus = ["draft"];
 
     // Find the updated expense header
     const updatedExpense = await Reimbursement.findOne({
@@ -167,7 +167,7 @@ const createReimbursementReport = async (
       // Create a new expense headerId
       expenseHeaderId = new mongoose.Types.ObjectId();
 
-      expenseHeaderStatus = "new";
+      expenseHeaderStatus = "draft";
 
       const newExpense = {
         tenantId,

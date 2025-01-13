@@ -288,6 +288,7 @@ const settleExpenseReport= async (payload) => {
       const {  tenantId,travelRequestId, expenseHeaderId, settlementBy, expenseHeaderStatus, 
         settlementDate,settlementDetails } = payload;
   
+        console.log("settle travel expense",{payload})
         const status = {
           PENDING_SETTLEMENT: 'pending settlement',
           PAID: 'paid',

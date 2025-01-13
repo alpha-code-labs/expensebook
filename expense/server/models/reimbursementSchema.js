@@ -3,7 +3,7 @@ import { approverStatusEnums} from "./travelSchema.js";
 
 // Define constant enums for expenseStatus and expenseHeaderType
 const expenseHeaderStatusEnums = [
-  'new',
+  'new', // removed
   'draft',
   'pending approval', 
   'approved',
@@ -135,7 +135,7 @@ createdBy:{
 expenseHeaderStatus: { 
   type: String,
   enum: expenseHeaderStatusEnums,
-  default: null
+  default: 'draft'
 },
 expenseAmountStatus: {
   totalCashAmount: {

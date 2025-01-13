@@ -31,7 +31,7 @@ export const sendToDashboardMicroservice = async (payload, action, comments, sou
  
      const exchangeName = 'amqp.dashboard';
      const queue = 'sync';
-     const correlationId = generateUniqueIdentifier(); // Assuming this function is defined elsewhere
+     const correlationId = generateUniqueIdentifier(); 
      const replyQueue = await channel.assertQueue('', { exclusive: true });
  
      console.log(`Asserting exchange: ${exchangeName}`);
@@ -64,23 +64,21 @@ export const sendToDashboardMicroservice = async (payload, action, comments, sou
          if (msg.properties.correlationId === correlationId) {
            const response = JSON.parse(msg.content.toString());
            console.log('Received response:', response);
- 
-           // Check if the response is a confirmation message
+
            if (response.headers && response.headers.type === 'confirmation') {
-             // Assuming the success status is directly under payload.success
              const success = response.payload.success;
              console.log(`Confirmation received with success status: ${success}`);
-             resolve(success); // Resolve the promise with the success status
+             resolve(success); 
            } else {
              console.error('Unexpected response format.');
              reject(new Error('Unexpected response format.'));
            }
  
-           channel.ack(msg); // Acknowledge the message
+           channel.ack(msg); 
            console.log('Message acknowledged.');
-           channel.close(); // Close the channel
+           channel.close();
            console.log('Channel closed.');
-           connection.close(); // Close the connection
+           connection.close(); 
            console.log('Connection closed.');
          }
        }, { noAck: false }); // Important: Set noAck to false to allow acknowledgement of the message
