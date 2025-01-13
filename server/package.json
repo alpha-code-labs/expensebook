@@ -17,11 +17,13 @@
     "nodemon": "^3.1.7",
     "pino": "^8.21.0",
     "prettier": "^3.0.3",
+    "swagger-ui-express": "^5.0.1",
     "uuid": "^9.0.1"
   },
   "scripts": {
     "start": "nodemon index.js",
-    "tests": "mocha"
+    "tests": "mocha",
+    "generateDoc":"node swagger.js"
   },
   "keywords": [],
   "author": "Sumesh k.s",
@@ -37,6 +39,7 @@
     "pino-pretty": "^10.3.1",
     "sinon": "^16.0.0",
     "sinon-chai": "^3.7.0",
-    "supertest": "^6.3.3"
+    "supertest": "^6.3.3",
+    "swagger-autogen": "^2.23.7"
   }
 }
