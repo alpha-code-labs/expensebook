@@ -52,8 +52,10 @@ const AddLineItem = () => {
   const navigate = useNavigate()
   
 const {tenantId,empId,tripId} = useParams();
-const [showForm , setShowForm]=useState(false);  
+const [showForm , setShowForm] = useState(false);  
 const [selectedFile, setSelectedFile] = useState(null);
+const [ocrUpload, setOcrUpload] = useState(false);
+
 const [isFileSelected, setIsFileSelected] = useState(false);
 const [currencyConversion, setCurrencyConversion]=useState({
   payload:{
@@ -203,8 +205,18 @@ const handleAllocations = (headerName, headerValue) => {
 
 
 const handleSelectCategory = (option) => {
+  setFormData((prevData) => ({
+    ...prevData,
+    fields: {},
+  }));
+  setIsFileSelected(false);
+  setSelectedFile(null);
+  setShowForm(false);
+  setOcrUpload(false);
+
   console.log('handle category',option)
   setErrorMsg(prev=>({...prev,uploadFlag:{ set: false, msg: "" }}))
+ 
   setRequiredObj((prev) => ({
     ...prev,
     category: option.categoryName,
@@ -464,68 +476,17 @@ const handleSaveLineItem = async (action) => {
   }
 };
 
-// const handleOCRScan=async()=>{
-//   if(requiredObj.category=== 'Flight'){
-//     setFormData(prev => ({...prev,fields:{
-//       ...prev.fields,
-      
-//         "Invoice Date": "2023-08-04",
-//         "Departure": "DEL",
-//         "Arrival": "BLR",
-//         "Airlines name": "",
-//         "Travelers Name": "kurpath S Sumesh kurpath S Sumesh",
-//         "Class": "",
-//         "Booking Reference Number": "NF7TKQXJLD1PSQCM0529",
-//         "Total Amount": "4713",
-//         "Tax Amount": "",
-//         "Flight Number": ""
-//         ,
-        
-        
-//         "Currency": {
-//             "countryCode": "IN",
-//             "fullName": "Indian Rupee",
-//             "shortName": "INR",
-//             "symbol": "₹"
-//         },
-//         "Category Name": "Flight"
-    
-    
-//     }}))
-//     setCurrencyConversion(prev=>({...prev,payload:{...prev.payload,totalAmount:"4713"}}))
-//   }
-//   if (requiredObj.category=== 'Meals' ){
-//     setFormData(prev => ({...prev,fields:{
-//       ...prev.fields,
-      
-      
-//         "Bill Date": "2024-07-21",
-//         "Bill Number": "24VHMPXU00013373",
-//         "Category Name": "Meals",
-//         "Currency": {
-//             countryCode: 'IN',
-//             fullName: 'Indian Rupee',
-//             shortName: 'INR',
-//             symbol: '₹'
-//         },
-        
-//         "Quantity": "5",
-//         "Tax Amount": "7.575",
-//         "Total Amount": "318.15",
-//         "Vendor Name": "The Burger Club",
-//     }}))
-//     setCurrencyConversion(prev=>({...prev,payload:{...prev.payload,totalAmount:"318.15"}}))
 
-//   }
-// }
 
 // Trigger OCRScan when a file is selected
 const handleOCRScan = () => {
   if (requiredObj?.category) {
+    setOcrUpload(true);
     setErrorMsg(prev => ({
       ...prev,
       category: { set: false, msg: "" },
     }));
+    
   } else {
     setErrorMsg(prev => ({
       ...prev,
@@ -533,6 +494,7 @@ const handleOCRScan = () => {
     }));
   }
 };
+
 const OCRScan = async (file) => {
   setIsUploading((prev) => ({ ...prev, autoScan: true }));
   try {
@@ -600,8 +562,9 @@ const OCRScan = async (file) => {
     window.parent.postMessage({message:"ocr message posted", 
     ocrMsgData: { showPopup:true, message:"ocrMsg", iconCode: "103", autoSkip:false }}, dashboardBaseUrl);
     
-    
+    setOcrUpload(false);
   } 
+  
   catch (error) {
     console.error("Something went wrong with OCR scan:", error?.message);
     const errorMsg = 'Unable to retrieve the value. Please enter it manually.'
@@ -609,94 +572,17 @@ const OCRScan = async (file) => {
     popupMsgData: { showPopup:true, message:errorMsg, iconCode: "104" }}, dashboardBaseUrl);
     setIsUploading((prev) => ({ ...prev, autoScan: false }));
     setShowForm(true)
+    setOcrUpload(false);
   } 
 };
 
 
-
-
-// const OCRScan = async (file) => {
-//   setIsUploading((prev) => ({ ...prev, autoScan: true }));
-//   try {
-//     const formData = new FormData();
-//     formData.append('file', file);
-
-//     // Call the OCR scan API with required data
-//     const response = await ocrScanApi(
-//       {
-//         tenantId,
-//         categoryName: requiredObj?.category,
-//         travelType: requiredObj?.travelType,
-//       },
-//       formData // Pass FormData as payload
-//     );
-
-//     // Log the response from the OCR scan
-//     setIsUploading((prev) => ({ ...prev, autoScan: false }));
-   
-//     setShowForm(true)
-//     const fields = response.data.fields
-//     const result = fields?.reduce((acc, item) => {
-//       acc[item.name] = item.value;
-//       return acc;
-//   }, {});
-
-//   setFormData(prev => ({...prev,fields:{
-//     ...prev.fields,
-//     ...result
-//       ,
-//       "Currency": {
-//           "countryCode": "IN",
-//           "fullName": "Indian Rupee",
-//           "shortName": "INR",
-//           "symbol": "₹"
-//       },
-//       "Category Name": requiredObj?.category
-  
-  
-//   }}))
-//   document
-//   .getElementById("newLineItem")
-//   .scrollIntoView({ behavior: "smooth" });
-//   const matchingKey = totalAmountKeys.find(key => result[key] && result[key].trim() !== "");
-  
-
-// if (matchingKey) {
-//     // Set the matched value to totalAmount
-//     setCurrencyConversion(prev => ({
-//         ...prev,
-//         payload: {
-//             ...prev.payload,
-//             totalAmount: result[matchingKey] 
-//         }
-//     }));
-// } else {
-//     setCurrencyConversion(prev => ({
-//         ...prev,
-//         payload: {
-//             ...prev.payload,
-//             totalAmount: ""
-//         }
-//     }));
-// }
-//     console.log('OCR scan response:', response.data,result,fields);
-//   } catch (error) {
-//     // Log the error message if OCR scan fails
-//     console.error('Something went wrong with OCR scan:', error?.message);
-//     const errorMsg = 'Unable to retrieve the value. Please enter it manually.'
-//     window.parent.postMessage({message:"expense message posted", 
-//     popupMsgData: { showPopup:true, message:errorMsg, iconCode: "104" }}, dashboardBaseUrl);
-//     setIsUploading((prev) => ({ ...prev, autoScan: false }));
-//     setShowForm(true)
-//   } 
-// };
-
-
-useEffect(()=>{
-  console.log("selected file", selectedFile)
-  if(isFileSelected)
-  OCRScan(selectedFile)
-},[isFileSelected])
+useEffect(() => {
+  if (selectedFile && ocrUpload) { 
+    console.log("selected file", selectedFile);
+    OCRScan(selectedFile);
+  }
+}, [selectedFile]);
 
 
 

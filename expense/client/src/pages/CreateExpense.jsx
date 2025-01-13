@@ -826,7 +826,7 @@ const handleRemoveFile=()=>{
       expenseSettlement: requiredObj?.selectedExpenseSettlement || "",
       approvers: requiredObj?.travelExpenseData?.[0]?.approvers || [],
     };
-    if (!requiredObj?.selectedExpenseSettlement) {
+    if (!requiredObj?.selectedExpenseSettlement && requiredObj?.expenseAmountStatus?.totalRemainingCash?.toFixed(2) < 0) {
       setErrorMsg((prevErrors) => ({
         ...prevErrors,
         expenseSettlement: { set: true, msg: "Select the settlement mode" },
@@ -2075,10 +2075,10 @@ function ExpenseHeader({
             },
             {
               label: "Remaining Cash Advance",
-              value:
-                expenseAmountStatus?.totalRemainingCash?.toFixed(2) > 0
-                  ? expenseAmountStatus?.totalRemainingCash?.toFixed(2)
-                  : "0.00" ?? "not available",
+              value: expenseAmountStatus?.totalRemainingCash?.toFixed(2)
+                // expenseAmountStatus?.totalRemainingCash?.toFixed(2) > 0
+                //   ? expenseAmountStatus?.totalRemainingCash?.toFixed(2)
+                //   : "0.00" ?? "not available",
             },
             {
               label: "Total Expense",
@@ -2116,7 +2116,7 @@ function ExpenseHeader({
               </div>
             ))}
 
-          {settlementOptions?.length > 0 && (
+          {(settlementOptions?.length > 0 && expenseAmountStatus?.totalRemainingCash?.toFixed(2) <0 )&& (
             <div className="">
               <Select
                 currentOption={selectedExpenseSettlement}
