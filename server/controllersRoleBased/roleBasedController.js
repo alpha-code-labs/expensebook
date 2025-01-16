@@ -552,7 +552,7 @@ const travelStandAloneForEmployee = async (tenantId, empId) => {
               travelRequestNumber,
               tripPurpose,
               travelRequestStatus,
-              travelType,
+              // travelType,
               isCashAdvanceTaken,
             },
           }) => ({
@@ -585,7 +585,7 @@ const travelStandAloneForEmployee = async (tenantId, empId) => {
             tripPurpose,
             travelRequestStatus,
             rejectionReason,
-            travelType,
+            // travelType,
             isCashAdvanceTaken,
           })
         );
@@ -1406,6 +1406,7 @@ const getAllExpensesForEmployee = async (tenantId, empId) => {
 
         const travelExpenseReports = travelExpenseData.map((expense) => ({
           expenseHeaderId: expense?.expenseHeaderId ?? "",
+          expenseHeaderNumber: expense?.expenseHeaderNumber ?? '',
           createdBy: expense?.createdBy ?? "",
           expenseHeaderStatus: expense?.expenseHeaderStatus ?? "",
           expenseLines: expense?.expenseLines ?? "",
@@ -1567,6 +1568,7 @@ const getAllExpensesForEmployee = async (tenantId, empId) => {
 
         const travelExpenseReports = travelExpenseData?.map((expense) => ({
           expenseHeaderId: expense?.expenseHeaderId ?? "",
+          expenseHeaderNumber: expense?.expenseHeaderNumber ?? '',
           createdBy: expense?.createdBy ?? "",
           expenseHeaderStatus: expense?.expenseHeaderStatus ?? "",
           expenseLines: expense?.expenseLines ?? "",
@@ -2339,13 +2341,12 @@ const approvalsForManager = async (tenantId, empId) => {
         }, {})
       );
 
-      // console.log("travelExpenseReports", approvalDoc.length)
-
       travelAndCash = [...filteredTravelWithCash, ...cashAdvanceRaisedLater];
       trips = [...addALeg];
 
       travelExpenseReports = await (async () => {
         try {
+          // Filter the approvals where any expense matches the criteria
           const filteredApprovals = approvalDoc.filter((approval) => {
             return approval?.tripSchema?.travelExpenseData?.some((expense) => {
               return (
@@ -2360,17 +2361,25 @@ const approvalsForManager = async (tenantId, empId) => {
               );
             });
           });
-          // console.log("Filtered approvals:", filteredApprovals);
-          const travelExpenseDataList = filteredApprovals.flatMap(
-            (approval) => {
-              // console.log("Processing approval:", approval);
-              return approval.tripSchema.travelExpenseData.map((expense) => {
-                // console.log("Processing expense:", expense);
+      
+          // Extract the relevant travel expense data for those filtered approvals
+          const travelExpenseDataList = filteredApprovals.flatMap((approval) => {
+            return approval.tripSchema.travelExpenseData
+              .filter((expense) => {
+                // Only include expenses with "pending approval" status and the approver check
+                return (
+                  expense.tenantId === tenantId &&
+                  expense.expenseHeaderStatus === "pending approval" &&
+                  expense.approvers.some(
+                    (approver) =>
+                      approver.empId === empId && approver.status === "pending approval"
+                  )
+                );
+              })
+              .map((expense) => {
                 const { tripName } = approval.travelRequestSchema;
-                const { tripId, tripNumber, tripStatus, tripStartDate } =
-                  approval.tripSchema;
-                const { tripPurpose, createdBy } =
-                  approval.tripSchema.travelRequestData;
+                const { tripId, tripNumber, tripStatus, tripStartDate } = approval.tripSchema;
+                const { tripPurpose, createdBy } = approval.tripSchema.travelRequestData;
                 const {
                   expenseHeaderNumber,
                   expenseHeaderId,
@@ -2378,6 +2387,8 @@ const approvalsForManager = async (tenantId, empId) => {
                   approvers,
                   expenseLines,
                 } = expense;
+      
+                // Return the relevant fields for each expense
                 return {
                   tripId,
                   tripName,
@@ -2393,35 +2404,19 @@ const approvalsForManager = async (tenantId, empId) => {
                   expenseLines,
                 };
               });
-            }
-          );
-          // console.log(" expense reports for approval:", travelExpenseDataList);
-
+          });
+      
           return travelExpenseDataList;
         } catch (error) {
-          // console.error('Error occurred:', error);
+          console.error('Error occurred:', error);
           return []; // Return an empty array or handle the error accordingly
         }
-      })();
-
-      //    console.log("nonTravelExpenseReports",nonTravelExpenseReports)
+      })();      
     }
 
     if (reimbursementReports?.length) {
       nonTravelExpenseReports = await (async () => {
         try {
-          // Filter approvals based on criteria
-          // const filteredApprovals = getReimbursementReports.filter(approval => {
-          //     return approval &&
-          //            approval.tenantId === tenantId &&
-          //            approval.expenseHeaderStatus === 'pending approval' &&
-          //            approval.approvers.some(approver => {
-          //                return approver.empId === empId &&
-          //                       approver.status === 'pending approval';
-          //            });
-          // });
-
-          // Extract necessary data from filtered approvals
           const nonTravelExpenseDataList = reimbursementReports.map(
             (approval) => {
               const {
@@ -2447,7 +2442,7 @@ const approvalsForManager = async (tenantId, empId) => {
           return nonTravelExpenseDataList;
         } catch (error) {
           console.error("Error occurred:", error);
-          return []; // Handle the error by returning an empty array
+          return []; 
         }
       })();
     }
@@ -2462,7 +2457,6 @@ const approvalsForManager = async (tenantId, empId) => {
     return responseData;
   } catch (error) {
     console.error("Error in fetching employee Dashboard:", error);
-    // Return an object indicating the error occurred
     throw error;
   }
 };

@@ -1,6 +1,7 @@
 import Joi from "joi";
 import HRMaster from "../models/hrMasterSchema.js";
 import { sendToOtherMicroservice } from "../rabbitmq/publisher.js";
+import e from "express";
 
 export const employeeSchema = Joi.object({
   tenantId: Joi.string().required(),
@@ -43,32 +44,18 @@ export const getProfile = async (req, res) => {
       department,
       location,
     } = profile;
-    const {
-      flightPreference,
-      busPreference,
-      trainPreference,
-      hotelPreference,
-      emergencyContact,
-      dietaryAllergy,
-    } = travelPreferences;
 
+    console.log("profile", JSON.stringify(profile, "", 2));
     // Send a standardized success response with the retrieved preferences
-    res
-      .status(200)
-      .json({
-        success: true,
-        flightPreference,
-        busPreference,
-        trainPreference,
-        hotelPreference,
-        emergencyContact,
-        dietaryAllergy,
-        imageUrl,
-        employeeName,
-        location,
-        emailId,
-        department,
-      });
+    res.status(200).json({
+      success: true,
+      ...travelPreferences,
+      imageUrl,
+      employeeName,
+      location,
+      emailId,
+      department,
+    });
   } catch (error) {
     // Handle errors in a standardized way
     console.error("Error getting employee preferences:", error);
@@ -100,48 +87,57 @@ export const saveProfile = async (req, res) => {
       (employee) => employee?.employeeDetails?.employeeId === empId
     );
 
-    const {
-      busPreference,
-      dietaryAllergy,
-      emergencyContact,
-      flightPreference,
-      hotelPreference,
-      trainPreference,
-      imageUrl,
-    } = req.body;
+    const { imageUrl } = req.body;
 
-    if (busPreference) profile.travelPreferences.busPreference = busPreference;
-    if (dietaryAllergy)
-      profile.travelPreferences.dietaryAllergy = dietaryAllergy;
-    if (emergencyContact)
-      profile.travelPreferences.emergencyContact = emergencyContact;
-    if (flightPreference)
-      profile.travelPreferences.flightPreference = flightPreference;
-    if (hotelPreference)
-      profile.travelPreferences.hotelPreference = hotelPreference;
-    if (trainPreference)
-      profile.travelPreferences.trainPreference = trainPreference;
+    const fieldsToSave = [
+      "busPreference",
+      "dietaryAllergy",
+      "emergencyContact",
+      "flightPreference",
+      "hotelPreference",
+      "trainPreference",
+      "travelSettlement",
+      "nonTravelSettlement",
+    ];
+
+    fieldsToSave.forEach((field) => {
+      if (req.body[field]) {
+        profile.travelPreferences[field] = req.body[field];
+      }
+    });
+
     if (imageUrl) profile.imageUrl = imageUrl;
 
     await hrData.save();
 
-    //   const payload = employee.travelPreferences;
-    //   const action = 'profile-update';
-    //   const comments = 'travel preference updated by employee in dashboard'
+    const payload = {
+      tenantId,
+      empId,
+      imageUrl: profile.imageUrl,
+      travelPreferences: profile.travelPreferences,
+    };
+
+    const action = "profile-update";
+    const comments = "travel preference updated by employee in dashboard";
     //   sendToOtherMicroservice(payload, action, 'travel', comments, source='dashboard', onlineVsBatch='online')
     //   sendToOtherMicroservice(payload, action, 'cash', comments, source='dashboard', onlineVsBatch='online')
     //   sendToOtherMicroservice(payload, action, 'approval', comments, source='dashboard', onlineVsBatch='online')
     //   sendToOtherMicroservice(payload, action, 'trip', comments, source='dashboard', onlineVsBatch='online')
     //   sendToOtherMicroservice(payload, action, 'expense', comments, source='dashboard', onlineVsBatch='online')
-    //   sendToOtherMicroservice(payload, action, 'finance', comments, source='dashboard', onlineVsBatch='online')
+    sendToOtherMicroservice(
+      payload,
+      action,
+      "finance",
+      comments,
+      "dashboard",
+      "online"
+    );
 
     // Send a standardized success response
-    res
-      .status(200)
-      .json({
-        success: true,
-        message: "Employee preferences saved successfully.",
-      });
+    res.status(200).json({
+      success: true,
+      message: "Employee preferences saved successfully.",
+    });
   } catch (error) {
     // Handle errors in a standardized way
     console.error("Error saving employee preferences:", error);

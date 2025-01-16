@@ -6,6 +6,7 @@ import REIMBURSEMENT from "../models/reimbursementSchema.js";
 import {
   createOrUpdateNotification,
   determineTravelStatus,
+  sendToEmpNotification,
 } from "../schedulars/notifications.js";
 
 const status = {
@@ -270,12 +271,10 @@ async function approveAll(req, res) {
     }
 
     if (!approvalDocs?.length) {
-      return res
-        .status(400)
-        .json({
-          success: true,
-          message: "Failed to approve: No approval documents found.!!",
-        });
+      return res.status(400).json({
+        success: true,
+        message: "Failed to approve: No approval documents found.!!",
+      });
     }
 
     // console.log("approveAllTravelWithCash",tenantId, empId, travelRequestIds)
@@ -283,32 +282,26 @@ async function approveAll(req, res) {
 
     if (reports) {
       // console.log("approveAll promise", reports)
-      return res
-        .status(200)
-        .json({
-          success: true,
-          message: "The travel request has been approved.",
-          reports: reports.flat(),
-        });
+      return res.status(200).json({
+        success: true,
+        message: "The travel request has been approved.",
+        reports: reports.flat(),
+      });
     }
   } catch (error) {
     //  console.error('error', error.message)
     if (error.isJoi) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          error: error.details[0].message,
-          message: "Missing fields",
-        });
-    }
-    return res
-      .status(500)
-      .json({
+      return res.status(400).json({
         success: false,
-        error: error.message,
-        message: "Not Found, incorrect data",
+        error: error.details[0].message,
+        message: "Missing fields",
       });
+    }
+    return res.status(500).json({
+      success: false,
+      error: error.message,
+      message: "Not Found, incorrect data",
+    });
   }
 }
 
@@ -471,6 +464,7 @@ const approveAllTravelWithCash = async (tenantId, empId, travelReports) => {
           travelStartDate
         );
         const employeeType = "bookingAdmin";
+        // const getUrlData = await determineGetUrlData()
         // console.log("status, message", status, messageText)
         if (status === "urgent" || status === "action") {
           await createOrUpdateNotification({
@@ -478,6 +472,7 @@ const approveAllTravelWithCash = async (tenantId, empId, travelReports) => {
             messageText,
             status,
             employeeType,
+            // getUrlData
           });
         }
       })
@@ -489,6 +484,8 @@ const approveAllTravelWithCash = async (tenantId, empId, travelReports) => {
         ? doc.travelRequestId.toString()
         : null,
       approvers: doc.travelRequestSchema.approvers,
+      tripName: doc.travelRequestSchema.tripName,
+      createdBy: doc.travelRequestSchema.createdBy,
       travelRequestStatus: doc.travelRequestSchema.travelRequestStatus,
       rejectionReason: doc.travelRequestSchema.rejectionReason || null,
     }));
@@ -498,6 +495,7 @@ const approveAllTravelWithCash = async (tenantId, empId, travelReports) => {
       const travelRequestId = doc.travelRequestId
         ? doc.travelRequestId.toString()
         : null;
+      const createdBy = doc.cashAdvanceSchema.travelRequestData.createdBy;
       const approvers = doc.cashAdvanceSchema.travelRequestData.approvers;
       const travelRequestStatus =
         doc.cashAdvanceSchema.travelRequestData.travelRequestStatus;
@@ -533,58 +531,65 @@ const approveAllTravelWithCash = async (tenantId, empId, travelReports) => {
       };
     });
 
-    // console.log("total approved",approvedDocs.length)
-    // console.groupEnd("approval successful")
     if (allTravelRequests?.length > 0) {
-      sendToOtherMicroservice(
-        payloadToTravel,
-        "approve-reject-tr",
-        "travel",
-        "approve travelRequests",
-        "dashboard",
-        "online"
-      );
-      sendToOtherMicroservice(
-        payloadToTravel,
-        "approve-reject-tr",
-        "approval",
-        "approve travelRequests",
-        "dashboard",
-        "online"
-      );
-      sendToOtherMicroservice(
-        payloadToTravel,
-        "approve-reject-tr",
-        "reporting",
-        "approve travelRequests",
-        "dashboard",
-        "online"
-      );
+      const promises = [
+        sendToOtherMicroservice(
+          payloadToTravel,
+          "approve-reject-tr",
+          "travel",
+          "approve travelRequests",
+          "dashboard",
+          "online"
+        ),
+        sendToOtherMicroservice(
+          payloadToTravel,
+          "approve-reject-tr",
+          "approval",
+          "approve travelRequests",
+          "dashboard",
+          "online"
+        ),
+        sendToOtherMicroservice(
+          payloadToTravel,
+          "approve-reject-tr",
+          "reporting",
+          "approve travelRequests",
+          "dashboard",
+          "online"
+        ),
+        sendToEmpNotification(payloadToTravel),
+      ];
+      await Promise.all(promises);
     } else if (allTravelRequestsWithCash?.length > 0) {
-      sendToOtherMicroservice(
-        payloadToCash,
-        "approve-reject-ca",
-        "cash",
-        "approve travelRequests with cash",
-        "dashboard",
-        "online"
-      );
-      sendToOtherMicroservice(
-        payloadToCash,
-        "approve-reject-ca",
-        "approval",
-        "approve travelRequests with cash",
-        "dashboard",
-        "online"
-      );
-      sendToOtherMicroservice(
-        payloadToCash,
-        "approve-reject-ca",
-        "reporting",
-        "approve travelRequests with cash",
-        "dashboard",
-        "online"
-      );
+      const promises = [
+        sendToOtherMicroservice(
+          payloadToCash,
+          "approve-reject-ca",
+          "cash",
+          "approve travelRequests with cash",
+          "dashboard",
+          "online"
+        ),
+        sendToOtherMicroservice(
+          payloadToCash,
+          "approve-reject-ca",
+          "approval",
+          "approve travelRequests with cash",
+          "dashboard",
+          "online"
+        ),
+        sendToOtherMicroservice(
+          payloadToCash,
+          "approve-reject-ca",
+          "reporting",
+          "approve travelRequests with cash",
+          "dashboard",
+          "online"
+        ),
+      ];
+
+      // Wait for all promises to resolve
+      await Promise.all(promises);
     }
 
     if (
@@ -768,13 +773,11 @@ async function rejectAll(req, res) {
 
     if (reports) {
       // console.log("reject all promise", reports)
-      return res
-        .status(200)
-        .json({
-          success: true,
-          message: "Travel request has been rejected.",
-          reports: reports.flat(),
-        });
+      return res.status(200).json({
+        success: true,
+        message: "Travel request has been rejected.",
+        reports: reports.flat(),
+      });
     }
   } catch (error) {
     console.error("error", error.message);
@@ -963,6 +966,8 @@ const rejectAllTravelWithCash = async (
       approvers: doc.travelRequestSchema.approvers,
       travelRequestStatus: doc.travelRequestSchema.travelRequestStatus,
       rejectionReason: doc.travelRequestSchema.rejectionReason || null,
+      tripName: doc.travelRequestSchema.tripName,
+      createdBy: doc.travelRequestSchema.createdBy,
     }));
 
     const payloadToCash = allTravelRequestsWithCash.map((doc) => {
@@ -971,6 +976,8 @@ const rejectAllTravelWithCash = async (
         ? doc.travelRequestId.toString()
         : null;
       const approvers = doc.cashAdvanceSchema.travelRequestData.approvers;
+      const tripName = doc.cashAdvanceSchema.travelRequestData.tripName;
+      const createdBy = doc.cashAdvanceSchema.travelRequestData.createdBy;
       const travelRequestStatus =
         doc.cashAdvanceSchema.travelRequestData.travelRequestStatus;
       const rejectionReason =
@@ -991,6 +998,8 @@ const rejectAllTravelWithCash = async (
             amountDetails,
             approvers,
             cashAdvanceRejectionReason,
+            createdBy,
+            tripName,
           };
         }
       );
@@ -1005,62 +1014,65 @@ const rejectAllTravelWithCash = async (
       };
     });
 
-    // console.log("total approved",approvedDocs.length)
-
-    // console.log("payloadToTravel", payloadToTravel,"count of payloadToTravel ", payloadToTravel?.length , "payloadToCash", payloadToCash,"count of payloadToCash", payloadToCash?.length)
-
     if (allTravelRequests?.length > 0) {
-      // console.log("allTravelRequests", payloadToTravel)
-      sendToOtherMicroservice(
-        payloadToTravel,
-        "approve-reject-tr",
-        "travel",
-        "reject travelRequests",
-        "dashboard",
-        "online"
-      );
-      sendToOtherMicroservice(
-        payloadToTravel,
-        "approve-reject-tr",
-        "approval",
-        "reject travelRequests",
-        "dashboard",
-        "online"
-      );
-      sendToOtherMicroservice(
-        payloadToTravel,
-        "approve-reject-tr",
-        "reporting",
-        "reject travelRequests",
-        "dashboard",
-        "online"
-      );
+      const promises = [
+        sendToOtherMicroservice(
+          payloadToTravel,
+          "approve-reject-tr",
+          "travel",
+          "reject travelRequests",
+          "dashboard",
+          "online"
+        ),
+        sendToOtherMicroservice(
+          payloadToTravel,
+          "approve-reject-tr",
+          "approval",
+          "reject travelRequests",
+          "dashboard",
+          "online"
+        ),
+        sendToOtherMicroservice(
+          payloadToTravel,
+          "approve-reject-tr",
+          "reporting",
+          "reject travelRequests",
+          "dashboard",
+          "online"
+        ),
+        sendToEmpNotification(payloadToTravel),
+      ];
+
+      await Promise.all(promises);
     } else if (allTravelRequestsWithCash?.length > 0) {
-      // console.log("payloadToCash", payloadToCash)
-      sendToOtherMicroservice(
-        payloadToCash,
-        "approve-reject-ca",
-        "cash",
-        "reject travelRequests with cash",
-        "dashboard",
-        "online"
-      );
-      sendToOtherMicroservice(
-        payloadToCash,
-        "approve-reject-ca",
-        "approval",
-        "reject travelRequests with cash",
-        "dashboard",
-        "online"
-      );
-      sendToOtherMicroservice(
-        payloadToCash,
-        "approve-reject-ca",
-        "reporting",
-        "reject travelRequests with cash",
-        "dashboard",
-        "online"
-      );
+      const promises = [
+        sendToOtherMicroservice(
+          payloadToCash,
+          "approve-reject-ca",
+          "cash",
+          "reject travelRequests with cash",
+          "dashboard",
+          "online"
+        ),
+        sendToOtherMicroservice(
+          payloadToCash,
+          "approve-reject-ca",
+          "approval",
+          "reject travelRequests with cash",
+          "dashboard",
+          "online"
+        ),
+        sendToOtherMicroservice(
+          payloadToCash,
+          "approve-reject-ca",
+          "reporting",
+          "reject travelRequests with cash",
+          "dashboard",
+          "online"
+        ),
+        sendToEmpNotification(payloadToCash),
+      ];
+      await Promise.all(promises);
     }
 
     if (
@@ -1678,12 +1690,10 @@ const travelExpenseApproval = async (req, res) => {
     );
 
     if (!approvalDocument) {
-      return res
-        .status(404)
-        .json({
-          message:
-            "No matching approval document found for updating travel expenses status.",
-        });
+      return res.status(404).json({
+        message:
+          "No matching approval document found for updating travel expenses status.",
+      });
     }
 
     const { travelExpenseData } = approvalDocument.tripSchema;
@@ -1801,11 +1811,9 @@ const travelExpenseApproval = async (req, res) => {
       "An error occurred while updating Travel Expense status:",
       error.message
     );
-    res
-      .status(500)
-      .json({
-        error: "An error occurred while updating Travel Expense status.",
-      });
+    res.status(500).json({
+      error: "An error occurred while updating Travel Expense status.",
+    });
   }
 };
 
@@ -1849,11 +1857,9 @@ const nonTravelReportApproval = async (req, res) => {
       otherExpenseSchema.validate(req.params);
 
     if (errorParams) {
-      return res
-        .status(400)
-        .json({
-          error: `Invalid Parameters ${errorParams.details[0].message}`,
-        });
+      return res.status(400).json({
+        error: `Invalid Parameters ${errorParams.details[0].message}`,
+      });
     }
     const { tenantId, expenseHeaderId, empId } = valueParams;
 
@@ -1876,12 +1882,10 @@ const nonTravelReportApproval = async (req, res) => {
 
     //  console.log("approvalDocument",approvalDocument)
     if (!approvalDocument) {
-      return res
-        .status(404)
-        .json({
-          message:
-            "No matching approval document found for updating expenses status.",
-        });
+      return res.status(404).json({
+        message:
+          "No matching approval document found for updating expenses status.",
+      });
     }
 
     const { createdBy: { name = "" } = {}, expenseLines = [] } =
@@ -2002,30 +2006,95 @@ const nonTravelReportApproval = async (req, res) => {
       ];
 
       await Promise.all(promises);
-      return res
-        .status(200)
-        .json({
-          success: true,
-          message: "The expense report has been approved.",
-        });
+      return res.status(200).json({
+        success: true,
+        message: "The expense report has been approved.",
+      });
     }
 
-    return res
-      .status(400)
-      .json({
-        success: false,
-        message: `expense Report ${expenseHeaderStatus} for ${name}`,
-      });
+    return res.status(400).json({
+      success: false,
+      message: `expense Report ${expenseHeaderStatus} for ${name}`,
+    });
   } catch (error) {
     console.error(
       "An error occurred while updating Travel Expense status:",
       error.message
     );
-    res
-      .status(500)
-      .json({
-        error: "An error occurred while updating Travel Expense status.",
-      });
+    res.status(500).json({
+      error: "An error occurred while updating Travel Expense status.",
+    });
+  }
+};
+
+const verifySchema = Joi.object({
+  tenantId: Joi.string().required(),
+  empId: Joi.string().required(),
+  travelRequestId: Joi.string().required(),
+});
+
+// Get Travel with or without Cash
+const getTravelRequestDetails = async (req, res) => {
+  try {
+    const { error, value } = verifySchema.validate(req.params);
+    
+    if (error) {
+      return res
+        .status(400)
+        .json({ error: `Validation error: ${error.details[0].message}` });
+    }
+
+    const { tenantId, travelRequestId, empId } = value;
+    const filter = {
+      "travelRequestSchema.tenantId": tenantId,
+      "travelRequestSchema.approvers.empId": empId,
+    };
+
+    const approval = await dashboard
+      .findOne({
+        $or: [
+          {
+            ...filter,
+            "travelRequestSchema.travelRequestId": travelRequestId,
+          },
+          {
+            ...filter,
+            "travelRequestSchema.isAddALeg": true,
+            "travelRequestSchema.travelRequestStatus": "booked",
+          },
+        ],
+      })
+      .exec();
+
+    if (!approval) {
+      console.log("Approval not found");
+      res.status(400).json({ success: false, error: "Travel request not found." });
+    }
+
+    const {
+      travelRequestSchema,
+      cashAdvanceSchema: { cashAdvancesData },
+    } = approval;
+    const isCashAdvanceTaken = travelRequestSchema.isCashAdvanceTaken;
+    const data = {
+      success: true,
+      travelRequestData: travelRequestSchema,
+      cashAdvancesData: isCashAdvanceTaken ? cashAdvancesData : [],
+    };
+
+    return res.status(200).json({
+      success: true,
+      data,
+    });
+  } catch (error) {
+    console.error(
+      "An error occurred while fetching travel request details:",
+      error.message
+    );
+    res.status(500).json({
+      success: false,
+      error: "An error occurred while fetching travel request details.",
+    });
   }
 };
 
@@ -2042,4 +2111,5 @@ export {
   updateExpenseLineStatus,
   travelExpenseApproval,
   nonTravelReportApproval,
+  getTravelRequestDetails,
 };
