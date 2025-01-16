@@ -22,6 +22,11 @@ const MessageSchema = new mongoose.Schema({
         required: true,
         trim: true,
     },
+    urlData: {
+        type: Map,
+        of: Object,
+        default: {}, 
+    },
     status: {
         type: String,
         enum: messageStatusEnums,
