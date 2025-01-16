@@ -149,7 +149,6 @@ const handleFilterNotification = (value)=>{
        </div>}
       </div>
 
-
       <div className=" px-2 shrink-0 justify-center items-center cursor-pointer flex flex-row gap-2">
         <NotificationBox
         disable={notificationData.length > 0 ? false: true}

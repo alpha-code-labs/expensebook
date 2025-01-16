@@ -103,10 +103,9 @@ export default function (props){
                     
                     <div className=" p-2 h-full gap-x-2  w-full flex items-center flex-row justify-start">
                        {alertIcon(iconCode)}
-                        <div className="text-xs text-center text-neutral-800 font-inter  truncate">
-                            {message}
-                          
-                        </div>
+                       <div className="text-xs text-start text-neutral-800 font-inter" style={{ maxWidth: '100%', overflowWrap: 'break-word', whiteSpace: 'normal' }}>
+    {message}
+</div>
                         <div onClick={()=>setshowPopup(initialPopupData)} className=" p-2 shrink-0 cursor-pointer">
                     <img  src={cancel_black_icon}  className="w-4 h-4 shrink-0"/>
                     </div>

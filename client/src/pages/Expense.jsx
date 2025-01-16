@@ -24,7 +24,7 @@ const Expense = ({searchQuery, isLoading, fetchData, loadingErrMsg}) => {
   const [modalOpen , setModalOpen]=useState(false);
   const [tripData, setTripData]=useState([]);
   const {tenantId,empId,page}= useParams();
-  const { employeeData, requiredData, setPopupMsgData, initialPopupData } = useData();
+  const { employeeData, requiredData, setPopupMsgData,setMicroserviceModal, initialPopupData } = useData();
   const [error , setError]= useState({
     tripId: {set:false, message:""}
   }); 
@@ -53,8 +53,6 @@ const Expense = ({searchQuery, isLoading, fetchData, loadingErrMsg}) => {
     setExpenseData(employeeData && employeeData?.dashboardViews?.employee?.expense)
   
   },[employeeData])
-  
- 
   
 
       const travelExpenses     = expenseData?.allTripExpenseReports || [];
@@ -91,8 +89,7 @@ const Expense = ({searchQuery, isLoading, fetchData, loadingErrMsg}) => {
   const handleSelect=(option)=>{
     console.log(option)
     setTripId(option?.tripId)
-  }
-
+  };
 
   const handleVisible = (data) => {
     let { urlName} = data;
@@ -143,9 +140,23 @@ const Expense = ({searchQuery, isLoading, fetchData, loadingErrMsg}) => {
         {
           const expensePopupData = event.data.popupMsgData;
           setPopupMsgData(expensePopupData)
-          setTimeout(() => {
-            setPopupMsgData(initialPopupData); 
-          }, 5000);
+          if(expensePopupData?.autoSkip === undefined)
+          {
+            setTimeout(() => {
+              setPopupMsgData(initialPopupData); 
+            }, 5000);
+          } 
+        } 
+       else if(event.data.ocrMsgData)
+        {
+          const ocrPopupData = event.data.ocrMsgData;
+          setMicroserviceModal(ocrPopupData);
+          // if(ocrPopupData?.autoSkip === undefined)
+          // {
+          //   setTimeout(() => {
+          //     setMicroserviceModal(initialPopupData); 
+          //   }, 5000);
+          // }
         } 
         
       }
@@ -182,24 +193,18 @@ const Expense = ({searchQuery, isLoading, fetchData, loadingErrMsg}) => {
     selectedStatuses={selectedStatuses}
     handleStatusClick={handleStatusClick}
     filter_icon={filter_icon}
-getStatusClass={getStatusClass}
-getStatusCount={getStatusCount}
-setSelectedStatuses={setSelectedStatuses}
+    getStatusClass={getStatusClass}
+    getStatusCount={getStatusCount}
+    setSelectedStatuses={setSelectedStatuses}
   />
 </div>   
-
-
 <div className=' flex flex-col md:flex-row flex-grow w-full overflow-auto scrollbar-hide gap-2  mt-2'>
-         
-       
 <div className='w-full md:w-1/2  flex flex-col'>
-
 <BoxTitleLayout title="Travel Expense" icon={expense_white_icon}/>
 <div className='w-full h-full mt-4  overflow-y-auto px-2 bg-white rounded-l-md'>
               {travelExpenses?.length > 0 ? travelExpenses?.map((trip, index) => {
                 const filteredTripExpenses = filterExpenses(trip?.travelExpenses);
-                if (filteredTripExpenses.length === 0) return null; // Skip rendering if no expenses match the selected statuses
-
+                if (filteredTripExpenses.length === 0) return null; 
                 return (
                   <>
                   <CardLayout index={index}>
@@ -226,17 +231,14 @@ setSelectedStatuses={setSelectedStatuses}
                 );
               }):<EmptyBox icon={expene_icon} text='Travel Expense'/>}
             </div>
-
 </div>
              
 <div className='w-full md:w-1/2  flex flex-col'>
-
             <BoxTitleLayout title={'Non-Travel Expense'} icon={expense_white_icon}>
             <RaiseButton  
-          onClick={()=>setModalOpen(!modalOpen)}
-          
-          text={'Expense'}
-          textVisible={'textVisible?.expense'}/>
+             onClick={()=>setModalOpen(!modalOpen)}
+             text={'Expense'}
+             textVisible={'textVisible?.expense'}/>
 
             </BoxTitleLayout>
          
