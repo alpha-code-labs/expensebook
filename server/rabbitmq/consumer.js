@@ -1,6 +1,6 @@
 import amqp from "amqplib";
 import dotenv from "dotenv";
-import { updateHRMaster } from "./messageProcessor/hrMaster.js";
+import { saveProfile, updateHRMaster } from "./messageProcessor/hrMaster.js";
 import { updateFinance } from "./messageProcessor/dashboardProcessor.js";
 import { getRabbitMQConnection } from "./conncection.js";
 
@@ -8,7 +8,6 @@ dotenv.config();
 
 export async function startConsumer(receiver) {
   try {
-    // Start initial connection attempt
     const connection = await getRabbitMQConnection();
     const channel = await connection.createChannel();
     if (!channel) {
@@ -39,7 +38,6 @@ export async function startConsumer(receiver) {
             `coming from ${content.headers?.source} meant for ${content.headers?.destination}`
           );
           //console.log('payload', content?.payload)
-          // console.log("payload", content?.payload);
           const payload = content?.payload;
           const source = content?.headers?.source;
           const action = content?.headers?.action;
@@ -75,6 +73,16 @@ export async function startConsumer(receiver) {
                   console.log("message processed successfully");
                 } else {
                   //implement retry mechanism
+                  console.log("update failed with error code", res.error);
+                }
+              }
+              if (action == "profile-update") {
+                const res = await saveProfile(payload);
+                console.log(res);
+                if (res.success) {
+                  channel.ack(msg);
+                  console.log("message processed successfully");
+                } else {
                   console.log("update failed with error code", res.error);
                 }
               }

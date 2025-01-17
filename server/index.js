@@ -1,6 +1,5 @@
 import express from "express";
 import cors from "cors";
-import mongoose from "mongoose";
 import dotenv from "dotenv";
 import { handleErrors } from "./errorHandler/errorHandler.js";
 import { startConsumer } from "./rabbitmq/consumer.js";
@@ -123,3 +122,4 @@ process.on("SIGINT", () => shutdown("SIGINT").catch(console.error));
 
 // Start the server
 initializeServer().catch(console.error);
+

@@ -1,12 +1,45 @@
 import Joi from "joi";
 import Finance from "../models/Finance.js";
 import { financeSchema, sendUpdate } from "./cashAdvanceController.js";
+import HRMaster from "../models/hrMaster.js";
 
-//All Expense Header Reports with status as pending Settlement(Full Trip).
+// WORKING -to send data of expense settlement options for finance, removed
+export const getSettlementOptions = async (tenantId, empIds,settlementType ) => {
+  try {
+    console.log("getSettlementOptions", tenantId, empIds);
+
+    const hrData = await HRMaster.find({
+      tenantId: tenantId.toString(),
+      "employees.employeeDetails.employeeId": { $in: empIds },
+    });
+
+    if (!hrData || hrData.length === 0) {
+      console.log("No employees found with the provided employee IDs.");
+      return empIds.reduce((acc, empId) => {
+        acc[empId] = {};
+        return acc;
+      }, {});
+    }
+
+    const formattedSettlements = empIds.reduce((acc, empId) => {
+      const employee = hrData
+        .flatMap((doc) => doc.employees)
+        .find((employee) => employee.employeeDetails.employeeId === empId);
+      const travelSettlement = employee ? employee.travelPreferences[settlementType] : {};
+      acc[empId] = travelSettlement;
+      return acc;
+    }, {});
+    
+
+    return formattedSettlements;
+  } catch (error) {
+    console.error("Error fetching travel settlements:", error);
+    throw error;
+  }
+};
+
 export const getTravelExpenseData = async (tenantId, empId) => {
   try {
-    // const {tenantId} = req.params
-
     const status = {
       PENDING_SETTLEMENT: "pending settlement",
     };
@@ -29,7 +62,6 @@ export const getTravelExpenseData = async (tenantId, empId) => {
       return { success: true, message: `All are settled` };
     } else {
       const travelExpense = expenseReportsToSettle.flatMap((report) => {
-        // console.log("reports expense", report)
         if (
           !report?.tripSchema ||
           !report?.tripSchema?.travelExpenseData?.length > 1
@@ -73,7 +105,29 @@ export const getTravelExpenseData = async (tenantId, empId) => {
         };
       });
 
-      // console.log("travelExpense",travelExpense)
+      // Removed - to send expense Settlement options along with expense to settle
+      // const getEmpIds = travelExpense.map((e) => {
+      //   return e.createdBy.empId;
+      // });
+
+      // let settlementOptions
+      // if (getEmpIds?.length) {
+      //   settlementOptions = await getSettlementOptions(
+      //     tenantId,
+      //     getEmpIds,
+      //     "travelSettlement"
+      //   );
+      //   console.log({ settlementOptions });
+      // }
+
+      // travelExpense.forEach(expense => {
+      //   const empId = expense.createdBy.empId;
+
+      //   if (settlementOptions[empId]) {
+      //     expense.travelSettlement = settlementOptions[empId].paymentMethod;
+      //   }
+      // });
+
       return travelExpense;
     }
   } catch (error) {
@@ -183,16 +237,15 @@ export const paidExpenseReports = async (req, res, next) => {
       action: "expense-paid",
       comments: "travelExpenseReport status is updated to paid",
       includeTrip: true,
+      includeExpense: true,
     };
 
     console.log("Update successful:", updatedExpenseReport);
     await sendUpdate(payload, options);
-    return res
-      .status(200)
-      .json({
-        message: "Travel expense has been successfully settled.",
-        result: updatedExpenseReport,
-      });
+    return res.status(200).json({
+      message: "Travel expense has been successfully settled.",
+      result: updatedExpenseReport,
+    });
   } catch (error) {
     console.error("Error updating expense report status:", error.message);
     next(error);
@@ -276,11 +329,9 @@ export const getAllPaidForEntries = async (req, res, next) => {
     }
   } catch (error) {
     next(error);
-    return res
-      .status(500)
-      .json({
-        error: "Error in fetching travel expense reports:",
-        error: error.message,
-      });
+    return res.status(500).json({
+      error: "Error in fetching travel expense reports:",
+      error: error.message,
+    });
   }
 };

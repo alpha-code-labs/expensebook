@@ -4,6 +4,13 @@ import { handleErrors } from "../errorHandler/errorHandler.js";
 import { sendToOtherMicroservice } from "../rabbitmq/publisher.js";
 import HRMaster from "../models/hrMaster.js";
 
+/**
+ * [getMultiCurrencyTable "To get MultiCurrency data form hrMaster for the tenant(Company)"]
+ *
+ * @param   {[type]}  tenantId  [tenantId ("TenantId")]
+ *
+ * @return  {[type]}            [return "Returns MultiCurrency Table for that tenant"]
+ */
 const getMultiCurrencyTable = async (tenantId) => {
   try {
     const getData = await HRMaster.findOne(
@@ -113,7 +120,6 @@ export const getCashAdvanceToSettle = async (tenantId, empId) => {
     const filterStatus = [status.PENDING_SETTLEMENT];
 
     const cashToSettle = Object.values(status);
-    console.log("status", cashToSettle);
 
     const getAllCashToSettle = await Finance.find({
       "cashAdvanceSchema.cashAdvancesData.tenantId": tenantId,
@@ -168,21 +174,6 @@ export const getCashAdvanceToSettle = async (tenantId, empId) => {
           cashAdvance,
         };
       });
-      console.log("settleCash", JSON.stringify(settleCash, "", 2));
-
-      // const kaboom = settleCash.map(cash =>{
-      //   const { cashAdvance} = cash
-      //   cashAdvance.map(advance => {
-      //     const isAmountDetails = advance.amountDetails
-      //     let isValidCurrency
-      //     isAmountDetails.forEach(amount => {
-      //       if(shortNames.includes(amount.currency.shortName)){
-      //         isValidCurrency = true
-      //         advance.amountDetails.isValidCurrency = isValidCurrency
-      //       }
-      //     })
-      //   })
-      // })
 
       const updatedSettleCash = settleCash.map((trip) => {
         return {
@@ -191,7 +182,6 @@ export const getCashAdvanceToSettle = async (tenantId, empId) => {
             return {
               ...advance,
               amountDetails: advance.amountDetails.map((detail) => {
-                // Return a new object with the desired properties
                 return {
                   amount: detail.amount,
                   currency: detail.currency,
@@ -206,10 +196,6 @@ export const getCashAdvanceToSettle = async (tenantId, empId) => {
           }),
         };
       });
-
-      console.log(JSON.stringify(updatedSettleCash, null, 2));
-
-      console.log(JSON.stringify(updatedSettleCash, null, 2));
 
       return updatedSettleCash;
     }
@@ -253,6 +239,7 @@ export const sendUpdate = async (payload, options) => {
     const {
       action,
       comments,
+      includeTrip = false,
       includeExpense = false,
       includeCash = false,
       includeNonTravel = false,
@@ -263,6 +250,10 @@ export const sendUpdate = async (payload, options) => {
       services.push("expense");
     }
 
+    if(includeTrip){
+      services.push("trip");
+    }
+    
     if (includeCash) {
       services.push("cash");
     }
