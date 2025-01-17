@@ -81,7 +81,7 @@ const updateSentToFinanceStatus = async (
           },
         };
       })
-      .filter(Boolean); // Remove any null entries
+      .filter(Boolean); 
 
     // Perform bulk write operation
     const result2 = await REIMBURSEMENT.bulkWrite(bulkOps2);
@@ -191,7 +191,7 @@ const financeBatchJob = async () => {
       "batch"
     );
 
-    // console.log("Settlements sent to finance:", payload);
+    console.log("Settlements sent to finance:", payload);
     await updateSentToFinanceStatus(
       {
         $or: [

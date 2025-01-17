@@ -514,6 +514,7 @@ const approveAllTravelWithCash = async (tenantId, empId, travelReports) => {
           return {
             cashAdvanceId,
             cashAdvanceStatus,
+            createdBy,
             amountDetails,
             approvers,
             cashAdvanceRejectionReason,
@@ -586,6 +587,7 @@ const approveAllTravelWithCash = async (tenantId, empId, travelReports) => {
           "dashboard",
           "online"
         ),
+        sendToEmpNotification(payloadToCash),
       ];
 
       // Wait for all promises to resolve
@@ -1008,6 +1010,8 @@ const rejectAllTravelWithCash = async (
         tenantId,
         travelRequestId,
         approvers,
+        tripName,
+        createdBy,
         travelRequestStatus,
         rejectionReason,
         cashAdvances,

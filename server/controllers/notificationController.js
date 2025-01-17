@@ -21,13 +21,14 @@ const fetchEmployeeNotifications = async (tenantId, empId, applicableRoles) => {
 
       if (getEmployee && getEmployee.length > 0) {
         setEmployee = getEmployee.flatMap(({ messages, travelRequestId }) =>
-          messages.map(({ text, messageId, status, isRead, createdAt }) => ({
+          messages.map(({ text, messageId, status, isRead, createdAt, urlData }) => ({
             message: text,
             messageId,
             status,
             isRead,
             createdAt,
             travelRequestId,
+            urlData,
           }))
         );
       }
@@ -42,13 +43,14 @@ const fetchEmployeeNotifications = async (tenantId, empId, applicableRoles) => {
       if (getApprover && getApprover.length > 0) {
         setEmployeeManager = getApprover.flatMap(
           ({ messages, travelRequestId }) =>
-            messages.map(({ text, messageId, status, isRead, createdAt }) => ({
+            messages.map(({ text, messageId, status, isRead, createdAt, urlData }) => ({
               message: text,
               messageId,
               status,
               isRead,
               createdAt,
               travelRequestId,
+              urlData,
             }))
         );
       }
@@ -61,12 +63,13 @@ const fetchEmployeeNotifications = async (tenantId, empId, applicableRoles) => {
         setEmployeeManager = [
           ...setEmployeeManager,
           ...getNotifications.flatMap(({ messages }) =>
-            messages.map(({ text, messageId, status, isRead, createdAt }) => ({
+            messages.map(({ text, messageId, status, isRead, createdAt, urlData }) => ({
               message: text,
               messageId,
               status,
               isRead,
               createdAt,
+              urlData,
             }))
           ),
         ];
@@ -78,12 +81,13 @@ const fetchEmployeeNotifications = async (tenantId, empId, applicableRoles) => {
         const notifications = await FinanceNotification.find({ tenantId });
 
         const finance = notifications.flatMap(({ messages }) =>
-          messages.map(({ text, messageId, status, isRead, createdAt }) => ({
+          messages.map(({ text, messageId, status, isRead, createdAt, urlData }) => ({
             message: text,
             messageId,
             status,
             isRead,
             createdAt,
+            urlData,
           }))
         );
 
@@ -100,12 +104,13 @@ const fetchEmployeeNotifications = async (tenantId, empId, applicableRoles) => {
         const notifications = await FB_NOTIFICATION.find({ tenantId });
 
         const businessAdmin = notifications.flatMap(({ messages }) =>
-          messages.map(({ text, messageId, status, isRead, createdAt }) => ({
+          messages.map(({ text, messageId, status, isRead, createdAt, urlData }) => ({
             message: text,
             messageId,
             status,
             isRead,
             createdAt,
+            urlData
           }))
         );
 

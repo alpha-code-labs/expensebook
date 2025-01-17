@@ -96,8 +96,8 @@ export const saveProfile = async (req, res) => {
       "flightPreference",
       "hotelPreference",
       "trainPreference",
-      "travelSettlement",
-      "nonTravelSettlement",
+      // "travelSettlement", removed 
+      // "nonTravelSettlement", removed
     ];
 
     fieldsToSave.forEach((field) => {

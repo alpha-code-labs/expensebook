@@ -13,7 +13,38 @@ import FB_NOTIFICATION, {
 
 dotenv.config();
 
-const getTripStatus = (tripStartDate) => {
+export const createUrlData = (key, ...props) => {
+  if (!key || props.length % 2 !== 0)
+    throw new Error(
+      "Invalid input: Key is required, and properties must be in pairs."
+    );
+  return {
+    [key]: Object.fromEntries(
+      props.reduce((acc, val, i) => {
+        if (i % 2 === 0) acc.push([val, props[i + 1]]);
+        return acc;
+      }, [])
+    ),
+  };
+};
+
+const createCompletionNotificationMessage = (trip) => {
+  const tripName = trip.tripSchema.travelRequestData.tripName;
+  const tripCompletionDate = new Date(
+    trip.tripSchema.tripCompletionDate
+  ).toDateString();
+  return `Please Book Your Expenses. Your trip "${tripName}" was completed on ${tripCompletionDate}.`;
+};
+
+const createNotificationMessage = (trip, daysUntilTrip) => {
+  const tripName = trip.tripSchema.travelRequestData.tripName;
+  const tripStartDate = new Date(trip.tripSchema.tripStartDate).toDateString();
+  return `Info:Your trip "${tripName}" starts in ${daysUntilTrip} day${
+    daysUntilTrip !== 1 ? "s" : ""
+  } on ${tripStartDate}.`;
+};
+
+export const getTripStatus = (tripStartDate) => {
   const today = new Date();
   const dateDifference = Math.ceil(
     (tripStartDate - today) / (1000 * 60 * 60 * 24)
@@ -30,6 +61,21 @@ const getTripStatus = (tripStartDate) => {
   }
 };
 
+
+export function getPendingCashAdvances(cashAdvanceArray) {
+  const pendingCashAdvances = cashAdvanceArray.filter(
+    (item) => item.cashAdvanceStatus === "pending approval"
+  );
+
+  if (pendingCashAdvances.length > 0) {
+    return pendingCashAdvances.map((item) => ({
+      cashAdvanceId: item.cashAdvanceId,
+      cashAdvanceStatus: item.cashAdvanceStatus,
+    }));
+  } else {
+    return [];
+  }
+}
 class PriorityQueue {
   constructor(comparator = (a, b) => a - b) {
     this.heap = [];
@@ -124,13 +170,17 @@ const setEmployeeNotifications = async (tenantId) => {
   try {
     const { now, futureDate, pastDate } =
       calculateFutureAndPastDates(NOTIFICATION_DAYS);
+    // const testPastDate = new Date(2023,10,1)
+
     const { upcomingTrips, completedTrips } = await fetchTrips(
       tenantId,
       now,
       futureDate,
       pastDate
+      // testPastDate
     );
 
+    // console.log("employee notification", upcomingTrips, completedTrips);
     const notificationQueue = createNotificationQueue(upcomingTrips);
     await processNotificationQueue(notificationQueue);
 
@@ -156,6 +206,7 @@ const fetchTrips = async (tenantId, now, futureDate, pastDate) => {
       },
       {
         tenantId: 1,
+        "tripSchema.tripId": 1,
         "tripSchema.createdBy": 1,
         "tripSchema.travelRequestData.createdBy": 1,
         "tripSchema.tripStartDate": 1,
@@ -191,7 +242,7 @@ const fetchTrips = async (tenantId, now, futureDate, pastDate) => {
   return { upcomingTrips, completedTrips };
 };
 
-const getStatus = (tripDate, now, isUpcoming) => {
+export const getStatus = (tripDate, now, isUpcoming) => {
   const isToday = tripDate.toDateString() === now.toDateString();
   const daysDiff =
     (isUpcoming ? tripDate - now : now - tripDate) / (1000 * 60 * 60 * 24);
@@ -243,27 +294,157 @@ const processCompletedTripNotifications = async (completedTrips) => {
   await Promise.all(notifications);
 };
 
+// approved or rejected TR Notification
+export const sendToEmpNotification = async (array) => {
+  try {
+    if (!Array.isArray(array)) {
+      throw new Error("Input must be an array of travel request objects.");
+    }
+
+    await Promise.all(
+      array.map(async (travel) => {
+        const {
+          tenantId,
+          travelRequestId,
+          approvers,
+          createdBy,
+          tripName,
+          travelRequestStatus,
+          rejectionReason,
+          cashAdvances:[]
+        } = travel;
+
+        let status
+        let messageText
+        let getUrlData
+
+        const isRejected = travelRequestStatus == "rejected";
+        const isApproved = travelRequestStatus == "approved";
+
+        if(isRejected || isApproved){
+          status = isRejected ? "action" : "information";
+          messageText = isRejected
+            ? `Action: Please take action, Your travel request ${tripName} has been rejected.`
+            : `Info: Your Travel Request ${tripName} is approved.`;
+  
+          getUrlData = createUrlData(
+            isRejected ? "trRejected" : "trApproved",
+            "tenantId",
+            tenantId,
+            "createdBy",
+            createdBy,
+            "travelRequestId",
+            travelRequestId,
+            "travelRequestStatus",
+            travelRequestStatus,
+            "rejectionReason",
+            rejectionReason,
+            "approvers",
+            approvers
+          );
+        }
+        if(isCashRejected){
+
+        }
+      
+
+        const data = {
+          tenantId,
+          travelRequestId,
+          createdBy,
+          status,
+          messageText,
+          getUrlData,
+        };
+
+        console.log("is Data", data)
+        // Set notification
+        await setEmpNotification(data);
+      })
+    );
+  } catch (error) {
+    console.error("Error in sendToEmpNotification:", error.message);
+  }
+};
+
+
 const createNotification = async (trip, daysUntilTrip, isCompletedTrip) => {
+  const data = createNotificationData(trip, daysUntilTrip, isCompletedTrip);
+  await setEmpNotification(data);
+};
+
+// for employee - newly created trip and  completed trips
+const createNotificationData = (trip, daysUntilTrip, isCompletedTrip) => {
   const messageText = isCompletedTrip
     ? createCompletionNotificationMessage(trip)
     : createNotificationMessage(trip, daysUntilTrip);
 
   const { tenantId, travelRequestId, status } = trip;
   const employeeId = trip.tripSchema.travelRequestData.createdBy.empId;
+  const tripId = trip.tripSchema.tripId;
+  const createdBy = trip.tripSchema.travelRequestData.createdBy;
+
+  const getUrlData = isCompletedTrip
+    ? createUrlData(
+        "bookExpense",
+        "tenantId",
+        tenantId,
+        "empId",
+        employeeId,
+        "tripId",
+        tripId
+      )
+    : createUrlData(
+        "overview",
+        "tenantId",
+        tenantId,
+        "empId",
+        employeeId,
+        "tripName",
+        tripName,
+        "tripStartDate",
+        tripStartDate
+      );
+
+  return {
+    tenantId,
+    travelRequestId,
+    createdBy,
+    status,
+    messageText,
+    getUrlData,
+  };
+};
+
+//create or update Notification
+const setEmpNotification = async (data) => {
+  const {
+    tenantId,
+    travelRequestId,
+    createdBy,
+    status,
+    messageText,
+    getUrlData,
+  } = data;
+
+  // console.log("kaboom", {data})
+  const { empId } = createdBy;
   const existingNotification = await Notification.findOne({
     tenantId,
     travelRequestId,
-    "employee.empId": employeeId,
+    "employee.empId": empId,
   });
 
   if (existingNotification) {
     const messageExists = existingNotification.messages.some(
       (msg) => msg.text === messageText
     );
+
     if (!messageExists) {
       existingNotification.messages.push({
         text: messageText,
         status,
+        urlData: getUrlData,
         createdAt: new Date(),
         isRead: false,
       });
@@ -273,11 +454,12 @@ const createNotification = async (trip, daysUntilTrip, isCompletedTrip) => {
     const newNotification = new Notification({
       tenantId,
       travelRequestId,
-      employee: trip.tripSchema.travelRequestData.createdBy,
+      employee: createdBy,
       messages: [
         {
           text: messageText,
           status,
+          urlData: getUrlData,
           createdAt: new Date(),
           isRead: false,
         },
@@ -285,22 +467,6 @@ const createNotification = async (trip, daysUntilTrip, isCompletedTrip) => {
     });
     await newNotification.save();
   }
-};
-
-const createCompletionNotificationMessage = (trip) => {
-  const tripName = trip.tripSchema.travelRequestData.tripName;
-  const tripCompletionDate = new Date(
-    trip.tripSchema.tripCompletionDate
-  ).toDateString();
-  return `Please Book Your Expenses. Your trip "${tripName}" was completed on ${tripCompletionDate}.`;
-};
-
-const createNotificationMessage = (trip, daysUntilTrip) => {
-  const tripName = trip.tripSchema.travelRequestData.tripName;
-  const tripStartDate = new Date(trip.tripSchema.tripStartDate).toDateString();
-  return `Info:Your trip "${tripName}" starts in ${daysUntilTrip} day${
-    daysUntilTrip !== 1 ? "s" : ""
-  } on ${tripStartDate}.`;
 };
 
 const scheduleToNotificationBatchJob = () => {
@@ -416,6 +582,7 @@ const getDocs = async (tenantId, filters, projections) => {
 };
 
 const getApprovalReports = async (tenantId, now, futureDate, pastDate) => {
+  // console.log("tenantId", tenantId, typeof tenantId);
   const filters = [
     {
       "travelRequestSchema.isCashAdvanceTaken": false,
@@ -429,25 +596,20 @@ const getApprovalReports = async (tenantId, now, futureDate, pastDate) => {
       "cashAdvanceSchema.travelRequestData.approvers": {
         $elemMatch: { status: { $in: ["pending approval", "approved"] } },
       },
-      "cashAdvanceSchema.cashAdvancesData.cashAdvanceStatus":
-        "pending approval",
-      "cashAdvanceSchema.cashAdvancesData.approvers": {
-        $elemMatch: { status: "pending approval" },
+      "cashAdvanceSchema.cashAdvancesData": {
+        $elemMatch: {
+          cashAdvanceStatus: "pending approval",
+          approvers: { $elemMatch: { status: "pending approval" } },
+        },
       },
     },
-    {
-      "tripSchema.travelRequestData.isAddALeg": true,
-    },
+    { "tripSchema.travelRequestData.isAddALeg": true },
     {
       "tripSchema.travelExpenseData": {
         $elemMatch: {
           tenantId: tenantId,
           expenseHeaderStatus: "pending approval",
-          approvers: {
-            $elemMatch: {
-              status: "pending approval",
-            },
-          },
+          approvers: { $elemMatch: { status: "pending approval" } },
         },
       },
     },
@@ -490,7 +652,7 @@ const getApprovalReports = async (tenantId, now, futureDate, pastDate) => {
 
 const setManagerNotifications = async (tenantId) => {
   try {
-    // console.info("in notification 0 manager");
+    // console.info("in notification 0 manager", tenantId);
     const { now, futureDate, pastDate } =
       calculateFutureAndPastDates(NOTIFICATION_DAYS);
 
@@ -499,9 +661,8 @@ const setManagerNotifications = async (tenantId) => {
       getReimbursementReports(tenantId),
     ]);
 
-    // console.info("approvalDoc hakum", approvalDoc);
-
     if (approvalDoc.length === 0 && nonTravelExpenseReports.length === 0) {
+      // console.log("There are no");
       return { message: "There are no approvals found for the user" };
     }
 
@@ -512,8 +673,7 @@ const setManagerNotifications = async (tenantId) => {
     // console.info("set manager", approvalDoc?.length);
 
     if (approvalDoc.length > 0) {
-      // console.info("b4 zebra", approvalDoc?.length);
-
+      // console.log("approvalDoc", approvalDoc);
       const filteredApprovals = approvalDoc.filter((approval) => {
         // console.log("Checking approval:", approval);
 
@@ -538,8 +698,6 @@ const setManagerNotifications = async (tenantId) => {
           isPending && hasApprovers && isNotCashAdvance && hasPendingApprovers
         );
       });
-
-      // console.log("Filtered approvals:", filteredApprovals);
 
       const travel = await Promise.all(
         filteredApprovals.map(async (approval) => {
@@ -860,8 +1018,6 @@ const setManagerNotifications = async (tenantId) => {
 };
 
 const createNotificationForManager = async (reports) => {
-  // console.log('Reports object:', reports);
-
   const {
     travelAndCash = [],
     trips = [],
@@ -869,13 +1025,24 @@ const createNotificationForManager = async (reports) => {
     nonTravelExpenseReports = [],
   } = reports;
 
-  if (travelAndCash?.length) {
-    // console.log("travel and cash - pro", travelAndCash?.length)
+  function getPendingCashAdvances(cashAdvanceArray) {
+    const pendingCashAdvances = cashAdvanceArray.filter(
+      (item) => item.cashAdvanceStatus === "pending approval"
+    );
 
+    if (pendingCashAdvances.length > 0) {
+      return pendingCashAdvances.map((item) => ({
+        cashAdvanceId: item.cashAdvanceId,
+        cashAdvanceStatus: item.cashAdvanceStatus,
+      }));
+    } else {
+      return [];
+    }
+  }
+
+  if (travelAndCash?.length) {
     const processNotifications = async (travelAndCash) => {
       try {
-        // console.log("reports - travelAndCash", JSON.stringify(travelAndCash,'',2))
-
         const notificationPromises = travelAndCash.map(async (trip) => {
           const {
             tenantId,
@@ -884,12 +1051,14 @@ const createNotificationForManager = async (reports) => {
             approvers = [],
             tripName = "Trip",
             tripStartDate,
+            travelRequestStatus,
             isCashAdvanceTaken,
             cashAdvance,
           } = trip;
           const date = tripStartDate.toDateString();
           const status = getTripStatus(tripStartDate);
-
+          const employeeId = createdBy.empId;
+          const isPA = travelRequestStatus === "pending approval";
           const hasPendingCashAdvance = cashAdvance?.some(
             (advance) => advance.cashAdvanceStatus === "pending approval"
           );
@@ -899,12 +1068,41 @@ const createNotificationForManager = async (reports) => {
             messageText += " This trip includes cash advance.";
           }
 
+          let getUrlData = createUrlData(
+            "pendingApproval",
+            "tenantId",
+            tenantId,
+            "approvers",
+            approvers,
+            "travelRequestId",
+            travelRequestId
+          );
+          if (!isPA) {
+            const result = getPendingCashAdvances(cashAdvance);
+            if (result.length > 0) {
+              console.log("Pending Cash Advances:", result);
+            }
+
+            getUrlData = createUrlData(
+              "raisedLater",
+              "tenantId",
+              tenantId,
+              "empId",
+              employeeId,
+              "travelRequestId",
+              travelRequestId,
+              "cashAdvanceData",
+              result
+            );
+          }
+
           return await createOrUpdateManagerNotification({
             tenantId,
             travelRequestId,
             approvers,
             messageText,
             status,
+            getUrlData,
           });
         });
 
@@ -921,11 +1119,9 @@ const createNotificationForManager = async (reports) => {
   if (trips?.length) {
     const processNotifications = async (reports) => {
       try {
-        // console.log("what trips / add a leg i get here one", trips?.length )
-
         reports.map(async (trip) => {
-          // console.log("what trips / add a leg i get here", trip)
           const { tenantId, travelRequestId } = trip;
+          const employeeId = trip.travelRequestData.createdBy.empId;
           const approvers = trip.travelRequestSchema.approvers;
           const tripName =
             trip.tripSchema?.travelRequestData?.tripName || "Unnamed Trip";
@@ -936,10 +1132,31 @@ const createNotificationForManager = async (reports) => {
             (advance) => advance.cashAdvanceStatus === "pending approval"
           );
           const status = getTripStatus(tripStartDate);
+          let getUrlData = createUrlData(
+            "addALegApproval",
+            "tenantId",
+            tenantId,
+            "approvers",
+            approvers,
+            "travelRequestId",
+            travelRequestId
+          );
 
           let messageText = `Urgent!, Please approve the leg item added for the trip "${tripName}", which started on ${tripStartDate}`;
           if (hasPendingCashAdvance) {
             messageText += " This trip includes cash advance.";
+            const result = getPendingCashAdvances(cashAdvance);
+            getUrlData = createUrlData(
+              "raisedLater",
+              "tenantId",
+              tenantId,
+              "empId",
+              employeeId,
+              "travelRequestId",
+              travelRequestId,
+              "cashAdvanceData",
+              result
+            );
           }
 
           const result = await createOrUpdateManagerNotification({
@@ -948,6 +1165,7 @@ const createNotificationForManager = async (reports) => {
             approvers,
             messageText,
             status,
+            getUrlData,
           });
           return result;
         });
@@ -965,11 +1183,29 @@ const createNotificationForManager = async (reports) => {
       try {
         // Map over reports and create notifications
         const notificationPromises = reports.map(async (trip) => {
-          const { tenantId, travelRequestId, tripStartDate } = trip;
+          const {
+            tenantId,
+            travelRequestId,
+            tripStartDate,
+            tripId,
+            expenseHeaderId,
+          } = trip;
           const approvers = trip.travelRequestSchema?.approvers || [];
           const tripName = trip.travelRequestSchema?.tripName || "Unnamed Trip";
           const messageText = `Reminder!, Please approve the expense reports submitted for trip titled "${tripName},"`;
           const status = "important";
+
+          let getUrlData = createUrlData(
+            "expenseApproval",
+            "tenantId",
+            tenantId,
+            "approvers",
+            approvers,
+            "tripId",
+            tripId,
+            "expenseHeaderId",
+            expenseHeaderId
+          );
 
           return await createOrUpdateManagerNotification({
             tenantId,
@@ -977,6 +1213,7 @@ const createNotificationForManager = async (reports) => {
             approvers,
             messageText,
             status,
+            getUrlData,
           });
         });
 
@@ -1007,12 +1244,23 @@ const createNotificationForManager = async (reports) => {
           const messageText = `Action: Please approve the reimbursement report ${expenseHeaderNumber} totaling ${totalExpenseAmount}.`;
           const status = "action";
 
+          let getUrlData = createUrlData(
+            "nonTravelExpenseApproval",
+            "tenantId",
+            tenantId,
+            "approvers",
+            approvers,
+            "expenseHeaderId",
+            expenseHeaderId
+          );
+
           return await createOrUpdateManagerNotifications({
             tenantId,
             expenseHeaderId,
             approvers,
             messageText,
             status,
+            getUrlData,
           });
         });
 
@@ -1027,14 +1275,16 @@ const createNotificationForManager = async (reports) => {
   }
 };
 
-const createOrUpdateManagerNotification = async ({
-  tenantId,
-  travelRequestId,
-  approvers,
-  messageText,
-  status,
-}) => {
+export const createOrUpdateManagerNotification = async (data) => {
   try {
+    const {
+      tenantId,
+      travelRequestId,
+      approvers,
+      messageText,
+      status,
+      getUrlData,
+    } = data
     const existingNotification = await Notification.findOne({
       tenantId,
       travelRequestId,
@@ -1050,6 +1300,7 @@ const createOrUpdateManagerNotification = async ({
           status,
           createdAt: new Date(),
           isRead: false,
+          urlData: getUrlData,
         });
         await existingNotification.save();
       }
@@ -1064,6 +1315,7 @@ const createOrUpdateManagerNotification = async ({
             status,
             createdAt: new Date(),
             isRead: false,
+            urlData: getUrlData,
           },
         ],
       });
@@ -1089,6 +1341,7 @@ const createOrUpdateManagerNotifications = async ({
   approvers,
   messageText,
   status,
+  getUrlData,
 }) => {
   try {
     const existingNotification = await EXPENSE_NOTIFICATION.findOne({
@@ -1104,6 +1357,7 @@ const createOrUpdateManagerNotifications = async ({
         existingNotification.messages.push({
           text: messageText,
           status,
+          urlData: getUrlData,
           createdAt: new Date(),
           isRead: false,
         });
@@ -1118,6 +1372,7 @@ const createOrUpdateManagerNotifications = async ({
           {
             text: messageText,
             status,
+            urlData: getUrlData,
             createdAt: new Date(),
             isRead: false,
           },
@@ -1196,8 +1451,13 @@ const setFinanceNotifications = async (tenantId) => {
               (cashAdvance) =>
                 cashAdvance.cashAdvanceStatus === "pending settlement"
             );
-            const { tenantId, createdBy, tripName, itinerary } =
-              travelRequestData;
+            const {
+              tenantId,
+              createdBy,
+              tripName,
+              itinerary,
+              travelRequestId,
+            } = travelRequestData;
             const addStatus = ["booked"];
             // console.log("tripDate", tripDate)
             // console.log("itinerary", itinerary)
@@ -1225,6 +1485,7 @@ const setFinanceNotifications = async (tenantId) => {
                       cashAdvance.cashAdvanceStatus == "pending settlement"
                   )
                   .map((cashAdvance) => ({
+                    cashAdvanceId: cashAdvance.cashAdvanceId,
                     cashAdvanceStatus: cashAdvance.cashAdvanceStatus,
                     amountDetailsFormatted: formatAmountDetails(
                       cashAdvance.amountDetails
@@ -1239,14 +1500,28 @@ const setFinanceNotifications = async (tenantId) => {
                     .join(", ")
                 : "-";
 
+            const cashAdvanceId =
+              cashAdvanceDetails.length > 0
+                ? cashAdvanceDetails.map((d) => d.cashAdvanceId)
+                : "cashAdvanceId";
             // console.log("cashAdvanceDetails kaboom", cashAdvanceDetails,"formattedString", formattedString)
 
             const messageText = `Urgent! Please Settle Cash Advance "${formattedString}" for trip "${tripName}", scheduled to start on ${date}.`;
+            let getUrlData = createUrlData(
+              "settleCash",
+              "tenantId",
+              tenantId,
+              "travelRequestId",
+              travelRequestId,
+              "cashAdvanceId",
+              cashAdvanceId
+            );
 
             return await createOrUpdateFinanceNotification({
               tenantId,
               messageText,
               status,
+              getUrlData,
             });
           });
 
@@ -1262,6 +1537,7 @@ const setFinanceNotifications = async (tenantId) => {
 
     if (reimbursementDocuments.length > 0) {
       // console.log('Reimbursement Documents:For Finance batch job ', reimbursementDocuments?.length);
+      //reimbursement cash settlement is not yet added to the system
     }
 
     return;
@@ -1275,44 +1551,69 @@ const createOrUpdateFinanceNotification = async ({
   tenantId,
   messageText,
   status,
+  getUrlData,
 }) => {
   try {
-    const existingNotification = await FinanceNotification.findOne({
+    const getTenant = await FinanceNotification.findOne({
       tenantId,
     });
     const employeeType = "finance";
 
-    if (existingNotification) {
-      const messageExists = existingNotification.messages.some(
-        (msg) => msg.text === messageText
+    if (getTenant) {
+      // Check if a message with the same travelRequestId already exists
+      const messageIndex = getTenant.messages.findIndex(
+        (msg) =>
+          msg.urlData?.settleCash?.travelRequestId?.toString() ===
+          getUrlData?.settleCash?.travelRequestId?.toString()
       );
 
-      if (!messageExists) {
-        if (existingNotification.messages.length < 100) {
-          existingNotification.messages.push({
-            text: messageText,
-            status,
-            createdAt: new Date(),
-            isRead: false,
-          });
-          await existingNotification.save();
+      if (messageIndex !== -1) {
+        // If the message with the same travelRequestId exists, replace the text and urlData
+        getTenant.messages[messageIndex].text = messageText;
+        getTenant.messages[messageIndex].urlData = getUrlData;
+        await getTenant.save();
+      } else {
+        // If no matching travelRequestId, check if the message already exists (same text and urlData)
+        const duplicateMessage = getTenant.messages.some(
+          (msg) =>
+            msg.text === messageText &&
+            JSON.stringify(msg.urlData) === JSON.stringify(getUrlData)
+        );
+
+        if (!duplicateMessage) {
+          // If no duplicate message exists, add the new message
+          if (getTenant.messages.length < 100) {
+            getTenant.messages.push({
+              text: messageText,
+              status,
+              urlData: getUrlData,
+              createdAt: new Date(),
+              isRead: false,
+            });
+            await getTenant.save();
+          } else {
+            // If the array exceeds 100, remove the oldest message
+            getTenant.messages.push({
+              text: messageText,
+              status,
+              urlData: getUrlData,
+              createdAt: new Date(),
+              isRead: false,
+            });
+
+            // Ensure the array has no more than 100 messages
+            if (getTenant.messages.length > 100) {
+              getTenant.messages.shift(); // Removes the oldest message
+            }
+
+            await getTenant.save();
+          }
         } else {
-          const newNotification = new FinanceNotification({
-            tenantId,
-            employeeType,
-            messages: [
-              {
-                text: messageText,
-                status,
-                createdAt: new Date(),
-                isRead: false,
-              },
-            ],
-          });
-          await newNotification.save();
+          // console.log("Duplicate message detected. No new message added.");
         }
       }
     } else {
+      // If no notification exists, create a new one
       const newNotification = new FinanceNotification({
         tenantId,
         employeeType,
@@ -1320,6 +1621,7 @@ const createOrUpdateFinanceNotification = async ({
           {
             text: messageText,
             status,
+            urlData: getUrlData,
             createdAt: new Date(),
             isRead: false,
           },
@@ -1341,9 +1643,6 @@ const createOrUpdateFinanceNotification = async ({
   }
 };
 
-//booking admin
-
-// Function to determine status and message based on travel date
 const determineTravelStatus = async (
   travelDate,
   currentDate,
@@ -1376,82 +1675,13 @@ const determineTravelStatus = async (
   }
 };
 
-const createOrUpdateBookingNotification = async ({
-  tenantId,
-  messageText,
-  status,
-}) => {
-  try {
-    const existingNotification = await FinanceNotification.findOne({
-      tenantId,
-    });
-
-    const type = "bookingAdmin";
-    if (existingNotification) {
-      const messageExists = existingNotification.messages.some(
-        (msg) => msg.text === messageText
-      );
-
-      if (!messageExists) {
-        if (existingNotification.messages.length < 100) {
-          existingNotification.messages.push({
-            text: messageText,
-            status,
-            createdAt: new Date(),
-            isRead: false,
-          });
-          await existingNotification.save();
-        } else {
-          const newNotification = new FinanceNotification({
-            tenantId,
-            type,
-            messages: [
-              {
-                text: messageText,
-                status,
-                createdAt: new Date(),
-                isRead: false,
-              },
-            ],
-          });
-          await newNotification.save();
-        }
-      }
-    } else {
-      const newNotification = new FinanceNotification({
-        tenantId,
-        type,
-        messages: [
-          {
-            text: messageText,
-            status,
-            createdAt: new Date(),
-            isRead: false,
-          },
-        ],
-      });
-      await newNotification.save();
-    }
-
-    return {
-      success: true,
-      message: "Notification created or updated successfully.",
-    };
-  } catch (error) {
-    console.error("Error in createOrUpdateFinanceNotification:", error);
-    return {
-      success: false,
-      message: "An error occurred while creating or updating the notification.",
-    };
-  }
-};
-
 //to handle both finance and booking admin notifications
 const createOrUpdateNotification = async ({
   tenantId,
   messageText,
   status,
   employeeType,
+  getUrlData,
 }) => {
   try {
     // console.log("createOrUpdateNotification", tenantId, messageText, status, employeeType);
@@ -1470,6 +1700,7 @@ const createOrUpdateNotification = async ({
             $each: [
               {
                 text: messageText,
+                urlData: getUrlData,
                 status,
                 createdAt: new Date(),
                 isRead: false,
@@ -1503,11 +1734,3 @@ export {
   createOrUpdateNotification,
   scheduleToNotificationBatchJob,
 };
-
-// const getMessages = async (tenantId, pageNumber = 1, pageSize = 10) => {
-//     const skip = (pageNumber - 1) * pageSize;
-//     const notifications = await FinanceNotification.find({ tenantId })
-//         .skip(skip)
-//         .limit(pageSize);
-//     return notifications;
-// };
