@@ -1373,7 +1373,7 @@ const getAllExpensesForEmployee = async (tenantId, empId) => {
     const allCompletedTravelTypes = new Set();
 
     const allTripExpenseReports = tripDocs
-      ?.filter((trip) => trip?.tripSchema?.travelExpenseData?.length > 0)
+      // ?.filter((trip) => trip?.tripSchema?.travelExpenseData?.length > 0)
       ?.map((trip) => {
         //   console.log("each trip", trip)
         const { tripSchema } = trip;
