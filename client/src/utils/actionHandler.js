@@ -25,6 +25,10 @@ export const handleTravel = (travelRequestId, isCashAdvanceTaken, action) => {
     }
 
   }
+  else if(action==="rejected-tr"){
+      url=travelRoutes.rejected.rejected_tr_standalone.getUrl({travelRequestId})
+      return url;
+  }
    else {
     throw new Error('Invalid action');
   }
@@ -35,7 +39,7 @@ export const handleTravel = (travelRequestId, isCashAdvanceTaken, action) => {
 
 
 /////cash advance handler
-export const handleCashAdvance = ( travelRequestId, cashAdvanceId, action) => {
+export const handleCashAdvance = ( {travelRequestId, cashAdvanceId, action}) => {
   let url;
 
   if (action === 'ca-create') {
@@ -46,9 +50,17 @@ export const handleCashAdvance = ( travelRequestId, cashAdvanceId, action) => {
     return url
   } else if (action === 'ca-cancel') {
     url = cashAdvanceRoutes.cancel.getUrl( travelRequestId, cashAdvanceId);
-  } else if( action === 'non-tr-ca-create'){ 
+  } else if( action === 'non-tr-ca-create')
+    { 
     url = cashAdvanceRoutes.nonTravel_ca_create.getUrl( );
-  return url}
+    return url
+    }
+    else if (action === "tr-ca-rejected")
+    {
+      url = cashAdvanceRoutes.clearRejected.getUrl( travelRequestId,cashAdvanceId);
+      return url;
+    }
+
   else {
     throw new Error('Invalid action');
   }
@@ -59,15 +71,20 @@ export const handleCashAdvance = ( travelRequestId, cashAdvanceId, action) => {
 //travel expense
 export const handleTravelExpense=({tenantId,empId,tripId,expenseHeaderId,action})=>{
   console.log('route data', tripId,expenseHeaderId,action)
-    let url ;
+    let url;
     if (action==="trip-ex-create"){
       url=expenseRoutes.create.getUrl({tenantId,empId,tripId})
     }
     else if(action==="trip-ex-modify"){
       url= expenseRoutes.modify.getUrl({tenantId,empId,tripId,expenseHeaderId});
-    } else if (action==="trip-ex-cancel"){
+    }
+    else if(action==="trip-ex-view"){
+      url= expenseRoutes.view.getUrl({tenantId,empId,tripId,expenseHeaderId});
+    }
+    else if (action==="trip-ex-cancel"){
       url =expenseRoutes.cancel.getUrl({tenantId,empId,tripId,expenseHeaderId})
-    }else if (action=="trip-ex-clear-rejected"){
+    }
+    else if (action=="trip-ex-rejected"){
         url=expenseRoutes.clearRejected.getUrl({tenantId,empId,tripId,expenseHeaderId})
     }
     else {
@@ -105,7 +122,7 @@ export const handleNonTravelExpense=({tenantId,empId,expenseHeaderId,action})=>{
       url= nonExpenseRoutes.modify.getUrl(tenantId,empId,expenseHeaderId);
     } else if (action==="non-tr-ex-cancel"){
       url =nonExpenseRoutes.cancel.getUrl(tenantId,empId,expenseHeaderId)
-    }else if (action=="non-tr-ex-clear-rejected"){
+    }else if (action=="non-tr-ex-rejected"){
       url=nonExpenseRoutes.clearRejected.getUrl(tenantId,empId,expenseHeaderId)
     }
     else {

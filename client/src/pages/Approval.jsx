@@ -170,10 +170,10 @@ const handleSelect = (obj) => {
     }
   });
 };
-
+  
 
 const handleVisible = ({travelRequestId,tripId,expenseHeaderId, action}) => {
-
+  
   setVisible(!visible);
   let url ;
   if (action==="travel-approval-view"){
@@ -197,7 +197,7 @@ const handleVisible = ({travelRequestId,tripId,expenseHeaderId, action}) => {
   
   setApprovalUrl(url)
       }
-
+  
   useEffect(() => {
     const handleMessage = event => {
       console.log(event)
@@ -284,8 +284,6 @@ const handleVisible = ({travelRequestId,tripId,expenseHeaderId, action}) => {
     } else {
       return expenses;
     }
-   
-    
   };
   
   const getStatusCount = (status, cashadvance) => {
@@ -473,9 +471,6 @@ const handleVisible = ({travelRequestId,tripId,expenseHeaderId, action}) => {
               </div>
               {/* <Button1 text="Take Action" variant="fit" onClick={() => {openModal("expenseDetails");}}/> */}
               {/* <ActionButton approve={"Approve"} reject={"Reject"}/> */}
-
-
-
               </div>  
             {expenseDetails?.expenseType === "Travel Expense" &&
              <div className='flex flex-row justify-between'>
@@ -579,7 +574,8 @@ const handleVisible = ({travelRequestId,tripId,expenseHeaderId, action}) => {
     <div>
     {selectAll.length > 0 && <ActionButton onRejectClick={() => openModal('rejectTrip')} onApproveClick={() => openModal('approveTrip')} approve={"Approve"} reject={"Reject"}/>}
     </div>
-   </>}
+   </>
+   }
    
   </div>
 
@@ -707,9 +703,7 @@ const handleVisible = ({travelRequestId,tripId,expenseHeaderId, action}) => {
             </div>
           </div>
         </div>
-      
-
-  
+    
     <Modal 
         isOpen={modalOpen} 
         onClose={()=>closeModal}

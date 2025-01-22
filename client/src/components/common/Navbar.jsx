@@ -6,19 +6,22 @@ import { NavLink,useLocation ,useNavigate} from 'react-router-dom';
 import Input from './SearchInput';
 import IconOption from './IconOption';
 import { formatDate, formatDateAndTime, urlRedirection } from '../../utils/handyFunctions';
-import { TripName } from './TinyComponent';
+import { NotificationActionBtn, TripName } from './TinyComponent';
 import { warning } from 'framer-motion';
 import NotificationBox from './NotificationBox';
 import { updateNotificationReadFlagApi } from '../../utils/api';
 import { useEffect, useState } from 'react';
+import { handleCashAdvance, handleNonTravelExpense, handleTravel, handleTravelExpense } from '../../utils/actionHandler';
+import { use } from 'react';
 
-const Navbar = ({setSearchQuery,setSidebarOpen,tenantId,empId }) => {
-
+const Navbar = ({setSearchQuery,setSidebarOpen,tenantId,empId,setIframeVisible,setIframeURL }) => {
+  const travelBaseUrl  = import.meta.env.VITE_TRAVEL_PAGE_URL;
   const location = useLocation();
   const navigate = useNavigate();
   const pathname = location?.pathname?.split('/').pop();
   const {employeeRoles, requiredData  } = useData(); 
   const employeeInfo = employeeRoles?.employeeInfo;
+
 
 const LOGIN_PAGE_URL = import.meta.env.VITE_LOGIN_PAGE_URL
 const notificationData = [
@@ -96,6 +99,19 @@ function clearCookie(name) {
   // });
   
 
+  function notificationActionBtnText(action)
+  {
+    const firstObjectKey = Object.keys(action || {})[0];
+    if(firstObjectKey=="bookExpense")
+    {
+      return "Book Expense"
+    }
+    else if(["trRejected", "caRejected", "nonTrExpenseRejected", "trExpenseRejected"].includes(firstObjectKey))
+    {
+      return "Modify"
+    }  
+  }
+
   
  
  const handleIsReadNotification = async (payload) => {
@@ -134,16 +150,70 @@ const handleFilterNotification = (value)=>{
   }
 
 }
+const handleVisible = (data)=>
+{
+  const {urlName, navigateTo} = data;
+  if(navigateTo === "travel-ms")
+    {
+      setIframeVisible({tripIframe:true});
+      setIframeURL({tripURL:urlName});
+    }
+  else if(navigateTo === "expense-ms")
+  {
+    setIframeVisible({expenseIframe:true});
+    setIframeURL({expenseURL:urlName});
+    navigate(navigateTo)
+  }
+  else if(navigateTo === "cash-ms")
+  {
+    setIframeVisible({tripIframe:true});
+    setIframeURL({tripURL:urlName});
+  }
+  
+  console.log(navigateTo);
+ 
+  
+}
+
+const handleAction = ({ action }) => {
+  // Get the first key of the first object inside urlData
+  const firstObjectKey = Object.keys(action || {})[0];
+  console.log(action[firstObjectKey]);
+  const {tenantId, empId, tripId, travelRequestId, cashadvanceId, expenseHeaderId} = action[firstObjectKey];
+
+  if (firstObjectKey =="bookExpense") {
+    // Get the first key of that object
+    handleVisible({urlName:handleTravelExpense({tenantId,empId,tripId, "action":'trip-ex-create'}), navigateTo:"expense-ms"})
+    console.log(firstObjectKey); 
+  }
+  else if (firstObjectKey == "trRejected")
+  {
+      handleVisible({urlName:`${travelBaseUrl}/rejected/${travelRequestId}`, navigateTo:"travel-ms"});
+      console.log(firstObjectKey);
+  }
+  else if (firstObjectKey == "caRejected")
+  {
+    handleVisible({urlName:handleCashAdvance({tenantId,empId,cashadvanceId,"action":'cash-ms'})})
+  } 
+  else if (firstObjectKey== "trExpenseRejected")
+  {
+    handleVisible({urlName:handleTravelExpense({tenantId,empId,tripId,expenseHeaderId, "action":'trip-ex-rejected'}), navigateTo:"expense-ms"})
+  }
+  else if (firstObjectKey == "nonTrExpenseRejected")
+  {
+    handleVisible({urlName:handleNonTravelExpense({tenantId,empId,expenseHeaderId, "action":'non-tr-ex-rejected'}), navigateTo:"expense-ms"})
+  }
+};
 
   return (
-    <div className=" h-[48px] border-b p-2 w-full flex flex-row justify-between items-center bg-slate-50   border-slate-200">
+      <div className="h-[48px] border-b p-2 w-full flex flex-row justify-between items-center bg-slate-50 border-slate-200">
 
       <div className="flex w-full flex-row items-center justify-between ">
       <div onClick={()=>setSidebarOpen(false)} className='md:hidden rounded-md block hover:bg-indigo-100 p-2 border border-slate-300 shrink-0 '>
             <img src={hamburger_icon} className='shrink-0 w-4 h-4'/> 
       </div>
         
-        { ["cash-advance","trip","expense","approval","bookings"].includes(pathname)&&
+        {["cash-advance","trip","expense","approval","bookings"].includes(pathname) &&
          <div className='w-full flex  items-center justify-center px-8'>
          <Input placeholder={`Search ${pathname}...`} type="search" icon={search_icon} onChange={(value)=>setSearchQuery(value)}/>
        </div>}
@@ -165,7 +235,6 @@ const handleFilterNotification = (value)=>{
 </span>
 
 <img src={bell_icon} className="w-6 h-6"/>
-            
             </div>
         }>
 <div className=' flex flex-col justify-start  gap-2 p-2 px-3 border border-slate-300 h-full rounded-md w-full '>
@@ -183,9 +252,12 @@ const handleFilterNotification = (value)=>{
    <div  key={ele.name + "navbar"}  className={`w-full h-fit ${ele.status === 'urgent' ? ' bg-gradient-to-t from-red-50/50 to-white  ' : ele.status ==='action' ? ' bg-gradient-to-t to-yellow-50/50 from-white  ': 'bg-gradient-to-t from-white to-indigo-50/50  '} bg-none flex w-[300px] gap-2 py-2  items-start  text-neutral-900  bg-gray-200/10 rounded-md hover:border-none p-2 cursor-pointer `}>
            
               {alertIcon(ele?.status)}
-            <div className='space-y-2  '>
-              <p className='font-inter text-xs text-neutral-900 '>{ele?.message}</p>
+              <div className='space-y-2  '>
               <p className='text-xs font-cabin text-neutral-700'>{formatDateAndTime(ele?.createdAt)}</p>
+              <p className='font-inter text-xs text-neutral-900 '>{ele?.message}</p>
+              
+                {ele?.urlData && Object.keys(ele?.urlData).length > 0 && (<NotificationActionBtn onClick={()=>handleAction({action:ele?.urlData})} text={notificationActionBtnText(ele?.urlData)}/>)}
+                
               </div>
               <div className='p-1 ring-1 ring-white bg-slate-100 h-6 w-6 shrink-0 flex items-center justify-center'>
               <img onClick={()=>handleIsReadNotification({
@@ -193,22 +265,17 @@ const handleFilterNotification = (value)=>{
                 ...(ele?.travelRequestId && { travelRequestId: ele.travelRequestId }),
                 ...(ele?.expenseHeaderId && { expenseHeaderId: ele.expenseHeaderId }),
               })} src={cancel_black_icon}
-              className='w-3 h-3 shrink-0 '/> 
+              className='w-3 h-3 shrink-0'/> 
               </div>
-          
             </div>
-   
-  
+
   </> 
           ))
          
         }
         </div>
-          </div>
-
+        </div>
         </NotificationBox>
-
-
       <IconOption
       buttonText={
         <div className=' flex items-center justify-center h-[38px] '>
@@ -229,7 +296,7 @@ const handleFilterNotification = (value)=>{
           [{name:'Profie',icon:user_icon, action: () => { navigate('profile'); console.log('Navigating to profile'); }}, {name:'Logout',icon:logout_icon, action: ()=>{urlRedirection(LOGIN_PAGE_URL),clearCookie('authToken')} }].map((ele)=>(
             <div onClick={ele.action} key={ele.name}  className='flex items-center gap-2 px-2 py-2 hover:bg-gray-200/10 rounded-md cursor-pointer'>
               <img src={ele.icon} className='w-4 h-4'/>
-              <p className='font-inter text-neutral-900 text-sm '>{ele.name}</p>
+              <p className='font-inter text-neutral-900 text-sm'>{ele.name}</p>
             </div>
           ))
         }

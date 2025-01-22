@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { briefcase, modify, receipt, receipt_icon1,expense_white_icon, categoryIcons, filter_icon, plus_violet_icon, cancel, search_icon, info_icon, expene_icon } from '../assets/icon';
+import { briefcase, modify, receipt, receipt_icon1,expense_white_icon, categoryIcons, filter_icon, plus_violet_icon, cancel, search_icon, info_icon, expene_icon, delete_icon, down_arrow, down_left_arrow, arrow1_icon, up_arrow, arrow_left, chevron_down } from '../assets/icon';
 import { formatAmount, getStatusClass, splitTripName, tripsAsPerExpenseFlag } from '../utils/handyFunctions';
 import { handleNonTravelExpense, handleTravelExpense } from '../utils/actionHandler';
 import Modal from '../components/common/Modal1';
@@ -9,7 +9,7 @@ import TripSearch from '../components/common/TripSearch';
 import Button1 from '../components/common/Button1';
 import Error from '../components/common/Error';
 import Input from '../components/common/SearchInput';
-import { CardLayout, EmptyBox, ExpenseLine, StatusBox, StatusFilter, TripName,RaiseButton,BoxTitleLayout, ModifyBtn, TitleModal, TabTitleModal } from '../components/common/TinyComponent';
+import { CardLayout, EmptyBox, ExpenseLine, StatusBox, StatusFilter, TripName,RaiseButton,BoxTitleLayout, ModifyBtn, TitleModal, TabTitleModal, HeaderButton } from '../components/common/TinyComponent';
 import ExpenseMS from '../microservice/Expense';
 import { act } from 'react';
 
@@ -32,6 +32,12 @@ const Expense = ({searchQuery, isLoading, fetchData, loadingErrMsg}) => {
   const [expenseData , setExpenseData] = useState({});
   const [expenseVisible, setExpenseVisible]=useState(false);
   const [iframeURL, setIframeURL] = useState(null); 
+  const [activeHeaderIndex, setActiveHeaderIndex] = useState(null);
+  const handleHeaderIndex=(index)=>{
+    setActiveHeaderIndex(index === activeHeaderIndex ? null : index);
+  }
+
+  console.log("trip data", tripData);
 
   
   useEffect(()=>{
@@ -177,8 +183,7 @@ const Expense = ({searchQuery, isLoading, fetchData, loadingErrMsg}) => {
     <>
     {expenseVisible ?   ( <ExpenseMS visible={expenseVisible} setVisible={setExpenseVisible} src={iframeURL} /> ) :
     <div className='h-screen  flex flex-col p-4'>
-    
-      <div className=' border border-slate-300 bg-white rounded-md  w-full flex flex-wrap items-start gap-2 px-2 py-2'>
+    <div className=' border border-slate-300 bg-white rounded-md  w-full flex flex-wrap items-start gap-2 px-2 py-2'>
 
   <StatusFilter
    statuses = {
@@ -198,30 +203,58 @@ const Expense = ({searchQuery, isLoading, fetchData, loadingErrMsg}) => {
     setSelectedStatuses={setSelectedStatuses}
   />
 </div>   
-<div className=' flex flex-col md:flex-row flex-grow w-full overflow-auto scrollbar-hide gap-2  mt-2'>
+<div className='flex flex-col md:flex-row flex-grow w-full overflow-auto scrollbar-hide gap-2 mt-2'>
 <div className='w-full md:w-1/2  flex flex-col'>
 <BoxTitleLayout title="Travel Expense" icon={expense_white_icon}/>
 <div className='w-full h-full mt-4  overflow-y-auto px-2 bg-white rounded-l-md'>
               {travelExpenses?.length > 0 ? travelExpenses?.map((trip, index) => {
                 const filteredTripExpenses = filterExpenses(trip?.travelExpenses);
-                if (filteredTripExpenses.length === 0) return null; 
+                //if (filteredTripExpenses.length === 0) return null; 
                 return (
                   <>
                   <CardLayout index={index}>
                   <div className='py-2 w-full'>
+                    <div className='flex flex-row justify-between items-center'>
+                    <div className='space-y-2'>
+                  <div>
+                  <div className='header-title'>Trip No.</div>
+                    <p className='header-text'>{trip?.tripNumber}</p>
+                  </div>
                    <TripName tripName={trip?.tripName}/>
+                  </div>
+                  <HeaderButton variant='fit' text={"Expense"} onClick={()=>handleVisible({urlName:handleTravelExpense({tenantId,empId,tripId:trip?.tripId, action:  'trip-ex-modify' })})}/>
+                  </div>
                     <div className='mt-2 space-y-2'>
                       {filteredTripExpenses.map((trExpense, index) => (
                         <div key={index} className='border border-slate-300 rounded-md px-2 py-1'>
-                          <div className='flex flex-row justify-between items-center py-1 border-b border-slate-300 font-cabin font-xs'>
-                            
-                            <StatusBox status={trExpense?.expenseHeaderStatus ?? "-"}/>
-                            {/* {!['paid','paidAndDistributed'].includes(trExpense?.expenseHeaderStatus) && */}
-                            <ModifyBtn text={['paid','paidAndDistributed'].includes(trExpense?.expenseHeaderStatus)? "View Details": "Modify"} onClick={()=>handleVisible({urlName:handleTravelExpense({tenantId,empId,tripId:trip?.tripId,expenseHeaderId: trExpense?.expenseHeaderId, action: 'trip-ex-modify' })})}/>
-                            {/* // } */}
-                            
-                          </div>
+                          <div className={`flex flex-row justify-between items-center py-1 ${activeHeaderIndex === index && "border-b"} border-slate-300 font-cabin font-xs`}>
+                          <div className='flex gap-2 items-center'>
+                      <img src={receipt} className='w-5 h-5'/>
+                      <div>
+                        <div className='header-title'>Expense Header No.</div>
+                        <p className='header-text'>{trExpense?.expenseHeaderNumber}</p>
+                      </div>
+                    </div>
+                    <div className='space-y-2'>
+                      <div className="flex flex-row gap-2 justify-end items-center">
+                      <StatusBox status={trExpense?.expenseHeaderStatus ?? "-"}/>
+                      <img onClick={()=>handleHeaderIndex(index)} src={chevron_down} className='w-4 h-4 rotate-90'/>   
+                        </div>
+                        {/* {!['paid','paidAndDistributed'].includes(trExpense?.expenseHeaderStatus) && */}
+                        <div className='flex flex-row gap-2  items-center justify-center'>
+                        <ModifyBtn text={['rejected', 'draft', 'pending approval'].includes(trExpense?.expenseHeaderStatus)? "Modify": "View Details"} onClick={()=>handleVisible({urlName:handleTravelExpense({tenantId,empId,tripId:trip?.tripId,expenseHeaderId: trExpense?.expenseHeaderId, action: ['rejected','draft','pending approval'].includes(trExpense?.expenseHeaderStatus)? 'trip-ex-view': 'trip-ex-view' })})}/>
+                        <div className='pr-2' onClick={() => {
+                          setModalOpen(true);
+                         }}>  
+                         <img src={delete_icon} className='w-4 h-4' alt='deleteHeader'/>
+                        </div>                      
+                        </div>
+                        </div>     
+                        </div>
+                        {activeHeaderIndex === index && (
                           <ExpenseLine expenseLines={trExpense?.expenseLines}/>
+                        )}
+                          
                         </div>
                       ))}
                     </div>
@@ -251,16 +284,16 @@ const Expense = ({searchQuery, isLoading, fetchData, loadingErrMsg}) => {
                   <div className='flex flex-row justify-between'>
                     <div className='flex gap-2 items-center'>
                       <img src={receipt} className='w-5 h-5' />
-                      <div >
+                      <div>
                         <div className='header-title'>Expense Header No.</div>
                         <p className='header-text'>{nonTravelExp?.expenseHeaderNumber}</p>
                       </div>
                     </div>
                     <div className='flex flex-row gap-2 justify-between items-center font-cabin font-xs'>
+                      
                       <StatusBox status={nonTravelExp?.expenseHeaderStatus ?? "-"}/>
                      
-                      
-                      <ModifyBtn text={['paid','paidAndDistributed'].includes(nonTravelExp?.expenseHeaderStatus) ? "View Details" : "Modify"}  onClick={() => handleVisible({urlName:handleNonTravelExpense({tenantId,empId ,expenseHeaderId:nonTravelExp?.expenseHeaderId,action:"non-tr-ex-modify"})})}/>
+                      <ModifyBtn text={['rejected','draft'].includes(nonTravelExp?.expenseHeaderStatus) ? "Modify" : "View Details"}  onClick={() => handleVisible({urlName:handleNonTravelExpense({tenantId,empId ,expenseHeaderId:nonTravelExp?.expenseHeaderId,action:"non-tr-ex-modify"})})}/>
                       
                     </div>
                   </div>
@@ -297,8 +330,6 @@ const Expense = ({searchQuery, isLoading, fetchData, loadingErrMsg}) => {
   <TripSearch requestType={expenseType} validation={requiredData?.formValidations ?? {}} placeholder={"Select the trip"} error={error?.tripId} title="Apply to trip" data={tripData} onSelect={handleSelect} />
  </div> }
   
-
-
 {expenseType && <Button1 text={"Raise"} onClick={handleRaise} />}
 
   

@@ -19,6 +19,8 @@ import Report from './Report';
 import PopupMessage from '../components/common/PopupMessage';
 import Button1 from '../components/common/Button1';
 import PopupModal from '../components/common/PopupModal';
+import ExpenseMS from '../microservice/Expense';
+import TripMS from '../microservice/TripMS';
 
 const Home = () => {
 
@@ -56,7 +58,15 @@ useEffect(() => {
   };
 }, []);
 
+//handle microservice screen as per notification action
 
+const [iframeVisible, setIframeVisible]=useState({
+  expenseIframe:false,
+  tripIframe:false,
+});
+const [iframeURL, setIframeURL]=useState({
+  expenseURL:null
+})
 
 const [authToken , setAuthToken] = useState("authtoken");
 const [isLoading, setIsLoading] = useState({ loginData: false, roleData: true });
@@ -156,10 +166,16 @@ const fetchData = async () => {
       <div className='h-screen overflow-y-auto scrollbar-hide w-full  bg-white'>
       <section>
 
-      <Navbar setSearchQuery={setSearchQuery} setSidebarOpen={setSidebarOpen} notificationData={employeeData?.notifications|| []}  tenantId={tenantId} empId={empId}  />
-
+      <Navbar setIframeVisible={setIframeVisible} setIframeURL={setIframeURL} setSearchQuery={setSearchQuery} setSidebarOpen={setSidebarOpen} notificationData={employeeData?.notifications|| []}  tenantId={tenantId} empId={empId}  />
+      <TripMS visible={iframeVisible?.tripIframe} src={iframeURL?.tripURL} setVisible={setIframeVisible}/>
+     
+      
 </section>
         <Routes>
+
+          
+         {iframeVisible?.expenseIframe && <Route path='/expense-ms' element={<ExpenseMS  src={iframeURL?.expenseURL}/>}/>}
+         
           <Route
             exact
             path="/overview"

@@ -241,15 +241,11 @@ filter_icon={filter_icon}
 getStatusClass={getStatusClass}
 getStatusCount={getStatusCount}
 setSelectedStatuses={setSelectedStatuses}
-
 />
 
-
- 
 </div>
 
         <div className='w-full flex flex-col flex-grow  overflow-auto scrollbar-hide  mt-2'>
-        
             {/* <div className='relative shrink-0 flex justify-center items-center rounded-md font-inter text-md text-white h-[52px] bg-indigo-600 text-center'>
           <div
           onClick={()=>handleVisible({urlName:"travel-url"})}
@@ -266,7 +262,6 @@ setSelectedStatuses={setSelectedStatuses}
           Raise a Travel Request
           </p>
           </div>
-              
               <div className='flex justify-center items-center'>
                 <img src={airplane_icon1} className='w-4 h-4 mr-2' />
                 <p>Trips</p>

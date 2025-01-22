@@ -4,6 +4,7 @@ import axios from 'axios';
 const DASHBOARD_BACKEND_API_URL = import.meta.env.VITE_DASHBOARD_BACKEND_API_URL;
 const SETTLEMENT_BACKEND_API_URL = import.meta.env.VITE_SETTLEMENT_BACKEND_API_URL;
 const APPROVAL_BACKEND_API_URL = import.meta.env.VITE_APPROVAL_BACKEND_API_URL;
+const EXPENSE_BACKEND_API_URL = import.meta.env.VITE_EXPENSE_API_URL
 
 const retry = 2;
 const retryDelay = 3000;
@@ -177,6 +178,25 @@ export const getTravelPreference_API = async ({ tenantId, empId }) => {
     return { data: null, error: errorObject };
   }
 };
+
+export const cancelTravelExpenseHeaderApi = async({tenantId,empId,tripId,expenseHeaderId,data})=>{
+
+  const url = `${EXPENSE_BACKEND_API_URL}/api/fe/expense/travel/${tenantId}/${empId}/${tripId}/${expenseHeaderId}/cancel`
+  
+  try{
+    const response = await axiosRetry(axios.patch,url,data)
+    return response.data
+  }catch(error){
+    handleRequestError(error);
+    const errorObject = {
+      status: error.response?.status || null,
+      message: error.message || 'Unknown error',
+    };
+    console.log('Post Error : ',errorObject);
+    return {  error: errorObject };
+  }
+
+}
 
 
 export const postTravelPreference_API = async (tenantId, empId, formData) => {

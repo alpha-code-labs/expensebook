@@ -45,7 +45,7 @@ export {default as airplay} from './airplay.svg';
 export {default as bell_icon} from './bell.svg';
 export {default as logo_with_text} from './logowithtext.svg';
 export {default as arrow_left} from './arrow-left.svg';
-export {default as chevron_down} from './chevron-down.svg';
+export {default as chevron_down} from './chevron_down.svg';
 export {default as cancel_round} from './cancel-dot.svg';
 export {default as cancel} from './x.svg';
 export {default as airplane} from './Airplane.svg';

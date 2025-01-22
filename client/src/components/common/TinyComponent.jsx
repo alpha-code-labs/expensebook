@@ -1,4 +1,4 @@
-import { briefcase, cancel, categoryIcons, expene_icon, info_icon, modify, plus_icon, plus_violet_icon, violation_icon } from "../../assets/icon";
+import { briefcase, cancel, categoryIcons, expene_icon, info_icon, loading_icon, modify, plus_icon, plus_violet_icon, violation_icon } from "../../assets/icon";
 import { formatAmount, getStatusClass, splitTripName } from "../../utils/handyFunctions";
 
 
@@ -247,6 +247,16 @@ const TripName = ({tripName})=>(
     )
   }
 
+
+  
+  function NotificationActionBtn ({onClick,text="Action",variant="sm"}){
+    return(
+      <div onClick={onClick} className="px-2 py-2 bg-neutral-900 w-fit rounded-sm hover:bg-neutral-700">
+        <p className={`text-xs  font-inter text-white`}>{text}</p>
+      </div>
+    )
+  }
+
   function SmallAction ({onHover,disabled, text,onClick}){
     const handleClick = (e)=>{
       if(!disabled ){
@@ -300,5 +310,62 @@ const TripName = ({tripName})=>(
     )
   }
 
+  function HeaderButton(props) {
+    const text = props.text;
+    const onClick = props.onClick;
+    const variant = props.variant ?? 'fit';
+    const disabled = props.disabled ?? false;
+    const loading = props.loading ?? false;
+  
+    const handleClick = (e) => {
+      if (!disabled && !loading) {
+      // if (!disabled && !loading) {
+        onClick(e);
+        // Assuming the onClick function might trigger an asynchronous operation.
+        // After the operation is done, set loading back to false.
+        // You may need to adjust this based on your actual use case.
+        // Example:
+        // async onClickHandler() {
+        //   // Some asynchronous operation
+        //   await yourAsyncOperation();
+        //   setLoading(false);
+        // }
+      } 
+      else {
+        console.log('disabled or already loading',disabled);
+      }
+    };
+  
+    return (
+      <>
+        <div
+          onClick={handleClick}
+          className={`${variant === 'fit' ? 'w-fit h-fit' : 'w-full'} ${
+            disabled 
+              ? 'hover:hover:bg-neutral-700  hover:text-gray-400 bg-indigo-400 text-gray-400  cursor-not-allowed '
+              : 'hover:hover:bg-neutral-700 text-white cursor-pointer'
+          } px-2 py-1 bg-neutral-900 rounded-md  justify-center items-center gap-2 inline-flex`}
+        >
+          {loading ? (
+            <div className='flex gap-1 text-center items-center'>
+            <img src={loading_icon} className="animate-spin w-4 h-4" />
+            <div className="w-full max-w-[75px] sm:max-w-full whitespace-nowrap truncate  text-center text-white text-xs font-medium font-cabin">
+              {text}
+            </div>
+            </div>
+          ) : (
+            <div className='flex gap-1 text-center items-center'>
+            <img src={plus_icon} className="w-3 h-3"/>
+            <div className="w-full max-w-[75px] sm:max-w-full whitespace-nowrap truncate  text-center text-white text-xs font-medium font-cabin">
+              {text}
+            </div>
+            </div>
+          )}
+        </div>
+      </>
+    );
+  }
+  
 
-export {TabTitleModal,TitleModal, SmallAction, TooltipBtn, ModifyBtn, BoxTitleLayout, RaiseButton, EmptyBox, Violation, ExpenseLine, StatusFilter, CardLayout ,TripName, ExtractAndFormatDate, StatusBox}  
+
+export {HeaderButton, NotificationActionBtn, TabTitleModal, TitleModal, SmallAction, TooltipBtn, ModifyBtn, BoxTitleLayout, RaiseButton, EmptyBox, Violation, ExpenseLine, StatusFilter, CardLayout ,TripName, ExtractAndFormatDate, StatusBox}  

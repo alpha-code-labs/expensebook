@@ -34,7 +34,14 @@ export const travelRoutes = {
 
   cancel: {
     cancel_tr_standalone:{path: '/cancel/:tenantId/:empId/:travelRequestId',
-    getUrl: (tenantId, empId ,travelRequestId) => `${travelBaseUrl}/cancel/${travelRequestId}`
+    getUrl: ({tenantId, empId ,travelRequestId}) => `${travelBaseUrl}/cancel/${travelRequestId}`
+  },
+ 
+  },
+  rejected: {
+    rejected_tr_standalone:{
+    path: '/rejected/:travelRequestId',
+    getUrl: ({tenantId, empId ,travelRequestId}) => `${travelBaseUrl}/rejected/${travelRequestId}`
   },
  
   },
@@ -47,9 +54,6 @@ export const travelRoutes = {
     
   },
 };
-
-
-
 
 
 export const cashAdvanceRoutes={
@@ -71,7 +75,7 @@ export const cashAdvanceRoutes={
   },
   clearRejected:{
     path:'/rejected/advance/:travelRequestId/:cashAdvanceId',
-    getUrl:(empId , tenantId,travelRequestId,cashAdvanceId,)=>`${cashAdvanceBaseUrl}/ca-clear-rejected/${tenantId}/${empId}/${travelRequestId}/${cashAdvanceId}`
+    getUrl:(travelRequestId,cashAdvanceId,)=>`${cashAdvanceBaseUrl}/reject/advance/${travelRequestId}/${cashAdvanceId}`
   },
   modify_tr_with_ca:{ path: '/modify-tr-ca/:tenantId/:empId/:travelRequestId',
   getUrl: (tenantId ,empId, travelRequestId) => `${cashAdvanceBaseUrl}/modify/travel/${travelRequestId}`,
@@ -101,14 +105,19 @@ export const expenseRoutes={
     path:'tr-ex-modify/:tenantId/:empId/:tripId/:cashAdvanceId',
     getUrl:({tenantId,empId,tripId},)=>`${expenseBaseUrl}/${tenantId}/${empId}/${tripId}/view/travel-expense`
   },
+  view:{
+    path:'tr-ex-modify/:tenantId/:empId/:tripId/:cashAdvanceId',
+    getUrl:({tenantId,empId,tripId,expenseHeaderId},)=>`${expenseBaseUrl}/${tenantId}/${empId}/${tripId}/view/${expenseHeaderId}/travel-expense`
+  },
   cancel:{
     path:'/tr-ex-cancel/:tenantId/:empId/:tripId/:expenseHeaderId',
     getUrl:({tenantId,empId,tripId})=>`${expenseBaseUrl}/${tenantId}/${empId}/${tripId}/cancel/travel-expense`
   },
   clearRejected:{
     path:'/tr-ex-clear-rejected/:tenantId/:empId/:tripId/:expenseHeaderId',
-    getUrl:({tenantId,empId,tripId,expenseHeaderId})=>`${expenseBaseUrl}/tr-ex-clear-rejected/${tenantId}/${empId}/${tripId}/${expenseHeaderId}`
-  }
+    getUrl:({tenantId,empId,tripId,expenseHeaderId})=>`${expenseBaseUrl}/${tenantId}/${empId}/${tripId}/rejected/${expenseHeaderId}`
+  },
+  
 }
 
 
