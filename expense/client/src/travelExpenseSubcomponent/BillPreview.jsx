@@ -12,6 +12,7 @@ export function DocumentPreview({
   initialFile,
   isFileSelected,
   setSelectedFile,
+  expenseHeaderStatus
 }) {
   const [fileUrl, setFileUrl] = useState(null);
 
@@ -49,16 +50,18 @@ export function DocumentPreview({
         </div>
       ) : !initialFile && emptyPreview ? (
         <div className="flex items-center justify-center w-full h-full">
-          <img src={file_icon} className="w-40 h-40" alt="No file selected" />
+          <img src={file_icon} className="w-10 h-10" alt="No file selected"/>
         </div>
       ) : !initialFile ? (
         <div className="flex items-center justify-center w-full h-full">
+          {["paid","rejected"].includes(expenseHeaderStatus)
+          && 
           <Upload
             selectedFile={selectedFile}
             setSelectedFile={setSelectedFile}
             fileSelected={isFileSelected}
             setFileSelected={setIsFileSelected}
-          />
+          />}
         </div>
       ) : (
         <div className="h-full w-full overflow-y-auto flex items-center justify-center">

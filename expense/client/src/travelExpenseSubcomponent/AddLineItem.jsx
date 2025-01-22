@@ -9,7 +9,7 @@ import FileUpload from '../components/common/FileUpload';
 import { DocumentPreview } from './BillPreview';
 import { allocationLevel, extractValidExpenseLines, initializeFormFields, urlRedirection } from '../utils/handyFunctions';
 import LineItemForm from './LineItemForm';
-import { getTravelExpenseApi, postTravelExpenseLineItemApi, currencyConversionApi, ocrScanApi } from '../utils/api';
+import { getTravelExpenseApi, postTravelExpenseLineItemApi, currencyConversionApi, ocrScanApi, submitOrSaveAsDraftApi } from '../utils/api';
 import { useParams,useNavigate } from 'react-router-dom';
 import Error from '../components/common/Error';
 import PopupMessage from '../components/common/PopupMessage';
@@ -51,7 +51,7 @@ const AddLineItem = () => {
 
   const navigate = useNavigate()
   
-const {tenantId,empId,tripId} = useParams();
+const {tenantId,empId,tripId,expenseHeaderId} = useParams();
 const [showForm , setShowForm] = useState(false);  
 const [selectedFile, setSelectedFile] = useState(null);
 const [ocrUpload, setOcrUpload] = useState(false);
@@ -82,14 +82,17 @@ const [requiredObj, setRequiredObj] = useState(
 const [selectedAllocations,setSelectedAllocations]=useState([]);
 const [modalOpen, setModalOpen]=useState(false)
 const [isLoading, setIsLoading] = useState(true);
+
 const [isUploading,setIsUploading]=useState({
   conversion:{set:false,msg:""},
   saveLineItem:{set:false,msg:""},
+  saveAsDraft:{set:false,msg:""},
   autoScan:false
 })
 
 // const [showPopup, setShowPopup] = useState(false);
 // const [message, setMessage] = useState(null);
+
 const [loadingErrMsg, setLoadingErrMsg] = useState(null)
 const [formData, setFormData]=useState({
     'fields': {}
@@ -144,12 +147,13 @@ useEffect(() => {
         ...prev,
         level:travelAllocationFlag,
         defaultCurrency:response?.companyDetails?.defaultCurrency,
-        expenseHeaderId:response?.flagToOpen,
+        //expenseHeaderId updating from params not from the lasted Expense Header
+        //expenseHeaderId:response?.flagToOpen,
+        expenseHeaderId,
         expenseAmountStatus:response?.expenseAmountStatus,
         approvers: openedExpenseObj?.approvers,
         "travelExpenseData": response?.travelExpenseData ?? []
       }))
-
       console.log('trip data fetched successfully', response)
       setIsLoading(false);  
     } catch (error) {
@@ -428,10 +432,11 @@ const handleSaveLineItem = async (action) => {
     }
   }
 
-
+  const actionType = action === "saveAsDraft" ? "draft" : "save";
   if (allowForm) {
     setIsUploading(prev => ({ ...prev, [action]: { set: true, msg: "" } }));
-    const params = { tenantId, empId, tripId, expenseHeaderId: requiredObj.expenseHeaderId };
+    const params = { tenantId, empId, tripId, expenseHeaderId: requiredObj.expenseHeaderId, action:actionType };
+    //for saveAndSubmit
     const payload = {
       approvers: requiredObj?.approvers,
       allocations: requiredObj.level === 'level3' ? [] : selectedAllocations,
@@ -445,8 +450,29 @@ const handleSaveLineItem = async (action) => {
       }
     };
 
+    let api;
+    //for save as draft
+    const data = {
+      expenseSettlement: requiredObj?.selectedExpenseSettlement || "",
+      approvers: requiredObj?.travelExpenseData?.[0]?.approvers || [],
+      expenseLine: {
+        ...formData.fields,
+        "billImageUrl":previewUrl,
+        ...(requiredObj.level === 'level3' ? { allocations: selectedAllocations } : {})
+      }
+    };
+
+    if(action === "saveAsDraft")
+    {   
+      api = submitOrSaveAsDraftApi({action:"draft", tenantId, empId, tripId, expenseHeaderId: requiredObj.expenseHeaderId, data});
+    }
+    else
+    {
+      api = postTravelExpenseLineItemApi(params, payload);
+    }
+
     try {
-      const response = await postTravelExpenseLineItemApi(params, payload);
+      const response = await api
       setIsUploading(prev => ({ ...prev, [action]: { set: false, msg: "" } }));
       // setShowPopup(true);
       // setMessage(response?.message);
@@ -455,7 +481,7 @@ const handleSaveLineItem = async (action) => {
       setTimeout(() => {
         // setShowPopup(false);
         // setMessage(null);
-        if (action === "saveAndSubmit") {
+        if (["saveAndSubmit","saveAsDraft"].includes(action)) {
           navigate(`/${tenantId}/${empId}/${tripId}/view/travel-expense`);
         } else if (action === "saveAndNew") {
           setShowForm(false)
@@ -728,13 +754,11 @@ useEffect(() => {
 </div>
     {showForm &&
 <div className={` ${showForm ? 'block' : 'hidden'} w-full flex flex-col md:flex-row relative border-t-2 border-slate-300 h-screen p-4 pb-16 `}>
-    <div className='w-full md:w-3/5 md:block hidden border border-slate-300 rounded-md  h-full overflow-auto'>
-        <DocumentPreview isFileSelected={isFileSelected} setIsFileSelected={setIsFileSelected} selectedFile={selectedFile} setSelectedFile={setSelectedFile} initialFile=""/>
-    </div>
+    
     <div className='w-full md:w-2/5 h-full overflow-auto'>
     {selectedFile && (
-                    <RemoveFile onClick={()=>setSelectedFile(null)}/>
-                  )}
+      <RemoveFile onClick={()=>setSelectedFile(null)}/>
+    )}
        <LineItemForm 
        expenseLines={extractValidExpenseLines(requiredObj?.travelExpenseData, "travelExpense")} // all expense lines for the trip
        currencyConversion={currencyConversion}
@@ -755,6 +779,10 @@ useEffect(() => {
        categoryName={requiredObj?.category}
        />
     </div>
+    <div className='w-full md:w-3/5 md:block hidden border border-slate-300 rounded-md  h-full overflow-auto'>
+        <DocumentPreview isFileSelected={isFileSelected} setIsFileSelected={setIsFileSelected} selectedFile={selectedFile} setSelectedFile={setSelectedFile} initialFile=""/>
+    </div>
+   
     <div className='absolute -left-4 mx-4 inset-x-0 w-full  z-20 bg-slate-100  h-fit border border-slate-300 bottom-0'>
       <ActionBoard handleClick={handleSaveLineItem} isUploading={isUploading} setModalOpen={setModalOpen} setActionType={setActionType}/>
     </div>
@@ -797,7 +825,8 @@ const ActionBoard = ({handleClick,isUploading,setModalOpen, setActionType})=>{
       </div> */}
        <p className='text-start whitespace-nowrap left-14 top-8 text-red-600 text-sm font-inter'><sup>*</sup>Kindly check the fields before saving the line item.</p>
     <div className='flex gap-1'>
-      <Button1  loading={isUploading?.saveAndNew?.set}      text='Save and New'    onClick={()=>handleClick("saveAndNew")}/>
+      <Button1  loading={isUploading?.saveAndNew?.set}      text='Save as draft'    onClick={()=>handleClick("saveAsDraft")}/>
+      <Button1  loading={isUploading?.saveAsDraft?.set}      text='Save and New'    onClick={()=>handleClick("saveAndNew")}/>
       <Button1  loading={isUploading?.saveAndSubmit?.set}      text='Save and Submit' onClick={()=>handleClick("saveAndSubmit")}/>
       <CancelButton  loading={isUploading?.saveLineItem?.set} text='Cancel'          onClick={()=>{setModalOpen(true);setActionType("closeAddExpense")}}/>
     </div>

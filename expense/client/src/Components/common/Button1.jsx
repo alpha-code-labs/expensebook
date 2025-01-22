@@ -41,7 +41,7 @@ export default function Button1(props) {
             : 'hover:hover:bg-neutral-700 text-white cursor-pointer'
         } h-8 px-4 py-4 bg-neutral-900 rounded-md  justify-center items-center gap-2 inline-flex`}
       >
-        {loading ? (
+        {loading  ? (
           <div className='flex gap-1 text-center items-center'>
           <img src={loading_icon} className="animate-spin w-5 h-5" />
           <div className="w-full max-w-[75px] sm:max-w-full whitespace-nowrap truncate h-5 text-center text-white text-base font-medium font-cabin">
@@ -49,7 +49,7 @@ export default function Button1(props) {
           </div>
           </div>
         ) : (
-          <div className="w-auto  whitespace-nowrap truncate h-5 text-center text-white text-base font-medium font-cabin">
+          <div className="w-auto flex items-center justify-center  whitespace-nowrap truncate  text-center text-white text-base font-medium font-cabin">
             {text}
           </div>
         )}

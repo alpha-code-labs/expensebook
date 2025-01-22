@@ -37,6 +37,7 @@ import {
   user_icon,
   arrow_left,
   info_icon,
+  categoryIcons,
 } from "../assets/icon";
 import Select from "../components/common/Select";
 import ActionButton from "../components/common/ActionButton";
@@ -61,7 +62,7 @@ import { LineItemView } from "../travelExpenseSubcomponent/LineItemView.jsx";
 import { DocumentPreview } from "../travelExpenseSubcomponent/BillPreview.jsx";
 import Modal from "../components/common/Modal.jsx";
 import LineItemForm from "../travelExpenseSubcomponent/LineItemForm.jsx";
-import { RemoveFile, TitleModal } from "../components/common/TinyComponent.jsx";
+import HeaderButton, { RemoveFile, TitleModal } from "../components/common/TinyComponent.jsx";
 import uploadFileToAzure from "../utils/azureBlob.js";
 import { dateKeys, isClassField, totalAmountKeys } from "../utils/data/keyList.js";
 
@@ -73,7 +74,7 @@ import { dateKeys, isClassField, totalAmountKeys } from "../utils/data/keyList.j
 
 
 export default function () {
-  const { cancel, tenantId, empId, tripId } = useParams(); ///these has to send to backend get api
+  const { cancel, tenantId, empId, tripId , expenseHeaderId} = useParams(); ///these has to send to backend get api
   const navigate = useNavigate();
 
   const az_blob_container = import.meta.env.VITE_AZURE_BLOB_CONTAINER
@@ -136,8 +137,7 @@ export default function () {
   // const [showPopup, setShowPopup] = useState(false);
   // const [message, setMessage] = useState(null);
   // const [ocrField , setOcrField]=useState(null)
-  const [travelRequestStatus, setTravelRequestStatus] =
-    useState("pending approval");
+  const [travelRequestStatus, setTravelRequestStatus] = useState("pending approval");
   const [isUploading, setIsUploading] = useState({
     scan: false,
     edit: false,
@@ -152,9 +152,7 @@ export default function () {
   });
 
   const [active, setActive] = useState({});
-
   const [isLoading, setIsLoading] = useState(true);
-
   const [loadingErrMsg, setLoadingErrMsg] = useState(null);
   const [lineItemDetails, setLineItemDetails] = useState(); 
   const [selectedFile, setSelectedFile] = useState(null);
@@ -169,9 +167,7 @@ export default function () {
   }) 
   const [isFileSelected, setIsFileSelected] = useState(false);
   const [initialFile, setInitialFile] = useState("");
-
   const [personalFlag, setPersonalFlag] = useState(false);
-
   const [showCancelModal, setShowCancelModal] = useState(false);
   //const [selectedExpenseSettlement, setSelectedExpenseSettlement] = useState(null);
 
@@ -183,7 +179,6 @@ export default function () {
   //const [getSavedAllocations, setGetSavedAllocations] = useState(); ///after save the allocation then i will get next time from here
   const [modalOpen, setModalOpen] = useState(false);
   const [actionType, setActionType] = useState(null);
-
   const [headerReport, setHeaderReport] = useState(null);
   
 
@@ -229,11 +224,36 @@ export default function () {
     fetchData();
   }, [tenantId, empId, tripId]);
 
+
+  function consolidateLineItem(data) {
+    const updatedData = data?.reduce((acc, item) => {
+      // Check if the category exists in the accumulator object
+      if (!acc[item?.["Category Name"]]) {
+        acc[item?.["Category Name"]] = []; // Initialize as an empty array if it doesn't exist
+      }
+  
+      // Push the current item into the array for its category
+      acc[item?.["Category Name"]].push(item);
+  
+      return acc; // Return the updated accumulator for the next iteration
+    }, {});
+  
+    return updatedData; // Return the grouped object
+  }
+  
   const [activeIndex, setActiveIndex] = useState();
+  const [activeCategoryIndex, setActiveCategoryIndex] = useState();
+
 
   const handleItemClick = (index) => {
     setActiveIndex(index === activeIndex ? null : index);
   };
+
+  const handleCategoryIndexTab=(index)=>{
+    setActiveCategoryIndex(index === activeCategoryIndex ? null : index)
+  }
+
+
 
   const dashboardBaseUrl = `${import.meta.env.VITE_DASHBOARD_URL}`;
 
@@ -249,7 +269,7 @@ export default function () {
 
       setSettlementOptions(settlementOptions);
       const flagToOpen = onboardingData?.flagToOpen;
-      const openedExpenseObj = (onboardingData?.travelExpenseData)?.find(expense => expense.expenseHeaderId === flagToOpen)
+      const openedExpenseObj = (onboardingData?.travelExpenseData)?.find(expense => expense.expenseHeaderId === flagToOpen);
       const travelType = openedExpenseObj?.travelType;
       setSelectedTravelType(travelType)
       if(['level1','level2'].includes(travelAllocationFlag)){
@@ -268,8 +288,7 @@ export default function () {
           headerName: allocation.headerName,
           headerValue: "",
         }));
-        setSelectedAllocations(allocations)
-    
+        setSelectedAllocations(allocations);
       }
 
       if(travelAllocationFlag==='level3'){
@@ -284,10 +303,29 @@ export default function () {
         
         }));
       }
+      //alreadyBookedExpenseLines
+      const travelExpenseData = onboardingData?.travelExpenseData || [];
+const firstAlreadyBookedExpense = travelExpenseData[0]?.alreadyBookedExpenseLines;
+
+const spreadAlreadyBookedExpenseInOvertheExpenseData = onboardingData?.travelExpenseData?.map((item) => {
+  if (!item?.alreadyBookedExpenseLines) {
+    return {
+      ...item,
+      alreadyBookedExpenseLines: firstAlreadyBookedExpense || [] // Ensure firstAlreadyBookedExpense is defined
+    };
+  }
+  return item;
+});
+
+// Apply filter if expenseHeaderId is available
+
+const filteredData = expenseHeaderId
+  ? spreadAlreadyBookedExpenseInOvertheExpenseData.filter(
+      (expense) => expense.expenseHeaderId === expenseHeaderId
+    )
+  : spreadAlreadyBookedExpenseInOvertheExpenseData.filter(item => ["draft","rejected","pending approval"].includes(item?.expenseHeaderStatus))
       
-      
-     
-      
+
       setRequiredObj((prev) => ({
         ...prev,
         approverList: openedExpenseObj?.approvers,
@@ -297,7 +335,7 @@ export default function () {
         "expenseHeaderId":openedExpenseObj?.expenseHeaderId ?? flagToOpen,
         "travelType": openedExpenseObj?.travelType ?? "",
         "allocations": onboardingData?.travelAllocationHeaders || [],
-        "travelExpenseData": onboardingData?.travelExpenseData || [],
+        "travelExpenseData": filteredData || [],
         "expenseAmountStatus": onboardingData?.expenseAmountStatus
       }));      
       //console.log("saved allocations", getSavedAllocations);
@@ -323,19 +361,15 @@ export default function () {
   //console.log("get expense data", getExpenseData);
 
   console.log("onboardingData", onboardingData);
-
   console.log("expenseAmountStatus", requiredObj?.expenseAmountStatus);
   console.log("selected Allocations", selectedAllocations);
   console.log("requiredObj", requiredObj);
   console.log("formData", formData);
-  console.log("is file selected", isFileSelected)
+  console.log("is file selected", isFileSelected);
 
   const [categoriesList, setCategoriesList] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [categoryFieldBySelect, setCategoryFieldBySelect] = useState([]);
-
-
-
 
   console.log("category list", categoriesList);
   console.log("travelType", selectedTravelType);
@@ -344,7 +378,6 @@ export default function () {
   console.log("travel allocations", requiredObj?.travelAllocations);
   console.log("expenseLine", headerReport?.expenseLines);
   console.log("total amount11", totalAmount);
-
 
   //selected category corresponding class & class of service value
   const [classDropdownValues, setClassDropdownValues] = useState(null);
@@ -820,7 +853,7 @@ const handleRemoveFile=()=>{
   ///----------------------------------------
 
   // Handle Submit Draft
-  const handleSubmitOrDraft = async (action) => {
+  const handleSubmitOrDraft = async (action,expenseHeaderId) => {
     let allowForm = true;
     const data = {
       expenseSettlement: requiredObj?.selectedExpenseSettlement || "",
@@ -854,7 +887,8 @@ const handleRemoveFile=()=>{
           tenantId,
           empId,
           tripId,
-          expenseHeaderId : requiredObj?.expenseHeaderId,
+          //expenseHeaderId : requiredObj?.expenseHeaderId,
+          expenseHeaderId,
           data}
         );
         setIsLoading(false);
@@ -1190,7 +1224,7 @@ const handleRemoveFile=()=>{
 
               {/* ///-level2 - */}
               
-              <div className="flex md:flex-row flex-col gap-4  justify-between md:items-center items-center mb-10">
+              {/* <div className="flex md:flex-row flex-col gap-4  justify-between md:items-center items-center mb-10">
                 <fieldset className="flex flex-col sm:flex-row gap-4">
                   <div>
                     <div
@@ -1295,19 +1329,23 @@ const handleRemoveFile=()=>{
                 </fieldset>
 
                 <div className="flex gap-2 flex-row items-center">
+                  {["draft", "rejected"].includes(requiredObj?.expenseHeaderStatus) && (
+                    <>
                   <Button1
-                    loading={isUploading.submit}
-                    variant="fit"
-                    text="Submit"
-                    onClick={() => handleSubmitOrDraft("submit")}
+                  loading={isUploading.submit}
+                  variant="fit"
+                  text="Submit"
+                  onClick={() => handleSubmitOrDraft("submit")}
                   />
-                  {["draft", "new"].includes(requiredObj?.expenseHeaderStatus) && (
+                  
+                 
                     <Button1
                       loading={isUploading.saveAsDraft}
                       text="Save as Draft"
                       onClick={() => handleSubmitOrDraft("draft")}
                     />
-                  )}
+                  
+                  
                   <CancelButton
                     loading={isUploading.deleteHeader}
                     active={active.deleteHeader}
@@ -1318,14 +1356,11 @@ const handleRemoveFile=()=>{
                       setActionType("cancelExpense");
                     }}
                   />
-                   <div
-                      className="flex items-center justify-center rounded-sm bg-gray-200 p-1 h-fit cursor-pointer"
-                      onClick={() => handleDashboardRedirection()}
-                    >
-                      <img src={cancel_icon} className="w-5 h-5" />
-                    </div>
+      </>)}
+                   
                 </div>
-              </div>
+              </div> */}
+               
              
 
               {/* ///-level2- */}
@@ -1340,9 +1375,9 @@ const handleRemoveFile=()=>{
                   />
                 </div>
               )}
-
               <div>
                 <ExpenseHeader
+                  handleDashboardRedirection={()=>handleDashboardRedirection()}
                   handleAddLineItem={() =>
                     navigate(`/${tenantId}/${empId}/${tripId}/new/line-item`)
                   }
@@ -1373,16 +1408,16 @@ const handleRemoveFile=()=>{
                       <div className="mb-4">
                         <div
                           className="flex w-full justify-between  items-center bg-gray-200/10 py-2 px-6 border-[1px]  border-slate-300 rounded-md cursor-pointer"
-                          onClick={() => handleItemClick(index)}
                         >
-                          <div className="max-w-full overflow-hidden whitespace-nowrap text-neutral-700 ">
-                            <p className="overflow-hidden text-ellipsis ">
+                          <div className="max-w-full overflow-hidden whitespace-nowrap text-neutral-700" onClick={() => handleItemClick(index)}>
+                            <p className="overflow-hidden text-ellipsis  underline">
                               {`Header Report Number : ${
                                 item?.expenseHeaderNumber ?? "N/a"
                               }`}
                             </p>
                           </div>
 
+                          
                           <div className="flex gap-4 items-center  text-neutral-900">
                             <div
                               className={`${getStatusClass(
@@ -1391,6 +1426,25 @@ const handleRemoveFile=()=>{
                             >
                               <p>{item?.expenseHeaderStatus}</p>
                             </div>
+                            <div className="">
+                           {["rejected", "draft", "pending approval"].includes(item?.expenseHeaderStatus) &&  
+                           <div className="flex gap-2">
+                             <HeaderButton
+                            variant="fit"
+                            icon={true}
+                            text="Expense Line"
+                            onClick={() =>navigate(`/${tenantId}/${empId}/${tripId}/new/${item?.expenseHeaderId}/line-item`)}
+                           />
+                           <HeaderButton
+                            loading={isUploading.submit}
+                            variant="fit"
+                            text="Submit"
+                            onClick={() => handleSubmitOrDraft("submit", item?.expenseHeaderId)}
+                          />
+                          
+                          </div>
+                          }
+                          </div>
                             <div>{activeIndex === index ? "▲" : "▼"}</div>
                           </div>
                         </div>
@@ -1533,21 +1587,32 @@ const handleRemoveFile=()=>{
                             </div>
 
                             <div className="space-y-2">
-                              {item.expenseLines.map((lineItem, index) =>
+{ Object.entries(consolidateLineItem(item?.expenseLines)).map(
+    ([categoryName, items], categoryIndex) => (
+      <div key={categoryIndex} className="border flex justify-between flex-col">
+        <div className="flex items-center justify-between gap-2 p-2" onClick={()=>handleCategoryIndexTab(categoryIndex)}>
+          <div className="flex gap-2 justify-center items-center">
+          <div className="bg-slate-100 p-2 rounded-full">
+            <img
+              src={categoryIcons[categoryName]}
+              className="w-4 h-4 rounded-full"
+            />
+          </div>
+          <p>
+            {categoryName}
+          </p>
+          </div>
+          <div className="flex flex-row gap-2 items-center">
+          <div className="text-xs text-red-600 font-inter">{items?.some(item=> item?.lineItemStatus === "rejected") && <div>*Rejection Reason : {item?.rejectionReason}</div>}</div>
+          <div>{activeCategoryIndex === categoryIndex ? "▲" : "▼"}</div>
+          </div>
+        </div>
+        {activeCategoryIndex===categoryIndex &&
+        <ul>
+        {items.map((lineItem, index) =>
                                 lineItem.expenseLineId === formData?.fields?.expenseLineId ? (
                                   <div key={`${index} line-item`} className="w-full border flex flex-col md:flex-row relative border-t-2 border-slate-300 h-screen p-4 pb-16 ">
-                                    <div className="relative w-full sm:w-3/5 h-full border border-slate-300 rounded-md hidden sm:block">
-                                    
-                                    {(isFileSelected || initialFile )&& <RemoveFile 
-                                     onClick={handleRemoveFile}/>}
-                                      <DocumentPreview
-                                        isFileSelected={isFileSelected} 
-                                        setIsFileSelected={setIsFileSelected} 
-                                        selectedFile={selectedFile} 
-                                        setSelectedFile={setSelectedFile}
-                                        initialFile={initialFile}
-                                      />
-                                    </div>
+                                   
                                     <div className="w-full sm:w-2/5 overflow-auto h-full">
                                       <LineItemForm 
                                       expenseLines={extractValidExpenseLines(requiredObj?.travelExpenseData, "travelExpense", lineItem?.expenseLineId )}
@@ -1567,8 +1632,20 @@ const handleRemoveFile=()=>{
                                       lineItemDetails={formData.fields}
                                       categoryFields={requiredObj?.selectedCategoryData?.fields || []}
                                       classOptions={requiredObj?.selectedCategoryData?.class}
-                                     
                                        />
+                                    </div>
+                                    <div className="relative w-full sm:w-3/5 h-full border border-slate-300 rounded-md hidden sm:block">
+                                    
+                                    {(isFileSelected || initialFile) && 
+                                    <RemoveFile onClick={handleRemoveFile}/>}
+                                      <DocumentPreview
+                                      expenseHeaderStatus={requiredObj?.expenseHeaderStatus}
+                                        isFileSelected={isFileSelected} 
+                                        setIsFileSelected={setIsFileSelected} 
+                                        selectedFile={selectedFile} 
+                                        setSelectedFile={setSelectedFile}
+                                        initialFile={initialFile}
+                                      />
                                     </div>
                                     <div className="absolute -left-4 mx-4 inset-x-0 w-full  z-20 bg-slate-100   h-16 border border-slate-300 bottom-0">
                                       <ActionBoard
@@ -1591,13 +1668,7 @@ const handleRemoveFile=()=>{
                                   </div>
                                 ) : (
                                   <>
-                                    <div className="flex flex-col lg:flex-row  w-full h-screen">
-                                      <div className="  w-full lg:w-3/5 border border-slate-300 h-[800px] md:h-full rounded-md">
-                                        <DocumentPreview
-                                          emptyPreview={true}
-                                          initialFile={lineItem?.billImageUrl}
-                                        />
-                                      </div>
+                                    <div className="flex flex-col lg:flex-row  w-full h-screen">                                   
                                       <div className="w-full lg:w-2/5 h-full">
                                         <LineItemView
                                           expenseHeaderStatus={item?.expenseHeaderStatus}
@@ -1612,12 +1683,111 @@ const handleRemoveFile=()=>{
                                           }}
                                         />
                                       </div>
+                                      <div className="  w-full lg:w-3/5 border border-slate-300 h-[800px] md:h-full rounded-md">
+                                        <DocumentPreview
+                                        expenseHeaderStatus={requiredObj?.expenseHeaderStatus}
+                                          emptyPreview={true}
+                                          initialFile={lineItem?.billImageUrl}
+                                        />
+                                      </div>
                                     </div>
                                   </>
                                 )
                               )}
+        </ul>
+        }
+      </div>
+    )
+  )
+}
+                              
+                              
+                              {/* {item.expenseLines.map((lineItem, index) =>
+                                lineItem.expenseLineId === formData?.fields?.expenseLineId ? (
+                                  <div key={`${index} line-item`} className="w-full border flex flex-col md:flex-row relative border-t-2 border-slate-300 h-screen p-4 pb-16 ">
+                                   
+                                    <div className="w-full sm:w-2/5 overflow-auto h-full">
+                                      <LineItemForm 
+                                      expenseLines={extractValidExpenseLines(requiredObj?.travelExpenseData, "travelExpense", lineItem?.expenseLineId )}
+                                      categoryName={lineItem?.['Category Name']}
+                                      setErrorMsg={setErrorMsg}
+                                      isUploading={isUploading}
+                                      defaultCurrency={requiredObj?.defaultCurrency}
+                                      currencyConversion={currencyConversion}
+                                      setCurrencyConversion={setCurrencyConversion}
+                                      handleCurrencyConversion={handleCurrencyConversion}
+                                      setFormData={setFormData}
+                                      formData={formData.fields}
+                                      handleAllocations={handleAllocations}
+                                      onboardingLevel={requiredObj.level}
+                                      allocationsList={requiredObj?.selectedCategoryData?.expenseAllocation}
+                                      errorMsg={errorMsg}
+                                      lineItemDetails={formData.fields}
+                                      categoryFields={requiredObj?.selectedCategoryData?.fields || []}
+                                      classOptions={requiredObj?.selectedCategoryData?.class}
+                                       />
+                                    </div>
+                                    <div className="relative w-full sm:w-3/5 h-full border border-slate-300 rounded-md hidden sm:block">
+                                    
+                                    {(isFileSelected || initialFile) && 
+                                    <RemoveFile onClick={handleRemoveFile}/>}
+                                      <DocumentPreview
+                                      expenseHeaderStatus={requiredObj?.expenseHeaderStatus}
+                                        isFileSelected={isFileSelected} 
+                                        setIsFileSelected={setIsFileSelected} 
+                                        selectedFile={selectedFile} 
+                                        setSelectedFile={setSelectedFile}
+                                        initialFile={initialFile}
+                                      />
+                                    </div>
+                                    <div className="absolute -left-4 mx-4 inset-x-0 w-full  z-20 bg-slate-100   h-16 border border-slate-300 bottom-0">
+                                      <ActionBoard
+                                        showButton={true}
+                                        title1={"Delete"}
+                                        title={"Update"}
+                                        handleDeleteLineItem={() => {
+                                          setModalOpen(true);
+                                          setActionType("deleteLineItem");
+                                          setSelectedLineItemId(lineItem);
+                                        }}
+                                        handleClick={() =>
+                                          handleSaveLineItem("updateLineItem")
+                                        }
+                                        isUploading={isUploading}
+                                        setModalOpen={setModalOpen}
+                                        setActionType={setActionType}
+                                      />
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <>
+                                    <div className="flex flex-col lg:flex-row  w-full h-screen">                                   
+                                      <div className="w-full lg:w-2/5 h-full">
+                                        <LineItemView
+                                          expenseHeaderStatus={item?.expenseHeaderStatus}
+                                          lineItem={lineItem}
+                                          isUploading={isUploading}
+                                          index={index}
+                                          handleEdit={handleEdit}
+                                          handleDeleteLineItem={() => {
+                                            setModalOpen(true);
+                                            setActionType("deleteLineItem");
+                                            setSelectedLineItemId(lineItem);
+                                          }}
+                                        />
+                                      </div>
+                                      <div className="  w-full lg:w-3/5 border border-slate-300 h-[800px] md:h-full rounded-md">
+                                        <DocumentPreview
+                                        expenseHeaderStatus={requiredObj?.expenseHeaderStatus}
+                                          emptyPreview={true}
+                                          initialFile={lineItem?.billImageUrl}
+                                        />
+                                      </div>
+                                    </div>
+                                  </>
+                                )
+                              )} */}
                             </div>
-                           
                           </div>
                         )}
                       </div>
@@ -1630,7 +1800,8 @@ const handleRemoveFile=()=>{
                 <div className=" w-full flex flex-col  lg:flex-row">
                   <div className="border w-full lg:w-1/2  border-slate-300 rounded-md">
                     <DocumentPreview
-                      selectedFile={ocrSelectedFile || selectedFile}
+                    expenseHeaderStatus={requiredObj?.expenseHeaderStatus}
+                    selectedFile={ocrSelectedFile || selectedFile}
                     />
                   </div>
                   <div className="border w-full lg:w-1/2 lg:h-[710px] overflow-y-auto scrollbar-hide">
@@ -1952,12 +2123,16 @@ const handleRemoveFile=()=>{
           </div>
         </>
       )}
-
+      {/* {!expenseHeaderId && (<div className=" flex justify-end p-4">
+      {["draft", "rejected", "pending approval"]?.includes(requiredObj?.expenseHeaderStatus) && <Button1 text="Add Expense Line" onClick={() =>navigate(`/${tenantId}/${empId}/${tripId}/new/line-item`)} />}
+      </div>)} */}
+      
       {/* <PopupMessage
         showPopup={showPopup}
         setShowPopup={setShowPopup}
         message={message}
       /> */}
+      
       <Modal
         isOpen={modalOpen}
         onClose={() => setModalOpen(!modalOpen)}
@@ -2033,15 +2208,23 @@ function ExpenseHeader({
   handleCancelExpenseHeader,
   handleSubmitOrDraft,
   expenseAmountStatus,
+  handleDashboardRedirection
 }) {
   return (
     <>
-      <div className="flex flex-col sm:flex-row gap-2 justify-between w-full ">
+      <div className="flex flex-col  gap-2 justify-between w-full ">
+        <div className="flex flex-row justify-between">
+      <div className="flex w-full flex-row gap-2">
         {[
           {
             icon: user_icon,
             label: "Created By",
             value: name ?? "not available",
+          },
+          {
+            icon: user_icon,
+            label: "Approvers",
+            value: approversList?.map(approver=>approver.name).join(","),
           },
           {
             icon: briefcase,
@@ -2062,7 +2245,15 @@ function ExpenseHeader({
             </div>
           </div>
         ))}
-        <div className="flex  flex-row gap-2 p-2 w-full md:w-3/5 border border-slate-300 rounded-md items-center">
+      </div>
+                 <div
+                      className="flex items-center justify-center rounded-sm bg-gray-200 p-1 h-fit cursor-pointer"
+                      onClick={() => handleDashboardRedirection}
+                    >
+                      <img src={cancel_icon} className="w-5 h-5" />
+                    </div>
+                    </div>
+        <div className="flex  flex-row gap-2 p-2 w-full border border-slate-300 rounded-md items-center">
           <div className="bg-slate-200 rounded-full p-2 shrink-0">
             <img src={money} className="w-4 h-4" />
           </div>
@@ -2092,7 +2283,7 @@ function ExpenseHeader({
               value: defaultCurrency?.shortName ?? "not available",
             },
           ].map((item, index) => (
-            <div key={index} className="flex-1 px-2 font-cabin">
+            <div key={index} className={`flex-1 px-2 font-cabin border-l border-slate-300 `}>
               <p className="text-neutral-600 text-xs line-clamp-1">
                 {item.label}
               </p>
@@ -2102,7 +2293,7 @@ function ExpenseHeader({
         </div>
       </div>
 
-      <div className=" flex items-start  justify-start flex-col gap-2  border-b-2  py-4">
+      {/* <div className=" flex items-start  justify-start flex-col gap-2  border-b-2  py-4">
         <div className="flex  flex-col md:flex-row gap-2 items-start justify-start">
           {approversList?.length > 0 &&
             approversList.map((approver, index) => (
@@ -2130,8 +2321,8 @@ function ExpenseHeader({
           )}
         </div>
 
-        <Button1 text="Add Expense" onClick={() => handleAddLineItem()} />
-      </div>
+       {["draft", "rejected"]?.includes(expenseHeaderStatus) && <Button1 text="Add Expense" onClick={() => handleAddLineItem()} />}
+      </div> */}
     </>
   );
 }
@@ -2187,7 +2378,7 @@ function FlightCard({
             {defaultCurrency?.shortName ?? "-"} {formatAmount(amount) ?? "N/A"}
           </div>
           <div className="flex-1">
-            <input type="checkbox" defaultChecked />
+            <input type="checkbox" checked={true} readOnly />
           </div>
         </div>
       </div>
@@ -2230,7 +2421,7 @@ function HotelCard({
             {defaultCurrency?.shortName ?? "-"} {formatAmount(amount) ?? "N/A"}
           </div>
           <div className="flex-1">
-            <input type="checkbox" defaultChecked />
+             <input type="checkbox" checked={true} readOnly />
           </div>
         </div>
       </div>
@@ -2287,7 +2478,7 @@ function CabCard({
           </div>
 
           <div className="flex-1">
-            <input type="checkbox" defaultChecked={true} />
+          <input type="checkbox" checked={true} readOnly />
           </div>
         </div>
       </div>
@@ -2304,9 +2495,9 @@ const ActionBoard = ({handleDeleteLineItem, isUploading, setModalOpen, setAction
       </div> */}
        <p className='text-start whitespace-nowrap left-14 top-8 text-red-600 text-sm font-inter'><sup>*</sup>Kindly check the fields before saving the line item.</p>
     <div className='flex gap-1'>
-      <Button1  loading={isUploading?.updateLineItem?.set}      text='Update'    onClick={()=>handleClick("saveAndNew")}/>
-      <Button1  loading={isUploading?.deleteLineItem?.set}      text='Delete' onClick={()=>handleDeleteLineItem()}/>
-      <CancelButton  loading={isUploading?.saveLineItem?.set} text='Cancel'          onClick={()=>{setModalOpen(true);setActionType("closeAddExpense")}}/>
+      <Button1       loading={isUploading?.updateLineItem?.set}      text='Update'    onClick={()=>handleClick("saveAndNew")}/>
+      <Button1       loading={isUploading?.deleteLineItem?.set}      text='Delete' onClick={()=>handleDeleteLineItem()}/>
+      <CancelButton  loading={isUploading?.saveLineItem?.set}   text='Cancel'          onClick={()=>{setModalOpen(true);setActionType("closeAddExpense")}}/>
     </div>
 
     

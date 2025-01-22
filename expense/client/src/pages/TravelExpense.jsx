@@ -2,15 +2,18 @@ import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import LineItemForm from '../travelExpenseSubcomponent/AddLineItem';
 import CreateExpense from './CreateExpense';
+import ClearRejectedExpense from './ClearRejectedExpense';
 
 const TravelExpense = () => {
   return (
     
       <Routes>
-        {/* Nested route for adding a new line item */}
-        <Route path='new/line-item' element={<LineItemForm />} />
-        {/* Nested route for viewing and creating a travel expense */}
+
+        <Route path='new/:expenseHeaderId/line-item' element={<LineItemForm />} />
         <Route path='view/travel-expense' element={<CreateExpense />} />
+        <Route path='view/:expenseHeaderId/travel-expense' element={<CreateExpense />} />
+        <Route path='rejected/:expenseHeaderId' element={<ClearRejectedExpense/>} />
+        
       </Routes>
     
   );

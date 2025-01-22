@@ -191,7 +191,7 @@ export function LineItemView({selectedLineItemId, expenseHeaderStatus, isUploadi
       </div>
 
       <div className=' bottom-0 p-2 bg-white border-y  border-slate-300'>
-        {!['paid', 'paid and distribute'].includes(expenseHeaderStatus) && (
+        {['draft', 'rejected'].includes(expenseHeaderStatus) && (
           <div className="w-full flex sm:justify-start justify-center gap-4">
             <Button1 disabled={disableEditLine.includes(arrangedItems?.lineItemStatus)}  text={"Edit"} onClick={() => handleEdit(arrangedItems)} />
             <CancelButton disabled={disableDeleteLine.includes(arrangedItems?.lineItemStatus)} loading={false} text="Delete" onClick={()=>handleDeleteLineItem()} />

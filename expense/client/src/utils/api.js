@@ -182,7 +182,7 @@ export const getTravelExpenseForViewApi= async(tenantId,empId,tripId,expenseHead
 
 
 export const postTravelExpenseLineItemApi = async(params,payload)=>{
-  const {tenantId,empId,tripId,expenseHeaderId}= params
+  const {tenantId,empId,tripId,expenseHeaderId,}= params
   
   const url = `${EXPENSE_BACKEND_API_URL}/api/fe/expense/travel/${tenantId}/${empId}/${tripId}/${expenseHeaderId}/save`
   try{
@@ -219,7 +219,7 @@ export const updateTravelExpenseLineItemApi = async({params,payload})=>{
 
 }
 
-
+//travel expense
 export const submitOrSaveAsDraftApi = async(
 {  action,
   tenantId,
@@ -449,10 +449,11 @@ export const getCategoryFormElementApi=async(tenantId,empId,categoryName, expens
 
 ///save line item details for non travel expense 
 export const postNonTravelExpenseLineItemApi = async(params,payload)=>{
-  const {tenantId,empId,expenseHeaderId}=params
+  const {tenantId,empId,expenseHeaderId,action}=params
+  //action for save, draft
 
   // this is the real api route
-  const url = `${EXPENSE_BACKEND_API_URL}/api/fe/expense/non-travel/${tenantId}/${empId}/${expenseHeaderId}/save`
+  const url = `${EXPENSE_BACKEND_API_URL}/api/fe/expense/non-travel/${tenantId}/${empId}/${expenseHeaderId}/${action}`
   
   try{
     const response = await axiosRetry(axios.post,url,payload)
@@ -498,8 +499,6 @@ export const editNonTravelExpenseLineItemsApi = async(params,payload)=>{
   }
 
 }
-
-
 
 
 export const submitOrSaveAsDraftNonTravelExpenseApi = async({action,tenantId,empId,expenseHeaderId,payload})=>{

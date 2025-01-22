@@ -11,7 +11,6 @@ const App = () => {
         <Route path='/:tenantId/:empId/non-travel-expense/*' element={<NonTravelExpense />} />
         <Route path='/:tenantId/:empId/:tripId/*' element={<TravelExpense />} />
         {/* Main route for NonTravelExpense */}
-      
       </Routes>
     </Router>
   );

@@ -105,8 +105,7 @@ export function LineItemView({
                 !excludedKeys.includes(key) &&
                 !includedKeys.includes(key) &&
                 value !== null
-            )
-            .map(([key, value]) => {
+            ).map(([key, value]) => {
               if (key === "Currency" && value && typeof value === "object") {
                 const currencyShortName = value.shortName;
                 return includedKeys.map((includedKey) => {
@@ -167,8 +166,6 @@ export function LineItemView({
                   </div>
                 </div>
               );
-              
-              
             })
             .flat()}
             
@@ -183,22 +180,20 @@ export function LineItemView({
                    </div>
                    {lineItem?.isMultiCurrency && <div className=" text-sm text-neutral-600  pl-2 "> {`Amount in ${lineItem.convertedAmountDetails?.defaultCurrencyName} ${lineItem.convertedAmountDetails?.convertedTotalAmount} | 1 ${lineItem.convertedAmountDetails?.convertedCurrencyName} = ${lineItem.convertedAmountDetails?.defaultCurrencyName} ${lineItem.convertedAmountDetails?.conversionRate}`}</div>}
                  </div>}
-                    
-               
         </div>
       </div>
 
-      <div className=" bottom-0 p-2 bg-white border-y  border-slate-300">
-        <div className="w-full flex sm:justify-start justify-center gap-4">
+     {<div className=" bottom-0 p-2 bg-white border-y  border-slate-300">
+         <div className="w-full flex sm:justify-start justify-center gap-4">
           <Button1
-            disabled={["paid", "paid and distribute"].includes(
+            disabled={!["draft", "rejected"].includes(
               expenseHeaderStatus
             )}
             text="Edit"
             onClick={() => handleEdit(lineItem)}
           />
           <Button1
-            disabled={["paid", "paid and distribute"].includes(
+            disabled={!["draft", "rejected"].includes(
               expenseHeaderStatus
             )}
             loading={false}
@@ -206,7 +201,7 @@ export function LineItemView({
             onClick={() => handleDeleteLineItem()}
           />
         </div>
-      </div>
+      </div>}
     </div>
   );
 }

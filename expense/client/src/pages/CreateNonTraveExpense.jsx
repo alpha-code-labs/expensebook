@@ -659,12 +659,16 @@ const CreateNonTraveExpense = () => {
     }
 
     // Prepare payload
+    const actionType = action === "saveAndSubmit" ? "save" : "draft";
+
     const params = {
       tenantId,
       empId,
       expenseHeaderId: requiredObj.expenseHeaderId,
       lineItemId: formData?.editedFields?.lineItemId ?? "",
+      action: actionType,
     };
+
     let payload = {};
     let api;
     if (action === "saveAndSubmit") {
@@ -674,6 +678,24 @@ const CreateNonTraveExpense = () => {
         //createdBy: requiredObj?.createdBy,
         // expenseHeaderNumber: requiredObj?.expenseHeaderNumber,
         // defaultCurrency: requiredObj?.defaultCurrency,
+        lineItem: {
+          ...formData.fields,
+          billImageUrl: previewUrl || undefined,
+          ...(requiredObj.level === "level3"
+            ? { allocations: selectedAllocations }
+            : {}),
+        },
+      };
+      api = postNonTravelExpenseLineItemApi(params, payload);
+    }
+    if (action === "saveAsDraft") {
+      payload = {
+        // companyName: requiredObj?.companyName,
+        // "expenseAmountStatus":requiredObj?.expenseAmountStatus,
+        //createdBy: requiredObj?.createdBy,
+        // expenseHeaderNumber: requiredObj?.expenseHeaderNumber,
+        // defaultCurrency: requiredObj?.defaultCurrency,
+        expenseLines: requiredObj?.expenseLines,
         lineItem: {
           ...formData.fields,
           billImageUrl: previewUrl || undefined,
@@ -702,7 +724,7 @@ const CreateNonTraveExpense = () => {
       const response = await api;
       // setShowPopup(true);
       // setMessage(response?.message);
-      if (action === "saveAndSubmit") {
+      if (["saveAndSubmit","saveAsDraft"].includes(action)) {
         setRequiredObj((prev) => ({
           ...prev,
           expenseLines: response?.expenseLines || [],
@@ -877,15 +899,11 @@ const CreateNonTraveExpense = () => {
         },
         formData // Pass FormData as payload
       );
-  
       // Log the response from the OCR scan
       setIsUploading((prev) => ({ ...prev, autoScan: false }));
-     
       setShowForm(true)
       const fields = response.data.fields
-      
-  
-    setFormData(prev => ({...prev,fields:{
+      setFormData(prev => ({...prev,fields:{
       ...prev.fields,
       ...fields
         ,
@@ -896,8 +914,6 @@ const CreateNonTraveExpense = () => {
             "symbol": "₹"
         },
         "Category Name": requiredObj?.category
-    
-    
     }}))
     document
     .getElementById("newLineItem")
@@ -1443,6 +1459,8 @@ const CreateNonTraveExpense = () => {
         <>
           <div className="w-full h-full  font-cabin tracking-tight ">
             <div className="p-4">
+              {["draft","rejected"].includes(requiredObj?.expenseHeaderStatus) && 
+              <>
               <div className="inline-flex p-2 gap-2 rounded-md border-[1px] w-full  border-slate-300 bg-gray-200/10">
                 <img
                   src={validation_sym}
@@ -1685,6 +1703,7 @@ const CreateNonTraveExpense = () => {
                   title="Expense Settlement"
                 />
               </div>
+              </>}
 
               {requiredObj?.createdBy &&
                 requiredObj?.expenseHeaderNumber &&
@@ -1697,13 +1716,26 @@ const CreateNonTraveExpense = () => {
                         0
                       ).toFixed(2) ?? "0.00"
                     }
+                    selectedSettlementOption={requiredObj?.selectedSettlementOption ?? "-"}
                     createdBy={requiredObj.createdBy}
                     expenseHeaderNumber={requiredObj.expenseHeaderNumber}
                     expenseHeaderStatus={requiredObj.expenseHeaderStatus}
                     defaultCurrency={requiredObj.defaultCurrency}
                   />
                 )}
+                {formData?.approvers?.length > 0 &&
+            formData.approvers?.map((approver, index) => (
+              <div className="w-fit h-full" key={`${index} approver`}>
+                <p className="capitalize text-zinc-600 truncate whitespace-nowrap text-sm font-normal font-cabin pb-2.5">
+                  {"Approvers"}
+                </p>
+                <div className="border rounded-md inline-flex justify-start items-center h-[44px]  w-full border-slate-300 text-neutral-700 truncate text-sm font-normal font-cabin px-4">
+                  <p>{approver?.name}</p>
+                </div>
+              </div>
+            ))}
             </div>
+            
 
             {/* //----------- edit line item--start---------------------- */}
             <div className="">
@@ -1713,15 +1745,7 @@ const CreateNonTraveExpense = () => {
                 actionType === "editLineItem" ? (
                   <>
                     <div className="w-full border flex flex-col md:flex-row relative border-t-2 border-slate-300 h-screen p-4 pb-16 ">
-                      <div className="relative w-full sm:w-3/5 h-full border border-slate-300 rounded-md hidden sm:block">
-                      {(isFileSelected || initialFile) && <RemoveFile onClick={handleRemoveFile}/>}
-                      <DocumentPreview 
-                      isFileSelected={isFileSelected} 
-                      setIsFileSelected={setIsFileSelected} 
-                      selectedFile={selectedFile} 
-                      setSelectedFile={setSelectedFile}
-                      initialFile={initialFile} />
-                      </div>
+                      
                       <div
                         className="w-full sm:w-2/5 overflow-auto h-full"
                         key={index}
@@ -1747,6 +1771,16 @@ const CreateNonTraveExpense = () => {
                          // classOptions={requiredObj?.class}
                         />
                       </div>
+                      <div className="relative w-full sm:w-3/5 h-full border border-slate-300 rounded-md hidden sm:block">
+                      {(isFileSelected || initialFile) && <RemoveFile onClick={handleRemoveFile}/>}
+                      <DocumentPreview 
+                      isFileSelected={isFileSelected} 
+                      setIsFileSelected={setIsFileSelected} 
+                      selectedFile={selectedFile} 
+                      setSelectedFile={setSelectedFile}
+                      initialFile={initialFile} 
+                      expenseHeaderStatus={requiredObj?.expenseHeaderStatus}/>
+                      </div>
                       <div className="absolute -left-4 mx-4 inset-x-0 w-full  z-20 bg-slate-100   h-16 border border-slate-300 bottom-0">
                         <ActionBoard
                           showButton={true}
@@ -1770,12 +1804,11 @@ const CreateNonTraveExpense = () => {
                 ) : (
                   <>
                     <div className="w-full flex flex-col sm:flex-row h-screen px-4 mt-2">
-                      <div className="w-full sm:w-3/5 h-full border border-slate-300 rounded-md">
-                        <DocumentPreview initialFile={lineItem.billImageUrl} />
-                      </div>
+                     
                       <div className="w-full sm:w-2/5 h-full" key={index}>
                         <div className="">
                           <LineItemView
+                           expenseHeaderStatus={requiredObj?.expenseHeaderStatus}
                             index={index}
                             lineItem={lineItem}
                             handleEdit={handleEdit}
@@ -1787,6 +1820,9 @@ const CreateNonTraveExpense = () => {
                             }}
                           />
                         </div>
+                      </div>
+                      <div className="w-full sm:w-3/5 h-full border border-slate-300 rounded-md">
+                        <DocumentPreview expenseHeaderStatus={requiredObj?.expenseHeaderStatus} initialFile={lineItem.billImageUrl} />
                       </div>
                     </div>
                   </>
@@ -1808,15 +1844,7 @@ const CreateNonTraveExpense = () => {
                       <img src={delete_icon} className="w-6 h-6" />
                     </div>
                   )}
-                  <div className="w-full md:w-3/5 md:block hidden h-full overflow-auto border border-slate-300 rounded-md">
-                    <DocumentPreview
-                      isFileSelected={isFileSelected}
-                      setIsFileSelected={setIsFileSelected}
-                      selectedFile={selectedFile}
-                      setSelectedFile={setSelectedFile}
-                      initialFile=""
-                    />
-                  </div>
+                 
                   <div className="w-full md:w-2/5 h-full overflow-auto">
                     <LineItemForm
                       expenseLines={extractValidExpenseLines(requiredObj?.expenseLines, "nonTravelExpense")}
@@ -1839,10 +1867,21 @@ const CreateNonTraveExpense = () => {
                       // classOptions={requiredObj?.class}
                     />
                   </div>
+                  <div className="w-full md:w-3/5 md:block hidden h-full overflow-auto border border-slate-300 rounded-md">
+                    <DocumentPreview
+                      isFileSelected={isFileSelected}
+                      setIsFileSelected={setIsFileSelected}
+                      selectedFile={selectedFile}
+                      setSelectedFile={setSelectedFile}
+                      initialFile=""
+                      expenseHeaderStatus={requiredObj?.expenseHeaderStatus}
+                    />
+                  </div>
                   <div className="absolute -left-4 mx-4 inset-x-0 w-full  z-20 bg-slate-100   h-16 border border-slate-300 bottom-0">
                     <ActionBoard
                       title={"Save"}
-                      handleClick={() => handleSaveLineItem("saveAndSubmit")}
+                      handleSaveAndSubmitClick={() => handleSaveLineItem("saveAndSubmit")}
+                      handleSaveAsDraftClick={()   => handleSaveLineItem("saveAsDraft")}
                       isUploading={isUploading}
                       setModalOpen={setModalOpen}
                       setActionType={setActionType}
@@ -2029,6 +2068,7 @@ export default CreateNonTraveExpense;
 // }
 
 const HeaderComponent = ({
+  selectedSettlementOption,
   totalExpenseAmount,
   createdBy,
   expenseHeaderNumber,
@@ -2080,6 +2120,13 @@ const HeaderComponent = ({
               {expenseHeaderStatus}
             </p>
           </div>
+          <div className=" flex-1 font-cabin  px-2  ">
+            <p className=" text-neutral-600 text-xs line-clamp-1">Settlement Mode</p>
+
+            <p className="text-neutral-900   text-medium font-medium capitalize">
+              {selectedSettlementOption}
+            </p>
+          </div>
         </div>
       </div>
       <div className="   flex md:w-1/5 w-full border-[1px] border-slate-300 rounded-md flex-row items-center gap-2 p-2 ">
@@ -2103,10 +2150,12 @@ const ActionBoard = ({
   title,
   handleDelete,
   title1,
-  handleClick,
+  handleSaveAndSubmitClick,
+  handleSaveAsDraftClick,
   isUploading,
   setModalOpen,
   setActionType,
+  
 }) => {
   return (
     <div className="flex flex-col py-1 sm:py-0  sm:flex-row justify-between px-4 items-center h-full w-full">
@@ -2118,7 +2167,12 @@ const ActionBoard = ({
         <Button1
           loading={isUploading?.saveLineItem}
           text={title}
-          onClick={handleClick}
+          onClick={handleSaveAndSubmitClick}
+        />
+        <Button1
+          loading={isUploading?.saveAsDraft}
+          text={"Save as Draft"}
+          onClick={handleSaveAsDraftClick}
         />
         {showButton && (
           <CancelButton
