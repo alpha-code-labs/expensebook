@@ -688,21 +688,6 @@ const getRejectedReport = async (req, res) => {
 };
 
 
-/**
- * 
-4. If user clicks Cancel at the Header Level
-    1. If user clicks this in the first Expense Header Report Number that has the already booked expenses.
-        1. Reset all amount fields to 0.
-        2. Delete the expense Header Report completely. 
-    2. If user clicks this in any other Expense Header Report Number that does not have the already booked expenses. 
-        1. Check if the line items of the Expense Header Report have personal expenses. If yes, subtract this amount from the total personal amount.
-        2. Add all the other line items and arrive at an amount. Subtract this amount from the total expense amount.
-        3. Total Cash amount will be same.
-        4. The amount in 2 needs to be added back to the Balance Cash Amount. 
-        5. Overwrite the amount in the amount fields. 
-        6. Delete the entire Expense Header Report cancelled. 
- */
-
 const cancelAtHeaderLevelForAReport = async (req, res) => {
   const { tenantId, tripId, expenseHeaderId } = req.params;
   const { expenseAmountStatus, travelExpenseReport } = req.body;
@@ -834,23 +819,6 @@ if (hasAlreadyBookedExpense && isMatchingExpenseHeaderId){
 };
 
 
-// const needTobeAddedDeleteExpenseReportHeaderLevel = async () =>{
-//   const payload = {...expenseReport};
-// const needConfirmation = true;
-// const source = 'travel-expense'
-// const onlineVsBatch = 'online';
-
-// await sendTravelExpenseToDashboardQueue(payload, needConfirmation, onlineVsBatch, source);
-// }
-
-
-// 5. If user user clicks Cancel at the Expense Line Item Level
-//     1. If the amount is a personal expense simply reduce the amount from the Total Personal Amount. 
-//     2. If the amount is any other amount, reduce the amount from the Total expense amount. 
-//     3. Add this amount back to Remaining Cash. 
-//     4. Overwrite the amount in the amount fields. 
-//     5. Delete the line item completely. 
-
 const cancelAtLine = async (req, res) => {
   try {
     const {tenantId, empId, tripId, expenseHeaderId } = req.params;
@@ -923,158 +891,6 @@ const cancelAtLine = async (req, res) => {
   }
 };
 
-
-// const cancelAtHeaderLevel = async (req,res) => {
-//     const { tripId, expenseHeaderId} = req.params;
-//     const {travelExpenseData } = req.body;
-
-//     try {
-         
-//         if(travelExpenseData.itineraryId ){
-//            let totalCashAmount = 0;
-//            let totalAlreadyBookedExpenseAmount = 0 ;
-//            let totalExpenseAmount = 0;
-//            let totalPersonalExpenseAmount = 0;
-//            let totalremainingCash = 0;
-//         }
-      
-//         const expenseReport = await Expense.findOneAndUpdate(
-//             {
-//               'expenseHeaderId': expenseHeaderId,
-//               'tripId': tripId,
-//               $or: [
-//                 { 'travelRequestData.createdBy.empId': empId },
-//                 { 'travelRequestData.createdFor.empId': empId }
-//               ]
-//             },
-//             {
-//               $set: {
-//                 'expenseAmountStatus.totalCashAmount': totalCashAmount,
-//                  'expenseAmountStatus.totalAlreadyBookedExpenseAmount':totalAlreadyBookedExpenseAmount,
-//                  'expenseAmountStatus.totalExpenseAmount' : expenseAmountStatus,
-//                  'expenseAmountStatus.totalremainingCash' : totalremainingCash,
-//                  'expenseAmountStatus.totalPersonalExpenseAmount' : totalPersonalExpenseAmount
-                 
-//               }
-//             },
-//             {
-//               $pull: {
-//                 'travelExpenseData.expenseLines': { lineItemId: lineItemId }
-//               }              
-//             },
-//             { new: true } 
-//           );
-//      // figure out how to do this -- i have to set th expense amount to o and then delete expense header completely.
-
-//  // case -2 . if there is  no itineraryId then 
-//  //Check if the line items of the Expense Header Report have personal expenses.
-//  // If yes, subtract this amount from the total personal amount.
-
-//       let totalPersonalAmount = travelExpenseData.totalPersonalAmount || 0;
-//       let updatedPersonalExpenses = 0;
-
-//       lineItemData.forEach((lineItem) => {
-//             if (isPersonalExpense(lineItem)) {
-//             totalPersonalAmount -= lineItem.amount;
-//             updatedPersonalExpenses += lineItem.amount;
-//          }
-//     });
-//       travelExpenseData.totalPersonalAmount = totalPersonalAmount;
-//   // nonPersonalExpense is not added to the schema but it comes from frontend !!
-//   let nonPersonalExpense = 0;
-//   let totalAmount = 0;
-
-//   lineItems.forEach((item) => {
-//     if (item.hasOwnProperty('nonPersonalExpense')) {
-//       nonPersonalExpense += item.nonPersonalExpense;
-//     } else if (item.hasOwnProperty('totalAmount')) {
-//       totalAmount += item.totalAmount;
-//     } else {
-//       return { error: 'Expense line should have either nonPersonalExpense or totalAmount property.' };
-//     }
-//   });
-  
-//   // THIS expense difference is added to the totalRemainingCash 
-//    const expenseDifference = nonPersonalExpense - totalAmount;
-//     // totalRemainingCash  replace with  it in mongodb and delete expense header completely.
-//   if (!isNaN(expenseDifference)) {
-//     return { success: true, expenseDifference };
-//   } else {
-//     return { error: 'Error calculating expense difference.' };
-//   }
-// }}
-
-
-
-//usecase 1- delete complety and reset amount values all 5
-// usecase 2- replace amount fields - total remaining cash, personalexpense, total expense , (mongoose)
-// fe- no change - replace total already booked amount , total cash advance amount. delete expense header completely.
-
-
-// const cancelExpenseAtLineItemLevel = (req,res) => {
-//     const { tripId, expenseHeaderId} = req.params;
-//     const { lineItem} = req.body;
-
-//      let totalPersonalAmount = travelExpenseData.totalPersonalAmount || 0;
-//       let updatedPersonalExpenses = 0;
-
-//      if (lineItem.isPersonalExpense) {
-//             totalPersonalAmount -= lineItem.amount;
-//             updatedPersonalExpenses += lineItem.amount;
-//          }
-//     };
-//       travelExpenseData.totalPersonalAmount = totalPersonalAmount;
-
-//    // // nonPersonalExpense is not added to the schema but it comes from frontend !!
-//   let nonPersonalExpense = 0;
-//   let totalAmount = 0;
-
-//     if (item.hasOwnProperty('nonPersonalExpense')) {
-//       nonPersonalExpense += item.nonPersonalExpense;
-//     } else if (item.hasOwnProperty('totalAmount')) {
-//       totalAmount += item.totalAmount;
-//     } else {
-//       return { error: 'Expense line should have either nonPersonalExpense or totalAmount property.' };
-//     }
-  
-//   // THIS expense difference is added to the totalRemainingCash 
-//    const expenseDifference = nonPersonalExpense - totalAmount;
-//     // totalRemainingCash  replace with  it in mongodb and delete expense header completely.
-    
-//     const cancelExpenseAtLineItem = await Expense.findOneAndUpdate({
-//         {
-//             'expenseHeaderId': expenseHeaderId,
-//             'tripId': tripId,
-//             $or: [
-//               { 'travelRequestData.createdBy.empId': empId },
-//               { 'travelRequestData.createdFor.empId': empId }
-//             ]
-//           },
-//           {
-//             $set: {
-//               'travelExpenseData.expenseAmountStatus.totalCashAmount': totalCashAmount,
-//                'travelExpenseData.expenseAmountStatus.totalAlreadyBookedExpenseAmount':totalAlreadyBookedExpenseAmount,
-//                'travelExpenseData.expenseAmountStatus.totalExpenseAmount' : expenseAmountStatus,
-//                'travelExpenseData.expenseAmountStatus.totalremainingCash' : totalremainingCash,
-//                'travelExpenseData.expenseAmountStatus.totalPersonalExpenseAmount' : totalPersonalExpenseAmount
-               
-//             }
-//           },
-//           { new: true } 
-//         );
-             
-
-  // totalRemainingCash  replace with  it in mongodb and delete expense line completely.
-
-
-  // add a line item, adding cash advance amount, 
-
-  // const payload = {...expenseReport};
-  // const needConfirmation = true;
-  // const source = 'travel-expense'
-  // const onlineVsBatch = 'online';
-
-  // await sendTravelExpenseToDashboardQueue(payload, needConfirmation, onlineVsBatch, source);
 
 export { 
   getExpenseRelatedHrData,
