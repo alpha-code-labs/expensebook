@@ -17,9 +17,6 @@ async function sendTravelExpenseReport(payload, action, comments) {
   }
 }
 
-
-
-
 const sendUpdate = async(payload,options) => {
     try{
       const {action,comments, includeTrip=false,includeCash=false, includeNonTravel=false} = options

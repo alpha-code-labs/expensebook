@@ -6,44 +6,50 @@ import { sendToOtherMicroservice } from "../rabbitmq/publisher.js";
 import { sendToDashboardMicroservice } from "../rabbitmq/dashboardMicroservice.js";
 import Joi from "joi";
 
-const formatTenantId = (tenantName) => {
-  return tenantName.replace(/\s+/g, "").toUpperCase();
-};
+// Function to generate the incremental expense header number
+export const getExpenseHeaderNumber = async (tenantName) => {
+  let nextIncrementalValue = 0;
+  const max = await Expense.aggregate([
+    {
+      $unwind: "$travelExpenseData",
+    },
+    {
+      $group: {
+        _id: null,
+        maxExpenseHeaderNumber: {
+          $max: "$travelExpenseData.expenseHeaderNumber",
+        },
+      },
+    },
+  ]);
 
-// to generate and add expense report number
-const generateIncrementalNumber = (tenantName, incrementalValue = 1) => {
-  try {
-    console.log("generateIncrementalNumber", tenantName, incrementalValue);
-    // Validate tenantName
-    if (typeof tenantName !== "string" || tenantName.trim() === "") {
-      throw new Error("Invalid tenantName parameter");
+  const getMax = max[0] ? max[0].maxExpenseHeaderNumber : null;
+  console.log("getMax:", getMax, typeof getMax);
+
+  if (getMax) {
+    const tenantPrefix = "ER" + tenantName.slice(0, 3).toUpperCase();
+    if (getMax.startsWith(tenantPrefix)) {
+      const numericPart = getMax.slice(tenantPrefix.length);
+      const numericValue = parseInt(numericPart, 10);
+      if (!isNaN(numericValue)) {
+        nextIncrementalValue = numericValue + 1;
+      }
     }
-
-    if (
-      typeof incrementalValue !== "number" ||
-      incrementalValue < 0 ||
-      !Number.isFinite(incrementalValue)
-    ) {
-      throw new Error("Invalid incrementalValue parameter");
-    }
-
-    // Format tenantName
-    const formattedTenant = formatTenantId(tenantName)
-      .substring(0, 2)
-      .toUpperCase();
-    console.log("formattedTenant:", formattedTenant);
-
-    // Ensure incrementalValue is a valid number
-    const paddedIncrementalValue = incrementalValue.toString().padStart(6, "0");
-    console.log("paddedIncrementalValue:", paddedIncrementalValue);
-
-    return `ER${formattedTenant}${paddedIncrementalValue}`;
-  } catch (error) {
-    console.error("Error in generateIncrementalNumber:", error);
-    throw new Error(
-      "An error occurred while generating the incremental number."
-    );
   }
+  const generateIncrementalNumber = (tenantName, incrementalValue) => {
+    const formattedTenant = tenantName.toUpperCase().slice(0, 3);
+    return `ER${formattedTenant}${incrementalValue
+      .toString()
+      .padStart(6, "0")}`;
+  };
+
+  const expenseHeaderNumber = generateIncrementalNumber(
+    tenantName,
+    nextIncrementalValue
+  );
+  console.log("Generated expenseHeaderNumber:", expenseHeaderNumber);
+
+  return expenseHeaderNumber;
 };
 
 // to get expense report related company details
@@ -294,9 +300,10 @@ export const calculateTotalCashAdvances = async (cashAdvanceData) => {
   return totalCashAdvances;
 };
 
-// 'pending approval', if it is rejected, then create a new
+// All Expense Reports
 const allExpenseReports = async (expenseReport) => {
   try {
+
     const {
       tenantId,
       tenantName,
@@ -304,115 +311,45 @@ const allExpenseReports = async (expenseReport) => {
       travelRequestData,
       travelExpenseData,
     } = expenseReport;
+
     const { travelRequestId, travelRequestNumber, approvers } =
       travelRequestData;
+
     let { travelType, createdBy, travelAllocationHeaders } = travelRequestData;
-    // console.log("req params for all expense reports", travelRequestId, travelRequestNumber, approvers, travelType)
     const { travelAllocationFlags } = travelExpenseData[0];
     const approverNames = approvers.map(({ empId, name }) => ({ empId, name }));
-    //console.log("travelType..........", travelType)
-    let flagToOpen;
-    let expenseHeaderStatus;
-    let expenseHeaderNumber;
-    const validPaidStatuses = ["paid", "paid and distributed"];
-    const validStatuses = [
-      "draft",
-      "pending approval",
+    const validPaidStatuses = [
       "approved",
-      "pending settlement",
       "rejected",
+      "paid",
+      "pending settlement",
+      "paid",
+      "paid and distributed",
     ];
+    const validStatuses = ["draft", "pending approval"];
+    let flagToOpen;
 
     if (Array.isArray(travelExpenseData)) {
-      // console.log(" i am in travelExpenseData array with expenseHeaderStatus ",travelExpenseData )
       const areAllExpenseReportsPaid = travelExpenseData.every((report) =>
         validPaidStatuses.includes(report.expenseHeaderStatus)
       );
-      // console.log("areAllExpenseReportsPaid", areAllExpenseReportsPaid)
       const areAllExpenseReportsValid = travelExpenseData
         .filter(
           (report) => !validPaidStatuses.includes(report.expenseHeaderStatus)
         )
         .every((report) => validStatuses.includes(report.expenseHeaderStatus));
-      console.log("areAllExpenseReportsValid", areAllExpenseReportsValid);
 
       if (areAllExpenseReportsPaid) {
-        // let nextIncrementalValue = 0;
-        // console.log("nextIncrementalValue ..", nextIncrementalValue);
-        // const maxIncrementalValue = await Expense.findOne(
-        //   {},
-        //   "travelExpenseData.expenseHeaderNumber"
-        // )
-        //   .sort({ "travelExpenseData.expenseHeaderNumber": -1 })
-        //   .limit(1);
-
-        // if (
-        //   maxIncrementalValue &&
-        //   maxIncrementalValue.travelExpenseData &&
-        //   maxIncrementalValue.travelExpenseData.expenseHeaderNumber
-        // ) {
-        //   nextIncrementalValue =
-        //     parseInt(
-        //       maxIncrementalValue.travelExpenseData.expenseHeaderNumber.substring(
-        //         3
-        //       ),
-        //       10
-        //     ) + 1;
-        // }
-
-        // console.log(
-        //   "nextIncrementalValue - areAllExpenseReportsPaid",
-        //   nextIncrementalValue
-        // );
-        // expenseHeaderNumber = generateIncrementalNumber(
-        //   tenantName,
-        //   nextIncrementalValue
-        // );
-        let nextIncrementalValue = 0;
-        console.log("nextIncrementalValue ..", nextIncrementalValue);
-
-        const maxIncrementalValue = await Expense.findOne(
-          {},
-          "travelExpenseData.expenseHeaderNumber"
-        )
-          .sort({ "travelExpenseData.expenseHeaderNumber": -1 })
-          .limit(1);
-
-        if (
-          maxIncrementalValue &&
-          maxIncrementalValue.travelExpenseData &&
-          maxIncrementalValue.travelExpenseData.expenseHeaderNumber
-        ) {
-          const lastExpenseHeaderNumber =
-            maxIncrementalValue.travelExpenseData.expenseHeaderNumber;
-          const numericPart = lastExpenseHeaderNumber.substring(5); // Start from index 5 to extract the numeric part
-
-          nextIncrementalValue = parseInt(numericPart, 10) + 1; // Increment the numeric part
-        }
-
-        console.log(
-          "nextIncrementalValue - areAllExpenseReportsPaid",
-          nextIncrementalValue
-        );
-
-        expenseHeaderNumber = generateIncrementalNumber(
-          tenantName,
-          nextIncrementalValue
-        );
-
+        const expenseHeaderNumber = await getExpenseHeaderNumber(tenantName);
         let newExpenseHeaderId = new mongoose.Types.ObjectId();
         flagToOpen = newExpenseHeaderId;
-        console.log(
-          "flagToOpen-- newExpenseHeaderId",
-          newExpenseHeaderId,
-          "new expenseHeaderNumber---",
-          expenseHeaderNumber
-        );
+        // console.log(
+        //   "flagToOpen-- newExpenseHeaderId",
+        //   newExpenseHeaderId,
+        //   "new expenseHeaderNumber---",
+        //   expenseHeaderNumber
+        // );
 
-        //based on travelAllocationFlags --temporary commented
-        // travelType = travelAllocationFlags.level1 ? travelType : "";
-
-        // Creating newTravelExpenseData object
         const newTravelExpenseData = {
           tenantId,
           tenantName,
@@ -427,21 +364,12 @@ const allExpenseReports = async (expenseReport) => {
           travelType: travelType,
         };
 
-        // Adding newTravelExpenseData to travelExpenseData array
         expenseReport.travelExpenseData.push(newTravelExpenseData);
-
-        // Saving the updated document
         await expenseReport.save();
       } else if (areAllExpenseReportsValid) {
-        console.log(
-          "i am in areAllExpenseReportsValid",
-          areAllExpenseReportsValid
-        );
-        // const matchingExpenseReport = travelExpenseData.find(item => item.expenseHeaderStatus === expenseHeaderStatus);
         const matchingExpenseReport = travelExpenseData.find((item) =>
           validStatuses.includes(item.expenseHeaderStatus)
         );
-        // console.log("matching expenseReport .........", matchingExpenseReport )
 
         if (matchingExpenseReport) {
           flagToOpen = matchingExpenseReport.expenseHeaderId;
@@ -459,7 +387,6 @@ const allExpenseReports = async (expenseReport) => {
     };
   } catch (error) {
     console.error("An error occurred in allExpenseReports:", error.message);
-    // Log the error using a logging service in production
     throw new Error(
       "An error occurred while processing expense reports. Check logs for details."
     );
@@ -472,7 +399,7 @@ const employeeSchema = Joi.object({
   tripId: Joi.string().required(),
 });
 
-// Exporting the async function named BookExpenseReport
+// Create a new Expense Report
 export const BookExpense = async (req, res) => {
   try {
     const { error, value } = employeeSchema.validate(req.params);
@@ -505,7 +432,6 @@ export const BookExpense = async (req, res) => {
       return res.status(500).json({ message: "Server Error" });
     }
 
-    // Destructuring additional details
     const {
       defaultCurrency,
       travelAllocationFlags,
@@ -516,7 +442,6 @@ export const BookExpense = async (req, res) => {
       employeeDetails,
     } = getHRData;
 
-    // Destructuring properties from the expense report
     const {
       tripNumber,
       tenantName,
@@ -541,13 +466,11 @@ export const BookExpense = async (req, res) => {
       name,
     }));
 
-    // Handling the case when expenseHeaderNumber is present
     if (expenseHeaderNumber) {
-      console.log("expense header Number jan2025", expenseHeaderNumber);
       const allExpenseReportsList = await allExpenseReports(expenseReport);
-      // console.log(" all expense reports", allExpenseReportsList)
       let { entireExpenseReport, flagToOpen } = allExpenseReportsList;
       const { expenseAmountStatus, travelExpenseData } = entireExpenseReport;
+
       return res.status(200).json({
         success: true,
         tripId,
@@ -562,68 +485,14 @@ export const BookExpense = async (req, res) => {
         companyDetails: getHRData,
       });
     } else {
-      const maxIncrementalValue = await Expense.findOne(
-        {},
-        "travelExpenseData.expenseHeaderNumber"
-      )
-        .sort({ "travelExpenseData.expenseHeaderNumber": -1 })
-        .limit(1);
-
-      let nextIncrementalValue = 1;
-
-      if (
-        maxIncrementalValue &&
-        maxIncrementalValue.travelExpenseData &&
-        maxIncrementalValue.travelExpenseData.expenseHeaderNumber
-      ) {
-        nextIncrementalValue =
-          parseInt(
-            maxIncrementalValue.travelExpenseData.expenseHeaderNumber.substring(
-              3
-            ),
-            10
-          ) + 1;
-      }
-
-      console.log("nextIncrementalValue", nextIncrementalValue);
-      expenseHeaderNumber = generateIncrementalNumber(
-        tenantName,
-        nextIncrementalValue
-      );
-      console.log("expense header Number jan2025 2", expenseHeaderNumber);
-
-      // Updating the expense header number in the travelExpenseData
-      expenseReport.travelExpenseData.expenseHeaderNumber = expenseHeaderNumber;
+      const getNumber = await getExpenseHeaderNumber(tenantName);
+      expenseReport.travelExpenseData.expenseHeaderNumber = getNumber;
       const isCashAdvanceTaken =
         expenseReport.travelRequestData?.isCashAdvanceTaken;
-
-      // Extracting already booked expenses
       const alreadyBookedExpenseLines =
         expenseReport.travelRequestData?.itinerary;
 
-      // Initialize total expense amount
-      // let currentTotalExpenseAmount = 0;
-
-      // // Iterate over each key in alreadyBookedExpenseLines
-      // for (const key in alreadyBookedExpenseLines) {
-      //   if (Object.prototype.hasOwnProperty.call(alreadyBookedExpenseLines, key)) {
-      //     const array = alreadyBookedExpenseLines[key];
-      //     const totalAmounts = array.map(obj => parseFloat(obj.bookingDetails?.billDetails?.totalAmount) || 0);
-
-      //     // Sum the totalAmounts to calculate total expenses for the current key
-      //     const totalAmountForKey = totalAmounts.reduce((total, amount) => total + amount, 0);
-
-      //     // Accumulate the total expenses across all keys
-      //     currentTotalExpenseAmount += totalAmountForKey;
-      //   }
-      // }
-
-      // // Set the total already booked expense amount outside the loop
-      // let currentTotalAlreadyBookedExpense = currentTotalExpenseAmount;
-
-      // Initialize total expense amount
       const currentTotalExpenseAmount = Object.values(alreadyBookedExpenseLines)
-        // Map over each array and extract totalAmount from billDetails, converting to number
         .map((array) =>
           array.reduce(
             (total, obj) =>
@@ -632,42 +501,15 @@ export const BookExpense = async (req, res) => {
             0
           )
         )
-        // Sum the totalAmounts to calculate total expenses across all keys
         .reduce((total, totalAmountForKey) => total + totalAmountForKey, 0);
 
-      // Set the total already booked expense amount outside the loop
       const currentTotalAlreadyBookedExpense = currentTotalExpenseAmount;
       expenseReport.expenseAmountStatus.totalAlreadyBookedExpenseAmount =
         currentTotalAlreadyBookedExpense;
       expenseReport.expenseAmountStatus.totalExpenseAmount =
         currentTotalExpenseAmount;
 
-      //create a expenseHeaderId
       const newExpenseHeaderId = new mongoose.Types.ObjectId();
-      // // Handling cash advance details
-      // let currentTotalCashAdvance = 0;
-      // let currentRemainingCash = 0;
-      // const cashAdvanceData = expenseReport?.cashAdvancesData;
-
-      // if (isCashAdvanceTaken) {
-      //   // console.log("i am isCashAdvanceTaken", isCashAdvanceTaken)
-      //   const cashAdvanceResult = await calculateTotalCashAdvances(cashAdvanceData, res);
-      //   console.log("cashAdvanceResult",cashAdvanceResult)
-
-      //   currentTotalCashAdvance += cashAdvanceResult.totalPaid.reduce((total, item) => total + item.amount, 0);
-      //   currentTotalCashAdvance = parseFloat(currentTotalCashAdvance) + 0.00;
-      //   currentRemainingCash = currentTotalCashAdvance;
-      //   console.log("cashAdvanceResult - currentTotalCashAdvance", currentTotalCashAdvance)
-      // }
-
-      // Updating the expenseAmountStatus in the existing document
-      // expenseReport.expenseAmountStatus.totalCashAmount = isCashAdvanceTaken ? currentTotalCashAdvance : 0 ;
-      // expenseReport.expenseAmountStatus.totalRemainingCash = isCashAdvanceTaken ? currentTotalCashAdvance : 0;
-
-      //based on travelAllocationFlags
-      // travelType = travelAllocationFlags.level1 ? travelType : "";
-
-      // Creating newTravelExpenseData object
       const newTravelExpenseData = {
         tenantId,
         tenantName,
@@ -681,19 +523,13 @@ export const BookExpense = async (req, res) => {
         alreadyBookedExpenseLines: alreadyBookedExpenseLines,
         approvers: approversNames,
         travelType: travelType,
-        // employeeDetails, // This need to be added at travel request for wider use
       };
 
-      // Adding newTravelExpenseData to travelExpenseData array
       expenseReport?.travelExpenseData?.push(newTravelExpenseData);
 
-      // Saving the updated document
       await expenseReport.save();
       const { expenseAmountStatus, travelExpenseData } = expenseReport;
 
-      //  console.log("travelType.........ONE.", travelType)
-
-      // Returning success response with relevant details
       return res.status(200).json({
         success: true,
         tripId,
@@ -1667,7 +1503,13 @@ export const getModifyExpenseReport = async (req, res) => {
 
 export const onSaveAsDraftExpenseReport = async (req, res) => {
   const { tenantId, empId, tripId, expenseHeaderId } = req.params;
+  const { expenseLines } = req.body;
   console.log("onSaveAsDraftExpenseHeader", req.params);
+  const updatedExpenseLines = expenseLines.map((line) => ({
+    ...line,
+    lineItemStatus: "draft",
+  }));
+
   try {
     const draftExpenseReport = await Expense.findOneAndUpdate(
       {
@@ -1687,6 +1529,7 @@ export const onSaveAsDraftExpenseReport = async (req, res) => {
       {
         $set: {
           "travelExpenseData.$.expenseHeaderStatus": "draft",
+          "travelExpenseData.$.expenseLines": updatedExpenseLines,
         },
       },
       { new: true }
@@ -1777,7 +1620,7 @@ export const onSubmitExpenseHeader = async (req, res) => {
 
     const update = {
       $set: {
-        "travelExpenseData.$.expenseSettlement": expenseSettlement,
+        "travelExpenseData.$.expenseSettlement": expenseSettlement, // to be removed and added from finance.
         "travelExpenseData.$.expenseSubmissionDate": new Date(),
         ...(approvers.length > 0 && {
           "travelExpenseData.$.approvers": approvers.map((a) => ({
@@ -1857,7 +1700,7 @@ export const cancelAtHeaderLevelForAReport = async (req, res) => {
     let totalPersonalExpenseAmount;
     let totalRemainingCash;
     let totalCashAmount;
-    let totalAlreadyBookedExpenseAmount
+    let totalAlreadyBookedExpenseAmount;
 
     if (expenseAmountStatus) {
       totalExpenseAmount = parseNumber(expenseAmountStatus.totalExpenseAmount);
@@ -1866,7 +1709,9 @@ export const cancelAtHeaderLevelForAReport = async (req, res) => {
       );
       totalRemainingCash = parseNumber(expenseAmountStatus.totalRemainingCash);
       totalCashAmount = parseNumber(expenseAmountStatus.totalCashAmount);
-      totalAlreadyBookedExpenseAmount = parseNumber(expenseAmountStatus.totalAlreadyBookedExpenseAmount)
+      totalAlreadyBookedExpenseAmount = parseNumber(
+        expenseAmountStatus.totalAlreadyBookedExpenseAmount
+      );
     }
 
     // const hasAlreadyBookedExpense = travelExpenseReport && travelExpenseReport.alreadyBookedExpenseLines && Array.isArray(travelExpenseReport.alreadyBookedExpenseLines) && travelExpenseReport.alreadyBookedExpenseLines.length > 0;
@@ -1898,17 +1743,18 @@ export const cancelAtHeaderLevelForAReport = async (req, res) => {
             { "travelRequestData.createdBy.empId": empId },
             { "travelRequestData.createdFor.empId": empId },
           ],
-          "travelExpenseData":{
-            $elemMatch:{
-              expenseHeaderId:expenseHeaderId
-            }
-          }
+          travelExpenseData: {
+            $elemMatch: {
+              expenseHeaderId: expenseHeaderId,
+            },
+          },
         },
         {
           $pull: { travelExpenseData: { expenseHeaderId: expenseHeaderId } },
           // $unset: { 'expenseAmountStatus': 1 },
           $set: {
-            "expenseAmountStatus.totalExpenseAmount": totalAlreadyBookedExpenseAmount,
+            "expenseAmountStatus.totalExpenseAmount":
+              totalAlreadyBookedExpenseAmount,
             "expenseAmountStatus.totalPersonalExpenseAmount": 0,
             "expenseAmountStatus.totalRemainingCash": totalCashAmount,
           },
@@ -2523,34 +2369,3 @@ export const policyValidationForVehicle = async (
     throw new Error({ message: "Internal server error", error: error.message });
   }
 };
-
-// Example parameters for testing
-const testParams = {
-  from_lat: 28.459497,
-  from_long: 77.026634,
-  to_lat: 28.70406,
-  to_long: 77.102493,
-};
-
-// Mock request and response objects for testing
-const mockReq = {
-  params: testParams,
-};
-
-const mockRes = {
-  status: (statusCode) => ({
-    json: (data) => {
-      console.log(`Status Code: ${statusCode}`);
-      console.log("Response:", data);
-    },
-  }),
-};
-
-(async () => {
-  try {
-    const result = await calculateKilometers(mockReq, mockRes);
-    console.log(result); // This should log 'undefined' since the function returns undefined
-  } catch (error) {
-    console.error(error);
-  }
-})();

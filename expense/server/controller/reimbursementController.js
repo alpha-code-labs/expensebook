@@ -365,13 +365,11 @@ const getExpenseCategoriesForEmpId = async (req, res) => {
         defaultCurrency
       );
       if (!getReport) {
-        return res
-          .status(404)
-          .json({
-            success: false,
-            message: "report creation or retrial failed",
-            error: error.message,
-          });
+        return res.status(404).json({
+          success: false,
+          message: "report creation or retrial failed",
+          error: error.message,
+        });
       }
     } else {
       getReport = await getReimbursementReport(
@@ -380,13 +378,11 @@ const getExpenseCategoriesForEmpId = async (req, res) => {
         expenseHeaderId
       );
       if (!getReport) {
-        return res
-          .status(404)
-          .json({
-            success: false,
-            message: "report retrial failed",
-            error: error.message,
-          });
+        return res.status(404).json({
+          success: false,
+          message: "report retrial failed",
+          error: error.message,
+        });
       }
     }
 
@@ -862,12 +858,10 @@ const saveReimbursementExpenseLine = async (req, res) => {
     }
   } catch (error) {
     console.error(error);
-    return res
-      .status(500)
-      .json({
-        message: "Failed to process non_Travel expense LINE",
-        error: error.message,
-      });
+    return res.status(500).json({
+      message: "Failed to process non_Travel expense LINE",
+      error: error.message,
+    });
   }
 };
 
@@ -1031,7 +1025,7 @@ const draftExpense = Joi.object({
       })
     )
     .default([]),
-  expenseSettlement: Joi.string().allow("").default(""),
+  expenseSettlement: Joi.string().allow("").optional().default(""),
 });
 
 const draftReimbursementExpenseLine = async (req, res) => {
@@ -1133,7 +1127,7 @@ const submitExpense = Joi.object({
       })
     )
     .optional(),
-  expenseSettlement: Joi.string().optional(),
+  expenseSettlement: Joi.string().optional().default(""),
 });
 
 const submitReimbursementExpenseReport = async (req, res) => {
