@@ -396,7 +396,8 @@ export const approveTravelRequestApi = async(data)=>{
         let url
      
         if(action === "settleTravelExpense" ){
-           url = `${SETTLEMENT_BACKEND_API_URL}/api/fe/finance/expense/paid/${tenantId}/${travelRequestId}/${expenseHeaderId}`
+           url = `${SETTLEMENT_BACKEND_API_URL}/api/fe/finance/expense/paid`
+          //  url = `${SETTLEMENT_BACKEND_API_URL}/api/fe/finance/expense/paid/${tenantId}/${travelRequestId}/${expenseHeaderId}`
         }else{
           url = `${SETTLEMENT_BACKEND_API_URL}/api/fe/finance/nontravel/paid/${tenantId}/${expenseHeaderId}`
         }

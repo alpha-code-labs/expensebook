@@ -201,22 +201,18 @@ const FinanceMS = ({ visible, setVisible, src,fetchData }) => {
     ? 'Once you recover, the cancelled cash-advance amount will be recovered from the employee.'
     : actionType === "settleTravelExpense" ? 'Once you settle, the travel expense amount will be paid to the employee.':'Once you settle, the non-travel expense amount will be paid to the employee.'}
 </p>
-<CommentBox title='Settlement Remarks :' onchange={(e)=>setComment(e.target.value)} value={comment}/>
-
-      
-         
-                                <div className="flex items-center gap-2 mt-10">
-                                <Button1 loading={isUploading} active={isUploading} text='Confirm' onClick={()=>handleConfirm(actionType)} />
-                                <Button   text='Cancel'  onClick={closeModal}/>
-                                </div>
-                    </>
+<CommentBox title='Settlement Remarks :' onchange={(e)=>setComment(e.target.value)} value={comment}/>     
+  <div className="flex items-center gap-2 mt-10">
+  <Button1 loading={isUploading} active={isUploading} text='Confirm' onClick={()=>handleConfirm(actionType)} />
+  <Button   text='Cancel'  onClick={closeModal}/>
+  </div>
+  </>
         );
      
       default:
         return '';
     }
   };
-
 
   return (
 
@@ -235,7 +231,7 @@ const FinanceMS = ({ visible, setVisible, src,fetchData }) => {
 
 <Modal 
         isOpen={modalOpen} 
-        onClose={()=>closeModal}
+        onClose={()=>closeModal} 
         content={
           <div className='w-full h-auto'>
           <div className='flex gap-2 justify-between items-center text-neutral-900 bg-gray-200/20 w-auto p-4'>

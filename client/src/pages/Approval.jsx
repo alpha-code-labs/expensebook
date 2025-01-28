@@ -598,9 +598,7 @@ const handleVisible = ({travelRequestId,tripId,expenseHeaderId, action}) => {
             {/* / */}
             <div className='flex items-center justify-center gap-1'>
             <Violation violationCount={trip?.violationsCounter?.total}/>
-             
-              
-              <ModifyBtn  text='View Details' onClick={()=>{if(!disableButton(trip?.travelRequestStatus)){handleVisible({travelRequestId:trip?.travelRequestId,  action:'travel-approval-view' })}}}/>
+            <ModifyBtn  text='View Details' onClick={()=>{if(!disableButton(trip?.travelRequestStatus)){handleVisible({travelRequestId:trip?.travelRequestId,  action:'travel-approval-view' })}}}/>
               </div>
             {/* / */}
               </div>
