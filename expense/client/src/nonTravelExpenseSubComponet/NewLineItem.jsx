@@ -35,7 +35,6 @@ import {
   info_icon,
   modify_icon,
   money,
-  plus_icon,
   receipt,
   scan_icon,
   user_icon,
@@ -73,8 +72,8 @@ import PopupModal from "../components/common/PopupModal.jsx";
 
 ///Cuurency on Save you have to save object of currency
 
-const CreateNonTraveExpense = () => {
-  const navigate = useNavigate();
+const NewLineItem = () => {
+  const navigate = useNavigate("");
   const { tenantId, empId, expenseHeaderId } = useParams();
   const dashboardBaseUrl = `${import.meta.env.VITE_DASHBOARD_URL}`;
   const az_blob_container = import.meta.env.VITE_AZURE_BLOB_CONTAINER;
@@ -225,8 +224,6 @@ const CreateNonTraveExpense = () => {
   const [openModal, setOpenModal] = useState(null);
   // const [showPopup, setShowPopup] = useState(false);
   // const [message, setMessage] = useState(null);
-
- 
 
   const handleMannualBtn = async () => {
     if (requiredObj.category) {
@@ -709,13 +706,14 @@ const CreateNonTraveExpense = () => {
         },
       };
       api = postNonTravelExpenseLineItemApi(params, payload);
-    } else {
-      payload = {
-        lineItem: formData?.fields ?? {},
-        prevLineItem: formData?.editedFields ?? {},
-      };
-      api = editNonTravelExpenseLineItemsApi(params, payload);
-    }
+    } 
+    // else {
+    //   payload = {
+    //     lineItem: formData?.fields ?? {},
+    //     prevLineItem: formData?.editedFields ?? {},
+    //   };
+    //   api = editNonTravelExpenseLineItemsApi(params, payload);
+    // }
 
     if (requiredObj.level !== "level3") {
       payload.allocations = selectedAllocations;
@@ -753,23 +751,27 @@ const CreateNonTraveExpense = () => {
       setShowForm(false);
       setFormData({ approvers: [], fields: {} });
       setRequiredObj((prev) => ({ ...prev, category: "" }));
-      setTimeout(async () => {
-        // setShowPopup(false);
-        // setMessage(null);
+      setTimeout(() => {
+        // Hide the form after 5 seconds
         setShowForm(false);
-
-        
+      
+        // Perform actions based on the `action` parameter
         switch (action) {
           case "saveAndSubmit":
-            return setSelectedFile(null), setIsFileSelected(false);
+            navigate(`/${tenantId}/${empId}/non-travel-expense/${expenseHeaderId}/view`);
+            break;
           case "saveAndNew":
-            return window.location.reload();
+            window.location.reload();
+            break;
           case "updateLineItem":
-            return setActionType(""), setSelectedLineItemId(null);
+            setActionType("");
+            setSelectedLineItemId(null);
+            break;
           default:
             break;
         }
       }, 5000);
+      
     } catch (error) {
       console.error("Error saving line item:", error);
       setIsUploading((prev) => ({ ...prev, saveLineItem: false }));
@@ -1069,7 +1071,7 @@ const CreateNonTraveExpense = () => {
     console.log(dashboardBaseUrl);
     window.parent.postMessage("closeIframe", dashboardBaseUrl);
   };
-  const expenseHeaderIds = requiredObj?.expenseHeaderId || expenseHeaderId;
+
   const handleSubmitOrDraft = async (action) => {
     let allowForm = true;
     const payload = {
@@ -1086,7 +1088,7 @@ const CreateNonTraveExpense = () => {
     //   allowForm = true
     // }
 
-    
+    const expenseHeaderIds = requiredObj?.expenseHeaderId || expenseHeaderId;
     console.log("main action ", expenseHeaderIds);
     if (action === "submit") {
       let isValid = true;
@@ -1461,23 +1463,28 @@ const CreateNonTraveExpense = () => {
         <Error message={loadingErrorMsg} />
       ) : (
         <>
-          <div className="w-full h-full  font-cabin tracking-tight ">
-            <div className="p-4">
+          <div className="w-full h-full ">
+            <div className="p-6 px-8">
               {["draft","rejected"].includes(requiredObj?.expenseHeaderStatus) && 
               <>
-              {/* <div className="inline-flex p-2 gap-2 rounded-md border-[1px] w-full  border-slate-300 bg-gray-200/10">
+              <div className="inline-flex p-2 gap-2 rounded-md border-[1px] w-full  border-slate-300 bg-gray-200/10">
                 <img
                   src={validation_sym}
                   width={16}
                   height={16}
                   alt="validation"
                 />
-                <span className="text-neutral-700">
+                <p className="text-neutral-700 font-inter  te text-base font-normal">
                   If the required category is unavailable, please contact the
                   administrator.
-                </span>
-              </div> */}
-              {/* <div className="flex flex-col lg:flex-row justify-between  items-start lg:items-end my-5 gap-2">
+                </p>
+                
+              </div>
+              <div className='flex items-center gap-2 cursor-pointer my-2'>
+                    <img className='w-5 h-5' src={receipt}  />
+                    <p className='text-neutral-600 text-md font-inter font-semibold font-sans-serif'>{`Add an Expense`}</p>
+                </div>
+              <div className="flex flex-col lg:flex-row justify-between  items-start lg:items-end  gap-2">
                 <div className="flex sm:flex-row flex-col items-start gap-2">
                   <div className="relative flex flex-col h-[73px] justify-start item-start gap-2">
                     <div className="text-zinc-600 text-sm font-cabin select-none mt-2">
@@ -1561,8 +1568,9 @@ const CreateNonTraveExpense = () => {
                   </div>
                 </div>
 
+                {/* //  }   */}
 
-                {requiredObj?.expenseLines?.length > 0 && (
+                {/* {requiredObj?.expenseLines?.length > 0 && (
                   <div className="flex gap-2 flex-row mt-0 sm:mt-2 justify-start md:justify-end items-center w-auto">
                     {!["paid"].includes(requiredObj?.expenseHeaderStatus) && (
                       <>
@@ -1595,10 +1603,9 @@ const CreateNonTraveExpense = () => {
                       <img src={cancel_icon} className="w-5 h-5" />
                     </div>
                   </div>
-                )}
-              </div> */}
-             
-              <div className="flex flex-col sm:flex-row gap-2 gap-y-2">
+                )} */}
+              </div>
+              {/* <div className="flex flex-col sm:flex-row gap-2 gap-y-2">
                 {APPROVAL_FLAG && (
                   <div className="flex items-center relative ">
                     <div className="flex flex-col h-[73px] justify-start item-start gap-2">
@@ -1706,10 +1713,10 @@ const CreateNonTraveExpense = () => {
                   placeholder="Select Travel Expense"
                   title="Expense Settlement"
                 />
-              </div>
+              </div> */}
               </>}
 
-              {requiredObj?.createdBy &&
+              {/* {requiredObj?.createdBy &&
                 requiredObj?.expenseHeaderNumber &&
                 requiredObj?.expenseHeaderStatus &&
                 requiredObj?.defaultCurrency && (
@@ -1726,8 +1733,8 @@ const CreateNonTraveExpense = () => {
                     expenseHeaderStatus={requiredObj.expenseHeaderStatus}
                     defaultCurrency={requiredObj.defaultCurrency}
                   />
-                )}
-                {formData?.approvers?.length > 0 &&
+                )} */}
+                {/* {formData?.approvers?.length > 0 &&
             formData.approvers?.map((approver, index) => (
               <div className="w-fit h-full" key={`${index} approver`}>
                 <p className="capitalize text-zinc-600 truncate whitespace-nowrap text-sm font-normal font-cabin pb-2.5">
@@ -1737,24 +1744,12 @@ const CreateNonTraveExpense = () => {
                   <p>{approver?.name}</p>
                 </div>
               </div>
-            ))}
+            ))} */}
             </div>
-            <div className="px-6">
-            <Button1
-                      onClick={()=>navigate(`/${tenantId}/${empId}/non-travel-expense/new/${expenseHeaderIds}`)}
-                      text={
-                        <div className="inline-flex items-center space-x-1">
-                          <img src={plus_icon} className="w-5 h-5" />{" "}
-                          <p>Expense Line</p>
-                        </div>
-                      }
-                    />
-            </div>
-            
             
 
             {/* //----------- edit line item--start---------------------- */}
-            <div className="">
+            {/* <div className="">
               {requiredObj?.expenseLines?.map((lineItem, index) =>
                 lineItem.lineItemId === selectedLineItemId &&
                 requiredObj?.fields?.length > 0 &&
@@ -1784,7 +1779,7 @@ const CreateNonTraveExpense = () => {
                           lineItemDetails={formData?.fields}
                           categoryFields={requiredObj?.fields}
                           classOptions={categoryClasses?.[requiredObj?.category]}
-                         // classOptions={requiredObj?.class}
+                        
                         />
                       </div>
                       <div className="relative w-full sm:w-3/5 h-full border border-slate-300 rounded-md hidden sm:block">
@@ -1845,7 +1840,7 @@ const CreateNonTraveExpense = () => {
                   </>
                 )
               )}
-            </div>
+            </div> */}
 
             {/* //----------- edit line item--end---------------------- */}
 
@@ -1896,8 +1891,10 @@ const CreateNonTraveExpense = () => {
                   </div>
                   <div className="absolute -left-4 mx-4 inset-x-0 w-full  z-20 bg-slate-100   h-16 border border-slate-300 bottom-0">
                     <ActionBoard
-                      title={"Save"}
+                      saveAndNewText={"Save and New"}
+                      title={"Save and Submit"}
                       handleSaveAndSubmitClick={() => handleSaveLineItem("saveAndSubmit")}
+                      handleSaveAndNewClick={() => handleSaveLineItem("saveAndNew")}
                       handleSaveAsDraftClick={()   => handleSaveLineItem("saveAsDraft")}
                       isUploading={isUploading}
                       setModalOpen={setModalOpen}
@@ -2015,7 +2012,7 @@ const CreateNonTraveExpense = () => {
   );
 };
 
-export default CreateNonTraveExpense;
+export default NewLineItem;
 
 // function LineItemView({ index, lineItem, handleEdit, handleDeleteLineItem, isUploading, active }) {
 //   const excludedKeys = ['isMultiCurrency', 'Category Name', 'expenseLineId', 'Currency', 'billImageUrl', 'group', 'expenseLineAllocation', 'multiCurrencyDetails', 'lineItemStatus', 'lineItemId', '_id'];
@@ -2084,86 +2081,87 @@ export default CreateNonTraveExpense;
 //   );
 // }
 
-const HeaderComponent = ({
-  selectedSettlementOption,
-  totalExpenseAmount,
-  createdBy,
-  expenseHeaderNumber,
-  expenseHeaderStatus,
-  defaultCurrency,
-}) => (
-  <div className="my-5">
-    <div className="flex md:flex-row flex-col gap-2 justify-between w-full  ">
-      <div className=" md:w-1/5 w-full  flex  border-[1px] border-slate-300 rounded-md flex-row items-center gap-2 p-2 ">
-        <div className="bg-slate-200 rounded-full p-4 shrink-0 w-auto">
-          <img src={user_icon} className="w-[22px] h-[22px] " />
-        </div>
-        <div className="font-cabin ">
-          <p className=" text-neutral-600 text-xs ">Created By</p>
+// const HeaderComponent = ({
+//   selectedSettlementOption,
+//   totalExpenseAmount,
+//   createdBy,
+//   expenseHeaderNumber,
+//   expenseHeaderStatus,
+//   defaultCurrency,
+// }) => (
+//   <div className="my-5">
+//     <div className="flex md:flex-row flex-col gap-2 justify-between w-full  ">
+//       <div className=" md:w-1/5 w-full  flex  border-[1px] border-slate-300 rounded-md flex-row items-center gap-2 p-2 ">
+//         <div className="bg-slate-200 rounded-full p-4 shrink-0 w-auto">
+//           <img src={user_icon} className="w-[22px] h-[22px] " />
+//         </div>
+//         <div className="font-cabin ">
+//           <p className=" text-neutral-600 text-xs ">Created By</p>
 
-          <p className="text-neutral-900 capitalize">
-            {createdBy?.name ?? "-"}
-          </p>
-        </div>
-      </div>
-      <div className="   flex md:w-3/5 w-full border-[1px] border-slate-300 rounded-md flex-row items-center gap-2 p-2 ">
-        <div className="bg-slate-200 rounded-full p-4 shrink-0 w-auto ">
-          <img src={receipt} className="w-5 h-5  " />
-        </div>
-        <div className="flex flex-row justify-between w-full gap-2 ">
-          <div className=" flex-1 font-cabin  px-2 ">
-            <p className=" text-neutral-600 text-xs line-clamp-1">
-              Expense Header No.
-            </p>
+//           <p className="text-neutral-900 capitalize">
+//             {createdBy?.name ?? "-"}
+//           </p>
+//         </div>
+//       </div>
+//       <div className="   flex md:w-3/5 w-full border-[1px] border-slate-300 rounded-md flex-row items-center gap-2 p-2 ">
+//         <div className="bg-slate-200 rounded-full p-4 shrink-0 w-auto ">
+//           <img src={receipt} className="w-5 h-5  " />
+//         </div>
+//         <div className="flex flex-row justify-between w-full gap-2 ">
+//           <div className=" flex-1 font-cabin  px-2 ">
+//             <p className=" text-neutral-600 text-xs line-clamp-1">
+//               Expense Header No.
+//             </p>
 
-            <p className="text-neutral-900 text-medium font-medium">
-              {expenseHeaderNumber}
-            </p>
-          </div>
-          <div className=" flex-1 font-cabin  px-2 ">
-            <p className=" text-neutral-600 text-xs line-clamp-1">
-              Total Expense Amount
-            </p>
+//             <p className="text-neutral-900 text-medium font-medium">
+//               {expenseHeaderNumber}
+//             </p>
+//           </div>
+//           <div className=" flex-1 font-cabin  px-2 ">
+//             <p className=" text-neutral-600 text-xs line-clamp-1">
+//               Total Expense Amount
+//             </p>
 
-            <p className="text-neutral-900 text-medium font-medium">
-              {totalExpenseAmount ?? 0}
-            </p>
-          </div>
+//             <p className="text-neutral-900 text-medium font-medium">
+//               {totalExpenseAmount ?? 0}
+//             </p>
+//           </div>
 
-          <div className=" flex-1 font-cabin  px-2  ">
-            <p className=" text-neutral-600 text-xs line-clamp-1">Status</p>
+//           <div className=" flex-1 font-cabin  px-2  ">
+//             <p className=" text-neutral-600 text-xs line-clamp-1">Status</p>
 
-            <p className="text-neutral-900   text-medium font-medium capitalize">
-              {expenseHeaderStatus}
-            </p>
-          </div>
-          <div className=" flex-1 font-cabin  px-2  ">
-            <p className=" text-neutral-600 text-xs line-clamp-1">Settlement Mode</p>
+//             <p className="text-neutral-900   text-medium font-medium capitalize">
+//               {expenseHeaderStatus}
+//             </p>
+//           </div>
+//           <div className=" flex-1 font-cabin  px-2  ">
+//             <p className=" text-neutral-600 text-xs line-clamp-1">Settlement Mode</p>
 
-            <p className="text-neutral-900   text-medium font-medium capitalize">
-              {selectedSettlementOption}
-            </p>
-          </div>
-        </div>
-      </div>
-      <div className="   flex md:w-1/5 w-full border-[1px] border-slate-300 rounded-md flex-row items-center gap-2 p-2 ">
-        <div className="bg-slate-200 rounded-full p-4 shrink-0 w-auto">
-          <img src={briefcase} className="w-4 h-4 " />
-        </div>
+//             <p className="text-neutral-900   text-medium font-medium capitalize">
+//               {selectedSettlementOption}
+//             </p>
+//           </div>
+//         </div>
+//       </div>
+//       <div className="   flex md:w-1/5 w-full border-[1px] border-slate-300 rounded-md flex-row items-center gap-2 p-2 ">
+//         <div className="bg-slate-200 rounded-full p-4 shrink-0 w-auto">
+//           <img src={briefcase} className="w-4 h-4 " />
+//         </div>
 
-        <div className="font-cabin ">
-          <p className=" text-neutral-600 text-xs ">Default Currency</p>
-          <p className="text-neutral-900 text-medium font-medium">
-            {defaultCurrency?.shortName}
-          </p>
-        </div>
-      </div>
-    </div>
-  </div>
-);
+//         <div className="font-cabin ">
+//           <p className=" text-neutral-600 text-xs ">Default Currency</p>
+//           <p className="text-neutral-900 text-medium font-medium">
+//             {defaultCurrency?.shortName}
+//           </p>
+//         </div>
+//       </div>
+//     </div>
+//   </div>
+// );
 
 const ActionBoard = ({
   showButton = false,
+  saveAndNewText,
   title,
   handleDelete,
   title1,
@@ -2172,6 +2170,7 @@ const ActionBoard = ({
   isUploading,
   setModalOpen,
   setActionType,
+  handleSaveAndNewClick
   
 }) => {
   return (
@@ -2181,16 +2180,23 @@ const ActionBoard = ({
       </p>
       <div className="flex gap-1">
         {/* <Button1  loading={isUploading?.saveAndNew?.set}      text='Save and New'    onClick={()=>handleClick("saveAndNew")}/> */}
-        <Button1
-          loading={isUploading?.saveLineItem}
-          text={title}
-          onClick={handleSaveAndSubmitClick}
-        />
+       
         <Button1
           loading={isUploading?.saveAsDraft}
           text={"Save as Draft"}
           onClick={handleSaveAsDraftClick}
         />
+        <Button1
+          loading={isUploading?.saveLineItem}
+          text={saveAndNewText}
+          onClick={handleSaveAndNewClick}
+        />
+        <Button1
+          loading={isUploading?.saveLineItem}
+          text={title}
+          onClick={handleSaveAndSubmitClick}
+        />
+        
         {showButton && (
           <CancelButton
             loading={isUploading?.saveLineItem?.set}

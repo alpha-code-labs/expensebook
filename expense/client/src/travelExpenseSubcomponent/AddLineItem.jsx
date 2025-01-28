@@ -1,6 +1,6 @@
 import React, { useEffect, useState,useRef } from 'react';
 import { allocationLevel1,  lineItems,  } from '../utils/dummyData';
-import { cancel_icon, categoryIcons, close_gray_icon, info_icon, modify_icon, receipt,scan_icon } from '../assets/icon';
+import { cancel_icon, categoryIcons, close_gray_icon, info_icon, modify_icon, receipt,scan_icon, validation_sym } from '../assets/icon';
 import Allocations from './Allocations';
 import Modal from '../components/common/Modal'
 import Search from '../components/common/Index';
@@ -672,10 +672,23 @@ useEffect(() => {
     <div className=''>
      
       <div className='w-full min-w-[400px] border h-full relative bg-white sm:px-8 px-6 py-6 select-none mx-auto'>
-      <div className='flex items-center gap-2 cursor-pointer'>
-                        <img className='w-5 h-5' src={receipt}  />
-                        <p className='text-neutral-600 text-md font-semibold font-sans-serif'>{`Add an Expense`}</p>
+      <div className="inline-flex p-2 gap-2 rounded-md border-[1px] w-full  border-slate-300 bg-gray-200/10">
+                      <img
+                        src={validation_sym}
+                        width={16}
+                        height={16}
+                        alt="validation"
+                      />
+                      <span className="text-neutral-700">
+                        If the required category is unavailable, please contact the
+                        administrator.
+                      </span>
+                      
                     </div>
+                    <div className='flex items-center gap-2 cursor-pointer my-2'>
+                          <img className='w-5 h-5' src={receipt}  />
+                          <p className='text-neutral-600 text-md font-inter font-semibold font-sans-serif'>{`Add an Expense`}</p>
+                      </div>
 
                     {/* Rest of the section */}
 

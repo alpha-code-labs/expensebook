@@ -54,7 +54,7 @@ export function DocumentPreview({
         </div>
       ) : !initialFile ? (
         <div className="flex items-center justify-center w-full h-full">
-          {["paid","rejected"].includes(expenseHeaderStatus)
+          {["paid","rejected","draft"].includes(expenseHeaderStatus)
           && 
           <Upload
             selectedFile={selectedFile}
