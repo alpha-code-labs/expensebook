@@ -30,7 +30,7 @@ const approverStatusEnums = [
   'rejected',
 ];
 
-const documentStatusEnums = [
+export const documentStatusEnums = [
   'paid',
   'recovered'
 ]

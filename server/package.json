@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "main": "index.js",
   "keywords": [],
-  "author": "",
+  "author": "Sumesh ks",
   "license": "ISC",
-  "description": "",
+  "description": "Finance Microservice",
   "type": "module",
   "scripts": {
     "start": "nodemon index.js"
@@ -16,7 +16,9 @@
     "dotenv": "^16.4.5",
     "express": "^4.18.2",
     "joi": "^17.13.3",
-    "mongoose": "^8.0.3",
+    "mongoose": "^8.0.3"
+  },
+  "devDependencies": {
     "nodemon": "^3.0.2"
   }
 }

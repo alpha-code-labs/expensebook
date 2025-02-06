@@ -1,9 +1,9 @@
-import amqp from 'amqplib';
-import dotenv from 'dotenv';
+import amqp from "amqplib";
+import dotenv from "dotenv";
 
 dotenv.config();
 
-let connection = null; 
+let connection = null;
 
 export const getRabbitMQConnection = async () => {
   if (!connection) {

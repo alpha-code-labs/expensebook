@@ -120,7 +120,8 @@ companyName: {
 },
 expenseHeaderId: {
   type: String,
- //required: true,
+ required: true,
+ unique:true
 },
 expenseHeaderNumber: {
   type: String,

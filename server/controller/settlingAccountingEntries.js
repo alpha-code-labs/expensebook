@@ -2,6 +2,7 @@ import Finance from "../models/Finance.js";
 import { getWeekRange, getMonthRange, getQuarterRange, getYear } from '../helpers/dateHelpers.js';
 import Joi from 'joi';
 import { extractCategoryAndTotalAmount } from "./reimbursementController.js";
+import REIMBURSEMENT from "../models/reimbursement.js";
 
 
 export const getTravelAndNonTravelExpenseData = async(tenantId, empId)=>{
@@ -305,7 +306,7 @@ try {
 
       const getTravelExpenseData = report.tripSchema.travelExpenseData
         .filter((expense) => expense.expenseHeaderStatus === status.PAID)
-        .map(({expenseHeaderId,expenseHeaderNumber,actionedUpon,settlementBy,defaultCurrency, expenseLines, expenseHeaderStatus, SettlementDate})=>({
+        .map(({expenseHeaderId,expenseHeaderNumber,actionedUpon,settlementBy,defaultCurrency, expenseLines, expenseHeaderStatus, SettlementDate , settlementDetails})=>({
           expenseHeaderStatus,
           expenseAmountStatus,
           expenseHeaderId,
@@ -316,6 +317,7 @@ try {
           SettlementDate,
           actionedUpon,
           expenseLines,
+          settlementDetails
           }))
 
         return{tripName,travelRequestId,expenseAmountStatus,createdBy,tripStartDate, tripCompletionDate, travelExpenseData:getTravelExpenseData}
@@ -401,7 +403,7 @@ export const getNonTravelExpenseReports = async (value) => {
   if(expenseSubmissionDate){
     filterCriteria['expenseSubmissionDate']= expenseSubmissionDate;
   }
-  const expenseReports = await Finance.find(filterCriteria);
+  const expenseReports = await REIMBURSEMENT.find(filterCriteria);
 
   if (expenseReports.length === 0) {
     return {nonTravelExpense:[]}
@@ -720,6 +722,7 @@ export const updateAllNonTravelExpenseReports = async (req, res) => {
 
     const { tenantId, empId, filterBy, date, startDate, endDate , expenseSubmissionDate } = value;
 
+    console.log("entries non travel", startDate, endDate ,)
     const status ={
         PAID: 'paid',
         DISTRIBUTED:'paid and distributed'
@@ -788,7 +791,7 @@ export const updateAllNonTravelExpenseReports = async (req, res) => {
   if(expenseSubmissionDate){
     filterCriteria['expenseSubmissionDate']= expenseSubmissionDate;
   }
-  const expenseReports = await Finance.find(filterCriteria);
+  const expenseReports = await REIMBURSEMENT.find(filterCriteria);
 
   if (expenseReports.length === 0) {
     return res.status(200).json({
@@ -797,7 +800,7 @@ export const updateAllNonTravelExpenseReports = async (req, res) => {
     });
   }
 
-  const updateResult = await Finance.updateMany(filterCriteria, {
+  const updateResult = await REIMBURSEMENT.updateMany(filterCriteria, {
       $set: { 'expenseHeaderStatus': status.DISTRIBUTED }
     });
   
