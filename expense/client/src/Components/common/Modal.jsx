@@ -32,7 +32,7 @@ const Modal = ({ isOpen, onClose, content }) => {
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          className="fixed inset-0 flex items-start justify-center z-20"
+          className="fixed inset-0  flex items-start justify-center z-20"
           onClick={handleClickOutside}
           initial="hidden"
           animate="visible"
