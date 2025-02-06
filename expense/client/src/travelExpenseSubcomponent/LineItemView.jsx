@@ -186,14 +186,14 @@ export function LineItemView({
      {<div className=" bottom-0 p-2 bg-white border-y  border-slate-300">
          <div className="w-full flex sm:justify-start justify-center gap-4">
           <Button1
-            disabled={!["draft", "rejected"].includes(
+            disabled={!["draft", "rejected","pending approval"].includes(
               expenseHeaderStatus
             )}
             text="Edit"
             onClick={() => handleEdit(lineItem)}
           />
           <Button1
-            disabled={!["draft", "rejected"].includes(
+            disabled={!["draft", "rejected","pending approval"].includes(
               expenseHeaderStatus
             )}
             loading={false}
