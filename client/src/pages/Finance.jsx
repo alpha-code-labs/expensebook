@@ -1,8 +1,8 @@
 import React, { useState,useEffect } from 'react'
-import { StatusFilter } from '../common/TinyComponent'
+import { SettleNowBtn, StatusFilter } from '../common/TinyComponent'
 import Input from '../common/SearchInput'
 import Input1 from '../common/Input'
-import { chevron_down_icon, close_icon, csv_icon, export_icon, file_icon, filter_icon, pdf_icon, search_icon } from '../assets/icon'
+import { cancel, chevron_down_icon, close_icon, csv_icon, export_icon, file_icon, filter_icon, info_icon, pdf_icon, search_icon } from '../assets/icon'
 import SettleCashAdvance from '../tabs/SettleCashAdvance'
 import RecoverCashAdvance from '../tabs/RecoverCashAdvance'
 import SettleTravelExpense from '../tabs/SettleTravelExpense'
@@ -11,33 +11,278 @@ import AccountEntry from '../tabs/AccountEntry'
 import Error from '../common/Error'
 import {TravelExpense, TRCashadvance} from '../utilis/dummyData'
 import { useParams } from 'react-router-dom'
-import { getAccountEntriesData_API, getFinanceData_API } from '../utilis/api'
+import { getAccountEntriesData_API, getFinanceData_API, settleCashAdvanceApi, settleExpenseApi } from '../utilis/api'
 import { calculateDateRanges, filterByTimeRange, handleCSVDownload } from '../utilis/handyFunctions'
 import Select from '../common/Select'
 import Button1 from '../common/Button1'
 import IconOption from '../common/IconOption'
 import { flattenData } from '../utilis/dataToTable'
 import uploadFileToAzure from '../utilis/azureBlob'
+import Modal from '../common/Modal1'
+import Button from '../common/Button'
 
 
 
 const Finance = () => {
+  const travelExpense = [
+    {
+      tripName: "SD-SA(13th Jan 2025)",
+      travelRequestId: "6784ff78f05f402f9d41010d",
+      expenseAmountStatus: {
+        totalCashAmount: 0,
+        totalAlreadyBookedExpenseAmount: 4324,
+        totalExpenseAmount: 220331.2,
+        totalPersonalExpenseAmount: 0,
+        totalRemainingCash: -216007.2,
+      },
+      createdBy: {
+        empId: "1018",
+        name: "Lily Flores",
+        _id: "6784ff78f05f402f9d41010f",
+      },
+      travelExpenseData: [
+        {
+          "expenseHeaderStatus": "pending settlement",
+          "expenseAmountStatus": {
+              "totalCashAmount": 0,
+              "totalAlreadyBookedExpenseAmount": 4324,
+              "totalExpenseAmount": 220331.2,
+              "totalPersonalExpenseAmount": 0,
+              "totalRemainingCash": -216007.2
+          },
+          "expenseHeaderId": "67877b1e0f122xx72801e582cc6e",
+          "expenseHeaderNumber": "ERQUA000004",
+          "defaultCurrency": {
+              "countryCode": "IN",
+              "fullName": "Indian Rupee",
+              "shortName": "INR",
+              "symbol": "₹"
+          },
+          "settlementBy": {
+              "empId": null,
+              "name": null
+          },
+          "actionedUpon": false,
+        
+         
+      },
+        {
+          expenseHeaderStatus: "pending settlement",
+          expenseAmountStatus: {
+            totalCashAmount: 0,
+            totalAlreadyBookedExpenseAmount: 4324,
+            totalExpenseAmount: 220331.2,
+            totalPersonalExpenseAmount: 0,
+            totalRemainingCash: -216007.2,
+          },
+          expenseHeaderId: "67877bss1e0sdfsf172801e582cc6e",
+          expenseHeaderNumber: "ERQUA000004",
+          defaultCurrency: {
+            countryCode: "IN",
+            fullName: "Indian Rupee",
+            shortName: "INR",
+            symbol: "₹",
+          },
+          settlementBy: {
+            empId: null,
+            name: null,
+          },
+          actionedUpon: false,
+        },
+        {
+          expenseHeaderStatus: "pending settlement",
+          expenseAmountStatus: {
+            totalCashAmount: 0,
+            totalAlreadyBookedExpenseAmount: 4324,
+            totalExpenseAmount: 220331.2,
+            totalPersonalExpenseAmount: 0,
+            totalRemainingCash: -216007.2,
+          },
+          expenseHeaderId: "67877b1e0faasdfs33172801e582cc6e",
+          expenseHeaderNumber: "ERQUA000004",
+          defaultCurrency: {
+            countryCode: "IN",
+            fullName: "Indian Rupee",
+            shortName: "INR",
+            symbol: "₹",
+          },
+          settlementBy: {
+            empId: null,
+            name: null,
+          },
+          actionedUpon: false,
+        },
+      ],
+    },
+    {
+      tripName: "SD-SA(13th Jan 2025)",
+      travelRequestId: "6784ff72332ss128f05f402f9d41010d",
+      expenseAmountStatus: {
+        totalCashAmount: 0,
+        totalAlreadyBookedExpenseAmount: 4324,
+        totalExpenseAmount: 220331.2,
+        totalPersonalExpenseAmount: 0,
+        totalRemainingCash: -216007.2,
+      },
+      createdBy: {
+        empId: "1018",
+        name: "Lily Flores",
+        _id: "6784ff78f05f402f9d41010f",
+      },
+      travelExpenseData: [
+        {
+          expenseHeaderStatus: "pending settlement",
+          expenseAmountStatus: {
+            totalCashAmount: 0,
+            totalAlreadyBookedExpenseAmount: 4324,
+            totalExpenseAmount: 220331.2,
+            totalPersonalExpenseAmount: 0,
+            totalRemainingCash: -216007.2,
+          },
+          expenseHeaderId: "67877b1e0f17280178e582cc6e",
+          expenseHeaderNumber: "ERQUA000004",
+          defaultCurrency: {
+            countryCode: "IN",
+            fullName: "Indian Rupee",
+            shortName: "INR",
+            symbol: "₹",
+          },
+          settlementBy: {
+            empId: null,
+            name: null,
+          },
+          actionedUpon: false,
+        },
+        {
+          expenseHeaderStatus: "pending settlement",
+          expenseAmountStatus: {
+            totalCashAmount: 0,
+            totalAlreadyBookedExpenseAmount: 4324,
+            totalExpenseAmount: 220331.2,
+            totalPersonalExpenseAmount: 0,
+            totalRemainingCash: -216007.2,
+          },
+          expenseHeaderId: "67877b1e0sdfsf342172801e582cc6e",
+          expenseHeaderNumber: "ERQUA000004",
+          defaultCurrency: {
+            countryCode: "IN",
+            fullName: "Indian Rupee",
+            shortName: "INR",
+            symbol: "₹",
+          },
+          settlementBy: {
+            empId: null,
+            name: null,
+          },
+          actionedUpon: false,
+        },
+        {
+          expenseHeaderStatus: "pending settlement",
+          expenseAmountStatus: {
+            totalCashAmount: 0,
+            totalAlreadyBookedExpenseAmount: 4324,
+            totalExpenseAmount: 220331.2,
+            totalPersonalExpenseAmount: 0,
+            totalRemainingCash: -216007.2,
+          },
+          expenseHeaderId: "67877b1e0fsdfs3317cc2801e582cc6e",
+          expenseHeaderNumber: "ERQUA000004",
+          defaultCurrency: {
+            countryCode: "IN",
+            fullName: "Indian Rupee",
+            shortName: "INR",
+            symbol: "₹",
+          },
+          settlementBy: {
+            empId: null,
+            name: null,
+          },
+          actionedUpon: false,
+        },
+      ],
+    },
+  ];
   
   const {tenantId,empId}=useParams()
-  const [activeTab, setActiveTab] = useState("Settle Cash-Advances")
-  const [financeData, setFinanceData] =useState(null)
+  const [activeTab, setActiveTab] = useState("Settle Cash-Advances");
+  const [financeData, setFinanceData] =useState({travelExpense});
   const [AcEntryData, setAcEntryData]= useState({'travelExpense': [], 'nonTravelExpense':  [], 'cash': []})
-  const [paidBy , setPaidBy]=useState(null)
-  const [isLoading, setIsLoading]=useState(true)
+  const [paidBy , setPaidBy]=useState(null);
+  const [isLoading, setIsLoading]=useState(true);
   // const [isUploading, setIsUploading] =useState(false)
-  const [errorMsg, setErrorMsg]= useState(null)
+  const [errorMsg, setErrorMsg]= useState(null);
   const dashboardBaseUrl = import.meta.env.VITE_DASHBOARD_PAGE_URL
-  const [selectedFile, setSelectedFile]= useState(null)
-  const [fileSelected, setFileSelected]=useState(false)
-  const [isUploading, setIsUploading]=useState(false)
+  const [selectedFile, setSelectedFile]= useState(null);
+  const [fileSelected, setFileSelected]=useState(false);
+  const [isUploading, setIsUploading]=useState(false);
   const [fileId, setFileId] = useState(null);
-  
+  const [filesForUpload, setFilesForUpload] = useState([]);
+  const [comments, setComments] = useState([]);
+  const [selectAll, setSelectAll]= useState([]);
+  const [modalOpen , setModalOpen]=useState(false);
+  const [actionType, setActionType] = useState(true); 
+  const [selectedData, setSelectedData] = useState({
+    dataType:"",
+    selectedData: []
+  });
 
+  const closeModal=()=>{
+    setModalOpen(!modalOpen);
+  }
+
+  const handleSelectAll = (action, obj) => {
+    const lengthCount = countTravelData(selectedData?.data, selectedData?.dataType);
+    console.log("total length count", lengthCount);
+
+    if(lengthCount !== selectAll.length) 
+      {
+        const expenseDataForSettlement = selectedData?.data?.flatMap(item=> item[selectedData?.dataType].map(expense=> ({
+          tenantId,
+          travelRequestId: item.travelRequestId,
+          ...(expense?.expenseHeaderId ? {expenseHeaderId: expense.expenseHeaderId} : {cashAdvanceId : expense?.cashAdvanceId} ),
+          expenseHeaderId: expense.expenseHeaderId,
+          settlementDetails:[
+            {
+              comment: null,
+              url:null
+            }
+          ]
+        })))
+        setSelectAll(expenseDataForSettlement);
+      }
+      else{
+        setSelectAll([]);
+      }
+  }
+  
+  
+  const handleSelect = (action, obj) => {
+    setSelectAll((prevSelected) => {
+      const isSelected = prevSelected.some(
+        (item) =>
+          item.expenseHeaderId === obj.expenseHeaderId &&
+          item.travelRequestId === obj.travelRequestId
+      );
+  
+      if (isSelected) {
+        // Remove only the item that matches both `expenseHeaderId` and `travelRequestId`
+        return prevSelected.filter(
+          (item) =>
+            item.expenseHeaderId !== obj.expenseHeaderId ||
+            item.travelRequestId !== obj.travelRequestId
+        );
+      } else {
+        // Add the new item
+        const newItem = {
+          travelRequestId: obj.travelRequestId,
+          expenseHeaderId: obj.expenseHeaderId,
+        };
+        return [...prevSelected, newItem];
+      }
+    });
+  };
+  
+    console.log('select all data', selectAll);
 
   const handleRemoveFile=()=>{
     setSelectedFile(null)
@@ -52,7 +297,14 @@ const Finance = () => {
         console.log("page 3 my Params:", tenantId, empId);
         const response = await getFinanceData_API(tenantId, empId);
        setFinanceData(response.finance);  
-       setPaidBy(response.employeeData)
+       setPaidBy(response.employeeData);
+       setSelectedData(
+        {
+          dataType:"cashAdvance",
+          data:response?.finance?.cashAdvanceToSettle ||[]
+        }
+       )
+       setActionType("settleCashAdvance")
         setIsLoading(false);
         console.log('travel data for approval fetched.');
       } catch (error) {
@@ -66,12 +318,13 @@ const Finance = () => {
 
   },[tenantId, empId ]);
 
- console.log('finance data', financeData)
+ console.log('finance data', financeData);
 
- const settleCashAdvanceData= financeData?.cashAdvanceToSettle || []
- const recoverCashAdvanceData = financeData?.paidAndCancelledCash || []
- const settleTravelExpenseData = financeData?.travelExpense || []
- const settleNonTravelExpenseData = financeData?.nonTravelExpense || []
+ const settleCashAdvanceData= financeData?.cashAdvanceToSettle     || []
+ const recoverCashAdvanceData = financeData?.paidAndCancelledCash  || []
+ //const settleTravelExpenseData = travelExpense        || []
+const settleTravelExpenseData = financeData?.travelExpense        || []
+ const settleNonTravelExpenseData = financeData?.nonTravelExpense  || []
 
  const settleCashAdvanceCount = financeData?.cashAdvanceToSettle?.length || 0;
 const recoverCashAdvanceCount = financeData?.paidAndCancelledCash?.length || 0;
@@ -80,35 +333,226 @@ const settleNonTravelExpenseCount = financeData?.nonTravelExpense?.length || 0;
 
 
 
+const handleFileUpload = (travelRequestId, expenseHeaderId, file) => {
+  const updatedExpenses = travelExpense.map((trip) => {
+    if (trip.travelRequestId === travelRequestId) {
+      trip.travelExpenseData = trip.travelExpenseData.map((expense) => {
+        if (expense.expenseHeaderId === expenseHeaderId) {
+          expense.file = file;
+        }
+        return expense;
+      });
+    }
+    return trip;
+  });
+
+  setFinanceData((prev) => ({
+    ...prev,
+    travelExpense: updatedExpenses,
+  }));
+
+  // Update the array of file uploads
+  setFilesForUpload((prev) => {
+    const existingIndex = prev.findIndex(
+      (entry) =>
+        entry.expenseHeaderId === expenseHeaderId &&
+        entry.travelRequestId === travelRequestId
+    );
+
+    if (existingIndex !== -1) {
+      // Update the existing entry
+      const updatedFiles = [...prev];
+      updatedFiles[existingIndex].url = file;
+      return updatedFiles;
+    }
+
+    // Add a new entry if no match is found
+    return [
+      ...prev,
+      { expenseHeaderId, travelRequestId, url: file },
+    ];
+  });
+};
+const handleCommentChange = (travelRequestId, expenseHeaderId, key, value) => {
+  setComments((prev) => {
+    const existingIndex = prev.findIndex(
+      (entry) =>
+        entry.expenseHeaderId === expenseHeaderId &&
+        entry.travelRequestId === travelRequestId
+    );
+
+    if (existingIndex !== -1) {
+      // Update the existing comment
+      const updatedComments = [...prev];
+      updatedComments[existingIndex][key] = value;
+      return updatedComments;
+    }
+
+    // Add a new comment entry
+    return [
+      ...prev,
+      {
+        travelRequestId,
+        expenseHeaderId,
+        [key]: value,
+      },
+    ];
+  });
+};
+
+
+
+const handleConfirm = async () => {
+    const action = actionType
+  //const {travelRequestId,cashAdvanceId,paidBy,expenseHeaderId,selectedFile}= apiData;
+  //console.log('action from confirm ', action,apiData);
+
+
+  let api;
+
+  
+
+  let validConfirm = true;
+ console.log('api hitted',action)
+ let previewUrl
+//  if (selectedFile) {
+//   setIsUploading((prev) => ({ ...prev, [action]: { set: true, msg: "" } }));
+
+//   try {
+//     // Upload the file to Azure
+//     const azureUploadResponse = await uploadFileToAzure(selectedFile, blob_endpoint, az_blob_container);
+
+//     if (azureUploadResponse.success) {
+//       previewUrl = `https://${storage_account}.blob.core.windows.net/${az_blob_container}/${selectedFile.name}`;
+//       console.log('File uploaded successfully, bill url:', previewUrl);
+//     } else {
+//       throw new Error("Failed to upload file to Azure Blob Storage.");
+//     }
+//   } catch (error) {
+//     console.error("Error uploading file to Azure Blob Storage:", error);
+//     // setPopupMsgData({showPopup:true, message: error.message, iconCode:"102"})
+//     // setTimeout(() => setPopupMsgData(initialPopupData), 3000);
+//     setIsUploading((prev) => ({ ...prev, [action]: { set: false, msg: "" } }));
+//     return;
+//   }
+// }
+
+
+switch (action) {
+  case "settleCashAdvance"  :
+  case "recoverCashAdvance" :
+    api = settleCashAdvanceApi({ tenantId, empId , action, payload:{getFinance:paidBy,selections:selectAll}});
+    break;
+  case "settleTravelExpense"    :
+  case "settleNonTravelExpense" :
+    api = settleExpenseApi({ tenantId, empId , action ,payload:{getFinance:paidBy,selections:selectAll}});
+    break;
+  default:
+    return; // If action doesn't match any case, exit the function
+}
+  if (validConfirm) {
+    try {
+      setIsUploading(true);
+      const response = await api;
+     
+      setIsUploading(false);
+      setModalOpen(false);
+      // setShowPopup(true);
+      // setMessage(response);
+      // setPopupMsgData({showPopup:true, message:response, iconCode: "101"});
+      // setTimeout(() => {
+      //   fetchData()
+      //   setPopupMsgData(initialPopupData);
+      //   setIsUploading(false);
+      //   setModalOpen(false)
+      //   setApiData(null)
+      //   iframeRef.current.src = iframeRef.current.src;
+      //   window.location.reload();
+      // }, 3000);
+      window.parent.postMessage({message:"expense message posted", popupMsgData: { showPopup:true, message:response?.message, iconCode: "101" }}, dashboardBaseUrl);
+
+    } catch (error) {
+      // setShowPopup(true);
+      // setMessage(error.message);
+     // setPopupMsgData({showPopup:true, message:error.message, iconCode: "102"});
+      setTimeout(() => {
+        setIsUploading(false);
+       // setPopupMsgData(initialPopupData);
+      }, 3000);
+    }
+
+    
+  }
+}; 
+
+
+console.log("files for upload", filesForUpload);
+console.log("comment for upload", comments);
 
   const handleSwitchTab = (value)=>{
     setActiveTab(value);
     handleRemoveFile();
+    let data;
+    let actionType;
+    switch(value)
+    {
+      case "Settle Travel Expenses":
+        data = {
+          dataType:"travelExpenseData",
+          data: settleTravelExpenseData,
+        }
+        actionType = "settleTravelExpense"
+        break;
+      case "Settle Cash-Advances":
+          data = {
+            dataType:"cashAdvance",
+            data:settleCashAdvanceData
+          }
+          actionType="settleCashAdvance"
+          break;  
+      // case "Recover Cash-Advances":
+      //     data = {
+      //       dataType:"cashAdvance",
+      //       data:settleCashAdvanceData
+      //     }
+      //     actionType="settleCashAdvance"
+      //     break;  
+      // case "Settle Non-Travel Expense":
+      //     data = {
+      //       dataType:"cashAdvance",
+      //       data:settleCashAdvanceData
+      //     }
+      //     actionType="settleNon"
+      //     break;  
+    }
+    setSelectedData(data);
+    setActionType(actionType);
+    setSelectAll([]);
   }
+
+  const openModal = (action) => {
+    setActionType(action);
+    setModalOpen(true);
+  };
   
   const handleActionConfirm = (action, apiData) => {
+    openModal(action)
     apiData.paidBy= paidBy
     apiData.selectedFile = selectedFile
     const data = {
       message: 'message posted',
       action,
       payload: apiData,
-      
     };
     window.parent.postMessage(data, dashboardBaseUrl);
+
   };
 
   const handleGenerateEntry = async (data) => {
-
     console.log('action from confirm ', data);
-   
-
    let api = getAccountEntriesData_API({tenantId,empId,data})
-  
-    
-  
-    let validConfirm = true;
-   console.log('api hitted',api)
+   let validConfirm = true;
+   console.log('api hitted',api);
     if (validConfirm) {
       try {
         setIsUploading(true);
@@ -142,28 +586,32 @@ const settleNonTravelExpenseCount = financeData?.nonTravelExpense?.length || 0;
       }
     }
   };
-  console.log('account entry',AcEntryData)
 
+  console.log('account entry',AcEntryData);
 
-  //data
-  function Tab () {
-    switch (activeTab) {
-      case "Settle Cash-Advances":
-        return dataFilterByDate(settleCashAdvanceData).map((trip, index)=>(<SettleCashAdvance       trip={trip} key={index} handleActionConfirm={handleActionConfirm} handleRemoveFile={handleRemoveFile} setFileId={setFileId} fileId={fileId} fileSelected={fileSelected} setFileSelected={setFileSelected} selectedFile={selectedFile} setSelectedFile={setSelectedFile}/>));
-      case "Recover Cash-Advances":
-        return dataFilterByDate(recoverCashAdvanceData).map((trip, index)=>(<RecoverCashAdvance     trip={trip} key={index} handleActionConfirm={handleActionConfirm} handleRemoveFile={handleRemoveFile} setFileId={setFileId} fileId={fileId} fileSelected={fileSelected} setFileSelected={setFileSelected} selectedFile={selectedFile} setSelectedFile={setSelectedFile}/>));
-      case "Settle Travel Expenses":
-        return settleTravelExpenseData?.map((expense,index)=>(              <SettleTravelExpense    trip={expense} key={index} handleActionConfirm={handleActionConfirm} handleRemoveFile={handleRemoveFile} fileSelected={fileSelected} setFileId={setFileId} fileId={fileId} setFileSelected={setFileSelected} selectedFile={selectedFile} setSelectedFile={setSelectedFile}/>));
-      case "Settle Non-Travel Expenses":
-        return settleNonTravelExpenseData.map((expense,index)=>(            <SettleNonTravelExpense trip={expense} key={index} handleActionConfirm={handleActionConfirm} handleRemoveFile={handleRemoveFile} fileSelected={fileSelected} setFileId={setFileId} fileId={fileId} setFileSelected={setFileSelected} selectedFile={selectedFile} setSelectedFile={setSelectedFile} />));
-      case "Account Entries":
-        return <AccountEntry data={AcEntryData}/>;
-      default:
-        return null; // or some default component
-    }
+  function countTravelData(data, dataKey) {
+    return data.reduce((total, trip) => {
+      return total + (trip[dataKey]?.length || 0);
+    }, 0);
   }
   
 
+  function Tab () {
+    switch (activeTab) {
+      case "Settle Cash-Advances":
+        return dataFilterByDate(settleCashAdvanceData).map((trip, index)=>( <SettleCashAdvance trip={trip} key={index} handleActionConfirm={handleActionConfirm} handleRemoveFile={handleRemoveFile} setFileId={setFileId} fileId={fileId} fileSelected={fileSelected} setFileSelected={setFileSelected} selectedFile={selectedFile} setSelectedFile={setSelectedFile}/>));
+      case "Recover Cash-Advances":
+        return dataFilterByDate(recoverCashAdvanceData).map((trip, index)=>( <RecoverCashAdvance trip={trip} key={index} handleActionConfirm={handleActionConfirm} handleRemoveFile={handleRemoveFile} setFileId={setFileId} fileId={fileId} fileSelected={fileSelected} setFileSelected={setFileSelected} selectedFile={selectedFile} setSelectedFile={setSelectedFile}/>));
+      case "Settle Travel Expenses":
+        return settleTravelExpenseData?.map((expense,index)=>( <SettleTravelExpense length={countTravelData(settleTravelExpenseData, "travelExpenseData")}  selectAll={selectAll} comments={comments} filesForUpload={filesForUpload} handleFileUpload={handleFileUpload}  handleCommentChange={handleCommentChange}  handleSelect={handleSelect}   trip={expense} key={index} handleActionConfirm={handleActionConfirm} handleRemoveFile={handleRemoveFile} fileSelected={fileSelected} setFileId={setFileId} fileId={fileId} setFileSelected={setFileSelected} selectedFile={selectedFile} setSelectedFile={setSelectedFile}/>));
+      case "Settle Non-Travel Expenses":
+        return settleNonTravelExpenseData.map((expense,index)=>( <SettleNonTravelExpense trip={expense} key={index} handleActionConfirm={handleActionConfirm} handleRemoveFile={handleRemoveFile} fileSelected={fileSelected} setFileId={setFileId} fileId={fileId} setFileSelected={setFileSelected} selectedFile={selectedFile} setSelectedFile={setSelectedFile} />));
+      case "Account Entries":
+        return <AccountEntry data={AcEntryData}/>;
+      default:
+        return null; 
+     }
+   }
     const [searchQuery, setSearchQuery]= useState(null)
     const [selectedRange , setSelectedRange]=useState("")
 
@@ -207,11 +655,57 @@ const settleNonTravelExpenseCount = financeData?.nonTravelExpense?.length || 0;
       { name: "Settle Non-Travel Expenses", count: settleNonTravelExpenseData.length },
       { name: "Account Entries", count: 0 } // assuming no count for this
     ];
+
+    const getTitle = () => {
+      switch (actionType) {
+        case 'settleCashAdvance':
+          return 'Settle Cash-Advance';
+        case 'recoverCashAdvance':
+          return 'Recover Cash-Advance';
+        case 'settleTravelExpense':
+          return 'Settle Travel Expense';
+        case 'settleNonTravelExpense':
+          return 'Settle Non-Travel Expense';
+        default:
+          return '';
+      }
+    };
+  
+    const getContent = () => {
+      switch (actionType) {
+        case 'settleCashAdvance':
+        case 'recoverCashAdvance':
+        case 'settleTravelExpense':
+        case 'settleNonTravelExpense':
+          return (
+            <>
+            <p className="text-md px-4 text-start font-cabin text-neutral-600">
+    {actionType === "settleCashAdvance"
+      ? 'Once you settle, the cash-advance amount will be paid to the employee.'
+      : actionType === "recoverCashAdvance"
+      ? 'Once you recover, the cancelled cash-advance amount will be recovered from the employee.'
+      : actionType === "settleTravelExpense" ? 'Once you settle, the travel expense amount will be paid to the employee.':'Once you settle, the non-travel expense amount will be paid to the employee.'}
+  </p>
+  {/* <CommentBox title='Settlement Remarks :' onchange={(e)=>setComment(e.target.value)} value={comment}/> */}
+  
+        
+           
+                                  <div className="flex items-center gap-2 mt-10">
+                                  <Button1 loading={isUploading} active={isUploading} text='Confirm' onClick={()=>handleConfirm(actionType)} />
+                                  <Button   text='Cancel'  onClick={closeModal}/>
+                                  </div>
+                      </>
+          );
+       
+        default:
+          return '';
+      }
+    };
   return (
     <>
     {isLoading ? 
     <Error message={errorMsg}/> :
-    (<div className='bg-white min-h-screen border-slate-400 w-full h-[100%] flex-col  flex items-start gap-2  '>
+    (<div className='p-4 bg-white min-h-screen border-slate-400 w-full h-[100%] flex-col  flex items-start gap-2  '>
       <div className='static md:sticky border p-2 rounded-md top-0 w-full space-y-2 bg-white '>
       <div className=' bg-white  flex  justify-start items-center overflow-x-auto w-full'>
       {
@@ -273,23 +767,58 @@ setSelectedStatuses={setSelectedRange}
 
 
 {activeTab === 'Account Entries' ? 
-  <AccountEntryComponent isLoading={isUploading} handleConfirm={handleGenerateEntry} data={AcEntryData} /> :
-  <div className=''>
- 
+ <AccountEntryComponent isLoading={isUploading} handleConfirm={handleGenerateEntry} data={AcEntryData} /> :
+<div className='flex gap-4'>
+<div className='flex flex-row gap-8 w-full items-center'>
+<div className=' flex items-center justify-between gap-2'>
+<input checked={selectAll?.length === countTravelData(selectedData.data, selectedData.dataType)} onChange={handleSelectAll} type='checkbox' className='w-4 h-4 accent-neutral-900'/>
+ <div className=' text-center'>
+  Select All
+ </div>
+ </div>
+ <SettleNowBtn
+  onClick={()=>handleActionConfirm(actionType,"")}
+  text={"Settle Now"}/>
+
+</div>
  <Input placeholder="Search Expense..." type="search" icon={search_icon} onChange={(value)=>setSearchQuery(value)}/>
-</div>}
 
-
-
-
-    </div>
-    </div>
+  </div>}
+     </div>
+       </div>
 
     <div className=' w-full flex flex-col'>
       {Tab()}
     </div>
   
   </div>)}
+  <Modal
+        isOpen={modalOpen} 
+        onClose={()=>closeModal}
+        content={
+          <div className='w-full h-auto'>
+          <div className='flex gap-2 justify-between items-center text-neutral-900 bg-gray-200/20 w-auto p-4'>
+            <div className='flex gap-2'>
+              <img src={info_icon} className='w-5 h-5' alt="Info icon"/>
+              <p className='font-inter text-base font-semibold text-neutral-900'>
+                {getTitle()}
+              </p>
+            </div>
+            <div onClick={() => setModalOpen(false)} className='bg-red-100 cursor-pointer rounded-full border border-white'>
+              <img src={cancel} className='w-5 h-5' alt="Cancel icon"/>
+            </div>
+          </div>
+         
+
+          <div className="p-4">
+          
+            {getContent()}
+            
+            
+          </div>
+        </div>}
+      /> 
+
     </>
 
 
