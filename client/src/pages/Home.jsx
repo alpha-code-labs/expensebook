@@ -22,8 +22,9 @@ import PopupModal from '../components/common/PopupModal';
 import ExpenseMS from '../microservice/Expense';
 import TripMS from '../microservice/TripMS';
 
-const Home = () => {
 
+
+const Home = () => {
 
 const {tenantId,empId}= useParams()
 const [sidebarOpen,setSidebarOpen]=useState(false);
@@ -105,8 +106,6 @@ const fetchData = async () => {
     //setIsLoading({ loginData: false, roleData: false });
   }
 };
-
-
 
   const handleLogout = async () => {
     logoutApi(authToken)

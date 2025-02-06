@@ -36,9 +36,7 @@ const FinanceMS = ({ visible, setVisible, src, fetchData }) => {
 
   const closeModal=()=>{
     setModalOpen(!modalOpen);
-    
   }
-
 
   const openModal = (action) => {
     setActionType(action);
@@ -50,13 +48,9 @@ const FinanceMS = ({ visible, setVisible, src, fetchData }) => {
     
     const {travelRequestId,cashAdvanceId,paidBy,expenseHeaderId,selectedFile}= apiData;
     console.log('action from confirm ', action,apiData);
-
-
     let api;
   
-    
-  
-    let validConfirm = true;
+   let validConfirm = true;
    console.log('api hitted',api)
    let previewUrl
    if (selectedFile) {
@@ -145,19 +139,33 @@ const FinanceMS = ({ visible, setVisible, src, fetchData }) => {
         if(event.data.popupMsg){
           // setShowPopup(true)
           // setMessage(event.data.popupMsg)
+          
           setPopupMsgData({showPopup:true, message:event.data.popupMsg, iconCode:"101"})
           setTimeout(()=>(
             // setShowPopup(false),
             //  setMessage(null)
             setPopupMsgData(initialPopupData)
           ),5000)
-        }else{
+        }
+        else if(event.data.popupMsgData)
+          {
+            const expensePopupData = event.data.popupMsgData;
+            setPopupMsgData(expensePopupData)
+            if(expensePopupData?.autoSkip === undefined)
+            {
+              setTimeout(() => {
+                setPopupMsgData(initialPopupData); 
+              }, 5000);
+            } 
+          } 
+      //   else{
 
-        console.log('settlement data',event.data.payload)
-        const action = event.data.action
-        openModal(action)
-        setApiData(event.data.payload)
-      }
+      //   console.log('settlement data',event.data.payload)
+      //   const action = event.data.action
+      //   openModal(action)
+      //   setApiData(event.data.payload)
+      // }
+      
         
       }
     };
