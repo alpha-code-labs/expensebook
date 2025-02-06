@@ -116,7 +116,7 @@ export const settleCashAdvanceApi = async(data)=>{
        url = `${SETTLEMENT_BACKEND_API_URL}/api/fe/finance/cash/paid`
     }
     else { 
-       url = `${SETTLEMENT_BACKEND_API_URL}/api/fe/finance/cash/recovery/${tenantId}/${travelRequestId}/${cashAdvanceId}`
+       url = `${SETTLEMENT_BACKEND_API_URL}/api/fe/finance/cash/recovery`
     }
     
   
@@ -143,7 +143,7 @@ export const settleExpenseApi = async(data)=>{
      url = `${SETTLEMENT_BACKEND_API_URL}/api/fe/finance/expense/paid`
     //  url = `${SETTLEMENT_BACKEND_API_URL}/api/fe/finance/expense/paid/${tenantId}/${travelRequestId}/${expenseHeaderId}`
   }else{
-    url = `${SETTLEMENT_BACKEND_API_URL}/api/fe/finance/nontravel/paid/${tenantId}/${expenseHeaderId}`
+    url = `${SETTLEMENT_BACKEND_API_URL}/api/fe/finance/nontravel/paid`
   }
   
     try{

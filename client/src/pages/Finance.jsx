@@ -22,7 +22,6 @@ import Modal from '../common/Modal1'
 import Button from '../common/Button'
 
 
-
 const Finance = () => {
   const travelExpense = [
     {
@@ -236,19 +235,42 @@ const Finance = () => {
 
     if(lengthCount !== selectAll.length) 
       {
-        const expenseDataForSettlement = selectedData?.data?.flatMap(item=> item[selectedData?.dataType].map(expense=> ({
-          tenantId,
-          travelRequestId: item.travelRequestId,
-          ...(expense?.expenseHeaderId ? {expenseHeaderId: expense.expenseHeaderId} : {cashAdvanceId : expense?.cashAdvanceId} ),
-          expenseHeaderId: expense.expenseHeaderId,
-          settlementDetails:[
+
+        let  dataForSettlement = [];
+        if(selectedData?.dataType === "nonTravelExpense")
+        {
+          dataForSettlement = selectedData?.data?.map((item)=>(
             {
-              comment: null,
-              url:null
+              tenantId,
+              expenseHeaderId:item?.expenseHeaderId,
+              settlementDetails:[
+                {
+                  comment: null,
+                  url:null
+                }
+              ]
             }
-          ]
-        })))
-        setSelectAll(expenseDataForSettlement);
+          ))
+
+        }else
+        {
+          dataForSettlement = selectedData?.data?.flatMap(item=> item[selectedData?.dataType].map(expense=> ({
+            tenantId,
+            travelRequestId: item.travelRequestId,
+            ...(expense?.expenseHeaderId ? {expenseHeaderId: expense.expenseHeaderId} : {cashAdvanceId : expense?.cashAdvanceId} ),
+          
+            settlementDetails:[
+              {
+                comment: null,
+                url:null
+              }
+            ]
+          })))
+
+        }
+        
+
+        setSelectAll(dataForSettlement);
       }
       else{
         setSelectAll([]);
@@ -258,29 +280,38 @@ const Finance = () => {
   
   const handleSelect = (action, obj) => {
     setSelectAll((prevSelected) => {
+      const isExpense = obj.expenseHeaderId !== undefined;
+      const idKey = isExpense ? "expenseHeaderId" : "cashAdvanceId";
+      
       const isSelected = prevSelected.some(
         (item) =>
-          item.expenseHeaderId === obj.expenseHeaderId &&
-          item.travelRequestId === obj.travelRequestId
+          item[idKey] === obj[idKey] && item.travelRequestId === obj.travelRequestId
       );
   
       if (isSelected) {
-        // Remove only the item that matches both `expenseHeaderId` and `travelRequestId`
+        // Remove only the item that matches both `idKey` and `travelRequestId`
         return prevSelected.filter(
-          (item) =>
-            item.expenseHeaderId !== obj.expenseHeaderId ||
-            item.travelRequestId !== obj.travelRequestId
+          (item) => item[idKey] !== obj[idKey] || item.travelRequestId !== obj.travelRequestId
         );
       } else {
         // Add the new item
         const newItem = {
-          travelRequestId: obj.travelRequestId,
-          expenseHeaderId: obj.expenseHeaderId,
+         ...(obj.travelRequestId && {travelRequestId: obj.travelRequestId}),
+          [idKey]: obj[idKey],
+          tenantId,
+          settlementDetails:[
+            {
+              comment: null,
+              url:null
+            }
+          ]
+
         };
         return [...prevSelected, newItem];
       }
     });
   };
+  
   
     console.log('select all data', selectAll);
 
@@ -469,8 +500,9 @@ switch (action) {
       //   iframeRef.current.src = iframeRef.current.src;
       //   window.location.reload();
       // }, 3000);
-      window.parent.postMessage({message:"expense message posted", popupMsgData: { showPopup:true, message:response?.message, iconCode: "101" }}, dashboardBaseUrl);
-
+      window.location.reload();
+      window.parent.postMessage({message:"expense message posted", popupMsgData: { showPopup:true, message:response, iconCode: "101" }}, dashboardBaseUrl);
+     console.log("response from finance",response)
     } catch (error) {
       // setShowPopup(true);
       // setMessage(error.message);
@@ -517,13 +549,13 @@ console.log("comment for upload", comments);
       //     }
       //     actionType="settleCashAdvance"
       //     break;  
-      // case "Settle Non-Travel Expense":
-      //     data = {
-      //       dataType:"cashAdvance",
-      //       data:settleCashAdvanceData
-      //     }
-      //     actionType="settleNon"
-      //     break;  
+      case "Settle Non-Travel Expenses":
+          data = {
+            dataType:"nonTravelExpense",
+            data:settleNonTravelExpenseData
+          }
+          actionType="settleNonTravelExpense"
+          break;  
     }
     setSelectedData(data);
     setActionType(actionType);
@@ -590,28 +622,40 @@ console.log("comment for upload", comments);
   console.log('account entry',AcEntryData);
 
   function countTravelData(data, dataKey) {
-    return data.reduce((total, trip) => {
-      return total + (trip[dataKey]?.length || 0);
-    }, 0);
+    console.log("data key",dataKey);
+    if(dataKey === "nonTravelExpense")
+    {
+      return data?.length ||0;
+
+    }else
+    {
+      return data.reduce((total, trip) => {
+        return total + (trip[dataKey]?.length || 0);
+      }, 0);
+
+    }
+    
   }
+  
   
 
   function Tab () {
     switch (activeTab) {
       case "Settle Cash-Advances":
-        return dataFilterByDate(settleCashAdvanceData).map((trip, index)=>( <SettleCashAdvance trip={trip} key={index} handleActionConfirm={handleActionConfirm} handleRemoveFile={handleRemoveFile} setFileId={setFileId} fileId={fileId} fileSelected={fileSelected} setFileSelected={setFileSelected} selectedFile={selectedFile} setSelectedFile={setSelectedFile}/>));
+        return dataFilterByDate(settleCashAdvanceData).map((trip, index)=>( <SettleCashAdvance selectAll={selectAll} handleSelect={handleSelect} comments={comments} filesForUpload={filesForUpload} handleFileUpload={handleFileUpload}  handleCommentChange={handleCommentChange} trip={trip} key={index} handleActionConfirm={handleActionConfirm} handleRemoveFile={handleRemoveFile} setFileId={setFileId} fileId={fileId} fileSelected={fileSelected} setFileSelected={setFileSelected} selectedFile={selectedFile} setSelectedFile={setSelectedFile}/>));
       case "Recover Cash-Advances":
         return dataFilterByDate(recoverCashAdvanceData).map((trip, index)=>( <RecoverCashAdvance trip={trip} key={index} handleActionConfirm={handleActionConfirm} handleRemoveFile={handleRemoveFile} setFileId={setFileId} fileId={fileId} fileSelected={fileSelected} setFileSelected={setFileSelected} selectedFile={selectedFile} setSelectedFile={setSelectedFile}/>));
       case "Settle Travel Expenses":
         return settleTravelExpenseData?.map((expense,index)=>( <SettleTravelExpense length={countTravelData(settleTravelExpenseData, "travelExpenseData")}  selectAll={selectAll} comments={comments} filesForUpload={filesForUpload} handleFileUpload={handleFileUpload}  handleCommentChange={handleCommentChange}  handleSelect={handleSelect}   trip={expense} key={index} handleActionConfirm={handleActionConfirm} handleRemoveFile={handleRemoveFile} fileSelected={fileSelected} setFileId={setFileId} fileId={fileId} setFileSelected={setFileSelected} selectedFile={selectedFile} setSelectedFile={setSelectedFile}/>));
       case "Settle Non-Travel Expenses":
-        return settleNonTravelExpenseData.map((expense,index)=>( <SettleNonTravelExpense trip={expense} key={index} handleActionConfirm={handleActionConfirm} handleRemoveFile={handleRemoveFile} fileSelected={fileSelected} setFileId={setFileId} fileId={fileId} setFileSelected={setFileSelected} selectedFile={selectedFile} setSelectedFile={setSelectedFile} />));
+        return settleNonTravelExpenseData.map((expense,index)=>( <SettleNonTravelExpense length={countTravelData(settleTravelExpenseData, "travelExpenseData")}  selectAll={selectAll} comments={comments} filesForUpload={filesForUpload} handleFileUpload={handleFileUpload}  handleCommentChange={handleCommentChange}  handleSelect={handleSelect}  trip={expense} key={index} handleActionConfirm={handleActionConfirm} handleRemoveFile={handleRemoveFile} fileSelected={fileSelected} setFileId={setFileId} fileId={fileId} setFileSelected={setFileSelected} selectedFile={selectedFile} setSelectedFile={setSelectedFile} />));
       case "Account Entries":
         return <AccountEntry data={AcEntryData}/>;
       default:
         return null; 
      }
    }
+
     const [searchQuery, setSearchQuery]= useState(null)
     const [selectedRange , setSelectedRange]=useState("")
 
@@ -771,7 +815,7 @@ setSelectedStatuses={setSelectedRange}
 <div className='flex gap-4'>
 <div className='flex flex-row gap-8 w-full items-center'>
 <div className=' flex items-center justify-between gap-2'>
-<input checked={selectAll?.length === countTravelData(selectedData.data, selectedData.dataType)} onChange={handleSelectAll} type='checkbox' className='w-4 h-4 accent-neutral-900'/>
+<input checked={(selectAll?.length!== 0 && selectAll?.length === countTravelData(selectedData.data, selectedData.dataType))} onChange={handleSelectAll} type='checkbox' className='w-4 h-4 accent-neutral-900'/>
  <div className=' text-center'>
   Select All
  </div>

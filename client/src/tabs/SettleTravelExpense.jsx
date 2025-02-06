@@ -92,12 +92,10 @@ function financeMsg(amt, cashAdvance, currency){
             <div >
               {`${expense?.defaultCurrency?.shortName} ${formatAmount(expense?.expenseAmountStatus?.totalAlreadyBookedExpenseAmount - expense?.expenseAmountStatus?.totalExpenseAmount)}`}
             </div>
-        
                       </div>
                         <p className='header-text'> {financeMsg(expense?.expenseAmountStatus?.totalRemainingCash,expense?.expenseAmountStatus?.totalCashAmount,expense.defaultCurrency.shortName)}</p>
                       </div>
                       </div>
-                            
                             <div className='flex items-center justify-center gap-2'>
                               {expense?.comment}
                               <CommentBox
