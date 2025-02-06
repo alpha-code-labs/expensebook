@@ -12,7 +12,7 @@ import {useData} from '../api/DataProvider'
 
 
 
-const FinanceMS = ({ visible, setVisible, src,fetchData }) => {
+const FinanceMS = ({ visible, setVisible, src, fetchData }) => {
 
   const {initialPopupData,setPopupMsgData} = useData();
 
@@ -194,7 +194,7 @@ const FinanceMS = ({ visible, setVisible, src,fetchData }) => {
       case 'settleNonTravelExpense':
         return (
           <>
-          <p className="text-md px-4 text-start font-cabin text-neutral-600">
+<p className="text-md px-4 text-start font-cabin text-neutral-600">
   {actionType === "settleCashAdvance"
     ? 'Once you settle, the cash-advance amount will be paid to the employee.'
     : actionType === "recoverCashAdvance"
@@ -217,7 +217,6 @@ const FinanceMS = ({ visible, setVisible, src,fetchData }) => {
   return (
 
     (
-     
      <>
    
    <iframe

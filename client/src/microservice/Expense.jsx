@@ -6,10 +6,11 @@ import Button from '../components/common/Button';
 import PopupMessage from '../components/common/PopupMessage';
 import { settleCashAdvanceApi, settleExpenseApi } from '../utils/api';
 import { useParams } from 'react-router-dom';
+import { AnimatePresence, motion } from 'framer-motion';
 
 
 
-const ExpenseMS = ({ visible, setVisible, src }) => {
+const ExpenseMS = ({layout, visible, setVisible, src }) => {
 
   const  iframeRef = useRef(null);
 
@@ -175,22 +176,74 @@ const ExpenseMS = ({ visible, setVisible, src }) => {
 //         return '';
 //     }
 //   };
+const modalRef = useRef();
+const backdropVariants = {
+  visible: { opacity: 1 },
+  hidden: { opacity: 0 },
+};
 
-
+const modalVariants = {
+  hidden: { opacity: 0, y: '-100%' },
+  visible: { opacity: 1, y: '0' },
+};
   return (
 
     (
-     
      <>
+   {layout === "deleteLayout" ? 
+   (
+    <div className=''>
+        <AnimatePresence>
+     
+     <motion.div
+       className="fixed inset-0 flex items-start justify-center z-20"
+       //onClick={handleClickOutside}
+       initial="hidden"
+       animate="visible"
+       exit="hidden"
+       variants={backdropVariants}
+       transition={{ duration: 0.3 }}
+       aria-hidden="true"
+     >
+        <div className="absolute inset-0 bg-gray-500 opacity-75 z-10"></div>
+       <motion.div
+         ref={modalRef}
+         className="relative border bg-white h-[200px] rounded-b-lg text-left  transform z-20 shadow-lg md:w-[60%] w-full xl:w-[40%] overflow-hidden"
+         initial="hidden"
+         animate="visible"
+         exit="hidden"
+         variants={modalVariants}
+         transition={{ type: 'spring', stiffness: 100, damping: 20, duration: 0.5 }}
+       >
+         {/* <div className="flex max-h-screen justify-center items-start text-center font-inter w-full"> */}
+         <iframe
+    ref={iframeRef}
+   src={src}
+   className="w-[100%] max-h-screen h-full overflow-hidden"
+   title="Embedded Content"
    
-   <iframe
-   ref={iframeRef}
-  src={src}
-  className="w-[100%] max-h-screen h-full overflow-hidden"
-  title="Embedded Content"
+   
+ ></iframe>
+         {/* </div> */}
+       </motion.div>
+     </motion.div>
+   
+ </AnimatePresence>
+
+    </div>
   
-  
-></iframe>
+   ):
+   (
+    <iframe
+    ref={iframeRef}
+   src={src}
+   className="w-[100%] max-h-screen h-full overflow-hidden"
+   title="Embedded Content"
+   
+   
+ ></iframe>
+   )}
+
 
 {/* <Modal 
         isOpen={modalOpen} 

@@ -161,21 +161,15 @@ const fetchData = async () => {
       className={`fixed inset-0 z-10 md:static w-fit bg-indigo-50 min-h-screen   transform transition-all duration-300 ease-in-out ${
       sidebarOpen ? 'opacity-0 translate-x-[-100%]' : 'opacity-100 translate-x-0'
     }`}>
-           <Sidebar setSidebarOpen={setSidebarOpen} fetchData={fetchData}  tenantId={tenantId} empId={empId}  />
+        <Sidebar setSidebarOpen={setSidebarOpen} fetchData={fetchData}  tenantId={tenantId} empId={empId}  />
       </div>
       <div className='h-screen overflow-y-auto scrollbar-hide w-full  bg-white'>
       <section>
-
-      <Navbar setIframeVisible={setIframeVisible} setIframeURL={setIframeURL} setSearchQuery={setSearchQuery} setSidebarOpen={setSidebarOpen} notificationData={employeeData?.notifications|| []}  tenantId={tenantId} empId={empId}  />
-      <TripMS visible={iframeVisible?.tripIframe} src={iframeURL?.tripURL} setVisible={setIframeVisible}/>
-     
-      
-</section>
+        <Navbar setIframeVisible={setIframeVisible} setIframeURL={setIframeURL} setSearchQuery={setSearchQuery} setSidebarOpen={setSidebarOpen} notificationData={employeeData?.notifications|| []}  tenantId={tenantId} empId={empId}  />
+        <TripMS visible={iframeVisible?.tripIframe} src={iframeURL?.tripURL} setVisible={setIframeVisible}/>
+      </section>
         <Routes>
-
-          
          {iframeVisible?.expenseIframe && <Route path='/expense-ms' element={<ExpenseMS  src={iframeURL?.expenseURL}/>}/>}
-         
           <Route
             exact
             path="/overview"

@@ -94,20 +94,20 @@ const CashAdvance = ({searchQuery,isLoading, fetchData, loadingErrMsg}) => {
 
 //cashadvance iframe
 
-const handleVisible = (travelRequestId, action, cashadvanceId) => {
+const handleVisible = (travelRequestId, action, cashAdvanceId) => {
+  console.log("handle cashadvance -", cashAdvanceId, travelRequestId, action,)
 
   setVisible(!visible);
   let url ;
   if (action==="ca-create"){
-    url=handleCashAdvance(travelRequestId, "", 'ca-create')
+    url=handleCashAdvance({travelRequestId, action:'ca-create'})
     console.log('url',url)
-    
   }
   else if (action==="non-tr-ca-create"){
     url=handleCashAdvance("", 'non-tr-ca-create');
    
   }else if (action === "ca-modify"){
-    url=handleCashAdvance(travelRequestId, cashadvanceId, 'ca-modify');
+    url=handleCashAdvance({travelRequestId, cashAdvanceId, action:'ca-modify'});
   }
   else {
     throw new Error('Invalid action');

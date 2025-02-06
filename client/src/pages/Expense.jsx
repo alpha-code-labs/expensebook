@@ -36,6 +36,7 @@ const Expense = ({searchQuery, isLoading, fetchData, loadingErrMsg}) => {
   const handleHeaderIndex=(index)=>{
     setActiveHeaderIndex(index === activeHeaderIndex ? null : index);
   }
+  const [iframeLayout, setIframeLayout] = useState(null); 
 
   console.log("trip data", tripData);
 
@@ -96,14 +97,29 @@ const Expense = ({searchQuery, isLoading, fetchData, loadingErrMsg}) => {
     console.log(option)
     setTripId(option?.tripId)
   };
-
+const [deleteHeaderIframe, setDeleteHeaderIframe] = useState(false);
   const handleVisible = (data) => {
-    let { urlName} = data;
+    let { urlName, isDeleteIframe} = data;
+    if(isDeleteIframe)
+    {
+      setDeleteHeaderIframe(!deleteHeaderIframe);
+    }else
+    {
     setExpenseVisible(!expenseVisible)
     console.log('iframe url',  urlName);
+    }
+
+    
     setIframeURL(urlName);
     
   };
+
+  const handleDeleteHeader=(data)=>
+  {
+    const {tripId,expenseHeaderId,isDeleteIframe} = data;
+    setIframeLayout("deleteLayout");
+    handleVisible({isDeleteIframe,urlName:handleTravelExpense({tenantId,empId,tripId,expenseHeaderId, "action":'trip-ex-delete'})})
+  }
 
   const handleRaise = () => {
     if (expenseType=== "travel_Expense") {
@@ -137,6 +153,7 @@ const Expense = ({searchQuery, isLoading, fetchData, loadingErrMsg}) => {
          // Check the message content or identifier
          if (event.data === 'closeIframe') {
           setExpenseVisible(false)
+          setDeleteHeaderIframe(false)
           //window.location.href = window.location.href;
           fetchData()
           
@@ -181,8 +198,12 @@ const Expense = ({searchQuery, isLoading, fetchData, loadingErrMsg}) => {
     {isLoading && <Error message={loadingErrMsg}/>}
     {!isLoading && 
     <>
-    {expenseVisible ?   ( <ExpenseMS visible={expenseVisible} setVisible={setExpenseVisible} src={iframeURL} /> ) :
-    <div className='h-screen  flex flex-col p-4'>
+    {expenseVisible ? ( <ExpenseMS layout={iframeLayout} visible={expenseVisible} setVisible={setExpenseVisible} src={iframeURL} /> ) :
+    <div className='relative h-screen  flex flex-col p-4'>
+      <div className='absolute   '>
+     {deleteHeaderIframe &&  <ExpenseMS layout={iframeLayout} visible={deleteHeaderIframe} setVisible={setDeleteHeaderIframe} src={iframeURL} />}
+      </div>
+    
     <div className=' border border-slate-300 bg-white rounded-md  w-full flex flex-wrap items-start gap-2 px-2 py-2'>
 
   <StatusFilter
@@ -243,9 +264,7 @@ const Expense = ({searchQuery, isLoading, fetchData, loadingErrMsg}) => {
                         {/* {!['paid','paidAndDistributed'].includes(trExpense?.expenseHeaderStatus) && */}
                         <div className='flex flex-row gap-2  items-center justify-center'>
                         <ModifyBtn text={['rejected', 'draft', 'pending approval'].includes(trExpense?.expenseHeaderStatus)? "Modify": "View Details"} onClick={()=>handleVisible({urlName:handleTravelExpense({tenantId,empId,tripId:trip?.tripId,expenseHeaderId: trExpense?.expenseHeaderId, action: ['rejected','draft','pending approval'].includes(trExpense?.expenseHeaderStatus)? 'trip-ex-view': 'trip-ex-view' })})}/>
-                        <div className='pr-2' onClick={() => {
-                          setModalOpen(true);
-                         }}>  
+                        <div className='pr-2' onClick={() => handleDeleteHeader({isDeleteIframe:true,tripId:trip?.tripId, expenseHeaderId:trExpense?.expenseHeaderId})}>
                          <img src={delete_icon} className='w-4 h-4' alt='deleteHeader'/>
                         </div>                      
                         </div>

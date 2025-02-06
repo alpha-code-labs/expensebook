@@ -179,7 +179,7 @@ const handleAction = ({ action }) => {
   // Get the first key of the first object inside urlData
   const firstObjectKey = Object.keys(action || {})[0];
   console.log(action[firstObjectKey]);
-  const {tenantId, empId, tripId, travelRequestId, cashadvanceId, expenseHeaderId} = action[firstObjectKey];
+  const {tenantId, empId, tripId, travelRequestId, cashadvanceId, expenseHeaderId,approvers} = action[firstObjectKey];
 
   if (firstObjectKey =="bookExpense") {
     // Get the first key of that object
@@ -202,6 +202,10 @@ const handleAction = ({ action }) => {
   else if (firstObjectKey == "nonTrExpenseRejected")
   {
     handleVisible({urlName:handleNonTravelExpense({tenantId,empId,expenseHeaderId, "action":'non-tr-ex-rejected'}), navigateTo:"expense-ms"})
+  }
+  else if(firstObjectKey == "pendingApproval")
+  {
+    navigate(`/${tenantId}/${approvers?.[0].empId}/approval`)
   }
 };
 
