@@ -1125,7 +1125,7 @@ const CreateNonTraveExpense = () => {
             set: true,
           },
         }));
-        isValid = false;
+        isValid = true;
       } else {
         setErrorMsg((prev) => ({
           ...prev,
@@ -1465,6 +1465,8 @@ const CreateNonTraveExpense = () => {
             <div className="p-4">
               {["draft","rejected"].includes(requiredObj?.expenseHeaderStatus) && 
               <>
+              
+
               {/* <div className="inline-flex p-2 gap-2 rounded-md border-[1px] w-full  border-slate-300 bg-gray-200/10">
                 <img
                   src={validation_sym}
@@ -1598,7 +1600,7 @@ const CreateNonTraveExpense = () => {
                 )}
               </div> */}
              
-              <div className="flex flex-col sm:flex-row gap-2 gap-y-2">
+              <div className="flex flex-col justify-between items-center sm:flex-row gap-2 gap-y-2">
                 {APPROVAL_FLAG && (
                   <div className="flex items-center relative ">
                     <div className="flex flex-col h-[73px] justify-start item-start gap-2">
@@ -1697,7 +1699,35 @@ const CreateNonTraveExpense = () => {
                     )}
                   </div>
                 )}
-                <Select
+                <div>
+                  <div className="flex gap-2">
+                {!["paid"].includes(requiredObj?.expenseHeaderStatus) && (
+                      <>
+                        <Button1
+                          loading={isUploading.submit}
+                          variant="fit"
+                          text="Submit"
+                          onClick={() => handleSubmitOrDraft("submit")}
+                        />
+                        <Button1
+                          loading={isUploading.saveAsDraft}
+                          text="Save as Draft"
+                          onClick={() => handleSubmitOrDraft("draft")}
+                        />
+                        <CancelButton
+                          variant="fit"
+                          text="Delete"
+                          onClick={() => {
+                            setModalOpen(true);
+                            setActionType("cancelExpense");
+                          }}
+                        />
+                      </>
+                    )}
+                    </div>
+                </div>
+               
+                {/* <Select
                   variant="max-w-[200px]"
                   currentOption={requiredObj?.selectedSettlementOption}
                   options={requiredObj?.expenseSettlementOptions}
@@ -1705,7 +1735,7 @@ const CreateNonTraveExpense = () => {
                   error={errorMsg?.settlementError}
                   placeholder="Select Travel Expense"
                   title="Expense Settlement"
-                />
+                /> */}
               </div>
               </>}
 

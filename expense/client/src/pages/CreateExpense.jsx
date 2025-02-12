@@ -68,11 +68,6 @@ import { dateKeys, isClassField, totalAmountKeys } from "../utils/data/keyList.j
 
 
 
-
-
-
-
-
 export default function () {
   const { cancel, tenantId, empId, tripId , expenseHeaderId} = useParams(); ///these has to send to backend get api
   const navigate = useNavigate();
@@ -864,7 +859,7 @@ const handleRemoveFile=()=>{
         ...prevErrors,
         expenseSettlement: { set: true, msg: "Select the settlement mode" },
       }));
-      allowForm = false;
+      allowForm = true;
     } else {
       setErrorMsg((prevErrors) => ({
         ...prevErrors,
@@ -2397,6 +2392,7 @@ function FlightCard({
 }
 
 function HotelCard({
+  allocations,
   defaultCurrency,
   amount,
   location,
@@ -2410,6 +2406,7 @@ function HotelCard({
       <div className="w-full flex sm:block">
         <div className="mx-2 text-xs text-neutral-600 flex justify-between flex-col sm:flex-row">
           <div className="flex-1">Location</div>
+          <div className="flex-1">Allocation</div>
           <div className="flex-1">Amount</div>
 
           <div className="flex-1">Already Booked</div>
@@ -2417,6 +2414,19 @@ function HotelCard({
 
         <div className="mx-2 text-sm w-full flex justify-between flex-col sm:flex-row">
           <div className="flex-1">{location}</div>
+          <div className="flex-1 capitalize ">
+            {allocations.map((allocation, index) => (
+              <div
+                key={index}
+                className="flex w-full text-neutral-900 font-cabin flex-row items-center space-x-1 text-sm"
+              >
+                <p className="font-medium">{`${allocation.headerName}:`}</p>
+                <p className="text-neutral-600">
+                  {allocation.headerValue ?? "-"}
+                </p>
+              </div>
+            ))}
+          </div>
           <div className="flex-1">
             {defaultCurrency?.shortName ?? "-"} {formatAmount(amount) ?? "N/A"}
           </div>
@@ -2431,6 +2441,7 @@ function HotelCard({
 
 function CabCard({
   defaultCurrency,
+  allocations,
   amount,
   from,
   to,
@@ -2454,10 +2465,10 @@ function CabCard({
       </div>
       <div className="w-full flex sm:block">
         <div className="mx-2 text-xs text-neutral-600 flex justify-between flex-col sm:flex-row">
-          <div className="flex-1">Pickup</div>
-          {/* <div className="flex-1" >
+          <div className="flex-1">Pickup Location</div>
+          <div className="flex-1" >
             Travel Allocation   
-            </div> */}
+            </div>
           {/* <div className="flex-1">
                     Date
             </div> */}
@@ -2473,6 +2484,19 @@ function CabCard({
           {/* <div className="flex-1">
                 {date??'not provided'}
             </div> */}
+             <div className="flex-1 capitalize ">
+            {allocations.map((allocation, index) => (
+              <div
+                key={index}
+                className="flex w-full text-neutral-900 font-cabin flex-row items-center space-x-1 text-sm"
+              >
+                <p className="font-medium">{`${allocation.headerName}:`}</p>
+                <p className="text-neutral-600">
+                  {allocation.headerValue ?? "-"}
+                </p>
+              </div>
+            ))}
+          </div>
           <div className="flex-1">
             {defaultCurrency?.shortName ?? "-"} {formatAmount(amount) ?? "N/A"}
           </div>
