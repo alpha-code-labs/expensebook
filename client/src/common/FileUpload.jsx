@@ -3,23 +3,21 @@ import { attachment_icon, loading_icon } from '../assets/icon';
 
 export default function FileUpload(props) {
   const {
-    id,
-    setFileId,
-    text,
-    onClick,
-    variant = 'fit',
-    disabled = false,
-    loading = false,
-    onFileSelect, 
-    selectedFile, 
+    id, 
+    setFileId, 
+    text, 
+    onClick, 
+    variant = 'fit', 
+    disabled = false, 
+    loading = false, 
+    onFileSelect,  
+    selectedFile,  
     setSelectedFile, 
     isFileSelected, 
     setIsFileSelected, 
   } = props;
   
   const fileInputRef = useRef(null);
-
-  
 
   const handleClick = (e) => {
     if (!disabled && !loading) {

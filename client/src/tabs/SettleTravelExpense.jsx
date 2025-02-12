@@ -3,10 +3,12 @@ import { close_icon, file_icon, info_icon, receipt } from '../assets/icon';
 import { CardLayout, SettleNowBtn, TripName } from '../common/TinyComponent';
 import { formatAmount } from '../utilis/handyFunctions';
 import FileUpload from '../common/FileUpload';
+import CommentBox from '../common/CommentBox';
 
-const SettleTravelExpense = ({fileId, setFileId, trip, handleActionConfirm, handleRemoveFile, fileSelected, setFileSelected, selectedFile, setSelectedFile}) => {
+const SettleTravelExpense = ({length, selectAll, comments, filesForUpload, handleFileUpload, handleCommentChange, handleSelect, fileId, setFileId, trip, handleActionConfirm, handleRemoveFile, fileSelected, setFileSelected, selectedFile, setSelectedFile}) => {
 
 function financeMsg(amt, cashAdvance, currency){
+
   const amt1 = formatAmount(amt)
 
   if (amt >= 0){
@@ -69,11 +71,14 @@ function financeMsg(amt, cashAdvance, currency){
                     } */}
                     <div className='mt-2 space-y-2'>
                       {/* {filteredTripExpenses?.map((trExpense, index) => ( */}
-                       {trip?.travelExpenseData.map((expense,index)=>(
+                       {trip?.travelExpenseData.map((expense,index)=>
+                       
+                       (
                         <div key={index}  className='border border-slate-300 rounded-md px-2 py-1'>
                         <div className='flex flex-row justify-between items-center py-1  font-cabin font-xs'>
                           <div className='flex gap-4'>
                             <div className='flex gap-2 items-center'>
+                            <input onChange={()=>handleSelect("settleTravelExpense", {travelRequestId:trip?.travelRequestId, expenseHeaderId:expense?.expenseHeaderId})} type='checkbox' checked={selectAll?.some(all=> all?.travelRequestId === trip?.travelRequestId && all?.expenseHeaderId === expense?.expenseHeaderId)} className='w-4 h-4 accent-neutral-900' />
                               <img src={receipt} className='w-5 h-5'/>
                               <div>
                                 <div className='header-title'>Expense Header No.</div>
@@ -87,25 +92,50 @@ function financeMsg(amt, cashAdvance, currency){
             <div >
               {`${expense?.defaultCurrency?.shortName} ${formatAmount(expense?.expenseAmountStatus?.totalAlreadyBookedExpenseAmount - expense?.expenseAmountStatus?.totalExpenseAmount)}`}
             </div>
-        
                       </div>
                         <p className='header-text'> {financeMsg(expense?.expenseAmountStatus?.totalRemainingCash,expense?.expenseAmountStatus?.totalCashAmount,expense.defaultCurrency.shortName)}</p>
                       </div>
                       </div>
-                            
                             <div className='flex items-center justify-center gap-2'>
-                            {(fileSelected && fileId === expense?.expenseHeaderId)  ? <> <div className='flex justify-center cursor-default items-center px-2 py-1 bg-slate-100 rounded-md text-xs'><img src={file_icon} className='w-4 h-4' /><p className='w-20 truncate'>{selectedFile?.name}</p></div><img src={close_icon} className='w-4 h-4' onClick={handleRemoveFile}/></> :
+                              {expense?.comment}
+                              <CommentBox
+                    title="Settlement Remarks :"
+                    value={
+                      comments.find(
+                        (c) =>
+                          c.expenseHeaderId === expense?.expenseHeaderId &&
+                          c.travelRequestId === trip?.travelRequestId
+                      )?.comment || ""
+                    }
+                    onChange={(e) =>
+                      handleCommentChange(
+                        trip?.travelRequestId,
+                        expense?.expenseHeaderId,
+                        "comment",
+                        e.target.value
+                      )
+                    }
+                  />
+                            {/* {(fileSelected && fileId === expense?.expenseHeaderId)  ? <> <div className='flex justify-center cursor-default items-center px-2 py-1 bg-slate-100 rounded-md text-xs'><img src={file_icon} className='w-4 h-4' /><p className='w-20 truncate'>{selectedFile?.name}</p></div><img src={close_icon} className='w-4 h-4' onClick={handleRemoveFile}/></> : */}
+                              {filesForUpload?.[expense?.expenseHeaderId]?.name}
                               <FileUpload 
-                              setFileId={setFileId}
-                              id={expense?.expenseHeaderId}
+                              setFileId={setFileId} 
+                              id={expense?.expenseHeaderId} 
                               isFileSelected={fileSelected} 
                               setIsFileSelected={setFileSelected} 
-                              setSelectedFile={setSelectedFile} 
+                              setSelectedFile={(file) =>
+                                handleFileUpload(
+                                  trip?.travelRequestId,
+                                  expense?.expenseHeaderId,
+                                  file
+                                )
+                              }
                               selectedFile={selectedFile} 
-                            />}                     
-                         <SettleNowBtn
+                            />
+                            {/* // }                      */}
+                         {/* <SettleNowBtn
                           onClick={()=>handleActionConfirm('settleTravelExpense',{ travelRequestId : trip?.travelRequestId, expenseHeaderId:expense?.expenseHeaderId})}
-                          text={"Settle Now"}/>
+                          text={"Settle Now"}/> */}
                         </div>
                                    
                                   </div>

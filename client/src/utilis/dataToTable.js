@@ -2,9 +2,8 @@ import { formatAmount } from "./handyFunctions";
 
 export const flattenData = (data) => {
     const flattenedData = [];
-  
     // Flatten travelExpense data
-    data.travelExpense.forEach((travel) => {
+    data?.travelExpense?.forEach((travel) => {
       travel.travelExpenseData.forEach((expense) => {
         flattenedData.push({
           tripName: travel.tripName || "-",
@@ -13,18 +12,15 @@ export const flattenData = (data) => {
           'expense/cash-advance no.': expense.expenseHeaderNumber,
           paidBy: expense.settlementBy.name || "N/A",
           totalAmount: `${expense.defaultCurrency.shortName} ${formatAmount(expense.expenseAmountStatus.totalExpenseAmount)}`,
-          status: expense?.settlementDetails[0]?.status ?? "-",
-          comment: expense?.settlementDetails[0]?.comment ?? "-",
+          status: expense?.settlementDetails?.[0]?.status ?? "-",
+          comment: expense?.settlementDetails?.[0]?.comment ?? "-",
           url: expense?.settlementDetails[0]?.url ?? "-",
         });
       });
     });
-
-
-    data.nonTravelExpense.forEach((nonTravel) => {
-     
+    
+    data?.nonTravelExpense?.forEach((nonTravel) => {
         flattenedData.push({
-          tripName: nonTravel?.tripName,
           createdBy: nonTravel?.createdBy.name,
           type: "Non-Travel Expense",
           'expense/cash-advance no.': nonTravel?.expenseHeaderNumber,
@@ -69,7 +65,6 @@ export const flattenData = (data) => {
     //   });
     // });
     
-  
     return flattenedData;
   };
   

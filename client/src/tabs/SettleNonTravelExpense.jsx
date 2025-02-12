@@ -3,8 +3,9 @@ import {  close_icon, expense_slate_icon, file_icon,  } from '../assets/icon';
 import { CardLayout, SettleNowBtn, TripName } from '../common/TinyComponent';
 import { formatAmount } from '../utilis/handyFunctions';
 import FileUpload from '../common/FileUpload';
+import CommentBox from '../common/CommentBox';
 
-const SettleNonTravelExpense = ({fileId, setFileId, trip, handleActionConfirm, handleRemoveFile, fileSelected, setFileSelected, selectedFile, setSelectedFile}) => {
+const SettleNonTravelExpense = ({selectAll,handleCommentChange,handleFileUpload,filesForUpload,comments,handleSelect,fileId, setFileId, trip, handleActionConfirm, handleRemoveFile, fileSelected, setFileSelected, selectedFile, setSelectedFile}) => {
 
 // function financeMsg(amt, cashAdvance, currency){
 //   const amt1 = formatAmount(amt)
@@ -72,7 +73,8 @@ const SettleNonTravelExpense = ({fileId, setFileId, trip, handleActionConfirm, h
                       {/* {filteredTripExpenses?.map((trExpense, index) => ( */}
                         <div  className='border border-slate-300 rounded-md px-2 py-1'>
                 <div className='flex flex-row justify-between items-center py-1  font-cabin font-xs'>
-                  <div className='flex gap-4'>
+                  <div className='flex gap-4  justify-center items-center'>
+                  <input onChange={()=>handleSelect("settleNonTravelExpense", { expenseHeaderId:trip?.expenseHeaderId})} type='checkbox' checked={selectAll?.some(all=> all?.expenseHeaderId === trip?.expenseHeaderId)} className='w-4 h-4 accent-neutral-900' />
                     <div className='flex gap-2 items-center '>
                       <img src={expense_slate_icon} className='w-5 h-5'/>
                       <div>
@@ -92,8 +94,48 @@ const SettleNonTravelExpense = ({fileId, setFileId, trip, handleActionConfirm, h
                 {/* <p className='header-text'> {financeMsg(trip?.expenseAmountStatus?.totalRemainingCash,trip?.expenseAmountStatus?.totalCashAmount,trip.defaultCurrency.shortName)}</p> */}
               </div>
               </div>
-                    
               <div className='flex items-center justify-center gap-2'>
+                                            {/* {expense?.comment} */}
+                                            <CommentBox
+                                  title="Settlement Remarks :"
+                                  value={
+                                    comments.find(
+                                      (c) =>
+                                        c.expenseHeaderId === trip?.expenseHeaderId 
+                                    )?.comment || ""
+                                  }
+                                  onChange={(e) =>
+                                    handleCommentChange(
+                                      "",
+                                      trip?.expenseHeaderId,
+                                      "comment",
+                                      e.target.value
+                                    )
+                                  }
+                                />
+                                          {/* {(fileSelected && fileId === expense?.expenseHeaderId)  ? <> <div className='flex justify-center cursor-default items-center px-2 py-1 bg-slate-100 rounded-md text-xs'><img src={file_icon} className='w-4 h-4' /><p className='w-20 truncate'>{selectedFile?.name}</p></div><img src={close_icon} className='w-4 h-4' onClick={handleRemoveFile}/></> : */}
+                                            {filesForUpload?.[trip?.expenseHeaderId]?.name}
+                                            <FileUpload 
+                                            setFileId={setFileId} 
+                                            id={trip?.expenseHeaderId} 
+                                            isFileSelected={fileSelected} 
+                                            setIsFileSelected={setFileSelected} 
+                                            setSelectedFile={(file) =>
+                                              handleFileUpload(
+                                                "",
+                                                trip?.expenseHeaderId,
+                                                file
+                                              )
+                                            }
+                                            selectedFile={selectedFile} 
+                                          />
+                                          {/* // }                      */}
+                                       {/* <SettleNowBtn
+                                        onClick={()=>handleActionConfirm('settleTravelExpense',{ travelRequestId : trip?.travelRequestId, expenseHeaderId:expense?.expenseHeaderId})}
+                                        text={"Settle Now"}/> */}
+                                      </div>
+                    
+              {/* <div className='flex items-center justify-center gap-2'>
               {(fileSelected && fileId === trip?.expenseHeaderNumber ) ?<> <div className='flex justify-center cursor-default items-center px-2 py-1 bg-slate-100 rounded-md text-xs'><img src={file_icon} className='w-4 h-4' /><p className='w-20 truncate'>{selectedFile?.name}</p></div><img src={close_icon} className='w-4 h-4' onClick={handleRemoveFile}/></> :
               <FileUpload 
               id={trip?.expenseHeaderNumber} 
@@ -106,7 +148,7 @@ const SettleNonTravelExpense = ({fileId, setFileId, trip, handleActionConfirm, h
                  <SettleNowBtn
             onClick={()=>handleActionConfirm('settleNonTravelExpense',{ expenseHeaderId:trip?.expenseHeaderId})}
             text={"Settle Now"} disabled={false} onHover={'selected currency not available'}/>
-                </div>
+                </div> */}
                             {/* <div className={`text-center rounded-sm ${getStatusClass(trip?.expenseHeaderStatus ?? "-")}`}>
                               <p className='px-1 py-1 text-xs text-center capitalize font-cabin'>{trip?.expenseHeaderStatus ?? "-"}</p>
                             </div> */}

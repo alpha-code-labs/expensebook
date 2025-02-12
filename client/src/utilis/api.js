@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 
-const financeBaseUrl = import.meta.env.VITE_FINANCE_BACKEND_API_URL;
+const SETTLEMENT_BACKEND_API_URL = import.meta.env.VITE_FINANCE_BACKEND_API_URL;
 
 const retry = 2;
 const retryDelay = 3000;
@@ -71,7 +71,7 @@ export const logoutApi = async (authToken) => {
 
 export const getFinanceData_API = async (tenantId,empId) => {
   
-  const url = `${financeBaseUrl}/api/fe/finance/role/${tenantId}/${empId}`;
+  const url = `${SETTLEMENT_BACKEND_API_URL}/api/fe/finance/role/${tenantId}/${empId}`;
 
   try {
     const response = await axiosRetry(axios.get, url);
@@ -90,7 +90,7 @@ export const getFinanceData_API = async (tenantId,empId) => {
 
 export const getAccountEntriesData_API = async ({tenantId,empId,data}) => {
   
-  const url = `${financeBaseUrl}/api/fe/finance/expense/${tenantId}/${empId}`;
+  const url = `${SETTLEMENT_BACKEND_API_URL}/api/fe/finance/expense/${tenantId}/${empId}`;
 
   try {
     const response = await axiosRetry(axios.post, url,data);
@@ -105,4 +105,58 @@ export const getAccountEntriesData_API = async ({tenantId,empId,data}) => {
     return { data: null, error: errorObject };
   }
 };
+
+export const settleCashAdvanceApi = async(data)=>{
+  const {tenantId, empId,travelRequestId, cashAdvanceId,  action,payload} = data
+  
+  let url
+  console.log(action)
+  
+    if (action === "settleCashAdvance" ) { 
+       url = `${SETTLEMENT_BACKEND_API_URL}/api/fe/finance/cash/paid`
+    }
+    else { 
+       url = `${SETTLEMENT_BACKEND_API_URL}/api/fe/finance/cash/recovery`
+    }
+    
+  
+  console.log('url from api.js',url)
+    try{
+       const response = await axiosRetry(axios.patch,url,payload)
+       return(response.data.message)
+    }catch(error){
+      handleRequestError(error);
+      const errorObject = {
+        status: error.response?.status || null,
+        message: error.message || 'Unknown error',
+      };
+      console.log('Post Error : ',errorObject);
+      return {  error: errorObject };
+    }
+  }  
+
+export const settleExpenseApi = async(data)=>{
+  const {tenantId, empId,travelRequestId, expenseHeaderId, action, payload} = data
+  let url
+
+  if(action === "settleTravelExpense" ){
+     url = `${SETTLEMENT_BACKEND_API_URL}/api/fe/finance/expense/paid`
+    //  url = `${SETTLEMENT_BACKEND_API_URL}/api/fe/finance/expense/paid/${tenantId}/${travelRequestId}/${expenseHeaderId}`
+  }else{
+    url = `${SETTLEMENT_BACKEND_API_URL}/api/fe/finance/nontravel/paid`
+  }
+  
+    try{
+       const response = await axiosRetry(axios.patch,url,payload)
+       return(response.data.message)
+    }catch(error){
+      handleRequestError(error);
+      const errorObject = {
+        status: error.response?.status || null,
+        message: error.message || 'Unknown error',
+      };
+      console.log('Post Error : ',errorObject);
+      return {  error: errorObject };
+    }
+  }  
 

@@ -77,7 +77,7 @@ export {default as plus_icon} from './plus.svg';
 export {default as plus_violet_icon} from './plus copy.svg';
 export {default as calender_2_icon} from './calender-2.png';
 export {default as city_icon} from './city.png';
-export {default as info_icon} from './icons8-info.svg';
+export {default as info_icon} from './info_icon.svg';
 export {default as filter_icon} from './filter.svg';
 export {default as search_icon} from './serach.svg';
 export {default as empty_itinerary_icon} from './empty_itinerary.png';

@@ -11,25 +11,20 @@ const RecoverCashAdvance = ({fileId, setFileId,trip,handleActionConfirm,handleRe
     <div className='flex flex-row justify-between'>
         <div className='flex gap-2 items-center'>
         {/* <input onChange={() => handleSelect(trip)} type='checkbox' className='w-4 h-4 accent-indigo-600' checked={isTravelRequestSelected(trip?.travelRequestId)}/> */}
-     <div>
-        <p className='header-title'>Created By</p>
-        <p className='header-text'>{trip?.createdBy?.name ?? <span className='text-center'>-</span>}</p>
-     </div>
-      </div>
-
+    <div>
+      <p className='header-title'>Created By</p>
+      <p className='header-text'>{trip?.createdBy?.name ?? <span className='text-center'>-</span>}</p>
+    </div>
+    </div>
     {/* / */}
     <div className='flex items-center justify-center'>
-
-  
-      </div>
+    </div>
     {/* / */}
       </div>
      <div className='flex flex-row justify-between'>
-      
      <TripName tripName={trip?.tripName} />
-    
      </div>
-      </div>
+     </div>
       
       { trip?.cashAdvance && trip?.cashAdvance?.map((advance,index) => (
         <div key={index} className={`px-2 py-2 ${index < trip?.cashAdvance.length-1 && 'border-b border-slate-400 '}`}>
@@ -46,16 +41,16 @@ const RecoverCashAdvance = ({fileId, setFileId,trip,handleActionConfirm,handleRe
 </div>
 
 </div>
-            <div className='flex justify-center items-center gap-2'>
-            {(fileSelected && fileId === trip?.travelRequestId)  ?<> <div className='flex justify-center cursor-default items-center px-2 py-1 bg-slate-100 rounded-md text-xs'><img src={file_icon} className='w-4 h-4' /><p className='w-20 truncate'>{selectedFile?.name}</p></div><img src={close_icon} className='w-4 h-4' onClick={handleRemoveFile}/></> :
-              <FileUpload
-              id={trip?.travelRequestId} 
-              setFileId={setFileId} 
-              isFileSelected={fileSelected} 
-              setIsFileSelected={setFileSelected} 
-              setSelectedFile={setSelectedFile} 
-              selectedFile={selectedFile} 
-            />}
+    <div className='flex justify-center items-center gap-2'>
+    {(fileSelected && fileId === trip?.travelRequestId)  ?<> <div className='flex justify-center cursor-default items-center px-2 py-1 bg-slate-100 rounded-md text-xs'><img src={file_icon} className='w-4 h-4' /><p className='w-20 truncate'>{selectedFile?.name}</p></div><img src={close_icon} className='w-4 h-4' onClick={handleRemoveFile}/></> :
+      <FileUpload
+      id={trip?.travelRequestId} 
+      setFileId={setFileId} 
+      isFileSelected={fileSelected} 
+      setIsFileSelected={setFileSelected} 
+      setSelectedFile={setSelectedFile} 
+      selectedFile={selectedFile} 
+    />}
     <SettleNowBtn
     onClick={()=>handleActionConfirm('recoverCashAdvance',{ travelRequestId : trip?.travelRequestId, cashAdvanceId:advance?.cashAdvanceId})}
     text={"Recover Now"}/>
