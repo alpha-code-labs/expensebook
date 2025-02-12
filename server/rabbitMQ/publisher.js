@@ -6,7 +6,7 @@ import dotenv from 'dotenv'
 
 dotenv.config()
 
-const rabbitMQUrl = process.env.NODE_ENV == 'production' ? process.env.RBMQ_PROD_URL : process.env.RBMQ_URL;
+const rabbitMQUrl = process.env.NODE_ENV == 'production' ? process.env.rabbitMQUrl : process.env.RBMQ_URL;
 
 
 let channel
