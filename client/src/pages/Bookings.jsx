@@ -88,7 +88,6 @@ const expenseCategories = {
                 {name:'Total Amount', type:'amount', toSet:'bookingDetails', id:'totalAmount'}]
 }
 
-
 export default function () {
   //get travel request Id from params
     const {travelRequestId} = useParams()
@@ -1477,6 +1476,7 @@ function AddScannedTicket(
 }
 
 function isoString(dateString){
+    return dateString;
 console.log('receivedDate', dateString)
 if(dateString==null || dateString == undefined) return ''
 // Convert string to Date object
@@ -1500,6 +1500,7 @@ function getDateXDaysAway(days) {
   }
 
 function formattedDate(date){
+    return date;
     const givenDate = new Date(date);
     const day = String(givenDate.getDate()).padStart(2,'0');
     const month = String(givenDate.getMonth()).padStart(2,'0');
