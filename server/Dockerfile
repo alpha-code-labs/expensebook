@@ -1,14 +1,19 @@
-# Use an official Node.js runtime as a parent image
+# Use the official Node.js 14 image.
 FROM node:20-alpine
 
+# Create and change to the working directory.
 WORKDIR /app
-
+# Copy package.json and package-lock.json to the working directory.
 COPY package*.json ./
 
-RUN npm i
+# Install dependencies.
+RUN npm install
 
+# Copy the rest of your application code.
 COPY . .
 
-EXPOSE 6098
+# Expose the port the app runs on
+EXPOSE 8009
 
-CMD [ "npm", "start" ]
+# Run the application
+CMD ["node", "index.js"]

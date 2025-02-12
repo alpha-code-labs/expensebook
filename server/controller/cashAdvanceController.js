@@ -287,106 +287,144 @@ export const sendUpdate = async (payload, options) => {
   }
 };
 
+
+const cashAdvanceSettlementSchema = Joi.object({
+  getFinance: Joi.object({
+    name: Joi.string().required(), 
+    empId: Joi.string().required()
+  }).required(),
+  selections: Joi.array().items(
+    Joi.object({
+      tenantId : Joi.string().required(),
+      travelRequestId: Joi.string().required(),
+      cashAdvanceId: Joi.string().required(),
+      settlementDetails: Joi.array().items(
+        Joi.object({
+          url: Joi.string().optional().optional().uri().allow(null),
+          comment: Joi.string().optional().allow(null),
+          status: Joi.string().valid("paid", "recovered").optional()
+        })
+      ).min(1)
+    })
+  ).min(1)
+});
+
 export const paidCashAdvance = async (req, res, next) => {
   try {
-    const [params, body] = await Promise.all([
-      cashSchema.validateAsync(req.params),
-      financeSchema.validateAsync(req.body),
-    ]);
 
-    const { tenantId, travelRequestId, cashAdvanceId } = params;
-    const { getFinance, settlementDetails } = body;
+    const body = await cashAdvanceSettlementSchema.validateAsync(req.body);
 
-    let setSettlementDetails;
+   
+    const { getFinance, selections } = body;
 
-    if (Array.isArray(settlementDetails) && settlementDetails.length > 0) {
-      setSettlementDetails = settlementDetails.map((details) => ({
+    let updatedResults = [];
+    for(const selection of selections){
+      let setSettlementDetails;
+      setSettlementDetails = selection.settlementDetails.map((details) => ({
         ...details,
         status: "paid",
       }));
-    }
 
-    console.log("Received Parameters:", {
-      tenantId,
-      travelRequestId,
-      cashAdvanceId,
-    });
-    console.log("Received Body Data: kaboom", JSON.stringify(req.body, "", 2));
+      const { tenantId, travelRequestId, cashAdvanceId } = selection;
 
-    const STATUS = {
-      PENDING_SETTLEMENT: "pending settlement",
-      PAID: "paid",
-    };
-    const updateResult = await Finance.findOneAndUpdate(
-      {
-        tenantId,
-        travelRequestId,
-        "cashAdvanceSchema.cashAdvancesData": {
-          $elemMatch: {
-            cashAdvanceId,
-            cashAdvanceStatus: STATUS.PENDING_SETTLEMENT,
-            // paidFlag: false
+      console.log("Received Parameters:", {
+        tenantId:selection.tenantId,
+        travelRequestId:selection.travelRequestId,
+        cashAdvanceId:selection.cashAdvanceId,
+      });
+
+      const STATUS = {
+        PENDING_SETTLEMENT: "pending settlement",
+        PAID: "paid",
+      };
+
+      const updateResult = await Finance.findOneAndUpdate(
+        {
+          tenantId:selection.tenantId,
+          travelRequestId:selection.travelRequestId,
+          "cashAdvanceSchema.cashAdvancesData": {
+            $elemMatch: {
+              cashAdvanceId:selection.cashAdvanceId,
+              cashAdvanceStatus: STATUS.PENDING_SETTLEMENT,
+              // paidFlag: false
+            },
           },
         },
-      },
-      {
-        $set: {
-          "cashAdvanceSchema.cashAdvancesData.$[elem].paidBy": getFinance,
-          "cashAdvanceSchema.cashAdvancesData.$[elem].paidFlag": true,
-          "cashAdvanceSchema.cashAdvancesData.$[elem].cashAdvanceStatus":
-            STATUS.PAID,
-          "cashAdvanceSchema.cashAdvancesData.$[elem].actionedUpon": true,
+        {
+          $set: {
+            "cashAdvanceSchema.cashAdvancesData.$[elem].paidBy": getFinance,
+            "cashAdvanceSchema.cashAdvancesData.$[elem].paidFlag": true,
+            "cashAdvanceSchema.cashAdvancesData.$[elem].cashAdvanceStatus":
+              STATUS.PAID,
+            "cashAdvanceSchema.cashAdvancesData.$[elem].actionedUpon": true,
+          },
+          $push: {
+            "cashAdvanceSchema.cashAdvancesData.$[elem].settlementDetails":
+              setSettlementDetails,
+          },
         },
-        $push: {
-          "cashAdvanceSchema.cashAdvancesData.$[elem].settlementDetails":
-            setSettlementDetails,
-        },
-      },
-      {
-        arrayFilters: [{ "elem.cashAdvanceId": cashAdvanceId }],
-        new: true,
+        {
+          arrayFilters: [{ "elem.cashAdvanceId": selection.cashAdvanceId }],
+          new: true,
+        }
+      );
+  
+      if (updateResult) {
+
+        updatedResults.push(updateResult);
+        const { travelRequestStatus } =
+        updateResult.cashAdvanceSchema.travelRequestData;
+  
+        let includeExpense = false;
+        if (travelRequestStatus == "booked") {
+          includeExpense = true;
+        }
+    
+        const payload = {
+          tenantId,
+          travelRequestId,
+          cashAdvanceId,
+          paidBy: getFinance,
+          paidFlag: true,
+          cashAdvanceStatus: STATUS.PAID,
+          settlementDetails: setSettlementDetails,
+        };
+    
+        console.log("Update successful:paidCashAdvance-", updateResult);
+    
+        // const { travelRequestData:{travelRequestStatus}} = updateResult?.cashAdvanceSchema
+    
+        const options = {
+          action: "settle-ca",
+          comments: "cash advance paid by finance",
+          includeCash: "true",
+          includeExpense,
+        };
+    
+        await sendUpdate(payload, options);
       }
-    );
 
-    if (!updateResult) {
+    }
+    
+    if(updatedResults.length == 0){
       return res
-        .status(404)
-        .json({ message: "No matching document found for update" });
+          .status(404)
+          .json({ message: "No matching document found or update failed" });
     }
 
-    const { travelRequestStatus } =
-      updateResult.cashAdvanceSchema.travelRequestData;
-
-    let includeExpense = false;
-    if (travelRequestStatus == "booked") {
-      includeExpense = true;
+    if(updatedResults.length == selections.length){
+      return res.status(200).json({
+        message: "All cash advances have been successfully settled.",
+        result: updatedResults,
+      });
     }
 
-    const payload = {
-      tenantId,
-      travelRequestId,
-      cashAdvanceId,
-      paidBy: getFinance,
-      paidFlag: true,
-      cashAdvanceStatus: STATUS.PAID,
-      settlementDetails: setSettlementDetails,
-    };
-
-    console.log("Update successful:paidCashAdvance-", updateResult);
-
-    // const { travelRequestData:{travelRequestStatus}} = updateResult?.cashAdvanceSchema
-
-    const options = {
-      action: "settle-ca",
-      comments: "cash advance paid by finance",
-      includeCash: "true",
-      includeExpense,
-    };
-
-    await sendUpdate(payload, options);
-    return res
-      .status(200)
-      .json({ message: "Cash advance has been successfully settled." });
+    if(updatedResults.length < selections.length){
+      return res.status(200).json({
+        message: "Some cash advances have been successfully settled.",
+        result: updatedResults,
+      });
+    }
   } catch (error) {
     console.error("paidCashAdvance error", error.message);
     next(error);
@@ -398,103 +436,114 @@ const status = {
   RECOVERED: "recovered",
 };
 
-const recoverSchema = Joi.object({
-  tenantId: Joi.string().required(),
-  travelRequestId: Joi.string().required(),
-  cashAdvanceId: Joi.string().required(),
-});
-
 export const recoverCashAdvance = async (req, res, next) => {
   try {
-    const [params, body] = await Promise.all([
-      recoverSchema.validateAsync(req.params),
-      financeSchema.validateAsync(req.body),
-    ]);
-    const { tenantId, travelRequestId, cashAdvanceId } = params;
-    const { getFinance, settlementDetails } = body;
-    let setSettlementDetails;
+    const {getFinance, selections} = await cashAdvanceSettlementSchema.validateAsync(req.body);
 
-    if (Array.isArray(settlementDetails) && settlementDetails.length > 0) {
-      setSettlementDetails = settlementDetails.map((details) => ({
+    let updatedResults = [];
+    for(const selection of selections){
+      let setSettlementDetails;
+      setSettlementDetails = selection.settlementDetails.map((details) => ({
         ...details,
         status: "recovered",
       }));
-    }
 
-    console.log("Received Parameters:", {
-      tenantId,
-      travelRequestId,
-      cashAdvanceId,
-    });
-    console.log("Received Body Data:", { getFinance });
-    // Find and update the cash advance
-    const updatedTravelRequest = await Finance.findOneAndUpdate(
-      {
-        tenantId,
-        travelRequestId,
-        "cashAdvanceSchema.cashAdvancesData": {
-          $elemMatch: {
-            cashAdvanceId,
-            cashAdvanceStatus: status.PAID_AND_CANCELLED,
-            recoveryFlag: false,
+      console.log("Received Parameters:", {
+        tenantId:selection.tenantId,
+        travelRequestId:selection.travelRequestId,
+        cashAdvanceId:selection.cashAdvanceId,
+      });
+
+      console.log("Received Body Data:", { getFinance });
+      // Find and update the cash advance
+      const updatedTravelRequest = await Finance.findOneAndUpdate(
+        {
+          tenantId:selection.tenantId,
+          travelRequestId:selection.travelRequestId,
+          "cashAdvanceSchema.cashAdvancesData": {
+            $elemMatch: {
+              cashAdvanceId:selection.cashAdvanceId,
+              cashAdvanceStatus: status.PAID_AND_CANCELLED,
+              recoveryFlag: false,
+            },
           },
         },
-      },
-      {
-        $set: {
-          "cashAdvanceSchema.cashAdvancesData.$[elem].recoveredBy": getFinance,
-          "cashAdvanceSchema.cashAdvancesData.$[elem].recoveryFlag": true,
-          "cashAdvanceSchema.cashAdvancesData.$[elem].cashAdvanceStatus":
-            status.RECOVERED,
+        {
+          $set: {
+            "cashAdvanceSchema.cashAdvancesData.$[elem].recoveredBy": getFinance,
+            "cashAdvanceSchema.cashAdvancesData.$[elem].recoveryFlag": true,
+            "cashAdvanceSchema.cashAdvancesData.$[elem].cashAdvanceStatus":
+              status.RECOVERED,
+          },
+          $push: {
+            "cashAdvanceSchema.cashAdvancesData.$[elem].settlementDetails":
+              setSettlementDetails,
+          },
         },
-        $push: {
-          "cashAdvanceSchema.cashAdvancesData.$[elem].settlementDetails":
-            setSettlementDetails,
-        },
-      },
-      {
-        arrayFilters: [{ "elem.cashAdvanceId": cashAdvanceId }],
-        new: true,
-      }
-    );
+        {
+          arrayFilters: [{ "elem.cashAdvanceId": selection.cashAdvanceId }],
+          new: true,
+        }
+      );
+  
+      if (!updatedTravelRequest) {
+        updatedResults.push(updatedResults);
+        const { travelRequestStatus } =
+          updatedTravelRequest.cashAdvanceSchema.travelRequestData;
+    
+        let includeExpense = false;
+        if (travelRequestStatus == "booked") {
+          includeExpense = true;
+        }
+        console.log("Update successful:", updatedTravelRequest);
+    
+        const payload = {
+          tenantId: selection.tenantId,
+          travelRequestId: selection.travelRequestId,
+          cashAdvanceId: selection.cashAdvanceId,
+          recoveredBy: getFinance,
+          recoveryFlag,
+          cashAdvanceStatus: status.RECOVERED,
+          settlementDetails: setSettlementDetails,
+        };
+        console.log("Update successful:recoverCashAdvance:", payload);
+    
+        const options = {
+          action: "recover-ca",
+          comments: "cash advance recovered by finance",
+          includeCash: "true",
+          includeExpense,
+        };
+    
+        await sendUpdate(payload, options);
+    }
 
-    if (!updatedTravelRequest) {
+
+    }
+   
+    if(updatedResults.length == 0){
       return res
-        .status(404)
-        .json({ message: "No matching travel request found or update failed" });
+          .status(404)
+          .json({ message: "No matching document found or update failed" });
     }
 
-    const { travelRequestStatus } =
-      updatedTravelRequest.cashAdvanceSchema.travelRequestData;
-
-    let includeExpense = false;
-    if (travelRequestStatus == "booked") {
-      includeExpense = true;
+    if(updatedResults.length == selections.length){
+      return res.status(200).json({
+        message: "All cash advances have been successfully recovered.",
+        result: updatedResults,
+      });
     }
-    console.log("Update successful:", updatedTravelRequest);
 
-    const payload = {
-      tenantId,
-      travelRequestId,
-      cashAdvanceId,
-      recoveredBy: getFinance,
-      recoveryFlag,
-      cashAdvanceStatus: status.RECOVERED,
-      settlementDetails: setSettlementDetails,
-    };
-    console.log("Update successful:recoverCashAdvance:", payload);
+    if(updatedResults.length < selections.length){
+      return res.status(200).json({
+        message: "Some cash advances have been successfully recovered.",
+        result: updatedResults,
+      });
 
-    const options = {
-      action: "recover-ca",
-      comments: "cash advance recovered by finance",
-      includeCash: "true",
-      includeExpense,
-    };
 
-    await sendUpdate(payload, options);
-    return res
-      .status(200)
-      .json({ message: "Cash advance has been successfully recovered." });
+    }
+
+
   } catch (error) {
     console.error("Error updating cash advance status:", error);
     next(error); // Pass the error to the error handling middleware

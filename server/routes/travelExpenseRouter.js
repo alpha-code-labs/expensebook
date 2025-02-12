@@ -9,8 +9,13 @@ const expenseRouter = Router();
 
 expenseRouter.get("/find/:tenantId", getTravelExpenseData);
 
+// expenseRouter.patch(
+//   "/paid/:tenantId/:travelRequestId/:expenseHeaderId",
+//   paidExpenseReports
+// );
+
 expenseRouter.patch(
-  "/paid/:tenantId/:travelRequestId/:expenseHeaderId",
+  "/paid",
   paidExpenseReports
 );
 

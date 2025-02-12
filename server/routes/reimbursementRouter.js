@@ -14,7 +14,7 @@ const nonTravel = express.Router();
 nonTravel.get("/find/:tenantId", getReimbursement);
 
 nonTravel.patch(
-  "/paid/:tenantId/:expenseHeaderId",
+  "/paid",
   paidNonTravelExpenseReports
 );
 

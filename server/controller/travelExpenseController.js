@@ -144,25 +144,146 @@ const cashSchema = Joi.object({
   expenseHeaderId: Joi.string().required(),
 });
 
+// export const paidExpenseReports = async (req, res, next) => {
+//   try {
+//     // Validate request parameters and body
+//     const [params, body] = await Promise.all([
+//       cashSchema.validateAsync(req.params),
+//       financeSchema.validateAsync(req.body),
+//     ]);
+
+//     console.log(params, "params...........");
+
+//     const { tenantId, travelRequestId, expenseHeaderId } = params;
+//     const { getFinance, settlementDetails } = body;
+
+//     let setSettlementDetails;
+
+//     if (Array.isArray(settlementDetails) && settlementDetails.length > 0) {
+//       setSettlementDetails = settlementDetails.map((details) => ({
+//         ...details,
+//         status: "paid",
+//       }));
+//     }
+
+//     const status = {
+//       PENDING_SETTLEMENT: "pending settlement",
+//       PAID: "paid",
+//       APPROVED: "approved",
+//     };
+
+//     const newStatus = {
+//       PAID: "paid",
+//     };
+
+//     const filter = {
+//       tenantId,
+//       travelRequestId,
+//       "tripSchema.travelExpenseData": {
+//         $elemMatch: {
+//           expenseHeaderId,
+//           expenseHeaderStatus: status.PENDING_SETTLEMENT,
+//           actionedUpon: false,
+//         },
+//       },
+//     };
+
+//     const update = {
+//       $set: {
+//         "tripSchema.travelExpenseData.$[elem].settlementBy": getFinance,
+//         "tripSchema.travelExpenseData.$[elem].actionedUpon": true,
+//         "tripSchema.travelExpenseData.$[elem].expenseHeaderStatus":
+//           newStatus.PAID,
+//         "tripSchema.travelExpenseData.$[elem].settlementDate": new Date(), // Renaming this to paidDate is required
+//         "tripSchema.travelExpenseData.$[elem].expenseLines.$[lineItem].lineItemStatus":
+//           newStatus.PAID,
+//       },
+//       $push: {
+//         "tripSchema.travelExpenseData.$[elem].settlementDetails":
+//           setSettlementDetails,
+//       },
+//     };
+
+//     const arrayFilters = [
+//       { "elem.expenseHeaderId": expenseHeaderId },
+//       { "lineItem.lineItemStatus": status.APPROVED },
+//     ];
+
+//     const updatedExpenseReport = await Finance.findOneAndUpdate(
+//       filter,
+//       update,
+//       {
+//         arrayFilters,
+//         new: true,
+//         runValidators: true,
+//       }
+//     );
+
+//     if (!updatedExpenseReport) {
+//       return res
+//         .status(404)
+//         .json({ message: "No matching document found or update failed" });
+//     }
+
+//     const payload = {
+//       tenantId,
+//       travelRequestId,
+//       expenseHeaderId,
+//       settlementBy: getFinance,
+//       expenseHeaderStatus: newStatus.PAID,
+//       settlementDate: new Date(),
+//       settlementDetails: setSettlementDetails,
+//     };
+
+//     const options = {
+//       action: "expense-paid",
+//       comments: "travelExpenseReport status is updated to paid",
+//       includeTrip: true,
+//       includeExpense: true,
+//     };
+
+//     console.log("Update successful:", updatedExpenseReport);
+//     await sendUpdate(payload, options);
+//     return res.status(200).json({
+//       message: "Travel expense has been successfully settled.",
+//       result: updatedExpenseReport,
+//     });
+//   } catch (error) {
+//     console.error("Error updating expense report status:", error.message);
+//     next(error);
+//   }
+// };
+
+
+const expenseSettlementSchema = Joi.object({
+  getFinance: Joi.object({
+    name: Joi.string().required(), 
+    empId: Joi.string().required()
+  }).required(),
+  selections: Joi.array().items(
+    Joi.object({
+      tenantId : Joi.string().required(),
+      travelRequestId: Joi.string().required(),
+      expenseHeaderId: Joi.string().required(),
+      settlementDetails: Joi.array().items(
+        Joi.object({
+          url: Joi.string().optional().uri().allow(null),
+          comment: Joi.string().optional().allow(null),
+          status: Joi.string().valid("paid", "recovered").optional()
+        })
+      ).min(1)
+    })
+  ).min(1)
+});
+
+
 export const paidExpenseReports = async (req, res, next) => {
   try {
     // Validate request parameters and body
-    const [params, body] = await Promise.all([
-      cashSchema.validateAsync(req.params),
-      financeSchema.validateAsync(req.body),
-    ]);
+    const body = await expenseSettlementSchema.validateAsync(req.body);
 
-    const { tenantId, travelRequestId, expenseHeaderId } = params;
-    const { getFinance, settlementDetails } = body;
-
-    let setSettlementDetails;
-
-    if (Array.isArray(settlementDetails) && settlementDetails.length > 0) {
-      setSettlementDetails = settlementDetails.map((details) => ({
-        ...details,
-        status: "paid",
-      }));
-    }
+    //const { tenantId, travelRequestId, expenseHeaderId } = params;
+    const { getFinance, selections } = body;
 
     const status = {
       PENDING_SETTLEMENT: "pending settlement",
@@ -174,78 +295,107 @@ export const paidExpenseReports = async (req, res, next) => {
       PAID: "paid",
     };
 
-    const filter = {
-      tenantId,
-      travelRequestId,
-      "tripSchema.travelExpenseData": {
-        $elemMatch: {
-          expenseHeaderId,
-          expenseHeaderStatus: status.PENDING_SETTLEMENT,
-          actionedUpon: false,
+    let updatedExpenseReports=[];
+    let successCount = 0;
+
+    for(const selection of selections){
+      let setSettlementDetails;
+      setSettlementDetails = selection.settlementDetails.map((details) => ({
+        ...details,
+        status: "paid",
+      }));
+
+      const filter = {
+        tenantId:selection.tenantId,
+        travelRequestId:selection.travelRequestId,
+        "tripSchema.travelExpenseData": {
+          $elemMatch: {
+            expenseHeaderId:selection.expenseHeaderId,
+            expenseHeaderStatus: status.PENDING_SETTLEMENT,
+            actionedUpon: false,
+          },
         },
-      },
-    };
+      };
+  
+      const update = {
+        $set: {
+          "tripSchema.travelExpenseData.$[elem].settlementBy": getFinance,
+          "tripSchema.travelExpenseData.$[elem].actionedUpon": true,
+          "tripSchema.travelExpenseData.$[elem].expenseHeaderStatus":
+            newStatus.PAID,
+          "tripSchema.travelExpenseData.$[elem].settlementDate": new Date(), // Renaming this to paidDate is required
+          "tripSchema.travelExpenseData.$[elem].expenseLines.$[lineItem].lineItemStatus":
+            newStatus.PAID,
+        },
+        $push: {
+          "tripSchema.travelExpenseData.$[elem].settlementDetails":
+            setSettlementDetails,
+        },
+      };
+  
+      const arrayFilters = [
+        { "elem.expenseHeaderId": selection.expenseHeaderId },
+        { "lineItem.lineItemStatus": status.APPROVED },
+      ];
+  
+      const updatedExpenseReport = await Finance.findOneAndUpdate(
+        filter,
+        update,
+        {
+          arrayFilters,
+          new: true,
+          runValidators: true,
+        }
+      );
 
-    const update = {
-      $set: {
-        "tripSchema.travelExpenseData.$[elem].settlementBy": getFinance,
-        "tripSchema.travelExpenseData.$[elem].actionedUpon": true,
-        "tripSchema.travelExpenseData.$[elem].expenseHeaderStatus":
-          newStatus.PAID,
-        "tripSchema.travelExpenseData.$[elem].settlementDate": new Date(), // Renaming this to paidDate is required
-        "tripSchema.travelExpenseData.$[elem].expenseLines.$[lineItem].lineItemStatus":
-          newStatus.PAID,
-      },
-      $push: {
-        "tripSchema.travelExpenseData.$[elem].settlementDetails":
-          setSettlementDetails,
-      },
-    };
+      console.log(updatedExpenseReport);
+  
+      if (updatedExpenseReport) {
+        updatedExpenseReports.push(updatedExpenseReport);
 
-    const arrayFilters = [
-      { "elem.expenseHeaderId": expenseHeaderId },
-      { "lineItem.lineItemStatus": status.APPROVED },
-    ];
-
-    const updatedExpenseReport = await Finance.findOneAndUpdate(
-      filter,
-      update,
-      {
-        arrayFilters,
-        new: true,
-        runValidators: true,
+        //send update to rabbitmq
+        const payload = {
+          tenantId:selection.tenantId,
+          travelRequestId:selection.travelRequestId,
+          expenseHeaderId:selection.expenseHeaderId,
+          settlementBy: getFinance,
+          expenseHeaderStatus: newStatus.PAID,
+          settlementDate: new Date(),
+          settlementDetails: setSettlementDetails,
+        };
+    
+        const options = {
+          action: "expense-paid",
+          comments: "travelExpenseReport status is updated to paid",
+          includeTrip: true,
+          includeExpense: true,
+        };
+        await sendUpdate(payload, options);
       }
-    );
 
-    if (!updatedExpenseReport) {
+    }
+  
+    if(updatedExpenseReports.length == 0){
       return res
-        .status(404)
-        .json({ message: "No matching document found or update failed" });
+          .status(404)
+          .json({ message: "No matching document found or update failed" });
     }
 
-    const payload = {
-      tenantId,
-      travelRequestId,
-      expenseHeaderId,
-      settlementBy: getFinance,
-      expenseHeaderStatus: newStatus.PAID,
-      settlementDate: new Date(),
-      settlementDetails: setSettlementDetails,
-    };
+    if(updatedExpenseReports.length == selections.length){
+      return res.status(200).json({
+        message: "All Travel expenses have been successfully settled.",
+        result: updatedExpenseReports,
+      });
+    }
 
-    const options = {
-      action: "expense-paid",
-      comments: "travelExpenseReport status is updated to paid",
-      includeTrip: true,
-      includeExpense: true,
-    };
+    if(updatedExpenseReports.length < selections.length){
+      return res.status(200).json({
+        message: "Some travel expenses have been successfully settled.",
+        result: updatedExpenseReports,
+      });
+    }
 
-    console.log("Update successful:", updatedExpenseReport);
-    await sendUpdate(payload, options);
-    return res.status(200).json({
-      message: "Travel expense has been successfully settled.",
-      result: updatedExpenseReport,
-    });
+
   } catch (error) {
     console.error("Error updating expense report status:", error.message);
     next(error);

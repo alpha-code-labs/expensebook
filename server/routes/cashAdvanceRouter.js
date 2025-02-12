@@ -13,12 +13,12 @@ cashAdvance.get("/cancelled/:tenantId", getPaidAndCancelledCash);
 cashAdvance.get("/settle/:tenantId", getCashAdvanceToSettle);
 
 cashAdvance.patch(
-  "/recovery/:tenantId/:travelRequestId/:cashAdvanceId",
+  "/recovery",
   recoverCashAdvance
 );
 
 cashAdvance.patch(
-  "/paid/:tenantId/:travelRequestId/:cashAdvanceId",
+  "/paid",
   paidCashAdvance
 );
 
