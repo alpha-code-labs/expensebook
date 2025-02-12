@@ -24,6 +24,8 @@ const storage_sas_token = import.meta.env.VITE_AZURE_BLOB_SAS_TOKEN
 const storage_account = import.meta.env.VITE_AZURE_BLOB_ACCOUNT
 const blob_endpoint = `https://${storage_account}.blob.core.windows.net/?${storage_sas_token}`
 
+
+
 const DASHBOARD_URL = import.meta.env.VITE_DASHBOARD_URL
 
 
@@ -62,7 +64,8 @@ const expenseCategories = {
     'cab' : [{name:'Vendor Name', id:'vendorName', toSet:'bookingDetails', type:'text'},
                 {name:'Booking Date',  toSet:'bkd_date',  id:'bkd_date', type:'date'},
                 {name: 'Return Date', toSet:'bkd_returnDate', id:'bkd_returnDate', type:'date'}, 
-                {name:'Return Time',  toSet:'bkd_returnTime',  id:'bkd_returnTime', type:'time'},
+                {name:'Time',  toSet:'bkd_time',  id:'bkd_time', type:'time'},
+                // {name:'Return Time',  toSet:'bkd_returnTime',  id:'bkd_returnTime', type:'time'},
                 {name:'Pickup Address', toSet:'bkd_pickupAddress',  id:'bkd_pickupAddress', type:'text'}, 
                 {name:'Drop Address', type:'text', toSet:'bkd_dropAddress', id:'bkd_dropAddress'}, 
                 {name:'Tax Amount', type:'amount', toSet:'bookingDetails', id:'taxAmount'}, 
@@ -521,12 +524,12 @@ export default function () {
         if(res.err){
             //console.log(res.err)
             //setPrompt({showPrompt:true, promptMsg:res.err??'Values were not filled correctly. Please resubmit after filling the form correctly'})
-            window.parent.postMessage({message:"cash message posted" , 
+            window.parent.postMessage({message:"travel message posted" , 
                 popupMsgData: { showPopup:true, message:"Values were not filled correctly. Please resubmit after filling the form correctly", iconCode: "102" }}, DASHBOARD_URL);
             return
         }
 
-        window.parent.postMessage({message:"cash message posted" , 
+        window.parent.postMessage({message:"travel message posted" , 
             popupMsgData: { showPopup:true, message:"Travel Request Booked", iconCode: "101" }}, DASHBOARD_URL);
 
         //setPrompt({showPrompt:true, promptMsg: 'Trave Request Booked'})
@@ -1173,6 +1176,7 @@ function AddTicketManually(
     )
 }
 
+
 function AddScannedTicket(
     {   
         scannedData,
@@ -1195,7 +1199,10 @@ function AddScannedTicket(
         }){
     
      if(scanComplete && scannedData==null){
-        alert('OCR Scan failed. Please upload manually')
+        //alert('OCR Scan failed. Please upload manually')
+        window.parent.postMessage({message:"travel message posted" , 
+        popupMsgData: { showPopup:true, message:"OCR Scan failed. Please enter the details manually", iconCode: "102" }}, DASHBOARD_URL);
+        
         setEntryMode('manual')
         return;
      }
@@ -1213,13 +1220,13 @@ function AddScannedTicket(
 
     useEffect(()=>{
         if(scanComplete && !modalClosed){
-            //setScanCompleteModal(true);
+           //setScanCompleteModal(true);
             window.parent.postMessage({message:"travel message posted" , 
-            ocrMsgData: { showPopup:true, message:"ocrMsg", iconCode: "103", autoSkip:false }}, DASHBOARD_URL);
+                ocrMsgData: { showPopup:true, message:"ocrMsg", iconCode: "103", autoSkip:false }}, DASHBOARD_URL);
         }
-    })
+    },[scanComplete]);
 
-     let firstTime  = true;
+     let firstTime  = true; 
     useEffect(()=>{
         if(fileSelected && presentURL == undefined){
             setDocURL()
@@ -1241,7 +1248,10 @@ function AddScannedTicket(
             presentURL = `https://${storage_account}.blob.core.windows.net/${az_blob_container}/${selectedFile.name}`;
         }
         else{
-            alert('Something went wrong while uploading file. Please try again after some time.')
+            //alert('Something went wrong while uploading file. Please try again after some time.')
+            window.parent.postMessage({message:"travel message posted" , 
+            popupMsgData: { showPopup:true, message:"Something went wrong while uploading file. Please try again after some time.", iconCode: "102" }}, DASHBOARD_URL);
+            
             console.error(res, selectedFile)
             setSelectedFile(null);
             setFileSelected(false);
@@ -1474,7 +1484,6 @@ function AddScannedTicket(
      </>
     )
 }
-
 function isoString(dateString){
     return dateString;
 console.log('receivedDate', dateString)
