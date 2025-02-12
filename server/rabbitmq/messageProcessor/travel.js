@@ -26,15 +26,15 @@ export const setNotification = async (payload) => {
         ? Number(travelRequestDate)
         : travelRequestDate;
 
-    if (isNaN(dateValue)) {
-      throw new Error("Invalid travelRequestDate format");
-    }
+    // if (isNaN(dateValue)) {
+    //   throw new Error("Invalid travelRequestDate format");
+    // }
 
     const date = new Date(dateValue);
 
-    if (isNaN(date.getTime())) {
-      throw new Error("Invalid travelRequestDate format");
-    }
+    // if (isNaN(date.getTime())) {
+    //   throw new Error("Invalid travelRequestDate format");
+    // }
 
     const formattedDate = date.toDateString();
     const status = getTripStatus(travelRequestDate); 

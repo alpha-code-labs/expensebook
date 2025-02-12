@@ -9,16 +9,17 @@ export async function earliestDate(itinerary, addStatus) {
       "cancelled",
       "paid and cancelled",
       "recovered",
+      "booked",
     ];
 
     if (Array.isArray(addStatus) && addStatus.length > 0) {
       allowedStatus.push(...addStatus);
     }
-
+    console.log(itinerary, "itinerary.....");
     const dateStrings = Object.entries(itinerary).flatMap(
       ([category, items]) => {
         const dateFields = {
-          hotels: "checkIn_date",
+          hotels: "checkIn",
           cabs: "date",
           flights: "date",
           buses: "date",
@@ -32,6 +33,8 @@ export async function earliestDate(itinerary, addStatus) {
           .map((item) => item[dateField]);
       }
     );
+
+    console.log(dateStrings, "datestrings.....");
 
     const dates = dateStrings.map((dateStr) => new Date(dateStr));
     const dateString = dates.length ? new Date(Math.min(...dates)) : null;

@@ -11,6 +11,8 @@ const cashNotification = async (payload) => {
     travelRequestDate,
     travelRequestStatus,
     approvers,
+    createdBy,
+    isCashAdvanceTaken,
   } = travelRequestData;
 
   const dataForNotification = {
@@ -159,10 +161,10 @@ const fullUpdateCash = async (payload) => {
       return { success: false, error: "TenantId is required" };
     }
 
-    if (!Array.isArray(itinerary) || itinerary.length === 0) {
-      console.error("Itinerary is missing or invalid in travelRequestData");
-      return { success: false, error: "Itinerary is required" };
-    }
+    // if (!Array.isArray(itinerary) || itinerary.length === 0) {
+    //   console.error("Itinerary is missing or invalid in travelRequestData");
+    //   return { success: false, error: "Itinerary is required" };
+    // }
 
     // Calculate trip start date
     let tripStartDate;

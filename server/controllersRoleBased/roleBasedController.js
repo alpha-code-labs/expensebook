@@ -183,7 +183,7 @@ const getEmployeeRoles = async (tenantId, empId) => {
   // console.log("tenantId type", typeof tenantId)
   const hrDocument = await HRMaster.findOne({
     tenantId,
-    "employees.employeeDetails.employeeId": empId,
+    // "employees.employeeDetails.employeeId": empId,
   });
   if (!hrDocument) {
     throw new Error("HR document not found");
