@@ -64,7 +64,8 @@ export const handleCashAdvance = ( {travelRequestId, cashAdvanceId, action}) => 
   else {
     throw new Error('Invalid action');
   }
-  urlRedirection(url);
+  return url; 
+  //urlRedirection(url);
 };
 
 
@@ -86,6 +87,9 @@ export const handleTravelExpense=({tenantId,empId,tripId,expenseHeaderId,action}
     }
     else if (action=="trip-ex-rejected"){
         url=expenseRoutes.clearRejected.getUrl({tenantId,empId,tripId,expenseHeaderId})
+    }
+    else if (action=="trip-ex-delete"){
+        url=expenseRoutes.delete.getUrl({tenantId,empId,tripId,expenseHeaderId})
     }
     else {
       throw new Error('Invalid action');

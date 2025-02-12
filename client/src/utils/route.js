@@ -117,6 +117,10 @@ export const expenseRoutes={
     path:'/tr-ex-clear-rejected/:tenantId/:empId/:tripId/:expenseHeaderId',
     getUrl:({tenantId,empId,tripId,expenseHeaderId})=>`${expenseBaseUrl}/${tenantId}/${empId}/${tripId}/rejected/${expenseHeaderId}`
   },
+  delete:{
+    path:'/tr-ex-clear-rejected/:tenantId/:empId/:tripId/:expenseHeaderId',
+    getUrl:({tenantId,empId,tripId,expenseHeaderId})=>`${expenseBaseUrl}/${tenantId}/${empId}/${tripId}/delete/${expenseHeaderId}`
+  },
   
 }
 

@@ -43,8 +43,9 @@ const TripMS = ({ visible, setVisible, src }) => {
             variants={modalVariants}
             transition={{ type: 'spring', stiffness: 100, damping: 20, duration: 0.5 }}
           >
+            {/* ;setVisible({tripVisible:false}) */}
             <div
-              onClick={() => {setVisible(false);setVisible({tripVisible:false})}}
+              onClick={() => {setVisible(false)}}
               className="w-fit bg-red-100 z-10 top-2 right-4 absolute cursor-pointer rounded-full border border-white"
             >
               <img src={cancel} className="w-5 h-5" alt="Cancel icon" />
