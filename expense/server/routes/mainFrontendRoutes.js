@@ -4,7 +4,7 @@ import { travelExpenseReport } from './travelExpenseRoutes.js';
 import { reimbursementRoutes } from './reimbursementRoutes.js';
 // import { handleFileUpload, uploadMiddleware } from '../ocr/azure.js';
 import { onSaveAsDraftExpenseHeader } from '../controller/expenseController.js';
-import { handleFileUpload, uploadMiddleware } from '../ocr/openAI.js';
+import { handleFileUpload, uploadMiddleware } from '../ocr/openAi.js';
 // import { uploadMiddleware, handleFileUpload } from "./controllers/fileUploadController.js";
 
 export const mainFrontendRoutes = express.Router();

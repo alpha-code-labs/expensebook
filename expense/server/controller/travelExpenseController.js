@@ -340,6 +340,7 @@ const allExpenseReports = async (expenseReport) => {
         .every((report) => validStatuses.includes(report.expenseHeaderStatus));
 
       if (areAllExpenseReportsPaid) {
+        //There is no expense report that is in draft or pending approval status.. so create a new one
         const expenseHeaderNumber = await getExpenseHeaderNumber(tenantName);
         let newExpenseHeaderId = new mongoose.Types.ObjectId();
         flagToOpen = newExpenseHeaderId;
@@ -402,6 +403,7 @@ const employeeSchema = Joi.object({
 // Create a new Expense Report
 export const BookExpense = async (req, res) => {
   try {
+    console.log("BookExpense called");
     const { error, value } = employeeSchema.validate(req.params);
     if (error) return res.status(404).json(error.details[0].message);
 
@@ -466,6 +468,10 @@ export const BookExpense = async (req, res) => {
       name,
     }));
 
+    console.log("expenseReport found ??? ", expenseReport?.travelExpenseData?.length??null);
+    console.log("expenseHeaderNumber found ??? ", expenseHeaderNumber);
+
+    //if expenseHeaderNumber is available i.e expense report is created before
     if (expenseHeaderNumber) {
       const allExpenseReportsList = await allExpenseReports(expenseReport);
       let { entireExpenseReport, flagToOpen } = allExpenseReportsList;
@@ -484,9 +490,12 @@ export const BookExpense = async (req, res) => {
         travelExpenseData,
         companyDetails: getHRData,
       });
-    } else {
+    } 
+    //if no expenseHeaderNumber i.e no expense report is created
+    else {
       const getNumber = await getExpenseHeaderNumber(tenantName);
-      expenseReport.travelExpenseData.expenseHeaderNumber = getNumber;
+      //expenseReport.travelExpenseData.expenseHeaderNumber = getNumber;
+      const expenseHeaderNumber = getNumber;
       const isCashAdvanceTaken =
         expenseReport.travelRequestData?.isCashAdvanceTaken;
       const alreadyBookedExpenseLines =
