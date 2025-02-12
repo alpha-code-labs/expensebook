@@ -487,7 +487,7 @@ export default function BasicDetails({ onBoardingData, formData, setFormData }) 
                     </div>
                     
                     <div className='mt-8'>
-                        <CommentBox title='Trip Purpos Description' onchange={handleDescriptionChange} value={formData.tripPurposeDescription} error={errors.tripPurposeDescriptionError} />
+                        <CommentBox title='Trip Purpose Description' onchange={handleDescriptionChange} value={formData.tripPurposeDescription} error={errors.tripPurposeDescriptionError} />
                     </div>
                     
 

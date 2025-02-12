@@ -1,0 +1,22 @@
+location: centralindia
+name: cash-server-test
+properties:
+  configuration:
+    activeRevisionsMode: Single
+    ingress:
+      allowInsecure: true
+      external: true
+      targetPort: 8004
+      transport: Auto
+  managedEnvironmentId: /subscriptions/0d9f4960-b392-4b50-8be6-8f66ac609882/resourceGroups/expense-book-test/providers/Microsoft.App/managedEnvironments/expense-book-test-environment
+  template:
+    containers:
+    - image: docker.io/aj204/cash-server-test:latest
+      name: cash-server-test
+      resources:
+        cpu: .25
+        memory: .5Gi
+    scale:
+      maxReplicas: 1
+      minReplicas: 1
+type: Microsoft.App/containerApps

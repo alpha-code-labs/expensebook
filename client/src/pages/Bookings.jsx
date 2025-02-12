@@ -187,6 +187,7 @@ export default function () {
   }
 
   const handleFieldValueChange = (toSet, id, e)=>{  
+    console.log(e.target.value, "value of the change");
     console.log(toSet, id, e.target.value)
     console.log(addTicketVariables)
     const _toSet = addTicketVariables.toSet
@@ -1093,7 +1094,7 @@ function AddTicketManually(
                                             title={field.name} 
                                             value={
                                                 field.toSet == field.id ? itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet] ? itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet] : itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet.split('_')[1]]  : itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet].billDetails?.[field.id]} 
-                                            onChange={(e)=>handleFieldValueChange(field.toSet, field.id, e)} />
+                                            onChange={(e)=>{handleFieldValueChange(field.toSet, field.id, e)}} />
                                     </div>)
 
                     case 'date' : return( (field.toSet != 'bkd_returnDate' || addTicketVariables.toSet != 'cabs' ||   itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex].isFullDayCab) &&
@@ -1112,7 +1113,7 @@ function AddTicketManually(
                                         className="w-full h-full decoration:none px-6 py-2 border rounded-md border border-neutral-300 focus-visible:outline-0 focus-visible:border-indigo-600 "
                                         name={field.name} 
                                         value={itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet] ? formattedDate(itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet]) : formattedDate(itinerary[addTicketVariables.toSet][addTicketVariables.itemIndex][field.toSet.split('_')[1]])}
-                                        onChange={(e)=>handleFieldValueChange(field.toSet, field.id, e)} />
+                                        onChange={(e)=> {console.log(e.target.value, "onchange e value");  handleFieldValueChange(field.toSet, field.id, e) } } />
                                     </div>
                                 </div>
                             </div>
@@ -1518,13 +1519,14 @@ function AddScannedTicket(
 }
 
 function isoString(dateString){
+    return dateString;
 console.log('receivedDate', dateString)
 if(dateString==null || dateString == undefined) return ''
 // Convert string to Date object
 const dateObject = new Date(dateString);
 // Convert Date object back to ISO string
 const isoDateString = dateObject.toDateString();
-console.log(isoDateString);
+console.log(isoDateString, "isoDatestring");
 return isoDateString
 }
 
@@ -1541,6 +1543,7 @@ function getDateXDaysAway(days) {
   }
 
 function formattedDate(date){
+    return date;
     const givenDate = new Date(date);
     const day = String(givenDate.getDate()).padStart(2,'0');
     const month = String(givenDate.getMonth()).padStart(2,'0');

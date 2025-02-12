@@ -95,8 +95,8 @@ export const getResult = async (resultId, category,res) => {
     switch(category){
       case 'flights' : { 
         fieldsString = `
-        from : (value should be departure city), 
-        to: ( value should be arrival city), 
+        from : (value should be departure city, provid full name), 
+        to: ( value should be arrival city, provid full name), 
         time (departure time in 24h format), 
         date: (value should be date of flight YYYY-MM-DD format), 
         vendorName: (value should be name of the vendor), 
@@ -106,8 +106,8 @@ export const getResult = async (resultId, category,res) => {
       }
       case 'trains' : { 
         fieldsString = `
-        from : (value should be departure city), 
-        to: ( value should be arrival city), 
+        from : (value should be departure city, provid full name), 
+        to: ( value should be arrival city, provid full name), 
         time (departure time in 24h format), 
         date: (value should be date of flight YYYY-MM-DD format), 
         vendorName: (value should be name of the vendor), 
@@ -117,8 +117,8 @@ export const getResult = async (resultId, category,res) => {
       }
       case 'buses' : { 
         fieldsString = `
-        from : (value should be departure city), 
-        to: ( value should be arrival city), 
+        from : (value should be departure city, provid full name), 
+        to: ( value should be arrival city, provid full name), 
         time: (departure time in 24h format), 
         date: (value should be date of flight YYYY-MM-DD format), 
         vendorName: (value should be name of the vendor), 

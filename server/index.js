@@ -21,6 +21,9 @@ app.use(express.json())
 app.use(cors())
 
 app.use('/cash-advance/api', frontendRoutes) //cashAdvanceRoutes
+app.use("/test", (req, res) => {
+  res.send("Hello World");
+})
 
 async function connectToMongoDB() {
   try {
@@ -40,4 +43,4 @@ await startConsumer('cash')
 
 batchJobApprovedToNextTravel();
 batchJobApprovedToNextCash();
-// batchJobCreateTrip();
+batchJobCreateTrip();
