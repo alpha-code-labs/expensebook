@@ -208,9 +208,9 @@ export function updateExpenseLineStatus(expenseLines, approve = [], reject = [],
 async function getExpenseReport(tenantId,empId,tripId,expenseHeaderId){
     try{
       const expenseReport = await Approval.findOne({
-        tenantId,
-        tripId,
-        'travelExpenseData':{
+        'tripSchema.tenantId':tenantId,
+        'tripSchema.tripId': tripId,
+        'tripSchema.travelExpenseData':{
          $elemMatch:{
            'expenseHeaderId':expenseHeaderId,
            'approvers':{
@@ -232,7 +232,6 @@ async function getExpenseReport(tenantId,empId,tripId,expenseHeaderId){
     }
 }
 
-
 export const expenseReportApproval = async (payload) => {
     const { tenantId,tripId, expenseHeaderId, approve, empId,
         reject,  rejectionReason,} = payload;
@@ -241,9 +240,10 @@ export const expenseReportApproval = async (payload) => {
 
     try {
         const approvalDocument = await getExpenseReport(tenantId,empId,tripId,expenseHeaderId)
+        console.log("approvalDocument --", approvalDocument.travelExpenseData);
 
         if(approvalDocument){
-            const { travelExpenseData} = approvalDocument
+            const { travelExpenseData } = approvalDocument.tripSchema;
             const expenseReportFound = travelExpenseData.find(expense => expense.expenseHeaderId.toString() == expenseHeaderId);
        
            //  console.log("valid expenseReport", expenseReportFound);
