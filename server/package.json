@@ -1,0 +1,36 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "dashboard server",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "nodemon index.js",
+    "tests": "mocha"
+  },
+  "author": "sumesh k.s",
+  "license": "ISC",
+  "dependencies": {
+    "amqplib": "^0.10.3",
+    "axios": "^1.6.2",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "debug": "^4.3.4",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "joi": "^17.13.3",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.0.3",
+    "pino": "^8.17.2",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.23.6",
+    "@babel/preset-env": "^7.23.6",
+    "@babel/register": "^7.22.15",
+    "mocha": "^10.2.0",
+    "node-cron": "^3.0.3",
+    "nodemon": "^3.0.2",
+    "pino-pretty": "^10.3.1"
+  }
+}

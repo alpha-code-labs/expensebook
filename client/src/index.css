@@ -1,0 +1,60 @@
+@import url('https://fonts.googleapis.com/css2?family=Cabin&family=Inter&family=Montserrat:wght@200&family=Palanquin:wght@100&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply leading-[normal] m-0;
+}
+*,
+::before,
+::after {
+  border-width: 0;
+}
+
+/* width */
+::-webkit-scrollbar {
+  width: 4px; /* Adjust the width to make it thin */
+  height: 4px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: #d9dadb;
+  border-radius: 5px;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #f1f1f1;
+}
+
+/* Hide scrollbar */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+
+
+
+.header-title {
+  @apply font-medium text-xs font-cabin text-neutral-400;
+}
+
+.header-text {
+  @apply font-medium text-xs font-cabin text-neutral-700;
+}
+
+.action-hover {
+  @apply hover:shadow-md hover:shadow-green-200/60 transition duration-300;
+}
+
+
