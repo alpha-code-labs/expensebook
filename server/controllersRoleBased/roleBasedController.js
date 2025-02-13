@@ -2377,7 +2377,7 @@ const approvalsForManager = async (tenantId, empId) => {
                 );
               })
               .map((expense) => {
-                const { tripName } = approval.travelRequestSchema;
+                const { tripName } = approval.tripSchema.travelRequestData;
                 const { tripId, tripNumber, tripStatus, tripStartDate } = approval.tripSchema;
                 const { tripPurpose, createdBy } = approval.tripSchema.travelRequestData;
                 const {
