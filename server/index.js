@@ -56,4 +56,4 @@ async function connectToMongoDB() {
 }
 
 await connectToMongoDB();
-// await startConsumer('login');
+await startConsumer('login');
