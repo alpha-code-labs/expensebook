@@ -4,7 +4,7 @@ import dotenv from 'dotenv'
 dotenv.config()
 
 const jwtSecret = process.env.JWT_SECRET
-console.log({jwtSecret})
+//console.log({jwtSecret})
 
 const verifyJwt = (req, res, next) => {
     const token = req.cookies.authToken;

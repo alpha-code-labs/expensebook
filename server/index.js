@@ -21,10 +21,6 @@ import {
 const environment = process.env.NODE_ENV == "production" ? ".env.prod" : ".env";
 dotenv.config({ path: environment });
 
-const allowedOrigins = JSON.parse(process.env.ALLOWED_ORIGINS);
-const jwtSecret = process.env.JWT_SECRET;
-console.log({ allowedOrigins });
-console.log(`Running in ${environment} environment`);
 const port = process.env.PORT || 8088;
 
 const app = express();
