@@ -8,7 +8,7 @@ dotenv.config()
 //start consuming messages..
 export default async function startConsumer(receiver) {
     try{
-        const rabbitMQUrl = process.env.NODE_ENV == 'production' ? process.env.RBMQ_PROD_URL : process.env.RBMQ_URL;
+        const rabbitMQUrl = process.env.NODE_ENV == 'production' ? process.env.rabbitMQUrl : process.env.RBMQ_URL;
     
         const connectToRabbitMQ = async () => {
           try {

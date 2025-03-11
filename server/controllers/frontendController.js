@@ -2238,6 +2238,7 @@ const onboardingCompleted = async (req, res) => {
 
     //check current status of onboarding
     const tenant = await HRCompany.findOne({tenantId})
+    console.log(tenant.onboardingCompleted, 'onboarding status');
     const onboarder = tenant.onboarder;
 
     if(!tenant){
@@ -2245,7 +2246,8 @@ const onboardingCompleted = async (req, res) => {
     }
 
     if(tenant.onboardingCompleted){
-      return res.status(405).json({message: 'You are onboarded'})
+      //return res.status(405).json({message: 'You are onboarded'});
+      return res.status(200).json({message: 'email sent to employees'});
     }
 
     tenant.onboardingCompleted = true;
@@ -2280,18 +2282,29 @@ const onboardingCompleted = async (req, res) => {
     // }
 
     //send update to other microservices
-    //const response = await sendToDashboardQueue(tenant, true, 'online')
+    const response = await sendToDashboardQueue(tenant, true, 'online')
     await sendToOtherMicroservice(tenant, 'This is to update hrMaster data in dashboard', 'dashboard', 'onboarding', 'online')
+    console.log("sent to dashboard");
     await sendToOtherMicroservice(tenant, 'This is to update hrMaster data in travel', 'travel', 'onboarding', 'online')
+    console.log("sent to travel");
     await sendToOtherMicroservice(tenant, 'This is to update hrMaster data in cash', 'cash', 'onboarding', 'online')
+    console.log("sent to cash");
     await sendToOtherMicroservice(tenant, 'This is to update hrMaster data in trip', 'trip', 'onboarding', 'online')
+    console.log("sent to trip");
     await sendToOtherMicroservice(tenant, 'This is to update hrMaster data in expense', 'expense', 'onboarding', 'online')
+    console.log("sent to expense");
     await sendToOtherMicroservice(tenant, 'This is to update hrMaster data in approval', 'approval', 'onboarding', 'online')
+    console.log("sent to approval");
     await sendToOtherMicroservice(tenant, 'This is to update hrMaster data in finance', 'finance', 'onboarding', 'online')
+    console.log("sent to finance");
     await sendToOtherMicroservice(tenant, 'This is to update hrMaster data in system configuration', 'system-config', 'onboarding', 'online')
+    console.log("sent to system-config");
     await sendToOtherMicroservice(tenant, 'This is to update hrMaster data in login logout microservice', 'login', 'onboarding', 'online')
+    
     await sendToOtherMicroservice(tenant, 'This is to update hrMaster data in login logout microservice', 'finance', 'onboarding', 'online')
+    console.log("sent to finance");
     await sendToOtherMicroservice(tenant, 'This is to update hrMaster data in login logout microservice', 'reporting', 'onboarding', 'online')
+    console.log("sent to reporting");
 
 
     //send additional data to logoin microservice
