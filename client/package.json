@@ -1,0 +1,37 @@
+{
+  "name": "client",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --port 7008",
+    "build": "vite build",
+    "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@azure/identity": "^1.0.3",
+    "@azure/storage-blob": "^12.23.0",
+    "axios": "^1.6.2",
+    "framer-motion": "^11.2.12",
+    "moment": "^2.30.1",
+    "react": "^18.2.0",
+    "react-circle-flags": "^0.0.20",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.17.0",
+    "react-tilt": "^1.0.2"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.15",
+    "@types/react-dom": "^18.2.7",
+    "@vitejs/plugin-react": "^4.0.3",
+    "autoprefixer": "^10.4.18",
+    "eslint": "^8.45.0",
+    "eslint-plugin-react": "^7.32.2",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-react-refresh": "^0.4.3",
+    "postcss": "^8.4.35",
+    "tailwindcss": "^3.4.1",
+    "vite": "^4.4.5"
+  }
+}
